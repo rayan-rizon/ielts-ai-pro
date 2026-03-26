@@ -33,3 +33,4 @@ supabase/backups/*.dump
 # Archived migrations (kept for reference, not needed for app)
 supabase/migrations/archive/
 .vercel
+.smart-coding-cache/
