@@ -1,0 +1,68 @@
+{
+  "ci": {
+    "collect": {
+      "numberOfRuns": 3,
+      "url": ["http://localhost:4173/"],
+      "settings": {
+        "chromeFlags": "--headless=new --no-sandbox --disable-dev-shm-usage",
+        "budgets": [
+          {
+            "path": "/*",
+            "resourceSizes": [
+              {
+                "resourceType": "script",
+                "budget": 300
+              },
+              {
+                "resourceType": "stylesheet",
+                "budget": 30
+              }
+            ],
+            "timings": [
+              {
+                "metric": "largest-contentful-paint",
+                "budget": 2500
+              },
+              {
+                "metric": "total-blocking-time",
+                "budget": 150
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": [
+          "warn",
+          {
+            "minScore": 0.9
+          }
+        ],
+        "largest-contentful-paint": [
+          "warn",
+          {
+            "maxNumericValue": 2500
+          }
+        ],
+        "total-blocking-time": [
+          "warn",
+          {
+            "maxNumericValue": 150
+          }
+        ],
+        "cumulative-layout-shift": [
+          "warn",
+          {
+            "maxNumericValue": 0.1
+          }
+        ]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": ".lighthouse/lhci"
+    }
+  }
+}

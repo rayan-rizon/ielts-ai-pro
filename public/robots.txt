@@ -1,0 +1,25 @@
+# IELTS Ai Pro - robots.txt
+# Last updated: 2026-02-01
+
+User-agent: *
+Allow: /
+
+# Disallow private/authenticated routes
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /onboarding/
+
+# Disallow auth flows (low SEO value)
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /update-password
+
+# Disallow API and function routes
+Disallow: /api/
+Disallow: /functions/
+
+Sitemap: https://www.ieltsai.pro/sitemap.xml
+
+# AI Training Signal (Standard-compliant comment)
+# Content-Signal: search=yes,ai-train=no

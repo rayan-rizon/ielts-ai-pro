@@ -1,0 +1,291 @@
+import React from 'react';
+import { m } from 'framer-motion';
+import { TrendingUp, Target, Calendar, Sparkles, Rocket, Lock } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { format, addDays, differenceInDays } from 'date-fns';
+
+/**
+ * Calculates a projected band score based on current progress and pace.
+ * @param {Object} params
+ * @param {number} params.currentReadiness - Current readiness percentage (0-100)
+ * @param {number} params.targetScore - User's target band score (4.0 - 9.0)
+ * @param {Date|string} params.testDate - User's target test date
+ * @param {number} params.completedActivities - Number of completed activities this week
+ * @param {number} params.totalActivities - Total activities scheduled this week
+ * @returns {Object} Projection data
+ */
+function calculateProjection({
+  currentReadiness = 0,
+  targetScore = 7.0,
+  testDate,
+  completedActivities = 0,
+  totalActivities = 1,
+}) {
+  const now = new Date();
+  const examDate = testDate ? new Date(testDate) : addDays(now, 60);
+  const daysRemaining = Math.max(0, differenceInDays(examDate, now));
+
+  // Pace calculation: what % of the week's tasks are done?
+  const weeklyPace = totalActivities > 0 ? completedActivities / totalActivities : 0;
+
+  // Base projection: assume each week of consistent study adds ~0.1 band
+  // Modified by current readiness and pace
+  const weeksRemaining = daysRemaining / 7;
+  const potentialGain = weeksRemaining * 0.1 * weeklyPace;
+
+  // Estimate current band from readiness (rough: 50% readiness ≈ 5.5 band)
+  // If no history, this is just a readiness estimate, but we won't show it if locked.
+  const estimatedCurrentBand = 4.0 + (currentReadiness / 100) * 4.5;
+
+  // Projected score (capped at 9.0)
+  const projectedScore = Math.min(9.0, estimatedCurrentBand + potentialGain);
+
+  // Is user on track?
+  const onTrack = projectedScore >= targetScore;
+
+  // How many extra hours/week needed if not on track?
+  const deficit = targetScore - projectedScore;
+  const extraHoursNeeded = deficit > 0 ? Math.ceil(deficit * 5) : 0;
+
+  return {
+    projectedScore: Math.round(projectedScore * 10) / 10,
+    estimatedCurrentBand: Math.round(estimatedCurrentBand * 10) / 10,
+    daysRemaining,
+    weeksRemaining: Math.round(weeksRemaining),
+    weeklyPace: Math.round(weeklyPace * 100),
+    onTrack,
+    extraHoursNeeded,
+    projectedDate: examDate,
+  };
+}
+
+export default function ProgressForecast({
+  currentReadiness,
+  targetScore,
+  testDate,
+  completedActivities,
+  totalActivities,
+  className,
+  hasHistory = true,
+}) {
+  const projection = calculateProjection({
+    currentReadiness,
+    targetScore,
+    testDate,
+    completedActivities,
+    totalActivities,
+  });
+
+  if (!hasHistory) {
+    return (
+      <m.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={cn(
+          'relative rounded-3xl p-6 sm:p-8 overflow-hidden h-full flex flex-col',
+          'bg-white/90 dark:bg-zinc-900/80 backdrop-blur-2xl',
+          'border border-indigo-100 dark:border-indigo-500/20',
+          'shadow-xl shadow-indigo-500/10',
+          className
+        )}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+              <Lock className="w-4 h-4 text-slate-400" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-zinc-900 dark:text-white">Score Forecast</h3>
+              <p className="text-[10px] text-zinc-500 dark:text-zinc-400">AI prediction</p>
+            </div>
+          </div>
+          <div className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+            Needs Data
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3 py-4">
+          <div className="w-16 h-16 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mb-2">
+            <Sparkles className="w-8 h-8 text-indigo-300 dark:text-indigo-400/50" />
+          </div>
+          <h4 className="text-sm font-bold text-slate-900 dark:text-white">Prediction Locked</h4>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px] leading-relaxed">
+            Take your first test to unlock your AI score projection and completion date.
+          </p>
+        </div>
+      </m.div>
+    );
+  }
+
+  return (
+    <m.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        'relative rounded-3xl p-6 sm:p-8 overflow-hidden',
+        'bg-white/90 dark:bg-zinc-900/80 backdrop-blur-2xl', // Glass base
+        'border border-indigo-100 dark:border-indigo-500/20', // Subtle tint border
+        'shadow-xl shadow-indigo-500/10',
+        className
+      )}
+      data-oid="f1rz38b"
+    >
+      {/* Background decoration - matching the page's premium feel */}
+      <div
+        className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"
+        data-oid=".n-zpb8"
+      />
+
+      <div
+        className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-pink-500/10 to-transparent rounded-full blur-2xl -ml-12 -mb-12 pointer-events-none"
+        data-oid="ogkh:x4"
+      />
+
+      <div className="relative z-10" data-oid="7qe348p">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4" data-oid="5_:7dh_">
+          <div className="flex items-center gap-2" data-oid="h7sui80">
+            <div
+              className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30"
+              data-oid="6nq2y-8"
+            >
+              <Rocket className="w-4 h-4 text-white" data-oid="ehpg49u" />
+            </div>
+            <div data-oid="t728set">
+              <h3 className="text-sm font-black text-zinc-900 dark:text-white" data-oid="7h6eslq">
+                Score Forecast
+              </h3>
+              <p className="text-[10px] text-zinc-500 dark:text-zinc-400" data-oid="66dq6g0">
+                AI prediction
+              </p>
+            </div>
+          </div>
+          <div
+            className={cn(
+              'px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider',
+              projection.onTrack
+                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+            )}
+            data-oid="8rr6mjc"
+          >
+            {projection.onTrack ? '✓ On Track' : '⚡ Push Harder'}
+          </div>
+        </div>
+
+        {/* Main projection */}
+        <div className="flex items-end gap-6 mb-4" data-oid="2bxv9bq">
+          <div className="flex-1" data-oid="em13mqp">
+            <div
+              className="text-[10px] text-zinc-500 dark:text-zinc-400 uppercase tracking-widest font-bold mb-1"
+              data-oid="fctthaz"
+            >
+              Projected Score
+            </div>
+            <div className="flex items-baseline gap-2" data-oid="496cghf">
+              <span
+                className="text-4xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent"
+                data-oid="95z1xi2"
+              >
+                {projection.projectedScore.toFixed(1)}
+              </span>
+              <span className="text-sm font-bold text-zinc-400" data-oid="o7pdrmb">
+                / 9.0
+              </span>
+            </div>
+          </div>
+
+          <div className="text-right" data-oid="566vyb6">
+            <div
+              className="text-[10px] text-zinc-500 dark:text-zinc-400 uppercase tracking-widest font-bold mb-1"
+              data-oid="vc9deu0"
+            >
+              Target
+            </div>
+            <div className="flex items-center gap-1" data-oid="tfybckr">
+              <Target className="w-4 h-4 text-purple-500" data-oid="5iy1ta_" />
+              <span
+                className="text-xl font-black text-zinc-700 dark:text-zinc-300"
+                data-oid="epbaucq"
+              >
+                {targetScore?.toFixed(1) || '7.0'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-3" data-oid="acktm14">
+          <div
+            className="bg-white/60 dark:bg-zinc-900/40 rounded-xl p-3 text-center"
+            data-oid="g8ldzsj"
+          >
+            <Calendar className="w-4 h-4 text-indigo-500 mx-auto mb-1" data-oid=":q2d0lz" />
+            <div className="text-lg font-black text-zinc-900 dark:text-white" data-oid="g73qfzh">
+              {projection.daysRemaining}
+            </div>
+            <div
+              className="text-[9px] text-zinc-500 uppercase tracking-wider font-bold"
+              data-oid=":gsf330"
+            >
+              Days Left
+            </div>
+          </div>
+
+          <div
+            className="bg-white/60 dark:bg-zinc-900/40 rounded-xl p-3 text-center"
+            data-oid="9ta8mwr"
+          >
+            <TrendingUp className="w-4 h-4 text-emerald-500 mx-auto mb-1" data-oid="cf3zwdw" />
+            <div className="text-lg font-black text-zinc-900 dark:text-white" data-oid="3iyljyb">
+              {projection.weeklyPace}%
+            </div>
+            <div
+              className="text-[9px] text-zinc-500 uppercase tracking-wider font-bold"
+              data-oid="g09hyc5"
+            >
+              Weekly Pace
+            </div>
+          </div>
+
+          <div
+            className="bg-white/60 dark:bg-zinc-900/40 rounded-xl p-3 text-center"
+            data-oid="onv0iou"
+          >
+            <Sparkles className="w-4 h-4 text-purple-500 mx-auto mb-1" data-oid="138fm5o" />
+            <div className="text-lg font-black text-zinc-900 dark:text-white" data-oid="-5so1pz">
+              {projection.estimatedCurrentBand.toFixed(1)}
+            </div>
+            <div
+              className="text-[9px] text-zinc-500 uppercase tracking-wider font-bold"
+              data-oid=".nq_o0s"
+            >
+              Est. Now
+            </div>
+          </div>
+        </div>
+
+        {/* Tip if not on track */}
+        {!projection.onTrack && projection.extraHoursNeeded > 0 && (
+          <m.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="mt-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30"
+            data-oid=".t-dz3a"
+          >
+            <p
+              className="text-xs text-amber-800 dark:text-amber-300 font-medium"
+              data-oid="nrjp6ty"
+            >
+              💡 Add{' '}
+              <span className="font-black" data-oid=".nk0.h3">
+                {projection.extraHoursNeeded}+ hours/week
+              </span>{' '}
+              to reach your target of {targetScore?.toFixed(1)}.
+            </p>
+          </m.div>
+        )}
+      </div>
+    </m.div>
+  );
+}

@@ -1,0 +1,1045 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import {
+  TrendingUp,
+  Target,
+  Zap,
+  Timer,
+  AlertTriangle,
+  Activity,
+  Sparkles,
+  Gauge,
+  ArrowRight,
+  ChevronRight,
+  Star,
+  Lock,
+} from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { cn } from '@/lib/utils';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ITEM_VARIANTS } from '../constants';
+import { formatBand } from '../utils';
+import EmptyAnalyticsState from './EmptyAnalyticsState';
+
+// --- SUB-COMPONENTS ---
+
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  const val = payload?.[0]?.value;
+  return (
+    <div
+      className="rounded-2xl border border-border/70 bg-card/95 backdrop-blur-xl px-4 py-3 shadow-2xl border-opacity-50 min-w-[140px]"
+      data-oid="qdrn1w5"
+    >
+      <div
+        className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1"
+        data-oid="05wp2d7"
+      >
+        {label}
+      </div>
+      <div className="flex items-baseline gap-1" data-oid=":880-cr">
+        <span className="text-xl font-black text-foreground" data-oid="dgefpjn">
+          {formatBand(val)}
+        </span>
+        <span className="text-[10px] font-bold text-muted-foreground uppercase" data-oid="wfhq1l6">
+          Band Score
+        </span>
+      </div>
+    </div>
+  );
+}
+
+const UniversalRadar = React.memo(function UniversalRadar({ data, name, color = 'primary' }) {
+  const hasData = data && data.length > 0;
+
+  return (
+    <div className="h-full w-full group/radar relative" data-oid="t0z754t">
+      {!hasData && (
+        <div className="absolute inset-0 flex items-center justify-center z-10" data-oid="rs:jonf">
+          <Badge
+            className="bg-background/80 backdrop-blur-md border-border/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-4 py-1.5 rounded-xl shadow-xl"
+            data-oid="5wl8q_3"
+          >
+            Awaiting Test Results
+          </Badge>
+        </div>
+      )}
+      <ResponsiveContainer width="100%" height="100%" data-oid="zvgf8rl">
+        <RadarChart
+          cx="50%"
+          cy="50%"
+          outerRadius="72%"
+          margin={{ top: 10, right: 25, bottom: 10, left: 25 }}
+          data={
+            hasData
+              ? data
+              : [
+                  { subject: 'Reading', A: 0 },
+                  { subject: 'Writing', A: 0 },
+                  { subject: 'Listening', A: 0 },
+                  { subject: 'Speaking', A: 0 },
+                ]
+          }
+          className={cn(
+            'transition-all duration-1000',
+            !hasData && 'opacity-20 grayscale blur-[2px]'
+          )}
+          data-oid="t_kyv25"
+        >
+          <defs data-oid="6-.jt-:">
+            <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1" data-oid="zr1lx3h">
+              <stop
+                offset="5%"
+                stopColor={`hsl(var(--${color}))`}
+                stopOpacity={0.6}
+                data-oid="bfxqww5"
+              />
+
+              <stop
+                offset="95%"
+                stopColor={`hsl(var(--${color}))`}
+                stopOpacity={0.1}
+                data-oid="1qrlf82"
+              />
+            </linearGradient>
+          </defs>
+          <PolarGrid stroke="hsl(var(--border))" opacity={0.3} data-oid=":ii.j3k" />
+          <PolarAngleAxis
+            dataKey="subject"
+            tick={{
+              fill: 'hsl(var(--muted-foreground))',
+              fontSize: 8,
+              fontWeight: 900,
+              textTransform: 'uppercase',
+            }}
+            data-oid=":3wln1i"
+          />
+
+          <PolarRadiusAxis
+            angle={30}
+            domain={[0, 9]}
+            tick={false}
+            axisLine={false}
+            data-oid="misbqjk"
+          />
+
+          {hasData && (
+            <Radar
+              name={name}
+              dataKey="A"
+              stroke={`hsl(var(--${color}))`}
+              fill="url(#radarGradient)"
+              fillOpacity={1}
+              strokeWidth={3}
+              dot={{
+                r: 3,
+                fill: `hsl(var(--${color}))`,
+                strokeWidth: 2,
+                stroke: 'hsl(var(--background))',
+              }}
+              className="transition-all duration-500 hover:fill-opacity-80"
+              animationBegin={0}
+              animationDuration={1500}
+              data-oid="m8bcq-0"
+            />
+          )}
+          {hasData && <Tooltip content={<CustomTooltip data-oid="ctzx0i0" />} data-oid="pl-riae" />}
+        </RadarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+});
+
+const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
+  if (!data || !data.length)
+    return (
+      <EmptyAnalyticsState
+        icon={Target}
+        title="Accuracy Breakdown"
+        description="Submit tests with feedback to see your precision breakdown across question types."
+        className="py-12"
+        data-oid="hzugqsx"
+      />
+    );
+
+  return (
+    <div className="space-y-2 mt-2" data-oid="t9.c66m">
+      {data.map((item, idx) => (
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: idx * 0.05 }}
+          className="group relative rounded-xl border border-border/30 bg-background/30 p-2.5 hover:bg-background/50 transition-all border-opacity-40"
+          data-oid="qpfmnea"
+        >
+          <div className="flex items-center justify-between mb-1.5 px-0.5" data-oid="d:oa..r">
+            <div className="flex items-center gap-2 min-w-0" data-oid="::ydhmk">
+              <div
+                className={cn(
+                  'w-1.5 h-1.5 rounded-full shrink-0',
+                  item.accuracy >= 70
+                    ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]'
+                    : item.accuracy >= 50
+                      ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
+                      : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]'
+                )}
+                data-oid="ozi547e"
+              />
+
+              <span
+                className="text-[12px] font-black text-foreground truncate tracking-tight"
+                data-oid="32-hpvy"
+              >
+                {item.type}
+              </span>
+            </div>
+            <span
+              className={cn(
+                'text-xs font-black',
+                item.accuracy >= 70
+                  ? 'text-emerald-500'
+                  : item.accuracy >= 50
+                    ? 'text-amber-500'
+                    : 'text-rose-500'
+              )}
+              data-oid="2-:-ndm"
+            >
+              {item.accuracy}%
+            </span>
+          </div>
+
+          <div
+            className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden mb-1.5"
+            data-oid="pwl9tjb"
+          >
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${item.accuracy}%` }}
+              className={cn(
+                'h-full rounded-full transition-all duration-1000',
+                item.accuracy >= 70
+                  ? 'bg-emerald-500'
+                  : item.accuracy >= 50
+                    ? 'bg-amber-500'
+                    : 'bg-rose-500'
+              )}
+              data-oid="vdpsru:"
+            />
+          </div>
+
+          <div className="flex items-center justify-between px-0.5 mt-1" data-oid="f7d3yd2">
+            <span
+              className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-[0.15em]"
+              data-oid="hm1trio"
+            >
+              Precision
+            </span>
+            <span className="text-[10px] font-black text-muted-foreground" data-oid="u5q:igr">
+              <span className="text-foreground" data-oid="67cswiw">
+                {item.correct}
+              </span>{' '}
+              / {item.total}
+            </span>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+});
+
+const LockedFeature = React.memo(function LockedFeature({
+  isLocked,
+  children,
+  className,
+  compact = false,
+}) {
+  if (!isLocked) return children;
+
+  return (
+    <div
+      className={cn('relative group/locked h-full overflow-hidden', className)}
+      data-oid="ks:eu.o"
+    >
+      <div
+        className="blur-[12px] select-none pointer-events-none opacity-25 transition-all duration-700 scale-[0.98]"
+        data-oid="-8_:k6d"
+      >
+        {children}
+      </div>
+      <div
+        className="absolute inset-0 flex items-center justify-center p-4 sm:p-6"
+        data-oid="ukiqp7l"
+      >
+        <div
+          className={cn(
+            'w-full rounded-[2rem] border border-amber-500/20 bg-background/40 backdrop-blur-3xl p-6 sm:p-8 shadow-[0_20px_50px_-12px_rgba(245,158,11,0.2)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] transform group-hover/locked:scale-[1.01] transition-all duration-500 ring-1 ring-white/10',
+            compact ? 'max-w-[280px] p-4 sm:p-5' : 'max-w-[340px]'
+          )}
+          data-oid="i5mz2xi"
+        >
+          <div className="flex flex-col items-center text-center gap-4" data-oid="do5kko:">
+            {!compact && (
+              <div
+                className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 text-white flex items-center justify-center shadow-xl shadow-amber-500/30 group-hover/locked:rotate-6 transition-transform duration-500"
+                data-oid="9gty6zb"
+              >
+                <Zap className="w-7 h-7 fill-white/20" data-oid="csyu73." />
+              </div>
+            )}
+
+            <div className={cn('space-y-1.5', compact ? 'text-sm' : '')} data-oid="82z7t_n">
+              <div
+                className={cn(
+                  'font-black text-foreground tracking-tight underline decoration-amber-500/30 decoration-4 underline-offset-4',
+                  compact ? 'text-lg' : 'text-xl'
+                )}
+                data-oid="i3-bqsx"
+              >
+                Unlock Pro Insights
+              </div>
+              <p
+                className="text-[11px] font-bold text-muted-foreground/80 leading-relaxed max-w-[240px]"
+                data-oid="xxx_xou"
+              >
+                Gain access to detailed progress patterns and hit your{' '}
+                <span
+                  className="text-amber-600 dark:text-amber-400 font-black italic"
+                  data-oid="pdsmy9k"
+                >
+                  9.0 Band
+                </span>{' '}
+                goal faster.
+              </p>
+            </div>
+
+            <Button
+              className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white border-0 font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-amber-500/25 h-10 group/btn"
+              data-oid="-c9-t9y"
+            >
+              Upgrade Now
+              <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
+            </Button>
+
+            {!compact && (
+              <div className="pt-2 flex flex-col items-center gap-2" data-oid="social">
+                <div className="flex -space-x-2" data-oid="avatars">
+                  {[1, 2, 3, 4].map((i) => (
+                    <Avatar
+                      key={i}
+                      className="w-6 h-6 border-2 border-background ring-1 ring-amber-500/10"
+                      data-oid={`av-${i}`}
+                    >
+                      <AvatarImage src={`https://i.pravatar.cc/100?u=${i + 10}`} />
+                      <AvatarFallback>U</AvatarFallback>
+                    </Avatar>
+                  ))}
+                  <div className="w-6 h-6 rounded-full bg-amber-500/10 flex items-center justify-center border-2 border-background text-[8px] font-black text-amber-600 ring-1 ring-amber-500/10">
+                    +2k
+                  </div>
+                </div>
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                  Join 2,500+ successful students
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// --- MAIN COMPONENT ---
+
+export default function PerformanceTrends({
+  stats,
+  radarData,
+  chartData,
+  isPremium,
+  activeTab,
+  setActiveTab,
+  tabs,
+  onTabKeyDown,
+  tabsRef,
+}) {
+  if (!stats || !chartData) return null;
+  return (
+    <div className="space-y-6 lg:space-y-8" data-oid="ez4903f">
+      {/* Performance Trends Chart */}
+      <motion.div variants={ITEM_VARIANTS} data-oid="7-3vqly">
+        <Card
+          className="rounded-2xl border-border/50 bg-card/75 backdrop-blur shadow-sm overflow-hidden hover:shadow-xl transition-all h-full"
+          data-oid="qr-cduw"
+        >
+          <CardHeader className="pb-3" data-oid="-j_:j6k">
+            <div
+              className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+              data-oid="snpr6cr"
+            >
+              <div className="space-y-1" data-oid="lg4-e5-">
+                <CardTitle
+                  className="text-xl font-black text-foreground flex items-center gap-2"
+                  data-oid="vjxe3b3"
+                >
+                  <Activity className="w-5 h-5 text-primary" data-oid="b3s4yyp" />
+                  Performance Trends
+                </CardTitle>
+                <CardDescription className="font-medium" data-oid="950965g">
+                  Score progression over time.
+                </CardDescription>
+              </div>
+
+              <div
+                ref={tabsRef}
+                role="tablist"
+                aria-label="Trend tabs"
+                onKeyDown={onTabKeyDown}
+                className="inline-flex gap-1 rounded-2xl border border-border/50 bg-muted/40 p-1 backdrop-blur"
+                data-oid="sn.ize2"
+              >
+                {tabs.map((tab) => {
+                  const isSelected = activeTab === tab;
+                  const label =
+                    tab === 'overview' ? 'All' : tab.charAt(0).toUpperCase() + tab.slice(1);
+                  return (
+                    <button
+                      key={tab}
+                      type="button"
+                      role="tab"
+                      data-tab={tab}
+                      aria-selected={isSelected}
+                      tabIndex={isSelected ? 0 : -1}
+                      onClick={() => setActiveTab(tab)}
+                      className={cn(
+                        'px-4 py-1.5 text-[11px] font-black rounded-xl transition-all relative overflow-hidden',
+                        isSelected
+                          ? 'bg-background shadow-md text-primary'
+                          : 'text-muted-foreground hover:text-foreground'
+                      )}
+                      data-oid="18x.yt_"
+                    >
+                      {isSelected && (
+                        <motion.div
+                          layoutId="activeTrendTab"
+                          className="absolute inset-0 bg-background"
+                          data-oid="hmf2brx"
+                        />
+                      )}
+                      <span className="relative z-10" data-oid="8dcv0pi">
+                        {label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0" data-oid="gqgf00s">
+            <LockedFeature
+              isLocked={activeTab !== 'overview' && !isPremium}
+              compact
+              data-oid="31-iuua"
+            >
+              <div className="h-[280px] sm:h-[340px] w-full relative" data-oid="k0v7.3h">
+                {activeTab === 'overview' && !chartData.history?.length && (
+                  <div
+                    className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
+                    data-oid="p4cm953"
+                  >
+                    <div
+                      className="flex flex-col items-center animate-in fade-in zoom-in duration-700"
+                      data-oid="4.4gnw2"
+                    >
+                      <div
+                        className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-3"
+                        data-oid="bb_mzuy"
+                      >
+                        <TrendingUp className="w-7 h-7 text-primary/40" data-oid="31ulcz3" />
+                      </div>
+                      <p
+                        className="text-xs font-black text-muted-foreground uppercase tracking-widest text-center max-w-[150px]"
+                        data-oid="o4dgu4p"
+                      >
+                        Analyzing First Session...
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab !== 'overview' &&
+                  (!chartData.moduleHistory[activeTab] ||
+                    chartData.moduleHistory[activeTab].length === 0) && (
+                    <div
+                      className="absolute inset-0 flex items-center justify-center z-10"
+                      data-oid="pnpy6cs"
+                    >
+                      <EmptyAnalyticsState
+                        icon={Activity}
+                        title={`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Analytics`}
+                        description={`Complete more ${activeTab} tests to unlock detailed performance trends.`}
+                        className="py-0"
+                        data-oid="8-pio3_"
+                      />
+                    </div>
+                  )}
+
+                <ResponsiveContainer width="100%" height="100%" data-oid="io4vrd6">
+                  {activeTab === 'overview' ? (
+                    <AreaChart
+                      data={chartData.history?.length ? chartData.history : []}
+                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                      className={cn(
+                        'transition-all duration-1000',
+                        !chartData.history?.length && 'opacity-[0.08] grayscale blur-[3px]'
+                      )}
+                      data-oid="73pywcp"
+                    >
+                      <defs data-oid="rw4l3px">
+                        <linearGradient
+                          id="analyticsv2"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                          data-oid="pvr5gwa"
+                        >
+                          <stop
+                            offset="0%"
+                            stopColor="hsl(var(--primary))"
+                            stopOpacity={0.25}
+                            data-oid="thhzj5x"
+                          />
+
+                          <stop
+                            offset="100%"
+                            stopColor="hsl(var(--primary))"
+                            stopOpacity={0.02}
+                            data-oid="q.qa.ya"
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="hsl(var(--border))"
+                        opacity={0.6}
+                        data-oid="d5.t..y"
+                      />
+
+                      <XAxis
+                        dataKey="date"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{
+                          fill: 'hsl(var(--muted-foreground))',
+                          fontSize: 10,
+                          fontWeight: 700,
+                        }}
+                        dy={5}
+                        minTickGap={30}
+                        interval="preserveStartEnd"
+                        data-oid="7xykue7"
+                      />
+
+                      <YAxis
+                        domain={[0, 9]}
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{
+                          fill: 'hsl(var(--muted-foreground))',
+                          fontSize: 12,
+                          fontWeight: 700,
+                        }}
+                        width={28}
+                        data-oid="-d2.ni0"
+                      />
+
+                      <Tooltip content={<CustomTooltip data-oid="1x7fb:j" />} data-oid="zatj-1d" />
+                      <Area
+                        type="monotone"
+                        dataKey="score"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={3}
+                        fill="url(#analyticsv2)"
+                        dot={{ r: 3, strokeWidth: 2, fill: 'hsl(var(--background))' }}
+                        activeDot={{
+                          r: 5,
+                          fill: 'hsl(var(--primary))',
+                          strokeWidth: 2,
+                          stroke: '#fff',
+                        }}
+                        data-oid=":9lhx66"
+                      />
+                    </AreaChart>
+                  ) : (
+                    <LineChart
+                      data={
+                        chartData.moduleHistory[activeTab] &&
+                        chartData.moduleHistory[activeTab].length > 0
+                          ? chartData.moduleHistory[activeTab]
+                          : []
+                      }
+                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                      className={cn(
+                        'transition-all duration-1000',
+                        (!chartData.moduleHistory[activeTab] ||
+                          chartData.moduleHistory[activeTab].length === 0) &&
+                          'opacity-[0.05] grayscale blur-[2px]'
+                      )}
+                      data-oid="o8hfc4s"
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="hsl(var(--border))"
+                        opacity={0.6}
+                        data-oid="me3hq_5"
+                      />
+
+                      <XAxis
+                        dataKey="date"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{
+                          fill: 'hsl(var(--muted-foreground))',
+                          fontSize: 10,
+                          fontWeight: 700,
+                        }}
+                        dy={5}
+                        minTickGap={30}
+                        interval="preserveStartEnd"
+                        data-oid="pr.5hz6"
+                      />
+
+                      <YAxis
+                        domain={[0, 9]}
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{
+                          fill: 'hsl(var(--muted-foreground))',
+                          fontSize: 12,
+                          fontWeight: 700,
+                        }}
+                        width={28}
+                        data-oid="8t2-drm"
+                      />
+
+                      <Tooltip content={<CustomTooltip data-oid="u4nxpar" />} data-oid="4s-p1tw" />
+                      <Line
+                        type="monotone"
+                        dataKey="score"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={3}
+                        dot={{ r: 4, strokeWidth: 2, fill: 'hsl(var(--background))' }}
+                        activeDot={{ r: 6, fill: 'hsl(var(--primary))' }}
+                        data-oid="n942r-g"
+                      />
+                    </LineChart>
+                  )}
+                </ResponsiveContainer>
+              </div>
+            </LockedFeature>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.div variants={ITEM_VARIANTS} data-oid="1atf515">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6" data-oid="pj.2q8p">
+          {/* Module Mastery Radar */}
+          <Card
+            className="rounded-2xl border-border/50 bg-card/75 backdrop-blur shadow-sm overflow-hidden hover:shadow-xl transition-all h-[360px] flex flex-col"
+            data-oid="obrjoof"
+          >
+            <CardHeader className="pb-2" data-oid="hc-wu6j">
+              <div className="flex items-center justify-between gap-3" data-oid="k2m.wh0">
+                <CardTitle
+                  className="text-xl font-black text-foreground flex items-center gap-2"
+                  data-oid="kihiso_"
+                >
+                  <TrendingUp className="w-5 h-5 text-primary" data-oid="y6qo3w4" />
+                  Module Mastery
+                </CardTitle>
+                <Badge
+                  variant="outline"
+                  className="rounded-xl border-border/60 bg-muted/40 text-[10px] uppercase font-black"
+                  data-oid="fb9l6zn"
+                >
+                  Balance
+                </Badge>
+              </div>
+              <CardDescription className="text-sm font-medium" data-oid="1-4yxra">
+                Your performance envelope across IELTS modules.
+              </CardDescription>
+            </CardHeader>
+            <CardContent
+              className="flex-1 pb-6 pt-0 flex flex-col sm:flex-row items-center gap-4"
+              data-oid="pu2nhj."
+            >
+              <div className="w-full sm:w-[60%] h-[200px] sm:h-full" data-oid="kbauega">
+                <UniversalRadar
+                  data={radarData}
+                  name="Band Performance"
+                  color="primary"
+                  data-oid="xo.ihj_"
+                />
+              </div>
+              <div className="w-full sm:w-[40%] space-y-3.5 pr-2" data-oid="cti0:18">
+                {radarData.map((item, idx) => (
+                  <motion.div
+                    key={item.subject}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="space-y-1.5"
+                    data-oid="tu7:jja"
+                  >
+                    <div className="flex items-center justify-between px-1" data-oid="wz._gze">
+                      <span
+                        className="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
+                        data-oid="ra-rsiz"
+                      >
+                        {item.subject}
+                      </span>
+                      <span className="text-sm font-black text-foreground" data-oid="udpv-nu">
+                        {formatBand(item.A)}
+                      </span>
+                    </div>
+                    <div
+                      className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden p-0.5 border border-border/10"
+                      data-oid="1s61xdz"
+                    >
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(item.A / 9) * 100}%` }}
+                        className="h-full bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.3)] transition-all duration-1000"
+                        style={{
+                          backgroundColor: 'hsl(var(--primary))',
+                        }}
+                        data-oid="gta556f"
+                      />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Question Types */}
+          <Card
+            className="rounded-2xl border-border/50 bg-card/75 backdrop-blur shadow-sm overflow-hidden hover:shadow-xl transition-all h-[360px]"
+            data-oid="3bnrh6g"
+          >
+            <CardHeader className="pb-3" data-oid="n9word6">
+              <div className="flex items-center justify-between gap-3" data-oid="7nzhlcl">
+                <CardTitle
+                  className="text-xl font-black text-foreground flex items-center gap-2"
+                  data-oid="::shik2"
+                >
+                  <Target className="w-5 h-5 text-primary" data-oid="uxibci1" />
+                  Question Types
+                </CardTitle>
+                <Badge
+                  variant="outline"
+                  className="rounded-xl border-border/60 bg-muted/40 text-[10px] uppercase font-black"
+                  data-oid="9:3a._o"
+                >
+                  Precision
+                </Badge>
+              </div>
+              <CardDescription data-oid="c2x3g-r">
+                Performance breakdown by specific IELTS question patterns.
+              </CardDescription>
+            </CardHeader>
+            <CardContent
+              className="pt-0 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted"
+              data-oid="huwghdg"
+            >
+              <QuestionTypeTable data={stats.typeAccuracy} data-oid="uv1t-vc" />
+            </CardContent>
+          </Card>
+
+          {/* Deep Insights (Pro) */}
+          <Card
+            className="rounded-2xl border-border/50 bg-card/75 backdrop-blur shadow-sm overflow-hidden hover:shadow-xl transition-all h-[360px] flex flex-col"
+            data-oid="u_amfu5"
+          >
+            <CardHeader className="pb-4" data-oid="-4_zzio">
+              <div className="flex items-center justify-between" data-oid="qub627-">
+                <div className="flex items-center gap-3" data-oid="8y3-bj0">
+                  <div
+                    className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center"
+                    data-oid="w5:00go"
+                  >
+                    <Zap className="w-6 h-6 text-amber-500 fill-amber-500/20" data-oid="gjwp5w4" />
+                  </div>
+                  <div data-oid="7tzifoi">
+                    <CardTitle className="text-xl font-black text-foreground" data-oid="e2-32..">
+                      Deep Insights
+                    </CardTitle>
+                    <CardDescription
+                      className="font-medium text-xs text-muted-foreground"
+                      data-oid="m_l7ys7"
+                    >
+                      Advanced pattern analysis
+                    </CardDescription>
+                  </div>
+                </div>
+                {!isPremium && (
+                  <Badge
+                    className="rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none px-3 py-1 font-black text-[9px] uppercase tracking-wider"
+                    data-oid="r6a_lzr"
+                  >
+                    Pro Feature
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden p-0 relative" data-oid="8twiya3">
+              <LockedFeature isLocked={!isPremium} compact className="h-full" data-oid="4u8r4z1">
+                <div className="p-6 pt-0 space-y-6 overflow-y-auto h-full" data-oid="inner-content">
+                  {stats.enhancedMetrics.hasData ? (
+                    <>
+                      <div className="grid grid-cols-3 gap-2" data-oid="-lufzwo">
+                        <StatMiniCard
+                          icon={Timer}
+                          label="Avg Session"
+                          value={`${stats.enhancedMetrics.avgTimePerSession}m`}
+                          data-oid="dgo-bc1"
+                        />
+
+                        <StatMiniCard
+                          icon={Zap}
+                          label="Rushed"
+                          value={stats.enhancedMetrics.totalRushed}
+                          alert={stats.enhancedMetrics.totalRushed > 5}
+                          alertColor="amber"
+                          data-oid="3iltfcq"
+                        />
+
+                        <StatMiniCard
+                          icon={AlertTriangle}
+                          label="Overanalyzed"
+                          value={stats.enhancedMetrics.totalOveranalyzed}
+                          alert={stats.enhancedMetrics.totalOveranalyzed > 5}
+                          alertColor="rose"
+                          data-oid="rry8.95"
+                        />
+                      </div>
+
+                      {stats.enhancedMetrics.skillGaps.length > 0 && (
+                        <div className="space-y-3" data-oid="ms_lc-0">
+                          <SectionHeading
+                            icon={Target}
+                            label="Weakest Skills"
+                            subLabel="Impact Analysis"
+                            data-oid="5gk2v.7"
+                          />
+
+                          <div className="space-y-2.5" data-oid="amgi65c">
+                            {stats.enhancedMetrics.skillGaps.slice(0, 3).map((sg) => (
+                              <SkillGapItem
+                                key={sg.skill}
+                                skill={sg.skill}
+                                avg={sg.avg}
+                                data-oid="vt16-si"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {stats.enhancedMetrics.topTroubleTypes.length > 0 && (
+                        <div className="space-y-2 pt-1" data-oid="kwphww6">
+                          <SectionHeading
+                            icon={Sparkles}
+                            label="Focus Areas"
+                            color="text-primary"
+                            data-oid="syzg9fg"
+                          />
+
+                          <div className="flex flex-wrap gap-1.5" data-oid="ovu97pz">
+                            {stats.enhancedMetrics.topTroubleTypes.map((type) => (
+                              <TroubleTag key={type} type={type} data-oid="oh6it06" />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <EmptyAnalyticsState
+                      icon={Gauge}
+                      title="Analysis Pending"
+                      description="Complete tests to generate your personalized Deep Insights and performance audits."
+                      className="py-12"
+                      data-oid="0e1mw:5"
+                    />
+                  )}
+                </div>
+              </LockedFeature>
+            </CardContent>
+          </Card>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// --- SHARED UI HELPERS ---
+
+function StatMiniCard({ icon: Icon, label, value, alert, alertColor }) {
+  return (
+    <div
+      className={cn(
+        'p-2 rounded-2xl border flex flex-col items-center justify-center text-center group transition-all h-[68px]',
+        alert
+          ? alertColor === 'rose'
+            ? 'bg-rose-500/5 border-rose-500/20 hover:bg-rose-500/10'
+            : 'bg-amber-500/5 border-amber-500/20 hover:bg-amber-500/10'
+          : 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-700/50 hover:bg-slate-100'
+      )}
+      data-oid="iykydqu"
+    >
+      <Icon
+        className={cn(
+          'w-3.5 h-3.5 mb-1 group-hover:scale-110 transition-transform',
+          alert ? (alertColor === 'rose' ? 'text-rose-500' : 'text-amber-500') : 'text-slate-400'
+        )}
+        data-oid="qvxcv1p"
+      />
+
+      <span
+        className="text-[8px] font-bold text-slate-500 uppercase tracking-tight mb-0"
+        data-oid="m2xsq81"
+      >
+        {label}
+      </span>
+      <span
+        className={cn(
+          'text-sm font-black',
+          alert
+            ? alertColor === 'rose'
+              ? 'text-rose-600 dark:text-rose-400'
+              : 'text-amber-600 dark:text-amber-400'
+            : 'text-slate-900 dark:text-white'
+        )}
+        data-oid="v8i5nvv"
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function SectionHeading({ icon: Icon, label, subLabel, color }) {
+  return (
+    <div className="flex items-center justify-between px-1" data-oid="4-fb8tb">
+      <span
+        className={cn(
+          'text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2',
+          color
+        )}
+        data-oid="xp9yc9d"
+      >
+        <Icon className="w-3.5 h-3.5" data-oid="qrnu9el" /> {label}
+      </span>
+      {subLabel && (
+        <span className="text-[10px] font-bold text-slate-400" data-oid="c070qju">
+          {subLabel}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function SkillGapItem({ skill, avg }) {
+  return (
+    <div className="space-y-1.5" data-oid="bmdkccl">
+      <div
+        className="flex justify-between items-center text-[10px] font-bold px-1"
+        data-oid="2aleqd_"
+      >
+        <span
+          className="text-slate-600 dark:text-slate-300 uppercase tracking-tight"
+          data-oid="9xf0ipf"
+        >
+          {skill.replace(/([A-Z])/g, ' $1').trim()}
+        </span>
+        <span
+          className={cn(
+            'font-black px-1.5 py-0.5 rounded-md',
+            avg < 30
+              ? 'bg-rose-500/10 text-rose-600'
+              : avg < 60
+                ? 'bg-amber-500/10 text-amber-600'
+                : 'bg-emerald-500/10 text-emerald-600'
+          )}
+          data-oid="my7m1nk"
+        >
+          {avg}%
+        </span>
+      </div>
+      <div
+        className="h-2.5 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden p-0.5 border border-slate-200/50 dark:border-slate-700/50 shadow-inner"
+        data-oid="emij1sn"
+      >
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${avg}%` }}
+          className={cn(
+            'h-full rounded-full transition-all shadow-sm',
+            avg < 30
+              ? 'bg-gradient-to-r from-rose-500 to-rose-400 shadow-rose-500/20'
+              : avg < 60
+                ? 'bg-gradient-to-r from-amber-500 to-amber-400 shadow-amber-500/20'
+                : 'bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-emerald-500/20'
+          )}
+          data-oid="5t6bmjl"
+        />
+      </div>
+    </div>
+  );
+}
+
+function TroubleTag({ type }) {
+  return (
+    <div
+      className="px-3 py-1.5 rounded-2xl bg-rose-500/[0.03] dark:bg-rose-500/[0.05] border border-rose-500/10 dark:border-rose-500/20 backdrop-blur-sm flex items-center gap-2 group hover:border-rose-500/40 transition-all cursor-default"
+      data-oid="5ng.5bc"
+    >
+      <div
+        className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]"
+        data-oid="nwl26h4"
+      />
+
+      <span
+        className="text-xs font-black text-foreground capitalize tracking-tight"
+        data-oid="gr0rke."
+      >
+        {type.replace(/_/g, ' ')}
+      </span>
+    </div>
+  );
+}
+
+function EmptyState(props) {
+  return <EmptyAnalyticsState {...props} data-oid="-e_e_yi" />;
+}
