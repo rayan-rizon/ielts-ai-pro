@@ -150,7 +150,7 @@ function ListeningTestInner() {
   }, [activePart]);
 
   // Gamification
-  const { showConfetti, showXPNotification, earnedXP, setShowXPNotification } = useGamification();
+  const { showConfetti, showXPNotification, earnedXP, setShowXPNotification, setShowConfetti } = useGamification();
 
   // Navigation Blocker
   const { showExitDialog, setShowExitDialog, handleExit } = useTestNavigation({

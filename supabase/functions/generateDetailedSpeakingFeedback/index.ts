@@ -100,31 +100,61 @@ serve(async (req: Request) => {
         });
 
         const promptText = `
-You are an expert IELTS examiner. Based on the following transcript of a candidate's speaking test, provide a detailed question-by-question analysis. 
+You are a senior IELTS examiner and speaking coach. Analyse the following speaking test transcript question-by-question and produce a structured JSON feedback report.
 
-For every question the examiner asks:
-1. Extract the examiner's question.
-2. Extract exactly what the candidate answered.
-3. Provide a 'Band 9.0 Sample Response' (a more sophisticated, natural way to answer).
-4. Provide 'Examiner Feedback' explaining why the suggestion is better (focus on lexical resource, grammatical range, and fluency). 
+**IELTS SPEAKING TEST STRUCTURE — CONTEXT:**
+- Part 1 (Introduction & Interview): Short, personal questions about familiar topics. Candidates should give 2–3 sentence answers that are natural and conversational, not over-rehearsed.
+- Part 2 (Individual Long Turn): Candidate speaks for 1–2 minutes on a cue card topic. Band 6+ requires at least 90 seconds of sustained, organised speech. Band 7+ requires fluent, fully developed discourse with no major gaps or halting.
+- Part 3 (Two-Way Discussion): Abstract, analytical questions related to the Part 2 topic. Candidate should express opinions, analyse issues, and develop ideas at length. Short yes/no answers are penalised.
 
-**CRITICAL:** The 'Examiner Feedback' must be concise—maximum 2 to 3 sentences. Use professional, formal IELTS examiner tone.
+**CRITICAL RULES FOR ANALYSIS:**
+
+1. Grammar error detection (non-negotiable):
+   - Identify every grammatical error in the candidate's response, even minor ones.
+   - Report each error with the exact incorrect phrase and its correct form.
+   - Do NOT state 'grammatical structures are used accurately' if any error exists — this is a hallucination and misleads the student.
+
+2. Topic adherence check:
+   - Verify the candidate answered the specific question asked.
+   - If the candidate drifted to a related but different topic (e.g., asked about theatre but spoke about cinema), flag this as 'Topic Drift' in the topicDrift field with a specific note.
+
+3. Response length calibration (Part 2 especially):
+   - Count the approximate word length of the candidate's Part 2 answer. If under 80 words, flag this prominently.
+   - The first improvement tip for a candidate with fewer than 80 words in Part 2 MUST be: 'Extend your Part 2 answer to at least 90 seconds by covering all four bullet points on the cue card and adding a reason or example for each.'
+
+4. Band 9 sample responses — spoken register (critical):
+   - Band 9 samples must sound like NATURAL SPOKEN ENGLISH, not written essays.
+   - USE: contractions (I'd, it's, there's, I've), discourse markers (Well, To be honest, I suppose, I mean, Actually), natural hedging (I think, It seems to me, I'd say, probably), self-correction for naturalness.
+   - DO NOT USE: academic essay collocations ('theatrical landscape', 'demographic gravitating', 'nuanced narrative'), overly formal transitions ('Furthermore', 'Notwithstanding'), or formally written phrases.
+   - A Band 9 speaker sounds articulate and natural — not like a memorised essay being recited.
+
+5. Improvement advice calibration:
+   - Match advice to the candidate's ACTUAL observed performance level.
+   - If responses were brief: first tip must address extending length.
+   - If grammar errors detected: correct them specifically before suggesting stylistic improvements.
+   - If topic drift detected: address adherence before vocabulary tips.
 
 **TRANSCRIPT:**
 ${fullTranscript}
 
 **OUTPUT FORMAT:**
-Return ONLY a valid JSON array of objects. Do not include markdown code block formatting like \`\`\`json.
+Return ONLY a valid JSON array. Do not include markdown code block formatting.
 
 [
   {
     "part": 1,
-    "question": "The question asked",
-    "candidateAnswer": "The candidate's response",
-    "suggestedAnswer": "Band 9.0 sample response",
-    "feedback": "Concise examiner feedback (max 3 sentences)"
+    "question": "The exact examiner question",
+    "candidateAnswer": "The candidate's verbatim response",
+    "grammaticalErrors": [
+      { "incorrect": "exact phrase from transcript", "correct": "corrected form", "explanation": "brief grammar note" }
+    ],
+    "topicDrift": "null or a string describing any topic drift detected",
+    "suggestedAnswer": "Band 9.0 sample in NATURAL SPOKEN ENGLISH with contractions and discourse markers",
+    "feedback": "2–3 sentence examiner note: cite SPECIFIC language from the candidate's answer, identify 1 concrete error or gap, explain what the Band 9 sample does better"
   }
 ]
+
+Return an empty grammaticalErrors array [] if no errors are found. Return the string 'null' for topicDrift if the candidate answered on-topic.
 `;
 
         const evalResponse = await fetch(

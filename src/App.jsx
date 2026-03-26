@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { LazyMotion } from 'framer-motion';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';

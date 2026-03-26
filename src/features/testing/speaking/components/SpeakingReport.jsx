@@ -867,8 +867,51 @@ export default function SpeakingReport({
                                             </p>
                                           </div>
 
+                                          {/* Topic Drift Warning */}
+                                          {item.topicDrift && item.topicDrift !== 'null' && (
+                                            <div className="space-y-2.5 relative group/drift mt-4">
+                                              <div className="flex items-center gap-2">
+                                                <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">
+                                                  Topic Drift Detected
+                                                </span>
+                                              </div>
+                                              <div className="bg-amber-50/50 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-500/20 dark:border-amber-500/20">
+                                                <p className="text-[13px] text-amber-900 dark:text-amber-100 font-medium leading-relaxed">
+                                                  {item.topicDrift}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          )}
+
+                                          {/* Grammatical Errors */}
+                                          {item.grammaticalErrors && item.grammaticalErrors.length > 0 && (
+                                            <div className="space-y-3 mt-4">
+                                              <div className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-600 dark:text-rose-400">
+                                                  Grammar & Vocabulary Errors ({item.grammaticalErrors.length})
+                                                </span>
+                                              </div>
+                                              <div className="space-y-2">
+                                                {item.grammaticalErrors.map((err, errIdx) => (
+                                                  <div key={errIdx} className="bg-rose-50/30 dark:bg-rose-950/10 p-3 rounded-lg border border-rose-500/20 flex flex-col gap-1.5">
+                                                    <div className="flex items-start gap-2">
+                                                      <span className="line-through text-rose-500/70 text-[13px] font-medium decoration-rose-500/50 break-words">{err.incorrect}</span>
+                                                      <ArrowRight className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                                                      <span className="text-emerald-600 dark:text-emerald-400 text-[13px] font-bold break-words">{err.correct}</span>
+                                                    </div>
+                                                    <p className="text-[12px] text-muted-foreground/80 dark:text-zinc-400 italic">
+                                                      {err.explanation}
+                                                    </p>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          )}
+
                                           {/* Sample & Feedback Split */}
-                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                                             <div className="space-y-2.5 relative group/suggest">
                                               <div className="flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />

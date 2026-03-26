@@ -405,5 +405,7 @@ const HeroCard = React.memo(({ recommended, progressToTarget, stats }) => {
 });
 
 HeroCard.displayName = 'HeroCard';
+LiveActivityTicker.displayName = 'LiveActivityTicker';
+SkillTicker.displayName = 'SkillTicker';
 
 export default HeroCard;
