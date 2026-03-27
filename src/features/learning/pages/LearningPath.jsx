@@ -3,24 +3,14 @@ import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { generateAdaptiveLearningPath } from '@/utils/api';
-import {
-  Crown,
-  Zap,
-  RefreshCw,
-  Target,
-  Clock,
-  Flame,
-  CheckCircle2,
-  Calendar,
-  Sparkles,
-} from 'lucide-react';
+import { Zap, RefreshCw, Target, Clock, Flame, CheckCircle2, Sparkles } from 'lucide-react';
 
 import { useAuth } from '@/features/auth/context/AuthContext';
 import useLearningPathData, {
   getTodayIndex,
   dayNames,
 } from '@/features/learning/hooks/useLearningPathData';
-import { getDaysLeft, formatTestDate } from '@/features/learning/utils/learningUtils';
+import { getDaysLeft } from '@/features/learning/utils/learningUtils';
 import DocumentHead from '@/components/shared/DocumentHead';
 import PremiumLoading from '@/components/ui/PremiumLoading';
 import { Badge } from '@/components/ui/badge';
@@ -129,7 +119,6 @@ const LearningPath = () => {
 
   const targetBand = Number(user?.target_band_score) || 7.0;
   const daysLeft = useMemo(() => getDaysLeft(user?.test_date), [user?.test_date]);
-  const formattedTestDate = useMemo(() => formatTestDate(user?.test_date), [user?.test_date]);
 
   const bandGaps = useMemo(() => calculateBandGaps(stats, targetBand), [stats, targetBand]);
 
@@ -407,7 +396,7 @@ const LearningPath = () => {
                         Exam
                       </span>
                       <span className="text-sm font-black text-slate-900 dark:text-white mt-0.5 leading-none">
-                        {daysLeft}d
+                        {daysLeft !== null ? `${daysLeft}d` : 'Not set'}
                       </span>
                     </div>
                   </div>

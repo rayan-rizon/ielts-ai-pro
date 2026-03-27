@@ -1,115 +1,115 @@
 {
-    "framework": "vite",
-    "buildCommand": "npm run build",
-    "outputDirectory": "dist",
-    "redirects": [
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "/sitemap_index.xml",
+      "destination": "/sitemap.xml",
+      "permanent": true
+    },
+    {
+      "source": "/sitemap-index.xml",
+      "destination": "/sitemap.xml",
+      "permanent": true
+    },
+    {
+      "source": "/post-sitemap.xml",
+      "destination": "/sitemap.xml",
+      "permanent": true
+    },
+    {
+      "source": "/page-sitemap.xml",
+      "destination": "/sitemap.xml",
+      "permanent": true
+    },
+    {
+      "source": "/news-sitemap.xml",
+      "destination": "/sitemap.xml",
+      "permanent": true
+    },
+    {
+      "source": "/sitemaps.xml",
+      "destination": "/sitemap.xml",
+      "permanent": true
+    },
+    {
+      "source": "/sitemap1.xml",
+      "destination": "/sitemap.xml",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
         {
-            "source": "/sitemap_index.xml",
-            "destination": "/sitemap.xml",
-            "permanent": true
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
         },
         {
-            "source": "/sitemap-index.xml",
-            "destination": "/sitemap.xml",
-            "permanent": true
+          "key": "X-Frame-Options",
+          "value": "DENY"
         },
         {
-            "source": "/post-sitemap.xml",
-            "destination": "/sitemap.xml",
-            "permanent": true
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
         },
         {
-            "source": "/page-sitemap.xml",
-            "destination": "/sitemap.xml",
-            "permanent": true
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
         },
         {
-            "source": "/news-sitemap.xml",
-            "destination": "/sitemap.xml",
-            "permanent": true
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://js.stripe.com https://m.stripe.network https://va.vercel-scripts.com https://static.cloudflareinsights.com https://www.googletagmanager.com https://tag.ieltsai.pro https://*.sentry.io https://*.ingest.sentry.io https://www.google-analytics.com https://ssl.google-analytics.com https://tagmanager.google.com https://connect.facebook.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https: https://*.supabase.co https://*.unsplash.com https://api.dicebear.com https://i.pravatar.cc https://*.youtube.com https://*.ytimg.com https://*.vimeocdn.com http://127.0.0.1:* http://localhost:* https://*.jumpinto.com https://www.jumpinto.com https://images.weserv.nl https://*.cloudflare.com https://grainy-gradients.vercel.app https://media.ieltsai.pro; media-src 'self' data: blob: https://*.supabase.co https://*.jumpinto.com https://oss.jumpinto.com https://api.dictionaryapi.dev https://media.ieltsai.pro http://127.0.0.1:* http://localhost:*; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://m.stripe.network https://api.dictionaryapi.dev https://api.datamuse.com https://api.mymemory.translated.net https://noembed.com https://media.ieltsai.pro http://127.0.0.1:* ws://127.0.0.1:* http://localhost:* ws://localhost:* https://vitals.vercel-insights.com https://api.country.is https://ipapi.co https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://www.facebook.com https://www.googletagmanager.com https://tag.ieltsai.pro https://*.sentry.io https://*.ingest.sentry.io; worker-src 'self' blob:; frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.youtube.com https://player.vimeo.com https://www.googletagmanager.com https://tag.ieltsai.pro;"
         },
         {
-            "source": "/sitemaps.xml",
-            "destination": "/sitemap.xml",
-            "permanent": true
-        },
-        {
-            "source": "/sitemap1.xml",
-            "destination": "/sitemap.xml",
-            "permanent": true
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
         }
-    ],
-    "headers": [
+      ]
+    },
+    {
+      "source": "/",
+      "headers": [
         {
-            "source": "/(.*)",
-            "headers": [
-                {
-                    "key": "X-Content-Type-Options",
-                    "value": "nosniff"
-                },
-                {
-                    "key": "X-Frame-Options",
-                    "value": "DENY"
-                },
-                {
-                    "key": "X-XSS-Protection",
-                    "value": "1; mode=block"
-                },
-                {
-                    "key": "Referrer-Policy",
-                    "value": "strict-origin-when-cross-origin"
-                },
-                {
-                    "key": "Content-Security-Policy",
-                    "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network https://va.vercel-scripts.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https: https://*.supabase.co https://*.unsplash.com https://api.dicebear.com https://i.pravatar.cc https://*.youtube.com https://*.ytimg.com https://*.vimeocdn.com http://127.0.0.1:* http://localhost:* https://*.jumpinto.com https://www.jumpinto.com https://images.weserv.nl https://*.cloudflare.com https://grainy-gradients.vercel.app https://media.ieltsai.pro; media-src 'self' data: blob: https://*.supabase.co https://*.jumpinto.com https://oss.jumpinto.com https://api.dictionaryapi.dev https://media.ieltsai.pro http://127.0.0.1:* http://localhost:*; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://m.stripe.network https://api.dictionaryapi.dev https://api.datamuse.com https://api.mymemory.translated.net https://noembed.com https://media.ieltsai.pro http://127.0.0.1:* ws://127.0.0.1:* http://localhost:* ws://localhost:* https://vitals.vercel-insights.com https://api.country.is https://ipapi.co; frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.youtube.com https://player.vimeo.com;"
-                },
-                {
-                    "key": "Strict-Transport-Security",
-                    "value": "max-age=31536000; includeSubDomains; preload"
-                }
-            ]
-        },
-        {
-            "source": "/",
-            "headers": [
-                {
-                    "key": "Cache-Control",
-                    "value": "public, max-age=0, must-revalidate, s-maxage=31536000"
-                }
-            ]
-        },
-        {
-            "source": "/index.html",
-            "headers": [
-                {
-                    "key": "Cache-Control",
-                    "value": "public, max-age=0, must-revalidate, s-maxage=31536000"
-                }
-            ]
-        },
-        {
-            "source": "/assets/(.*)",
-            "headers": [
-                {
-                    "key": "Cache-Control",
-                    "value": "public, max-age=31536000, immutable"
-                }
-            ]
-        },
-        {
-            "source": "/(robots.txt|favicon.ico)",
-            "headers": [
-                {
-                    "key": "Cache-Control",
-                    "value": "public, max-age=86400, stale-while-revalidate=43200"
-                }
-            ]
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate, s-maxage=31536000"
         }
-    ],
-    "rewrites": [
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
         {
-            "source": "/(.*)",
-            "destination": "/index.html"
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate, s-maxage=31536000"
         }
-    ]
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(robots.txt|favicon.ico)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=43200"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }

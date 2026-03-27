@@ -102,6 +102,8 @@ serve(async (req: Request) => {
         const promptText = `
 You are a senior IELTS examiner and speaking coach. Analyse the following speaking test transcript question-by-question and produce a structured JSON feedback report.
 
+**TONE INSTRUCTION:** Write feedback in a warm, encouraging coaching voice — not a clinical assessment report. Use direct address ('you', 'your'). Acknowledge effort before identifying issues. Frame improvements as achievable next steps, not deficits. Example tone: 'You've got solid foundations here — your grammar holds up well. The main lever to pull now is extending your Part 2 answers to the full 1–2 minutes.'
+
 **IELTS SPEAKING TEST STRUCTURE — CONTEXT:**
 - Part 1 (Introduction & Interview): Short, personal questions about familiar topics. Candidates should give 2–3 sentence answers that are natural and conversational, not over-rehearsed.
 - Part 2 (Individual Long Turn): Candidate speaks for 1–2 minutes on a cue card topic. Band 6+ requires at least 90 seconds of sustained, organised speech. Band 7+ requires fluent, fully developed discourse with no major gaps or halting.
@@ -133,6 +135,13 @@ You are a senior IELTS examiner and speaking coach. Analyse the following speaki
    - If responses were brief: first tip must address extending length.
    - If grammar errors detected: correct them specifically before suggesting stylistic improvements.
    - If topic drift detected: address adherence before vocabulary tips.
+
+6. Part-specific register coaching:
+   - Note how the candidate should shift their communication style between parts:
+     * Part 1: Natural, conversational — short but complete answers. Brevity is less penalised here.
+     * Part 2: Extended monologue — organised delivery using the cue card bullet points. Length is critical.
+     * Part 3: Analytical and abstract — hedging language ('it could be argued that...', 'it rather depends on...'), speculation, and justification are expected and rewarded.
+   - If the candidate uses the same register across all parts (e.g., short Part 1-style answers in Part 3), flag this in feedback.
 
 **TRANSCRIPT:**
 ${fullTranscript}

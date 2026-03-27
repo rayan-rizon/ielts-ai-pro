@@ -2,10 +2,8 @@ import React, { lazy, Suspense } from 'react';
 import { LazyMotion } from 'framer-motion';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
-import ReactPixel from 'react-facebook-pixel';
 
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
-import LoadingFallback from '@/shared/ui/LoadingFallback';
 import PremiumLoading from '@/components/ui/PremiumLoading';
 
 const loadFeatures = () => import('framer-motion').then((res) => res.domAnimation);
@@ -616,20 +614,26 @@ const router = createBrowserRouter(
 
 function App() {
   React.useEffect(() => {
-    const pixelId = import.meta.env.VITE_META_PIXEL_ID;
-    if (pixelId) {
-      ReactPixel.init(pixelId, undefined, { autoConfig: true, debug: import.meta.env.DEV });
-      ReactPixel.pageView(); // track initial page load
-    } else {
-      console.warn('VITE_META_PIXEL_ID is not set in environment variables');
-    }
+    let lastPathname = window.location.pathname;
 
     // Subscribe to router state changes to track subsequent page views
     const unsubscribe = router.subscribe((state) => {
-      // To avoid multiple triggered tracker in flight:
-      // check if no active navigation in progress and location changed
-      if (pixelId && state.navigation.state === 'idle') {
-        ReactPixel.pageView();
+      // Check if no active navigation in progress and location actually changed
+      if (state.navigation.state === 'idle' && state.location.pathname !== lastPathname) {
+        lastPathname = state.location.pathname;
+
+        // Track Facebook Pixel PageView using native global fbq from index.html snippet
+        if (typeof window.fbq === 'function') {
+          window.fbq('track', 'PageView');
+        }
+
+        // Track Google Tag Manager / Analytics PageView natively
+        if (typeof window.dataLayer !== 'undefined') {
+          window.dataLayer.push({
+            event: 'pageview',
+            page: state.location.pathname,
+          });
+        }
       }
     });
 

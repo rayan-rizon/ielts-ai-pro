@@ -1,0 +1,28 @@
+
+
+Config: /Users/rayanrizon/Desktop/Ielts-mastery-pro/squirrel.toml
+Database: /Users/rayanrizon/.squirrel/projects/ielts-mastery-pro/project.db
+New crawl: https://www.ieltsai.pro
+<?xml version="1.0" encoding="UTF-8"?>
+<audit version="0.0.34">
+<site url="https://www.ieltsai.pro" crawled="0" date="2026-03-27T09:16:46.375Z"/>
+<score overall="98" grade="A">
+ <cat name="Security" score="86"/>
+ <cat name="Crawlability" score="100"/>
+ <cat name="Images" score="100"/>
+ <cat name="Links" score="100"/>
+ <cat name="Performance" score="100"/>
+</score>
+<summary passed="19" warnings="1" failed="0"/>
+<issues>
+ <category name="Security" errors="0" warnings="1">
+  <rule id="security/http-to-https" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/security/http-to-https">
+   1 HTTP URL(s) redirect to HTTPS
+   Items (1):
+    - http://www.ieltsai.pro/ (http://www.ieltsai.pro/ → https://www.ieltsai.pro/ (308)) [statusCode: 308, chain: [object Object]]
+  </rule>
+ </category>
+</issues>
+</audit>
+
+

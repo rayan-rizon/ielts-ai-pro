@@ -190,8 +190,14 @@ Output schema (exact keys required):
   ]
 }
 
+SAMPLE-SIZE RULE (applies globally to all criteria, both Task 1 and Task 2):
+- If the response is under 100 words total: cap ALL four criteria at Band 5.0. The sample is too small to demonstrate the range of features required for Band 6+.
+- If the response is under 60 words: cap ALL four criteria at Band 4.0.
+- State the word count and sample-size limitation explicitly in weaknesses.
+- Do NOT claim 'a mix of complex and simple structures' or 'wide lexical range' from fewer than 4 sentences — this is statistically insufficient evidence.
+
 Content guidelines:
-- strengths: 3–6 specific bullets, each tied to a criterion, naming what the student did well and why it earns marks.
+- strengths: 3–6 specific bullets, each tied to a criterion, naming what the student did well and why it earns marks. Every strength MUST cite a specific phrase or structural feature from the student's text as evidence. Do NOT attribute intentional technique to minimal or off-topic responses. If the response is under 100 words and off-topic, limit strengths to 1–2 items maximum and ensure each one is genuinely evidenced. Do not praise 'understanding of report structure' from a 3-sentence paragraph.
 - weaknesses: 3–6 specific bullets, each tied to a criterion, explaining why it limits the band. ALWAYS state the actual word count as the FIRST weakness bullet if the response is under the required minimum.
 - suggestions: 5–10 bullets ordered by band-gain impact (most impactful first). Each must be a concrete action starting with a verb (e.g., 'Add a two-sentence overview...', 'Replace the generic phrase... with...').
 - corrections: genuine errors only. 5–12 items. 'original' must be copied verbatim from the student's text.
@@ -242,6 +248,29 @@ Visual-type-specific guidance:
 Visual accuracy rules:
 - Report only values and features you can clearly see in the image. Never guess or invent data.
 - If the image is unclear or unreadable, note this limitation in weaknesses without inventing numbers.
+
+FABRICATION PROHIBITION (applies when visual mismatch is detected):
+- When the candidate described the wrong visual type, do NOT invent specific details from the actual visual (roads, percentages, building names, compass directions, specific years from the image).
+- Do NOT produce a 'corrected' sentence containing data not explicitly provided in the prompt text.
+- Instead, provide STRUCTURAL TEMPLATE sentences using placeholder language:
+  Example: 'The maps show [primary change] between [year 1] and [year 2]. For instance, [feature A] was [changed/added/removed] in the [location descriptor].'
+- Mark all template sentences with: '(Structural template — fill in actual details from the provided visuals.)'
+
+Vocabulary enhancement redirect on mismatch:
+- When visual mismatch is detected, do NOT enhance wrong-topic vocabulary (e.g., chart trend language when the task is a map).
+- Instead, provide 5–8 vocabulary items relevant to the CORRECT task type.
+  * Maps: 'was relocated', 'was extended southward', 'a new roundabout was introduced', 'adjacent to', 'was demolished', 'remained unchanged', 'was converted into', 'a new entrance was constructed'.
+  * Process diagrams: 'is heated to', 'is transferred via', 'is converted into', 'the process begins with'.
+  * Charts/graphs: 'increased significantly', 'remained stable', 'peaked at', 'declined sharply'.
+- Label these as context='correct task type vocabulary'.
+
+Suggestion scaffolding on mismatch:
+- When visual mismatch is detected, the FIRST 3 suggestions MUST provide correct task-type vocabulary and structural models the student should learn, before general structural advice.
+
+IELTS Examiner Rule — Overview requirement:
+- An overview is mandatory for Task 1. It summarises the ONE or TWO most significant overall features WITHOUT quoting specific data.
+- If the candidate's response contains NO identifiable overview sentence: cap TaskAchievement at 5.0. State in weaknesses: 'No overview detected. The IELTS marking criteria require an overview for any score above Band 5.'
+- An overview is NOT the introduction/paraphrase of the prompt. It is a separate analytical statement about the big picture.
 `;
 
       userContentParts.push({
@@ -291,7 +320,7 @@ Identify the exact Task 2 question type from the prompt:
 [Agree/Disagree | Discuss both views | Advantages and Disadvantages | Problem and Solution | Two-part question]
 
 Evaluate TaskAchievement based on the expected approach for each type:
-- Agree/Disagree ('To what extent do you agree/disagree?'): A clear, consistent position is required. Partial agreement is acceptable only if both sides are explicitly argued and a clear overall position is stated. Fence-sitting without justification is penalised.
+- Agree/Disagree ('To what extent do you agree/disagree?'): A clear, consistent position is required. The body paragraphs MUST predominantly argue FOR the candidate's stated position. If the candidate writes one paragraph 'for' and one paragraph 'against' with equal structural weight, this is a Discussion Essay structure applied to an Opinion Essay prompt — flag this explicitly: 'Your essay uses a balanced Discussion Essay structure (one paragraph for, one against) but the prompt requires a sustained argument supporting your stated position. This structural mismatch limits Task Achievement to Band 5–6.' Partial agreement is acceptable only if the candidate explicitly acknowledges and refutes the opposing view within their dominant argument.
 - Discuss both views ('Discuss both views and give your own opinion'): BOTH views must receive equal, developed treatment. Giving only one view, even if opinion is stated, is a significant TaskAchievement penalty.
 - Advantages and Disadvantages: BOTH advantages AND disadvantages must be developed. Exploring only one side is penalised.
 - Problem and Solution: Specific problems/causes must be identified AND specific, realistic solutions proposed. Vague solutions ('the government should do more') do not satisfy this criterion.

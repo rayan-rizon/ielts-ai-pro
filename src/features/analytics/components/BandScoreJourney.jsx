@@ -1,15 +1,14 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Compass, Star, Flag, Activity, Calendar, Zap, TrendingUp, Info } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Compass, Star, Flag, Activity, Calendar, Zap, TrendingUp } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { ITEM_VARIANTS } from '../constants';
 import { formatBand } from '../utils';
 
-function MilestoneMarker({ band, achieved, current, isTarget, date }) {
+function MilestoneMarker({ band, achieved, current, isTarget }) {
   const isPast = achieved && !current;
   const isCurrent = current;
   const isFinalGoal = isTarget;
@@ -178,8 +177,12 @@ export default function BandScoreJourney({
       if (scoreGap <= 0 && currentBand > 0) estimatedDays = 14;
     }
 
+    // Bug fix: actual progress as % of target, not hardcoded
     const progressPercentage =
       targetBand > 0 ? Math.min(100, Math.round((currentBand / targetBand) * 100)) : 0;
+
+    // Bug fix: find the actual next milestone above currentBand
+    const nextMilestoneBand = milestones.find((m) => m > currentBand) ?? targetBand;
 
     const milestoneData = milestones.map((band) => {
       const isAchieved = currentBand >= band;
@@ -201,6 +204,7 @@ export default function BandScoreJourney({
       isScheduled,
       currentBand,
       targetBand,
+      nextMilestoneBand,
       scoreGap: Math.max(0, targetBand - currentBand),
     };
   }, [currentScore, targetScore, testHistory, testDate, studyPace]);
@@ -317,15 +321,15 @@ export default function BandScoreJourney({
                   icon={TrendingUp}
                   title="Current Standing"
                   value={`Band ${formatBand(journeyData.currentBand)}`}
-                  description="You have covered 45% of the curriculum."
+                  description={`You are ${journeyData.progressPercentage}% of the way to your goal.`}
                   color="text-indigo-600"
                   bgColor="bg-indigo-500/5"
                 />
                 <InsightCard
                   icon={Zap}
-                  title="Next Achievement"
-                  value={`Band ${formatBand(Math.floor(journeyData.currentBand + 1))}`}
-                  description={`Only ${formatBand(journeyData.scoreGap)} band away from goal.`}
+                  title="Next Milestone"
+                  value={`Band ${formatBand(journeyData.nextMilestoneBand)}`}
+                  description={`Only ${formatBand(journeyData.scoreGap)} band away from your goal.`}
                   color="text-emerald-500"
                   bgColor="bg-emerald-500/5"
                 />

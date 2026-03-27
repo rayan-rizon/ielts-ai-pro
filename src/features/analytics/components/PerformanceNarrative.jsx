@@ -1,7 +1,6 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, TrendingUp, AlertCircle, Zap, ArrowRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+import { Sparkles, TrendingUp, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function PerformanceNarrative({ insights, stats }) {
@@ -82,7 +81,7 @@ export default function PerformanceNarrative({ insights, stats }) {
                     Growth Phase
                   </span>
                 </div>
-                {stats.improvement > 0 && (
+                {parseFloat(stats.improvement) > 0 && (
                   <div
                     className="flex items-center gap-2 px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20"
                     data-oid="liu1z3e"

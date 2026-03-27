@@ -449,7 +449,7 @@ export default function useAnalyticsData(selectedTimeframe) {
       recommendations,
       aiSuggestions: demoAiSuggestions,
     };
-  }, [moduleStats, stats.avgScore, stats.improvement, advancedMetrics, rawSessions]);
+  }, [moduleStats, stats.avgScore, stats.improvement, advancedMetrics]);
 
   // 7. Chart Data
   const chartData = useMemo(() => {
@@ -465,9 +465,12 @@ export default function useAnalyticsData(selectedTimeframe) {
 
         const existing = acc.find((item) => item.date === dateStr);
         if (existing) {
-          // If multiple tests in one day, take the average
-          existing.score = Number(((existing.score + (Number(s.score) || 0)) / 2).toFixed(1));
-          existing.count += 1;
+          // Correct cumulative average: (prev_avg * n + new_score) / (n + 1)
+          const newCount = existing.count + 1;
+          existing.score = Number(
+            ((existing.score * existing.count + (Number(s.score) || 0)) / newCount).toFixed(1)
+          );
+          existing.count = newCount;
         } else {
           acc.push({
             date: dateStr,
@@ -515,7 +518,7 @@ export default function useAnalyticsData(selectedTimeframe) {
     const forecast = calculateScoreForecast(filteredSessions, stats.avgScore, stats.targetScore);
 
     return { history, pie: distribution, moduleHistory, forecast };
-  }, [filteredSessions, moduleStats, stats.avgScore, stats.targetScore, stats.improvement]);
+  }, [filteredSessions, moduleStats, stats.avgScore, stats.targetScore]);
 
   return {
     user: authUser,

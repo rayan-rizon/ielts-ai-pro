@@ -1,5 +1,5 @@
 [project]
-domains = []
+domains = ["https://www.ieltsai.pro"]
 name = "ielts-mastery-pro"
 
 [crawler]

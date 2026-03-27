@@ -1,14 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { motion } from 'framer-motion';
+import { BookOpen } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { generateStudyRecommendations } from '@/utils/api';
 import useAnalyticsData from '@/features/analytics/hooks/useAnalyticsData';
-
+import { Button } from '@/components/ui/button';
 import { getFromCache, setInCache, CACHE_TTL } from '@/lib/apiCache';
 
 // Critical path components - load immediately
 import AnalyticsHeader from '../components/AnalyticsHeader';
 import StatCards from '../components/StatCards';
 import PerformanceNarrative from '../components/PerformanceNarrative';
+import EmptyAnalyticsState from '../components/EmptyAnalyticsState';
 
 // Lazy load heavy chart components for better initial load
 const PerformanceTrends = React.lazy(() => import('../components/PerformanceTrends'));
@@ -74,13 +77,7 @@ export default function Analytics() {
   const [drilldown, setDrilldown] = useState({ isOpen: false, category: null, data: [] });
   const tabsRef = useRef(null);
 
-  const {
-    user,
-    isLoading,
-    rawSessions,
-    stats: hookStats,
-    chartData,
-  } = useAnalyticsData(selectedTimeframe);
+  const { user, isLoading, stats: hookStats, chartData } = useAnalyticsData(selectedTimeframe);
   const [aiSuggestions, setAiSuggestions] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
 
@@ -180,8 +177,52 @@ export default function Analytics() {
 
   if (isLoading) return <AnalyticsSkeleton data-oid="cs8j4yv" />;
 
+  // Bug fix: show a proper empty state for new users with no completed tests
+  if (!stats?.totalTests) {
+    return (
+      <motion.div
+        variants={CONTAINER_VARIANTS}
+        initial="hidden"
+        animate="visible"
+        className="p-3 md:p-4 max-w-[1600px] mx-auto space-y-4"
+        data-oid="flrz3b6-empty"
+      >
+        <AnalyticsHeader
+          isPremium={isPremium}
+          tier={user?.subscription_tier}
+          role={user?.role}
+          selectedTimeframe={selectedTimeframe}
+          setSelectedTimeframe={setSelectedTimeframe}
+          data-oid="relgpvl"
+        />
+        <div className="h-[60vh] flex items-center justify-center">
+          <EmptyAnalyticsState
+            icon={BookOpen}
+            title="No Tests Completed Yet"
+            description="Complete your first practice test to unlock your personalized analytics dashboard with score trends, performance insights, and AI recommendations."
+            action={
+              <Link to="/dashboard">
+                <Button className="rounded-full font-black bg-primary text-primary-foreground hover:scale-105 active:scale-95 transition-transform">
+                  Start a Practice Test
+                </Button>
+              </Link>
+            }
+          />
+        </div>
+      </motion.div>
+    );
+  }
+
   const progressToTarget =
     stats?.targetScore > 0 ? clamp01(Number(stats.avgScore) / Number(stats.targetScore)) * 100 : 0;
+
+  // Bug fix: derive studyPace from absolute hours studied, not the trend percentage
+  const studyPace =
+    (stats?.studyHours || 0) > 20
+      ? 'intensive'
+      : (stats?.studyHours || 0) > 10
+        ? 'moderate'
+        : 'casual';
 
   return (
     <motion.div
@@ -223,13 +264,7 @@ export default function Analytics() {
                 targetScore={stats?.targetScore}
                 testHistory={chartData?.history || []}
                 testDate={user?.test_date}
-                studyPace={
-                  stats?.studyHoursTrend > 10
-                    ? 'intensive'
-                    : stats?.studyHoursTrend > 5
-                      ? 'moderate'
-                      : 'casual'
-                }
+                studyPace={studyPace}
                 forecastData={chartData?.forecast}
                 data-oid="2pu74s7"
               />

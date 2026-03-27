@@ -65,7 +65,8 @@ export const mistakeAdvice = (tag) => {
 };
 
 export const getDaysLeft = (testDate) => {
-  const d = differenceInDays(new Date(testDate || Date.now()), new Date());
+  if (!testDate) return null;
+  const d = differenceInDays(new Date(testDate), new Date());
   return d >= 0 ? d : null;
 };
 
