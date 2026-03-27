@@ -33,15 +33,33 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { userId, pointsToAdd } = await req.json();
+    // SECURITY: Read body first, but authenticate via JWT before trusting any value
+    const body = await req.json();
+    const { pointsToAdd } = body;
 
     const authHeader = req.headers.get('Authorization');
     const {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser(authHeader?.split(' ')[1]);
-    if (authError || !user || user.id !== userId) {
+    if (authError || !user) {
       return errorResponse('Unauthorized', 401, corsHeaders);
+    }
+
+    // SECURITY: Validate pointsToAdd is a safe, bounded positive integer
+    // Never trust the client for the amount — cap at server-defined maximum
+    const MAX_POINTS_PER_ACTION = 500; // e.g., max 500 points per single action
+    if (
+      typeof pointsToAdd !== 'number' ||
+      !Number.isInteger(pointsToAdd) ||
+      pointsToAdd <= 0 ||
+      pointsToAdd > MAX_POINTS_PER_ACTION
+    ) {
+      return errorResponse(
+        `pointsToAdd must be a positive integer between 1 and ${MAX_POINTS_PER_ACTION}`,
+        400,
+        corsHeaders
+      );
     }
 
     // Rate Limiting for points updates
@@ -52,10 +70,11 @@ serve(async (req) => {
       return rateLimitedResponse(rateLimit.resetIn, corsHeaders);
     }
 
+    // SECURITY: Use JWT-derived user.id as the lookup key — never the body-supplied userId
     const { data: currentPoints, error: fetchError } = await supabase
       .from('user_points')
       .select('points')
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .single();
 
     if (fetchError) {
@@ -70,7 +89,7 @@ serve(async (req) => {
     const { error: updateError } = await supabase
       .from('user_points')
       .update({ points: newPoints, updated_at: new Date().toISOString() })
-      .eq('user_id', userId);
+      .eq('user_id', user.id); // Always use JWT-derived ID
 
     if (updateError) {
       return new Response(JSON.stringify({ error: updateError.message }), {

@@ -79,6 +79,16 @@ serve(async (req: Request) => {
             );
         }
 
+        // SECURITY: Cap transcript size to prevent token-draining attacks
+        const MAX_TRANSCRIPT_CHARS = 20000; // ~3500 spoken words — well above any IELTS test
+        const transcriptSize = JSON.stringify(allPartsConversation).length;
+        if (transcriptSize > MAX_TRANSCRIPT_CHARS) {
+            return new Response(
+                JSON.stringify({ error: `Conversation transcript exceeds maximum allowed size.` }),
+                { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
         const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
         if (!geminiApiKey) {
             throw new Error('Gemini API key not configured');

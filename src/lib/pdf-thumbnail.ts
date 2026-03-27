@@ -39,6 +39,7 @@ export const generatePdfThumbnail = async (file: File, scale = 1.0): Promise<Blo
         const renderContext = {
             canvasContext: context,
             viewport: viewport,
+            canvas: canvas,
         };
 
         await page.render(renderContext).promise;

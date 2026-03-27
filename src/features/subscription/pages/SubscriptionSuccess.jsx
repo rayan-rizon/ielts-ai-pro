@@ -1,21 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import {
-  CheckCircle2,
-  Sparkles,
-  ArrowRight,
-  Crown,
-  Loader2,
-  AlertCircle,
-  RefreshCw,
-} from 'lucide-react';
+import { CheckCircle2, Sparkles, ArrowRight, Crown, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { User } from '@/entities';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/features/auth/context/AuthContext';
+import { toast } from 'sonner';
 
 const MAX_RETRIES = 10;
 const POLL_INTERVAL = 2000; // 2 seconds between polls
@@ -27,12 +19,10 @@ export default function SubscriptionSuccess() {
   const sessionId = searchParams.get('session_id');
   const { refreshProfile } = useAuth();
 
-  // OPTIMISTIC UI: If session_id is present, assume success immediately
-  const [isLoading, setIsLoading] = useState(!sessionId); // Only block if no session_id
-  const [isSyncing, setIsSyncing] = useState(!!sessionId); // Track background sync
+  // All states start in a verifying/loading mode — no optimistic UI
+  const [status, setStatus] = useState('verifying'); // 'verifying' | 'success' | 'error'
   const [subscriptionData, setSubscriptionData] = useState(null);
-  const [error, setError] = useState(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const syncStripeSession = async (authSession) => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -58,7 +48,7 @@ export default function SubscriptionSuccess() {
       }
 
       const result = await response.json();
-      console.log('[SubscriptionSuccess] Sync result:', result);
+      console.info('[SubscriptionSuccess] Sync result:', result);
       return result.success === true;
     } catch (err) {
       clearTimeout(timeoutId);
@@ -93,6 +83,13 @@ export default function SubscriptionSuccess() {
     let isMounted = true;
     let pollInterval = null;
 
+    // Guard: If no valid session_id in the URL, redirect immediately
+    if (!sessionId || sessionId.trim() === '') {
+      toast.error('No payment session found. Please try again.');
+      navigate('/pricing', { replace: true });
+      return;
+    }
+
     const loadSubscription = async () => {
       try {
         const {
@@ -100,58 +97,55 @@ export default function SubscriptionSuccess() {
         } = await import('@/lib/supabase').then((m) => m.supabase.auth.getSession());
 
         if (!authSession) {
-          setError('Not authenticated. Please log in again.');
-          setIsLoading(false);
-          setIsSyncing(false);
+          navigate('/login?redirect=/pricing', { replace: true });
           return;
         }
 
-        // Try to sync if we have a session ID
-        if (sessionId) {
-          console.log('[SubscriptionSuccess] Syncing session:', sessionId);
-          // Don't await this if we want to start polling immediately?
-          // Actually, await is fine because user sees "Success" UI already.
-          await syncStripeSession(authSession);
+        // Sync with Stripe — this is the critical verification step
+        console.info('[SubscriptionSuccess] Syncing session:', sessionId);
+        const synced = await syncStripeSession(authSession);
+
+        if (!synced) {
+          console.warn('[SubscriptionSuccess] Sync failed or returned false');
+          // We still poll — sync may have failed transiently but webhook may have already
+          // upgraded the account. If polling also fails, we show a real error.
         }
 
-        // Poll for subscription status
+        // Poll for subscription status (webhook may precede sync response)
         const pollForSubscription = async (attempt = 0) => {
           if (!isMounted) return;
 
           const subData = await checkSubscriptionStatus();
 
           if (subData) {
-            console.log('[SubscriptionSuccess] Subscription confirmed:', subData);
-            setSubscriptionData(subData);
-            setIsLoading(false);
-            setIsSyncing(false);
+            console.info('[SubscriptionSuccess] Subscription confirmed:', subData);
 
-            // Refresh AuthContext so ProtectedRoute has latest subscription_tier & onboarding_completed
-            // Also clears stale sessionStorage cache
+            // Refresh AuthContext so ProtectedRoute has latest subscription_tier
             try {
               sessionStorage.removeItem('auth_profile_cache');
               await refreshProfile();
             } catch (err) {
               console.warn('[SubscriptionSuccess] Profile refresh failed (non-critical):', err);
             }
+
+            if (isMounted) {
+              setSubscriptionData(subData);
+              setStatus('success');
+            }
             return;
           }
 
           if (attempt >= MAX_RETRIES) {
-            console.warn('[SubscriptionSuccess] Max retries reached, showing fallback');
-            // Show success anyway with default tier (payment went through, just sync delayed)
-            setSubscriptionData({
-              tier: 'pro', // Default fallback
-              interval: 'monthly',
-              amount: null,
-              currency: 'USD',
-            });
-            setIsLoading(false);
-            setIsSyncing(false);
+            console.warn('[SubscriptionSuccess] Max retries reached, no subscription found');
+            if (isMounted) {
+              setErrorMessage(
+                'Your payment was received, but account activation is taking longer than expected. Please check your Settings page in a few minutes, or contact support if the issue persists.'
+              );
+              setStatus('error');
+            }
             return;
           }
 
-          setRetryCount(attempt + 1);
           pollInterval = setTimeout(() => pollForSubscription(attempt + 1), POLL_INTERVAL);
         };
 
@@ -160,14 +154,10 @@ export default function SubscriptionSuccess() {
       } catch (error) {
         console.error('[SubscriptionSuccess] Error:', error);
         if (isMounted) {
-          // Only show error if we haven't shown success yet (should be rare with optimistic UI)
-          if (isLoading) {
-            setError(
-              'Something went wrong. Your payment was successful - please check your settings.'
-            );
-          }
-          setIsLoading(false);
-          setIsSyncing(false);
+          setErrorMessage(
+            'Something went wrong verifying your payment. If you were charged, please contact support.'
+          );
+          setStatus('error');
         }
       }
     };
@@ -178,7 +168,7 @@ export default function SubscriptionSuccess() {
       isMounted = false;
       if (pollInterval) clearTimeout(pollInterval);
     };
-  }, [sessionId]);
+  }, [sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const tierColors = {
     pro: {
@@ -195,31 +185,71 @@ export default function SubscriptionSuccess() {
     },
   };
 
-  // Determine colors based on data or default to Pro for optimistic UI
   const currentTier = subscriptionData?.tier || 'pro';
   const colors = tierColors[currentTier] || tierColors.pro;
 
-  // Fully blocking error state (only if auth fails or critical error before loading)
-  if (error && !subscriptionData && !sessionId) {
+  // ─── Verifying State ─────────────────────────────────────────────────────────
+  if (status === 'verifying') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#020617]">
-        <p className="text-red-500">{error}</p>
-      </div>
-    );
-  }
-
-  // Initial loading state (only if NO session ID provided, e.g. direct visit)
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#020617]">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-indigo-500 mx-auto mb-4" />
-          <p className="text-slate-600 dark:text-slate-400 font-medium">Loading...</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-sm px-4"
+        >
+          <div className="w-20 h-20 rounded-full bg-indigo-500/10 border-2 border-indigo-500/20 flex items-center justify-center mx-auto mb-6 shadow-xl">
+            <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">
+            Verifying Payment
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">
+            Confirming your subscription with Stripe. This usually takes just a moment…
+          </p>
         </motion.div>
       </div>
     );
   }
 
+  // ─── Error State ──────────────────────────────────────────────────────────────
+  if (status === 'error') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#020617] px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-md"
+        >
+          <div className="w-20 h-20 rounded-full bg-amber-500/10 border-2 border-amber-500/20 flex items-center justify-center mx-auto mb-6 shadow-xl">
+            <AlertCircle className="w-10 h-10 text-amber-500" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3">
+            Activation Pending
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">
+            {errorMessage}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              onClick={() => navigate('/settings')}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl px-6"
+            >
+              Check Settings
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/dashboard')}
+              className="rounded-xl px-6 border-slate-200 dark:border-white/10 font-bold"
+            >
+              Go to Dashboard
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ─── Success State (only shown after verified) ───────────────────────────────
   return (
     <div className="min-h-screen relative bg-slate-50 dark:bg-[#020617] overflow-hidden">
       {/* Background Effects */}
@@ -254,14 +284,13 @@ export default function SubscriptionSuccess() {
           <h1 className="text-4xl md:text-5xl font-black mb-4 text-slate-900 dark:text-white">
             Welcome to{' '}
             <span className={colors.icon}>
-              {subscriptionData ? (subscriptionData.tier === 'premium' ? 'Premium' : 'Pro') : 'Pro'}
+              {subscriptionData.tier === 'premium' ? 'Premium' : 'Pro'}
             </span>
             !
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-            {subscriptionData
-              ? `Your subscription is now active. You have full access to all ${subscriptionData.tier === 'premium' ? 'Premium' : 'Pro'} features.`
-              : "We've received your payment and are finalizing your account setup. This will just take a moment."}
+            Your subscription is now active. You have full access to all{' '}
+            {subscriptionData.tier === 'premium' ? 'Premium' : 'Pro'} features.
           </p>
         </motion.div>
 
@@ -278,61 +307,49 @@ export default function SubscriptionSuccess() {
               {/* Plan Details Section */}
               <div className="flex items-center gap-4 mb-6">
                 <div className={`p-3 rounded-2xl bg-gradient-to-br ${colors.bg}`}>
-                  {subscriptionData?.tier === 'premium' ? (
+                  {subscriptionData.tier === 'premium' ? (
                     <Crown className={`w-6 h-6 ${colors.icon}`} />
                   ) : (
                     <Sparkles className={`w-6 h-6 ${colors.icon}`} />
                   )}
                 </div>
                 <div>
-                  {subscriptionData ? (
-                    <>
-                      <h3 className="font-bold text-slate-900 dark:text-white">
-                        {subscriptionData.tier === 'premium' ? 'Premium Plan' : 'Pro Plan'}
-                      </h3>
-                      <p className="text-sm text-slate-500 capitalize">
-                        {subscriptionData.interval} billing
-                      </p>
-                    </>
-                  ) : (
-                    <div className="space-y-2">
-                      <Skeleton className="h-5 w-32" />
-                      <Skeleton className="h-4 w-24" />
-                    </div>
-                  )}
+                  <h3 className="font-bold text-slate-900 dark:text-white">
+                    {subscriptionData.tier === 'premium' ? 'Premium Plan' : 'Pro Plan'}
+                  </h3>
+                  <p className="text-sm text-slate-500 capitalize">
+                    {subscriptionData.interval} billing
+                  </p>
                 </div>
               </div>
 
               {/* Features List */}
               <div className="space-y-3 mb-6">
-                {subscriptionData ? (
-                  <>
-                    <div className="flex items-center gap-3 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      <span className="text-slate-700 dark:text-slate-300">
-                        {subscriptionData.tier === 'premium' ? '200' : '100'} AI Writing
-                        Evaluations/month
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      <span className="text-slate-700 dark:text-slate-300">
-                        {subscriptionData.tier === 'premium' ? '100' : '50'} AI Speaking
-                        Sessions/month
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      <span className="text-slate-700 dark:text-slate-300">
-                        All Cambridge Tests unlocked
-                      </span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="space-y-3">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-5/6" />
+                <div className="flex items-center gap-3 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span className="text-slate-700 dark:text-slate-300">
+                    {subscriptionData.tier === 'premium' ? '200' : '100'} AI Writing
+                    Evaluations/month
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span className="text-slate-700 dark:text-slate-300">
+                    {subscriptionData.tier === 'premium' ? '100' : '50'} AI Speaking Sessions/month
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span className="text-slate-700 dark:text-slate-300">
+                    All Cambridge Tests unlocked
+                  </span>
+                </div>
+                {subscriptionData.tier === 'premium' && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span className="text-slate-700 dark:text-slate-300">
+                      Adaptive AI Learning Path
+                    </span>
                   </div>
                 )}
               </div>
@@ -340,33 +357,14 @@ export default function SubscriptionSuccess() {
               {/* Action Button */}
               <Button
                 onClick={() => navigate('/dashboard')}
-                disabled={isSyncing}
-                className={`w-full py-6 rounded-2xl font-bold text-white ${colors.badge} hover:opacity-90 transition-all duration-300 group disabled:opacity-70`}
+                className={`w-full py-6 rounded-2xl font-bold text-white ${colors.badge} hover:opacity-90 transition-all duration-300 group`}
               >
-                {isSyncing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Finalizing Setup...
-                  </>
-                ) : (
-                  <>
-                    Go to Dashboard
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </>
-                )}
+                Go to Dashboard
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </CardContent>
           </Card>
         </motion.div>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-8 text-sm text-slate-500 dark:text-slate-400 text-center"
-        >
-          A confirmation email has been sent to your registered email address.
-        </motion.p>
       </div>
     </div>
   );

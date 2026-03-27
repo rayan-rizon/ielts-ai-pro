@@ -117,11 +117,59 @@ serve(async (req: Request) => {
       });
     }
 
+    // SECURITY: Cap input sizes to prevent token-draining attacks
+    const MAX_WRITING_CHARS = 8000;  // ~1500-word essay well within IELTS bounds
+    const MAX_PROMPT_CHARS = 1500;   // Task prompts are typically < 200 chars
+    if (writingText.length > MAX_WRITING_CHARS) {
+      return new Response(
+        JSON.stringify({ error: `Writing text exceeds maximum length (${MAX_WRITING_CHARS} characters).` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    if (taskPrompt.length > MAX_PROMPT_CHARS) {
+      return new Response(
+        JSON.stringify({ error: `Task prompt exceeds maximum length (${MAX_PROMPT_CHARS} characters).` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // SECURITY: Validate taskType is one of the expected values
+    const VALID_TASK_TYPES = ['Task 1', 'Task 2'];
+    if (taskType && !VALID_TASK_TYPES.includes(taskType)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid taskType. Must be "Task 1" or "Task 2".' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (taskType === 'Task 1' && !imageUrl) {
       return new Response(
         JSON.stringify({ error: 'Image URL is required for Task 1 evaluation.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // SECURITY: SSRF protection — only allow imageUrl from trusted origins
+    if (imageUrl) {
+      const ALLOWED_IMAGE_ORIGINS = [
+        'https://media.ieltsai.pro',
+        'https://zvrmvycajimjxghrnpgy.supabase.co/storage',
+      ];
+      try {
+        const parsed = new URL(imageUrl);
+        const isTrusted = ALLOWED_IMAGE_ORIGINS.some(origin => imageUrl.startsWith(origin));
+        if (!isTrusted || (parsed.protocol !== 'https:')) {
+          return new Response(
+            JSON.stringify({ error: 'imageUrl must point to a trusted image source.' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      } catch {
+        return new Response(
+          JSON.stringify({ error: 'imageUrl is not a valid URL.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     let systemInstruction = `
