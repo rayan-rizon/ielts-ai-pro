@@ -42,15 +42,22 @@ export default defineConfig({
     sourcemap: 'hidden',
     target: 'esnext',
     cssCodeSplit: true,
-    chunkSizeWarningLimit: 300,
+    chunkSizeWarningLimit: 1000,
     modulePreload: {
       resolveDependencies: (filename, deps) => {
-        return deps.filter(dep => {
+        return deps.filter((dep) => {
           // Exclude heavy chunks from eager preloading
-          const excludeKeywords = ['chart-vendor', 'supabase-vendor', 'zod-vendor', 'sanitize-vendor', 'query-vendor', 'helmet-vendor'];
-          return !excludeKeywords.some(keyword => dep.includes(keyword));
+          const excludeKeywords = [
+            'chart-vendor',
+            'supabase-vendor',
+            'zod-vendor',
+            'sanitize-vendor',
+            'query-vendor',
+            'helmet-vendor',
+          ];
+          return !excludeKeywords.some((keyword) => dep.includes(keyword));
         });
-      }
+      },
     },
     minify: 'terser',
     terserOptions: {
@@ -67,7 +74,11 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes('node_modules')) {
             // Core React - always needed
-            if (id.includes('react/') || id.includes('react-dom/') || id.includes('react-router-dom/')) {
+            if (
+              id.includes('react/') ||
+              id.includes('react-dom/') ||
+              id.includes('react-router-dom/')
+            ) {
               return 'react-vendor';
             }
             // Icons - used everywhere but tree-shakeable

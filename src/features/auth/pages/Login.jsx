@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { createPageUrl } from '@/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,10 +17,7 @@ import {
   Lock,
   ArrowLeft,
   User as UserIcon,
-  CheckCircle2,
-  Sparkles,
   ShieldCheck,
-  TrendingUp,
   Award,
   Globe,
   Zap,
@@ -38,19 +35,6 @@ import {
 import { cn } from '@/lib/utils';
 import { User } from '@/features/auth/services/User';
 import DocumentHead from '@/components/shared/DocumentHead';
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.3 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
-};
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -72,7 +56,7 @@ export default function Login() {
   const [authMode, setAuthMode] = useState(location.pathname === '/signup' ? 'signup' : 'signin'); // 'signin' or 'signup'
   const [canResend, setCanResend] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [failedAttempts, setFailedAttempts] = useState(0);
+
   const [lockoutTime, setLockoutTime] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -184,7 +168,6 @@ export default function Login() {
       if (authMode === 'signin') {
         const data = await signIn(email, password);
         if (data) {
-          setFailedAttempts(0);
           const isUserAdmin = await checkIsAdmin(data.id);
           const destination = isUserAdmin
             ? createPageUrl('AdminPanel')
@@ -206,10 +189,9 @@ export default function Login() {
       }
     } catch (err) {
       console.error('Authentication failed:', err);
-      setFailedAttempts((prev) => {
-        const newCount = prev + 1;
-        if (newCount >= 5) setLockoutTime(Date.now() + 60000);
-        return newCount;
+      setLockoutTime(() => {
+        const newTime = Date.now() + 60000;
+        return newTime;
       });
       const msg = (err?.message || 'Authentication failed. Please try again.').toLowerCase();
       if (msg.includes('email not confirmed')) {

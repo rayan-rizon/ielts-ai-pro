@@ -85,11 +85,50 @@ const MapLabelingRenderer = ({
       const errorMsg = document.createElement('div');
       errorMsg.className =
         'text-center text-slate-500 dark:text-slate-400 flex flex-col items-center gap-2';
-      errorMsg.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 opacity-50"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        <p class="font-medium">Map image could not be loaded</p>
-        <p class="text-xs">The resource may be temporarily unavailable</p>
-      `;
+
+      // Safe SVG creation
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '24');
+      svg.setAttribute('height', '24');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('fill', 'none');
+      svg.setAttribute('stroke', 'currentColor');
+      svg.setAttribute('stroke-width', '2');
+      svg.setAttribute('stroke-linecap', 'round');
+      svg.setAttribute('stroke-linejoin', 'round');
+      svg.classList.add('w-8 h-8', 'opacity-50');
+
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', '3');
+      rect.setAttribute('y', '3');
+      rect.setAttribute('width', '18');
+      rect.setAttribute('height', '18');
+      rect.setAttribute('rx', '2');
+      rect.setAttribute('ry', '2');
+      svg.appendChild(rect);
+
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', '8.5');
+      circle.setAttribute('cy', '8.5');
+      circle.setAttribute('r', '1.5');
+      svg.appendChild(circle);
+
+      const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      polyline.setAttribute('points', '21 15 16 10 5 21');
+      svg.appendChild(polyline);
+
+      errorMsg.appendChild(svg);
+
+      const p1 = document.createElement('p');
+      p1.className = 'font-medium';
+      p1.textContent = 'Map image could not be loaded';
+      errorMsg.appendChild(p1);
+
+      const p2 = document.createElement('p');
+      p2.className = 'text-xs';
+      p2.textContent = 'The resource may be temporarily unavailable';
+      errorMsg.appendChild(p2);
+
       parent.appendChild(errorMsg);
     }
   };

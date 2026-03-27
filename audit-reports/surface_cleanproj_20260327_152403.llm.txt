@@ -1,0 +1,34 @@
+Config: /Users/rayanrizon/Desktop/Ielts-mastery-pro/squirrel.toml
+Database: /Users/rayanrizon/.squirrel/projects/ielts-mastery-pro-live-20260327_152403/project.db
+New crawl: https://www.ieltsai.pro
+<?xml version="1.0" encoding="UTF-8"?>
+<audit version="0.0.38">
+<site url="https://www.ieltsai.pro" crawled="0" date="2026-03-27T09:24:04.766Z"/>
+<score overall="52" grade="F">
+ <cat name="Crawlability" score="16"/>
+ <cat name="Security" score="86"/>
+ <cat name="Images" score="100"/>
+ <cat name="Links" score="100"/>
+ <cat name="Performance" score="100"/>
+</score>
+<summary passed="8" warnings="2" failed="1"/>
+<issues>
+ <category name="Crawlability" errors="1" warnings="1">
+  <rule id="crawl/sitemap-exists" severity="error" status="fail" docs="https://docs.squirrelscan.com/rules/crawl/sitemap-exists">
+   No XML sitemap found
+  </rule>
+  <rule id="crawl/robots-txt" severity="error" status="warn" docs="https://docs.squirrelscan.com/rules/crawl/robots-txt">
+   No robots.txt found
+  </rule>
+ </category>
+ <category name="Security" errors="0" warnings="1">
+  <rule id="security/http-to-https" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/security/http-to-https">
+   1 HTTP URL(s) redirect to HTTPS
+   Items (1):
+    - http://www.ieltsai.pro/ (http://www.ieltsai.pro/ → https://www.ieltsai.pro/ (308)) [statusCode: 308, chain: {&quot;sourceUrl&quot;:&quot;http://www.ieltsai.pro/&quot;,&quot;finalUrl&quot;:&quot;https://www.ieltsai.pro/&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;http://www.ieltsai.pro/&quot;,&quot;statusCode&quot;:308,&quot;type&quot;:&quot;http&quot;},{&quot;url&quot;:&quot;https://www.ieltsai.pro/&quot;,&quot;statusCode&quot;:40…]
+  </rule>
+ </category>
+</issues>
+</audit>
+
+

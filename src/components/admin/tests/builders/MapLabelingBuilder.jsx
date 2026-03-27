@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash2, Map, Upload, ImageIcon } from 'lucide-react';
+import { Plus, Trash2, Upload, ImageIcon } from 'lucide-react';
 
 const MapLabelingBuilder = ({ initialData, onChange, theme }) => {
   // Default theme fallback
@@ -38,22 +38,6 @@ const MapLabelingBuilder = ({ initialData, onChange, theme }) => {
   };
 
   const [uploading, setUploading] = useState(false);
-
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setUploading(true);
-      try {
-        const { file_url } = await uploadToR2(file);
-        updateField('image_url', file_url);
-      } catch (err) {
-        console.error('Upload failed:', err);
-        alert('Upload failed: ' + err.message);
-      } finally {
-        setUploading(false);
-      }
-    }
-  };
 
   const addQuestion = () => {
     const nextLabel =
@@ -115,12 +99,13 @@ const MapLabelingBuilder = ({ initialData, onChange, theme }) => {
                     e.target.parentElement.classList.add('bg-red-50');
                     // We can't easily show a toast from here without causing loops if generic,
                     // but we can show a visual indicator
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className =
-                      'absolute inset-0 flex flex-col items-center justify-center text-red-500 text-xs text-center p-2';
-                    errorDiv.innerHTML =
-                      '<span>Failed to load</span><span class="text-[9px] mt-1 text-red-400">Try uploading manually</span>';
-                    e.target.parentElement.appendChild(errorDiv);
+                    const span1 = document.createElement('span');
+                    span1.textContent = 'Failed to load';
+                    const span2 = document.createElement('span');
+                    span2.className = 'text-[9px] mt-1 text-red-400';
+                    span2.textContent = 'Try uploading manually';
+                    e.target.parentElement.appendChild(span1);
+                    e.target.parentElement.appendChild(span2);
                   }}
                   data-oid="ztz8_ab"
                 />
@@ -187,11 +172,14 @@ const MapLabelingBuilder = ({ initialData, onChange, theme }) => {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
+                        setUploading(true);
                         try {
                           const { file_url } = await uploadToR2(file);
                           if (file_url) updateField('image_url', file_url);
                         } catch (err) {
                           console.error('Upload failed', err);
+                        } finally {
+                          setUploading(false);
                         }
                       }}
                       data-oid="fm4gghu"

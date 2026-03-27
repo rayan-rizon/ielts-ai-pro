@@ -1,0 +1,39 @@
+Config: /Users/rayanrizon/Desktop/Ielts-mastery-pro/squirrel.toml
+Database: /Users/rayanrizon/.squirrel/projects/ielts-mastery-pro-local-fallback/project.db
+New crawl: http://127.0.0.1:4173
+<?xml version="1.0" encoding="UTF-8"?>
+<audit version="0.0.38">
+<site url="http://127.0.0.1:4173" crawled="0" date="2026-03-27T09:27:11.596Z"/>
+<score overall="86" grade="B">
+ <cat name="Crawlability" score="69"/>
+ <cat name="Images" score="100"/>
+ <cat name="Links" score="100"/>
+ <cat name="Performance" score="100"/>
+ <cat name="Security" score="100"/>
+</score>
+<summary passed="17" warnings="0" failed="2"/>
+<issues>
+ <category name="Crawlability" errors="2" warnings="0">
+  <rule id="crawl/sitemap-domain" severity="error" status="fail" docs="https://docs.squirrelscan.com/rules/crawl/sitemap-domain">
+   20 URL(s) point to different domain(s)
+   Items (5/20):
+    - https://www.ieltsai.pro/ [host: www.ieltsai.pro]
+    - https://www.ieltsai.pro/about [host: www.ieltsai.pro]
+    - https://www.ieltsai.pro/contact [host: www.ieltsai.pro]
+    - https://www.ieltsai.pro/privacy [host: www.ieltsai.pro]
+    - https://www.ieltsai.pro/terms [host: www.ieltsai.pro]
+  </rule>
+  <rule id="crawl/sitemap-valid" severity="error" status="fail" docs="https://docs.squirrelscan.com/rules/crawl/sitemap-valid">
+   7 error(s) in 7 sitemap(s)
+   Items (5/7):
+    - /sitemap_index.xml (Unknown sitemap format) [errorCount: 1, errors: [&quot;Unknown sitemap format&quot;]]
+    - /sitemap-index.xml (Unknown sitemap format) [errorCount: 1, errors: [&quot;Unknown sitemap format&quot;]]
+    - /sitemaps.xml (Unknown sitemap format) [errorCount: 1, errors: [&quot;Unknown sitemap format&quot;]]
+    - /sitemap1.xml (Unknown sitemap format) [errorCount: 1, errors: [&quot;Unknown sitemap format&quot;]]
+    - /post-sitemap.xml (Unknown sitemap format) [errorCount: 1, errors: [&quot;Unknown sitemap format&quot;]]
+  </rule>
+ </category>
+</issues>
+</audit>
+
+

@@ -1,17 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Calendar,
   Clock,
   User,
   ArrowLeft,
-  Share2,
-  Bookmark,
-  Eye,
   Tag,
   ChevronRight,
-  Home,
   MessageCircle,
   ThumbsUp,
   Sparkles,
@@ -100,10 +96,10 @@ const BlogPost = () => {
 
   // Generate excerpt for meta description (first 160 chars of plain text)
   const getExcerpt = (htmlContent) => {
-    const div = document.createElement('div');
-    div.innerHTML = htmlContent || '';
-    const text = div.textContent || div.innerText || '';
-    return text.substring(0, 160).trim() + (text.length > 160 ? '...' : '');
+    if (!htmlContent) return '';
+    // Use DOMPurify to strip all tags safely
+    const plainText = DOMPurify.sanitize(htmlContent, { ALLOWED_TAGS: [] });
+    return plainText.substring(0, 160).trim() + (plainText.length > 160 ? '...' : '');
   };
 
   return (

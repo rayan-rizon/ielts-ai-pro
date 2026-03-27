@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<audit version="0.0.38">
+<site url="https://www.ieltsai.pro" crawled="8" date="2026-02-10T12:45:01.868Z"/>
+<score overall="89" grade="B">
+ <cat name="Performance" score="94"/>
+ <cat name="Security" score="82"/>
+ <cat name="Content" score="82"/>
+ <cat name="E-E-A-T" score="89"/>
+ <cat name="Links" score="94"/>
+ <cat name="Core SEO" score="95"/>
+ <cat name="Crawlability" score="98"/>
+ <cat name="Accessibility" score="100"/>
+ <cat name="Internationalization" score="100"/>
+ <cat name="Images" score="100"/>
+ <cat name="Legal Compliance" score="100"/>
+ <cat name="Mobile" score="100"/>
+ <cat name="Social Media" score="100"/>
+ <cat name="URL Structure" score="100"/>
+</score>
+<summary passed="735" warnings="25" failed="0"/>
+<issues>
+ <category name="Crawlability" errors="0" warnings="1">
+  <rule id="crawl/sitemap-coverage" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/crawl/sitemap-coverage">
+   2 sitemap URL(s) were not crawled
+   Items (2):
+    - /login
+    - /signup
+  </rule>
+ </category>
+ <category name="Core SEO" errors="0" warnings="1">
+  <rule id="core/title-unique" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/core/title-unique">
+   1 duplicate title(s) affecting 8 pages
+   Items (1):
+    - ielts ai pro | ai-powered ielts preparation &amp; feedback (&quot;ielts ai pro | ai-powered ielts preparat...&quot; (8 pages)) [pageCount: 8] (from: /blog, /, /pricing, /resources, /about; +3 more)
+  </rule>
+ </category>
+ <category name="Security" errors="0" warnings="3">
+  <rule id="security/leaked-secrets" severity="error" status="warn" docs="https://docs.squirrelscan.com/rules/security/leaked-secrets">
+   3 potential secret(s) detected (verify manually)
+   Items (3):
+    - Supabase Anon Key: eyJhbG********************xMn0 (Found in external-script (https://www.ieltsai.pro/assets/index-Ddz7FAcI.js))
+    - Generic Secret Assignment: Passwo*****************ord&quot; (Found in external-script (https://www.ieltsai.pro/assets/index-Ddz7FAcI.js))
+    - Generic Secret Assignment: Passwo*****************ord&quot; (Found in external-script (https://www.ieltsai.pro/assets/index-Ddz7FAcI.js))
+  </rule>
+  <rule id="security/csp" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/security/csp">
+   CSP allows &apos;unsafe-inline&apos; and &apos;unsafe-eval&apos;
+  </rule>
+  <rule id="security/http-to-https" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/security/http-to-https">
+   8 HTTP URL(s) redirect to HTTPS
+   Items (5/8):
+    - http://www.ieltsai.pro/ (http://www.ieltsai.pro/ → https://www.ieltsai.pro/ (308)) [statusCode: 308, chain: {&quot;sourceUrl&quot;:&quot;http://www.ieltsai.pro/&quot;,&quot;finalUrl&quot;:&quot;https://www.ieltsai.pro/&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;http://www.ieltsai.pro/&quot;,&quot;statusCode&quot;:308,&quot;type&quot;:&quot;http&quot;},{&quot;url&quot;:&quot;https://www.ieltsai.pro/&quot;,&quot;statusCode&quot;:20…]
+    - http://www.ieltsai.pro/blog (http://www.ieltsai.pro/blog → https://www.ieltsai.pro/blog (308)) [statusCode: 308, chain: {&quot;sourceUrl&quot;:&quot;http://www.ieltsai.pro/blog&quot;,&quot;finalUrl&quot;:&quot;https://www.ieltsai.pro/blog&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;http://www.ieltsai.pro/blog&quot;,&quot;statusCode&quot;:308,&quot;type&quot;:&quot;http&quot;},{&quot;url&quot;:&quot;https://www.ieltsai.pro/blog&quot;…]
+    - http://www.ieltsai.pro/pricing (http://www.ieltsai.pro/pricing → https://www.ieltsai.pro/pricing (308)) [statusCode: 308, chain: {&quot;sourceUrl&quot;:&quot;http://www.ieltsai.pro/pricing&quot;,&quot;finalUrl&quot;:&quot;https://www.ieltsai.pro/pricing&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;http://www.ieltsai.pro/pricing&quot;,&quot;statusCode&quot;:308,&quot;type&quot;:&quot;http&quot;},{&quot;url&quot;:&quot;https://www.ieltsai.…]
+    - http://www.ieltsai.pro/resources (http://www.ieltsai.pro/resources → https://www.ieltsai.pro/resources (308)) [statusCode: 308, chain: {&quot;sourceUrl&quot;:&quot;http://www.ieltsai.pro/resources&quot;,&quot;finalUrl&quot;:&quot;https://www.ieltsai.pro/resources&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;http://www.ieltsai.pro/resources&quot;,&quot;statusCode&quot;:308,&quot;type&quot;:&quot;http&quot;},{&quot;url&quot;:&quot;https://www.ie…]
+    - http://www.ieltsai.pro/about (http://www.ieltsai.pro/about → https://www.ieltsai.pro/about (308)) [statusCode: 308, chain: {&quot;sourceUrl&quot;:&quot;http://www.ieltsai.pro/about&quot;,&quot;finalUrl&quot;:&quot;https://www.ieltsai.pro/about&quot;,&quot;hops&quot;:[{&quot;url&quot;:&quot;http://www.ieltsai.pro/about&quot;,&quot;statusCode&quot;:308,&quot;type&quot;:&quot;http&quot;},{&quot;url&quot;:&quot;https://www.ieltsai.pro/ab…]
+  </rule>
+ </category>
+ <category name="Links" errors="0" warnings="1">
+  <rule id="links/orphan-pages" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/links/orphan-pages">
+   1 orphan page(s) with &lt;2 incoming links
+   Items (1):
+    - /blog
+  </rule>
+ </category>
+ <category name="Content" errors="0" warnings="2">
+  <rule id="content/duplicate-title" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/content/duplicate-title">
+   1 duplicate title(s) found across 8 pages
+   Items (1):
+    - ielts ai pro | ai-powered ielts preparation &amp; feedback (&quot;ielts ai pro | ai-powered ielts preparat...&quot; (8 pages)) [pageCount: 8] (from: /blog, /, /pricing, /resources, /about; +3 more)
+  </rule>
+  <rule id="content/duplicate-description" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/content/duplicate-description">
+   1 duplicate description(s) found across 8 pages
+   Items (1):
+    - master ielts with ai-powered instant feedback on writing &amp; s (&quot;master ielts with ai-powered instant fee...&quot; (8 pages)) [pageCount: 8] (from: /blog, /, /pricing, /resources, /about; +3 more)
+  </rule>
+ </category>
+ <category name="Performance" errors="0" warnings="16">
+  <rule id="perf/render-blocking" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/perf/render-blocking">
+   4 render-blocking resources
+   Pages (5/8): /, /about, /blog, /contact, /pricing
+   Items (4):
+    - https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap
+    - /assets/editor-vendor-CP00zwgT.css
+    - /assets/index-BaDBiJqX.css
+    - /assets/index-Ddz7FAcI.js
+  </rule>
+  <rule id="perf/critical-request-chains" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/perf/critical-request-chains">
+   3 critical request chain(s) found
+   Pages (5/8): /, /about, /blog, /contact, /pricing
+   Items (3):
+    - CSS: https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap
+    - CSS: /assets/editor-vendor-CP00zwgT.css
+    - CSS: /assets/index-BaDBiJqX.css
+  </rule>
+ </category>
+ <category name="E-E-A-T" errors="0" warnings="1">
+  <rule id="eeat/author-byline" severity="warning" status="warn" docs="https://docs.squirrelscan.com/rules/eeat/author-byline">
+   No content pages have author attribution
+  </rule>
+ </category>
+</issues>
+</audit>
+
+
