@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { m, AnimatePresence } from 'framer-motion';
+import { m } from 'framer-motion';
 import {
   Brain,
   Sparkles,
@@ -85,7 +85,7 @@ const NavItem = memo(({ item, isActive, variant = 'primary' }) => {
           asChild
           className={`group relative mb-0.5 rounded-xl overflow-hidden transition-all duration-200 ${
             isActive
-              ? `${activeClasses[variant]} font-bold border`
+              ? `${activeClasses[variant]} border`
               : `text-foreground/70 border border-transparent ${hoverClasses[variant]}`
           }`}
           tooltip={item.title}
@@ -177,16 +177,6 @@ NavItem.displayName = 'NavItem';
 
 export const UserSidebar = memo(({ user, location, handleLogout }) => {
   const { isMobile, setOpenMobile } = useSidebar();
-  const getSubscriptionColor = (tier) => {
-    switch (tier?.toLowerCase()) {
-      case 'pro':
-        return 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md';
-      case 'premium':
-        return 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-md hover:text-purple-100';
-      default:
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700';
-    }
-  };
 
   const getSubscriptionIcon = (tier) => {
     switch (tier?.toLowerCase()) {

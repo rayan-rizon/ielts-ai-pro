@@ -81,6 +81,31 @@ export default defineConfig({
             ) {
               return 'react-vendor';
             }
+            // PDF.js - heavy library, only needed in specific pages
+            if (id.includes('pdfjs-dist')) {
+              return 'pdf-vendor';
+            }
+            // TanStack Query - data fetching
+            if (id.includes('@tanstack/react-query')) {
+              return 'query-vendor';
+            }
+            // Editor dependencies - only needed in specific components
+            if (id.includes('lexical') || id.includes('prismjs')) {
+              return 'editor-vendor';
+            }
+            // Chart and visualization libraries
+            if (id.includes('recharts') || id.includes('chart.js')) {
+              return 'chart-vendor';
+            }
+            // Utility libraries
+            if (id.includes('zod') || id.includes('date-fns')) {
+              return 'utils-vendor';
+            }
+            // Sanitization
+            if (id.includes('dompurify') || id.includes('sanitize')) {
+              return 'sanitize-vendor';
+            }
+
             // Icons - used everywhere but tree-shakeable
             if (id.includes('lucide-react')) {
               return 'lucide-vendor';

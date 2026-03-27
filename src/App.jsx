@@ -466,11 +466,13 @@ const router = createBrowserRouter(
     {
       path: '/pricing',
       element: (
-        <Layout currentPageName="Pricing" data-oid="tp9-wu2">
-          <LazyPage data-oid="jxm9enu">
-            <Pricing data-oid="knzikf7" />
-          </LazyPage>
-        </Layout>
+        <ProtectedRoute data-oid="xmbp-b_">
+          <Layout currentPageName="Pricing" data-oid="tp9-wu2">
+            <LazyPage data-oid="jxm9enu">
+              <Pricing data-oid="knzikf7" />
+            </LazyPage>
+          </Layout>
+        </ProtectedRoute>
       ),
     },
     {
@@ -536,16 +538,14 @@ const router = createBrowserRouter(
     {
       path: '/resources',
       element: (
-        <Layout currentPageName="Resources" data-oid=".k-9yb.">
-          <LazyPage data-oid="faaxt9e">
-            <ResourcesPage data-oid="5zgn62c" />
-          </LazyPage>
-        </Layout>
+        <ProtectedRoute data-oid="4cw5.c1">
+          <Layout currentPageName="Resources" data-oid=".k-9yb.">
+            <LazyPage data-oid="faaxt9e">
+              <ResourcesPage data-oid="5zgn62c" />
+            </LazyPage>
+          </Layout>
+        </ProtectedRoute>
       ),
-    },
-    {
-      path: '/blog',
-      element: <Navigate to="/resources?type=blog" replace data-oid="2vbp4xn" />,
     },
     {
       path: '/blog/:slug',
