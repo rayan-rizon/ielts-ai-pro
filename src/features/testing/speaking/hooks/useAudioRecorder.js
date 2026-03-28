@@ -23,6 +23,10 @@ export default function useAudioRecorder({ processRecording }) {
   const maxRecordingTimerRef = useRef(null);
   const startTimeRef = useRef(0); // Track start time
 
+  // Web Speech API refs (parallel confidence collection)
+  const speechRecognitionRef = useRef(null);
+  const speechConfidenceRef = useRef([]);
+
   // Refs to avoid stale closures
   const isListeningRef = useRef(false);
   const isRecordingRef = useRef(false);
@@ -33,6 +37,16 @@ export default function useAudioRecorder({ processRecording }) {
     if (maxRecordingTimerRef.current) {
       clearTimeout(maxRecordingTimerRef.current);
       maxRecordingTimerRef.current = null;
+    }
+
+    // Stop Web Speech API recognition
+    if (speechRecognitionRef.current) {
+      try {
+        speechRecognitionRef.current.stop();
+      } catch {
+        /* already stopped */
+      }
+      speechRecognitionRef.current = null;
     }
 
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
@@ -99,11 +113,43 @@ export default function useAudioRecorder({ processRecording }) {
         const audioBlob = new Blob(audioChunksRef.current, {
           type: mediaRecorder.mimeType || 'audio/webm',
         });
-        await processRecording(audioBlob, { duration });
+        const speechConfidence =
+          speechConfidenceRef.current.length > 0 ? [...speechConfidenceRef.current] : null;
+        await processRecording(audioBlob, { duration, speechConfidence });
       };
 
       mediaRecorder.start(100);
       startTimeRef.current = Date.now();
+
+      // Start Web Speech API in parallel for confidence collection
+      speechConfidenceRef.current = [];
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        try {
+          const recognition = new SpeechRecognition();
+          recognition.continuous = true;
+          recognition.interimResults = false;
+          recognition.lang = 'en-GB';
+          recognition.onresult = (event) => {
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+              if (event.results[i].isFinal) {
+                const alt = event.results[i][0];
+                speechConfidenceRef.current.push({
+                  transcript: alt.transcript,
+                  confidence: alt.confidence,
+                });
+              }
+            }
+          };
+          recognition.onerror = () => {
+            /* non-critical — swallow */
+          };
+          recognition.start();
+          speechRecognitionRef.current = recognition;
+        } catch {
+          /* Web Speech API unavailable — continue without it */
+        }
+      }
       setIsListening(true);
       isListeningRef.current = true;
       setIsRecording(true);

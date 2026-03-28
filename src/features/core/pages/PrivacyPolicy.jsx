@@ -513,7 +513,7 @@ const PrivacyPolicy = () => {
   return (
     <>
       <DocumentHead
-        title="Privacy Policy"
+        title="Privacy Policy & Data Security | IELTS Ai Pro"
         description="Read the IELTS Ai Pro privacy policy to understand how we collect, use, and protect your personal data in compliance with GDPR and CCPA regulations."
         canonicalUrl="https://www.ieltsai.pro/privacy"
         structuredData={{

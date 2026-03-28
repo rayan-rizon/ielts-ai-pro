@@ -3,13 +3,92 @@
 
 <head>
   <meta charset="UTF-8" />
-  <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','GTM-TR6XQ2R3');</script>
-  <!-- End Google Tag Manager -->
+  <script>
+    (function () {
+      var CONSENT_KEY = 'ielts_cookie_consent';
+      var DEFAULT_GTM_ID = 'GTM-TR6XQ2R3';
+      var DEFAULT_PIXEL_ID = '991226963227159';
+      var config = window.__TRACKING_CONFIG__ || {};
+      var envGtmId = typeof config.gtmId === 'string' ? config.gtmId.trim() : '';
+      var envPixelId = typeof config.pixelId === 'string' ? config.pixelId.trim() : '';
+      var gtmId = envGtmId || DEFAULT_GTM_ID;
+      var pixelId = envPixelId || DEFAULT_PIXEL_ID;
+
+      window.__TRACKING_IDS__ = {
+        gtmId: gtmId,
+        pixelId: pixelId,
+      };
+
+      var readConsent = function () {
+        try {
+          var raw = window.localStorage.getItem(CONSENT_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch (_e) {
+          return null;
+        }
+      };
+
+      var loadGtm = function () {
+        if (window.__gtmLoaded || !gtmId) return;
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          'gtm.start': new Date().getTime(),
+          event: 'gtm.js',
+        });
+
+        var firstScript = document.getElementsByTagName('script')[0];
+        var script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtmId);
+        firstScript.parentNode.insertBefore(script, firstScript);
+        window.__gtmLoaded = true;
+      };
+
+      var loadPixel = function () {
+        if (window.__pixelLoaded || !pixelId) return;
+
+        (function (f, b, e, v, n, t, s) {
+          if (f.fbq) return;
+          n = f.fbq = function () {
+            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+          };
+          if (!f._fbq) f._fbq = n;
+          n.push = n;
+          n.loaded = true;
+          n.version = '2.0';
+          n.queue = [];
+          t = b.createElement(e);
+          t.async = true;
+          t.src = v;
+          s = b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t, s);
+        })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+
+        window.fbq('init', pixelId);
+        window.fbq('track', 'PageView');
+        window.__pixelLoaded = true;
+      };
+
+      window.__refreshTrackingAfterConsent = function () {
+        var consent = readConsent();
+        if (consent && consent.analytics === true) {
+          loadGtm();
+        }
+        if (consent && consent.marketing === true) {
+          loadPixel();
+        }
+      };
+
+      window.addEventListener('cookie-consent-updated', window.__refreshTrackingAfterConsent);
+      window.addEventListener('storage', function (event) {
+        if (!event || !event.key || event.key === CONSENT_KEY) {
+          window.__refreshTrackingAfterConsent();
+        }
+      });
+
+      window.__refreshTrackingAfterConsent();
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/webp" href="/favicon.webp" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -18,13 +97,13 @@
   <meta name="author" content="IELTS Ai Pro" />
   <meta name="theme-color" content="#4f46e5" />
   <meta name="facebook-domain-verification" content="ai2z71gngx36yw9iakgr8eb1stpon1" />
-  <title>IELTS Ai Pro | AI-Powered IELTS Preparation & Feedback</title>
+  <title>IELTS Preparation With AI Feedback | IELTS Ai Pro</title>
   <meta name="description"
-    content="Master IELTS with AI-powered instant feedback on Writing & Speaking. Get realistic mock tests & detailed analytics to reach Band 7+ faster." />
+    content="Master IELTS exams with AI-powered instant feedback on Writing & Speaking. Realistic mock tests, analytics, personalized coaching to reach Band 7+ faster." />
   <link rel="canonical" href="https://www.ieltsai.pro/" />
-  <meta property="og:title" content="IELTS Ai Pro | AI-Powered IELTS Preparation & Instant Feedback" />
+  <meta property="og:title" content="IELTS Preparation With AI Feedback - IELTS Ai Pro" />
   <meta property="og:description"
-    content="Master IELTS with AI-powered instant feedback on Writing and Speaking. Realistic mock tests, personalized study plans, and advanced band score analytics to help you reach Band 7+ faster." />
+    content="AI-powered IELTS coaching with instant feedback on Writing and Speaking. Realistic mock tests, analytics, and adaptive learning to reach your band goal." />
   <meta property="og:image" content="https://www.ieltsai.pro/og-image.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -43,27 +122,44 @@
     fbq('init', '991226963227159');
     fbq('track', 'PageView');
   </script>
-  <!-- <noscript>
-    <img src="https://www.facebook.com/tr?id=991226963227159&ev=PageView&noscript=1">
-  </noscript> -->
   <!-- End Meta Pixel Code -->
   <style>
-    #seo-content { display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }
+    #seo-content {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      margin: -1px !important;
+      padding: 0 !important;
+      border: 0 !important;
+      overflow: hidden !important;
+      clip: rect(0 0 0 0) !important;
+      clip-path: inset(50%) !important;
+      white-space: nowrap !important;
+      pointer-events: none !important;
+    }
   </style>
 </head>
 
 <body>
   <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TR6XQ2R3"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <noscript>
+    <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TR6XQ2R3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+  </noscript>
   <!-- End Google Tag Manager (noscript) -->
+  
+  <!-- Meta Pixel (noscript) -->
+  <noscript>
+    <img src="https://www.facebook.com/tr?id=991226963227159&ev=PageView&noscript=1" alt="" style="border:none" />
+  </noscript>
+  <!-- End Meta Pixel (noscript) -->
+
   <main id="root" class="min-h-screen">
-    {/* React app mounts here */}
+    <!-- React app mounts here -->
   </main>
 
   <!-- Static content for crawlers and SEO (hidden for users) -->
   <noscript>
-    <div id="seo-content" style="display: none; visibility: hidden; height: 0; width: 0; overflow: hidden; position: absolute; pointer-events: none;">
+    <div id="seo-content">
       <h1>IELTS Ai Pro | AI-Powered IELTS Preparation & Instant Feedback</h1>
       <p>Master the IELTS exam with our advanced AI coaching platform. IELTS Ai Pro is designed to help students achieve
         their dream band scores through high-tech, objective feedback systems. Our platform leverages
@@ -110,10 +206,6 @@
         <a href="/contact">Contact Us - Support & Inquiries</a>
         <a href="/privacy">Privacy Policy - Data Security & Rights</a>
         <a href="/terms">Terms of Service - Licensing & Disclaimers</a>
-        <a href="/pricing">Pricing Plans - Free, Pro, and Premium</a>
-        <a href="/resources">IELTS Study Resources & Preparation Guides</a>
-        <a href="/login">Sign In to Dashboard</a>
-        <a href="/signup">Create Free Account</a>
       </nav>
 
       <footer>

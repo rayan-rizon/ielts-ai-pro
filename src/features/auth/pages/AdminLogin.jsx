@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Shield, Loader2, AlertCircle, Eye, EyeOff, Mail, ArrowLeft, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -150,6 +149,7 @@ export default function AdminLogin() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
+                  role="alert"
                   className="flex items-center gap-2 text-destructive text-xs font-bold bg-destructive/10 p-4 rounded-xl border border-destructive/20"
                   data-oid="7zze2c-"
                 >

@@ -10,7 +10,6 @@ import Target from 'lucide-react/icons/target';
 import Trophy from 'lucide-react/icons/trophy';
 import ShieldCheck from 'lucide-react/icons/shield-check';
 import Brain from 'lucide-react/icons/brain';
-import Zap from 'lucide-react/icons/zap';
 
 import CookieConsent from '@/components/shared/CookieConsent';
 import DocumentHead from '@/components/shared/DocumentHead';
@@ -236,9 +235,10 @@ export default function LandingPage() {
   return (
     <>
       <DocumentHead
-        title="IELTS Ai Pro | AI-Powered IELTS Preparation & Feedback"
-        description="Master IELTS with AI-powered instant feedback on Writing & Speaking. Get realistic mock tests & detailed analytics to reach Band 7+ faster."
+        title="IELTS Preparation With AI Feedback | IELTS Ai Pro"
+        description="Master IELTS exams with AI-powered instant feedback on Writing & Speaking. Realistic mock tests, limited analytics, personalized coaching to reach Band 7+ faster."
         canonicalUrl="https://www.ieltsai.pro/"
+        keywords="IELTS preparation, IELTS practice tests, AI IELTS coaching, band score, writing feedback, speaking practice"
         structuredData={{
           '@context': 'https://schema.org',
           '@type': 'WebApplication',

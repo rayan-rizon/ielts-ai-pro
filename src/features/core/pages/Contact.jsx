@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { Mail, MessageCircle, MapPin, Send, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Mail, MessageCircle, Send, CheckCircle2 } from 'lucide-react';
 import Navbar from '@/features/core/components/landing/Navbar';
 import Footer from '@/features/core/components/landing/Footer';
 import DocumentHead from '@/components/shared/DocumentHead';
@@ -51,9 +51,10 @@ export default function Contact() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       <DocumentHead
-        title="Contact Support | IELTS Ai Pro"
-        description="Need help? Contact our support team for assistance with your comprehensive IELTS preparation journey."
+        title="Contact IELTS Ai Pro Support & Help Center"
+        description="Get in touch with our IELTS support team for help with your preparation plan, pricing questions, or technical issues. Available to assist your Band 7+ journey."
         canonicalUrl="https://www.ieltsai.pro/contact"
+        keywords="contact IELTS Ai Pro, customer support, IELTS help, contact us"
       />
 
       <div className="fixed inset-0 pointer-events-none">

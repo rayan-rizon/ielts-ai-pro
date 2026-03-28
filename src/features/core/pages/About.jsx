@@ -2,7 +2,7 @@ import React from 'react';
 import { m } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Sparkles, Target, Users, Zap, Shield, Globe } from 'lucide-react';
+import { Sparkles, Target, Zap, Shield, Globe } from 'lucide-react';
 import Navbar from '@/features/core/components/landing/Navbar';
 import Footer from '@/features/core/components/landing/Footer';
 import DocumentHead from '@/components/shared/DocumentHead';
@@ -36,9 +36,10 @@ export default function About() {
   return (
     <div className="min-h-screen bg-background">
       <DocumentHead
-        title="About Us | IELTS Ai Pro - AI-Powered Preparation"
-        description="Master IELTS with IELTS Ai Pro. Our advanced AI provides instant, accurate feedback on Writing and Speaking to help you achieve Band 7+ faster."
+        title="About IELTS Ai Pro - AI-Powered IELTS Coaching Platform"
+        description="Learn how IELTS Ai Pro uses advanced AI and official IELTS standards to provide instant, accurate feedback on Writing and Speaking. Founded by IELTS experts to help students achieve Band 7+."
         canonicalUrl="https://www.ieltsai.pro/about"
+        keywords="about IELTS Ai Pro, IELTS coaching, AI IELTS platform, IELTS expertise"
         structuredData={{
           '@context': 'https://schema.org',
           '@type': 'AboutPage',

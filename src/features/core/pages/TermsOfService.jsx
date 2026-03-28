@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ScrollText, ShieldCheck, Scale, FileText } from 'lucide-react';
+import { ArrowLeft, Scale, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import DocumentHead from '@/components/shared/DocumentHead';
@@ -54,7 +54,7 @@ const TermsOfService = () => {
   return (
     <>
       <DocumentHead
-        title="Terms of Service"
+        title="Terms of Service & Usage Policy | IELTS Ai Pro"
         description="Review the terms of service for using IELTS Ai Pro, including licensing, disclaimers, and limitations of liability for our AI-powered IELTS preparation platform."
         canonicalUrl="https://www.ieltsai.pro/terms"
         structuredData={{

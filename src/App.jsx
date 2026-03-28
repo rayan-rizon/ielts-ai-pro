@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { LazyMotion } from 'framer-motion';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
+import { trackAppEvent, trackPageView } from '@/lib/tracking';
 
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import PremiumLoading from '@/components/ui/PremiumLoading';
@@ -614,7 +615,25 @@ const router = createBrowserRouter(
 
 function App() {
   React.useEffect(() => {
+    const detectTestType = (pathname) => {
+      if (pathname.startsWith('/reading-test')) return 'reading';
+      if (pathname.startsWith('/listening-test')) return 'listening';
+      if (pathname.startsWith('/writing-task')) return 'writing';
+      if (pathname.startsWith('/speaking-test')) return 'speaking';
+      return null;
+    };
+
     let lastPathname = window.location.pathname;
+
+    trackPageView(lastPathname);
+
+    const initialTestType = detectTestType(lastPathname);
+    if (initialTestType) {
+      trackAppEvent('test_started', {
+        test_type: initialTestType,
+        path: lastPathname,
+      });
+    }
 
     // Subscribe to router state changes to track subsequent page views
     const unsubscribe = router.subscribe((state) => {
@@ -622,16 +641,13 @@ function App() {
       if (state.navigation.state === 'idle' && state.location.pathname !== lastPathname) {
         lastPathname = state.location.pathname;
 
-        // Track Facebook Pixel PageView using native global fbq from index.html snippet
-        if (typeof window.fbq === 'function') {
-          window.fbq('track', 'PageView');
-        }
+        trackPageView(state.location.pathname);
 
-        // Track Google Tag Manager / Analytics PageView natively
-        if (typeof window.dataLayer !== 'undefined') {
-          window.dataLayer.push({
-            event: 'pageview',
-            page: state.location.pathname,
+        const testType = detectTestType(state.location.pathname);
+        if (testType) {
+          trackAppEvent('test_started', {
+            test_type: testType,
+            path: state.location.pathname,
           });
         }
       }

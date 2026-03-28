@@ -33,6 +33,7 @@ import { User } from '@/features/auth/services/User';
 import DocumentHead from '@/components/shared/DocumentHead';
 import { AuthLeftPanel } from '@/features/auth/components/AuthLeftPanel';
 import { VerificationView } from '@/features/auth/components/VerificationView';
+import { trackAppEvent } from '@/lib/tracking';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -144,6 +145,10 @@ export default function Login() {
     }
   }, [user, authCheckComplete, isAdmin, navigate]);
 
+  useEffect(() => {
+    setAuthMode(location.pathname === '/signup' ? 'signup' : 'signin');
+  }, [location.pathname]);
+
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     if (lockoutTime && Date.now() < lockoutTime) {
@@ -177,6 +182,11 @@ export default function Login() {
       if (authMode === 'signin') {
         const data = await signIn(email, password);
         if (data) {
+          trackAppEvent('signin_success', {
+            method: 'email',
+            path: location.pathname,
+          });
+
           const isUserAdmin = await checkIsAdmin(data.id);
           const destination = isUserAdmin
             ? createPageUrl('AdminPanel')
@@ -190,8 +200,20 @@ export default function Login() {
         const referralCode = localStorage.getItem('referral_code');
         const data = await signUp(email, password, username, referralCode);
         if (data?.session) {
+          trackAppEvent('signup_completed', {
+            method: 'email',
+            path: location.pathname,
+            has_referral: Boolean(referralCode),
+          });
+
           navigate(createPageUrl('Dashboard'), { replace: true });
         } else {
+          trackAppEvent('signup_verification_sent', {
+            method: 'email',
+            path: location.pathname,
+            has_referral: Boolean(referralCode),
+          });
+
           setInfo('Verify your email with the link we just sent to your inbox.');
           setShowVerification(true);
         }
@@ -210,6 +232,12 @@ export default function Login() {
       } else {
         setError(err.message || 'Error occurred. Please try again.');
       }
+
+      trackAppEvent('auth_failed', {
+        method: authMode === 'signup' ? 'signup_email' : 'signin_email',
+        path: location.pathname,
+        reason: msg,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -241,6 +269,12 @@ export default function Login() {
     // Save destination so we can redirect appropriately after login
     const destination = location.state?.from?.pathname || createPageUrl('Dashboard');
     sessionStorage.setItem('auth_destination', destination);
+
+    trackAppEvent('signin_started', {
+      method: 'google',
+      path: location.pathname,
+      auth_mode: authMode,
+    });
 
     const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     url.searchParams.append('client_id', clientId);
@@ -294,12 +328,22 @@ export default function Login() {
     );
   }
 
+  const isSignupMode = authMode === 'signup';
+
   return (
     <>
       <DocumentHead
-        title="Login or Sign Up"
-        description="Sign in or create a free account to start your AI-powered IELTS preparation journey. Get instant AI feedback on writing and speaking."
-        canonicalUrl="https://www.ieltsai.pro/login"
+        title={isSignupMode ? 'Create IELTS Account' : 'Sign In to IELTS Ai Pro'}
+        description={
+          isSignupMode
+            ? 'Create your IELTS Ai Pro account to access AI-powered IELTS practice, writing and speaking feedback, and progress analytics.'
+            : 'Sign in to your IELTS Ai Pro account to continue your personalized IELTS practice and band score improvement plan.'
+        }
+        canonicalUrl={
+          isSignupMode ? 'https://www.ieltsai.pro/signup' : 'https://www.ieltsai.pro/login'
+        }
+        noIndex={true}
+        noFollow={true}
         data-oid="8px.i4k"
       />
 
@@ -480,6 +524,7 @@ export default function Login() {
                                 initial={{ opacity: 0, y: -10, height: 0 }}
                                 animate={{ opacity: 1, y: 0, height: 'auto' }}
                                 exit={{ opacity: 0, y: -10, height: 0 }}
+                                role="alert"
                                 className="p-3 rounded-xl border flex items-start gap-3 text-xs font-medium leading-relaxed bg-destructive/10 text-destructive border-destructive/20"
                                 data-oid="g-p0fth"
                               >
@@ -530,6 +575,7 @@ export default function Login() {
                                 </div>
                                 {touched.username && fieldErrors.username && (
                                   <p
+                                    role="alert"
                                     className="text-[10px] text-destructive font-bold ml-1"
                                     data-oid="u5vdrl2"
                                   >
@@ -574,6 +620,7 @@ export default function Login() {
                               </div>
                               {touched.email && fieldErrors.email && (
                                 <p
+                                  role="alert"
                                   className="text-[10px] text-destructive font-bold ml-1"
                                   data-oid="ld4hbc-"
                                 >

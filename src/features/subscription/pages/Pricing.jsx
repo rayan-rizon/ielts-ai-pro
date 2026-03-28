@@ -8,6 +8,7 @@ import { calculatePrice } from '@/lib/pricingUtils';
 import { usePricing } from '@/features/subscription/hooks/usePricing';
 import PromoCodeRedemption from '@/components/PromoCodeRedemption';
 import ManualPayment from '../components/ManualPayment';
+import { trackAppEvent } from '@/lib/tracking';
 
 // Extracted Components
 import PricingCard from '../components/PricingCard';
@@ -100,6 +101,13 @@ export default function Pricing() {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const countryIdentifier = (detectedCountry || localStorage.getItem('user_country') || '')
+    .trim()
+    .toUpperCase();
+  const isBD =
+    (countryIdentifier === 'BD' || countryIdentifier === 'BANGLADESH') &&
+    countryIdentifier !== 'TEST';
+
   // Sync selectedPlan and promoDiscount with user data when it loads
   useEffect(() => {
     if (user) {
@@ -125,6 +133,11 @@ export default function Pricing() {
   };
 
   const handleOpenPortal = async () => {
+    trackAppEvent('billing_portal_opened', {
+      path: '/pricing',
+      current_tier: user?.subscription_tier || 'free',
+    });
+
     setIsLoading(true);
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -155,37 +168,52 @@ export default function Pricing() {
   };
 
   const handleUpgrade = async (planTier) => {
+    const selectedPlanData = plans.find((p) => p.tier === planTier);
+    const displayPrice = selectedPlanData
+      ? calculatePrice(selectedPlanData.basePrice, billingInterval, promoDiscount)
+      : 0;
+
+    trackAppEvent('plan_selected', {
+      path: '/pricing',
+      plan_tier: planTier,
+      billing_interval: billingInterval,
+      value: displayPrice,
+      currency: selectedPlanData?.currency || 'USD',
+      current_tier: user?.subscription_tier || 'free',
+    });
+
     if (planTier === 'free') {
       setSelectedPlan('free');
       return;
     }
 
     if (!user) {
+      trackAppEvent('checkout_login_redirect', {
+        path: '/pricing',
+        plan_tier: planTier,
+        billing_interval: billingInterval,
+      });
+
       window.location.href = '/login?redirect=/pricing';
       return;
     }
 
     // INDUSTRY STANDARD: If user has an active subscription, redirect to Customer Portal
     // for plan switching/upgrades. This allows Stripe to handle proration correctly.
-    if (user.subscription_tier !== 'free') {
+    // However, users from Bangladesh use a manual payment system and do not have a Stripe portal.
+    if (user.subscription_tier !== 'free' && !isBD) {
       await handleOpenPortal();
       return;
     }
 
-    const countryIdentifier = (detectedCountry || localStorage.getItem('user_country') || '')
-      .trim()
-      .toUpperCase();
-
-    if (
-      (countryIdentifier === 'BD' || countryIdentifier === 'BANGLADESH') &&
-      countryIdentifier !== 'TEST'
-    ) {
-      const selectedPlanData = plans.find((p) => p.tier === planTier);
-      const displayPrice = calculatePrice(
-        selectedPlanData.basePrice,
-        billingInterval,
-        promoDiscount
-      );
+    if (isBD) {
+      trackAppEvent('manual_checkout_started', {
+        path: '/pricing',
+        plan_tier: planTier,
+        billing_interval: billingInterval,
+        value: displayPrice,
+        currency: selectedPlanData?.currency || 'BDT',
+      });
 
       setManualPaymentData({
         tier: planTier,
@@ -210,8 +238,15 @@ export default function Pricing() {
         return;
       }
 
-      const selectedPlanData = plans.find((p) => p.tier === planTier);
       const planCurrency = selectedPlanData?.currency || 'USD';
+
+      trackAppEvent('checkout_started', {
+        path: '/pricing',
+        plan_tier: planTier,
+        billing_interval: billingInterval,
+        value: displayPrice,
+        currency: planCurrency,
+      });
 
       const response = await fetch(`${supabaseUrl}/functions/v1/create-checkout-session`, {
         method: 'POST',
@@ -234,11 +269,25 @@ export default function Pricing() {
       }
 
       if (data.url) {
+        trackAppEvent('checkout_redirected', {
+          path: '/pricing',
+          plan_tier: planTier,
+          billing_interval: billingInterval,
+          currency: planCurrency,
+        });
+
         window.location.href = data.url;
       } else {
         throw new Error('No checkout URL returned');
       }
     } catch (error) {
+      trackAppEvent('checkout_failed', {
+        path: '/pricing',
+        plan_tier: planTier,
+        billing_interval: billingInterval,
+        reason: error?.message || 'checkout_failed',
+      });
+
       console.error('Checkout failed:', error);
       const { toast } = await import('sonner');
       toast.error(error.message || 'Failed to start checkout. Please try again.');
@@ -250,9 +299,10 @@ export default function Pricing() {
   return (
     <>
       <DocumentHead
-        title="Affordable IELTS Preparation Plans | IELTS Ai Pro"
-        description="Choose the perfect IELTS preparation plan for your goals. From free practice tests to premium AI-powered coaching and adaptive learning paths."
+        title="IELTS Preparation Pricing Plans - Free to Premium | IELTS Ai Pro"
+        description="Affordable, flexible IELTS prep plans starting at $9.99/month. Get unlimited mock tests, AI feedback, adaptive learning. Try free or upgrade to Premium for complete coaching."
         canonicalUrl="https://www.ieltsai.pro/pricing"
+        keywords="IELTS pricing, IELTS courses cost, affordable IELTS prep, IELTS plans"
       />
 
       <div className="relative min-h-screen pb-20 bg-slate-50 dark:bg-background transition-colors duration-500 overflow-hidden font-sans">
@@ -384,13 +434,23 @@ export default function Pricing() {
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
                 Want to manage your current subscription or payment methods?
               </p>
-              <Button
-                variant="outline"
-                onClick={handleOpenPortal}
-                className="rounded-full px-8 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase tracking-widest text-xs"
-              >
-                Open Billing Portal
-              </Button>
+              {isBD ? (
+                <Button
+                  variant="outline"
+                  onClick={() => window.open('mailto:support@ieltsai.pro', '_blank')}
+                  className="rounded-full px-8 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase tracking-widest text-xs"
+                >
+                  Contact Support
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={handleOpenPortal}
+                  className="rounded-full px-8 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase tracking-widest text-xs"
+                >
+                  Open Billing Portal
+                </Button>
+              )}
             </m.div>
           )}
 

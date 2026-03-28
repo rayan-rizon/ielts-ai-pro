@@ -15,6 +15,10 @@ Disallow: /signup
 Disallow: /forgot-password
 Disallow: /update-password
 
+# Disallow private subscription/resources pages
+Disallow: /pricing
+Disallow: /resources
+
 # Disallow API and function routes
 Disallow: /api/
 Disallow: /functions/

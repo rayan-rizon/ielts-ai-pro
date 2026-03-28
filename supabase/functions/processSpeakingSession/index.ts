@@ -122,6 +122,8 @@ serve(async (req: Request) => {
       userTranscript,
       conversationHistory = [],
       currentQuestionIndex = 0,
+      questionContext = '',
+      speechConfidence = null,
     } = await req.json();
 
     // First turn = no prior user messages in history
@@ -397,38 +399,7 @@ Speak naturally. ${isLastQuestion
     let pronunciationPromise: Promise<void> | null = null;
 
     if (audioBase64 && !userResponse) {
-      // Kick off pronunciation scoring in parallel BEFORE awaiting transcription
-      // It uses the same audio but doesn't block the transcript path
-      pronunciationPromise = fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: 'Listen to this audio. Respond ONLY with valid JSON (no markdown): {"pronunciationScore": 6.5, "fluencyNotes": "brief note"}\nScore pronunciation on IELTS 1-9 scale.' },
-                { inlineData: { mimeType: 'audio/webm', data: audioBase64 } },
-              ],
-            }],
-            generationConfig: { temperature: 0.1, maxOutputTokens: 80, responseMimeType: 'application/json' },
-          }),
-        }
-      ).then(async (res) => {
-        if (!res.ok) return;
-        const data = await res.json();
-        const raw = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
-          .replace(/^```json\s*/i, '').replace(/^```/, '').replace(/```$/, '').trim();
-        try {
-          const p = JSON.parse(raw);
-          pronunciationData = {
-            pronunciationScore: p.pronunciationScore || null,
-            fluencyNotes: p.fluencyNotes || null,
-          };
-        } catch { /* ignore pronunciation parse errors — transcript is what matters */ }
-      }).catch(() => { /* swallow — never let pronunciation block the flow */ });
-
-      // Transcription — plain text output only, no JSON, no mixing
+      // Step 1: Transcription first — plain text output only, no JSON, no mixing
       try {
         const transcribeResponse = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
@@ -457,6 +428,88 @@ Speak naturally. ${isLastQuestion
         console.warn('Transcription error:', transcribeErr);
         userResponse = '(Audio received but transcription failed)';
       }
+
+      // Step 2: Pronunciation scoring — fires AFTER transcription so it has context
+      // Runs in parallel with the examiner call (both depend on transcript, not each other)
+      const isPremiumTier = ['pro', 'premium', 'admin'].includes(tier);
+      const confidenceHint = speechConfidence && speechConfidence.length > 0
+        ? `\nBrowser speech recognition confidence data: ${JSON.stringify(speechConfidence.slice(0, 10))}`
+        : '';
+
+      const basicPrompt = `You are an IELTS pronunciation assessor. Listen to this audio and evaluate pronunciation quality.
+
+Question asked: "${questionContext || 'general conversation'}"
+Candidate's transcript: "${userResponse}"${confidenceHint}
+
+IELTS Pronunciation Band Anchors:
+- Band 9: Native-like articulation, effortless. No strain on listener.
+- Band 7: Generally clear. L1 influence evident but rarely causes misunderstanding.
+- Band 5: Frequent pronunciation errors causing some listener difficulty.
+
+Evaluate: articulation clarity, intelligibility, L1 influence, word stress accuracy, intonation patterns.
+
+Respond ONLY with valid JSON (no markdown):
+{"pronunciationScore": 6.5, "fluencyNotes": "brief 1-sentence assessment"}`;
+
+      const detailedPrompt = `You are an IELTS pronunciation assessor. Listen to this audio and provide detailed pronunciation analysis.
+
+Question asked: "${questionContext || 'general conversation'}"
+Candidate's transcript: "${userResponse}"${confidenceHint}
+
+IELTS Pronunciation Band Anchors:
+- Band 9: Native-like articulation, effortless. No strain on listener.
+- Band 7: Generally clear. L1 influence evident but rarely causes misunderstanding.
+- Band 5: Frequent pronunciation errors causing some listener difficulty.
+
+Evaluate: articulation clarity, intelligibility, L1 influence, word stress accuracy, intonation patterns.
+Identify specific words that were mispronounced and which sounds are problematic.
+
+Respond ONLY with valid JSON (no markdown):
+{
+  "pronunciationScore": 6.5,
+  "fluencyNotes": "brief 1-sentence assessment",
+  "wordLevelFeedback": [{"word": "example", "issue": "stress on wrong syllable", "severity": "minor|moderate|major"}],
+  "problematicSounds": ["/θ/ → /s/"],
+  "overallClarity": "1-sentence clarity summary"
+}`;
+
+      pronunciationPromise = fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: isPremiumTier ? detailedPrompt : basicPrompt },
+                { inlineData: { mimeType: 'audio/webm', data: audioBase64 } },
+              ],
+            }],
+            generationConfig: {
+              temperature: 0.1,
+              maxOutputTokens: isPremiumTier ? 250 : 80,
+              responseMimeType: 'application/json',
+            },
+          }),
+        }
+      ).then(async (res) => {
+        if (!res.ok) return;
+        const data = await res.json();
+        const raw = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
+          .replace(/^```json\s*/i, '').replace(/^```/, '').replace(/```$/, '').trim();
+        try {
+          const p = JSON.parse(raw);
+          pronunciationData = {
+            pronunciationScore: p.pronunciationScore || null,
+            fluencyNotes: p.fluencyNotes || null,
+            ...(isPremiumTier && {
+              wordLevelFeedback: p.wordLevelFeedback || null,
+              problematicSounds: p.problematicSounds || null,
+              overallClarity: p.overallClarity || null,
+            }),
+          };
+        } catch { /* ignore pronunciation parse errors — transcript is what matters */ }
+      }).catch(() => { /* swallow — never let pronunciation block the flow */ });
     }
 
     // Check for transcription failure BEFORE calling examiner model in 2-call flow

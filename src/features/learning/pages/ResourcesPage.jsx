@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Sparkles, Library, BookOpen, Layers } from 'lucide-react';
+import { Library } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import ResourcesSection from '@/components/resources/ResourcesSection';
 import DocumentHead from '@/components/shared/DocumentHead';
@@ -8,9 +8,10 @@ const ResourcesPage = () => {
   return (
     <>
       <DocumentHead
-        title="IELTS Study Resources & Preparation Materials | IELTS Ai Pro"
-        description="Access our collection of top-quality IELTS study materials, guides, and academic resources to boost your band score."
+        title="Free IELTS Study Resources & Preparation Materials"
+        description="Access our collection of free IELTS study materials, expert guides, sample essays, speaking topics, and academic resources to boost your band score and prepare effectively."
         canonicalUrl="https://www.ieltsai.pro/resources"
+        keywords="free IELTS resources, IELTS materials, study guides, IELTS samples, preparation materials"
         data-oid="hk4mwcy"
       />
 

@@ -118,11 +118,13 @@ serve(async (req: Request) => {
     }
 
     // SECURITY: Cap input sizes to prevent token-draining attacks
-    const MAX_WRITING_CHARS = 8000;  // ~1500-word essay well within IELTS bounds
+    // IELTS standards: Task 1 target = 150 words, Task 2 target = 250 words
+    // Generous buffers: Task 1 ≤ 1500 chars (~250 words), Task 2 ≤ 2500 chars (~400 words)
+    const MAX_WRITING_CHARS = taskType === 'Task 1' ? 1500 : 2500;
     const MAX_PROMPT_CHARS = 1500;   // Task prompts are typically < 200 chars
     if (writingText.length > MAX_WRITING_CHARS) {
       return new Response(
-        JSON.stringify({ error: `Writing text exceeds maximum length (${MAX_WRITING_CHARS} characters).` }),
+        JSON.stringify({ error: `Writing text exceeds maximum length for ${taskType || 'this task'} (${MAX_WRITING_CHARS} characters).` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -238,9 +240,13 @@ Output schema (exact keys required):
   ]
 }
 
-SAMPLE-SIZE RULE (applies globally to all criteria, both Task 1 and Task 2):
-- If the response is under 100 words total: cap ALL four criteria at Band 5.0. The sample is too small to demonstrate the range of features required for Band 6+.
-- If the response is under 60 words: cap ALL four criteria at Band 4.0.
+SAMPLE-SIZE RULE (applies globally to all criteria):
+For Task 1 (target: 150 words):
+- If the response is under 130 words: cap ALL four criteria at Band 5.0. The sample is too small to demonstrate the range of features required for Band 6+.
+- If the response is under 100 words: cap ALL four criteria at Band 4.0.
+For Task 2 (target: 250 words):
+- If the response is under 220 words: cap ALL four criteria at Band 5.0. The sample is too small to demonstrate the range of features required for Band 6+.
+- If the response is under 180 words: cap ALL four criteria at Band 4.0.
 - State the word count and sample-size limitation explicitly in weaknesses.
 - Do NOT claim 'a mix of complex and simple structures' or 'wide lexical range' from fewer than 4 sentences — this is statistically insufficient evidence.
 

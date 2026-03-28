@@ -183,6 +183,7 @@ export default function ForgotPassword() {
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
+                      role="alert"
                       className="p-4 text-xs font-bold text-destructive bg-destructive/10 border border-destructive/20 rounded-xl flex items-center gap-2"
                       data-oid="1k.0qyl"
                     >
@@ -228,7 +229,11 @@ export default function ForgotPassword() {
                       />
                     </div>
                     {touched && fieldError && (
-                      <p className="text-[10px] font-bold text-destructive ml-1" data-oid="yya3.df">
+                      <p
+                        role="alert"
+                        className="text-[10px] font-bold text-destructive ml-1"
+                        data-oid="yya3.df"
+                      >
                         {fieldError}
                       </p>
                     )}

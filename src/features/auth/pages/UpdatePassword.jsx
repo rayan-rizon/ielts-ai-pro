@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -185,6 +185,7 @@ export default function UpdatePassword() {
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
+                      role="alert"
                       className="p-4 text-xs font-bold text-destructive bg-destructive/10 border border-destructive/20 rounded-xl flex items-center gap-2"
                       data-oid="jb.:euy"
                     >
@@ -295,6 +296,7 @@ export default function UpdatePassword() {
                       </div>
                       {confirmPassword && password !== confirmPassword && (
                         <p
+                          role="alert"
                           className="text-[10px] font-bold text-destructive ml-1"
                           data-oid="21oxh0v"
                         >

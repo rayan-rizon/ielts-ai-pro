@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -11,13 +11,8 @@ import {
   MessageSquare,
   CheckCircle2,
   AlertCircle,
-  RotateCcw,
-  Bookmark,
   Home,
   ArrowLeft,
-  Share2,
-  Download,
-  TrendingUp,
   Mic2,
   BookOpen,
   Brain,
@@ -29,7 +24,7 @@ import {
   Sparkles,
   Search,
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 import SpeakingAnalysis from './SpeakingAnalysis';
@@ -50,15 +45,14 @@ export default function SpeakingReport({
   showXPNotification,
   earnedXP,
   onXPComplete,
-  isExitingRef,
   testTitle,
   testId,
   allPartsConversation,
+  allPartsPronunciation,
   detailedFeedback,
   onSaveDetailedFeedback,
   loadingMessage, // Receive loadingMessage from parent
 }) {
-  const navigate = useNavigate();
   const { width, height } = useWindowSize();
   const { userProfile: authUser } = useAuth();
 
@@ -73,6 +67,41 @@ export default function SpeakingReport({
     ['pro', 'premium', 'admin'].includes((authUser?.subscription_tier || 'free').toLowerCase()) ||
     authUser?.role === 'admin';
 
+  // Aggregate pronunciation breakdown data from per-turn audio analysis (Pro/Premium only)
+  const pronunciationBreakdown = useMemo(() => {
+    if (!isPremium || !allPartsPronunciation) return null;
+    const sounds = new Set();
+    const wordIssues = [];
+    const clarityNotes = [];
+    for (const scores of Object.values(allPartsPronunciation)) {
+      if (!Array.isArray(scores)) continue;
+      for (const s of scores) {
+        if (Array.isArray(s.problematicSounds)) {
+          s.problematicSounds.forEach((sound) => sounds.add(sound));
+        }
+        if (Array.isArray(s.wordLevelFeedback)) {
+          wordIssues.push(...s.wordLevelFeedback);
+        }
+        if (s.overallClarity) {
+          clarityNotes.push(s.overallClarity);
+        }
+      }
+    }
+    if (sounds.size === 0 && wordIssues.length === 0) return null;
+    // Deduplicate word issues by word
+    const seen = new Set();
+    const uniqueWordIssues = wordIssues.filter((w) => {
+      if (seen.has(w.word)) return false;
+      seen.add(w.word);
+      return true;
+    });
+    return {
+      problematicSounds: [...sounds],
+      wordIssues: uniqueWordIssues,
+      clarityNotes,
+    };
+  }, [isPremium, allPartsPronunciation]);
+
   // Handle bulk expand/collapse
   const toggleExpandAll = () => {
     if (!localDetailedFeedback) return;
@@ -85,6 +114,21 @@ export default function SpeakingReport({
       setLocalDetailedFeedback(detailedFeedback);
     }
   }, [detailedFeedback, localDetailedFeedback]);
+
+  // Auto-trigger deep dive for Pro/Premium users after evaluation completes
+  useEffect(() => {
+    if (
+      isPremium &&
+      finalEvaluation &&
+      !localDetailedFeedback &&
+      !isGeneratingDetailed &&
+      testId &&
+      allPartsConversation
+    ) {
+      handleGenerateDetailed();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPremium, finalEvaluation]);
 
   const handleGenerateDetailed = async () => {
     if (!isPremium) {
@@ -212,8 +256,6 @@ export default function SpeakingReport({
   const overallScore = Number(finalEvaluation.overallBand) || 0;
   const notes = finalEvaluation.criterionNotes || {};
   const legacy = finalEvaluation.analysis || {};
-
-  const createPageUrl = (page) => `/testing/speaking/${page.toLowerCase()}`;
 
   return (
     <div className="min-h-screen py-12 px-4 md:px-6 relative isolate">
@@ -409,6 +451,10 @@ export default function SpeakingReport({
                       </div>
                     ))}
                   </div>
+                  <p className="mt-3 text-[10px] text-muted-foreground dark:text-zinc-500 text-center leading-relaxed">
+                    Pronunciation is assessed from audio analysis and transcript context. Ensure
+                    clear audio recording quality for best results.
+                  </p>
                 </div>
               </div>
 
@@ -565,6 +611,94 @@ export default function SpeakingReport({
                 </div>
               </div>
 
+              {/* ─── Pronunciation Breakdown (Pro/Premium Only) ─── */}
+              {pronunciationBreakdown && (
+                <div className="mt-4 p-5 bg-rose-500/[0.02] dark:bg-rose-950/20 border-2 border-rose-500/20 dark:border-rose-500/30 rounded-[2rem] space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Mic2 className="w-4 h-4 text-rose-500" />
+                    <h3 className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-[0.3em]">
+                      Pronunciation Breakdown
+                    </h3>
+                    <Badge
+                      variant="outline"
+                      className="text-[8px] border-rose-500/30 text-rose-500 ml-auto"
+                    >
+                      Enhanced Analysis
+                    </Badge>
+                  </div>
+
+                  {pronunciationBreakdown.problematicSounds.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-muted-foreground dark:text-zinc-400 uppercase tracking-wider mb-2">
+                        Problematic Sounds
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {pronunciationBreakdown.problematicSounds.map((sound, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1.5 bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300 rounded-lg text-xs font-mono font-bold border border-rose-500/20"
+                          >
+                            {sound}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {pronunciationBreakdown.wordIssues.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-muted-foreground dark:text-zinc-400 uppercase tracking-wider mb-2">
+                        Word-Level Issues
+                      </p>
+                      <div className="space-y-1.5">
+                        {pronunciationBreakdown.wordIssues.slice(0, 10).map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-3 p-2.5 bg-white dark:bg-zinc-900 rounded-xl border border-rose-500/10 dark:border-rose-500/20"
+                          >
+                            <span
+                              className={cn(
+                                'w-2 h-2 rounded-full shrink-0',
+                                item.severity === 'major'
+                                  ? 'bg-red-500'
+                                  : item.severity === 'moderate'
+                                    ? 'bg-amber-500'
+                                    : 'bg-yellow-400'
+                              )}
+                            />
+                            <span className="text-xs font-bold text-foreground dark:text-zinc-100">
+                              &ldquo;{item.word}&rdquo;
+                            </span>
+                            <span className="text-[11px] text-muted-foreground dark:text-zinc-400">
+                              {item.issue}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {pronunciationBreakdown.problematicSounds.length > 0 && (
+                    <div className="pt-2 border-t border-rose-500/10">
+                      <p className="text-[10px] font-bold text-muted-foreground dark:text-zinc-400 uppercase tracking-wider mb-1.5">
+                        Practice Tip
+                      </p>
+                      <p className="text-xs text-muted-foreground dark:text-zinc-300 leading-relaxed">
+                        Focus on minimal pairs to improve these sounds. For example,{' '}
+                        {pronunciationBreakdown.problematicSounds[0]?.includes('/θ/')
+                          ? 'practice: think/sink, three/free, bath/bass'
+                          : pronunciationBreakdown.problematicSounds[0]?.includes('/r/')
+                            ? 'practice: right/light, red/led, row/low'
+                            : pronunciationBreakdown.problematicSounds[0]?.includes('/v/')
+                              ? 'practice: very/berry, vest/best, vine/wine'
+                              : 'record yourself reading aloud and compare with native speakers'}
+                        . Repeat daily for best results.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* ─── Strengths & Development Areas (2 Columns) ─── */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                 {/* Key Strengths */}
@@ -688,11 +822,10 @@ export default function SpeakingReport({
                   </div>
                 </div>
 
-                {!localDetailedFeedback && !isGeneratingDetailed && (
+                {/* Deep Dive Section — Auto-generates for Pro, upgrade CTA for free */}
+                {!localDetailedFeedback && !isGeneratingDetailed && !isPremium && (
                   <div className="p-8 md:p-12 bg-zinc-50 dark:bg-zinc-900 border-2 border-dashed border-border/60 rounded-[2rem] text-center space-y-4 shadow-sm relative overflow-hidden group">
-                    {!isPremium && (
-                      <div className="absolute inset-0 bg-background/40 backdrop-blur-[1px] z-10 transition-all duration-300" />
-                    )}
+                    <div className="absolute inset-0 bg-background/40 backdrop-blur-[1px] z-10 transition-all duration-300" />
                     <div className="w-20 h-20 bg-gradient-to-br from-rose-100 to-orange-100 dark:from-rose-900/40 dark:to-orange-900/40 rounded-[2rem] mx-auto flex items-center justify-center -rotate-6 group-hover:rotate-0 group-hover:scale-110 transition-all duration-300 shadow-md">
                       <Search className="w-10 h-10 text-rose-500" />
                     </div>
@@ -706,24 +839,39 @@ export default function SpeakingReport({
                       </p>
                     </div>
                     <Button
-                      onClick={handleGenerateDetailed}
+                      onClick={() => setShowUpgradeDialog(true)}
                       className="relative z-20 mt-6 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 shadow-xl shadow-rose-500/20 text-white font-bold px-10 h-14 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/30"
                     >
                       <Sparkles className="w-5 h-5 mr-3 animate-pulse" />
-                      {isPremium ? 'Generate Deep Dive' : 'Upgrade to Unlock'}
+                      Upgrade to Unlock
                     </Button>
                   </div>
                 )}
 
                 {isGeneratingDetailed && (
-                  <div className="p-16 text-center bg-zinc-50 dark:bg-zinc-900 rounded-[2.5rem] border-2 border-border/40 shadow-inner">
-                    <Loader2 className="w-12 h-12 text-rose-500 animate-spin mx-auto mb-6" />
-                    <h4 className="text-xl font-black tracking-tight text-foreground">
-                      Deep Analyzing Transcript...
-                    </h4>
-                    <p className="text-sm text-muted-foreground mt-3 font-medium">
-                      This usually takes about 10-15 seconds. We're looking at every word you said.
-                    </p>
+                  <div className="p-12 md:p-16 text-center bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950 rounded-[2.5rem] border-2 border-rose-500/20 shadow-inner relative overflow-hidden">
+                    <div className="absolute inset-0 opacity-30">
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] bg-rose-500/20 rounded-full blur-[60px] animate-pulse" />
+                    </div>
+                    <div className="relative z-10 space-y-4">
+                      <div className="w-16 h-16 bg-gradient-to-br from-rose-500/20 to-orange-500/20 rounded-2xl mx-auto flex items-center justify-center border border-rose-500/20 shadow-lg">
+                        <Loader2 className="w-8 h-8 text-rose-500 animate-spin" />
+                      </div>
+                      <div>
+                        <h4 className="text-xl font-black tracking-tight text-foreground">
+                          Generating Deep Dive Analysis
+                        </h4>
+                        <p className="text-sm text-muted-foreground mt-2 font-medium leading-relaxed max-w-sm mx-auto">
+                          Reviewing every question and response. Your detailed feedback will appear
+                          here shortly.
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-center gap-1.5 mt-2">
+                        <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-rose-500/70">
+                          <Sparkles className="w-3 h-3" /> Auto-generating for Pro members
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -885,30 +1033,39 @@ export default function SpeakingReport({
                                           )}
 
                                           {/* Grammatical Errors */}
-                                          {item.grammaticalErrors && item.grammaticalErrors.length > 0 && (
-                                            <div className="space-y-3 mt-4">
-                                              <div className="flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
-                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-600 dark:text-rose-400">
-                                                  Grammar & Vocabulary Errors ({item.grammaticalErrors.length})
-                                                </span>
-                                              </div>
-                                              <div className="space-y-2">
-                                                {item.grammaticalErrors.map((err, errIdx) => (
-                                                  <div key={errIdx} className="bg-rose-50/30 dark:bg-rose-950/10 p-3 rounded-lg border border-rose-500/20 flex flex-col gap-1.5">
-                                                    <div className="flex items-start gap-2">
-                                                      <span className="line-through text-rose-500/70 text-[13px] font-medium decoration-rose-500/50 break-words">{err.incorrect}</span>
-                                                      <ArrowRight className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
-                                                      <span className="text-emerald-600 dark:text-emerald-400 text-[13px] font-bold break-words">{err.correct}</span>
+                                          {item.grammaticalErrors &&
+                                            item.grammaticalErrors.length > 0 && (
+                                              <div className="space-y-3 mt-4">
+                                                <div className="flex items-center gap-2">
+                                                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
+                                                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-600 dark:text-rose-400">
+                                                    Grammar & Vocabulary Errors (
+                                                    {item.grammaticalErrors.length})
+                                                  </span>
+                                                </div>
+                                                <div className="space-y-2">
+                                                  {item.grammaticalErrors.map((err, errIdx) => (
+                                                    <div
+                                                      key={errIdx}
+                                                      className="bg-rose-50/30 dark:bg-rose-950/10 p-3 rounded-lg border border-rose-500/20 flex flex-col gap-1.5"
+                                                    >
+                                                      <div className="flex items-start gap-2">
+                                                        <span className="line-through text-rose-500/70 text-[13px] font-medium decoration-rose-500/50 break-words">
+                                                          {err.incorrect}
+                                                        </span>
+                                                        <ArrowRight className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                                                        <span className="text-emerald-600 dark:text-emerald-400 text-[13px] font-bold break-words">
+                                                          {err.correct}
+                                                        </span>
+                                                      </div>
+                                                      <p className="text-[12px] text-muted-foreground/80 dark:text-zinc-400 italic">
+                                                        {err.explanation}
+                                                      </p>
                                                     </div>
-                                                    <p className="text-[12px] text-muted-foreground/80 dark:text-zinc-400 italic">
-                                                      {err.explanation}
-                                                    </p>
-                                                  </div>
-                                                ))}
+                                                  ))}
+                                                </div>
                                               </div>
-                                            </div>
-                                          )}
+                                            )}
 
                                           {/* Sample & Feedback Split */}
                                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
@@ -981,6 +1138,8 @@ export default function SpeakingReport({
           </CardContent>
         </Card>
       </motion.div>
+
+      <UpgradeDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog} />
     </div>
   );
 }

@@ -20,16 +20,24 @@ export default function DocumentHead({
   canonicalUrl,
   image = 'https://www.ieltsai.pro/og-image.jpg',
   type = 'website',
+  keywords,
+  noIndex = false,
+  noFollow = false,
+  robots,
   structuredData,
 }) {
   const siteName = 'IELTS Ai Pro';
   const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
+  const robotsContent =
+    robots || `${noIndex ? 'noindex' : 'index'}, ${noFollow ? 'nofollow' : 'follow'}`;
 
   return (
     <Helmet data-oid="k59b74f">
       {/* Primary Meta Tags */}
       <title data-oid="kks.s3z">{fullTitle}</title>
       <meta name="description" content={description} data-oid="xq_eme:" />
+      <meta name="robots" content={robotsContent} data-oid="head-robots" />
+      {keywords && <meta name="keywords" content={keywords} data-oid="head-keywords" />}
 
       {/* Canonical URL */}
       {canonicalUrl && <link rel="canonical" href={canonicalUrl} data-oid="m5uiwjj" />}

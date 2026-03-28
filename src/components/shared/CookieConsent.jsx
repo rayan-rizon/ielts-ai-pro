@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { Cookie, Shield, BarChart3, Megaphone, Check, ChevronDown, Settings2 } from 'lucide-react';
+import { Cookie, Shield, BarChart3, Megaphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
+import { refreshTrackingBootstrap, trackPageView } from '@/lib/tracking';
 
-const CONSENT_STORAGE_KEY = 'ielts_cookie_consent';
+export const CONSENT_STORAGE_KEY = 'ielts_cookie_consent';
 const CONSENT_VERSION = '1.0';
 
 export default function CookieConsent() {
@@ -48,6 +49,9 @@ export default function CookieConsent() {
 
       // Notify other tabs/components if needed
       window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('cookie-consent-updated'));
+      refreshTrackingBootstrap();
+      trackPageView(window.location.pathname);
     } catch (error) {
       console.error('Failed to save consent locally:', error);
     }
@@ -271,23 +275,4 @@ export default function CookieConsent() {
       )}
     </AnimatePresence>
   );
-}
-
-export function useCookieConsent() {
-  const [consent, setConsent] = useState(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(CONSENT_STORAGE_KEY);
-    if (stored) {
-      try {
-        setConsent(JSON.parse(stored));
-      } catch {
-        setConsent(null);
-      }
-    }
-  }, []);
-
-  const hasConsent = (type) => consent?.[type] === true;
-
-  return { consent, hasConsent };
 }

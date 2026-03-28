@@ -11,14 +11,14 @@ Sentry.init({
     Sentry.browserTracingIntegration(),
     Sentry.replayIntegration(),
   ],
-  // Performance Monitoring
-  tracesSampleRate: 1.0, // Capture 100% of the transactions
+  // Performance Monitoring — sample 15% of transactions in production to balance cost vs visibility
+  tracesSampleRate: 0.15,
   // Session Replay
-  replaysSessionSampleRate: 0.1, // Set sample rate to 10%
-  replaysOnErrorSampleRate: 1.0, // Sample 100% of sessions with errors
-  // Setting this option to true will send default PII data to Sentry.
-  // For example, automatic IP address collection on events
-  sendDefaultPii: true
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+  // Disable automatic PII collection (IP addresses) for privacy compliance.
+  // User context is still available via Sentry.setUser() when needed.
+  sendDefaultPii: false
 });
 
 // Lazy-load telemetry to keep it off the critical path

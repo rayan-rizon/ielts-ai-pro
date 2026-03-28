@@ -1,43 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, CheckCircle, RefreshCw, Mic2, Activity, Brain, Bot, Target } from 'lucide-react';
+import { Sparkles, CheckCircle, Activity, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
  * SpeakingAnalysis
  *
  * Interactive and visually engaging evaluation screen for Speaking Test.
- * Features dynamic AI orb animations and cycling status steps.
+ * Uses time-based step progression (not message-matching) so steps advance
+ * naturally while the API call is in flight.
  */
 export default function SpeakingAnalysis({ loadingMessage }) {
   const analysisSteps = [
-    { label: 'Fluency & Coherence', key: 'fluency' },
-    { label: 'Lexical Resource', key: 'lexical' },
-    { label: 'Grammatical Range', key: 'grammar' },
-    { label: 'Pronunciation Accuracy', key: 'pronunciation' },
+    { label: 'Fluency & Coherence', duration: 2800 },
+    { label: 'Lexical Resource', duration: 2600 },
+    { label: 'Grammatical Range', duration: 2400 },
+    { label: 'Pronunciation Accuracy', duration: 2200 },
   ];
 
-  // Determine progress based on matching loadingMessage to steps
-  const getProgressStatus = (idx) => {
-    const messages = [
-      'analyzing fluency',
-      'checking vocabulary',
-      'evaluating grammar',
-      'assessing pronunciation',
-      'calculating final band',
-    ];
+  const [currentStep, setCurrentStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState(new Set());
 
-    const lowerMsg = (loadingMessage || '').toLowerCase();
-    let currentStepIdx = -1;
+  // Advance steps on a natural timing schedule
+  useEffect(() => {
+    const timers = [];
+    let elapsed = 0;
+    for (let i = 0; i < analysisSteps.length; i++) {
+      elapsed += analysisSteps[i].duration;
+      const step = i;
+      const t = setTimeout(() => {
+        setCompletedSteps((prev) => new Set([...prev, step]));
+        setCurrentStep(Math.min(step + 1, analysisSteps.length - 1));
+      }, elapsed);
+      timers.push(t);
+    }
+    return () => timers.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    if (lowerMsg.includes('fluency') || lowerMsg.includes('coherence')) currentStepIdx = 0;
-    else if (lowerMsg.includes('vocab') || lowerMsg.includes('lexical')) currentStepIdx = 1;
-    else if (lowerMsg.includes('grammar') || lowerMsg.includes('structure')) currentStepIdx = 2;
-    else if (lowerMsg.includes('pronun') || lowerMsg.includes('speech')) currentStepIdx = 3;
-    else if (lowerMsg.includes('calculating') || lowerMsg.includes('final')) currentStepIdx = 4;
-
-    if (currentStepIdx > idx || currentStepIdx === 4) return 'completed';
-    if (currentStepIdx === idx) return 'current';
+  const getStatus = (idx) => {
+    if (completedSteps.has(idx)) return 'completed';
+    if (idx === currentStep && !completedSteps.has(idx)) return 'current';
     return 'pending';
   };
 
@@ -118,13 +121,15 @@ export default function SpeakingAnalysis({ loadingMessage }) {
           <div className="h-6 relative overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.p
-                key={loadingMessage}
+                key={currentStep}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em]"
               >
-                {loadingMessage || 'Evaluating your responses...'}
+                {completedSteps.size === analysisSteps.length
+                  ? 'Calculating Final Band...'
+                  : loadingMessage || `Analyzing ${analysisSteps[currentStep]?.label || ''}...`}
               </motion.p>
             </AnimatePresence>
           </div>
@@ -133,7 +138,7 @@ export default function SpeakingAnalysis({ loadingMessage }) {
         {/* Step Progress Grid */}
         <div className="w-full grid grid-cols-1 gap-3 px-8">
           {analysisSteps.map((step, idx) => {
-            const status = getProgressStatus(idx);
+            const status = getStatus(idx);
             return (
               <motion.div
                 key={idx}
@@ -205,13 +210,13 @@ export default function SpeakingAnalysis({ loadingMessage }) {
                 backgroundPosition: ['0% 50%', '100% 50%'],
               }}
               transition={{
-                width: { duration: 15, ease: 'linear' },
+                width: { duration: 12, ease: 'linear' },
                 backgroundPosition: { duration: 3, repeat: Infinity, ease: 'linear' },
               }}
             />
           </div>
           <div className="flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
-            <span>EST. TIME: ~15s</span>
+            <span>EST. TIME: ~10–15s</span>
             <div className="flex items-center gap-1.5">
               <Sparkles className="w-3 h-3 text-orange-400" />
               <span>AI POWERED ANALYSIS</span>

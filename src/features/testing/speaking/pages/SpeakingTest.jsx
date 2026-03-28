@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link, useSearchParams, useBlocker, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
@@ -17,8 +17,6 @@ import { Button } from '@/components/ui/button';
 import { Bot, ArrowLeft, Home, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PremiumLoading from '@/components/ui/PremiumLoading';
-import ConfettiCelebration from '@/components/ConfettiCelebration';
-import XPNotification from '@/components/XPNotification';
 
 // Local components
 import SpeakingReport from '../components/SpeakingReport';
@@ -44,18 +42,18 @@ const ConversationMessage = React.memo(({ entry, index, authUser }) => (
     className={`flex items-start gap-3 ${entry.speaker === 'user' ? 'flex-row-reverse' : ''}`}
   >
     {entry.speaker === 'ai' ? (
-      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md bg-gradient-to-br from-rose-500 to-orange-500">
-        <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md bg-gradient-to-br from-rose-500 to-orange-500">
+        <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
       </div>
     ) : authUser?.avatar_url ? (
       <img
         src={authUser.avatar_url}
         alt={authUser?.full_name || 'User'}
-        className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg object-cover shadow-md bg-zinc-100"
+        className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg object-cover shadow-md bg-zinc-100"
       />
     ) : (
-      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md bg-gradient-to-br from-blue-500 to-indigo-500">
-        <span className="text-white text-[10px] sm:text-xs font-bold">
+      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md bg-gradient-to-br from-blue-500 to-indigo-500">
+        <span className="text-white text-xs font-bold">
           {(authUser?.full_name || 'C').charAt(0).toUpperCase()}
         </span>
       </div>
@@ -67,22 +65,22 @@ const ConversationMessage = React.memo(({ entry, index, authUser }) => (
       <div
         className={`flex items-center gap-2 px-1 ${entry.speaker === 'user' ? 'flex-row-reverse' : ''}`}
       >
-        <span className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest truncate">
+        <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest truncate">
           {entry.speaker === 'ai' ? 'Examiner' : authUser?.full_name || 'Candidate'}
         </span>
         {entry.timestamp && (
-          <span className="text-[8px] sm:text-[9px] text-muted-foreground/40 font-mono flex-shrink-0">
+          <span className="text-[9px] sm:text-[10px] text-muted-foreground/40 font-mono flex-shrink-0">
             {entry.timestamp}
           </span>
         )}
       </div>
       <div
-        className={`p-2.5 sm:p-3 md:p-4 text-xs sm:text-sm leading-relaxed tracking-tight font-medium ${
+        className={`px-3.5 py-2.5 sm:px-4 sm:py-3 text-[14px] sm:text-[15px] leading-relaxed tracking-normal shadow-sm ${
           entry.speaker === 'user'
             ? entry.error
-              ? 'bg-red-100/80 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-[1rem] sm:rounded-2xl rounded-tl-none text-red-700 dark:text-red-300 text-right italic'
-              : 'bg-gradient-to-br from-blue-500/10 to-indigo-500/5 dark:from-blue-500/20 dark:to-indigo-500/5 border border-blue-500/10 dark:border-blue-500/10 rounded-[1rem] sm:rounded-2xl rounded-tl-none text-right'
-            : 'bg-gradient-to-br from-rose-600/10 to-rose-600/5 dark:from-rose-500/20 dark:to-rose-500/5 border border-rose-500/20 dark:border-rose-500/20 rounded-[1rem] sm:rounded-2xl rounded-tr-none text-left'
+              ? 'bg-red-100/80 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-[1.25rem] rounded-tr-none text-red-700 dark:text-red-300 text-right italic font-medium'
+              : 'bg-gradient-to-br from-blue-500/10 to-indigo-500/5 dark:from-blue-500/20 dark:to-indigo-500/5 border border-blue-500/10 dark:border-blue-500/10 rounded-[1.25rem] rounded-tr-none text-right font-medium text-slate-800 dark:text-slate-200'
+            : 'bg-gradient-to-br from-rose-600/10 to-rose-600/5 dark:from-rose-500/20 dark:to-rose-500/5 border border-rose-500/20 dark:border-rose-500/20 rounded-[1.25rem] rounded-tl-none text-left font-medium text-slate-800 dark:text-slate-200'
         }`}
       >
         {entry.isLoading ? (
@@ -144,7 +142,7 @@ export default function SpeakingTest() {
   // ─── Conversation State ────────────────────────────────────────────────
   const [conversation, setConversationRaw] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [totalQuestions, setTotalQuestions] = useState(1);
+
   const conversationEndRef = useRef(null);
   const transitionCardRef = useRef(null);
 
@@ -373,6 +371,13 @@ export default function SpeakingTest() {
 
         const snapshotQuestionIndex = questionIndexRef.current;
 
+        // Extract current question text for pronunciation context
+        const currentPart = allParts[currentPartNumber];
+        const questionLines = String(currentPart?.questions || '')
+          .split('\n')
+          .filter((q) => q.trim());
+        const questionContext = questionLines[snapshotQuestionIndex] || '';
+
         let response;
         try {
           response = await callEdgeFunction('processSpeakingSession', {
@@ -381,6 +386,8 @@ export default function SpeakingTest() {
             audioBase64,
             conversationHistory,
             currentQuestionIndex: snapshotQuestionIndex,
+            questionContext,
+            speechConfidence: metadata.speechConfidence || null,
           });
         } catch (err) {
           console.error('Edge Function failed:', err);
@@ -538,9 +545,6 @@ export default function SpeakingTest() {
           if (response.nextQuestionIndex >= 0) {
             setCurrentQuestionIndex(response.nextQuestionIndex);
           }
-          if (response.totalQuestions) {
-            setTotalQuestions(response.totalQuestions);
-          }
 
           // Accumulate pronunciation scores from audio analysis (per turn)
           if (response.pronunciationData) {
@@ -623,7 +627,17 @@ export default function SpeakingTest() {
         setProcessingStatus('');
       }
     },
-    [currentPartNumber, speakText, saveSessionProgress, allParts, testId, formatIeltsQuestion]
+    [
+      currentPartNumber,
+      speakText,
+      saveSessionProgress,
+      allParts,
+      testId,
+      formatIeltsQuestion,
+      currentQuestionIndex,
+      session?.content_data,
+      setConversation,
+    ]
   );
 
   // ─── Audio Recorder Hook ───────────────────────────────────────────────
@@ -699,23 +713,8 @@ export default function SpeakingTest() {
       };
 
       try {
-        setLoadingMessage('Analyzing Fluency & Coherence...');
-
-        // Step 1: Analyzing Fluency (Reduced to 800ms)
-        setProcessingStatus('Analyzing Fluency & Coherence...');
-        await new Promise((resolve) => setTimeout(resolve, 800));
-
-        // Step 2: Checking Lexical Resource (Reduced to 500ms)
-        setProcessingStatus('Checking Lexical Resource...');
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        // Step 3: Evaluating Grammar (Reduced to 500ms)
-        setProcessingStatus('Evaluating Grammatical Range...');
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        // Step 4: Finalizing Score (Reduced to 400ms)
-        setProcessingStatus('Finalizing Band Score...');
-        await new Promise((resolve) => setTimeout(resolve, 400));
+        setLoadingMessage('Evaluating your speaking performance...');
+        setProcessingStatus('Evaluating your speaking performance...');
 
         const response = await callEdgeFunction('evaluateSpeakingTest', {
           testId,
@@ -838,6 +837,7 @@ export default function SpeakingTest() {
       session?.content_data,
       awardXP,
       saveSessionProgress,
+      session?.user_id,
     ]
   );
 
@@ -916,7 +916,6 @@ export default function SpeakingTest() {
         const questionLines = String(nextPart.questions || '')
           .split('\n')
           .filter((q) => q.trim());
-        setTotalQuestions(questionLines.length);
 
         if (questionLines.length > 0) {
           messagePromise.then(() => {
@@ -1220,7 +1219,6 @@ export default function SpeakingTest() {
             .split('\n')
             .filter((q) => q.trim());
           const firstQuestion = questionLines[0] || "Let's begin. Can you tell me about yourself?";
-          setTotalQuestions(questionLines.length);
 
           if (!firstQuestionInsertedRef.current) {
             firstQuestionInsertedRef.current = true;
@@ -1232,7 +1230,17 @@ export default function SpeakingTest() {
         }
       })();
     }
-  }, [session, testId, conversation, speakText, allParts, authUser, formatIeltsQuestion]);
+  }, [
+    session,
+    testId,
+    conversation,
+    speakText,
+    allParts,
+    authUser,
+    formatIeltsQuestion,
+    checkCurrentQuota,
+    setConversation,
+  ]);
 
   // ─── Start Part 2 Speaking ─────────────────────────────────────────────
   const handleStartPart2Speaking = useCallback(() => {
@@ -1256,7 +1264,7 @@ export default function SpeakingTest() {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isLoading, error, isTestComplete, testStarted]);
+  }, [isLoading, error, isTestComplete, testStarted, timeLeft]);
 
   // Periodic persistence of timeLeft (every 15s)
   useEffect(() => {
@@ -1279,7 +1287,14 @@ export default function SpeakingTest() {
     }, 15000);
 
     return () => clearInterval(interval);
-  }, [testStarted, isTestComplete, session?.id, currentPartNumber, saveSessionProgress]);
+  }, [
+    testStarted,
+    isTestComplete,
+    session?.id,
+    currentPartNumber,
+    saveSessionProgress,
+    session?.content_data,
+  ]);
 
   // Timer expiry auto-complete
   useEffect(() => {
@@ -1347,7 +1362,7 @@ export default function SpeakingTest() {
         clearInterval(prepTimerRef.current);
       }
     };
-  }, [isPart2Prep, handleStartPart2Speaking]);
+  }, [isPart2Prep, handleStartPart2Speaking, prepTimeLeft]);
 
   // Handle keyboard shortcuts (Enter to proceed)
   useEffect(() => {
@@ -1363,9 +1378,10 @@ export default function SpeakingTest() {
 
   // Cleanup on Unmount
   useEffect(() => {
+    const pendingTimers = pendingTimersRef.current;
     return () => {
-      pendingTimersRef.current.forEach((id) => clearTimeout(id));
-      pendingTimersRef.current.clear();
+      pendingTimers.forEach((id) => clearTimeout(id));
+      pendingTimers.clear();
     };
   }, []);
 
@@ -1419,6 +1435,7 @@ export default function SpeakingTest() {
         evaluationError={evaluationError}
         testTitle={testTitle}
         loadingMessage={loadingMessage}
+        allPartsPronunciation={allPartsAcousticMetrics}
         onRetryEvaluation={() => {
           setEvaluationError(null);
           setIsEvaluating(true);
@@ -1508,7 +1525,7 @@ export default function SpeakingTest() {
           </CardHeader>
 
           <CardContent className="p-0 bg-dot-slate-200/40 dark:bg-dot-white/5">
-            <div className="p-3 md:p-5 min-h-[300px] max-h-[500px] overflow-y-auto space-y-4 custom-scrollbar scroll-smooth">
+            <div className="p-3 md:p-5 min-h-[150px] max-h-[500px] overflow-y-auto space-y-4 custom-scrollbar scroll-smooth">
               {!testStarted ? (
                 <InitialWelcomeScreen partNumber={currentPartNumber} title={currentPart.title} />
               ) : (

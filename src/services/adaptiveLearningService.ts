@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { queryClient } from '@/lib/queryClient';
 import { generateAdaptiveLearningPath } from '@/utils/api';
 
 // Types
@@ -314,10 +315,15 @@ export async function refreshLearningPathAfterTest(
             console.log(`[AdaptiveLearning] Refreshing learning path after test completion (${reason})`);
 
             // Fire and forget - don't block the submission
-            generateAdaptiveLearningPath().catch(err => {
-                // 403 = free tier, expected — skip silently
-                if (err?.status !== 403) console.warn('Background learning path refresh failed:', err?.message || err);
-            });
+            generateAdaptiveLearningPath()
+                .then(() => {
+                    // Invalidate client-side TanStack Query cache so the learning path page shows fresh data
+                    queryClient.invalidateQueries({ queryKey: ['learningPath'] });
+                })
+                .catch(err => {
+                    // 403 = free tier, expected — skip silently
+                    if (err?.status !== 403) console.warn('Background learning path refresh failed:', err?.message || err);
+                });
 
             // Update last generated timestamp
             await supabase

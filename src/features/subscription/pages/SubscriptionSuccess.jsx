@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { User } from '@/entities';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { toast } from 'sonner';
+import DocumentHead from '@/components/shared/DocumentHead';
+import { trackAppEvent } from '@/lib/tracking';
 
 const MAX_RETRIES = 10;
 const POLL_INTERVAL = 2000; // 2 seconds between polls
@@ -129,6 +131,15 @@ export default function SubscriptionSuccess() {
             }
 
             if (isMounted) {
+              trackAppEvent('subscription_purchase', {
+                path: '/subscription/success',
+                plan_tier: subData.tier,
+                billing_interval: subData.interval,
+                value: subData.amount,
+                currency: subData.currency,
+                source: 'stripe_checkout',
+              });
+
               setSubscriptionData(subData);
               setStatus('success');
             }
@@ -138,6 +149,11 @@ export default function SubscriptionSuccess() {
           if (attempt >= MAX_RETRIES) {
             console.warn('[SubscriptionSuccess] Max retries reached, no subscription found');
             if (isMounted) {
+              trackAppEvent('subscription_activation_error', {
+                path: '/subscription/success',
+                session_id_present: Boolean(sessionId),
+              });
+
               setErrorMessage(
                 'Your payment was received, but account activation is taking longer than expected. Please check your Settings page in a few minutes, or contact support if the issue persists.'
               );
@@ -192,6 +208,14 @@ export default function SubscriptionSuccess() {
   if (status === 'verifying') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#020617]">
+        <DocumentHead
+          title="Subscription Verification | IELTS Ai Pro"
+          description="Verifying your IELTS Ai Pro subscription purchase and activating your account benefits."
+          canonicalUrl="https://www.ieltsai.pro/subscription/success"
+          noIndex={true}
+          noFollow={true}
+        />
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -215,6 +239,14 @@ export default function SubscriptionSuccess() {
   if (status === 'error') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#020617] px-4">
+        <DocumentHead
+          title="Subscription Activation Pending | IELTS Ai Pro"
+          description="Your payment was received and account activation is being verified by IELTS Ai Pro."
+          canonicalUrl="https://www.ieltsai.pro/subscription/success"
+          noIndex={true}
+          noFollow={true}
+        />
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -252,6 +284,14 @@ export default function SubscriptionSuccess() {
   // ─── Success State (only shown after verified) ───────────────────────────────
   return (
     <div className="min-h-screen relative bg-slate-50 dark:bg-[#020617] overflow-hidden">
+      <DocumentHead
+        title="Subscription Activated | IELTS Ai Pro"
+        description="Your IELTS Ai Pro subscription is now active. Start practicing with premium tools and AI feedback."
+        canonicalUrl="https://www.ieltsai.pro/subscription/success"
+        noIndex={true}
+        noFollow={true}
+      />
+
       {/* Background Effects */}
       <div aria-hidden="true" className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-slate-50 dark:bg-[#020617]" />

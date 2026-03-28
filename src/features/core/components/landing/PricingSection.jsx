@@ -119,7 +119,6 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
   const [plans, setPlans] = useState(defaultPlans);
   const [pricesLoaded, setPricesLoaded] = useState(false);
   const sectionRef = useRef(null);
-  const hasLoaded = useRef(false);
 
   useEffect(() => {
     // Eagerly load pricing data on mount to avoid flicker when user scrolls there
@@ -128,11 +127,11 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
 
   const loadPricing = async () => {
     try {
-      const [settings, userCountry, tierLimits] = await Promise.all([
-        SystemSetting.getAll(),
-        detectLocation(),
-        fetchAllTierLimits(),
-      ]);
+      const [settings, userCountry] = await Promise.all([SystemSetting.getAll(), detectLocation()]);
+
+      const { countryCurrencyMap } = await import('@/lib/pricingUtils');
+      const currency = countryCurrencyMap[userCountry]?.currency || 'USD';
+      const tierLimits = await fetchAllTierLimits(currency);
 
       const updatedPlans = defaultPlans.map((plan) => {
         // Get dynamic feature strings for all tiers

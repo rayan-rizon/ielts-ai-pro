@@ -25,6 +25,24 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+async function recordServerConversion(
+    userId: string | null | undefined,
+    dataType: string,
+    value: Record<string, unknown>
+) {
+    if (!userId) return;
+
+    const { error } = await supabase.from('analytics_data').insert({
+        user_id: userId,
+        data_type: dataType,
+        value,
+    });
+
+    if (error) {
+        console.warn(`[Webhook] Analytics insert failed (${dataType}):`, error.message);
+    }
+}
+
 // Tier mapping from price IDs
 const PRICE_TO_TIER: Record<string, string> = {
     [Deno.env.get('STRIPE_PRO_MONTHLY_PRICE_ID') || '']: 'pro',
@@ -210,6 +228,18 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
     if (data?.success) {
         console.log(`[Webhook] ✅ User ${authId} upgraded to ${tier} successfully`);
         // promo_discount is cleared atomically inside the RPC — no need for a separate update
+
+        await recordServerConversion(userId, 'subscription_purchase_server', {
+            event_id: eventId,
+            transaction_id: session.id,
+            subscription_id: typeof session.subscription === 'string'
+                ? session.subscription
+                : (session.subscription as any)?.id || null,
+            tier,
+            interval: interval || 'monthly',
+            amount: (session.amount_total || 0) / 100,
+            currency: (session.currency || 'usd').toUpperCase(),
+        });
     } else {
         console.warn('[Webhook] RPC returned:', data);
     }
@@ -284,6 +314,16 @@ async function handleInvoicePaid(invoice: Stripe.Invoice, eventId: string) {
     }
 
     console.log(`[Webhook] ✅ Recurring payment recorded for user ${userData.auth_id}`);
+
+    await recordServerConversion(userData.id, 'subscription_renewal_server', {
+        event_id: eventId,
+        invoice_id: invoice.id,
+        subscription_id: subscriptionId,
+        tier,
+        interval,
+        amount: (invoice.amount_paid || 0) / 100,
+        currency: (invoice.currency || 'usd').toUpperCase(),
+    });
 
     // Clear any previous payment failure flag (dunning notice)
     await supabase
@@ -428,6 +468,12 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription, even
     }
 
     console.log(`[Webhook] ✅ User ${authId} downgraded to free tier via RPC:`, data);
+
+    await recordServerConversion(profileId, 'subscription_cancelled_server', {
+        event_id: eventId,
+        subscription_id: subscription.id,
+        customer_id: customerId,
+    });
 }
 
 /**
@@ -475,6 +521,14 @@ async function handlePaymentFailed(invoice: Stripe.Invoice, eventId: string) {
         .from('users')
         .update({ payment_failed_at: new Date().toISOString() })
         .eq('id', userData.id);
+
+    await recordServerConversion(userData.id, 'subscription_payment_failed_server', {
+        event_id: eventId,
+        invoice_id: invoice.id,
+        amount_due: (invoice.amount_due || 0) / 100,
+        currency: (invoice.currency || 'usd').toUpperCase(),
+        attempt_count: attemptCount,
+    });
 
     console.log(`[Webhook] Flagged user ${userData.auth_id} with payment_failed_at for in-app notification (attempt #${attemptCount})`);
 }

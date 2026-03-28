@@ -139,6 +139,9 @@ serve(async (req: Request) => {
         let pronunciationSummary = '';
         if (allPartsPronunciation && Object.keys(allPartsPronunciation).length > 0) {
             pronunciationSummary = '\n\n=== PRONUNCIATION & FLUENCY ASSESSMENT (from audio analysis) ===\n';
+            const allProblematicSounds = new Set<string>();
+            const allWordIssues: Array<{ word: string; issue: string; severity: string }> = [];
+
             for (const [partNum, scores] of Object.entries(allPartsPronunciation)) {
                 if (!Array.isArray(scores) || scores.length === 0) continue;
                 const validScores = scores.filter((s: any) => s.pronunciationScore);
@@ -155,6 +158,27 @@ serve(async (req: Request) => {
                 pronunciationSummary += `Part ${partNum}: Average pronunciation score ${avgScore}/9.0 across ${validScores.length} responses.\n`;
                 if (fluencyNotes) {
                     pronunciationSummary += `  Fluency observations: ${fluencyNotes}\n`;
+                }
+
+                // Aggregate word-level and sound data from detailed analysis
+                for (const s of validScores) {
+                    if (Array.isArray(s.problematicSounds)) {
+                        s.problematicSounds.forEach((sound: string) => allProblematicSounds.add(sound));
+                    }
+                    if (Array.isArray(s.wordLevelFeedback)) {
+                        allWordIssues.push(...s.wordLevelFeedback);
+                    }
+                }
+            }
+
+            // Add aggregated pronunciation detail if available
+            if (allProblematicSounds.size > 0) {
+                pronunciationSummary += `\nRecurring problematic sounds: ${[...allProblematicSounds].join(', ')}\n`;
+            }
+            if (allWordIssues.length > 0) {
+                const majorIssues = allWordIssues.filter((w) => w.severity === 'major' || w.severity === 'moderate');
+                if (majorIssues.length > 0) {
+                    pronunciationSummary += `Key word-level issues: ${majorIssues.slice(0, 8).map((w) => `"${w.word}" (${w.issue})`).join(', ')}\n`;
                 }
             }
         }
