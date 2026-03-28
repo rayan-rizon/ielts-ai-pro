@@ -146,33 +146,44 @@ export default function PricingCard({
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 px-1">
               Includes
             </div>
-            {plan.features.map((feature, i) => (
-              <div key={i} className="flex items-start gap-4 group/item">
-                <div
-                  className={cn(
-                    'mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all duration-300',
-                    isPro
-                      ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
-                      : isPremium
-                        ? 'bg-violet-500 text-white shadow-md shadow-violet-500/20'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                  )}
-                >
-                  <Check className="w-3.5 h-3.5 stroke-[2.5px]" />
+            {isPricingLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <Skeleton className="w-6 h-6 rounded-full shrink-0" />
+                  <Skeleton className={cn('h-4', i % 2 === 0 ? 'w-3/4' : 'w-1/2')} />
                 </div>
-                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover/item:translate-x-0.5 transition-transform duration-300">
-                  {feature}
-                </span>
-              </div>
-            ))}
-            {plan.limitations?.map((lim, i) => (
-              <div key={i} className="flex items-start gap-4 opacity-50">
-                <div className="mt-0.5 w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                  <Minus className="w-3.5 h-3.5 text-slate-400" />
-                </div>
-                <span className="text-sm font-medium text-slate-500 line-through">{lim}</span>
-              </div>
-            ))}
+              ))
+            ) : (
+              <>
+                {plan.features.map((feature, i) => (
+                  <div key={i} className="flex items-start gap-4 group/item">
+                    <div
+                      className={cn(
+                        'mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all duration-300',
+                        isPro
+                          ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
+                          : isPremium
+                            ? 'bg-violet-500 text-white shadow-md shadow-violet-500/20'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                      )}
+                    >
+                      <Check className="w-3.5 h-3.5 stroke-[2.5px]" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover/item:translate-x-0.5 transition-transform duration-300">
+                      {feature}
+                    </span>
+                  </div>
+                ))}
+                {plan.limitations?.map((lim, i) => (
+                  <div key={i} className="flex items-start gap-4 opacity-50">
+                    <div className="mt-0.5 w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                      <Minus className="w-3.5 h-3.5 text-slate-400" />
+                    </div>
+                    <span className="text-sm font-medium text-slate-500 line-through">{lim}</span>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         </CardContent>
       </Card>

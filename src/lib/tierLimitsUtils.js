@@ -33,35 +33,52 @@ const DEFAULT_LIMITS = {
   },
 };
 
-// Cache for tier limits to avoid repeated fetches
-let limitsCache = null;
+// Cache for tier limits to avoid repeated fetches (keyed by currency)
+let limitsCache = {};
 let lastFetchTime = 0;
 const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
- * Fetch all tier limits from the database
+ * Fetch all tier limits from the database for a specific currency
+ * @param {string} currency - The currency code (e.g., 'USD', 'BDT')
  * @returns {Promise<Object>} Object with tier names as keys and limit objects as values
  */
-export async function fetchAllTierLimits() {
+export async function fetchAllTierLimits(currency = 'ALL') {
+  const cacheKey = currency.toUpperCase();
   const now = Date.now();
 
   // Return cached data if still valid
-  if (limitsCache && now - lastFetchTime < CACHE_DURATION_MS) {
-    return limitsCache;
+  if (limitsCache[cacheKey] && now - lastFetchTime < CACHE_DURATION_MS) {
+    return limitsCache[cacheKey];
   }
 
   try {
     const { data, error } = await supabase
       .from('tier_rate_limits')
       .select(
-        'tier, writing_monthly_limit, speaking_monthly_limit, writing_daily_limit, speaking_daily_limit'
-      );
+        'tier, currency, writing_monthly_limit, speaking_monthly_limit, writing_daily_limit, speaking_daily_limit'
+      )
+      .in('currency', [cacheKey, 'ALL']);
 
     if (error) throw error;
 
     // Transform array to object keyed by tier
     const limits = {};
-    data?.forEach((row) => {
+    const exactMatches = data?.filter((r) => r.currency === cacheKey) || [];
+    const allMatches = data?.filter((r) => r.currency === 'ALL') || [];
+
+    // Initialize with 'ALL' fallback limits first
+    allMatches.forEach((row) => {
+      limits[row.tier] = {
+        writing_monthly_limit: row.writing_monthly_limit,
+        speaking_monthly_limit: row.speaking_monthly_limit,
+        writing_daily_limit: row.writing_daily_limit,
+        speaking_daily_limit: row.speaking_daily_limit,
+      };
+    });
+
+    // Override with exact currency settings if they exist
+    exactMatches.forEach((row) => {
       limits[row.tier] = {
         writing_monthly_limit: row.writing_monthly_limit,
         speaking_monthly_limit: row.speaking_monthly_limit,
@@ -71,10 +88,10 @@ export async function fetchAllTierLimits() {
     });
 
     // Cache the result
-    limitsCache = { ...DEFAULT_LIMITS, ...limits };
+    limitsCache[cacheKey] = { ...DEFAULT_LIMITS, ...limits };
     lastFetchTime = now;
 
-    return limitsCache;
+    return limitsCache[cacheKey];
   } catch (error) {
     console.error('Error fetching tier limits:', error);
     return DEFAULT_LIMITS;
@@ -118,7 +135,7 @@ export function generateFeatureStrings(tier, limits) {
  * Clear the limits cache (useful after admin updates)
  */
 export function clearLimitsCache() {
-  limitsCache = null;
+  limitsCache = {};
   lastFetchTime = 0;
 }
 

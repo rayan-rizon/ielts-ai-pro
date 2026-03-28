@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { m, AnimatePresence } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,6 @@ import ManualPayment from '../components/ManualPayment';
 
 // Extracted Components
 import PricingCard from '../components/PricingCard';
-import ComparisonSection from '../components/ComparisonSection';
 import FAQSection from '../components/FAQSection';
 
 const defaultPlans = [
@@ -395,7 +394,6 @@ export default function Pricing() {
             </m.div>
           )}
 
-          <ComparisonSection />
           <FAQSection />
         </m.div>
 

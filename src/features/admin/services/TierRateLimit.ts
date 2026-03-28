@@ -4,6 +4,7 @@ import { User } from '@/features/auth/services/User';
 interface TierRateLimitType {
     id: string;
     tier: string;
+    currency: string;
     daily_limit: number;
     monthly_limit: number;
     burst_limit: number;
@@ -20,26 +21,31 @@ interface TierRateLimitType {
 export const TierRateLimit = {
     // Get all tier limits
     async list(): Promise<TierRateLimitType[]> {
-        const { data, error } = await supabase.from('tier_rate_limits').select('*').order('tier');
+        const { data, error } = await supabase.from('tier_rate_limits').select('*').order('tier').order('currency');
 
         if (error) throw error;
         return (data as TierRateLimitType[]) || [];
     },
 
-    // Get limit for specific tier
-    async getByTier(tier: string): Promise<TierRateLimitType> {
+    // Get limit for specific tier and currency
+    async getByTier(tier: string, currency: string = 'ALL'): Promise<TierRateLimitType> {
         const { data, error } = await supabase
             .from('tier_rate_limits')
             .select('*')
-            .eq('tier', tier)
+            .match({ tier, currency: currency.toUpperCase() })
             .single();
 
         if (error) throw error;
         return data as TierRateLimitType;
     },
 
-    // Update limits for a tier (admin only)
+    // Update limits for a tier (backwards compatible, defaults to ALL)
     async update(tier: string, updates: Partial<TierRateLimitType>): Promise<TierRateLimitType> {
+        return this.upsert(tier, 'ALL', updates);
+    },
+
+    // Upsert limits for a tier and currency (admin only)
+    async upsert(tier: string, currency: string, updates: Partial<TierRateLimitType>): Promise<TierRateLimitType> {
         const isUserAdmin = await User.isAdmin();
         if (!isUserAdmin) {
             throw new Error('Admin access required');
@@ -57,12 +63,16 @@ export const TierRateLimit = {
 
         const { data, error } = await supabase
             .from('tier_rate_limits')
-            .update({
-                ...updates,
-                updated_at: new Date().toISOString(),
-                updated_by: userProfile?.id,
-            })
-            .eq('tier', tier)
+            .upsert(
+                {
+                    tier,
+                    currency: currency.toUpperCase(),
+                    ...updates,
+                    updated_at: new Date().toISOString(),
+                    updated_by: userProfile?.id,
+                },
+                { onConflict: 'tier,currency' }
+            )
             .select()
             .single();
 

@@ -47,6 +47,9 @@
     <img src="https://www.facebook.com/tr?id=991226963227159&ev=PageView&noscript=1">
   </noscript> -->
   <!-- End Meta Pixel Code -->
+  <style>
+    #seo-content { display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }
+  </style>
 </head>
 
 <body>
@@ -55,8 +58,12 @@
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <main id="root" class="min-h-screen">
-    <!-- Static content for crawlers and SEO -->
-    <div style="display: none;">
+    {/* React app mounts here */}
+  </main>
+
+  <!-- Static content for crawlers and SEO (hidden for users) -->
+  <noscript>
+    <div id="seo-content" style="display: none; visibility: hidden; height: 0; width: 0; overflow: hidden; position: absolute; pointer-events: none;">
       <h1>IELTS Ai Pro | AI-Powered IELTS Preparation & Instant Feedback</h1>
       <p>Master the IELTS exam with our advanced AI coaching platform. IELTS Ai Pro is designed to help students achieve
         their dream band scores through high-tech, objective feedback systems. Our platform leverages
@@ -66,8 +73,7 @@
 
       <p>Our comprehensive training modules cover all four sections of the IELTS exam: Reading, Listening, Writing, and
         Speaking. Unlike traditional coaching that takes days to return your graded essays, our AI evaluation system
-        provides detailed critiques in under 10 seconds. You will receive specific advice on task response, coherence
-        and
+        provides detailed critiques in under 10 seconds. You will receive specific advice on task response, coherence and
         cohesion, lexical resource, and grammatical range and accuracy. This immediate feedback loop is proven to
         accelerate learning and help you avoid repeating the same mistakes.</p>
 
@@ -75,17 +81,14 @@
       <ul>
         <li><strong>Instant AI Writing Evaluation:</strong> Get your Task 1 and Task 2 essays graded instantly with a
           predicted band score and specific improvement suggestions.</li>
-        <li><strong>AI-Powered Speaking Lab:</strong> Practice your speaking fluency, pronunciation, and vocabulary
-          range
+        <li><strong>AI-Powered Speaking Lab:</strong> Practice your speaking fluency, pronunciation, and vocabulary range
           with our interactive voice analysis tool that simulates the real interview environment.</li>
         <li><strong>Full-Length Realistic Mock Exams:</strong> Our Reading and Listening modules perfectly replicate the
           official test interface, including accurate timers and question types like multiple choice, matching, and
           gap-filling.</li>
-        <li><strong>Personalized AI Study Planner:</strong> A dynamic roadmap that adjusts daily based on your
-          performance,
+        <li><strong>Personalized AI Study Planner:</strong> A dynamic roadmap that adjusts daily based on your performance,
           ensuring you spend your limited study time on the skills that need the most work.</li>
-        <li><strong>Advanced Band Score Analytics:</strong> Visualize your progress over time with our intuitive
-          dashboard.
+        <li><strong>Advanced Band Score Analytics:</strong> Visualize your progress over time with our intuitive dashboard.
           Track your strengths and weaknesses across all modules and sub-skills.</li>
       </ul>
 
@@ -118,7 +121,7 @@
           and pedagogical expertise.</p>
       </footer>
     </div>
-  </main>
+  </noscript>
 
   <script type="module" src="/src/main.tsx"></script>
 </body>

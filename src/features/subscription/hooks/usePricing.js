@@ -17,11 +17,11 @@ export function usePricing(defaultPlans) {
   const { data: pricingConfig, isLoading: isPricingLoading } = useQuery({
     queryKey: ['subscription', 'pricingConfig'],
     queryFn: async () => {
-      const [settings, userCountry, tierLimits] = await Promise.all([
-        SystemSetting.getAll(),
-        detectLocation(),
-        fetchAllTierLimits(),
-      ]);
+      const [settings, userCountry] = await Promise.all([SystemSetting.getAll(), detectLocation()]);
+      const { countryCurrencyMap } = await import('@/lib/pricingUtils');
+      const currency = countryCurrencyMap[userCountry]?.currency || 'USD';
+      const tierLimits = await fetchAllTierLimits(currency);
+
       return { settings, userCountry, tierLimits };
     },
     staleTime: 30 * 60 * 1000, // Pricing doesn't change often
