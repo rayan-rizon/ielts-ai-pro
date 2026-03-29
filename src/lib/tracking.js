@@ -31,33 +31,27 @@ const resolveTrackingIds = () => {
 
 export const TRACKING_IDS = resolveTrackingIds();
 
-const readConsent = () => {
+const getCookie = (name) => {
   if (!isBrowser()) return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift();
+  return null;
+};
 
-  try {
-    const raw = window.localStorage.getItem(CONSENT_STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch {
-    return null;
+const getFbp = () => getCookie('_fbp');
+
+const getFbc = () => {
+  const cookieFbc = getCookie('_fbc');
+  if (cookieFbc) return cookieFbc;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const fbclid = urlParams.get('fbclid');
+  if (fbclid) {
+    // Format: fb.1.<timestamp>.<fbclid>
+    return `fb.1.${Date.now()}.${fbclid}`;
   }
-};
-
-export const getConsentState = () => {
-  const consent = readConsent();
-
-  return {
-    analytics: consent?.analytics === true,
-    marketing: consent?.marketing === true,
-    functional: consent?.functional === true,
-  };
-};
-
-export const hasAnalyticsConsent = () => getConsentState().analytics;
-export const hasMarketingConsent = () => getConsentState().marketing;
-
-export const refreshTrackingBootstrap = () => {
-  // No-op: tracking fires unconditionally. Kept for call-site compatibility.
+  return null;
 };
 
 const pushDataLayer = (payload) => {
@@ -86,7 +80,10 @@ export const trackPageView = (pathname = '/') => {
   });
 
   if (typeof window.fbq === 'function') {
-    window.fbq('track', 'PageView');
+    window.fbq('track', 'PageView', {
+      fbc: getFbc(),
+      fbp: getFbp(),
+    });
   }
 };
 
@@ -109,6 +106,8 @@ export const trackAppEvent = (eventName, payload = {}) => {
       value: normalizeValue(payload.value) || 0,
       currency: normalizeCurrency(payload.currency),
       content_name: payload.plan_tier || payload.plan_name || 'subscription',
+      fbc: getFbc(),
+      fbp: getFbp(),
     });
     return;
   }
@@ -118,16 +117,26 @@ export const trackAppEvent = (eventName, payload = {}) => {
       value: normalizeValue(payload.value),
       currency: normalizeCurrency(payload.currency),
       content_name: payload.plan_tier || payload.plan_name || 'subscription',
+      fbc: getFbc(),
+      fbp: getFbp(),
     });
     return;
   }
 
   if (pixelEvent) {
-    window.fbq('track', pixelEvent, payload);
+    window.fbq('track', pixelEvent, {
+      ...payload,
+      fbc: getFbc(),
+      fbp: getFbp(),
+    });
     return;
   }
 
-  window.fbq('trackCustom', eventName, enrichedPayload);
+  window.fbq('trackCustom', eventName, {
+    ...enrichedPayload,
+    fbc: getFbc(),
+    fbp: getFbp(),
+  });
 };
 
 export const pushUserIdentity = (profile) => {
@@ -139,4 +148,18 @@ export const pushUserIdentity = (profile) => {
     subscription_tier: profile.subscription_tier || 'free',
     is_admin: profile.role === 'admin' || false,
   });
+
+  if (typeof window.fbq === 'function') {
+    const userData = {};
+    if (profile.email) userData.em = profile.email.toLowerCase().trim();
+    if (profile.full_name) {
+      const names = profile.full_name.trim().split(/\s+/);
+      userData.fn = names[0].toLowerCase();
+      if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase();
+    }
+    userData.external_id = profile.id;
+
+    // Re-init with Advanced Matching data
+    window.fbq('init', TRACKING_IDS.pixelId, userData);
+  }
 };
