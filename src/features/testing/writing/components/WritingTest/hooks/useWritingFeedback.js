@@ -5,6 +5,7 @@ import { useWritingTestStore } from '@/features/testing/writing/store/useWriting
 import { useWritingTestDispatch } from '../context/WritingTestContext';
 import { generateDetailedFeedback } from '@/utils/api';
 import { removeFromCache } from '@/hooks/useDataQuery';
+import { trackAppEvent } from '@/lib/tracking';
 
 /**
  * useWritingFeedback
@@ -20,7 +21,7 @@ import { removeFromCache } from '@/hooks/useDataQuery';
  * - Session Updates
  * - XP Awarding integration
  */
-export function useWritingFeedback(awardXP, isExiting) {
+export function useWritingFeedback(awardXP) {
   const { saveNow } = useWritingTestDispatch();
   const queryClient = useQueryClient();
 
@@ -281,6 +282,18 @@ export function useWritingFeedback(awardXP, isExiting) {
         });
         store.setCompleted(true);
 
+        trackAppEvent('writing_submitted', {
+          test_type: 'writing',
+          task_type: store.activeType,
+          overall_band: overallScore,
+          session_id: store.session?.id,
+        });
+        trackAppEvent('test_completed', {
+          test_type: 'writing',
+          overall_band: overallScore,
+          session_id: store.session?.id,
+        });
+
         removeFromCache('writing-tests-list');
 
         // Invalidate usage stats so Settings page updates immediately
@@ -310,7 +323,7 @@ export function useWritingFeedback(awardXP, isExiting) {
       store.setAnalyzing(false);
       analyzingRef.current = false;
     }
-  }, [saveNow, awardXP, isExiting]);
+  }, [saveNow, awardXP, queryClient]);
 
   return { handleGetFeedback };
 }

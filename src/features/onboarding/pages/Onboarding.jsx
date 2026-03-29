@@ -1,13 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { trackAppEvent } from '@/lib/tracking';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, addWeeks, addMonths } from 'date-fns';
+import { format, addWeeks } from 'date-fns';
 import {
   CalendarIcon,
   ChevronRight,
@@ -206,7 +206,7 @@ export default function Onboarding() {
         updatePayload.study_hours_goal = formData.study_hours_goal;
       }
 
-      console.log('Saving onboarding preferences:', updatePayload);
+      console.info('Saving onboarding preferences:', updatePayload);
 
       // Save User Preferences - the updateMyUserData handles both new and existing users
       const updatedUser = await User.updateMyUserData(updatePayload);
@@ -226,6 +226,13 @@ export default function Onboarding() {
 
       toast.success('Preferences saved!', {
         description: 'Your personalized study plan is being generated.',
+      });
+
+      trackAppEvent('onboarding_completed', {
+        target_band_score: formData.target_band_score,
+        weak_area: formData.weak_area,
+        study_hours_goal: formData.study_hours_goal,
+        has_test_date: !!(formData.test_date || formData.estimated_weeks),
       });
     } catch (error) {
       console.error('Onboarding save error:', error);

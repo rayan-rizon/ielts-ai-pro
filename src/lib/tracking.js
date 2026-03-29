@@ -10,6 +10,8 @@ const PIXEL_EVENT_MAP = {
   signup_completed: 'CompleteRegistration',
   checkout_started: 'InitiateCheckout',
   subscription_purchase: 'Purchase',
+  test_completed: 'ViewContent',
+  onboarding_completed: 'Lead',
 };
 
 const isBrowser = () => typeof window !== 'undefined';
@@ -55,11 +57,7 @@ export const hasAnalyticsConsent = () => getConsentState().analytics;
 export const hasMarketingConsent = () => getConsentState().marketing;
 
 export const refreshTrackingBootstrap = () => {
-  if (!isBrowser()) return;
-
-  if (typeof window.__refreshTrackingAfterConsent === 'function') {
-    window.__refreshTrackingAfterConsent();
-  }
+  // No-op: tracking fires unconditionally. Kept for call-site compatibility.
 };
 
 const pushDataLayer = (payload) => {
@@ -80,18 +78,14 @@ const normalizeValue = (value) => {
 export const trackPageView = (pathname = '/') => {
   if (!isBrowser()) return;
 
-  const consent = getConsentState();
+  pushDataLayer({
+    event: 'pageview',
+    page: pathname,
+    page_path: pathname,
+    page_title: document.title,
+  });
 
-  if (consent.analytics) {
-    pushDataLayer({
-      event: 'pageview',
-      page: pathname,
-      page_path: pathname,
-      page_title: document.title,
-    });
-  }
-
-  if (consent.marketing && typeof window.fbq === 'function') {
+  if (typeof window.fbq === 'function') {
     window.fbq('track', 'PageView');
   }
 };
@@ -99,20 +93,15 @@ export const trackPageView = (pathname = '/') => {
 export const trackAppEvent = (eventName, payload = {}) => {
   if (!isBrowser() || !eventName) return;
 
-  const consent = getConsentState();
   const enrichedPayload = {
     ...payload,
     event_name: eventName,
     event_time: new Date().toISOString(),
   };
 
-  if (consent.analytics) {
-    pushDataLayer({ event: eventName, ...enrichedPayload });
-  }
+  pushDataLayer({ event: eventName, ...enrichedPayload });
 
-  if (!consent.marketing || typeof window.fbq !== 'function') {
-    return;
-  }
+  if (typeof window.fbq !== 'function') return;
 
   const pixelEvent = PIXEL_EVENT_MAP[eventName];
   if (pixelEvent === 'Purchase') {
@@ -139,4 +128,15 @@ export const trackAppEvent = (eventName, payload = {}) => {
   }
 
   window.fbq('trackCustom', eventName, enrichedPayload);
+};
+
+export const pushUserIdentity = (profile) => {
+  if (!isBrowser() || !profile) return;
+  pushDataLayer({
+    event: 'user_identified',
+    user_id: profile.id || null,
+    is_authenticated: true,
+    subscription_tier: profile.subscription_tier || 'free',
+    is_admin: profile.role === 'admin' || false,
+  });
 };

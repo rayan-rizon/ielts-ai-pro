@@ -50,8 +50,6 @@ export function useWritingTaskLogic(passedUser = null) {
   const setShowSubmitDialog = useWritingTestStore((state) => state.setShowSubmitDialog);
   const setShowTimeUpDialog = useWritingTestStore((state) => state.setShowTimeUpDialog);
   const setShowUpgradeDialog = useWritingTestStore((state) => state.setShowUpgradeDialog);
-  const setError = useWritingTestStore((state) => state.setError);
-  const setFeedbackError = useWritingTestStore((state) => state.setFeedbackError);
 
   const [showSample, setShowSample] = useState(false);
   const { saveNow } = useWritingTestDispatch();
@@ -67,7 +65,7 @@ export function useWritingTaskLogic(passedUser = null) {
     setShowXPNotification,
   } = useWritingGamification();
 
-  const { handleGetFeedback } = useWritingFeedback(awardXP, isExiting);
+  const { handleGetFeedback } = useWritingFeedback(awardXP);
   const { loadingMessage } = useWritingStatus();
 
   // 3. Navigation Blocker (Legacy Logic kept here for now as it bridges Router + Store)

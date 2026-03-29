@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { User } from '@/features/auth/services/User';
 import { SystemSetting } from '@/features/admin/services/SystemSetting';
 import { setupCrossTabSync } from '@/lib/sessionLock';
+import { pushUserIdentity } from '@/lib/tracking';
 
 const AuthContext = createContext();
 
@@ -129,6 +130,7 @@ export const AuthProvider = ({ children }) => {
                   setUserProfile(freshProfile);
                   setCachedProfile(freshProfile);
                   setIsAdmin(freshProfile?.role === 'admin');
+                  pushUserIdentity(freshProfile);
                   if (freshProfile?.id && refCode) {
                     window.localStorage.removeItem('referral_code');
                   }
@@ -158,6 +160,7 @@ export const AuthProvider = ({ children }) => {
 
             const adminStatus = profile?.role === 'admin';
             setIsAdmin(adminStatus);
+            pushUserIdentity(profile);
 
             if (profile?.id && refCode) {
               window.localStorage.removeItem('referral_code');
@@ -272,6 +275,7 @@ export const AuthProvider = ({ children }) => {
 
               const adminStatus = profile?.role === 'admin';
               setIsAdmin(adminStatus);
+              pushUserIdentity(profile);
 
               if (profile?.id && refCode) {
                 window.localStorage.removeItem('referral_code');
@@ -389,6 +393,7 @@ export const AuthProvider = ({ children }) => {
 
           const adminStatus = profile?.role === 'admin';
           setIsAdmin(adminStatus);
+          pushUserIdentity(profile);
           return profile;
         } catch (error) {
           console.error('Error refreshing profile:', error);
@@ -455,6 +460,13 @@ export const AuthProvider = ({ children }) => {
       setAuthCheckComplete(false);
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem('onboarding_completed');
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: 'user_signed_out',
+          user_id: null,
+          is_authenticated: false,
+          subscription_tier: null,
+        });
       }
     }
   }, []);

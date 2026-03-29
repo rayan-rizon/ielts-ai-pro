@@ -9,6 +9,7 @@ import { callEdgeFunction } from '@/utils/api';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
+import { trackAppEvent } from '@/lib/tracking';
 
 // UI Components
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -774,6 +775,17 @@ export default function SpeakingTest() {
           setEvaluationError(null);
           await awardXP(response.evaluation);
 
+          trackAppEvent('speaking_submitted', {
+            test_type: 'speaking',
+            overall_band: response.evaluation?.overallBand || null,
+            session_id: session?.id,
+          });
+          trackAppEvent('test_completed', {
+            test_type: 'speaking',
+            overall_band: response.evaluation?.overallBand || null,
+            session_id: session?.id,
+          });
+
           await saveSessionProgress({
             is_completed: true,
             score: response.evaluation.overallBand || 0,
@@ -882,6 +894,7 @@ export default function SpeakingTest() {
       currentPartNumber,
       conversation,
       session?.content_data,
+      session?.id,
       awardXP,
       saveSessionProgress,
       session?.user_id,
