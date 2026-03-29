@@ -18,35 +18,17 @@ const containerVariants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.05, delayChildren: 0.02 },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 30, filter: 'blur(8px)' },
+  hidden: { opacity: 0, y: 15, filter: 'blur(4px)' },
   show: {
     opacity: 1,
     y: 0,
     filter: 'blur(0px)',
-    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
-  },
-};
-
-const floatAnimation = {
-  y: [0, -12, 0],
-  transition: {
-    duration: 4,
-    repeat: Infinity,
-    ease: 'easeInOut',
-  },
-};
-
-const floatReverseAnimation = {
-  y: [0, 12, 0],
-  transition: {
-    duration: 5,
-    repeat: Infinity,
-    ease: 'easeInOut',
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
   },
 };
 

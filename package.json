@@ -19,6 +19,9 @@
     "format": "prettier --write .",
     "analyze": "npx vite-bundle-visualizer",
     "gen:types": "npx supabase gen types typescript --linked > src/types/supabase.types.ts",
+    "perf:lighthouse:mobile": "lhci collect --settings.emulatedFormFactor=mobile",
+    "perf:lighthouse:desktop": "lhci collect --settings.emulatedFormFactor=desktop",
+    "perf:lighthouse:assert": "lhci assert",
     "prepare": "if [ -d .git ]; then husky; fi"
   },
   "dependencies": {
@@ -126,7 +129,8 @@
     "vite": "^6.1.0",
     "vite-bundle-visualizer": "^1.2.1",
     "vite-plugin-compression": "^0.5.1",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "@lhci/cli": "^0.14.0"
   },
   "overrides": {
     "whatwg-encoding": "3.1.1"

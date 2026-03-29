@@ -59,9 +59,18 @@
         window.__pixelLoaded = true;
       };
 
-      // Load unconditionally
-      loadGtm();
-      loadPixel();
+      // Load with a slight delay to allow critical content (LCP) to render first
+      setTimeout(function() {
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(function() {
+            loadGtm();
+            loadPixel();
+          });
+        } else {
+          loadGtm();
+          loadPixel();
+        }
+      }, 500);
     })();
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />

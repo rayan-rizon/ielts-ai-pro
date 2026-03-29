@@ -69,6 +69,14 @@ const normalizeValue = (value) => {
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 
+export const refreshTrackingBootstrap = () => {
+  if (!isBrowser()) return;
+
+  // Keep a stable compatibility hook for consent flows that
+  // expect a tracking refresh signal after preference changes.
+  window.dispatchEvent(new Event('cookie-consent-updated'));
+};
+
 export const trackPageView = (pathname = '/') => {
   if (!isBrowser()) return;
 

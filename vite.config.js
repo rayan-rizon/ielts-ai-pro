@@ -55,7 +55,6 @@ export default defineConfig({
             'query-vendor',
             'helmet-vendor',
             'radix-vendor',
-            'framer-vendor',
             'pdf-vendor',
             'editor-vendor',
           ];
