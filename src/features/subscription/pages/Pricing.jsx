@@ -83,6 +83,10 @@ const containerVariants = {
   },
 };
 
+// Temporary kill switch for Bangladesh manual payment flow.
+// Set to true when you want to restore bKash/Nagad checkout.
+const MANUAL_BD_PAYMENT_ENABLED = true;
+
 export default function Pricing() {
   const [selectedPlan, setSelectedPlan] = useState('free');
   const [promoDiscount, setPromoDiscount] = useState(null);
@@ -97,7 +101,9 @@ export default function Pricing() {
     detectedCountry,
     isLoading: isPricingLoading,
     refetchUser,
-  } = usePricing(defaultPlans);
+  } = usePricing(defaultPlans, {
+    disableBangladeshLocalization: !MANUAL_BD_PAYMENT_ENABLED,
+  });
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -107,6 +113,7 @@ export default function Pricing() {
   const isBD =
     (countryIdentifier === 'BD' || countryIdentifier === 'BANGLADESH') &&
     countryIdentifier !== 'TEST';
+  const useManualBdPayment = isBD && MANUAL_BD_PAYMENT_ENABLED;
 
   // Sync selectedPlan and promoDiscount with user data when it loads
   useEffect(() => {
@@ -133,6 +140,15 @@ export default function Pricing() {
   };
 
   const handleOpenPortal = async () => {
+    // Industry-standard guard: only users with an active Stripe subscription
+    // (stripe_subscription_id set) can use the Customer Portal.
+    // stripe_customer_id alone is insufficient — promo-granted users may have
+    // acquired one from an abandoned checkout attempt without ever subscribing.
+    if (!user?.stripe_subscription_id) {
+      // Fall through to checkout for promo-granted or non-Stripe users
+      return false; // signal: not eligible for portal
+    }
+
     trackAppEvent('billing_portal_opened', {
       path: '/pricing',
       current_tier: user?.subscription_tier || 'free',
@@ -144,7 +160,7 @@ export default function Pricing() {
       const {
         data: { session },
       } = await import('@/lib/supabase').then((m) => m.supabase.auth.getSession());
-      if (!session) return;
+      if (!session) return false;
 
       const response = await fetch(`${supabaseUrl}/functions/v1/create-customer-portal`, {
         method: 'POST',
@@ -156,12 +172,24 @@ export default function Pricing() {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to open billing portal');
+
+      // The edge function returns 'no_stripe_subscription' when the user has no
+      // active Stripe subscription (e.g. promo grant). Treat this silently and
+      // fall back to checkout instead of showing a confusing error.
+      if (!response.ok) {
+        if (data.error === 'no_stripe_subscription') {
+          return false; // caller will route to checkout
+        }
+        throw new Error(data.error || 'Failed to open billing portal');
+      }
+
       if (data.url) window.location.href = data.url;
+      return true;
     } catch (error) {
       console.error('Portal failed:', error);
       const { toast } = await import('sonner');
-      toast.error('Failed to open billing portal. Please try again or visit your settings.');
+      toast.error('Could not open the billing portal. Please try again or contact support.');
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -198,15 +226,20 @@ export default function Pricing() {
       return;
     }
 
-    // INDUSTRY STANDARD: If user has an active subscription, redirect to Customer Portal
-    // for plan switching/upgrades. This allows Stripe to handle proration correctly.
-    // However, users from Bangladesh use a manual payment system and do not have a Stripe portal.
-    if (user.subscription_tier !== 'free' && !isBD) {
-      await handleOpenPortal();
-      return;
+    // INDUSTRY STANDARD: Only route to Customer Portal if the user has an active
+    // Stripe subscription (stripe_subscription_id is set). This is the definitive
+    // check — stripe_customer_id alone can exist from an abandoned checkout.
+    //
+    // Promo-granted users have no stripe_subscription_id, so they fall through
+    // to Stripe Checkout, starting a real subscription for the first time.
+    const hasStripeSubscription = Boolean(user.stripe_subscription_id);
+    if (hasStripeSubscription && !useManualBdPayment) {
+      const portaled = await handleOpenPortal();
+      if (portaled !== false) return; // portal opened successfully
+      // portaled === false means no Stripe sub → fall through to checkout
     }
 
-    if (isBD) {
+    if (useManualBdPayment) {
       trackAppEvent('manual_checkout_started', {
         path: '/pricing',
         plan_tier: planTier,
@@ -434,7 +467,10 @@ export default function Pricing() {
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
                 Want to manage your current subscription or payment methods?
               </p>
-              {isBD ? (
+              {/* Show billing portal only for users with an active Stripe subscription.
+                  stripe_subscription_id is the definitive check — promo-granted users
+                  may have a stripe_customer_id from an abandoned checkout but no subscription. */}
+              {useManualBdPayment || !user?.stripe_subscription_id ? (
                 <Button
                   variant="outline"
                   onClick={() => window.open('mailto:support@ieltsai.pro', '_blank')}
@@ -446,9 +482,10 @@ export default function Pricing() {
                 <Button
                   variant="outline"
                   onClick={handleOpenPortal}
+                  disabled={isLoading}
                   className="rounded-full px-8 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase tracking-widest text-xs"
                 >
-                  Open Billing Portal
+                  {isLoading ? 'Opening…' : 'Open Billing Portal'}
                 </Button>
               )}
             </m.div>

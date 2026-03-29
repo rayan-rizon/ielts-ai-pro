@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
@@ -10,7 +10,6 @@ import {
   Play,
   RotateCcw,
   CheckCircle2,
-  Briefcase,
   LayoutGrid,
   List,
   Sparkles,
@@ -29,11 +28,9 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
-import { Passage, User } from '@/entities';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/features/auth/context/AuthContext';
 
-import { useDataQuery } from '@/hooks/useDataQuery';
 import { useDebounce } from '@/hooks/useDebounce';
 import { createPageUrl } from '@/utils';
 
@@ -56,9 +53,6 @@ const TestCard = ({
     const tier = (user?.subscription_tier || 'free').toLowerCase();
     const hasPremiumAccess = tier === 'pro' || tier === 'premium' || isAdmin;
 
-    if (test.id.startsWith('cambridge-')) {
-      return !hasPremiumAccess;
-    }
     if (test.access_tier && test.access_tier !== 'free') {
       return !hasPremiumAccess;
     }
@@ -676,7 +670,7 @@ export default function Listening() {
       }
     };
     loadInitialData();
-  }, [userData?.id, authLoading]);
+  }, [userData, authLoading, listeningData]);
   // userData is now from context, no need for listeningData?.currentUser
 
   // Load more handler - memoized for performance

@@ -204,12 +204,16 @@ export default function LandingPage() {
   const faqs = useMemo(
     () => [
       {
-        q: 'How fast do I get my AI feedback?',
-        a: 'It’s instantaneous. Our AI models analyze your writing and speaking responses in seconds, providing a detailed breakdown and an estimated band score immediately after you finish your task.',
+        q: 'Are the Cambridge IELTS tests free?',
+        a: 'Yes! All Cambridge IELTS Reading and Listening practice tests are now completely free for all users.',
       },
       {
-        q: 'Are the practice tests based on real IELTS exams?',
-        a: 'Yes. Our tests are meticulously modeled after official IELTS Academic and General Training papers. We provide authentic-style Reading, Listening, Writing, and Speaking tasks to ensure you’re fully prepared.',
+        q: 'Do I need a subscription for AI feedback?',
+        a: 'While the tests are free, a Pro or Premium subscription is required for deep AI evaluations of your Writing and Speaking sessions.',
+      },
+      {
+        q: 'How fast do I get my AI feedback?',
+        a: 'It’s instantaneous. Our AI models analyze your writing and speaking responses in seconds, providing a detailed breakdown and an estimated band score immediately after you finish your task.',
       },
       {
         q: 'Can I track my band score progress over time?',
@@ -218,10 +222,6 @@ export default function LandingPage() {
       {
         q: 'How does the Speaking AI assess my pronunciation?',
         a: 'Our advanced speech recognition technology analyzes your recordings for fluency, intonation, and clarity. It follows official IELTS criteria to pinpoint pronunciation errors and suggests specific improvements to hit Band 7+.',
-      },
-      {
-        q: 'What is the AI Study Planner?',
-        a: 'It is your personalized success roadmap. The planner looks at your target band score and current performance to generate a dynamic daily task list, ensuring you never waste time on things you’ve already mastered.',
       },
     ],
 

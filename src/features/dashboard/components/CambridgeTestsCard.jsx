@@ -1,15 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ShieldCheck,
-  ChevronRight,
-  Clock,
-  Users,
-  ArrowRight,
-  Lock,
-  ChevronDown,
-} from 'lucide-react';
+import { ShieldCheck, ChevronRight, Clock, Users, ArrowRight, ChevronDown } from 'lucide-react';
 import { cn, formatTestTitle } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -271,7 +263,7 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [], user }) => {
                   </motion.div>
                 ))}
 
-                {isPro && !cambridgeTests?.length && (
+                {!cambridgeTests?.length && (
                   <div
                     className="col-span-full py-12 flex flex-col items-center justify-center text-center"
                     data-oid="h-vweab"
@@ -296,63 +288,6 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [], user }) => {
                       later for authentic practice material.
                     </p>
                   </div>
-                )}
-
-                {!isPro && !cambridgeTests?.length && (
-                  <motion.div
-                    className="col-span-full"
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    data-oid="zqgp86n"
-                  >
-                    <div
-                      className="relative overflow-hidden rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/20 p-10 text-center group transition-all hover:bg-white dark:hover:bg-slate-900/40 hover:border-indigo-500/30"
-                      data-oid="4-l0-gg"
-                    >
-                      <div
-                        className="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.07] pointer-events-none"
-                        data-oid="iw7npdf"
-                      >
-                        <ShieldCheck className="w-48 h-48" data-oid="1bd22h6" />
-                      </div>
-                      <div
-                        className="w-16 h-16 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/10 flex items-center justify-center mx-auto mb-5 shadow-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-500"
-                        data-oid="t44l52u"
-                      >
-                        <Lock className="w-7 h-7 text-indigo-500" data-oid="fi_9pml" />
-                      </div>
-                      <h4
-                        className="text-2xl font-black text-slate-900 dark:text-white mb-3 tracking-tight"
-                        data-oid="bfxje4g"
-                      >
-                        Cambridge Library Locked
-                      </h4>
-                      <p
-                        className="text-sm font-semibold text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-8 leading-relaxed"
-                        data-oid="vw97-xg"
-                      >
-                        Professional Cambridge tests are reserved for our{' '}
-                        <span className="text-indigo-600 dark:text-indigo-400" data-oid="zsbstw4">
-                          Premium members
-                        </span>{' '}
-                        to ensure authentic practice and verified scoring.
-                      </p>
-                      <Button
-                        asChild
-                        size="lg"
-                        className="rounded-full bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 font-extrabold px-10 h-12 shadow-2xl dark:shadow-indigo-500/20 hover:scale-[1.05] transition-all border-0 tracking-tight group/unlock relative overflow-hidden"
-                        data-oid="t3d:r:d"
-                      >
-                        <Link to={createPageUrl('Pricing')} data-oid="b.3px71">
-                          <div
-                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/unlock:animate-[shimmer_2s_infinite]"
-                            data-oid="a6mygj5"
-                          />
-                          UPGRADE TO UNLOCK
-                        </Link>
-                      </Button>
-                    </div>
-                  </motion.div>
                 )}
               </div>
             </motion.div>

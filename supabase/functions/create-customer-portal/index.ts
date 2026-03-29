@@ -1,6 +1,6 @@
 /**
  * Create Stripe Customer Portal Session (Security-Hardened)
- * 
+ *
  * Industry-standard subscription management that allows users to:
  * - View and download invoices
  * - Update payment methods
@@ -10,6 +10,11 @@
  * Security features:
  * - Hardcoded return URL (prevents open redirect)
  * - CSRF protection logic (matches checkout flow)
+ *
+ * Eligibility:
+ * - User must have BOTH stripe_customer_id AND stripe_subscription_id.
+ * - stripe_customer_id alone is not enough: a user may have it from an
+ *   abandoned checkout attempt but never completed a subscription (e.g. promo grants).
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -95,9 +100,11 @@ Deno.serve(async (req: Request) => {
             return errorResponse('Unauthorized', 401, corsHeaders);
         }
 
+        // Fetch both stripe fields — subscription_id is the definitive proof of an
+        // active Stripe subscription. customer_id alone is insufficient.
         const { data: userData, error: userError } = await supabase
             .from('users')
-            .select('id, stripe_customer_id, subscription_tier')
+            .select('id, stripe_customer_id, stripe_subscription_id, subscription_tier')
             .eq('auth_id', user.id)
             .single();
 
@@ -105,8 +112,22 @@ Deno.serve(async (req: Request) => {
             return errorResponse('User not found', 404, corsHeaders);
         }
 
-        if (!userData.stripe_customer_id) {
-            return errorResponse('No active subscription found. Please subscribe first.', 400, corsHeaders);
+        // =====================================================================
+        // ELIGIBILITY: Require an active Stripe subscription
+        // =====================================================================
+        // stripe_customer_id alone is NOT sufficient — it can exist from an
+        // abandoned checkout attempt even for promo-granted subscribers.
+        // stripe_subscription_id is the definitive signal of an active Stripe sub.
+        if (!userData.stripe_customer_id || !userData.stripe_subscription_id) {
+            console.log(
+                `[CustomerPortal] User ${user.id} has no active Stripe subscription ` +
+                `(tier=${userData.subscription_tier}, ` +
+                `customer=${userData.stripe_customer_id ?? 'none'}, ` +
+                `subscription=${userData.stripe_subscription_id ?? 'none'}). ` +
+                `Likely a promo-granted account.`
+            );
+            // Return a machine-readable code so the frontend can handle it gracefully
+            return errorResponse('no_stripe_subscription', 400, corsHeaders);
         }
 
         // =====================================================================

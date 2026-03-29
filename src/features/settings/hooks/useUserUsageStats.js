@@ -111,11 +111,19 @@ export function useUserUsageStats() {
       const speakingUsed =
         aiUsage?.filter((r) => r.endpoint === 'processSpeakingSession_start').length || 0;
 
-      const testCounts = (testSessions || []).reduce((acc, curr) => {
-        const type = curr.test_type || 'unknown';
-        acc[type] = (acc[type] || 0) + 1;
-        return acc;
-      }, {});
+      const testCounts = (testSessions || []).reduce(
+        (acc, curr) => {
+          const type = curr.test_type || 'unknown';
+          acc[type] = (acc[type] || 0) + 1;
+          return acc;
+        },
+        {
+          reading: 0,
+          listening: 0,
+          writing: 0,
+          speaking: 0,
+        }
+      );
 
       return {
         writingUsed,

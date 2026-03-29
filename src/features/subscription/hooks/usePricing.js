@@ -5,7 +5,9 @@ import { SystemSetting } from '@/features/admin/services/SystemSetting';
 import { detectLocation, getPriceData } from '@/lib/pricingUtils';
 import { fetchAllTierLimits, generateFeatureStrings } from '@/lib/tierLimitsUtils';
 
-export function usePricing(defaultPlans) {
+export function usePricing(defaultPlans, options = {}) {
+  const { disableBangladeshLocalization = false } = options;
+
   // Fetch user data
   const { data: user, refetch: refetchUser } = useQuery({
     queryKey: ['user', 'me'],
@@ -15,14 +17,25 @@ export function usePricing(defaultPlans) {
 
   // Fetch pricing configuration and location
   const { data: pricingConfig, isLoading: isPricingLoading } = useQuery({
-    queryKey: ['subscription', 'pricingConfig'],
+    queryKey: [
+      'subscription',
+      'pricingConfig',
+      disableBangladeshLocalization ? 'disable-bd-localization' : 'default-localization',
+    ],
     queryFn: async () => {
       const [settings, userCountry] = await Promise.all([SystemSetting.getAll(), detectLocation()]);
+
+      const normalizedCountry = (userCountry || '').trim().toUpperCase();
+      const shouldBypassBdLocalization =
+        disableBangladeshLocalization &&
+        (normalizedCountry === 'BD' || normalizedCountry === 'BANGLADESH');
+      const pricingCountry = shouldBypassBdLocalization ? 'US' : userCountry;
+
       const { countryCurrencyMap } = await import('@/lib/pricingUtils');
-      const currency = countryCurrencyMap[userCountry]?.currency || 'USD';
+      const currency = countryCurrencyMap[pricingCountry]?.currency || 'USD';
       const tierLimits = await fetchAllTierLimits(currency);
 
-      return { settings, userCountry, tierLimits };
+      return { settings, userCountry, pricingCountry, tierLimits };
     },
     staleTime: 30 * 60 * 1000, // Pricing doesn't change often
   });
@@ -33,7 +46,7 @@ export function usePricing(defaultPlans) {
       return defaultPlans;
     }
 
-    const { settings, userCountry, tierLimits } = pricingConfig;
+    const { settings, pricingCountry, tierLimits } = pricingConfig;
 
     return defaultPlans.map((plan) => {
       const { price, symbol, oldPrice, currency } = getPriceData(
@@ -41,7 +54,7 @@ export function usePricing(defaultPlans) {
         plan.basePrice,
         plan.oldPrice,
         settings,
-        userCountry
+        pricingCountry
       );
 
       // Get dynamic feature strings from tier limits
@@ -77,6 +90,7 @@ export function usePricing(defaultPlans) {
     refetchUser,
     plans,
     detectedCountry: pricingConfig?.userCountry,
+    pricingCountry: pricingConfig?.pricingCountry,
     isLoading: isPricingLoading,
     pricingConfig,
   };

@@ -19,12 +19,9 @@ import {
   User as UserIcon,
   Target,
   Shield,
-  Palette,
   Save,
   Trash2,
   Clock,
-  Layout,
-  Smartphone,
   Sparkles,
   Trophy,
   Crown,
@@ -371,13 +368,19 @@ export default function Settings() {
           <div className="lg:col-span-8 space-y-6">
             <AnimatePresence mode="wait">
               {activeTab === 'profile' && (
-                <ProfileSection formData={formData} setFormData={setFormData} avatars={AVATARS} />
+                <ProfileSection
+                  key="profile"
+                  formData={formData}
+                  setFormData={setFormData}
+                  avatars={AVATARS}
+                />
               )}
               {activeTab === 'goals' && (
-                <GoalsSection formData={formData} setFormData={setFormData} />
+                <GoalsSection key="goals" formData={formData} setFormData={setFormData} />
               )}
               {activeTab === 'subscription' && (
                 <SubscriptionSection
+                  key="subscription"
                   user={user}
                   isOpeningPortal={isOpeningPortal}
                   isCancelling={isCancelling}
@@ -390,6 +393,7 @@ export default function Settings() {
               )}
               {activeTab === 'account' && (
                 <SecuritySection
+                  key="account"
                   passwordData={passwordData}
                   setPasswordData={setPasswordData}
                   isUpdatingPassword={isUpdatingPassword}
@@ -399,9 +403,9 @@ export default function Settings() {
                   setShowDeleteModal={setShowDeleteModal}
                 />
               )}
-              {activeTab === 'usage' && <UsageStatsSection />}
-              {activeTab === 'referrals' && <ReferralSection />}
-              {activeTab === 'privacy' && <PrivacySection />}
+              {activeTab === 'usage' && <UsageStatsSection key="usage" />}
+              {activeTab === 'referrals' && <ReferralSection key="referrals" />}
+              {activeTab === 'privacy' && <PrivacySection key="privacy" />}
             </AnimatePresence>
           </div>
         </div>

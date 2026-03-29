@@ -19,14 +19,14 @@ const faqs = [
       'Our AI is trained on thousands of official IELTS exams and is calibrated to score within 0.5 bands of official examiners. It provides detailed feedback on grammar, vocabulary, coherence, and task response.',
   },
   {
-    question: 'Do you offer a score improvement guarantee?',
+    question: 'Are the Cambridge IELTS tests free?',
     answer:
-      'Yes, for our Premium users. If you follow your AI Learning Path and do not see an improvement in your practice scores, we will extend your subscription for free. See our terms for details.',
+      'Yes! All Cambridge IELTS Reading and Listening practice tests are now completely free for all users.',
   },
   {
-    question: 'Is this for Academic or General Training?',
+    question: 'Do I need a subscription for AI feedback?',
     answer:
-      'IELTS Ai Pro covers both Academic and General Training modules. You can switch between them at any time in your dashboard.',
+      'While the tests are free, a Pro or Premium subscription is required for deep AI evaluations of your Writing and Speaking sessions.',
   },
 ];
 
