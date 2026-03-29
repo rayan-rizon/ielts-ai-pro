@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CONSENT_STORAGE_KEY } from '@/components/shared/CookieConsent';
+import { CONSENT_STORAGE_KEY } from '@/lib/tracking';
 
 export function useCookieConsent() {
   const [consent, setConsent] = useState(null);

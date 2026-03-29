@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { VocabularyItem, User } from '@/entities';
+import { VocabularyItem } from '@/entities';
 import { supabase } from '@/lib/supabase';
-import { updateUserPoints } from '@/utils/api';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Brain,
@@ -34,19 +32,7 @@ import {
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Resource } from '@/entities';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import VocabularyList from '@/features/vocabulary/components/VocabularyList';
 import ReviewSession from '@/features/vocabulary/components/ReviewSession';
@@ -73,7 +59,7 @@ import {
 
 // Vocabulary limits by subscription tier
 const VOCABULARY_LIMITS = {
-  free: 20,
+  free: 100,
   pro: 300,
   premium: Infinity,
 };
@@ -102,9 +88,11 @@ export default function Vocabulary() {
 
   const { user } = useAuth();
   const [viewingWord, setViewingWord] = useState(null);
+  const allVocabLengthRef = React.useRef(0);
 
-  // Autocomplete State
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  useEffect(() => {
+    allVocabLengthRef.current = allVocabulary.length;
+  }, [allVocabulary.length]);
 
   // Pagination State - now server-side
   const ITEMS_PER_PAGE = 50;
@@ -130,7 +118,7 @@ export default function Vocabulary() {
 
     // Only show full loading state if we don't have data yet
     // This prevents flickering on silent updates
-    setIsLoading((prev) => prev && allVocabulary.length === 0);
+    setIsLoading((prev) => prev && allVocabLengthRef.current === 0);
 
     try {
       // Parallel fetch for all required data
@@ -167,8 +155,8 @@ export default function Vocabulary() {
             return await supabase.rpc('get_due_vocabulary', {
               p_limit: 50,
             });
-          } catch (e) {
-            console.log('[Vocab] RPC unavailable, calculating client-side');
+          } catch {
+            console.warn('[Vocab] RPC unavailable, calculating client-side');
             return { data: null };
           }
         })(),
@@ -206,7 +194,7 @@ export default function Vocabulary() {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id]); // Reverted to avoid loop, using ref for length check
 
   const calculateReviewStreak = useCallback((items) => {
     const reviewDates = [
@@ -1191,7 +1179,7 @@ export default function Vocabulary() {
 }
 
 // Sub-component for structured study view of curated lists
-const VocabularyStudyView = ({ resource, user, onClose, onAddWord, allVocabulary }) => {
+const VocabularyStudyView = ({ resource, user, onAddWord, allVocabulary }) => {
   const words = JSON.parse(resource.content || '[]');
   const [addingWords, setAddingWords] = useState(new Set());
 
@@ -1367,25 +1355,3 @@ const VocabularyStudyView = ({ resource, user, onClose, onAddWord, allVocabulary
 };
 
 // Helper component for icon
-function TextCursorIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      data-oid="c6wo37e"
-    >
-      <path d="M17 13h-5" data-oid="loeb5d7" />
-      <path d="M12 22V12" data-oid=":1xhejr" />
-      <path d="M19 8a3 3 0 1 0-6 0v2" data-oid=".n77doq" />
-      <path d="M9.1 9a3 3 0 0 0-5.8 0" data-oid="713s_la" />
-    </svg>
-  );
-}

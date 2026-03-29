@@ -343,7 +343,7 @@ export default function SpeakingTest() {
       }
 
       setIsProcessing(true);
-      setProcessingStatus('Transcribing your speech...');
+      setProcessingStatus('Processing your answer...');
 
       // Add placeholder for user message
       setConversation((prev) => [...prev, { speaker: 'user', text: '...', isLoading: true }]);
@@ -713,8 +713,8 @@ export default function SpeakingTest() {
       };
 
       try {
-        setLoadingMessage('Evaluating your speaking performance...');
-        setProcessingStatus('Evaluating your speaking performance...');
+        setLoadingMessage('AI is analyzing your response...');
+        setProcessingStatus('AI is analyzing your response...');
 
         const response = await callEdgeFunction('evaluateSpeakingTest', {
           testId,

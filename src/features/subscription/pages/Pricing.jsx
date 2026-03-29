@@ -25,7 +25,7 @@ const defaultPlans = [
       'All Cambridge Reading & Listening',
       '0 AI Speaking Sessions/month',
       '1 AI Writing Evaluations/month',
-      '20 Vocabulary Words',
+      '100 Vocabulary Words',
       'Basic Analytics',
     ],
     limitations: ['Adaptive Learning Path', 'Premium AI Features'],

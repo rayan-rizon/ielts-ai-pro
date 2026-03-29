@@ -8,7 +8,6 @@ const RecordingControls = React.memo(
     testStarted,
     isPart2Prep,
     isListening,
-    isRecording,
     isProcessing,
     isSpeaking,
     processingStatus,
@@ -45,9 +44,9 @@ const RecordingControls = React.memo(
             <PlayCircle className="w-5 h-5 text-rose-500" />
           </div>
           <div className="space-y-1">
-            <h4 className="text-sm sm:text-base font-bold tracking-tight">System Ready</h4>
+            <h4 className="text-sm sm:text-base font-bold tracking-tight">Ready to begin?</h4>
             <p className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
-              Your examination is about to begin. Click the button to start the recording.
+              Your speaking session is ready. Click the button below to start.
             </p>
           </div>
           <Button
@@ -56,7 +55,7 @@ const RecordingControls = React.memo(
             className="bg-gradient-to-r from-rose-500 to-orange-600 hover:from-rose-600 hover:to-orange-700 text-white shadow-lg shadow-rose-500/10 px-5 sm:px-6 py-4 text-xs sm:text-sm font-black tracking-tight rounded-lg gap-2 hover-lift w-full sm:w-auto mt-2"
           >
             <PlayCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            Start Exam
+            Begin Now
           </Button>
         </motion.div>
       )}
@@ -109,7 +108,7 @@ const RecordingControls = React.memo(
               >
                 <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.15em] text-primary flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
-                  Audio Capture Active • Speak Naturally
+                  LISTENING... SPEAK NATURALLY
                 </p>
               </motion.div>
             ) : (
@@ -120,7 +119,7 @@ const RecordingControls = React.memo(
                 exit={{ opacity: 0 }}
               >
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 transition-opacity hover:opacity-100 italic">
-                  Awaiting Candidate Input
+                  Click the microphone to speak
                 </p>
               </motion.div>
             )}
@@ -180,7 +179,7 @@ const RecordingControls = React.memo(
             >
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
               <span className="text-[9px] font-black uppercase tracking-widest text-rose-500">
-                Live Recording
+                Recording...
               </span>
             </motion.div>
           )}

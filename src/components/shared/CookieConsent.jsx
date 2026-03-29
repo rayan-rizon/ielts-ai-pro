@@ -4,10 +4,12 @@ import { Cookie, Shield, BarChart3, Megaphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
-import { refreshTrackingBootstrap, trackPageView } from '@/lib/tracking';
-
-export const CONSENT_STORAGE_KEY = 'ielts_cookie_consent';
-const CONSENT_VERSION = '1.0';
+import {
+  CONSENT_STORAGE_KEY,
+  CONSENT_VERSION,
+  refreshTrackingBootstrap,
+  trackPageView,
+} from '@/lib/tracking';
 
 export default function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false);

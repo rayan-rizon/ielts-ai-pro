@@ -9,7 +9,7 @@ import { useWordSuggestions, useWordDefinition } from '@/features/vocabulary/hoo
 
 // Helper for tier limits
 const VOCABULARY_LIMITS = {
-  free: 20,
+  free: 100,
   pro: 300,
   premium: Infinity,
 };

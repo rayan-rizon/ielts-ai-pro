@@ -22,16 +22,14 @@ import {
   ChevronDown,
   ChevronUp,
   Sparkles,
-  Search,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 import SpeakingAnalysis from './SpeakingAnalysis';
 import XPNotification from '@/components/XPNotification';
-import UpgradeDialog from './UpgradeDialog';
+
 import { callEdgeFunction } from '@/utils/api';
-import { useAuth } from '@/features/auth/context/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
@@ -54,22 +52,16 @@ export default function SpeakingReport({
   loadingMessage, // Receive loadingMessage from parent
 }) {
   const { width, height } = useWindowSize();
-  const { userProfile: authUser } = useAuth();
 
   // Deep Dive State
   const [isGeneratingDetailed, setIsGeneratingDetailed] = useState(false);
   const [localDetailedFeedback, setLocalDetailedFeedback] = useState(detailedFeedback || null);
-  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [expandedQuestion, setExpandedQuestion] = useState(0); // Open first question by default
   const [isAllExpanded, setIsAllExpanded] = useState(false);
 
-  const isPremium =
-    ['pro', 'premium', 'admin'].includes((authUser?.subscription_tier || 'free').toLowerCase()) ||
-    authUser?.role === 'admin';
-
-  // Aggregate pronunciation breakdown data from per-turn audio analysis (Pro/Premium only)
+  // Aggregate pronunciation breakdown data from per-turn audio analysis
   const pronunciationBreakdown = useMemo(() => {
-    if (!isPremium || !allPartsPronunciation) return null;
+    if (!allPartsPronunciation) return null;
     const sounds = new Set();
     const wordIssues = [];
     const clarityNotes = [];
@@ -100,7 +92,7 @@ export default function SpeakingReport({
       wordIssues: uniqueWordIssues,
       clarityNotes,
     };
-  }, [isPremium, allPartsPronunciation]);
+  }, [allPartsPronunciation]);
 
   // Handle bulk expand/collapse
   const toggleExpandAll = () => {
@@ -115,10 +107,9 @@ export default function SpeakingReport({
     }
   }, [detailedFeedback, localDetailedFeedback]);
 
-  // Auto-trigger deep dive for Pro/Premium users after evaluation completes
+  // Auto-trigger deep dive for all users after evaluation completes
   useEffect(() => {
     if (
-      isPremium &&
       finalEvaluation &&
       !localDetailedFeedback &&
       !isGeneratingDetailed &&
@@ -128,14 +119,9 @@ export default function SpeakingReport({
       handleGenerateDetailed();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPremium, finalEvaluation]);
+  }, [finalEvaluation]);
 
   const handleGenerateDetailed = async () => {
-    if (!isPremium) {
-      setShowUpgradeDialog(true);
-      return;
-    }
-
     if (!testId || !allPartsConversation) {
       toast.error('Missing transcript data');
       return;
@@ -814,40 +800,10 @@ export default function SpeakingReport({
                         )}
                       </Button>
                     )}
-                    {!isPremium && (
-                      <Badge className="bg-gradient-to-r from-rose-500 to-orange-500 text-white font-bold tracking-widest uppercase shadow-md shadow-rose-500/20 py-1 px-3">
-                        PREMIUM
-                      </Badge>
-                    )}
                   </div>
                 </div>
 
-                {/* Deep Dive Section — Auto-generates for Pro, upgrade CTA for free */}
-                {!localDetailedFeedback && !isGeneratingDetailed && !isPremium && (
-                  <div className="p-8 md:p-12 bg-zinc-50 dark:bg-zinc-900 border-2 border-dashed border-border/60 rounded-[2rem] text-center space-y-4 shadow-sm relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-background/40 backdrop-blur-[1px] z-10 transition-all duration-300" />
-                    <div className="w-20 h-20 bg-gradient-to-br from-rose-100 to-orange-100 dark:from-rose-900/40 dark:to-orange-900/40 rounded-[2rem] mx-auto flex items-center justify-center -rotate-6 group-hover:rotate-0 group-hover:scale-110 transition-all duration-300 shadow-md">
-                      <Search className="w-10 h-10 text-rose-500" />
-                    </div>
-                    <div className="relative z-0">
-                      <h4 className="text-xl font-bold text-foreground">
-                        Unlock Detailed Feedback
-                      </h4>
-                      <p className="text-sm text-muted-foreground max-w-md mx-auto mt-3 leading-relaxed">
-                        Go beyond scores. See exactly what you answered, how to answer like a Band
-                        9.0 candidate, and actionable feedback for every single question.
-                      </p>
-                    </div>
-                    <Button
-                      onClick={() => setShowUpgradeDialog(true)}
-                      className="relative z-20 mt-6 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 shadow-xl shadow-rose-500/20 text-white font-bold px-10 h-14 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/30"
-                    >
-                      <Sparkles className="w-5 h-5 mr-3 animate-pulse" />
-                      Upgrade to Unlock
-                    </Button>
-                  </div>
-                )}
-
+                {/* Deep Dive Section */}
                 {isGeneratingDetailed && (
                   <div className="p-12 md:p-16 text-center bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950 rounded-[2.5rem] border-2 border-rose-500/20 shadow-inner relative overflow-hidden">
                     <div className="absolute inset-0 opacity-30">
@@ -868,7 +824,7 @@ export default function SpeakingReport({
                       </div>
                       <div className="flex items-center justify-center gap-1.5 mt-2">
                         <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-rose-500/70">
-                          <Sparkles className="w-3 h-3" /> Auto-generating for Pro members
+                          <Sparkles className="w-3 h-3" /> Auto-generating analysis
                         </span>
                       </div>
                     </div>
@@ -1138,8 +1094,6 @@ export default function SpeakingReport({
           </CardContent>
         </Card>
       </motion.div>
-
-      <UpgradeDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog} />
     </div>
   );
 }

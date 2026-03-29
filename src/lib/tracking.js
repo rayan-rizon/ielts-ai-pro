@@ -1,4 +1,5 @@
-const CONSENT_STORAGE_KEY = 'ielts_cookie_consent';
+export const CONSENT_STORAGE_KEY = 'ielts_cookie_consent';
+export const CONSENT_VERSION = '1.0';
 
 const DEFAULT_IDS = {
   gtmId: 'GTM-TR6XQ2R3',

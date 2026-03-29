@@ -111,7 +111,7 @@ export default function SpeakingAnalysis({ loadingMessage }) {
             animate={{ opacity: 1, y: 0 }}
             className="text-3xl font-black text-slate-900 dark:text-white tracking-tight"
           >
-            Analyzing{' '}
+            Analyzing Your{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-orange-600 dark:from-rose-400 dark:to-orange-400">
               Speaking
             </span>{' '}
@@ -128,8 +128,8 @@ export default function SpeakingAnalysis({ loadingMessage }) {
                 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em]"
               >
                 {completedSteps.size === analysisSteps.length
-                  ? 'Calculating Final Band...'
-                  : loadingMessage || `Analyzing ${analysisSteps[currentStep]?.label || ''}...`}
+                  ? 'Calculating your results...'
+                  : loadingMessage || `Reviewing ${analysisSteps[currentStep]?.label || ''}...`}
               </motion.p>
             </AnimatePresence>
           </div>

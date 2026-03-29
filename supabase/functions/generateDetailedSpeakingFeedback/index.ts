@@ -51,9 +51,9 @@ serve(async (req: Request) => {
         let tier = (userProfile?.subscription_tier || 'free').toLowerCase();
         if (userProfile?.role === 'admin') tier = 'admin';
 
-        // Tier gate: Detailed Speaking Analytics requires pro or higher
-        const tierDenied = checkTierAccess(tier, ['pro', 'premium', 'admin'], corsHeaders, 'Detailed Speaking Analytics');
-        if (tierDenied) return tierDenied;
+        // Tier gate removed - Deep dive available for all users because of overall test usage limits
+        // const tierDenied = checkTierAccess(tier, ['pro', 'premium', 'admin'], corsHeaders, 'Detailed Speaking Analytics');
+        // if (tierDenied) return tierDenied;
 
         // Uses burst limits
         const burstConfig = getBurstLimitConfig(tier);

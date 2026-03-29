@@ -5,7 +5,7 @@ import { VocabularyItem, UserPoints } from '@/entities';
  * Custom hook for vocabulary CRUD operations
  * Handles adding, deleting, and toggling mastery of vocabulary items
  */
-export function useVocabularyMutations({ user, allVocabulary, setAllVocabulary, loadItems }) {
+export function useVocabularyMutations({ user, allVocabulary, setAllVocabulary }) {
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAddWord = useCallback(
@@ -14,13 +14,13 @@ export function useVocabularyMutations({ user, allVocabulary, setAllVocabulary, 
 
       // Check limit
       const tier = (user?.subscription_tier || 'free').toLowerCase();
-      const limits = { free: 20, pro: 50, premium: Infinity };
+      const limits = { free: 100, pro: 300, premium: Infinity };
       const limit = limits[tier] || limits.free;
 
       if (allVocabulary.length >= limit) {
         return {
           success: false,
-          error: `You\'ve reached your limit of ${limit} words. Upgrade to add more!`,
+          error: `You've reached your limit of ${limit} words. Upgrade to add more!`,
         };
       }
 

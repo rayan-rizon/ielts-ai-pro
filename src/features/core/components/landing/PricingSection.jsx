@@ -35,6 +35,7 @@ const defaultPlans = [
       'All Cambridge Test Papers',
       '0 AI Speaking Sessions / month',
       '5 AI Evaluations / month',
+      '100 Vocabulary Words',
       'Basic Performance Analytics',
     ],
     buttonText: 'Start Practice Free',
