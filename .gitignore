@@ -34,3 +34,8 @@ supabase/backups/*.dump
 supabase/migrations/archive/
 .vercel
 .smart-coding-cache/
+
+# Test reports
+test-results.json
+test-results/
+test-results.log

@@ -94,14 +94,9 @@ const splitMainAlternatives = (pattern) => {
     } else if (
       parenDepth === 0 &&
       char === '/' &&
-      // Relaxed check: split on "/" if it has space on EITHER side
-      // OR if it's separating words (alphanumeric phrases)
-      // But avoid splitting "1/2" (numbers) or within words if possible
-      (pattern[i - 1] === ' ' ||
-        pattern[i + 1] === ' ' ||
-        (/[a-zA-Z]/.test(pattern[i - 1]) && /[a-zA-Z]/.test(pattern[i + 1]))) &&
-      // Ensure we aren't splitting something like "1/2"
-      !(/\d/.test(pattern[i - 1]) && /\d/.test(pattern[i + 1]))
+      // Split as main alternative ONLY if it has a space on EITHER side
+      // (to distinguish from inline alternatives like "a/one")
+      (pattern[i - 1] === ' ' || pattern[i + 1] === ' ')
     ) {
       // This is a main separator outside parentheses
       if (current.trim()) {
