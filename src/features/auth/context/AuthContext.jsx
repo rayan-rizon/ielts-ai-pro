@@ -7,6 +7,23 @@ import { pushUserIdentity } from '@/lib/tracking';
 
 const AuthContext = createContext();
 
+const fallbackAuthContext = Object.freeze({
+  user: null,
+  userProfile: null,
+  loading: false,
+  authCheckComplete: true,
+  isAdmin: false,
+  signUp: async () => null,
+  signIn: async () => null,
+  signOut: async () => null,
+  refreshProfile: async () => null,
+  checkIsAdmin: async () => false,
+  globalSettings: null,
+  settingsLoading: false,
+});
+
+let hasWarnedMissingAuthProvider = false;
+
 // Session cache helpers for instant auth restoration
 const PROFILE_CACHE_KEY = 'auth_profile_cache';
 const PROFILE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -531,4 +548,16 @@ export const AuthProvider = ({ children }) => {
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+
+  if (context === undefined) {
+    if (!hasWarnedMissingAuthProvider) {
+      hasWarnedMissingAuthProvider = true;
+      console.error('useAuth was called outside AuthProvider; returning safe fallback state.');
+    }
+    return fallbackAuthContext;
+  }
+
+  return context;
+};

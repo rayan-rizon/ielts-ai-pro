@@ -1,7 +1,7 @@
 import React from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
-import { AuthProvider } from '@/features/auth/context/AuthContext.jsx';
+import { AuthProvider } from '@/features/auth/context/AuthContext';
 import { ThemeProvider } from './theme-provider';
 import { queryClient } from '@/lib/queryClient';
 
