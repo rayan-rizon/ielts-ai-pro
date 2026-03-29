@@ -36,13 +36,23 @@ const setCachedProfile = (profile) => {
         timestamp: Date.now(),
       })
     );
-  } catch {}
+  } catch {
+    // Session storage not available (e.g. private mode)
+  }
 };
 
 const clearCachedProfile = () => {
   if (typeof window !== 'undefined') {
     sessionStorage.removeItem(PROFILE_CACHE_KEY);
   }
+};
+
+const getLocalOnboardingCompleted = () => {
+  if (typeof window === 'undefined') return null;
+  const stored = window.localStorage.getItem('onboarding_completed');
+  if (stored === 'true') return true;
+  if (stored === 'false') return false;
+  return null;
 };
 
 export const AuthProvider = ({ children }) => {
@@ -54,14 +64,6 @@ export const AuthProvider = ({ children }) => {
   const [globalSettings, setGlobalSettings] = useState(null);
   const [settingsLoading, setSettingsLoading] = useState(true);
   const isFetchingProfile = React.useRef(false);
-  const getLocalOnboardingCompleted = () => {
-    if (typeof window === 'undefined') return null;
-    const stored = window.localStorage.getItem('onboarding_completed');
-    if (stored === 'true') return true;
-    if (stored === 'false') return false;
-    return null;
-  };
-
   useEffect(() => {
     let isMounted = true;
 
@@ -74,7 +76,7 @@ export const AuthProvider = ({ children }) => {
         const hasLocalSession = Object.keys(localStorage).some((key) => key.includes('auth-token'));
 
         if (cachedProfile && hasLocalSession) {
-          console.log('[Auth] Eager cache hit. Unblocking UI instantly.');
+          console.info('[Auth] Eager cache hit. Unblocking UI instantly.');
           setUserProfile(cachedProfile);
           setIsAdmin(cachedProfile?.role === 'admin');
           // We don't set user object yet (need Supabase session), but setting authCheckComplete
@@ -178,17 +180,18 @@ export const AuthProvider = ({ children }) => {
             isFetchingProfile.current = false;
           }
         } else {
-          // Only set to null if we successfully checked and there is NO session
-          if (!session && !error) {
-            setUser(null);
-            setUserProfile(null);
-            setIsAdmin(false);
-            setAuthCheckComplete(true);
-          }
+          // No session found — always mark as complete so the UI can unblock
+          // (regardless of whether getSession() returned an error or just null)
+          setUser(null);
+          setUserProfile(null);
+          setIsAdmin(false);
+          setAuthCheckComplete(true);
         }
       } catch (error) {
         console.error('Error getting user session:', error);
         if (!isMounted) return;
+        // Always unblock the UI even on catastrophic errors
+        setAuthCheckComplete(true);
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -209,7 +212,7 @@ export const AuthProvider = ({ children }) => {
     // When another tab refreshes the token, we get notified and update our state
     const cleanupCrossTabSync = setupCrossTabSync(supabase, (newSession) => {
       if (isMounted && newSession?.user) {
-        console.log('[CrossTabSync] Session updated from another tab');
+        console.info('[CrossTabSync] Session updated from another tab');
         setUser(newSession.user);
       }
     });
@@ -217,7 +220,7 @@ export const AuthProvider = ({ children }) => {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
 
-      console.log(
+      console.info(
         'Auth state changed:',
         event,
         session?.user?.id ? 'User ID present' : 'No User ID'
@@ -258,7 +261,8 @@ export const AuthProvider = ({ children }) => {
           (async () => {
             if (!isMounted || isFetchingProfile.current) return;
             isFetchingProfile.current = true;
-            setAuthCheckComplete(false); // Reset while checking
+            // NOTE: Do NOT reset authCheckComplete here — doing so causes the
+            // Login page to re-enter the infinite spinner if the profile fetch is slow.
             try {
               const refCode =
                 typeof window !== 'undefined' ? window.localStorage.getItem('referral_code') : null;
@@ -339,7 +343,7 @@ export const AuthProvider = ({ children }) => {
           } = await supabase.auth.getSession();
           if (!error && session?.user) {
             setUser(session.user);
-            console.log('[Visibility] Session revalidated on tab focus');
+            console.info('[Visibility] Session revalidated on tab focus');
             // Update last_active when tab becomes visible
             User.updateLastActive().catch(() => {});
           }
@@ -351,7 +355,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const handleProfileUpdate = (event) => {
-      console.log('User profile updated event received:', event.detail);
+      console.info('User profile updated event received:', event.detail);
       setUserProfile((prev) => ({ ...prev, ...event.detail }));
     };
 
@@ -469,18 +473,15 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const localOnboardingCompleted = React.useMemo(
-    () => getLocalOnboardingCompleted(),
-    [userProfile]
-  );
-  const mergedUser = userProfile ? { ...user, ...userProfile } : user;
-  const finalUser =
-    mergedUser && localOnboardingCompleted !== null && mergedUser.onboarding_completed == null
-      ? { ...mergedUser, onboarding_completed: localOnboardingCompleted }
-      : mergedUser;
+  const localOnboardingCompleted = React.useMemo(() => getLocalOnboardingCompleted(), []);
+  const contextValue = useMemo(() => {
+    const mergedUser = userProfile ? { ...user, ...userProfile } : user;
+    const finalUser =
+      mergedUser && localOnboardingCompleted !== null && mergedUser.onboarding_completed == null
+        ? { ...mergedUser, onboarding_completed: localOnboardingCompleted }
+        : mergedUser;
 
-  const contextValue = useMemo(
-    () => ({
+    return {
       user: finalUser,
       userProfile,
       loading,
@@ -493,22 +494,22 @@ export const AuthProvider = ({ children }) => {
       checkIsAdmin,
       globalSettings,
       settingsLoading,
-    }),
-    [
-      finalUser,
-      userProfile,
-      loading,
-      authCheckComplete,
-      isAdmin,
-      signUp,
-      signIn,
-      signOut,
-      refreshProfile,
-      checkIsAdmin,
-      globalSettings,
-      settingsLoading,
-    ]
-  );
+    };
+  }, [
+    user,
+    userProfile,
+    localOnboardingCompleted,
+    loading,
+    authCheckComplete,
+    isAdmin,
+    signUp,
+    signIn,
+    signOut,
+    refreshProfile,
+    checkIsAdmin,
+    globalSettings,
+    settingsLoading,
+  ]);
 
   return (
     <AuthContext.Provider value={contextValue} data-oid="e:4.tfn">
@@ -517,4 +518,5 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

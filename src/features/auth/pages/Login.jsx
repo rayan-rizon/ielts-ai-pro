@@ -50,7 +50,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { user, signIn, signUp, checkIsAdmin, isAdmin, authCheckComplete } = useAuth();
+  const { user, loading, signIn, signUp, checkIsAdmin, isAdmin, authCheckComplete } = useAuth();
 
   const [authMode, setAuthMode] = useState(location.pathname === '/signup' ? 'signup' : 'signin'); // 'signin' or 'signup'
   const [isResending, setIsResending] = useState(false);
@@ -319,8 +319,15 @@ export default function Login() {
     }
   };
 
-  // Full-page loader during initial Google callback, auth check, or if user is already logged in (pending redirect)
-  if (isOAuthProcessing || !authCheckComplete || user) {
+  // Full-page loader during:
+  // 1. Google OAuth callback processing
+  // 2. Initial Supabase session check (loading = true, guaranteed to resolve via finally)
+  // 3. User is already authenticated and pending redirect
+  //
+  // We use `loading` (not `!authCheckComplete`) as the primary gate because
+  // `loading` is always set to false in getUser()'s finally block, whereas
+  // `authCheckComplete` can remain false if getSession() returns an error.
+  if (isOAuthProcessing || loading || user) {
     return (
       <div className="min-h-screen bg-[#f8fafc] dark:bg-[#030712] flex items-center justify-center">
         <Loader2 className="w-12 h-12 text-primary animate-spin" />
