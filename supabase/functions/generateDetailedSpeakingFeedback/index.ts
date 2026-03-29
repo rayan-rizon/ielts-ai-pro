@@ -184,9 +184,12 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: promptText }] }],
                     generationConfig: {
-                        temperature: 0.2, // Low temperature for consistency
-                        maxOutputTokens: 8192,
+                        temperature: 0.2,
+                        maxOutputTokens: 6144,
                         responseMimeType: 'application/json',
+                        thinkingConfig: {
+                            thinkingBudget: 0,
+                        },
                     },
                 }),
             }

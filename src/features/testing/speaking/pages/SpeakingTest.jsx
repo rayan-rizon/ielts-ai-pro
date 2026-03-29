@@ -187,6 +187,13 @@ export default function SpeakingTest() {
   const [isTestComplete, setIsTestComplete] = useState(false);
   const [evaluationError, setEvaluationError] = useState(null);
 
+  // ─── Deep Dive State (lifted from SpeakingReport) ─────────────────────
+  const [detailedFeedback, setDetailedFeedback] = useState(
+    session?.content_data?.detailedFeedback || null
+  );
+  const [isGeneratingDetailed, setIsGeneratingDetailed] = useState(false);
+  const [deepDiveError, setDeepDiveError] = useState(null);
+
   // Accumulate acoustic metrics per part (from Gemini audio-in analysis)
   const acousticMetricsRef = useRef(session?.content_data?.allPartsAcousticMetrics || {});
   const [allPartsAcousticMetrics, setAllPartsAcousticMetrics] = useState(
@@ -218,6 +225,7 @@ export default function SpeakingTest() {
   const isExiting = useRef(false);
   const timerExpiredRef = useRef(false);
   const timeLeftRef = useRef(0);
+  const isMountedRef = useRef(true);
 
   // ─── Navigation Blocker ────────────────────────────────────────────────
   const conversationLengthRef = useRef(0);
@@ -700,6 +708,40 @@ export default function SpeakingTest() {
     }
   }, [isPartComplete]);
 
+  // ─── Deep Dive (parallel to band score evaluation) ────────────────────
+  const fireDeepDive = useCallback(
+    async (conversationsToEvaluate) => {
+      if (!testId || !conversationsToEvaluate || isGeneratingDetailed) return;
+      setIsGeneratingDetailed(true);
+      setDeepDiveError(null);
+      try {
+        const response = await callEdgeFunction('generateDetailedSpeakingFeedback', {
+          testId,
+          allPartsConversation: conversationsToEvaluate,
+        });
+        if (!isMountedRef.current) return;
+        if (response.success && response.detailedAnalysis) {
+          setDetailedFeedback(response.detailedAnalysis);
+          saveSessionProgress({
+            content_data: {
+              ...session?.content_data,
+              detailedFeedback: response.detailedAnalysis,
+            },
+          });
+        } else {
+          throw new Error('Invalid deep dive response format');
+        }
+      } catch (error) {
+        if (!isMountedRef.current) return;
+        console.error('[Speaking] Deep dive failed:', error);
+        setDeepDiveError(error?.userMessage || error?.message || 'Deep dive failed');
+      } finally {
+        if (isMountedRef.current) setIsGeneratingDetailed(false);
+      }
+    },
+    [testId, isGeneratingDetailed, session?.content_data, saveSessionProgress]
+  );
+
   // ─── Final Evaluation ──────────────────────────────────────────────────
   const requestFinalEvaluation = useCallback(
     async (allConversationsData) => {
@@ -711,6 +753,11 @@ export default function SpeakingTest() {
         ...allPartsConversation,
         [currentPartNumber]: conversation.filter((c) => !c.isLoading),
       };
+
+      // Fire deep dive in parallel — no await, does not block band score generation
+      if (!detailedFeedback) {
+        fireDeepDive(conversationsToEvaluate);
+      }
 
       try {
         setLoadingMessage('AI is analyzing your response...');
@@ -838,6 +885,8 @@ export default function SpeakingTest() {
       awardXP,
       saveSessionProgress,
       session?.user_id,
+      detailedFeedback,
+      fireDeepDive,
     ]
   );
 
@@ -1380,6 +1429,7 @@ export default function SpeakingTest() {
   useEffect(() => {
     const pendingTimers = pendingTimersRef.current;
     return () => {
+      isMountedRef.current = false;
       pendingTimers.forEach((id) => clearTimeout(id));
       pendingTimers.clear();
     };
@@ -1449,17 +1499,10 @@ export default function SpeakingTest() {
         isExitingRef={isExiting}
         testId={testId}
         allPartsConversation={allPartsConversation}
-        detailedFeedback={session?.content_data?.detailedFeedback}
-        onSaveDetailedFeedback={(data) => {
-          if (session) {
-            saveSessionProgress({
-              content_data: {
-                ...session.content_data,
-                detailedFeedback: data,
-              },
-            });
-          }
-        }}
+        detailedFeedback={detailedFeedback}
+        isGeneratingDetailed={isGeneratingDetailed}
+        deepDiveError={deepDiveError}
+        onRetryDeepDive={() => fireDeepDive(allPartsConversation)}
       />
     );
   }

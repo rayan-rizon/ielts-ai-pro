@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -48,14 +48,16 @@ export default function SpeakingReport({
   allPartsConversation,
   allPartsPronunciation,
   detailedFeedback,
-  onSaveDetailedFeedback,
+  isGeneratingDetailed: isGeneratingDetailedProp,
+  deepDiveError,
+  onRetryDeepDive,
   loadingMessage, // Receive loadingMessage from parent
 }) {
   const { width, height } = useWindowSize();
 
-  // Deep Dive State
-  const [isGeneratingDetailed, setIsGeneratingDetailed] = useState(false);
-  const [localDetailedFeedback, setLocalDetailedFeedback] = useState(detailedFeedback || null);
+  // Deep Dive State — parent owns generation; local state used only for fallback manual retry
+  const [isGeneratingDetailedLocal, setIsGeneratingDetailedLocal] = useState(false);
+  const isGeneratingDetailed = isGeneratingDetailedProp ?? isGeneratingDetailedLocal;
   const [expandedQuestion, setExpandedQuestion] = useState(0); // Open first question by default
   const [isAllExpanded, setIsAllExpanded] = useState(false);
 
@@ -96,49 +98,26 @@ export default function SpeakingReport({
 
   // Handle bulk expand/collapse
   const toggleExpandAll = () => {
-    if (!localDetailedFeedback) return;
+    if (!detailedFeedback) return;
     setIsAllExpanded(!isAllExpanded);
     setExpandedQuestion(null); // Clear single expansion state
   };
 
-  useEffect(() => {
-    if (detailedFeedback && !localDetailedFeedback) {
-      setLocalDetailedFeedback(detailedFeedback);
-    }
-  }, [detailedFeedback, localDetailedFeedback]);
-
-  // Auto-trigger deep dive for all users after evaluation completes
-  useEffect(() => {
-    if (
-      finalEvaluation &&
-      !localDetailedFeedback &&
-      !isGeneratingDetailed &&
-      testId &&
-      allPartsConversation
-    ) {
-      handleGenerateDetailed();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [finalEvaluation]);
-
+  // Fallback: self-contained retry used when parent doesn't provide onRetryDeepDive
   const handleGenerateDetailed = async () => {
     if (!testId || !allPartsConversation) {
       toast.error('Missing transcript data');
       return;
     }
 
-    setIsGeneratingDetailed(true);
+    setIsGeneratingDetailedLocal(true);
     try {
       const response = await callEdgeFunction('generateDetailedSpeakingFeedback', {
         testId,
         allPartsConversation,
       });
       if (response.success && response.detailedAnalysis) {
-        setLocalDetailedFeedback(response.detailedAnalysis);
         toast.success('Detailed feedback generated!');
-        if (onSaveDetailedFeedback) {
-          onSaveDetailedFeedback(response.detailedAnalysis);
-        }
       } else {
         throw new Error('Invalid response format');
       }
@@ -148,9 +127,11 @@ export default function SpeakingReport({
         description: 'Please try again later.',
       });
     } finally {
-      setIsGeneratingDetailed(false);
+      setIsGeneratingDetailedLocal(false);
     }
   };
+
+  const handleRetryDeepDive = onRetryDeepDive || handleGenerateDetailed;
 
   // Helper to get band score level and easier-to-understand description
   const getBandInfo = (score) => {
@@ -782,7 +763,7 @@ export default function SpeakingReport({
                     Question Deep Dive
                   </h3>
                   <div className="flex items-center gap-3">
-                    {localDetailedFeedback && (
+                    {detailedFeedback && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -831,12 +812,26 @@ export default function SpeakingReport({
                   </div>
                 )}
 
-                {localDetailedFeedback && (
+                {deepDiveError && !isGeneratingDetailed && !detailedFeedback && (
+                  <div className="p-8 text-center rounded-[2rem] border border-red-500/20 bg-red-500/5">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Deep dive analysis could not be generated.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRetryDeepDive}
+                      className="text-xs font-bold"
+                    >
+                      <RefreshCw className="w-3 h-3 mr-1.5" /> Retry
+                    </Button>
+                  </div>
+                )}
+
+                {detailedFeedback && (
                   <div className="space-y-12 animate-in fade-in slide-in-from-bottom-5 duration-1000">
                     {[1, 2, 3].map((partNumber) => {
-                      const partQuestions = localDetailedFeedback.filter(
-                        (q) => q.part === partNumber
-                      );
+                      const partQuestions = detailedFeedback.filter((q) => q.part === partNumber);
                       if (partQuestions.length === 0) return null;
 
                       const partThemes = {
@@ -885,7 +880,7 @@ export default function SpeakingReport({
 
                           <div className="space-y-3">
                             {partQuestions.map((item, localIdx) => {
-                              const globalIdx = localDetailedFeedback.indexOf(item);
+                              const globalIdx = detailedFeedback.indexOf(item);
                               const isExpanded = isAllExpanded || expandedQuestion === globalIdx;
 
                               return (
