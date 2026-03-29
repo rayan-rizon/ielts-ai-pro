@@ -1,16 +1,14 @@
-import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
   Search,
   PenTool,
   Clock,
-  HelpCircle,
   ArrowRight,
   Play,
   RotateCcw,
   CheckCircle2,
-  Brain,
   LayoutGrid,
   List,
   Sparkles,
@@ -29,11 +27,9 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
-import { Passage, User } from '@/entities';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/features/auth/context/AuthContext';
 
-import { useDataQuery } from '@/hooks/useDataQuery';
 import { useDebounce } from '@/hooks/useDebounce';
 import { createPageUrl } from '@/utils';
 
@@ -111,9 +107,6 @@ const TestCard = ({
     const tier = (user?.subscription_tier || 'free').toLowerCase();
     const hasPremiumAccess = tier === 'pro' || tier === 'premium' || isAdmin;
 
-    if (test.id.startsWith('cambridge-')) {
-      return !hasPremiumAccess;
-    }
     if (test.access_tier && test.access_tier !== 'free') {
       return !hasPremiumAccess;
     }
@@ -136,7 +129,7 @@ const TestCard = ({
         const parsed = JSON.parse(item.response);
         task1Text = parsed['Task 1'] || '';
         task2Text = parsed['Task 2'] || '';
-      } catch (e) {
+      } catch {
         task1Text = item.task1_response || '';
         task2Text = item.task2_response || '';
       }
@@ -159,7 +152,7 @@ const TestCard = ({
       const testContent =
         typeof test.content === 'string' ? JSON.parse(test.content) : test.content;
       hasTask2 = testContent && testContent['Task 2'];
-    } catch (e) {
+    } catch {
       hasTask2 = false;
     }
 
@@ -730,7 +723,7 @@ export default function Writing() {
       }
     };
     loadInitialData();
-  }, [userData?.id, authLoading]);
+  }, [userData, authLoading, writingData]);
   // userData is now from context, no need for writingData?.currentUser
 
   // Load more handler - memoized for performance
