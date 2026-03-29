@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { m, AnimatePresence } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Users,
   Zap,
-  Crown,
   Target,
   TrendingUp,
   BarChart3,
@@ -16,9 +15,7 @@ import {
   PenTool,
   Headphones,
   Mic,
-  LayoutDashboard,
   ArrowUpRight,
-  DollarSign,
   ShieldCheck,
 } from 'lucide-react';
 import {
@@ -31,7 +28,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+
 import { supabase } from '@/lib/supabase';
 import { User, TestSession, PromoCode, Passage, Question } from '@/entities';
 
@@ -92,7 +89,7 @@ const AdminOverview = () => {
         ).length,
       }));
 
-      await processAnalyticsData(usersData, sessionsData, promoData);
+      await processAnalyticsData(usersData, sessionsData);
 
       const premiumUsers = usersData.filter(
         (u) => u.subscription_tier === 'pro' || u.subscription_tier === 'premium'
@@ -116,6 +113,7 @@ const AdminOverview = () => {
         conversionRate:
           usersData.length > 0 ? ((premiumUsers / usersData.length) * 100).toFixed(1) : 0,
         activePromoCodes: promoData.length,
+        activeTests: sessionsData.filter((s) => !s.is_completed).length,
       });
     } catch (error) {
       console.error('Error loading admin data:', error);
@@ -124,7 +122,7 @@ const AdminOverview = () => {
     }
   };
 
-  const processAnalyticsData = async (usersData, sessionsData, promoData) => {
+  const processAnalyticsData = async (usersData, sessionsData) => {
     try {
       const now = new Date();
       const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -214,28 +212,15 @@ const AdminOverview = () => {
         moduleAnalytics,
       });
 
-      // Activity Feed - Only most recent signups and upgrades
-      const signupActivities = usersData.slice(0, 15).map((u) => ({
+      // Activity Feed - Only most recent signups
+      const combinedFeed = usersData.slice(0, 20).map((u) => ({
         type: 'signup',
         id: `signup-${u.id}`,
         user: u.full_name || u.email.split('@')[0],
         timestamp: new Date(u.created_at),
       }));
 
-      const subscriptionActivities = usersData
-        .filter((u) => u.subscription_tier === 'pro' || u.subscription_tier === 'premium')
-        .slice(0, 5)
-        .map((u) => ({
-          type: 'subscription',
-          id: `sub-${u.id}`,
-          user: u.full_name || u.email.split('@')[0],
-          description: `upgraded up to ${u.subscription_tier}!`,
-          timestamp: new Date(u.created_at),
-        }));
-
-      const combinedFeed = [...signupActivities, ...subscriptionActivities];
-      combinedFeed.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-      setActivityFeed(combinedFeed.slice(0, 15));
+      setActivityFeed(combinedFeed);
     } catch (error) {
       console.error('Error processing analytics data:', error);
       setAnalyticsData({});
@@ -249,18 +234,18 @@ const AdminOverview = () => {
     if (typeof window !== 'undefined' && window.WebSocket) {
       try {
         channel = supabase
-          .channel('users-changes')
+          .channel('admin-updates')
           .on(
             'postgres_changes',
             { event: 'INSERT', schema: 'public', table: 'users' },
             (payload) => {
               const newActivity = {
-                id: payload.new.id,
+                id: `signup-${payload.new.id}`,
                 type: 'signup',
-                user: payload.new.full_name || payload.new.email,
+                user: payload.new.full_name || payload.new.email?.split('@')[0],
                 timestamp: new Date(payload.new.created_at),
               };
-              setActivityFeed((prev) => [newActivity, ...prev.slice(0, 14)]);
+              setActivityFeed((prev) => [newActivity, ...prev.slice(0, 19)]);
               setStats((prev) => ({ ...prev, totalUsers: (prev.totalUsers || 0) + 1 }));
             }
           )
@@ -279,6 +264,7 @@ const AdminOverview = () => {
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (isLoading) {
@@ -693,19 +679,10 @@ const AdminOverview = () => {
                         >
                           <div className="flex items-start gap-4" data-oid="qq8ty0y">
                             <div
-                              className={cn(
-                                'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110',
-                                activity.type === 'signup'
-                                  ? 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'
-                                  : 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400'
-                              )}
+                              className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110 bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400"
                               data-oid="mhxsn6f"
                             >
-                              {activity.type === 'signup' ? (
-                                <UserCheck className="w-5 h-5" data-oid="5bgrq4r" />
-                              ) : (
-                                <Crown className="w-5 h-5" data-oid="yncj:ej" />
-                              )}
+                              <UserCheck className="w-5 h-5" data-oid="5bgrq4r" />
                             </div>
                             <div className="min-w-0 flex-1" data-oid="rgdan2u">
                               <p
@@ -718,9 +695,7 @@ const AdminOverview = () => {
                                 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5"
                                 data-oid="odn02yn"
                               >
-                                {activity.type === 'signup'
-                                  ? 'Joined the community'
-                                  : 'Subscribed to Premium'}
+                                Joined the community
                               </p>
                               <div className="flex items-center gap-2 mt-2" data-oid="oimy03d">
                                 <Clock className="w-3 h-3 text-slate-400" data-oid="0xe83.n" />
@@ -728,6 +703,11 @@ const AdminOverview = () => {
                                   className="text-[10px] font-bold text-slate-400 tracking-wider"
                                   data-oid="1qk1s:t"
                                 >
+                                  {activity.timestamp.toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  })}
+                                  ,{' '}
                                   {activity.timestamp.toLocaleTimeString([], {
                                     hour: '2-digit',
                                     minute: '2-digit',

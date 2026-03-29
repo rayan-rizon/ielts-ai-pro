@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
+import React, { useState, memo, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
@@ -9,11 +9,9 @@ import {
   Mic,
   GraduationCap,
   ChevronRight,
-  Clock,
   CheckCircle2,
   Lock,
   Sparkles,
-  ArrowRight,
   Play,
   Award,
   TrendingUp,
@@ -23,15 +21,11 @@ import {
   Users,
   ShieldCheck,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
-import { Passage, TestSession, User } from '@/entities';
+import { User } from '@/entities';
 import { supabase } from '@/lib/supabase';
-import { createPageUrl } from '@/utils';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useDataQuery } from '@/hooks/useDataQuery';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -280,7 +274,7 @@ const CARD_THEMES = {
   },
 };
 
-const CambridgeTestCard = ({ title, modules, sessions, user, isAdmin }) => {
+const CambridgeTestCard = ({ title, modules, sessions }) => {
   const getColor = (str) => {
     const colors = ['blue', 'indigo', 'violet', 'sky'];
     let hash = 0;
@@ -302,10 +296,7 @@ const CambridgeTestCard = ({ title, modules, sessions, user, isAdmin }) => {
   const progressPercent =
     totalInGroup > 0 ? Math.round((completedInGroup / totalInGroup) * 100) : 0;
 
-  const isLocked = (() => {
-    const tier = (user?.subscription_tier || 'free').toLowerCase();
-    return !(tier === 'pro' || tier === 'premium' || isAdmin);
-  })();
+  const isLocked = false;
 
   // Calculate band scores for completed modules
   const moduleScores = moduleTypes.reduce((acc, type) => {
@@ -670,7 +661,10 @@ export default function CambridgeTests() {
     fetcher
   );
 
-  const groupedTests = cambridgeData?.groupedTests || [];
+  const groupedTests = useMemo(
+    () => cambridgeData?.groupedTests || [],
+    [cambridgeData?.groupedTests]
+  );
   const sessions = cambridgeData?.sessions || {};
   const user = cambridgeData?.user || null;
   const loading = isLoading;
