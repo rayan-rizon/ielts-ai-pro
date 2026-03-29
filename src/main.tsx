@@ -1,25 +1,33 @@
 import React, { lazy, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
-import * as Sentry from "@sentry/react";
 import App from '@/App.jsx';
 import '@/index.css';
 import { RootProviders } from './components/RootProviders';
 
-Sentry.init({
-  dsn: "https://c4a03f3938495e11019ede9a4347e941@o4511048158150656.ingest.de.sentry.io/4511048214052944",
-  integrations: [
-    Sentry.browserTracingIntegration(),
-    Sentry.replayIntegration(),
-  ],
-  // Performance Monitoring — sample 15% of transactions in production to balance cost vs visibility
-  tracesSampleRate: 0.15,
-  // Session Replay
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
-  // Disable automatic PII collection (IP addresses) for privacy compliance.
-  // User context is still available via Sentry.setUser() when needed.
-  sendDefaultPii: false
-});
+// PERFORMANCE: Defer Sentry initialization to idle time.
+// browserTracingIntegration and replayIntegration are heavy modules (~100-150ms).
+// Using requestIdleCallback ensures they load after First Contentful Paint.
+const initSentry = () => {
+  import("@sentry/react").then((Sentry) => {
+    Sentry.init({
+      dsn: "https://c4a03f3938495e11019ede9a4347e941@o4511048158150656.ingest.de.sentry.io/4511048214052944",
+      integrations: [
+        Sentry.browserTracingIntegration(),
+        Sentry.replayIntegration(),
+      ],
+      tracesSampleRate: 0.15,
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 1.0,
+      sendDefaultPii: false,
+    });
+  });
+};
+
+if ('requestIdleCallback' in window) {
+  (window as any).requestIdleCallback(initSentry, { timeout: 3000 });
+} else {
+  setTimeout(initSentry, 2000);
+}
 
 // Lazy-load telemetry to keep it off the critical path
 const SpeedInsights = lazy(() =>

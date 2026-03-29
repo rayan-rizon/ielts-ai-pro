@@ -54,6 +54,10 @@ export default defineConfig({
             'sanitize-vendor',
             'query-vendor',
             'helmet-vendor',
+            'radix-vendor',
+            'framer-vendor',
+            'pdf-vendor',
+            'editor-vendor',
           ];
           return !excludeKeywords.some((keyword) => dep.includes(keyword));
         });
@@ -113,6 +117,18 @@ export default defineConfig({
             // Supabase client MUST be lazily loaded, but it's okay to group its internal chunks
             if (id.includes('supabase-js')) {
               return 'supabase-vendor';
+            }
+            // Radix UI primitives - shared across many pages
+            if (id.includes('@radix-ui')) {
+              return 'radix-vendor';
+            }
+            // Framer Motion - used for animations across the app
+            if (id.includes('framer-motion')) {
+              return 'framer-vendor';
+            }
+            // React Helmet - SEO meta tags
+            if (id.includes('react-helmet')) {
+              return 'helmet-vendor';
             }
           }
         },

@@ -1,11 +1,10 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
  * PremiumLoading component for a polished, immersive loading experience.
- * Uses Framer Motion for smooth transitions and backdrop-blur for depth.
+ * Uses pure CSS animations to avoid importing framer-motion on the critical path.
+ * This component is used as a Suspense fallback, so it MUST be lightweight.
  *
  * @param {string} message - Optional message to display below the loader.
  * @param {boolean} fullScreen - Whether to take up the full viewport.
@@ -22,40 +21,35 @@ const PremiumLoading = ({ message = 'Verifying access...', fullScreen = true, cl
       data-oid="premium-loader"
     >
       <div className="relative flex flex-col items-center" data-oid="loader-container">
-        {/* Animated Rings */}
+        {/* Animated Rings — CSS only */}
         <div className="relative h-20 w-20 mb-8" data-oid="loader-rings">
-          <motion.div
-            className="absolute inset-0 rounded-full border-2 border-primary/20"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.1, 0.3] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          <div
+            className="absolute inset-0 rounded-full border-2 border-primary/20 animate-pulse"
             data-oid="ring-outer"
           />
-          <motion.div
-            className="absolute inset-2 rounded-full border-t-2 border-primary shadow-[0_0_15px_rgba(var(--primary),0.3)]"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
+          <div
+            className="absolute inset-2 rounded-full border-t-2 border-primary shadow-[0_0_15px_rgba(var(--primary),0.3)] animate-spin"
+            style={{ animationDuration: '1.2s' }}
             data-oid="ring-inner"
           />
           <div className="absolute inset-0 flex items-center justify-center" data-oid="loader-icon">
-            <Loader2 className="h-6 w-6 text-primary animate-pulse" data-oid="loader-svg" />
+            {/* Simple CSS spinner instead of Lucide Loader2 */}
+            <div
+              className="h-6 w-6 rounded-full border-2 border-primary/30 border-t-primary animate-pulse"
+              data-oid="loader-dot"
+            />
           </div>
         </div>
 
-        {/* Text Content */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-center space-y-2"
-          data-oid="loader-text"
-        >
+        {/* Text Content — CSS animation only */}
+        <div className="text-center space-y-2 animate-fade-in" data-oid="loader-text">
           <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 tracking-tight">
             {message}
           </h3>
           <p className="text-sm text-muted-foreground/80 font-medium animate-pulse">
             Please wait a moment
           </p>
-        </motion.div>
+        </div>
 
         {/* Bottom Accent */}
         <div
@@ -74,7 +68,8 @@ const PremiumLoading = ({ message = 'Verifying access...', fullScreen = true, cl
           data-oid="decor-1"
         />
         <div
-          className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px] animate-pulse duration-1000"
+          className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px] animate-pulse"
+          style={{ animationDuration: '2s' }}
           data-oid="decor-2"
         />
       </div>

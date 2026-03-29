@@ -155,7 +155,9 @@
 @layer utilities {
   .glass-card {
     @apply bg-white/90 dark:bg-card/90 backdrop-blur-xl border border-white/20 dark:border-border shadow-lg hover:shadow-xl;
-    transition: box-shadow 0.3s ease-out, border-color 0.3s ease-out;
+    transition:
+      box-shadow 0.3s ease-out,
+      border-color 0.3s ease-out;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     -webkit-transform: translate3d(0, 0, 0);
@@ -247,7 +249,6 @@
 
 /* Performance-optimized background animations */
 @keyframes pulse-glow {
-
   0%,
   100% {
     opacity: 0.15;
@@ -274,7 +275,16 @@
       radial-gradient(at 0% 0%, hsla(239, 84%, 67%, 0.08) 0, transparent 40%),
       radial-gradient(at 100% 100%, hsla(239, 84%, 67%, 0.05) 0, transparent 40%),
       linear-gradient(to bottom, hsl(240 10% 2%), hsl(240 10% 1%));
-    background-attachment: fixed;
+    background-size: 100% 100%;
+  }
+
+  /* Only use background-attachment: fixed on desktop — mobile browsers
+     cannot composite fixed backgrounds, causing full-page repaints on scroll */
+  @media (min-width: 1024px) {
+    .dark body,
+    :root:not(.dark) body {
+      background-attachment: fixed;
+    }
   }
 
   /* Lighter gradient for light mode */
@@ -283,7 +293,6 @@
       radial-gradient(at 0% 0%, hsla(210, 40%, 98%, 1) 0, transparent 50%),
       radial-gradient(at 100% 100%, hsla(220, 60%, 96%, 1) 0, transparent 50%);
     background-size: 100% 100%;
-    background-attachment: fixed;
   }
 
   /* Global Selection Styles - Professional & Subtle */
@@ -302,21 +311,28 @@
 @layer utilities {
   .glass-card-premium {
     @apply relative overflow-hidden bg-white/90 dark:bg-zinc-900/40 backdrop-blur-3xl border border-border dark:border-white/5 shadow-md hover:shadow-2xl hover:border-primary/30;
-    transition: opacity 0.5s ease-out, transform 0.3s ease-out, box-shadow 0.5s ease-out, border-color 0.5s ease-out;
+    transition:
+      opacity 0.5s ease-out,
+      transform 0.3s ease-out,
+      box-shadow 0.5s ease-out,
+      border-color 0.5s ease-out;
     /* Safari Flickering Fixes */
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
-    -webkit-perspective: 1000px;
-    perspective: 1000px;
-    -webkit-font-smoothing: subpixel-antialiased;
-    will-change: transform, opacity, box-shadow;
+    /* PERF: Removed will-change — it was listing box-shadow (non-compositable)
+       which created unnecessary GPU layers. The transform: translate3d(0,0,0)
+       above already promotes to a compositor layer when needed. */
   }
 
   .card-premium {
     @apply rounded-3xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-sm hover:shadow-md hover:border-primary/20;
-    transition: opacity 0.3s ease-out, transform 0.3s ease-out, box-shadow 0.3s ease-out, border-color 0.3s ease-out;
+    transition:
+      opacity 0.3s ease-out,
+      transform 0.3s ease-out,
+      box-shadow 0.3s ease-out,
+      border-color 0.3s ease-out;
     /* Safari Flickering Fixes */
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
@@ -351,7 +367,6 @@
   }
 
   @keyframes pulse-subtle {
-
     0%,
     100% {
       opacity: 1;
@@ -369,7 +384,6 @@
   }
 
   @keyframes bounce-subtle {
-
     0%,
     100% {
       transform: translateY(0);
@@ -385,7 +399,6 @@
   }
 
   @keyframes float {
-
     0%,
     100% {
       transform: translateY(0px);
@@ -401,7 +414,6 @@
   }
 
   @keyframes float-delayed {
-
     0%,
     100% {
       transform: translateY(0px);
@@ -416,16 +428,31 @@
     animation: float-delayed 5s ease-in-out 1s infinite;
   }
 
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out 0.2s both;
+  }
+
   /* Respect prefers-reduced-motion */
   @media (prefers-reduced-motion: reduce) {
-
     .animate-float,
     .animate-float-slow,
     .animate-float-delayed,
     .animate-shimmer,
     .animate-spin-slow,
     .animate-pulse-subtle,
-    .animate-bounce-subtle {
+    .animate-bounce-subtle,
+    .animate-fade-in {
       animation: none !important;
     }
   }
@@ -441,7 +468,7 @@
   }
 
   .border-gradient::before {
-    content: "";
+    content: '';
     position: absolute;
     inset: -1px;
     z-index: -1;
