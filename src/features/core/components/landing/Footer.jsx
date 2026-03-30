@@ -1,12 +1,10 @@
 import React from 'react';
 import { m } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import Sparkles from 'lucide-react/icons/sparkles';
 import Twitter from 'lucide-react/icons/twitter';
 import Github from 'lucide-react/icons/github';
 import Linkedin from 'lucide-react/icons/linkedin';
 import Instagram from 'lucide-react/icons/instagram';
-import ArrowUpRight from 'lucide-react/icons/arrow-up-right';
 import Heart from 'lucide-react/icons/heart';
 import Brain from 'lucide-react/icons/brain';
 
@@ -38,7 +36,7 @@ export default function Footer() {
 
   return (
     <footer
-      className="relative pt-12 pb-6 overflow-hidden bg-white/40 dark:bg-zinc-950/40 backdrop-blur-2xl border-t border-white/20 dark:border-white/5"
+      className="relative pt-12 pb-6 overflow-hidden bg-[#030303] border-t border-white/[0.05] dark"
       data-oid="435qs5q"
     >
       {/* Top Gradient Border */}
@@ -93,7 +91,7 @@ export default function Footer() {
               </span>
             </Link>
             <p
-              className="max-w-sm text-sm md:text-base font-medium leading-relaxed text-foreground/90 mb-3"
+              className="max-w-sm text-base font-medium leading-relaxed text-muted-foreground mb-6"
               data-oid="yvixqel"
             >
               Master the IELTS with AI-powered personalized coaching. Get instant evaluation on
@@ -139,7 +137,7 @@ export default function Footer() {
             {Object.entries(footerLinks).map(([title, links]) => (
               <div key={title} data-oid="z6ozpba">
                 <h2
-                  className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/90 mb-4"
+                  className="text-xs font-bold uppercase tracking-[0.2em] text-foreground/50 mb-6"
                   data-oid="sgwsvej"
                 >
                   {title}
@@ -150,7 +148,7 @@ export default function Footer() {
                       {link.href.startsWith('/') ? (
                         <Link
                           to={link.href}
-                          className="group inline-flex items-center text-[14px] font-medium text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1"
+                          className="group inline-flex items-center text-[15px] font-medium text-muted-foreground hover:text-white transition-all duration-300 hover:translate-x-1"
                           data-oid="1cb-lc5"
                         >
                           {link.label}
@@ -158,7 +156,7 @@ export default function Footer() {
                       ) : (
                         <a
                           href={link.href}
-                          className="group inline-flex items-center text-[14px] font-medium text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1"
+                          className="group inline-flex items-center text-[15px] font-medium text-muted-foreground hover:text-white transition-all duration-300 hover:translate-x-1"
                           data-oid=".hwds3a"
                         >
                           {link.label}

@@ -23,16 +23,17 @@ const PAYMENT_METHODS = [
   {
     id: 'bkash',
     name: 'bKash',
-    number: '01XXXXXXXXX',
-    type: 'Merchant',
+    number: '01676663311',
+    type: 'Personal',
     logo: '/bkash.webp',
   },
   {
     id: 'nagad',
     name: 'Nagad',
-    number: '01XXXXXXXXX',
+    number: 'Coming Soon',
     type: 'Personal',
     logo: '/nagad.webp',
+    disabled: true,
   },
 ];
 
@@ -208,12 +209,13 @@ export default function ManualPayment({ isOpen, onClose, planData: data }) {
                       <button
                         key={method.id}
                         type="button"
-                        onClick={() => setSelectedMethod(method)}
+                        onClick={() => !method.disabled && setSelectedMethod(method)}
                         className={cn(
                           'relative p-3 rounded-xl border-2 transition-all duration-300 text-left group',
                           selectedMethod.id === method.id
                             ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-500/5 shadow-lg shadow-indigo-500/10'
-                            : 'border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-800/50 hover:border-slate-200 dark:hover:border-white/10'
+                            : 'border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-800/50 hover:border-slate-200 dark:hover:border-white/10',
+                          method.disabled && 'opacity-60 cursor-not-allowed grayscale-[0.8]'
                         )}
                         data-oid="za6s2vz"
                       >
@@ -237,16 +239,27 @@ export default function ManualPayment({ isOpen, onClose, planData: data }) {
                           className="text-[9px] text-slate-500 uppercase font-black"
                           data-oid="qdqa9o0"
                         >
-                          {method.type}
+                          {method.disabled ? 'Coming Soon' : method.type}
                         </div>
 
-                        {selectedMethod.id === method.id && (
-                          <div className="absolute top-2 right-2" data-oid="zwy6jcy">
-                            <CheckCircle2
-                              className="w-3.5 h-3.5 text-indigo-500"
-                              data-oid="4x3hqqz"
-                            />
+                        {method.disabled ? (
+                          <div className="absolute top-2 right-2" data-oid="soon-badge">
+                            <Badge
+                              variant="outline"
+                              className="text-[8px] leading-3 px-1 py-0 h-4 border-slate-200 dark:border-white/10 text-slate-400 capitalize"
+                            >
+                              Soon
+                            </Badge>
                           </div>
+                        ) : (
+                          selectedMethod.id === method.id && (
+                            <div className="absolute top-2 right-2" data-oid="zwy6jcy">
+                              <CheckCircle2
+                                className="w-3.5 h-3.5 text-indigo-500"
+                                data-oid="4x3hqqz"
+                              />
+                            </div>
+                          )
                         )}
                       </button>
                     ))}
@@ -303,7 +316,7 @@ export default function ManualPayment({ isOpen, onClose, planData: data }) {
                         {data?.currencySymbol}
                         {data?.price}
                       </b>
-                      . Use "Send Money" for Personal or "Payment" for Merchant.
+                      . Use the "Send Money" feature (Personal account).
                     </p>
                   </div>
                 </div>
