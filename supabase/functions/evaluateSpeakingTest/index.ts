@@ -9,6 +9,8 @@ import {
     getRateLimitIdentifier,
     getBurstLimitConfig,
     checkTierAccess,
+    checkDatabaseQuota,
+    quotaExceededResponse,
 } from '../_shared/security.ts';
 import { generateEvaluationPrompt, calculateOverallBand } from '../_shared/bandDescriptors.ts';
 
@@ -73,6 +75,11 @@ serve(async (req: Request) => {
                 }),
                 { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
+        }
+
+        const quotaCheck = await checkDatabaseQuota(supabase, user.id, tier, 'speaking');
+        if (!quotaCheck.allowed) {
+            return quotaExceededResponse(quotaCheck, corsHeaders);
         }
 
         // Get the full conversation from all 3 parts

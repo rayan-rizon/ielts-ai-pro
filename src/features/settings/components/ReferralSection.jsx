@@ -157,7 +157,7 @@ export default function ReferralSection() {
                       Invite & Earn
                     </h3>
                     <p className="text-white/70 font-bold text-xs" data-oid="neuluwf">
-                      Friends join, everyone wins.
+                      Invite friends and unlock premium rewards.
                     </p>
                   </div>
                 </div>
@@ -243,13 +243,13 @@ export default function ReferralSection() {
                       className="text-lg font-black text-foreground tracking-tight"
                       data-oid="17txyvf"
                     >
-                      Real-time Impact
+                      Referral Status
                     </h3>
                     <p
                       className="text-[10px] text-muted-foreground font-black uppercase tracking-widest"
                       data-oid="_x1d_im"
                     >
-                      Network Stats
+                      Your progress & earnings
                     </p>
                   </div>
                 </div>
@@ -279,9 +279,9 @@ export default function ReferralSection() {
                     className="text-[9px] uppercase font-black text-muted-foreground tracking-[0.05em] leading-tight"
                     data-oid="npwrh-_"
                   >
-                    Friends
+                    Successful
                     <br data-oid="pxtuxqu" />
-                    Joined
+                    Invites
                   </span>
                 </div>
                 <div
@@ -298,9 +298,9 @@ export default function ReferralSection() {
                     className="text-[9px] uppercase font-black text-primary/80 tracking-[0.05em] leading-tight"
                     data-oid="knwit64"
                   >
-                    Writing
+                    Bonus
                     <br data-oid="-08._p8" />
-                    Bonuses
+                    Credits
                   </span>
                 </div>
               </div>
@@ -316,9 +316,9 @@ export default function ReferralSection() {
                       className="text-muted-foreground uppercase tracking-widest"
                       data-oid="8f2ght:"
                     >
-                      Target:{' '}
+                      Next Reward:{' '}
                       <span className="text-primary" data-oid="6-oiczi">
-                        +{stats.next_tier.extra_days} Days Premium
+                        +{stats.next_tier.extra_days} Days AI Access
                       </span>
                     </span>
                     <span
@@ -460,7 +460,7 @@ export default function ReferralSection() {
                                 data-oid="d_bg:.:"
                               />
                             </div>
-                            <span data-oid="odxbh.1">+{tier.extra_days} Days Premium</span>
+                            <span data-oid="odxbh.1">+{tier.extra_days} Days AI Access</span>
                           </div>
                           <div className="flex flex-col gap-1.5 pl-[2.8rem]" data-oid="0_-bkas">
                             {tier.writing_credits > 0 && (
@@ -487,7 +487,7 @@ export default function ReferralSection() {
                                   data-oid="6nr:16-"
                                 />
                                 <span data-oid="4hwg-qm">
-                                  +{tier.speaking_credits} speaking Sessions
+                                  +{tier.speaking_credits} Speaking Evaluations
                                 </span>
                               </div>
                             )}

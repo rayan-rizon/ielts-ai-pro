@@ -9,10 +9,28 @@ const DEFAULT_IDS = {
 const PIXEL_EVENT_MAP = {
   signup_completed: 'CompleteRegistration',
   checkout_started: 'InitiateCheckout',
+  manual_checkout_started: 'InitiateCheckout',
   subscription_purchase: 'Purchase',
   test_completed: 'ViewContent',
   onboarding_completed: 'Lead',
 };
+
+// Keep these events in dataLayer for GTM/GA/product analytics,
+// but suppress them from Meta Pixel to avoid optimization noise.
+const META_SUPPRESSED_EVENTS = new Set([
+  'signin_started',
+  'signin_success',
+  'signup_verification_sent',
+  'auth_failed',
+  'billing_portal_opened',
+  'checkout_redirected',
+  'checkout_failed',
+  'test_started',
+  'test_completed',
+  'writing_submitted',
+  'speaking_submitted',
+  'subscription_activation_error',
+]);
 
 const isBrowser = () => typeof window !== 'undefined';
 
@@ -105,6 +123,9 @@ export const trackAppEvent = (eventName, payload = {}) => {
   };
 
   pushDataLayer({ event: eventName, ...enrichedPayload });
+
+  // Keep analytics events in dataLayer while preventing Meta event overload.
+  if (META_SUPPRESSED_EVENTS.has(eventName)) return;
 
   if (typeof window.fbq !== 'function') return;
 

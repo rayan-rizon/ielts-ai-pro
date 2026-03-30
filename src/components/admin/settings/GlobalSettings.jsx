@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,9 +22,9 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { SystemHealth } from '@/features/admin/services/SystemHealth';
 import SystemHealthDashboard from './SystemHealthDashboard';
 import TierRateLimitsSettings from './TierRateLimitsSettings';
+import AdminEmailSettings from './AdminEmailSettings';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import {
@@ -43,8 +44,7 @@ import {
   Trash2,
   Check,
   ChevronsUpDown,
-  AlertCircle,
-  Clock,
+  Mail,
 } from 'lucide-react';
 
 const CountryAutocomplete = ({ value, onChange, disabled }) => {
@@ -133,6 +133,9 @@ const CountryAutocomplete = ({ value, onChange, disabled }) => {
 };
 
 const GlobalSettings = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeSection = searchParams.get('section') || 'general';
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -213,6 +216,17 @@ const GlobalSettings = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSectionChange = (value) => {
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        params.set('section', value);
+        return params;
+      },
+      { replace: true }
+    );
   };
 
   const handlePasswordChange = async () => {
@@ -372,7 +386,12 @@ const GlobalSettings = () => {
         )}
       </div>
 
-      <Tabs defaultValue="general" className="w-full" data-oid="bufrpat">
+      <Tabs
+        value={activeSection}
+        onValueChange={handleSectionChange}
+        className="w-full"
+        data-oid="bufrpat"
+      >
         {/* Enhanced Tab Navigation */}
         <TabsList
           className="relative h-auto bg-gradient-to-r from-slate-50/80 to-blue-50/80 dark:from-slate-900/50 dark:to-blue-900/20 p-1 rounded-2xl border border-blue-200/60 dark:border-blue-800/50 shadow-lg backdrop-blur-sm w-full mb-8"
@@ -472,6 +491,15 @@ const GlobalSettings = () => {
                 className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-xl opacity-0 group-data-[state=active]:opacity-100 transition-opacity duration-300"
                 data-oid="3:4jms:"
               ></div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="emails"
+              className="relative rounded-xl px-6 py-3 font-semibold text-sm data-[state=active]:bg-background dark:data-[state=active]:bg-slate-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/20 dark:data-[state=active]:shadow-blue-400/20 transition-all duration-300 flex items-center gap-2.5 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-background/50 dark:hover:bg-slate-800/50 group"
+            >
+              <Mail className="w-4 h-4 group-data-[state=active]:text-blue-600 dark:group-data-[state=active]:text-blue-400 transition-colors" />
+
+              <span className="relative z-10">Emails</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-xl opacity-0 group-data-[state=active]:opacity-100 transition-opacity duration-300"></div>
             </TabsTrigger>
           </div>
         </TabsList>
@@ -1377,6 +1405,13 @@ const GlobalSettings = () => {
         <TabsContent value="rate-limits" className="space-y-6" data-oid="v5d91or">
           <motion.div variants={itemVariants} className="max-w-5xl" data-oid="7o46ze9">
             <TierRateLimitsSettings data-oid="oe.xgq6" />
+          </motion.div>
+        </TabsContent>
+
+        {/* Email Configuration */}
+        <TabsContent value="emails" className="space-y-6">
+          <motion.div variants={itemVariants} className="max-w-5xl">
+            <AdminEmailSettings />
           </motion.div>
         </TabsContent>
       </Tabs>

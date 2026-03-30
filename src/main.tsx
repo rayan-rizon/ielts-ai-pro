@@ -9,16 +9,28 @@ import { RootProviders } from './components/RootProviders';
 // Using requestIdleCallback ensures they load after First Contentful Paint.
 const initSentry = () => {
   import("@sentry/react").then((Sentry) => {
+    const isProduction = !['localhost', '127.0.0.1', '0.0.0.0'].includes(
+      window.location.hostname
+    );
+
     Sentry.init({
       dsn: "https://c4a03f3938495e11019ede9a4347e941@o4511048158150656.ingest.de.sentry.io/4511048214052944",
+      environment: isProduction ? 'production' : 'development',
       integrations: [
         Sentry.browserTracingIntegration(),
         Sentry.replayIntegration(),
       ],
-      tracesSampleRate: 0.15,
-      replaysSessionSampleRate: 0.1,
-      replaysOnErrorSampleRate: 1.0,
+      tracesSampleRate: isProduction ? 0.15 : 0,
+      replaysSessionSampleRate: isProduction ? 0.1 : 0,
+      replaysOnErrorSampleRate: isProduction ? 1.0 : 0,
       sendDefaultPii: false,
+      beforeSend(event) {
+        // Don't send events from local development
+        if (!isProduction) {
+          return null;
+        }
+        return event;
+      },
     });
   });
 };

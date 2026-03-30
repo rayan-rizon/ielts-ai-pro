@@ -9,6 +9,8 @@ import {
     getRateLimitIdentifier,
     getBurstLimitConfig,
     checkTierAccess,
+    checkDatabaseQuota,
+    quotaExceededResponse,
 } from '../_shared/security.ts';
 
 declare const Deno: any;
@@ -68,6 +70,11 @@ serve(async (req: Request) => {
                 }),
                 { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
+        }
+
+        const quotaCheck = await checkDatabaseQuota(supabase, user.id, tier, 'speaking');
+        if (!quotaCheck.allowed) {
+            return quotaExceededResponse(quotaCheck, corsHeaders);
         }
 
         const { testId, allPartsConversation } = await req.json();

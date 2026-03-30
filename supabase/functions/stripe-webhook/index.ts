@@ -13,6 +13,8 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import Stripe from 'npm:stripe@^14.14.0';
+import { sendEmail } from "../_shared/resend.ts";
+import { getEmailTemplate } from "../_shared/templates.ts";
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
     apiVersion: '2023-10-16',
@@ -229,6 +231,18 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
         console.log(`[Webhook] ✅ User ${authId} upgraded to ${tier} successfully`);
         // promo_discount is cleared atomically inside the RPC — no need for a separate update
 
+        // Fetch user email for the welcome email
+        const { data: userRecord } = await supabase.from('users').select('email, full_name').eq('id', userId).single();
+        if (userRecord?.email) {
+            const template = getEmailTemplate('welcome', { full_name: userRecord.full_name });
+            await sendEmail({
+                to: userRecord.email,
+                subject: template.subject,
+                type: 'welcome',
+                html: template.html,
+            });
+        }
+
         await recordServerConversion(userId, 'subscription_purchase_server', {
             event_id: eventId,
             transaction_id: session.id,
@@ -259,9 +273,10 @@ async function handleInvoicePaid(invoice: Stripe.Invoice, eventId: string) {
     }
 
     // Lookup user by Stripe customer ID
+    // We also need the email for sending the receipt
     const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('id, auth_id')
+        .select('id, auth_id, email, full_name')
         .eq('stripe_customer_id', customerId)
         .single();
 
@@ -314,6 +329,16 @@ async function handleInvoicePaid(invoice: Stripe.Invoice, eventId: string) {
     }
 
     console.log(`[Webhook] ✅ Recurring payment recorded for user ${userData.auth_id}`);
+
+    if (userData.email) {
+        const template = getEmailTemplate('renewal_confirmation', { full_name: userData.full_name });
+        await sendEmail({
+            to: userData.email,
+            subject: template.subject,
+            type: 'renewal_confirmation',
+            html: template.html,
+        });
+    }
 
     await recordServerConversion(userData.id, 'subscription_renewal_server', {
         event_id: eventId,
@@ -484,7 +509,7 @@ async function handlePaymentFailed(invoice: Stripe.Invoice, eventId: string) {
 
     const { data: userData } = await supabase
         .from('users')
-        .select('id, auth_id, email')
+        .select('id, auth_id, email, full_name')
         .eq('stripe_customer_id', customerId)
         .single();
 
@@ -521,6 +546,17 @@ async function handlePaymentFailed(invoice: Stripe.Invoice, eventId: string) {
         .from('users')
         .update({ payment_failed_at: new Date().toISOString() })
         .eq('id', userData.id);
+
+    if (userData.email && attemptCount === 1) {
+        // Send email only on the first failure attempt to avoid spamming
+        const template = getEmailTemplate('payment_failed', { full_name: userData.full_name });
+        await sendEmail({
+            to: userData.email,
+            subject: template.subject,
+            type: 'payment_failed',
+            html: template.html,
+        });
+    }
 
     await recordServerConversion(userData.id, 'subscription_payment_failed_server', {
         event_id: eventId,

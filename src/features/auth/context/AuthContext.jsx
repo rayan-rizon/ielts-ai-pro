@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { User } from '@/features/auth/services/User';
 import { SystemSetting } from '@/features/admin/services/SystemSetting';
 import { setupCrossTabSync } from '@/lib/sessionLock';
-import { pushUserIdentity } from '@/lib/tracking';
+import { pushUserIdentity, trackAppEvent } from '@/lib/tracking';
 
 const AuthContext = createContext();
 
@@ -27,6 +27,36 @@ let hasWarnedMissingAuthProvider = false;
 // Session cache helpers for instant auth restoration
 const PROFILE_CACHE_KEY = 'auth_profile_cache';
 const PROFILE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const SUBSCRIPTION_TIER_CACHE_PREFIX = 'tracked_subscription_tier:';
+
+const normalizeSubscriptionTier = (tier) =>
+  String(tier || 'free')
+    .trim()
+    .toLowerCase();
+
+const getSubscriptionTierCacheKey = (userId) => `${SUBSCRIPTION_TIER_CACHE_PREFIX}${userId}`;
+
+const getStoredSubscriptionTier = (userId) => {
+  if (typeof window === 'undefined' || !userId) return null;
+  const storedTier = window.localStorage.getItem(getSubscriptionTierCacheKey(userId));
+  if (storedTier == null) return null;
+  return normalizeSubscriptionTier(storedTier);
+};
+
+const setStoredSubscriptionTier = (userId, tier) => {
+  if (typeof window === 'undefined' || !userId) return;
+  window.localStorage.setItem(getSubscriptionTierCacheKey(userId), normalizeSubscriptionTier(tier));
+};
+
+const isLikelyBangladeshUser = () => {
+  if (typeof window === 'undefined') return false;
+
+  const storedCountry = (window.localStorage.getItem('user_country') || '').trim().toUpperCase();
+  if (storedCountry === 'BD' || storedCountry === 'BANGLADESH') return true;
+
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  return timezone === 'Asia/Dhaka' || timezone === 'Asia/Chittagong';
+};
 
 const getCachedProfile = () => {
   if (typeof window === 'undefined') return null;
@@ -388,6 +418,43 @@ export const AuthProvider = ({ children }) => {
       window.removeEventListener('userProfileUpdated', handleProfileUpdate);
     };
   }, [user]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !userProfile?.id) return;
+
+    const userId = userProfile.id;
+    const currentTier = normalizeSubscriptionTier(userProfile.subscription_tier);
+    const previousTier = getStoredSubscriptionTier(userId);
+
+    if (!previousTier) {
+      setStoredSubscriptionTier(userId, currentTier);
+      return;
+    }
+
+    const upgradedFromFree = previousTier === 'free' && currentTier !== 'free';
+    const subscriptionCurrency = (userProfile.subscription_currency || '').toUpperCase();
+    const isManualBdSubscription =
+      isLikelyBangladeshUser() &&
+      !userProfile.stripe_subscription_id &&
+      (subscriptionCurrency === 'BDT' || !subscriptionCurrency);
+
+    if (upgradedFromFree && isManualBdSubscription) {
+      const subscriptionAmount = Number(userProfile.subscription_amount);
+      trackAppEvent('subscription_purchase', {
+        path: window.location.pathname,
+        plan_tier: currentTier,
+        billing_interval: userProfile.billing_interval || 'monthly',
+        value:
+          Number.isFinite(subscriptionAmount) && subscriptionAmount > 0
+            ? subscriptionAmount
+            : undefined,
+        currency: subscriptionCurrency || 'BDT',
+        source: 'manual_bangladesh',
+      });
+    }
+
+    setStoredSubscriptionTier(userId, currentTier);
+  }, [userProfile]);
 
   const refreshProfile = useCallback(
     async (userOverride) => {

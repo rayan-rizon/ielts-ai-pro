@@ -4,7 +4,6 @@ import {
   X,
   CheckCircle2,
   Copy,
-  Smartphone,
   CreditCard,
   ArrowRight,
   ShieldCheck,
@@ -18,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { trackAppEvent } from '@/lib/tracking';
 
 const PAYMENT_METHODS = [
   {
@@ -82,10 +82,28 @@ export default function ManualPayment({ isOpen, onClose, planData: data }) {
 
       if (error) throw error;
 
+      trackAppEvent('manual_subscription_request_submitted', {
+        path: '/pricing',
+        plan_tier: data.tier,
+        billing_interval: data.interval,
+        value: data.price,
+        currency: 'BDT',
+        payment_method: selectedMethod.id,
+      });
+
       setIsSuccess(true);
       toast.success('Payment request submitted successfully');
     } catch (err) {
       console.error('Payment submission error:', err);
+
+      trackAppEvent('manual_subscription_request_failed', {
+        path: '/pricing',
+        plan_tier: data?.tier,
+        billing_interval: data?.interval,
+        payment_method: selectedMethod?.id,
+        reason: err?.message || 'manual_payment_request_failed',
+      });
+
       toast.error(err.message || 'Failed to submit payment request');
     } finally {
       setIsSubmitting(false);
