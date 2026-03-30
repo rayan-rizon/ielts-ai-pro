@@ -1,5 +1,8 @@
 // @ts-ignore
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import { Buffer } from 'node:buffer';
+// @ts-ignore - Use npm: specifier for Node compatibility
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import {
   getCorsHeaders,
   logApiUsage,
@@ -13,8 +16,7 @@ import {
 
 declare const Deno: any;
 
-// @ts-ignore: Deno runtime
-Deno.serve(async (req: Request) => {
+serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
 
   // Handle CORS preflight requests
@@ -120,11 +122,9 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Convert to base64
+      // Convert to base64 safely without memory overflow
       const audioBuffer = await audioResponse.arrayBuffer();
-      base64Audio = btoa(
-        new Uint8Array(audioBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-      );
+      base64Audio = Buffer.from(audioBuffer).toString('base64');
 
       // Determine MIME type from URL if not provided
       if (!mimeType) {
@@ -141,20 +141,22 @@ Deno.serve(async (req: Request) => {
     // Use Gemini Flash Latest (Stable alias)
     const model = 'gemini-2.5-flash';
 
-    // STRICT Prompt for 100% Accuracy
+    // STRICT Prompt for 100% Accuracy and FULL length
     const prompt = `
-      You are a professional audio transcriber. Your task is to transcribe the following audio file into a perfectly formatted SRT (SubRip Subtitle) file.
+      You are a professional audio transcriber. Your task is to transcribe the ENTIRE audio file into a perfectly formatted SRT (SubRip Subtitle) file.
       
-      RULES:
-      1. **ACCURACY IS PARAMOUNT**: Listen carefully. Capture every word accurately.
-      2. **FORMAT**: Output MUST be valid SRT format.
+      CRITICAL RULES (To Prevent Truncation):
+      1. **TRANSCRIBE EVERYTHING**: You MUST transcribe the audio from the very beginning to the very end. DO NOT summarize, skip, or cut off early. 
+      2. **LONG AUDIO WARNING**: The audio is several minutes long and may contain long pauses. Do NOT stop transcribing if you hear silence. Continue until the very end of the recording.
+      3. **ACCURACY IS PARAMOUNT**: Listen carefully. Capture every word accurately.
+      4. **FORMAT**: Output MUST be valid SRT format.
          - Sequence number (1, 2, 3...)
          - Timestamp range (HH:MM:SS,mmm --> HH:MM:SS,mmm)
          - Subtitle text
          - Blank line between entries
-      3. **TIMESTAMPS**: Must be precise to the millisecond.
-      4. **SPEAKERS**: Identify speakers if distinct (e.g., "SPEAKER 1:", "SPEAKER 2:"). If only one speaker/narrator, no label is needed unless context requires it.
-      5. **SEGMENTATION**: Keep subtitles concise (1-2 sentences max per block) for readability.
+      5. **TIMESTAMPS**: Must be precise to the millisecond.
+      6. **SPEAKERS**: Identify speakers if distinct (e.g., "SPEAKER 1:", "SPEAKER 2:").
+      7. **SEGMENTATION**: Keep subtitles concise (1-2 sentences max per block).
       
       Example Output:
       1
@@ -165,7 +167,7 @@ Deno.serve(async (req: Request) => {
       00:00:04,200 --> 00:00:08,500
       Please listen to the instructions carefully.
 
-      OUTPUT ONLY THE SRT CONTENT. NO MARKDOWN, NO EXPLANATIONS.
+      OUTPUT ONLY THE SRT CONTENT. NO MARKDOWN, NO EXPLANATIONS. TRANSCRIBE THE FULL AUDIO.
     `;
 
     const requestBody = {
@@ -186,7 +188,6 @@ Deno.serve(async (req: Request) => {
         temperature: 0.1,
         topK: 20,
         topP: 0.8,
-        maxOutputTokens: 8192,
       },
     };
 
@@ -207,14 +208,18 @@ Deno.serve(async (req: Request) => {
     }
 
     const geminiData = await geminiResponse.json();
-    const transcript = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const candidate = geminiData.candidates?.[0];
+    const transcript = candidate?.content?.parts?.[0]?.text || '';
+    const finishReason = candidate?.finishReason || 'UNKNOWN';
     const tokensUsed = geminiData.usageMetadata?.totalTokenCount || 0;
 
+    console.log(`Gemini response received. Finish reason: ${finishReason}, Tokens: ${tokensUsed}`);
+
     if (!transcript) {
-      throw new Error('No transcript received from Gemini API');
+      throw new Error(`No transcript received from Gemini API. Finish reason: ${finishReason}`);
     }
 
-    const cleanTranscript = transcript.trim().replace(/^```srt\n?|```$/gv, '');
+    const cleanTranscript = transcript.trim().replace(/^```srt\n?|```$/g, '');
 
     console.log('Transcription successful, length:', cleanTranscript.length);
 
