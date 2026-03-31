@@ -31,6 +31,78 @@ describe('parseSrt', () => {
     expect(segments[1].end).toBeLessThanOrEqual(segments[2].start);
   });
 
+  it('repairs non-monotonic compact timestamps like the malformed part 1 transcript', () => {
+    const srt = [
+      '1',
+      '00:01:00,740 --> 00:02:00,740',
+      'Part 1',
+      '',
+      '2',
+      '00:03:30,000 --> 00:07:40,000',
+      'You will hear a woman asking a friend for restaurant recommendations.',
+      '',
+      '3',
+      '00:08:50,000 --> 00:12:990',
+      'First, you have some time to look at questions 1 to 4.',
+      '',
+      '4',
+      '00:33:680 --> 00:37:480',
+      'Now listen carefully and answer questions 1 to 4.',
+      '',
+      '5',
+      '00:58:400 --> 00:59:480',
+      'We had a great time there.',
+      '',
+      '6',
+      '01:00:300 --> 01:01:680',
+      'Everyone really enjoyed it.',
+      '',
+      '7',
+      '01:02:300 --> 01:04:300',
+      "SPEAKER 1: Where is it again? I can't remember.",
+    ].join('\n');
+
+    const segments = parseSrt(srt);
+
+    expect(segments[0].start).toBeLessThan(10);
+    expect(segments[0].end).toBeLessThan(10);
+    expect(segments[1].start).toBeLessThan(10);
+    expect(segments[1].end).toBeLessThan(10);
+    expect(segments[2].start).toBeLessThan(15);
+    expect(segments[2].end).toBeCloseTo(12.99, 3);
+    expect(segments[0].start).toBeLessThan(segments[1].start);
+    expect(segments[1].start).toBeLessThan(segments[2].start);
+    expect(segments[5].start).toBeCloseTo(60.3, 3);
+    expect(segments[5].end).toBeCloseTo(61.68, 3);
+    expect(segments[6].start).toBeCloseTo(62.3, 3);
+    expect(segments[6].end).toBeCloseTo(64.3, 3);
+    expect(findActiveSegment(segments, 60.5)).toBe(5);
+    expect(findActiveSegment(segments, 62.5)).toBe(6);
+  });
+
+  it('clamps malformed two-part end timestamps like the provided part 2 transcript', () => {
+    const srt = [
+      '1',
+      '03:43,900 --> 03:46,100',
+      'A gift for a friend perhaps.',
+      '',
+      '2',
+      '03:47,100 --> 33:52,700',
+      "Like nearly everyone who comes here, I'm sure this is the first time you will have tried the art.",
+      '',
+      '3',
+      '03:53,200 --> 03:55,400',
+      "So we'll keep things simple today.",
+    ].join('\n');
+
+    const segments = parseSrt(srt);
+
+    expect(segments[1].start).toBeCloseTo(227.1, 3);
+    expect(segments[1].end).toBeCloseTo(233.2, 3);
+    expect(findActiveSegment(segments, 229.5)).toBe(1);
+    expect(findActiveSegment(segments, 233.5)).toBe(2);
+  });
+
   it('keeps well-formed cue timings unchanged', () => {
     const srt = [
       '1',
