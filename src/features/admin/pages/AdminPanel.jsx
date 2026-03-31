@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { m, AnimatePresence } from 'framer-motion';
 import {
@@ -56,7 +56,6 @@ const TABS = [
   { id: 'settings', label: 'Settings', icon: Settings, component: GlobalSettings },
 ];
 
-import { User, TestSession, PromoCode, Passage, Question } from '@/entities';
 import { AnalyticsService } from '@/features/admin/services/AnalyticsService';
 
 // Wrapper components that fetch data for individual analytics
@@ -64,51 +63,57 @@ const UserAnalyticsWrapper = () => {
   const [stats, setStats] = useState({});
   const [analyticsData, setAnalyticsData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [selectedRange, setSelectedRange] = useState('30D');
 
-  const loadAnalyticsData = async () => {
-    try {
-      setLoading(true);
-      const data = await AnalyticsService.getDashboardStats();
+  const loadAnalyticsData = useCallback(
+    async (range) => {
+      try {
+        setLoading(true);
+        // Map UI range to RPC parameter: '30D' -> '30d', '1Y' -> '1y'
+        const rpcRange = (range || selectedRange).toLowerCase();
+        const data = await AnalyticsService.getDashboardStats(rpcRange);
 
-      setStats({
-        totalUsers: data.totalUsers,
-        premiumUsers: data.premiumUsers,
-        totalQuestions: data.totalQuestions,
-        totalPassages: data.totalPassages,
-        completedTests: data.completedTests,
-        avgScore: data.avgScore,
-        conversionRate:
-          data.totalUsers > 0 ? ((data.premiumUsers / data.totalUsers) * 100).toFixed(1) : 0,
-      });
+        setStats({
+          totalUsers: data.totalUsers,
+          premiumUsers: data.premiumUsers,
+          totalQuestions: data.totalQuestions,
+          totalPassages: data.totalPassages,
+          completedTests: data.completedTests,
+          avgScore: data.avgScore,
+          conversionRate:
+            data.totalUsers > 0 ? ((data.premiumUsers / data.totalUsers) * 100).toFixed(1) : 0,
+        });
 
-      setAnalyticsData({
-        weeklyActiveUsers: 0, // Not currently returned by RPC, can be added later
-        monthlyActiveUsers: 0,
-        liveUsers: 0,
-        totalRevenue: data.totalRevenue,
-        monthlyGrowth: 0,
-        userGrowthData: data.userGrowthData,
-        scoreDistribution: data.scoreDistribution,
-        recentSignups: data.recentSignups,
-        sessionActivity: [
-          { name: 'Completed', value: data.completedTests, color: '#10B981' },
-          // Note: Abandoned count calculation requires total attempts which RPC doesn't currently return
-          // Falling back to 0 for abandoned to avoid misleading data
-          { name: 'Abandoned', value: 0, color: '#F43F5E' },
-        ],
-      });
-    } catch (error) {
-      console.error('Error loading analytics data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        setAnalyticsData({
+          weeklyActiveUsers: 0, // Not currently returned by RPC, can be added later
+          monthlyActiveUsers: 0,
+          liveUsers: 0,
+          totalRevenue: data.totalRevenue,
+          monthlyGrowth: 0,
+          userGrowthData: data.userGrowthData,
+          scoreDistribution: data.scoreDistribution,
+          recentSignups: data.recentSignups,
+          sessionActivity: [
+            { name: 'Completed', value: data.completedTests, color: '#10B981' },
+            // Note: Abandoned count calculation requires total attempts which RPC doesn't currently return
+            // Falling back to 0 for abandoned to avoid misleading data
+            { name: 'Abandoned', value: 0, color: '#F43F5E' },
+          ],
+        });
+      } catch (error) {
+        console.error('Error loading analytics data:', error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedRange]
+  );
 
   useEffect(() => {
-    loadAnalyticsData();
-  }, []);
+    loadAnalyticsData(selectedRange);
+  }, [selectedRange, loadAnalyticsData]);
 
-  if (loading) {
+  if (loading && !Object.keys(stats).length) {
     return (
       <div className="flex items-center justify-center h-64" data-oid="my23qeg">
         <div className="text-center" data-oid="4arauko">
@@ -124,7 +129,16 @@ const UserAnalyticsWrapper = () => {
     );
   }
 
-  return <UserAnalytics stats={stats} analyticsData={analyticsData} data-oid="89vr.cy" />;
+  return (
+    <UserAnalytics
+      stats={stats}
+      analyticsData={analyticsData}
+      selectedRange={selectedRange}
+      onRangeChange={setSelectedRange}
+      isDataLoading={loading}
+      data-oid="89vr.cy"
+    />
+  );
 };
 
 const RevenueAnalyticsWrapper = () => {

@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,14 +11,11 @@ import {
   Award,
   BarChart3,
   Target,
-  Sparkles,
   ArrowUpRight,
   ArrowDownRight,
   ChevronRight,
   Download,
-  Calendar,
   MoreVertical,
-  Filter,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -38,7 +35,13 @@ import { cn } from '@/lib/utils';
 
 const COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
 
-const UserAnalytics = ({ stats = {}, analyticsData = {} }) => {
+const UserAnalytics = ({
+  stats = {},
+  analyticsData = {},
+  selectedRange = '30D',
+  onRangeChange,
+  isDataLoading = false,
+}) => {
   const {
     userGrowthData = [],
     scoreDistribution = [],
@@ -247,11 +250,14 @@ const UserAnalytics = ({ stats = {}, analyticsData = {} }) => {
                     {['30D', '90D', '1Y'].map((range) => (
                       <button
                         key={range}
+                        onClick={() => onRangeChange?.(range)}
+                        disabled={isDataLoading}
                         className={cn(
                           'px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all',
-                          range === '30D'
+                          range === selectedRange
                             ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                            : 'text-muted-foreground hover:text-foreground'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
+                          isDataLoading && 'opacity-50 cursor-not-allowed'
                         )}
                         data-oid="jeq9s6d"
                       >
@@ -265,8 +271,16 @@ const UserAnalytics = ({ stats = {}, analyticsData = {} }) => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent data-oid="opoldrj">
-              <div className="h-[320px] w-full mt-2" data-oid="2nk.nrq">
+            <CardContent className="pt-0 relative min-h-[320px]" data-oid="opoldrj">
+              {isDataLoading && (
+                <div
+                  className="absolute inset-0 z-10 bg-card/40 backdrop-blur-[2px] flex items-center justify-center rounded-[2rem]"
+                  data-oid="load-over"
+                >
+                  <Activity className="w-8 h-8 text-primary animate-pulse" data-oid="pulse-act" />
+                </div>
+              )}
+              <div className="h-[320px] w-full mt-6" data-oid="2nk.nrq">
                 <ResponsiveContainer width="100%" height="100%" data-oid="4adlh-a">
                   <AreaChart
                     data={userGrowthData}

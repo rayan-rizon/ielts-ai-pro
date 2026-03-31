@@ -5,8 +5,10 @@ export const AnalyticsService = {
    * Get aggregated stats for the admin dashboard.
    * Calls the 'get_admin_dashboard_stats' RPC.
    */
-  async getDashboardStats() {
-    const { data, error } = await supabase.rpc('get_admin_dashboard_stats');
+  async getDashboardStats(dateRange = '30d') {
+    const { data, error } = await supabase.rpc('get_admin_dashboard_stats', {
+      p_date_range: dateRange,
+    });
 
     if (error) {
       console.error('Error fetching dashboard stats:', error);
