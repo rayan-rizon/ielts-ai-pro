@@ -12,8 +12,8 @@
  *   Colon-only M:S:   02:03:500      →  123.5 s  (ms written after last colon)
  *   Malformed H:M:S:  01:02:02,900   →   62.9 s  (hours digit is really minutes)
  *
- * The key insight: IELTS audio never exceeds ~10 minutes per part (~600 s).
- * If interpreting the first group as hours yields > 600 s, we re-interpret the
+ * The key insight: IELTS audio never exceeds ~10 minutes per part (~900 s).
+ * If interpreting the first group as hours yields > 900 s, we re-interpret the
  * timestamp as M:S with fractional seconds.
  *
  * @param {string} timestamp - SRT-format timestamp string
@@ -58,10 +58,10 @@ export function parseTimestamp(timestamp) {
       asMSms = v1 * 60 + v2 + v3 / 1000;
     }
 
-    // Heuristic: IELTS parts are ≤ 10 min.  If H:M:S interpretation exceeds
-    // 600 s, re-interpret as M:S.  If BOTH exceed 600 s the data is truly
+    // Heuristic: IELTS parts are ≤ 15 min.  If H:M:S interpretation exceeds
+    // 900 s, re-interpret as M:S.  If BOTH exceed 900 s the data is truly
     // broken; fall back to the smaller value to minimize damage.
-    const MAX_REASONABLE = 600; // 10 minutes
+    const MAX_REASONABLE = 900; // 15 minutes – covers all IELTS parts (max ~9 min each)
 
     if (asHMS <= MAX_REASONABLE) {
       return asHMS;
@@ -164,15 +164,22 @@ export function parseSrt(srtContent) {
     .filter(Boolean);
 
   // ── Post-parse sanitization ──────────────────────────────────────────
-  // Fix segments where end ≤ start (malformed) and ensure monotonicity.
+  // Repair malformed windows and clamp cues so each segment stays within
+  // the chronological window implied by the next segment's start time.
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
+    const nextStart = segments[i + 1]?.start;
 
     // If end is suspiciously before or at start, estimate a reasonable duration
     if (seg.end <= seg.start) {
       // Use the next segment's start as the end, or add a default duration
-      const nextStart = segments[i + 1]?.start;
       seg.end = nextStart && nextStart > seg.start ? nextStart : seg.start + 3; // 3-second fallback
+      continue;
+    }
+
+    // Clamp overlong malformed cues so they cannot swallow later segments.
+    if (typeof nextStart === 'number' && seg.end > nextStart) {
+      seg.end = nextStart;
     }
   }
 
@@ -187,7 +194,9 @@ export function parseSrt(srtContent) {
  *    infinitesimally below a segment's exact start value after a seek.
  *  - Lookahead: pre-highlights the upcoming segment when the playhead is within
  *    150 ms of its start, making click-to-seek feel instantaneous.
- *  - Wider gap sticky window (3 s): keeps the last segment lit during natural
+ *  - Latest overlap wins: if malformed data creates overlapping cues, prefer
+ *    the most recent matching segment so highlighting keeps moving forward.
+ *  - Wider gap sticky window (5 s): keeps the last segment lit during natural
  *    pauses between speakers that are longer than 1.5 s.
  *
  * @param {Array} segments - Parsed SRT segments
@@ -200,8 +209,10 @@ export function findActiveSegment(segments, currentTime) {
   // Small tolerance to absorb floating-point imprecision after seeks.
   const EPSILON = 0.05; // 50 ms
 
-  // 1. Strict overlap (with float tolerance on the start boundary)
-  for (let i = 0; i < segments.length; i++) {
+  // 1. Strict overlap (with float tolerance on the start boundary).
+  //    Scan backwards so the newest matching cue wins when malformed data
+  //    creates overlapping segment ranges.
+  for (let i = segments.length - 1; i >= 0; i--) {
     const seg = segments[i];
     if (currentTime >= seg.start - EPSILON && currentTime < seg.end) {
       return i;
@@ -209,15 +220,15 @@ export function findActiveSegment(segments, currentTime) {
   }
 
   // 2. Gap sticky — keep the last segment highlighted during short pauses.
-  //    Increased from 1.5 s → 3.0 s to cover natural speaker pauses in IELTS
-  //    recordings that often exceed 1.5 s.
+  //    Set to 5.0 s to cover natural speaker pauses in IELTS Part 2 monologues
+  //    which can have longer topic-transition pauses.
   for (let i = 0; i < segments.length - 1; i++) {
     const seg = segments[i];
     const nextSeg = segments[i + 1];
 
     if (currentTime >= seg.end && currentTime < nextSeg.start) {
       const gap = nextSeg.start - seg.end;
-      if (gap < 3.0) {
+      if (gap < 5.0) {
         return i; // Keep previous segment active across the gap
       }
     }
