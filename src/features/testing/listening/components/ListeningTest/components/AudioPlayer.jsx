@@ -40,6 +40,9 @@ const AudioPlayer = React.forwardRef(({ src, onDurationChange, onTimeUpdate }, r
       if (audioRef.current) {
         audioRef.current.currentTime = time;
         setCurrentTime(time);
+        // Immediately propagate the new time to Zustand so SyncedTranscript
+        // highlights the correct sentence without waiting for async timeupdate.
+        if (onTimeUpdateRef.current) onTimeUpdateRef.current(time);
       }
     },
     play: () => {
@@ -47,7 +50,9 @@ const AudioPlayer = React.forwardRef(({ src, onDurationChange, onTimeUpdate }, r
         audioRef.current
           .play()
           .then(() => setIsPlaying(true))
-          .catch((e) => console.log('Auto-play prevented:', e));
+          .catch(() => {
+            // Error handled silently
+          });
       }
     },
     pause: () => {
@@ -124,12 +129,16 @@ const AudioPlayer = React.forwardRef(({ src, onDurationChange, onTimeUpdate }, r
     const time = value[0];
     audioRef.current.currentTime = time;
     setCurrentTime(time);
+    // Propagate immediately so transcript highlighting stays in sync.
+    if (onTimeUpdateRef.current) onTimeUpdateRef.current(time);
   };
 
   const skipTime = (seconds) => {
     if (!audioRef.current) return;
-    const newTime = audioRef.current.currentTime + seconds;
-    audioRef.current.currentTime = Math.min(Math.max(newTime, 0), duration);
+    const newTime = Math.min(Math.max(audioRef.current.currentTime + seconds, 0), duration);
+    audioRef.current.currentTime = newTime;
+    // Propagate immediately so transcript highlighting updates on skip.
+    if (onTimeUpdateRef.current) onTimeUpdateRef.current(newTime);
   };
 
   const formatTime = (time) => {

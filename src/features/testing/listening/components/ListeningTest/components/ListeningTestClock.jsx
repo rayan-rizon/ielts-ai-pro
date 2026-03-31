@@ -1,6 +1,7 @@
 import { memo } from 'react';
-import { Clock } from 'lucide-react';
+import { Clock, CheckCircle } from 'lucide-react';
 import { useListeningTestTimer } from '../context/ListeningTestContext';
+import { useListeningTestStore } from '@/features/testing/listening/store/useListeningTestStore';
 
 /**
  * Isolated Clock Component for Listening Test
@@ -10,9 +11,13 @@ import { useListeningTestTimer } from '../context/ListeningTestContext';
  * from re-rendering every second when the timer ticks.
  *
  * PERFORMANCE: Only this component re-renders every second, not the entire page.
+ *
+ * When the test is finished (isFinished), it shows a static "Completed" badge
+ * instead of a countdown — no flickering, no animate-pulse.
  */
 const ListeningTestClock = memo(function ListeningTestClock() {
   const timeRemaining = useListeningTestTimer();
+  const isFinished = useListeningTestStore((s) => s.isFinished);
 
   const formatSeconds = (sec) => {
     const m = Math.floor(sec / 60);
@@ -20,6 +25,20 @@ const ListeningTestClock = memo(function ListeningTestClock() {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  // ── Completed state: static badge, no animation ──────────────────────
+  if (isFinished) {
+    return (
+      <div
+        className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border transition-all duration-300 shadow-sm bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400"
+        data-oid="f8s.k6k"
+      >
+        <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500" />
+        <span className="font-mono font-black text-sm sm:text-base tabular-nums">Done</span>
+      </div>
+    );
+  }
+
+  // ── Active countdown ─────────────────────────────────────────────────
   return (
     <div
       className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border transition-all duration-300 shadow-sm ${

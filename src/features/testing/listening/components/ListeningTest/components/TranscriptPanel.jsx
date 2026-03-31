@@ -1,24 +1,20 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { FileText, AlertCircle, HelpCircle } from 'lucide-react';
+import { FileText, AlertCircle } from 'lucide-react';
 import AudioPlayer from './AudioPlayer';
 import SyncedTranscript from './SyncedTranscript';
-import { formatInstructionHTML } from '@/lib/utils';
 import { sanitizeHtml } from '@/lib/security';
 import {
   useListeningTestDispatch,
   useListeningTestState,
-  LISTENING_ACTIONS,
+  useListeningAudioTime,
 } from '../context/ListeningTestContext';
 
-const TranscriptPanel = ({
-  audioPlayerRef,
-  currentSection,
-  sectionQuestions,
-  onAudioDurationChange,
-  isMobile,
-}) => {
-  const { showTranscript, audioCurrentTime: contextAudioTime } = useListeningTestState();
+const TranscriptPanel = ({ audioPlayerRef, currentSection, onAudioDurationChange, isMobile }) => {
+  const { showTranscript } = useListeningTestState();
+  // Use the dedicated audio-time hook (audioCurrentTime is intentionally excluded
+  // from useListeningTestState to prevent render loops on every timeupdate).
+  const audioCurrentTime = useListeningAudioTime();
 
   const { dispatch, setAudioTimeRef, ACTIONS } = useListeningTestDispatch();
 
@@ -101,7 +97,7 @@ const TranscriptPanel = ({
               {currentSection.srt_content ? (
                 <SyncedTranscript
                   srtContent={currentSection.srt_content}
-                  currentTime={contextAudioTime}
+                  currentTime={audioCurrentTime}
                   onSegmentClick={(time) => {
                     if (audioPlayerRef.current) {
                       audioPlayerRef.current.seek(time);

@@ -1,27 +1,39 @@
 import React, { useRef, useEffect, useMemo, memo } from 'react';
 
 import { parseSrt, findActiveSegment } from '@/utils/parseSrt';
-import { useListeningAudioTime } from '../context/ListeningTestContext';
 
 /**
  * Synchronized Transcript Component
  * Displays audio transcript with highlighting synced to current playback position.
+ *
+ * Props:
+ *  - srtContent {string}       Raw SRT file content
+ *  - currentTime {number}      Current audio playback time in seconds (from parent via useListeningAudioTime)
+ *  - onSegmentClick {Function} Called with segment start time when user clicks a sentence
  */
 const SyncedTranscript = memo(function SyncedTranscript({
   srtContent,
   onSegmentClick,
-  currentTime,
-  answerMap = {},
+  currentTime = 0,
 }) {
-  // Use prop if provided, otherwise fallback to context (though parent seems to pass it)
-  const contextTime = useListeningAudioTime();
-  const timeToUse = currentTime !== undefined ? currentTime : contextTime;
-
-  // 1. Parse Segments
+  // 1. Parse Segments (memoized — only re-parses when srtContent changes)
   const segments = useMemo(() => parseSrt(srtContent || ''), [srtContent]);
-  const activeIndex = findActiveSegment(segments, timeToUse);
+
+  // Build an O(1) index map: segment object → its index in the flat array.
+  // Avoids the previous O(n) segments.indexOf(seg) call inside the render loop.
+  const segmentIndexMap = useMemo(() => {
+    const map = new Map();
+    segments.forEach((seg, i) => map.set(seg, i));
+    return map;
+  }, [segments]);
+
+  // Compute active segment index (memoized to avoid recomputing on unrelated renders)
+  const activeIndex = useMemo(
+    () => findActiveSegment(segments, currentTime),
+    [segments, currentTime]
+  );
+
   const activeRef = useRef(null);
-  const scrollContainerRef = useRef(null);
 
   // 2. Group Segments by Speaker + Paragraph BREAKS
   const groupedTranscript = useMemo(() => {
@@ -52,12 +64,15 @@ const SyncedTranscript = memo(function SyncedTranscript({
   // Auto-scroll to active segment
   useEffect(() => {
     if (activeRef.current) {
-      // Use scrollIntoView with smooth behavior and centered alignment
-      activeRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-        inline: 'nearest',
-      });
+      try {
+        activeRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest',
+        });
+      } catch {
+        // Error handled silently
+      }
     }
   }, [activeIndex]);
 
@@ -96,7 +111,8 @@ const SyncedTranscript = memo(function SyncedTranscript({
           {/* Paragraph Block */}
           <p className="text-slate-700 dark:text-slate-300" data-oid="-v0:bb2">
             {group.segments.map((seg) => {
-              const isActive = segments.indexOf(seg) === activeIndex;
+              // O(1) lookup instead of O(n) indexOf
+              const isActive = segmentIndexMap.get(seg) === activeIndex;
               const isSectionStart = seg.text.match(/^(Section \d+)\.?/i);
 
               // Clean text if it has section badge

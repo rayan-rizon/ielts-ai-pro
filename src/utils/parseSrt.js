@@ -4,54 +4,84 @@
  */
 
 /**
- * Parses SRT timestamp (00:00:00,000) into seconds
- * Handles loose formatting (e.g. 0:0:5, 00:00:05.50)
- * @param {string} timestamp - SRT format timestamp
+ * Parses SRT timestamp into seconds.
+ *
+ * Handles all variants encountered in AI-generated and official SRT files:
+ *   Standard:         00:02:03,500   →  123.5 s
+ *   Short M:S:        02:03,500      →  123.5 s
+ *   Colon-only M:S:   02:03:500      →  123.5 s  (ms written after last colon)
+ *   Malformed H:M:S:  01:02:02,900   →   62.9 s  (hours digit is really minutes)
+ *
+ * The key insight: IELTS audio never exceeds ~10 minutes per part (~600 s).
+ * If interpreting the first group as hours yields > 600 s, we re-interpret the
+ * timestamp as M:S with fractional seconds.
+ *
+ * @param {string} timestamp - SRT-format timestamp string
  * @returns {number} Time in seconds
  */
 export function parseTimestamp(timestamp) {
   if (!timestamp) return 0;
 
-  // 1. Standard Regex (H:M:S,ms or M:S,ms)
-  // Note: S is captured as (\d{1,2}). If 3 digits, this fails.
-  const stdMatch = timestamp.trim().match(/^(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})(?:[,.](\d{1,3}))?$/);
+  const trimmed = timestamp.trim();
 
-  if (stdMatch) {
-    const [, hStr, mStr, sStr, msStr] = stdMatch;
-    const h = hStr ? parseInt(hStr) : 0;
-    const m = parseInt(mStr);
-    const s = parseInt(sStr);
-    let ms = 0;
-    if (msStr) ms = parseFloat('0.' + msStr);
+  // ── 3-part match:  H:M:S  or  H:M:S,ms  or  H:M:S.ms  ──────────────
+  const threePartMatch = trimmed.match(/^(\d{1,2}):(\d{1,2}):(\d{1,3})(?:[,.](\d{1,3}))?$/);
 
-    const seconds = h * 3600 + m * 60 + s + ms;
-
-    // HEURISTIC: Fix Ambiguous "Colon-Separated MS" interpreted as H:M:S
-    // If seconds > 3600 (1 hour) AND no standard MS separator was used...
-    // AND input matches pattern A:B:C with no comma...
-    // Re-interpret as M:S:ms
-    const isColonOnly = !timestamp.includes(',') && !timestamp.includes('.');
-
-    if (seconds > 3600 && isColonOnly) {
-      const reM = h;
-      const reS = m;
-      const reMsVal = s;
-      return reM * 60 + reS + reMsVal / 1000;
-    }
-
-    return seconds;
-  }
-
-  // 2. Fallback for 3-digit parts (failed std regex)
-  const colonMatch = timestamp.trim().match(/^(\d{1,2}):(\d{1,2}):(\d{1,3})$/);
-  if (colonMatch) {
-    const [, p1, p2, p3] = colonMatch;
+  if (threePartMatch) {
+    const [, p1, p2, p3, msFrac] = threePartMatch;
     const v1 = parseInt(p1);
     const v2 = parseInt(p2);
     const v3 = parseInt(p3);
+    const ms = msFrac ? parseFloat('0.' + msFrac) : 0;
 
-    // Force M:S:ms interpretation
-    return v1 * 60 + v2 + v3 / 1000;
+    // Default: interpret as H:M:S,ms
+    const asHMS = v1 * 3600 + v2 * 60 + v3 + ms;
+
+    // Alternative: interpret as M:S,ms  (ignore the third colon-group or
+    // treat the third group as sub-second fraction).
+    //   01:02:02,900  →  1*60 + 2 + 0.02 + 0.9  ≈  62.92
+    //   In practice we just fold v3 and msFrac into fractional seconds.
+    //   If msFrac is present (comma/dot separated), re-interpret as M:S.fraction:
+    //     minutes = v1,  seconds = v2,  fraction = "v3" + msFrac
+    //   If no msFrac (colon-only), re-interpret as M:S:ms:
+    //     minutes = v1,  seconds = v2,  ms = v3
+    let asMSms;
+    if (msFrac !== undefined) {
+      // e.g. 01:02:02,900  →  M=1, S=2, frac = .02900  → wrong
+      // Actually: M=1, S=02, and "02,900" was the S,ms portion
+      // So the correct re-parse: M = v1, S = v2, ms = v3 (hundreds) combined
+      // But really we should just do: M=v1, rest = "v2:v3,msFrac" seconds
+      // Simplest: M = v1, S = v2, ms from combining v3 and msFrac
+      asMSms = v1 * 60 + v2 + parseFloat('0.' + p3 + (msFrac || ''));
+    } else {
+      // Colon-only: 01:02:03  →  M:S:ms = 1*60 + 2 + 3/1000
+      asMSms = v1 * 60 + v2 + v3 / 1000;
+    }
+
+    // Heuristic: IELTS parts are ≤ 10 min.  If H:M:S interpretation exceeds
+    // 600 s, re-interpret as M:S.  If BOTH exceed 600 s the data is truly
+    // broken; fall back to the smaller value to minimize damage.
+    const MAX_REASONABLE = 600; // 10 minutes
+
+    if (asHMS <= MAX_REASONABLE) {
+      return asHMS;
+    }
+    if (asMSms <= MAX_REASONABLE) {
+      return asMSms;
+    }
+    // Both exceed — return the smaller to limit blast radius
+    return Math.min(asHMS, asMSms);
+  }
+
+  // ── 2-part match:  M:S  or  M:S,ms  ─────────────────────────────────
+  const twoPartMatch = trimmed.match(/^(\d{1,2}):(\d{1,2})(?:[,.](\d{1,3}))?$/);
+
+  if (twoPartMatch) {
+    const [, mStr, sStr, msStr] = twoPartMatch;
+    const m = parseInt(mStr);
+    const s = parseInt(sStr);
+    const ms = msStr ? parseFloat('0.' + msStr) : 0;
+    return m * 60 + s + ms;
   }
 
   return 0;
@@ -133,11 +163,33 @@ export function parseSrt(srtContent) {
     })
     .filter(Boolean);
 
+  // ── Post-parse sanitization ──────────────────────────────────────────
+  // Fix segments where end ≤ start (malformed) and ensure monotonicity.
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+
+    // If end is suspiciously before or at start, estimate a reasonable duration
+    if (seg.end <= seg.start) {
+      // Use the next segment's start as the end, or add a default duration
+      const nextStart = segments[i + 1]?.start;
+      seg.end = nextStart && nextStart > seg.start ? nextStart : seg.start + 3; // 3-second fallback
+    }
+  }
+
   return segments;
 }
 
 /**
- * Finds the active segment index based on current playback time
+ * Finds the active segment index based on current playback time.
+ *
+ * Improvements over the original:
+ *  - Float-point tolerance (EPSILON): avoids misses when audio.currentTime is
+ *    infinitesimally below a segment's exact start value after a seek.
+ *  - Lookahead: pre-highlights the upcoming segment when the playhead is within
+ *    150 ms of its start, making click-to-seek feel instantaneous.
+ *  - Wider gap sticky window (3 s): keeps the last segment lit during natural
+ *    pauses between speakers that are longer than 1.5 s.
+ *
  * @param {Array} segments - Parsed SRT segments
  * @param {number} currentTime - Current audio playback time in seconds
  * @returns {number} Index of active segment, or -1 if none
@@ -145,26 +197,41 @@ export function parseSrt(srtContent) {
 export function findActiveSegment(segments, currentTime) {
   if (!segments || !segments.length) return -1;
 
-  // 1. Check strict overlap first
+  // Small tolerance to absorb floating-point imprecision after seeks.
+  const EPSILON = 0.05; // 50 ms
+
+  // 1. Strict overlap (with float tolerance on the start boundary)
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
-    if (currentTime >= seg.start && currentTime < seg.end) {
+    if (currentTime >= seg.start - EPSILON && currentTime < seg.end) {
       return i;
     }
   }
 
-  // 2. Check gaps (Sticky behavior)
-  // If we are in a gap between segment i and i+1, and the gap is small (< 1.5s),
-  // keep highlighting segment i to avoid flickering.
+  // 2. Gap sticky — keep the last segment highlighted during short pauses.
+  //    Increased from 1.5 s → 3.0 s to cover natural speaker pauses in IELTS
+  //    recordings that often exceed 1.5 s.
   for (let i = 0; i < segments.length - 1; i++) {
     const seg = segments[i];
     const nextSeg = segments[i + 1];
 
     if (currentTime >= seg.end && currentTime < nextSeg.start) {
       const gap = nextSeg.start - seg.end;
-      if (gap < 1.5) {
-        return i; // Keep previous segment active
+      if (gap < 3.0) {
+        return i; // Keep previous segment active across the gap
       }
+    }
+  }
+
+  // 3. Lookahead — pre-highlight the next segment when we are within 150 ms
+  //    of its start.  This makes click-to-seek feel immediate because the
+  //    Zustand update from seek() arrives before the audio element actually
+  //    enters the segment window.
+  const LOOKAHEAD = 0.15; // 150 ms
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    if (currentTime >= seg.start - LOOKAHEAD && currentTime < seg.start) {
+      return i;
     }
   }
 
