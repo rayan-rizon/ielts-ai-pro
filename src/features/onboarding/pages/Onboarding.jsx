@@ -788,14 +788,14 @@ export default function Onboarding() {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setFormData({ ...formData, study_hours_goal: option.value })}
                     className={cn(
-                      'relative p-3 rounded-xl border-2 transition-all duration-300 text-center group bg-transparent overflow-hidden',
+                      'relative p-2 sm:p-3 rounded-xl border-2 transition-all duration-300 text-center group bg-transparent',
                       isSelected
                         ? 'border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10 shadow-xl shadow-emerald-500/10'
                         : 'border-border bg-card/50 dark:bg-slate-800 dark:border-slate-700 hover:dark:bg-slate-800/80 hover:border-emerald-500/40'
                     )}
                     data-oid=".sg2kwu"
                   >
-                    <div className="relative z-10" data-oid="vmta9sn">
+                    <div className="relative z-10 overflow-visible" data-oid="vmta9sn">
                       <div
                         className={cn(
                           'text-xl font-black transition-colors mb-0.5',
@@ -808,7 +808,7 @@ export default function Onboarding() {
                         {option.value}
                       </div>
                       <div
-                        className="text-[9px] font-bold text-muted-foreground dark:text-slate-400 uppercase tracking-tight"
+                        className="text-[8px] sm:text-[9px] font-bold text-muted-foreground dark:text-slate-400 uppercase tracking-tighter sm:tracking-tight whitespace-nowrap"
                         data-oid="_wqd5qy"
                       >
                         {option.description}
@@ -878,7 +878,7 @@ export default function Onboarding() {
                   whileHover={{ scale: 1.03, y: -4 }}
                   whileTap={{ scale: 0.98 }}
                   className={cn(
-                    'relative p-5 rounded-[1.5rem] border-2 text-left transition-all duration-500 group overflow-hidden h-36 flex flex-col justify-between',
+                    'relative p-4 sm:p-5 rounded-[1.5rem] border-2 text-left transition-all duration-500 group h-36 flex flex-col justify-between',
                     isSelected
                       ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-2xl shadow-primary/20'
                       : 'border-border bg-card/40 dark:bg-slate-800 dark:border-slate-700 hover:dark:bg-slate-800/80 hover:border-primary/30 hover:bg-card/60'
@@ -910,7 +910,7 @@ export default function Onboarding() {
                       {m.label}
                     </div>
                     <div
-                      className="text-[10px] font-bold text-muted-foreground/60 dark:text-slate-400 uppercase tracking-widest leading-none mt-1"
+                      className="text-[9px] sm:text-[10px] font-bold text-muted-foreground/60 dark:text-slate-400 uppercase tracking-tight sm:tracking-widest leading-none mt-1"
                       data-oid="5dpeqb6"
                     >
                       {m.description}
@@ -1022,7 +1022,7 @@ export default function Onboarding() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-blue-950/20 dark:to-indigo-950/20 flex items-center justify-center p-4 relative overflow-hidden"
+      className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-blue-950/20 dark:to-indigo-950/20 flex items-start sm:items-center justify-center p-4 pt-16 pb-8 sm:py-4 relative overflow-y-auto"
       data-oid=":mui1d4"
     >
       {/* Ambient background effects */}
@@ -1076,7 +1076,7 @@ export default function Onboarding() {
           </div>
         </div>
 
-        <CardContent className="px-4 sm:px-8 pb-4 sm:pb-6 pt-2" data-oid="mqkrm2y">
+        <CardContent className="px-4 sm:px-8 pb-6 sm:pb-8 pt-2" data-oid="mqkrm2y">
           <div className="mb-4" data-oid=":6odu3j">
             <h1
               className="text-xl font-black tracking-tight mb-1 text-foreground dark:text-white"
@@ -1114,7 +1114,7 @@ export default function Onboarding() {
           </div>
 
           <div
-            className="flex justify-between items-center mt-4 pt-4 border-t border-slate-100 dark:border-slate-800"
+            className="flex flex-col sm:flex-row gap-4 sm:gap-0 justify-between items-center mt-4 pt-4 border-t border-slate-100 dark:border-slate-800"
             data-oid="cw.jk3p"
           >
             {
@@ -1123,7 +1123,7 @@ export default function Onboarding() {
                   variant="ghost"
                   onClick={goBack}
                   disabled={isLoading || currentStep === steps.length - 1}
-                  className="gap-2 text-muted-foreground dark:text-slate-400 hover:text-foreground dark:hover:text-white hover:bg-secondary/80 dark:hover:bg-slate-800 transition-all font-semibold"
+                  className="gap-2 text-muted-foreground dark:text-slate-400 hover:text-foreground dark:hover:text-white hover:bg-secondary/80 dark:hover:bg-slate-800 transition-all font-semibold px-2 sm:px-4"
                   data-oid=".hqw.mw"
                 >
                   <ChevronLeft className="w-4 h-4" data-oid="06h_scg" />
@@ -1136,12 +1136,15 @@ export default function Onboarding() {
               // Spacetime placeholder
             }
 
-            <div className="flex items-center gap-2" data-oid="6j3trvp">
+            <div
+              className="flex items-center gap-2 w-full sm:w-auto justify-end sm:justify-start"
+              data-oid="6j3trvp"
+            >
               {currentStep < steps.length - 1 && (
                 <Button
                   variant="ghost"
                   onClick={skipOnboarding}
-                  className="text-muted-foreground dark:text-slate-400 mr-2 font-bold hover:text-foreground dark:hover:text-white hover:bg-secondary/50 dark:hover:bg-slate-800 transition-all text-xs uppercase tracking-widest"
+                  className="text-muted-foreground dark:text-slate-400 font-bold hover:text-foreground dark:hover:text-white hover:bg-secondary/50 dark:hover:bg-slate-800 transition-all text-[10px] uppercase tracking-widest px-2"
                   disabled={isLoading}
                   data-oid="gfe4zem"
                 >
@@ -1152,7 +1155,7 @@ export default function Onboarding() {
                 onClick={handleNext}
                 disabled={!canProceed() || isLoading}
                 size="lg"
-                className="rounded-xl px-8 shadow-lg shadow-primary/25 bg-primary hover:bg-primary/90 text-white font-bold"
+                className="rounded-xl px-6 sm:px-8 shadow-lg shadow-primary/25 bg-primary hover:bg-primary/90 text-white font-bold h-10 sm:h-12 text-sm sm:text-base"
                 data-oid="xj:91xs"
               >
                 {isLoading ? (
