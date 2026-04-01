@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mic, MicOff, Loader2, StopCircle, PlayCircle, Volume2 } from 'lucide-react';
+import { Mic, MicOff, Loader2, PlayCircle, Volume2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -198,6 +198,7 @@ const RecordingControls = React.memo(
                 onClick={isListening ? onStopListening : onStartListening}
                 disabled={isProcessing || isSpeaking || isTTSLoading || timerExpiredRef?.current}
                 whileTap={!isProcessing && !isSpeaking && !isTTSLoading ? { scale: 0.95 } : {}}
+                title={isListening ? 'Send my answer' : 'Start speaking'}
                 className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-[1.25rem] sm:rounded-[1.5rem] flex items-center justify-center transition-colors duration-500 border-4 transform-gpu ${
                   isProcessing || isSpeaking || isTTSLoading
                     ? 'bg-muted dark:bg-zinc-800 border-muted-foreground/10 cursor-not-allowed opacity-50'
@@ -225,8 +226,8 @@ const RecordingControls = React.memo(
                     <Volume2 className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
                   </motion.div>
                 ) : isListening ? (
-                  <div className="relative flex items-center justify-center">
-                    <StopCircle className="w-6 h-6 sm:w-8 sm:h-8 text-white fill-white/10" />
+                  <div className="relative flex items-center justify-center -ml-1 mt-0.5">
+                    <Send className="w-6 h-6 sm:w-8 sm:h-8 text-white fill-white/10" />
                   </div>
                 ) : (
                   <div className="relative transition-transform group-hover/btn:scale-110 duration-500">
@@ -239,14 +240,19 @@ const RecordingControls = React.memo(
 
           {isListening && (
             <motion.div
-              initial={{ opacity: 0, y: 5 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 bg-rose-500/10 dark:bg-rose-500/20 px-2 py-0.5 rounded-full border border-rose-500/20"
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="mt-2 sm:mt-4"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-              <span className="text-[9px] font-black uppercase tracking-widest text-rose-500">
-                Recording...
-              </span>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+                className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-rose-500/70 dark:text-rose-400/70 animate-pulse"
+              >
+                Tap to send your response
+              </motion.div>
             </motion.div>
           )}
         </div>

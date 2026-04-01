@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
 
-export default function Navbar({ isDark, setTheme, handlePricing, handlePrimaryCta, isSignedIn }) {
+export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -103,7 +103,7 @@ export default function Navbar({ isDark, setTheme, handlePricing, handlePrimaryC
 
           <Link
             to={createPageUrl('Index')}
-            className="flex items-center gap-3 group relative z-[101]"
+            className="flex items-center gap-2 sm:gap-3 group relative z-[101]"
             aria-label="IELTS Ai Pro - Home"
             data-oid="6et:210"
           >
@@ -120,9 +120,9 @@ export default function Navbar({ isDark, setTheme, handlePricing, handlePrimaryC
                 <Brain className="h-5 w-5 md:h-6 md:w-6" data-oid="94pouab" />
               </div>
             </div>
-            <div className="hidden sm:block leading-tight" data-oid="o.3-fm2">
+            <div className="block leading-tight" data-oid="o.3-fm2">
               <div
-                className="text-base md:text-lg font-bold tracking-tight text-foreground/90 group-hover:text-primary transition-colors"
+                className="text-sm sm:text-base md:text-lg font-bold tracking-tight text-foreground/90 group-hover:text-primary transition-colors"
                 data-oid="h2bdh3:"
               >
                 IELTS{' '}
