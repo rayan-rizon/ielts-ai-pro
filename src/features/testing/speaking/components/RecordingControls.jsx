@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mic, MicOff, Loader2, StopCircle, PlayCircle } from 'lucide-react';
+import { Mic, MicOff, Loader2, StopCircle, PlayCircle, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -10,6 +10,7 @@ const RecordingControls = React.memo(
     isListening,
     isProcessing,
     isSpeaking,
+    isTTSLoading,
     processingStatus,
     micError,
     timerExpiredRef,
@@ -60,7 +61,7 @@ const RecordingControls = React.memo(
         </motion.div>
       )}
 
-      {/* Audio Level Visualizer — CSS-only */}
+      {/* Audio Level Visualizer — CSS-only, shown while recording */}
       {testStarted && !isPart2Prep && isListening && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
@@ -97,6 +98,54 @@ const RecordingControls = React.memo(
                 <span className="font-black text-[10px] uppercase tracking-[0.2em]">
                   {processingStatus}
                 </span>
+              </motion.div>
+            ) : isTTSLoading ? (
+              /* ── Examiner is fetching audio from Cloud TTS ── */
+              <motion.div
+                key="tts-loading"
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="flex items-center gap-2 bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/20 px-4 py-1.5 rounded-full"
+              >
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <Volume2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                </motion.div>
+                <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.15em] text-amber-700 dark:text-amber-400">
+                  Examiner preparing...
+                </p>
+              </motion.div>
+            ) : isSpeaking ? (
+              /* ── Examiner is speaking (audio playing) ── */
+              <motion.div
+                key="speaking"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="flex items-center gap-2 bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/20 px-4 py-1.5 rounded-full"
+              >
+                {/* Animated soundwave bars */}
+                <div className="flex items-center gap-0.5">
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="w-0.5 bg-rose-500 rounded-full"
+                      animate={{ height: ['4px', `${8 + i * 2}px`, '4px'] }}
+                      transition={{
+                        duration: 0.6,
+                        repeat: Infinity,
+                        delay: i * 0.1,
+                        ease: 'easeInOut',
+                      }}
+                    />
+                  ))}
+                </div>
+                <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.15em] text-rose-600 dark:text-rose-400">
+                  Examiner speaking...
+                </p>
               </motion.div>
             ) : isListening ? (
               <motion.div
@@ -147,9 +196,10 @@ const RecordingControls = React.memo(
 
               <motion.button
                 onClick={isListening ? onStopListening : onStartListening}
-                disabled={isProcessing || isSpeaking || timerExpiredRef?.current}
+                disabled={isProcessing || isSpeaking || isTTSLoading || timerExpiredRef?.current}
+                whileTap={!isProcessing && !isSpeaking && !isTTSLoading ? { scale: 0.95 } : {}}
                 className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-[1.25rem] sm:rounded-[1.5rem] flex items-center justify-center transition-colors duration-500 border-4 transform-gpu ${
-                  isProcessing || isSpeaking
+                  isProcessing || isSpeaking || isTTSLoading
                     ? 'bg-muted dark:bg-zinc-800 border-muted-foreground/10 cursor-not-allowed opacity-50'
                     : isListening
                       ? 'bg-gradient-to-br from-rose-500 via-rose-600 to-orange-700 border-rose-400/30'
@@ -158,6 +208,22 @@ const RecordingControls = React.memo(
               >
                 {isProcessing ? (
                   <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground animate-spin" />
+                ) : isTTSLoading ? (
+                  /* Pulsing volume icon while TTS is loading */
+                  <motion.div
+                    animate={{ opacity: [0.4, 1, 0.4] }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                  >
+                    <Volume2 className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
+                  </motion.div>
+                ) : isSpeaking ? (
+                  /* Animated volume icon while examiner is speaking */
+                  <motion.div
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
+                  >
+                    <Volume2 className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
+                  </motion.div>
                 ) : isListening ? (
                   <div className="relative flex items-center justify-center">
                     <StopCircle className="w-6 h-6 sm:w-8 sm:h-8 text-white fill-white/10" />

@@ -117,14 +117,24 @@ export default function SpeakingTest() {
   const { userProfile: authUser, loading: authLoading } = useAuth();
 
   // ─── TTS Hook ──────────────────────────────────────────────────────────
-  const { speakText, isSpeaking, isMuted, setIsMuted } = useSpeechSynthesis();
+  const { speakText, cancelCurrentAudio, isSpeaking, isTTSLoading, isMuted, setIsMuted } =
+    useSpeechSynthesis();
 
   // ─── Edge Function Warm-up ─────────────────────────────────────────────
-  // Fire a no-op ping on mount to eliminate cold-start latency on first turn
+  // Fire no-op pings on mount to eliminate cold-start latency on first turn
   useEffect(() => {
     if (!testId) return;
     callEdgeFunction('processSpeakingSession', { ping: true }).catch(() => {});
+    // Warm up the TTS edge function so the greeting fires instantly
+    supabase.functions.invoke('synthesizeSpeech', { body: { ping: true } }).catch(() => {});
   }, [testId]);
+
+  // ─── Stop audio immediately when leaving the test page ─────────────────
+  useEffect(() => {
+    return () => {
+      cancelCurrentAudio();
+    };
+  }, [cancelCurrentAudio]);
 
   // ─── Session State ─────────────────────────────────────────────────────
   const [session, setSession] = useState(null);
@@ -518,8 +528,26 @@ export default function SpeakingTest() {
           if (cleanExaminerResponse) {
             const responseTimerId = setTimeout(() => {
               pendingTimersRef.current.delete(responseTimerId);
-              setConversation((prev) => [...prev, { speaker: 'ai', text: cleanExaminerResponse }]);
-              speakText(cleanExaminerResponse);
+              setConversation((prev) => [...prev, { speaker: 'ai', text: '...', isLoading: true }]);
+              speakText(cleanExaminerResponse, {
+                cancel: true,
+                onPlayStart: () => {
+                  setConversation((prev) => {
+                    const updated = [...prev];
+                    const idx = updated.findLastIndex((m) => m.isLoading && m.speaker === 'ai');
+                    if (idx !== -1) {
+                      updated[idx] = {
+                        speaker: 'ai',
+                        text: cleanExaminerResponse,
+                        isLoading: false,
+                      };
+                    } else if (!updated.some((m) => m.text === cleanExaminerResponse)) {
+                      updated.push({ speaker: 'ai', text: cleanExaminerResponse });
+                    }
+                    return updated;
+                  });
+                },
+              });
 
               if (response.isPartComplete) {
                 const partCompleteTimerId = setTimeout(() => {
@@ -589,8 +617,22 @@ export default function SpeakingTest() {
         } else if (response.isPartComplete) {
           setConversation((prev) => prev.filter((m) => !m.isLoading));
           const farewell = response.message || `That concludes Part ${currentPartNumber}.`;
-          setConversation((prev) => [...prev, { speaker: 'ai', text: farewell }]);
-          speakText(farewell);
+          setConversation((prev) => [...prev, { speaker: 'ai', text: '...', isLoading: true }]);
+          speakText(farewell, {
+            cancel: true,
+            onPlayStart: () => {
+              setConversation((prev) => {
+                const updated = [...prev];
+                const idx = updated.findLastIndex((m) => m.isLoading && m.speaker === 'ai');
+                if (idx !== -1) {
+                  updated[idx] = { speaker: 'ai', text: farewell, isLoading: false };
+                } else if (!updated.some((m) => m.text === farewell)) {
+                  updated.push({ speaker: 'ai', text: farewell });
+                }
+                return updated;
+              });
+            },
+          });
           const completeTimerId = setTimeout(() => {
             pendingTimersRef.current.delete(completeTimerId);
             setIsPartComplete(true);
@@ -626,8 +668,22 @@ export default function SpeakingTest() {
           pendingTimersRef.current.delete(errorRecoveryTimerId);
           const recoveryMessage =
             "I'm sorry, I didn't quite catch that. Could you please repeat your answer?";
-          setConversation((prev) => [...prev, { speaker: 'ai', text: recoveryMessage }]);
-          speakText(recoveryMessage);
+          setConversation((prev) => [...prev, { speaker: 'ai', text: '...', isLoading: true }]);
+          speakText(recoveryMessage, {
+            cancel: true,
+            onPlayStart: () => {
+              setConversation((prev) => {
+                const updated = [...prev];
+                const idx = updated.findLastIndex((m) => m.isLoading && m.speaker === 'ai');
+                if (idx !== -1) {
+                  updated[idx] = { speaker: 'ai', text: recoveryMessage, isLoading: false };
+                } else if (!updated.some((m) => m.text === recoveryMessage)) {
+                  updated.push({ speaker: 'ai', text: recoveryMessage });
+                }
+                return updated;
+              });
+            },
+          });
           setIsProcessing(false);
         }, 1000);
         pendingTimersRef.current.add(errorRecoveryTimerId);
@@ -1205,13 +1261,32 @@ export default function SpeakingTest() {
             }
 
             const greeting = `Hello! Welcome to the IELTS Speaking Test. I'm your AI examiner, and I'll be conducting Part ${firstPart.partNumber} today. The topic is: "${firstPart.title}". Let's begin the examination.`;
-            // setConversation([{ speaker: 'ai', text: greeting }]); // REMOVED: Don't show until start
             setIsLoading(false);
             pendingGreetingRef.current = {
               greeting,
               testId: resolvedPassageId,
               partNumber: firstPart.partNumber,
             };
+
+            // SILENT PRE-CACHE: Hit the edge function in the background now so the audio
+            // is generated and cached in Supabase Storage before the user clicks "Start Test".
+            try {
+              supabase.functions
+                .invoke('synthesizeSpeech', { body: { text: greeting } })
+                .catch(() => {});
+              // Also pre-cache the absolute first question
+              const questionLines = String(firstPart.questions)
+                .split('\n')
+                .filter((q) => q.trim());
+              const firstQuestion =
+                questionLines[0] || "Let's begin. Can you tell me about yourself?";
+              supabase.functions
+                .invoke('synthesizeSpeech', { body: { text: firstQuestion } })
+                .catch(() => {});
+            } catch (e) {
+              // Ignore pre-cache failures silently but log to console to satisfy linter
+              console.warn('[TTS] Silent pre-cache warning:', e?.message || e);
+            }
           }
         } else {
           throw new Error('No questions found for this test.');
@@ -1621,6 +1696,7 @@ export default function SpeakingTest() {
                     isRecording={isRecording}
                     isProcessing={isProcessing}
                     isSpeaking={isSpeaking}
+                    isTTSLoading={isTTSLoading}
                     processingStatus={processingStatus}
                     micError={micError}
                     timerExpiredRef={timerExpiredRef}
