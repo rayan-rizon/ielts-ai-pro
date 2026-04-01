@@ -109,7 +109,7 @@ export function CognitiveInsightsCard({
               Thinking Patterns
             </h3>
             <p
-              className="text-[9px] uppercase tracking-wider font-bold text-slate-400 mt-0.5"
+              className="text-[9px] tracking-wider font-bold text-slate-400 mt-0.5"
               data-oid="66mh1sx"
             >
               Mental Performance
@@ -118,7 +118,7 @@ export function CognitiveInsightsCard({
         </div>
         <div
           className={cn(
-            'px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest',
+            'px-2 py-0.5 rounded-full text-[9px] font-black tracking-widest',
             conf.bg,
             conf.color
           )}
@@ -136,7 +136,7 @@ export function CognitiveInsightsCard({
         >
           <div className="flex items-center justify-between mb-2" data-oid="ysldjf:">
             <span
-              className="text-[9px] font-black text-slate-400 uppercase tracking-widest"
+              className="text-[9px] font-black text-slate-400 tracking-widest"
               data-oid="pjc66q6"
             >
               Choice Score
@@ -168,7 +168,7 @@ export function CognitiveInsightsCard({
         >
           <div className="flex items-center justify-between mb-2" data-oid="stdx6p6">
             <span
-              className="text-[9px] font-black text-slate-400 uppercase tracking-widest"
+              className="text-[9px] font-black text-slate-400 tracking-widest"
               data-oid="hizxwws"
             >
               Doubt Level
@@ -182,7 +182,7 @@ export function CognitiveInsightsCard({
             </span>
           </div>
           <p
-            className="mt-0.5 text-[9px] font-black text-slate-500 uppercase tracking-tight"
+            className="mt-0.5 text-[9px] font-black text-slate-500 tracking-tight"
             data-oid="-2pwfn0"
           >
             Changed answers
@@ -210,7 +210,7 @@ export function CognitiveInsightsCard({
               {totalAnswerChanges}
             </div>
             <div
-              className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5"
+              className="text-[8px] font-black text-slate-400 tracking-widest mt-0.5"
               data-oid="r6cg8-v"
             >
               Changes
@@ -224,7 +224,7 @@ export function CognitiveInsightsCard({
               {nearMissCount}
             </div>
             <div
-              className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5"
+              className="text-[8px] font-black text-slate-400 tracking-widest mt-0.5"
               data-oid="8jo:d.2"
             >
               Near Misses
@@ -238,7 +238,7 @@ export function CognitiveInsightsCard({
               {unansweredCount}
             </div>
             <div
-              className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5"
+              className="text-[8px] font-black text-slate-400 tracking-widest mt-0.5"
               data-oid="mf_u5o8"
             >
               Blanks
@@ -251,7 +251,7 @@ export function CognitiveInsightsCard({
       {troubleTypes && troubleTypes.length > 0 && (
         <div className="space-y-2 mb-4" data-oid="eo0r2mq">
           <div
-            className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest px-1"
+            className="flex items-center gap-2 text-[9px] font-black text-slate-400 tracking-widest px-1"
             data-oid="9ossbm8"
           >
             <AlertTriangle className="w-3 h-3" data-oid="-aa8s9f" /> Focus Areas

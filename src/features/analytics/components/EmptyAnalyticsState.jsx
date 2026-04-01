@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Card } from '@/components/ui/card';
 
 export default function EmptyAnalyticsState({ icon: Icon, title, description, action, className }) {
   return (
@@ -62,7 +61,10 @@ export default function EmptyAnalyticsState({ icon: Icon, title, description, ac
         >
           {title}
         </h3>
-        <p className="text-sm font-medium text-muted-foreground leading-relaxed" data-oid="4vykjsa">
+        <p
+          className="text-sm font-medium text-foreground/80 dark:text-foreground/70 leading-relaxed"
+          data-oid="4vykjsa"
+        >
           {description}
         </p>
       </motion.div>

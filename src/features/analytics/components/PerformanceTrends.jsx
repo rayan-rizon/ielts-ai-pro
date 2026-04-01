@@ -10,9 +10,6 @@ import {
   Sparkles,
   Gauge,
   ArrowRight,
-  ChevronRight,
-  Star,
-  Lock,
 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -46,21 +43,18 @@ function CustomTooltip({ active, payload, label }) {
   const val = payload?.[0]?.value;
   return (
     <div
-      className="rounded-2xl border border-border/70 bg-card/95 backdrop-blur-xl px-4 py-3 shadow-2xl border-opacity-50 min-w-[140px]"
+      className="rounded-2xl border border-border/80 bg-card/95 backdrop-blur-xl px-4 py-3 shadow-2xl border-opacity-50 min-w-[140px]"
       data-oid="qdrn1w5"
     >
-      <div
-        className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1"
-        data-oid="05wp2d7"
-      >
+      <div className="text-[10px] font-black text-primary tracking-[0.2em] mb-1" data-oid="05wp2d7">
         {label}
       </div>
       <div className="flex items-baseline gap-1" data-oid=":880-cr">
-        <span className="text-xl font-black text-foreground" data-oid="dgefpjn">
+        <span className="text-xl font-black text-foreground dark:text-white" data-oid="dgefpjn">
           {formatBand(val)}
         </span>
-        <span className="text-[10px] font-bold text-muted-foreground uppercase" data-oid="wfhq1l6">
-          Band Score
+        <span className="text-[10px] font-bold text-muted-foreground/90" data-oid="wfhq1l6">
+          Score
         </span>
       </div>
     </div>
@@ -75,7 +69,7 @@ const UniversalRadar = React.memo(function UniversalRadar({ data, name, color = 
       {!hasData && (
         <div className="absolute inset-0 flex items-center justify-center z-10" data-oid="rs:jonf">
           <Badge
-            className="bg-background/80 backdrop-blur-md border-border/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-4 py-1.5 rounded-xl shadow-xl"
+            className="bg-background/90 backdrop-blur-md border-primary/20 text-[10px] font-black tracking-widest text-muted-foreground px-4 py-1.5 rounded-xl shadow-xl"
             data-oid="5wl8q_3"
           >
             Awaiting Test Results
@@ -121,14 +115,14 @@ const UniversalRadar = React.memo(function UniversalRadar({ data, name, color = 
               />
             </linearGradient>
           </defs>
-          <PolarGrid stroke="hsl(var(--border))" opacity={0.3} data-oid=":ii.j3k" />
+          <PolarGrid stroke="hsl(var(--border))" opacity={0.8} data-oid=":ii.j3k" />
           <PolarAngleAxis
             dataKey="subject"
             tick={{
-              fill: 'hsl(var(--muted-foreground))',
-              fontSize: 8,
-              fontWeight: 900,
-              textTransform: 'uppercase',
+              fill: 'hsl(var(--foreground))',
+              fontSize: 10,
+              fontWeight: 800,
+              opacity: 0.9,
             }}
             data-oid=":3wln1i"
           />
@@ -188,7 +182,7 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: idx * 0.05 }}
-          className="group relative rounded-xl border border-border/30 bg-background/30 p-2.5 hover:bg-background/50 transition-all border-opacity-40"
+          className="group relative rounded-xl border border-primary/20 bg-card/95 p-2.5 hover:bg-card hover:shadow-md transition-all"
           data-oid="qpfmnea"
         >
           <div className="flex items-center justify-between mb-1.5 px-0.5" data-oid="d:oa..r">
@@ -206,10 +200,13 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
               />
 
               <span
-                className="text-[12px] font-black text-foreground truncate tracking-tight"
+                className="text-[12px] font-bold text-foreground dark:text-foreground tracking-tight"
                 data-oid="32-hpvy"
               >
-                {item.type}
+                {item.type
+                  .split(/_|\s+/)
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                  .join(' ')}
               </span>
             </div>
             <span
@@ -219,7 +216,7 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
                   ? 'text-emerald-500'
                   : item.accuracy >= 50
                     ? 'text-amber-500'
-                    : 'text-rose-500'
+                    : 'text-rose-500 dark:text-rose-400'
               )}
               data-oid="2-:-ndm"
             >
@@ -228,7 +225,7 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
           </div>
 
           <div
-            className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden mb-1.5"
+            className="h-1.5 w-full bg-muted/50 dark:bg-muted/30 rounded-full overflow-hidden mb-1.5"
             data-oid="pwl9tjb"
           >
             <motion.div
@@ -248,13 +245,16 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
 
           <div className="flex items-center justify-between px-0.5 mt-1" data-oid="f7d3yd2">
             <span
-              className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-[0.15em]"
+              className="text-[9px] font-black text-primary dark:text-blue-400 tracking-[0.15em] opacity-100"
               data-oid="hm1trio"
             >
-              Precision
+              Success
             </span>
-            <span className="text-[10px] font-black text-muted-foreground" data-oid="u5q:igr">
-              <span className="text-foreground" data-oid="67cswiw">
+            <span
+              className="text-[10px] font-black text-muted-foreground dark:text-muted-foreground/90"
+              data-oid="u5q:igr"
+            >
+              <span className="text-foreground dark:text-foreground" data-oid="67cswiw">
                 {item.correct}
               </span>{' '}
               / {item.total}
@@ -291,7 +291,7 @@ const LockedFeature = React.memo(function LockedFeature({
       >
         <div
           className={cn(
-            'w-full rounded-[2rem] border border-amber-500/20 bg-background/40 backdrop-blur-3xl p-6 sm:p-8 shadow-[0_20px_50px_-12px_rgba(245,158,11,0.2)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] transform group-hover/locked:scale-[1.01] transition-all duration-500 ring-1 ring-white/10',
+            'w-full rounded-[2rem] border border-amber-500/30 bg-card p-6 sm:p-8 shadow-[0_20px_50px_-12px_rgba(245,158,11,0.25)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.6)] transform group-hover/locked:scale-[1.01] transition-all duration-500 ring-1 ring-white/10',
             compact ? 'max-w-[280px] p-4 sm:p-5' : 'max-w-[340px]'
           )}
           data-oid="i5mz2xi"
@@ -299,7 +299,7 @@ const LockedFeature = React.memo(function LockedFeature({
           <div className="flex flex-col items-center text-center gap-4" data-oid="do5kko:">
             {!compact && (
               <div
-                className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 text-white flex items-center justify-center shadow-xl shadow-amber-500/30 group-hover/locked:rotate-6 transition-transform duration-500"
+                className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 text-white flex items-center justify-center shadow-xl shadow-amber-500/40 group-hover/locked:rotate-6 transition-transform duration-500"
                 data-oid="9gty6zb"
               >
                 <Zap className="w-7 h-7 fill-white/20" data-oid="csyu73." />
@@ -332,7 +332,7 @@ const LockedFeature = React.memo(function LockedFeature({
             </div>
 
             <Button
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white border-0 font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-amber-500/25 h-10 group/btn"
+              className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white border-0 font-black text-xs tracking-widest rounded-xl shadow-lg shadow-amber-500/25 h-10 group/btn"
               data-oid="-c9-t9y"
             >
               Upgrade Now
@@ -356,7 +356,7 @@ const LockedFeature = React.memo(function LockedFeature({
                     +2k
                   </div>
                 </div>
-                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                <span className="text-[9px] font-black text-muted-foreground tracking-widest">
                   Join 2,500+ successful students
                 </span>
               </div>
@@ -387,7 +387,7 @@ export default function PerformanceTrends({
       {/* Performance Trends Chart */}
       <motion.div variants={ITEM_VARIANTS} data-oid="7-3vqly">
         <Card
-          className="rounded-2xl border-border/50 bg-card/75 backdrop-blur shadow-sm overflow-hidden hover:shadow-xl transition-all h-full"
+          className="rounded-2xl border-primary/20 bg-card/95 backdrop-blur shadow-md overflow-hidden hover:shadow-2xl transition-all h-full"
           data-oid="qr-cduw"
         >
           <CardHeader className="pb-3" data-oid="-j_:j6k">
@@ -401,10 +401,10 @@ export default function PerformanceTrends({
                   data-oid="vjxe3b3"
                 >
                   <Activity className="w-5 h-5 text-primary" data-oid="b3s4yyp" />
-                  Performance Trends
+                  Your Progress Trend
                 </CardTitle>
                 <CardDescription className="font-medium" data-oid="950965g">
-                  Score progression over time.
+                  Watch your scores go up over time!
                 </CardDescription>
               </div>
 
@@ -476,7 +476,7 @@ export default function PerformanceTrends({
                         <TrendingUp className="w-7 h-7 text-primary/40" data-oid="31ulcz3" />
                       </div>
                       <p
-                        className="text-xs font-black text-muted-foreground uppercase tracking-widest text-center max-w-[150px]"
+                        className="text-xs font-black text-muted-foreground tracking-widest text-center max-w-[150px]"
                         data-oid="o4dgu4p"
                       >
                         Analyzing First Session...
@@ -541,7 +541,7 @@ export default function PerformanceTrends({
                         strokeDasharray="3 3"
                         vertical={false}
                         stroke="hsl(var(--border))"
-                        opacity={0.6}
+                        opacity={0.8}
                         data-oid="d5.t..y"
                       />
 
@@ -550,9 +550,10 @@ export default function PerformanceTrends({
                         axisLine={false}
                         tickLine={false}
                         tick={{
-                          fill: 'hsl(var(--muted-foreground))',
+                          fill: 'hsl(var(--foreground))',
                           fontSize: 10,
-                          fontWeight: 700,
+                          fontWeight: 800,
+                          opacity: 0.8,
                         }}
                         dy={5}
                         minTickGap={30}
@@ -565,9 +566,10 @@ export default function PerformanceTrends({
                         axisLine={false}
                         tickLine={false}
                         tick={{
-                          fill: 'hsl(var(--muted-foreground))',
+                          fill: 'hsl(var(--foreground))',
                           fontSize: 12,
-                          fontWeight: 700,
+                          fontWeight: 800,
+                          opacity: 0.8,
                         }}
                         width={28}
                         data-oid="-d2.ni0"
@@ -611,7 +613,7 @@ export default function PerformanceTrends({
                         strokeDasharray="3 3"
                         vertical={false}
                         stroke="hsl(var(--border))"
-                        opacity={0.6}
+                        opacity={0.8}
                         data-oid="me3hq_5"
                       />
 
@@ -620,9 +622,10 @@ export default function PerformanceTrends({
                         axisLine={false}
                         tickLine={false}
                         tick={{
-                          fill: 'hsl(var(--muted-foreground))',
+                          fill: 'hsl(var(--foreground))',
                           fontSize: 10,
-                          fontWeight: 700,
+                          fontWeight: 800,
+                          opacity: 0.8,
                         }}
                         dy={5}
                         minTickGap={30}
@@ -635,9 +638,10 @@ export default function PerformanceTrends({
                         axisLine={false}
                         tickLine={false}
                         tick={{
-                          fill: 'hsl(var(--muted-foreground))',
+                          fill: 'hsl(var(--foreground))',
                           fontSize: 12,
-                          fontWeight: 700,
+                          fontWeight: 800,
+                          opacity: 0.8,
                         }}
                         width={28}
                         data-oid="8t2-drm"
@@ -666,7 +670,7 @@ export default function PerformanceTrends({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6" data-oid="pj.2q8p">
           {/* Module Mastery Radar */}
           <Card
-            className="rounded-2xl border-border/50 bg-card/75 backdrop-blur shadow-sm overflow-hidden hover:shadow-xl transition-all h-[360px] flex flex-col"
+            className="rounded-2xl border-primary/20 bg-card/95 backdrop-blur shadow-md overflow-hidden hover:shadow-2xl transition-all h-[360px] flex flex-col"
             data-oid="obrjoof"
           >
             <CardHeader className="pb-2" data-oid="hc-wu6j">
@@ -680,7 +684,7 @@ export default function PerformanceTrends({
                 </CardTitle>
                 <Badge
                   variant="outline"
-                  className="rounded-xl border-border/60 bg-muted/40 text-[10px] uppercase font-black"
+                  className="rounded-xl border-primary/20 bg-muted/40 text-[10px] font-black"
                   data-oid="fb9l6zn"
                 >
                   Balance
@@ -714,7 +718,7 @@ export default function PerformanceTrends({
                   >
                     <div className="flex items-center justify-between px-1" data-oid="wz._gze">
                       <span
-                        className="text-[10px] font-black text-muted-foreground uppercase tracking-widest"
+                        className="text-[10px] font-black text-foreground/80 dark:text-foreground/70 tracking-widest"
                         data-oid="ra-rsiz"
                       >
                         {item.subject}
@@ -745,7 +749,7 @@ export default function PerformanceTrends({
 
           {/* Question Types */}
           <Card
-            className="rounded-2xl border-border/50 bg-card/75 backdrop-blur shadow-sm overflow-hidden hover:shadow-xl transition-all h-[360px]"
+            className="rounded-2xl border-primary/20 bg-card/95 backdrop-blur shadow-md overflow-hidden hover:shadow-2xl transition-all h-[360px]"
             data-oid="3bnrh6g"
           >
             <CardHeader className="pb-3" data-oid="n9word6">
@@ -755,18 +759,18 @@ export default function PerformanceTrends({
                   data-oid="::shik2"
                 >
                   <Target className="w-5 h-5 text-primary" data-oid="uxibci1" />
-                  Question Types
+                  Question Success Rate
                 </CardTitle>
                 <Badge
                   variant="outline"
-                  className="rounded-xl border-border/60 bg-muted/40 text-[10px] uppercase font-black"
+                  className="rounded-xl border-emerald-500/30 bg-emerald-500/10 text-[10px] font-black text-emerald-600 dark:text-emerald-400"
                   data-oid="9:3a._o"
                 >
-                  Precision
+                  Success
                 </Badge>
               </div>
               <CardDescription data-oid="c2x3g-r">
-                Performance breakdown by specific IELTS question patterns.
+                How you perform in each type of question.
               </CardDescription>
             </CardHeader>
             <CardContent
@@ -779,7 +783,7 @@ export default function PerformanceTrends({
 
           {/* Deep Insights (Pro) */}
           <Card
-            className="rounded-2xl border-border/50 bg-card/75 backdrop-blur shadow-sm overflow-hidden hover:shadow-xl transition-all h-[360px] flex flex-col"
+            className="rounded-2xl border-primary/20 bg-card/95 backdrop-blur shadow-md overflow-hidden hover:shadow-2xl transition-all h-[360px] flex flex-col"
             data-oid="u_amfu5"
           >
             <CardHeader className="pb-4" data-oid="-4_zzio">
@@ -793,19 +797,19 @@ export default function PerformanceTrends({
                   </div>
                   <div data-oid="7tzifoi">
                     <CardTitle className="text-xl font-black text-foreground" data-oid="e2-32..">
-                      Deep Insights
+                      Smart Feedback
                     </CardTitle>
                     <CardDescription
                       className="font-medium text-xs text-muted-foreground"
                       data-oid="m_l7ys7"
                     >
-                      Advanced pattern analysis
+                      Personalized tips for you
                     </CardDescription>
                   </div>
                 </div>
                 {!isPremium && (
                   <Badge
-                    className="rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none px-3 py-1 font-black text-[9px] uppercase tracking-wider"
+                    className="rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none px-3 py-1 font-black text-[9px] tracking-wider"
                     data-oid="r6a_lzr"
                   >
                     Pro Feature
@@ -818,17 +822,17 @@ export default function PerformanceTrends({
                 <div className="p-6 pt-0 space-y-6 overflow-y-auto h-full" data-oid="inner-content">
                   {stats.enhancedMetrics.hasData ? (
                     <>
-                      <div className="grid grid-cols-3 gap-2" data-oid="-lufzwo">
+                      <div className="grid grid-cols-3 gap-3" data-oid="-lufzwo">
                         <StatMiniCard
                           icon={Timer}
-                          label="Avg Session"
+                          label="Avg Time"
                           value={`${stats.enhancedMetrics.avgTimePerSession}m`}
                           data-oid="dgo-bc1"
                         />
 
                         <StatMiniCard
                           icon={Zap}
-                          label="Rushed"
+                          label="Too Fast"
                           value={stats.enhancedMetrics.totalRushed}
                           alert={stats.enhancedMetrics.totalRushed > 5}
                           alertColor="amber"
@@ -837,7 +841,7 @@ export default function PerformanceTrends({
 
                         <StatMiniCard
                           icon={AlertTriangle}
-                          label="Overanalyzed"
+                          label="Too Slow"
                           value={stats.enhancedMetrics.totalOveranalyzed}
                           alert={stats.enhancedMetrics.totalOveranalyzed > 5}
                           alertColor="rose"
@@ -849,8 +853,8 @@ export default function PerformanceTrends({
                         <div className="space-y-3" data-oid="ms_lc-0">
                           <SectionHeading
                             icon={Target}
-                            label="Weakest Skills"
-                            subLabel="Impact Analysis"
+                            label="Skills to Work On"
+                            subLabel="Priority"
                             data-oid="5gk2v.7"
                           />
 
@@ -914,20 +918,24 @@ function StatMiniCard({ icon: Icon, label, value, alert, alertColor }) {
           ? alertColor === 'rose'
             ? 'bg-rose-500/5 border-rose-500/20 hover:bg-rose-500/10'
             : 'bg-amber-500/5 border-amber-500/20 hover:bg-amber-500/10'
-          : 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-700/50 hover:bg-slate-100'
+          : 'bg-card border-primary/20 group-hover:bg-primary/5 hover:border-primary/40'
       )}
       data-oid="iykydqu"
     >
       <Icon
         className={cn(
           'w-3.5 h-3.5 mb-1 group-hover:scale-110 transition-transform',
-          alert ? (alertColor === 'rose' ? 'text-rose-500' : 'text-amber-500') : 'text-slate-400'
+          alert
+            ? alertColor === 'rose'
+              ? 'text-rose-500'
+              : 'text-amber-500'
+            : 'text-foreground/80'
         )}
         data-oid="qvxcv1p"
       />
 
       <span
-        className="text-[8px] font-bold text-slate-500 uppercase tracking-tight mb-0"
+        className="text-[9px] font-black text-foreground/80 dark:text-foreground/70 tracking-tight mb-0.5"
         data-oid="m2xsq81"
       >
         {label}
@@ -954,15 +962,18 @@ function SectionHeading({ icon: Icon, label, subLabel, color }) {
     <div className="flex items-center justify-between px-1" data-oid="4-fb8tb">
       <span
         className={cn(
-          'text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2',
+          'text-[11px] font-black text-foreground/90 tracking-widest flex items-center gap-2',
           color
         )}
         data-oid="xp9yc9d"
       >
-        <Icon className="w-3.5 h-3.5" data-oid="qrnu9el" /> {label}
+        <Icon className="w-3.5 h-3.5 text-primary" data-oid="qrnu9el" /> {label}
       </span>
       {subLabel && (
-        <span className="text-[10px] font-bold text-slate-400" data-oid="c070qju">
+        <span
+          className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground/80"
+          data-oid="c070qju"
+        >
           {subLabel}
         </span>
       )}
@@ -977,20 +988,17 @@ function SkillGapItem({ skill, avg }) {
         className="flex justify-between items-center text-[10px] font-bold px-1"
         data-oid="2aleqd_"
       >
-        <span
-          className="text-slate-600 dark:text-slate-300 uppercase tracking-tight"
-          data-oid="9xf0ipf"
-        >
-          {skill.replace(/([A-Z])/g, ' $1').trim()}
+        <span className="text-foreground font-black tracking-tight" data-oid="9xf0ipf">
+          {skill}
         </span>
         <span
           className={cn(
             'font-black px-1.5 py-0.5 rounded-md',
             avg < 30
-              ? 'bg-rose-500/10 text-rose-600'
+              ? 'bg-rose-500/10 text-rose-600 dark:text-rose-300'
               : avg < 60
-                ? 'bg-amber-500/10 text-amber-600'
-                : 'bg-emerald-500/10 text-emerald-600'
+                ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300'
+                : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300'
           )}
           data-oid="my7m1nk"
         >
@@ -998,7 +1006,7 @@ function SkillGapItem({ skill, avg }) {
         </span>
       </div>
       <div
-        className="h-2.5 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden p-0.5 border border-slate-200/50 dark:border-slate-700/50 shadow-inner"
+        className="h-2.5 bg-muted/30 dark:bg-muted/20 rounded-full overflow-hidden p-0.5 border border-border/50 dark:border-border/40 shadow-inner"
         data-oid="emij1sn"
       >
         <motion.div
@@ -1022,7 +1030,7 @@ function SkillGapItem({ skill, avg }) {
 function TroubleTag({ type }) {
   return (
     <div
-      className="px-3 py-1.5 rounded-2xl bg-rose-500/[0.03] dark:bg-rose-500/[0.05] border border-rose-500/10 dark:border-rose-500/20 backdrop-blur-sm flex items-center gap-2 group hover:border-rose-500/40 transition-all cursor-default"
+      className="px-3 py-1.5 rounded-2xl bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/20 dark:border-rose-500/30 backdrop-blur-sm flex items-center gap-2 group hover:border-rose-500/50 transition-all cursor-default"
       data-oid="5ng.5bc"
     >
       <div
@@ -1031,15 +1039,11 @@ function TroubleTag({ type }) {
       />
 
       <span
-        className="text-xs font-black text-foreground capitalize tracking-tight"
+        className="text-xs font-black text-foreground dark:text-white capitalize tracking-tight"
         data-oid="gr0rke."
       >
-        {type.replace(/_/g, ' ')}
+        {type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
       </span>
     </div>
   );
-}
-
-function EmptyState(props) {
-  return <EmptyAnalyticsState {...props} data-oid="-e_e_yi" />;
 }

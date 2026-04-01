@@ -27,24 +27,18 @@ const CustomTooltip = ({ active, payload }) => {
       >
         <div className="flex items-center gap-2 mb-2" data-oid="axs_q7f">
           <Badge
-            className="bg-primary/10 text-primary border-0 text-[10px] font-black uppercase tracking-tight"
+            className="bg-primary/10 text-primary border-0 text-[10px] font-black tracking-tight"
             data-oid="x7f_179"
           >
             {data.type}
           </Badge>
-          <span
-            className="text-[10px] font-black text-muted-foreground uppercase"
-            data-oid="-x43ilw"
-          >
+          <span className="text-[10px] font-black text-muted-foreground" data-oid="-x43ilw">
             Session
           </span>
         </div>
         <div className="space-y-1.5" data-oid="142xude">
           <div className="flex justify-between items-center gap-4" data-oid="ago88xp">
-            <span
-              className="text-[10px] font-bold text-muted-foreground uppercase"
-              data-oid="wz:i4.k"
-            >
+            <span className="text-[10px] font-bold text-muted-foreground" data-oid="wz:i4.k">
               Accuracy
             </span>
             <span className="text-xs font-black text-foreground" data-oid="1s9m9sf">
@@ -52,7 +46,7 @@ const CustomTooltip = ({ active, payload }) => {
             </span>
           </div>
           <div className="flex justify-between items-center gap-4" data-oid=".8oyay4">
-            <span className="text-[10px] font-bold text-rose-500 uppercase" data-oid="mkk.v-q">
+            <span className="text-[10px] font-bold text-rose-500" data-oid="mkk.v-q">
               Quick Responses
             </span>
             <span className="text-xs font-black text-rose-500" data-oid="prmxgfn">
@@ -60,7 +54,7 @@ const CustomTooltip = ({ active, payload }) => {
             </span>
           </div>
           <div className="flex justify-between items-center gap-4" data-oid="bdlk1uw">
-            <span className="text-[10px] font-bold text-amber-500 uppercase" data-oid="jwo7vit">
+            <span className="text-[10px] font-bold text-amber-500" data-oid="jwo7vit">
               Carefully Answered
             </span>
             <span className="text-xs font-black text-amber-500" data-oid="00:wxh9">
@@ -137,18 +131,21 @@ export default function EfficiencyMatrix({ paceData, onDrilldown }) {
               data-oid="b5ewgfg"
             >
               <Timer className="w-5 h-5 text-primary" data-oid="t_5_pk2" />
-              Efficiency Matrix
+              Your Pacing Chart
             </CardTitle>
             <Badge
               variant="outline"
-              className="rounded-xl border-border/60 bg-muted/40 text-[10px] uppercase font-black"
+              className="rounded-xl border-border/60 bg-muted/40 text-[10px] font-black"
               data-oid="2x4isuw"
             >
-              Pacing
+              Speed Analysis
             </Badge>
           </div>
-          <CardDescription data-oid="lk3-j4:">
-            Click dots to analyze specific sessions and pacing patterns.
+          <CardDescription
+            className="text-xs font-semibold text-muted-foreground/80"
+            data-oid="lk3-j4:"
+          >
+            See if you are rushing or taking too much time on questions.
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0 flex-1 relative min-h-0 flex flex-col" data-oid="w-_:m-f">
@@ -159,38 +156,37 @@ export default function EfficiencyMatrix({ paceData, onDrilldown }) {
                   className="absolute inset-x-8 top-0 bottom-12 border-dashed border-border/20 pointer-events-none"
                   data-oid="vf19a-q"
                 >
-                  {/* Quadrant Labels */}
                   <div
-                    className="absolute top-4 right-4 text-[9px] font-black uppercase text-rose-500/40 tracking-widest text-right"
+                    className="absolute top-4 right-4 text-[10px] font-black text-rose-500/60 dark:text-rose-400/80 tracking-wide text-right leading-tight"
                     data-oid="sui-haz"
                   >
-                    High Friction
+                    Struggling Zone
                     <br data-oid="tc7:29c" />
-                    Needs Balance
+                    More Work Needed
                   </div>
                   <div
-                    className="absolute bottom-4 right-4 text-[9px] font-black uppercase text-amber-500/40 tracking-widest text-right"
+                    className="absolute bottom-6 right-4 text-[10px] font-black text-amber-500/60 dark:text-amber-400/80 tracking-wide text-right leading-tight"
                     data-oid="4c8a-1u"
                   >
-                    Careful Thinking
+                    Taking Extra Time
                     <br data-oid="abbhdsw" />
-                    Slow Processing
+                    Very Careful
                   </div>
                   <div
-                    className="absolute top-4 left-4 text-[9px] font-black uppercase text-rose-400/40 tracking-widest"
+                    className="absolute top-4 left-4 text-[10px] font-black text-rose-400/60 dark:text-rose-400/80 tracking-wide leading-tight"
                     data-oid="3ovh.08"
                   >
-                    Quick Zone
+                    Rushing Zone
                     <br data-oid="ngaceeg" />
-                    Check Accuracy
+                    Slow Down Slightly
                   </div>
                   <div
-                    className="absolute bottom-4 left-4 text-[9px] font-black uppercase text-emerald-500/40 tracking-widest"
+                    className="absolute bottom-6 left-4 text-[10px] font-black text-emerald-500/60 dark:text-emerald-400/80 tracking-wide leading-tight"
                     data-oid="dle.k:d"
                   >
-                    Optimal Zone
+                    Perfect Pace
                     <br data-oid="k_2gwmb" />
-                    Balanced Pace
+                    Balanced & Steady
                   </div>
                 </div>
 
@@ -280,7 +276,7 @@ export default function EfficiencyMatrix({ paceData, onDrilldown }) {
                   <div className="flex items-center gap-1.5" data-oid="cpusqe6">
                     <div className="w-1.5 h-1.5 rounded-full bg-rose-500" data-oid="4g-g9y-" />
                     <span
-                      className="text-[10px] font-bold text-muted-foreground uppercase"
+                      className="text-[10px] font-bold text-muted-foreground"
                       data-oid="xtbt-c-"
                     >
                       Quick
@@ -289,7 +285,7 @@ export default function EfficiencyMatrix({ paceData, onDrilldown }) {
                   <div className="flex items-center gap-1.5" data-oid="phlo:6y">
                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500" data-oid="_x-tb0o" />
                     <span
-                      className="text-[10px] font-bold text-muted-foreground uppercase"
+                      className="text-[10px] font-bold text-muted-foreground"
                       data-oid=".ymx09u"
                     >
                       Careful
@@ -297,7 +293,7 @@ export default function EfficiencyMatrix({ paceData, onDrilldown }) {
                   </div>
                 </div>
                 <span
-                  className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-tighter italic"
+                  className="text-[10px] font-black text-muted-foreground/40 tracking-tighter italic"
                   data-oid="c89_boi"
                 >
                   Dot size = Accuracy %

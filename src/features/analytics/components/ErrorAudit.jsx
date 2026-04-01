@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { AlertCircle, PieChart as PieIcon, ExternalLink } from 'lucide-react';
 import { ITEM_VARIANTS } from '../constants';
 import EmptyAnalyticsState from './EmptyAnalyticsState';
-import ErrorDrilldownModal from './ErrorDrilldownModal';
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
@@ -16,10 +15,7 @@ const CustomTooltip = ({ active, payload }) => {
         className="rounded-xl border border-border/50 bg-card/95 backdrop-blur-xl p-3 shadow-2xl"
         data-oid="nq4uozw"
       >
-        <div
-          className="text-[10px] font-black text-muted-foreground uppercase mb-1"
-          data-oid="w8grf5t"
-        >
+        <div className="text-[10px] font-black text-muted-foreground mb-1" data-oid="w8grf5t">
           {data.name}
         </div>
         <div className="text-lg font-black text-foreground" data-oid="bdu7d4e">
@@ -40,10 +36,10 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
 
   const handleCellClick = (entry) => {
     const categoryMap = {
-      'Near Misses': 'nearMisses',
-      Rushed: 'rushed',
-      Overanalyzed: 'overanalyzed',
-      Unanswered: 'unanswered',
+      'Almost Correct': 'nearMisses',
+      Rushing: 'rushed',
+      'Thinking Too Long': 'overanalyzed',
+      'Left Blank': 'unanswered',
     };
 
     const key = categoryMap[entry.name];
@@ -54,20 +50,20 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
 
   const getSmartDescription = () => {
     if (!hasData) return null;
-    const rushed = data.find((d) => d.name === 'Rushed')?.value || 0;
-    const overanalyzed = data.find((d) => d.name === 'Overanalyzed')?.value || 0;
-    const unanswered = data.find((d) => d.name === 'Unanswered')?.value || 0;
+    const rushed = data.find((d) => d.name === 'Rushing')?.value || 0;
+    const overanalyzed = data.find((d) => d.name === 'Thinking Too Long')?.value || 0;
+    const unanswered = data.find((d) => d.name === 'Left Blank')?.value || 0;
 
     if (unanswered > totalPointsLost * 0.3) {
-      return "You're leaving too many questions blank. In IELTS, there's no penalty for guessing—always fill in an answer!";
+      return "You're leaving too many questions blank. Always pick an answer! There are no negative marks in IELTS.";
     }
     if (rushed > overanalyzed * 2) {
-      return "Most of your errors are coming from 'Rushing'. Slowing down just slightly could boost your band score immediately.";
+      return 'You are rushing too much. Slowing down just a little could boost your band score immediately.';
     }
     if (overanalyzed > rushed * 2) {
-      return "You're losing points to 'Overthinking'. Build confidence in your first analysis to save time for harder sections.";
+      return 'You are thinking too long on each question. Trust your first choice more to save time.';
     }
-    return 'Your error profile is balanced. Focus on high-frequency trouble types to break through to the next band.';
+    return 'Your performance is balanced. Focus on your most frequent mistake types to improve your score.';
   };
 
   return (
@@ -82,19 +78,22 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
               className="text-xl font-black text-foreground flex items-center gap-2"
               data-oid=":1-v0nr"
             >
-              <AlertCircle className="w-5 h-5 text-rose-500" data-oid="_3fwp::" />
+              <AlertCircle className="w-5 h-5 text-primary" data-oid="_3fwp::" />
               Answer Analysis
             </CardTitle>
             <Badge
               variant="outline"
-              className="rounded-xl border-border/60 bg-muted/40 text-[10px] uppercase font-black"
+              className="rounded-xl border-border/60 bg-muted/40 text-[10px] font-black"
               data-oid="od1xci2"
             >
-              Interactive
+              Click Any Part
             </Badge>
           </div>
-          <CardDescription data-oid="jncrkaz">
-            Click segments to drill down into specific failures.
+          <CardDescription
+            className="text-xs font-semibold text-muted-foreground/80"
+            data-oid="jncrkaz"
+          >
+            See why you missed marks and get tips to improve.
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0 flex-1 flex flex-col min-h-0" data-oid="-s_kl9j">
@@ -105,14 +104,17 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
                   className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center pointer-events-none"
                   data-oid="fg4w.d."
                 >
-                  <div className="text-3xl font-black text-foreground" data-oid="n4.-qub">
+                  <div
+                    className="text-2xl md:text-3xl font-black text-foreground"
+                    data-oid="n4.-qub"
+                  >
                     {totalPointsLost}
                   </div>
                   <div
-                    className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none"
+                    className="text-[9px] md:text-[10px] font-black text-muted-foreground tracking-widest leading-none"
                     data-oid="z0du9py"
                   >
-                    Total Errors
+                    Total Mistakes
                   </div>
                 </div>
                 <ResponsiveContainer width="100%" height="100%" data-oid="mrt:xbh">
@@ -121,8 +123,8 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
                       data={data}
                       cx="50%"
                       cy="50%"
-                      innerRadius={65}
-                      outerRadius={85}
+                      innerRadius={60}
+                      outerRadius={80}
                       paddingAngle={5}
                       dataKey="value"
                       stroke="none"
@@ -148,12 +150,18 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
                 className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10 mt-2 mb-4"
                 data-oid="l.yh1v8"
               >
-                <p
-                  className="text-xs font-semibold text-foreground/80 leading-relaxed italic text-center"
-                  data-oid="_2yp0gn"
-                >
-                  "{getSmartDescription()}"
-                </p>
+                <div className="flex gap-2 justify-center" data-oid="insight-wrapper">
+                  <AlertCircle
+                    className="w-3 h-3 text-rose-500 shrink-0 mt-0.5"
+                    data-oid="insight-icon"
+                  />
+                  <p
+                    className="text-[11px] md:text-xs font-semibold text-foreground/80 leading-relaxed italic text-center"
+                    data-oid="_2yp0gn"
+                  >
+                    "{getSmartDescription()}"
+                  </p>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 mt-auto" data-oid="6xu9:ya">
@@ -161,28 +169,31 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
                   <button
                     key={item.name}
                     onClick={() => handleCellClick(item)}
-                    className="p-2 rounded-xl bg-muted/30 border border-border/10 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left group"
+                    className="p-2 md:p-2.5 rounded-xl bg-muted/30 border border-border/10 flex items-center gap-2 md:gap-3 hover:bg-muted/50 transition-colors text-left group min-h-[50px]"
                     data-oid="1v-y445"
                   >
                     <div
-                      className="w-1.5 h-1.5 rounded-full"
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
                       style={{ backgroundColor: item.color }}
                       data-oid="9v29jg:"
                     />
 
-                    <div className="flex-1" data-oid="dc_qyf7">
+                    <div className="flex-1 min-w-0" data-oid="dc_qyf7">
                       <div
-                        className="text-[9px] font-black text-muted-foreground uppercase leading-none"
+                        className="text-[8px] md:text-[9px] font-black text-muted-foreground leading-none truncate"
                         data-oid="fow57u7"
                       >
                         {item.name}
                       </div>
-                      <div className="text-xs font-black text-foreground mt-1" data-oid="ztnoqyh">
+                      <div
+                        className="text-xs md:text-sm font-black text-foreground mt-1"
+                        data-oid="ztnoqyh"
+                      >
                         {item.value}
                       </div>
                     </div>
                     <ExternalLink
-                      className="w-3 h-3 text-muted-foreground/0 group-hover:text-muted-foreground/40 transition-all"
+                      className="w-3 h-3 text-muted-foreground/0 group-hover:text-muted-foreground/40 transition-all shrink-0"
                       data-oid="fh.3g7n"
                     />
                   </button>
@@ -193,8 +204,8 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
             // Empty State
             <EmptyAnalyticsState
               icon={PieIcon}
-              title="Answer Breakdown"
-              description="Complete practice tests to see a detailed breakdown of your answer patterns and identify areas for improvement."
+              title="Mistake Tracking"
+              description="Keep practicing to see a breakdown of your mistakes and get tips to fix them."
               className="py-12"
               data-oid="nklq56g"
             />

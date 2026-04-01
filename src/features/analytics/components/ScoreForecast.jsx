@@ -12,7 +12,8 @@ import {
 } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Target, Calendar } from 'lucide-react';
+import { Target } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { ITEM_VARIANTS } from '../constants';
 import EmptyAnalyticsState from './EmptyAnalyticsState';
 
@@ -26,17 +27,17 @@ const CustomTooltip = ({ active, payload }) => {
       >
         <div className="flex items-center gap-2 mb-2" data-oid="2ergm3n">
           <Badge
-            className={
-              data.isForecast ? 'bg-indigo-500/10 text-indigo-500' : 'bg-primary/10 text-primary'
-            }
+            className={cn(
+              data.isForecast
+                ? 'bg-indigo-500/10 text-indigo-500 dark:text-indigo-400'
+                : 'bg-primary/10 text-primary dark:text-blue-400',
+              'border-0'
+            )}
             data-oid="_31sywd"
           >
             {data.isForecast ? 'Projection' : 'Current'}
           </Badge>
-          <span
-            className="text-[10px] font-black text-muted-foreground uppercase"
-            data-oid="fj9g561"
-          >
+          <span className="text-[10px] font-black text-muted-foreground" data-oid="fj9g561">
             {data.date}
           </span>
         </div>
@@ -68,12 +69,15 @@ export default function ScoreForecast({ forecastData, targetScore }) {
                 className="text-xl font-black text-foreground flex items-center gap-2"
                 data-oid="t-q9d3q"
               >
-                <Target className="w-5 h-5 text-indigo-500" data-oid="nrdzosg" />
+                <Target
+                  className="w-5 h-5 text-indigo-500 dark:text-indigo-400"
+                  data-oid="nrdzosg"
+                />
                 Band 9 Projector
               </CardTitle>
               <Badge
                 variant="outline"
-                className="rounded-xl border-border/60 bg-muted/40 text-[10px] uppercase font-black"
+                className="rounded-xl border-border/60 bg-muted/40 text-[10px] font-black"
                 data-oid="_zdt5oc"
               >
                 Motivation
@@ -117,7 +121,7 @@ export default function ScoreForecast({ forecastData, targetScore }) {
             </CardTitle>
             <Badge
               variant="outline"
-              className="rounded-xl border-border/60 bg-muted/40 text-[10px] uppercase font-black"
+              className="rounded-xl border-border/60 bg-muted/40 text-[10px] font-black"
               data-oid="6g66uzo"
             >
               Motivation

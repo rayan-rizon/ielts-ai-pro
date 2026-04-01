@@ -1,16 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import {
-  Clock,
-  Target,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  Zap,
-  Timer,
-  Brain,
-  Gauge,
-} from 'lucide-react';
+import { Timer, Brain, Gauge } from 'lucide-react';
 import {
   ScatterChart,
   Scatter,
@@ -30,10 +20,10 @@ import EmptyAnalyticsState from './EmptyAnalyticsState';
 
 // Quadrant configurations
 const QUADRANTS = {
-  Q1: { name: 'Quick/Accurate', color: 'emerald', description: 'Ideal Zone' },
-  Q2: { name: 'Slow/Accurate', color: 'blue', description: 'Overthinking' },
-  Q3: { name: 'Quick/Inaccurate', color: 'rose', description: 'Rushed' },
-  Q4: { name: 'Slow/Inaccurate', color: 'amber', description: 'Needs Focus' },
+  Q1: { name: 'Perfect Pace', color: 'emerald', description: 'Balanced & Steady' },
+  Q2: { name: 'Taking Extra Time', color: 'blue', description: 'Very Careful' },
+  Q3: { name: 'Rushing Zone', color: 'rose', description: 'Slow Down Slightly' },
+  Q4: { name: 'Struggling Zone', color: 'amber', description: 'More Work Needed' },
 };
 
 function QuadrantLabel({ quadrant, x, y }) {
@@ -60,7 +50,7 @@ function QuadrantLabel({ quadrant, x, y }) {
         x={x}
         y={y - 2}
         textAnchor="middle"
-        className={cn('text-[11px] font-black uppercase tracking-wider fill-foreground')}
+        className={cn('text-[11px] font-black tracking-wider fill-foreground')}
         data-oid="ep2_ea2"
       >
         {config.name}
@@ -105,7 +95,7 @@ function CustomTooltip({ active, payload }) {
             data-oid="opboa7k"
           />
 
-          <span className="text-xs font-black text-uppercase tracking-wider" data-oid="e8mvuox">
+          <span className="text-xs font-black tracking-wider" data-oid="e8mvuox">
             {data.type}
           </span>
         </div>
@@ -235,26 +225,26 @@ function QuadrantStats({ data }) {
   };
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-oid="tx43lb2">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3" data-oid="tx43lb2">
       {stats.map((stat) => (
         <div
           key={stat.quadrant}
           className={cn(
-            'p-3 rounded-2xl border text-center transition-all hover:scale-[1.02] backdrop-blur-sm',
+            'p-2 md:p-3 rounded-2xl border text-center transition-all hover:scale-[1.02] backdrop-blur-sm flex flex-col justify-center min-h-[70px] relative overflow-hidden',
             colorMap[stat.color]
           )}
           data-oid="za7z2z9"
         >
-          <div className="text-xl font-black mb-0.5" data-oid="39c:g3v">
+          <div className="text-base md:text-xl font-black mb-0.5 leading-none" data-oid="39c:g3v">
             {stat.percentage}%
           </div>
           <div
-            className="text-[10px] font-black uppercase tracking-widest opacity-80"
+            className="text-[8px] md:text-[9px] font-black tracking-wide opacity-80 leading-tight px-0.5 overflow-hidden text-ellipsis whitespace-nowrap"
             data-oid="ot14bwb"
           >
             {stat.name}
           </div>
-          <div className="text-[9px] font-bold opacity-60 mt-0.5" data-oid="c0_3rf6">
+          <div className="text-[8px] md:text-[9px] font-bold opacity-60 mt-0.5" data-oid="c0_3rf6">
             {stat.count} types
           </div>
         </div>
@@ -279,44 +269,47 @@ export default function TimeManagementQuadrant({ questionTypeData = [] }) {
   return (
     <motion.div variants={ITEM_VARIANTS} data-oid="6dpv:8_">
       <Card
-        className="rounded-2xl border-border/50 bg-card/75 backdrop-blur shadow-sm overflow-hidden hover:shadow-xl transition-all"
+        className="rounded-2xl border-border/50 bg-card/75 backdrop-blur shadow-sm overflow-hidden hover:shadow-xl transition-all h-full flex flex-col"
         data-oid="dipgt3:"
       >
         <CardHeader className="pb-4" data-oid="pn.py-t">
-          <div className="flex items-center justify-between" data-oid="76h3w0y">
+          <div className="flex items-center justify-between gap-4" data-oid="76h3w0y">
             <div className="space-y-1" data-oid="mzmgz9p">
               <CardTitle
-                className="text-xl font-black text-foreground flex items-center gap-2"
+                className="text-lg md:text-xl font-black text-foreground flex items-center gap-2"
                 data-oid="x42ztix"
               >
                 <Timer className="w-5 h-5 text-primary" data-oid="-q4uavi" />
-                Time Management Quadrant
+                Speed & Accuracy Balance
               </CardTitle>
-              <CardDescription data-oid="69j49d0">
-                Analyze your pace vs. accuracy to optimize test performance
+              <CardDescription
+                className="text-xs line-clamp-1 xs:line-clamp-none font-semibold text-muted-foreground/80"
+                data-oid="69j49d0"
+              >
+                Are you answering correctly and in good time?
               </CardDescription>
             </div>
             <Badge
-              className="bg-primary/10 text-primary border-0 font-black text-[10px] uppercase tracking-widest"
+              className="bg-primary/10 text-primary border-0 font-black text-[10px] tracking-widest shrink-0"
               data-oid=":6rz877"
             >
-              Strategy
+              Improving Your Pace
             </Badge>
           </div>
         </CardHeader>
 
-        <CardContent className="pt-0 space-y-6" data-oid="e3qaqek">
+        <CardContent className="pt-0 space-y-6 flex-1 flex flex-col min-h-0" data-oid="e3qaqek">
           {hasData ? (
             <>
               {/* Quadrant Stats */}
               <QuadrantStats data={chartData} data-oid="_nhsg:d" />
 
               {/* Quadrant Chart */}
-              <div className="h-[400px] w-full" data-oid="d0_gp24">
+              <div className="h-[300px] md:h-[400px] w-full min-h-0" data-oid="d0_gp24">
                 <ResponsiveContainer width="100%" height="100%" data-oid="ht5usjv">
                   <ScatterChart
                     data={chartData}
-                    margin={{ top: 20, right: 20, bottom: 60, left: 60 }}
+                    margin={{ top: 20, right: 30, bottom: 60, left: 65 }}
                     data-oid="qpa0n5h"
                   >
                     <CartesianGrid
@@ -360,7 +353,7 @@ export default function TimeManagementQuadrant({ questionTypeData = [] }) {
                         position: 'insideBottom',
                         offset: -10,
                         style: {
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: 700,
                           fill: 'hsl(var(--muted-foreground))',
                         },
@@ -381,8 +374,9 @@ export default function TimeManagementQuadrant({ questionTypeData = [] }) {
                         value: 'Accuracy (%)',
                         angle: -90,
                         position: 'insideLeft',
+                        offset: -5,
                         style: {
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: 700,
                           fill: 'hsl(var(--muted-foreground))',
                         },
@@ -413,31 +407,34 @@ export default function TimeManagementQuadrant({ questionTypeData = [] }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="rounded-xl bg-gradient-to-r from-blue-500/5 to-emerald-500/5 border border-blue-500/10 p-4"
+                className="rounded-xl bg-gradient-to-r from-blue-500/5 to-emerald-500/5 border border-blue-500/10 p-4 mt-auto"
                 data-oid="qwh98x0"
               >
-                <div className="flex items-start gap-4" data-oid="l44q6e_">
+                <div
+                  className="flex flex-col sm:flex-row items-center sm:items-start gap-4"
+                  data-oid="l44q6e_"
+                >
                   <div
                     className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20"
                     data-oid="cr3sfpz"
                   >
                     <Brain className="w-5 h-5" data-oid="v.2afo2" />
                   </div>
-                  <div className="space-y-3 flex-1" data-oid="nd.1iic">
-                    <div className="flex items-center justify-between" data-oid="er9k75a">
+                  <div className="space-y-3 flex-1 w-full" data-oid="nd.1iic">
+                    <div className="flex items-center justify-between gap-2" data-oid="er9k75a">
                       <div className="text-sm font-black text-foreground" data-oid="tc7gaag">
-                        Strategic Insights
+                        Smart Success Tips
                       </div>
                       <Badge
                         variant="outline"
-                        className="text-[9px] font-black uppercase text-blue-600 border-blue-200"
+                        className="text-[9px] font-black text-blue-600 dark:text-blue-400 border-blue-200"
                         data-oid="qluz:qi"
                       >
                         {chartData.length} Type{chartData.length !== 1 ? 's' : ''} Analyzed
                       </Badge>
                     </div>
                     <div
-                      className="text-xs text-muted-foreground leading-relaxed italic border-l-2 border-blue-500/30 pl-3 py-1"
+                      className="text-[11px] md:text-xs text-muted-foreground leading-relaxed italic border-l-2 border-blue-500/30 pl-3 py-1"
                       data-oid=":k35:3p"
                     >
                       "
@@ -453,41 +450,65 @@ export default function TimeManagementQuadrant({ questionTypeData = [] }) {
                         ).length;
 
                         if (q1 > chartData.length * 0.6)
-                          return "You're dominating the 'Quick/Accurate' zone. This efficiency level is what's needed for a high Band 7.5+ performance.";
+                          return "You're doing great in the 'Perfect Pace' zone. This balance is exactly what's needed for a high score.";
                         if (q3 > q1)
-                          return "You're often moving too fast on certain question types, leading to gaps in accuracy. Slow down by just 15s to see your score rise.";
+                          return "You're often moving too fast, which leads to small mistakes. Slowing down just a bit will help your score rise.";
                         if (q4 > 0)
-                          return `You have ${q4} question type(s) in the 'Needs Focus' zone. These are your biggest score-blockers right now.`;
-                        return 'Your time management is developing well. Maintain your balance between speed and precision across all modules.';
+                          return `You have ${q4} question type(s) that need more focus. These are the areas where you can gain the most points.`;
+                        return 'Your time management is developing well. Keep up the good balance between speed and accuracy!';
                       })()}
                       "
                     </div>
                     <div
-                      className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 mt-2"
+                      className="grid grid-cols-1 xs:grid-cols-2 gap-x-2 md:gap-x-4 gap-y-2.5 mt-2"
                       data-oid="-o5k52:"
                     >
-                      <div className="flex items-center gap-2" data-oid="xn4xbx:">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500" data-oid="fhf8b3:" />
-                        <span className="text-[10px] font-bold" data-oid="b0rpm43">
-                          Quick/Accurate: Ideal zone
+                      <div className="flex items-center gap-2 group/item" data-oid="xn4xbx:">
+                        <div
+                          className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.3)]"
+                          data-oid="fhf8b3:"
+                        />
+                        <span
+                          className="text-[10px] md:text-[11px] font-bold text-foreground/80 leading-none truncate"
+                          data-oid="b0rpm43"
+                        >
+                          Perfect Pace: Balanced & Steady
                         </span>
                       </div>
-                      <div className="flex items-center gap-2" data-oid="1ffvcfx">
-                        <div className="w-2 h-2 rounded-full bg-blue-500" data-oid="oxip_yv" />
-                        <span className="text-[10px] font-bold" data-oid="ssaoa7l">
-                          Slow/Accurate: Speed up
+                      <div className="flex items-center gap-2 group/item" data-oid="1ffvcfx">
+                        <div
+                          className="w-2 h-2 rounded-full bg-blue-500 shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.3)]"
+                          data-oid="oxip_yv"
+                        />
+                        <span
+                          className="text-[10px] md:text-[11px] font-bold text-foreground/80 leading-none truncate"
+                          data-oid="ssaoa7l"
+                        >
+                          Taking Extra Time: Very Careful
                         </span>
                       </div>
-                      <div className="flex items-center gap-2" data-oid="4vpn6mb">
-                        <div className="w-2 h-2 rounded-full bg-rose-500" data-oid="9j_n79b" />
-                        <span className="text-[10px] font-bold" data-oid="con1n0i">
-                          Quick/Inaccurate: Slow down
+                      <div className="flex items-center gap-2 group/item" data-oid="4vpn6mb">
+                        <div
+                          className="w-2 h-2 rounded-full bg-rose-500 shrink-0 shadow-[0_0_8px_rgba(244,63,94,0.3)]"
+                          data-oid="9j_n79b"
+                        />
+                        <span
+                          className="text-[10px] md:text-[11px] font-bold text-foreground/80 leading-none truncate"
+                          data-oid="con1n0i"
+                        >
+                          Rushing Zone: Slow Down Slightly
                         </span>
                       </div>
-                      <div className="flex items-center gap-2" data-oid="xd-zb0g">
-                        <div className="w-2 h-2 rounded-full bg-amber-500" data-oid="0txezfj" />
-                        <span className="text-[10px] font-bold" data-oid="165vuu4">
-                          Slow/Inaccurate: Focus first
+                      <div className="flex items-center gap-2 group/item" data-oid="xd-zb0g">
+                        <div
+                          className="w-2 h-2 rounded-full bg-amber-500 shrink-0 shadow-[0_0_8px_rgba(245,158,11,0.3)]"
+                          data-oid="0txezfj"
+                        />
+                        <span
+                          className="text-[10px] md:text-[11px] font-bold text-foreground/80 leading-none truncate"
+                          data-oid="165vuu4"
+                        >
+                          Struggling Zone: More Work Needed
                         </span>
                       </div>
                     </div>

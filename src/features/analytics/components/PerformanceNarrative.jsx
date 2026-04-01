@@ -29,12 +29,12 @@ export default function PerformanceNarrative({ insights, stats }) {
       data-oid="e3jx-n_"
     >
       <div
-        className="group relative overflow-hidden rounded-2xl bg-white/70 dark:bg-slate-900/40 border border-primary/10 dark:border-white/5 p-4 md:p-6 backdrop-blur-3xl shadow-xl transition-all hover:bg-white/80 dark:hover:bg-slate-900/50"
+        className="group relative overflow-hidden rounded-2xl bg-card/70 border border-primary/20 p-4 md:p-6 backdrop-blur-3xl shadow-xl transition-all hover:bg-card/80"
         data-oid="e8jjz6:"
       >
         {/* Subtle Decorative Glows */}
         <div
-          className="absolute top-0 right-0 w-64 h-64 bg-primary/10 dark:bg-primary/15 rounded-full blur-[80px] -mr-32 -mt-32"
+          className="absolute top-0 right-0 w-64 h-64 bg-primary/10 dark:bg-primary/20 rounded-full blur-[80px] -mr-32 -mt-32"
           data-oid="-wui6t8"
         />
 
@@ -43,33 +43,33 @@ export default function PerformanceNarrative({ insights, stats }) {
           <div className="flex-[1.8] space-y-3" data-oid="yyy_1x7">
             <div className="flex flex-wrap items-center gap-2" data-oid="43pjler">
               <Badge
-                className="bg-primary/10 dark:bg-primary/20 hover:bg-primary/20 dark:hover:bg-primary/30 text-primary border-primary/20 px-3 py-1 text-[9px] font-black uppercase tracking-[0.15em] rounded-full backdrop-blur-md"
+                className="bg-primary/10 dark:bg-primary/20 hover:bg-primary/20 dark:hover:bg-primary/30 text-primary border-primary/20 px-3 py-1 text-[10px] font-bold tracking-wide rounded-full backdrop-blur-md"
                 data-oid="_w_x39c"
               >
                 <Sparkles className="w-3 h-3 mr-1.5 animate-pulse" data-oid=".07d8q2" />
-                Daily Brief
+                Your Daily Update
               </Badge>
               {correlations.length > 0 && (
                 <Badge
-                  className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-500 border-amber-500/20 px-3 py-1 text-[9px] font-black uppercase tracking-[0.15em] rounded-full backdrop-blur-md"
+                  className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-500 border-amber-500/20 px-3 py-1 text-[10px] font-bold tracking-wide rounded-full backdrop-blur-md"
                   data-oid="x0uh1ed"
                 >
                   <Zap className="w-3 h-3 mr-1.5" data-oid="wj1uomz" />
-                  Pattern Detected
+                  Smart Tip
                 </Badge>
               )}
             </div>
 
             <div className="space-y-2.5" data-oid="bad5ezr">
               <h2
-                className="text-lg md:text-xl lg:text-2xl font-black text-foreground dark:text-white tracking-tight leading-[1.2]"
+                className="text-lg md:text-xl lg:text-2xl font-black text-foreground tracking-tight leading-[1.2]"
                 data-oid="xwk:5ak"
               >
                 {getCoachNote()}
               </h2>
               <div className="flex flex-wrap items-center gap-3" data-oid=":ry3dbs">
                 <div
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground"
+                  className="px-3 py-1.5 rounded-xl bg-muted/40 border border-border/50 flex items-center gap-2 text-[10px] font-bold text-muted-foreground"
                   data-oid="u9etfhb"
                 >
                   <div
@@ -78,7 +78,7 @@ export default function PerformanceNarrative({ insights, stats }) {
                   />
                   Status:{' '}
                   <span className="text-emerald-600 dark:text-emerald-400 ml-1" data-oid=":8vu_bb">
-                    Growth Phase
+                    Making Progress
                   </span>
                 </div>
                 {parseFloat(stats.improvement) > 0 && (
@@ -114,7 +114,7 @@ export default function PerformanceNarrative({ insights, stats }) {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 + idx * 0.1 }}
-                className="group/card relative overflow-hidden bg-slate-50 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.06] border border-slate-200 dark:border-white/10 hover:border-primary/30 p-3.5 rounded-xl transition-all duration-300"
+                className="group/card relative overflow-hidden bg-muted/40 hover:bg-muted/60 border border-border/50 hover:border-primary/30 p-3.5 rounded-xl transition-all duration-300"
                 data-oid="x207u:y"
               >
                 <div className="flex items-center gap-2.5 mb-1.5" data-oid="7fnd2az">
@@ -125,14 +125,14 @@ export default function PerformanceNarrative({ insights, stats }) {
                     <Zap className="w-3 h-3" data-oid="1-yrd4q" />
                   </div>
                   <span
-                    className="text-[9px] font-black uppercase tracking-wider text-muted-foreground/80"
+                    className="text-[10px] font-bold text-muted-foreground/80 tracking-wide"
                     data-oid="p0s2a4a"
                   >
-                    {corr.title || 'DETECTION'}
+                    {corr.title || 'Advice'}
                   </span>
                 </div>
                 <p
-                  className="text-[12px] font-bold text-slate-700 dark:text-slate-300 leading-snug line-clamp-1"
+                  className="text-[12px] font-bold text-foreground/80 leading-snug line-clamp-1"
                   data-oid=":t2e9fc"
                 >
                   {corr.text}

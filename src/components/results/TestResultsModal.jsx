@@ -4,22 +4,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   X,
-  Trophy,
   BookOpen,
   Brain,
   Clock,
   TrendingUp,
   Crown,
-  Zap,
   Target,
   BarChart3,
   Sparkles,
   Lock,
-  ChevronRight,
   CheckCircle2,
   AlertTriangle,
   Award,
-  Lightbulb,
   XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -182,45 +178,13 @@ const AnimatedScoreRing = ({ percentage, score, size = 160 }) => {
           {percentage}%
         </span>
         <span
-          className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-0.5"
+          className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-[0.2em] mt-0.5"
           data-oid="om9jzeb"
         >
-          TOTAL
+          Total
         </span>
       </motion.div>
     </div>
-  );
-};
-
-// Performance indicator badge
-const PerformanceBadge = ({ percentage }) => {
-  if (percentage >= 80)
-    return (
-      <span
-        className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
-        data-oid="m7ybd8-"
-      >
-        Excellent
-      </span>
-    );
-
-  if (percentage >= 60)
-    return (
-      <span
-        className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
-        data-oid="y.k21z8"
-      >
-        Good
-      </span>
-    );
-
-  return (
-    <span
-      className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400"
-      data-oid="fhkkxh8"
-    >
-      Needs Work
-    </span>
   );
 };
 
@@ -314,7 +278,7 @@ const SectionCard = ({ index, title, correct, total, percentage, isLocked = fals
               </h4>
               <span
                 className={cn(
-                  'px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wide',
+                  'px-1.5 py-0.5 rounded text-[8px] font-black tracking-wide',
                   difficulty.color
                 )}
                 data-oid="diff-badge"
@@ -360,105 +324,6 @@ const SectionCard = ({ index, title, correct, total, percentage, isLocked = fals
           animate={{ width: `${percentage}%` }}
           transition={{ duration: 1, delay: 0.3 + index * 0.1, ease: 'circOut' }}
           data-oid="76vi9u1"
-        />
-      </div>
-    </motion.div>
-  );
-};
-
-// Question type analysis bar
-const TypeAnalysisBar = ({ type, stats, index, isLocked = false }) => {
-  const accuracy = Math.round((stats.correct / stats.total) * 100);
-  const label =
-    QUESTION_TYPE_LABELS[type] || type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-
-  const getColors = (acc) => {
-    if (acc >= 75)
-      return {
-        text: 'text-emerald-600 dark:text-emerald-400',
-        bar: 'bg-gradient-to-r from-emerald-500 to-teal-400',
-        bg: 'bg-emerald-500/10 dark:bg-emerald-500/5',
-      };
-    if (acc >= 50)
-      return {
-        text: 'text-amber-600 dark:text-amber-400',
-        bar: 'bg-gradient-to-r from-amber-500 to-orange-400',
-        bg: 'bg-amber-500/10 dark:bg-amber-500/5',
-      };
-    return {
-      text: 'text-rose-600 dark:text-rose-400',
-      bar: 'bg-gradient-to-r from-rose-500 to-pink-400',
-      bg: 'bg-rose-500/10 dark:bg-rose-500/5',
-    };
-  };
-
-  const colors = getColors(accuracy);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: isLocked ? 0.3 : 1, x: 0 }}
-      transition={{ delay: 0.05 * index }}
-      className={cn(
-        'group p-3.5 rounded-xl transition-all duration-300 relative overflow-hidden',
-        'bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800',
-        'hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md hover:-translate-x-0.5',
-        isLocked && 'blur-[1px] grayscale-[0.5]'
-      )}
-      data-oid="_nwn7_z"
-    >
-      {/* Subtle hover accent */}
-      <div
-        className={cn(
-          'absolute left-0 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity',
-          colors.bar
-        )}
-        data-oid="cnfpd-t"
-      />
-
-      <div className="flex justify-between items-center mb-2.5" data-oid=".044ifh">
-        <div className="flex items-center gap-2.5 min-w-0" data-oid=":o1ucva">
-          <div
-            className={cn(
-              'w-7 h-7 rounded-lg flex items-center justify-center shrink-0',
-              colors.bg
-            )}
-            data-oid="03wfzu_"
-          >
-            <Target className={cn('w-4 h-4', colors.text)} data-oid="qb2890m" />
-          </div>
-          <span
-            className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate"
-            data-oid="w-upvhm"
-          >
-            {label}
-          </span>
-        </div>
-        <div className="flex items-center gap-3 shrink-0" data-oid="p:2ookw">
-          <div
-            className="flex items-center text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-100 dark:border-slate-700"
-            data-oid="v:o-k.-"
-          >
-            {stats.correct}/{stats.total}
-          </div>
-          <span
-            className={cn('text-sm font-black min-w-[2.5rem] text-right', colors.text)}
-            data-oid="2_vagqy"
-          >
-            {accuracy}%
-          </span>
-        </div>
-      </div>
-      <div
-        className="h-1.5 w-full bg-slate-200 dark:bg-slate-700/50 rounded-full overflow-hidden"
-        data-oid="7j23a1v"
-      >
-        <motion.div
-          className={cn('h-full rounded-full shadow-[0_0_10px_rgba(0,0,0,0.1)]', colors.bar)}
-          initial={{ width: 0 }}
-          animate={{ width: `${accuracy}%` }}
-          transition={{ duration: 1, delay: 0.3 + index * 0.05, ease: 'circOut' }}
-          data-oid="yd.b-z:"
         />
       </div>
     </motion.div>
@@ -528,11 +393,11 @@ const PremiumUnlockOverlay = ({
 // Detailed skill breakdown for Premium users - comprehensive statistics with premium design
 const DetailedSkillBreakdown = ({
   typeStats,
-  sectionStats,
-  testType = 'reading',
+  _sectionStats,
+  _testType = 'reading',
   totalQuestions: propTotalQuestions,
   correctAnswers: propCorrectAnswers,
-  bandScore,
+  _bandScore,
   isLocked = false,
   onUpgrade,
 }) => {
@@ -593,7 +458,7 @@ const DetailedSkillBreakdown = ({
           <BarChart3 className="w-4 h-4 text-indigo-500" data-oid="t9m2ov8" />
         </div>
         <h3
-          className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest"
+          className="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-widest"
           data-oid="-gai707"
         >
           Performance Details
@@ -928,14 +793,14 @@ const DetailedSkillBreakdown = ({
 export default function TestResultsModal({
   showResults,
   testResults,
-  testData,
-  earnedXP,
+  _testData,
+  _earnedXP,
   user,
   onClose,
   onReviewAnswers,
   onNavigateToQuestion, // NEW: Navigate to specific question number
   testType = 'reading', // 'reading' or 'listening'
-  dashboardUrl = '/dashboard',
+  _dashboardUrl = '/dashboard',
 }) {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
@@ -946,7 +811,7 @@ export default function TestResultsModal({
   const isPremium = subscriptionTier === 'premium' || subscriptionTier === 'pro' || isAdmin;
 
   // Sort weakness analysis by accuracy (worst first)
-  const sortedTypeStats = useMemo(() => {
+  /* const _sortedTypeStats = useMemo(() => {
     if (!testResults?.typeStats) return [];
     return Object.entries(testResults.typeStats)
       .map(([type, stats]) => ({
@@ -955,18 +820,18 @@ export default function TestResultsModal({
         accuracy: Math.round((stats.correct / stats.total) * 100),
       }))
       .sort((a, b) => a.accuracy - b.accuracy);
-  }, [testResults?.typeStats]);
+  }, [testResults?.typeStats]); */
 
   // Number of weakness items to show for free users
-  const freeWeaknessLimit = 2;
+  // const _freeWeaknessLimit = 2;
 
   const handleUpgrade = () => {
     navigate('/pricing');
   };
 
-  const handleBackToTests = () => {
-    navigate(testType === 'reading' ? '/reading' : '/listening');
-  };
+  // const _handleBackToTests = () => {
+  //   navigate(_testType === 'reading' ? '/reading' : '/listening');
+  // };
 
   const getAssessmentMessage = (score) => {
     if (score >= 8.5) return 'Unstoppable! You are mastering this exam.';
@@ -1064,7 +929,7 @@ export default function TestResultsModal({
               <motion.h2
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight"
+                className="text-xl font-black text-slate-800 dark:text-white tracking-tight"
                 data-oid="bb8mpiq"
               >
                 IELTS {testType.charAt(0).toUpperCase() + testType.slice(1)} Test Result
@@ -1147,7 +1012,7 @@ export default function TestResultsModal({
                                 {parseFloat(testResults.bandScore).toFixed(1)}
                               </span>
                               <span
-                                className="text-base font-bold text-blue-100/80 uppercase tracking-widest"
+                                className="text-base font-bold text-blue-100/80 tracking-widest"
                                 data-oid="46zsjnp"
                               >
                                 Band
@@ -1232,7 +1097,7 @@ export default function TestResultsModal({
                             </div>
                             <div className="text-left" data-oid="4rbk19x">
                               <p
-                                className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1"
+                                className="text-xs font-bold text-slate-400 tracking-widest leading-none mb-1"
                                 data-oid="bcil3qm"
                               >
                                 Correct
@@ -1264,7 +1129,7 @@ export default function TestResultsModal({
                             </div>
                             <div className="text-left" data-oid="edrst37">
                               <p
-                                className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1"
+                                className="text-xs font-bold text-slate-400 tracking-widest leading-none mb-1"
                                 data-oid="nnb:na0"
                               >
                                 Mistakes & Skipped
@@ -1280,7 +1145,7 @@ export default function TestResultsModal({
                                       (testResults.errorPatterns?.unansweredCount || 0)}
                                   </span>
                                   <span
-                                    className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter"
+                                    className="text-[9px] font-bold text-slate-400 tracking-tighter"
                                     data-oid="c5fbom."
                                   >
                                     Wrong
@@ -1299,7 +1164,7 @@ export default function TestResultsModal({
                                     {testResults.errorPatterns?.unansweredCount || 0}
                                   </span>
                                   <span
-                                    className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter"
+                                    className="text-[9px] font-bold text-slate-400 tracking-tighter"
                                     data-oid="9ko7l7o"
                                   >
                                     Skipped
@@ -1321,7 +1186,7 @@ export default function TestResultsModal({
                             </div>
                             <div className="text-left" data-oid="y:fxvz-">
                               <p
-                                className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1"
+                                className="text-xs font-bold text-slate-400 tracking-widest leading-none mb-1"
                                 data-oid="zvet_v:"
                               >
                                 Time Spent
@@ -1390,7 +1255,7 @@ export default function TestResultsModal({
                             data-oid="sfruxdo"
                           >
                             <h3
-                              className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]"
+                              className="text-xs font-black text-slate-400 dark:text-slate-500 tracking-[0.15em]"
                               data-oid="_u840yb"
                             >
                               {testType === 'listening'
@@ -1421,7 +1286,7 @@ export default function TestResultsModal({
                           data-oid="db9w373"
                         >
                           <h3
-                            className="text-sm font-black text-slate-900 dark:text-white mb-4 uppercase tracking-wide"
+                            className="text-sm font-black text-slate-900 dark:text-white mb-4 tracking-wide"
                             data-oid="1v-y731"
                           >
                             Quick Answer Key
@@ -1639,7 +1504,7 @@ export default function TestResultsModal({
                           </div>
 
                           <div
-                            className="lg:col-span-5 space-y-6 flex flex-col items-start"
+                            className="lg:col-span-5 space-y-6 flex flex-col items-stretch"
                             data-oid="m88c8bd"
                           >
                             <section

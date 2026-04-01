@@ -90,7 +90,7 @@ export default function StudyDistribution({ stats, chartData }) {
                     {entry.name}
                   </div>
                   <div
-                    className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest whitespace-nowrap"
+                    className="text-[9px] font-bold text-muted-foreground tracking-widest whitespace-nowrap"
                     data-oid="15yd1tl"
                   >
                     {entry.value} Tests

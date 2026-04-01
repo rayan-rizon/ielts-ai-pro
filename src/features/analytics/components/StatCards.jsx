@@ -62,14 +62,14 @@ export default function StatCards({ stats, progressToTarget }) {
         <Card
           key={idx}
           className={cn(
-            'rounded-2xl border-border/50 bg-card/40 backdrop-blur-xl shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden relative border-opacity-30 hover:-translate-y-1 h-full min-h-[128px]',
+            'rounded-2xl border bg-card/95 backdrop-blur-md shadow-md hover:shadow-2xl transition-all duration-300 group overflow-hidden relative hover:-translate-y-1 h-full min-h-[128px]',
             card.color === 'bg-primary'
-              ? 'hover:shadow-primary/10'
+              ? 'border-primary/30 hover:shadow-primary/20'
               : card.color === 'bg-amber-500'
-                ? 'hover:shadow-amber-500/10'
+                ? 'border-amber-500/30 hover:shadow-amber-500/20'
                 : card.color === 'bg-emerald-500'
-                  ? 'hover:shadow-emerald-500/10'
-                  : 'hover:shadow-indigo-500/10'
+                  ? 'border-emerald-500/30 hover:shadow-emerald-500/20'
+                  : 'border-indigo-500/30 hover:shadow-indigo-500/20'
           )}
           data-oid="9zz1f00"
         >
@@ -80,7 +80,7 @@ export default function StatCards({ stats, progressToTarget }) {
             <div className="flex items-start justify-between mb-2" data-oid="96yih:u">
               <div className="space-y-1" data-oid="v.erel8">
                 <p
-                  className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70"
+                  className="text-[11px] font-bold text-muted-foreground/80 tracking-wide"
                   data-oid="4b9v7am"
                 >
                   {card.title}
@@ -96,10 +96,10 @@ export default function StatCards({ stats, progressToTarget }) {
                     <Badge
                       variant="outline"
                       className={cn(
-                        'rounded-lg text-[9px] px-1.5 py-0.5 border-0 font-black uppercase tracking-tight',
+                        'rounded-lg text-[10px] px-2 py-0.5 border-0 font-bold tracking-tight',
                         card.color === 'bg-primary'
                           ? 'bg-primary/10 text-primary'
-                          : 'bg-amber-500/10 text-amber-600'
+                          : 'bg-amber-500/10 text-amber-500 dark:text-amber-400'
                       )}
                       data-oid="99pvpe:"
                     >
@@ -121,7 +121,7 @@ export default function StatCards({ stats, progressToTarget }) {
                 <>
                   <div className="flex items-end justify-between px-0.5" data-oid="ydynymb">
                     <span
-                      className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest"
+                      className="text-[10px] font-bold text-muted-foreground/70 tracking-wide"
                       data-oid="ewuwdg0"
                     >
                       {card.trendLabel}
@@ -154,7 +154,7 @@ export default function StatCards({ stats, progressToTarget }) {
               {card.footerType === 'gap' && (
                 <div className="flex flex-col gap-0.5" data-oid="j3eh6pb">
                   <p
-                    className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest"
+                    className="text-[10px] font-bold text-muted-foreground/70 tracking-wide"
                     data-oid="66__cxl"
                   >
                     Remaining Gap
@@ -180,7 +180,7 @@ export default function StatCards({ stats, progressToTarget }) {
               {card.footerType === 'intensity' && (
                 <div className="flex flex-col gap-1" data-oid="88u_3h:">
                   <p
-                    className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest"
+                    className="text-[10px] font-bold text-muted-foreground/70 tracking-wide"
                     data-oid="4-52n2o"
                   >
                     Study Pattern
@@ -220,7 +220,7 @@ export default function StatCards({ stats, progressToTarget }) {
               {card.footerType === 'vocab' && (
                 <div className="flex flex-col gap-0.5" data-oid="023wg95">
                   <p
-                    className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest"
+                    className="text-[10px] font-bold text-muted-foreground/70 tracking-wide"
                     data-oid="7333r.4"
                   >
                     Library Status

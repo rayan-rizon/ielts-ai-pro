@@ -173,11 +173,11 @@ export default function useAnalyticsData(selectedTimeframe) {
         unanswered: [],
       },
       skillGapsTotals: {
-        detailRetention: { sum: 0, count: 0 },
-        paraphrasingRecognition: { sum: 0, count: 0 },
-        logicalReasoning: { sum: 0, count: 0 },
-        scanningEfficiency: { sum: 0, count: 0 },
-        globalComprehension: { sum: 0, count: 0 },
+        'Remembering Details': { sum: 0, count: 0 },
+        'Finding Similar Words': { sum: 0, count: 0 },
+        'Smart Thinking': { sum: 0, count: 0 },
+        'Reading Speed': { sum: 0, count: 0 },
+        'Main Idea': { sum: 0, count: 0 },
       },
     };
 
@@ -263,9 +263,18 @@ export default function useAnalyticsData(selectedTimeframe) {
 
       if (content.skillGaps) {
         Object.entries(content.skillGaps).forEach(([skill, score]) => {
-          if (score >= 0 && enhancedMetricsAgg.skillGapsTotals[skill]) {
-            enhancedMetricsAgg.skillGapsTotals[skill].sum += score;
-            enhancedMetricsAgg.skillGapsTotals[skill].count += 1;
+          // Map technical keys to friendly names if needed
+          const skillMap = {
+            detailRetention: 'Remembering Details',
+            paraphrasingRecognition: 'Finding Similar Words',
+            logicalReasoning: 'Smart Thinking',
+            scanningEfficiency: 'Reading Speed',
+            globalComprehension: 'Main Idea',
+          };
+          const friendlyName = skillMap[skill] || skill;
+          if (score >= 0 && enhancedMetricsAgg.skillGapsTotals[friendlyName]) {
+            enhancedMetricsAgg.skillGapsTotals[friendlyName].sum += score;
+            enhancedMetricsAgg.skillGapsTotals[friendlyName].count += 1;
           }
         });
       }
@@ -323,22 +332,22 @@ export default function useAnalyticsData(selectedTimeframe) {
       sessionReferences: enhancedMetricsAgg.sessionReferences,
       errorAuditData: [
         {
-          name: 'Near Misses',
+          name: 'Almost Correct',
           value: enhancedMetricsAgg.totalNearMisses,
           color: 'hsl(var(--primary))',
         },
         {
-          name: 'Rushed',
+          name: 'Rushing',
           value: enhancedMetricsAgg.totalRushedQuestions,
           color: 'hsl(var(--rose-500))',
         },
         {
-          name: 'Overanalyzed',
+          name: 'Thinking Too Long',
           value: enhancedMetricsAgg.totalOveranalyzedQuestions,
           color: 'hsl(var(--amber-500))',
         },
         {
-          name: 'Unanswered',
+          name: 'Left Blank',
           value: enhancedMetricsAgg.totalUnanswered,
           color: 'hsl(var(--muted-foreground))',
         },

@@ -51,20 +51,20 @@ export default function AnalyticsHeader({
               {tier === 'premium' ? (
                 <Badge
                   variant="outline"
-                  className="bg-purple-500/10 backdrop-blur-md border border-purple-500/20 text-purple-600 dark:text-purple-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all hover:bg-purple-500/20 hover:text-purple-700 dark:hover:text-purple-300"
+                  className="bg-purple-500/10 backdrop-blur-md border border-purple-500/20 text-purple-600 dark:text-purple-400 font-bold text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all hover:bg-purple-500/20 hover:text-purple-700 dark:hover:text-purple-300"
                   data-oid="vq-_94z"
                 >
                   <Crown className="w-3 h-3 fill-purple-600/20 dark:fill-purple-400/20" />
-                  PREMIUM
+                  Premium
                 </Badge>
               ) : tier === 'pro' || isPremium ? (
                 <Badge
                   variant="outline"
-                  className="bg-blue-500/10 backdrop-blur-md border border-blue-500/20 text-blue-600 dark:text-blue-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all hover:bg-blue-500/20 hover:text-blue-700 dark:hover:text-blue-300"
+                  className="bg-blue-500/10 backdrop-blur-md border border-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all hover:bg-blue-500/20 hover:text-blue-700 dark:hover:text-blue-300"
                   data-oid="vq-_94z"
                 >
                   <Zap className="w-3 h-3 fill-blue-600/20 dark:fill-blue-400/20" />
-                  PRO
+                  Pro
                 </Badge>
               ) : null}
             </div>
@@ -73,7 +73,7 @@ export default function AnalyticsHeader({
       </div>
 
       <div
-        className="flex items-center gap-2 p-1.5 bg-card/50 backdrop-blur rounded-2xl border border-border/50 shadow-sm"
+        className="flex items-center gap-2 p-1.5 bg-card/95 backdrop-blur-md rounded-2xl border border-border/60 shadow-sm"
         data-oid="q-mczo."
       >
         {['7d', '30d', '90d', 'all'].map((tf) => (
@@ -81,14 +81,14 @@ export default function AnalyticsHeader({
             key={tf}
             onClick={() => setSelectedTimeframe(tf)}
             className={cn(
-              'px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest',
+              'px-4 py-2 rounded-xl text-[10px] font-bold transition-all tracking-wider',
               selectedTimeframe === tf
                 ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-105'
-                : 'text-muted-foreground hover:bg-card/80 font-bold'
+                : 'text-muted-foreground hover:bg-card/80'
             )}
             data-oid="llu3bgs"
           >
-            {tf}
+            {tf === 'all' ? 'All' : `${tf.slice(0, -1)}${tf.slice(-1).toUpperCase()}`}
           </button>
         ))}
       </div>

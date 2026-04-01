@@ -118,7 +118,7 @@ export function TimeEfficiencyCard({
               Speed & Energy
             </h3>
             <p
-              className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mt-1"
+              className="text-[10px] tracking-wider font-bold text-slate-400 mt-1"
               data-oid="_9wezqg"
             >
               Stamina Flow
@@ -127,7 +127,7 @@ export function TimeEfficiencyCard({
         </div>
         <div
           className={cn(
-            'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest',
+            'px-3 py-1 rounded-full text-[10px] font-black tracking-widest',
             paceStatus.bg,
             paceStatus.color
           )}
@@ -144,7 +144,7 @@ export function TimeEfficiencyCard({
           data-oid="m0113ib"
         >
           <span
-            className="text-[10px] font-black text-slate-400 uppercase tracking-widest"
+            className="text-[10px] font-black text-slate-400 tracking-widest"
             data-oid="b9d2bbb"
           >
             Avg per Answer
@@ -159,7 +159,7 @@ export function TimeEfficiencyCard({
           data-oid="oxqara5"
         >
           <span
-            className="text-[10px] font-black text-slate-400 uppercase tracking-widest"
+            className="text-[10px] font-black text-slate-400 tracking-widest"
             data-oid="vsxp8fn"
           >
             Tiredness
@@ -181,7 +181,7 @@ export function TimeEfficiencyCard({
         <div className="space-y-3 mb-6" data-oid="u36e-gn">
           <div className="flex items-center justify-between px-1" data-oid="ed73b82">
             <div
-              className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest"
+              className="flex items-center gap-2 text-[10px] font-black text-slate-400 tracking-widest"
               data-oid="885g4zr"
             >
               <BarChart3 className="w-3.5 h-3.5" data-oid="ik3l_of" /> Stability Trend

@@ -214,7 +214,7 @@ export function ActionableInsightsCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-4.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden"
+      className="w-full p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden"
       data-oid="btmsf2g"
     >
       {/* Background accent */}
@@ -236,7 +236,7 @@ export function ActionableInsightsCard({
             Actionable Insights
           </h3>
           <p
-            className="text-[10px] font-medium text-slate-400 uppercase tracking-wider"
+            className="text-[10px] font-medium text-slate-400 tracking-wider"
             data-oid="fw5jxo2"
           >
             Premium Analysis

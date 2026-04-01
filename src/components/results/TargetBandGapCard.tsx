@@ -176,7 +176,7 @@ export function TargetBandGapCard({
                             <Target className="w-3.5 h-3.5 text-white" />
                         </div>
                         <div>
-                            <h4 className="text-[11px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                            <h4 className="text-[11px] font-black text-slate-800 dark:text-slate-200 tracking-wider">
                                 Next Milestone
                             </h4>
                         </div>
@@ -195,7 +195,7 @@ export function TargetBandGapCard({
                     {/* Progress Bar */}
                     <div className="space-y-1.5">
                         <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                            <span className="text-[10px] font-bold text-slate-500 tracking-wider">
                                 Progress to Band {nextBand?.toFixed(1)}
                             </span>
                             <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400">

@@ -34,16 +34,16 @@ function MilestoneMarker({ band, achieved, current, isTarget }) {
                   data-oid="kp4mko9"
                 >
                   <Badge
-                    className="bg-indigo-600 text-[10px] text-white border-0 font-black px-3 py-1 rounded-full shadow-lg shadow-indigo-500/30 uppercase tracking-[0.1em]"
+                    className="bg-indigo-600 dark:bg-indigo-500 text-[10px] text-white border-0 font-black px-3 py-1 rounded-full shadow-lg shadow-indigo-500/30 tracking-[0.1em]"
                     data-oid="npy:uyn"
                   >
-                    You are here
+                    Where You Are
                   </Badge>
                 </motion.div>
               )}
               {isFinalGoal && (
                 <Badge
-                  className="bg-rose-500 text-[10px] text-white border-0 font-black px-3 py-1 rounded-full shadow-lg shadow-rose-500/40 uppercase tracking-[0.1em] ring-2 ring-rose-500/20"
+                  className="bg-rose-500 text-[10px] text-white border-0 font-black px-3 py-1 rounded-full shadow-lg shadow-rose-500/40 tracking-[0.1em] ring-2 ring-rose-500/20"
                   data-oid="q3kdcug"
                 >
                   Your Goal
@@ -72,7 +72,7 @@ function MilestoneMarker({ band, achieved, current, isTarget }) {
                 isPast &&
                   'bg-emerald-500 border-white dark:border-slate-900 text-white shadow-emerald-500/20',
                 isCurrent &&
-                  'bg-indigo-600 border-white dark:border-slate-900 text-white shadow-2xl shadow-indigo-500/50 ring-4 ring-indigo-500/15 scale-110',
+                  'bg-indigo-600 dark:bg-indigo-500 border-white dark:border-slate-900 text-white shadow-2xl shadow-indigo-500/50 ring-4 ring-indigo-500/15 scale-110',
                 isFinalGoal &&
                   'bg-white dark:bg-slate-800 border-rose-500 text-rose-500 shadow-xl shadow-rose-500/20 scale-105',
                 isFuture &&
@@ -101,7 +101,7 @@ function MilestoneMarker({ band, achieved, current, isTarget }) {
             <div className="mt-2 text-center" data-oid="_gflt84">
               <p
                 className={cn(
-                  'text-[11px] font-black uppercase tracking-[0.15em] transition-colors',
+                  'text-[11px] font-black tracking-[0.15em] transition-colors',
                   isPast && 'text-emerald-500 opacity-90',
                   isCurrent && 'text-indigo-600 dark:text-indigo-400',
                   isFinalGoal && 'text-rose-500',
@@ -110,11 +110,11 @@ function MilestoneMarker({ band, achieved, current, isTarget }) {
                 data-oid="h-_:ayy"
               >
                 {isPast
-                  ? 'Mastered'
+                  ? 'Achieved'
                   : isCurrent
                     ? `Band ${formatBand(band)}`
                     : isFinalGoal
-                      ? `Target`
+                      ? `Goal`
                       : `Band ${band}`}
               </p>
             </div>
@@ -125,16 +125,16 @@ function MilestoneMarker({ band, achieved, current, isTarget }) {
           className="bg-slate-900 text-white border-0 py-2 px-3 rounded-xl shadow-2xl"
         >
           <div className="text-[10px] font-bold space-y-1">
-            <p className="uppercase tracking-widest text-slate-400">Milestone Details</p>
+            <p className="tracking-widest text-slate-400">Milestone Details</p>
             <p className="text-sm font-black">Band {formatBand(band)} Mastery</p>
             <p className="font-medium text-slate-300">
               {isPast
-                ? 'Great job! You have surpassed this level.'
+                ? 'Great job! You have reached this level.'
                 : isCurrent
-                  ? 'Your current skill level based on recent tests.'
+                  ? 'Your current skill level.'
                   : isFinalGoal
-                    ? 'Your ultimate target score for the exam.'
-                    : `Focus on hitting this milestone in ${band + 1} more points.`}
+                    ? 'Your final target score.'
+                    : `Your next target.`}
             </p>
           </div>
         </TooltipContent>
@@ -227,7 +227,7 @@ export default function BandScoreJourney({
           <div className="flex items-center justify-between gap-4" data-oid="-zy2wbx">
             <div className="flex items-center gap-4" data-oid="e_y5zp5">
               <div
-                className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0 transform group-hover:rotate-6 transition-transform duration-500"
+                className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-primary flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0 transform group-hover:rotate-6 transition-transform duration-500"
                 data-oid="r3_d1rn"
               >
                 <Compass className="w-6 h-6 text-white" data-oid="q1ru8ig" />
@@ -237,7 +237,7 @@ export default function BandScoreJourney({
                   className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none"
                   data-oid="1s0z7hy"
                 >
-                  Journey Tracker
+                  Your Goal Path
                 </CardTitle>
                 <div className="flex items-center gap-2" data-oid="7vd9e:5">
                   <div
@@ -245,10 +245,10 @@ export default function BandScoreJourney({
                     data-oid="-7hzl8k"
                   />
                   <p
-                    className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]"
+                    className="text-[11px] font-black text-slate-400 tracking-[0.2em]"
                     data-oid=":3qmtfi"
                   >
-                    Live Adaptive Roadmap
+                    Personalized for You
                   </p>
                 </div>
               </div>
@@ -256,7 +256,7 @@ export default function BandScoreJourney({
 
             <div className="flex items-center gap-3" data-oid="pitbrk0">
               <div className="hidden sm:flex flex-col items-end" data-oid="cu4ehu1">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <span className="text-[10px] font-black text-slate-400 tracking-widest">
                   Target Score
                 </span>
                 <span className="text-lg font-black text-rose-500 leading-tight">
@@ -265,10 +265,10 @@ export default function BandScoreJourney({
               </div>
               <div className="w-px h-8 bg-border/40 hidden sm:block" data-oid="divider" />
               <div className="flex flex-col items-end" data-oid="b-e_lmw">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <span className="text-[10px] font-black text-slate-400 tracking-widest">
                   Estimated Arrival
                 </span>
-                <div className="flex items-center gap-1.5 text-indigo-600">
+                <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
                   <Calendar className="w-4 h-4" />
                   <span className="text-lg font-black leading-tight">
                     {journeyData.estimatedDays ? `${journeyData.estimatedDays} Days` : 'TBD'}
@@ -297,7 +297,7 @@ export default function BandScoreJourney({
                 initial={{ width: 0 }}
                 animate={{ width: `${journeyData.progressPercentage}%` }}
                 transition={{ duration: 1.5, ease: 'easeOut', delay: 0.2 }}
-                className="h-full bg-gradient-to-r from-emerald-400 via-indigo-500 to-indigo-600 shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+                className="h-full bg-gradient-to-r from-cyan-400 via-sky-500 to-primary shadow-[0_0_20px_rgba(56,189,248,0.4)]"
                 data-oid="pnk3jmi"
               />
             </div>
@@ -319,27 +319,27 @@ export default function BandScoreJourney({
               <>
                 <InsightCard
                   icon={TrendingUp}
-                  title="Current Standing"
+                  title="Where You Are"
                   value={`Band ${formatBand(journeyData.currentBand)}`}
-                  description={`You are ${journeyData.progressPercentage}% of the way to your goal.`}
-                  color="text-indigo-600"
-                  bgColor="bg-indigo-500/5"
+                  description={`You have reached ${journeyData.progressPercentage}% of your goal!`}
+                  color="text-indigo-600 dark:text-indigo-400"
+                  bgColor="bg-indigo-500/5 dark:bg-indigo-500/10"
                 />
                 <InsightCard
                   icon={Zap}
-                  title="Next Milestone"
+                  title="Next Goal"
                   value={`Band ${formatBand(journeyData.nextMilestoneBand)}`}
-                  description={`Only ${formatBand(journeyData.scoreGap)} band away from your goal.`}
-                  color="text-emerald-500"
-                  bgColor="bg-emerald-500/5"
+                  description={`You are almost there!`}
+                  color="text-emerald-500 dark:text-emerald-400"
+                  bgColor="bg-emerald-500/5 dark:bg-emerald-500/10"
                 />
                 <InsightCard
                   icon={Activity}
-                  title="Projected Pace"
+                  title="Weekly Effort"
                   value={studyPace.charAt(0).toUpperCase() + studyPace.slice(1)}
-                  description="Based on your daily activity levels."
-                  color="text-amber-500"
-                  bgColor="bg-amber-500/5"
+                  description="How much time you put in."
+                  color="text-amber-500 dark:text-amber-400"
+                  bgColor="bg-amber-500/5 dark:bg-amber-500/10"
                 />
               </>
             ) : (
@@ -348,7 +348,7 @@ export default function BandScoreJourney({
                 data-oid="empty-internal"
               >
                 <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center">
-                  <Star className="w-6 h-6 text-indigo-600 animate-pulse" />
+                  <Star className="w-6 h-6 text-indigo-600 dark:text-indigo-400 animate-pulse" />
                 </div>
                 <div className="max-w-sm space-y-1">
                   <h4 className="text-base font-black text-foreground">Begin Your Journey</h4>
@@ -384,9 +384,7 @@ function InsightCard({ icon: Icon, title, value, description, color, bgColor }) 
         >
           <Icon className="w-4 h-4" />
         </div>
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-          {title}
-        </span>
+        <span className="text-[10px] font-black tracking-widest text-slate-400">{title}</span>
       </div>
       <div className="space-y-1">
         <div className={cn('text-xl font-black leading-tight', color)}>{value}</div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,6 @@ import {
   PenTool,
   Mic2,
   Calendar,
-  ArrowRight,
   TrendingDown,
   ChevronRight,
 } from 'lucide-react';
@@ -33,34 +32,37 @@ const TYPE_ICONS = {
 };
 
 const TYPE_COLORS = {
-  reading: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
-  listening: 'text-purple-500 bg-purple-500/10 border-purple-500/20',
-  writing: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
-  speaking: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+  reading: 'text-sky-500 bg-sky-500/10 border-sky-500/20 dark:text-sky-400 dark:bg-sky-400/20',
+  listening:
+    'text-indigo-500 bg-indigo-500/10 border-indigo-500/20 dark:text-indigo-400 dark:bg-indigo-400/20',
+  writing:
+    'text-amber-500 bg-amber-500/10 border-amber-500/20 dark:text-amber-400 dark:bg-amber-400/20',
+  speaking:
+    'text-emerald-500 bg-emerald-500/10 border-emerald-500/20 dark:text-emerald-400 dark:bg-emerald-400/20',
 };
 
 const CATEGORY_META = {
   rushed: {
-    title: 'Rushed Sessions',
-    description: 'Sessions where speed caused accuracy drops.',
+    title: 'Moving Too Fast',
+    description: 'Sessions where you hurried and missed points.',
     icon: Zap,
     color: 'text-rose-500',
   },
   overanalyzed: {
-    title: 'Overanalyzed Sessions',
-    description: 'Sessions where too much time was spent per question.',
+    title: 'Thinking Too Long',
+    description: 'Sessions where you spent too much time on each question.',
     icon: Clock,
     color: 'text-amber-500',
   },
   nearMisses: {
-    title: 'Near Misses',
-    description: 'Almost correct! One small slip cost the point.',
+    title: 'Almost Got It!',
+    description: 'You were so close! One small mistake cost the point.',
     icon: TrendingDown,
     color: 'text-primary',
   },
   unanswered: {
-    title: 'Unanswered Questions',
-    description: 'Missed opportunities. Always try to guess if unsure.',
+    title: 'Left Blank',
+    description: 'Missed chances. Always try to pick an answer!',
     icon: Calendar,
     color: 'text-muted-foreground',
   },
@@ -150,7 +152,7 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
                               {session.type}
                             </span>
                             <span
-                              className="text-[10px] font-bold text-muted-foreground/60 uppercase"
+                              className="text-[10px] font-bold text-muted-foreground/60"
                               data-oid="prinag3"
                             >
                               •{' '}
@@ -165,18 +167,18 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
                           <div className="flex flex-wrap gap-1.5 mt-2" data-oid="sn-e-4-">
                             <Badge
                               variant="outline"
-                              className="text-[10px] font-black h-5 border-rose-500/20 text-rose-500 bg-rose-500/5"
+                              className="text-[10px] font-black h-5 border-rose-500/20 text-rose-500 bg-rose-500/5 dark:bg-rose-500/10 dark:text-rose-300"
                               data-oid="rw50hrh"
                             >
                               {session.count}{' '}
                               {category === 'rushed'
-                                ? 'Rushed'
+                                ? 'Too Fast'
                                 : category === 'overanalyzed'
-                                  ? 'Overanalyzed'
+                                  ? 'Too Slow'
                                   : category === 'nearMisses'
-                                    ? 'Near Misses'
+                                    ? 'Almost Got It'
                                     : category === 'unanswered'
-                                      ? 'Unanswered'
+                                      ? 'Left Blank'
                                       : 'Issues'}
                             </Badge>
                             {(session.troubles || []).slice(0, 3).map((tt) => (
@@ -198,10 +200,10 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
                           {session.score || '—'}
                         </div>
                         <div
-                          className="text-[9px] font-black text-muted-foreground uppercase leading-none mt-1"
+                          className="text-[9px] font-black text-muted-foreground leading-none mt-1 uppercase tracking-tight"
                           data-oid="o_m7tfo"
                         >
-                          Band Score
+                          Score
                         </div>
 
                         <Button

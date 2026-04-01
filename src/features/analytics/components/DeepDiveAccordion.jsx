@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronRight, Sparkles, Lock } from 'lucide-react';
+import { ChevronRight, Sparkles, Lock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { ITEM_VARIANTS } from '../constants';
 
 const LockedFeature = ({ isLocked, children }) => {
@@ -27,17 +26,17 @@ const LockedFeature = ({ isLocked, children }) => {
           </div>
           <div className="space-y-1" data-oid="bha97w4">
             <div className="text-sm font-black text-foreground tracking-tight" data-oid="a-_nxyw">
-              Unlock Advanced Analytics
+              Unlock Your Smart Review
             </div>
             <p
               className="text-[10px] font-medium text-muted-foreground leading-relaxed"
               data-oid="5q4r5g."
             >
-              Get detailed insights, error patterns, and personalized strategies
+              Get helpful tips and see exactly how to improve your score
             </p>
           </div>
           <Badge
-            className="bg-amber-500 hover:bg-amber-600 text-white border-0 font-black text-[10px] uppercase tracking-widest px-4 py-1.5 rounded-xl shadow-lg shadow-amber-500/20 cursor-pointer"
+            className="bg-amber-500 hover:bg-amber-600 text-white border-0 font-black text-[10px] tracking-widest px-4 py-1.5 rounded-xl shadow-lg shadow-amber-500/20 cursor-pointer"
             data-oid="nqeu5ks"
           >
             Upgrade to Pro
@@ -63,29 +62,34 @@ export default function DeepDiveAccordion({ isPremium, children }) {
           data-oid="j2kkz3t"
         >
           <div className="flex items-center justify-between" data-oid="ern:nyk">
-            <div className="flex items-center gap-3" data-oid="05lelzu">
-              <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500" data-oid="-33nb72">
-                <Sparkles className="w-4 h-4" data-oid="ws:ofpo" />
-              </div>
-              <div data-oid=".d8f-zm">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3" data-oid="05lelzu">
+              <div className="flex items-center gap-3" data-oid="deep-dive-title-wrapper">
+                <div
+                  className="p-2 rounded-xl bg-sky-500/10 text-sky-500 dark:text-sky-400 shrink-0"
+                  data-oid="-33nb72"
+                >
+                  <Sparkles className="w-4 h-4" data-oid="ws:ofpo" />
+                </div>
                 <CardTitle
-                  className="text-lg font-black text-foreground flex items-center gap-2"
+                  className="text-lg font-black text-foreground flex flex-wrap items-center gap-2"
                   data-oid="3f4tner"
                 >
                   Deep Dive Analytics
                   <Badge
                     variant="secondary"
-                    className="rounded-xl bg-primary/10 text-primary border-0 font-black text-[10px] uppercase tracking-widest px-2"
+                    className="rounded-xl bg-primary/10 text-primary dark:text-blue-400 border-0 font-black text-[10px] tracking-widest px-2"
                     data-oid="e6i:o76"
                   >
-                    Advanced
+                    Smart Review
                   </Badge>
                 </CardTitle>
+              </div>
+              <div className="sm:ml-11" data-oid=".d8f-zm">
                 <CardDescription
                   className="font-semibold text-xs leading-relaxed"
                   data-oid="iycpgr-"
                 >
-                  Detailed insights, error patterns, and personalized strategies
+                  See your progress and find out how to get a better score
                 </CardDescription>
               </div>
             </div>
