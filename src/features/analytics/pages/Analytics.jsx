@@ -12,6 +12,7 @@ import AnalyticsHeader from '../components/AnalyticsHeader';
 import StatCards from '../components/StatCards';
 import PerformanceNarrative from '../components/PerformanceNarrative';
 import EmptyAnalyticsState from '../components/EmptyAnalyticsState';
+import CriteriaBreakdownCard from '../components/CriteriaBreakdownCard';
 
 // Lazy load heavy chart components for better initial load
 const PerformanceTrends = React.lazy(() => import('../components/PerformanceTrends'));
@@ -322,6 +323,17 @@ export default function Analytics() {
                     data-oid="kdm:-vo"
                   />
                 </Suspense>
+                {/* Writing Criteria Breakdown */}
+                <CriteriaBreakdownCard
+                  module="writing"
+                  criteria={stats?.writingCriteria}
+                  labels={{
+                    taskAchievement: 'Task Achievement',
+                    coherence: 'Coherence & Cohesion',
+                    lexicalResource: 'Lexical Resource',
+                    grammar: 'Grammatical Range',
+                  }}
+                />
               </div>
 
               {/* Right Column */}
@@ -347,6 +359,17 @@ export default function Analytics() {
                     data-oid="uf2j79."
                   />
                 </Suspense>
+                {/* Speaking Criteria Breakdown */}
+                <CriteriaBreakdownCard
+                  module="speaking"
+                  criteria={stats?.speakingCriteria}
+                  labels={{
+                    fluency: 'Fluency & Coherence',
+                    lexicalResource: 'Lexical Resource',
+                    grammar: 'Grammatical Range',
+                    pronunciation: 'Pronunciation',
+                  }}
+                />
               </div>
             </div>
           </DeepDiveAccordion>

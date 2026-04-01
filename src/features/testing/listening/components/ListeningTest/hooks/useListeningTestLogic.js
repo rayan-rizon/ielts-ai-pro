@@ -1,31 +1,20 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  useListeningTestDispatch,
-  useListeningTestState,
-  LISTENING_ACTIONS,
-} from '../context/ListeningTestContext';
+import { useListeningTestDispatch, useListeningTestState } from '../context/ListeningTestContext';
 import { initializeTest } from '@/lib/testInitializer';
-import { TestSession, User } from '@/entities';
-import { supabase } from '@/lib/supabase';
+import { TestSession } from '@/entities';
 import { computeQuestionNumbers } from '../utils/questionProcessing';
 import { calculateListeningTestResults } from '../utils/scoreCalculator';
+import { calculateEnhancedMetrics } from '@/services/testMetricsService';
 import { useGamification } from '@/hooks/useGamification';
 import { useAuth } from '@/features/auth/context/AuthContext';
+import { useListeningTestStore } from '../../../store/useListeningTestStore';
 
 export const useListeningTestLogic = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const {
-    session,
-    answers,
-    testData,
-    questions,
-    questionsWithNumbers,
-    isFinished,
-    activePart,
-    audioCurrentTime,
-  } = useListeningTestState();
+  const { session, answers, testData, questions, questionsWithNumbers, isFinished, activePart } =
+    useListeningTestState();
 
   const { dispatch, ACTIONS, setAudioTimeRef } = useListeningTestDispatch();
 
@@ -176,7 +165,7 @@ export const useListeningTestLogic = () => {
     };
 
     initializeTestInternal();
-  }, [id, dispatch, navigate, authLoading, currentUser]);
+  }, [id, dispatch, ACTIONS, navigate, authLoading, currentUser, session?.id]);
 
   // Handle Pending Audio Seek (for session restore)
   useEffect(() => {
@@ -257,14 +246,14 @@ export const useListeningTestLogic = () => {
     (id) => {
       dispatch({ type: ACTIONS.TOGGLE_FLAG, payload: id });
     },
-    [dispatch]
+    [dispatch, ACTIONS.TOGGLE_FLAG]
   );
 
   const handleAnswerChange = useCallback(
     (questionId, value) => {
       dispatch({ type: ACTIONS.SET_ANSWER, payload: { id: questionId, value } });
     },
-    [dispatch]
+    [dispatch, ACTIONS.SET_ANSWER]
   );
 
   const handleMultiSelectChange = useCallback(
@@ -286,7 +275,7 @@ export const useListeningTestLogic = () => {
         });
       }
     },
-    [answers, dispatch]
+    [answers, dispatch, ACTIONS.SET_ANSWER]
   );
 
   const submittingRef = useRef(false);
@@ -312,17 +301,80 @@ export const useListeningTestLogic = () => {
       dispatch({ type: ACTIONS.SET_RESULTS, payload: results });
 
       if (session) {
+        // Calculate duration and enhanced metrics for Listening
+        const durationMins = session.duration_minutes || 40; // Listening is typically ~40mins
+        const state = useListeningTestStore?.getState() || {};
+        const finalTimeRemaining = state.timeRemaining || 0;
+        const answerTimestamps = state.answerTimestamps || {};
+        const answerChangeCounts = state.answerChangeCounts || {};
+
+        const actualTimeSpentSeconds = Math.max(1, durationMins * 60 - finalTimeRemaining);
+        const actualTimeSpentMinutes = Math.max(1, Math.floor(actualTimeSpentSeconds / 60));
+
+        // Time per question calculation
+        const timePerQuestionSeconds = (() => {
+          const entries = Object.entries(answerTimestamps)
+            .map(([k, v]) => [k, Number(v)])
+            .filter(([, v]) => Number.isFinite(v) && v >= 0)
+            .sort((a, b) => a[1] - b[1]);
+
+          const out = {};
+          let prev = 0;
+          entries.forEach(([questionId, ts]) => {
+            const delta = Math.max(0, ts - prev);
+            out[questionId] = Math.round(delta);
+            prev = ts;
+          });
+          return out;
+        })();
+
+        const totalAnswerChanges = Object.values(answerChangeCounts).reduce(
+          (sum, v) => sum + (Number(v) || 0),
+          0
+        );
+
+        // Enhanced metrics equivalent to Reading
+        const enhancedMetrics = calculateEnhancedMetrics(
+          {
+            bandScore: results.bandScore,
+            totalQuestions: results.totalQuestions,
+            correctAnswers: results.correctAnswers,
+            percentage: results.percentage,
+            sectionStats: results.sectionStats || [],
+            typeStats: results.typeStats || {},
+            correctAnswersMap: results.answersMap,
+          },
+          answers,
+          answerTimestamps,
+          actualTimeSpentSeconds,
+          'listening',
+          answerChangeCounts
+        );
+
         await TestSession.update(session.id, {
           is_completed: true,
           score: results.bandScore,
           completed_at: new Date().toISOString(),
+          duration_minutes: actualTimeSpentMinutes,
           content_data: {
             ...session.content_data,
+            // Core metrics
             correctAnswersMap: results.answersMap,
             totalQuestions: results.totalQuestions,
             correctAnswers: results.correctAnswers,
             percentage: results.percentage,
             savedAnswers: answers,
+            sectionStats: results.sectionStats,
+            typeStats: results.typeStats,
+            // Enhanced metrics
+            answerTimestamps,
+            timePerQuestionSeconds,
+            answerChangeCounts,
+            totalAnswerChanges,
+            changedAnswersCount: enhancedMetrics.errorPatterns?.changedAnswers || 0,
+            timeMetrics: enhancedMetrics.timeMetrics,
+            errorPatterns: enhancedMetrics.errorPatterns,
+            skillGaps: enhancedMetrics.skillGaps,
           },
         });
 

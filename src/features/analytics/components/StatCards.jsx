@@ -10,13 +10,26 @@ import { getBandLabel, formatBand } from '../utils';
 
 export default function StatCards({ stats, progressToTarget }) {
   if (!stats) return null;
-  const currentLabel = getBandLabel(stats.avgScore);
+
+  // Use predictedOverallBand (official IELTS formula) if available, else fall back to avgScore
+  const displayScore =
+    stats.predictedOverallBand != null
+      ? String(
+          stats.predictedOverallBand % 1 === 0
+            ? stats.predictedOverallBand.toFixed(1)
+            : stats.predictedOverallBand
+        )
+      : stats.avgScore;
+  const isOfficialBand = stats.predictedOverallBand != null;
+  const modulesWithData = stats.modulesWithData || 0;
+
+  const currentLabel = getBandLabel(displayScore);
   const targetLabel = getBandLabel(stats.targetScore);
 
   const cards = [
     {
-      title: 'Your Score',
-      value: stats.avgScore,
+      title: isOfficialBand ? 'Predicted Band' : 'Your Score',
+      value: displayScore,
       badge: currentLabel,
       icon: Target,
       color: 'bg-primary',
@@ -24,6 +37,11 @@ export default function StatCards({ stats, progressToTarget }) {
       trendLabel: 'Your Improvement',
       progress: progressToTarget,
       footerType: 'progress',
+      subtitle: isOfficialBand
+        ? modulesWithData < 4
+          ? `${modulesWithData}/4 modules scored`
+          : 'All modules scored'
+        : null,
     },
     {
       title: 'Your Goal',
@@ -107,6 +125,11 @@ export default function StatCards({ stats, progressToTarget }) {
                     </Badge>
                   )}
                 </div>
+                {card.subtitle && (
+                  <p className="text-[9px] font-bold text-muted-foreground/60 tracking-wide">
+                    {card.subtitle}
+                  </p>
+                )}
               </div>
               <IconWrapper
                 icon={card.icon}

@@ -850,6 +850,13 @@ export default function SpeakingTest() {
               ...session?.content_data,
               finalEvaluation: response.evaluation,
               allPartsConversation: conversationsToEvaluate,
+              // Flat criteria scores for analytics aggregation
+              criteriaScores: {
+                fluency: response.evaluation.fluency || 0,
+                lexicalResource: response.evaluation.lexical || 0,
+                grammar: response.evaluation.grammar || 0,
+                pronunciation: response.evaluation.pronunciation || 0,
+              },
             },
           });
 

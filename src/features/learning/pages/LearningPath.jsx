@@ -73,8 +73,25 @@ function buildMistakePatterns(sessions) {
   const tagCounts = {};
 
   sessions.forEach((s) => {
-    const errorTags = s?.content_data?.errorTags || s?.content_data?.error_tags || [];
+    // errorPatterns.troubleTypes is the real field from testMetricsService
+    const troubleTypes = s?.content_data?.errorPatterns?.troubleTypes || [];
+    // Also support legacy errorTags/error_tags fields
+    const legacyTags = s?.content_data?.errorTags || s?.content_data?.error_tags || [];
+    const errorTags = troubleTypes.length > 0 ? troubleTypes : legacyTags;
     const typeStats = s?.content_data?.typeStats || {};
+
+    // Collect Writing/Speaking criteria weaknesses too
+    const criteriaScores = s?.content_data?.criteriaScores || {};
+    if (s.test_type === 'writing' || s.test_type === 'speaking') {
+      Object.entries(criteriaScores).forEach(([criterion, score]) => {
+        const numScore = Number(score) || 0;
+        if (numScore > 0 && numScore < 6.0) {
+          const key = String(criterion).trim();
+          if (!tagCounts[key]) tagCounts[key] = { tag: key, count: 0, module: s.test_type };
+          tagCounts[key].count += Math.ceil((6.0 - numScore) * 2);
+        }
+      });
+    }
 
     (Array.isArray(errorTags) ? errorTags : []).forEach((tag) => {
       const key = String(tag).trim();
@@ -176,9 +193,20 @@ const LearningPath = () => {
     const firstTask = todaysTasks.tasks[0];
     const taskObj =
       typeof firstTask === 'string' ? { title: firstTask, module: 'general' } : firstTask;
+    // Use real task description if available, otherwise build one from the module + priority
+    const moduleLabel = taskObj.module
+      ? taskObj.module.charAt(0).toUpperCase() + taskObj.module.slice(1)
+      : 'General';
+    const priorityLabel =
+      taskObj.priority === 'high'
+        ? 'highest-priority'
+        : taskObj.priority === 'low'
+          ? 'reinforcement'
+          : 'core';
+    const generatedReason = `Your ${priorityLabel} ${moduleLabel} focus for today based on your weakest skills.`;
     return {
       primary_module: taskObj.module,
-      ai_reason: 'Your daily priority based on your schedule.',
+      ai_reason: taskObj.description || generatedReason,
       task: taskObj,
     };
   }, [todaysTasks]);

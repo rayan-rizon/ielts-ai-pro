@@ -116,6 +116,24 @@ export default function useAnalyticsData(selectedTimeframe) {
     // Improvement - using weighted moving average from utils
     const improvement = calculateImprovement(filteredSessions);
 
+    // Predicted Overall IELTS Band — real formula: average latest score from each module → nearest 0.5
+    // IELTS Official: Overall = (R + L + W + S) / 4, rounded to nearest 0.5
+    const moduleLatestScores = ['reading', 'writing', 'listening', 'speaking']
+      .map((type) => {
+        const typeSessions = filteredSessions.filter(
+          (s) => (s.test_type || '').toLowerCase() === type
+        );
+        return typeSessions.length > 0 ? Number(typeSessions[0].score) || 0 : null;
+      })
+      .filter((s) => s !== null && s > 0);
+
+    const predictedOverallBand =
+      moduleLatestScores.length > 0
+        ? Math.round(
+            (moduleLatestScores.reduce((sum, s) => sum + s, 0) / moduleLatestScores.length) * 2
+          ) / 2
+        : null;
+
     return {
       avgScore: formatBand(avgScoreNum),
       targetScore: authUser?.target_band_score || 7.0,
@@ -124,8 +142,10 @@ export default function useAnalyticsData(selectedTimeframe) {
       studyHoursTrend,
       vocabCount,
       improvement: improvement > 0 ? `+${formatBand(improvement)}` : formatBand(improvement),
+      predictedOverallBand,
+      modulesWithData: moduleLatestScores.length,
     };
-  }, [filteredSessions, previousSessions, authUser, vocabCount]); // Depend on authUser for target score
+  }, [filteredSessions, previousSessions, authUser, vocabCount]);
 
   // 4. Module Stats (Radar Data, Specifics)
   const moduleStats = useMemo(() => {
@@ -365,7 +385,103 @@ export default function useAnalyticsData(selectedTimeframe) {
         .sort((a, b) => a.avg - b.avg),
     };
 
-    return { typeAccuracy, sectionPerformance, efficiency, enhancedMetrics };
+    // Writing Criteria aggregation from content_data.criteriaScores
+    const writingCriteriaAgg = {
+      taskAchievement: { sum: 0, count: 0 },
+      coherence: { sum: 0, count: 0 },
+      lexicalResource: { sum: 0, count: 0 },
+      grammar: { sum: 0, count: 0 },
+    };
+
+    // Speaking Criteria aggregation from content_data.criteriaScores
+    const speakingCriteriaAgg = {
+      fluency: { sum: 0, count: 0 },
+      lexicalResource: { sum: 0, count: 0 },
+      grammar: { sum: 0, count: 0 },
+      pronunciation: { sum: 0, count: 0 },
+    };
+
+    filteredSessions.forEach((s) => {
+      const content = s.content_data || {};
+      const type = (s.test_type || '').toLowerCase();
+      const cs = content.criteriaScores || {};
+
+      if (type === 'writing' && Object.keys(cs).length > 0) {
+        const ta = Number(cs.taskAchievement) || 0;
+        const cc = Number(cs.coherence) || 0;
+        const lr = Number(cs.lexicalResource) || 0;
+        const gr = Number(cs.grammar) || 0;
+        if (ta > 0) {
+          writingCriteriaAgg.taskAchievement.sum += ta;
+          writingCriteriaAgg.taskAchievement.count++;
+        }
+        if (cc > 0) {
+          writingCriteriaAgg.coherence.sum += cc;
+          writingCriteriaAgg.coherence.count++;
+        }
+        if (lr > 0) {
+          writingCriteriaAgg.lexicalResource.sum += lr;
+          writingCriteriaAgg.lexicalResource.count++;
+        }
+        if (gr > 0) {
+          writingCriteriaAgg.grammar.sum += gr;
+          writingCriteriaAgg.grammar.count++;
+        }
+      }
+
+      if (type === 'speaking' && Object.keys(cs).length > 0) {
+        // Also try to read from finalEvaluation for older sessions
+        const evalCs = content.finalEvaluation || {};
+        const fl = Number(cs.fluency || evalCs.fluency) || 0;
+        const lr = Number(cs.lexicalResource || evalCs.lexical) || 0;
+        const gr = Number(cs.grammar || evalCs.grammar) || 0;
+        const pr = Number(cs.pronunciation || evalCs.pronunciation) || 0;
+        if (fl > 0) {
+          speakingCriteriaAgg.fluency.sum += fl;
+          speakingCriteriaAgg.fluency.count++;
+        }
+        if (lr > 0) {
+          speakingCriteriaAgg.lexicalResource.sum += lr;
+          speakingCriteriaAgg.lexicalResource.count++;
+        }
+        if (gr > 0) {
+          speakingCriteriaAgg.grammar.sum += gr;
+          speakingCriteriaAgg.grammar.count++;
+        }
+        if (pr > 0) {
+          speakingCriteriaAgg.pronunciation.sum += pr;
+          speakingCriteriaAgg.pronunciation.count++;
+        }
+      }
+    });
+
+    const avgCriteria = (agg) =>
+      agg.count > 0 ? Math.round((agg.sum / agg.count) * 10) / 10 : null;
+
+    const writingCriteria = {
+      taskAchievement: avgCriteria(writingCriteriaAgg.taskAchievement),
+      coherence: avgCriteria(writingCriteriaAgg.coherence),
+      lexicalResource: avgCriteria(writingCriteriaAgg.lexicalResource),
+      grammar: avgCriteria(writingCriteriaAgg.grammar),
+      hasData: Object.values(writingCriteriaAgg).some((v) => v.count > 0),
+    };
+
+    const speakingCriteria = {
+      fluency: avgCriteria(speakingCriteriaAgg.fluency),
+      lexicalResource: avgCriteria(speakingCriteriaAgg.lexicalResource),
+      grammar: avgCriteria(speakingCriteriaAgg.grammar),
+      pronunciation: avgCriteria(speakingCriteriaAgg.pronunciation),
+      hasData: Object.values(speakingCriteriaAgg).some((v) => v.count > 0),
+    };
+
+    return {
+      typeAccuracy,
+      sectionPerformance,
+      efficiency,
+      enhancedMetrics,
+      writingCriteria,
+      speakingCriteria,
+    };
   }, [filteredSessions]);
 
   // 6. Insights Generation

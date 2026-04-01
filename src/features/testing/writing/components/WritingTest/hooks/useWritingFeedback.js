@@ -248,6 +248,49 @@ export function useWritingFeedback(awardXP) {
       // Save session
       if (store.session) {
         const completedAt = new Date().toISOString();
+
+        // Extract per-task criteria scores for analytics
+        const task1Feedback = newFeedbacks['Task 1'];
+        const task2Feedback = newFeedbacks['Task 2'];
+
+        // Build criteria scores — average Task 1 and Task 2 if both exist
+        // IELTS Writing: Task Achievement, Coherence & Cohesion, Lexical Resource, Grammatical Range
+        const extractCriteria = (fb) => {
+          if (!fb?.criteriaScores) return null;
+          const cs = fb.criteriaScores;
+          return {
+            taskAchievement: Number(cs.TaskAchievement ?? cs.task_achievement ?? cs.TA ?? 0) || 0,
+            coherence:
+              Number(cs['Coherence & Cohesion'] ?? cs.CoherenceAndCohesion ?? cs.CC ?? 0) || 0,
+            lexicalResource:
+              Number(cs['Lexical Resource'] ?? cs.LexicalResource ?? cs.LR ?? 0) || 0,
+            grammar:
+              Number(cs['Grammatical Range & Accuracy'] ?? cs.GrammaticalRange ?? cs.GRA ?? 0) || 0,
+          };
+        };
+
+        const t1Criteria = task1Feedback ? extractCriteria(task1Feedback) : null;
+        const t2Criteria = task2Feedback ? extractCriteria(task2Feedback) : null;
+
+        // Weighted average: Task 2 is worth 2/3, Task 1 is 1/3 in real IELTS
+        let aggregatedCriteria = null;
+        if (t1Criteria && t2Criteria) {
+          aggregatedCriteria = {
+            taskAchievement:
+              Math.round(((t1Criteria.taskAchievement + t2Criteria.taskAchievement * 2) / 3) * 2) /
+              2,
+            coherence: Math.round(((t1Criteria.coherence + t2Criteria.coherence * 2) / 3) * 2) / 2,
+            lexicalResource:
+              Math.round(((t1Criteria.lexicalResource + t2Criteria.lexicalResource * 2) / 3) * 2) /
+              2,
+            grammar: Math.round(((t1Criteria.grammar + t2Criteria.grammar * 2) / 3) * 2) / 2,
+          };
+        } else if (t2Criteria) {
+          aggregatedCriteria = t2Criteria;
+        } else if (t1Criteria) {
+          aggregatedCriteria = t1Criteria;
+        }
+
         const updatePayload = {
           is_completed: true,
           completed_at: completedAt,
@@ -264,6 +307,12 @@ export function useWritingFeedback(awardXP) {
             ...store.session.content_data,
             time_remaining: store.timeRemaining,
             ai_feedbacks: newFeedbacks,
+            // Criteria scores for analytics dashboard
+            criteriaScores: aggregatedCriteria,
+            task1CriteriaScores: t1Criteria,
+            task2CriteriaScores: t2Criteria,
+            task1Band: task1Feedback?.overallBand || null,
+            task2Band: task2Feedback?.overallBand || null,
           },
         };
 
