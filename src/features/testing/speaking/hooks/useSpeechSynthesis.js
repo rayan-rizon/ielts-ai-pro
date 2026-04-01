@@ -261,7 +261,12 @@ export default function useSpeechSynthesis() {
       }
 
       // ── 3. Web Speech API fallback (only if truly needed) ─────────────────
-      if (shouldUseFallback && !isMutedRef.current && requestIdRef.current === myRequestId && isMountedRef.current) {
+      if (
+        shouldUseFallback &&
+        !isMutedRef.current &&
+        requestIdRef.current === myRequestId &&
+        isMountedRef.current
+      ) {
         if (options.onPlayStart) {
           options.onPlayStart();
         }
