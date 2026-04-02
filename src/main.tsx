@@ -37,7 +37,7 @@ if (isProduction && typeof window !== 'undefined') {
       try {
         // Clear NREUM if it's set to a primitive (like false) to prevent 'Cannot create property NREUM on boolean false' during HMR or re-initialization
         if (typeof (window as any).NREUM !== 'object') {
-          (window as any).NREUM = undefined;
+          delete (window as any).NREUM;
         }
         const agent = new BrowserAgent(options);
         console.log('[New Relic] Browser agent initialized successfully');
