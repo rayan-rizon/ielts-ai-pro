@@ -2,17 +2,58 @@ import React from 'react';
 import { Clock, ArrowUpRight, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { GlassCard } from '@/features/learning/components/SharedComponents';
 import { getTodayIndex } from '@/features/learning/hooks/useLearningPathData';
 import { cn } from '@/lib/utils';
 
-export default function ReviewQueue({ dueReviewSkills, setSelectedDayIndex, className }) {
+export default function ReviewQueue({
+  dueReviewSkills,
+  setSelectedDayIndex,
+  className,
+  loading = false,
+}) {
   const navigate = useNavigate();
 
+  if (loading) {
+    return (
+      <GlassCard className={cn('p-4 sm:p-5 md:p-8 border-t-2 border-t-indigo-500/30', className)}>
+        <div className="flex items-center justify-between gap-3 mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+              <Clock className="w-5 h-5 text-indigo-600/80" />
+            </div>
+            <div className="space-y-1.5">
+              <Skeleton className="h-5 w-28 rounded-full" />
+              <Skeleton className="h-3.5 w-44 rounded-full" />
+            </div>
+          </div>
+          <Skeleton className="h-7 w-16 rounded-full" />
+        </div>
+
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="w-full flex items-center justify-between gap-3 p-4 rounded-2xl bg-slate-50/50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/5"
+            >
+              <div className="space-y-2 min-w-0 flex-1">
+                <Skeleton className="h-3 w-20 rounded-full" />
+                <Skeleton className="h-3.5 w-[70%] rounded-full" />
+              </div>
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+          ))}
+          <Skeleton className="h-11 w-full rounded-2xl" />
+        </div>
+      </GlassCard>
+    );
+  }
+
   return (
-    <GlassCard className={cn('p-5 md:p-8 border-t-2 border-t-indigo-500/30', className)}>
+    <GlassCard className={cn('p-4 sm:p-5 md:p-8 border-t-2 border-t-indigo-500/30', className)}>
       <div className="flex items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center shadow-lg shadow-indigo-500/5">
@@ -23,7 +64,7 @@ export default function ReviewQueue({ dueReviewSkills, setSelectedDayIndex, clas
               Review Queue
             </h2>
             <div className="text-[11px] font-semibold text-muted-foreground">
-              Quick reviews that are due now
+              Short reviews to protect your progress
             </div>
           </div>
         </div>
@@ -33,10 +74,11 @@ export default function ReviewQueue({ dueReviewSkills, setSelectedDayIndex, clas
       </div>
 
       {!dueReviewSkills.length ? (
-        <div className="py-10 text-center space-y-3 bg-slate-50/50 dark:bg-white/[0.02] rounded-3xl border border-dashed border-slate-200 dark:border-white/5">
+        <div className="py-10 text-center space-y-3 bg-slate-50/50 dark:bg-white/[0.02] rounded-2xl border border-dashed border-slate-200 dark:border-white/5">
           <Clock className="w-10 h-10 text-slate-300 dark:text-slate-700 mx-auto" />
           <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold max-w-[220px] mx-auto leading-relaxed">
-            No reviews due right now. Keep practicing to build a smart review schedule.
+            No reviews are due right now. Keep practicing and we will schedule your next review
+            here.
           </p>
         </div>
       ) : (
@@ -51,7 +93,7 @@ export default function ReviewQueue({ dueReviewSkills, setSelectedDayIndex, clas
                 onClick={() =>
                   navigate(createPageUrl(module.charAt(0).toUpperCase() + module.slice(1)))
                 }
-                className="w-full flex items-center justify-between gap-3 p-4 rounded-3xl bg-slate-50/50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 hover:border-indigo-500/30 transition-all group text-left"
+                className="w-full flex items-center justify-between gap-3 p-4 rounded-2xl bg-slate-50/50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 hover:border-indigo-500/30 transition-all group text-left"
               >
                 <div className="min-w-0">
                   <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">
@@ -85,7 +127,7 @@ export default function ReviewQueue({ dueReviewSkills, setSelectedDayIndex, clas
               setSelectedDayIndex(getTodayIndex());
             }}
           >
-            Review Now (10 min)
+            Start due review (10 min)
             <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

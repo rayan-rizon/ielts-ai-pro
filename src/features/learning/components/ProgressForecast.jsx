@@ -2,7 +2,8 @@ import React from 'react';
 import { m } from 'framer-motion';
 import { TrendingUp, Target, Calendar, Sparkles, Rocket, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format, addDays, differenceInDays } from 'date-fns';
+import { addDays, differenceInDays } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 /**
  * Calculates a projected band score based on current progress and pace.
@@ -60,6 +61,7 @@ function calculateProjection({
 }
 
 export default function ProgressForecast({
+  loading = false,
   currentReadiness,
   targetScore,
   testDate,
@@ -76,13 +78,60 @@ export default function ProgressForecast({
     totalActivities,
   });
 
+  if (loading) {
+    return (
+      <m.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={cn(
+          'relative rounded-2xl p-4 sm:p-6 md:p-8 overflow-hidden h-full',
+          'bg-white/90 dark:bg-zinc-900/80 backdrop-blur-2xl',
+          'border border-indigo-100 dark:border-indigo-500/20',
+          'shadow-xl shadow-indigo-500/10',
+          className
+        )}
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-indigo-500/10" />
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-28 rounded-full" />
+                <Skeleton className="h-3 w-20 rounded-full" />
+              </div>
+            </div>
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </div>
+
+          <div className="space-y-2">
+            <Skeleton className="h-3.5 w-24 rounded-full" />
+            <Skeleton className="h-10 w-28 rounded-xl" />
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white/60 dark:bg-zinc-900/40 rounded-xl p-3 text-center space-y-2"
+              >
+                <Skeleton className="h-4 w-4 rounded mx-auto" />
+                <Skeleton className="h-5 w-10 rounded-full mx-auto" />
+                <Skeleton className="h-3 w-16 rounded-full mx-auto" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </m.div>
+    );
+  }
+
   if (!hasHistory) {
     return (
       <m.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          'relative rounded-3xl p-6 sm:p-8 overflow-hidden h-full flex flex-col',
+          'relative rounded-2xl p-4 sm:p-6 md:p-8 overflow-hidden h-full flex flex-col',
           'bg-white/90 dark:bg-zinc-900/80 backdrop-blur-2xl',
           'border border-indigo-100 dark:border-indigo-500/20',
           'shadow-xl shadow-indigo-500/10',
@@ -96,7 +145,7 @@ export default function ProgressForecast({
             </div>
             <div>
               <h3 className="text-sm font-black text-zinc-900 dark:text-white">Score Forecast</h3>
-              <p className="text-[10px] text-zinc-500 dark:text-zinc-400">AI prediction</p>
+              <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Based on your pace</p>
             </div>
           </div>
           <div className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
@@ -110,7 +159,7 @@ export default function ProgressForecast({
           </div>
           <h4 className="text-sm font-bold text-slate-900 dark:text-white">Prediction Locked</h4>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px] leading-relaxed">
-            Take your first test to unlock your AI score projection and completion date.
+            Take your first test to unlock your score projection and timeline.
           </p>
         </div>
       </m.div>
@@ -122,7 +171,7 @@ export default function ProgressForecast({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        'relative rounded-3xl p-6 sm:p-8 overflow-hidden',
+        'relative rounded-2xl p-4 sm:p-6 md:p-8 overflow-hidden',
         'bg-white/90 dark:bg-zinc-900/80 backdrop-blur-2xl', // Glass base
         'border border-indigo-100 dark:border-indigo-500/20', // Subtle tint border
         'shadow-xl shadow-indigo-500/10',
@@ -156,7 +205,7 @@ export default function ProgressForecast({
                 Score Forecast
               </h3>
               <p className="text-[10px] text-zinc-500 dark:text-zinc-400" data-oid="66dq6g0">
-                AI prediction
+                Based on your pace
               </p>
             </div>
           </div>
@@ -169,7 +218,7 @@ export default function ProgressForecast({
             )}
             data-oid="8rr6mjc"
           >
-            {projection.onTrack ? '✓ On Track' : '⚡ Push Harder'}
+            {projection.onTrack ? 'On track' : 'Needs focus'}
           </div>
         </div>
 
@@ -277,7 +326,7 @@ export default function ProgressForecast({
               className="text-xs text-amber-800 dark:text-amber-300 font-medium"
               data-oid="nrjp6ty"
             >
-              💡 Add{' '}
+              Add{' '}
               <span className="font-black" data-oid=".nk0.h3">
                 {projection.extraHoursNeeded}+ hours/week
               </span>{' '}

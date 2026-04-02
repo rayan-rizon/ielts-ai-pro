@@ -2,8 +2,9 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { m } from 'framer-motion';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { generateAdaptiveLearningPath } from '@/utils/api';
-import { Zap, RefreshCw, Target, Clock, Flame, CheckCircle2, Sparkles } from 'lucide-react';
+import { Zap, RefreshCw, Target, Clock, CheckCircle2, Crown } from 'lucide-react';
 
 import { useAuth } from '@/features/auth/context/AuthContext';
 import useLearningPathData, {
@@ -12,10 +13,11 @@ import useLearningPathData, {
 } from '@/features/learning/hooks/useLearningPathData';
 import { getDaysLeft } from '@/features/learning/utils/learningUtils';
 import DocumentHead from '@/components/shared/DocumentHead';
-import PremiumLoading from '@/components/ui/PremiumLoading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { createPageUrl } from '@/utils';
 
 // Components
 import DailyFocusCard from '@/features/learning/components/dashboard/DailyFocusCard';
@@ -37,14 +39,29 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' } },
 };
 
+function humanizeLabel(value) {
+  return String(value || '')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 // --- Helpers ---
 
 /** Calculate band gap analysis for each module */
 function calculateBandGaps(stats, targetBand) {
-  if (!stats?.moduleAverages) return { hasAny: false, items: [], levers: [] };
+  if (!stats?.moduleAverages)
+    return {
+      hasAny: false,
+      items: [],
+      levers: [],
+      missingModules: ['reading', 'listening', 'writing', 'speaking'],
+    };
 
   const modules = ['reading', 'listening', 'writing', 'speaking'];
   const items = [];
+  const missingModules = [];
   let hasAny = false;
 
   modules.forEach((module) => {
@@ -55,15 +72,17 @@ function calculateBandGaps(stats, targetBand) {
     const gap = targetBand ? Math.max(0, targetBand - safeCurrent) : 0;
     const trend = stats.moduleTrends?.[module] || 'stable';
 
-    if (safeCurrent > 0 || gap > 0) {
+    if (safeCurrent > 0) {
       items.push({ module, current: safeCurrent, gap, trend });
+    } else {
+      missingModules.push(module);
     }
   });
 
   items.sort((a, b) => b.gap - a.gap || a.current - b.current);
   const levers = items.filter((i) => i.gap > 0).slice(0, 2);
 
-  return { hasAny, items, levers };
+  return { hasAny, items, levers, missingModules };
 }
 
 /** Extract common mistake patterns from recent test sessions */
@@ -86,7 +105,7 @@ function buildMistakePatterns(sessions) {
       Object.entries(criteriaScores).forEach(([criterion, score]) => {
         const numScore = Number(score) || 0;
         if (numScore > 0 && numScore < 6.0) {
-          const key = String(criterion).trim();
+          const key = humanizeLabel(criterion);
           if (!tagCounts[key]) tagCounts[key] = { tag: key, count: 0, module: s.test_type };
           tagCounts[key].count += Math.ceil((6.0 - numScore) * 2);
         }
@@ -94,7 +113,7 @@ function buildMistakePatterns(sessions) {
     }
 
     (Array.isArray(errorTags) ? errorTags : []).forEach((tag) => {
-      const key = String(tag).trim();
+      const key = humanizeLabel(tag);
       if (!key) return;
       if (!tagCounts[key]) tagCounts[key] = { tag: key, count: 0, module: s.test_type };
       tagCounts[key].count += 1;
@@ -106,7 +125,7 @@ function buildMistakePatterns(sessions) {
       if (total < 2) return;
       const accuracy = correct / total;
       if (accuracy < 0.5) {
-        const key = String(typeKey).replace(/_/g, ' ').trim();
+        const key = humanizeLabel(typeKey);
         if (!key) return;
         if (!tagCounts[key]) tagCounts[key] = { tag: key, count: 0, module: s.test_type };
         tagCounts[key].count += Math.ceil(total * (1 - accuracy));
@@ -125,6 +144,7 @@ function buildMistakePatterns(sessions) {
 const LearningPath = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { learningPath, stats, skillMap, isLoading, activityByKey, toggleActivity } =
     useLearningPathData(true);
 
@@ -228,14 +248,13 @@ const LearningPath = () => {
     };
   }, [scheduleTasks, activityByKey]);
 
-  const { dateLabel, greeting } = useMemo(() => {
+  const dateLabel = useMemo(() => {
     const now = new Date();
-    const label = now.toLocaleDateString(undefined, {
+    return now.toLocaleDateString(undefined, {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
     });
-    return { dateLabel: label, greeting: 'Your study plan' };
   }, []);
 
   // --- Handlers ---
@@ -271,6 +290,15 @@ const LearningPath = () => {
   const handleSelectToday = useCallback(() => {
     setSelectedDayIndex(getTodayIndex());
   }, []);
+
+  const handleStartTopTask = useCallback(() => {
+    const module = dailyFocus?.primary_module;
+    if (module && module !== 'general') {
+      navigate(createPageUrl(module.charAt(0).toUpperCase() + module.slice(1)));
+      return;
+    }
+    handleSelectToday();
+  }, [dailyFocus?.primary_module, handleSelectToday, navigate]);
 
   const handleTaskToggle = useCallback(
     async (dayName, taskIdx) => {
@@ -323,10 +351,6 @@ const LearningPath = () => {
 
   // --- Render ---
 
-  if (isLoading) {
-    return <PremiumLoading message="Loading your plan..." fullScreen={true} />;
-  }
-
   return (
     <>
       <DocumentHead
@@ -346,138 +370,131 @@ const LearningPath = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="p-3 md:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-6 relative z-10"
+          className="p-2 sm:p-3.5 md:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-3 sm:space-y-4 md:space-y-6 relative z-10"
         >
-          {/* Header Section (Synced with Dashboard V3 Style) */}
-          <m.header variants={itemVariants} className="space-y-6">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
+          {/* Header Section */}
+          <m.header variants={itemVariants} className="space-y-2.5 sm:space-y-3.5">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2.5 sm:gap-3.5">
+              <div className="max-w-3xl">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge
                     variant="outline"
-                    className="px-3 py-1 rounded-full bg-slate-500/5 dark:bg-slate-400/5 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-wider backdrop-blur-sm"
+                    className="px-3 py-1 rounded-full bg-slate-500/5 dark:bg-slate-400/5 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold text-[10px] uppercase tracking-wider backdrop-blur-sm"
                   >
                     {dateLabel}
                   </Badge>
-                  <Badge
-                    variant="outline"
-                    className="bg-indigo-500/10 backdrop-blur-md border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all"
-                  >
-                    <Sparkles className="w-3 h-3 fill-indigo-600/20 dark:fill-indigo-400/20" />
-                    AI POWERED
-                  </Badge>
-                  {user?.subscription_tier === 'pro' && (
+                  {user?.subscription_tier === 'premium' ? (
                     <Badge
                       variant="outline"
-                      className="bg-blue-500/10 backdrop-blur-md border border-blue-500/20 text-blue-600 dark:text-blue-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all"
+                      className="bg-purple-500/10 backdrop-blur-md border border-purple-500/20 text-purple-600 dark:text-purple-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all hover:bg-purple-500/20 hover:text-purple-700 dark:hover:text-purple-300"
+                    >
+                      <Crown className="w-3 h-3 fill-purple-600/20 dark:fill-purple-400/20" />
+                      PREMIUM
+                    </Badge>
+                  ) : user?.subscription_tier === 'pro' ? (
+                    <Badge
+                      variant="outline"
+                      className="bg-blue-500/10 backdrop-blur-md border border-blue-500/20 text-blue-600 dark:text-blue-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all hover:bg-blue-500/20 hover:text-blue-700 dark:hover:text-blue-300"
                     >
                       <Zap className="w-3 h-3 fill-blue-600/20 dark:fill-blue-400/20" />
                       PRO
                     </Badge>
-                  )}
+                  ) : null}
                 </div>
-                <h1 className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 dark:text-white mt-3 leading-tight">
-                  {greeting} to{' '}
-                  <span className="text-indigo-600 dark:text-indigo-400 italic">
-                    Band {targetBand}
-                  </span>
+
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white mt-2 sm:mt-3 leading-tight">
+                  Your AI Learning Path to{' '}
+                  <span className="text-indigo-600 dark:text-indigo-400">Band {targetBand}</span>
                 </h1>
-                <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base font-medium max-w-xl mt-2">
-                  {completionPercent === 100
-                    ? "Perfect score! You've completed all tasks for your plan."
-                    : `You've completed ${completedCount} tasks. Aim for 80%+ consistency.`}
+                <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base md:text-lg font-medium max-w-xl mt-1.5 sm:mt-2 leading-relaxed">
+                  Start today&apos;s task first, then follow your weekly plan and due reviews.
                 </p>
               </div>
 
-              <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-4">
-                {/* Floating Stats Bar */}
-                <m.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className={cn(
-                    'grid grid-cols-2 md:flex md:flex-row items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/50 rounded-2xl p-0 md:p-1 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] w-full xl:w-auto overflow-hidden',
-                    'hover:border-indigo-500/30 dark:hover:border-indigo-500/40 transition-all duration-300'
-                  )}
+              <div className="w-full xl:w-[300px] space-y-2">
+                <Button
+                  onClick={handleStartTopTask}
+                  disabled={isLoading}
+                  className="w-full rounded-2xl h-10 bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 font-black"
                 >
-                  {/* Target */}
-                  <div className="flex items-center gap-2 px-4 py-3 md:px-4 md:py-2 border-r border-b md:border-b-0 border-slate-100 dark:border-white/5">
-                    <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-500/20">
-                      <Target className="w-4 h-4 text-indigo-700 dark:text-indigo-300" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">
-                        Target
-                      </span>
-                      <span className="text-sm font-black text-slate-900 dark:text-white mt-0.5 leading-none italic">
-                        {targetBand}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Exam Date */}
-                  <div className="flex items-center gap-2 px-4 py-3 md:px-4 md:py-2 border-b md:border-b-0 md:border-r border-slate-100 dark:border-white/5">
-                    <div className="w-8 h-8 rounded-full bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center shrink-0 border border-violet-100 dark:border-violet-500/20">
-                      <Clock className="w-4 h-4 text-violet-700 dark:text-violet-300" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">
-                        Exam
-                      </span>
-                      <span className="text-sm font-black text-slate-900 dark:text-white mt-0.5 leading-none">
-                        {daysLeft !== null ? `${daysLeft}d` : 'Not set'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Streak */}
-                  <div className="flex items-center gap-2 px-4 py-3 md:px-4 md:py-2 border-r border-slate-100 dark:border-white/5">
-                    <div className="w-8 h-8 rounded-full bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center shrink-0 border border-orange-100 dark:border-orange-500/20">
-                      <Flame className="w-4 h-4 text-orange-700 dark:text-orange-300 fill-orange-500/30" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">
-                        Streak
-                      </span>
-                      <span className="text-sm font-black text-slate-900 dark:text-white mt-0.5 leading-none">
-                        {user?.current_streak || 0}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Daily Progress */}
-                  <div className="flex items-center gap-2 px-4 py-3 md:px-4 md:py-2">
-                    <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-500/20">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">
-                        Done
-                      </span>
-                      <span className="text-sm font-black text-slate-900 dark:text-white mt-0.5 leading-none">
-                        {completionPercent}%
-                      </span>
-                    </div>
-                  </div>
-                </m.div>
+                  Start Today&apos;s Task
+                </Button>
 
                 <Button
                   onClick={handleUpdateStrategy}
-                  disabled={isGenerating}
-                  size="lg"
-                  className="rounded-full bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 px-6 h-12 border-0 shadow-lg dark:shadow-indigo-500/20 w-full md:w-auto xl:w-auto overflow-hidden group/btn relative"
+                  disabled={isGenerating || isLoading}
+                  variant="outline"
+                  className="w-full rounded-2xl h-10 border-slate-300 dark:border-slate-700 bg-white/90 dark:bg-slate-900/70 hover:bg-slate-50 dark:hover:bg-slate-900 font-bold"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:animate-[shimmer_2s_infinite]" />
                   <RefreshCw className={cn('w-4 h-4 mr-2', isGenerating && 'animate-spin')} />
-                  <span className="font-black tracking-tight">
-                    {isGenerating ? 'Analyzing...' : 'Update Strategy'}
-                  </span>
+                  {isGenerating ? 'Refreshing...' : 'Refresh Plan'}
                 </Button>
+
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed px-1">
+                  Your plan updates automatically after completed tests.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
+              <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/80 p-2.5 sm:p-3 flex items-center gap-2.5 sm:gap-3">
+                <div className="w-8 h-8 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center shrink-0 border border-violet-100 dark:border-violet-500/20">
+                  <Clock className="w-4 h-4 text-violet-700 dark:text-violet-300" />
+                </div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
+                    Exam in
+                  </div>
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-14 mt-1 rounded-full" />
+                  ) : (
+                    <div className="text-sm font-black text-slate-900 dark:text-white">
+                      {daysLeft !== null ? `${daysLeft}d left` : 'Not set'}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/80 p-2.5 sm:p-3 flex items-center gap-2.5 sm:gap-3">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-500/20">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
+                </div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
+                    Tasks done
+                  </div>
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-24 mt-1 rounded-full" />
+                  ) : (
+                    <div className="text-sm font-black text-slate-900 dark:text-white">
+                      {completedCount}/{totalActivities}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/80 p-2.5 sm:p-3 flex items-center gap-2.5 sm:gap-3">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-500/20">
+                  <Target className="w-4 h-4 text-indigo-700 dark:text-indigo-300" />
+                </div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
+                    Reviews due
+                  </div>
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-12 mt-1 rounded-full" />
+                  ) : (
+                    <div className="text-sm font-black text-slate-900 dark:text-white">
+                      {dueReviewSkills.length}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </m.header>
 
           {/* Bento Grid Layout (12 Columns) - COMPACT */}
-          <div className="grid grid-cols-12 gap-4 auto-rows-max">
+          <div className="grid grid-cols-12 gap-3 sm:gap-4 auto-rows-max">
             {/* Row 1: Daily Focus (8) & Score Forecast (4) */}
             <m.div variants={itemVariants} className="col-span-12 lg:col-span-8">
               <DailyFocusCard
@@ -490,25 +507,26 @@ const LearningPath = () => {
                 activityByKey={activityByKey}
                 onSelectToday={handleSelectToday}
                 onToggleTask={handleTaskToggle}
-                className="h-full p-4 md:p-6"
+                className="h-full p-3 sm:p-4 md:p-6"
                 hasHistory={(stats?.totalTests || 0) > 0}
               />
             </m.div>
 
             <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
               <ProgressForecast
+                loading={isLoading}
                 currentReadiness={completionPercent}
                 targetScore={targetBand}
                 testDate={user?.test_date}
                 completedActivities={completedCount}
                 totalActivities={totalActivities}
-                className="h-full p-4 md:p-6"
+                className="h-full p-3 sm:p-4 md:p-6"
                 hasHistory={(stats?.totalTests || 0) > 0}
               />
             </m.div>
 
-            {/* Row 2: Weekly Schedule (Full Width) */}
-            <m.div variants={itemVariants} className="col-span-12">
+            {/* Row 2: Weekly Schedule (8) + Quick Practice (4) */}
+            <m.div variants={itemVariants} className="col-span-12 lg:col-span-8">
               <WeekSchedule
                 selectedDayIndex={selectedDayIndex}
                 setSelectedDayIndex={setSelectedDayIndex}
@@ -517,43 +535,55 @@ const LearningPath = () => {
                 onToggleTask={handleTaskToggle}
                 onQuickComplete={handleQuickComplete}
                 skillIndex={skillIndex}
-                className="p-4 md:p-6"
+                className="p-3 sm:p-4 md:p-6"
+                loading={isLoading}
               />
             </m.div>
 
-            {/* Row 3: Band Gap Breakdown (6) & Weak Skill Spotlight (6) */}
-            <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
-              <BandGapBreakdown
-                bandGaps={bandGaps}
-                targetBand={targetBand}
-                className="h-full p-4 md:p-6"
+            <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
+              <RecommendedPractice
+                learningPath={learningPath}
+                className="h-full p-3 sm:p-4 md:p-6"
+                loading={isLoading}
+                compact={true}
               />
             </m.div>
 
-            <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
-              <WeakSkillSpotlight spotlightSkills={spotlightSkills} className="h-full p-4 md:p-6" />
-            </m.div>
-
-            {/* Row 4: Mistake Analysis (6) & Review Queue (6) */}
-            <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
-              <MistakeAnalysis
-                mistakePatterns={mistakePatterns}
-                onSelectToday={handleSelectToday}
-                className="h-full p-4 md:p-6"
-              />
-            </m.div>
-
+            {/* Row 3: Review Queue (6) & Weak Skill Spotlight (6) */}
             <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
               <ReviewQueue
                 dueReviewSkills={dueReviewSkills}
                 setSelectedDayIndex={setSelectedDayIndex}
-                className="h-full p-4 md:p-6"
+                className="h-full p-3 sm:p-4 md:p-6"
+                loading={isLoading}
               />
             </m.div>
 
-            {/* Row 5: Recommended Practice (Full Width) */}
-            <m.div variants={itemVariants} className="col-span-12">
-              <RecommendedPractice learningPath={learningPath} className="p-4 md:p-6" />
+            <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
+              <WeakSkillSpotlight
+                spotlightSkills={spotlightSkills}
+                className="h-full p-3 sm:p-4 md:p-6"
+                loading={isLoading}
+              />
+            </m.div>
+
+            {/* Row 4: Band Gap Breakdown (6) & Mistake Analysis (6) */}
+            <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
+              <BandGapBreakdown
+                bandGaps={bandGaps}
+                targetBand={targetBand}
+                className="h-full p-3 sm:p-4 md:p-6"
+                loading={isLoading}
+              />
+            </m.div>
+
+            <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
+              <MistakeAnalysis
+                mistakePatterns={mistakePatterns}
+                onSelectToday={handleSelectToday}
+                className="h-full p-3 sm:p-4 md:p-6"
+                loading={isLoading}
+              />
             </m.div>
           </div>
         </m.main>

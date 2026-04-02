@@ -8,10 +8,10 @@ import { moduleConfig } from '../utils/moduleConfig';
  */
 export const GlassCard = ({ children, className, ...props }) => (
   <motion.div
-    whileHover={{ y: -4 }}
+    whileHover={{ y: -2 }}
     transition={{ type: 'spring', stiffness: 300, damping: 25 }}
     className={cn(
-      'relative overflow-hidden bg-white/95 dark:bg-slate-950/60 backdrop-blur-xl border border-slate-200/60 dark:border-white/[0.08] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.45)] rounded-3xl',
+      'relative overflow-hidden bg-white/95 dark:bg-slate-950/60 backdrop-blur-xl border border-slate-200/60 dark:border-white/[0.08] shadow-[0_8px_24px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.35)] rounded-2xl',
       'hover:border-primary/30 dark:hover:border-primary/20 transition-all duration-300',
       className
     )}

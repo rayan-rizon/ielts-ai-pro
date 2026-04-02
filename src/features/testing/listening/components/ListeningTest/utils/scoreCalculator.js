@@ -33,8 +33,8 @@ export const calculateListeningBandScore = (correct, total) => {
   if (rawScore40 >= 18) return 5.5;
   if (rawScore40 >= 16) return 5.0;
   if (rawScore40 >= 13) return 4.5;
-  if (rawScore40 >= 10) return 4.0;
-  if (rawScore40 >= 8) return 3.5;
+  if (rawScore40 >= 11) return 4.0;
+  if (rawScore40 >= 10) return 3.5;
   if (rawScore40 >= 6) return 3.0;
   if (rawScore40 >= 4) return 2.5;
   if (rawScore40 >= 2) return 2.0;
@@ -174,8 +174,8 @@ export const calculateListeningTestResults = (questions, answers, displaySection
       const sortedBlanks = [...blanks].sort((a, b) => (a.blankNumber || 0) - (b.blankNumber || 0));
 
       let gapIndex = 0;
-      tableRows.forEach((row, rIdx) => {
-        row.forEach((cell, cIdx) => {
+      tableRows.forEach((row, _rIdx) => {
+        row.forEach((cell, _cIdx) => {
           const cellStr = String(cell || '');
           const cellMatches = cellStr.match(/\[gap\]|__BLANK__|__BLANK_\d+__/gi) || [];
 
@@ -293,7 +293,7 @@ export const calculateListeningTestResults = (questions, answers, displaySection
           const parsed = JSON.parse(rawCorrect);
           if (Array.isArray(parsed)) rawCorrect = parsed;
           else rawCorrect = rawCorrect.split(',');
-        } catch (e) {
+        } catch {
           rawCorrect = rawCorrect.split(',');
         }
       }

@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 import { supabase } from '@/lib/supabase';
 import { User } from '@/features/auth/services/User';
 import { SystemSetting } from '@/features/admin/services/SystemSetting';
-import { setupCrossTabSync } from '@/lib/sessionLock';
 import { pushUserIdentity, trackAppEvent } from '@/lib/tracking';
 
 const AuthContext = createContext();
@@ -258,15 +257,6 @@ export const AuthProvider = ({ children }) => {
       typeof window !== 'undefined' && window.location.pathname === '/' ? 100 : 0
     );
 
-    // Setup cross-tab session sync
-    // When another tab refreshes the token, we get notified and update our state
-    const cleanupCrossTabSync = setupCrossTabSync(supabase, (newSession) => {
-      if (isMounted && newSession?.user) {
-        console.info('[CrossTabSync] Session updated from another tab');
-        setUser(newSession.user);
-      }
-    });
-
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
 
@@ -377,7 +367,6 @@ export const AuthProvider = ({ children }) => {
     return () => {
       isMounted = false;
       clearTimeout(checkTimer);
-      cleanupCrossTabSync();
       authListener?.subscription?.unsubscribe();
     };
   }, []);

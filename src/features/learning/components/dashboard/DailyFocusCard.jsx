@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { createPageUrl } from '@/utils';
 import { GlassCard, ModuleBadge } from '../SharedComponents';
-import { inferModuleFromTitle } from '../../utils/learningUtils';
+import { formatTaskTitle, inferModuleFromTitle } from '../../utils/learningUtils';
 
 const DailyFocusCard = ({
   dailyFocus,
@@ -34,7 +34,7 @@ const DailyFocusCard = ({
   // --- Empty State: Diagnostic Test ---
   if (!loading && !hasHistory) {
     return (
-      <GlassCard className={cn('p-5 md:p-8 relative overflow-hidden', className)}>
+      <GlassCard className={cn('p-4 sm:p-5 md:p-8 relative overflow-hidden', className)}>
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
 
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
@@ -53,7 +53,7 @@ const DailyFocusCard = ({
               </div>
             </div>
 
-            <div className="p-5 rounded-3xl border border-indigo-100 dark:border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-500/5">
+            <div className="p-5 rounded-2xl border border-indigo-100 dark:border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-500/5">
               <div className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
                 <span className="font-bold text-indigo-600 dark:text-indigo-400">Welcome!</span> To
                 build your personalized AI study plan and forecast your score, we need a baseline.
@@ -76,15 +76,27 @@ const DailyFocusCard = ({
   }
 
   return (
-    <GlassCard className={cn('p-5 md:p-8', className)} data-oid="94nozna">
+    <GlassCard
+      className={cn('p-4 sm:p-5 md:p-8 relative overflow-hidden', className)}
+      data-oid="94nozna"
+    >
       <div
-        className="flex flex-col md:flex-row md:items-start justify-between gap-6"
+        aria-hidden="true"
+        className="absolute -top-20 -right-20 w-64 h-64 blur-3xl rounded-full pointer-events-none bg-indigo-500/15"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-indigo-500/10 via-blue-500/8 to-transparent"
+      />
+
+      <div
+        className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6"
         data-oid="nys3udn"
       >
         <div className="space-y-2 w-full" data-oid="eab17wt">
           <div className="flex items-center gap-3" data-oid="dy3tv55">
             <div
-              className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center shadow-lg shadow-indigo-500/5"
+              className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 flex items-center justify-center shadow-lg shadow-indigo-500/10"
               data-oid="8jvxwo:"
             >
               <Zap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" data-oid="x3sc:.7" />
@@ -94,56 +106,82 @@ const DailyFocusCard = ({
                 Daily Focus
               </h2>
               <div className="text-[11px] font-semibold text-muted-foreground" data-oid="ilzct5r">
-                Your best next step today
+                One clear task to move your score
               </div>
             </div>
           </div>
 
           {loading ? (
-            <div className="mt-5 space-y-2" data-oid=".y1b5ob">
-              <Skeleton className="h-4 w-72 rounded-full" data-oid="mv3jk5q" />
-              <Skeleton className="h-4 w-56 rounded-full" data-oid="qtczr7_" />
+            <div className="mt-4 space-y-3" data-oid=".y1b5ob">
+              <div className="p-4 rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-slate-50/60 dark:bg-white/[0.03] space-y-2">
+                <Skeleton className="h-3.5 w-24 rounded-full" />
+                <Skeleton className="h-4 w-full rounded-full" />
+                <Skeleton className="h-4 w-[85%] rounded-full" />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Skeleton className="h-11 w-full rounded-2xl" />
+                <Skeleton className="h-11 w-full rounded-2xl" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="p-4 rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.02] space-y-2"
+                  >
+                    <Skeleton className="h-3 w-14 rounded-full" />
+                    <Skeleton className="h-3.5 w-full rounded-full" />
+                    <Skeleton className="h-3.5 w-[70%] rounded-full" />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : !dailyFocus ? (
             <div className="mt-4 space-y-3">
-              <div className="p-5 rounded-3xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/60 dark:bg-emerald-500/5">
+              <div className="p-5 rounded-2xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/60 dark:bg-emerald-500/5">
                 <div className="flex items-center justify-between gap-3 mb-2">
                   <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                    Why this matters
+                    Why this task
                   </div>
                   <Badge className="bg-emerald-500/10 text-emerald-600 border-0 h-6 px-3 rounded-full font-black text-[10px]">
                     RECOVERY DAY
                   </Badge>
                 </div>
                 <div className="text-sm font-black tracking-tight dark:text-white leading-snug">
-                  You have no scheduled tasks today. Take this time to review your error log,
-                  practice freely, or simply rest.
+                  No scheduled tasks today. Complete one short practice to keep momentum.
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button
-                  className="rounded-2xl h-11 font-black tracking-tight flex-1 bg-emerald-600 hover:bg-emerald-700 text-white hover:opacity-95 shadow-lg shadow-emerald-500/20"
-                  onClick={() => navigate('/cambridge-tests')}
+                  className="rounded-2xl h-11 font-black tracking-tight bg-emerald-600 hover:bg-emerald-700 text-white hover:opacity-95 shadow-lg shadow-emerald-500/20"
+                  onClick={() => navigate(createPageUrl('Reading'))}
                   disabled={loading}
                 >
-                  Explore Library
+                  Start Reading Practice
                   <ArrowUpRight className="w-4 h-4 ml-2" />
                 </Button>
                 <Button
                   variant="outline"
                   className="rounded-2xl h-11 font-black tracking-tight"
-                  onClick={onRefresh}
+                  onClick={onSelectToday}
                   disabled={loading}
                 >
-                  Refresh
-                  <RefreshCw className={cn('w-4 h-4 ml-2', loading && 'animate-spin')} />
+                  Open Weekly Plan
                 </Button>
               </div>
+              <button
+                type="button"
+                className="text-[11px] font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                onClick={onRefresh}
+              >
+                Refresh suggestion
+              </button>
             </div>
           ) : (
             <div className="mt-4 space-y-3" data-oid="b05hs70">
               <div
-                className="p-5 rounded-3xl border border-slate-200 dark:border-white/[0.08] bg-slate-50/60 dark:bg-white/[0.03]"
+                className="p-5 rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-slate-50/70 dark:bg-white/[0.03]"
                 data-oid="--2ezfh"
               >
                 <div className="flex items-center justify-between gap-3 mb-2" data-oid="b2yc77j">
@@ -151,7 +189,7 @@ const DailyFocusCard = ({
                     className="text-[11px] font-semibold text-slate-500 dark:text-slate-400"
                     data-oid="nv0pwkl"
                   >
-                    Why this matters
+                    Why this task
                   </div>
                   {dailyFocus?.primary_module && (
                     <ModuleBadge module={dailyFocus.primary_module} data-oid="g-yij32" />
@@ -161,14 +199,14 @@ const DailyFocusCard = ({
                   className="text-sm font-black tracking-tight dark:text-white leading-snug"
                   data-oid="hnou3xw"
                 >
-                  {dailyFocus?.ai_reason ||
-                    'Complete one high-impact activity to keep your streak and improve your weakest skills.'}
+                  {formatTaskTitle(dailyFocus?.ai_reason) ||
+                    'Complete one focused activity to improve your weakest skill and keep your streak.'}
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3" data-oid="njk4my-">
                 <Button
-                  className="rounded-2xl h-11 font-black tracking-tight flex-1 bg-slate-900 dark:bg-indigo-600 text-white hover:opacity-95"
+                  className="rounded-2xl h-11 font-black tracking-tight flex-1 text-white hover:opacity-95 border-0 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-500"
                   onClick={() => {
                     const m = dailyFocus?.primary_module;
                     if (m) {
@@ -180,33 +218,38 @@ const DailyFocusCard = ({
                   disabled={loading}
                   data-oid="oyf0uv."
                 >
-                  Start
+                  Start This Task
                   <ArrowUpRight className="w-4 h-4 ml-2" data-oid="ij5.b_-" />
                 </Button>
 
                 <Button
                   variant="outline"
-                  className="rounded-2xl h-11 font-black tracking-tight"
-                  onClick={onTimerToggle}
+                  className="rounded-2xl h-11 font-black tracking-tight border border-slate-300 dark:border-slate-700 bg-white/90 dark:bg-slate-900/70 hover:bg-slate-50 dark:hover:bg-slate-900"
+                  onClick={onSelectToday}
                   data-oid="qmfea5m"
                 >
-                  {timerState.running ? 'Pause' : '25-min Timer'} (
-                  {formatTimer(timerState.secondsLeft)})
+                  View Weekly Plan
                 </Button>
+              </div>
 
-                <Button
-                  variant="ghost"
-                  className="rounded-2xl h-11 font-black tracking-tight"
+              <div className="flex items-center justify-between gap-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                <button
+                  type="button"
+                  className="hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                  onClick={onTimerToggle}
+                >
+                  {timerState.running ? 'Pause timer' : 'Start 25-min timer'} (
+                  {formatTimer(timerState.secondsLeft)})
+                </button>
+                <button
+                  type="button"
+                  className="hover:text-slate-700 dark:hover:text-slate-200 transition-colors flex items-center"
                   onClick={onRefresh}
                   disabled={loading}
-                  data-oid="zhzb5ua"
                 >
-                  Refresh
-                  <RefreshCw
-                    className={cn('w-4 h-4 ml-2', loading && 'animate-spin')}
-                    data-oid="ng0-uai"
-                  />
-                </Button>
+                  Refresh reason
+                  <RefreshCw className={cn('w-3.5 h-3.5 ml-1.5', loading && 'animate-spin')} />
+                </button>
               </div>
 
               {!!todaysTasks?.tasks?.length && (
@@ -215,7 +258,7 @@ const DailyFocusCard = ({
                     className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-2"
                     data-oid="ln-88:s"
                   >
-                    Other tasks for today
+                    If you finish early
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3" data-oid="5l_hs:k">
                     {todaysTasks.tasks.slice(0, 3).map((t, idx) => {
@@ -238,7 +281,7 @@ const DailyFocusCard = ({
                             onToggleTask(todaysTasks.day, idx);
                           }}
                           className={cn(
-                            'text-left p-4 rounded-3xl border transition-all',
+                            'text-left p-4 rounded-2xl border transition-all',
                             done
                               ? 'border-emerald-500/20 bg-emerald-500/5'
                               : 'border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.02] hover:border-primary/30'
@@ -253,7 +296,7 @@ const DailyFocusCard = ({
                               className="text-[10px] font-bold text-slate-500 dark:text-slate-400"
                               data-oid="baeoyxx"
                             >
-                              Option {idx + 1}
+                              Task {idx + 1}
                             </div>
                             {done && (
                               <Badge
@@ -271,7 +314,7 @@ const DailyFocusCard = ({
                             )}
                             data-oid="7g7a8dh"
                           >
-                            {task.title}
+                            {formatTaskTitle(task.title)}
                           </div>
                         </button>
                       );

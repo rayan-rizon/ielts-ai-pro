@@ -13,6 +13,16 @@ export const inferModuleFromTitle = (title) => {
           : 'reading';
 };
 
+export const formatTaskTitle = (title) => {
+  const raw = String(title || '').trim();
+  if (!raw) return '';
+  return raw
+    .replace(/\bdrills\b/gi, 'practice sets')
+    .replace(/\bdrill\b/gi, 'practice')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
 export const mistakeAdvice = (tag) => {
   const t = String(tag || '').toLowerCase();
   if (t.includes('keyword')) {

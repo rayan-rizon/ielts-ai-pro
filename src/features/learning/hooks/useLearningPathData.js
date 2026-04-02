@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/context/AuthContext';
-import { User, LearningPath as LearningPathEntity, TestSession } from '@/entities';
+import { TestSession } from '@/entities';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryClient';
 
@@ -18,18 +18,23 @@ const EMPTY_PATH_DATA = {
 
 // --- Utility Functions ---
 
-export function formatSkillName(skillCode) {
-  if (!skillCode) return '';
-  const parts = String(skillCode).split('_');
-  if (parts.length <= 1) return String(skillCode);
-  return parts
-    .slice(1)
-    .join(' ')
+function humanizeLabel(value) {
+  return String(value || '')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .split(' ')
+    .filter(Boolean)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
+}
+
+export function formatSkillName(skillCode) {
+  if (!skillCode) return '';
+  const parts = String(skillCode).split('_').filter(Boolean);
+  if (parts.length <= 1) return humanizeLabel(skillCode);
+  return humanizeLabel(parts.slice(1).join(' '));
 }
 
 export function buildSkillTrendMap(sessions) {
@@ -178,7 +183,7 @@ async function fetchLearningPathData(userId) {
 }
 
 // Combined fetcher using single RPC call (requires migration to be applied)
-async function fetchAllLearningPathData(userId, sessions = []) {
+async function fetchAllLearningPathData(userId) {
   if (!userId) {
     return {
       pathData: EMPTY_PATH_DATA,
