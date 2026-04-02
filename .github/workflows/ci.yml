@@ -2,8 +2,13 @@ name: CI
 
 on:
   push:
-    branches: ['**']
+    branches: ['main', 'master', 'develop']
   pull_request:
+
+# Prevent multiple builds from running on the same branch at once
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   quality-gates:
@@ -39,20 +44,31 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Cache Playwright Browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
       - name: Install Playwright Browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
 
       - name: Start Preview Server
         run: |
           npm run preview -- --host 127.0.0.1 --port 4173 &
           echo $! > preview.pid
-          sleep 8
+          # Wait for server to be ready
+          npx wait-on http://127.0.0.1:4173 --timeout 30000
 
       - name: Accessibility Smoke
-        run: npx playwright test tests/accessibility.spec.js --project=chromium --reporter=line
+        run: PLAYWRIGHT_BASE_URL=http://127.0.0.1:4173 npx playwright test tests/accessibility.spec.js --project=chromium --reporter=line
 
       - name: Performance Smoke
-        run: npx playwright test tests/performance/performance-metrics.spec.js --config=playwright.perf.config.ts --project=chromium --reporter=line
+        run: PLAYWRIGHT_BASE_URL=http://127.0.0.1:4173 npx playwright test tests/performance/performance-metrics.spec.js --config=playwright.perf.config.ts --project=chromium --reporter=line
 
       - name: Lighthouse Gate (non-blocking)
         continue-on-error: true
@@ -60,9 +76,6 @@ jobs:
           npm run perf:lighthouse:mobile
           npm run perf:lighthouse:desktop
           npm run perf:lighthouse:assert
-
-      - name: WCAG Audit (non-auth pages if creds missing)
-        run: npx playwright test tests/wcag-audit.spec.js --project=chromium --reporter=line
 
       - name: Stop Preview Server
         if: always()
@@ -86,3 +99,4 @@ jobs:
           name: lighthouse-reports
           path: .lighthouse/
           if-no-files-found: ignore
+

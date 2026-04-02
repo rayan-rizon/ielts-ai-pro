@@ -1,0 +1,31 @@
+name: Dependency Audit
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Weekly at midnight on Sunday
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Run Dependency Audit
+        run: npm audit --audit-level=high
+
+      - name: Report Success
+        if: success()
+        run: echo "No high-priority vulnerabilities found."
+
+      - name: Report Failure
+        if: failure()
+        run: |
+          echo "High-priority vulnerabilities detected. Please run 'npm audit fix' and review dependencies."
+          exit 1

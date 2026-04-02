@@ -1,4 +1,4 @@
-# Logs
+# --- Logs and Runtime ---
 logs
 *.log
 npm-debug.log*
@@ -12,30 +12,52 @@ dist
 dist-ssr
 *.local
 
-# Editor directories and files
+# --- Editor and OS Specific ---
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+.AppleDouble
+.LSOverride
+Icon
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.bak
+*.tmp
+*.temp
 
+# --- Environments ---
 .env
+.env.production
+.env.development
+.env.staging
 
-# Database backups (sensitive data)
+# --- Database and Backups ---
+# supabase/backups/ is used for sensitivity - ensure any local json backups are also handled if needed
+backups/*.json
 supabase/backups/*.sql
 supabase/backups/*.sql.gz
 supabase/backups/*.dump
 
-# Archived migrations (kept for reference, not needed for app)
-supabase/migrations/archive/
+# --- CI and Tooling ---
 .vercel
 .smart-coding-cache/
+.mcp.json
+tsconfig.tsbuildinfo
 
-# Test reports
+# --- Test Artifacts and Reports ---
 test-results.json
 test-results/
 test-results.log
+playwright-report/
+blob-report/
+playwright/.cache/
+.lighthouseci/
+.lighthouse/
+accessibility-reports/
