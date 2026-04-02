@@ -4,22 +4,63 @@ import App from '@/App.jsx';
 import '@/index.css';
 import { RootProviders } from './components/RootProviders';
 
+// New Relic Initialization
+const isProduction = !['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
+
+if (isProduction && typeof window !== 'undefined') {
+  import('@newrelic/browser-agent/loaders/browser-agent')
+    .then(({ BrowserAgent }) => {
+      const options = {
+        info: {
+          applicationID: String(import.meta.env.VITE_NEWRELIC_APP_ID || ''),
+          beacon: 'bam.nr-data.net',
+          errorBeacon: 'bam.nr-data.net',
+          licenseKey: String(import.meta.env.VITE_NEWRELIC_LICENSE_KEY || ''),
+          sa: 1,
+        },
+        init: {
+          ajax: { deny_list: ['bam.nr-data.net'] },
+          browser_consent_mode: { enabled: false },
+          distributed_tracing: { enabled: true },
+          performance: { capture_detail: false, capture_marks: false, capture_measures: true },
+          privacy: { cookies_enabled: true },
+        },
+        loader_config: {
+          accountID: String(import.meta.env.VITE_NEWRELIC_ACCOUNT_ID || ''),
+          agentID: String(import.meta.env.VITE_NEWRELIC_AGENT_ID || ''),
+          applicationID: String(import.meta.env.VITE_NEWRELIC_APP_ID || ''),
+          licenseKey: String(import.meta.env.VITE_NEWRELIC_LICENSE_KEY || ''),
+          trustKey: String(import.meta.env.VITE_NEWRELIC_TRUST_KEY || ''),
+        },
+      };
+
+      try {
+        // Clear NREUM if it's set to a primitive (like false) to prevent 'Cannot create property NREUM on boolean false' during HMR or re-initialization
+        if (typeof (window as any).NREUM !== 'object') {
+          (window as any).NREUM = undefined;
+        }
+        const agent = new BrowserAgent(options);
+        console.log('[New Relic] Browser agent initialized successfully');
+      } catch (err) {
+        console.error('[New Relic] Failed to create browser agent instance', err);
+      }
+    })
+    .catch((err) => {
+      console.error('[New Relic] Failed to load browser agent module', err);
+    });
+}
+
 // PERFORMANCE: Defer Sentry initialization to idle time.
 // browserTracingIntegration and replayIntegration are heavy modules (~100-150ms).
 // Using requestIdleCallback ensures they load after First Contentful Paint.
 const initSentry = () => {
-  import("@sentry/react").then((Sentry) => {
-    const isProduction = !['localhost', '127.0.0.1', '0.0.0.0'].includes(
-      window.location.hostname
-    );
+  import('@sentry/react').then((Sentry) => {
+    const isProduction = !['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
 
     Sentry.init({
-      dsn: "https://c4a03f3938495e11019ede9a4347e941@o4511048158150656.ingest.de.sentry.io/4511048214052944",
+      dsn: 'https://c4a03f3938495e11019ede9a4347e941@o4511048158150656.ingest.de.sentry.io/4511048214052944',
       environment: isProduction ? 'production' : 'development',
-      integrations: [
-        Sentry.browserTracingIntegration(),
-        Sentry.replayIntegration(),
-      ],
+      integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
       tracesSampleRate: isProduction ? 0.15 : 0,
       replaysSessionSampleRate: isProduction ? 0.1 : 0,
       replaysOnErrorSampleRate: isProduction ? 1.0 : 0,
@@ -40,10 +81,10 @@ const initSentry = () => {
           'postMessage',
           'enableButtonsClickedMetaDataLogging',
           '__show__deepen',
-          'atomic_css'
+          'atomic_css',
         ];
 
-        if (noiseKeywords.some(keyword => errorMessage.includes(keyword))) {
+        if (noiseKeywords.some((keyword) => errorMessage.includes(keyword))) {
           return null;
         }
 
@@ -61,11 +102,11 @@ if ('requestIdleCallback' in window) {
 
 // Lazy-load telemetry to keep it off the critical path
 const SpeedInsights = lazy(() =>
-  import('@vercel/speed-insights/react').then(m => ({ default: m.SpeedInsights }))
+  import('@vercel/speed-insights/react').then((m) => ({ default: m.SpeedInsights }))
 );
 
 const Analytics = lazy(() =>
-  import('@vercel/analytics/react').then(m => ({ default: m.Analytics }))
+  import('@vercel/analytics/react').then((m) => ({ default: m.Analytics }))
 );
 
 /**
