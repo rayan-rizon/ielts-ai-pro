@@ -24,11 +24,29 @@ const initSentry = () => {
       replaysSessionSampleRate: isProduction ? 0.1 : 0,
       replaysOnErrorSampleRate: isProduction ? 1.0 : 0,
       sendDefaultPii: false,
-      beforeSend(event) {
+      beforeSend(event, hint) {
         // Don't send events from local development
         if (!isProduction) {
           return null;
         }
+
+        const error = hint.originalException;
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        // Filter out "Java object is gone" and other third-party noise
+        // related to in-app browsers like Instagram/Facebook on Android.
+        const noiseKeywords = [
+          'Java object is gone',
+          'postMessage',
+          'enableButtonsClickedMetaDataLogging',
+          '__show__deepen',
+          'atomic_css'
+        ];
+
+        if (noiseKeywords.some(keyword => errorMessage.includes(keyword))) {
+          return null;
+        }
+
         return event;
       },
     });

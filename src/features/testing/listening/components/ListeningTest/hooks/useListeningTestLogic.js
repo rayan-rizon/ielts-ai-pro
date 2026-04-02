@@ -311,45 +311,81 @@ export const useListeningTestLogic = () => {
         const actualTimeSpentSeconds = Math.max(1, durationMins * 60 - finalTimeRemaining);
         const actualTimeSpentMinutes = Math.max(1, Math.floor(actualTimeSpentSeconds / 60));
 
-        // Time per question calculation
-        const timePerQuestionSeconds = (() => {
-          const entries = Object.entries(answerTimestamps)
-            .map(([k, v]) => [k, Number(v)])
-            .filter(([, v]) => Number.isFinite(v) && v >= 0)
-            .sort((a, b) => a[1] - b[1]);
+        let timePerQuestionSeconds = {};
+        let totalAnswerChanges = 0;
+        let enhancedMetrics = {};
 
-          const out = {};
-          let prev = 0;
-          entries.forEach(([questionId, ts]) => {
-            const delta = Math.max(0, ts - prev);
-            out[questionId] = Math.round(delta);
-            prev = ts;
-          });
-          return out;
-        })();
+        try {
+          // Time per question calculation
+          timePerQuestionSeconds = (() => {
+            const entries = Object.entries(answerTimestamps)
+              .map(([k, v]) => [k, Number(v)])
+              .filter(([, v]) => Number.isFinite(v) && v >= 0)
+              .sort((a, b) => a[1] - b[1]);
 
-        const totalAnswerChanges = Object.values(answerChangeCounts).reduce(
-          (sum, v) => sum + (Number(v) || 0),
-          0
-        );
+            const out = {};
+            let prev = 0;
+            entries.forEach(([questionId, ts]) => {
+              const delta = Math.max(0, ts - prev);
+              out[questionId] = Math.round(delta);
+              prev = ts;
+            });
+            return out;
+          })();
 
-        // Enhanced metrics equivalent to Reading
-        const enhancedMetrics = calculateEnhancedMetrics(
-          {
-            bandScore: results.bandScore,
-            totalQuestions: results.totalQuestions,
-            correctAnswers: results.correctAnswers,
-            percentage: results.percentage,
-            sectionStats: results.sectionStats || [],
-            typeStats: results.typeStats || {},
-            correctAnswersMap: results.answersMap,
-          },
-          answers,
-          answerTimestamps,
-          actualTimeSpentSeconds,
-          'listening',
-          answerChangeCounts
-        );
+          totalAnswerChanges = Object.values(answerChangeCounts).reduce(
+            (sum, v) => sum + (Number(v) || 0),
+            0
+          );
+
+          // Enhanced metrics equivalent to Reading
+          enhancedMetrics = calculateEnhancedMetrics(
+            {
+              bandScore: results.bandScore || 0,
+              totalQuestions: results.totalQuestions || 40,
+              correctAnswers: results.correctAnswers || 0,
+              percentage: results.percentage || 0,
+              sectionStats: results.sectionStats || [],
+              typeStats: results.typeStats || {},
+              correctAnswersMap: results.answersMap || {},
+            },
+            answers || {},
+            answerTimestamps,
+            actualTimeSpentSeconds || 1,
+            'listening',
+            answerChangeCounts
+          );
+        } catch (metricError) {
+          console.error('[ListeningTest] Error calculating enhanced metrics:', metricError);
+          // Fallback to empty blocks to guarantee initialized persistence
+          enhancedMetrics = {
+            timeMetrics: {
+              averageSecondsPerQuestion: 0,
+              timePerQuestionType: {},
+              rushedQuestions: 0,
+              overanalyzedQuestions: 0,
+              totalTimeSpent: actualTimeSpentSeconds || 0,
+              recommendedPace: 60,
+              paceEfficiency: 1,
+            },
+            errorPatterns: {
+              nearMissCount: 0,
+              troubleTypes: [],
+              unansweredCount: results.totalQuestions || 40,
+              changedAnswers: 0,
+              totalAnswerChanges: 0,
+              confidenceIndex: 0,
+              indecisionScore: 0,
+            },
+            skillGaps: {
+              detailRetention: 0,
+              paraphrasingRecognition: 0,
+              logicalReasoning: 0,
+              scanningEfficiency: 0,
+              globalComprehension: 0,
+            },
+          };
+        }
 
         await TestSession.update(session.id, {
           is_completed: true,
@@ -359,22 +395,22 @@ export const useListeningTestLogic = () => {
           content_data: {
             ...session.content_data,
             // Core metrics
-            correctAnswersMap: results.answersMap,
-            totalQuestions: results.totalQuestions,
-            correctAnswers: results.correctAnswers,
-            percentage: results.percentage,
-            savedAnswers: answers,
-            sectionStats: results.sectionStats,
-            typeStats: results.typeStats,
+            correctAnswersMap: results.answersMap || {},
+            totalQuestions: results.totalQuestions || 40,
+            correctAnswers: results.correctAnswers || 0,
+            percentage: results.percentage || 0,
+            savedAnswers: answers || {},
+            sectionStats: results.sectionStats || [],
+            typeStats: results.typeStats || {},
             // Enhanced metrics
             answerTimestamps,
             timePerQuestionSeconds,
             answerChangeCounts,
             totalAnswerChanges,
             changedAnswersCount: enhancedMetrics.errorPatterns?.changedAnswers || 0,
-            timeMetrics: enhancedMetrics.timeMetrics,
-            errorPatterns: enhancedMetrics.errorPatterns,
-            skillGaps: enhancedMetrics.skillGaps,
+            timeMetrics: enhancedMetrics.timeMetrics || {},
+            errorPatterns: enhancedMetrics.errorPatterns || {},
+            skillGaps: enhancedMetrics.skillGaps || {},
           },
         });
 

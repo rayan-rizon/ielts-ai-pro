@@ -333,7 +333,11 @@ export default function useAnalyticsData(selectedTimeframe) {
         type: s.test_type,
         rushed: s.content_data?.timeMetrics?.rushedQuestions || 0,
         overanalyzed: s.content_data?.timeMetrics?.overanalyzedQuestions || 0,
-        accuracy: Math.round(((s.content_data?.correct || 0) / (s.content_data?.total || 1)) * 100),
+        accuracy: Math.round(
+          ((s.content_data?.correct ?? s.content_data?.correctAnswers ?? 0) /
+            (s.content_data?.total ?? s.content_data?.totalQuestions ?? 1)) *
+            100
+        ),
         score: Number(s.score) || 0,
       }))
       .filter((d) => d.rushed > 0 || d.overanalyzed > 0);
@@ -406,51 +410,93 @@ export default function useAnalyticsData(selectedTimeframe) {
       const type = (s.test_type || '').toLowerCase();
       const cs = content.criteriaScores || {};
 
-      if (type === 'writing' && Object.keys(cs).length > 0) {
-        const ta = Number(cs.taskAchievement) || 0;
-        const cc = Number(cs.coherence) || 0;
-        const lr = Number(cs.lexicalResource) || 0;
-        const gr = Number(cs.grammar) || 0;
-        if (ta > 0) {
-          writingCriteriaAgg.taskAchievement.sum += ta;
-          writingCriteriaAgg.taskAchievement.count++;
-        }
-        if (cc > 0) {
-          writingCriteriaAgg.coherence.sum += cc;
-          writingCriteriaAgg.coherence.count++;
-        }
-        if (lr > 0) {
-          writingCriteriaAgg.lexicalResource.sum += lr;
-          writingCriteriaAgg.lexicalResource.count++;
-        }
-        if (gr > 0) {
-          writingCriteriaAgg.grammar.sum += gr;
-          writingCriteriaAgg.grammar.count++;
+      if (type === 'writing') {
+        const t1 =
+          content.ai_feedbacks?.['Task 1']?.criteriaScores ||
+          content.ai_feedbacks?.['Task 1']?.criteria_scores ||
+          {};
+        const t2 =
+          content.ai_feedbacks?.['Task 2']?.criteriaScores ||
+          content.ai_feedbacks?.['Task 2']?.criteria_scores ||
+          {};
+        const hasData =
+          Object.keys(cs).length > 0 || Object.keys(t1).length > 0 || Object.keys(t2).length > 0;
+
+        if (hasData) {
+          const fallbackTa =
+            t2.TaskAchievement ||
+            t2.task_achievement ||
+            t1.TaskAchievement ||
+            t1.task_achievement ||
+            0;
+          const fallbackCc =
+            t2['Coherence & Cohesion'] ||
+            t2.CoherenceAndCohesion ||
+            t1['Coherence & Cohesion'] ||
+            t1.CoherenceAndCohesion ||
+            0;
+          const fallbackLr =
+            t2['Lexical Resource'] ||
+            t2.LexicalResource ||
+            t1['Lexical Resource'] ||
+            t1.LexicalResource ||
+            0;
+          const fallbackGr =
+            t2.GrammaticalRangeAndAccuracy ||
+            t2['Grammatical Range & Accuracy'] ||
+            t1.GrammaticalRangeAndAccuracy ||
+            t1['Grammatical Range & Accuracy'] ||
+            0;
+
+          const ta = Number(cs.taskAchievement || fallbackTa) || 0;
+          const cc = Number(cs.coherence || fallbackCc) || 0;
+          const lr = Number(cs.lexicalResource || fallbackLr) || 0;
+          const gr = Number(cs.grammar || fallbackGr) || 0;
+
+          if (ta > 0) {
+            writingCriteriaAgg.taskAchievement.sum += ta;
+            writingCriteriaAgg.taskAchievement.count++;
+          }
+          if (cc > 0) {
+            writingCriteriaAgg.coherence.sum += cc;
+            writingCriteriaAgg.coherence.count++;
+          }
+          if (lr > 0) {
+            writingCriteriaAgg.lexicalResource.sum += lr;
+            writingCriteriaAgg.lexicalResource.count++;
+          }
+          if (gr > 0) {
+            writingCriteriaAgg.grammar.sum += gr;
+            writingCriteriaAgg.grammar.count++;
+          }
         }
       }
 
-      if (type === 'speaking' && Object.keys(cs).length > 0) {
-        // Also try to read from finalEvaluation for older sessions
+      if (type === 'speaking') {
         const evalCs = content.finalEvaluation || {};
-        const fl = Number(cs.fluency || evalCs.fluency) || 0;
-        const lr = Number(cs.lexicalResource || evalCs.lexical) || 0;
-        const gr = Number(cs.grammar || evalCs.grammar) || 0;
-        const pr = Number(cs.pronunciation || evalCs.pronunciation) || 0;
-        if (fl > 0) {
-          speakingCriteriaAgg.fluency.sum += fl;
-          speakingCriteriaAgg.fluency.count++;
-        }
-        if (lr > 0) {
-          speakingCriteriaAgg.lexicalResource.sum += lr;
-          speakingCriteriaAgg.lexicalResource.count++;
-        }
-        if (gr > 0) {
-          speakingCriteriaAgg.grammar.sum += gr;
-          speakingCriteriaAgg.grammar.count++;
-        }
-        if (pr > 0) {
-          speakingCriteriaAgg.pronunciation.sum += pr;
-          speakingCriteriaAgg.pronunciation.count++;
+        const hasData = Object.keys(cs).length > 0 || Object.keys(evalCs).length > 0;
+
+        if (hasData) {
+          const fl = Number(cs.fluency || evalCs.fluency) || 0;
+          const lr = Number(cs.lexicalResource || evalCs.lexical) || 0;
+          const gr = Number(cs.grammar || evalCs.grammar) || 0;
+          const pr = Number(cs.pronunciation || evalCs.pronunciation) || 0;
+          if (fl > 0) {
+            speakingCriteriaAgg.fluency.sum += fl;
+            speakingCriteriaAgg.fluency.count++;
+          }
+          if (lr > 0) {
+            speakingCriteriaAgg.lexicalResource.sum += lr;
+            speakingCriteriaAgg.lexicalResource.count++;
+          }
+          if (gr > 0) {
+            speakingCriteriaAgg.grammar.sum += gr;
+            speakingCriteriaAgg.grammar.count++;
+          }
+          if (pr > 0) {
+            speakingCriteriaAgg.pronunciation.sum += pr;
+            speakingCriteriaAgg.pronunciation.count++;
+          }
         }
       }
     });

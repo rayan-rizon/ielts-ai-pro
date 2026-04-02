@@ -38,13 +38,19 @@ const isPlaceholder = (value) =>
   typeof value === 'string' && /^%VITE_[A-Z0-9_]+%$/i.test(value.trim());
 
 const resolveTrackingIds = () => {
-  const envGtm = import.meta.env?.VITE_GTM_ID;
   const envPixel = import.meta.env?.VITE_META_PIXEL_ID;
 
-  return {
-    gtmId: !envGtm || isPlaceholder(envGtm) ? DEFAULT_IDS.gtmId : envGtm,
-    pixelId: !envPixel || isPlaceholder(envPixel) ? DEFAULT_IDS.pixelId : envPixel,
-  };
+  const gtmId = DEFAULT_IDS.gtmId;
+  const pixelId = !envPixel || isPlaceholder(envPixel) ? DEFAULT_IDS.pixelId : envPixel;
+
+  // Sync back to window for index.html compatibility if it runs after React
+  if (isBrowser()) {
+    window.__TRACKING_CONFIG__ = window.__TRACKING_CONFIG__ || {};
+    window.__TRACKING_CONFIG__.gtmId = gtmId;
+    window.__TRACKING_CONFIG__.pixelId = pixelId;
+  }
+
+  return { gtmId, pixelId };
 };
 
 export const TRACKING_IDS = resolveTrackingIds();

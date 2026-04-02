@@ -143,6 +143,9 @@ export function useWritingFeedback(awardXP) {
           .replace(/\s+/g, ' ')
           .trim();
 
+        const wordCount = type === 'Task 1' ? task1Words : task2Words;
+        const isBelowMinimum = type === 'Task 1' ? wordCount < 150 : wordCount < 250;
+
         const savedFeedback = store.feedbacks[type];
         if (savedFeedback && isValidFeedback(savedFeedback) && savedFeedback.originalSource) {
           const savedSourceRaw = savedFeedback.originalSource
@@ -151,10 +154,14 @@ export function useWritingFeedback(awardXP) {
             .trim();
 
           if (currentTextRaw === savedSourceRaw) {
-            return { type, cached: true, feedback: savedFeedback };
+            return {
+              type,
+              cached: true,
+              feedback: { ...savedFeedback, isBelowMinimumWordCount: isBelowMinimum },
+            };
           }
         }
-        return { type, cached: false, text: currentTextRaw };
+        return { type, cached: false, text: currentTextRaw, isBelowMinimum };
       });
 
       // Execute parallel analysis for non-cached tasks
@@ -219,6 +226,7 @@ export function useWritingFeedback(awardXP) {
             corrections: feedbackData.corrections || raw.corrections || [],
             taskType: item.type,
             originalSource: store.drafts[item.type],
+            isBelowMinimumWordCount: item.isBelowMinimum,
           };
 
           if (item.type === 'Task 2' && !normalized.overallBand && raw.band_score) {
@@ -265,7 +273,13 @@ export function useWritingFeedback(awardXP) {
             lexicalResource:
               Number(cs['Lexical Resource'] ?? cs.LexicalResource ?? cs.LR ?? 0) || 0,
             grammar:
-              Number(cs['Grammatical Range & Accuracy'] ?? cs.GrammaticalRange ?? cs.GRA ?? 0) || 0,
+              Number(
+                cs.GrammaticalRangeAndAccuracy ??
+                  cs['Grammatical Range & Accuracy'] ??
+                  cs.GrammaticalRange ??
+                  cs.GRA ??
+                  0
+              ) || 0,
           };
         };
 

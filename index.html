@@ -7,11 +7,17 @@
     (function () {
       var DEFAULT_GTM_ID = 'GTM-TR6XQ2R3';
       var DEFAULT_PIXEL_ID = '991226963227159';
+
+      // Vite will replace %VITE_*% tokens during build if they exist in .env
+      var vitePixel = '%VITE_META_PIXEL_ID%';
+
+      var isVitePlaceholder = function (val) {
+        return !val || val.indexOf('%VITE_') === 0;
+      };
+
       var config = window.__TRACKING_CONFIG__ || {};
-      var envGtmId = typeof config.gtmId === 'string' ? config.gtmId.trim() : '';
-      var envPixelId = typeof config.pixelId === 'string' ? config.pixelId.trim() : '';
-      var gtmId = envGtmId || DEFAULT_GTM_ID;
-      var pixelId = envPixelId || DEFAULT_PIXEL_ID;
+      var gtmId = config.gtmId || DEFAULT_GTM_ID;
+      var pixelId = !isVitePlaceholder(vitePixel) ? vitePixel : (config.pixelId || DEFAULT_PIXEL_ID);
 
       window.__TRACKING_IDS__ = {
         gtmId: gtmId,
@@ -26,11 +32,11 @@
           event: 'gtm.js',
         });
 
-        var firstScript = document.getElementsByTagName('script')[0];
         var script = document.createElement('script');
         script.async = true;
         script.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtmId);
-        firstScript.parentNode.insertBefore(script, firstScript);
+        // Use a more robust insertion method that doesn't depend on existing script tags
+        (document.head || document.getElementsByTagName('head')[0]).appendChild(script);
         window.__gtmLoaded = true;
       };
 
@@ -50,8 +56,7 @@
           t = b.createElement(e);
           t.async = true;
           t.src = v;
-          s = b.getElementsByTagName(e)[0];
-          s.parentNode.insertBefore(t, s);
+          (b.head || b.getElementsByTagName('head')[0]).appendChild(t);
         })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
 
         window.fbq('init', pixelId);

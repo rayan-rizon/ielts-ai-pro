@@ -91,10 +91,10 @@ const skillLabel = (skillCode: string) => {
     .join(' ');
 };
 
-const normalizeModule = (m: unknown) => {
+const normalizeModule = (m: unknown, defaultFallback: string = 'reading') => {
   const v = String(m || '').toLowerCase().trim();
   if (['reading', 'writing', 'listening', 'speaking', 'vocabulary', 'grammar'].includes(v)) return v;
-  return 'reading';
+  return defaultFallback;
 };
 
 const normalizePriority = (p: unknown): Priority => {
@@ -106,7 +106,7 @@ const normalizePriority = (p: unknown): Priority => {
 const normalizeActivity = (a: any, fallbackModule: string): Activity | null => {
   if (!a || typeof a !== 'object') return null;
   const title = typeof a.title === 'string' && a.title.trim() ? a.title.trim() : null;
-  const module = normalizeModule(a.module || fallbackModule);
+  const module = normalizeModule(a.module || fallbackModule, fallbackModule);
   const estimatedTime = clamp(Math.round(safeNumber(a.estimated_time, safeNumber(a.estimated_minutes, 30))), 10, 180);
   const priority = normalizePriority(a.priority);
   if (!title) return null;
@@ -144,9 +144,9 @@ const deriveWeakestModule = (scoresByType: Array<{ type: string; avg: string }>)
   const parsed = scoresByType
     .map(s => ({ type: s.type, avg: safeNumber(s.avg, NaN) }))
     .filter(s => Number.isFinite(s.avg));
-  if (parsed.length === 0) return 'reading';
+  if (parsed.length === 0) return 'reading'; // Generic start
   parsed.sort((a, b) => a.avg - b.avg);
-  return normalizeModule(parsed[0].type);
+  return normalizeModule(parsed[0].type, 'reading');
 };
 
 const activityTypeForModule = (module: string) => {
@@ -169,7 +169,7 @@ const buildDeterministicSchedule = (
   const normalizedSkills = (skills || [])
     .map((s) => ({
       ...s,
-      module: normalizeModule(s.module),
+      module: normalizeModule(s.module, weakestModule),
       mastery: clamp(safeNumber(s.mastery_probability, 0.5), 0, 1),
       confidence: clamp(safeNumber(s.confidence_level, 0), 0, 1),
       practice: Math.max(0, Math.round(safeNumber(s.practice_count, 0))),
@@ -223,7 +223,7 @@ const buildDeterministicSchedule = (
 
   const practiceTestsPerWeek = intensity === 'urgent' ? 2 : intensity === 'intensive' ? 2 : 1;
   const practiceModules = [weakestModule, 'reading', 'listening', 'writing', 'speaking']
-    .map(normalizeModule)
+    .map(m => normalizeModule(m, weakestModule))
     .filter((m, idx, arr) => arr.indexOf(m) === idx);
 
   let practiceInserted = 0;
@@ -252,7 +252,7 @@ const buildDeterministicSchedule = (
     while (remaining >= 20 && pickPool.length > 0) {
       const preferDifferent = streak >= 2;
       const skill = selectSkill(preferDifferent);
-      const nextModule = normalizeModule(skill?.module || weakestModule);
+      const nextModule = normalizeModule(skill?.module || weakestModule, weakestModule);
 
       if (lastModule && nextModule === lastModule) streak += 1;
       else streak = 1;
@@ -285,12 +285,13 @@ const buildDeterministicSchedule = (
 
 const enforceScheduleConstraints = (
   schedule: Record<string, Activity[]>,
-  weeklyMinutes: number
+  weeklyMinutes: number,
+  fallbackModule: string = 'reading'
 ) => {
   const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const normalized: Record<string, Activity[]> = {};
   dayNames.forEach((d) => {
-    normalized[d] = Array.isArray(schedule?.[d]) ? schedule[d].map(a => normalizeActivity(a, 'reading')).filter(Boolean) as Activity[] : [];
+    normalized[d] = Array.isArray(schedule?.[d]) ? schedule[d].map(a => normalizeActivity(a, fallbackModule)).filter(Boolean) as Activity[] : [];
   });
 
   const target = Math.max(60, Math.round(weeklyMinutes));
@@ -311,7 +312,7 @@ const enforceScheduleConstraints = (
   while (total < target * 0.92) {
     normalized.sunday.push({
       title: 'Review & Error Log',
-      module: 'reading',
+      module: fallbackModule,
       priority: 'medium',
       estimated_time: 20,
       activity_type: 'targeted_drill',
@@ -335,9 +336,38 @@ const buildLearningPathBase = (
 ): LearningPathShape => {
   const weeklyMinutes = Math.max(60, Math.round(safeNumber(userData?.study_hours_goal, 10) * 60));
   const weakestModule = deriveWeakestModule(aggregateStats?.scoresByType || []);
+
+  const _skills = Array.isArray(skills) ? [...skills] : [];
+  
+  // Inject module-level candidates based on recent tests so empty pickPool is avoided
+  const activeModules = (aggregateStats?.scoresByType || [])
+    .filter((s: any) => Number.isFinite(safeNumber(s.avg, NaN)))
+    .map((s: any) => s.type);
+
+  if (activeModules.length === 0) activeModules.push('reading', 'listening', 'writing', 'speaking');
+  else if (!activeModules.includes(weakestModule)) activeModules.push(weakestModule);
+
+  const existingModules = new Set(_skills.map(s => normalizeModule(s.module, weakestModule)));
+  activeModules.forEach((m: string) => {
+    const mod = normalizeModule(m, weakestModule);
+    if (!existingModules.has(mod)) {
+      _skills.push({
+        skill_code: `${mod}_fundamentals`,
+        module: mod,
+        mastery_probability: 0.5,
+        confidence_level: 0.5,
+        practice_count: 0,
+        correct_count: 0,
+        last_practiced_at: null,
+        next_review_at: null,
+      });
+    }
+  });
+
   const schedule = enforceScheduleConstraints(
-    buildDeterministicSchedule(weeklyMinutes, intensity, skills, weakestModule),
-    weeklyMinutes
+    buildDeterministicSchedule(weeklyMinutes, intensity, _skills, weakestModule),
+    weeklyMinutes,
+    weakestModule
   );
 
   const avgScoreNum = safeNumber(aggregateStats?.avgScore, NaN);
@@ -359,7 +389,7 @@ const buildLearningPathBase = (
       .filter((s: any) => Number.isFinite(s.avg));
     if (parsed.length === 0) return null;
     parsed.sort((a: any, b: any) => b.avg - a.avg);
-    return normalizeModule(parsed[0].type);
+    return normalizeModule(parsed[0].type, 'reading');
   })();
 
   const strengths = strengthsFromProfile.length
@@ -384,9 +414,9 @@ const buildLearningPathBase = (
     }));
 
   const normalizedSkillsForMilestones = (skills || [])
-    .map((s) => ({
+    .map((s: any) => ({
       ...s,
-      module: normalizeModule(s.module),
+      module: normalizeModule(s.module, weakestModule),
       mastery: clamp(safeNumber(s.mastery_probability, 0.5), 0, 1),
       practice: Math.max(0, Math.round(safeNumber(s.practice_count, 0))),
     }))
@@ -593,9 +623,20 @@ serve(async (req: Request) => {
     });
 
     // Calculate aggregate stats from all sessions
+    const moduleLatestScores = ['reading', 'writing', 'listening', 'speaking']
+      .map(type => {
+        const typeSessions = processedInsights.filter((s: any) => s.testType === type);
+        return typeSessions.length > 0 ? Number(typeSessions[0].score) || 0 : null;
+      })
+      .filter(s => s !== null && s > 0) as number[];
+
+    const predictedOverallBand = moduleLatestScores.length > 0
+      ? Math.round((moduleLatestScores.reduce((sum, s) => sum + s, 0) / moduleLatestScores.length) * 2) / 2
+      : NaN;
+
     const aggregateStats = {
-      avgScore: processedInsights.length > 0
-        ? (processedInsights.reduce((sum: number, s: any) => sum + (s.score || 0), 0) / processedInsights.length).toFixed(1)
+      avgScore: Number.isFinite(predictedOverallBand)
+        ? predictedOverallBand.toFixed(1)
         : 'N/A',
       testsTaken: processedInsights.length,
       scoresByType: ['reading', 'writing', 'listening', 'speaking'].map(type => {

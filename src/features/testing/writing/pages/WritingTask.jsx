@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ConfettiCelebration from '@/components/ConfettiCelebration';
 import XPNotification from '@/components/XPNotification';
-import { Loader2 } from 'lucide-react';
 import PremiumLoading from '@/components/ui/PremiumLoading';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import { WritingHeader } from '../components/WritingTest/components/WritingHeader';
@@ -27,10 +26,11 @@ function WritingTaskContent() {
   const logic = useWritingTaskLogic(authUser);
 
   // Optimized Selectors - only subscribe to layout-critical state
-  const activeType = useWritingTestStore((state) => state.activeType);
+
   const currentFeedback = useWritingTestStore((state) => state.currentFeedback);
   const isAnalyzing = useWritingTestStore((state) => state.isAnalyzing);
   const feedbackError = useWritingTestStore((state) => state.feedbackError);
+  const hasFeedbackPane = Boolean(currentFeedback || isAnalyzing || feedbackError);
 
   // NOTE: 'writing' selector is removed from top-level to prevent whole-page re-renders on keystrokes.
   // It is now handled locally within components that need it.
@@ -62,21 +62,23 @@ function WritingTaskContent() {
     const existingFeedback = useWritingTestStore.getState().currentFeedback;
     return !isViewMode && !existingFeedback;
   });
+  const showTaskPanel = showTask && !hasFeedbackPane;
 
   // Initialize on mount
   useEffect(() => {
     initialize();
-  }, []);
+  }, [initialize]);
 
   // Auto-collapse sidebar when feedback arrives, restore when switching to task without feedback
   useEffect(() => {
-    if (!!currentFeedback || isAnalyzing) {
+    if (hasFeedbackPane) {
       if (showTask) setShowTask(false);
-    } else {
-      // Switching to a task without feedback — restore the task panel
-      if (!showTask && !isAnalyzing) setShowTask(true);
+      return;
     }
-  }, [currentFeedback, isAnalyzing]);
+
+    // Switching to a task without feedback — restore the task panel
+    if (!showTask) setShowTask(true);
+  }, [hasFeedbackPane, showTask]);
 
   if (error) {
     return (
@@ -123,8 +125,8 @@ function WritingTaskContent() {
         className="flex-1 flex flex-col lg:flex-row overflow-hidden max-w-[1920px] mx-auto w-full relative"
         data-oid="50emge."
       >
-        <AnimatePresence mode="wait" data-oid=".rp02r7">
-          {showTask && (
+        <AnimatePresence mode="wait" initial={false} data-oid=".rp02r7">
+          {showTaskPanel && (
             <MemoizedTaskPanel
               task={task}
               showSample={showSample}
@@ -136,9 +138,8 @@ function WritingTaskContent() {
 
         <MemoizedWritingEditorPane
           task={task}
-          loadingMessage={loadingMessage}
-          isSidebarClosed={!showTask}
-          onToggleSidebar={() => setShowTask(!showTask)}
+          isSidebarClosed={!showTaskPanel}
+          onToggleSidebar={() => setShowTask((prev) => !prev)}
           hasFeedback={!!currentFeedback}
           showSample={showSample}
           setShowSample={setShowSample}
@@ -146,14 +147,14 @@ function WritingTaskContent() {
         />
 
         {/* Feedback Panel - Coordinated layout transition */}
-        <AnimatePresence data-oid="i3plaxk">
+        <AnimatePresence initial={false} data-oid="i3plaxk">
           {(currentFeedback || isAnalyzing || feedbackError) && (
             <motion.div
-              layout
+              layout="position"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
+              transition={{ type: 'spring', bounce: 0, duration: 0.35 }}
               className="absolute lg:relative right-0 top-0 bottom-0 w-full lg:w-1/2 bg-white dark:bg-black border-l border-slate-200 dark:border-slate-800 shadow-2xl z-20 flex flex-col h-full"
               data-oid="zsyqr7w"
             >
@@ -199,8 +200,6 @@ function WritingTaskContent() {
 
 function WritingEditorPane({
   task,
-  loadingMessage,
-  handleGetFeedback,
   isSidebarClosed,
   onToggleSidebar,
   hasFeedback,
@@ -231,6 +230,7 @@ function WritingEditorPane({
   return (
     <motion.div
       layout
+      initial={false}
       transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
       className={cn(
         'flex flex-col bg-[#fcfcfc] dark:bg-[#050505] relative overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10 z-30',

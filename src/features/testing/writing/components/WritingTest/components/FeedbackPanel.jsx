@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
@@ -7,15 +7,13 @@ import {
   Lightbulb,
   Info,
   RefreshCw,
-  Trophy,
   Target,
   TrendingUp,
-  BookOpen,
-  Loader2,
+  ChevronDown,
+  XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 
@@ -31,14 +29,20 @@ export function FeedbackPanel({
   handleGetFeedback,
   loadingMessage,
 }) {
-  const activeType = useWritingTestStore((state) => state.activeType);
-  const writing = useWritingTestStore((state) => state.drafts[activeType] || '');
-  const setDraft = useWritingTestStore((state) => state.setDraft);
+  const allFeedbacks = useWritingTestStore((state) => state.feedbacks);
 
-  const setWriting = React.useCallback(
-    (content) => setDraft(activeType, content),
-    [activeType, setDraft]
-  );
+  // Compute the IELTS-weighted combined band (Task 2 = 2/3, Task 1 = 1/3)
+  // Only shown when both tasks have been scored
+  const task1Band = allFeedbacks['Task 1']?.overallBand;
+  const task2Band = allFeedbacks['Task 2']?.overallBand;
+  const combinedBand =
+    task1Band && task2Band ? Math.round(((task1Band + task2Band * 2) / 3) * 2) / 2 : null;
+
+  const [showAllCorrections, setShowAllCorrections] = useState(false);
+  const [showAllStrengths, setShowAllStrengths] = useState(false);
+  const [showAllSuggestions, setShowAllSuggestions] = useState(false);
+  const [showAllWeaknesses, setShowAllWeaknesses] = useState(false);
+
   if (!feedback && !isAnalyzing && !feedbackError) return null;
 
   return (
@@ -381,11 +385,15 @@ export function FeedbackPanel({
                       >
                         Task {feedback.writing?.taskType === 'task2' ? '2' : '1'} Feedback
                       </h2>
-                      <p
-                        className="text-[10px] sm:text-sm font-medium text-slate-400"
-                        data-oid="1f4q-h1"
-                      >
-                        IELTS Band Descriptor Analysis
+                      <p className="text-[10px] sm:text-sm font-medium pr-4" data-oid="1f4q-h1">
+                        {feedback.isBelowMinimumWordCount ? (
+                          <span className="text-amber-400 font-bold flex items-center gap-1.5 line-clamp-2">
+                            <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> Lower Confidence
+                            Practice Estimate
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">IELTS Band Descriptor Analysis</span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -468,6 +476,24 @@ export function FeedbackPanel({
                 </div>
               </div>
 
+              {/* Combined Writing Band — shown only when both tasks are scored */}
+              {combinedBand && (
+                <div className="mx-2 sm:mx-4 mt-2 flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-300 dark:border-amber-700/60 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span className="text-sm font-bold text-slate-900 dark:text-amber-50 uppercase tracking-wider">
+                      Overall Writing Band
+                    </span>
+                    <span className="text-[10px] font-medium text-slate-600 dark:text-amber-100/70">
+                      (T1 × ⅓ + T2 × ⅔)
+                    </span>
+                  </div>
+                  <span className="text-3xl sm:text-4xl font-black text-amber-600 dark:text-amber-300 tracking-tight">
+                    {combinedBand}
+                  </span>
+                </div>
+              )}
+
               {/* Criteria Cards Grid */}
               <div
                 className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 p-2 sm:p-3"
@@ -525,6 +551,25 @@ export function FeedbackPanel({
               className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
               data-oid="548_1in"
             >
+              {feedback.isBelowMinimumWordCount && (
+                <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-4 rounded-xl flex gap-3 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-amber-800 dark:text-amber-300">
+                      Below Word Count Minimum
+                    </h4>
+                    <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1 leading-relaxed">
+                      Your essay is below the official IELTS minimum word count (
+                      {feedback.taskType === 'Task 2' ? '250' : '150'} words). While this feedback
+                      provides helpful language corrections, the band score is a lower-confidence
+                      practice estimate as short essays typically incur severe penalties.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Action Plan / Top Issues */}
               {feedback.corrections && feedback.corrections.length > 0 && (
                 <section data-oid="yk_3d0v">
@@ -536,7 +581,10 @@ export function FeedbackPanel({
                     Key Corrections
                   </h3>
                   <div className="space-y-3" data-oid="f4f1d.3">
-                    {feedback.corrections.slice(0, 3).map((item, i) => (
+                    {(showAllCorrections
+                      ? feedback.corrections
+                      : feedback.corrections.slice(0, 3)
+                    ).map((item, i) => (
                       <div
                         key={i}
                         className="bg-white dark:bg-[#0D0E1A] p-4 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-shadow duration-200"
@@ -602,15 +650,28 @@ export function FeedbackPanel({
                       </div>
                     ))}
                   </div>
+                  {feedback.corrections.length > 3 && (
+                    <button
+                      onClick={() => setShowAllCorrections((v) => !v)}
+                      className="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-indigo-500 hover:text-indigo-600 transition-colors"
+                    >
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 transition-transform duration-200 ${showAllCorrections ? 'rotate-180' : ''}`}
+                      />
+                      {showAllCorrections
+                        ? 'Show less'
+                        : `Show ${feedback.corrections.length - 3} more`}
+                    </button>
+                  )}
                 </section>
               )}
 
               {/* Detailed Review - Moved to Left Pane */}
               {/* <section>...</section> */}
 
-              {/* Next Steps / Strengths */}
+              {/* Strengths / Weaknesses / Suggestions */}
               <div className="grid grid-cols-1 gap-4" data-oid="o.mv23b">
-                {feedback.strengths && (
+                {feedback.strengths && feedback.strengths.length > 0 && (
                   <section data-oid="mkqk:q2">
                     <h3
                       className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2 px-1"
@@ -620,56 +681,114 @@ export function FeedbackPanel({
                       What You Did Well
                     </h3>
                     <div className="grid gap-2" data-oid="kio5y_v">
-                      {feedback.strengths.slice(0, 4).map((str, i) => {
-                        const match = str.match(/^\*\*(.*?)\*\*(.*)/);
+                      {(showAllStrengths ? feedback.strengths : feedback.strengths.slice(0, 4)).map(
+                        (str, i) => {
+                          const match = str.match(/^\*\*(.*?)\*\*(.*)/);
+                          return (
+                            <div
+                              key={i}
+                              className="group flex items-start gap-2.5 text-[12px] text-slate-600 dark:text-slate-300 leading-normal bg-white dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800/60 hover:shadow-sm transition-all duration-300"
+                              data-oid="gu9.ac6"
+                            >
+                              <div
+                                className="mt-0.5 w-4 h-4 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0"
+                                data-oid="w4s61.e"
+                              >
+                                <div
+                                  className="w-1.5 h-1.5 rounded-full bg-emerald-500"
+                                  data-oid="8rikdha"
+                                ></div>
+                              </div>
+                              <div data-oid="0bl9gt1">
+                                {match ? (
+                                  <>
+                                    <span className="font-bold text-slate-900 dark:text-white mr-1">
+                                      {match[1]}
+                                    </span>
+                                    <span className="text-slate-600 dark:text-slate-400">
+                                      {match[2]}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="text-slate-600 dark:text-slate-400">{str}</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        }
+                      )}
+                    </div>
+                    {feedback.strengths.length > 4 && (
+                      <button
+                        onClick={() => setShowAllStrengths((v) => !v)}
+                        className="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-indigo-500 hover:text-indigo-600 transition-colors"
+                      >
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${showAllStrengths ? 'rotate-180' : ''}`}
+                        />
+                        {showAllStrengths
+                          ? 'Show less'
+                          : `Show ${feedback.strengths.length - 4} more`}
+                      </button>
+                    )}
+                  </section>
+                )}
+
+                {feedback.weaknesses && feedback.weaknesses.length > 0 && (
+                  <section>
+                    <h3 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2 px-1">
+                      <XCircle className="w-3 h-3 text-rose-500" />
+                      Areas to Improve
+                    </h3>
+                    <div className="grid gap-2">
+                      {(showAllWeaknesses
+                        ? feedback.weaknesses
+                        : feedback.weaknesses.slice(0, 4)
+                      ).map((item, i) => {
+                        const match = item.match(/^\*\*(.*?)\*\*(.*)/);
                         return (
                           <div
                             key={i}
-                            className="group flex items-start gap-2.5 text-[12px] text-slate-600 dark:text-slate-300 leading-normal bg-white dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800/60 hover:shadow-sm transition-all duration-300"
-                            data-oid="gu9.ac6"
+                            className="group flex items-start gap-2.5 text-[12px] text-slate-600 dark:text-slate-300 leading-normal bg-white dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-100 dark:border-rose-900/20 hover:shadow-sm transition-all duration-300"
                           >
-                            <div
-                              className="mt-0.5 w-4 h-4 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0"
-                              data-oid="w4s61.e"
-                            >
-                              <div
-                                className="w-1.5 h-1.5 rounded-full bg-emerald-500"
-                                data-oid="8rikdha"
-                              ></div>
+                            <div className="mt-0.5 w-4 h-4 rounded-full bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center shrink-0">
+                              <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>
                             </div>
-                            <div data-oid="0bl9gt1">
+                            <div>
                               {match ? (
                                 <>
-                                  <span
-                                    className="font-bold text-slate-900 dark:text-white mr-1"
-                                    data-oid="ifag3gw"
-                                  >
+                                  <span className="font-bold text-slate-900 dark:text-white mr-1">
                                     {match[1]}
                                   </span>
-                                  <span
-                                    className="text-slate-600 dark:text-slate-400"
-                                    data-oid="cnikc0e"
-                                  >
+                                  <span className="text-slate-600 dark:text-slate-400">
                                     {match[2]}
                                   </span>
                                 </>
                               ) : (
-                                <span
-                                  className="text-slate-600 dark:text-slate-400"
-                                  data-oid="bml68:x"
-                                >
-                                  {str}
-                                </span>
+                                <span className="text-slate-600 dark:text-slate-400">{item}</span>
                               )}
                             </div>
                           </div>
                         );
                       })}
                     </div>
+                    {feedback.weaknesses.length > 4 && (
+                      <button
+                        onClick={() => setShowAllWeaknesses((v) => !v)}
+                        className="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-indigo-500 hover:text-indigo-600 transition-colors"
+                      >
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${showAllWeaknesses ? 'rotate-180' : ''}`}
+                        />
+                        {showAllWeaknesses
+                          ? 'Show less'
+                          : `Show ${feedback.weaknesses.length - 4} more`}
+                      </button>
+                    )}
                   </section>
                 )}
 
-                {feedback.suggestions && (
+                {feedback.suggestions && feedback.suggestions.length > 0 && (
                   <section data-oid="wgjok6z">
                     <h3
                       className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2 px-1"
@@ -679,7 +798,10 @@ export function FeedbackPanel({
                       Tips for Next Time
                     </h3>
                     <div className="grid gap-2" data-oid="c.siyys">
-                      {feedback.suggestions.slice(0, 4).map((sugg, i) => {
+                      {(showAllSuggestions
+                        ? feedback.suggestions
+                        : feedback.suggestions.slice(0, 4)
+                      ).map((sugg, i) => {
                         const match = sugg.match(/^\*\*(.*?)\*\*(.*)/);
                         return (
                           <div
@@ -699,32 +821,34 @@ export function FeedbackPanel({
                             <div data-oid="cnak38z">
                               {match ? (
                                 <>
-                                  <span
-                                    className="font-bold text-slate-900 dark:text-white mr-1"
-                                    data-oid="fuva3t3"
-                                  >
+                                  <span className="font-bold text-slate-900 dark:text-white mr-1">
                                     {match[1]}
                                   </span>
-                                  <span
-                                    className="text-slate-600 dark:text-slate-400"
-                                    data-oid="3hjhe.z"
-                                  >
+                                  <span className="text-slate-600 dark:text-slate-400">
                                     {match[2]}
                                   </span>
                                 </>
                               ) : (
-                                <span
-                                  className="text-slate-600 dark:text-slate-400"
-                                  data-oid="ronjize"
-                                >
-                                  {sugg}
-                                </span>
+                                <span className="text-slate-600 dark:text-slate-400">{sugg}</span>
                               )}
                             </div>
                           </div>
                         );
                       })}
                     </div>
+                    {feedback.suggestions.length > 4 && (
+                      <button
+                        onClick={() => setShowAllSuggestions((v) => !v)}
+                        className="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-indigo-500 hover:text-indigo-600 transition-colors"
+                      >
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${showAllSuggestions ? 'rotate-180' : ''}`}
+                        />
+                        {showAllSuggestions
+                          ? 'Show less'
+                          : `Show ${feedback.suggestions.length - 4} more`}
+                      </button>
+                    )}
                   </section>
                 )}
               </div>
