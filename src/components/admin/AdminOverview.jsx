@@ -71,11 +71,11 @@ const AdminOverview = () => {
     try {
       setIsLoading(true);
       const [usersData, questionsData, passagesData, sessionsData, promoData] = await Promise.all([
-        User.list('-created_at'),
-        Question.list(),
-        Passage.list({ is_active: true }),
-        TestSession.list({}, '-created_at'),
-        PromoCode.list({ is_active: true }),
+        User.list('-created_at', 10000),
+        Question.list({}, 'created_at', 10000),
+        Passage.list({ is_active: true }, 'created_at', 10000),
+        TestSession.list({}, '-created_at', 10000),
+        PromoCode.list({ is_active: true }, 'created_at', 10000),
       ]);
 
       // Add usage count to passages

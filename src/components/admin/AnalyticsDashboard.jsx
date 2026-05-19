@@ -13,12 +13,12 @@ const AnalyticsDashboard = () => {
   const loadAnalyticsData = async () => {
     try {
       setLoading(true);
-      const [usersData, questionsData, passagesData, sessionsData, promoData] = await Promise.all([
-        User.list('-created_at'),
-        Question.list(),
-        Passage.list({ is_active: true }),
-        TestSession.list({}, '-created_at'),
-        PromoCode.list({ is_active: true }),
+      const [usersData, questionsData, passagesData, sessionsData, _promoData] = await Promise.all([
+        User.list('-created_at', 10000),
+        Question.list({}, 'created_at', 10000),
+        Passage.list({ is_active: true }, 'created_at', 10000),
+        TestSession.list({}, '-created_at', 10000),
+        PromoCode.list({ is_active: true }, 'created_at', 10000),
       ]);
 
       const premiumUsers = usersData.filter(
