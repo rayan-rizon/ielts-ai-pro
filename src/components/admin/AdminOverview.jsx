@@ -27,10 +27,20 @@ import {
   Area,
   ResponsiveContainer,
 } from 'recharts';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 import { supabase } from '@/lib/supabase';
-import { User, TestSession, PromoCode, Passage, Question } from '@/entities';
+
+const ADMIN_ANALYTICS_LIMIT = 10000;
+const USER_ANALYTICS_COLUMNS = 'id,email,full_name,created_at,last_active,subscription_tier';
+const SESSION_ANALYTICS_COLUMNS = 'id,test_type,score,is_completed,completed_at,created_at';
+
+const countRows = async (table, applyFilters = (query) => query) => {
+  const query = applyFilters(supabase.from(table).select('id', { count: 'exact', head: true }));
+  const { count, error } = await query;
+  if (error) throw error;
+  return count || 0;
+};
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -70,30 +80,40 @@ const AdminOverview = () => {
   const loadAllData = async () => {
     try {
       setIsLoading(true);
-      const [usersData, questionsData, passagesData, sessionsData, promoData] = await Promise.all([
-        User.list('-created_at', 10000),
-        Question.list({}, 'created_at', 10000),
-        Passage.list({ is_active: true }, 'created_at', 10000),
-        TestSession.list({}, '-created_at', 10000),
-        PromoCode.list({ is_active: true }, 'created_at', 10000),
+      const [
+        usersResponse,
+        sessionsResponse,
+        totalUsers,
+        premiumUsers,
+        totalQuestions,
+        totalPassages,
+        activePromoCodes,
+      ] = await Promise.all([
+        supabase
+          .from('users')
+          .select(USER_ANALYTICS_COLUMNS)
+          .order('created_at', { ascending: false })
+          .limit(ADMIN_ANALYTICS_LIMIT),
+        supabase
+          .from('test_sessions')
+          .select(SESSION_ANALYTICS_COLUMNS)
+          .order('created_at', { ascending: false })
+          .limit(ADMIN_ANALYTICS_LIMIT),
+        countRows('users'),
+        countRows('users', (query) => query.in('subscription_tier', ['pro', 'premium'])),
+        countRows('questions'),
+        countRows('passages', (query) => query.eq('is_active', true)),
+        countRows('promo_codes', (query) => query.eq('is_active', true)),
       ]);
 
-      // Add usage count to passages
-      const passagesWithUsage = passagesData.map((passage) => ({
-        ...passage,
-        usage_count: sessionsData.filter(
-          (session) =>
-            session.test_type === passage.test_type &&
-            ((session.passage_id && session.passage_id === passage.id) ||
-              (session.content_data && session.content_data.passage_id === passage.id))
-        ).length,
-      }));
+      if (usersResponse.error) throw usersResponse.error;
+      if (sessionsResponse.error) throw sessionsResponse.error;
+
+      const usersData = usersResponse.data || [];
+      const sessionsData = sessionsResponse.data || [];
 
       await processAnalyticsData(usersData, sessionsData);
 
-      const premiumUsers = usersData.filter(
-        (u) => u.subscription_tier === 'pro' || u.subscription_tier === 'premium'
-      ).length;
       const completedSessions = sessionsData.filter((s) => s.is_completed).length;
       const avgScore =
         completedSessions > 0
@@ -104,15 +124,14 @@ const AdminOverview = () => {
           : 0;
 
       setStats({
-        totalUsers: usersData.length,
+        totalUsers,
         premiumUsers,
-        totalQuestions: questionsData.length,
-        totalPassages: passagesWithUsage.length,
+        totalQuestions,
+        totalPassages,
         completedTests: completedSessions,
         avgScore: avgScore.toFixed(1),
-        conversionRate:
-          usersData.length > 0 ? ((premiumUsers / usersData.length) * 100).toFixed(1) : 0,
-        activePromoCodes: promoData.length,
+        conversionRate: totalUsers > 0 ? ((premiumUsers / totalUsers) * 100).toFixed(1) : 0,
+        activePromoCodes,
         activeTests: sessionsData.filter((s) => !s.is_completed).length,
       });
     } catch (error) {

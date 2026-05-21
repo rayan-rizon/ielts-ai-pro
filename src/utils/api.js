@@ -1,4 +1,4 @@
-import { supabase, getSupabaseClient } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase';
 import { checkRateLimit, RATE_LIMITS, getRemainingRequests } from '@/lib/rateLimiter';
 import {
   getFromCache,
@@ -12,7 +12,7 @@ import { getCsrfHeaders } from '@/lib/csrf';
 // Get the Supabase Functions URL based on environment
 // Use the same URL as the main Supabase client, with fallback to production
 const SUPABASE_URL =
-  import.meta.env.VITE_SUPABASE_URL || 'https://vqoijpnwajmukoqcblxs.supabase.co';
+  import.meta.env.VITE_SUPABASE_URL || 'https://zvrmvycajimjxghrnpgy.supabase.co';
 const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 

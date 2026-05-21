@@ -8,16 +8,9 @@
       var DEFAULT_GTM_ID = 'GTM-TR6XQ2R3';
       var DEFAULT_PIXEL_ID = '991226963227159';
 
-      // Vite will replace %VITE_*% tokens during build if they exist in .env
-      var vitePixel = '%VITE_META_PIXEL_ID%';
-
-      var isVitePlaceholder = function (val) {
-        return !val || val.indexOf('%VITE_') === 0;
-      };
-
       var config = window.__TRACKING_CONFIG__ || {};
       var gtmId = config.gtmId || DEFAULT_GTM_ID;
-      var pixelId = !isVitePlaceholder(vitePixel) ? vitePixel : (config.pixelId || DEFAULT_PIXEL_ID);
+      var pixelId = config.pixelId || DEFAULT_PIXEL_ID;
 
       window.__TRACKING_IDS__ = {
         gtmId: gtmId,
@@ -79,7 +72,7 @@
     })();
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="preconnect" href="https://sycoxjmxktzobbpwbisl.supabase.co" crossorigin />
+  <link rel="preconnect" href="https://zvrmvycajimjxghrnpgy.supabase.co" crossorigin />
   <link rel="dns-prefetch" href="https://o4511048158150656.ingest.de.sentry.io" />
   <link rel="dns-prefetch" href="https://connect.facebook.net" />
   <link rel="dns-prefetch" href="https://www.googletagmanager.com" />

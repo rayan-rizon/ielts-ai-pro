@@ -2,7 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import UserAnalytics from './UserAnalytics';
 import RevenueAnalytics from './RevenueAnalytics';
-import { User, TestSession, PromoCode, Passage, Question } from '@/entities';
+import { supabase } from '@/lib/supabase';
+
+const ADMIN_ANALYTICS_LIMIT = 10000;
+const USER_ANALYTICS_COLUMNS = 'id,email,full_name,created_at,last_active,subscription_tier';
+const SESSION_ANALYTICS_COLUMNS = 'id,test_type,score,is_completed,completed_at,created_at';
+
+const countRows = async (table, applyFilters = (query) => query) => {
+  const query = applyFilters(supabase.from(table).select('id', { count: 'exact', head: true }));
+  const { count, error } = await query;
+  if (error) throw error;
+  return count || 0;
+};
 
 const AnalyticsDashboard = () => {
   const [stats, setStats] = useState({});
@@ -13,17 +24,38 @@ const AnalyticsDashboard = () => {
   const loadAnalyticsData = async () => {
     try {
       setLoading(true);
-      const [usersData, questionsData, passagesData, sessionsData, _promoData] = await Promise.all([
-        User.list('-created_at', 10000),
-        Question.list({}, 'created_at', 10000),
-        Passage.list({ is_active: true }, 'created_at', 10000),
-        TestSession.list({}, '-created_at', 10000),
-        PromoCode.list({ is_active: true }, 'created_at', 10000),
+      const [
+        usersResponse,
+        sessionsResponse,
+        totalUsers,
+        proCount,
+        premiumCount,
+        totalQuestions,
+        totalPassages,
+      ] = await Promise.all([
+        supabase
+          .from('users')
+          .select(USER_ANALYTICS_COLUMNS)
+          .order('created_at', { ascending: false })
+          .limit(ADMIN_ANALYTICS_LIMIT),
+        supabase
+          .from('test_sessions')
+          .select(SESSION_ANALYTICS_COLUMNS)
+          .order('created_at', { ascending: false })
+          .limit(ADMIN_ANALYTICS_LIMIT),
+        countRows('users'),
+        countRows('users', (query) => query.eq('subscription_tier', 'pro')),
+        countRows('users', (query) => query.eq('subscription_tier', 'premium')),
+        countRows('questions'),
+        countRows('passages', (query) => query.eq('is_active', true)),
       ]);
 
-      const premiumUsers = usersData.filter(
-        (u) => u.subscription_tier === 'pro' || u.subscription_tier === 'premium'
-      ).length;
+      if (usersResponse.error) throw usersResponse.error;
+      if (sessionsResponse.error) throw sessionsResponse.error;
+
+      const usersData = usersResponse.data || [];
+      const sessionsData = sessionsResponse.data || [];
+      const premiumUsers = proCount + premiumCount;
       const completedSessions = sessionsData.filter((s) => s.is_completed).length;
       const avgScore =
         completedSessions > 0
@@ -39,24 +71,25 @@ const AnalyticsDashboard = () => {
       const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
       const weeklyActiveUsers = usersData.filter(
-        (u) => new Date(u.last_login || u.created_at) >= weekAgo
+        (u) => new Date(u.last_active || u.created_at) >= weekAgo
       ).length;
       const monthlyActiveUsers = usersData.filter(
-        (u) => new Date(u.last_login || u.created_at) >= monthAgo
+        (u) => new Date(u.last_active || u.created_at) >= monthAgo
       ).length;
 
       // Simulated revenue data
       const simulatedRevenue = premiumUsers * 9.99; // Assuming $9.99 per pro user (average)
 
       setStats({
-        totalUsers: usersData.length,
+        totalUsers,
         premiumUsers,
-        totalQuestions: questionsData.length,
-        totalPassages: passagesData.length,
+        proCount,
+        premiumCount,
+        totalQuestions,
+        totalPassages,
         completedTests: completedSessions,
         avgScore: avgScore.toFixed(1),
-        conversionRate:
-          usersData.length > 0 ? ((premiumUsers / usersData.length) * 100).toFixed(1) : 0,
+        conversionRate: totalUsers > 0 ? ((premiumUsers / totalUsers) * 100).toFixed(1) : 0,
       });
 
       setAnalyticsData({
