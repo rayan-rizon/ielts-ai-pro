@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 /**
  * Shared component for displaying clickable question numbers with flag state.

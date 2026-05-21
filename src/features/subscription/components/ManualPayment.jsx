@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { trackAppEvent } from '@/lib/tracking';
 
 const PAYMENT_METHODS = [

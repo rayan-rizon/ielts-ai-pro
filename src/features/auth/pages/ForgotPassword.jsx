@@ -9,7 +9,7 @@ import { AlertCircle, ArrowLeft, CheckCircle2, Mail, Loader2, Sparkles } from 'l
 import { motion, AnimatePresence } from 'framer-motion';
 import { User } from '@/features/auth/services/User';
 import { validateField, emailSchema } from '@/lib/validations';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');

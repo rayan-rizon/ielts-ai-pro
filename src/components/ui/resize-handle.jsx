@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { GripVertical } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 /**
  * Draggable handle for resizing panels in split-view layouts.

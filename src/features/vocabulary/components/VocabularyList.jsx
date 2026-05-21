@@ -2,7 +2,7 @@ import React, { memo, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Star, Trash2, Search, ChevronRight, Languages } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import {
   translateText,
   getCachedTranslation,

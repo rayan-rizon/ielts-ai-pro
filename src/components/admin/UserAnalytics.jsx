@@ -31,7 +31,7 @@ import {
   PieChart,
   Pie,
 } from 'recharts';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 const COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
 

@@ -5,7 +5,7 @@ import DebouncedInput from '@/components/ui/debounced-input';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { sanitizeHtml } from '@/lib/security';
 import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 /**
  * GapFillContent - Component for rendering gap-fill questions with inline input fields.

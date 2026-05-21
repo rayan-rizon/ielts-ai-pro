@@ -28,7 +28,7 @@ import {
   Star,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 import { generateAdaptiveLearningPath } from '@/utils/api';
 import { toast } from 'sonner';

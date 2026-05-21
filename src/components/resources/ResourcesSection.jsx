@@ -26,7 +26,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Resource } from '@/entities';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { supabase } from '@/lib/supabase';
 import { useResources } from '@/features/learning/hooks/useResources';
 import { useAuth } from '@/features/auth/context/AuthContext';

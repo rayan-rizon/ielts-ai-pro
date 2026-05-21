@@ -4,7 +4,7 @@ import { ArrowLeft, Volume2, VolumeX, Clock, Target } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { motion } from 'framer-motion';
 
 // Pure utility — no component state dependency

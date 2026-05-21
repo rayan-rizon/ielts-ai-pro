@@ -11,7 +11,7 @@ import Mic from 'lucide-react/icons/mic';
 import Target from 'lucide-react/icons/target';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import DashboardMockup from './DashboardMockup';
 
 const containerVariants = {

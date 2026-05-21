@@ -1,6 +1,6 @@
 import React from 'react';
 import { BookOpen, Target, Zap } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 /**
  * Vocabulary Stats Bar Component

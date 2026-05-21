@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Timer, TrendingDown, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { useReadingTestTimer } from '@/features/testing/reading/components/ReadingTest/context/ReadingTestContext';
 import { useReadingTestStore } from '@/features/testing/reading/store/useReadingTestStore';
 

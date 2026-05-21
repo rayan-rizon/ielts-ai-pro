@@ -125,7 +125,8 @@ const RLS_POLICIES = {
     system_settings: {
         enabled: true,
         policies: [
-            { name: 'Public read', action: 'SELECT', using: 'true', role: 'public' },
+            { name: 'Public safe read', action: 'SELECT', using: "key IN ('maintenance_mode', 'pricing_tiers', 'public_announcement')", role: 'public' },
+            { name: 'Admin read', action: 'SELECT', using: 'public.is_admin()', role: 'authenticated' },
             { name: 'Admin write', action: 'INSERT', withCheck: 'public.is_admin()', role: 'authenticated' },
             { name: 'Admin update', action: 'UPDATE', using: 'public.is_admin()', role: 'authenticated' },
             { name: 'Admin delete', action: 'DELETE', using: 'public.is_admin()', role: 'authenticated' },
@@ -148,9 +149,7 @@ const RLS_POLICIES = {
     ai_feedback_cache: {
         enabled: true,
         policies: [
-            { name: 'Authenticated read', action: 'SELECT', using: 'true', role: 'authenticated' },
-            { name: 'Authenticated insert', action: 'INSERT', withCheck: 'input_hash IS NOT NULL', role: 'authenticated' },
-            { name: 'Service role full', action: 'ALL', using: 'true', role: 'service_role' },
+            { name: 'Service role manages feedback cache', action: 'ALL', using: 'true', role: 'service_role' },
         ],
     },
     ai_api_usage: {
@@ -256,6 +255,17 @@ describe('RLS - Public Content', () => {
 
         expect(publicPolicy?.using).toBe('true');
     });
+
+    it('should allow only safe public system settings', () => {
+        const { policies } = RLS_POLICIES.system_settings;
+        const publicPolicy = policies.find((p) => p.name === 'Public safe read');
+
+        expect(publicPolicy).toBeDefined();
+        expect(publicPolicy?.using).toContain('maintenance_mode');
+        expect(publicPolicy?.using).toContain('pricing_tiers');
+        expect(publicPolicy?.using).toContain('public_announcement');
+        expect(publicPolicy?.using).not.toBe('true');
+    });
 });
 
 describe('RLS - Admin-Only Tables', () => {
@@ -265,6 +275,14 @@ describe('RLS - Admin-Only Tables', () => {
 
         expect(adminPolicy).toBeDefined();
         expect(adminPolicy?.using).toContain('admin');
+    });
+
+    it('should restrict AI feedback cache to service role only', () => {
+        const { policies } = RLS_POLICIES.ai_feedback_cache;
+
+        expect(policies).toHaveLength(1);
+        expect(policies[0]).toMatchObject({ action: 'ALL', role: 'service_role' });
+        expect(policies.some((p) => p.role === 'authenticated')).toBe(false);
     });
 });
 

@@ -13,7 +13,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 

@@ -78,7 +78,7 @@ import { Resource } from '@/entities';
 import { supabase, uploadFile, uploadToR2 } from '@/lib/supabase';
 import { generatePdfThumbnail } from '@/lib/pdf-thumbnail';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 import BlogEditor from './resources/BlogEditor';
 import VocabularyEditor from './resources/VocabularyEditor';

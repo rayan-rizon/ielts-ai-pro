@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { VocabularyItem } from '@/entities';
+import React, { Suspense, lazy, useState, useEffect, useCallback, useMemo } from 'react';
+import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
 import { supabase } from '@/lib/supabase';
 
 import { Button } from '@/components/ui/button';
@@ -31,17 +31,15 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Resource } from '@/entities';
+import { Resource } from '@/features/learning/services/Resource';
 import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import VocabularyList from '@/features/vocabulary/components/VocabularyList';
-import ReviewSession from '@/features/vocabulary/components/ReviewSession';
 import VocabularyStats from '@/features/vocabulary/components/VocabularyStats';
 import ReviewBanner from '@/features/vocabulary/components/ReviewBanner';
 import VocabularySidebar from '@/features/vocabulary/components/VocabularySidebar';
 import QuickAddCard from '@/features/vocabulary/components/QuickAddCard';
 import WordGroupList from '@/features/vocabulary/components/WordGroupList';
-import { SpeedQuizModal, MatchPairsModal } from '@/features/vocabulary/components/GameModals';
 import {
   translateText,
   SUPPORTED_LANGUAGES,
@@ -54,6 +52,40 @@ import {
   useSpeedQuiz,
   useMatchPairs,
 } from '@/features/vocabulary/hooks';
+
+const ReviewSession = lazy(() => import('@/features/vocabulary/components/ReviewSession'));
+const GameModals = lazy(() =>
+  import('@/features/vocabulary/components/GameModals').then((module) => ({
+    default: function VocabularyGameModals({ speedQuiz, matchPairs, onRestartMatchPairs }) {
+      return (
+        <>
+          <module.SpeedQuizModal
+            isOpen={speedQuiz.isSpeedQuizOpen}
+            onClose={speedQuiz.closeGame}
+            gameData={speedQuiz.gameData}
+            gameState={speedQuiz.gameState}
+            gameScore={speedQuiz.gameScore}
+            onAnswer={speedQuiz.handleQuizAnswer}
+            data-oid="4jcnyai"
+          />
+          <module.MatchPairsModal
+            isOpen={matchPairs.isMatchPairsOpen}
+            onClose={matchPairs.closeGame}
+            gameData={matchPairs.gameData}
+            gameState={matchPairs.gameState}
+            gameScore={matchPairs.gameScore}
+            onCardClick={matchPairs.handleCardClick}
+            onRestart={onRestartMatchPairs}
+            data-oid="awuudbs"
+          />
+        </>
+      );
+    },
+  }))
+);
+
+const VOCABULARY_LIST_FIELDS =
+  'id, word, definition, example, example_sentence, source, times_reviewed, last_reviewed, next_review_date, mastery_level, ease_factor, interval_days, created_at, user_id, created_by';
 
 // SRS algorithm is now handled inside useReviewSession hook
 
@@ -143,7 +175,7 @@ export default function Vocabulary() {
           100,
           1,
           ITEMS_PER_PAGE,
-          'id, word, definition, example, last_reviewed, next_review_date, mastery_level, created_at'
+          VOCABULARY_LIST_FIELDS
         ).catch((err) => {
           console.error('Failed to load vocabulary items:', err);
           return { data: [], count: 0 };
@@ -465,7 +497,8 @@ export default function Vocabulary() {
         '-created_at',
         100,
         nextPage,
-        ITEMS_PER_PAGE
+        ITEMS_PER_PAGE,
+        VOCABULARY_LIST_FIELDS
       );
 
       if (result.data && result.data.length > 0) {
@@ -811,41 +844,33 @@ export default function Vocabulary() {
         </div>
 
         {/* Review Modal */}
-        <ReviewSession
-          isOpen={isReviewSessionOpen}
-          onOpenChange={(open) => !open && closeReviewSession()}
-          currentItem={currentReviewItem}
-          isFlipped={isFlipped}
-          onFlip={flipCard}
-          onSubmit={handleReviewSubmit}
-          data-oid="61wwuoy"
-        />
+        {isReviewSessionOpen && (
+          <Suspense fallback={null}>
+            <ReviewSession
+              isOpen={isReviewSessionOpen}
+              onOpenChange={(open) => !open && closeReviewSession()}
+              currentItem={currentReviewItem}
+              isFlipped={isFlipped}
+              onFlip={flipCard}
+              onSubmit={handleReviewSubmit}
+              data-oid="61wwuoy"
+            />
+          </Suspense>
+        )}
 
         {/* Speed Quiz Modal */}
-        <SpeedQuizModal
-          isOpen={speedQuiz.isSpeedQuizOpen}
-          onClose={speedQuiz.closeGame}
-          gameData={speedQuiz.gameData}
-          gameState={speedQuiz.gameState}
-          gameScore={speedQuiz.gameScore}
-          onAnswer={speedQuiz.handleQuizAnswer}
-          data-oid="4jcnyai"
-        />
-
-        {/* Match Pairs Modal */}
-        <MatchPairsModal
-          isOpen={matchPairs.isMatchPairsOpen}
-          onClose={matchPairs.closeGame}
-          gameData={matchPairs.gameData}
-          gameState={matchPairs.gameState}
-          gameScore={matchPairs.gameScore}
-          onCardClick={matchPairs.handleCardClick}
-          onRestart={() => {
-            matchPairs.closeGame();
-            setTimeout(() => startMatchPairs(), 200);
-          }}
-          data-oid="awuudbs"
-        />
+        {(speedQuiz.isSpeedQuizOpen || matchPairs.isMatchPairsOpen) && (
+          <Suspense fallback={null}>
+            <GameModals
+              speedQuiz={speedQuiz}
+              matchPairs={matchPairs}
+              onRestartMatchPairs={() => {
+                matchPairs.closeGame();
+                setTimeout(() => startMatchPairs(), 200);
+              }}
+            />
+          </Suspense>
+        )}
 
         {/* Alert Modal */}
         <Dialog

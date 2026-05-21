@@ -3,7 +3,7 @@ import { m } from 'framer-motion';
 import { Target, Clock, Flame, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 // Constants for animation
 const itemVariants = {

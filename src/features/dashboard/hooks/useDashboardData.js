@@ -1,14 +1,14 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { LearningPath, User, Resource } from '@/entities';
+import { LearningPath } from '@/features/learning/services/LearningPath';
+import { Resource } from '@/features/learning/services/Resource';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryClient';
-import { formatBand } from '@/lib/utils';
+import { formatBand } from '@/lib/format';
 import {
   getTodaysFocus,
   createTodaysFocus,
   getLearningPathProgress,
-  calculateDaysUntilExam,
 } from '@/services/adaptiveLearningService';
 
 async function fetchDashboardStats(userId) {
@@ -117,11 +117,7 @@ export default function useDashboardData(authUser, authLoading) {
   const user = authUser;
 
   // Fetch dashboard stats (main data)
-  const {
-    data: dashboardData,
-    isLoading: statsLoading,
-    error: statsError,
-  } = useQuery({
+  const { data: dashboardData, isLoading: statsLoading } = useQuery({
     queryKey: queryKeys.dashboard.stats(userId || 'anonymous'),
     queryFn: () => fetchDashboardStats(userId),
     enabled: !authLoading && !!userId,

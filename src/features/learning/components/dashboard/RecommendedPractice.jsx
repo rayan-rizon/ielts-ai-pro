@@ -4,7 +4,7 @@ import { Sparkles, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { GlassCard } from '@/features/learning/components/SharedComponents';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatTaskTitle } from '../../utils/learningUtils';
 

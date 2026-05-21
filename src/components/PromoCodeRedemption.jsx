@@ -24,7 +24,7 @@ import {
   PartyPopper,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { toast } from 'sonner';
 
 export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }) {

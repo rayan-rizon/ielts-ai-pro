@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { format } from 'date-fns';
 
 export default function SubscriptionSection({

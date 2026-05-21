@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { m } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import DocumentHead from '@/components/shared/DocumentHead';
 import { calculatePrice } from '@/lib/pricingUtils';
 import { usePricing } from '@/features/subscription/hooks/usePricing';

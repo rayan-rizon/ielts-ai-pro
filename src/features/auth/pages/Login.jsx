@@ -28,7 +28,7 @@ import {
   getPasswordStrength,
   signUpSchema,
 } from '@/lib/validations';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { User } from '@/features/auth/services/User';
 import DocumentHead from '@/components/shared/DocumentHead';
 import { AuthLeftPanel } from '@/features/auth/components/AuthLeftPanel';

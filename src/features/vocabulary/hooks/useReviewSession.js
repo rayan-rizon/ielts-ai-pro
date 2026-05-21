@@ -1,19 +1,21 @@
 import { useState, useCallback } from 'react';
-import { VocabularyItem, UserPoints } from '@/entities';
+import { UserPoints } from '@/features/gamification/services/UserPoints';
+import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
 
 // Simple SRS algorithm
 const calculateNextReview = (item, quality) => {
   const now = new Date();
   let interval = 1;
   let easeFactor = item.ease_factor || 2.5;
+  const timesReviewed = item.times_reviewed || 0;
 
   if (quality >= 3) {
-    if (item.repetitions === 0) {
+    if (timesReviewed === 0) {
       interval = 1;
-    } else if (item.repetitions === 1) {
+    } else if (timesReviewed === 1) {
       interval = 6;
     } else {
-      interval = Math.round((item.interval || 1) * easeFactor);
+      interval = Math.round((item.interval_days || 1) * easeFactor);
     }
     easeFactor = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
   } else {
@@ -26,9 +28,9 @@ const calculateNextReview = (item, quality) => {
 
   return {
     next_review_date: nextReviewDate.toISOString(),
-    interval,
+    interval_days: interval,
     ease_factor: easeFactor,
-    repetitions: quality >= 3 ? (item.repetitions || 0) + 1 : 0,
+    times_reviewed: quality >= 3 ? timesReviewed + 1 : 0,
     last_reviewed: now.toISOString(),
   };
 };

@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { createPageUrl } from '@/utils';
 import { GlassCard } from '../SharedComponents';
 import { mistakeAdvice } from '../../utils/learningUtils';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 const MistakeAnalysis = ({ mistakePatterns, onSelectToday, className, loading = false }) => {
   const navigate = useNavigate();

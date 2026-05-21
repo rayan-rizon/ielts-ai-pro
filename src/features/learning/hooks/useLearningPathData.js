@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/context/AuthContext';
-import { TestSession } from '@/entities';
+import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryClient';
 

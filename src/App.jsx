@@ -1,13 +1,52 @@
 import React, { lazy, Suspense } from 'react';
 import { LazyMotion } from 'framer-motion';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
-import { Toaster as SonnerToaster } from '@/components/ui/sonner';
+import { createBrowserRouter, RouterProvider, Navigate, useRouteError } from 'react-router-dom';
 import { trackAppEvent, trackPageView } from '@/lib/tracking';
 
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
-import PremiumLoading from '@/components/ui/PremiumLoading';
 
 const loadFeatures = () => import('framer-motion').then((res) => res.domAnimation);
+
+const LazySonnerToaster = lazy(() =>
+  import('@/components/ui/sonner').then((module) => ({ default: module.Toaster }))
+);
+
+const RouteLoading = ({ message = 'Loading...', fullScreen = false }) => (
+  <div
+    className={[
+      'flex flex-col items-center justify-center bg-slate-50/80 text-slate-700 dark:bg-[#050505]/80 dark:text-slate-200',
+      fullScreen ? 'fixed inset-0 z-[100] h-screen w-screen' : 'h-full min-h-48 w-full py-16',
+    ].join(' ')}
+    data-oid="route-loading"
+  >
+    <div className="h-8 w-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+    <p className="mt-4 text-sm font-semibold">{message}</p>
+  </div>
+);
+
+const IdleToaster = () => {
+  const [ready, setReady] = React.useState(false);
+
+  React.useEffect(() => {
+    const callback = () => setReady(true);
+
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(callback, { timeout: 2000 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+
+    const id = window.setTimeout(callback, 1200);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  if (!ready) return null;
+
+  return (
+    <Suspense fallback={null}>
+      <LazySonnerToaster position="top-center" data-oid="-lx3xts" />
+    </Suspense>
+  );
+};
 
 /**
  * Lazy load with automatic retry and page reload on chunk load failure.
@@ -46,8 +85,7 @@ const lazyWithRetry = (componentImport) => {
  * Root level Error Element for React Router.
  * Handles errors that bubble up to the route level, specifically chunk load failures.
  */
-import { useRouteError } from 'react-router-dom';
-import Error500 from '@/features/core/pages/Error500.jsx';
+const Error500 = lazyWithRetry(() => import('@/features/core/pages/Error500.jsx'));
 
 const GlobalErrorElement = () => {
   const error = useRouteError();
@@ -71,7 +109,11 @@ const GlobalErrorElement = () => {
   }
 
   // If it's not a chunk error or we've already tried reloading, show the full error page
-  return <Error500 data-oid="o.z4:zc" />;
+  return (
+    <Suspense fallback={<RouteLoading message="Loading error page..." fullScreen />}>
+      <Error500 data-oid="o.z4:zc" />
+    </Suspense>
+  );
 };
 
 // Lazy loaded shared components (not needed for landing page initial load)
@@ -125,10 +167,7 @@ const SubscriptionSuccess = lazyWithRetry(
 
 // Wrapper for lazy loaded components
 const LazyPage = ({ children }) => (
-  <Suspense
-    fallback={<PremiumLoading message="Loading..." fullScreen={false} data-oid="n1xqtod" />}
-    data-oid="fnq31q0"
-  >
+  <Suspense fallback={<RouteLoading message="Loading..." data-oid="n1xqtod" />} data-oid="fnq31q0">
     {children}
   </Suspense>
 );
@@ -660,14 +699,12 @@ function App() {
     <ErrorBoundary data-oid="wz-jyt7">
       <LazyMotion features={loadFeatures} strict data-oid="2epz-jc">
         <Suspense
-          fallback={
-            <PremiumLoading message="Starting up..." fullScreen={true} data-oid="router-fallback" />
-          }
+          fallback={<RouteLoading message="Starting up..." fullScreen data-oid="router-fallback" />}
         >
           <RouterProvider router={router} data-oid="m-t-6xh" />
         </Suspense>
       </LazyMotion>
-      <SonnerToaster position="top-center" data-oid="-lx3xts" />
+      <IdleToaster />
     </ErrorBoundary>
   );
 }

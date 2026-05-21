@@ -8,10 +8,34 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+function getJwtRole(req: Request): string | null {
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : "";
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+
+    try {
+        const normalized = payload.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(payload.length / 4) * 4, "=");
+        const decoded = JSON.parse(atob(normalized));
+        return decoded?.role || null;
+    } catch {
+        return null;
+    }
+}
+
 serve(async (req) => {
     // Basic auth check if called via HTTP
     if (req.method !== 'POST') {
         return new Response("Method not allowed", { status: 405 });
+    }
+
+    // Supabase validates the JWT at the gateway. Only the scheduled service-role
+    // caller should be allowed to run this service-role email job.
+    if (getJwtRole(req) !== "service_role") {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+            status: 403,
+            headers: { "Content-Type": "application/json" },
+        });
     }
 
     try {

@@ -2,7 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { ArrowDown } from 'lucide-react';
 import GapFillContent from '../GapFillContent';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 const FlowchartRenderer = ({
   question,

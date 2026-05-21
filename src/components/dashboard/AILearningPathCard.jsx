@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { Zap, ChevronRight, Sparkles, Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { calculateDaysUntilExam } from '@/services/adaptiveLearningService';
 
 const AILearningPathCard = React.memo(

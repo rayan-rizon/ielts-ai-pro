@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/select';
 import DebouncedInput from '@/components/ui/debounced-input'; // Assuming you have this accessible
 import QuestionNumberCircle from '@/components/test/QuestionNumberCircle'; // Adjust if needed
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { toRoman, calculateGlobalQuestionNumber } from '../../utils/helpers';
 import DeepDivePopover from '@/features/testing/reading/components/DeepDivePopover';
 

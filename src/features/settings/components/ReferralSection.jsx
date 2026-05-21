@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, Check, Share2, Users, Calendar, PenLine, Mic, Trophy, Sparkles } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { useUserReferrals, useReferralTiers } from '../hooks/useUserReferrals';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';

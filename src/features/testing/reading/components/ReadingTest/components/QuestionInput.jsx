@@ -5,7 +5,7 @@
 import React, { memo } from 'react';
 import DebouncedInput from '@/components/ui/debounced-input';
 import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import DeepDivePopover from '@/features/testing/reading/components/DeepDivePopover';
 
 const QuestionInput = memo(function QuestionInput({

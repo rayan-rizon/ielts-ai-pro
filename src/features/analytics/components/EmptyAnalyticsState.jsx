@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 export default function EmptyAnalyticsState({ icon: Icon, title, description, action, className }) {
   return (

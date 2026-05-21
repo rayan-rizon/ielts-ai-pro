@@ -4,10 +4,20 @@ import App from '@/App.jsx';
 import '@/index.css';
 import { RootProviders } from './components/RootProviders';
 
-// New Relic Initialization
 const isProduction = !['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
 
-if (isProduction && typeof window !== 'undefined') {
+const scheduleIdle = (callback: () => void, timeout = 3000) => {
+  if ('requestIdleCallback' in window) {
+    const id = (window as any).requestIdleCallback(callback, { timeout });
+    return () => (window as any).cancelIdleCallback?.(id);
+  }
+
+  const id = window.setTimeout(callback, Math.min(timeout, 2000));
+  return () => window.clearTimeout(id);
+};
+
+// New Relic Initialization
+const initNewRelic = () => {
   import('@newrelic/browser-agent/loaders/browser-agent')
     .then(({ BrowserAgent }) => {
       const options = {
@@ -48,6 +58,10 @@ if (isProduction && typeof window !== 'undefined') {
     .catch((err) => {
       console.error('[New Relic] Failed to load browser agent module', err);
     });
+};
+
+if (isProduction && typeof window !== 'undefined') {
+  scheduleIdle(initNewRelic, 2500);
 }
 
 // PERFORMANCE: Defer Sentry initialization to idle time.
@@ -94,11 +108,7 @@ const initSentry = () => {
   });
 };
 
-if ('requestIdleCallback' in window) {
-  (window as any).requestIdleCallback(initSentry, { timeout: 3000 });
-} else {
-  setTimeout(initSentry, 2000);
-}
+scheduleIdle(initSentry, 3000);
 
 // Lazy-load telemetry to keep it off the critical path
 const SpeedInsights = lazy(() =>
@@ -108,6 +118,25 @@ const SpeedInsights = lazy(() =>
 const Analytics = lazy(() =>
   import('@vercel/analytics/react').then((m) => ({ default: m.Analytics }))
 );
+
+const IdleTelemetry = () => {
+  const [ready, setReady] = React.useState(false);
+
+  React.useEffect(() => scheduleIdle(() => setReady(true), 2500), []);
+
+  if (!ready) return null;
+
+  return (
+    <>
+      <Suspense fallback={null}>
+        <SpeedInsights data-oid="e6n:l6p" />
+      </Suspense>
+      <Suspense fallback={null}>
+        <Analytics />
+      </Suspense>
+    </>
+  );
+};
 
 /**
  * Global error listeners to catch chunk load failures early.
@@ -142,11 +171,6 @@ if (typeof window !== 'undefined') {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <RootProviders data-oid="root-providers">
     <App data-oid="5:8tvi2" />
-    <Suspense fallback={null}>
-      <SpeedInsights data-oid="e6n:l6p" />
-    </Suspense>
-    <Suspense fallback={null}>
-      <Analytics />
-    </Suspense>
+    <IdleTelemetry />
   </RootProviders>
 );

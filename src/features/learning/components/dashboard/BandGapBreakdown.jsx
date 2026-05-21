@@ -2,7 +2,7 @@ import React from 'react';
 import { Award, TrendingUp, TrendingDown, ArrowUpRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { GlassCard } from '@/features/learning/components/SharedComponents';

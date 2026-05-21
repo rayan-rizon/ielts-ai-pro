@@ -2,7 +2,7 @@ import React, { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Loader2, Type, LayoutPanelLeft, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 // Lazy load ReactQuill to reduce initial bundle size (~200KB)
 const ReactQuill = React.lazy(() =>

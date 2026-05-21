@@ -12,7 +12,7 @@ import {
   HelpCircle,
   MousePointer2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 interface ErrorPatterns {
   nearMissCount: number;

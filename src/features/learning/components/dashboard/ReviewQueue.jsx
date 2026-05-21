@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { GlassCard } from '@/features/learning/components/SharedComponents';
 import { getTodayIndex } from '@/features/learning/hooks/useLearningPathData';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 export default function ReviewQueue({
   dueReviewSkills,

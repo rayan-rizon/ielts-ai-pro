@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ImageOff } from 'lucide-react';
 

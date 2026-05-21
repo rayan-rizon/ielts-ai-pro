@@ -23,8 +23,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { User, LearningPath } from '@/entities';
-import { cn } from '@/lib/utils';
+import { LearningPath } from '@/features/learning/services/LearningPath';
+import { cn } from '@/lib/cn';
 
 const moduleIcons = {
   reading: BookOpen,

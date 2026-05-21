@@ -1,7 +1,7 @@
 import React from 'react';
 import { m } from 'framer-motion';
 import { CheckCircle2, Minus } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 export default function ComparisonSection() {
   return (

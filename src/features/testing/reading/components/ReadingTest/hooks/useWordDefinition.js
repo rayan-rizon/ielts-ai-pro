@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { VocabularyItem, UserPoints } from '@/entities';
+import { UserPoints } from '@/features/gamification/services/UserPoints';
+import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
 
 // Simple in-memory cache for word definitions to prevent redundant API calls
 const definitionCache = new Map();

@@ -2,7 +2,7 @@ import React from 'react';
 import { m } from 'framer-motion';
 import { XCircle, BadgeAlert, Clock, Target, AlertTriangle, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 const containerVariants = {
   hidden: { opacity: 0 },

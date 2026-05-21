@@ -1,10 +1,35 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
-import { User } from '@/features/auth/services/User';
-import { SystemSetting } from '@/features/admin/services/SystemSetting';
 import { pushUserIdentity, trackAppEvent } from '@/lib/tracking';
 
 const AuthContext = createContext();
+
+const loadAuthDependencies = (() => {
+  let promise;
+  return () => {
+    if (!promise) {
+      promise = Promise.all([
+        import('@/lib/supabase'),
+        import('@/features/auth/services/User'),
+      ]).then(([supabaseModule, userModule]) => ({
+        supabase: supabaseModule.supabase,
+        User: userModule.User,
+      }));
+    }
+    return promise;
+  };
+})();
+
+const loadSystemSettingService = (() => {
+  let promise;
+  return () => {
+    if (!promise) {
+      promise = import('@/features/admin/services/SystemSetting').then(
+        (module) => module.SystemSetting
+      );
+    }
+    return promise;
+  };
+})();
 
 const fallbackAuthContext = Object.freeze({
   user: null,
@@ -113,6 +138,8 @@ export const AuthProvider = ({ children }) => {
   const isFetchingProfile = React.useRef(false);
   useEffect(() => {
     let isMounted = true;
+    let authListener;
+    const dependenciesPromise = loadAuthDependencies();
 
     // PERFORMANCE: Immediate check for cached session/profile to skip "Verifying access..."
     // We look for the Supabase session token in localStorage to see if a user WAS logged in
@@ -139,6 +166,7 @@ export const AuthProvider = ({ children }) => {
 
     const getUser = async () => {
       try {
+        const { supabase, User } = await dependenciesPromise;
         const {
           data: { session },
           error,
@@ -257,101 +285,115 @@ export const AuthProvider = ({ children }) => {
       typeof window !== 'undefined' && window.location.pathname === '/' ? 100 : 0
     );
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const setupAuthListener = async () => {
+      const { supabase, User } = await dependenciesPromise;
       if (!isMounted) return;
 
-      console.info(
-        'Auth state changed:',
-        event,
-        session?.user?.id ? 'User ID present' : 'No User ID'
-      );
+      const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (!isMounted) return;
 
-      // Strict handling: Only sign out on explicit SIGNED_OUT event
-      if (event === 'SIGNED_OUT') {
-        console.warn('Explicit SIGNED_OUT event received. Clearing user session.');
-        setUser(null);
-        setUserProfile(null);
-        setIsAdmin(false);
-        setAuthCheckComplete(false); // Reset for next login
-        clearCachedProfile(); // Clear cached profile on sign out
-        if (typeof window !== 'undefined') {
-          window.localStorage.removeItem('onboarding_completed');
-        }
-        return;
-      }
-
-      // Update local state on token refresh
-      if (event === 'TOKEN_REFRESHED') {
-        if (session?.user) {
-          setUser(session.user);
-          // Update last_active on token refresh
-          User.updateLastActive().catch(() => {});
-        }
-        return;
-      }
-
-      // For other events (SIGNED_IN, INITIAL_SESSION, USER_UPDATED), ensure we have user
-      if (session?.user) {
-        setUser(session.user); // Update user state with fresh session data
-
-        // Refresh profile only on sign-in and initial load
-        // Refresh profile only on sign-in and initial load
-        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-          // Immediately fetch profile and admin status
-          (async () => {
-            if (!isMounted || isFetchingProfile.current) return;
-            isFetchingProfile.current = true;
-            // NOTE: Do NOT reset authCheckComplete here — doing so causes the
-            // Login page to re-enter the infinite spinner if the profile fetch is slow.
-            try {
-              const refCode =
-                typeof window !== 'undefined' ? window.localStorage.getItem('referral_code') : null;
-              const profile = await User.me(refCode);
-              if (!isMounted) return;
-              setUserProfile(profile);
-
-              const adminStatus = profile?.role === 'admin';
-              setIsAdmin(adminStatus);
-              pushUserIdentity(profile);
-
-              if (profile?.id && refCode) {
-                window.localStorage.removeItem('referral_code');
-              }
-
-              // Restore onboarding_completed localStorage if set in DB
-              // This fixes the issue where localStorage is cleared on sign-out
-              // but needs to be restored on sign-in
-              if (profile?.onboarding_completed && typeof window !== 'undefined') {
-                window.localStorage.setItem('onboarding_completed', 'true');
-              }
-
-              // Cache the fresh profile
-              setCachedProfile(profile);
-
-              // Update last_active on sign-in (fire and forget - don't block)
-              User.updateLastActive().catch(() => {});
-
-              setAuthCheckComplete(true);
-            } catch (error) {
-              console.error('Error reinforcing user profile:', error);
-              setAuthCheckComplete(true); // Still complete even on error
-            } finally {
-              isFetchingProfile.current = false;
-            }
-          })();
-        }
-      } else if (event !== 'SIGNED_IN' && event !== 'INITIAL_SESSION') {
-        // Event happened but no user in session?
-        // If it's TOKEN_REFRESHED but failed, Supabase might send SIGNED_OUT next.
-        // We wait for explicit SIGNED_OUT.
-        console.warn(
-          `Auth event ${event} received without session user. Waiting for explicit sign out.`
+        console.info(
+          'Auth state changed:',
+          event,
+          session?.user?.id ? 'User ID present' : 'No User ID'
         );
-      }
+
+        // Strict handling: Only sign out on explicit SIGNED_OUT event
+        if (event === 'SIGNED_OUT') {
+          console.warn('Explicit SIGNED_OUT event received. Clearing user session.');
+          setUser(null);
+          setUserProfile(null);
+          setIsAdmin(false);
+          setAuthCheckComplete(false); // Reset for next login
+          clearCachedProfile(); // Clear cached profile on sign out
+          if (typeof window !== 'undefined') {
+            window.localStorage.removeItem('onboarding_completed');
+          }
+          return;
+        }
+
+        // Update local state on token refresh
+        if (event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            setUser(session.user);
+            // Update last_active on token refresh
+            User.updateLastActive().catch(() => {});
+          }
+          return;
+        }
+
+        // For other events (SIGNED_IN, INITIAL_SESSION, USER_UPDATED), ensure we have user
+        if (session?.user) {
+          setUser(session.user); // Update user state with fresh session data
+
+          // Refresh profile only on sign-in and initial load
+          // Refresh profile only on sign-in and initial load
+          if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+            // Immediately fetch profile and admin status
+            (async () => {
+              if (!isMounted || isFetchingProfile.current) return;
+              isFetchingProfile.current = true;
+              // NOTE: Do NOT reset authCheckComplete here — doing so causes the
+              // Login page to re-enter the infinite spinner if the profile fetch is slow.
+              try {
+                const refCode =
+                  typeof window !== 'undefined'
+                    ? window.localStorage.getItem('referral_code')
+                    : null;
+                const profile = await User.me(refCode);
+                if (!isMounted) return;
+                setUserProfile(profile);
+
+                const adminStatus = profile?.role === 'admin';
+                setIsAdmin(adminStatus);
+                pushUserIdentity(profile);
+
+                if (profile?.id && refCode) {
+                  window.localStorage.removeItem('referral_code');
+                }
+
+                // Restore onboarding_completed localStorage if set in DB
+                // This fixes the issue where localStorage is cleared on sign-out
+                // but needs to be restored on sign-in
+                if (profile?.onboarding_completed && typeof window !== 'undefined') {
+                  window.localStorage.setItem('onboarding_completed', 'true');
+                }
+
+                // Cache the fresh profile
+                setCachedProfile(profile);
+
+                // Update last_active on sign-in (fire and forget - don't block)
+                User.updateLastActive().catch(() => {});
+
+                setAuthCheckComplete(true);
+              } catch (error) {
+                console.error('Error reinforcing user profile:', error);
+                setAuthCheckComplete(true); // Still complete even on error
+              } finally {
+                isFetchingProfile.current = false;
+              }
+            })();
+          }
+        } else if (event !== 'SIGNED_IN' && event !== 'INITIAL_SESSION') {
+          // Event happened but no user in session?
+          // If it's TOKEN_REFRESHED but failed, Supabase might send SIGNED_OUT next.
+          // We wait for explicit SIGNED_OUT.
+          console.warn(
+            `Auth event ${event} received without session user. Waiting for explicit sign out.`
+          );
+        }
+      });
+
+      authListener = data;
+    };
+
+    setupAuthListener().catch((error) => {
+      console.warn('Auth listener setup failed:', error);
     });
 
     const loadGlobalSettings = async () => {
       try {
+        const SystemSetting = await loadSystemSettingService();
         const settings = await SystemSetting.getAll();
         if (isMounted) setGlobalSettings(settings);
       } catch (e) {
@@ -377,6 +419,7 @@ export const AuthProvider = ({ children }) => {
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible' && user) {
         try {
+          const { supabase, User } = await loadAuthDependencies();
           const {
             data: { session },
             error,
@@ -450,6 +493,7 @@ export const AuthProvider = ({ children }) => {
       const targetUser = userOverride || user;
       if (targetUser) {
         try {
+          const { User } = await loadAuthDependencies();
           const refCode =
             typeof window !== 'undefined' ? window.localStorage.getItem('referral_code') : null;
           const profile = await User.me(refCode);
@@ -481,6 +525,7 @@ export const AuthProvider = ({ children }) => {
   const signUp = useCallback(
     async (email, password, username = '', referralCode = null) => {
       try {
+        const { User } = await loadAuthDependencies();
         const signUpResult = await User.signUp(email, password, username, referralCode);
 
         // Only set user if we have a valid session (email confirmation not required or already confirmed)
@@ -502,6 +547,7 @@ export const AuthProvider = ({ children }) => {
   const signIn = useCallback(
     async (email, password) => {
       try {
+        const { User } = await loadAuthDependencies();
         const userData = await User.signIn(email, password);
 
         // Explicitly wait for profile refresh here to ensure state is ready
@@ -522,6 +568,7 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = useCallback(async () => {
     try {
+      const { User } = await loadAuthDependencies();
       await User.logout();
     } catch (error) {
       console.warn('Logout error:', error);
@@ -547,6 +594,7 @@ export const AuthProvider = ({ children }) => {
   // Helper function to check if current user is admin
   const checkIsAdmin = useCallback(async (userId = null) => {
     try {
+      const { User } = await loadAuthDependencies();
       const adminStatus = await User.isAdmin(userId);
       if (adminStatus) {
         setIsAdmin(true);

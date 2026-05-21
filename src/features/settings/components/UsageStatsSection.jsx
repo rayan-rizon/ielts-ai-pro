@@ -10,7 +10,7 @@ import {
   TrendingUp,
   Crown,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { useUserUsageStats } from '../hooks/useUserUsageStats';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';

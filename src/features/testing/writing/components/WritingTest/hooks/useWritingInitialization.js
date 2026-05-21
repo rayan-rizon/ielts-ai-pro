@@ -2,7 +2,9 @@ import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
-import { Passage, User, TestSession } from '@/entities';
+import { User } from '@/features/auth/services/User';
+import { Passage } from '@/features/testing/shared/services/Passage';
+import { TestSession } from '@/features/testing/shared/services/TestSession';
 
 /**
  * useWritingInitialization

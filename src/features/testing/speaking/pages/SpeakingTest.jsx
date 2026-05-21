@@ -4,7 +4,10 @@ import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 
 // Data entities
-import { TestSession, Passage, User, UserPoints } from '@/entities';
+import { User } from '@/features/auth/services/User';
+import { UserPoints } from '@/features/gamification/services/UserPoints';
+import { Passage } from '@/features/testing/shared/services/Passage';
+import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { callEdgeFunction } from '@/utils/api';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/features/auth/context/AuthContext';

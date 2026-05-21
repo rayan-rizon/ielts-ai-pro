@@ -12,7 +12,8 @@ import {
   PenTool,
   Target,
 } from 'lucide-react';
-import { cn, formatBand } from '@/lib/utils';
+import { cn } from '@/lib/cn';
+import { formatBand } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { createPageUrl } from '@/utils';

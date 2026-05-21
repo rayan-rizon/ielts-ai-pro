@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 const WordGroupList = memo(({ curatedLists, user, onSelect, onViewAll }) => {
   if (!curatedLists || curatedLists.length === 0) return null;

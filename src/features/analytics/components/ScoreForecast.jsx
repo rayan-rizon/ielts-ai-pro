@@ -13,7 +13,7 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Target } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { ITEM_VARIANTS } from '../constants';
 import EmptyAnalyticsState from './EmptyAnalyticsState';
 

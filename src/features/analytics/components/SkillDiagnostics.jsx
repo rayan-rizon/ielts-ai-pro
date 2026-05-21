@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { Card, CardContent } from '@/components/ui/card';
 import { ITEM_VARIANTS, MODULE_META } from '../constants';
 import { formatBand } from '../utils';

@@ -2,7 +2,7 @@
 import * as React from 'react';
 import * as RechartsPrimitive from 'recharts';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 // Note: dangerouslySetInnerHTML in ChartStyle is for CSS generation from controlled config values,
 // not user-generated content, so standard XSS sanitization is not required there.

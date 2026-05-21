@@ -1,21 +1,8 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
 import { sanitizeHtml } from '@/lib/security';
 import { Question } from '@/types';
 
-export function cn(...inputs: ClassValue[]): string {
-    return twMerge(clsx(inputs));
-}
-
-/**
- * Format a band score value to a consistent one decimal place string.
- * Returns '0.0' for invalid inputs.
- */
-export function formatBand(value: number | string | null | undefined): string {
-    const v = Number(value);
-    if (!Number.isFinite(v)) return '0.0';
-    return v.toFixed(1);
-}
+export { cn } from '@/lib/cn';
+export { formatBand } from '@/lib/format';
 
 /**
  * Normalizes and proxies image URLs to bypass hotlinking protection (especially for jumpinto.com)

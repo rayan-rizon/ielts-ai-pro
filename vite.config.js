@@ -79,11 +79,30 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
+            // Small shared helpers must be split before larger vendors that also import them.
+            // Otherwise Rollup can place them inside a heavy async chunk, forcing the entry
+            // bundle to download that chunk just for clsx/PropTypes.
+            if (
+              id.includes('/node_modules/clsx/') ||
+              id.includes('/node_modules/tailwind-merge/') ||
+              id.includes('/node_modules/class-variance-authority/')
+            ) {
+              return 'ui-utils-vendor';
+            }
+            if (id.includes('/node_modules/prop-types/')) {
+              return 'prop-types-vendor';
+            }
+            // Must be checked before the generic React rule because the package path
+            // contains "react/" as part of "lucide-react/".
+            if (id.includes('/node_modules/lucide-react/')) {
+              return 'lucide-vendor';
+            }
             // Core React - always needed
             if (
-              id.includes('react/') ||
-              id.includes('react-dom/') ||
-              id.includes('react-router-dom/')
+              id.includes('/node_modules/react/') ||
+              id.includes('/node_modules/react-dom/') ||
+              id.includes('/node_modules/react-router') ||
+              id.includes('/node_modules/react-router-dom/')
             ) {
               return 'react-vendor';
             }
@@ -112,10 +131,6 @@ export default defineConfig({
               return 'sanitize-vendor';
             }
 
-            // Icons - used everywhere but tree-shakeable
-            if (id.includes('lucide-react')) {
-              return 'lucide-vendor';
-            }
             // Supabase client MUST be lazily loaded, but it's okay to group its internal chunks
             if (id.includes('supabase-js')) {
               return 'supabase-vendor';

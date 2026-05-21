@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { isAnswerCorrect } from '@/lib/ieltsAnswerValidation';
 
 const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({

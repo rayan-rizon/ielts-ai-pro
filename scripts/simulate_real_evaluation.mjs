@@ -6,7 +6,10 @@ dotenv.config({ path: '.env' });
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyAyvk0JtAWr65Zh4Csp11HvXWnKlH8fgTE";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+if (!GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY is required');
+}
 const MODEL = 'gemini-2.5-flash';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);

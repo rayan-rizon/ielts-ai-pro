@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useReadingTestDispatch, useReadingTestState } from '../context/ReadingTestContext';
 import { initializeTest } from '@/lib/testInitializer';
-import { TestSession, User } from '@/entities';
+import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { calculateTestResults } from '../utils'; // Fixed import path
 import { removeFromCache } from '@/lib/apiCache';
 import { useTestNavigation } from '@/hooks/useTestNavigation';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import {
   Search,
   Mic,

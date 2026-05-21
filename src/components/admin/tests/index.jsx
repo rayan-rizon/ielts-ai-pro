@@ -37,7 +37,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { useTestManagement } from '@/hooks/admin/useTestManagement';
 import { useTestSaving } from '@/hooks/admin/useTestSaving';
 import TestCreator from './creation/TestCreator';

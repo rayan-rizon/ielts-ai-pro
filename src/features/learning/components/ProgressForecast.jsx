@@ -1,7 +1,7 @@
 import React from 'react';
 import { m } from 'framer-motion';
 import { TrendingUp, Target, Calendar, Sparkles, Rocket, Lock } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { addDays, differenceInDays } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 

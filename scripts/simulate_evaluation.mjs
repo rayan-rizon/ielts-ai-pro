@@ -2,7 +2,10 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyAyvk0JtAWr65Zh4Csp11HvXWnKlH8fgTE";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+if (!GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY is required');
+}
 const MODEL = 'gemini-2.5-flash';
 
 async function fetchFromGemini(systemInstruction, userParts, isJson = false) {

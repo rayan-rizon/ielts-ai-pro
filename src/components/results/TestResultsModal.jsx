@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import ConfettiCelebration from '@/components/ConfettiCelebration';
 // Enhanced metrics components (Pro/Premium)
 import { TimeEfficiencyCard } from '@/components/results/TimeEfficiencyCard';

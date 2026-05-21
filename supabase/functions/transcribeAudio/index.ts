@@ -16,6 +16,28 @@ import {
 
 declare const Deno: any;
 
+const MAX_REMOTE_AUDIO_BYTES = 50 * 1024 * 1024;
+
+function isTrustedAudioUrl(rawUrl: string): boolean {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== 'https:') return false;
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const trustedSupabaseHost = supabaseUrl ? new URL(supabaseUrl).hostname : 'zvrmvycajimjxghrnpgy.supabase.co';
+    const r2PublicUrl = Deno.env.get('R2_PUBLIC_URL');
+    const trustedR2Origin = r2PublicUrl ? new URL(r2PublicUrl).origin : 'https://media.ieltsai.pro';
+
+    if (parsed.hostname === trustedSupabaseHost) {
+      return parsed.pathname.startsWith('/storage/');
+    }
+
+    return parsed.origin === trustedR2Origin || parsed.origin === 'https://media.ieltsai.pro';
+  } catch {
+    return false;
+  }
+}
+
 serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
 
@@ -100,21 +122,16 @@ serve(async (req: Request) => {
     let mimeType = providedMimeType || 'audio/mpeg';
 
     if (!base64Audio) {
-      // Fetch from URL if base64 not provided
-      console.log('Fetching audio from:', audioUrl);
-      let audioResponse;
-      try {
-        audioResponse = await fetch(audioUrl);
-      } catch (err: any) {
-        console.warn('Initial fetch failed:', err.message);
-        if (audioUrl.includes('localhost') || audioUrl.includes('127.0.0.1')) {
-          const fixedUrl = audioUrl.replace(/localhost|127\.0\.0\.1/, 'host.docker.internal');
-          console.log('Retrying with host.docker.internal:', fixedUrl);
-          audioResponse = await fetch(fixedUrl);
-        } else {
-          throw err;
-        }
+      if (!isTrustedAudioUrl(audioUrl)) {
+        return new Response(
+          JSON.stringify({ error: 'audioUrl must point to a trusted audio source.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
+
+      // Fetch from URL if base64 not provided
+      console.log('Fetching trusted audio URL');
+      const audioResponse = await fetch(audioUrl);
 
       if (!audioResponse.ok) {
         throw new Error(
@@ -122,8 +139,22 @@ serve(async (req: Request) => {
         );
       }
 
+      const contentLength = audioResponse.headers.get('content-length');
+      if (contentLength && Number(contentLength) > MAX_REMOTE_AUDIO_BYTES) {
+        return new Response(
+          JSON.stringify({ error: 'Audio file is too large.' }),
+          { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       // Convert to base64 safely without memory overflow
       const audioBuffer = await audioResponse.arrayBuffer();
+      if (audioBuffer.byteLength > MAX_REMOTE_AUDIO_BYTES) {
+        return new Response(
+          JSON.stringify({ error: 'Audio file is too large.' }),
+          { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       base64Audio = Buffer.from(audioBuffer).toString('base64');
 
       // Determine MIME type from URL if not provided

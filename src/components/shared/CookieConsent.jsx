@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { Cookie, Shield, BarChart3, Megaphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { supabase } from '@/lib/supabase';
 import {
   CONSENT_STORAGE_KEY,

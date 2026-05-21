@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/select';
 import { getProxiedImageUrl } from '@/lib/utils';
 import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 const MapLabelingRenderer = ({
   question,

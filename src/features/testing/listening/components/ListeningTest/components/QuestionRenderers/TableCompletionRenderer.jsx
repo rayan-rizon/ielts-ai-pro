@@ -2,7 +2,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
 import { sanitizeHtml } from '@/lib/security';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 const TableCompletionRenderer = ({
   question,

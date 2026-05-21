@@ -1,7 +1,7 @@
 import React from 'react';
 import { Target, Flag, Clock, BookOpen, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { IconWrapper } from './AnalyticsHeader';

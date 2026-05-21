@@ -2,7 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { m } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { cn, formatBand } from '@/lib/utils';
+import { cn } from '@/lib/cn';
+import { formatBand } from '@/lib/format';
 import { Badge } from '@/components/ui/badge';
 
 const itemVariants = {

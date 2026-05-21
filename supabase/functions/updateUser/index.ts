@@ -10,6 +10,45 @@ import {
   rateLimitedResponse,
 } from '../_shared/security.ts';
 
+const ALLOWED_USER_UPDATE_FIELDS = new Set([
+  'full_name',
+  'subscription_tier',
+  'role',
+]);
+
+function buildSafeUserUpdates(updates: Record<string, unknown>): Record<string, unknown> {
+  const safeUpdates: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(updates || {})) {
+    if (!ALLOWED_USER_UPDATE_FIELDS.has(key)) continue;
+
+    if (key === 'subscription_tier') {
+      if (!['free', 'pro', 'premium'].includes(String(value))) {
+        throw new Error('Invalid subscription tier');
+      }
+    }
+
+    if (key === 'role') {
+      if (!['user', 'admin'].includes(String(value))) {
+        throw new Error('Invalid user role');
+      }
+    }
+
+    if (key === 'full_name') {
+      const fullName = String(value ?? '').trim();
+      if (fullName.length > 120) {
+        throw new Error('Full name is too long');
+      }
+      safeUpdates[key] = fullName;
+      continue;
+    }
+
+    safeUpdates[key] = value;
+  }
+
+  return safeUpdates;
+}
+
 Deno.serve(async (req) => {
   // Get dynamic CORS headers based on request origin
   const corsHeaders = getCorsHeaders(req);
@@ -59,6 +98,16 @@ Deno.serve(async (req) => {
       return errorResponse('Missing required fields', 400, corsHeaders);
     }
 
+    let safeUpdates: Record<string, unknown>;
+    try {
+      safeUpdates = buildSafeUserUpdates(updates);
+    } catch (validationError) {
+      return errorResponse((validationError as Error).message || 'Invalid update fields', 400, corsHeaders);
+    }
+    if (Object.keys(safeUpdates).length === 0) {
+      return errorResponse('No allowed user fields provided', 400, corsHeaders);
+    }
+
     // Verify requesting user is an admin
     const { data: adminProfile, error: profileError } = await supabaseAdmin
       .from('users')
@@ -84,7 +133,7 @@ Deno.serve(async (req) => {
 
     const { data: updatedUser, error: updateError } = await supabaseAdmin
       .from('users')
-      .update(updates)
+      .update(safeUpdates)
       .eq('id', targetUserId)
       .select();
 

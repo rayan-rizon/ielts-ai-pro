@@ -4,7 +4,7 @@ import { Compass, Star, Flag, Activity, Calendar, Zap, TrendingUp } from 'lucide
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { ITEM_VARIANTS } from '../constants';
 import { formatBand } from '../utils';
 

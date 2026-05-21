@@ -4,7 +4,7 @@ import { Download, FileJson, Loader2, CheckCircle2, AlertCircle, Shield } from '
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 /**
  * Data Export Component

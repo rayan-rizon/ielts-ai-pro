@@ -14,11 +14,11 @@ import {
   Eye,
   PlayCircle,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Resource } from '@/entities';
+import { Resource } from '@/features/learning/services/Resource';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';

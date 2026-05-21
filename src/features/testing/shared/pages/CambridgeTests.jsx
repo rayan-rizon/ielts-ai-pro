@@ -1,6 +1,6 @@
 import React, { useState, memo, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import {
   Search,
   BookOpen,
@@ -22,7 +22,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { User } from '@/entities';
+import { User } from '@/features/auth/services/User';
 import { supabase } from '@/lib/supabase';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';

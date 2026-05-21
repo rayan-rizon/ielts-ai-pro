@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/context/AuthContext';
-import { TestSession, VocabularyItem } from '@/entities';
+import { TestSession } from '@/features/testing/shared/services/TestSession';
+import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
 import { formatBand, calculateImprovement, calculateScoreForecast } from '../utils';
 
 export default function useAnalyticsData(selectedTimeframe) {

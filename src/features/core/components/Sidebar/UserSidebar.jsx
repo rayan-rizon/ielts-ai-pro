@@ -29,7 +29,7 @@ import { Badge } from '@/components/ui/badge';
 import { createPageUrl } from '@/utils';
 import { userNavigationItems, learningToolsItems } from './navigationItems';
 import { ThemeToggle } from './ThemeToggle';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 // Memoized Navigation Item component for better performance
 const NavItem = memo(({ item, isActive, variant = 'primary' }) => {

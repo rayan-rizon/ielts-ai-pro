@@ -3,7 +3,7 @@ import { Target, ArrowUpRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { GlassCard } from '@/features/learning/components/SharedComponents';

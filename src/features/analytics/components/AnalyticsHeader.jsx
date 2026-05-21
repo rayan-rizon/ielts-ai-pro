@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sparkles, TrendingUp, Crown, Zap } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { Badge } from '@/components/ui/badge';
 
 const IconWrapper = React.memo(function IconWrapper({ icon: Icon, color, className }) {

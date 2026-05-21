@@ -10,7 +10,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SystemSetting } from '@/features/admin/services/SystemSetting';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { countries } from '@/lib/countries';
 import { validateField, passwordChangeSchema } from '@/lib/validations';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';

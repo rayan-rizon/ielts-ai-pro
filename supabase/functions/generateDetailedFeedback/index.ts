@@ -24,6 +24,26 @@ if (!GEMINI_API_KEY) {
   console.error('GEMINI_API_KEY environment variable is not configured');
 }
 
+function isTrustedImageUrl(rawUrl: string): boolean {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== 'https:') return false;
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? Deno.env.get('INTERNAL_SUPABASE_URL');
+    const trustedSupabaseHost = supabaseUrl ? new URL(supabaseUrl).hostname : 'zvrmvycajimjxghrnpgy.supabase.co';
+    const r2PublicUrl = Deno.env.get('R2_PUBLIC_URL');
+    const trustedR2Origin = r2PublicUrl ? new URL(r2PublicUrl).origin : 'https://media.ieltsai.pro';
+
+    if (parsed.hostname === trustedSupabaseHost) {
+      return parsed.pathname.startsWith('/storage/');
+    }
+
+    return parsed.origin === trustedR2Origin || parsed.origin === 'https://media.ieltsai.pro';
+  } catch {
+    return false;
+  }
+}
+
 serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
 
@@ -151,24 +171,11 @@ serve(async (req: Request) => {
       );
     }
 
-    // SECURITY: SSRF protection — only allow imageUrl from trusted origins
+    // SECURITY: SSRF protection — only allow exact trusted media origins.
     if (imageUrl) {
-      const ALLOWED_IMAGE_ORIGINS = [
-        'https://media.ieltsai.pro',
-        'https://zvrmvycajimjxghrnpgy.supabase.co/storage',
-      ];
-      try {
-        const parsed = new URL(imageUrl);
-        const isTrusted = ALLOWED_IMAGE_ORIGINS.some(origin => imageUrl.startsWith(origin));
-        if (!isTrusted || (parsed.protocol !== 'https:')) {
-          return new Response(
-            JSON.stringify({ error: 'imageUrl must point to a trusted image source.' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-      } catch {
+      if (!isTrustedImageUrl(imageUrl)) {
         return new Response(
-          JSON.stringify({ error: 'imageUrl is not a valid URL.' }),
+          JSON.stringify({ error: 'imageUrl must point to a trusted image source.' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

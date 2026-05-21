@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
 import { toRoman } from '../../utils/helpers';
 

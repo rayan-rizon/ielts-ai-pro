@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { useUserProfile, useUpdateProfile } from '@/features/auth/hooks/useUserProfile';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryClient';
 import { useNavigate } from 'react-router-dom';
-import { User } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
@@ -30,21 +30,32 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/lib/supabase';
 import { useSearchParams } from 'react-router-dom';
-
-// Helper Components
-import UsageStatsSection from '@/features/settings/components/UsageStatsSection';
-import ReferralSection from '@/features/settings/components/ReferralSection';
 
 // Extracted Sections
 import ProfileSection from '../components/Sections/ProfileSection';
-import GoalsSection from '../components/Sections/GoalsSection';
-import SubscriptionSection from '../components/Sections/SubscriptionSection';
-import SecuritySection from '../components/Sections/SecuritySection';
-import PrivacySection from '../components/Sections/PrivacySection';
+
+const GoalsSection = lazy(() => import('../components/Sections/GoalsSection'));
+const SubscriptionSection = lazy(() => import('../components/Sections/SubscriptionSection'));
+const SecuritySection = lazy(() => import('../components/Sections/SecuritySection'));
+const PrivacySection = lazy(() => import('../components/Sections/PrivacySection'));
+const UsageStatsSection = lazy(() => import('@/features/settings/components/UsageStatsSection'));
+const ReferralSection = lazy(() => import('@/features/settings/components/ReferralSection'));
+
+const loadUserService = () => import('@/features/auth/services/User').then((module) => module.User);
+const loadSupabaseClient = () => import('@/lib/supabase').then((module) => module.supabase);
+
+function SettingsTabFallback() {
+  return (
+    <div className="rounded-3xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 p-6 space-y-4">
+      <Skeleton className="h-8 w-48 rounded-xl" />
+      <Skeleton className="h-24 w-full rounded-2xl" />
+      <Skeleton className="h-24 w-full rounded-2xl" />
+    </div>
+  );
+}
 
 const AVATARS = [
   'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
@@ -154,6 +165,7 @@ export default function Settings() {
 
     setIsUpdatingPassword(true);
     try {
+      const User = await loadUserService();
       await User.updatePassword(passwordData.newPassword);
       toast.success('Success', { description: 'Password updated successfully.' });
       setPasswordData({ newPassword: '', confirmPassword: '' });
@@ -168,6 +180,7 @@ export default function Settings() {
     setIsCancelling(true);
     setShowCancelDialog(false);
     try {
+      const supabase = await loadSupabaseClient();
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -215,6 +228,7 @@ export default function Settings() {
     }
     setIsOpeningPortal(true);
     try {
+      const supabase = await loadSupabaseClient();
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -375,37 +389,41 @@ export default function Settings() {
                   avatars={AVATARS}
                 />
               )}
-              {activeTab === 'goals' && (
-                <GoalsSection key="goals" formData={formData} setFormData={setFormData} />
+              {activeTab !== 'profile' && (
+                <Suspense fallback={<SettingsTabFallback />}>
+                  {activeTab === 'goals' && (
+                    <GoalsSection key="goals" formData={formData} setFormData={setFormData} />
+                  )}
+                  {activeTab === 'subscription' && (
+                    <SubscriptionSection
+                      key="subscription"
+                      user={user}
+                      isOpeningPortal={isOpeningPortal}
+                      isCancelling={isCancelling}
+                      showCancelDialog={showCancelDialog}
+                      setShowCancelDialog={setShowCancelDialog}
+                      handleOpenCustomerPortal={handleOpenCustomerPortal}
+                      handleToggleCancellation={handleToggleCancellation}
+                      navigate={navigate}
+                    />
+                  )}
+                  {activeTab === 'account' && (
+                    <SecuritySection
+                      key="account"
+                      passwordData={passwordData}
+                      setPasswordData={setPasswordData}
+                      isUpdatingPassword={isUpdatingPassword}
+                      handleUpdatePassword={handleUpdatePassword}
+                      theme={theme}
+                      setTheme={setTheme}
+                      setShowDeleteModal={setShowDeleteModal}
+                    />
+                  )}
+                  {activeTab === 'usage' && <UsageStatsSection key="usage" />}
+                  {activeTab === 'referrals' && <ReferralSection key="referrals" />}
+                  {activeTab === 'privacy' && <PrivacySection key="privacy" />}
+                </Suspense>
               )}
-              {activeTab === 'subscription' && (
-                <SubscriptionSection
-                  key="subscription"
-                  user={user}
-                  isOpeningPortal={isOpeningPortal}
-                  isCancelling={isCancelling}
-                  showCancelDialog={showCancelDialog}
-                  setShowCancelDialog={setShowCancelDialog}
-                  handleOpenCustomerPortal={handleOpenCustomerPortal}
-                  handleToggleCancellation={handleToggleCancellation}
-                  navigate={navigate}
-                />
-              )}
-              {activeTab === 'account' && (
-                <SecuritySection
-                  key="account"
-                  passwordData={passwordData}
-                  setPasswordData={setPasswordData}
-                  isUpdatingPassword={isUpdatingPassword}
-                  handleUpdatePassword={handleUpdatePassword}
-                  theme={theme}
-                  setTheme={setTheme}
-                  setShowDeleteModal={setShowDeleteModal}
-                />
-              )}
-              {activeTab === 'usage' && <UsageStatsSection key="usage" />}
-              {activeTab === 'referrals' && <ReferralSection key="referrals" />}
-              {activeTab === 'privacy' && <PrivacySection key="privacy" />}
             </AnimatePresence>
           </div>
         </div>
@@ -459,6 +477,7 @@ export default function Settings() {
                 onClick={async () => {
                   setIsDeletingAccount(true);
                   try {
+                    const User = await loadUserService();
                     await User.deleteMyAccount();
                     window.location.href = '/login';
                   } catch (error) {

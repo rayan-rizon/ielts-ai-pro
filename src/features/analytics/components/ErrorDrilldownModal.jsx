@@ -21,7 +21,7 @@ import {
   TrendingDown,
   ChevronRight,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { Link } from 'react-router-dom';
 
 const TYPE_ICONS = {

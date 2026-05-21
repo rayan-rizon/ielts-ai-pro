@@ -4,7 +4,8 @@ import { m } from 'framer-motion';
 import { Target, ArrowRight, Activity, BookOpen, Headphones, PenTool, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { cn, formatBand } from '@/lib/utils';
+import { cn } from '@/lib/cn';
+import { formatBand } from '@/lib/format';
 import { createPageUrl } from '@/utils';
 
 const MODULES = [

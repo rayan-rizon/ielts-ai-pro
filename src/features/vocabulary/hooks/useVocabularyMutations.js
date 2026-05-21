@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { VocabularyItem, UserPoints } from '@/entities';
+import { UserPoints } from '@/features/gamification/services/UserPoints';
+import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
 
 /**
  * Custom hook for vocabulary CRUD operations

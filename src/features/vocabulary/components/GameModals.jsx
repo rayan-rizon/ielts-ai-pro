@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Clock, Trophy, Target, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 // Speed Quiz Modal
 export function SpeedQuizModal({ isOpen, onClose, gameData, gameState, gameScore, onAnswer }) {

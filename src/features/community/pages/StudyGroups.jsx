@@ -25,7 +25,7 @@ import {
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 // Simplified but premium Header matching the new style
 const PageHeader = () => (

@@ -9,7 +9,7 @@ import Menu from 'lucide-react/icons/menu';
 import X from 'lucide-react/icons/x';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn }) {
   const [isScrolled, setIsScrolled] = useState(false);

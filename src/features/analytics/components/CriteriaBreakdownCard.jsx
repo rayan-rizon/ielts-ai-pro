@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Mic2, PenLine, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { ITEM_VARIANTS } from '../constants';
 
 const MODULE_CONFIG = {

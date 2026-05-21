@@ -4,7 +4,7 @@ import { Zap, ArrowUpRight, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 import { GlassCard, ModuleBadge } from '../SharedComponents';
 import { formatTaskTitle, inferModuleFromTitle } from '../../utils/learningUtils';

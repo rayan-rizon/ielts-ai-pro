@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import { ReferralSettings } from '@/features/admin/services/ReferralSettings';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 const containerVariants = {
   hidden: { opacity: 0 },

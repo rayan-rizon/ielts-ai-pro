@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useListeningTestDispatch, useListeningTestState } from '../context/ListeningTestContext';
 import { initializeTest } from '@/lib/testInitializer';
-import { TestSession } from '@/entities';
+import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { computeQuestionNumbers } from '../utils/questionProcessing';
 import { calculateListeningTestResults } from '../utils/scoreCalculator';
 import { calculateEnhancedMetrics } from '@/services/testMetricsService';

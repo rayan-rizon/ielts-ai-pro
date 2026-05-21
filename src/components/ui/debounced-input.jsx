@@ -9,7 +9,7 @@
  */
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 const DebouncedInput = memo(function DebouncedInput({
   value: externalValue = '',

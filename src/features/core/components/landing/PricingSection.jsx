@@ -4,7 +4,7 @@ import { CheckCircle2, Star, Sparkles, Zap, Crown, ArrowRight } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { SystemSetting } from '@/features/admin/services/SystemSetting';
 import { detectLocation, getPriceData, calculatePrice } from '@/lib/pricingUtils';
 import { fetchAllTierLimits, generateFeatureStrings } from '@/lib/tierLimitsUtils';

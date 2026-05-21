@@ -34,11 +34,12 @@ export const VocabularyItem = {
         orderBy: string = 'created_at',
         limit: number = 100,
         page: number | null = null,
-        pageSize: number = 30
+        pageSize: number = 30,
+        selectFields: string = '*'
     ): Promise<VocabularyItemType[] | ListResult> {
         let query = supabase
             .from('vocabulary_items')
-            .select('*', { count: page !== null ? 'exact' : undefined });
+            .select(selectFields, { count: page !== null ? 'exact' : undefined });
 
         // Apply filters
         Object.keys(filters).forEach((key) => {
