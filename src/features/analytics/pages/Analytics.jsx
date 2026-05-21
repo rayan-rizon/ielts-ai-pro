@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { generateStudyRecommendations } from '@/utils/api';
 import useAnalyticsData from '@/features/analytics/hooks/useAnalyticsData';
@@ -196,14 +195,12 @@ export default function Analytics() {
           setSelectedTimeframe={setSelectedTimeframe}
           data-oid="relgpvl"
         />
-        <div className="h-[60vh] flex items-center justify-center">
+        <div className="pt-2 pb-8">
           <EmptyAnalyticsState
-            icon={BookOpen}
             title="No Tests Completed Yet"
-            description="Complete your first practice test to unlock your personalized analytics dashboard with score trends, performance insights, and AI recommendations."
             action={
               <Link to="/dashboard">
-                <Button className="rounded-full font-black bg-primary text-primary-foreground hover:scale-105 active:scale-95 transition-transform">
+                <Button className="rounded-2xl h-14 px-8 font-black uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-600/20 hover:scale-[1.03] active:scale-95 transition-all text-sm border-none">
                   Start a Practice Test
                 </Button>
               </Link>
@@ -243,11 +240,21 @@ export default function Analytics() {
       />
 
       {/* ─────────────────────────────────────────────────────────────────
-               TIER 1: HERO SUMMARY - Answer "How am I doing?" in < 3 seconds
+               TIER 1: HERO SUMMARY - Unified Dashboard Overview Panel
               ───────────────────────────────────────────────────────────────── */}
-      <section className="space-y-4" data-oid="7p-7cv0">
-        <PerformanceNarrative insights={stats?.insights} stats={stats} data-oid="m5ew116" />
-        <StatCards stats={stats} progressToTarget={progressToTarget} data-oid="b85992g" />
+      <section
+        className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch"
+        data-oid="tier1-hero"
+      >
+        <div className="col-span-12 lg:col-span-4 xl:col-span-3 flex" data-oid="hero-coach">
+          <PerformanceNarrative insights={stats?.insights} stats={stats} data-oid="m5ew116" />
+        </div>
+        <div
+          className="col-span-12 lg:col-span-8 xl:col-span-9 flex flex-col justify-center"
+          data-oid="hero-stats"
+        >
+          <StatCards stats={stats} progressToTarget={progressToTarget} data-oid="b85992g" />
+        </div>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────
@@ -261,7 +268,11 @@ export default function Analytics() {
               data-oid=":n4io18"
             >
               <BandScoreJourney
-                currentScore={stats?.avgScore}
+                currentScore={
+                  stats?.predictedOverallBand != null
+                    ? stats.predictedOverallBand
+                    : parseFloat(stats?.avgScore)
+                }
                 targetScore={stats?.targetScore}
                 testHistory={chartData?.history || []}
                 testDate={user?.test_date}

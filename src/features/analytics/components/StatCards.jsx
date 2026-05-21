@@ -73,24 +73,43 @@ export default function StatCards({ stats, progressToTarget }) {
   return (
     <motion.section
       variants={ITEM_VARIANTS}
-      className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4"
+      className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4 h-full"
       data-oid="50fp0ug"
     >
       {cards.map((card, idx) => (
         <Card
           key={idx}
           className={cn(
-            'rounded-2xl border bg-card/95 backdrop-blur-md shadow-md hover:shadow-2xl transition-all duration-300 group overflow-hidden relative hover:-translate-y-1 h-full min-h-[128px]',
+            'rounded-3xl border border-border/40 bg-white dark:bg-slate-950 backdrop-blur-md shadow-lg hover:shadow-2xl transition-all duration-300 group overflow-hidden relative hover:-translate-y-1.5 h-full min-h-[128px]',
             card.color === 'bg-primary'
-              ? 'border-primary/30 hover:shadow-primary/20'
+              ? 'hover:border-primary/30 hover:shadow-primary/5'
               : card.color === 'bg-amber-500'
-                ? 'border-amber-500/30 hover:shadow-amber-500/20'
+                ? 'hover:border-amber-500/30 hover:shadow-amber-500/5'
                 : card.color === 'bg-emerald-500'
-                  ? 'border-emerald-500/30 hover:shadow-emerald-500/20'
-                  : 'border-indigo-500/30 hover:shadow-indigo-500/20'
+                  ? 'hover:border-emerald-500/30 hover:shadow-emerald-500/5'
+                  : 'hover:border-indigo-500/30 hover:shadow-indigo-500/5'
           )}
           data-oid="9zz1f00"
         >
+          {/* Decorative Grid Pattern & Soft Glows */}
+          <div
+            className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03] pointer-events-none bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:12px_12px] group-hover:opacity-[0.02] dark:group-hover:opacity-[0.04] transition-opacity duration-300"
+            data-oid="card-grid"
+          />
+          <div
+            className={cn(
+              'absolute top-0 right-0 w-28 h-28 rounded-full blur-[40px] -mr-14 -mt-14 pointer-events-none transition-all duration-300 group-hover:scale-110',
+              card.color === 'bg-primary'
+                ? 'bg-primary/10 dark:bg-primary/20'
+                : card.color === 'bg-amber-500'
+                  ? 'bg-amber-500/10 dark:bg-amber-500/20'
+                  : card.color === 'bg-emerald-500'
+                    ? 'bg-emerald-500/10 dark:bg-emerald-500/20'
+                    : 'bg-indigo-500/10 dark:bg-indigo-500/20'
+            )}
+            data-oid="card-glow"
+          />
+
           <CardContent
             className="p-4 h-full flex flex-col justify-between relative z-10"
             data-oid="ls.-irc"

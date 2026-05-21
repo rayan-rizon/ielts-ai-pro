@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Compass, Star, Flag, Activity, Calendar, Zap, TrendingUp } from 'lucide-react';
+import { Compass, Star, Flag, Calendar, Check } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -209,12 +209,43 @@ export default function BandScoreJourney({
     };
   }, [currentScore, targetScore, testHistory, testDate, studyPace]);
 
+  const recommendations = useMemo(() => {
+    const band = journeyData.currentBand;
+    if (band === 0) return [];
+    if (band < 5.0) {
+      return [
+        'Strengthen core sentence structures & basic grammar rules.',
+        'Build topic-based vocabulary lists with standard academic synonyms.',
+        'Practice listening to slow, clear English monologues & conversations.',
+      ];
+    }
+    if (band < 6.0) {
+      return [
+        'Practice cohesive devices & linking words in Writing Task 1 & 2.',
+        'Enhance Speaking fluency by recording and self-analyzing your answers.',
+        'Learn key skimming & scanning strategies for complex Reading paragraphs.',
+      ];
+    }
+    if (band < 7.0) {
+      return [
+        'Master complex grammar structures and actively reduce lexical errors.',
+        'Address writing prompt criteria directly with strong, clear thesis claims.',
+        'Practice reading under strict timing constraints to build pace.',
+      ];
+    }
+    return [
+      'Refine lexical resource using highly natural, advanced academic collocations.',
+      'Develop sophisticated discourse markers to sound more spontaneous.',
+      'Analyze subtle semantic nuances in high-tier Reading test tasks.',
+    ];
+  }, [journeyData.currentBand]);
+
   if (!journeyData.currentBand && !journeyData.targetBand) return null;
 
   return (
     <motion.div variants={ITEM_VARIANTS} className="h-full" data-oid=".q.oeea">
       <Card
-        className="rounded-3xl border border-border/40 bg-white dark:bg-slate-950 shadow-xl min-h-[420px] h-full flex flex-col relative group transition-all duration-500 hover:shadow-2xl hover:border-indigo-500/20"
+        className="rounded-3xl border border-border/40 bg-white dark:bg-slate-950 shadow-xl min-h-[350px] h-full flex flex-col relative group transition-all duration-500 hover:shadow-2xl hover:border-indigo-500/20"
         data-oid="c:6z8yh"
       >
         {/* Visual Polish Elements */}
@@ -279,9 +310,12 @@ export default function BandScoreJourney({
           </div>
         </CardHeader>
 
-        <CardContent className="p-4 pt-1 flex-1 flex flex-col relative z-10" data-oid="4f9_.49">
+        <CardContent
+          className="p-4 pt-1 flex-1 flex flex-col justify-between relative z-10"
+          data-oid="4f9_.49"
+        >
           {/* Main Roadmap Section */}
-          <div className="relative w-full pt-16 pb-12 px-4 mb-2" data-oid="-_8scpc">
+          <div className="relative w-full pt-12 pb-6 px-4 mb-1" data-oid="-_8scpc">
             {/* Main Path Line */}
             <div
               className="absolute top-[2.25rem] left-8 right-8 h-2 bg-slate-100 dark:bg-white/5 rounded-full"
@@ -313,83 +347,178 @@ export default function BandScoreJourney({
             </div>
           </div>
 
-          {/* Insights & Next Steps Section */}
-          <div className="mt-auto grid grid-cols-1 md:grid-cols-3 gap-3" data-oid="insights">
-            {journeyData.currentBand > 0 ? (
-              <>
-                <InsightCard
-                  icon={TrendingUp}
-                  title="Where You Are"
-                  value={`Band ${formatBand(journeyData.currentBand)}`}
-                  description={`You have reached ${journeyData.progressPercentage}% of your goal!`}
-                  color="text-indigo-600 dark:text-indigo-400"
-                  bgColor="bg-indigo-500/5 dark:bg-indigo-500/10"
-                />
-                <InsightCard
-                  icon={Zap}
-                  title="Next Goal"
-                  value={`Band ${formatBand(journeyData.nextMilestoneBand)}`}
-                  description={`You are almost there!`}
-                  color="text-emerald-500 dark:text-emerald-400"
-                  bgColor="bg-emerald-500/5 dark:bg-emerald-500/10"
-                />
-                <InsightCard
-                  icon={Activity}
-                  title="Weekly Effort"
-                  value={studyPace.charAt(0).toUpperCase() + studyPace.slice(1)}
-                  description="How much time you put in."
-                  color="text-amber-500 dark:text-amber-400"
-                  bgColor="bg-amber-500/5 dark:bg-amber-500/10"
-                />
-              </>
-            ) : (
+          {/* Interactive Trajectory & Pathway Visualizer (Fills Center Space) */}
+          {journeyData.currentBand > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: 'easeOut', delay: 0.3 }}
+              className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-6 py-4 my-1 border-t border-b border-slate-100 dark:border-white/5 relative items-center justify-between"
+              data-oid="trajectory-visualizer"
+            >
+              {/* Left: SVG Progress Radial Gauge */}
               <div
-                className="col-span-1 md:col-span-3 rounded-2x border border-dashed border-border/40 bg-muted/10 p-6 flex flex-col items-center justify-center text-center space-y-3"
+                className="md:col-span-2 flex flex-col items-center justify-center relative select-none"
+                data-oid="radial-gauge-container"
+              >
+                <div
+                  className="relative w-40 h-40 flex items-center justify-center"
+                  data-oid="gauge-wrapper"
+                >
+                  <svg
+                    className="w-40 h-40 transform -rotate-90 filter drop-shadow-[0_4px_12px_rgba(99,102,241,0.12)]"
+                    viewBox="0 0 100 100"
+                    data-oid="gauge-svg"
+                  >
+                    <defs>
+                      <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#22d3ee" />
+                        <stop offset="50%" stopColor="#38bdf8" />
+                        <stop offset="100%" stopColor="#6366f1" />
+                      </linearGradient>
+                    </defs>
+                    {/* Base Track */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="38"
+                      className="stroke-slate-100 dark:stroke-white/5 fill-none"
+                      strokeWidth="9"
+                      data-oid="gauge-base"
+                    />
+                    {/* Glowing Blur Stroke */}
+                    <motion.circle
+                      cx="50"
+                      cy="50"
+                      r="38"
+                      stroke="url(#progressGrad)"
+                      className="fill-none opacity-25 blur-[2px]"
+                      strokeWidth="9"
+                      strokeLinecap="round"
+                      initial={{ strokeDashoffset: 238.76 }}
+                      animate={{
+                        strokeDashoffset: 238.76 - (238.76 * journeyData.progressPercentage) / 100,
+                      }}
+                      transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+                      strokeDasharray="238.76"
+                      data-oid="gauge-glow"
+                    />
+                    {/* Solid Progress Stroke */}
+                    <motion.circle
+                      cx="50"
+                      cy="50"
+                      r="38"
+                      stroke="url(#progressGrad)"
+                      className="fill-none"
+                      strokeWidth="9"
+                      strokeLinecap="round"
+                      initial={{ strokeDashoffset: 238.76 }}
+                      animate={{
+                        strokeDashoffset: 238.76 - (238.76 * journeyData.progressPercentage) / 100,
+                      }}
+                      transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+                      strokeDasharray="238.76"
+                      data-oid="gauge-progress"
+                    />
+                  </svg>
+
+                  {/* Inside Text Readout */}
+                  <div
+                    className="absolute inset-0 flex flex-col items-center justify-center text-center"
+                    data-oid="gauge-readout"
+                  >
+                    <motion.span
+                      initial={{ opacity: 0, scale: 0.7 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.6, ease: 'easeOut', delay: 0.6 }}
+                      className="text-[42px] font-black text-slate-800 dark:text-white tracking-tight leading-none"
+                      data-oid="gauge-percentage"
+                    >
+                      {journeyData.progressPercentage}%
+                    </motion.span>
+                    <span
+                      className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1.5"
+                      data-oid="gauge-sublabel"
+                    >
+                      Reached
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Glassmorphic Focus Checklist */}
+              <div
+                className="md:col-span-3 flex flex-col justify-center space-y-3"
+                data-oid="pathway-focus-container"
+              >
+                <div className="space-y-0.5" data-oid="pathway-header">
+                  <div className="flex items-center gap-2" data-oid="pathway-title-row">
+                    <Badge
+                      className="bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 border-0 font-black px-1.5 py-0.5 text-[8px] uppercase tracking-wider rounded-md"
+                      data-oid="pathway-badge"
+                    >
+                      Action Plan
+                    </Badge>
+                  </div>
+                  <h4
+                    className="text-sm font-black text-slate-850 dark:text-white tracking-tight"
+                    data-oid="pathway-heading"
+                  >
+                    Milestone Focus Areas
+                  </h4>
+                </div>
+
+                <div className="space-y-2" data-oid="pathway-checklist">
+                  {recommendations.map((rec, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: 15 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + idx * 0.1, duration: 0.4 }}
+                      className="flex items-start gap-3 p-2.5 rounded-2xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.03] transition-all hover:bg-slate-50 dark:hover:bg-white/[0.04] group/step cursor-default"
+                      data-oid={`pathway-step-${idx}`}
+                    >
+                      <div
+                        className="mt-0.5 w-5 h-5 rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 flex items-center justify-center shrink-0 transition-colors group-hover/step:bg-indigo-500/20"
+                        data-oid={`pathway-step-check-${idx}`}
+                      >
+                        <Check className="w-3 h-3 text-indigo-600 dark:text-indigo-400 stroke-[3px]" />
+                      </div>
+                      <p
+                        className="text-[11.5px] font-bold text-slate-600 dark:text-slate-300 leading-snug group-hover/step:text-slate-900 dark:group-hover/step:text-white transition-colors"
+                        data-oid={`pathway-step-text-${idx}`}
+                      >
+                        {rec}
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Empty state section when no scores yet */}
+          {journeyData.currentBand === 0 && (
+            <div className="mt-auto pt-4" data-oid="insights">
+              <div
+                className="rounded-2xl border border-dashed border-border/40 bg-muted/10 p-5 flex flex-col items-center justify-center text-center space-y-3"
                 data-oid="empty-internal"
               >
-                <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center">
-                  <Star className="w-6 h-6 text-indigo-600 dark:text-indigo-400 animate-pulse" />
+                <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center">
+                  <Star className="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-pulse" />
                 </div>
                 <div className="max-w-sm space-y-1">
-                  <h4 className="text-base font-black text-foreground">Begin Your Journey</h4>
-                  <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
+                  <h4 className="text-sm font-black text-foreground">Begin Your Journey</h4>
+                  <p className="text-[10px] font-medium text-muted-foreground leading-relaxed">
                     Take your first practice test to unlock your personalized band score predictions
                     on this roadmap.
                   </p>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>
-  );
-}
-
-function InsightCard({ icon: Icon, title, value, description, color, bgColor }) {
-  return (
-    <div
-      className={cn(
-        'p-3 rounded-2xl border border-border/30 transition-all duration-300 hover:shadow-md hover:-translate-y-1 bg-white dark:bg-slate-900 group/insight',
-        bgColor
-      )}
-    >
-      <div className="flex items-center gap-3 mb-2">
-        <div
-          className={cn(
-            'w-8 h-8 rounded-lg flex items-center justify-center transition-transform group-hover/insight:scale-110',
-            bgColor,
-            color
-          )}
-        >
-          <Icon className="w-4 h-4" />
-        </div>
-        <span className="text-[10px] font-black tracking-widest text-slate-400">{title}</span>
-      </div>
-      <div className="space-y-1">
-        <div className={cn('text-xl font-black leading-tight', color)}>{value}</div>
-        <p className="text-[11px] font-bold text-muted-foreground/80 leading-snug">{description}</p>
-      </div>
-    </div>
   );
 }

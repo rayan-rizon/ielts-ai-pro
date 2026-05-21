@@ -11,7 +11,6 @@ import { IconWrapper } from './AnalyticsHeader';
 import { ITEM_VARIANTS, MODULE_META } from '../constants';
 import { createPageUrl } from '@/utils';
 import { formatBand } from '../utils';
-import EmptyAnalyticsState from './EmptyAnalyticsState';
 
 const LearningRoadmap = React.memo(function LearningRoadmap({ phase, milestone }) {
   const Icon = phase.Icon;
@@ -216,6 +215,28 @@ const LockedFeature = React.memo(function LockedFeature({ isLocked, children }) 
   );
 });
 
+function CompactEmptyState({ icon: Icon, title, description }) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center text-center p-5 space-y-3 my-auto min-h-[240px] relative z-10"
+      data-oid="compact-empty-state"
+    >
+      <div className="w-11 h-11 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/15 flex items-center justify-center relative">
+        <div className="absolute inset-0 bg-indigo-500/20 blur-md rounded-full scale-125 animate-pulse" />
+        <Icon className="w-5.5 h-5.5 text-indigo-600 dark:text-indigo-400 relative z-10" />
+      </div>
+      <div className="space-y-1 max-w-[220px]">
+        <h4 className="text-xs font-black text-slate-850 dark:text-white tracking-tight">
+          {title}
+        </h4>
+        <p className="text-[10px] font-bold text-muted-foreground/95 leading-normal">
+          {description}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function AIInsightsCard({
   stats,
   aiLoading,
@@ -229,7 +250,7 @@ export default function AIInsightsCard({
       <Card
         className={cn(
           'rounded-3xl bg-white dark:bg-slate-950 backdrop-blur-xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 h-full flex flex-col border border-border/40',
-          compact ? 'min-h-[420px]' : 'min-h-[280px]',
+          compact ? 'min-h-[350px]' : 'min-h-[280px]',
           isPremium ? 'ring-2 ring-amber-400/20 ring-offset-2 ring-offset-background' : ''
         )}
         data-oid="xikm8:d"
@@ -381,7 +402,11 @@ export default function AIInsightsCard({
                     <PredictionCard
                       icon={Rocket}
                       label="Prediction"
-                      value={stats?.insights?.predictedScore || '0.0'}
+                      value={
+                        stats?.predictedOverallBand != null
+                          ? stats.predictedOverallBand.toFixed(1)
+                          : stats?.insights?.predictedScore || '0.0'
+                      }
                       color="bg-primary"
                       data-oid="oeu4uwz"
                     />
@@ -401,20 +426,16 @@ export default function AIInsightsCard({
                   />
                 </>
               ) : stats?.avgScore > 0 ? (
-                <EmptyAnalyticsState
+                <CompactEmptyState
                   icon={Sparkles}
                   title="Generating Path"
                   description="Our AI is analyzing your performance. Complete one more test for a full roadmap."
-                  className="mt-12 mb-8 py-8"
-                  data-oid="p1nc8nh"
                 />
               ) : (
-                <EmptyAnalyticsState
+                <CompactEmptyState
                   icon={Rocket}
                   title="Start Journey"
                   description="Take your first practice test to unlock personalized AI growth strategies."
-                  className="mt-12 mb-8 py-8"
-                  data-oid="b8kvq:y"
                 />
               )}
 
@@ -509,31 +530,59 @@ export default function AIInsightsCard({
 
 function InsightsLoadingSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse" data-oid="jvv0gx6">
-      <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5" data-oid="_ig2:a:">
-        <div className="flex items-center gap-2 mb-3" data-oid=":u-w-d_">
-          <div className="w-8 h-8 rounded-lg bg-muted/60" data-oid="9tmgva4" />
-          <div className="h-3 w-24 rounded bg-muted/60" data-oid="wzf2a0y" />
+    <div className="space-y-2.5 animate-pulse" data-oid="jvv0gx6">
+      {/* Growth Path skeleton */}
+      <div className="rounded-xl border border-primary/10 bg-primary/5 p-3" data-oid="_ig2:a:">
+        <div className="flex items-center gap-2 mb-2" data-oid=":u-w-d_">
+          <div className="w-4 h-4 rounded bg-primary/20 animate-pulse" data-oid="9tmgva4" />
+          <div className="h-2.5 w-16 rounded bg-primary/20 animate-pulse" data-oid="wzf2a0y" />
         </div>
-        <div className="space-y-2" data-oid="ydn4s7m">
-          <div className="h-3 w-full rounded bg-muted/50" data-oid="18xmvj." />
-          <div className="h-3 w-4/5 rounded bg-muted/50" data-oid=".6znhha" />
+        <div className="space-y-1.5" data-oid="ydn4s7m">
+          <div className="h-2 w-full rounded bg-muted/45 animate-pulse" data-oid="18xmvj." />
+          <div className="h-2 w-5/6 rounded bg-muted/45 animate-pulse" data-oid=".6znhha" />
         </div>
       </div>
-      <div className="space-y-3" data-oid="zp:t38o">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <div
-            key={i}
-            className="rounded-2xl border border-border/30 bg-card/20 p-4 flex items-start gap-4"
-            data-oid="zm_qk_4"
-          >
-            <div className="w-8 h-8 rounded-lg bg-muted/50 shrink-0" data-oid="nnvk9vi" />
-            <div className="flex-1 space-y-2 pt-1" data-oid="by-vlp3">
-              <div className="h-2.5 w-full rounded bg-muted/40" data-oid="o5:s_-1" />
-              <div className="h-2.5 w-3/4 rounded bg-muted/40" data-oid="9e2mlu9" />
-            </div>
+
+      {/* Recommended focus areas skeleton (grid) */}
+      <div className="grid grid-cols-2 gap-2" data-oid="zp:t38o">
+        <div
+          className="p-2.5 rounded-xl bg-muted/20 border border-border/30 h-11 flex flex-col justify-center animate-pulse"
+          data-oid="skel-focus-1"
+        >
+          <div className="h-2 w-12 rounded bg-muted/40 animate-pulse mb-1" />
+          <div className="h-1.5 w-16 rounded bg-muted/30 animate-pulse" />
+        </div>
+        <div
+          className="p-2.5 rounded-xl bg-muted/20 border border-border/30 h-11 flex flex-col justify-center animate-pulse"
+          data-oid="skel-focus-2"
+        >
+          <div className="h-2 w-12 rounded bg-muted/40 animate-pulse mb-1" />
+          <div className="h-1.5 w-16 rounded bg-muted/30 animate-pulse" />
+        </div>
+      </div>
+
+      {/* Prediction Cards skeleton */}
+      <div className="grid grid-cols-2 gap-2" data-oid="skel-pred-grid">
+        <div
+          className="rounded-xl bg-background/50 border border-border/30 p-2.5 flex items-center gap-2 h-11 animate-pulse"
+          data-oid="skel-pred-1"
+        >
+          <div className="w-5 h-5 rounded bg-muted/30 animate-pulse shrink-0" />
+          <div className="space-y-1 min-w-0 flex-1">
+            <div className="h-1.5 w-8 rounded bg-muted/30 animate-pulse" />
+            <div className="h-2.5 w-6 rounded bg-muted/40 animate-pulse" />
           </div>
-        ))}
+        </div>
+        <div
+          className="rounded-xl bg-background/50 border border-border/30 p-2.5 flex items-center gap-2 h-11 animate-pulse"
+          data-oid="skel-pred-2"
+        >
+          <div className="w-5 h-5 rounded bg-muted/30 animate-pulse shrink-0" />
+          <div className="space-y-1 min-w-0 flex-1">
+            <div className="h-1.5 w-8 rounded bg-muted/30 animate-pulse" />
+            <div className="h-2.5 w-6 rounded bg-muted/40 animate-pulse" />
+          </div>
+        </div>
       </div>
     </div>
   );

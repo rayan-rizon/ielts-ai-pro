@@ -23,127 +23,118 @@ export default function PerformanceNarrative({ insights, stats }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mt-1 mb-4"
+      className="w-full h-full flex"
       data-oid="e3jx-n_"
     >
       <div
-        className="group relative overflow-hidden rounded-2xl bg-card/70 border border-primary/20 p-4 md:p-6 backdrop-blur-3xl shadow-xl transition-all hover:bg-card/80"
+        className="group relative overflow-hidden rounded-3xl bg-white dark:bg-slate-950 border border-border/40 p-5 flex flex-col justify-between flex-1 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-primary/20"
         data-oid="e8jjz6:"
       >
-        {/* Subtle Decorative Glows */}
+        {/* Decorative Grid Pattern & Soft Glows */}
         <div
-          className="absolute top-0 right-0 w-64 h-64 bg-primary/10 dark:bg-primary/20 rounded-full blur-[80px] -mr-32 -mt-32"
+          className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03] pointer-events-none bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:16px_16px]"
+          data-oid="grid-pattern"
+        />
+        <div
+          className="absolute top-0 right-0 w-48 h-48 bg-primary/10 dark:bg-primary/20 rounded-full blur-[60px] -mr-24 -mt-24 pointer-events-none"
           data-oid="-wui6t8"
         />
 
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 relative z-10" data-oid="fbx3.s6">
-          {/* Primary Insight Section */}
-          <div className="flex-[1.8] space-y-3" data-oid="yyy_1x7">
-            <div className="flex flex-wrap items-center gap-2" data-oid="43pjler">
+        <div
+          className="space-y-4 relative z-10 flex-1 flex flex-col justify-between"
+          data-oid="fbx3.s6"
+        >
+          {/* Header section with Badges */}
+          <div className="space-y-3.5" data-oid="yyy_1x7">
+            <div className="flex flex-wrap items-center justify-between gap-2" data-oid="43pjler">
               <Badge
-                className="bg-primary/10 dark:bg-primary/20 hover:bg-primary/20 dark:hover:bg-primary/30 text-primary border-primary/20 px-3 py-1 text-[10px] font-bold tracking-wide rounded-full backdrop-blur-md"
+                className="bg-indigo-500/10 dark:bg-indigo-500/20 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border-0 px-2.5 py-1 text-[9px] font-black tracking-widest rounded-lg uppercase backdrop-blur-md"
                 data-oid="_w_x39c"
               >
-                <Sparkles className="w-3 h-3 mr-1.5 animate-pulse" data-oid=".07d8q2" />
-                Your Daily Update
+                <Sparkles
+                  className="w-3.5 h-3.5 mr-1.5 text-indigo-500 dark:text-indigo-400 animate-pulse"
+                  data-oid=".07d8q2"
+                />
+                Coach Update
               </Badge>
-              {correlations.length > 0 && (
-                <Badge
-                  className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-500 border-amber-500/20 px-3 py-1 text-[10px] font-bold tracking-wide rounded-full backdrop-blur-md"
-                  data-oid="x0uh1ed"
-                >
-                  <Zap className="w-3 h-3 mr-1.5" data-oid="wj1uomz" />
-                  Smart Tip
-                </Badge>
-              )}
+
+              <div
+                className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-1.5 text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider"
+                data-oid="u9etfhb"
+              >
+                <div
+                  className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"
+                  data-oid="ht5j-:g"
+                />
+                Progressing
+              </div>
             </div>
 
-            <div className="space-y-2.5" data-oid="bad5ezr">
+            {/* Coach Note Text */}
+            <div className="space-y-2" data-oid="bad5ezr">
               <h2
-                className="text-lg md:text-xl lg:text-2xl font-black text-foreground tracking-tight leading-[1.2]"
+                className="text-base md:text-lg font-black text-foreground tracking-tight leading-snug"
                 data-oid="xwk:5ak"
               >
                 {getCoachNote()}
               </h2>
-              <div className="flex flex-wrap items-center gap-3" data-oid=":ry3dbs">
-                <div
-                  className="px-3 py-1.5 rounded-xl bg-muted/40 border border-border/50 flex items-center gap-2 text-[10px] font-bold text-muted-foreground"
-                  data-oid="u9etfhb"
-                >
+
+              {/* Score Improvement Badge */}
+              {parseFloat(stats.improvement) > 0 && (
+                <div className="inline-flex" data-oid="imp-wrapper">
                   <div
-                    className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]"
-                    data-oid="ht5j-:g"
-                  />
-                  Status:{' '}
-                  <span className="text-emerald-600 dark:text-emerald-400 ml-1" data-oid=":8vu_bb">
-                    Making Progress
-                  </span>
-                </div>
-                {parseFloat(stats.improvement) > 0 && (
-                  <div
-                    className="flex items-center gap-2 px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 shadow-sm"
                     data-oid="liu1z3e"
                   >
                     <TrendingUp
-                      className="w-3 h-3 text-emerald-600 dark:text-emerald-500"
+                      className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-500"
                       data-oid="fpdxuu9"
                     />
-
                     <span
-                      className="text-[11px] font-black text-emerald-600 dark:text-emerald-500"
+                      className="text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-wider"
                       data-oid="aa80x1e"
                     >
                       +{stats.improvement} Bands
                     </span>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Detail Cards Section - More compact grid */}
-          <div
-            className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2.5 self-center"
-            data-oid="oeew61c"
-          >
-            {correlations.slice(0, 2).map((corr, idx) => (
-              <motion.div
-                key={corr.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 + idx * 0.1 }}
-                className="group/card relative overflow-hidden bg-muted/40 hover:bg-muted/60 border border-border/50 hover:border-primary/30 p-3.5 rounded-xl transition-all duration-300"
-                data-oid="x207u:y"
-              >
-                <div className="flex items-center gap-2.5 mb-1.5" data-oid="7fnd2az">
-                  <div
-                    className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20"
-                    data-oid="8sk3-md"
-                  >
-                    <Zap className="w-3 h-3" data-oid="1-yrd4q" />
-                  </div>
-                  <span
-                    className="text-[10px] font-bold text-muted-foreground/80 tracking-wide"
-                    data-oid="p0s2a4a"
-                  >
-                    {corr.title || 'Advice'}
-                  </span>
-                </div>
-                <p
-                  className="text-[12px] font-bold text-foreground/80 leading-snug line-clamp-1"
-                  data-oid=":t2e9fc"
-                >
-                  {corr.text}
-                </p>
+          {/* High Priority Smart Tip / Correlation */}
+          {correlations.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="relative overflow-hidden bg-slate-50 dark:bg-white/[0.02] border border-border/40 p-3 rounded-2xl transition-all duration-300 mt-2 flex flex-col gap-1.5"
+              data-oid="x207u:y"
+            >
+              <div className="flex items-center gap-2" data-oid="7fnd2az">
                 <div
-                  className="absolute bottom-0 left-0 h-0.5 w-0 bg-primary group-hover/card:w-full transition-all duration-500"
-                  data-oid="9g.f2.x"
-                />
-              </motion.div>
-            ))}
-          </div>
+                  className="w-5 h-5 rounded-md bg-amber-500/10 dark:bg-amber-500/20 flex items-center justify-center text-amber-500 border-0"
+                  data-oid="8sk3-md"
+                >
+                  <Zap className="w-3 h-3 text-amber-600 dark:text-amber-400" data-oid="1-yrd4q" />
+                </div>
+                <span
+                  className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest"
+                  data-oid="p0s2a4a"
+                >
+                  {correlations[0].title || 'Smart Tip'}
+                </span>
+              </div>
+              <p
+                className="text-[11px] font-bold text-muted-foreground leading-relaxed pl-0.5"
+                data-oid=":t2e9fc"
+              >
+                {correlations[0].text}
+              </p>
+            </motion.div>
+          )}
         </div>
       </div>
     </motion.div>

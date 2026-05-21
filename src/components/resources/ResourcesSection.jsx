@@ -21,13 +21,10 @@ import {
   Brain,
   Lock,
   Download,
-  Clock,
   ChevronRight,
-  Sparkles,
 } from 'lucide-react';
 import { Resource } from '@/entities';
 import { cn } from '@/lib/cn';
-import { supabase } from '@/lib/supabase';
 import { useResources } from '@/features/learning/hooks/useResources';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -83,13 +80,13 @@ const VideoResourceCard = ({ resource, onOpen }) => {
 
   return (
     <motion.div
-      whileHover={{ y: -4, scale: 1.01 }}
+      whileHover={{ y: -6, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className="group relative flex flex-col h-full rounded-2xl bg-white/60 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200/60 dark:border-white/[0.06] overflow-hidden cursor-pointer shadow-sm hover:shadow-xl hover:shadow-rose-500/10 transition-all duration-300"
+      className="group relative flex flex-col h-full rounded-2xl bg-white/60 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200/60 dark:border-white/[0.06] overflow-hidden cursor-pointer shadow-sm hover:shadow-xl hover:shadow-rose-500/10 hover:border-rose-500/20 dark:hover:border-rose-500/30 transition-all duration-300"
       onClick={() => onOpen(resource)}
     >
-      {/* 2.1:1 Thumbnail - Shallower for height reduction */}
-      <div className="relative aspect-[2.1/1] overflow-hidden bg-slate-100 dark:bg-white/5">
+      {/* 16:9 Thumbnail - Standard aspect ratio for YouTube video thumbs */}
+      <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-white/5">
         {thumbnail ? (
           <img
             src={thumbnail}
@@ -105,42 +102,42 @@ const VideoResourceCard = ({ resource, onOpen }) => {
 
         {/* Play overlay - Made more compact */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/15 transition-all duration-300">
-          <div className="w-11 h-11 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-lg scale-0 group-hover:scale-100 transition-transform duration-300 ease-out">
-            <Play className="w-4 h-4 text-rose-600 fill-rose-600 ml-0.5" />
+          <div className="w-12 h-12 rounded-full bg-white/90 dark:bg-slate-950/90 backdrop-blur-md flex items-center justify-center shadow-xl scale-0 group-hover:scale-100 transition-transform duration-300 ease-out border border-white/20 dark:border-white/5">
+            <Play className="w-5 h-5 text-rose-600 fill-rose-600 ml-1" />
           </div>
         </div>
 
         {/* Badge - Tighter */}
-        <div className="absolute top-2.5 left-2.5">
-          <Badge className="px-2 py-0.5 rounded-md border-none text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md bg-rose-500/90 text-white">
+        <div className="absolute top-3 left-3">
+          <Badge className="px-2.5 py-0.7 rounded-md border-none text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md bg-rose-500/90 text-white">
             Video
           </Badge>
         </div>
 
         {/* Watch hint */}
-        <div className="absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-[10px] font-bold text-white/90 flex items-center gap-1">
-            <Play className="w-2 h-2 fill-white/90" />
+        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
+          <div className="px-2.5 py-1 rounded-md bg-black/75 backdrop-blur-md text-[10px] font-black tracking-wider text-white flex items-center gap-1.5 shadow-lg border border-white/10">
+            <Play className="w-2.5 h-2.5 fill-white" />
             Watch Now
           </div>
         </div>
       </div>
 
-      {/* Content area - Ultra Compact */}
-      <div className="p-2 flex flex-col flex-grow">
-        <h3 className="text-xs font-bold text-slate-900 dark:text-white leading-tight mb-0.5 line-clamp-1 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+      {/* Content area - Gorgeous & Readable */}
+      <div className="p-4 flex flex-col flex-grow">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-snug mb-3 line-clamp-2 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors duration-200">
           {resource.title}
         </h3>
 
-        <div className="mt-auto flex items-center justify-between pt-1.5 border-t border-slate-100 dark:border-white/5">
-          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-300">
-            <Eye className="w-2.5 h-2.5" />
-            <span className="text-[10px] font-bold">{resource.view_count || 0}</span>
+        <div className="mt-auto flex items-center justify-between pt-3 border-t border-slate-100 dark:border-white/5">
+          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-semibold">
+            <Eye className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+            <span className="text-xs">{resource.view_count || 0}</span>
           </div>
 
-          <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-rose-500 group-hover:gap-1.5 transition-all">
+          <div className="flex items-center gap-1 text-[11px] font-black uppercase tracking-widest text-rose-500 group-hover:text-rose-600 dark:group-hover:text-rose-400 group-hover:gap-1.5 transition-all duration-200">
             Watch Now
-            <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
+            <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform duration-200" />
           </div>
         </div>
       </div>
@@ -207,13 +204,13 @@ const PDFResourceCard = ({ resource, onOpen }) => {
       </div>
 
       {/* Meta below book */}
-      <div className="w-full pt-3 px-1 text-center">
-        <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+      <div className="w-full pt-4 px-1 text-center flex flex-col flex-grow">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-snug line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 mb-2">
           {resource.title}
         </h3>
-        <div className="flex items-center justify-center gap-1.5 mt-1.5 text-slate-500 dark:text-slate-300">
-          <Eye className="w-2.5 h-2.5" />
-          <span className="text-[10px] font-bold">{resource.view_count || 0} views</span>
+        <div className="mt-auto flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 font-semibold">
+          <Eye className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+          <span className="text-xs">{resource.view_count || 0} views</span>
         </div>
       </div>
     </motion.div>
@@ -282,7 +279,9 @@ const VocabularyResourceCard = ({ resource, onOpen }) => {
   try {
     const parsed = JSON.parse(resource.content || '[]');
     wordCount = Array.isArray(parsed) ? parsed.length : 0;
-  } catch {}
+  } catch {
+    wordCount = 0;
+  }
 
   return (
     <motion.div
@@ -629,7 +628,7 @@ const ResourcesSection = () => {
     } else if (!type && filterType !== 'all') {
       setFilterType('all');
     }
-  }, [searchParams]);
+  }, [searchParams, filterType]);
 
   // Reset pagination on search change
   useEffect(() => {
@@ -859,12 +858,7 @@ const ResourcesSection = () => {
       {/* Vocabulary Study Dialog */}
       <Dialog open={isVocabDialogOpen} onOpenChange={setIsVocabDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-[3rem] border-none p-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl">
-          {selectedVocab && (
-            <VocabularyStudyView
-              resource={selectedVocab}
-              onClose={() => setIsVocabDialogOpen(false)}
-            />
-          )}
+          {selectedVocab && <VocabularyStudyView resource={selectedVocab} />}
         </DialogContent>
       </Dialog>
     </div>
@@ -872,7 +866,7 @@ const ResourcesSection = () => {
 };
 
 // Sub-component for structured study view
-const VocabularyStudyView = ({ resource, onClose }) => {
+const VocabularyStudyView = ({ resource }) => {
   const [words, setWords] = useState([]);
   const { user } = useAuth();
 
