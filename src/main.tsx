@@ -12,8 +12,8 @@ const scheduleIdle = (callback: () => void, timeout = 3000) => {
     return () => (window as any).cancelIdleCallback?.(id);
   }
 
-  const id = window.setTimeout(callback, Math.min(timeout, 2000));
-  return () => window.clearTimeout(id);
+  const id = (window as any).setTimeout(callback, Math.min(timeout, 2000));
+  return () => (window as any).clearTimeout(id);
 };
 
 // New Relic Initialization
@@ -72,18 +72,22 @@ const initSentry = () => {
     const isProduction = !['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
 
     Sentry.init({
-      dsn: 'https://c4a03f3938495e11019ede9a4347e941@o4511048158150656.ingest.de.sentry.io/4511048214052944',
+      dsn:
+        import.meta.env.VITE_SENTRY_DSN ||
+        'https://03ed8b4e6214256395735d17f027f8f4@o4511451727331328.ingest.us.sentry.io/4511452061040640',
       environment: isProduction ? 'production' : 'development',
       integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
       tracesSampleRate: isProduction ? 0.15 : 0,
       replaysSessionSampleRate: isProduction ? 0.1 : 0,
       replaysOnErrorSampleRate: isProduction ? 1.0 : 0,
-      sendDefaultPii: false,
+      sendDefaultPii: true,
       beforeSend(event, hint) {
-        // Don't send events from local development
+        // Temporarily commented out to allow testing and verification in local development
+        /*
         if (!isProduction) {
           return null;
         }
+        */
 
         const error = hint.originalException;
         const errorMessage = error instanceof Error ? error.message : String(error);

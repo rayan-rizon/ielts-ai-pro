@@ -652,6 +652,27 @@ const router = createBrowserRouter(
   }
 );
 
+function ErrorButton() {
+  if (!import.meta.env.DEV) return null;
+
+  return (
+    <button
+      onClick={() => {
+        throw new Error('This is your first error!');
+      }}
+      className="fixed bottom-6 right-6 z-[9999] flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider text-white bg-gradient-to-r from-red-500 via-pink-500 to-rose-600 shadow-[0_0_20px_rgba(239,68,68,0.5)] border border-white/20 hover:scale-105 active:scale-95 transition-all duration-300 backdrop-blur-md cursor-pointer animate-bounce"
+      style={{ animationDuration: '3s' }}
+      data-oid="sentry-test-btn"
+    >
+      <span className="relative flex h-2 w-2">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+        <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+      </span>
+      <span>Break the World (Sentry Test)</span>
+    </button>
+  );
+}
+
 function App() {
   React.useEffect(() => {
     const detectTestType = (pathname) => {
@@ -705,6 +726,7 @@ function App() {
         </Suspense>
       </LazyMotion>
       <IdleToaster />
+      <ErrorButton />
     </ErrorBoundary>
   );
 }
