@@ -112,7 +112,13 @@ const initSentry = () => {
   });
 };
 
-scheduleIdle(initSentry, 3000);
+if (!isProduction) {
+  // In development, initialize Sentry immediately so testing/verification works instantly
+  initSentry();
+} else {
+  // In production, defer to idle time to optimize First Contentful Paint
+  scheduleIdle(initSentry, 3000);
+}
 
 // Lazy-load telemetry to keep it off the critical path
 const SpeedInsights = lazy(() =>

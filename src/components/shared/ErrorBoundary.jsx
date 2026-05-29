@@ -25,6 +25,19 @@ class ErrorBoundary extends React.Component {
     // Log error for debugging (could be sent to logging service)
     console.error('[ErrorBoundary] Caught error:', error);
     console.error('[ErrorBoundary] Component stack:', errorInfo?.componentStack);
+
+    // Dynamically import Sentry to capture the React rendering exception
+    import('@sentry/react')
+      .then((Sentry) => {
+        Sentry.captureException(error, {
+          extra: {
+            componentStack: errorInfo?.componentStack,
+          },
+        });
+      })
+      .catch((err) => {
+        console.error('Failed to load Sentry for error reporting:', err);
+      });
   }
 
   handleRetry = () => {
