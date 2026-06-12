@@ -18,7 +18,7 @@ export default function DocumentHead({
   title,
   description,
   canonicalUrl,
-  image = 'https://www.ieltsai.pro/og-image.jpg',
+  image = 'https://www.ieltsai.pro/og-image.webp',
   type = 'website',
   keywords,
   noIndex = false,
@@ -30,6 +30,12 @@ export default function DocumentHead({
   const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
   const robotsContent =
     robots || `${noIndex ? 'noindex' : 'index'}, ${noFollow ? 'nofollow' : 'follow'}`;
+
+  const imageType = image.endsWith('.webp')
+    ? 'image/webp'
+    : image.endsWith('.png')
+    ? 'image/png'
+    : 'image/jpeg';
 
   return (
     <Helmet data-oid="k59b74f">
@@ -53,7 +59,7 @@ export default function DocumentHead({
           <meta property="og:image" content={image} data-oid="ay8zl_0" />
           <meta property="og:image:width" content="1200" data-oid="2.jetfu" />
           <meta property="og:image:height" content="630" data-oid="b9nqav:" />
-          <meta property="og:image:type" content="image/jpeg" data-oid="moru1ru" />
+          <meta property="og:image:type" content={imageType} data-oid="moru1ru" />
         </>
       )}
 
