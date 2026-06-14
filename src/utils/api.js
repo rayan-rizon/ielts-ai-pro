@@ -41,15 +41,6 @@ export async function callEdgeFunction(functionName, payload = {}, options = {})
     }
   }
 
-  // Check cache if enabled
-  if (cache) {
-    const cacheKey = createCacheKey(functionName, payload);
-    const cached = getFromCache(cacheKey);
-    if (cached !== null) {
-      return cached;
-    }
-  }
-
   try {
     // Get current session for authentication using direct client access
     const client = await getSupabaseClient();
@@ -61,6 +52,19 @@ export async function callEdgeFunction(functionName, payload = {}, options = {})
 
     if (!sessionData?.session?.access_token) {
       throw new Error('No valid session found. Please log in.');
+    }
+
+    const userScopedCacheKey = cache
+      ? createCacheKey(functionName, {
+          userId: sessionData.session.user?.id,
+          payload,
+        })
+      : null;
+    if (userScopedCacheKey) {
+      const cached = getFromCache(userScopedCacheKey);
+      if (cached !== null) {
+        return cached;
+      }
     }
 
     const response = await fetch(`${SUPABASE_FUNCTIONS_URL}/${functionName}`, {
@@ -107,9 +111,8 @@ export async function callEdgeFunction(functionName, payload = {}, options = {})
     const result = await response.json();
 
     // Cache the result if caching is enabled
-    if (cache) {
-      const cacheKey = createCacheKey(functionName, payload);
-      setInCache(cacheKey, result, cache.ttl || CACHE_TTL.MEDIUM);
+    if (cache && userScopedCacheKey) {
+      setInCache(userScopedCacheKey, result, cache.ttl || CACHE_TTL.MEDIUM);
     }
 
     return result;

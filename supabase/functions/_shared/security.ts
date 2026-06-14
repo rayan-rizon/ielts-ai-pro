@@ -5,6 +5,7 @@
  */
 import { sendEmail } from './resend.ts';
 import { getEmailTemplate } from './templates.ts';
+import { DEFAULT_ALLOWED_ORIGIN, isAllowedOrigin } from './originValidation.ts';
 
 // =============================================================================
 // CORS Configuration
@@ -14,17 +15,6 @@ import { getEmailTemplate } from './templates.ts';
  * Allowed origins for CORS.
  * Add your production domain(s) here.
  */
-const ALLOWED_ORIGINS = [
-  'http://localhost:5173', // Vite dev server
-  'http://localhost:5174', // Vite dev server (alternative port)
-  'http://localhost:3000', // Alternative local
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:5174',
-  'https://ieltsai.pro', // Production domain
-  'https://www.ieltsai.pro', // Production with www
-  'https://ielts-ai-pro*.vercel.app', // Vercel preview deployments (project-scoped)
-];
-
 /**
  * Get CORS headers based on the request origin.
  * Returns specific origin if allowed, or null if not.
@@ -33,19 +23,7 @@ export function getCorsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get('Origin') || '';
 
   // Check if origin is in allowed list
-  const isAllowed = ALLOWED_ORIGINS.some((allowed) => {
-    // Support wildcard subdomains with pattern matching
-    if (allowed.includes('*')) {
-      const regex = new RegExp('^' + allowed.replace(/\*/g, '.*') + '$');
-      return regex.test(origin);
-    }
-    return allowed === origin;
-  });
-
-  // For development, also allow if origin matches localhost pattern
-  const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
-
-  const allowedOrigin = isAllowed || isLocalhost ? origin : ALLOWED_ORIGINS[0];
+  const allowedOrigin = isAllowedOrigin(origin) ? origin : DEFAULT_ALLOWED_ORIGIN;
 
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
@@ -201,18 +179,7 @@ export function validateCsrfProtection(req: Request): { valid: boolean; error?: 
 
   // Check origin matches allowed list
   if (origin) {
-    const isAllowedOrigin =
-      ALLOWED_ORIGINS.some((allowed) => {
-        if (allowed.includes('*')) {
-          const regex = new RegExp('^' + allowed.replace(/\*/g, '.*') + '$');
-          return regex.test(origin);
-        }
-        return allowed === origin;
-      }) ||
-      origin.includes('localhost') ||
-      origin.includes('127.0.0.1');
-
-    if (!isAllowedOrigin) {
+    if (!isAllowedOrigin(origin)) {
       return { valid: false, error: 'Invalid request origin' };
     }
   }
@@ -222,12 +189,7 @@ export function validateCsrfProtection(req: Request): { valid: boolean; error?: 
     try {
       const refererUrl = new URL(referer);
       const refererOrigin = refererUrl.origin;
-      const isAllowedReferer =
-        ALLOWED_ORIGINS.some((allowed) => allowed === refererOrigin) ||
-        refererOrigin.includes('localhost') ||
-        refererOrigin.includes('127.0.0.1');
-
-      if (!isAllowedReferer) {
+      if (!isAllowedOrigin(refererOrigin)) {
         return { valid: false, error: 'Invalid request referer' };
       }
     } catch {
@@ -295,6 +257,120 @@ interface QuotaCheckResult {
   error?: string;
 }
 
+export interface QuotaReservationResult extends QuotaCheckResult {
+  reservationId?: string;
+  alreadyReserved?: boolean;
+}
+
+/**
+ * Atomically checks quota and records usage before provider work begins.
+ * Subscription tier is resolved in the database from the authenticated user.
+ */
+export async function reserveDatabaseQuota(
+  // @ts-ignore
+  supabase: any,
+  authId: string,
+  endpoint: string,
+  featureType: string | null = null,
+  idempotencyKey: string | null = null,
+  metadata: Record<string, unknown> = {}
+): Promise<QuotaReservationResult> {
+  try {
+    const { data, error } = await supabase.rpc('reserve_ai_api_usage', {
+      p_auth_id: authId,
+      p_endpoint: endpoint,
+      p_feature_type: featureType,
+      p_idempotency_key: idempotencyKey,
+      p_metadata: metadata,
+    });
+
+    if (error) {
+      console.error('AI quota reservation failed:', error);
+      return {
+        allowed: false,
+        dailyRemaining: 0,
+        monthlyRemaining: 0,
+        dailyUsed: 0,
+        monthlyUsed: 0,
+        error: 'Could not reserve AI quota — access denied',
+      };
+    }
+
+    const result = data?.[0] || data;
+    return {
+      allowed: result?.allowed ?? false,
+      dailyRemaining: result?.daily_remaining ?? 0,
+      monthlyRemaining: result?.monthly_remaining ?? 0,
+      dailyUsed: result?.daily_used ?? 0,
+      monthlyUsed: result?.monthly_used ?? 0,
+      reservationId: result?.reservation_id || undefined,
+      alreadyReserved: result?.already_reserved ?? false,
+    };
+  } catch (err) {
+    console.error('AI quota reservation exception:', err);
+    return {
+      allowed: false,
+      dailyRemaining: 0,
+      monthlyRemaining: 0,
+      dailyUsed: 0,
+      monthlyUsed: 0,
+      error: 'Could not reserve AI quota — access denied',
+    };
+  }
+}
+
+/**
+ * Adds provider usage details to an existing reservation.
+ */
+export async function finalizeApiUsage(
+  // @ts-ignore
+  supabase: any,
+  reservationId: string | undefined,
+  tokensUsed: number = 0,
+  cached: boolean = false,
+  metadata: Record<string, unknown> = {},
+  status: 'completed' | 'failed' = 'completed'
+): Promise<boolean> {
+  if (!reservationId) return false;
+
+  try {
+    const { data: existing, error: readError } = await supabase
+      .from('ai_api_usage')
+      .select('request_metadata')
+      .eq('id', reservationId)
+      .single();
+
+    if (readError) {
+      console.warn('Could not read AI usage reservation:', readError);
+      return false;
+    }
+
+    const { error } = await supabase
+      .from('ai_api_usage')
+      .update({
+        cached,
+        tokens_used: Math.max(0, Math.round(tokensUsed)),
+        request_metadata: {
+          ...(existing?.request_metadata || {}),
+          ...metadata,
+          reservationStatus: status,
+          finalizedAt: new Date().toISOString(),
+        },
+      })
+      .eq('id', reservationId);
+
+    if (error) {
+      console.warn('Failed to finalize AI usage reservation:', error);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.warn('AI usage finalization exception:', err);
+    return false;
+  }
+}
+
 /**
  * Check user's quota against database-stored tier limits.
  * This is the persistent quota check (daily/monthly limits).
@@ -358,18 +434,18 @@ export async function checkDatabaseQuota(
 
     // Trigger low quota / conversion email for free users ONLY when exactly 1 credit remains
     if (
-        effectiveTier === 'free' && 
-        result?.allowed && 
-        (result?.daily_remaining === 1 || result?.monthly_remaining === 1) &&
-        userProfile.email
+      effectiveTier === 'free' &&
+      result?.allowed &&
+      (result?.daily_remaining === 1 || result?.monthly_remaining === 1) &&
+      userProfile.email
     ) {
-        const template = getEmailTemplate('quota_conversion', { full_name: userProfile.full_name });
-        sendEmail({
-            to: userProfile.email,
-            subject: template.subject,
-            type: 'quota_conversion',
-            html: template.html,
-        }).catch(err => console.error("Failed to send quota email:", err));
+      const template = getEmailTemplate('quota_conversion', { full_name: userProfile.full_name });
+      sendEmail({
+        to: userProfile.email,
+        subject: template.subject,
+        type: 'quota_conversion',
+        html: template.html,
+      }).catch((err) => console.error('Failed to send quota email:', err));
     }
 
     return {

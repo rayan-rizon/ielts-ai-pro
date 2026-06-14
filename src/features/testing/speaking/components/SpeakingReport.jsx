@@ -135,10 +135,15 @@ export default function SpeakingReport({
 
   // Helper to get band score level and easier-to-understand description
   const getBandInfo = (score) => {
+    if (score == null)
+      return {
+        label: 'Score Unavailable',
+        description: 'Not enough assessment evidence was captured to calculate this score.',
+      };
     if (score >= 8.5)
       return {
         label: 'Expert Level',
-        description: 'You speak like a native with total confidence.',
+        description: 'You communicate with precise, flexible, and highly effective spoken English.',
       };
     if (score >= 7.5)
       return {
@@ -220,9 +225,44 @@ export default function SpeakingReport({
 
   if (!finalEvaluation) return null;
 
-  const overallScore = Number(finalEvaluation.overallBand) || 0;
+  const hasOverall =
+    finalEvaluation.overallBand != null && Number.isFinite(Number(finalEvaluation.overallBand));
+  const overallScore = hasOverall ? Number(finalEvaluation.overallBand) : null;
+  const hasPronunciation =
+    finalEvaluation.pronunciation != null && Number.isFinite(Number(finalEvaluation.pronunciation));
+  const isTranscriptEstimate = finalEvaluation.scoreBasis === 'transcript' || !hasPronunciation;
   const notes = finalEvaluation.criterionNotes || {};
   const legacy = finalEvaluation.analysis || {};
+  const performanceMetrics = [
+    {
+      label: 'Fluency & Coherence',
+      icon: MessageSquare,
+      value: finalEvaluation.fluency,
+      color: 'from-rose-500 to-rose-600',
+      bg: 'bg-rose-500/5',
+    },
+    {
+      label: 'Lexical Resource',
+      icon: BookOpen,
+      value: finalEvaluation.lexical,
+      color: 'from-orange-500 to-rose-500',
+      bg: 'bg-orange-500/5',
+    },
+    {
+      label: 'Grammar Range',
+      icon: Brain,
+      value: finalEvaluation.grammar,
+      color: 'from-indigo-500 to-rose-500',
+      bg: 'bg-indigo-500/5',
+    },
+    {
+      label: 'Pronunciation',
+      icon: Mic2,
+      value: finalEvaluation.pronunciation,
+      color: 'from-rose-600 to-rose-800',
+      bg: 'bg-rose-600/5',
+    },
+  ].filter((score) => score.value != null && Number.isFinite(Number(score.value)));
 
   return (
     <div className="min-h-screen py-12 px-4 md:px-6 relative isolate">
@@ -274,11 +314,16 @@ export default function SpeakingReport({
               {/* ─── Top Score Section (Side-by-Side) ─── */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                 {/* Overall Score Ring - Left Side */}
-                <div className="lg:col-span-4 bg-white dark:bg-zinc-900 p-5 rounded-[2.5rem] border-2 border-border/80 dark:border-white/10 flex flex-col items-center justify-center text-center space-y-4 relative overflow-hidden group/score shadow-xl shadow-rose-500/5">
+                <div
+                  className={cn(
+                    'bg-white dark:bg-zinc-900 p-5 rounded-[2.5rem] border-2 border-border/80 dark:border-white/10 flex flex-col items-center justify-center text-center space-y-4 relative overflow-hidden group/score shadow-xl shadow-rose-500/5',
+                    performanceMetrics.length > 0 ? 'lg:col-span-4' : 'lg:col-span-12'
+                  )}
+                >
                   <div className="absolute inset-0 bg-gradient-to-br from-rose-500/[0.08] dark:from-rose-500/[0.12] via-transparent to-transparent opacity-100" />
 
                   <p className="text-muted-foreground dark:text-zinc-300 text-[10px] font-black uppercase tracking-[0.4em] relative z-10">
-                    Overall Band Score
+                    {isTranscriptEstimate ? 'Transcript Band Estimate' : 'Overall Band Score'}
                   </p>
 
                   <div className="relative inline-flex items-center justify-center group/ring">
@@ -307,7 +352,9 @@ export default function SpeakingReport({
                         strokeWidth="16"
                         strokeDasharray="402.1"
                         initial={{ strokeDashoffset: 402.1 }}
-                        animate={{ strokeDashoffset: 402.1 * (1 - overallScore / 9) }}
+                        animate={{
+                          strokeDashoffset: 402.1 * (1 - (overallScore || 0) / 9),
+                        }}
                         transition={{ duration: 1.8, ease: 'circOut', delay: 0.5 }}
                         strokeLinecap="round"
                         fill="transparent"
@@ -324,7 +371,11 @@ export default function SpeakingReport({
                         transition={{ delay: 1, duration: 0.5 }}
                         className="text-6xl font-black text-foreground tracking-tighter cursor-default"
                       >
-                        {overallScore % 1 === 0 ? overallScore : overallScore.toFixed(1)}
+                        {overallScore == null
+                          ? 'N/A'
+                          : overallScore % 1 === 0
+                            ? overallScore
+                            : overallScore.toFixed(1)}
                       </motion.span>
                     </div>
                   </div>
@@ -340,89 +391,59 @@ export default function SpeakingReport({
                 </div>
 
                 {/* Score Breakdown - Right Side */}
-                <div className="lg:col-span-8 p-6 bg-white dark:bg-zinc-900 border-2 border-border/80 dark:border-white/10 rounded-[2.5rem] flex flex-col justify-center shadow-xl shadow-rose-500/5 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-                    <Target className="w-32 h-32 text-rose-500" />
-                  </div>
+                {performanceMetrics.length > 0 && (
+                  <div className="lg:col-span-8 p-6 bg-white dark:bg-zinc-900 border-2 border-border/80 dark:border-white/10 rounded-[2.5rem] flex flex-col justify-center shadow-xl shadow-rose-500/5 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+                      <Target className="w-32 h-32 text-rose-500" />
+                    </div>
 
-                  <h3 className="text-xs font-black text-rose-600/80 dark:text-rose-400 mb-6 uppercase tracking-[0.4em] flex items-center gap-2">
-                    <Zap className="w-3 h-3" />
-                    Performance Metrics
-                  </h3>
+                    <h3 className="text-xs font-black text-rose-600/80 dark:text-rose-400 mb-6 uppercase tracking-[0.4em] flex items-center gap-2">
+                      <Zap className="w-3 h-3" />
+                      Performance Metrics
+                    </h3>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
-                    {[
-                      {
-                        label: 'Fluency & Coherence',
-                        icon: MessageSquare,
-                        value: finalEvaluation.fluency,
-                        color: 'from-rose-500 to-rose-600',
-                        bg: 'bg-rose-500/5',
-                      },
-                      {
-                        label: 'Lexical Resource',
-                        icon: BookOpen,
-                        value: finalEvaluation.lexical,
-                        color: 'from-orange-500 to-rose-500',
-                        bg: 'bg-orange-500/5',
-                      },
-                      {
-                        label: 'Grammar Range',
-                        icon: Brain,
-                        value: finalEvaluation.grammar,
-                        color: 'from-indigo-500 to-rose-500',
-                        bg: 'bg-indigo-500/5',
-                      },
-                      {
-                        label: 'Pronunciation',
-                        icon: Mic2,
-                        value: finalEvaluation.pronunciation,
-                        color: 'from-rose-600 to-rose-800',
-                        bg: 'bg-rose-600/5',
-                      },
-                    ].map((score) => (
-                      <div
-                        key={score.label}
-                        className={`p-4 rounded-2xl border border-border/50 dark:border-white/10 ${score.bg} dark:bg-zinc-800/50 transition-all duration-300 hover:border-rose-500/20 dark:hover:border-rose-500/40 group/metric shadow-sm`}
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex items-center gap-2.5">
-                            <div
-                              className={`p-2 rounded-lg bg-white dark:bg-zinc-900 shadow-sm border border-border/50 dark:border-white/20 text-rose-500 group-hover/metric:scale-110 transition-transform duration-300`}
-                            >
-                              <score.icon className="w-4 h-4" />
-                            </div>
-                            <span className="text-[11px] font-black text-foreground/70 dark:text-zinc-100 uppercase tracking-widest leading-tight max-w-[100px]">
-                              {score.label}
-                            </span>
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <span className="text-xl font-black text-rose-600 dark:text-rose-400 leading-none">
-                              {score.value}
-                            </span>
-                            <span className="text-[8px] font-bold text-muted-foreground dark:text-zinc-200 uppercase">
-                              / 9.0
-                            </span>
-                          </div>
-                        </div>
-                        <div className="h-2 w-full bg-muted/30 dark:bg-zinc-800 rounded-full overflow-hidden relative">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${(score.value / 9) * 100}%` }}
-                            transition={{ duration: 1.2, ease: 'easeOut', delay: 1 }}
-                            className={`h-full bg-gradient-to-r ${score.color} relative`}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                      {performanceMetrics.map((score) => {
+                        const numericValue = Number(score.value);
+                        return (
+                          <div
+                            key={score.label}
+                            className={`p-4 rounded-2xl border border-border/50 dark:border-white/10 ${score.bg} dark:bg-zinc-800/50 transition-all duration-300 hover:border-rose-500/20 dark:hover:border-rose-500/40 group/metric shadow-sm`}
                           >
-                            <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                          </motion.div>
-                        </div>
-                      </div>
-                    ))}
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex items-center gap-2.5">
+                                <div className="p-2 rounded-lg bg-white dark:bg-zinc-900 shadow-sm border border-border/50 dark:border-white/20 text-rose-500 group-hover/metric:scale-110 transition-transform duration-300">
+                                  <score.icon className="w-4 h-4" />
+                                </div>
+                                <span className="text-[11px] font-black text-foreground/70 dark:text-zinc-100 uppercase tracking-widest leading-tight max-w-[100px]">
+                                  {score.label}
+                                </span>
+                              </div>
+                              <div className="flex flex-col items-end">
+                                <span className="text-xl font-black text-rose-600 dark:text-rose-400 leading-none">
+                                  {score.value}
+                                </span>
+                                <span className="text-[8px] font-bold text-muted-foreground dark:text-zinc-200 uppercase">
+                                  / 9.0
+                                </span>
+                              </div>
+                            </div>
+                            <div className="h-2 w-full bg-muted/30 dark:bg-zinc-800 rounded-full overflow-hidden relative">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${(numericValue / 9) * 100}%` }}
+                                transition={{ duration: 1.2, ease: 'easeOut', delay: 1 }}
+                                className={`h-full bg-gradient-to-r ${score.color} relative`}
+                              >
+                                <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                              </motion.div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <p className="mt-3 text-[10px] text-muted-foreground dark:text-zinc-500 text-center leading-relaxed">
-                    Pronunciation is assessed from audio analysis and transcript context. Ensure
-                    clear audio recording quality for best results.
-                  </p>
-                </div>
+                )}
               </div>
 
               {/* ─── Part-by-Part Evaluation (Themed Cards) ─── */}
@@ -486,7 +507,9 @@ export default function SpeakingReport({
                               <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">
                                 {part.label}
                               </p>
-                              <p className="text-3xl font-black text-foreground">{data.band}</p>
+                              <p className="text-3xl font-black text-foreground">
+                                {data.band ?? 'N/A'}
+                              </p>
                               <p className="text-[10px] font-black opacity-80">{part.subtitle}</p>
                             </div>
 
@@ -510,7 +533,7 @@ export default function SpeakingReport({
                     <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500 blur-[100px] opacity-[0.15] -mr-32 -mt-32" />
                     <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-500/90 mb-4 flex items-center gap-2">
                       <Bot className="w-4 h-4" />
-                      Professional Summary
+                      AI Practice Summary
                     </h4>
                     <p className="text-lg md:text-xl font-bold leading-snug italic relative z-10 selection:bg-rose-500/30">
                       "{finalEvaluation.feedback}"
@@ -554,7 +577,7 @@ export default function SpeakingReport({
                       borderColor: 'border-pink-500/20',
                     },
                   ]
-                    .filter((c) => c.analysis)
+                    .filter((c) => c.analysis && (c.title !== 'Pronunciation' || hasPronunciation))
                     .map((criterion) => (
                       <div
                         key={criterion.title}
@@ -828,6 +851,23 @@ export default function SpeakingReport({
                   </div>
                 )}
 
+                {!deepDiveError && !isGeneratingDetailed && !detailedFeedback && (
+                  <div className="p-8 text-center rounded-[2rem] border border-orange-500/20 bg-orange-500/5">
+                    <p className="text-sm text-muted-foreground mb-4 max-w-lg mx-auto">
+                      Generate an optional question-by-question review when you need detailed
+                      corrections and stronger sample answers.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRetryDeepDive}
+                      className="text-xs font-bold border-orange-500/30 hover:bg-orange-500/10"
+                    >
+                      <Sparkles className="w-3 h-3 mr-1.5" /> Generate Deep Dive
+                    </Button>
+                  </div>
+                )}
+
                 {detailedFeedback && (
                   <div className="space-y-12 animate-in fade-in slide-in-from-bottom-5 duration-1000">
                     {[1, 2, 3].map((partNumber) => {
@@ -1024,7 +1064,7 @@ export default function SpeakingReport({
                                               <div className="flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
-                                                  Band 9.0 sample
+                                                  Improved sample response
                                                 </span>
                                               </div>
                                               <div className="bg-emerald-50/50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-500/20 dark:border-emerald-500/20 relative group-hover/suggest:border-emerald-500/40 transition-colors">

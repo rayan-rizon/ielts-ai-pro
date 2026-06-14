@@ -404,6 +404,8 @@ export default function SpeakingTest() {
         try {
           response = await callEdgeFunction('processSpeakingSession', {
             testId,
+            speakingSessionId: session?.id,
+            turnId: crypto.randomUUID(),
             partNumber: currentPartNumber,
             audioBase64,
             conversationHistory,
@@ -703,6 +705,7 @@ export default function SpeakingTest() {
       testId,
       formatIeltsQuestion,
       currentQuestionIndex,
+      session?.id,
       session?.content_data,
       setConversation,
     ]
@@ -777,7 +780,14 @@ export default function SpeakingTest() {
       try {
         const response = await callEdgeFunction('generateDetailedSpeakingFeedback', {
           testId,
+          speakingSessionId: session?.id,
           allPartsConversation: conversationsToEvaluate,
+          partContexts: Object.fromEntries(
+            Object.entries(allParts).map(([part, data]) => [
+              part,
+              { title: data?.title || '', questions: data?.questions || '' },
+            ])
+          ),
         });
         if (!isMountedRef.current) return;
         if (response.success && response.detailedAnalysis) {
@@ -799,7 +809,14 @@ export default function SpeakingTest() {
         if (isMountedRef.current) setIsGeneratingDetailed(false);
       }
     },
-    [testId, isGeneratingDetailed, session?.content_data, saveSessionProgress]
+    [
+      testId,
+      isGeneratingDetailed,
+      session?.id,
+      session?.content_data,
+      saveSessionProgress,
+      allParts,
+    ]
   );
 
   // ─── Final Evaluation ──────────────────────────────────────────────────
@@ -814,19 +831,21 @@ export default function SpeakingTest() {
         [currentPartNumber]: conversation.filter((c) => !c.isLoading),
       };
 
-      // Fire deep dive in parallel — no await, does not block band score generation
-      if (!detailedFeedback) {
-        fireDeepDive(conversationsToEvaluate);
-      }
-
       try {
         setLoadingMessage('AI is analyzing your response...');
         setProcessingStatus('AI is analyzing your response...');
 
         const response = await callEdgeFunction('evaluateSpeakingTest', {
           testId,
+          speakingSessionId: session?.id,
           allPartsConversation: conversationsToEvaluate,
           allPartsPronunciation: acousticMetricsRef.current,
+          partContexts: Object.fromEntries(
+            Object.entries(allParts).map(([part, data]) => [
+              part,
+              { title: data?.title || '', questions: data?.questions || '' },
+            ])
+          ),
         });
 
         if (response.success && response.evaluation) {
@@ -836,18 +855,18 @@ export default function SpeakingTest() {
 
           trackAppEvent('speaking_submitted', {
             test_type: 'speaking',
-            overall_band: response.evaluation?.overallBand || null,
+            overall_band: response.evaluation?.overallBand ?? null,
             session_id: session?.id,
           });
           trackAppEvent('test_completed', {
             test_type: 'speaking',
-            overall_band: response.evaluation?.overallBand || null,
+            overall_band: response.evaluation?.overallBand ?? null,
             session_id: session?.id,
           });
 
           await saveSessionProgress({
             is_completed: true,
-            score: response.evaluation.overallBand || 0,
+            score: response.evaluation.overallBand ?? null,
             completed_at: new Date().toISOString(),
             content_data: {
               ...session?.content_data,
@@ -855,10 +874,10 @@ export default function SpeakingTest() {
               allPartsConversation: conversationsToEvaluate,
               // Flat criteria scores for analytics aggregation
               criteriaScores: {
-                fluency: response.evaluation.fluency || 0,
-                lexicalResource: response.evaluation.lexical || 0,
-                grammar: response.evaluation.grammar || 0,
-                pronunciation: response.evaluation.pronunciation || 0,
+                fluency: response.evaluation.fluency ?? null,
+                lexicalResource: response.evaluation.lexical ?? null,
+                grammar: response.evaluation.grammar ?? null,
+                pronunciation: response.evaluation.pronunciation ?? null,
               },
             },
           });
@@ -871,11 +890,11 @@ export default function SpeakingTest() {
           }
 
           // Trigger adaptive learning path refresh in background (Pro/Premium only)
-          if (session?.user_id) {
+          if (session?.user_id && response.evaluation.overallBand != null) {
             refreshLearningPathAfterTest(
               session.user_id,
               'speaking',
-              response.evaluation.overallBand || 0
+              response.evaluation.overallBand
             ).catch((err) => {
               if (err?.status !== 403)
                 console.warn('Speaking: learning path refresh failed:', err?.message);
@@ -960,12 +979,11 @@ export default function SpeakingTest() {
       currentPartNumber,
       conversation,
       session?.content_data,
+      allParts,
       session?.id,
       awardXP,
       saveSessionProgress,
       session?.user_id,
-      detailedFeedback,
-      fireDeepDive,
     ]
   );
 
@@ -1202,10 +1220,11 @@ export default function SpeakingTest() {
                 const band = Number(matchingSession.score) || 0;
                 setFinalEvaluation({
                   overallBand: band,
-                  fluency: band,
-                  lexical: band,
-                  grammar: band,
-                  pronunciation: band,
+                  fluency: null,
+                  lexical: null,
+                  grammar: null,
+                  pronunciation: null,
+                  assessmentStatus: 'legacy',
                   feedback: 'Detailed criterion breakdown was not saved for this session.',
                   strengths: [],
                   improvements: [],
@@ -1655,11 +1674,11 @@ export default function SpeakingTest() {
                   variant="secondary"
                   className="text-[9px] uppercase tracking-widest font-bold py-0 h-4 bg-muted/50"
                 >
-                  IELTS Certified
+                  AI Practice
                 </Badge>
                 <div className="w-0.5 h-0.5 rounded-full bg-muted-foreground/30" />
                 <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  Exam Board
+                  Mock Examiner
                 </p>
               </div>
             </div>

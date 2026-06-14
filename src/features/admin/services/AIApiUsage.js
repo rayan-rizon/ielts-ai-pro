@@ -1,26 +1,18 @@
 import { supabase } from '@/lib/supabase';
 import { User } from '@/features/auth/services/User';
 
-// Cost per 1K tokens for different models
+// Approximate blended cost per 1K total tokens.
+// Total-token telemetry cannot separate input, output, audio, and thinking tokens,
+// so dashboard values are estimates rather than invoice-equivalent amounts.
 const MODEL_PRICING = {
-  'gemini-2.5-flash': 0.0003, // ~$0.30 per 1M tokens (blended input/output)
-  'gemini-2.5-flash-lite': 0.0001, // ~$0.10 per 1M tokens (blended)
+  'gemini-2.5-flash': 0.001, // Conservative text blend: $0.30 input / $2.50 output per 1M
+  'gemini-2.5-flash-lite': 0.0002, // Conservative text blend: $0.10 input / $0.40 output per 1M
   'gemini-2.0-flash': 0.0002,
   'gemini-1.5-flash': 0.0002, // Legacy model
   'gpt-4o': 0.01, // ~$10.00 per 1M tokens (blended)
   'gpt-4o-mini': 0.0003, // ~$0.30 per 1M tokens (blended)
   'claude-3-5-sonnet': 0.015, // ~$15.00 per 1M tokens (blended)
   default: 0.0002,
-};
-
-// Map endpoints to their respective models (updated 2026-01-28)
-const ENDPOINT_MODELS = {
-  generateDetailedFeedback: 'gemini-2.5-flash', // Writing evaluation with multimodal
-  processSpeakingSession: 'gemini-2.5-flash', // Speaking test conversation
-  transcribeAudio: 'gemini-2.5-flash', // Audio transcription
-  evaluateSpeakingTest: 'gemini-2.5-flash', // Final speaking evaluation
-  generateStudyRecommendations: 'gemini-2.5-flash-lite', // Simpler text generation
-  generateAdaptiveLearningPath: 'gemini-2.5-flash-lite', // Learning path generation
 };
 
 export const AIApiUsage = {
@@ -61,7 +53,7 @@ export const AIApiUsage = {
       totalCachedCalls: data.totalCachedCalls,
       totalTokens: data.totalTokens,
       uniqueUsers: data.uniqueUsers,
-      totalCost: (data.totalTokens / 1000) * 0.0002, // blended rate approximation
+      totalCost: (data.totalTokens / 1000) * MODEL_PRICING['gemini-2.5-flash'],
     };
   },
 

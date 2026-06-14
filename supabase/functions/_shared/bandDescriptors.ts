@@ -8,6 +8,7 @@
  * - Grammatical Range and Accuracy
  * - Pronunciation
  */
+import { averageBandScores } from './evaluationUtils.ts';
 
 export interface BandDescriptor {
   band: number;
@@ -30,12 +31,10 @@ export function generateEvaluationPrompt(
   partNumber: number | 'full'
 ): string {
   const partContext =
-    partNumber === 'full'
-      ? 'the COMPLETE speaking test (all 3 parts)'
-      : `Part ${partNumber}`;
+    partNumber === 'full' ? 'the COMPLETE speaking test (all 3 parts)' : `Part ${partNumber}`;
 
-  return `You are a senior IELTS examiner conducting an official assessment of ${partContext}.
-Your evaluation must match the standard a real Cambridge/IDP trained examiner would produce.
+  return `You are a senior IELTS speaking evaluator conducting an IELTS-aligned practice assessment of ${partContext}.
+Calibrate the feedback against the public IELTS Speaking band descriptors without claiming this is an official examiner result.
 
 **TRANSCRIPT:**
 ${fullConversation}
@@ -44,17 +43,18 @@ ${fullConversation}
 
 Rule 1 — Audio availability check:
 - If the transcript section "=== PRONUNCIATION & FLUENCY ASSESSMENT (from audio analysis) ===" IS present: use that data as PRIMARY evidence for Pronunciation and Fluency.
-- If that section is NOT present (text-only transcript): set pronunciation to 0 and write in criterionNotes.pronunciation: "Pronunciation cannot be assessed from a text transcript. This score is not available. Please use the app's audio recording feature for a pronunciation assessment." Do NOT assign any numeric value to pronunciation as a real score.
+- If that section is NOT present (text-only transcript): set pronunciation to null and leave criterionNotes.pronunciation as an empty string. Score the transcript evidence for Fluency & Coherence, Lexical Resource, and Grammatical Range & Accuracy. Never infer pronunciation, accent, intonation, stress, pace, pauses, or intelligibility from punctuation or wording in a transcript.
 
 Rule 2 — Response length calibration for Fluency & Coherence:
 - Estimate the total candidate word count per part from the transcript.
-- Part 2 (Individual Long Turn) is particularly critical: Band 7+ Fluency requires 1–2 minutes of sustained extended speech (approx. 120–200+ words). If the candidate's Part 2 response is under 80 words, Fluency & Coherence CANNOT exceed 6.0.
-- Very short Part 1 answers (under 20 words per question) and very short Part 3 answers (under 30 words per question) should also be reflected in lower Fluency scores.
-- Do not assign Band 7 Fluency to a candidate whose entire test responses amount to fewer than 150 words total.
+- Treat short responses as limited evidence of sustained speech and idea development. Do not apply invented word-count-to-band conversion tables.
+- Part 2 should normally demonstrate an extended turn. If it is brief, explain which Fluency & Coherence features were not demonstrated rather than imposing an automatic numeric ceiling.
+- Very short Part 1 or Part 3 answers should affect the score only where they limit continuity, coherence, or development actually demonstrated.
 
 **SCORING CONTEXT:**
 - Transcripts are ASR-generated: ignore spelling and punctuation in the transcript itself.
 - Focus on LEXICAL CHOICES, GRAMMATICAL ACCURACY, RANGE, and COHERENCE visible in the text.
+- Without audio evidence, Fluency & Coherence may use response development and logical continuity, but must not claim evidence about speech rate, pausing, hesitation, or self-correction.
 - Be calibrated and honest. Over-scoring provides false confidence. Under-scoring discourages genuine ability.
 
 **BAND ANCHOR DESCRIPTORS:**
@@ -81,7 +81,7 @@ Grammatical Range & Accuracy:
 - 5: Basic sentence forms mostly accurate. Limited range. Frequent errors in complex forms.
 
 Pronunciation (score only if audio data is provided above):
-- 9: Native-like, effortless articulation. No impact on understanding.
+- 9: Uses a full range of pronunciation features with precision and subtlety; is effortless to understand.
 - 8: Wide range of features. Minor L1 influence. Very easy to understand.
 - 7: Generally clear. L1 influence evident. Occasional misunderstanding possible.
 - 6: Intelligible. Consistent L1 features. Some listener effort required.
@@ -92,7 +92,7 @@ Pronunciation (score only if audio data is provided above):
   "fluency": <0–9.0 in 0.5 steps>,
   "lexical": <0–9.0 in 0.5 steps>,
   "grammar": <0–9.0 in 0.5 steps>,
-  "pronunciation": <0–9.0 in 0.5 steps, OR 0 if no audio data>,
+  "pronunciation": <0–9.0 in 0.5 steps, OR null if no audio data>,
   "feedback": "<2 sentence overall performance summary — cite specific evidence from the transcript>",
   "partScores": {
     "part1": { "band": <score>, "keyObservation": "<1 sentence specific to Part 1 performance>" },
@@ -103,7 +103,7 @@ Pronunciation (score only if audio data is provided above):
     "fluency": "<specific evidence from transcript — cite actual responses, note length calibration if applied>",
     "lexical": "<specific vocabulary examples from transcript — name actual words used or missing>",
     "grammar": "<name specific grammatical errors found in the transcript verbatim, or confirm accuracy if none found>",
-    "pronunciation": "<audio-based notes if data present, or N/A message if text-only>"
+    "pronunciation": "<audio-based notes if data is present, otherwise an empty string>"
   },
   "strengths": ["<specific strength with transcript evidence>", "<second strength>", "<third strength>"],
   "improvements": [
@@ -120,11 +120,10 @@ Pronunciation (score only if audio data is provided above):
  * Calculate IELTS overall band score (average rounded to nearest 0.5)
  */
 export function calculateOverallBand(
-  fluency: number,
-  lexical: number,
-  grammar: number,
-  pronunciation: number
-): number {
-  const average = (fluency + lexical + grammar + pronunciation) / 4;
-  return Math.round(average * 2) / 2; // Round to nearest 0.5
+  fluency: number | null,
+  lexical: number | null,
+  grammar: number | null,
+  pronunciation: number | null
+): number | null {
+  return averageBandScores([fluency, lexical, grammar, pronunciation]);
 }

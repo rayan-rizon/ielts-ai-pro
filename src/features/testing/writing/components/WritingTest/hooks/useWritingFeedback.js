@@ -7,6 +7,8 @@ import { generateDetailedFeedback } from '@/utils/api';
 import { removeFromCache } from '@/hooks/useDataQuery';
 import { trackAppEvent } from '@/lib/tracking';
 
+const CURRENT_FEEDBACK_EVALUATOR_VERSION = '2026-06-14-v2';
+
 /**
  * useWritingFeedback
  *
@@ -145,15 +147,27 @@ export function useWritingFeedback(awardXP) {
 
         const wordCount = type === 'Task 1' ? task1Words : task2Words;
         const isBelowMinimum = type === 'Task 1' ? wordCount < 150 : wordCount < 250;
+        const taskConfig = store.compositeTasks[type] || store.task;
+        const prompt = taskConfig?.prompt || '';
+        const imageUrl = type === 'Task 1' ? taskConfig?.image_url || null : null;
 
         const savedFeedback = store.feedbacks[type];
-        if (savedFeedback && isValidFeedback(savedFeedback) && savedFeedback.originalSource) {
+        if (
+          savedFeedback &&
+          savedFeedback.evaluationVersion === CURRENT_FEEDBACK_EVALUATOR_VERSION &&
+          isValidFeedback(savedFeedback) &&
+          savedFeedback.originalSource
+        ) {
           const savedSourceRaw = savedFeedback.originalSource
             .replace(/<[^>]*>/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();
 
-          if (currentTextRaw === savedSourceRaw) {
+          if (
+            currentTextRaw === savedSourceRaw &&
+            savedFeedback.taskPrompt === prompt &&
+            (savedFeedback.imageUrl || null) === imageUrl
+          ) {
             return {
               type,
               cached: true,
@@ -161,7 +175,14 @@ export function useWritingFeedback(awardXP) {
             };
           }
         }
-        return { type, cached: false, text: currentTextRaw, isBelowMinimum };
+        return {
+          type,
+          cached: false,
+          text: currentTextRaw,
+          isBelowMinimum,
+          prompt,
+          imageUrl,
+        };
       });
 
       // Execute parallel analysis for non-cached tasks
@@ -171,18 +192,11 @@ export function useWritingFeedback(awardXP) {
           return { type: item.type, feedback: item.feedback };
         }
 
-        let prompt = store.task.prompt;
-        let imageUrl = store.task.image_url;
-        if (store.compositeTasks[item.type]) {
-          prompt = store.compositeTasks[item.type].prompt;
-          imageUrl = store.compositeTasks[item.type].image_url;
-        }
-
         const payload = {
           writingText: item.text,
-          taskPrompt: prompt,
+          taskPrompt: item.prompt,
           taskType: item.type,
-          imageUrl: item.type === 'Task 1' ? imageUrl : null,
+          imageUrl: item.imageUrl,
         };
 
         const res = await generateDetailedFeedback(payload);
@@ -225,6 +239,8 @@ export function useWritingFeedback(awardXP) {
             suggestions: feedbackData.suggestions || raw.suggestions || [],
             corrections: feedbackData.corrections || raw.corrections || [],
             taskType: item.type,
+            taskPrompt: item.prompt,
+            imageUrl: item.imageUrl,
             originalSource: store.drafts[item.type],
             isBelowMinimumWordCount: item.isBelowMinimum,
           };
@@ -242,13 +258,16 @@ export function useWritingFeedback(awardXP) {
       results.forEach(({ type, feedback }) => {
         if (feedback) {
           newFeedbacks[type] = feedback;
-          if (type === store.activeType) {
-            overallScore = feedback.overallBand;
-          } else if (overallScore === null) {
-            overallScore = feedback.overallBand;
-          }
         }
       });
+
+      const scoredTask1Band = newFeedbacks['Task 1']?.overallBand;
+      const scoredTask2Band = newFeedbacks['Task 2']?.overallBand;
+      if (scoredTask1Band != null && scoredTask2Band != null) {
+        overallScore = Math.round(((scoredTask1Band + scoredTask2Band * 2) / 3) * 2) / 2;
+      } else {
+        overallScore = scoredTask2Band ?? scoredTask1Band ?? null;
+      }
 
       store.setFeedbacksBulk(newFeedbacks);
       store.setCurrentFeedback(newFeedbacks[store.activeType] || newFeedbacks[tasksToAnalyze[0]]);
@@ -267,7 +286,16 @@ export function useWritingFeedback(awardXP) {
           if (!fb?.criteriaScores) return null;
           const cs = fb.criteriaScores;
           return {
-            taskAchievement: Number(cs.TaskAchievement ?? cs.task_achievement ?? cs.TA ?? 0) || 0,
+            taskAchievement:
+              Number(
+                cs.TaskAchievement ??
+                  cs.TaskResponse ??
+                  cs.task_achievement ??
+                  cs.task_response ??
+                  cs.TA ??
+                  cs.TR ??
+                  0
+              ) || 0,
             coherence:
               Number(cs['Coherence & Cohesion'] ?? cs.CoherenceAndCohesion ?? cs.CC ?? 0) || 0,
             lexicalResource:
@@ -325,8 +353,8 @@ export function useWritingFeedback(awardXP) {
             criteriaScores: aggregatedCriteria,
             task1CriteriaScores: t1Criteria,
             task2CriteriaScores: t2Criteria,
-            task1Band: task1Feedback?.overallBand || null,
-            task2Band: task2Feedback?.overallBand || null,
+            task1Band: task1Feedback?.overallBand ?? null,
+            task2Band: task2Feedback?.overallBand ?? null,
           },
         };
 

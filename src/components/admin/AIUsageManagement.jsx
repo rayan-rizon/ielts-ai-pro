@@ -190,9 +190,10 @@ const AIUsageManagement = () => {
       generateDetailedFeedback: 'Gemini 2.5 Flash',
       processSpeakingSession: 'Gemini 2.5 Flash',
       transcribeAudio: 'Gemini 2.5 Flash',
-      generateStudyRecommendations: 'Gemini 2.5 Flash',
+      generateStudyRecommendations: 'Gemini 2.5 Flash-Lite',
       evaluateSpeakingTest: 'Gemini 2.5 Flash',
-      generateAdaptiveLearningPath: 'Gemini 2.5 Flash',
+      generateAdaptiveLearningPath: 'Gemini 2.5 Flash-Lite',
+      synthesizeSpeech: 'Google Cloud TTS',
       SpeakingSession: 'Gemini 2.5 Flash',
     };
     return mapping[endpoint] || 'Gemini Flash';

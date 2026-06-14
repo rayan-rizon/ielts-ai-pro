@@ -4,14 +4,15 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import {
   getCorsHeaders,
-  logApiUsage,
   checkRateLimit,
   getRateLimitIdentifier,
   getBurstLimitConfig,
   checkTierAccess,
-  checkDatabaseQuota,
+  reserveDatabaseQuota,
+  finalizeApiUsage,
   quotaExceededResponse,
 } from '../_shared/security.ts';
+import { normalizeBandScore } from '../_shared/evaluationUtils.ts';
 
 declare const Deno: any;
 
@@ -24,6 +25,9 @@ const MAX_TURNS_PER_PART: Record<number, number> = { 1: 8, 2: 4, 3: 8 };
 const MAX_TOTAL_TURNS = 20; // Absolute limit across all parts
 const MAX_CONVERSATION_HISTORY = 6; // Only send last 6 entries to Gemini (3 Q&A pairs)
 const MAX_AUDIO_PAYLOAD_BYTES = 5 * 1024 * 1024; // 5MB max audio payload
+const MAX_TRANSCRIPT_CHARS = 6000;
+const MAX_HISTORY_ENTRY_CHARS = 2000;
+const MAX_QUESTION_CONTEXT_CHARS = 2000;
 
 interface ConversationEntry {
   role: 'user' | 'model';
@@ -55,7 +59,9 @@ serve(async (req: Request) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-    } catch { /* not JSON or no ping field — continue normally */ }
+    } catch {
+      /* not JSON or no ping field — continue normally */
+    }
   }
 
   const supabase = createClient(
@@ -83,14 +89,19 @@ serve(async (req: Request) => {
     // 1. Get user's subscription tier
     const { data: userProfile } = await supabase
       .from('users')
-      .select('subscription_tier')
+      .select('id, subscription_tier')
       .eq('auth_id', user.id)
       .single();
 
     const tier = (userProfile?.subscription_tier || 'free').toLowerCase();
 
     // Tier gate: Speaking tests require pro or higher
-    const tierDenied = checkTierAccess(tier, ['free', 'pro', 'premium', 'admin'], corsHeaders, 'Speaking Practice');
+    const tierDenied = checkTierAccess(
+      tier,
+      ['free', 'pro', 'premium', 'admin'],
+      corsHeaders,
+      'Speaking Practice'
+    );
     if (tierDenied) return tierDenied;
 
     // 2. Burst Protection (In-Memory)
@@ -108,7 +119,6 @@ serve(async (req: Request) => {
       );
     }
 
-
     // 3. Daily/Monthly Quota — Enforced on the FIRST turn of each session.
     // This prevents users from doing unlimited Gemini calls by abandoning tests before report generation.
     // Subsequent turns in the same session bypass this check (session already paid for).
@@ -117,6 +127,8 @@ serve(async (req: Request) => {
 
     const {
       testId,
+      speakingSessionId: requestedSpeakingSessionId,
+      turnId,
       partNumber,
       audioBase64,
       userTranscript,
@@ -126,48 +138,81 @@ serve(async (req: Request) => {
       speechConfidence = null,
     } = await req.json();
 
-    // First turn = no prior user messages in history
-    const isFirstTurn = conversationHistory.filter((e: { speaker: string }) => e.speaker === 'user').length === 0;
-
-    // Quota is consumed once per TEST (at Part 1 start), not per part.
-    // Each part resets conversation history, so isFirstTurn is true for every part.
-    // We only check + log quota when starting Part 1 of a new test.
-    const isTestStart = partNumber === 1 && isFirstTurn;
-
-    if (isTestStart) {
-      // Idempotency: prevent double-counting if user refreshes/restarts Part 1 of the same test
-      const monthStart = new Date();
-      monthStart.setDate(1);
-      monthStart.setHours(0, 0, 0, 0);
-
-      const { count: existingStarts } = await supabase
-        .from('ai_api_usage')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('endpoint', 'processSpeakingSession_start')
-        .gte('created_at', monthStart.toISOString())
-        .contains('metadata', { testId });
-
-      if ((existingStarts || 0) === 0) {
-        // New test — check quota and log
-        const quotaCheck = await checkDatabaseQuota(supabase, user.id, tier, 'speaking');
-        if (!quotaCheck.allowed) {
-          return quotaExceededResponse(quotaCheck, corsHeaders);
-        }
-        await logApiUsage(supabase, user.id, 'processSpeakingSession_start', false, 0, {
-          testId,
-          partNumber,
-          reason: 'session_start_quota_consumed',
-        });
-      }
-      // else: already counted this test — skip quota check and logging
-    }
-
     if (!testId || !partNumber) {
       return new Response(JSON.stringify({ error: 'testId and partNumber are required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    let sessionQuery = supabase
+      .from('test_sessions')
+      .select('id, passage_id, test_type')
+      .eq('user_id', userProfile?.id)
+      .eq('test_type', 'speaking');
+    sessionQuery = requestedSpeakingSessionId
+      ? sessionQuery.eq('id', requestedSpeakingSessionId)
+      : sessionQuery.eq('passage_id', testId).order('created_at', { ascending: false }).limit(1);
+
+    const { data: ownedSession, error: sessionError } = await sessionQuery.maybeSingle();
+
+    if (sessionError || !ownedSession) {
+      return new Response(JSON.stringify({ error: 'Speaking session not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (ownedSession.passage_id && ownedSession.passage_id !== testId) {
+      return new Response(JSON.stringify({ error: 'Speaking session does not match this test' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const speakingSessionId = ownedSession.id;
+    const quotaReservation = await reserveDatabaseQuota(
+      supabase,
+      user.id,
+      'processSpeakingSession_start',
+      'speaking',
+      `speaking-session:${speakingSessionId}`,
+      { testId, speakingSessionId }
+    );
+    if (!quotaReservation.allowed) {
+      return quotaExceededResponse(quotaReservation, corsHeaders);
+    }
+
+    if (!Array.isArray(conversationHistory)) {
+      return new Response(JSON.stringify({ error: 'conversationHistory must be an array' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const promptTextSize =
+      String(userTranscript || '').length +
+      String(questionContext || '').length +
+      conversationHistory.reduce(
+        (total: number, entry: { text?: unknown }) => total + String(entry?.text || '').length,
+        0
+      );
+    const hasOversizedHistoryEntry = conversationHistory.some(
+      (entry: { text?: unknown }) => String(entry?.text || '').length > MAX_HISTORY_ENTRY_CHARS
+    );
+
+    if (
+      promptTextSize > MAX_TRANSCRIPT_CHARS ||
+      String(questionContext || '').length > MAX_QUESTION_CONTEXT_CHARS ||
+      hasOversizedHistoryEntry
+    ) {
+      return new Response(
+        JSON.stringify({ error: 'Speaking input exceeds maximum allowed size' }),
+        {
+          status: 413,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // === COST PROTECTION: Turn Cap ===
@@ -205,7 +250,8 @@ serve(async (req: Request) => {
     }
 
     // === COST PROTECTION: Audio Payload Size ===
-    if (audioBase64 && audioBase64.length > MAX_AUDIO_PAYLOAD_BYTES) {
+    const estimatedAudioBytes = audioBase64 ? Math.ceil(audioBase64.length * 0.75) : 0;
+    if (estimatedAudioBytes > MAX_AUDIO_PAYLOAD_BYTES) {
       return new Response(
         JSON.stringify({
           error: 'Audio too large',
@@ -214,6 +260,27 @@ serve(async (req: Request) => {
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    const stableTurnId =
+      typeof turnId === 'string' && turnId.length >= 16 && turnId.length <= 100
+        ? turnId
+        : `${partNumber}:${currentQuestionIndex}:${userTurnsInHistory}`;
+    const turnReservation = await reserveDatabaseQuota(
+      supabase,
+      user.id,
+      'processSpeakingSession',
+      'speaking_turn',
+      `speaking-turn:${speakingSessionId}:${stableTurnId}`,
+      {
+        testId,
+        speakingSessionId,
+        part: partNumber,
+        questionIndex: currentQuestionIndex,
+      }
+    );
+    if (!turnReservation.allowed) {
+      return quotaExceededResponse(turnReservation, corsHeaders);
     }
 
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
@@ -279,7 +346,8 @@ serve(async (req: Request) => {
         mainTopic,
         {
           id: `${mainTopic.id}-followup`,
-          question_text: 'Ask ONE brief follow-up question (1 sentence) related to what the candidate just said about the topic.',
+          question_text:
+            'Ask ONE brief follow-up question (1 sentence) related to what the candidate just said about the topic.',
           part_number: 2,
         },
       ];
@@ -287,9 +355,8 @@ serve(async (req: Request) => {
 
     // Determine the current question with safety check
     // Handle -1 (initial fetch) by defaulting to 0
-    const safeQuestionIndex = currentQuestionIndex < 0
-      ? 0
-      : Math.min(currentQuestionIndex, questions.length - 1);
+    const safeQuestionIndex =
+      currentQuestionIndex < 0 ? 0 : Math.min(currentQuestionIndex, questions.length - 1);
     const currentQuestion = questions[safeQuestionIndex];
 
     if (!currentQuestion) {
@@ -298,7 +365,7 @@ serve(async (req: Request) => {
           error: 'No question found at index',
           currentQuestionIndex,
           safeQuestionIndex,
-          questionsLength: questions.length
+          questionsLength: questions.length,
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -338,12 +405,16 @@ EXAMINATION RULES:
 3. If the candidate goes off-topic, gently redirect: "Thank you. Let's get back to the topic of..."
 4. Stay in examiner role. Do NOT answer candidate questions.
 
-${isPart2 ? `
+${
+  isPart2
+    ? `
 PART 2 SPECIFIC RULES:
 - This is the Long Turn. Candidates speak for 1-2 minutes.
 - Do NOT read the prompt card bullet points aloud.
 - After they finish, you may ask ONE brief follow-up or simply say "Thank you."
-` : ''}
+`
+    : ''
+}
 
 CURRENT TEST DATA:
 - Part: ${partNumber}
@@ -355,10 +426,11 @@ CURRENT STATE:
 ${nextQuestion ? `- Next question to ask: "${cleanQuestionForExaminer(nextQuestion.question_text)}"` : '- No more questions left for this part.'}
 
 YOUR TASK:
-Speak naturally. ${isLastQuestion
+Speak naturally. ${
+      isLastQuestion
         ? `Acknowledge their final answer briefly and conclude: "Thank you very much. That concludes Part ${partNumber} of the speaking test."`
         : `Give a brief, varied acknowledgment (1 short sentence), then naturally transition to the next question: "${nextQuestion?.question_text ?? ''}"`
-      }`;
+    }`;
 
     // Build conversation for Gemini
     const geminiContents: ConversationEntry[] = [
@@ -375,9 +447,10 @@ Speak naturally. ${isLastQuestion
 
     // === COST PROTECTION: Truncate conversation history ===
     // Only send last N entries to Gemini to prevent O(n²) token growth
-    const recentHistory = conversationHistory.length > MAX_CONVERSATION_HISTORY
-      ? conversationHistory.slice(-MAX_CONVERSATION_HISTORY)
-      : conversationHistory;
+    const recentHistory =
+      conversationHistory.length > MAX_CONVERSATION_HISTORY
+        ? conversationHistory.slice(-MAX_CONVERSATION_HISTORY)
+        : conversationHistory;
 
     // Add conversation history (truncated)
     recentHistory.forEach((entry: { speaker: string; text: string }) => {
@@ -397,41 +470,43 @@ Speak naturally. ${isLastQuestion
     let pronunciationPromise: Promise<void> | null = null;
     let examinerText = '';
     let tokensUsed = 0;
+    let pronunciationTokensUsed = 0;
     let isTranscriptionFailed = false;
 
     if (audioBase64 && !userResponse) {
       // Step 1: Pronunciation scoring — fires immediately in background
       // Runs in parallel with the examiner call (both depend on audio)
       const isPremiumTier = ['pro', 'premium', 'admin'].includes(tier);
-      const confidenceHint = speechConfidence && speechConfidence.length > 0
-        ? `\nBrowser speech recognition confidence data: ${JSON.stringify(speechConfidence.slice(0, 10))}`
-        : '';
+      const confidenceHint =
+        speechConfidence && speechConfidence.length > 0
+          ? `\nBrowser speech recognition confidence data: ${JSON.stringify(speechConfidence.slice(0, 10))}`
+          : '';
 
-      const basicPrompt = `You are an IELTS pronunciation assessor. Listen to this audio and evaluate pronunciation quality.
+      const basicPrompt = `You are an IELTS pronunciation assessor. Listen to this audio and estimate pronunciation quality conservatively.
 
 Question asked: "${questionContext || 'general conversation'}"${confidenceHint}
 
 IELTS Pronunciation Band Anchors:
-- Band 9: Native-like articulation, effortless. No strain on listener.
+- Band 9: Uses a full range of pronunciation features with precision and subtlety; is effortless to understand.
 - Band 7: Generally clear. L1 influence evident but rarely causes misunderstanding.
 - Band 5: Frequent pronunciation errors causing some listener difficulty.
 
-Evaluate: articulation clarity, intelligibility, L1 influence, word stress accuracy, intonation patterns.
+Evaluate only features clearly supported by the audio: articulation clarity, intelligibility, word stress, and intonation. Do not infer a first language or accent origin. If evidence is unclear, say so and avoid specific claims.
 
 Respond ONLY with valid JSON (no markdown):
 {"pronunciationScore": 6.5, "fluencyNotes": "brief 1-sentence assessment"}`;
 
-      const detailedPrompt = `You are an IELTS pronunciation assessor. Listen to this audio and provide detailed pronunciation analysis.
+      const detailedPrompt = `You are an IELTS pronunciation assessor. Listen to this audio and provide conservative pronunciation analysis.
 
 Question asked: "${questionContext || 'general conversation'}"${confidenceHint}
 
 IELTS Pronunciation Band Anchors:
-- Band 9: Native-like articulation, effortless. No strain on listener.
+- Band 9: Uses a full range of pronunciation features with precision and subtlety; is effortless to understand.
 - Band 7: Generally clear. L1 influence evident but rarely causes misunderstanding.
 - Band 5: Frequent pronunciation errors causing some listener difficulty.
 
-Evaluate: articulation clarity, intelligibility, L1 influence, word stress accuracy, intonation patterns.
-Identify specific words that were mispronounced and which sounds are problematic.
+Evaluate only features clearly supported by the audio: articulation clarity, intelligibility, word stress, and intonation. Do not infer a first language or accent origin.
+Only identify a word or sound pattern when it is clearly audible and you are confident. Otherwise return empty arrays. Phrase issues as possible observations, not phonetic facts.
 
 Respond ONLY with valid JSON (no markdown):
 {
@@ -441,6 +516,42 @@ Respond ONLY with valid JSON (no markdown):
   "problematicSounds": ["/θ/ → /s/"],
   "overallClarity": "1-sentence clarity summary"
 }`;
+      const basicPronunciationSchema = {
+        type: 'OBJECT',
+        properties: {
+          pronunciationScore: { type: 'NUMBER' },
+          fluencyNotes: { type: 'STRING' },
+        },
+        required: ['pronunciationScore', 'fluencyNotes'],
+      };
+      const detailedPronunciationSchema = {
+        type: 'OBJECT',
+        properties: {
+          pronunciationScore: { type: 'NUMBER' },
+          fluencyNotes: { type: 'STRING' },
+          wordLevelFeedback: {
+            type: 'ARRAY',
+            items: {
+              type: 'OBJECT',
+              properties: {
+                word: { type: 'STRING' },
+                issue: { type: 'STRING' },
+                severity: { type: 'STRING', enum: ['minor', 'moderate', 'major'] },
+              },
+              required: ['word', 'issue', 'severity'],
+            },
+          },
+          problematicSounds: { type: 'ARRAY', items: { type: 'STRING' } },
+          overallClarity: { type: 'STRING' },
+        },
+        required: [
+          'pronunciationScore',
+          'fluencyNotes',
+          'wordLevelFeedback',
+          'problematicSounds',
+          'overallClarity',
+        ],
+      };
 
       pronunciationPromise = fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
@@ -448,37 +559,54 @@ Respond ONLY with valid JSON (no markdown):
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: isPremiumTier ? detailedPrompt : basicPrompt },
-                { inlineData: { mimeType: 'audio/webm', data: audioBase64 } },
-              ],
-            }],
+            contents: [
+              {
+                parts: [
+                  { text: isPremiumTier ? detailedPrompt : basicPrompt },
+                  { inlineData: { mimeType: 'audio/webm', data: audioBase64 } },
+                ],
+              },
+            ],
             generationConfig: {
               temperature: 0.1,
               maxOutputTokens: isPremiumTier ? 250 : 80,
               responseMimeType: 'application/json',
+              responseSchema: isPremiumTier
+                ? detailedPronunciationSchema
+                : basicPronunciationSchema,
             },
           }),
         }
-      ).then(async (res) => {
-        if (!res.ok) return;
-        const data = await res.json();
-        const raw = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
-          .replace(/^```json\s*/i, '').replace(/^```/, '').replace(/```$/, '').trim();
-        try {
-          const p = JSON.parse(raw);
-          pronunciationData = {
-            pronunciationScore: p.pronunciationScore || null,
-            fluencyNotes: p.fluencyNotes || null,
-            ...(isPremiumTier && {
-              wordLevelFeedback: p.wordLevelFeedback || null,
-              problematicSounds: p.problematicSounds || null,
-              overallClarity: p.overallClarity || null,
-            }),
-          };
-        } catch { /* ignore parse errors */ }
-      }).catch(() => { /* swallow */ });
+      )
+        .then(async (res) => {
+          if (!res.ok) return;
+          const data = await res.json();
+          pronunciationTokensUsed = data.usageMetadata?.totalTokenCount || 0;
+          const raw = (data.candidates?.[0]?.content?.parts?.[0]?.text || '')
+            .trim()
+            .replace(/^```json\s*/i, '')
+            .replace(/^```/, '')
+            .replace(/```$/, '')
+            .trim();
+          try {
+            const p = JSON.parse(raw);
+            const pronunciationScore = normalizeBandScore(p.pronunciationScore, false);
+            pronunciationData = {
+              pronunciationScore,
+              fluencyNotes: p.fluencyNotes || null,
+              ...(isPremiumTier && {
+                wordLevelFeedback: p.wordLevelFeedback || null,
+                problematicSounds: p.problematicSounds || null,
+                overallClarity: p.overallClarity || null,
+              }),
+            };
+          } catch {
+            /* ignore parse errors */
+          }
+        })
+        .catch(() => {
+          /* swallow */
+        });
 
       // Step 2: Single Multimodal Call for Transcript + Examiner Response
       geminiContents[0].parts[0].text += `
@@ -496,7 +624,7 @@ OUTPUT FORMAT: You MUST return valid JSON ONLY.
 
       geminiContents.push({
         role: 'user',
-        parts: [{ inlineData: { mimeType: 'audio/webm', data: audioBase64 } }]
+        parts: [{ inlineData: { mimeType: 'audio/webm', data: audioBase64 } }],
       });
 
       try {
@@ -511,6 +639,14 @@ OUTPUT FORMAT: You MUST return valid JSON ONLY.
                 temperature: 0.3, // Balance: 0.0 for transcript, 0.7 for chat
                 maxOutputTokens: 1024,
                 responseMimeType: 'application/json',
+                responseSchema: {
+                  type: 'OBJECT',
+                  properties: {
+                    userTranscript: { type: 'STRING' },
+                    examinerResponse: { type: 'STRING' },
+                  },
+                  required: ['userTranscript', 'examinerResponse'],
+                },
               },
             }),
           }
@@ -561,7 +697,9 @@ OUTPUT FORMAT: You MUST return valid JSON ONLY.
           examinerText = examinerData.candidates?.[0]?.content?.parts?.[0]?.text || '';
           tokensUsed = examinerData.usageMetadata?.totalTokenCount || 0;
         }
-      } catch (err) { /* swallow */ }
+      } catch (err) {
+        /* swallow */
+      }
     }
 
     isTranscriptionFailed =
@@ -594,18 +732,28 @@ OUTPUT FORMAT: You MUST return valid JSON ONLY.
       }
     }
 
-    // Log successful usage
-    await logApiUsage(supabase, user.id, 'processSpeakingSession', false, tokensUsed, {
-      part: partNumber,
-      isPartComplete: isLastQuestion && !isTranscriptionFailed,
-      hasAudio: !!audioBase64,
-      transcriptionFailed: isTranscriptionFailed,
-    });
-
     // Wait for pronunciation scoring to complete if it ran (low-priority, non-blocking)
     if (pronunciationPromise) {
-      try { await pronunciationPromise; } catch { /* swallow */ }
+      try {
+        await pronunciationPromise;
+      } catch {
+        /* swallow */
+      }
     }
+
+    await finalizeApiUsage(
+      supabase,
+      turnReservation.reservationId,
+      tokensUsed + pronunciationTokensUsed,
+      false,
+      {
+        part: partNumber,
+        isPartComplete: isLastQuestion && !isTranscriptionFailed,
+        hasAudio: !!audioBase64,
+        transcriptionFailed: isTranscriptionFailed,
+        speakingSessionId,
+      }
+    );
 
     return new Response(
       JSON.stringify({

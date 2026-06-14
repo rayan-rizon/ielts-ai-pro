@@ -9,8 +9,8 @@ import {
   rateLimitedResponse,
   validateCsrfProtection,
   errorResponse,
-  checkDatabaseQuota,
-  logApiUsage,
+  reserveDatabaseQuota,
+  finalizeApiUsage,
   quotaExceededResponse,
   getBurstLimitConfig,
   checkTierAccess,
@@ -35,7 +35,10 @@ const FALLBACK_RECOMMENDATIONS = {
   progress_tracking: {
     metrics_to_track: ['Band score per module', 'Time management', 'Accuracy rate'],
     review_frequency: 'Weekly',
-    adjustment_triggers: ['Score plateau for 2+ weeks', 'Consistently scoring above target in a module'],
+    adjustment_triggers: [
+      'Score plateau for 2+ weeks',
+      'Consistently scoring above target in a module',
+    ],
   },
 };
 
@@ -73,7 +76,9 @@ serve(async (req) => {
     // Resolve auth_id → users.id server-side (matches generateDetailedFeedback pattern)
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('id, subscription_tier, target_band_score, test_date, study_hours_goal, weaknesses, strengths, current_estimated_band, exam_type')
+      .select(
+        'id, subscription_tier, target_band_score, test_date, study_hours_goal, weaknesses, strengths, current_estimated_band, exam_type'
+      )
       .eq('auth_id', user.id)
       .single();
 
@@ -85,7 +90,12 @@ serve(async (req) => {
     const tier = userData?.subscription_tier || 'free';
 
     // Tier gate: Study recommendations require pro or higher
-    const tierDenied = checkTierAccess(tier, ['pro', 'premium', 'admin'], corsHeaders, 'AI Study Plan');
+    const tierDenied = checkTierAccess(
+      tier,
+      ['pro', 'premium', 'admin'],
+      corsHeaders,
+      'AI Study Plan'
+    );
     if (tierDenied) return tierDenied;
 
     // Hybrid Rate Limiting: In-memory burst protection
@@ -95,13 +105,6 @@ serve(async (req) => {
 
     if (!burstCheck.allowed) {
       return rateLimitedResponse(burstCheck.resetIn, corsHeaders);
-    }
-
-    // Database-driven quota check (daily/monthly limits)
-    const quotaCheck = await checkDatabaseQuota(supabase, user.id, tier);
-
-    if (!quotaCheck.allowed) {
-      return quotaExceededResponse(quotaCheck, corsHeaders);
     }
 
     // ── Data Minimization: select only needed columns from test_sessions ──
@@ -114,6 +117,23 @@ serve(async (req) => {
 
     if (sessionsError) {
       return new Response(JSON.stringify({ error: sessionsError.message }), { status: 500 });
+    }
+
+    const serializedSessions = JSON.stringify(recentSessions || []);
+    if (serializedSessions.length > 50000) {
+      return errorResponse('Recent session data exceeds maximum allowed size', 413, corsHeaders);
+    }
+
+    const quotaReservation = await reserveDatabaseQuota(
+      supabase,
+      user.id,
+      'generateStudyRecommendations',
+      null,
+      null,
+      { sessionCount: recentSessions?.length || 0 }
+    );
+    if (!quotaReservation.allowed) {
+      return quotaExceededResponse(quotaReservation, corsHeaders);
     }
 
     // ── Build safe feature vectors for the AI prompt (no PII) ──
@@ -135,7 +155,8 @@ serve(async (req) => {
       time_spent_minutes: s.duration_minutes,
       strengths: s.content_data?.strengths || [],
       weaknesses: s.content_data?.weaknesses || [],
-      question_type_accuracy: s.content_data?.typeStats || s.content_data?.question_type_accuracy || null,
+      question_type_accuracy:
+        s.content_data?.typeStats || s.content_data?.question_type_accuracy || null,
       error_patterns: s.content_data?.errorPatterns || null,
     }));
 
@@ -259,8 +280,9 @@ Respond ONLY with a valid JSON object in the following format:
       }
     }
 
-    // Log API usage
-    await logApiUsage(supabase, user.id, 'generateStudyRecommendations', false, tokensUsed);
+    await finalizeApiUsage(supabase, quotaReservation.reservationId, tokensUsed, false, {
+      sessionCount: recentSessions?.length || 0,
+    });
 
     return new Response(JSON.stringify({ recommendations }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

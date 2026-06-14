@@ -10,11 +10,17 @@ import {
   rateLimitedResponse,
   validateCsrfProtection,
   errorResponse,
-  checkDatabaseQuota,
-  logApiUsage,
+  reserveDatabaseQuota,
+  finalizeApiUsage,
   quotaExceededResponse,
   getBurstLimitConfig,
 } from '../_shared/security.ts';
+import {
+  countWords,
+  FEEDBACK_EVALUATOR_VERSION,
+  normalizeWritingEvaluation,
+  parseStructuredJson,
+} from '../_shared/evaluationUtils.ts';
 
 // @ts-ignore
 declare const Deno: any;
@@ -30,7 +36,9 @@ function isTrustedImageUrl(rawUrl: string): boolean {
     if (parsed.protocol !== 'https:') return false;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? Deno.env.get('INTERNAL_SUPABASE_URL');
-    const trustedSupabaseHost = supabaseUrl ? new URL(supabaseUrl).hostname : 'zvrmvycajimjxghrnpgy.supabase.co';
+    const trustedSupabaseHost = supabaseUrl
+      ? new URL(supabaseUrl).hostname
+      : 'zvrmvycajimjxghrnpgy.supabase.co';
     const r2PublicUrl = Deno.env.get('R2_PUBLIC_URL');
     const trustedR2Origin = r2PublicUrl ? new URL(r2PublicUrl).origin : 'https://media.ieltsai.pro';
 
@@ -58,14 +66,12 @@ serve(async (req: Request) => {
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? Deno.env.get('INTERNAL_SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('INTERNAL_SERVICE_ROLE_KEY');
+    const supabaseKey =
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('INTERNAL_SERVICE_ROLE_KEY');
 
     console.log('Function Debug - URL:', !!supabaseUrl, 'Key:', !!supabaseKey);
 
-    const supabase = createClient(
-      supabaseUrl ?? '',
-      supabaseKey ?? ''
-    );
+    const supabase = createClient(supabaseUrl ?? '', supabaseKey ?? '');
 
     const authHeader = req.headers.get('Authorization');
     console.log('Auth Header present:', !!authHeader);
@@ -109,11 +115,6 @@ serve(async (req: Request) => {
       return rateLimitedResponse(burstCheck.resetIn, corsHeaders);
     }
 
-    const quotaCheck = await checkDatabaseQuota(supabase, user.id, tier, 'writing');
-    if (!quotaCheck.allowed) {
-      return quotaExceededResponse(quotaCheck, corsHeaders);
-    }
-
     if (tier !== 'pro' && tier !== 'premium' && tier !== 'admin' && tier !== 'free') {
       return new Response(
         JSON.stringify({ error: 'This feature is available for Pro and Premium users only.' }),
@@ -130,27 +131,34 @@ serve(async (req: Request) => {
 
     const { writingText, taskPrompt, taskType, imageUrl } = await req.json();
 
-    if (!writingText || !taskPrompt) {
-      return new Response(JSON.stringify({ error: 'Writing text and task prompt are required.' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (!writingText || !taskPrompt || !taskType) {
+      return new Response(
+        JSON.stringify({ error: 'Writing text, task prompt, and task type are required.' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // SECURITY: Cap input sizes to prevent token-draining attacks
     // IELTS standards: Task 1 target = 150 words, Task 2 target = 250 words
     // Generous buffers: Task 1 ≤ 1500 chars (~250 words), Task 2 ≤ 2500 chars (~400 words)
     const MAX_WRITING_CHARS = taskType === 'Task 1' ? 1500 : 2500;
-    const MAX_PROMPT_CHARS = 1500;   // Task prompts are typically < 200 chars
+    const MAX_PROMPT_CHARS = 1500; // Task prompts are typically < 200 chars
     if (writingText.length > MAX_WRITING_CHARS) {
       return new Response(
-        JSON.stringify({ error: `Writing text exceeds maximum length for ${taskType || 'this task'} (${MAX_WRITING_CHARS} characters).` }),
+        JSON.stringify({
+          error: `Writing text exceeds maximum length for ${taskType || 'this task'} (${MAX_WRITING_CHARS} characters).`,
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     if (taskPrompt.length > MAX_PROMPT_CHARS) {
       return new Response(
-        JSON.stringify({ error: `Task prompt exceeds maximum length (${MAX_PROMPT_CHARS} characters).` }),
+        JSON.stringify({
+          error: `Task prompt exceeds maximum length (${MAX_PROMPT_CHARS} characters).`,
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -181,6 +189,87 @@ serve(async (req: Request) => {
       }
     }
 
+    const wordCount = countWords(writingText);
+    const taskCriterionKey = taskType === 'Task 2' ? 'TaskResponse' : 'TaskAchievement';
+    const writingResponseSchema = {
+      type: 'OBJECT',
+      properties: {
+        overallBand: { type: 'NUMBER' },
+        criteriaScores: {
+          type: 'OBJECT',
+          properties: {
+            [taskCriterionKey]: { type: 'NUMBER' },
+            CoherenceAndCohesion: { type: 'NUMBER' },
+            LexicalResource: { type: 'NUMBER' },
+            GrammaticalRangeAndAccuracy: { type: 'NUMBER' },
+          },
+          required: [
+            taskCriterionKey,
+            'CoherenceAndCohesion',
+            'LexicalResource',
+            'GrammaticalRangeAndAccuracy',
+          ],
+        },
+        annotations: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              originalText: { type: 'STRING' },
+              type: {
+                type: 'STRING',
+                enum: ['grammar', 'spelling', 'style', 'vocabulary', 'clarity', 'positive'],
+              },
+              suggestion: { type: 'STRING' },
+              explanation: { type: 'STRING' },
+              severity: {
+                type: 'STRING',
+                enum: ['error', 'warning', 'suggestion', 'positive'],
+              },
+            },
+            required: ['originalText', 'type', 'suggestion', 'explanation', 'severity'],
+          },
+        },
+        strengths: { type: 'ARRAY', items: { type: 'STRING' } },
+        weaknesses: { type: 'ARRAY', items: { type: 'STRING' } },
+        suggestions: { type: 'ARRAY', items: { type: 'STRING' } },
+        corrections: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              original: { type: 'STRING' },
+              correction: { type: 'STRING' },
+              explanation: { type: 'STRING' },
+            },
+            required: ['original', 'correction', 'explanation'],
+          },
+        },
+        vocabularyEnhancements: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              original: { type: 'STRING' },
+              alternatives: { type: 'ARRAY', items: { type: 'STRING' } },
+              context: { type: 'STRING' },
+            },
+            required: ['original', 'alternatives', 'context'],
+          },
+        },
+      },
+      required: [
+        'overallBand',
+        'criteriaScores',
+        'annotations',
+        'strengths',
+        'weaknesses',
+        'suggestions',
+        'corrections',
+        'vocabularyEnhancements',
+      ],
+    };
+
     let systemInstruction = `
 You are a senior IELTS Academic Writing examiner and coach with 15+ years of experience. Score and provide feedback strictly using official IELTS Academic band descriptors (IDP/British Council public band descriptors).
 
@@ -195,8 +284,10 @@ Hard rules (non-negotiable):
 - Output JSON ONLY. No markdown, no code fences, no extra text before or after the JSON.
 - Do not invent facts, data points, or errors not present in the student's writing.
 - Use IELTS bands in 0.5 steps (e.g., 5.0, 5.5, 6.0). All criteria must be 0.5-step numbers.
-- Compute overallBand = average of four criteria scores, rounded to nearest 0.5.
+- Use only whole and half bands. The server will recompute overallBand from the four criteria.
 - Be conservative when uncertain — explain uncertainty in weaknesses or suggestions.
+- The response contains ${wordCount} words. Use this server-calculated count; do not estimate it again.
+- Being under the stated minimum affects how fully Task Achievement/Task Response is demonstrated. It does NOT create automatic hard caps for Coherence and Cohesion, Lexical Resource, or Grammatical Range and Accuracy. Judge those criteria from the language actually demonstrated, while acknowledging limited evidence where appropriate.
 
 Critical distinction — Corrections vs. Style preferences:
 - 'corrections' MUST contain ONLY genuine errors: grammatical mistakes, spelling mistakes, incorrect word forms, wrong tense, missing clause elements, subject-verb disagreement, factual reporting errors.
@@ -222,7 +313,7 @@ Output schema (exact keys required):
 {
   "overallBand": number,
   "criteriaScores": {
-    "TaskAchievement": number,
+    "${taskCriterionKey}": number,
     "CoherenceAndCohesion": number,
     "LexicalResource": number,
     "GrammaticalRangeAndAccuracy": number
@@ -247,22 +338,17 @@ Output schema (exact keys required):
   ]
 }
 
-SAMPLE-SIZE RULE (applies globally to all criteria):
-For Task 1 (target: 150 words):
-- If the response is under 130 words: cap ALL four criteria at Band 5.0. The sample is too small to demonstrate the range of features required for Band 6+.
-- If the response is under 100 words: cap ALL four criteria at Band 4.0.
-For Task 2 (target: 250 words):
-- If the response is under 220 words: cap ALL four criteria at Band 5.0. The sample is too small to demonstrate the range of features required for Band 6+.
-- If the response is under 180 words: cap ALL four criteria at Band 4.0.
-- State the word count and sample-size limitation explicitly in weaknesses.
-- Do NOT claim 'a mix of complex and simple structures' or 'wide lexical range' from fewer than 4 sentences — this is statistically insufficient evidence.
+EVIDENCE-SIZE RULE:
+- State the exact word count in weaknesses when below the minimum.
+- Do not infer a wide range from a very small sample.
+- Do not mechanically lower language criteria solely because the response is short; score only the language features actually evidenced.
 
 Content guidelines:
 - strengths: 3–6 specific bullets, each tied to a criterion, naming what the student did well and why it earns marks. Every strength MUST cite a specific phrase or structural feature from the student's text as evidence. Do NOT attribute intentional technique to minimal or off-topic responses. If the response is under 100 words and off-topic, limit strengths to 1–2 items maximum and ensure each one is genuinely evidenced. Do not praise 'understanding of report structure' from a 3-sentence paragraph.
 - weaknesses: 3–6 specific bullets, each tied to a criterion, explaining why it limits the band. ALWAYS state the actual word count as the FIRST weakness bullet if the response is under the required minimum.
 - suggestions: 5–10 bullets ordered by band-gain impact (most impactful first). Each must be a concrete action starting with a verb (e.g., 'Add a two-sentence overview...', 'Replace the generic phrase... with...').
-- corrections: genuine errors only. 5–12 items. 'original' must be copied verbatim from the student's text.
-- vocabularyEnhancements: 5–10 items. Target weak, repetitive, or informal words. Suggest natural academic alternatives that fit the context. Avoid forced or exotic synonyms.
+- corrections: genuine errors only, 0–12 items. Return an empty array when no genuine error is present. Never create a correction to meet a quota. 'original' must be copied verbatim from the student's text.
+- vocabularyEnhancements: 0–8 items. Include only useful, natural improvements that fit the exact context. Avoid forced or exotic synonyms.
 
 If the student's writing is extremely short or completely off-topic, return valid JSON and score accordingly with honest, calibrated justification.
 `;
@@ -278,16 +364,15 @@ STEP 1 — Visual classification (MUST do before scoring):
 - Identify the visual type the candidate actually described in their answer.
 - MISMATCH detected (they differ):
   * Set TaskAchievement to 2.0 or below.
-  * Cap LexicalResource at 3.5 — all language served the wrong communicative purpose.
-  * Cap GrammaticalRangeAndAccuracy at 3.5 — same reason.
+  * Continue judging LexicalResource and GrammaticalRangeAndAccuracy independently from the language actually demonstrated. Do not cap language criteria merely because the content is off-task.
   * Add an annotation: type='clarity', severity='error', naming the mismatch explicitly (e.g., 'Response describes a chart, but the prompt requires a map. All content is off-task.').
   * State the mismatch prominently in weaknesses.
 - MATCH confirmed: proceed to STEP 2.
 
 STEP 2 — Word count check:
-- If under 150 words: cap TaskAchievement at 4.0. State actual word count in weaknesses as first bullet.
-- If 150–169 words: note borderline minimum in weaknesses. Reflect slightly in TaskAchievement.
-- 170+ words: no word count penalty.
+- The server-calculated response length is ${wordCount} words.
+- If under 150 words, state this in weaknesses and reflect the incomplete task coverage in TaskAchievement. Do not apply an invented fixed band ceiling.
+- If 150+ words, do not penalise length.
 
 STEP 3 — Score all four criteria with these benchmarks:
 
@@ -362,6 +447,13 @@ IELTS Examiner Rule — Overview requirement:
           });
         } catch (e) {
           console.error('Failed to fetch image for Gemini:', e);
+          return new Response(
+            JSON.stringify({
+              error:
+                'The Task 1 visual could not be loaded, so accurate visual feedback cannot be generated. Please retry.',
+            }),
+            { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
         }
       }
     } else {
@@ -369,28 +461,26 @@ IELTS Examiner Rule — Overview requirement:
 Task type: IELTS Academic Writing Task 2 (discursive essay).
 
 STEP 1 — Word count check (MUST do before scoring):
-- Count the candidate's words carefully (exclude the task prompt itself).
-- Under 150 words → cap TaskAchievement at 3.0. State word count in weaknesses as first bullet.
-- Under 200 words → cap TaskAchievement at 4.0. State word count in weaknesses as first bullet.
-- Under 250 words → cap TaskAchievement at 5.0. State word count in weaknesses as first bullet.
-- These ceilings are HARD LIMITS per official IELTS marking guidelines, regardless of content quality.
-- 250+ words: no word count penalty. Proceed to STEP 2.
+- The server-calculated response length is ${wordCount} words.
+- If under 250 words, state the exact count in weaknesses and judge how the short response limits full development under TaskResponse.
+- Do not use invented automatic band ceilings, and do not automatically cap the other three criteria.
+- 250+ words: no length penalty. Proceed to STEP 2.
 
 STEP 2 — Question type identification:
 Identify the exact Task 2 question type from the prompt:
 [Agree/Disagree | Discuss both views | Advantages and Disadvantages | Problem and Solution | Two-part question]
 
-Evaluate TaskAchievement based on the expected approach for each type:
-- Agree/Disagree ('To what extent do you agree/disagree?'): A clear, consistent position is required. The body paragraphs MUST predominantly argue FOR the candidate's stated position. If the candidate writes one paragraph 'for' and one paragraph 'against' with equal structural weight, this is a Discussion Essay structure applied to an Opinion Essay prompt — flag this explicitly: 'Your essay uses a balanced Discussion Essay structure (one paragraph for, one against) but the prompt requires a sustained argument supporting your stated position. This structural mismatch limits Task Achievement to Band 5–6.' Partial agreement is acceptable only if the candidate explicitly acknowledges and refutes the opposing view within their dominant argument.
-- Discuss both views ('Discuss both views and give your own opinion'): BOTH views must receive equal, developed treatment. Giving only one view, even if opinion is stated, is a significant TaskAchievement penalty.
+Evaluate TaskResponse based on the expected approach for each type:
+- Agree/Disagree ('To what extent do you agree/disagree?'): A clear position is required throughout. Full agreement, disagreement, partial agreement, or a carefully balanced position can all be valid when the extent is explicit and the ideas consistently support that position. Do not require a counterargument or refutation unless the candidate's chosen position needs one.
+- Discuss both views ('Discuss both views and give your own opinion'): BOTH views must receive developed treatment and the candidate's opinion must be clear. The two views do not need identical word counts, but neither may be omitted or merely mentioned.
 - Advantages and Disadvantages: BOTH advantages AND disadvantages must be developed. Exploring only one side is penalised.
 - Problem and Solution: Specific problems/causes must be identified AND specific, realistic solutions proposed. Vague solutions ('the government should do more') do not satisfy this criterion.
-- Two-part question ('What are the reasons for X? What can be done about Y?'): BOTH questions must be answered and developed. Developing only one part penalises TaskAchievement significantly.
+- Two-part question ('What are the reasons for X? What can be done about Y?'): BOTH questions must be answered and developed. Developing only one part significantly limits TaskResponse.
 
 STEP 3 — Prompt scenario fidelity check:
 - Extract the 2–3 key scenario markers from the task prompt. For example, 'living in a country where you have to speak a foreign language' contains: [living abroad] [compelled — not by choice] [using a foreign language daily].
 - Verify the candidate addressed at least 2 of these scenario markers specifically in their essay.
-- If the candidate substituted a related but significantly different scenario (e.g., 'learning a foreign language' in place of 'being compelled to live in one'), flag this as 'Prompt Drift' in weaknesses and reduce TaskAchievement by 0.5 from what content quality alone would warrant.
+- If the candidate substituted a related but significantly different scenario (e.g., 'learning a foreign language' in place of 'being compelled to live in one'), flag this as 'Prompt Drift' in weaknesses and reflect the resulting loss of relevance in TaskResponse without applying a fixed automatic deduction.
 
 STEP 4 — Score all four Task 2 criteria with these benchmarks:
 
@@ -402,7 +492,7 @@ Coherence and Cohesion:
 - Ideal structure: Introduction (background + thesis) → Body §1 → Body §2 → [Counter-argument §] → Conclusion.
 - Reward: clear topic sentences, logical paragraph progression, natural use of cohesive devices.
 - Penalize: overuse of 'Firstly/Secondly/Furthermore/Moreover/In addition' — these signal formulaic writing to examiners. Reference them specifically if overused.
-- A counter-argument paragraph is expected in Band 7+ responses — note its absence for mid-band candidates.
+- Do not require a counterargument paragraph. Judge whether the chosen structure develops the candidate's position clearly and logically.
 
 Lexical Resource:
 - Reward: precise, context-appropriate academic vocabulary, natural collocations, varied sentence openings, correct word forms.
@@ -420,17 +510,30 @@ Register and tone:
       });
     }
 
-    const normalizeText = (text: string) => text ? text.replace(/\\s+/g, ' ').trim() : '';
+    const normalizeText = (text: string) => (text ? text.replace(/\s+/g, ' ').trim() : '');
     const hashInput = JSON.stringify({
+      evaluationVersion: FEEDBACK_EVALUATOR_VERSION,
       writingText: normalizeText(writingText),
       taskPrompt: normalizeText(taskPrompt),
       taskType,
-      imageUrl
+      imageUrl,
     });
     const encode = new TextEncoder().encode(hashInput);
     const hashBuffer = await crypto.subtle.digest('SHA-256', encode);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const inputHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+
+    const quotaReservation = await reserveDatabaseQuota(
+      supabase,
+      user.id,
+      'generateDetailedFeedback',
+      'writing',
+      null,
+      { taskType, inputHash }
+    );
+    if (!quotaReservation.allowed) {
+      return quotaExceededResponse(quotaReservation, corsHeaders);
+    }
 
     const { data: cachedEntry } = await supabase
       .from('ai_feedback_cache')
@@ -439,7 +542,7 @@ Register and tone:
       .single();
 
     if (cachedEntry && cachedEntry.feedback_json) {
-      await logApiUsage(supabase, user.id, 'generateDetailedFeedback', true, 0, {
+      await finalizeApiUsage(supabase, quotaReservation.reservationId, 0, true, {
         taskType,
         cached: true,
       });
@@ -454,27 +557,30 @@ Register and tone:
 
     console.log(`Using model: ${model} for task type: ${taskType}`);
 
-    const geminiResponse = await fetch(
+    const buildGeminiRequest = (temperature: number) =>
+      JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: systemInstruction }, ...userContentParts],
+          },
+        ],
+        generationConfig: {
+          temperature,
+          topP: 0.9,
+          maxOutputTokens: 8192,
+          responseMimeType: 'application/json',
+          responseSchema: writingResponseSchema,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      });
+
+    let geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                { text: systemInstruction },
-                ...userContentParts
-              ]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.4,
-            topP: 0.9,
-            maxOutputTokens: 8192,
-          },
-        }),
+        body: buildGeminiRequest(0.2),
       }
     );
 
@@ -530,43 +636,40 @@ Register and tone:
       );
     }
 
-    const geminiData = await geminiResponse.json();
+    let geminiData = await geminiResponse.json();
+    let tokensUsed = geminiData.usageMetadata?.totalTokenCount || 0;
     let aiContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!aiContent) {
       throw new Error('No content received from Gemini');
     }
 
-    // Log raw content for debugging
     console.log('Raw AI content length:', aiContent.length);
-
-    // Extract JSON from response - handle markdown code blocks and other formatting
-    let jsonString = aiContent;
-
-    // Try to extract JSON object using regex (handles ```json blocks, extra text, etc.)
-    const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      jsonString = jsonMatch[0];
-    } else {
-      // If no JSON object found, try stripping markdown manually
-      jsonString = aiContent.trim();
-      if (jsonString.startsWith('```json')) {
-        jsonString = jsonString.slice(7);
-      } else if (jsonString.startsWith('```')) {
-        jsonString = jsonString.slice(3);
+    let parsedFeedback: Record<string, any>;
+    try {
+      parsedFeedback = parseStructuredJson(aiContent);
+    } catch (parseError) {
+      console.warn('Gemini returned invalid JSON; retrying once:', parseError);
+      geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: buildGeminiRequest(0),
+        }
+      );
+      if (!geminiResponse.ok) {
+        throw new Error('AI returned malformed feedback and the retry failed');
       }
-      if (jsonString.endsWith('```')) {
-        jsonString = jsonString.slice(0, -3);
-      }
-      jsonString = jsonString.trim();
+      geminiData = await geminiResponse.json();
+      tokensUsed += geminiData.usageMetadata?.totalTokenCount || 0;
+      aiContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+      parsedFeedback = parseStructuredJson(aiContent);
     }
 
-    console.log('Extracted JSON length:', jsonString.length);
+    const feedbackData = normalizeWritingEvaluation(parsedFeedback, taskType, writingText);
 
-    const feedbackData = JSON.parse(jsonString);
-    const tokensUsed = geminiData.usageMetadata?.totalTokenCount || 0;
-
-    await logApiUsage(supabase, user.id, 'generateDetailedFeedback', false, tokensUsed, {
+    await finalizeApiUsage(supabase, quotaReservation.reservationId, tokensUsed, false, {
       taskType,
     });
 

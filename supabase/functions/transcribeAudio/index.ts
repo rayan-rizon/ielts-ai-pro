@@ -8,7 +8,8 @@ import {
   logApiUsage,
   checkRateLimit,
   getRateLimitIdentifier,
-  checkDatabaseQuota,
+  reserveDatabaseQuota,
+  finalizeApiUsage,
   quotaExceededResponse,
   getBurstLimitConfig,
   checkTierAccess,
@@ -16,7 +17,17 @@ import {
 
 declare const Deno: any;
 
-const MAX_REMOTE_AUDIO_BYTES = 50 * 1024 * 1024;
+const MAX_AUDIO_BYTES = 18 * 1024 * 1024;
+const ALLOWED_AUDIO_MIME_TYPES = new Set([
+  'audio/mpeg',
+  'audio/mp3',
+  'audio/wav',
+  'audio/x-wav',
+  'audio/mp4',
+  'audio/m4a',
+  'audio/webm',
+  'audio/ogg',
+]);
 
 function isTrustedAudioUrl(rawUrl: string): boolean {
   try {
@@ -24,7 +35,9 @@ function isTrustedAudioUrl(rawUrl: string): boolean {
     if (parsed.protocol !== 'https:') return false;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const trustedSupabaseHost = supabaseUrl ? new URL(supabaseUrl).hostname : 'zvrmvycajimjxghrnpgy.supabase.co';
+    const trustedSupabaseHost = supabaseUrl
+      ? new URL(supabaseUrl).hostname
+      : 'zvrmvycajimjxghrnpgy.supabase.co';
     const r2PublicUrl = Deno.env.get('R2_PUBLIC_URL');
     const trustedR2Origin = r2PublicUrl ? new URL(r2PublicUrl).origin : 'https://media.ieltsai.pro';
 
@@ -78,7 +91,12 @@ serve(async (req: Request) => {
     const tier = userProfile?.subscription_tier || 'free';
 
     // Tier gate: Audio transcription requires pro or higher
-    const tierDenied = checkTierAccess(tier, ['pro', 'premium', 'admin'], corsHeaders, 'Audio Transcription');
+    const tierDenied = checkTierAccess(
+      tier,
+      ['pro', 'premium', 'admin'],
+      corsHeaders,
+      'Audio Transcription'
+    );
     if (tierDenied) return tierDenied;
 
     // 2. Burst Protection (In-Memory)
@@ -96,14 +114,6 @@ serve(async (req: Request) => {
       );
     }
 
-    // 3. Daily/Monthly Quota (Database)
-    const quotaCheck = await checkDatabaseQuota(supabase, user.id, tier);
-    if (!quotaCheck.allowed) {
-      return quotaExceededResponse(quotaCheck, corsHeaders);
-    }
-
-    // --- End Rate Limiting ---
-
     const { audioUrl, audioBase64, mimeType: providedMimeType } = await req.json();
 
     if (!audioUrl && !audioBase64) {
@@ -120,6 +130,29 @@ serve(async (req: Request) => {
 
     let base64Audio = audioBase64;
     let mimeType = providedMimeType || 'audio/mpeg';
+
+    if (!ALLOWED_AUDIO_MIME_TYPES.has(mimeType)) {
+      return new Response(JSON.stringify({ error: 'Unsupported audio MIME type' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (base64Audio) {
+      if (typeof base64Audio !== 'string') {
+        return new Response(JSON.stringify({ error: 'audioBase64 must be a string' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const estimatedBytes = Math.ceil(base64Audio.length * 0.75);
+      if (estimatedBytes > MAX_AUDIO_BYTES) {
+        return new Response(JSON.stringify({ error: 'Audio file is too large.' }), {
+          status: 413,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
 
     if (!base64Audio) {
       if (!isTrustedAudioUrl(audioUrl)) {
@@ -140,20 +173,20 @@ serve(async (req: Request) => {
       }
 
       const contentLength = audioResponse.headers.get('content-length');
-      if (contentLength && Number(contentLength) > MAX_REMOTE_AUDIO_BYTES) {
-        return new Response(
-          JSON.stringify({ error: 'Audio file is too large.' }),
-          { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      if (contentLength && Number(contentLength) > MAX_AUDIO_BYTES) {
+        return new Response(JSON.stringify({ error: 'Audio file is too large.' }), {
+          status: 413,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
 
       // Convert to base64 safely without memory overflow
       const audioBuffer = await audioResponse.arrayBuffer();
-      if (audioBuffer.byteLength > MAX_REMOTE_AUDIO_BYTES) {
-        return new Response(
-          JSON.stringify({ error: 'Audio file is too large.' }),
-          { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      if (audioBuffer.byteLength > MAX_AUDIO_BYTES) {
+        return new Response(JSON.stringify({ error: 'Audio file is too large.' }), {
+          status: 413,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
       base64Audio = Buffer.from(audioBuffer).toString('base64');
 
@@ -165,6 +198,22 @@ serve(async (req: Request) => {
             ? 'audio/mp4'
             : 'audio/mpeg';
       }
+    }
+
+    const quotaReservation = await reserveDatabaseQuota(
+      supabase,
+      user.id,
+      'transcribeAudio',
+      null,
+      null,
+      {
+        hasUrl: !!audioUrl,
+        hasBase64: !!audioBase64,
+        mimeType,
+      }
+    );
+    if (!quotaReservation.allowed) {
+      return quotaExceededResponse(quotaReservation, corsHeaders);
     }
 
     console.log(`Audio ready. Size: ${Math.round(base64Audio.length / 1024)}KB, MIME: ${mimeType}`);
@@ -254,8 +303,7 @@ serve(async (req: Request) => {
 
     console.log('Transcription successful, length:', cleanTranscript.length);
 
-    // Log successful usage
-    await logApiUsage(supabase, user.id, 'transcribeAudio', false, tokensUsed, {
+    await finalizeApiUsage(supabase, quotaReservation.reservationId, tokensUsed, false, {
       hasUrl: !!audioUrl,
       hasBase64: !!audioBase64,
       audioSize: base64Audio.length,

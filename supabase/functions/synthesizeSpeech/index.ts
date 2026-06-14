@@ -2,7 +2,15 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 // @ts-ignore
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { getCorsHeaders } from '../_shared/security.ts';
+import {
+  getCorsHeaders,
+  checkRateLimit,
+  getRateLimitIdentifier,
+  getBurstLimitConfig,
+  reserveDatabaseQuota,
+  finalizeApiUsage,
+  quotaExceededResponse,
+} from '../_shared/security.ts';
 
 declare const Deno: any;
 declare const EdgeRuntime: any;
@@ -25,7 +33,22 @@ const TTS_BUCKET = 'tts-cache';
 // en-GB-Neural2-B: male, warm, natural British English — least robotic Neural2 voice
 const DEFAULT_VOICE = 'en-GB-Neural2-B';
 const DEFAULT_SPEAKING_RATE = 0.88; // Measured examiner pace — clear and deliberate
-const DEFAULT_PITCH = 0.0;          // Neutral pitch — avoid robotic bass distortion
+const DEFAULT_PITCH = 0.0; // Neutral pitch — avoid robotic bass distortion
+const ALLOWED_VOICES = new Set([
+  'en-GB-Neural2-A',
+  'en-GB-Neural2-B',
+  'en-GB-Neural2-C',
+  'en-GB-Neural2-D',
+  'en-US-Neural2-A',
+  'en-US-Neural2-C',
+  'en-US-Neural2-D',
+  'en-US-Neural2-E',
+  'en-US-Neural2-F',
+  'en-US-Neural2-G',
+  'en-US-Neural2-H',
+  'en-US-Neural2-I',
+  'en-US-Neural2-J',
+]);
 
 /**
  * Compute a deterministic cache key from voice + text.
@@ -49,7 +72,7 @@ async function callGoogleTTS(
   text: string,
   voiceName: string,
   apiKey: string
-): Promise<{ buffer?: ArrayBuffer, error?: string }> {
+): Promise<{ buffer?: ArrayBuffer; error?: string }> {
   const languageCode = voiceName.startsWith('en-GB') ? 'en-GB' : 'en-US';
 
   const body = {
@@ -144,6 +167,37 @@ serve(async (req: Request) => {
       });
     }
 
+    const { data: userProfile, error: profileError } = await supabase
+      .from('users')
+      .select('subscription_tier, role')
+      .eq('auth_id', user.id)
+      .single();
+    if (profileError || !userProfile) {
+      return new Response(JSON.stringify({ error: 'User profile not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const tier =
+      userProfile.role === 'admin'
+        ? 'admin'
+        : String(userProfile.subscription_tier || 'free').toLowerCase();
+    const burstCheck = checkRateLimit(
+      `${getRateLimitIdentifier(req, user.id)}:tts`,
+      getBurstLimitConfig(tier)
+    );
+    if (!burstCheck.allowed) {
+      return new Response(JSON.stringify({ error: 'Too many speech requests. Please wait.' }), {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+          'Retry-After': String(Math.ceil(burstCheck.resetIn / 1000)),
+        },
+      });
+    }
+
     const { text, voice } = await req.json();
 
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
@@ -156,17 +210,28 @@ serve(async (req: Request) => {
     // Sanitise + limit text length (Google TTS supports up to 5000 bytes)
     const cleanText = text.trim().slice(0, 1500);
     const voiceName: string = voice || DEFAULT_VOICE;
+    if (!ALLOWED_VOICES.has(voiceName)) {
+      return new Response(JSON.stringify({ error: 'Unsupported voice' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const apiKey = Deno.env.get('GOOGLE_TTS_API_KEY');
 
     if (!apiKey) {
-      console.error('[TTS] CRITICAL: GOOGLE_TTS_API_KEY secret is completely missing from the Edge Function environment!');
+      console.error(
+        '[TTS] CRITICAL: GOOGLE_TTS_API_KEY secret is completely missing from the Edge Function environment!'
+      );
       return new Response(
-        JSON.stringify({ success: false, fallback: true, error: 'TTS API key not configured. Did you set the secret?' }),
+        JSON.stringify({
+          success: false,
+          fallback: true,
+          error: 'TTS API key not configured. Did you set the secret?',
+        }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 
@@ -194,23 +259,43 @@ serve(async (req: Request) => {
 
     if (cacheHit && publicUrl) {
       console.log(`[TTS] Cache HIT: ${fileName}`);
-      return new Response(
-        JSON.stringify({ success: true, audioUrl: publicUrl, cached: true }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ success: true, audioUrl: publicUrl, cached: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const quotaReservation = await reserveDatabaseQuota(
+      supabase,
+      user.id,
+      'synthesizeSpeech',
+      'tts',
+      null,
+      { textLength: cleanText.length, voice: voiceName }
+    );
+    if (!quotaReservation.allowed) {
+      return quotaExceededResponse(quotaReservation, corsHeaders);
     }
 
     // ----------------------------------------------------------
     // 2. Cache miss — call Google Cloud TTS Neural2
     // ----------------------------------------------------------
     console.log(`[TTS] Cache MISS — calling Google Neural2 for: "${cleanText.slice(0, 80)}"`);
-    const { buffer: audioBuffer, error: ttsError } = await callGoogleTTS(cleanText, voiceName, apiKey);
+    const { buffer: audioBuffer, error: ttsError } = await callGoogleTTS(
+      cleanText,
+      voiceName,
+      apiKey
+    );
 
     if (!audioBuffer) {
       // TTS API failed — signal the client to fall back to Web Speech API
       console.warn('[TTS] Google TTS API failed:', ttsError);
       return new Response(
-        JSON.stringify({ success: false, fallback: true, error: ttsError || 'TTS API call failed' }),
+        JSON.stringify({
+          success: false,
+          fallback: true,
+          error: ttsError || 'TTS API call failed',
+        }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -218,16 +303,19 @@ serve(async (req: Request) => {
     // ----------------------------------------------------------
     // 3. Upload to Supabase Storage (Non-blocking cache update)
     // ----------------------------------------------------------
-    const uploadPromise = supabase
-      .storage
+    const uploadPromise = supabase.storage
       .from(TTS_BUCKET)
       .upload(fileName, audioBuffer, {
         contentType: 'audio/mpeg',
         cacheControl: '31536000', // 1 year — content-addressed, never changes
-        upsert: false,            // Don't overwrite
+        upsert: false, // Don't overwrite
       })
       .then(({ error }: { error: any }) => {
-        if (error && !error.message?.includes('already exists') && !error.message?.includes('The resource already exists')) {
+        if (
+          error &&
+          !error.message?.includes('already exists') &&
+          !error.message?.includes('The resource already exists')
+        ) {
           console.warn('[TTS] Background upload warning:', error.message);
         } else if (!error) {
           console.log(`[TTS] Cached new audio: ${fileName} (${audioBuffer.byteLength} bytes)`);
@@ -249,6 +337,13 @@ serve(async (req: Request) => {
     }
     const base64 = btoa(binary);
 
+    await finalizeApiUsage(supabase, quotaReservation.reservationId, 0, false, {
+      textLength: cleanText.length,
+      voice: voiceName,
+      audioBytes: audioBuffer.byteLength,
+      billingUnit: 'characters',
+    });
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -261,9 +356,9 @@ serve(async (req: Request) => {
   } catch (error: any) {
     console.error('[TTS] Internal error:', error);
     // Always respond 200 with fallback flag — never block the speaking test
-    return new Response(
-      JSON.stringify({ success: false, fallback: true, error: error.message }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ success: false, fallback: true, error: error.message }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });
