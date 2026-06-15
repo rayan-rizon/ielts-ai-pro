@@ -522,7 +522,7 @@ export default function TimeManagementQuadrant({ questionTypeData = [] }) {
               icon={Gauge}
               title="Time Analysis"
               description="Complete tests with timing data to see your time management patterns and optimize your test-taking strategy."
-              className="py-12"
+              compact
               data-oid="moc-z_2"
             />
           )}

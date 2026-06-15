@@ -17,7 +17,7 @@ export const SidebarStyles = ({ children }) => (
     <style data-oid="in0lyzk">
       {`
         .sidebar-style {
-          background: rgba(255, 255, 255, 0.7);
+          background: rgba(255, 255, 255, 0.7) !important;
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
           color: hsl(var(--sidebar-fg-light));
@@ -28,11 +28,14 @@ export const SidebarStyles = ({ children }) => (
           backface-visibility: hidden;
           perspective: 1000;
         }
+        .sidebar-style [data-sidebar="sidebar"] {
+          background: transparent !important;
+        }
         .sidebar-accent-style {
           background: hsl(var(--sidebar-accent-light));
         }
         .dark .sidebar-style {
-          background: linear-gradient(to bottom, rgba(13, 14, 24, 0.85), rgba(8, 9, 15, 0.95));
+          background: linear-gradient(to bottom, rgba(14, 16, 27, 0.96), rgba(8, 9, 15, 0.98)) !important;
           backdrop-filter: blur(24px);
           -webkit-backdrop-filter: blur(24px);
           color: hsl(var(--sidebar-fg-dark));

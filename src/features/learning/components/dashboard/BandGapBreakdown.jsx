@@ -92,7 +92,7 @@ export default function BandGapBreakdown({ bandGaps, targetBand, className, load
                 onClick={() =>
                   navigate(createPageUrl(it.module.charAt(0).toUpperCase() + it.module.slice(1)))
                 }
-                className="w-full text-left p-4 rounded-2xl bg-slate-50/50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 hover:border-emerald-500/30 transition-all group"
+                className="w-full text-left p-4 rounded-2xl bg-slate-50/50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 transition-all group hover:border-emerald-500/40 dark:hover:border-emerald-400/40 hover:bg-emerald-50/50 dark:hover:bg-emerald-500/15 hover:shadow-md hover:shadow-emerald-500/5"
               >
                 <div className="flex items-center justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2 min-w-0">

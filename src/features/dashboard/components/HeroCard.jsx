@@ -5,7 +5,6 @@ import { ArrowRight, Target } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { createPageUrl } from '@/utils';
 
 const AVATAR_SEEDS = [11, 12, 13, 14];
@@ -249,7 +248,7 @@ const HeroCard = React.memo(({ recommended, progressToTarget, stats }) => {
                     r="50"
                     stroke="currentColor"
                     strokeWidth="8"
-                    className="text-slate-100 dark:text-slate-800/60"
+                    className="text-slate-100 dark:text-white/15"
                     fill="none"
                     opacity="0.8"
                     data-oid="1en9ryy"

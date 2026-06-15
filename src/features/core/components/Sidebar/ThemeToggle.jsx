@@ -17,7 +17,7 @@ export const ThemeToggle = memo(() => {
     >
       <SidebarMenuButton
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        className="w-full gap-3 px-3 text-foreground/80 hover:text-primary hover:bg-primary/10 dark:hover:bg-indigo-500/15 dark:hover:text-indigo-200 rounded-xl transition-all duration-300 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center border border-transparent hover:border-primary/20 dark:hover:border-indigo-400/30"
+        className="w-full gap-3 px-3 text-foreground/80 dark:text-foreground/80 hover:text-primary hover:bg-primary/10 dark:hover:bg-indigo-500/22 dark:hover:text-indigo-300 rounded-xl transition-all duration-300 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center border border-transparent hover:border-primary/20 dark:hover:border-indigo-400/40"
         aria-label="Toggle theme"
         data-oid="u5pktta"
       >

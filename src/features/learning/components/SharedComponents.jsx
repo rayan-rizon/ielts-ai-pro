@@ -12,7 +12,8 @@ export const GlassCard = ({ children, className, ...props }) => (
     transition={{ type: 'spring', stiffness: 300, damping: 25 }}
     className={cn(
       'relative overflow-hidden bg-white/95 dark:bg-slate-950/60 backdrop-blur-xl border border-slate-200/60 dark:border-white/[0.08] shadow-[0_8px_24px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.35)] rounded-2xl',
-      'hover:border-primary/30 dark:hover:border-primary/20 transition-all duration-300',
+      'hover:border-primary/30 dark:hover:border-primary/30 transition-all duration-300',
+      'hover:shadow-[0_12px_30px_rgba(99,102,241,0.06)] dark:hover:shadow-[0_20px_40px_rgba(99,102,241,0.08)]',
       className
     )}
     {...props}
@@ -31,9 +32,10 @@ export const ModuleBadge = ({ module }) => {
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight',
+        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight border',
         config.bg,
-        config.color
+        config.color,
+        config.border
       )}
       data-oid="mfm7.p5"
     >

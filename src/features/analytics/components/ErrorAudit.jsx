@@ -206,7 +206,7 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
               icon={PieIcon}
               title="Mistake Tracking"
               description="Keep practicing to see a breakdown of your mistakes and get tips to fix them."
-              className="py-12"
+              compact
               data-oid="nklq56g"
             />
           )}

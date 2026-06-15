@@ -10,6 +10,9 @@ module.exports = {
         sm: 'calc(var(--radius) - 4px)',
       },
       colors: {
+        indigo: {
+          400: '#7f8cff',
+        },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -84,7 +87,7 @@ module.exports = {
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
       transitionTimingFunction: {
-        'sidebar': 'cubic-bezier(0.23, 1, 0.32, 1)',
+        sidebar: 'cubic-bezier(0.23, 1, 0.32, 1)',
       },
     },
   },

@@ -93,7 +93,7 @@ export default function ReviewQueue({
                 onClick={() =>
                   navigate(createPageUrl(module.charAt(0).toUpperCase() + module.slice(1)))
                 }
-                className="w-full flex items-center justify-between gap-3 p-4 rounded-2xl bg-slate-50/50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 hover:border-indigo-500/30 transition-all group text-left"
+                className="w-full flex items-center justify-between gap-3 p-4 rounded-2xl bg-slate-50/50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 transition-all group text-left hover:border-indigo-500/40 dark:hover:border-indigo-400/40 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/15 hover:shadow-md hover:shadow-indigo-500/5"
               >
                 <div className="min-w-0">
                   <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">

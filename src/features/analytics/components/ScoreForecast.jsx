@@ -95,7 +95,7 @@ export default function ScoreForecast({ forecastData, targetScore }) {
               icon={Target}
               title="Forecasting Pending"
               description="Complete at least 3 practice tests to unlock your AI-powered band score projection."
-              className="py-6"
+              compact
               data-oid="w7:0dde"
             />
           </CardContent>

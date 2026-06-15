@@ -169,7 +169,7 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
         icon={Target}
         title="Accuracy Breakdown"
         description="Submit tests with feedback to see your precision breakdown across question types."
-        className="py-12"
+        compact
         data-oid="hzugqsx"
       />
     );
@@ -496,7 +496,7 @@ export default function PerformanceTrends({
                         icon={Activity}
                         title={`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Analytics`}
                         description={`Complete more ${activeTab} tests to unlock detailed performance trends.`}
-                        className="py-0"
+                        compact
                         data-oid="8-pio3_"
                       />
                     </div>
@@ -893,7 +893,7 @@ export default function PerformanceTrends({
                       icon={Gauge}
                       title="Analysis Pending"
                       description="Complete tests to generate your personalized Deep Insights and performance audits."
-                      className="py-12"
+                      compact
                       data-oid="0e1mw:5"
                     />
                   )}

@@ -252,7 +252,7 @@ export default function SkillDiagnostics({ stats, compact = false }) {
             icon={Target}
             title="Skill Profile"
             description="Complete practice tests in different modules to build your performance profile and see detailed skill metrics."
-            className="py-12"
+            compact
             data-oid="bu6fvp-"
           />
         </Card>

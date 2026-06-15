@@ -34,50 +34,50 @@ const MODULE_THEMES = {
   reading: {
     color: 'blue',
     url: '/reading-test',
-    bg: 'bg-blue-500/10 dark:bg-blue-500/20',
-    border: 'border-blue-500/30 dark:border-blue-400/30',
-    shadow: 'shadow-[0_0_15px_rgba(59,130,246,0.1)]',
-    iconActive: 'bg-blue-500 text-white shadow-blue-500/20',
+    bg: 'bg-blue-500/[0.03] dark:bg-blue-500/[0.06]',
+    border: 'border-blue-500/15 dark:border-blue-500/10',
+    shadow: 'shadow-[0_0_15px_rgba(59,130,246,0.06)]',
+    iconActive: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400',
     iconHover: 'group-hover/module:text-blue-500',
-    textMain: 'text-blue-700 dark:text-blue-300',
-    textSub: 'text-blue-600 dark:text-blue-400',
-    textResume: 'text-blue-500',
+    textMain: 'text-blue-600 dark:text-blue-400',
+    textSub: 'text-blue-500/80 dark:text-blue-400/60',
+    textResume: 'text-blue-500/80 dark:text-blue-400/80',
   },
   listening: {
     color: 'purple',
     url: '/listening-test',
-    bg: 'bg-purple-500/10 dark:bg-purple-500/20',
-    border: 'border-purple-500/30 dark:border-purple-400/30',
-    shadow: 'shadow-[0_0_15px_rgba(168,85,247,0.1)]',
-    iconActive: 'bg-purple-500 text-white shadow-purple-500/20',
+    bg: 'bg-purple-500/[0.03] dark:bg-purple-500/[0.06]',
+    border: 'border-purple-500/15 dark:border-purple-500/10',
+    shadow: 'shadow-[0_0_15px_rgba(168,85,247,0.06)]',
+    iconActive: 'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400',
     iconHover: 'group-hover/module:text-purple-500',
-    textMain: 'text-purple-700 dark:text-purple-300',
-    textSub: 'text-purple-600 dark:text-purple-400',
-    textResume: 'text-purple-500',
+    textMain: 'text-purple-600 dark:text-purple-400',
+    textSub: 'text-purple-500/80 dark:text-purple-400/60',
+    textResume: 'text-purple-500/80 dark:text-purple-400/80',
   },
   writing: {
     color: 'orange',
     url: '/writing-task?taskId=',
-    bg: 'bg-orange-500/10 dark:bg-orange-500/20',
-    border: 'border-orange-500/30 dark:border-orange-400/30',
-    shadow: 'shadow-[0_0_15px_rgba(249,115,22,0.1)]',
-    iconActive: 'bg-orange-500 text-white shadow-orange-500/20',
+    bg: 'bg-orange-500/[0.03] dark:bg-orange-500/[0.06]',
+    border: 'border-orange-500/15 dark:border-orange-500/10',
+    shadow: 'shadow-[0_0_15px_rgba(249,115,22,0.06)]',
+    iconActive: 'bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400',
     iconHover: 'group-hover/module:text-orange-500',
-    textMain: 'text-orange-700 dark:text-orange-300',
-    textSub: 'text-orange-600 dark:text-orange-400',
-    textResume: 'text-orange-500',
+    textMain: 'text-orange-600 dark:text-orange-400',
+    textSub: 'text-orange-500/80 dark:text-orange-400/60',
+    textResume: 'text-orange-500/80 dark:text-orange-400/80',
   },
   speaking: {
     color: 'rose',
     url: '/speaking-test',
-    bg: 'bg-rose-500/10 dark:bg-rose-500/20',
-    border: 'border-rose-500/30 dark:border-rose-400/30',
-    shadow: 'shadow-[0_0_15px_rgba(244,63,94,0.1)]',
-    iconActive: 'bg-rose-500 text-white shadow-rose-500/20',
+    bg: 'bg-rose-500/[0.03] dark:bg-rose-500/[0.06]',
+    border: 'border-rose-500/15 dark:border-rose-500/10',
+    shadow: 'shadow-[0_0_15px_rgba(244,63,94,0.06)]',
+    iconActive: 'bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400',
     iconHover: 'group-hover/module:text-rose-500',
-    textMain: 'text-rose-700 dark:text-rose-300',
-    textSub: 'text-rose-600 dark:text-rose-400',
-    textResume: 'text-rose-500',
+    textMain: 'text-rose-600 dark:text-rose-400',
+    textSub: 'text-rose-500/80 dark:text-rose-400/60',
+    textResume: 'text-rose-500/80 dark:text-rose-400/80',
   },
 };
 
@@ -909,7 +909,7 @@ export default function CambridgeTests() {
         {/* Controls Section */}
         <div className="sticky top-6 z-40" data-oid="lf.b.95">
           <div
-            className="bg-white/80 dark:bg-[#0c0c0c]/85 backdrop-blur-3xl p-2 rounded-[2rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)] border border-slate-200/50 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center justify-between"
+            className="bg-white/80 dark:bg-[#0c0c0c]/85 backdrop-blur-3xl p-1 rounded-[1.5rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)] border border-slate-200/50 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center justify-between"
             data-oid="s:_lyw7"
           >
             <div className="relative w-full lg:max-w-md group" data-oid="93milaj">
@@ -924,7 +924,7 @@ export default function CambridgeTests() {
               </div>
               <Input
                 placeholder="Find a series or book..."
-                className="pl-14 h-12 bg-slate-100/60 dark:bg-white/5 border-none focus-visible:ring-2 focus-visible:ring-blue-500/25 rounded-[1.5rem] text-sm font-semibold placeholder:text-slate-400 transition-all group-hover:bg-slate-200/50 dark:group-hover:bg-white/[0.08]"
+                className="pl-14 h-11 bg-slate-100/60 dark:bg-white/5 border border-slate-200 dark:border-transparent focus-visible:ring-2 focus-visible:ring-blue-500/25 rounded-[1.3rem] text-sm font-semibold placeholder:text-slate-400 transition-all group-hover:bg-slate-200/50 dark:group-hover:bg-white/[0.08]"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 data-oid="4bg9zu4"
@@ -932,7 +932,7 @@ export default function CambridgeTests() {
             </div>
 
             <div
-              className="flex items-center bg-white/60 dark:bg-white/5 backdrop-blur-xl p-1.5 rounded-2xl gap-2 w-full lg:w-auto overflow-x-auto no-scrollbar border border-slate-200/50 dark:border-white/10"
+              className="flex items-center bg-white/60 dark:bg-white/5 backdrop-blur-xl p-1 rounded-xl gap-1 w-full lg:w-auto overflow-x-auto no-scrollbar border border-slate-200/50 dark:border-white/10 px-2 lg:p-1"
               data-oid="jwdtsc-"
             >
               {tabs.map((tab) => (
@@ -940,7 +940,7 @@ export default function CambridgeTests() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    'flex shrink-0 items-center gap-2 px-5 py-2 rounded-xl text-xs font-black transition-all duration-300 whitespace-nowrap uppercase tracking-widest',
+                    'flex shrink-0 items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-black transition-all duration-300 whitespace-nowrap uppercase tracking-widest',
                     activeTab === tab.id
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/20'
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10'

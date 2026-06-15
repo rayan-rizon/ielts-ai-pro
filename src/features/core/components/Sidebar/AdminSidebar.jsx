@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { m } from 'framer-motion';
-import { ShieldCheck, Sparkles, Plus, Crown, LogOut, CreditCard } from 'lucide-react';
+import { ShieldCheck, Sparkles, Plus, Crown, LogOut } from 'lucide-react';
 import {
   SidebarHeader,
   SidebarContent,
@@ -36,8 +36,8 @@ const AdminNavItem = memo(({ item, isActive, pendingCount = 0, layoutId }) => {
           asChild
           className={`group transition-all duration-200 rounded-xl mb-1.5 relative overflow-hidden ${
             isActive
-              ? 'bg-red-500/10 text-red-500 font-bold border border-red-500/20 active-glow-red'
-              : 'text-foreground/70 hover:text-red-500 hover:bg-red-500/5 hover:border-red-500/10 border border-transparent'
+              ? 'bg-red-500/10 text-red-500 font-bold border border-red-500/20 active-glow-red dark:bg-red-500/35 dark:text-white dark:border-red-500/60'
+              : 'text-foreground/70 dark:text-foreground/80 hover:text-red-500 hover:bg-red-500/5 hover:border-red-500/10 dark:hover:bg-red-500/22 dark:hover:text-red-300 dark:hover:border-red-500/40 border border-transparent'
           }`}
           tooltip={item.title}
           data-oid="kfo7-mh"
@@ -215,7 +215,7 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
       <SidebarContent className="p-3 group-data-[collapsible=icon]:p-2" data-oid="qz8y--f">
         <SidebarGroup data-oid="919hgsw">
           <SidebarGroupLabel
-            className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-[0.2em] px-3 py-3"
+            className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground/90 uppercase tracking-[0.2em] px-3 py-3"
             data-oid="ar3:f-f"
           >
             Navigation
@@ -238,7 +238,7 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
 
         <SidebarGroup className="mt-4" data-oid="5glbou1">
           <SidebarGroupLabel
-            className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-[0.2em] px-3 py-3"
+            className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground/90 uppercase tracking-[0.2em] px-3 py-3"
             data-oid="6uwi2ti"
           >
             Intelligence
@@ -260,7 +260,7 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
 
         <SidebarGroup className="mt-4" data-oid="cm5afwe">
           <SidebarGroupLabel
-            className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-[0.2em] px-3 py-3"
+            className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground/90 uppercase tracking-[0.2em] px-3 py-3"
             data-oid="yk1l9ra"
           >
             Quick Actions
@@ -270,7 +270,7 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
               <SidebarMenuItem data-oid="bab:dfr">
                 <SidebarMenuButton
                   asChild
-                  className="w-full justify-start gap-3 px-3 text-foreground/70 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-emerald-500/10 rounded-xl transition-all duration-200 border border-transparent hover:border-emerald-500/20"
+                  className="w-full justify-start gap-3 px-3 text-foreground/70 dark:text-foreground/80 hover:text-emerald-500 dark:hover:text-emerald-300 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/22 rounded-xl transition-all duration-200 border border-transparent hover:border-emerald-500/20 dark:hover:border-emerald-500/40"
                   tooltip="Create Test"
                   data-oid="b.mxalc"
                 >
@@ -294,7 +294,7 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
               <SidebarMenuItem data-oid="cvv86s3">
                 <SidebarMenuButton
                   asChild
-                  className="w-full justify-start gap-3 px-3 text-foreground/70 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-500/10 rounded-xl transition-all duration-200 border border-transparent hover:border-amber-500/20"
+                  className="w-full justify-start gap-3 px-3 text-foreground/70 dark:text-foreground/80 hover:text-amber-500 dark:hover:text-amber-300 hover:bg-amber-500/10 dark:hover:bg-amber-500/22 rounded-xl transition-all duration-200 border border-transparent hover:border-amber-500/20 dark:hover:border-amber-500/40"
                   tooltip="Add Promo"
                   data-oid="4mznefw"
                 >
@@ -378,7 +378,7 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
                 if (isMobile) setOpenMobile(false);
                 handleLogout();
               }}
-              className="w-full justify-start gap-3 px-3 text-foreground/70 hover:text-destructive hover:bg-destructive/15 rounded-xl transition-all duration-200 group-data-[collapsible=icon]:px-2.5 border border-transparent hover:border-destructive/20 dark:hover:text-red-400 dark:hover:bg-red-500/15 dark:hover:border-red-500/30"
+              className="w-full justify-start gap-3 px-3 text-foreground/70 dark:text-foreground/80 hover:text-destructive hover:bg-destructive/15 rounded-xl transition-all duration-200 group-data-[collapsible=icon]:px-2.5 border border-transparent hover:border-destructive/20 dark:hover:text-red-300 dark:hover:bg-red-500/22 dark:hover:border-red-500/40"
               data-oid="cu9yi_8"
             >
               <LogOut className="w-4 h-4" data-oid=".xkhml9" />

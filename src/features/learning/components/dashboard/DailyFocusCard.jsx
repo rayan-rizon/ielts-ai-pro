@@ -284,7 +284,7 @@ const DailyFocusCard = ({
                             'text-left p-4 rounded-2xl border transition-all',
                             done
                               ? 'border-emerald-500/20 bg-emerald-500/5'
-                              : 'border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.02] hover:border-primary/30'
+                              : 'border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.02] hover:bg-slate-50/80 dark:hover:bg-white/[0.06] hover:border-primary/30 dark:hover:border-primary/30'
                           )}
                           data-oid="d1xd9qi"
                         >

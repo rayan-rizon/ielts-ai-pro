@@ -306,7 +306,7 @@ export default function EfficiencyMatrix({ paceData, onDrilldown }) {
               icon={Activity}
               title="Pacing Insights"
               description="Complete a few timed practice tests to see your pacing patterns and find your optimal answering speed."
-              className="py-8"
+              compact
               data-oid="z.ejlpw"
             />
           )}

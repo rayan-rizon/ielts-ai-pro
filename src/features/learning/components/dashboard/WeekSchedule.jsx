@@ -121,7 +121,7 @@ const WeekSchedule = ({
           <Button
             variant="ghost"
             size="sm"
-            className="rounded-xl h-9 px-3 text-[11px] font-black uppercase tracking-wider border border-zinc-200 dark:border-zinc-700/60"
+            className="rounded-xl h-9 px-3 text-[11px] font-black uppercase tracking-wider border border-zinc-200 dark:border-zinc-700/80 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-800/50"
             onClick={() => setSelectedDayIndex(todayIndex)}
           >
             Today
@@ -145,8 +145,8 @@ const WeekSchedule = ({
                   className={cn(
                     'relative px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all z-10 shrink-0',
                     selectedDayIndex === i
-                      ? 'text-primary'
-                      : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300'
+                      ? 'text-slate-900 dark:text-white'
+                      : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
                   )}
                   data-oid="uel67uy"
                 >
@@ -217,7 +217,7 @@ const WeekSchedule = ({
                   'group relative overflow-hidden flex items-center gap-4 p-3.5 rounded-2xl border-2 transition-all cursor-pointer',
                   isDone
                     ? 'bg-emerald-500/5 border-emerald-500/20'
-                    : 'bg-white dark:bg-white/[0.03] border-slate-100 dark:border-white/[0.08] hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 shadow-sm'
+                    : 'bg-white dark:bg-white/[0.03] border-slate-100 dark:border-white/[0.08] hover:bg-slate-50/80 dark:hover:bg-white/[0.06] hover:border-primary/30 dark:hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 shadow-sm'
                 )}
                 data-oid="ermp4:s"
               >
@@ -236,7 +236,7 @@ const WeekSchedule = ({
                     <Check className="w-5 h-5 stroke-[4px]" data-oid="gat-syr" />
                   ) : (
                     <div
-                      className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700 group-hover:bg-primary transition-colors"
+                      className="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-600 group-hover:bg-primary transition-colors"
                       data-oid="3i7rlm6"
                     />
                   )}
@@ -291,7 +291,7 @@ const WeekSchedule = ({
                   </h3>
                   {!isDone && (
                     <div
-                      className="flex items-start gap-2 mt-2 text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed"
+                      className="flex items-start gap-2 mt-2 text-[10px] font-bold text-slate-500 dark:text-slate-300 leading-relaxed"
                       data-oid="806sbg:"
                     >
                       <Lightbulb
@@ -311,7 +311,7 @@ const WeekSchedule = ({
                   {!!skillTargets?.length && !isDone && (
                     <div className="flex flex-wrap items-center gap-2 mt-2" data-oid="ns8pwx8">
                       <span
-                        className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded"
+                        className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-100/80 dark:bg-slate-800/80 px-2 py-0.5 rounded-md"
                         data-oid="40gntya"
                       >
                         TARGETS
@@ -319,7 +319,7 @@ const WeekSchedule = ({
                       {skillTargets.slice(0, 2).map((sc) => (
                         <span
                           key={sc}
-                          className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400"
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50/80 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-500/20"
                           data-oid="18gd:_l"
                         >
                           {formatSkillName(sc)}

@@ -39,20 +39,20 @@ const NavItem = memo(({ item, isActive, variant = 'primary' }) => {
   // Choose colors based on variant
   const activeClasses = {
     primary:
-      'bg-primary/10 text-primary border-primary/20 dark:bg-indigo-500/25 dark:text-indigo-100 dark:border-indigo-400/50 active-glow',
+      'bg-primary/10 text-primary border-primary/20 dark:bg-indigo-500/35 dark:text-white dark:border-indigo-400/60 active-glow',
     orange:
-      'bg-orange-500/10 text-orange-500 border-orange-500/20 dark:bg-orange-500/25 dark:text-orange-100 dark:border-orange-400/50 active-glow-orange',
+      'bg-orange-500/10 text-orange-500 border-orange-500/20 dark:bg-orange-500/35 dark:text-white dark:border-orange-400/60 active-glow-orange',
     purple:
-      'bg-purple-500/10 text-purple-500 border-purple-500/20 dark:bg-purple-500/25 dark:text-purple-100 dark:border-purple-400/50 active-glow-purple',
+      'bg-purple-500/10 text-purple-500 border-purple-500/20 dark:bg-purple-500/35 dark:text-white dark:border-purple-400/60 active-glow-purple',
   };
 
   const hoverClasses = {
     primary:
-      'hover:bg-primary/5 hover:text-primary hover:border-primary/10 dark:hover:bg-indigo-500/15 dark:hover:text-indigo-200 dark:hover:border-indigo-400/30',
+      'hover:bg-primary/5 hover:text-primary hover:border-primary/10 dark:hover:bg-indigo-500/22 dark:hover:text-indigo-300 dark:hover:border-indigo-400/40',
     orange:
-      'hover:bg-orange-500/5 hover:text-orange-500 hover:border-orange-500/10 dark:hover:bg-orange-500/15 dark:hover:text-orange-200 dark:hover:border-orange-400/30',
+      'hover:bg-orange-500/5 hover:text-orange-500 hover:border-orange-500/10 dark:hover:bg-orange-500/22 dark:hover:text-orange-300 dark:hover:border-orange-400/40',
     purple:
-      'hover:bg-purple-500/5 hover:text-purple-500 hover:border-purple-500/10 dark:hover:bg-purple-500/15 dark:hover:text-purple-200 dark:hover:border-purple-400/30',
+      'hover:bg-purple-500/5 hover:text-purple-500 hover:border-purple-500/10 dark:hover:bg-purple-500/22 dark:hover:text-purple-300 dark:hover:border-purple-400/40',
   };
 
   const iconColorClasses = {
@@ -61,10 +61,10 @@ const NavItem = memo(({ item, isActive, variant = 'primary' }) => {
       : 'text-muted-foreground group-hover:text-primary dark:group-hover:text-indigo-300',
     orange: isActive
       ? 'text-orange-500 dark:text-orange-300'
-      : 'text-foreground/70 group-hover:text-orange-500 dark:group-hover:text-orange-300',
+      : 'text-foreground/70 dark:text-foreground/85 group-hover:text-orange-500 dark:group-hover:text-orange-300',
     purple: isActive
       ? 'text-purple-500 dark:text-purple-300'
-      : 'text-foreground/70 group-hover:text-purple-500 dark:group-hover:text-purple-300',
+      : 'text-foreground/70 dark:text-foreground/85 group-hover:text-purple-500 dark:group-hover:text-purple-300',
   };
 
   const activeBarClasses = {
@@ -86,7 +86,7 @@ const NavItem = memo(({ item, isActive, variant = 'primary' }) => {
           className={`group relative mb-0.5 rounded-xl overflow-hidden transition-all duration-200 ${
             isActive
               ? `${activeClasses[variant]} border`
-              : `text-foreground/70 border border-transparent ${hoverClasses[variant]}`
+              : `text-foreground/70 dark:text-foreground/80 border border-transparent ${hoverClasses[variant]}`
           }`}
           tooltip={item.title}
           data-oid="xw6wqbd"
@@ -244,7 +244,7 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
       >
         <SidebarGroup data-oid="ku-4gdt">
           <SidebarGroupLabel
-            className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-3 py-1.5 group-data-[collapsible=icon]:hidden"
+            className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground/90 uppercase tracking-[0.2em] px-3 py-1.5 group-data-[collapsible=icon]:hidden"
             data-oid="grskv2u"
           >
             Practice Tests
@@ -276,7 +276,7 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
 
         <SidebarGroup className="pt-0.5" data-oid="a1:913-">
           <SidebarGroupLabel
-            className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-3 py-1.5 group-data-[collapsible=icon]:hidden"
+            className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground/90 uppercase tracking-[0.2em] px-3 py-1.5 group-data-[collapsible=icon]:hidden"
             data-oid="l_-pik4"
           >
             Official Tests
@@ -299,7 +299,7 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
 
         <SidebarGroup className="pt-0.5" data-oid="328_5dv">
           <SidebarGroupLabel
-            className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-3 py-1.5 group-data-[collapsible=icon]:hidden"
+            className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground/90 uppercase tracking-[0.2em] px-3 py-1.5 group-data-[collapsible=icon]:hidden"
             data-oid=".w0xhz5"
           >
             Learning Tools
@@ -498,7 +498,7 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
                 if (isMobile) setOpenMobile(false);
                 handleLogout();
               }}
-              className="w-full justify-start gap-3 px-3 text-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-200 border border-transparent hover:border-destructive/20 dark:hover:text-red-400 dark:hover:bg-red-500/10 dark:hover:border-red-500/30"
+              className="w-full justify-start gap-3 px-3 text-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-200 border border-transparent hover:border-destructive/20 dark:hover:text-red-400 dark:hover:bg-red-500/20 dark:hover:border-red-500/40"
               data-oid=".qpxonp"
             >
               <LogOut className="w-4 h-4" data-oid="-cby38k" />
