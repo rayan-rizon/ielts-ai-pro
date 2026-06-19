@@ -20,9 +20,11 @@ export default function Footer() {
     ],
 
     Resources: [
-      { label: 'Blog & Guides', href: '/resources' },
-      { label: 'Band Descriptors', href: '#modules' },
-      { label: 'Success Stories', href: '#results' },
+      { label: 'IELTS Writing Checker', href: '/ielts-writing-checker', reload: true },
+      { label: 'IELTS Speaking Practice', href: '/ielts-speaking-practice-ai', reload: true },
+      { label: 'IELTS Mock Test Online', href: '/ielts-mock-test-online', reload: true },
+      { label: 'Cambridge IELTS Tests', href: '/cambridge-ielts-practice-tests', reload: true },
+      { label: 'Free IELTS Practice', href: '/free-ielts-practice-tests', reload: true },
       { label: 'FAQ', href: '#faq' },
     ],
 
@@ -145,7 +147,7 @@ export default function Footer() {
                 <ul className="space-y-2.5" data-oid=":-ex5e7">
                   {links.map((link) => (
                     <li key={link.label} data-oid="vhzidcf">
-                      {link.href.startsWith('/') ? (
+                      {link.href.startsWith('/') && !link.reload ? (
                         <Link
                           to={link.href}
                           className="group inline-flex items-center text-[15px] font-medium text-muted-foreground hover:text-white transition-all duration-300 hover:translate-x-1"

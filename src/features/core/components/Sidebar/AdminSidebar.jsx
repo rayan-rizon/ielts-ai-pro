@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useMemo } from 'react';
+import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { m } from 'framer-motion';
 import { ShieldCheck, Sparkles, Plus, Crown, LogOut } from 'lucide-react';
@@ -24,6 +24,21 @@ import { Badge } from '@/components/ui/badge';
 // Memoized Nav Item for Admin Sidebar
 const AdminNavItem = memo(({ item, isActive, pendingCount = 0, layoutId }) => {
   const { isMobile, setOpenMobile } = useSidebar();
+
+  const handleLinkClick = useCallback(() => {
+    if (isMobile) setOpenMobile(false);
+  }, [isMobile, setOpenMobile]);
+
+  const btnClasses = `group transition-all duration-200 rounded-xl mb-1.5 relative overflow-hidden ${
+    isActive
+      ? 'bg-red-500/10 text-red-500 font-bold border border-red-500/20 active-glow-red dark:bg-red-500/35 dark:text-white dark:border-red-500/60'
+      : 'text-foreground/70 dark:text-foreground/80 hover:text-red-500 hover:bg-red-500/5 hover:border-red-500/10 dark:hover:bg-red-500/22 dark:hover:text-red-300 dark:hover:border-red-500/40 border border-transparent'
+  }`;
+
+  const iconClasses = `w-4 h-4 transition-colors duration-200 ${
+    isActive ? 'text-red-500' : 'text-muted-foreground group-hover:text-red-500'
+  }`;
+
   return (
     <SidebarMenuItem data-oid="lnr1hiz">
       <m.div
@@ -32,22 +47,11 @@ const AdminNavItem = memo(({ item, isActive, pendingCount = 0, layoutId }) => {
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
         data-oid="3f:1rc_"
       >
-        <SidebarMenuButton
-          asChild
-          className={`group transition-all duration-200 rounded-xl mb-1.5 relative overflow-hidden ${
-            isActive
-              ? 'bg-red-500/10 text-red-500 font-bold border border-red-500/20 active-glow-red dark:bg-red-500/35 dark:text-white dark:border-red-500/60'
-              : 'text-foreground/70 dark:text-foreground/80 hover:text-red-500 hover:bg-red-500/5 hover:border-red-500/10 dark:hover:bg-red-500/22 dark:hover:text-red-300 dark:hover:border-red-500/40 border border-transparent'
-          }`}
-          tooltip={item.title}
-          data-oid="kfo7-mh"
-        >
+        <SidebarMenuButton asChild className={btnClasses} tooltip={item.title} data-oid="kfo7-mh">
           <Link
             to={item.url}
             className="flex items-center gap-3 px-3 py-2.5 text-sm relative z-10"
-            onClick={() => {
-              if (isMobile) setOpenMobile(false);
-            }}
+            onClick={handleLinkClick}
             data-oid="bi491j7"
           >
             {isActive && (
@@ -58,11 +62,7 @@ const AdminNavItem = memo(({ item, isActive, pendingCount = 0, layoutId }) => {
                 data-oid="dm:s8jk"
               />
             )}
-            <item.icon
-              className={`w-4 h-4 transition-colors duration-200 ${isActive ? 'text-red-500' : 'text-muted-foreground group-hover:text-red-500'}`}
-              data-oid="mddicg."
-            />
-
+            <item.icon className={iconClasses} data-oid="mddicg." />
             <span className="truncate group-data-[collapsible=icon]:hidden" data-oid="nir:fnk">
               {item.title}
             </span>
@@ -89,8 +89,195 @@ const AdminNavItem = memo(({ item, isActive, pendingCount = 0, layoutId }) => {
     </SidebarMenuItem>
   );
 });
-
 AdminNavItem.displayName = 'AdminNavItem';
+
+const AdminSidebarHeader = memo(() => (
+  <SidebarHeader
+    className="border-b border-border/50 p-4 group-data-[collapsible=icon]:p-2"
+    data-oid="s169erg"
+  >
+    <div
+      className="flex items-center justify-between group-data-[collapsible=icon]:justify-center"
+      data-oid="ja5oba."
+    >
+      <div className="flex items-center gap-3" data-oid="_sq00kt">
+        <div
+          className="w-10 h-10 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center shadow-lg relative overflow-hidden"
+          data-oid="nggp_nh"
+        >
+          <div
+            className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"
+            data-oid="tdj_tyv"
+          />
+          <ShieldCheck
+            className="w-5 h-5 text-white relative z-10 group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:h-4"
+            data-oid="g8i2x4l"
+          />
+        </div>
+        <div className="min-w-0 group-data-[collapsible=icon]:hidden" data-oid="21p78tx">
+          <h2
+            className="font-bold text-foreground text-sm truncate uppercase tracking-tight"
+            data-oid="iffv6e5"
+          >
+            Admin Console
+          </h2>
+          <div
+            className="text-[10px] text-muted-foreground/70 font-semibold flex items-center gap-1.5"
+            data-oid="rl3xc:a"
+          >
+            <Sparkles
+              className="w-2.5 h-2.5 text-yellow-500/80 animate-pulse-subtle"
+              data-oid="7jlhww."
+            />
+            SYSTEM ACCESS
+          </div>
+        </div>
+      </div>
+    </div>
+  </SidebarHeader>
+));
+AdminSidebarHeader.displayName = 'AdminSidebarHeader';
+
+const AdminSidebarQuickActions = memo(({ isMobile, setOpenMobile }) => {
+  const handleLinkClick = useCallback(() => {
+    if (isMobile) setOpenMobile(false);
+  }, [isMobile, setOpenMobile]);
+
+  return (
+    <SidebarGroup className="mt-4" data-oid="cm5afwe">
+      <SidebarGroupLabel
+        className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground/90 uppercase tracking-[0.2em] px-3 py-3"
+        data-oid="yk1l9ra"
+      >
+        Quick Actions
+      </SidebarGroupLabel>
+      <SidebarGroupContent data-oid="k-03jzg">
+        <SidebarMenu data-oid="np1uu3_">
+          <SidebarMenuItem data-oid="bab:dfr">
+            <SidebarMenuButton
+              asChild
+              className="w-full justify-start gap-3 px-3 text-foreground/70 dark:text-foreground/80 hover:text-emerald-500 dark:hover:text-emerald-300 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/22 rounded-xl transition-all duration-200 border border-transparent hover:border-emerald-500/20 dark:hover:border-emerald-500/40"
+              tooltip="Create Test"
+              data-oid="b.mxalc"
+            >
+              <Link
+                to={createPageUrl('AdminPanel') + '?tab=tests&action=create'}
+                onClick={handleLinkClick}
+                data-oid="vdqakrb"
+              >
+                <Plus className="w-4 h-4" data-oid="ki7pyw2" />
+                <span
+                  className="font-medium text-sm group-data-[collapsible=icon]:hidden"
+                  data-oid="p5n:qy:"
+                >
+                  Create Test
+                </span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem data-oid="cvv86s3">
+            <SidebarMenuButton
+              asChild
+              className="w-full justify-start gap-3 px-3 text-foreground/70 dark:text-foreground/80 hover:text-amber-500 dark:hover:text-amber-300 hover:bg-amber-500/10 dark:hover:bg-amber-500/22 rounded-xl transition-all duration-200 border border-transparent hover:border-amber-500/20 dark:hover:border-amber-500/40"
+              tooltip="Add Promo"
+              data-oid="4mznefw"
+            >
+              <Link
+                to={createPageUrl('AdminPanel') + '?tab=promo&action=create'}
+                onClick={handleLinkClick}
+                data-oid="ra.tlvd"
+              >
+                <Crown className="w-4 h-4" data-oid="fmi6hnl" />
+                <span
+                  className="font-medium text-sm group-data-[collapsible=icon]:hidden"
+                  data-oid="jkj-1ix"
+                >
+                  Add Promo
+                </span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+});
+AdminSidebarQuickActions.displayName = 'AdminSidebarQuickActions';
+
+const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }) => {
+  const onLogoutClick = useCallback(() => {
+    if (isMobile) setOpenMobile(false);
+    handleLogout();
+  }, [isMobile, setOpenMobile, handleLogout]);
+
+  return (
+    <SidebarFooter
+      className="border-t border-border/50 p-3 group-data-[collapsible=icon]:p-2"
+      data-oid="8ah-46y"
+    >
+      <div className="space-y-2" data-oid="bwg4hny">
+        <div className="flex justify-center mb-1" data-oid="jso1a4u">
+          <SidebarTrigger
+            className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg h-9 w-9 transition-colors"
+            aria-label="Toggle admin sidebar"
+            data-oid="8jj1-01"
+          />
+        </div>
+
+        <ThemeToggle data-oid="sr246dj" />
+
+        <div
+          className="bg-card hover:bg-red-500/5 p-2.5 rounded-xl flex items-center gap-3 cursor-pointer transition-all duration-300 border border-border/50 hover:border-red-500/40 group-data-[collapsible=icon]:justify-center shadow-sm hover:shadow-md"
+          data-oid="mraruz3"
+        >
+          <div
+            className="w-9 h-9 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md relative overflow-hidden group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8"
+            data-oid="h9j3ooc"
+          >
+            <div className="absolute inset-0 bg-white/10" data-oid="238cow0" />
+            <span className="text-white font-bold text-sm relative z-10" data-oid="cskko-3">
+              {user?.full_name?.[0] || 'A'}
+            </span>
+          </div>
+          <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden" data-oid="m:m9iun">
+            <p
+              className="font-bold text-foreground text-xs truncate leading-none mb-1"
+              data-oid="4ql4pxi"
+            >
+              {user?.full_name || 'Admin User'}
+            </p>
+            <div className="flex items-center gap-1" data-oid="pt_pi9e">
+              <div
+                className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"
+                data-oid="bei_zlp"
+              />
+              <span className="text-[10px] font-semibold text-muted-foreground" data-oid="2e9kng_">
+                ADMINISTRATOR
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-1" data-oid="4rmq4vy">
+          <SidebarMenuButton
+            onClick={onLogoutClick}
+            className="w-full justify-start gap-3 px-3 text-foreground/70 dark:text-foreground/80 hover:text-destructive hover:bg-destructive/15 rounded-xl transition-all duration-200 group-data-[collapsible=icon]:px-2.5 border border-transparent hover:border-destructive/20 dark:hover:text-red-300 dark:hover:bg-red-500/22 dark:hover:border-red-500/40"
+            data-oid="cu9yi_8"
+          >
+            <LogOut className="w-4 h-4" data-oid=".xkhml9" />
+            <span
+              className="font-medium text-sm group-data-[collapsible=icon]:hidden"
+              data-oid="_u:1-_k"
+            >
+              Sign Out
+            </span>
+          </SidebarMenuButton>
+        </div>
+      </div>
+    </SidebarFooter>
+  );
+});
+AdminSidebarFooter.displayName = 'AdminSidebarFooter';
 
 export const AdminSidebar = memo(({ user, location, handleLogout }) => {
   const { isMobile, setOpenMobile } = useSidebar();
@@ -109,9 +296,8 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
 
-      if (mounted && !error && !isOnPaymentsTab) {
-        setPendingCount(count || 0);
-      }
+      if (!mounted || error || isOnPaymentsTab) return;
+      setPendingCount(count || 0);
     };
 
     fetchPendingCount();
@@ -144,7 +330,6 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
     };
   }, [isOnPaymentsTab]);
 
-  // Clear badge when user navigates to payments tab
   useEffect(() => {
     if (isOnPaymentsTab) {
       setPendingCount(0);
@@ -154,64 +339,22 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
   const isActiveAdminRoute = useMemo(
     () => (itemUrl) => {
       const fullPath = currentPath + currentSearch;
-      return (
-        fullPath === itemUrl ||
-        (itemUrl.includes('AdminPanel') &&
-          currentPath.includes('AdminPanel') &&
-          ((itemUrl.includes('tab=') && currentSearch.includes(itemUrl.split('?')[1])) ||
-            (!itemUrl.includes('tab=') && !currentSearch.includes('tab='))))
-      );
+      if (fullPath === itemUrl) return true;
+      if (!itemUrl.includes('AdminPanel')) return false;
+      if (!currentPath.includes('AdminPanel')) return false;
+
+      const hasTab = itemUrl.includes('tab=');
+      if (hasTab && currentSearch.includes(itemUrl.split('?')[1])) return true;
+      if (!hasTab && !currentSearch.includes('tab=')) return true;
+
+      return false;
     },
     [currentPath, currentSearch]
   );
 
   return (
     <>
-      <SidebarHeader
-        className="border-b border-border/50 p-4 group-data-[collapsible=icon]:p-2"
-        data-oid="s169erg"
-      >
-        <div
-          className="flex items-center justify-between group-data-[collapsible=icon]:justify-center"
-          data-oid="ja5oba."
-        >
-          <div className="flex items-center gap-3" data-oid="_sq00kt">
-            <div
-              className="w-10 h-10 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center shadow-lg relative overflow-hidden"
-              data-oid="nggp_nh"
-            >
-              <div
-                className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"
-                data-oid="tdj_tyv"
-              />
-
-              <ShieldCheck
-                className="w-5 h-5 text-white relative z-10 group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:h-4"
-                data-oid="g8i2x4l"
-              />
-            </div>
-            <div className="min-w-0 group-data-[collapsible=icon]:hidden" data-oid="21p78tx">
-              <h2
-                className="font-bold text-foreground text-sm truncate uppercase tracking-tight"
-                data-oid="iffv6e5"
-              >
-                Admin Console
-              </h2>
-              <div
-                className="text-[10px] text-muted-foreground/70 font-semibold flex items-center gap-1.5"
-                data-oid="rl3xc:a"
-              >
-                <Sparkles
-                  className="w-2.5 h-2.5 text-yellow-500/80 animate-pulse-subtle"
-                  data-oid="7jlhww."
-                />
-                SYSTEM ACCESS
-              </div>
-            </div>
-          </div>
-        </div>
-      </SidebarHeader>
-
+      <AdminSidebarHeader />
       <SidebarContent className="p-3 group-data-[collapsible=icon]:p-2" data-oid="qz8y--f">
         <SidebarGroup data-oid="919hgsw">
           <SidebarGroupLabel
@@ -258,140 +401,15 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-4" data-oid="cm5afwe">
-          <SidebarGroupLabel
-            className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground/90 uppercase tracking-[0.2em] px-3 py-3"
-            data-oid="yk1l9ra"
-          >
-            Quick Actions
-          </SidebarGroupLabel>
-          <SidebarGroupContent data-oid="k-03jzg">
-            <SidebarMenu data-oid="np1uu3_">
-              <SidebarMenuItem data-oid="bab:dfr">
-                <SidebarMenuButton
-                  asChild
-                  className="w-full justify-start gap-3 px-3 text-foreground/70 dark:text-foreground/80 hover:text-emerald-500 dark:hover:text-emerald-300 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/22 rounded-xl transition-all duration-200 border border-transparent hover:border-emerald-500/20 dark:hover:border-emerald-500/40"
-                  tooltip="Create Test"
-                  data-oid="b.mxalc"
-                >
-                  <Link
-                    to={createPageUrl('AdminPanel') + '?tab=tests&action=create'}
-                    onClick={() => {
-                      if (isMobile) setOpenMobile(false);
-                    }}
-                    data-oid="vdqakrb"
-                  >
-                    <Plus className="w-4 h-4" data-oid="ki7pyw2" />
-                    <span
-                      className="font-medium text-sm group-data-[collapsible=icon]:hidden"
-                      data-oid="p5n:qy:"
-                    >
-                      Create Test
-                    </span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem data-oid="cvv86s3">
-                <SidebarMenuButton
-                  asChild
-                  className="w-full justify-start gap-3 px-3 text-foreground/70 dark:text-foreground/80 hover:text-amber-500 dark:hover:text-amber-300 hover:bg-amber-500/10 dark:hover:bg-amber-500/22 rounded-xl transition-all duration-200 border border-transparent hover:border-amber-500/20 dark:hover:border-amber-500/40"
-                  tooltip="Add Promo"
-                  data-oid="4mznefw"
-                >
-                  <Link
-                    to={createPageUrl('AdminPanel') + '?tab=promo&action=create'}
-                    onClick={() => {
-                      if (isMobile) setOpenMobile(false);
-                    }}
-                    data-oid="ra.tlvd"
-                  >
-                    <Crown className="w-4 h-4" data-oid="fmi6hnl" />
-                    <span
-                      className="font-medium text-sm group-data-[collapsible=icon]:hidden"
-                      data-oid="jkj-1ix"
-                    >
-                      Add Promo
-                    </span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <AdminSidebarQuickActions isMobile={isMobile} setOpenMobile={setOpenMobile} />
       </SidebarContent>
 
-      <SidebarFooter
-        className="border-t border-border/50 p-3 group-data-[collapsible=icon]:p-2"
-        data-oid="8ah-46y"
-      >
-        <div className="space-y-2" data-oid="bwg4hny">
-          {/* Toggle Button in Footer - Fixed positioning */}
-          <div className="flex justify-center mb-1" data-oid="jso1a4u">
-            <SidebarTrigger
-              className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg h-9 w-9 transition-colors"
-              aria-label="Toggle admin sidebar"
-              data-oid="8jj1-01"
-            />
-          </div>
-
-          <ThemeToggle data-oid="sr246dj" />
-
-          <div
-            className="bg-card hover:bg-red-500/5 p-2.5 rounded-xl flex items-center gap-3 cursor-pointer transition-all duration-300 border border-border/50 hover:border-red-500/40 group-data-[collapsible=icon]:justify-center shadow-sm hover:shadow-md"
-            data-oid="mraruz3"
-          >
-            <div
-              className="w-9 h-9 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md relative overflow-hidden group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8"
-              data-oid="h9j3ooc"
-            >
-              <div className="absolute inset-0 bg-white/10" data-oid="238cow0" />
-              <span className="text-white font-bold text-sm relative z-10" data-oid="cskko-3">
-                {user?.full_name?.[0] || 'A'}
-              </span>
-            </div>
-            <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden" data-oid="m:m9iun">
-              <p
-                className="font-bold text-foreground text-xs truncate leading-none mb-1"
-                data-oid="4ql4pxi"
-              >
-                {user?.full_name || 'Admin User'}
-              </p>
-              <div className="flex items-center gap-1" data-oid="pt_pi9e">
-                <div
-                  className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"
-                  data-oid="bei_zlp"
-                />
-
-                <span
-                  className="text-[10px] font-semibold text-muted-foreground"
-                  data-oid="2e9kng_"
-                >
-                  ADMINISTRATOR
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-1" data-oid="4rmq4vy">
-            <SidebarMenuButton
-              onClick={() => {
-                if (isMobile) setOpenMobile(false);
-                handleLogout();
-              }}
-              className="w-full justify-start gap-3 px-3 text-foreground/70 dark:text-foreground/80 hover:text-destructive hover:bg-destructive/15 rounded-xl transition-all duration-200 group-data-[collapsible=icon]:px-2.5 border border-transparent hover:border-destructive/20 dark:hover:text-red-300 dark:hover:bg-red-500/22 dark:hover:border-red-500/40"
-              data-oid="cu9yi_8"
-            >
-              <LogOut className="w-4 h-4" data-oid=".xkhml9" />
-              <span
-                className="font-medium text-sm group-data-[collapsible=icon]:hidden"
-                data-oid="_u:1-_k"
-              >
-                Sign Out
-              </span>
-            </SidebarMenuButton>
-          </div>
-        </div>
-      </SidebarFooter>
+      <AdminSidebarFooter
+        user={user}
+        isMobile={isMobile}
+        setOpenMobile={setOpenMobile}
+        handleLogout={handleLogout}
+      />
     </>
   );
 });

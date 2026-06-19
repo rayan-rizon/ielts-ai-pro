@@ -37,6 +37,61 @@
       "source": "/sitemap1.xml",
       "destination": "/sitemap.xml",
       "permanent": true
+    },
+    {
+      "source": "/ielts-writing-checker/",
+      "destination": "/ielts-writing-checker",
+      "permanent": true
+    },
+    {
+      "source": "/ielts-speaking-practice-ai/",
+      "destination": "/ielts-speaking-practice-ai",
+      "permanent": true
+    },
+    {
+      "source": "/ielts-mock-test-online/",
+      "destination": "/ielts-mock-test-online",
+      "permanent": true
+    },
+    {
+      "source": "/cambridge-ielts-practice-tests/",
+      "destination": "/cambridge-ielts-practice-tests",
+      "permanent": true
+    },
+    {
+      "source": "/free-ielts-practice-tests/",
+      "destination": "/free-ielts-practice-tests",
+      "permanent": true
+    },
+    {
+      "source": "/ai-ielts-preparation/",
+      "destination": "/ai-ielts-preparation",
+      "permanent": true
+    },
+    {
+      "source": "/ielts-band-score-feedback/",
+      "destination": "/ielts-band-score-feedback",
+      "permanent": true
+    },
+    {
+      "source": "/about/",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/contact/",
+      "destination": "/contact",
+      "permanent": true
+    },
+    {
+      "source": "/privacy/",
+      "destination": "/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/terms/",
+      "destination": "/terms",
+      "permanent": true
     }
   ],
   "headers": [
@@ -116,6 +171,50 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/ielts-writing-checker",
+      "destination": "/ielts-writing-checker/index.html"
+    },
+    {
+      "source": "/ielts-speaking-practice-ai",
+      "destination": "/ielts-speaking-practice-ai/index.html"
+    },
+    {
+      "source": "/ielts-mock-test-online",
+      "destination": "/ielts-mock-test-online/index.html"
+    },
+    {
+      "source": "/cambridge-ielts-practice-tests",
+      "destination": "/cambridge-ielts-practice-tests/index.html"
+    },
+    {
+      "source": "/free-ielts-practice-tests",
+      "destination": "/free-ielts-practice-tests/index.html"
+    },
+    {
+      "source": "/ai-ielts-preparation",
+      "destination": "/ai-ielts-preparation/index.html"
+    },
+    {
+      "source": "/ielts-band-score-feedback",
+      "destination": "/ielts-band-score-feedback/index.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/about/index.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/contact/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy/index.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms/index.html"
+    },
     {
       "source": "/((?!assets/|.*\\.|api/).*)",
       "destination": "/index.html"

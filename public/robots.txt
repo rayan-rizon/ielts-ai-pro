@@ -1,29 +1,42 @@
 # IELTS Ai Pro - robots.txt
-# Last updated: 2026-02-01
+# Last updated: 2026-06-19
 
 User-agent: *
 Allow: /
 
-# Disallow private/authenticated routes
+# Public SEO pages
+Allow: /ielts-writing-checker
+Allow: /ielts-speaking-practice-ai
+Allow: /ielts-mock-test-online
+Allow: /cambridge-ielts-practice-tests
+Allow: /free-ielts-practice-tests
+Allow: /ai-ielts-preparation
+Allow: /ielts-band-score-feedback
+
+# Private/authenticated routes
 Disallow: /dashboard/
 Disallow: /admin/
 Disallow: /onboarding/
+Disallow: /settings
+Disallow: /analytics
+Disallow: /learning-path
+Disallow: /leaderboard
 
-# Disallow auth flows (low SEO value)
+# Auth flows
 Disallow: /login
 Disallow: /signup
 Disallow: /forgot-password
 Disallow: /update-password
 
-# Disallow private subscription/resources pages
+# Protected app pages
 Disallow: /pricing
 Disallow: /resources
 
-# Disallow API and function routes
+# API and function routes
 Disallow: /api/
 Disallow: /functions/
 
 Sitemap: https://www.ieltsai.pro/sitemap.xml
 
-# AI Training Signal (Standard-compliant comment)
+# AI Training Signal (standard-compliant comment)
 # Content-Signal: search=yes,ai-train=no

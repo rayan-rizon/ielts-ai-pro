@@ -235,10 +235,10 @@ export default function LandingPage() {
   return (
     <>
       <DocumentHead
-        title="IELTS Preparation With AI Feedback | IELTS Ai Pro"
-        description="Master IELTS exams with AI-powered instant feedback on Writing & Speaking. Realistic mock tests, limited analytics, personalized coaching to reach Band 7+ faster."
+        title="AI IELTS Prep App With Feedback | IELTS Ai Pro"
+        description="Prepare for IELTS with AI writing feedback, speaking practice, realistic mock tests, band score analytics, and personalized study plans for Band 7+ goals."
         canonicalUrl="https://www.ieltsai.pro/"
-        keywords="IELTS preparation, IELTS practice tests, AI IELTS coaching, band score, writing feedback, speaking practice"
+        keywords="AI IELTS preparation, IELTS writing checker, IELTS speaking practice AI, IELTS mock test online, IELTS band score feedback, free IELTS practice tests"
         structuredData={{
           '@context': 'https://schema.org',
           '@type': 'WebApplication',
@@ -256,12 +256,6 @@ export default function LandingPage() {
             lowPrice: '0',
             highPrice: '15.99',
             offerCount: '3',
-          },
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: '4.9',
-            ratingCount: '2847',
-            bestRating: '5',
           },
           featureList: [
             'Instant AI Writing Evaluation with Band Score',
