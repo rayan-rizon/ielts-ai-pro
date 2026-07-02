@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, Link, useSearchParams, useBlocker, useParams } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 
@@ -14,12 +14,6 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
 import { trackAppEvent } from '@/lib/tracking';
 
-// UI Components
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Bot, ArrowLeft, Home, AlertTriangle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import PremiumLoading from '@/components/ui/PremiumLoading';
 
 // Local components
@@ -27,88 +21,26 @@ import SpeakingReport from '../components/SpeakingReport';
 import ExitDialog from '../components/ExitDialog';
 import UpgradeDialog from '../components/UpgradeDialog';
 import TestHeader from '../components/TestHeader';
-import RecordingControls from '../components/RecordingControls';
-import Part2CueCard from '../components/Part2CueCard';
-import PartCompleteCard from '../components/PartCompleteCard';
-import InitialWelcomeScreen from '../components/InitialWelcomeScreen';
+import SpeakingConversationPanel from '../components/SpeakingConversationPanel';
+import SpeakingTestUnavailable from '../components/SpeakingTestUnavailable';
 
 // Custom hooks
 import useSpeechSynthesis from '../hooks/useSpeechSynthesis';
 import useAudioRecorder from '../hooks/useAudioRecorder';
-
-// --- Memoized sub-component: prevents all messages re-rendering on every state change ---
-const ConversationMessage = React.memo(({ entry, index, authUser }) => (
-  <motion.div
-    key={`${entry.speaker}-${index}`}
-    initial={{ opacity: 0, y: 20, scale: 0.98 }}
-    animate={{ opacity: 1, y: 0, scale: 1 }}
-    transition={{ duration: 0.3, delay: 0.1 }}
-    className={`flex items-start gap-3 ${entry.speaker === 'user' ? 'flex-row-reverse' : ''}`}
-  >
-    {entry.speaker === 'ai' ? (
-      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md bg-gradient-to-br from-rose-500 to-orange-500">
-        <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-      </div>
-    ) : authUser?.avatar_url ? (
-      <img
-        src={authUser.avatar_url}
-        alt={authUser?.full_name || 'User'}
-        className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg object-cover shadow-md bg-zinc-100"
-      />
-    ) : (
-      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md bg-gradient-to-br from-blue-500 to-indigo-500">
-        <span className="text-white text-xs font-bold">
-          {(authUser?.full_name || 'C').charAt(0).toUpperCase()}
-        </span>
-      </div>
-    )}
-
-    <div
-      className={`max-w-[90%] sm:max-w-[85%] ${entry.speaker === 'user' ? 'text-right' : ''} space-y-1.5 min-w-0`}
-    >
-      <div
-        className={`flex items-center gap-2 px-1 ${entry.speaker === 'user' ? 'flex-row-reverse' : ''}`}
-      >
-        <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest truncate">
-          {entry.speaker === 'ai' ? 'Examiner' : authUser?.full_name || 'Candidate'}
-        </span>
-        {entry.timestamp && (
-          <span className="text-[9px] sm:text-[10px] text-muted-foreground/40 font-mono flex-shrink-0">
-            {entry.timestamp}
-          </span>
-        )}
-      </div>
-      <div
-        className={`px-3.5 py-2.5 sm:px-4 sm:py-3 text-[14px] sm:text-[15px] leading-relaxed tracking-normal shadow-sm ${
-          entry.speaker === 'user'
-            ? entry.error
-              ? 'bg-red-100/80 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-[1.25rem] rounded-tr-none text-red-700 dark:text-red-300 text-right italic font-medium'
-              : 'bg-gradient-to-br from-blue-500/10 to-indigo-500/5 dark:from-blue-500/20 dark:to-indigo-500/5 border border-blue-500/10 dark:border-blue-500/10 rounded-[1.25rem] rounded-tr-none text-right font-medium text-slate-800 dark:text-slate-200'
-            : 'bg-gradient-to-br from-rose-600/10 to-rose-600/5 dark:from-rose-500/20 dark:to-rose-500/5 border border-rose-500/20 dark:border-rose-500/20 rounded-[1.25rem] rounded-tl-none text-left font-medium text-slate-800 dark:text-slate-200'
-        }`}
-      >
-        {entry.isLoading ? (
-          <div className="flex items-center gap-3">
-            <div className="flex gap-1">
-              <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0ms]" />
-              <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:150ms]" />
-              <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:300ms]" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground animate-pulse">
-              Transcribing
-            </span>
-          </div>
-        ) : (
-          <p className="whitespace-pre-wrap">
-            {entry.text?.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1')}
-          </p>
-        )}
-      </div>
-    </div>
-  </motion.div>
-));
-
-ConversationMessage.displayName = 'ConversationMessage';
+import useSpeakingNavigationBlocker from '../hooks/useSpeakingNavigationBlocker';
+import useSpeakingSessionEffects from '../hooks/useSpeakingSessionEffects';
+import useSpeakingTimers from '../hooks/useSpeakingTimers';
+import {
+  buildAverageSpeakingEvaluation,
+  buildConversationHistory,
+  buildCueCardTopic,
+  buildLegacySpeakingEvaluation,
+  buildLocalDevSpeakingResponse,
+  buildPartContexts,
+  formatIeltsQuestion,
+  getQuestionLines,
+  isTranscriptError,
+} from '../utils/speakingTestUtils';
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
@@ -122,22 +54,6 @@ export default function SpeakingTest() {
   // ─── TTS Hook ──────────────────────────────────────────────────────────
   const { speakText, cancelCurrentAudio, isSpeaking, isTTSLoading, isMuted, setIsMuted } =
     useSpeechSynthesis();
-
-  // ─── Edge Function Warm-up ─────────────────────────────────────────────
-  // Fire no-op pings on mount to eliminate cold-start latency on first turn
-  useEffect(() => {
-    if (!testId) return;
-    callEdgeFunction('processSpeakingSession', { ping: true }).catch(() => {});
-    // Warm up the TTS edge function so the greeting fires instantly
-    supabase.functions.invoke('synthesizeSpeech', { body: { ping: true } }).catch(() => {});
-  }, [testId]);
-
-  // ─── Stop audio immediately when leaving the test page ─────────────────
-  useEffect(() => {
-    return () => {
-      cancelCurrentAudio();
-    };
-  }, [cancelCurrentAudio]);
 
   // ─── Session State ─────────────────────────────────────────────────────
   const [session, setSession] = useState(null);
@@ -241,27 +157,33 @@ export default function SpeakingTest() {
   const timeLeftRef = useRef(0);
   const isMountedRef = useRef(true);
 
+  useSpeakingSessionEffects({
+    testId,
+    cancelCurrentAudio,
+    conversation,
+    currentQuestionIndex,
+    timeLeft,
+    isProcessing,
+    isPartComplete,
+    conversationEndRef,
+    transitionCardRef,
+    conversationRef,
+    questionIndexRef,
+    timeLeftRef,
+    isProcessingRef,
+    pendingTimersRef,
+    isMountedRef,
+  });
+
   // ─── Navigation Blocker ────────────────────────────────────────────────
-  const conversationLengthRef = useRef(0);
-  useEffect(() => {
-    conversationLengthRef.current = conversation.length;
-  }, [conversation.length]);
-
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      !isTestComplete &&
-      !isExiting.current &&
-      conversationLengthRef.current > 1 &&
-      !evaluationError &&
-      !showUpgradeDialog && // Also allow navigation if showing upgrade dialog
-      currentLocation.pathname !== nextLocation.pathname
-  );
-
-  useEffect(() => {
-    if (blocker.state === 'blocked') {
-      setShowExitDialog(true);
-    }
-  }, [blocker.state]);
+  const blocker = useSpeakingNavigationBlocker({
+    isTestComplete,
+    isExiting,
+    evaluationError,
+    showUpgradeDialog,
+    conversationLength: conversation.length,
+    setShowExitDialog,
+  });
 
   // ─── Persistence ───────────────────────────────────────────────────────
   const saveSessionProgress = useCallback(
@@ -278,42 +200,6 @@ export default function SpeakingTest() {
     },
     [session?.id]
   );
-
-  // ─── Sync Refs ─────────────────────────────────────────────────────────
-  useEffect(() => {
-    conversationRef.current = conversation;
-  }, [conversation]);
-  useEffect(() => {
-    questionIndexRef.current = currentQuestionIndex;
-  }, [currentQuestionIndex]);
-  useEffect(() => {
-    timeLeftRef.current = timeLeft;
-  }, [timeLeft]);
-  useEffect(() => {
-    isProcessingRef.current = isProcessing;
-  }, [isProcessing]);
-
-  // Auto-scroll conversation
-  useEffect(() => {
-    conversationEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conversation]);
-
-  // Auto-scroll to transition card
-  useEffect(() => {
-    if (isPartComplete) {
-      setTimeout(() => {
-        transitionCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 100);
-    }
-  }, [isPartComplete]);
-
-  // ─── IELTS Text Formatting ─────────────────────────────────────────────
-  const formatIeltsQuestion = useCallback((text) => {
-    return text
-      .replace(/\[\s*Why\s*\/\s*Why\s*not\s*\?*\]/gi, '(Why or why not?)')
-      .replace(/\(\s*Why\s*\/\s*Why\s*not\s*\?*\)/gi, '(Why or why not?)')
-      .replace(/Why\s*\/\s*Why\s*not/gi, 'Why or why not');
-  }, []);
 
   // ─── Quota Helper ──────────────────────────────────────────────────────
   const checkCurrentQuota = useCallback(async () => {
@@ -382,12 +268,7 @@ export default function SpeakingTest() {
         reader.readAsDataURL(audioBlob);
         const audioBase64 = await base64Promise;
 
-        const conversationHistory = conversationRef.current
-          .filter((entry) => !entry.isLoading)
-          .map((entry) => ({
-            speaker: entry.speaker === 'ai' ? 'model' : 'user',
-            text: entry.text,
-          }));
+        const conversationHistory = buildConversationHistory(conversationRef.current);
 
         setProcessingStatus('AI is analyzing your response...');
 
@@ -395,9 +276,7 @@ export default function SpeakingTest() {
 
         // Extract current question text for pronunciation context
         const currentPart = allParts[currentPartNumber];
-        const questionLines = String(currentPart?.questions || '')
-          .split('\n')
-          .filter((q) => q.trim());
+        const questionLines = getQuestionLines(currentPart?.questions);
         const questionContext = questionLines[snapshotQuestionIndex] || '';
 
         let response;
@@ -435,60 +314,11 @@ export default function SpeakingTest() {
 
           if (import.meta.env.DEV) {
             // DEV ONLY: Mock response for other errors
-            const fallbackTranscript = '(Your response was recorded)';
-            const currentPart = allParts[currentPartNumber];
-            const questionLines = String(currentPart?.questions || '')
-              .split('\n')
-              .filter((q) => q.trim());
-            const actualTotalQuestions = questionLines.length || 4;
-            const isLastQuestion = currentQuestionIndex >= actualTotalQuestions - 1;
-            const nextQuestion =
-              !isLastQuestion && questionLines[currentQuestionIndex + 1]
-                ? questionLines[currentQuestionIndex + 1]
-                : null;
-
-            const followUpResponses = [
-              "That's very interesting. Can you tell me more about that?",
-              'I see. And how does that make you feel?',
-              'Good. Now, let me ask you about something else.',
-              'Thank you for sharing that. What would you say is the most important aspect?',
-              "Excellent response. Let's continue with the next question.",
-            ];
-
-            let followUp;
-            if (isLastQuestion) {
-              followUp =
-                'That concludes Part ' +
-                currentPartNumber +
-                ". Well done! You've completed this section.";
-            } else if (nextQuestion) {
-              const ack = followUpResponses[currentQuestionIndex % followUpResponses.length];
-              followUp = ack + ' ' + nextQuestion;
-            } else {
-              followUp = followUpResponses[currentQuestionIndex % followUpResponses.length];
-            }
-
-            response = {
-              success: true,
-              userTranscript: fallbackTranscript,
-              examinerResponse: followUp,
-              nextQuestionIndex: isLastQuestion ? -1 : currentQuestionIndex + 1,
-              isPartComplete: isLastQuestion,
-              totalQuestions: actualTotalQuestions,
-              evaluation: isLastQuestion
-                ? {
-                    fluency: 6.5,
-                    lexical: 6.5,
-                    grammar: 6.5,
-                    pronunciation: 6.5,
-                    overallBand: 6.5,
-                    isFallback: true,
-                    feedback: 'Mock evaluation for local development.',
-                    strengths: ['Good attempt at practicing'],
-                    improvements: ['Deploy to production for accurate evaluation'],
-                  }
-                : null,
-            };
+            response = buildLocalDevSpeakingResponse({
+              currentPart: allParts[currentPartNumber],
+              currentPartNumber,
+              currentQuestionIndex: snapshotQuestionIndex,
+            });
           } else {
             toast.error('Processing Error', {
               description:
@@ -505,17 +335,11 @@ export default function SpeakingTest() {
           const updated = [...prev];
           const loadingIndex = updated.findIndex((m) => m.isLoading);
           if (loadingIndex !== -1) {
-            const isError =
-              !response.userTranscript ||
-              response.userTranscript.includes('(Unable to transcribe') ||
-              response.userTranscript.includes('(Audio received but transcription failed)') ||
-              response.userTranscript.includes('(Inaudible)');
-
             updated[loadingIndex] = {
               speaker: 'user',
               text: response.userTranscript || '(Unable to transcribe - please try again)',
               isLoading: false,
-              error: isError,
+              error: isTranscriptError(response.userTranscript),
             };
           }
           return updated;
@@ -703,8 +527,6 @@ export default function SpeakingTest() {
       saveSessionProgress,
       allParts,
       testId,
-      formatIeltsQuestion,
-      currentQuestionIndex,
       session?.id,
       session?.content_data,
       setConversation,
@@ -782,12 +604,7 @@ export default function SpeakingTest() {
           testId,
           speakingSessionId: session?.id,
           allPartsConversation: conversationsToEvaluate,
-          partContexts: Object.fromEntries(
-            Object.entries(allParts).map(([part, data]) => [
-              part,
-              { title: data?.title || '', questions: data?.questions || '' },
-            ])
-          ),
+          partContexts: buildPartContexts(allParts),
         });
         if (!isMountedRef.current) return;
         if (response.success && response.detailedAnalysis) {
@@ -840,12 +657,7 @@ export default function SpeakingTest() {
           speakingSessionId: session?.id,
           allPartsConversation: conversationsToEvaluate,
           allPartsPronunciation: acousticMetricsRef.current,
-          partContexts: Object.fromEntries(
-            Object.entries(allParts).map(([part, data]) => [
-              part,
-              { title: data?.title || '', questions: data?.questions || '' },
-            ])
-          ),
+          partContexts: buildPartContexts(allParts),
         });
 
         if (response.success && response.evaluation) {
@@ -1009,31 +821,7 @@ export default function SpeakingTest() {
       timerExpiredRef.current = false;
 
       if (nextPartNumber === 2) {
-        const topicText = nextPart.title || 'Describe a topic';
-        const questionsText = nextPart.questions || '';
-
-        let bulletPoints = [];
-        try {
-          const parsed = JSON.parse(questionsText);
-          if (Array.isArray(parsed)) {
-            bulletPoints = parsed.map((q) => (typeof q === 'string' ? q : q.text || q.question));
-          }
-        } catch {
-          bulletPoints = questionsText.split('\n').filter((line) => line.trim());
-        }
-
-        setCueCardTopic({
-          title: topicText,
-          bulletPoints:
-            bulletPoints.length > 0
-              ? bulletPoints
-              : [
-                  'What it is',
-                  'When it happened',
-                  'Who was involved',
-                  'Why it was important to you',
-                ],
-        });
+        setCueCardTopic(buildCueCardTopic(nextPart));
 
         setIsPart2Prep(true);
         setPrepTimeLeft(60);
@@ -1059,9 +847,7 @@ export default function SpeakingTest() {
         const messagePromise = speakText(message);
         setConversation([{ speaker: 'ai', text: message }]);
 
-        const questionLines = String(nextPart.questions || '')
-          .split('\n')
-          .filter((q) => q.trim());
+        const questionLines = getQuestionLines(nextPart.questions);
 
         if (questionLines.length > 0) {
           messagePromise.then(() => {
@@ -1101,7 +887,6 @@ export default function SpeakingTest() {
     speakText,
     saveSessionProgress,
     requestFinalEvaluation,
-    formatIeltsQuestion,
     session?.content_data,
   ]);
 
@@ -1200,36 +985,13 @@ export default function SpeakingTest() {
               if (matchingSession.content_data?.finalEvaluation) {
                 setFinalEvaluation(matchingSession.content_data.finalEvaluation);
               } else if (matchingSession.content_data?.allEvaluations) {
-                const evals = Object.values(matchingSession.content_data.allEvaluations);
-                if (evals.length > 0) {
-                  const avgEval = {
-                    fluency: evals.reduce((a, e) => a + (e.fluency || 0), 0) / evals.length,
-                    lexical: evals.reduce((a, e) => a + (e.lexical || 0), 0) / evals.length,
-                    grammar: evals.reduce((a, e) => a + (e.grammar || 0), 0) / evals.length,
-                    pronunciation:
-                      evals.reduce((a, e) => a + (e.pronunciation || 0), 0) / evals.length,
-                    overallBand: evals.reduce((a, e) => a + (e.overallBand || 0), 0) / evals.length,
-                    feedback: evals[evals.length - 1]?.feedback || '',
-                    strengths: evals.flatMap((e) => e.strengths || []).slice(0, 3),
-                    improvements: evals.flatMap((e) => e.improvements || []).slice(0, 3),
-                  };
-                  setFinalEvaluation(avgEval);
-                }
+                const avgEval = buildAverageSpeakingEvaluation(
+                  Object.values(matchingSession.content_data.allEvaluations)
+                );
+                if (avgEval) setFinalEvaluation(avgEval);
               } else if (matchingSession.score != null) {
                 // Fallback: reconstruct minimal evaluation from session score
-                const band = Number(matchingSession.score) || 0;
-                setFinalEvaluation({
-                  overallBand: band,
-                  fluency: null,
-                  lexical: null,
-                  grammar: null,
-                  pronunciation: null,
-                  assessmentStatus: 'legacy',
-                  feedback: 'Detailed criterion breakdown was not saved for this session.',
-                  strengths: [],
-                  improvements: [],
-                  partScores: {},
-                });
+                setFinalEvaluation(buildLegacySpeakingEvaluation(matchingSession.score));
               }
               // Restore allPartsConversation if available
               if (matchingSession.content_data?.allPartsConversation) {
@@ -1304,9 +1066,7 @@ export default function SpeakingTest() {
                 .invoke('synthesizeSpeech', { body: { text: greeting } })
                 .catch(() => {});
               // Also pre-cache the absolute first question
-              const questionLines = String(firstPart.questions)
-                .split('\n')
-                .filter((q) => q.trim());
+              const questionLines = getQuestionLines(firstPart.questions);
               const firstQuestion =
                 questionLines[0] || "Let's begin. Can you tell me about yourself?";
               supabase.functions
@@ -1381,9 +1141,7 @@ export default function SpeakingTest() {
 
         const currentPart = allParts[partNumber];
         if (currentPart?.questions) {
-          const questionLines = String(currentPart.questions)
-            .split('\n')
-            .filter((q) => q.trim());
+          const questionLines = getQuestionLines(currentPart.questions);
           const firstQuestion = questionLines[0] || "Let's begin. Can you tell me about yourself?";
 
           if (!firstQuestionInsertedRef.current) {
@@ -1403,7 +1161,6 @@ export default function SpeakingTest() {
     speakText,
     allParts,
     authUser,
-    formatIeltsQuestion,
     checkCurrentQuota,
     setConversation,
   ]);
@@ -1420,137 +1177,35 @@ export default function SpeakingTest() {
   }, [speakText, setConversation]);
 
   // ─── Timer Effects ─────────────────────────────────────────────────────
-  useEffect(() => {
-    let timer = null;
-    if (!isLoading && !error && timeLeft > 0 && !isTestComplete && testStarted) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-      }, 1000);
-    }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [isLoading, error, isTestComplete, testStarted, timeLeft]);
-
-  // Periodic persistence of timeLeft (every 15s)
-  useEffect(() => {
-    if (!testStarted || isTestComplete || !session?.id) return;
-
-    const interval = setInterval(() => {
-      if (timeLeftRef.current > 0) {
-        saveSessionProgress({
-          answers: {
-            conversation: conversationRef.current,
-            currentQuestionIndex: questionIndexRef.current,
-            timeLeft: timeLeftRef.current,
-          },
-          content_data: {
-            ...session?.content_data,
-            currentPart: currentPartNumber,
-          },
-        });
-      }
-    }, 15000);
-
-    return () => clearInterval(interval);
-  }, [
-    testStarted,
-    isTestComplete,
-    session?.id,
-    currentPartNumber,
-    saveSessionProgress,
-    session?.content_data,
-  ]);
-
-  // Timer expiry auto-complete
-  useEffect(() => {
-    if (
-      timeLeft === 0 &&
-      testStarted &&
-      !isLoading &&
-      !isTestComplete &&
-      !isPartComplete &&
-      !isProcessingRef.current &&
-      !isSpeaking &&
-      conversationRef.current.length > 2 &&
-      !timerExpiredRef.current
-    ) {
-      timerExpiredRef.current = true;
-      setConversation((prev) => [
-        ...prev,
-        {
-          speaker: 'ai',
-          text: `That's all the time we have for Part ${currentPartNumber}. Let's move on.`,
-        },
-      ]);
-      const timerId = setTimeout(() => {
-        pendingTimersRef.current.delete(timerId);
-        setIsPartComplete(true);
-        saveSessionProgress({
-          content_data: {
-            ...session?.content_data,
-            isPartComplete: true,
-          },
-        });
-      }, 2000);
-      pendingTimersRef.current.add(timerId);
-    }
-  }, [
-    timeLeft,
-    testStarted,
+  useSpeakingTimers({
     isLoading,
+    error,
+    timeLeft,
+    setTimeLeft,
     isTestComplete,
-    isPartComplete,
-    isSpeaking,
+    testStarted,
+    session,
     currentPartNumber,
-    setConversation,
     saveSessionProgress,
-    session?.content_data,
-  ]);
-
-  // Part 2 Preparation Timer
-  useEffect(() => {
-    if (isPart2Prep && prepTimeLeft > 0) {
-      prepTimerRef.current = setInterval(() => {
-        setPrepTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(prepTimerRef.current);
-            handleStartPart2Speaking();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (prepTimerRef.current) {
-        clearInterval(prepTimerRef.current);
-      }
-    };
-  }, [isPart2Prep, handleStartPart2Speaking, prepTimeLeft]);
-
-  // Handle keyboard shortcuts (Enter to proceed)
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Enter' && isPartComplete && !isProcessing && !isEvaluating) {
-        e.preventDefault();
-        moveToNextPart();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPartComplete, isProcessing, isEvaluating, moveToNextPart]);
-
-  // Cleanup on Unmount
-  useEffect(() => {
-    const pendingTimers = pendingTimersRef.current;
-    return () => {
-      isMountedRef.current = false;
-      pendingTimers.forEach((id) => clearTimeout(id));
-      pendingTimers.clear();
-    };
-  }, []);
+    isPartComplete,
+    setIsPartComplete,
+    isSpeaking,
+    setConversation,
+    handleStartPart2Speaking,
+    isPart2Prep,
+    prepTimeLeft,
+    setPrepTimeLeft,
+    prepTimerRef,
+    isProcessing,
+    isEvaluating,
+    moveToNextPart,
+    conversationRef,
+    questionIndexRef,
+    timeLeftRef,
+    isProcessingRef,
+    timerExpiredRef,
+    pendingTimersRef,
+  });
 
   // ─── Derived Values ────────────────────────────────────────────────────
   const currentPart = allParts[currentPartNumber];
@@ -1562,36 +1217,7 @@ export default function SpeakingTest() {
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-rose-50 flex items-center justify-center p-6">
-        <Card className="max-w-md w-full shadow-xl border-0">
-          <CardContent className="pt-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-rose-100 flex items-center justify-center">
-              <AlertTriangle className="w-8 h-8 text-rose-600" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Test Not Available</h2>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <div className="flex gap-3 justify-center">
-              <Button asChild variant="outline">
-                <Link to={createPageUrl('Speaking')}>
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Tests
-                </Link>
-              </Button>
-              <Button
-                asChild
-                className="bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600"
-              >
-                <Link to={createPageUrl('Dashboard')}>
-                  <Home className="w-4 h-4 mr-2" />
-                  Dashboard
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <SpeakingTestUnavailable error={error} />;
   }
 
   if (isTestComplete) {
@@ -1658,97 +1284,32 @@ export default function SpeakingTest() {
           }}
         />
 
-        {/* Conversation Card */}
-        <Card className="glass-card-premium border-none shadow-2xl rounded-3xl sm:rounded-[1.5rem] overflow-hidden mb-4 isolate transform-gpu">
-          <CardHeader className="bg-muted/10 backdrop-blur-md border-b border-border/40 flex flex-row items-center gap-3 py-2 px-4 sm:px-6 md:px-8">
-            <div className="relative shrink-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-rose-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg transform -rotate-2 transition-transform hover:rotate-0">
-                <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full" />
-            </div>
-            <div>
-              <CardTitle className="text-base font-black tracking-tight">AI Examiner</CardTitle>
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant="secondary"
-                  className="text-[9px] uppercase tracking-widest font-bold py-0 h-4 bg-muted/50"
-                >
-                  AI Practice
-                </Badge>
-                <div className="w-0.5 h-0.5 rounded-full bg-muted-foreground/30" />
-                <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  Mock Examiner
-                </p>
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent className="p-0 bg-dot-slate-200/40 dark:bg-dot-white/5">
-            <div className="p-3 md:p-5 min-h-[150px] max-h-[500px] overflow-y-auto space-y-4 custom-scrollbar scroll-smooth">
-              {!testStarted ? (
-                <InitialWelcomeScreen partNumber={currentPartNumber} title={currentPart.title} />
-              ) : (
-                <AnimatePresence mode="popLayout">
-                  {conversation.map((entry, index) => (
-                    <ConversationMessage
-                      key={`${entry.speaker}-${index}`}
-                      entry={entry}
-                      index={index}
-                      authUser={authUser}
-                    />
-                  ))}
-                </AnimatePresence>
-              )}
-              {/* Part Complete Milestone Integrated into Scroll Area */}
-              {isPartComplete && (
-                <div className="pt-4 pb-2 px-1">
-                  <PartCompleteCard
-                    isPartComplete={isPartComplete}
-                    currentPartNumber={currentPartNumber}
-                    allParts={allParts}
-                    onMoveToNext={moveToNextPart}
-                  />
-                </div>
-              )}
-              <div ref={conversationEndRef} />
-            </div>
-
-            {/* Recording Controls Section */}
-            {!isPartComplete && (
-              <div className="bg-muted/10 border-t border-border/50 p-2 md:p-3 isolate transform-gpu">
-                <div className="flex flex-col items-center gap-4">
-                  <RecordingControls
-                    testStarted={testStarted}
-                    isPart2Prep={isPart2Prep}
-                    isListening={isListening}
-                    isRecording={isRecording}
-                    isProcessing={isProcessing}
-                    isSpeaking={isSpeaking}
-                    isTTSLoading={isTTSLoading}
-                    processingStatus={processingStatus}
-                    micError={micError}
-                    timerExpiredRef={timerExpiredRef}
-                    onStartListening={startListening}
-                    onStopListening={stopListening}
-                    onStartTest={handleStartTest}
-                  />
-
-                  {/* Part 2 Cue Card */}
-                  {testStarted && isPart2Prep && cueCardTopic && (
-                    <div className="mt-2 w-full flex justify-center">
-                      <Part2CueCard
-                        cueCardTopic={cueCardTopic}
-                        prepTimeLeft={prepTimeLeft}
-                        onStartSpeaking={handleStartPart2Speaking}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <SpeakingConversationPanel
+          currentPartNumber={currentPartNumber}
+          currentPart={currentPart}
+          allParts={allParts}
+          conversation={conversation}
+          authUser={authUser}
+          testStarted={testStarted}
+          isPartComplete={isPartComplete}
+          moveToNextPart={moveToNextPart}
+          conversationEndRef={conversationEndRef}
+          isPart2Prep={isPart2Prep}
+          cueCardTopic={cueCardTopic}
+          prepTimeLeft={prepTimeLeft}
+          handleStartPart2Speaking={handleStartPart2Speaking}
+          isListening={isListening}
+          isRecording={isRecording}
+          isProcessing={isProcessing}
+          isSpeaking={isSpeaking}
+          isTTSLoading={isTTSLoading}
+          processingStatus={processingStatus}
+          micError={micError}
+          timerExpiredRef={timerExpiredRef}
+          startListening={startListening}
+          stopListening={stopListening}
+          handleStartTest={handleStartTest}
+        />
       </div>
 
       <UpgradeDialog
