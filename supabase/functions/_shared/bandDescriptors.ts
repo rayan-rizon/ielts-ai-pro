@@ -87,6 +87,14 @@ Pronunciation (score only if audio data is provided above):
 - 6: Intelligible. Consistent L1 features. Some listener effort required.
 - 5: Frequent pronunciation errors causing some listener difficulty.
 
+**CONCISE REPORT RULES:**
+- Avoid repeating the same issue across feedback, criterionNotes, improvements, and targetBandTips.
+- feedback: maximum 2 short sentences.
+- criterionNotes fields: maximum 1 sentence each.
+- strengths: exactly 2-3 short bullets, each under 16 words.
+- improvements: exactly 2-3 items, each tip under 22 words.
+- targetBandTips: 1 sentence only, focused on the single highest-impact next action.
+
 **OUTPUT FORMAT (JSON ONLY — no markdown, no extra text):**
 {
   "fluency": <0–9.0 in 0.5 steps>,
@@ -100,19 +108,19 @@ Pronunciation (score only if audio data is provided above):
     "part3": { "band": <score>, "keyObservation": "<1 sentence specific to Part 3 analytical ability>" }
   },
   "criterionNotes": {
-    "fluency": "<specific evidence from transcript — cite actual responses, note length calibration if applied>",
-    "lexical": "<specific vocabulary examples from transcript — name actual words used or missing>",
-    "grammar": "<name specific grammatical errors found in the transcript verbatim, or confirm accuracy if none found>",
+    "fluency": "<1 short sentence with transcript evidence; do not repeat feedback>",
+    "lexical": "<1 short sentence with vocabulary evidence; do not repeat feedback>",
+    "grammar": "<1 short sentence naming specific grammar errors, or accuracy if none found>",
     "pronunciation": "<audio-based notes if data is present, otherwise an empty string>"
   },
-  "strengths": ["<specific strength with transcript evidence>", "<second strength>", "<third strength>"],
+  "strengths": ["<short evidenced strength>", "<short evidenced strength>", "<short evidenced strength>"],
   "improvements": [
     {
       "area": "<criterion name>",
-      "tip": "<concrete, actionable improvement. If Part 2 was short, first tip MUST be about extending length. If grammar errors found, correct them specifically BEFORE suggesting stylistic improvements.>"
+      "tip": "<short actionable fix. If Part 2 was short, first tip MUST be about extending length. Correct grammar specifically before style advice.>"
     }
   ],
-  "targetBandTips": "<1–2 sentences of coaching advice matched to the candidate's actual band level — not generic Band 7→8 tips if they are currently a Band 5>"
+  "targetBandTips": "<1 short sentence matched to the candidate's actual band level>"
 }`;
 }
 

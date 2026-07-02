@@ -57,6 +57,10 @@ export type PronunciationEvidence = {
   wordIssues: Array<{ word: string; issue: string; severity: string }>;
 };
 
+export function isPlainObject(value: unknown): value is Record<string, any> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export function countWords(text: unknown): number {
   if (typeof text !== 'string') return 0;
   const normalized = text.trim();
@@ -72,24 +76,33 @@ export function normalizeBandScore(value: unknown, allowZero = true): number | n
   return Math.round(clamped * 2) / 2;
 }
 
+function cleanJsonMarkdown(text: string): string {
+  let candidate = text.trim();
+  if (candidate.startsWith('```')) {
+    candidate = candidate.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  }
+  return candidate;
+}
+
+function extractJsonObjectString(text: string): string {
+  const candidate = cleanJsonMarkdown(text);
+  const objectStart = candidate.indexOf('{');
+  const objectEnd = candidate.lastIndexOf('}');
+  if (objectStart >= 0 && objectEnd > objectStart) {
+    return candidate.slice(objectStart, objectEnd + 1);
+  }
+  return candidate;
+}
+
 export function parseStructuredJson(text: unknown): Record<string, any> {
   if (typeof text !== 'string' || !text.trim()) {
     throw new Error('AI response did not contain JSON');
   }
 
-  let candidate = text.trim();
-  if (candidate.startsWith('```')) {
-    candidate = candidate.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
-  }
-
-  const objectStart = candidate.indexOf('{');
-  const objectEnd = candidate.lastIndexOf('}');
-  if (objectStart >= 0 && objectEnd > objectStart) {
-    candidate = candidate.slice(objectStart, objectEnd + 1);
-  }
-
+  const candidate = extractJsonObjectString(text);
   const parsed = JSON.parse(candidate);
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+
+  if (!isPlainObject(parsed)) {
     throw new Error('AI response JSON must be an object');
   }
   return parsed;
@@ -111,6 +124,47 @@ function stringArray(value: unknown, maxItems: number): string[] {
     .slice(0, maxItems);
 }
 
+function compactFeedbackText(value: unknown, maxSentences = 1, maxChars = 160): string {
+  if (typeof value !== 'string') return '';
+  const normalized = value
+    .trim()
+    .replace(/^[`"'“”]+|[`"'“”]+$/g, '')
+    .replace(/\s+/g, ' ');
+  if (!normalized) return '';
+
+  const sentences = normalized.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [normalized];
+  const selected = sentences
+    .map((sentence) => sentence.trim())
+    .filter(Boolean)
+    .slice(0, maxSentences)
+    .join(' ');
+
+  if (selected.length <= maxChars) return selected;
+  const clipped = selected.slice(0, maxChars - 3);
+  const lastSpace = clipped.lastIndexOf(' ');
+  return `${clipped.slice(0, lastSpace > 80 ? lastSpace : clipped.length).trim()}...`;
+}
+
+function compactFeedbackKey(value: unknown): string {
+  return compactFeedbackText(value, 1, 220)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function compactFeedbackList(value: unknown, maxItems: number, maxChars: number): string[] {
+  const seen = new Set<string>();
+  return stringArray(value, maxItems * 2)
+    .map((item) => compactFeedbackText(item, 1, maxChars))
+    .filter((item) => {
+      const key = compactFeedbackKey(item);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, maxItems);
+}
+
 function exactSourceSubstring(sourceText: string, value: unknown): value is string {
   return typeof value === 'string' && value.length > 0 && sourceText.includes(value);
 }
@@ -120,7 +174,7 @@ export function normalizeWritingEvaluation(
   taskType: 'Task 1' | 'Task 2',
   sourceText: string
 ) {
-  if (!raw || typeof raw !== 'object') {
+  if (!isPlainObject(raw)) {
     throw new Error('Writing evaluation is not an object');
   }
 
@@ -163,7 +217,7 @@ export function normalizeWritingEvaluation(
     ? raw.annotations
         .filter(
           (annotation: any) =>
-            annotation &&
+            isPlainObject(annotation) &&
             exactSourceSubstring(sourceText, annotation.originalText) &&
             VALID_ANNOTATION_TYPES.has(annotation.type) &&
             VALID_ANNOTATION_SEVERITIES.has(annotation.severity) &&
@@ -177,7 +231,7 @@ export function normalizeWritingEvaluation(
     ? raw.corrections
         .filter(
           (correction: any) =>
-            correction &&
+            isPlainObject(correction) &&
             exactSourceSubstring(sourceText, correction.original) &&
             typeof correction.correction === 'string' &&
             correction.correction.trim().length > 0 &&
@@ -193,7 +247,7 @@ export function normalizeWritingEvaluation(
     ? (raw.vocabularyEnhancements || raw.vocabulary_enhancements)
         .filter(
           (item: any) =>
-            item &&
+            isPlainObject(item) &&
             exactSourceSubstring(sourceText, item.original) &&
             Array.isArray(item.alternatives) &&
             item.alternatives.some(
@@ -234,8 +288,12 @@ export function normalizeWritingEvaluation(
   };
 }
 
+function isValidUserEntry(entry: SpeakingEntry): boolean {
+  return Boolean(entry && entry.speaker === 'user' && !entry.isLoading && !entry.error);
+}
+
 export function isMeaningfulSpeakingResponse(entry: SpeakingEntry): boolean {
-  if (!entry || entry.speaker !== 'user' || entry.isLoading || entry.error) return false;
+  if (!isValidUserEntry(entry)) return false;
   const text = typeof entry.text === 'string' ? entry.text.trim() : '';
   return !INVALID_SPEAKING_RESPONSES.some((pattern) => pattern.test(text));
 }
@@ -322,72 +380,116 @@ export function buildSpeakingTranscript(
   };
 }
 
+function isValidWordIssue(issue: any): issue is { word: string; issue: string; severity: string } {
+  return (
+    isPlainObject(issue) &&
+    typeof issue.word === 'string' &&
+    typeof issue.issue === 'string' &&
+    typeof issue.severity === 'string'
+  );
+}
+
+function processAudioSample(
+  sample: any,
+  part: string,
+  state: {
+    scores: number[];
+    coveredParts: Set<string>;
+    partScores: number[];
+    fluencyNotes: string[];
+    problematicSounds: Set<string>;
+    wordIssues: Array<{ word: string; issue: string; severity: string }>;
+  }
+) {
+  const score = normalizeBandScore(sample?.pronunciationScore, false);
+  if (score !== null) {
+    state.scores.push(score);
+    state.partScores.push(score);
+    state.coveredParts.add(part);
+  }
+  if (typeof sample?.fluencyNotes === 'string' && sample.fluencyNotes.trim()) {
+    state.fluencyNotes.push(sample.fluencyNotes.trim());
+  }
+  if (Array.isArray(sample?.problematicSounds)) {
+    for (const sound of sample.problematicSounds) {
+      if (typeof sound === 'string' && sound.trim()) state.problematicSounds.add(sound.trim());
+    }
+  }
+  if (Array.isArray(sample?.wordLevelFeedback)) {
+    for (const issue of sample.wordLevelFeedback) {
+      if (isValidWordIssue(issue)) {
+        state.wordIssues.push({
+          word: issue.word.trim(),
+          issue: issue.issue.trim(),
+          severity: issue.severity.trim(),
+        });
+      }
+    }
+  }
+}
+
+function processPronunciationPart(
+  part: string,
+  samples: any[],
+  state: {
+    scores: number[];
+    coveredParts: Set<string>;
+    summaryLines: string[];
+    problematicSounds: Set<string>;
+    wordIssues: Array<{ word: string; issue: string; severity: string }>;
+  }
+) {
+  const partState = {
+    scores: state.scores,
+    coveredParts: state.coveredParts,
+    partScores: [] as number[],
+    fluencyNotes: [] as string[],
+    problematicSounds: state.problematicSounds,
+    wordIssues: state.wordIssues,
+  };
+
+  for (const sample of samples) {
+    processAudioSample(sample, part, partState);
+  }
+
+  if (partState.partScores.length > 0) {
+    state.summaryLines.push(
+      `Part ${part}: ${partState.partScores.length} audio sample(s), average ${averageBandScores(partState.partScores)}/9.`
+    );
+    if (partState.fluencyNotes.length > 0) {
+      state.summaryLines.push(
+        `Part ${part} audio observations: ${partState.fluencyNotes.join('; ')}`
+      );
+    }
+  }
+}
+
 export function aggregatePronunciationEvidence(
   allPartsPronunciation: Record<string | number, any[]> | null | undefined
 ): PronunciationEvidence {
-  const scores: number[] = [];
-  const coveredParts = new Set<string>();
-  const summaryLines: string[] = [];
-  const problematicSounds = new Set<string>();
-  const wordIssues: Array<{ word: string; issue: string; severity: string }> = [];
+  const state = {
+    scores: [] as number[],
+    coveredParts: new Set<string>(),
+    summaryLines: [] as string[],
+    problematicSounds: new Set<string>(),
+    wordIssues: [] as Array<{ word: string; issue: string; severity: string }>,
+  };
 
-  if (allPartsPronunciation && typeof allPartsPronunciation === 'object') {
+  if (isPlainObject(allPartsPronunciation)) {
     for (const [part, samples] of Object.entries(allPartsPronunciation)) {
-      if (!Array.isArray(samples)) continue;
-      const partScores: number[] = [];
-      const fluencyNotes: string[] = [];
-
-      for (const sample of samples) {
-        const score = normalizeBandScore(sample?.pronunciationScore, false);
-        if (score !== null) {
-          scores.push(score);
-          partScores.push(score);
-          coveredParts.add(part);
-        }
-        if (typeof sample?.fluencyNotes === 'string' && sample.fluencyNotes.trim()) {
-          fluencyNotes.push(sample.fluencyNotes.trim());
-        }
-        if (Array.isArray(sample?.problematicSounds)) {
-          for (const sound of sample.problematicSounds) {
-            if (typeof sound === 'string' && sound.trim()) problematicSounds.add(sound.trim());
-          }
-        }
-        if (Array.isArray(sample?.wordLevelFeedback)) {
-          for (const issue of sample.wordLevelFeedback) {
-            if (
-              issue &&
-              typeof issue.word === 'string' &&
-              typeof issue.issue === 'string' &&
-              typeof issue.severity === 'string'
-            ) {
-              wordIssues.push({
-                word: issue.word.trim(),
-                issue: issue.issue.trim(),
-                severity: issue.severity.trim(),
-              });
-            }
-          }
-        }
-      }
-
-      if (partScores.length > 0) {
-        summaryLines.push(
-          `Part ${part}: ${partScores.length} audio sample(s), average ${averageBandScores(partScores)}/9.`
-        );
-        if (fluencyNotes.length > 0) {
-          summaryLines.push(`Part ${part} audio observations: ${fluencyNotes.join('; ')}`);
-        }
+      if (Array.isArray(samples)) {
+        processPronunciationPart(part, samples, state);
       }
     }
   }
 
   return {
-    score: scores.length > 0 ? averageBandScores(scores) : null,
-    sampleCount: scores.length,
-    partCount: coveredParts.size,
-    summary: summaryLines.join('\n'),
-    problematicSounds: [...problematicSounds].slice(0, 12),
-    wordIssues: wordIssues.slice(0, 20),
+    score: state.scores.length > 0 ? averageBandScores(state.scores) : null,
+    sampleCount: state.scores.length,
+    partCount: state.coveredParts.size,
+    summary: state.summaryLines.join('\n'),
+    problematicSounds: Array.from(state.problematicSounds).slice(0, 12),
+    wordIssues: state.wordIssues.slice(0, 20),
   };
 }
 
@@ -406,32 +508,125 @@ function removeUnsupportedAudioSentences(value: unknown, hasAudioEvidence: boole
     .trim();
 }
 
+function validateSpeakingCriteria(
+  fluency: number | null,
+  lexical: number | null,
+  grammar: number | null
+) {
+  const scores = [fluency, lexical, grammar];
+  const hasMissing = scores.some((s) => s === null);
+  if (hasMissing) {
+    throw new Error('Speaking evaluation is missing one or more language criterion scores');
+  }
+}
+
+function calculateOverallBand(
+  fluency: number,
+  lexical: number,
+  grammar: number,
+  pronunciation: number | null
+) {
+  const transcriptOverallBand = averageBandScores([fluency, lexical, grammar]);
+  const overallBand =
+    pronunciation === null
+      ? transcriptOverallBand
+      : averageBandScores([fluency, lexical, grammar, pronunciation]);
+  return { transcriptOverallBand, overallBand };
+}
+
+function buildPronunciationNote(
+  pronunciationEvidence: PronunciationEvidence,
+  hasPronunciationEvidence: boolean
+): string {
+  if (!hasPronunciationEvidence) return '';
+  return `${pronunciationEvidence.sampleCount} audio sample(s) across ${pronunciationEvidence.partCount} part(s) were available. Final pronunciation score uses the rounded audio-sample average.`;
+}
+
+function buildCriterionNotes(
+  rawNotes: Record<string, any>,
+  fluencyNote: string,
+  pronunciationNote: string
+) {
+  return {
+    fluency: compactFeedbackText(fluencyNote, 1, 155),
+    lexical: compactFeedbackText(rawNotes.lexical, 1, 155),
+    grammar: compactFeedbackText(rawNotes.grammar, 1, 155),
+    pronunciation: pronunciationNote,
+  };
+}
+
+function buildFeedbackText(rawFeedback: unknown, hasPronunciationEvidence: boolean): string {
+  const cleaned = removeUnsupportedAudioSentences(rawFeedback, hasPronunciationEvidence);
+  return compactFeedbackText(cleaned, 2, 220) || 'Speaking evaluation completed.';
+}
+
 export function normalizeSpeakingEvaluation(
   raw: Record<string, any>,
   partStats: Record<string, SpeakingPartStats>,
   pronunciationEvidence: PronunciationEvidence
 ) {
-  if (!raw || typeof raw !== 'object') {
+  if (!isPlainObject(raw)) {
     throw new Error('Speaking evaluation is not an object');
   }
 
   const fluency = normalizeBandScore(raw.fluency);
   const lexical = normalizeBandScore(raw.lexical);
   const grammar = normalizeBandScore(raw.grammar);
-  if ([fluency, lexical, grammar].some((score) => score === null)) {
-    throw new Error('Speaking evaluation is missing one or more language criterion scores');
-  }
+  validateSpeakingCriteria(fluency, lexical, grammar);
 
   const pronunciation = pronunciationEvidence.score;
   const hasPronunciationEvidence = pronunciation !== null;
-  const transcriptOverallBand = averageBandScores([fluency, lexical, grammar]);
-  const overallBand =
-    pronunciation === null
-      ? transcriptOverallBand
-      : averageBandScores([fluency, lexical, grammar, pronunciation]);
-  const rawPartScores = raw.partScores || {};
-  const partScores: Record<string, { band: number | null; keyObservation: string }> = {};
+  const { transcriptOverallBand, overallBand } = calculateOverallBand(
+    fluency as number,
+    lexical as number,
+    grammar as number,
+    pronunciation
+  );
 
+  const criterionNotes = raw.criterionNotes || {};
+  const pronunciationNote = buildPronunciationNote(pronunciationEvidence, hasPronunciationEvidence);
+  const fluencyNote = buildFluencyNote(criterionNotes.fluency, partStats, hasPronunciationEvidence);
+
+  return {
+    fluency,
+    lexical,
+    grammar,
+    pronunciation,
+    overallBand,
+    provisionalOverallBand: transcriptOverallBand,
+    assessmentStatus: hasPronunciationEvidence ? 'complete' : 'transcript',
+    scoreBasis: hasPronunciationEvidence ? 'audio-and-transcript' : 'transcript',
+    pronunciationEvidence: {
+      sampleCount: pronunciationEvidence.sampleCount,
+      partCount: pronunciationEvidence.partCount,
+    },
+    feedback: buildFeedbackText(raw.feedback, hasPronunciationEvidence),
+    partScores: extractSpeakingPartScores(
+      raw.partScores || {},
+      partStats,
+      hasPronunciationEvidence
+    ),
+    criterionNotes: buildCriterionNotes(criterionNotes, fluencyNote, pronunciationNote),
+    strengths: removeUnsupportedAudioClaims(
+      compactFeedbackList(raw.strengths, 3, 125),
+      hasPronunciationEvidence
+    ),
+    improvements: extractSpeakingImprovements(raw.improvements, hasPronunciationEvidence),
+    targetBandTips: compactFeedbackText(
+      removeUnsupportedAudioSentences(raw.targetBandTips, hasPronunciationEvidence),
+      1,
+      190
+    ),
+    evaluationVersion: FEEDBACK_EVALUATOR_VERSION,
+  };
+}
+
+function extractSpeakingPartScores(
+  rawPartScores: Record<string, any>,
+  partStats: Record<string, SpeakingPartStats>,
+  hasPronunciationEvidence: boolean
+) {
+  const partScores: Record<string, { band: number | null; keyObservation: string }> = {};
   for (const part of [1, 2, 3]) {
     const key = `part${part}`;
     const stats = partStats[String(part)] || {
@@ -457,11 +652,18 @@ export function normalizeSpeakingEvaluation(
             : `${stats.candidateWordCount} candidate words were available for assessment.`,
     };
   }
+  return partScores;
+}
 
-  const criterionNotes = raw.criterionNotes || {};
-  const pronunciationNote = hasPronunciationEvidence
-    ? `${pronunciationEvidence.sampleCount} audio sample(s) across ${pronunciationEvidence.partCount} part(s) were available. Final pronunciation score uses the rounded audio-sample average.`
-    : '';
+function buildFluencyNote(
+  rawFluencyNote: unknown,
+  partStats: Record<string, SpeakingPartStats>,
+  hasPronunciationEvidence: boolean
+) {
+  const note = removeUnsupportedAudioSentences(rawFluencyNote, hasPronunciationEvidence);
+  if (note) return note;
+  if (hasPronunciationEvidence) return '';
+
   const totalCandidateWords = Object.values(partStats).reduce(
     (sum, stats) => sum + stats.candidateWordCount,
     0
@@ -470,51 +672,54 @@ export function normalizeSpeakingEvaluation(
     (sum, stats) => sum + stats.validResponseCount,
     0
   );
-  const fluencyNote =
-    removeUnsupportedAudioSentences(criterionNotes.fluency, hasPronunciationEvidence) ||
-    (hasPronunciationEvidence
-      ? ''
-      : `The transcript contains ${totalCandidateWords} words across ${totalValidResponses} developed response(s). This score reflects response development and logical continuity visible in the transcript.`);
-  const improvements = Array.isArray(raw.improvements)
-    ? raw.improvements
-        .filter((item: any) => {
-          if (hasPronunciationEvidence) return true;
-          return !UNSUPPORTED_AUDIO_CLAIM_PATTERN.test(`${item?.area || ''} ${item?.tip || ''}`);
-        })
-        .slice(0, 8)
-    : [];
+  return `Only transcript evidence was available: ${totalCandidateWords} words across ${totalValidResponses} developed response(s), scored from response development visible in the transcript.`;
+}
 
+function isSupportedImprovement(item: any, hasPronunciationEvidence: boolean): boolean {
+  if (hasPronunciationEvidence) return true;
+  return !UNSUPPORTED_AUDIO_CLAIM_PATTERN.test(`${item?.area || ''} ${item?.tip || ''}`);
+}
+
+function getImprovementArea(item: any): string {
+  if (item?.criterion) return item.criterion;
+  if (item?.area) return item.area;
+  return 'Next step';
+}
+
+function getImprovementTip(item: any): any {
+  if (item?.tip) return item.tip;
+  if (item?.suggestion) return item.suggestion;
+  if (item?.feedback) return item.feedback;
+  return item;
+}
+
+function mapImprovement(item: any) {
   return {
-    fluency,
-    lexical,
-    grammar,
-    pronunciation,
-    overallBand,
-    provisionalOverallBand: transcriptOverallBand,
-    assessmentStatus: hasPronunciationEvidence ? 'complete' : 'transcript',
-    scoreBasis: hasPronunciationEvidence ? 'audio-and-transcript' : 'transcript',
-    pronunciationEvidence: {
-      sampleCount: pronunciationEvidence.sampleCount,
-      partCount: pronunciationEvidence.partCount,
-    },
-    feedback:
-      removeUnsupportedAudioSentences(raw.feedback, hasPronunciationEvidence) ||
-      'Speaking evaluation completed.',
-    partScores,
-    criterionNotes: {
-      fluency: fluencyNote,
-      lexical: typeof criterionNotes.lexical === 'string' ? criterionNotes.lexical.trim() : '',
-      grammar: typeof criterionNotes.grammar === 'string' ? criterionNotes.grammar.trim() : '',
-      pronunciation: pronunciationNote,
-    },
-    strengths: removeUnsupportedAudioClaims(
-      stringArray(raw.strengths, 6),
-      hasPronunciationEvidence
-    ),
-    improvements,
-    targetBandTips: removeUnsupportedAudioSentences(raw.targetBandTips, hasPronunciationEvidence),
-    evaluationVersion: FEEDBACK_EVALUATOR_VERSION,
+    area: compactFeedbackText(getImprovementArea(item), 1, 32),
+    tip: compactFeedbackText(getImprovementTip(item), 1, 170),
   };
+}
+
+function isValidImprovement(item: any): boolean {
+  return Boolean(item.area && item.tip);
+}
+
+function filterUniqueImprovements(item: any, idx: number, items: any[]): boolean {
+  const key = compactFeedbackKey(item.tip);
+  return Boolean(
+    key && items.findIndex((candidate) => compactFeedbackKey(candidate.tip) === key) === idx
+  );
+}
+
+function extractSpeakingImprovements(rawImprovements: unknown, hasPronunciationEvidence: boolean) {
+  if (!Array.isArray(rawImprovements)) return [];
+
+  return rawImprovements
+    .filter((item) => isSupportedImprovement(item, hasPronunciationEvidence))
+    .map(mapImprovement)
+    .filter(isValidImprovement)
+    .filter(filterUniqueImprovements)
+    .slice(0, 3);
 }
 
 export function normalizeDetailedSpeakingEvaluation(
@@ -526,40 +731,45 @@ export function normalizeDetailedSpeakingEvaluation(
   }
 
   return raw
-    .filter((item) => item && typeof item === 'object')
-    .map((item: any) => {
-      const part = Number(item.part);
-      const source = candidateSource[String(part)] || '';
-      if (![1, 2, 3].includes(part) || !exactSourceSubstring(source, item.candidateAnswer)) {
-        return null;
-      }
-      const grammaticalErrors = Array.isArray(item.grammaticalErrors)
-        ? item.grammaticalErrors
-            .filter(
-              (error: any) =>
-                error &&
-                exactSourceSubstring(item.candidateAnswer, error.incorrect) &&
-                typeof error.correct === 'string' &&
-                error.correct.trim().length > 0 &&
-                error.correct.trim() !== error.incorrect.trim() &&
-                typeof error.explanation === 'string'
-            )
-            .slice(0, 12)
-        : [];
-
-      return {
-        part,
-        question: typeof item.question === 'string' ? item.question.trim() : '',
-        candidateAnswer: item.candidateAnswer,
-        grammaticalErrors,
-        topicDrift:
-          typeof item.topicDrift === 'string' && item.topicDrift.trim()
-            ? item.topicDrift.trim()
-            : 'null',
-        suggestedAnswer:
-          typeof item.suggestedAnswer === 'string' ? item.suggestedAnswer.trim() : '',
-        feedback: typeof item.feedback === 'string' ? item.feedback.trim() : '',
-      };
-    })
+    .filter((item) => isPlainObject(item))
+    .map((item: any) => processDetailedSpeakingItem(item, candidateSource))
     .filter(Boolean);
+}
+
+function getStringOrDefault(value: unknown, defaultValue = ''): string {
+  return typeof value === 'string' && value.trim() ? value.trim() : defaultValue;
+}
+
+function processDetailedSpeakingItem(item: any, candidateSource: Record<string, string>) {
+  const part = Number(item.part);
+  const source = candidateSource[String(part)] || '';
+  if (![1, 2, 3].includes(part) || !exactSourceSubstring(source, item.candidateAnswer)) {
+    return null;
+  }
+
+  return {
+    part,
+    question: getStringOrDefault(item.question),
+    candidateAnswer: item.candidateAnswer,
+    grammaticalErrors: extractGrammaticalErrors(item.grammaticalErrors, item.candidateAnswer),
+    topicDrift: getStringOrDefault(item.topicDrift, 'null'),
+    suggestedAnswer: getStringOrDefault(item.suggestedAnswer),
+    feedback: getStringOrDefault(item.feedback),
+  };
+}
+
+function extractGrammaticalErrors(rawErrors: unknown, candidateAnswer: string) {
+  if (!Array.isArray(rawErrors)) return [];
+
+  return rawErrors
+    .filter(
+      (error: any) =>
+        isPlainObject(error) &&
+        exactSourceSubstring(candidateAnswer, error.incorrect) &&
+        typeof error.correct === 'string' &&
+        error.correct.trim().length > 0 &&
+        error.correct.trim() !== error.incorrect.trim() &&
+        typeof error.explanation === 'string'
+    )
+    .slice(0, 12);
 }
