@@ -4,15 +4,11 @@ import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
 
 // Data entities
-import { User } from '@/features/auth/services/User';
-import { UserPoints } from '@/features/gamification/services/UserPoints';
 import { Passage } from '@/features/testing/shared/services/Passage';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { callEdgeFunction } from '@/utils/api';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/features/auth/context/AuthContext';
-import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
-import { trackAppEvent } from '@/lib/tracking';
 
 import PremiumLoading from '@/components/ui/PremiumLoading';
 
@@ -27,6 +23,7 @@ import SpeakingTestUnavailable from '../components/SpeakingTestUnavailable';
 // Custom hooks
 import useSpeechSynthesis from '../hooks/useSpeechSynthesis';
 import useAudioRecorder from '../hooks/useAudioRecorder';
+import useSpeakingEvaluation from '../hooks/useSpeakingEvaluation';
 import useSpeakingNavigationBlocker from '../hooks/useSpeakingNavigationBlocker';
 import useSpeakingSessionEffects from '../hooks/useSpeakingSessionEffects';
 import useSpeakingTimers from '../hooks/useSpeakingTimers';
@@ -36,7 +33,6 @@ import {
   buildCueCardTopic,
   buildLegacySpeakingEvaluation,
   buildLocalDevSpeakingResponse,
-  buildPartContexts,
   formatIeltsQuestion,
   getQuestionLines,
   isTranscriptError,
@@ -67,7 +63,6 @@ export default function SpeakingTest() {
   // ─── Processing State ──────────────────────────────────────────────────
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('');
-  const [loadingMessage, setLoadingMessage] = useState('Analyzing Performance...');
 
   // ─── Conversation State ────────────────────────────────────────────────
   const [conversation, setConversationRaw] = useState([]);
@@ -111,18 +106,8 @@ export default function SpeakingTest() {
   const [allPartsConversation, setAllPartsConversation] = useState(
     session?.content_data?.allPartsConversation || {}
   );
-  const [finalEvaluation, setFinalEvaluation] = useState(null);
-  const [isEvaluating, setIsEvaluating] = useState(false);
   const [isPartComplete, setIsPartComplete] = useState(false);
   const [isTestComplete, setIsTestComplete] = useState(false);
-  const [evaluationError, setEvaluationError] = useState(null);
-
-  // ─── Deep Dive State (lifted from SpeakingReport) ─────────────────────
-  const [detailedFeedback, setDetailedFeedback] = useState(
-    session?.content_data?.detailedFeedback || null
-  );
-  const [isGeneratingDetailed, setIsGeneratingDetailed] = useState(false);
-  const [deepDiveError, setDeepDiveError] = useState(null);
 
   // Accumulate acoustic metrics per part (from Gemini audio-in analysis)
   const acousticMetricsRef = useRef(session?.content_data?.allPartsAcousticMetrics || {});
@@ -137,11 +122,6 @@ export default function SpeakingTest() {
   const [prepTimeLeft, setPrepTimeLeft] = useState(60);
   const [cueCardTopic, setCueCardTopic] = useState(null);
   const prepTimerRef = useRef(null);
-
-  // ─── Gamification State ────────────────────────────────────────────────
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [showXPNotification, setShowXPNotification] = useState(false);
-  const [earnedXP, setEarnedXP] = useState({ xp: 0, bonus: 0, streak: 0 });
 
   // ─── UI Dialog State ───────────────────────────────────────────────────
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
@@ -175,16 +155,6 @@ export default function SpeakingTest() {
     isMountedRef,
   });
 
-  // ─── Navigation Blocker ────────────────────────────────────────────────
-  const blocker = useSpeakingNavigationBlocker({
-    isTestComplete,
-    isExiting,
-    evaluationError,
-    showUpgradeDialog,
-    conversationLength: conversation.length,
-    setShowExitDialog,
-  });
-
   // ─── Persistence ───────────────────────────────────────────────────────
   const saveSessionProgress = useCallback(
     async (updates) => {
@@ -200,6 +170,49 @@ export default function SpeakingTest() {
     },
     [session?.id]
   );
+
+  const {
+    loadingMessage,
+    finalEvaluation,
+    setFinalEvaluation,
+    isEvaluating,
+    evaluationError,
+    setEvaluationError,
+    detailedFeedback,
+    isGeneratingDetailed,
+    deepDiveError,
+    showConfetti,
+    setShowConfetti,
+    showXPNotification,
+    setShowXPNotification,
+    earnedXP,
+    requestFinalEvaluation,
+    fireDeepDive,
+  } = useSpeakingEvaluation({
+    testId,
+    session,
+    allParts,
+    allPartsConversation,
+    currentPartNumber,
+    conversation,
+    acousticMetricsRef,
+    saveSessionProgress,
+    isMountedRef,
+    pendingTimersRef,
+    setIsTestComplete,
+    setShowUpgradeDialog,
+    setProcessingStatus,
+  });
+
+  // ─── Navigation Blocker ────────────────────────────────────────────────
+  const blocker = useSpeakingNavigationBlocker({
+    isTestComplete,
+    isExiting,
+    evaluationError,
+    showUpgradeDialog,
+    conversationLength: conversation.length,
+    setShowExitDialog,
+  });
 
   // ─── Quota Helper ──────────────────────────────────────────────────────
   const checkCurrentQuota = useCallback(async () => {
@@ -547,257 +560,6 @@ export default function SpeakingTest() {
   useEffect(() => {
     setRecorderProcessing(isProcessing);
   }, [isProcessing, setRecorderProcessing]);
-
-  // ─── Award XP ──────────────────────────────────────────────────────────
-  const awardXP = useCallback(async (evaluation) => {
-    try {
-      const userProfile = await User.me();
-      if (userProfile?.id && evaluation.overallBand) {
-        const xpAmount = 100 + Math.round(evaluation.overallBand * 20);
-        await UserPoints.addPoints(userProfile.id, xpAmount);
-        const streakData = await UserPoints.updateStreak(userProfile.id);
-
-        setEarnedXP({
-          xp: xpAmount,
-          bonus: 0,
-          streak: streakData?.current_streak || 0,
-        });
-        setShowConfetti(true);
-        const xpTimerId = setTimeout(() => {
-          pendingTimersRef.current.delete(xpTimerId);
-          setShowXPNotification(true);
-        }, 500);
-        pendingTimersRef.current.add(xpTimerId);
-      }
-    } catch (xpError) {
-      console.warn('Could not award XP:', xpError);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isPartComplete) {
-      // Multiple attempts to ensure it's scrolled even if content takes time to layout
-      const scroll = () => {
-        conversationEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      };
-
-      const t1 = setTimeout(scroll, 100);
-      const t2 = setTimeout(scroll, 500);
-      const t3 = setTimeout(scroll, 1000);
-
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-      };
-    }
-  }, [isPartComplete]);
-
-  // ─── Deep Dive (parallel to band score evaluation) ────────────────────
-  const fireDeepDive = useCallback(
-    async (conversationsToEvaluate) => {
-      if (!testId || !conversationsToEvaluate || isGeneratingDetailed) return;
-      setIsGeneratingDetailed(true);
-      setDeepDiveError(null);
-      try {
-        const response = await callEdgeFunction('generateDetailedSpeakingFeedback', {
-          testId,
-          speakingSessionId: session?.id,
-          allPartsConversation: conversationsToEvaluate,
-          partContexts: buildPartContexts(allParts),
-        });
-        if (!isMountedRef.current) return;
-        if (response.success && response.detailedAnalysis) {
-          setDetailedFeedback(response.detailedAnalysis);
-          saveSessionProgress({
-            content_data: {
-              ...session?.content_data,
-              detailedFeedback: response.detailedAnalysis,
-            },
-          });
-        } else {
-          throw new Error('Invalid deep dive response format');
-        }
-      } catch (error) {
-        if (!isMountedRef.current) return;
-        console.error('[Speaking] Deep dive failed:', error);
-        setDeepDiveError(error?.userMessage || error?.message || 'Deep dive failed');
-      } finally {
-        if (isMountedRef.current) setIsGeneratingDetailed(false);
-      }
-    },
-    [
-      testId,
-      isGeneratingDetailed,
-      session?.id,
-      session?.content_data,
-      saveSessionProgress,
-      allParts,
-    ]
-  );
-
-  // ─── Final Evaluation ──────────────────────────────────────────────────
-  const requestFinalEvaluation = useCallback(
-    async (allConversationsData) => {
-      setIsEvaluating(true);
-      setIsTestComplete(true);
-      setEvaluationError(null);
-
-      const conversationsToEvaluate = allConversationsData || {
-        ...allPartsConversation,
-        [currentPartNumber]: conversation.filter((c) => !c.isLoading),
-      };
-
-      try {
-        setLoadingMessage('AI is analyzing your response...');
-        setProcessingStatus('AI is analyzing your response...');
-
-        const response = await callEdgeFunction('evaluateSpeakingTest', {
-          testId,
-          speakingSessionId: session?.id,
-          allPartsConversation: conversationsToEvaluate,
-          allPartsPronunciation: acousticMetricsRef.current,
-          partContexts: buildPartContexts(allParts),
-        });
-
-        if (response.success && response.evaluation) {
-          setFinalEvaluation(response.evaluation);
-          setEvaluationError(null);
-          await awardXP(response.evaluation);
-
-          trackAppEvent('speaking_submitted', {
-            test_type: 'speaking',
-            overall_band: response.evaluation?.overallBand ?? null,
-            session_id: session?.id,
-          });
-          trackAppEvent('test_completed', {
-            test_type: 'speaking',
-            overall_band: response.evaluation?.overallBand ?? null,
-            session_id: session?.id,
-          });
-
-          await saveSessionProgress({
-            is_completed: true,
-            score: response.evaluation.overallBand ?? null,
-            completed_at: new Date().toISOString(),
-            content_data: {
-              ...session?.content_data,
-              finalEvaluation: response.evaluation,
-              allPartsConversation: conversationsToEvaluate,
-              // Flat criteria scores for analytics aggregation
-              criteriaScores: {
-                fluency: response.evaluation.fluency ?? null,
-                lexicalResource: response.evaluation.lexical ?? null,
-                grammar: response.evaluation.grammar ?? null,
-                pronunciation: response.evaluation.pronunciation ?? null,
-              },
-            },
-          });
-
-          try {
-            const { removeFromCache } = await import('@/lib/apiCache');
-            removeFromCache('speaking-tests-list');
-          } catch (e) {
-            console.warn('[Speaking] Cache invalidation failed:', e);
-          }
-
-          // Trigger adaptive learning path refresh in background (Pro/Premium only)
-          if (session?.user_id && response.evaluation.overallBand != null) {
-            refreshLearningPathAfterTest(
-              session.user_id,
-              'speaking',
-              response.evaluation.overallBand
-            ).catch((err) => {
-              if (err?.status !== 403)
-                console.warn('Speaking: learning path refresh failed:', err?.message);
-            });
-          }
-
-          setIsEvaluating(false);
-        } else if (!response.success) {
-          console.warn('Evaluation returned success:false:', response);
-          setEvaluationError(
-            response.message || 'AI evaluation could not be processed. Please retry.'
-          );
-          setIsEvaluating(false);
-
-          await saveSessionProgress({
-            content_data: {
-              ...session?.content_data,
-              allPartsConversation: conversationsToEvaluate,
-              evaluationPending: true,
-            },
-          });
-          return;
-        }
-      } catch (evalError) {
-        console.error('Error getting final evaluation:', evalError);
-
-        if (
-          evalError.status === 403 ||
-          evalError.status === 429 ||
-          evalError.name === 'RateLimitError'
-        ) {
-          if (evalError.status === 403 || evalError.rateLimitType === 'quota') {
-            setEvaluationError(
-              'Your plan does not include speaking evaluation. Please upgrade to continue.'
-            );
-            setShowUpgradeDialog(true);
-            // Keep isTestComplete true so we show the SpeakingReport with the error state
-            setIsTestComplete(true);
-          } else {
-            toast.error('Too many requests', {
-              description: 'Please wait a moment and try evaluating again.',
-              duration: 4000,
-            });
-            setEvaluationError('Too many requests. Please wait and retry.');
-          }
-          setIsEvaluating(false);
-          return;
-        }
-
-        const errorMessage =
-          evalError?.userMessage || evalError?.message || 'Unable to get AI evaluation';
-        const isNetworkError =
-          evalError?.isNetworkError || errorMessage.toLowerCase().includes('connect');
-
-        const userFacingMessage = isNetworkError
-          ? 'Connection issue. Please check your internet and retry.'
-          : 'AI evaluation is temporarily unavailable. Please retry.';
-
-        setEvaluationError(userFacingMessage);
-
-        toast.error(isNetworkError ? 'Connection Issue' : 'Evaluation Unavailable', {
-          description: isNetworkError
-            ? 'Please check your internet connection and try generating reports again.'
-            : 'AI evaluation is temporarily unavailable. Please try again in a moment.',
-          duration: 8000,
-        });
-
-        await saveSessionProgress({
-          content_data: {
-            ...session?.content_data,
-            allPartsConversation: conversationsToEvaluate,
-            evaluationPending: true,
-          },
-        });
-      } finally {
-        setIsEvaluating(false);
-      }
-    },
-    [
-      testId,
-      allPartsConversation,
-      currentPartNumber,
-      conversation,
-      session?.content_data,
-      allParts,
-      session?.id,
-      awardXP,
-      saveSessionProgress,
-      session?.user_id,
-    ]
-  );
 
   // ─── Move to Next Part ─────────────────────────────────────────────────
   const moveToNextPart = useCallback(async () => {
@@ -1231,7 +993,6 @@ export default function SpeakingTest() {
         allPartsPronunciation={allPartsAcousticMetrics}
         onRetryEvaluation={() => {
           setEvaluationError(null);
-          setIsEvaluating(true);
           requestFinalEvaluation();
         }}
         showConfetti={showConfetti}

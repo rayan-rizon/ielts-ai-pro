@@ -61,6 +61,24 @@ export default function useSpeakingSessionEffects({
   }, [isPartComplete, transitionCardRef]);
 
   useEffect(() => {
+    if (!isPartComplete) return;
+
+    const scroll = () => {
+      conversationEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    };
+
+    const firstScroll = setTimeout(scroll, 100);
+    const secondScroll = setTimeout(scroll, 500);
+    const finalScroll = setTimeout(scroll, 1000);
+
+    return () => {
+      clearTimeout(firstScroll);
+      clearTimeout(secondScroll);
+      clearTimeout(finalScroll);
+    };
+  }, [isPartComplete, conversationEndRef]);
+
+  useEffect(() => {
     const pendingTimers = pendingTimersRef.current;
     return () => {
       isMountedRef.current = false;
