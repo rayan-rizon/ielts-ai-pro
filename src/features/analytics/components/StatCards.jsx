@@ -11,9 +11,12 @@ import { getBandLabel, formatBand } from '../utils';
 export default function StatCards({ stats, progressToTarget }) {
   if (!stats) return null;
 
+  const hasScoreData = (stats.scoredTests ?? stats.totalTests ?? 0) > 0;
+
   // Use predictedOverallBand (official IELTS formula) if available, else fall back to avgScore
-  const displayScore =
-    stats.predictedOverallBand != null
+  const displayScore = !hasScoreData
+    ? '--'
+    : stats.predictedOverallBand != null
       ? String(
           stats.predictedOverallBand % 1 === 0
             ? stats.predictedOverallBand.toFixed(1)
@@ -23,8 +26,16 @@ export default function StatCards({ stats, progressToTarget }) {
   const isOfficialBand = stats.predictedOverallBand != null;
   const modulesWithData = stats.modulesWithData || 0;
 
-  const currentLabel = getBandLabel(displayScore);
+  const currentLabel = hasScoreData ? getBandLabel(displayScore) : 'No score yet';
   const targetLabel = getBandLabel(stats.targetScore);
+  const efficiencyValues = Object.values(stats.efficiency || {}).filter(
+    (value) => Number(value) > 0
+  );
+  const averageMinutes = efficiencyValues.length
+    ? Math.round(
+        efficiencyValues.reduce((sum, value) => sum + Number(value), 0) / efficiencyValues.length
+      )
+    : null;
 
   const cards = [
     {
@@ -33,7 +44,7 @@ export default function StatCards({ stats, progressToTarget }) {
       badge: currentLabel,
       icon: Target,
       color: 'bg-primary',
-      trend: stats.improvement,
+      trend: hasScoreData ? stats.improvement : '--',
       trendLabel: 'Your Improvement',
       progress: progressToTarget,
       footerType: 'progress',
@@ -73,14 +84,14 @@ export default function StatCards({ stats, progressToTarget }) {
   return (
     <motion.section
       variants={ITEM_VARIANTS}
-      className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4 h-full"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 h-full"
       data-oid="50fp0ug"
     >
       {cards.map((card, idx) => (
         <Card
           key={idx}
           className={cn(
-            'rounded-3xl border border-border/40 bg-white dark:bg-slate-950 backdrop-blur-md shadow-lg hover:shadow-2xl transition-all duration-300 group overflow-hidden relative hover:-translate-y-1.5 h-full min-h-[128px]',
+            'rounded-2xl border border-border/40 bg-white dark:bg-slate-950 backdrop-blur-md shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden relative hover:-translate-y-1 h-full min-h-[132px]',
             card.color === 'bg-primary'
               ? 'hover:border-primary/30 hover:shadow-primary/5'
               : card.color === 'bg-amber-500'
@@ -111,20 +122,20 @@ export default function StatCards({ stats, progressToTarget }) {
           />
 
           <CardContent
-            className="p-4 h-full flex flex-col justify-between relative z-10"
+            className="p-3.5 h-full flex flex-col justify-between relative z-10"
             data-oid="ls.-irc"
           >
-            <div className="flex items-start justify-between mb-2" data-oid="96yih:u">
-              <div className="space-y-1" data-oid="v.erel8">
+            <div className="flex items-start justify-between gap-2 mb-2" data-oid="96yih:u">
+              <div className="space-y-1 min-w-0" data-oid="v.erel8">
                 <p
-                  className="text-[11px] font-bold text-muted-foreground/80 tracking-wide"
+                  className="text-[10px] font-black uppercase text-muted-foreground/80 tracking-wider"
                   data-oid="4b9v7am"
                 >
                   {card.title}
                 </p>
-                <div className="flex items-center gap-2" data-oid="1ilsr:u">
+                <div className="flex flex-wrap items-center gap-1.5 min-w-0" data-oid="1ilsr:u">
                   <h2
-                    className="text-2xl md:text-3xl font-black text-foreground tracking-tighter leading-none"
+                    className="text-2xl font-black text-foreground tracking-tight leading-none"
                     data-oid="ockgv13"
                   >
                     {card.value}
@@ -133,7 +144,7 @@ export default function StatCards({ stats, progressToTarget }) {
                     <Badge
                       variant="outline"
                       className={cn(
-                        'rounded-lg text-[10px] px-2 py-0.5 border-0 font-bold tracking-tight',
+                        'rounded-lg text-[9px] px-2 py-0.5 border-0 font-bold tracking-tight max-w-[108px] truncate',
                         card.color === 'bg-primary'
                           ? 'bg-primary/10 text-primary'
                           : 'bg-amber-500/10 text-amber-500 dark:text-amber-400'
@@ -145,7 +156,7 @@ export default function StatCards({ stats, progressToTarget }) {
                   )}
                 </div>
                 {card.subtitle && (
-                  <p className="text-[9px] font-bold text-muted-foreground/60 tracking-wide">
+                  <p className="text-[9px] font-bold text-muted-foreground/60 tracking-wide truncate">
                     {card.subtitle}
                   </p>
                 )}
@@ -171,11 +182,15 @@ export default function StatCards({ stats, progressToTarget }) {
                     <div
                       className={cn(
                         'flex items-center gap-1 text-[9px] font-black',
-                        Number(card.trend) >= 0 ? 'text-emerald-500' : 'text-rose-500'
+                        !hasScoreData
+                          ? 'text-muted-foreground'
+                          : Number(card.trend) >= 0
+                            ? 'text-emerald-500'
+                            : 'text-rose-500'
                       )}
                       data-oid="84ll69k"
                     >
-                      {Number(card.trend) > 0 ? '+' : ''}
+                      {hasScoreData && Number(card.trend) > 0 ? '+' : ''}
                       {card.trend}
                     </div>
                   </div>
@@ -201,8 +216,15 @@ export default function StatCards({ stats, progressToTarget }) {
                   >
                     Remaining Gap
                   </p>
-                  <div className="text-xs font-bold text-foreground truncate" data-oid="8q0-un5">
-                    {Number(stats.avgScore) >= Number(stats.targetScore) ? (
+                  <div
+                    className="text-[11px] font-bold text-foreground leading-snug"
+                    data-oid="8q0-un5"
+                  >
+                    {!hasScoreData ? (
+                      <span className="text-muted-foreground" data-oid="no-score-gap">
+                        Complete a scored test
+                      </span>
+                    ) : Number(stats.avgScore) >= Number(stats.targetScore) ? (
                       <span className="text-emerald-500 font-black" data-oid="s7-xcvy">
                         Goal Achieved!
                       </span>
@@ -246,14 +268,10 @@ export default function StatCards({ stats, progressToTarget }) {
                       {card.trend}
                     </div>
                     <div
-                      className="text-[9px] font-black text-foreground/70 bg-muted/60 px-1.5 py-0.5 rounded-md"
+                      className="text-[9px] font-black text-foreground/70 bg-muted/60 px-1.5 py-0.5 rounded-md whitespace-nowrap"
                       data-oid="_ak2o:8"
                     >
-                      {Math.round(
-                        Object.values(stats.efficiency).reduce((a, b) => a + b, 0) /
-                          (Object.values(stats.efficiency).filter((v) => v > 0).length || 1)
-                      )}{' '}
-                      min/test
+                      {averageMinutes ? `${averageMinutes} min/test` : 'No timing yet'}
                     </div>
                   </div>
                 </div>

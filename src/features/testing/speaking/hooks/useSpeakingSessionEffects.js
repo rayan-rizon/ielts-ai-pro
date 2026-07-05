@@ -11,7 +11,7 @@ export default function useSpeakingSessionEffects({
   timeLeft,
   isProcessing,
   isPartComplete,
-  conversationEndRef,
+  conversationContainerRef,
   transitionCardRef,
   conversationRef,
   questionIndexRef,
@@ -49,8 +49,30 @@ export default function useSpeakingSessionEffects({
   }, [isProcessing, isProcessingRef]);
 
   useEffect(() => {
-    conversationEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conversation, conversationEndRef]);
+    const container = conversationContainerRef.current;
+    if (!container) return;
+
+    const scroll = () => {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth',
+      });
+    };
+
+    // Scroll immediately when conversation array updates
+    scroll();
+
+    // Fire again as animation is completing to ensure it stays pinned
+    const t1 = setTimeout(scroll, 100);
+    const t2 = setTimeout(scroll, 250);
+    const t3 = setTimeout(scroll, 450);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [conversation, conversationContainerRef]);
 
   useEffect(() => {
     if (!isPartComplete) return;
@@ -63,8 +85,14 @@ export default function useSpeakingSessionEffects({
   useEffect(() => {
     if (!isPartComplete) return;
 
+    const container = conversationContainerRef.current;
+    if (!container) return;
+
     const scroll = () => {
-      conversationEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth',
+      });
     };
 
     const firstScroll = setTimeout(scroll, 100);
@@ -76,7 +104,7 @@ export default function useSpeakingSessionEffects({
       clearTimeout(secondScroll);
       clearTimeout(finalScroll);
     };
-  }, [isPartComplete, conversationEndRef]);
+  }, [isPartComplete, conversationContainerRef]);
 
   useEffect(() => {
     const pendingTimers = pendingTimersRef.current;

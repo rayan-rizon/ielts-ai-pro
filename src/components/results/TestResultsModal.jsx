@@ -875,6 +875,22 @@ export default function TestResultsModal({
 
   if (!showResults || !testResults) return null;
 
+  const totalQuestions = Math.max(0, Number(testResults.totalQuestions) || 0);
+  const correctAnswers = Math.max(0, Number(testResults.correctAnswers) || 0);
+  const unansweredCount = Math.max(
+    0,
+    Math.min(totalQuestions, Number(testResults.errorPatterns?.unansweredCount) || 0)
+  );
+  const wrongCount = Math.max(0, totalQuestions - correctAnswers - unansweredCount);
+  const trackedTotalSeconds = Number(testResults.timeMetrics?.totalTimeSpent);
+  const durationSeconds = Number(testResults.durationMinutes) * 60;
+  const totalTimeSeconds =
+    Number.isFinite(trackedTotalSeconds) && trackedTotalSeconds > 0
+      ? trackedTotalSeconds
+      : Number.isFinite(durationSeconds) && durationSeconds > 0
+        ? durationSeconds
+        : 0;
+
   return (
     <AnimatePresence data-oid="ihkxgha">
       <motion.div
@@ -897,7 +913,7 @@ export default function TestResultsModal({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 30 }}
           transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-          className="relative bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[95vh] flex flex-col overflow-hidden"
+          className="relative bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] flex flex-col overflow-hidden"
           data-oid="-r:9.7j"
         >
           {/* Subtle animated background gradient - darkened for better contrast */}
@@ -911,10 +927,10 @@ export default function TestResultsModal({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="absolute top-6 right-6 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-white hover:bg-rose-500 hover:border-rose-500 rounded-full transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl h-12 w-12"
+            className="absolute top-4 right-4 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-white hover:bg-rose-500 hover:border-rose-500 rounded-full transition-all duration-300 hover:scale-105 shadow-lg h-10 w-10"
             data-oid="w:ql:1a"
           >
-            <X className="w-6 h-6" data-oid="ivzr5rc" />
+            <X className="w-5 h-5" data-oid="ivzr5rc" />
           </Button>
 
           <div
@@ -923,7 +939,7 @@ export default function TestResultsModal({
           >
             {/* HERO HEADER AREA - Sticky at top */}
             <div
-              className="p-6 lg:p-7 pb-2 flex flex-col items-center text-center relative gap-3 shrink-0 z-10 bg-white/50 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50"
+              className="p-5 lg:p-6 pb-2 flex flex-col items-center text-center relative gap-2 shrink-0 z-10 bg-white/50 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50"
               data-oid="mq0lnh."
             >
               <motion.h2
@@ -952,7 +968,7 @@ export default function TestResultsModal({
               data-oid="qgezt8v"
             >
               <div
-                className="px-6 lg:px-7 pb-4 bg-white/50 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50 shrink-0 z-10 flex justify-center"
+                className="px-4 lg:px-6 pb-3 bg-white/50 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50 shrink-0 z-10 flex justify-center"
                 data-oid="ure23om"
               >
                 <TabsList
@@ -993,22 +1009,28 @@ export default function TestResultsModal({
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 10 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
-                        className="p-5 lg:p-7 space-y-8"
+                        className="p-4 lg:p-6 space-y-5"
                         data-oid="qsbm9v."
                       >
                         {/* 1. Band Score Hero */}
-                        <div className="flex flex-col items-center" data-oid="j1qb-nz">
+                        <div
+                          className="flex flex-col items-center rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-slate-950/80 p-4 md:p-5 shadow-sm"
+                          data-oid="j1qb-nz"
+                        >
                           <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="inline-flex flex-col items-center gap-2 mb-6"
+                            className="inline-flex flex-col items-center gap-2 mb-3"
                             data-oid=".:enlg1"
                           >
                             <div
-                              className="inline-flex items-center gap-3 px-6 py-2 rounded-[1.5rem] bg-gradient-to-br from-blue-600 to-indigo-700 shadow-xl shadow-blue-500/30"
+                              className="inline-flex items-center gap-3 px-5 py-2 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 shadow-lg shadow-blue-500/25"
                               data-oid="5q-d537"
                             >
-                              <span className="text-4xl font-black text-white" data-oid="p1_zjyy">
+                              <span
+                                className="text-3xl sm:text-4xl font-black text-white"
+                                data-oid="p1_zjyy"
+                              >
                                 {parseFloat(testResults.bandScore).toFixed(1)}
                               </span>
                               <span
@@ -1068,11 +1090,11 @@ export default function TestResultsModal({
                           </motion.div>
 
                           <div
-                            className="text-center mb-6 px-4 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300"
+                            className="text-center px-2 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300"
                             data-oid="_kx3xye"
                           >
                             <p
-                              className="text-base font-bold text-slate-600 dark:text-slate-300 max-w-lg mx-auto leading-relaxed"
+                              className="text-sm font-bold text-slate-600 dark:text-slate-300 max-w-xl mx-auto leading-relaxed"
                               data-oid="n0fik82"
                             >
                               {getAssessmentMessage(parseFloat(testResults.bandScore))}
@@ -1082,11 +1104,11 @@ export default function TestResultsModal({
 
                         {/* Quick Stats Grid */}
                         <div
-                          className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full max-w-4xl mx-auto mb-6"
+                          className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-5xl mx-auto"
                           data-oid="gct9ohv"
                         >
                           <div
-                            className="flex items-center gap-2.5 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm"
+                            className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm"
                             data-oid="99.9haa"
                           >
                             <div
@@ -1118,7 +1140,7 @@ export default function TestResultsModal({
                           </div>
 
                           <div
-                            className="flex items-center gap-2.5 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:border-rose-500/20"
+                            className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:border-rose-500/20"
                             data-oid="iutrm8f"
                           >
                             <div
@@ -1140,9 +1162,7 @@ export default function TestResultsModal({
                                     className="text-xl font-black text-rose-600 dark:text-rose-400 leading-none"
                                     data-oid="rs4q_qa"
                                   >
-                                    {testResults.totalQuestions -
-                                      testResults.correctAnswers -
-                                      (testResults.errorPatterns?.unansweredCount || 0)}
+                                    {wrongCount}
                                   </span>
                                   <span
                                     className="text-[9px] font-bold text-slate-400 tracking-tighter"
@@ -1161,7 +1181,7 @@ export default function TestResultsModal({
                                     className="text-xl font-black text-amber-600 dark:text-amber-400 leading-none"
                                     data-oid="l1nuz21"
                                   >
-                                    {testResults.errorPatterns?.unansweredCount || 0}
+                                    {unansweredCount}
                                   </span>
                                   <span
                                     className="text-[9px] font-bold text-slate-400 tracking-tighter"
@@ -1175,7 +1195,7 @@ export default function TestResultsModal({
                           </div>
 
                           <div
-                            className="flex items-center gap-2.5 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm"
+                            className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm"
                             data-oid="9e0ykm5"
                           >
                             <div
@@ -1207,7 +1227,7 @@ export default function TestResultsModal({
 
                         {/* Guidance & Milestones Grid */}
                         <div
-                          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                          className="grid grid-cols-1 md:grid-cols-2 gap-3"
                           data-oid="guidance-grid"
                         >
                           {/* What's Next Guidance */}
@@ -1282,7 +1302,7 @@ export default function TestResultsModal({
 
                         {/* Quick Answer Key - moved from Answers tab */}
                         <div
-                          className="p-5 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm"
+                          className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm"
                           data-oid="db9w373"
                         >
                           <h3
@@ -1291,12 +1311,12 @@ export default function TestResultsModal({
                           >
                             Quick Answer Key
                           </h3>
-                          <p className="text-xs text-slate-500 mb-6 font-medium" data-oid="ttj3-q5">
+                          <p className="text-xs text-slate-500 mb-4 font-medium" data-oid="ttj3-q5">
                             Click any question number to review details.
                           </p>
 
                           <div
-                            className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-3"
+                            className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2"
                             data-oid="3qwz.ci"
                           >
                             {Array.from({ length: testResults.totalQuestions }).map((_, i) => {
@@ -1359,7 +1379,7 @@ export default function TestResultsModal({
                                     }
                                   }}
                                   className={cn(
-                                    'w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all hover:scale-110 shadow-sm border-2',
+                                    'w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black transition-all hover:scale-105 shadow-sm border',
                                     status === 'correct'
                                       ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
                                       : status === 'wrong'
@@ -1377,7 +1397,7 @@ export default function TestResultsModal({
                           </div>
 
                           <div
-                            className="flex justify-center gap-6 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800"
+                            className="flex flex-wrap justify-center gap-4 mt-5 pt-4 border-t border-slate-100 dark:border-slate-800"
                             data-oid="udnsg_i"
                           >
                             <div className="flex items-center gap-2" data-oid="fn5rigp">
@@ -1455,11 +1475,7 @@ export default function TestResultsModal({
                               <AnswerJourneyCard
                                 answerTimestamps={testResults.answerTimestamps || null}
                                 totalQuestions={testResults.totalQuestions}
-                                totalTimeSeconds={
-                                  testResults.timeMetrics?.totalTimeSpent ||
-                                  testResults.durationMinutes * 60 ||
-                                  3600
-                                }
+                                totalTimeSeconds={totalTimeSeconds}
                                 testType={testType}
                                 data-oid="e2e7xvj"
                               />
@@ -1638,11 +1654,7 @@ export default function TestResultsModal({
                                     testResults.timePerQuestionSeconds || null
                                   }
                                   correctAnswersMap={testResults.correctAnswersMap || null}
-                                  totalTimeSeconds={
-                                    testResults.timeMetrics?.totalTimeSpent ||
-                                    testResults.durationMinutes * 60 ||
-                                    3600
-                                  }
+                                  totalTimeSeconds={totalTimeSeconds}
                                   testType={testType}
                                   data-oid="-xlq3d7"
                                 />

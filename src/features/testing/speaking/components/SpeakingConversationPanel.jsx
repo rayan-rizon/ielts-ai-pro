@@ -18,7 +18,7 @@ export default function SpeakingConversationPanel({
   testStarted,
   isPartComplete,
   moveToNextPart,
-  conversationEndRef,
+  conversationContainerRef,
   isPart2Prep,
   cueCardTopic,
   prepTimeLeft,
@@ -62,7 +62,10 @@ export default function SpeakingConversationPanel({
       </CardHeader>
 
       <CardContent className="p-0 bg-dot-slate-200/40 dark:bg-dot-white/5">
-        <div className="p-3 md:p-5 min-h-[150px] max-h-[500px] overflow-y-auto space-y-4 custom-scrollbar scroll-smooth">
+        <div
+          ref={conversationContainerRef}
+          className="p-3 md:p-4 min-h-[150px] max-h-[380px] overflow-y-auto space-y-4 custom-scrollbar scroll-smooth"
+        >
           {!testStarted ? (
             <InitialWelcomeScreen partNumber={currentPartNumber} title={currentPart?.title} />
           ) : (
@@ -87,11 +90,10 @@ export default function SpeakingConversationPanel({
               />
             </div>
           )}
-          <div ref={conversationEndRef} />
         </div>
 
         {!isPartComplete && (
-          <div className="bg-muted/10 border-t border-border/50 p-2 md:p-3 isolate transform-gpu">
+          <div className="bg-muted/10 border-t border-border/50 p-2 md:p-2.5 isolate transform-gpu">
             <div className="flex flex-col items-center gap-4">
               <RecordingControls
                 testStarted={testStarted}

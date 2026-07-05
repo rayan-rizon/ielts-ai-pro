@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { calculateScoreForecast } from '@/features/analytics/utils';
+import { calculateErrorPatterns } from '@/services/testMetricsService';
 
 /**
  * Analytics Unit Tests
@@ -187,5 +189,32 @@ describe('Analytics - Time Analysis', () => {
 
     it('should identify test over time limit', () => {
         expect(isUnderTimeLimit(65, 60)).toBe(false);
+    });
+});
+
+describe('Analytics - Data Quality Guards', () => {
+    it('should include a real zero band score in score forecasts', () => {
+        const sessions = [
+            { score: 0, completed_at: '2026-01-01T00:00:00Z' },
+            { score: 3, completed_at: '2026-01-02T00:00:00Z' },
+            { score: 6, completed_at: '2026-01-03T00:00:00Z' },
+        ];
+
+        const forecast = calculateScoreForecast(sessions, 3, 7);
+
+        expect(forecast).toHaveLength(3);
+        expect(forecast[0]).toMatchObject({ date: 'Now', score: 3, isForecast: false });
+    });
+
+    it('should never return a negative unanswered count', () => {
+        const patterns = calculateErrorPatterns(
+            { answer_a: 'one', answer_b: 'two' },
+            { answer_a: 'three', answer_b: 'four' },
+            1,
+            {},
+            null
+        );
+
+        expect(patterns.unansweredCount).toBe(0);
     });
 });

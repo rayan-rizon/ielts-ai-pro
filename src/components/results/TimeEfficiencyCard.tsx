@@ -51,9 +51,25 @@ export function TimeEfficiencyCard({
   testType = 'reading',
 }: TimeEfficiencyCardProps) {
   // Determine pace status
-  const paceEfficiency = timeMetrics?.paceEfficiency || 1;
+  const hasTimingMetrics =
+    !!timeMetrics &&
+    Number.isFinite(timeMetrics.averageSecondsPerQuestion) &&
+    Number.isFinite(timeMetrics.totalTimeSpent) &&
+    timeMetrics.averageSecondsPerQuestion > 0 &&
+    timeMetrics.totalTimeSpent > 0;
+
+  const paceEfficiency = hasTimingMetrics ? timeMetrics.paceEfficiency : null;
 
   const getPaceStatus = () => {
+    if (paceEfficiency === null) {
+      return {
+        label: 'Timing unavailable',
+        color: 'text-slate-600 dark:text-slate-400',
+        bg: 'bg-slate-500/10',
+        barColor: 'bg-slate-400',
+      };
+    }
+
     if (paceEfficiency >= 0.85 && paceEfficiency <= 1.15) {
       return {
         label: 'Optimal',
@@ -87,7 +103,7 @@ export function TimeEfficiencyCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden"
+      className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden"
       data-oid="vyrhyuv"
     >
       {/* Background Glows */}
@@ -102,7 +118,10 @@ export function TimeEfficiencyCard({
       />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6" data-oid="b1n5_tw">
+      <div
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5"
+        data-oid="b1n5_tw"
+      >
         <div className="flex items-center gap-3" data-oid="3rp8a-l">
           <div
             className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500"
@@ -112,7 +131,7 @@ export function TimeEfficiencyCard({
           </div>
           <div data-oid="41rxz2:">
             <h3
-              className="text-lg font-black text-slate-900 dark:text-white leading-none"
+              className="text-base font-black text-slate-900 dark:text-white leading-none"
               data-oid="risxtqf"
             >
               Speed & Energy
@@ -127,18 +146,18 @@ export function TimeEfficiencyCard({
         </div>
         <div
           className={cn(
-            'px-3 py-1 rounded-full text-[10px] font-black tracking-widest',
+            'self-start sm:self-auto px-3 py-1 rounded-full text-[10px] font-black tracking-wider',
             paceStatus.bg,
             paceStatus.color
           )}
           data-oid="14jz_5g"
         >
-          {paceStatus.label} Speed
+          {paceEfficiency === null ? paceStatus.label : `${paceStatus.label} Speed`}
         </div>
       </div>
 
       {/* Main Stats */}
-      <div className="grid grid-cols-2 gap-3 mb-4" data-oid=".mz49.x">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" data-oid=".mz49.x">
         <div
           className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 shadow-sm hover:shadow-md transition-shadow"
           data-oid="m0113ib"
@@ -149,8 +168,11 @@ export function TimeEfficiencyCard({
           >
             Avg per Answer
           </span>
-          <div className="text-4xl font-black text-slate-900 dark:text-white" data-oid="ezkyax7">
-            {timeMetrics ? formatTime(timeMetrics.averageSecondsPerQuestion) : '--'}
+          <div
+            className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white"
+            data-oid="ezkyax7"
+          >
+            {hasTimingMetrics ? formatTime(timeMetrics.averageSecondsPerQuestion) : '--'}
           </div>
         </div>
 
@@ -166,7 +188,7 @@ export function TimeEfficiencyCard({
           </span>
           <div
             className={cn(
-              'text-4xl font-black',
+              'text-2xl sm:text-3xl font-black',
               fatigue > 20 ? 'text-rose-500' : fatigue > 10 ? 'text-amber-500' : 'text-emerald-500'
             )}
             data-oid="59qclh7"

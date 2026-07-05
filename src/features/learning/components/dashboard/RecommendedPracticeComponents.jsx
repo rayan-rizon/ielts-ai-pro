@@ -13,7 +13,7 @@ export function LoadingSkeleton({ compact }) {
         <div
           key={i}
           className={cn(
-            'w-full text-left bg-slate-50/50 dark:bg-white/[0.03] p-4 rounded-2xl border border-slate-200 dark:border-white/[0.08]',
+            'w-full text-left bg-white/70 dark:bg-slate-950/40 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/70',
             compact && 'p-3'
           )}
         >
@@ -33,7 +33,7 @@ export function EmptyPracticeState({ compact }) {
   return (
     <div
       className={cn(
-        'text-center space-y-3 bg-slate-50/50 dark:bg-white/[0.02] rounded-2xl border border-dashed border-slate-200 dark:border-white/5',
+        'text-center space-y-3 bg-slate-50/70 dark:bg-slate-950/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700',
         compact ? 'py-8' : 'py-10'
       )}
     >
@@ -55,21 +55,21 @@ export function PracticeItem({ item, compact, onClick }) {
       whileHover={{ x: 5 }}
       onClick={() => onClick(item)}
       className={cn(
-        'w-full text-left bg-slate-50/50 dark:bg-white/[0.03] p-4 rounded-2xl border border-slate-200 dark:border-white/[0.08] transition-all duration-200 group',
-        'hover:border-indigo-500/40 dark:hover:border-indigo-400/40 hover:bg-indigo-50/80 dark:hover:bg-indigo-500/20 hover:shadow-md hover:shadow-indigo-500/5 dark:hover:shadow-[0_0_15px_rgba(99,102,241,0.12)]',
-        compact && 'p-3'
+        'w-full text-left bg-white/70 dark:bg-slate-950/40 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 shadow-md dark:shadow-slate-950/20 transition-all duration-300 group',
+        'hover:scale-[1.01] hover:border-cyan-300 dark:hover:border-cyan-400/40 hover:bg-cyan-50/85 dark:hover:bg-cyan-500/15 hover:shadow-lg hover:shadow-cyan-500/10 dark:hover:shadow-[0_0_18px_rgba(6,182,212,0.18)]',
+        compact && 'p-3.5'
       )}
     >
-      <div className="flex justify-between items-start mb-1">
+      <div className="flex justify-between items-start mb-1.5">
         <h4
           className={cn(
-            'font-black tracking-tight text-slate-900 dark:text-white group-hover:text-indigo-700 dark:group-hover:text-indigo-200 transition-colors duration-200',
+            'font-black tracking-tight text-slate-900 dark:text-white group-hover:text-cyan-800 dark:group-hover:text-cyan-200 transition-colors duration-200',
             compact ? 'text-xs' : 'text-[11px]'
           )}
         >
           {formatTaskTitle(item.title)}
         </h4>
-        <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-200 transition-colors duration-200 shrink-0 mt-0.5" />
+        <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-cyan-200 transition-colors duration-200 shrink-0 mt-0.5" />
       </div>
       <p
         className={cn(
@@ -88,14 +88,14 @@ export function RecommendedPracticeLoading({ compact, className }) {
     <GlassCard
       className={cn(
         compact
-          ? 'p-4 sm:p-5 md:p-6 border-t-2 border-t-slate-300/60 dark:border-t-slate-700/70'
-          : 'p-4 sm:p-5 md:p-8 border-t-2 border-t-slate-300/60 dark:border-t-slate-700/70',
+          ? 'p-4 sm:p-5 border-t-2 border-t-cyan-400/40'
+          : 'p-4 sm:p-5 md:p-7 border-t-2 border-t-cyan-400/40',
         className
       )}
     >
       <div className={cn('flex items-center gap-3', compact ? 'mb-4' : 'mb-5')}>
-        <div className="w-9 h-9 rounded-2xl bg-slate-500/10 flex items-center justify-center">
-          <Sparkles className="w-5 h-5 text-slate-600/70 dark:text-slate-300/70" />
+        <div className="w-9 h-9 rounded-xl bg-cyan-500/10 dark:bg-cyan-400/10 flex items-center justify-center">
+          <Sparkles className="w-5 h-5 text-cyan-700/80 dark:text-cyan-300/80" />
         </div>
         <div className="space-y-1.5">
           <Skeleton className="h-5 w-44 rounded-full" />

@@ -133,7 +133,10 @@ export function calculateScoreForecast(sessions, currentScore, targetScore) {
 
   // Get scores with timestamps, sorted by date (oldest first for regression)
   const dataPoints = sessions
-    .filter((s) => s.score && (s.completed_at || s.created_at))
+    .filter((s) => {
+      const score = Number(s.score);
+      return Number.isFinite(score) && score >= 0 && score <= 9 && (s.completed_at || s.created_at);
+    })
     .map((s) => ({
       time: new Date(s.completed_at || s.created_at).getTime(),
       score: Number(s.score),

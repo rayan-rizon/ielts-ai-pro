@@ -198,7 +198,8 @@ export function ActionableInsightsCard({
       testType === 'listening'
         ? LISTENING_TIPS[passageIndex] || LISTENING_TIPS[4]
         : PASSAGE_TIPS[passageIndex] || PASSAGE_TIPS[3];
-    return tips[Math.floor(Math.random() * tips.length)];
+    const stableTipIndex = Math.max(0, (passageIndex - 1) % tips.length);
+    return tips[stableTipIndex];
   };
 
   const hasInsights =
@@ -214,7 +215,7 @@ export function ActionableInsightsCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden"
+      className="w-full p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden"
       data-oid="btmsf2g"
     >
       {/* Background accent */}
@@ -235,10 +236,7 @@ export function ActionableInsightsCard({
           <h3 className="text-sm font-bold text-slate-900 dark:text-white" data-oid=".9fy295">
             Actionable Insights
           </h3>
-          <p
-            className="text-[10px] font-medium text-slate-400 tracking-wider"
-            data-oid="fw5jxo2"
-          >
+          <p className="text-[10px] font-medium text-slate-400 tracking-wider" data-oid="fw5jxo2">
             Premium Analysis
           </p>
         </div>
@@ -339,7 +337,7 @@ export function ActionableInsightsCard({
                     className="text-[9px] font-bold text-amber-400 uppercase"
                     data-oid="z4z-3cu"
                   >
-                    Wasted
+                    Misses
                   </span>
                 </div>
               </div>
@@ -411,7 +409,7 @@ export function ActionableInsightsCard({
                       className="text-[10px] text-amber-800 dark:text-amber-200 font-medium text-left leading-tight"
                       data-oid="y046:oo"
                     >
-                      Tip: If stuck for &gt;90s, mark &amp; move on. You can't buy back time!
+                      Tip: if a question takes over 90s, mark it and return after easier wins.
                     </p>
                   </div>
                 )}
@@ -479,7 +477,7 @@ export function ActionableInsightsCard({
                       className="text-[10px] text-indigo-700 dark:text-indigo-300 font-medium"
                       data-oid="z5u3hdt"
                     >
-                      ⚡ A few questions are eating most of your time. Practice recognizing when to
+                      A few questions are taking most of your time. Practice recognizing when to
                       skip and return.
                     </p>
                   </div>

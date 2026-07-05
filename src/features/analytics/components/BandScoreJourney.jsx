@@ -58,7 +58,7 @@ function MarkerNode({ isPast, isCurrent, isFinalGoal, isFuture, band }) {
     <motion.div
       whileHover={{ scale: 1.15, rotate: 5 }}
       className={cn(
-        'relative z-20 w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-xl border-2',
+        'relative z-20 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-500 shadow-lg border-2',
         isPast &&
           'bg-emerald-500 border-white dark:border-slate-900 text-white shadow-emerald-500/20',
         isCurrent &&
@@ -91,10 +91,10 @@ function MarkerNode({ isPast, isCurrent, isFinalGoal, isFuture, band }) {
 
 function MarkerCaption({ isPast, isCurrent, isFinalGoal, isFuture, band }) {
   return (
-    <div className="mt-2 text-center" data-oid="_gflt84">
+    <div className="mt-1.5 text-center" data-oid="_gflt84">
       <p
         className={cn(
-          'text-[11px] font-black tracking-[0.15em] transition-colors',
+          'text-[10px] font-black tracking-[0.12em] transition-colors',
           isPast && 'text-emerald-500 opacity-90',
           isCurrent && 'text-indigo-600 dark:text-indigo-400',
           isFinalGoal && 'text-rose-500',
@@ -149,7 +149,7 @@ function MilestoneMarker({ band, achieved, current, isTarget }) {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: band * 0.05 + 0.5 }}
-            className="relative flex flex-col items-center group/marker min-w-[70px] cursor-default"
+            className="relative flex flex-col items-center group/marker min-w-[54px] cursor-default"
             data-oid="jx9f0.s"
           >
             <MarkerTopLabel isCurrent={current} isFinalGoal={isTarget} />
@@ -183,18 +183,18 @@ function MilestoneMarker({ band, achieved, current, isTarget }) {
 
 function JourneyHeader({ targetBand, estimatedDays }) {
   return (
-    <CardHeader className="p-5 pb-2 relative z-10" data-oid="jcj5vnw">
+    <CardHeader className="p-4 pb-1 relative z-10" data-oid="jcj5vnw">
       <div className="flex items-center justify-between gap-4" data-oid="-zy2wbx">
         <div className="flex items-center gap-4" data-oid="e_y5zp5">
           <div
-            className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-primary flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0 transform group-hover:rotate-6 transition-transform duration-500"
+            className="w-10 h-10 rounded-2xl bg-gradient-to-br from-sky-500 to-primary flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0 transform group-hover:rotate-6 transition-transform duration-500"
             data-oid="r3_d1rn"
           >
-            <Compass className="w-6 h-6 text-white" data-oid="q1ru8ig" />
+            <Compass className="w-5 h-5 text-white" data-oid="q1ru8ig" />
           </div>
           <div className="space-y-1.5" data-oid="58qle6d">
             <CardTitle
-              className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none"
+              className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none"
               data-oid="1s0z7hy"
             >
               Your Goal Path
@@ -205,7 +205,7 @@ function JourneyHeader({ targetBand, estimatedDays }) {
                 data-oid="-7hzl8k"
               />
               <p
-                className="text-[11px] font-black text-slate-400 tracking-[0.2em]"
+                className="text-[10px] font-black text-slate-400 tracking-[0.16em]"
                 data-oid=":3qmtfi"
               >
                 Personalized for You
@@ -219,7 +219,7 @@ function JourneyHeader({ targetBand, estimatedDays }) {
             <span className="text-[10px] font-black text-slate-400 tracking-widest">
               Target Score
             </span>
-            <span className="text-lg font-black text-rose-500 leading-tight">
+            <span className="text-base font-black text-rose-500 leading-tight">
               Band {targetBand}
             </span>
           </div>
@@ -230,7 +230,7 @@ function JourneyHeader({ targetBand, estimatedDays }) {
             </span>
             <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
               <Calendar className="w-4 h-4" />
-              <span className="text-lg font-black leading-tight">
+              <span className="text-base font-black leading-tight">
                 {estimatedDays ? `${estimatedDays} Days` : 'TBD'}
               </span>
             </div>
@@ -243,13 +243,13 @@ function JourneyHeader({ targetBand, estimatedDays }) {
 
 function JourneyRoadmap({ progressPercentage, milestones }) {
   return (
-    <div className="relative w-full pt-12 pb-6 px-4 mb-1" data-oid="-_8scpc">
+    <div className="relative w-full pt-10 pb-3 px-2 sm:px-4 mb-1" data-oid="-_8scpc">
       <div
-        className="absolute top-[2.25rem] left-8 right-8 h-2 bg-slate-100 dark:bg-white/5 rounded-full"
+        className="absolute top-8 left-8 right-8 h-1.5 bg-slate-100 dark:bg-white/5 rounded-full"
         data-oid="9xqxgwm"
       />
       <div
-        className="absolute top-[2.25rem] left-8 right-8 h-2 overflow-hidden rounded-full"
+        className="absolute top-8 left-8 right-8 h-1.5 overflow-hidden rounded-full"
         data-oid="0mxp45o"
       >
         <motion.div
@@ -272,15 +272,15 @@ function JourneyRoadmap({ progressPercentage, milestones }) {
 function JourneyGauge({ progressPercentage }) {
   return (
     <div
-      className="md:col-span-2 flex flex-col items-center justify-center relative select-none group/gauge"
+      className="flex flex-col items-center justify-center relative select-none group/gauge"
       data-oid="radial-gauge-container"
     >
       <div
-        className="relative w-44 h-44 flex items-center justify-center transform group-hover/gauge:scale-105 transition-transform duration-500"
+        className="relative w-28 h-28 flex items-center justify-center transform group-hover/gauge:scale-105 transition-transform duration-500"
         data-oid="gauge-wrapper"
       >
         <svg
-          className="w-44 h-44 transform -rotate-90 overflow-visible filter drop-shadow-[0_4px_16px_rgba(99,102,241,0.15)]"
+          className="w-28 h-28 transform -rotate-90 overflow-visible filter drop-shadow-[0_4px_16px_rgba(99,102,241,0.15)]"
           viewBox="0 0 100 100"
           data-oid="gauge-svg"
         >
@@ -341,13 +341,13 @@ function JourneyGauge({ progressPercentage }) {
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, ease: 'easeOut', delay: 0.6 }}
-            className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-br from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 tracking-tight leading-none drop-shadow-sm"
+            className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-br from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 tracking-tight leading-none drop-shadow-sm"
             data-oid="gauge-percentage"
           >
             {progressPercentage}%
           </motion.span>
           <span
-            className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mt-1.5"
+            className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.16em] mt-1"
             data-oid="gauge-sublabel"
           >
             Reached
@@ -361,7 +361,7 @@ function JourneyGauge({ progressPercentage }) {
 function JourneyChecklist({ recommendations }) {
   return (
     <div
-      className="md:col-span-3 flex flex-col justify-center space-y-3"
+      className="min-w-0 flex flex-col justify-center space-y-2.5"
       data-oid="pathway-focus-container"
     >
       <div className="space-y-0.5" data-oid="pathway-header">
@@ -388,7 +388,7 @@ function JourneyChecklist({ recommendations }) {
             initial={{ opacity: 0, x: 15 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 + idx * 0.1, duration: 0.4 }}
-            className="flex items-start gap-3 p-3 rounded-xl bg-white/60 dark:bg-slate-900/50 backdrop-blur-sm border border-slate-200/60 dark:border-white/5 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md hover:border-indigo-500/30 group/step cursor-default"
+            className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/60 dark:bg-slate-900/50 backdrop-blur-sm border border-slate-200/60 dark:border-white/5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-indigo-500/30 group/step cursor-default"
             data-oid={`pathway-step-${idx}`}
           >
             <div
@@ -398,7 +398,7 @@ function JourneyChecklist({ recommendations }) {
               <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 stroke-[3px]" />
             </div>
             <p
-              className="text-xs font-semibold text-slate-700 dark:text-slate-300 leading-relaxed group-hover/step:text-slate-900 dark:group-hover:text-white transition-colors pt-0.5"
+              className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 leading-relaxed group-hover/step:text-slate-900 dark:group-hover:text-white transition-colors pt-0.5"
               data-oid={`pathway-step-text-${idx}`}
             >
               {rec}
@@ -525,7 +525,7 @@ export default function BandScoreJourney({
   return (
     <motion.div variants={ITEM_VARIANTS} className="h-full" data-oid=".q.oeea">
       <Card
-        className="rounded-3xl border border-slate-200/60 dark:border-white/10 bg-gradient-to-b from-white to-slate-50/50 dark:from-slate-950 dark:to-slate-900/80 shadow-xl min-h-[350px] h-full flex flex-col relative group transition-all duration-500 hover:shadow-2xl hover:border-indigo-500/30 overflow-hidden"
+        className="rounded-2xl border border-slate-200/60 dark:border-white/10 bg-gradient-to-b from-white to-slate-50/50 dark:from-slate-950 dark:to-slate-900/80 shadow-lg min-h-[280px] h-full flex flex-col relative group transition-all duration-500 hover:shadow-xl hover:border-indigo-500/30 overflow-hidden"
         data-oid="c:6z8yh"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-rose-500/5 opacity-50 dark:opacity-20 pointer-events-none" />
@@ -553,7 +553,7 @@ export default function BandScoreJourney({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: 'easeOut', delay: 0.3 }}
-              className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-8 py-6 my-2 border-t border-b border-slate-100/80 dark:border-white/5 relative items-center justify-between"
+              className="flex-1 grid grid-cols-1 md:grid-cols-[130px_minmax(0,1fr)] gap-5 py-3 my-1 border-t border-b border-slate-100/80 dark:border-white/5 relative items-center justify-between"
               data-oid="trajectory-visualizer"
             >
               <JourneyGauge progressPercentage={journeyData.progressPercentage} />

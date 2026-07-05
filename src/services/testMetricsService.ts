@@ -266,7 +266,10 @@ export function calculateErrorPatterns(
             answeredQuestionNumbers.add(questionNumber);
         }
     });
-    unansweredCount = totalQuestions - answeredQuestionNumbers.size;
+    unansweredCount = Math.max(
+        0,
+        Math.min(totalQuestions, totalQuestions - answeredQuestionNumbers.size)
+    );
 
     // Find trouble types (lowest accuracy)
     const troubleTypes = Object.entries(typeStats)

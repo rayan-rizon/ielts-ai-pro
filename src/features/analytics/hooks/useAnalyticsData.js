@@ -5,6 +5,53 @@ import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
 import { formatBand, calculateImprovement, calculateScoreForecast } from '../utils';
 
+const MODULES = ['reading', 'writing', 'listening', 'speaking'];
+const MAX_REASONABLE_TEST_SECONDS = 4 * 60 * 60;
+
+export function isValidBandScore(score) {
+  const value = Number(score);
+  return Number.isFinite(value) && value >= 0 && value <= 9;
+}
+
+function toValidBandScore(score) {
+  return isValidBandScore(score) ? Number(score) : null;
+}
+
+function nonNegativeCount(value) {
+  const count = Number(value);
+  return Number.isFinite(count) && count > 0 ? count : 0;
+}
+
+function getKnownDurationSeconds(session) {
+  const storedMinutes = Number(session?.duration_minutes);
+  if (
+    Number.isFinite(storedMinutes) &&
+    storedMinutes > 0 &&
+    storedMinutes * 60 <= MAX_REASONABLE_TEST_SECONDS
+  ) {
+    return storedMinutes * 60;
+  }
+
+  const enhancedSeconds = Number(session?.content_data?.timeMetrics?.totalTimeSpent);
+  if (
+    Number.isFinite(enhancedSeconds) &&
+    enhancedSeconds > 0 &&
+    enhancedSeconds <= MAX_REASONABLE_TEST_SECONDS
+  ) {
+    return enhancedSeconds;
+  }
+
+  if (session?.created_at && session?.completed_at) {
+    const diff =
+      (new Date(session.completed_at).getTime() - new Date(session.created_at).getTime()) / 1000;
+    if (Number.isFinite(diff) && diff > 0 && diff <= MAX_REASONABLE_TEST_SECONDS) {
+      return diff;
+    }
+  }
+
+  return null;
+}
+
 export default function useAnalyticsData(selectedTimeframe) {
   const { user: authUser, loading: authLoading } = useAuth();
 
@@ -80,25 +127,19 @@ export default function useAnalyticsData(selectedTimeframe) {
   // 3. Stats Aggregation (Study Hours, Score, etc)
   const stats = useMemo(() => {
     const totalTests = filteredSessions.length;
+    const scoredSessions = filteredSessions.filter((s) => isValidBandScore(s.score));
 
     // Avg Score
     const avgScoreNum =
-      totalTests > 0
-        ? filteredSessions.reduce((sum, s) => sum + (Number(s.score) || 0), 0) / totalTests
+      scoredSessions.length > 0
+        ? scoredSessions.reduce((sum, s) => sum + Number(s.score), 0) / scoredSessions.length
         : 0;
 
     // Study Hours
     const calculateHours = (sessions) => {
       const totalSeconds = (sessions || []).reduce((sum, s) => {
-        let duration = (Number(s.duration_minutes) || 0) * 60;
-        if (duration === 0 && s.created_at && s.completed_at) {
-          const start = new Date(s.created_at);
-          const end = new Date(s.completed_at);
-          const diff = (end - start) / 1000;
-          if (diff > 0 && diff < 14400) duration = diff;
-        }
-        if (duration === 0) duration = 1200;
-        return sum + duration;
+        const duration = getKnownDurationSeconds(s);
+        return duration === null ? sum : sum + duration;
       }, 0);
       return Math.round(totalSeconds / 3600);
     };
@@ -115,18 +156,14 @@ export default function useAnalyticsData(selectedTimeframe) {
           : 0;
 
     // Improvement - using weighted moving average from utils
-    const improvement = calculateImprovement(filteredSessions);
+    const improvement = calculateImprovement(scoredSessions);
 
     // Predicted Overall IELTS Band — real formula: average latest score from each module → nearest 0.5
     // IELTS Official: Overall = (R + L + W + S) / 4, rounded to nearest 0.5
-    const moduleLatestScores = ['reading', 'writing', 'listening', 'speaking']
-      .map((type) => {
-        const typeSessions = filteredSessions.filter(
-          (s) => (s.test_type || '').toLowerCase() === type
-        );
-        return typeSessions.length > 0 ? Number(typeSessions[0].score) || 0 : null;
-      })
-      .filter((s) => s !== null && s > 0);
+    const moduleLatestScores = MODULES.map((type) => {
+      const typeSessions = scoredSessions.filter((s) => (s.test_type || '').toLowerCase() === type);
+      return typeSessions.length > 0 ? Number(typeSessions[0].score) : null;
+    }).filter((s) => s !== null);
 
     const predictedOverallBand =
       moduleLatestScores.length > 0
@@ -139,6 +176,7 @@ export default function useAnalyticsData(selectedTimeframe) {
       avgScore: formatBand(avgScoreNum),
       targetScore: authUser?.target_band_score || 7.0,
       totalTests,
+      scoredTests: scoredSessions.length,
       studyHours,
       studyHoursTrend,
       vocabCount,
@@ -150,22 +188,23 @@ export default function useAnalyticsData(selectedTimeframe) {
 
   // 4. Module Stats (Radar Data, Specifics)
   const moduleStats = useMemo(() => {
-    const modules = ['reading', 'writing', 'listening', 'speaking'];
-    return modules.map((type) => {
-      const sessions = filteredSessions.filter((s) => (s.test_type || '').toLowerCase() === type);
+    return MODULES.map((type) => {
+      const sessions = filteredSessions.filter(
+        (s) => (s.test_type || '').toLowerCase() === type && isValidBandScore(s.score)
+      );
       const currentAvg =
         sessions.length > 0
-          ? sessions.reduce((sum, s) => sum + (Number(s.score) || 0), 0) / sessions.length
+          ? sessions.reduce((sum, s) => sum + Number(s.score), 0) / sessions.length
           : 0;
 
-      const recentScores = sessions.slice(0, 5).map((s) => Number(s.score) || 0);
+      const recentScores = sessions.slice(0, 5).map((s) => Number(s.score));
 
       return {
         type,
         avg: currentAvg,
         count: sessions.length,
-        lastScore: sessions[0]?.score || 0,
-        highest: sessions.length > 0 ? Math.max(...sessions.map((s) => Number(s.score) || 0)) : 0,
+        lastScore: sessions[0]?.score ?? 0,
+        highest: sessions.length > 0 ? Math.max(...sessions.map((s) => Number(s.score))) : 0,
         sessions,
         recentScores,
       };
@@ -234,19 +273,27 @@ export default function useAnalyticsData(selectedTimeframe) {
       }
 
       // Efficiency
-      if (type && s.duration_minutes > 0) {
-        moduleEfficiency[type] += s.duration_minutes;
+      const durationSeconds = getKnownDurationSeconds(s);
+      if (type && moduleEfficiency[type] !== undefined && durationSeconds !== null) {
+        moduleEfficiency[type] += durationSeconds / 60;
         moduleEfficiencyCount[type] += 1;
       }
 
       // Enhanced Metrics
       if (content.timeMetrics) {
-        const rushed = content.timeMetrics.rushedQuestions || 0;
-        const overanalyzed = content.timeMetrics.overanalyzedQuestions || 0;
+        const rushed = nonNegativeCount(content.timeMetrics.rushedQuestions);
+        const overanalyzed = nonNegativeCount(content.timeMetrics.overanalyzedQuestions);
+        const trackedSeconds = Number(content.timeMetrics.totalTimeSpent);
 
         enhancedMetricsAgg.totalRushedQuestions += rushed;
         enhancedMetricsAgg.totalOveranalyzedQuestions += overanalyzed;
-        enhancedMetricsAgg.totalTimeSpent += content.timeMetrics.totalTimeSpent || 0;
+        if (
+          Number.isFinite(trackedSeconds) &&
+          trackedSeconds > 0 &&
+          trackedSeconds <= MAX_REASONABLE_TEST_SECONDS
+        ) {
+          enhancedMetricsAgg.totalTimeSpent += trackedSeconds;
+        }
         enhancedMetricsAgg.sessionCount += 1;
 
         if (rushed > 0)
@@ -259,8 +306,8 @@ export default function useAnalyticsData(selectedTimeframe) {
       }
 
       if (content.errorPatterns) {
-        const nearMisses = content.errorPatterns.nearMissCount || 0;
-        const unanswered = content.errorPatterns.unansweredCount || 0;
+        const nearMisses = nonNegativeCount(content.errorPatterns.nearMissCount);
+        const unanswered = nonNegativeCount(content.errorPatterns.unansweredCount);
 
         enhancedMetricsAgg.totalNearMisses += nearMisses;
         enhancedMetricsAgg.totalUnanswered += unanswered;
@@ -318,9 +365,8 @@ export default function useAnalyticsData(selectedTimeframe) {
       }))
       .sort((a, b) => a.section.localeCompare(b.section));
 
-    const modules = ['reading', 'writing', 'listening', 'speaking'];
     const efficiency = {};
-    modules.forEach((m) => {
+    MODULES.forEach((m) => {
       efficiency[m] =
         moduleEfficiencyCount[m] > 0
           ? Math.round(moduleEfficiency[m] / moduleEfficiencyCount[m])
@@ -332,14 +378,14 @@ export default function useAnalyticsData(selectedTimeframe) {
         id: s.id,
         date: s.completed_at || s.created_at,
         type: s.test_type,
-        rushed: s.content_data?.timeMetrics?.rushedQuestions || 0,
-        overanalyzed: s.content_data?.timeMetrics?.overanalyzedQuestions || 0,
+        rushed: nonNegativeCount(s.content_data?.timeMetrics?.rushedQuestions),
+        overanalyzed: nonNegativeCount(s.content_data?.timeMetrics?.overanalyzedQuestions),
         accuracy: Math.round(
           ((s.content_data?.correct ?? s.content_data?.correctAnswers ?? 0) /
             (s.content_data?.total ?? s.content_data?.totalQuestions ?? 1)) *
             100
         ),
-        score: Number(s.score) || 0,
+        score: toValidBandScore(s.score) ?? 0,
       }))
       .filter((d) => d.rushed > 0 || d.overanalyzed > 0);
 
@@ -578,7 +624,7 @@ export default function useAnalyticsData(selectedTimeframe) {
     const { errorAuditData, topTroubleTypes } = enhancedMetrics;
 
     // Pattern 1: Rushed vs Accuracy
-    const rushedCount = errorAuditData.find((d) => d.name === 'Rushed')?.value || 0;
+    const rushedCount = errorAuditData.find((d) => d.name === 'Rushing')?.value || 0;
     if (topTroubleTypes.includes('Vocabulary') && rushedCount > 5) {
       correlations.push({
         id: 'rushed-vocab',
@@ -589,7 +635,8 @@ export default function useAnalyticsData(selectedTimeframe) {
     }
 
     // Pattern 2: Overanalysis vs Time
-    const overanalyzedCount = errorAuditData.find((d) => d.name === 'Overanalyzed')?.value || 0;
+    const overanalyzedCount =
+      errorAuditData.find((d) => d.name === 'Thinking Too Long')?.value || 0;
     if (overanalyzedCount > 3) {
       correlations.push({
         id: 'overanalysis',
@@ -625,8 +672,10 @@ export default function useAnalyticsData(selectedTimeframe) {
 
   // 7. Chart Data
   const chartData = useMemo(() => {
+    const scoredSessions = filteredSessions.filter((s) => isValidBandScore(s.score));
+
     // Aggregated history (group by date to avoid congestion)
-    const aggregatedHistory = filteredSessions
+    const aggregatedHistory = scoredSessions
       .slice()
       .reverse()
       .reduce((acc, s) => {
@@ -640,13 +689,13 @@ export default function useAnalyticsData(selectedTimeframe) {
           // Correct cumulative average: (prev_avg * n + new_score) / (n + 1)
           const newCount = existing.count + 1;
           existing.score = Number(
-            ((existing.score * existing.count + (Number(s.score) || 0)) / newCount).toFixed(1)
+            ((existing.score * existing.count + Number(s.score)) / newCount).toFixed(1)
           );
           existing.count = newCount;
         } else {
           acc.push({
             date: dateStr,
-            score: Number(s.score) || 0,
+            score: Number(s.score),
             type: s.test_type,
             count: 1,
           });
@@ -661,9 +710,8 @@ export default function useAnalyticsData(selectedTimeframe) {
       .filter((d) => d.value > 0);
 
     const moduleHistory = {};
-    const modules = ['reading', 'writing', 'listening', 'speaking'];
-    modules.forEach((mType) => {
-      moduleHistory[mType] = filteredSessions
+    MODULES.forEach((mType) => {
+      moduleHistory[mType] = scoredSessions
         .filter((s) => s.test_type === mType)
         .slice()
         .reverse()
@@ -675,11 +723,16 @@ export default function useAnalyticsData(selectedTimeframe) {
 
           const existing = acc.find((item) => item.date === dateStr);
           if (existing) {
-            existing.score = Number(((existing.score + (Number(s.score) || 0)) / 2).toFixed(1));
+            const newCount = existing.count + 1;
+            existing.score = Number(
+              ((existing.score * existing.count + Number(s.score)) / newCount).toFixed(1)
+            );
+            existing.count = newCount;
           } else {
             acc.push({
               date: dateStr,
-              score: Number(s.score) || 0,
+              score: Number(s.score),
+              count: 1,
             });
           }
           return acc;
@@ -687,7 +740,7 @@ export default function useAnalyticsData(selectedTimeframe) {
     });
 
     // Forecast - using linear regression from utils
-    const forecast = calculateScoreForecast(filteredSessions, stats.avgScore, stats.targetScore);
+    const forecast = calculateScoreForecast(scoredSessions, stats.avgScore, stats.targetScore);
 
     return { history, pie: distribution, moduleHistory, forecast };
   }, [filteredSessions, moduleStats, stats.avgScore, stats.targetScore]);

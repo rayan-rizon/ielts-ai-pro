@@ -212,7 +212,9 @@ export default function Analytics() {
   }
 
   const progressToTarget =
-    stats?.targetScore > 0 ? clamp01(Number(stats.avgScore) / Number(stats.targetScore)) * 100 : 0;
+    stats?.targetScore > 0 && (stats?.scoredTests || 0) > 0
+      ? clamp01(Number(stats.avgScore) / Number(stats.targetScore)) * 100
+      : 0;
 
   // Bug fix: derive studyPace from absolute hours studied, not the trend percentage
   const studyPace =

@@ -314,7 +314,7 @@ const AILearningPathCard = React.memo(
                           src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`}
                           alt="avatar"
                           loading="lazy"
-                          fetchPriority="low"
+                          fetchpriority="low"
                           data-oid="pyh6m_l"
                         />
                       </div>

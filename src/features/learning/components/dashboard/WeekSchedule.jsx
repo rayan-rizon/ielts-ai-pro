@@ -52,7 +52,7 @@ const WeekSchedule = ({
 
   if (loading) {
     return (
-      <GlassCard className={cn('p-3 sm:p-4 md:p-6 min-h-[420px]', className)}>
+      <GlassCard className={cn('p-3 sm:p-4 md:p-5', className)}>
         <div className="space-y-3 sm:space-y-4 mb-5">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -94,11 +94,11 @@ const WeekSchedule = ({
 
   return (
     <GlassCard
-      className={cn('p-3 sm:p-4 md:p-6 min-h-[440px] sm:min-h-[450px]', className)}
+      className={cn('p-3 sm:p-4 md:p-5 border-t-2 border-t-sky-400/40', className)}
       data-oid="k:z60o0"
     >
       <div
-        className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6"
+        className="flex flex-col md:flex-row justify-between md:items-center gap-3 mb-4"
         data-oid="-6_4l0:"
       >
         <div data-oid="rl7b860">
@@ -106,7 +106,7 @@ const WeekSchedule = ({
             className="text-xl sm:text-2xl font-black tracking-tight dark:text-white flex items-center gap-2"
             data-oid="izdy.z."
           >
-            <Calendar className="w-6 h-6 text-primary" data-oid="ng3_32y" />
+            <Calendar className="w-5 h-5 text-sky-600 dark:text-sky-400" data-oid="ng3_32y" />
             This Week’s Schedule
           </h2>
           <p
@@ -121,14 +121,14 @@ const WeekSchedule = ({
           <Button
             variant="ghost"
             size="sm"
-            className="rounded-xl h-9 px-3 text-[11px] font-black uppercase tracking-wider border border-zinc-200 dark:border-zinc-700/80 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-800/50"
+            className="rounded-xl h-8 px-3 text-[10px] font-black uppercase tracking-[0.12em] border border-slate-200 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:text-sky-700 dark:hover:text-sky-200 hover:bg-sky-50 dark:hover:bg-sky-500/10"
             onClick={() => setSelectedDayIndex(todayIndex)}
           >
             Today
           </Button>
 
           <div
-            className="flex items-center overflow-x-auto no-scrollbar mask-gradient-x p-2 bg-zinc-100/50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-200 dark:border-zinc-700/50 backdrop-blur-md max-w-full"
+            className="flex items-center overflow-x-auto no-scrollbar mask-gradient-x p-1.5 bg-white/70 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-slate-700/70 backdrop-blur-md max-w-full"
             role="tablist"
             aria-label="Select day for weekly schedule"
             data-oid="8_x9:bt"
@@ -143,7 +143,7 @@ const WeekSchedule = ({
                   aria-current={isToday ? 'date' : undefined}
                   onClick={() => setSelectedDayIndex(i)}
                   className={cn(
-                    'relative px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all z-10 shrink-0',
+                    'relative px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] transition-all z-10 shrink-0',
                     selectedDayIndex === i
                       ? 'text-slate-900 dark:text-white'
                       : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
@@ -175,7 +175,7 @@ const WeekSchedule = ({
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="space-y-3"
+        className="space-y-2.5"
         data-oid="jilo2e:"
       >
         {currentTasks.length > 0 ? (
@@ -214,10 +214,10 @@ const WeekSchedule = ({
                 variants={itemVariants}
                 onClick={() => onToggleTask(dayNames[selectedDayIndex], idx)}
                 className={cn(
-                  'group relative overflow-hidden flex items-center gap-4 p-3.5 rounded-2xl border-2 transition-all cursor-pointer',
+                  'group relative overflow-hidden flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer',
                   isDone
                     ? 'bg-emerald-500/5 border-emerald-500/20'
-                    : 'bg-white dark:bg-white/[0.03] border-slate-100 dark:border-white/[0.08] hover:bg-slate-50/80 dark:hover:bg-white/[0.06] hover:border-primary/30 dark:hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 shadow-sm'
+                    : 'bg-white/80 dark:bg-slate-950/50 border-slate-200/80 dark:border-slate-700/75 hover:bg-sky-50/70 dark:hover:bg-sky-500/10 hover:border-sky-300 dark:hover:border-sky-500/40 hover:shadow-lg hover:shadow-sky-500/5 shadow-sm'
                 )}
                 data-oid="ermp4:s"
               >
@@ -225,7 +225,7 @@ const WeekSchedule = ({
 
                 <div
                   className={cn(
-                    'w-9 h-9 rounded-lg border-2 flex items-center justify-center transition-all shrink-0',
+                    'w-8 h-8 rounded-lg border flex items-center justify-center transition-all shrink-0',
                     isDone
                       ? 'bg-emerald-500 border-emerald-500 text-white'
                       : 'border-zinc-200 dark:border-zinc-700 group-hover:border-primary'
@@ -244,7 +244,7 @@ const WeekSchedule = ({
 
                 <div
                   className={cn(
-                    'w-12 h-12 rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden',
+                    'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden',
                     config.bg
                   )}
                   data-oid="q489cju"
@@ -254,13 +254,13 @@ const WeekSchedule = ({
                     data-oid="r08w6et"
                   />
                   <config.icon
-                    className={cn('w-6 h-6 relative z-10', config.color)}
+                    className={cn('w-5 h-5 relative z-10', config.color)}
                     data-oid="fqj8j0m"
                   />
                 </div>
 
                 <div className="flex-1 min-w-0" data-oid="4evgrp8">
-                  <div className="flex items-center gap-3 mb-1" data-oid="5iu:rs8">
+                  <div className="flex flex-wrap items-center gap-2 mb-1" data-oid="5iu:rs8">
                     <ModuleBadge module={task.module} data-oid="mhr365i" />
                     <span
                       className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase flex items-center gap-1.5"
@@ -280,7 +280,7 @@ const WeekSchedule = ({
                   </div>
                   <h3
                     className={cn(
-                      'text-base font-black tracking-tight leading-tight',
+                      'text-base font-black tracking-tight leading-tight break-words [overflow-wrap:anywhere]',
                       isDone
                         ? 'text-slate-400 dark:text-slate-500 line-through opacity-60'
                         : 'text-slate-900 dark:text-white'
@@ -309,9 +309,9 @@ const WeekSchedule = ({
                     </div>
                   )}
                   {!!skillTargets?.length && !isDone && (
-                    <div className="flex flex-wrap items-center gap-2 mt-2" data-oid="ns8pwx8">
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2" data-oid="ns8pwx8">
                       <span
-                        className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-100/80 dark:bg-slate-800/80 px-2 py-0.5 rounded-md"
+                        className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.12em] bg-slate-100/80 dark:bg-slate-800/80 px-2 py-0.5 rounded-md"
                         data-oid="40gntya"
                       >
                         TARGETS
@@ -319,7 +319,7 @@ const WeekSchedule = ({
                       {skillTargets.slice(0, 2).map((sc) => (
                         <span
                           key={sc}
-                          className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50/80 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-500/20"
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-50/90 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-100 dark:border-sky-500/20"
                           data-oid="18gd:_l"
                         >
                           {formatSkillName(sc)}
@@ -332,7 +332,7 @@ const WeekSchedule = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-xl hover:bg-primary/10 hover:text-primary transition-colors shrink-0"
+                  className="rounded-xl hover:bg-sky-500/10 hover:text-sky-700 dark:hover:text-sky-300 transition-colors shrink-0"
                   aria-label={`Open ${task.module} practice`}
                   onClick={(e) => {
                     e.stopPropagation();

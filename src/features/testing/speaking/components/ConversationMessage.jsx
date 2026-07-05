@@ -4,11 +4,7 @@ import { motion } from 'framer-motion';
 
 function MessageAvatar({ entry, authUser }) {
   if (entry.speaker === 'ai') {
-    return (
-      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md bg-gradient-to-br from-rose-500 to-orange-500">
-        <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-      </div>
-    );
+    return null;
   }
 
   if (authUser?.avatar_url) {
@@ -32,7 +28,7 @@ function MessageAvatar({ entry, authUser }) {
 
 function getBubbleClass(entry) {
   if (entry.speaker !== 'user') {
-    return 'bg-gradient-to-br from-rose-600/10 to-rose-600/5 dark:from-rose-500/20 dark:to-rose-500/5 border border-rose-500/20 dark:border-rose-500/20 rounded-[1.25rem] rounded-tl-none text-left font-medium text-slate-800 dark:text-slate-200';
+    return 'bg-gradient-to-br from-rose-600/10 to-rose-600/5 dark:from-rose-500/20 dark:to-rose-500/5 border border-rose-500/20 dark:border-rose-500/20 rounded-[1.25rem] text-left font-medium text-slate-800 dark:text-slate-200';
   }
 
   if (entry.error) {

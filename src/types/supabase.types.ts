@@ -1660,11 +1660,11 @@ export type Database = {
           subscription_tier: string
         }[]
       }
-      get_learning_path_data: { Args: { p_user_id: string }; Returns: Json }
+      get_learning_path_data: { Args: never; Returns: Json }
       get_my_public_user_id: { Args: never; Returns: string }
       get_my_user_id: { Args: never; Returns: string }
       get_recent_sessions: {
-        Args: { p_limit?: number; p_user_id: string }
+        Args: { p_limit?: number }
         Returns: {
           completed_at: string
           duration_minutes: number

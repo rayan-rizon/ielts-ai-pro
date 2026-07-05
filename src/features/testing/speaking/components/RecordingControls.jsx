@@ -61,30 +61,9 @@ const RecordingControls = React.memo(
         </motion.div>
       )}
 
-      {/* Audio Level Visualizer — CSS-only, shown while recording */}
-      {testStarted && !isPart2Prep && isListening && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          className="flex items-center gap-1 h-8 py-2"
-        >
-          {Array.from({ length: 24 }, (_, i) => (
-            <div
-              key={i}
-              className="w-1 bg-gradient-to-t from-rose-500 to-orange-400 rounded-full animate-pulse"
-              style={{
-                height: `${Math.max(4, 8 + Math.sin(i * 0.8) * 12)}px`,
-                animationDelay: `${i * 80}ms`,
-                animationDuration: `${600 + (i % 5) * 100}ms`,
-              }}
-            />
-          ))}
-        </motion.div>
-      )}
-
-      {/* Status Text */}
+      {/* Unified Status Area */}
       {testStarted && !isPart2Prep && (
-        <div className="h-8">
+        <div className="h-14 flex flex-col justify-center items-center gap-1.5">
           <AnimatePresence mode="wait">
             {isProcessing ? (
               <motion.div
@@ -106,7 +85,7 @@ const RecordingControls = React.memo(
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
-                className="flex items-center gap-2 bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/20 px-4 py-1.5 rounded-full"
+                className="flex items-center gap-2 bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/20 px-4 py-1 rounded-full"
               >
                 <motion.div
                   animate={{ scale: [1, 1.2, 1] }}
@@ -125,7 +104,7 @@ const RecordingControls = React.memo(
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="flex items-center gap-2 bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/20 px-4 py-1.5 rounded-full"
+                className="flex items-center gap-2 bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/20 px-4 py-1 rounded-full"
               >
                 {/* Animated soundwave bars */}
                 <div className="flex items-center gap-0.5">
@@ -153,12 +132,28 @@ const RecordingControls = React.memo(
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-primary/5 dark:bg-primary/10 border border-primary/20 px-4 py-1.5 rounded-full"
+                className="flex flex-col items-center gap-1.5"
               >
-                <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.15em] text-primary flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
-                  LISTENING... SPEAK NATURALLY
-                </p>
+                {/* Audio Level Visualizer — CSS-only, shown while recording */}
+                <div className="flex items-center gap-1 h-5 py-0.5">
+                  {Array.from({ length: 24 }, (_, i) => (
+                    <div
+                      key={i}
+                      className="w-0.5 sm:w-1 bg-gradient-to-t from-rose-500 to-orange-400 rounded-full animate-pulse"
+                      style={{
+                        height: `${Math.max(4, 6 + Math.sin(i * 0.8) * 8)}px`,
+                        animationDelay: `${i * 60}ms`,
+                        animationDuration: `${600 + (i % 5) * 100}ms`,
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 px-4 py-0.5 rounded-full">
+                  <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] text-primary flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
+                    LISTENING... SPEAK NATURALLY
+                  </p>
+                </div>
               </motion.div>
             ) : (
               <motion.div
@@ -178,12 +173,12 @@ const RecordingControls = React.memo(
 
       {/* Microphone Button */}
       {testStarted && !isPart2Prep && (
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-3">
           <div className="relative">
             <motion.div
               className="absolute inset-0 rounded-full bg-rose-500/20 dark:bg-rose-500/10 blur-xl"
               animate={{
-                scale: isListening ? [1, 1.5, 1] : 1,
+                scale: isListening ? [1, 1.4, 1] : 1,
                 opacity: isListening ? [0.3, 0.6, 0.3] : 0,
               }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
@@ -191,7 +186,7 @@ const RecordingControls = React.memo(
 
             <div className="relative group">
               <div
-                className={`absolute -inset-2 bg-gradient-to-br transition-opacity duration-700 blur-2xl opacity-20 dark:opacity-40 group-hover:opacity-60 ${isListening ? 'from-rose-500 to-orange-600 animate-pulse' : 'from-rose-500 to-orange-400'}`}
+                className={`absolute -inset-1.5 bg-gradient-to-br transition-opacity duration-700 blur-2xl opacity-20 dark:opacity-40 group-hover:opacity-60 ${isListening ? 'from-rose-500 to-orange-600 animate-pulse' : 'from-rose-500 to-orange-400'}`}
               />
 
               <motion.button
@@ -199,7 +194,7 @@ const RecordingControls = React.memo(
                 disabled={isProcessing || isSpeaking || isTTSLoading || timerExpiredRef?.current}
                 whileTap={!isProcessing && !isSpeaking && !isTTSLoading ? { scale: 0.95 } : {}}
                 title={isListening ? 'Send my answer' : 'Start speaking'}
-                className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-[1.25rem] sm:rounded-[1.5rem] flex items-center justify-center transition-colors duration-500 border-4 transform-gpu ${
+                className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-[1.15rem] sm:rounded-[1.25rem] flex items-center justify-center transition-colors duration-500 border-4 transform-gpu ${
                   isProcessing || isSpeaking || isTTSLoading
                     ? 'bg-muted dark:bg-zinc-800 border-muted-foreground/10 cursor-not-allowed opacity-50'
                     : isListening
@@ -208,14 +203,14 @@ const RecordingControls = React.memo(
                 }`}
               >
                 {isProcessing ? (
-                  <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground animate-spin" />
+                  <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground animate-spin" />
                 ) : isTTSLoading ? (
                   /* Pulsing volume icon while TTS is loading */
                   <motion.div
                     animate={{ opacity: [0.4, 1, 0.4] }}
                     transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
                   >
-                    <Volume2 className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
+                    <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
                   </motion.div>
                 ) : isSpeaking ? (
                   /* Animated volume icon while examiner is speaking */
@@ -223,38 +218,36 @@ const RecordingControls = React.memo(
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
                   >
-                    <Volume2 className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
+                    <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
                   </motion.div>
                 ) : isListening ? (
-                  <div className="relative flex items-center justify-center -ml-1 mt-0.5">
-                    <Send className="w-6 h-6 sm:w-8 sm:h-8 text-white fill-white/10" />
+                  <div className="relative flex items-center justify-center -ml-0.5 mt-0.5">
+                    <Send className="w-5 h-5 sm:w-6 sm:h-6 text-white fill-white/10" />
                   </div>
                 ) : (
                   <div className="relative transition-transform group-hover/btn:scale-110 duration-500">
-                    <Mic className="w-6 h-6 sm:w-8 sm:h-8 text-rose-500 group-hover:text-rose-600 transition-colors" />
+                    <Mic className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500 group-hover:text-rose-600 transition-colors" />
                   </div>
                 )}
               </motion.button>
             </div>
           </div>
 
-          {isListening && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="mt-2 sm:mt-4"
-            >
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.8 }}
-                className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-rose-500/70 dark:text-rose-400/70 animate-pulse"
-              >
-                Tap to send your response
-              </motion.div>
-            </motion.div>
-          )}
+          {/* Helper Text Area */}
+          <div className="h-6 flex items-center justify-center mt-1 sm:mt-2">
+            <AnimatePresence>
+              {isListening && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-rose-500/70 dark:text-rose-400/70 animate-pulse"
+                >
+                  Tap to send your response
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       )}
     </>

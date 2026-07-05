@@ -365,7 +365,10 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
             ? options.passageTimes
             : {};
 
-        const actualTimeSpentSeconds = initialTotalSeconds - finalTimeRemaining;
+        const actualTimeSpentSeconds = Math.max(
+          1,
+          initialTotalSeconds - Math.max(0, finalTimeRemaining || 0)
+        );
         const actualTimeSpentMinutes = Math.max(1, Math.floor(actualTimeSpentSeconds / 60));
 
         const timePerQuestionSeconds = (() => {

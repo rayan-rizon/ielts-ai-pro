@@ -21,6 +21,10 @@ export default function PerformanceNarrative({ insights, stats }) {
     return "You're making steady progress. Keep up the consistent practice!";
   };
 
+  const primaryTrend = trends[0]?.text;
+  const topStrength = strengths[0]?.type;
+  const smartTip = correlations[0];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -29,7 +33,7 @@ export default function PerformanceNarrative({ insights, stats }) {
       data-oid="e3jx-n_"
     >
       <div
-        className="group relative overflow-hidden rounded-3xl bg-white dark:bg-slate-950 border border-border/40 p-5 flex flex-col justify-between flex-1 shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-primary/20"
+        className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-950 border border-border/40 p-4 flex flex-col justify-between gap-4 flex-1 shadow-lg transition-all duration-300 hover:shadow-xl hover:border-primary/20"
         data-oid="e8jjz6:"
       >
         {/* Decorative Grid Pattern & Soft Glows */}
@@ -43,11 +47,11 @@ export default function PerformanceNarrative({ insights, stats }) {
         />
 
         <div
-          className="space-y-4 relative z-10 flex-1 flex flex-col justify-between"
+          className="relative z-10 flex-1 flex flex-col justify-between gap-4"
           data-oid="fbx3.s6"
         >
           {/* Header section with Badges */}
-          <div className="space-y-3.5" data-oid="yyy_1x7">
+          <div className="space-y-3" data-oid="yyy_1x7">
             <div className="flex flex-wrap items-center justify-between gap-2" data-oid="43pjler">
               <Badge
                 className="bg-indigo-500/10 dark:bg-indigo-500/20 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border-0 px-2.5 py-1 text-[9px] font-black tracking-widest rounded-lg uppercase backdrop-blur-md"
@@ -75,7 +79,7 @@ export default function PerformanceNarrative({ insights, stats }) {
             {/* Coach Note Text */}
             <div className="space-y-2" data-oid="bad5ezr">
               <h2
-                className="text-base md:text-lg font-black text-foreground tracking-tight leading-snug"
+                className="text-base font-black text-foreground tracking-tight leading-snug"
                 data-oid="xwk:5ak"
               >
                 {getCoachNote()}
@@ -105,12 +109,34 @@ export default function PerformanceNarrative({ insights, stats }) {
           </div>
 
           {/* High Priority Smart Tip / Correlation */}
-          {correlations.length > 0 && (
+          <div className="grid grid-cols-1 gap-2" data-oid="coach-summary-grid">
+            {topStrength && (
+              <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 px-3 py-2">
+                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                  Strongest module
+                </p>
+                <p className="text-sm font-black capitalize text-foreground">{topStrength}</p>
+              </div>
+            )}
+
+            {primaryTrend && (
+              <div className="rounded-xl border border-sky-500/15 bg-sky-500/5 px-3 py-2">
+                <p className="text-[9px] font-black uppercase tracking-widest text-sky-600 dark:text-sky-400">
+                  Latest trend
+                </p>
+                <p className="text-xs font-bold text-muted-foreground leading-snug">
+                  {primaryTrend}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {smartTip && (
             <motion.div
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="relative overflow-hidden bg-slate-50 dark:bg-white/[0.02] border border-border/40 p-3 rounded-2xl transition-all duration-300 mt-2 flex flex-col gap-1.5"
+              className="relative overflow-hidden bg-slate-50 dark:bg-white/[0.02] border border-border/40 p-3 rounded-xl transition-all duration-300 flex flex-col gap-1.5"
               data-oid="x207u:y"
             >
               <div className="flex items-center gap-2" data-oid="7fnd2az">
@@ -124,14 +150,14 @@ export default function PerformanceNarrative({ insights, stats }) {
                   className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest"
                   data-oid="p0s2a4a"
                 >
-                  {correlations[0].title || 'Smart Tip'}
+                  {smartTip.title || 'Smart Tip'}
                 </span>
               </div>
               <p
                 className="text-[11px] font-bold text-muted-foreground leading-relaxed pl-0.5"
                 data-oid=":t2e9fc"
               >
-                {correlations[0].text}
+                {smartTip.text}
               </p>
             </motion.div>
           )}

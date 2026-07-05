@@ -24,7 +24,12 @@ export function AnswerJourneyCard({
   testType = 'reading',
 }: AnswerJourneyCardProps) {
   const journeyData = useMemo(() => {
-    if (!answerTimestamps || Object.keys(answerTimestamps).length === 0) {
+    if (
+      !answerTimestamps ||
+      Object.keys(answerTimestamps).length === 0 ||
+      !Number.isFinite(totalTimeSeconds) ||
+      totalTimeSeconds <= 0
+    ) {
       return null;
     }
 
@@ -154,7 +159,10 @@ export function AnswerJourneyCard({
       data-oid="vtbjcxo"
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-4" data-oid="trly.s6">
+      <div
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4"
+        data-oid="trly.s6"
+      >
         <div className="flex items-center gap-2.5" data-oid="6oj.3i6">
           <div
             className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center"
@@ -175,7 +183,10 @@ export function AnswerJourneyCard({
           </div>
         </div>
         <div
-          className={cn('flex items-center gap-1.5 px-2.5 py-1 rounded-lg', patternInfo.bg)}
+          className={cn(
+            'self-start sm:self-auto flex items-center gap-1.5 px-2.5 py-1 rounded-lg',
+            patternInfo.bg
+          )}
           data-oid="qtm5oya"
         >
           <PatternIcon className={cn('w-3.5 h-3.5', patternInfo.color)} data-oid="e_mlcew" />

@@ -250,7 +250,7 @@ export default function AIInsightsCard({
       <Card
         className={cn(
           'rounded-3xl bg-white dark:bg-slate-950 backdrop-blur-xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 h-full flex flex-col border border-border/40',
-          compact ? 'min-h-[350px]' : 'min-h-[280px]',
+          compact ? 'min-h-[280px]' : 'min-h-[280px]',
           isPremium ? 'ring-2 ring-amber-400/20 ring-offset-2 ring-offset-background' : ''
         )}
         data-oid="xikm8:d"
