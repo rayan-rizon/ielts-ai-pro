@@ -33,7 +33,7 @@ export default function PerformanceNarrative({ insights, stats }) {
       data-oid="e3jx-n_"
     >
       <div
-        className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-950 border border-border/40 p-4 flex flex-col justify-between gap-4 flex-1 shadow-lg transition-all duration-300 hover:shadow-xl hover:border-primary/20"
+        className="group relative overflow-hidden rounded-2xl bg-white/80 dark:bg-slate-950/60 backdrop-blur-md border border-border/30 dark:border-white/5 p-3.5 flex flex-col justify-between gap-3 flex-1 shadow-md transition-all duration-300 hover:shadow-xl hover:border-primary/20 hover:-translate-y-0.5"
         data-oid="e8jjz6:"
       >
         {/* Decorative Grid Pattern & Soft Glows */}
@@ -47,25 +47,25 @@ export default function PerformanceNarrative({ insights, stats }) {
         />
 
         <div
-          className="relative z-10 flex-1 flex flex-col justify-between gap-4"
+          className="relative z-10 flex-1 flex flex-col justify-between gap-3"
           data-oid="fbx3.s6"
         >
           {/* Header section with Badges */}
-          <div className="space-y-3" data-oid="yyy_1x7">
+          <div className="space-y-2" data-oid="yyy_1x7">
             <div className="flex flex-wrap items-center justify-between gap-2" data-oid="43pjler">
               <Badge
-                className="bg-indigo-500/10 dark:bg-indigo-500/20 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border-0 px-2.5 py-1 text-[9px] font-black tracking-widest rounded-lg uppercase backdrop-blur-md"
+                className="bg-indigo-500/10 dark:bg-indigo-500/20 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border-0 px-2 py-0.5 text-[9px] font-black tracking-widest rounded-lg uppercase backdrop-blur-md"
                 data-oid="_w_x39c"
               >
                 <Sparkles
-                  className="w-3.5 h-3.5 mr-1.5 text-indigo-500 dark:text-indigo-400 animate-pulse"
+                  className="w-3.5 h-3.5 mr-1 text-indigo-500 dark:text-indigo-400 animate-pulse"
                   data-oid=".07d8q2"
                 />
                 Coach Update
               </Badge>
 
               <div
-                className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-1.5 text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider"
+                className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-1 text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider"
                 data-oid="u9etfhb"
               >
                 <div
@@ -77,9 +77,9 @@ export default function PerformanceNarrative({ insights, stats }) {
             </div>
 
             {/* Coach Note Text */}
-            <div className="space-y-2" data-oid="bad5ezr">
+            <div className="space-y-1.5" data-oid="bad5ezr">
               <h2
-                className="text-base font-black text-foreground tracking-tight leading-snug"
+                className="text-sm font-bold text-foreground tracking-tight leading-snug"
                 data-oid="xwk:5ak"
               >
                 {getCoachNote()}
@@ -89,7 +89,7 @@ export default function PerformanceNarrative({ insights, stats }) {
               {parseFloat(stats.improvement) > 0 && (
                 <div className="inline-flex" data-oid="imp-wrapper">
                   <div
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 shadow-sm"
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 shadow-sm"
                     data-oid="liu1z3e"
                   >
                     <TrendingUp
@@ -97,7 +97,7 @@ export default function PerformanceNarrative({ insights, stats }) {
                       data-oid="fpdxuu9"
                     />
                     <span
-                      className="text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-wider"
+                      className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-wider"
                       data-oid="aa80x1e"
                     >
                       +{stats.improvement} Bands
@@ -108,57 +108,60 @@ export default function PerformanceNarrative({ insights, stats }) {
             </div>
           </div>
 
-          {/* High Priority Smart Tip / Correlation */}
-          <div className="grid grid-cols-1 gap-2" data-oid="coach-summary-grid">
-            {topStrength && (
-              <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 px-3 py-2">
-                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-                  Strongest module
-                </p>
-                <p className="text-sm font-black capitalize text-foreground">{topStrength}</p>
-              </div>
-            )}
+          {/* Compact Strength/Trend section */}
+          {(topStrength || primaryTrend) && (
+            <div
+              className="flex flex-wrap items-center gap-2 border-t border-border/30 pt-2"
+              data-oid="coach-summary-grid"
+            >
+              {topStrength && (
+                <div className="flex items-center gap-1 bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-lg border border-emerald-500/10">
+                  <span className="text-[8px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    Strongest:
+                  </span>
+                  <span className="text-[10px] font-black capitalize text-foreground">
+                    {topStrength}
+                  </span>
+                </div>
+              )}
 
-            {primaryTrend && (
-              <div className="rounded-xl border border-sky-500/15 bg-sky-500/5 px-3 py-2">
-                <p className="text-[9px] font-black uppercase tracking-widest text-sky-600 dark:text-sky-400">
-                  Latest trend
-                </p>
-                <p className="text-xs font-bold text-muted-foreground leading-snug">
-                  {primaryTrend}
-                </p>
-              </div>
-            )}
-          </div>
+              {primaryTrend && (
+                <div className="flex items-center gap-1 bg-sky-500/10 dark:bg-sky-500/20 px-2 py-0.5 rounded-lg border border-sky-500/10">
+                  <span className="text-[8px] font-black uppercase tracking-wider text-sky-600 dark:text-sky-400">
+                    Trend:
+                  </span>
+                  <span className="text-[10px] font-bold text-foreground">{primaryTrend}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {smartTip && (
             <motion.div
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="relative overflow-hidden bg-slate-50 dark:bg-white/[0.02] border border-border/40 p-3 rounded-xl transition-all duration-300 flex flex-col gap-1.5"
+              className="relative overflow-hidden bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 p-2 rounded-xl transition-all duration-300 flex items-start gap-2"
               data-oid="x207u:y"
             >
-              <div className="flex items-center gap-2" data-oid="7fnd2az">
-                <div
-                  className="w-5 h-5 rounded-md bg-amber-500/10 dark:bg-amber-500/20 flex items-center justify-center text-amber-500 border-0"
-                  data-oid="8sk3-md"
-                >
-                  <Zap className="w-3 h-3 text-amber-600 dark:text-amber-400" data-oid="1-yrd4q" />
-                </div>
+              <Zap
+                className="w-3.5 h-3.5 text-amber-600 dark:text-amber-450 shrink-0 mt-0.5"
+                data-oid="1-yrd4q"
+              />
+              <div className="min-w-0" data-oid="tip-text-wrapper">
                 <span
-                  className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest"
+                  className="text-[8px] font-black text-amber-600 dark:text-amber-450 uppercase tracking-widest block leading-none mb-0.5"
                   data-oid="p0s2a4a"
                 >
                   {smartTip.title || 'Smart Tip'}
                 </span>
+                <p
+                  className="text-[10px] font-medium text-muted-foreground leading-relaxed line-clamp-2"
+                  data-oid=":t2e9fc"
+                >
+                  {smartTip.text}
+                </p>
               </div>
-              <p
-                className="text-[11px] font-bold text-muted-foreground leading-relaxed pl-0.5"
-                data-oid=":t2e9fc"
-              >
-                {smartTip.text}
-              </p>
             </motion.div>
           )}
         </div>

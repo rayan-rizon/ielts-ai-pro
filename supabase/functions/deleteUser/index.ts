@@ -125,10 +125,7 @@ Deno.serve(async (req) => {
           .update({ updated_by: null })
           .eq('updated_by', profileId),
         // Self-referencing FK: users.referred_by → users.id
-        supabaseAdmin
-          .from('users')
-          .update({ referred_by: null })
-          .eq('referred_by', profileId),
+        supabaseAdmin.from('users').update({ referred_by: null }).eq('referred_by', profileId),
       ];
 
       const results = await Promise.allSettled(cleanupOps);

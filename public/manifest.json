@@ -1,23 +1,23 @@
 {
-    "name": "IELTS Ai Pro",
-    "short_name": "IELTS Ai",
-    "description": "Master IELTS with AI-powered instant feedback on Writing and Speaking.",
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#0a0a0a",
-    "theme_color": "#4f46e5",
-    "icons": [
-        {
-            "src": "/favicon.webp",
-            "sizes": "192x192",
-            "type": "image/webp",
-            "purpose": "any"
-        },
-        {
-            "src": "/favicon.webp",
-            "sizes": "512x512",
-            "type": "image/webp",
-            "purpose": "any"
-        }
-    ]
+  "name": "IELTS Ai Pro",
+  "short_name": "IELTS Ai",
+  "description": "Master IELTS with AI-powered instant feedback on Writing and Speaking.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/favicon.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any"
+    }
+  ]
 }

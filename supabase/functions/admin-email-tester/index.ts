@@ -1,7 +1,7 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { sendEmail, EmailType } from "../_shared/resend.ts";
-import { getEmailTemplate } from "../_shared/templates.ts";
+import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+import { sendEmail, EmailType } from '../_shared/resend.ts';
+import { getEmailTemplate } from '../_shared/templates.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,7 +22,10 @@ serve(async (req) => {
 
     // 1. Authenticate the user - must be an admin
     const authHeader = req.headers.get('Authorization')!;
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''));
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''));
 
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -65,12 +68,15 @@ serve(async (req) => {
     const template = getEmailTemplate(type, mockData);
 
     if (action === 'preview') {
-      return new Response(JSON.stringify({ 
-        subject: template.subject, 
-        html: template.html 
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          subject: template.subject,
+          html: template.html,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     if (action === 'send') {
@@ -82,12 +88,12 @@ serve(async (req) => {
       }
 
       console.log(`Sending test email (${type}) to ${test_email}`);
-      
+
       // We bypass the "is enabled" check for manual test sends
       // by calling sendEmail directly if we wanted to, but the current sendEmail
       // check is fine because it allows sending if it's NOT disabled.
       // Actually, let's just use the template.
-      
+
       const result = await sendEmail({
         to: test_email,
         subject: `[TEST] ${template.subject}`,
@@ -102,16 +108,18 @@ serve(async (req) => {
         });
       }
 
-      return new Response(JSON.stringify({ success: true, message: 'Test email sent successfully' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ success: true, message: 'Test email sent successfully' }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     return new Response(JSON.stringify({ error: 'Invalid action' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-
   } catch (error: any) {
     console.error('Email Tester Error:', error);
     return new Response(JSON.stringify({ error: error.message }), {

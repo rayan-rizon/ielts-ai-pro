@@ -34,8 +34,8 @@ export default function DocumentHead({
   const imageType = image.endsWith('.webp')
     ? 'image/webp'
     : image.endsWith('.png')
-    ? 'image/png'
-    : 'image/jpeg';
+      ? 'image/png'
+      : 'image/jpeg';
 
   return (
     <Helmet data-oid="k59b74f">

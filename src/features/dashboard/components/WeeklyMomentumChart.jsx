@@ -96,9 +96,10 @@ const WeeklyMomentumChart = React.memo(({ weeklyProgress }) => {
     <Card
       className={cn(
         'relative rounded-2xl transition-all duration-300 overflow-hidden group flex flex-col h-full',
-        'bg-white/60 dark:bg-slate-900/50 backdrop-blur-2xl',
-        'border border-white/60 dark:border-white/[0.12]',
-        'hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.2)] dark:hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.6)]',
+        'bg-white dark:bg-slate-900',
+        'border border-slate-200 dark:border-slate-800',
+        'shadow-sm',
+        'hover:shadow-md transition-shadow duration-300',
         'hover:border-indigo-500/40 dark:hover:border-indigo-500/40'
       )}
       data-oid="0w400zj"

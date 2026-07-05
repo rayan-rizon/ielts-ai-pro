@@ -8,56 +8,56 @@ import DOMPurify from 'dompurify';
  * @returns - The sanitized HTML
  */
 export const sanitizeHtml = (content: string | undefined | null): string => {
-    if (!content) return '';
+  if (!content) return '';
 
-    return DOMPurify.sanitize(content, {
-        ALLOWED_TAGS: [
-            'p',
-            'br',
-            'strong',
-            'b',
-            'i',
-            'em',
-            'u',
-            's',
-            'strike',
-            'ul',
-            'ol',
-            'li',
-            'blockquote',
-            'h1',
-            'h2',
-            'h3',
-            'h4',
-            'h5',
-            'h6',
-            'span',
-            'div',
-            'hr',
-            'img',
-            'a',
-        ],
-        ALLOWED_ATTR: [
-            'href',
-            'target',
-            'src',
-            'alt',
-            'title',
-            'width',
-            'height',
-            'style',
-            'class',
-            'align',
-            'rel',
-            'id',
-            'referrerpolicy',
-        ],
+  return DOMPurify.sanitize(content, {
+    ALLOWED_TAGS: [
+      'p',
+      'br',
+      'strong',
+      'b',
+      'i',
+      'em',
+      'u',
+      's',
+      'strike',
+      'ul',
+      'ol',
+      'li',
+      'blockquote',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'span',
+      'div',
+      'hr',
+      'img',
+      'a',
+    ],
+    ALLOWED_ATTR: [
+      'href',
+      'target',
+      'src',
+      'alt',
+      'title',
+      'width',
+      'height',
+      'style',
+      'class',
+      'align',
+      'rel',
+      'id',
+      'referrerpolicy',
+    ],
 
-        ALLOW_DATA_ATTR: false,
-        ADD_ATTR: ['target'],
-        FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'link', 'style'],
-        FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
-    });
+    ALLOW_DATA_ATTR: false,
+    ADD_ATTR: ['target'],
+    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'link', 'style'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+  });
 };
 
 /**
@@ -68,7 +68,7 @@ export const sanitizeHtml = (content: string | undefined | null): string => {
  * @returns - True if suspicious
  */
 export const hasSuspiciousContent = (content: string): boolean => {
-    const suspiciousPatterns = [/<script/i, /javascript:/i, /onload=/i, /onerror=/i, /onclick=/i];
+  const suspiciousPatterns = [/<script/i, /javascript:/i, /onload=/i, /onerror=/i, /onclick=/i];
 
-    return suspiciousPatterns.some((pattern) => pattern.test(content));
+  return suspiciousPatterns.some((pattern) => pattern.test(content));
 };

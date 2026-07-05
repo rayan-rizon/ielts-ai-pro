@@ -47,7 +47,12 @@ export default function BandGapBreakdown({ bandGaps, targetBand, className, load
   }
 
   return (
-    <GlassCard className={cn('relative p-5 sm:p-6 bg-gradient-to-br from-white/95 to-slate-50/95 dark:from-slate-950/90 dark:to-slate-900/90 border-t-2 border-t-violet-500/40 shadow-md dark:shadow-slate-950/40 hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 overflow-hidden', className)}>
+    <GlassCard
+      className={cn(
+        'relative p-5 sm:p-6 bg-gradient-to-br from-white/95 to-slate-50/95 dark:from-slate-950/90 dark:to-slate-900/90 border-t-2 border-t-violet-500/40 shadow-md dark:shadow-slate-950/40 hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 overflow-hidden',
+        className
+      )}
+    >
       {/* Decorative Aura / Glows */}
       <div className="absolute -top-24 -left-20 w-72 h-72 bg-violet-500/10 rounded-full blur-3xl pointer-events-none dark:bg-violet-500/5" />
       <div className="absolute -bottom-24 -right-20 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none dark:bg-indigo-500/5" />
@@ -89,7 +94,9 @@ export default function BandGapBreakdown({ bandGaps, targetBand, className, load
           <div className="space-y-3.5">
             {bandGaps.items.map((it) => {
               const config = moduleConfig[it.module];
-              const pct = targetBand ? Math.min(100, Math.round((it.current / targetBand) * 100)) : 0;
+              const pct = targetBand
+                ? Math.min(100, Math.round((it.current / targetBand) * 100))
+                : 0;
               return (
                 <button
                   key={it.module}
@@ -108,7 +115,9 @@ export default function BandGapBreakdown({ bandGaps, targetBand, className, load
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {it.trend === 'up' && <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />}
-                      {it.trend === 'down' && <TrendingDown className="w-3.5 h-3.5 text-rose-500" />}
+                      {it.trend === 'down' && (
+                        <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
+                      )}
                       <div className="text-sm font-black text-slate-900 dark:text-white">
                         {it.current > 0 ? it.current.toFixed(1) : '—'}
                       </div>
@@ -140,11 +149,14 @@ export default function BandGapBreakdown({ bandGaps, targetBand, className, load
                       key={l.module}
                       type="button"
                       onClick={() =>
-                        navigate(createPageUrl(l.module.charAt(0).toUpperCase() + l.module.slice(1)))
+                        navigate(
+                          createPageUrl(l.module.charAt(0).toUpperCase() + l.module.slice(1))
+                        )
                       }
                       className="px-3 py-2 rounded-2xl bg-white/80 dark:bg-slate-950/30 border border-violet-500/10 text-[10px] font-black tracking-[0.08em] text-violet-700 dark:text-violet-200 hover:bg-white dark:hover:bg-violet-500/10 transition-colors"
                     >
-                      {l.module ? l.module.charAt(0).toUpperCase() + l.module.slice(1) : ''} {l.gap > 0 ? `(+${l.gap.toFixed(1)})` : ''}
+                      {l.module ? l.module.charAt(0).toUpperCase() + l.module.slice(1) : ''}{' '}
+                      {l.gap > 0 ? `(+${l.gap.toFixed(1)})` : ''}
                     </button>
                   ))}
                 </div>

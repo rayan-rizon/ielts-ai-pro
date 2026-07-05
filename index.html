@@ -1,272 +1,318 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function () {
+        var DEFAULT_GTM_ID = 'GTM-TR6XQ2R3';
+        var DEFAULT_PIXEL_ID = '991226963227159';
 
-<head>
-  <meta charset="UTF-8" />
-  <script>
-    (function () {
-      var DEFAULT_GTM_ID = 'GTM-TR6XQ2R3';
-      var DEFAULT_PIXEL_ID = '991226963227159';
+        var config = window.__TRACKING_CONFIG__ || {};
+        var gtmId = config.gtmId || DEFAULT_GTM_ID;
+        var pixelId = config.pixelId || DEFAULT_PIXEL_ID;
 
-      var config = window.__TRACKING_CONFIG__ || {};
-      var gtmId = config.gtmId || DEFAULT_GTM_ID;
-      var pixelId = config.pixelId || DEFAULT_PIXEL_ID;
+        window.__TRACKING_IDS__ = {
+          gtmId: gtmId,
+          pixelId: pixelId,
+        };
 
-      window.__TRACKING_IDS__ = {
-        gtmId: gtmId,
-        pixelId: pixelId,
-      };
+        var loadGtm = function () {
+          if (window.__gtmLoaded || !gtmId) return;
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            'gtm.start': new Date().getTime(),
+            event: 'gtm.js',
+          });
 
-      var loadGtm = function () {
-        if (window.__gtmLoaded || !gtmId) return;
-        window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({
-          'gtm.start': new Date().getTime(),
-          event: 'gtm.js',
-        });
+          var script = document.createElement('script');
+          script.async = true;
+          script.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtmId);
+          // Use a more robust insertion method that doesn't depend on existing script tags
+          (document.head || document.getElementsByTagName('head')[0]).appendChild(script);
+          window.__gtmLoaded = true;
+        };
 
-        var script = document.createElement('script');
-        script.async = true;
-        script.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtmId);
-        // Use a more robust insertion method that doesn't depend on existing script tags
-        (document.head || document.getElementsByTagName('head')[0]).appendChild(script);
-        window.__gtmLoaded = true;
-      };
+        var loadPixel = function () {
+          if (window.__pixelLoaded || !pixelId) return;
 
-      var loadPixel = function () {
-        if (window.__pixelLoaded || !pixelId) return;
+          (function (f, b, e, v, n, t, s) {
+            if (f.fbq) return;
+            n = f.fbq = function () {
+              n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+            };
+            if (!f._fbq) f._fbq = n;
+            n.push = n;
+            n.loaded = true;
+            n.version = '2.0';
+            n.queue = [];
+            t = b.createElement(e);
+            t.async = true;
+            t.src = v;
+            (b.head || b.getElementsByTagName('head')[0]).appendChild(t);
+          })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
 
-        (function (f, b, e, v, n, t, s) {
-          if (f.fbq) return;
-          n = f.fbq = function () {
-            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-          };
-          if (!f._fbq) f._fbq = n;
-          n.push = n;
-          n.loaded = true;
-          n.version = '2.0';
-          n.queue = [];
-          t = b.createElement(e);
-          t.async = true;
-          t.src = v;
-          (b.head || b.getElementsByTagName('head')[0]).appendChild(t);
-        })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+          window.fbq('init', pixelId);
+          window.fbq('track', 'PageView');
+          window.__pixelLoaded = true;
+        };
 
-        window.fbq('init', pixelId);
-        window.fbq('track', 'PageView');
-        window.__pixelLoaded = true;
-      };
-
-      // Load with a slight delay to allow critical content (LCP) to render first
-      setTimeout(function() {
-        if (typeof window.requestIdleCallback === 'function') {
-          window.requestIdleCallback(function() {
+        // Load with a slight delay to allow critical content (LCP) to render first
+        setTimeout(function () {
+          if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(function () {
+              loadGtm();
+              loadPixel();
+            });
+          } else {
             loadGtm();
             loadPixel();
-          });
-        } else {
-          loadGtm();
-          loadPixel();
-        }
-      }, 500);
-    })();
-  </script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="preconnect" href="https://zvrmvycajimjxghrnpgy.supabase.co" crossorigin />
-  <link rel="dns-prefetch" href="https://o4511451727331328.ingest.us.sentry.io" />
-  <link rel="dns-prefetch" href="https://connect.facebook.net" />
-  <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-  <link rel="icon" type="image/webp" href="/favicon.webp" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="preload" href="/fonts/plus-jakarta-sans-latin-normal.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high" />
-  <meta name="author" content="IELTS Ai Pro" />
-  <meta name="theme-color" content="#4f46e5" />
-  <meta name="facebook-domain-verification" content="ai2z71gngx36yw9iakgr8eb1stpon1" />
-  <title>AI IELTS Prep App With Feedback | IELTS Ai Pro</title>
-  <meta name="description"
-    content="Prepare for IELTS with AI writing feedback, speaking practice, realistic mock tests, band score analytics, and personalized study plans for Band 7+ goals." />
-  <meta name="keywords"
-    content="AI IELTS preparation, IELTS writing checker, IELTS speaking practice AI, IELTS mock test online, IELTS band score feedback, free IELTS practice tests" />
-  <meta name="robots" content="index, follow, max-image-preview:large" />
-  <link rel="canonical" href="https://www.ieltsai.pro/" />
-  <meta property="og:title" content="AI IELTS Prep App With Feedback - IELTS Ai Pro" />
-  <meta property="og:description"
-    content="AI IELTS preparation with instant writing feedback, speaking practice, realistic mock tests, band analytics, and adaptive study planning." />
-  <meta property="og:url" content="https://www.ieltsai.pro/" />
-  <meta property="og:site_name" content="IELTS Ai Pro" />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://www.ieltsai.pro/og-image.webp" />
-  <meta property="og:image:type" content="image/webp" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="AI IELTS Prep App With Feedback - IELTS Ai Pro" />
-  <meta name="twitter:description"
-    content="Prepare for IELTS with AI writing feedback, speaking practice, mock tests, analytics, and adaptive study planning." />
-  <meta name="twitter:image" content="https://www.ieltsai.pro/og-image.webp" />
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "Organization",
-          "@id": "https://www.ieltsai.pro/#organization",
-          "name": "IELTS Ai Pro",
-          "url": "https://www.ieltsai.pro/",
-          "logo": "https://www.ieltsai.pro/favicon.webp",
-          "contactPoint": {
-            "@type": "ContactPoint",
-            "email": "mail@ieltsai.pro",
-            "contactType": "customer support"
           }
-        },
-        {
-          "@type": "WebSite",
-          "@id": "https://www.ieltsai.pro/#website",
-          "url": "https://www.ieltsai.pro/",
-          "name": "IELTS Ai Pro",
-          "publisher": {
-            "@id": "https://www.ieltsai.pro/#organization"
+        }, 500);
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://zvrmvycajimjxghrnpgy.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://o4511451727331328.ingest.us.sentry.io" />
+    <link rel="dns-prefetch" href="https://connect.facebook.net" />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+    <link rel="icon" type="image/webp" href="/favicon.webp" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link
+      rel="preload"
+      href="/fonts/plus-jakarta-sans-latin-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      fetchpriority="high"
+    />
+    <meta name="author" content="IELTS Ai Pro" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="facebook-domain-verification" content="ai2z71gngx36yw9iakgr8eb1stpon1" />
+    <title>AI IELTS Prep App With Feedback | IELTS Ai Pro</title>
+    <meta
+      name="description"
+      content="Prepare for IELTS with AI writing feedback, speaking practice, realistic mock tests, band score analytics, and personalized study plans for Band 7+ goals."
+    />
+    <meta
+      name="keywords"
+      content="AI IELTS preparation, IELTS writing checker, IELTS speaking practice AI, IELTS mock test online, IELTS band score feedback, free IELTS practice tests"
+    />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://www.ieltsai.pro/" />
+    <meta property="og:title" content="AI IELTS Prep App With Feedback - IELTS Ai Pro" />
+    <meta
+      property="og:description"
+      content="AI IELTS preparation with instant writing feedback, speaking practice, realistic mock tests, band analytics, and adaptive study planning."
+    />
+    <meta property="og:url" content="https://www.ieltsai.pro/" />
+    <meta property="og:site_name" content="IELTS Ai Pro" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://www.ieltsai.pro/og-image.webp" />
+    <meta property="og:image:type" content="image/webp" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AI IELTS Prep App With Feedback - IELTS Ai Pro" />
+    <meta
+      name="twitter:description"
+      content="Prepare for IELTS with AI writing feedback, speaking practice, mock tests, analytics, and adaptive study planning."
+    />
+    <meta name="twitter:image" content="https://www.ieltsai.pro/og-image.webp" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.ieltsai.pro/#organization",
+            "name": "IELTS Ai Pro",
+            "url": "https://www.ieltsai.pro/",
+            "logo": "https://www.ieltsai.pro/favicon.webp",
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "email": "mail@ieltsai.pro",
+              "contactType": "customer support"
+            }
           },
-          "inLanguage": "en"
-        },
-        {
-          "@type": "SoftwareApplication",
-          "name": "IELTS Ai Pro",
-          "applicationCategory": "EducationalApplication",
-          "operatingSystem": "Web",
-          "url": "https://www.ieltsai.pro/",
-          "description": "AI IELTS preparation platform with writing feedback, speaking practice, mock tests, analytics, and study planning.",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
+          {
+            "@type": "WebSite",
+            "@id": "https://www.ieltsai.pro/#website",
+            "url": "https://www.ieltsai.pro/",
+            "name": "IELTS Ai Pro",
+            "publisher": {
+              "@id": "https://www.ieltsai.pro/#organization"
+            },
+            "inLanguage": "en"
           },
-          "featureList": [
-            "IELTS writing checker with AI feedback",
-            "IELTS speaking practice with AI feedback",
-            "IELTS mock tests for Reading and Listening",
-            "IELTS band score analytics",
-            "Personalized IELTS study planning"
-          ]
-        }
-      ]
-    }
-  </script>
+          {
+            "@type": "SoftwareApplication",
+            "name": "IELTS Ai Pro",
+            "applicationCategory": "EducationalApplication",
+            "operatingSystem": "Web",
+            "url": "https://www.ieltsai.pro/",
+            "description": "AI IELTS preparation platform with writing feedback, speaking practice, mock tests, analytics, and study planning.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "featureList": [
+              "IELTS writing checker with AI feedback",
+              "IELTS speaking practice with AI feedback",
+              "IELTS mock tests for Reading and Listening",
+              "IELTS band score analytics",
+              "Personalized IELTS study planning"
+            ]
+          }
+        ]
+      }
+    </script>
 
-  <!-- Meta Pixel: Loaded conditionally via consent system above (lines 47-69) -->
-  <style>
-    #seo-content {
-      position: absolute !important;
-      width: 1px !important;
-      height: 1px !important;
-      margin: -1px !important;
-      padding: 0 !important;
-      border: 0 !important;
-      overflow: hidden !important;
-      clip: rect(0 0 0 0) !important;
-      clip-path: inset(50%) !important;
-      white-space: nowrap !important;
-      pointer-events: none !important;
-    }
+    <!-- Meta Pixel: Loaded conditionally via consent system above (lines 47-69) -->
+    <style>
+      #seo-content {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        margin: -1px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        overflow: hidden !important;
+        clip: rect(0 0 0 0) !important;
+        clip-path: inset(50%) !important;
+        white-space: nowrap !important;
+        pointer-events: none !important;
+      }
 
-    .skip-link {
-      position: absolute;
-      left: -999px;
-      top: 12px;
-      z-index: 10000;
-      padding: 10px 14px;
-      border-radius: 8px;
-      background: #ffffff;
-      color: #111827;
-      border: 1px solid #e5e7eb;
-      font: 600 14px/1.2 system-ui, sans-serif;
-    }
+      .skip-link {
+        position: absolute;
+        left: -999px;
+        top: 12px;
+        z-index: 10000;
+        padding: 10px 14px;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #111827;
+        border: 1px solid #e5e7eb;
+        font:
+          600 14px/1.2 system-ui,
+          sans-serif;
+      }
 
-    .skip-link:focus {
-      left: 12px;
-    }
-  </style>
-</head>
+      .skip-link:focus {
+        left: 12px;
+      }
+    </style>
+  </head>
 
-<body>
-  <a class="skip-link" href="#root">Skip to content</a>
-  <!-- Google Tag Manager (noscript) -->
-  <noscript>
-    <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TR6XQ2R3" height="0" width="0" style="display:none;visibility:hidden"></iframe>
-  </noscript>
-  <!-- End Google Tag Manager (noscript) -->
-  
-  <main id="root" class="min-h-screen">
-  </main>
+  <body>
+    <a class="skip-link" href="#root">Skip to content</a>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript>
+      <iframe
+        src="https://www.googletagmanager.com/ns.html?id=GTM-TR6XQ2R3"
+        height="0"
+        width="0"
+        style="display: none; visibility: hidden"
+      ></iframe>
+    </noscript>
+    <!-- End Google Tag Manager (noscript) -->
 
-  <!-- Static content for crawlers and SEO (hidden for users) -->
-  <noscript>
-    <div id="seo-content">
-      <h1>IELTS Ai Pro | AI-Powered IELTS Preparation & Instant Feedback</h1>
-      <p>Master the IELTS exam with our advanced AI coaching platform. IELTS Ai Pro is designed to help students achieve
-        their dream band scores through high-tech, objective feedback systems. Our platform leverages
-        state-of-the-art language models and official IELTS band descriptor data to provide you with the most
-        accurate practice experience available online today. Whether you are aiming for a Band 7.0, 7.5, or even a
-        perfect 9.0, our tools are calibrated to push your performance to the next level.</p>
+    <main id="root" class="min-h-screen"></main>
 
-      <p>Our comprehensive training modules cover all four sections of the IELTS exam: Reading, Listening, Writing, and
-        Speaking. Unlike traditional coaching that takes days to return your graded essays, our AI evaluation system
-        provides detailed critiques in under 10 seconds. You will receive specific advice on task response, coherence and
-        cohesion, lexical resource, and grammatical range and accuracy. This immediate feedback loop is proven to
-        accelerate learning and help you avoid repeating the same mistakes.</p>
+    <!-- Static content for crawlers and SEO (hidden for users) -->
+    <noscript>
+      <div id="seo-content">
+        <h1>IELTS Ai Pro | AI-Powered IELTS Preparation & Instant Feedback</h1>
+        <p>
+          Master the IELTS exam with our advanced AI coaching platform. IELTS Ai Pro is designed to
+          help students achieve their dream band scores through high-tech, objective feedback
+          systems. Our platform leverages state-of-the-art language models and official IELTS band
+          descriptor data to provide you with the most accurate practice experience available online
+          today. Whether you are aiming for a Band 7.0, 7.5, or even a perfect 9.0, our tools are
+          calibrated to push your performance to the next level.
+        </p>
 
-      <h2>Key Preparation Features</h2>
-      <ul>
-        <li><strong>Instant AI Writing Evaluation:</strong> Get your Task 1 and Task 2 essays graded instantly with a
-          predicted band score and specific improvement suggestions.</li>
-        <li><strong>AI-Powered Speaking Lab:</strong> Practice your speaking fluency, pronunciation, and vocabulary range
-          with our interactive voice analysis tool that simulates the real interview environment.</li>
-        <li><strong>Full-Length Realistic Mock Exams:</strong> Our Reading and Listening modules perfectly replicate the
-          official test interface, including accurate timers and question types like multiple choice, matching, and
-          gap-filling.</li>
-        <li><strong>Personalized AI Study Planner:</strong> A dynamic roadmap that adjusts daily based on your performance,
-          ensuring you spend your limited study time on the skills that need the most work.</li>
-        <li><strong>Advanced Band Score Analytics:</strong> Visualize your progress over time with our intuitive dashboard.
-          Track your strengths and weaknesses across all modules and sub-skills.</li>
-      </ul>
+        <p>
+          Our comprehensive training modules cover all four sections of the IELTS exam: Reading,
+          Listening, Writing, and Speaking. Unlike traditional coaching that takes days to return
+          your graded essays, our AI evaluation system provides detailed critiques in under 10
+          seconds. You will receive specific advice on task response, coherence and cohesion,
+          lexical resource, and grammatical range and accuracy. This immediate feedback loop is
+          proven to accelerate learning and help you avoid repeating the same mistakes.
+        </p>
 
-      <h2>Why Choose IELTS Ai Pro?</h2>
-      <p>We believe that quality IELTS preparation should be accessible to everyone, regardless of their location or
-        budget. By combining expert pedagogical knowledge with cutting-edge artificial intelligence, we've created a
-        classroom experience that is available 24/7. Our materials are meticulously developed to match the difficulty
-        and style of Cambridge and IDP/British Council exams. Join thousands of successful learners who have used our
-        platform to unlock their international opportunities for study, work, and migration.</p>
+        <h2>Key Preparation Features</h2>
+        <ul>
+          <li>
+            <strong>Instant AI Writing Evaluation:</strong> Get your Task 1 and Task 2 essays graded
+            instantly with a predicted band score and specific improvement suggestions.
+          </li>
+          <li>
+            <strong>AI-Powered Speaking Lab:</strong> Practice your speaking fluency, pronunciation,
+            and vocabulary range with our interactive voice analysis tool that simulates the real
+            interview environment.
+          </li>
+          <li>
+            <strong>Full-Length Realistic Mock Exams:</strong> Our Reading and Listening modules
+            perfectly replicate the official test interface, including accurate timers and question
+            types like multiple choice, matching, and gap-filling.
+          </li>
+          <li>
+            <strong>Personalized AI Study Planner:</strong> A dynamic roadmap that adjusts daily
+            based on your performance, ensuring you spend your limited study time on the skills that
+            need the most work.
+          </li>
+          <li>
+            <strong>Advanced Band Score Analytics:</strong> Visualize your progress over time with
+            our intuitive dashboard. Track your strengths and weaknesses across all modules and
+            sub-skills.
+          </li>
+        </ul>
 
-      <p>Our platform also includes a wealth of free resources, including band descriptor guides, model essays,
-        vocabulary builders, and strategy articles. We are committed to data security and privacy, ensuring that your
-        learning journey is safe, efficient, and oriented towards results. Start your journey with IELTS Ai Pro today
-        and move one step closer to your global future.</p>
+        <h2>Why Choose IELTS Ai Pro?</h2>
+        <p>
+          We believe that quality IELTS preparation should be accessible to everyone, regardless of
+          their location or budget. By combining expert pedagogical knowledge with cutting-edge
+          artificial intelligence, we've created a classroom experience that is available 24/7. Our
+          materials are meticulously developed to match the difficulty and style of Cambridge and
+          IDP/British Council exams. Join thousands of successful learners who have used our
+          platform to unlock their international opportunities for study, work, and migration.
+        </p>
 
-      <nav>
-        <a href="/">Home</a>
-        <a href="/ielts-writing-checker">IELTS Writing Checker</a>
-        <a href="/ielts-speaking-practice-ai">IELTS Speaking Practice With AI</a>
-        <a href="/ielts-mock-test-online">IELTS Mock Test Online</a>
-        <a href="/cambridge-ielts-practice-tests">Cambridge IELTS Practice Tests</a>
-        <a href="/free-ielts-practice-tests">Free IELTS Practice Tests</a>
-        <a href="/ai-ielts-preparation">AI IELTS Preparation App</a>
-        <a href="/ielts-band-score-feedback">IELTS Band Score Feedback</a>
-        <a href="/about">About Us - Our Mission & Story</a>
-        <a href="/contact">Contact Us - Support & Inquiries</a>
-        <a href="/privacy">Privacy Policy - Data Security & Rights</a>
-        <a href="/terms">Terms of Service - Licensing & Disclaimers</a>
-      </nav>
+        <p>
+          Our platform also includes a wealth of free resources, including band descriptor guides,
+          model essays, vocabulary builders, and strategy articles. We are committed to data
+          security and privacy, ensuring that your learning journey is safe, efficient, and oriented
+          towards results. Start your journey with IELTS Ai Pro today and move one step closer to
+          your global future.
+        </p>
 
-      <footer>
-        <p>&copy; 2026 IELTS Ai Pro. All rights reserved. Professional IELTS preparation platform powered by advanced AI
-          and pedagogical expertise.</p>
-      </footer>
-    </div>
-  </noscript>
+        <nav>
+          <a href="/">Home</a>
+          <a href="/ielts-writing-checker">IELTS Writing Checker</a>
+          <a href="/ielts-speaking-practice-ai">IELTS Speaking Practice With AI</a>
+          <a href="/ielts-mock-test-online">IELTS Mock Test Online</a>
+          <a href="/cambridge-ielts-practice-tests">Cambridge IELTS Practice Tests</a>
+          <a href="/free-ielts-practice-tests">Free IELTS Practice Tests</a>
+          <a href="/ai-ielts-preparation">AI IELTS Preparation App</a>
+          <a href="/ielts-band-score-feedback">IELTS Band Score Feedback</a>
+          <a href="/about">About Us - Our Mission & Story</a>
+          <a href="/contact">Contact Us - Support & Inquiries</a>
+          <a href="/privacy">Privacy Policy - Data Security & Rights</a>
+          <a href="/terms">Terms of Service - Licensing & Disclaimers</a>
+        </nav>
 
-  <script type="module" src="/src/main.tsx"></script>
-</body>
+        <footer>
+          <p>
+            &copy; 2026 IELTS Ai Pro. All rights reserved. Professional IELTS preparation platform
+            powered by advanced AI and pedagogical expertise.
+          </p>
+        </footer>
+      </div>
+    </noscript>
 
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

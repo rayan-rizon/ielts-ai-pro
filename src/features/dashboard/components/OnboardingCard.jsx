@@ -6,16 +6,6 @@ import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.98 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { type: 'spring', stiffness: 120, damping: 18, mass: 0.8 },
-  },
-};
-
 export default function OnboardingCard({ showOnboarding, onboardingSteps, dismissOnboarding }) {
   return (
     <AnimatePresence data-oid="-ssfzh.">
@@ -30,9 +20,9 @@ export default function OnboardingCard({ showOnboarding, onboardingSteps, dismis
           <Card
             className={cn(
               'relative rounded-2xl transition-all duration-300 overflow-hidden group',
-              'bg-white/60 dark:bg-slate-900/50 backdrop-blur-2xl',
-              'border border-white/60 dark:border-white/[0.12]',
-              'shadow-[0_10px_40px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]'
+              'bg-white dark:bg-slate-900',
+              'border border-slate-200 dark:border-slate-800',
+              'shadow-sm'
             )}
             data-oid="0cd6e-7"
           >

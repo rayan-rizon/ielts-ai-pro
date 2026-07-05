@@ -3,12 +3,15 @@ export default {
     tailwindcss: {},
     autoprefixer: {},
     cssnano: {
-      preset: ['default', {
-        discardComments: {
-          removeAll: true,
+      preset: [
+        'default',
+        {
+          discardComments: {
+            removeAll: true,
+          },
+          reduceIdents: false, // Don't mangle animation names
         },
-        reduceIdents: false, // Don't mangle animation names
-      }],
+      ],
     },
   },
 };

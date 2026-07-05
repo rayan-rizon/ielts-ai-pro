@@ -12,19 +12,19 @@ const MAX_CACHE_SIZE = 100;
 
 // Default TTL values (in milliseconds)
 export const CACHE_TTL = {
-    SHORT: 30 * 1000, // 30 seconds - for frequently changing data
-    MEDIUM: 5 * 60 * 1000, // 5 minutes - for user data, stats
-    LONG: 30 * 60 * 1000, // 30 minutes - for relatively static data
-    VERY_LONG: 60 * 60 * 1000, // 1 hour - for static reference data
+  SHORT: 30 * 1000, // 30 seconds - for frequently changing data
+  MEDIUM: 5 * 60 * 1000, // 5 minutes - for user data, stats
+  LONG: 30 * 60 * 1000, // 30 minutes - for relatively static data
+  VERY_LONG: 60 * 60 * 1000, // 1 hour - for static reference data
 };
 
 /**
  * Cache entry structure
  */
 interface CacheEntry {
-    data: any;
-    timestamp: number;
-    ttl: number;
+  data: any;
+  timestamp: number;
+  ttl: number;
 }
 
 /**
@@ -33,18 +33,18 @@ interface CacheEntry {
  * @returns - Cached value or null if not found/expired
  */
 export function getFromCache<T = any>(key: string): T | null {
-    const entry = cache.get(key);
+  const entry = cache.get(key);
 
-    if (!entry) return null;
+  if (!entry) return null;
 
-    const now = Date.now();
-    if (now - entry.timestamp > entry.ttl) {
-        // Cache expired, remove and return null
-        cache.delete(key);
-        return null;
-    }
+  const now = Date.now();
+  if (now - entry.timestamp > entry.ttl) {
+    // Cache expired, remove and return null
+    cache.delete(key);
+    return null;
+  }
 
-    return entry.data as T;
+  return entry.data as T;
 }
 
 /**
@@ -54,16 +54,16 @@ export function getFromCache<T = any>(key: string): T | null {
  * @param ttl - Time to live in ms (default: MEDIUM)
  */
 export function setInCache(key: string, data: any, ttl: number = CACHE_TTL.MEDIUM) {
-    // Evict oldest entries if cache is at capacity
-    if (!cache.has(key) && cache.size >= MAX_CACHE_SIZE) {
-        const oldestKey = cache.keys().next().value;
-        if (oldestKey) cache.delete(oldestKey);
-    }
-    cache.set(key, {
-        data,
-        timestamp: Date.now(),
-        ttl,
-    });
+  // Evict oldest entries if cache is at capacity
+  if (!cache.has(key) && cache.size >= MAX_CACHE_SIZE) {
+    const oldestKey = cache.keys().next().value;
+    if (oldestKey) cache.delete(oldestKey);
+  }
+  cache.set(key, {
+    data,
+    timestamp: Date.now(),
+    ttl,
+  });
 }
 
 /**
@@ -71,7 +71,7 @@ export function setInCache(key: string, data: any, ttl: number = CACHE_TTL.MEDIU
  * @param key - Cache key
  */
 export function removeFromCache(key: string) {
-    cache.delete(key);
+  cache.delete(key);
 }
 
 /**
@@ -79,16 +79,16 @@ export function removeFromCache(key: string) {
  * @param prefix - Optional prefix to match keys
  */
 export function clearCache(prefix?: string) {
-    if (!prefix) {
-        cache.clear();
-        return;
-    }
+  if (!prefix) {
+    cache.clear();
+    return;
+  }
 
-    for (const key of cache.keys()) {
-        if (key.startsWith(prefix)) {
-            cache.delete(key);
-        }
+  for (const key of cache.keys()) {
+    if (key.startsWith(prefix)) {
+      cache.delete(key);
     }
+  }
 }
 
 /**
@@ -97,11 +97,11 @@ export function clearCache(prefix?: string) {
  * @param pattern - Pattern to match keys
  */
 export function invalidateCache(pattern: RegExp) {
-    for (const key of cache.keys()) {
-        if (pattern.test(key)) {
-            cache.delete(key);
-        }
+  for (const key of cache.keys()) {
+    if (pattern.test(key)) {
+      cache.delete(key);
     }
+  }
 }
 
 /**
@@ -111,8 +111,8 @@ export function invalidateCache(pattern: RegExp) {
  * @returns - Cache key
  */
 export function createCacheKey(fnName: string, ...args: any[]): string {
-    const argsHash = JSON.stringify(args);
-    return `${fnName}:${argsHash}`;
+  const argsHash = JSON.stringify(args);
+  return `${fnName}:${argsHash}`;
 }
 
 /**
@@ -123,27 +123,27 @@ export function createCacheKey(fnName: string, ...args: any[]): string {
  * @returns - Cached function
  */
 export function withCache<T extends (...args: any[]) => Promise<any>>(
-    fn: T,
-    keyPrefix: string,
-    ttl: number = CACHE_TTL.MEDIUM
+  fn: T,
+  keyPrefix: string,
+  ttl: number = CACHE_TTL.MEDIUM
 ): (...args: Parameters<T>) => Promise<ReturnType<T>> {
-    return async (...args: Parameters<T>): Promise<ReturnType<T>> => {
-        const key = createCacheKey(keyPrefix, ...args);
+  return async (...args: Parameters<T>): Promise<ReturnType<T>> => {
+    const key = createCacheKey(keyPrefix, ...args);
 
-        // Check cache first
-        const cached = getFromCache(key);
-        if (cached !== null) {
-            return cached;
-        }
+    // Check cache first
+    const cached = getFromCache(key);
+    if (cached !== null) {
+      return cached;
+    }
 
-        // Call original function
-        const result = await fn(...args);
+    // Call original function
+    const result = await fn(...args);
 
-        // Cache the result
-        setInCache(key, result, ttl);
+    // Cache the result
+    setInCache(key, result, ttl);
 
-        return result;
-    };
+    return result;
+  };
 }
 
 /**
@@ -155,37 +155,37 @@ export function withCache<T extends (...args: any[]) => Promise<any>>(
  * @returns - SWR-enabled function
  */
 export function withSWR<T extends (...args: any[]) => Promise<any>>(
-    fn: T,
-    keyPrefix: string,
-    ttl: number = CACHE_TTL.MEDIUM
+  fn: T,
+  keyPrefix: string,
+  ttl: number = CACHE_TTL.MEDIUM
 ): (...args: Parameters<T>) => Promise<ReturnType<T> | null> {
-    return async (...args: Parameters<T>): Promise<ReturnType<T> | null> => {
-        const key = createCacheKey(keyPrefix, ...args);
-        const cached = getFromCache(key);
+  return async (...args: Parameters<T>): Promise<ReturnType<T> | null> => {
+    const key = createCacheKey(keyPrefix, ...args);
+    const cached = getFromCache(key);
 
-        // Start background revalidation
-        const revalidate = async () => {
-            try {
-                const fresh = await fn(...args);
-                setInCache(key, fresh, ttl);
-                return fresh;
-            } catch (error) {
-                console.warn(`Background revalidation failed for ${key}:`, error);
-                return null;
-            }
-        };
-
-        if (cached !== null) {
-            // Return cached data, revalidate in background
-            revalidate();
-            return cached;
-        }
-
-        // No cache, await fresh data
-        const result = await fn(...args);
-        setInCache(key, result, ttl);
-        return result;
+    // Start background revalidation
+    const revalidate = async () => {
+      try {
+        const fresh = await fn(...args);
+        setInCache(key, fresh, ttl);
+        return fresh;
+      } catch (error) {
+        console.warn(`Background revalidation failed for ${key}:`, error);
+        return null;
+      }
     };
+
+    if (cached !== null) {
+      // Return cached data, revalidate in background
+      revalidate();
+      return cached;
+    }
+
+    // No cache, await fresh data
+    const result = await fn(...args);
+    setInCache(key, result, ttl);
+    return result;
+  };
 }
 
 /**
@@ -193,8 +193,8 @@ export function withSWR<T extends (...args: any[]) => Promise<any>>(
  * @returns {{ size: number, keys: string[] }}
  */
 export function getCacheStats(): { size: number; keys: string[] } {
-    return {
-        size: cache.size,
-        keys: Array.from(cache.keys()),
-    };
+  return {
+    size: cache.size,
+    keys: Array.from(cache.keys()),
+  };
 }

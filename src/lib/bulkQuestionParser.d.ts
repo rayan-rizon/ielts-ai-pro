@@ -4,72 +4,72 @@
  */
 
 export interface ParsedQuestion {
-    type: string;
-    question_text: string;
-    question_number?: number | string;
-    correct_answer?: string | string[];
-    correct_answers?: Record<string | number, string>;
+  type: string;
+  question_text: string;
+  question_number?: number | string;
+  correct_answer?: string | string[];
+  correct_answers?: Record<string | number, string>;
+  options?: string[];
+  explanation?: string;
+  matching_data?: {
+    paragraphs?: Array<{ label: string; correct_heading: string }>;
+    headings?: string[];
+  };
+  matching_features?: {
+    mode?: string;
+    questions?: Array<{
+      id: string | number;
+      text: string;
+      answer?: string;
+      correct_answer?: string;
+      questionNumber?: number;
+    }>;
     options?: string[];
-    explanation?: string;
-    matching_data?: {
-        paragraphs?: Array<{ label: string; correct_heading: string }>;
-        headings?: string[];
-    };
-    matching_features?: {
-        mode?: string;
-        questions?: Array<{
-            id: string | number;
-            text: string;
-            answer?: string;
-            correct_answer?: string;
-            questionNumber?: number;
-        }>;
-        options?: string[];
-        answers?: Record<string | number, string>;
-    };
-    table_data?: {
-        headers?: string[];
-        rows?: string[][];
-        blanks?: Array<{
-            id: string | number;
-            blank_num?: number;
-            row: number;
-            col: number;
-            answer?: string;
-            correct_answer?: string;
-        }>;
-        blank_positions?: Array<{
-            id: string | number;
-            blank_num?: number;
-            row: number;
-            col: number;
-            answer?: string;
-            correct_answer?: string;
-        }>;
-    };
-    gap_fill?: {
-        structured_text?: string;
-        answers?: Record<number, string> | string[];
-        gap_count?: number;
-        box_title?: string;
-        question_count?: number;
-    };
+    answers?: Record<string | number, string>;
+  };
+  table_data?: {
+    headers?: string[];
+    rows?: string[][];
+    blanks?: Array<{
+      id: string | number;
+      blank_num?: number;
+      row: number;
+      col: number;
+      answer?: string;
+      correct_answer?: string;
+    }>;
+    blank_positions?: Array<{
+      id: string | number;
+      blank_num?: number;
+      row: number;
+      col: number;
+      answer?: string;
+      correct_answer?: string;
+    }>;
+  };
+  gap_fill?: {
+    structured_text?: string;
+    answers?: Record<number, string> | string[];
+    gap_count?: number;
+    box_title?: string;
+    question_count?: number;
+  };
 }
 
 export interface ParseResult {
-    questions: ParsedQuestion[];
-    errors: string[];
-    warnings: string[];
+  questions: ParsedQuestion[];
+  errors: string[];
+  warnings: string[];
 }
 
 export interface AnswerMap {
-    [questionNumber: string | number]: string;
+  [questionNumber: string | number]: string;
 }
 
 export interface ValidationResult {
-    valid: boolean;
-    errors: string[];
-    warnings: string[];
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
 }
 
 /**

@@ -10,41 +10,41 @@ const MODEL = 'gemini-2.5-flash';
 
 async function fetchFromGemini(systemInstruction, userParts, isJson = false) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-  
+
   const payload = {
-    contents: [{ role: 'user', parts: [{text: systemInstruction}, ...userParts] }],
+    contents: [{ role: 'user', parts: [{ text: systemInstruction }, ...userParts] }],
     generationConfig: {
       temperature: 0.3,
       maxOutputTokens: 8192,
-    }
+    },
   };
-  
+
   if (isJson) {
-      payload.generationConfig.responseMimeType = 'application/json';
-      payload.contents = [{ parts: [{ text: systemInstruction }] }];
+    payload.generationConfig.responseMimeType = 'application/json';
+    payload.contents = [{ parts: [{ text: systemInstruction }] }];
   }
-  
+
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
-  
+
   if (!res.ok) {
     const err = await res.text();
     console.error(`Error: ${res.status} ${err}`);
     return null;
   }
-  
+
   const data = await res.json();
   let text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  
+
   if (text) {
-      let cleanText = text.trim();
-      if (cleanText.startsWith('```json')) cleanText = cleanText.substring(7);
-      else if (cleanText.startsWith('```')) cleanText = cleanText.substring(3);
-      if (cleanText.endsWith('```')) cleanText = cleanText.substring(0, cleanText.length - 3);
-      return JSON.parse(cleanText.trim());
+    let cleanText = text.trim();
+    if (cleanText.startsWith('```json')) cleanText = cleanText.substring(7);
+    else if (cleanText.startsWith('```')) cleanText = cleanText.substring(3);
+    if (cleanText.endsWith('```')) cleanText = cleanText.substring(0, cleanText.length - 3);
+    return JSON.parse(cleanText.trim());
   }
   return null;
 }
@@ -131,31 +131,43 @@ When scoring Task Response:
 - Reward clear argument structure, well-extended reasoning, and precise addressing of the question.
 `;
 
-const writingPrompt = "Some people think that the best way to reduce crime is to give longer prison sentences. Others, however, believe there are better alternative ways of reducing crime. Discuss both views and give your opinion.";
-const writingText = "In recent times, crime has become a serious problem in many societies. There are people who argue that sending criminals to prison for a long time will stop crime, while others say we need different methods. In this essay, I will discuss both sides before giving my opinion.\n\nOn the one hand, longer prison sentences can act as a strong deterrent. If individuals know they will lose their freedom for many years, they might think twice before committing a crime. Furthermore, keeping dangerous criminals locked up protects society. For example, murderers and violent offenders should be removed from the public to prevent further harm. This shows that strict punishment is necessary for serious offences.\n\nOn the other hand, alternatives like rehabilitation and education are also very effective. Many petty crimes are committed due to poverty or lack of opportunities. If we give these people a chance to learn a skill or get an education, they can find a job and contribute to society instead of returning to a life of crime. In addition, community service is a good way to punish minor offenders while giving back to the community.\n\nIn conclusion, while long prison terms are important for serious crimes, I believe that alternative methods such as education and rehabilitation are better ways to reduce crime in the long run. By solving the root causes of crime, we can create a safer society.";
+const writingPrompt =
+  'Some people think that the best way to reduce crime is to give longer prison sentences. Others, however, believe there are better alternative ways of reducing crime. Discuss both views and give your opinion.';
+const writingText =
+  'In recent times, crime has become a serious problem in many societies. There are people who argue that sending criminals to prison for a long time will stop crime, while others say we need different methods. In this essay, I will discuss both sides before giving my opinion.\n\nOn the one hand, longer prison sentences can act as a strong deterrent. If individuals know they will lose their freedom for many years, they might think twice before committing a crime. Furthermore, keeping dangerous criminals locked up protects society. For example, murderers and violent offenders should be removed from the public to prevent further harm. This shows that strict punishment is necessary for serious offences.\n\nOn the other hand, alternatives like rehabilitation and education are also very effective. Many petty crimes are committed due to poverty or lack of opportunities. If we give these people a chance to learn a skill or get an education, they can find a job and contribute to society instead of returning to a life of crime. In addition, community service is a good way to punish minor offenders while giving back to the community.\n\nIn conclusion, while long prison terms are important for serious crimes, I believe that alternative methods such as education and rehabilitation are better ways to reduce crime in the long run. By solving the root causes of crime, we can create a safer society.';
 
 const transcriptParts = {
-    1: [
-        { speaker: 'system', text: 'Where is your hometown?' },
-        { speaker: 'user', text: 'My hometown is Dhaka, it is a very big city in Bangladesh. I like it very much because my friends are there.' }
-    ],
-    2: [
-        { speaker: 'system', text: 'Describe a time when you helped someone.' },
-        { speaker: 'user', text: 'I remember a time when I helped my younger brother with his math homework. He was very sad because he could not do it. I sit with him for 2 hours and explain the formulas. After that he feel very happy and say thank you to me.' }
-    ],
-    3: [
-        { speaker: 'system', text: 'Is it important for neighbors to help each other?' },
-        { speaker: 'user', text: 'Yes, it is very important. Because in everyday life we face many problems and neighbors are the closest people who can help. Like if there is a fire, neighbors come first.' }
-    ]
+  1: [
+    { speaker: 'system', text: 'Where is your hometown?' },
+    {
+      speaker: 'user',
+      text: 'My hometown is Dhaka, it is a very big city in Bangladesh. I like it very much because my friends are there.',
+    },
+  ],
+  2: [
+    { speaker: 'system', text: 'Describe a time when you helped someone.' },
+    {
+      speaker: 'user',
+      text: 'I remember a time when I helped my younger brother with his math homework. He was very sad because he could not do it. I sit with him for 2 hours and explain the formulas. After that he feel very happy and say thank you to me.',
+    },
+  ],
+  3: [
+    { speaker: 'system', text: 'Is it important for neighbors to help each other?' },
+    {
+      speaker: 'user',
+      text: 'Yes, it is very important. Because in everyday life we face many problems and neighbors are the closest people who can help. Like if there is a fire, neighbors come first.',
+    },
+  ],
 };
 
 let fullTranscript = '';
 [1, 2, 3].forEach((part) => {
-    fullTranscript += '=== PART ' + part + ' ===\n';
-    transcriptParts[part].forEach((entry) => {
-        fullTranscript += (entry.speaker === 'user' ? 'Candidate' : 'Examiner') + ': ' + entry.text + '\n';
-    });
-    fullTranscript += '\n';
+  fullTranscript += '=== PART ' + part + ' ===\n';
+  transcriptParts[part].forEach((entry) => {
+    fullTranscript +=
+      (entry.speaker === 'user' ? 'Candidate' : 'Examiner') + ': ' + entry.text + '\n';
+  });
+  fullTranscript += '\n';
 });
 
 const detailedSpeakingPrompt = `
@@ -204,31 +216,30 @@ Format your output as pure JSON like:
 `;
 
 async function run() {
-    console.log("Analyzing Writing Feedback (Task 2)...");
-    const writingFeedback = await fetchFromGemini(
-        writingSystemInstruction, 
-        [{ text: `Task Prompt: ${writingPrompt}\n\nStudent's Essay:\n${writingText}` }]
-    );
+  console.log('Analyzing Writing Feedback (Task 2)...');
+  const writingFeedback = await fetchFromGemini(writingSystemInstruction, [
+    { text: `Task Prompt: ${writingPrompt}\n\nStudent's Essay:\n${writingText}` },
+  ]);
 
-    console.log("Analyzing Detailed Speaking Feedback (Q&A)...");
-    const detailedSpeakingFeedback = await fetchFromGemini(detailedSpeakingPrompt, [], true);
+  console.log('Analyzing Detailed Speaking Feedback (Q&A)...');
+  const detailedSpeakingFeedback = await fetchFromGemini(detailedSpeakingPrompt, [], true);
 
-    console.log("Analyzing Overall Speaking Evaluation...");
-    const overallSpeakingFeedback = await fetchFromGemini(overallSpeakingPrompt, [], true);
+  console.log('Analyzing Overall Speaking Evaluation...');
+  const overallSpeakingFeedback = await fetchFromGemini(overallSpeakingPrompt, [], true);
 
-    const result = {
-        writingFeedback,
-        detailedSpeakingFeedback,
-        overallSpeakingFeedback,
-        testInputs: {
-            writingPrompt,
-            writingText,
-            speakingTranscript: transcriptParts
-        }
-    };
+  const result = {
+    writingFeedback,
+    detailedSpeakingFeedback,
+    overallSpeakingFeedback,
+    testInputs: {
+      writingPrompt,
+      writingText,
+      speakingTranscript: transcriptParts,
+    },
+  };
 
-    fs.writeFileSync('feedback_simulation_results.json', JSON.stringify(result, null, 2));
-    console.log("Results exported to feedback_simulation_results.json");
+  fs.writeFileSync('feedback_simulation_results.json', JSON.stringify(result, null, 2));
+  console.log('Results exported to feedback_simulation_results.json');
 }
 
 run();

@@ -99,4 +99,3 @@ jobs:
           name: lighthouse-reports
           path: .lighthouse/
           if-no-files-found: ignore
-

@@ -2,22 +2,22 @@
 
 ## Quick Commands
 
-| Action | Command |
-|--------|---------|
-| **Backup** | `node scripts/backup-database.js` |
-| **Restore** | `node scripts/restore-database.js <backup-file>` |
-| **Interactive** | `node scripts/database-manager.js` |
-| **Lint** | `supabase db lint` |
-| **Reset** | `supabase db reset` (⚠️ destructive) |
+| Action          | Command                                          |
+| --------------- | ------------------------------------------------ |
+| **Backup**      | `node scripts/backup-database.js`                |
+| **Restore**     | `node scripts/restore-database.js <backup-file>` |
+| **Interactive** | `node scripts/database-manager.js`               |
+| **Lint**        | `supabase db lint`                               |
+| **Reset**       | `supabase db reset` (⚠️ destructive)             |
 
 ## Scripts
 
-| File | Purpose |
-|------|---------|
-| `scripts/backup-database.js` | Creates JSON backup of all 21 tables |
-| `scripts/restore-database.js` | Restores from JSON backup |
+| File                          | Purpose                                  |
+| ----------------------------- | ---------------------------------------- |
+| `scripts/backup-database.js`  | Creates JSON backup of all 21 tables     |
+| `scripts/restore-database.js` | Restores from JSON backup                |
 | `scripts/database-manager.js` | Interactive CLI for backup/restore/reset |
-| `scripts/supabase_sync.py` | Hash-based migration sync (local/remote) |
+| `scripts/supabase_sync.py`    | Hash-based migration sync (local/remote) |
 
 ## Backups
 
@@ -28,14 +28,16 @@
 ## Migrations
 
 **Location:** `supabase/migrations/`  
-**Naming:** `YYYYMMDDHHMMSS_description.sql`  
+**Naming:** `YYYYMMDDHHMMSS_description.sql`
 
 ### Sync to Local
+
 ```bash
 supabase migration up --local
 ```
 
 ### Push to Remote
+
 ```bash
 supabase db push
 ```

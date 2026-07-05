@@ -5,7 +5,6 @@ import { Target, ArrowRight, Activity, BookOpen, Headphones, PenTool, Mic } from
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/cn';
-import { formatBand } from '@/lib/format';
 import { createPageUrl } from '@/utils';
 
 const MODULES = [
@@ -57,10 +56,10 @@ const PerformanceSummaryCard = React.memo(({ recentTests = [], stats }) => {
       <Card
         className={cn(
           'relative rounded-2xl transition-all duration-300 overflow-hidden group h-full flex flex-col items-center justify-center p-6 text-center',
-          'bg-white/60 dark:bg-slate-900/50 backdrop-blur-2xl',
-          'border border-white/60 dark:border-white/[0.12]',
-          'shadow-[0_10px_40px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]',
-          'hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.2)] dark:hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.6)]',
+          'bg-white dark:bg-slate-900',
+          'border border-slate-200 dark:border-slate-800',
+          'shadow-sm',
+          'hover:shadow-md transition-shadow duration-300',
           'hover:border-indigo-500/40 dark:hover:border-indigo-500/40'
         )}
       >
@@ -111,10 +110,10 @@ const PerformanceSummaryCard = React.memo(({ recentTests = [], stats }) => {
     <Card
       className={cn(
         'relative rounded-2xl transition-all duration-300 overflow-hidden group h-full flex flex-col',
-        'bg-white/60 dark:bg-slate-900/50 backdrop-blur-2xl',
-        'border border-white/60 dark:border-white/[0.12]',
-        'shadow-[0_10px_40px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]',
-        'hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.2)] dark:hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.6)]',
+        'bg-white dark:bg-slate-900',
+        'border border-slate-200 dark:border-slate-800',
+        'shadow-sm',
+        'hover:shadow-md transition-shadow duration-300',
         'hover:border-indigo-500/40 dark:hover:border-indigo-500/40'
       )}
     >

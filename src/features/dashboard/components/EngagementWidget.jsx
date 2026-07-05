@@ -1,9 +1,7 @@
 import React, { useMemo } from 'react';
-import { m } from 'framer-motion';
-import { Activity } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
@@ -55,107 +53,84 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
   const getColor = (intensity) => {
     switch (intensity) {
       case 1:
-        return 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-700/30';
+        return 'bg-blue-200 dark:bg-blue-900/60';
       case 2:
-        return 'bg-blue-200 dark:bg-blue-600/60 border-blue-300 dark:border-blue-500/50';
+        return 'bg-blue-400 dark:bg-blue-600/60';
       case 3:
-        return 'bg-blue-400 dark:bg-blue-500 border-blue-500 dark:border-blue-400 shadow-sm';
       case 4:
-        return 'bg-blue-600 dark:bg-blue-400 border-blue-700 dark:border-blue-300 shadow-[0_0_12px_rgba(37,99,235,0.4)] dark:shadow-[0_0_15px_rgba(96,165,250,0.6)]';
+        return 'bg-blue-600 dark:bg-blue-400';
       default:
-        // Fallback, though usually handled by the component logic now
-        return 'bg-white/50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-700/50';
+        // Fallback
+        return 'bg-slate-100 dark:bg-slate-800';
     }
   };
 
   return (
     <Card
       className={cn(
-        'relative rounded-2xl transition-all duration-300 overflow-hidden group h-full flex flex-col',
-        'bg-white/60 dark:bg-slate-900/50 backdrop-blur-2xl',
-        'border border-white/60 dark:border-white/[0.12]',
-        'shadow-[0_10px_40px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]',
-        'hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.2)] dark:hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.6)]',
-        'hover:border-indigo-500/40 dark:hover:border-indigo-500/40'
+        'relative rounded-2xl h-full flex flex-col',
+        'bg-white dark:bg-slate-900',
+        'border border-slate-200 dark:border-slate-800',
+        'shadow-sm'
       )}
       data-oid="4dgh0kh"
     >
-      {/* Decorative pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:24px_24px]"
-        data-oid="hm6saey"
-      />
-
-      {/* Dynamic Gradient Overlay - Made more subtle to match Skill Matrix */}
-      <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none bg-indigo-500/5"
-        data-oid="opj4a9r"
-      />
-
-      <CardHeader className="p-4 pb-0 relative z-10" data-oid="d88298x">
-        <div className="flex items-center justify-between" data-oid="tty22xw">
-          <CardTitle
-            className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2.5"
-            data-oid="f1atz4q"
-          >
-            <div
-              className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 shadow-sm transition-transform group-hover:rotate-12"
-              data-oid="5vqr977"
-            >
-              <Activity
-                className="w-4 h-4 transition-transform duration-500 group-hover:scale-110"
-                data-oid="1_4wiyb"
-              />
-            </div>
-            <div data-oid="1cng8oz">
-              <span className="tracking-tight" data-oid="cd_:gl-">
-                Activity Hub
-              </span>
-              <p
-                className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-6"
-                data-oid="xn1km3q"
+      <CardHeader className="p-6 pb-2 relative z-10" data-oid="d88298x">
+        <div className="flex items-start justify-between" data-oid="tty22xw">
+          <div className="flex items-start gap-3" data-oid="f1atz4q">
+            <Calendar
+              className="w-6 h-6 text-blue-600 dark:text-blue-500 shrink-0 mt-0.5"
+              data-oid="1_4wiyb"
+            />
+            <div data-oid="1cng8oz" className="flex flex-col">
+              <CardTitle
+                className="text-xl font-bold text-slate-900 dark:text-white tracking-tight"
+                data-oid="cd_:gl-"
               >
-                PERFORMANCE PULSE
+                Activity Hub
+              </CardTitle>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1" data-oid="xn1km3q">
+                Your daily test activity over the last 12 weeks.
               </p>
             </div>
-          </CardTitle>
+          </div>
 
           <div
-            className="flex gap-1 p-1 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-white/5"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700"
             data-oid="9alfodk"
           >
-            <div
-              className="w-2.5 h-2.5 rounded-full bg-blue-300 dark:bg-blue-800/60"
-              data-oid="abpak-:"
-            />
-
-            <div
-              className="w-2.5 h-2.5 rounded-full bg-blue-500 dark:bg-blue-600/60 shadow-sm"
-              data-oid="a08vk5r"
-            />
-
-            <div
-              className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-400/80 shadow-md"
-              data-oid="_zk0z49"
-            />
+            <span
+              className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider"
+              data-oid="intensity-label"
+            >
+              Intensity
+            </span>
+            <div className="flex gap-1" data-oid="intensity-dots">
+              <div
+                className="w-2.5 h-2.5 rounded-full bg-blue-200 dark:bg-blue-900/60"
+                data-oid="abpak-:"
+              />
+              <div
+                className="w-2.5 h-2.5 rounded-full bg-blue-400 dark:bg-blue-600/60"
+                data-oid="a08vk5r"
+              />
+              <div
+                className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-400"
+                data-oid="_zk0z49"
+              />
+            </div>
           </div>
         </div>
       </CardHeader>
 
       <CardContent
-        className="relative p-6 pt-2 flex-1 flex flex-col justify-center z-10"
+        className="relative p-6 pt-6 flex-1 flex flex-col justify-center z-10"
         data-oid="zxfz524"
       >
         <div
-          className="relative w-full bg-slate-50 dark:bg-slate-900/60 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm group/heatmap overflow-hidden min-h-[160px] flex items-center justify-center"
+          className="relative w-full flex items-center justify-center min-h-[160px]"
           data-oid="-ui3chd"
         >
-          {/* Subtle Glow behind the heatmap - strengthened */}
-          <div
-            className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.03] to-indigo-500/[0.03] dark:from-blue-500/[0.08] dark:to-indigo-500/[0.08] pointer-events-none"
-            data-oid="q85zzw1"
-          />
-
           <TooltipProvider delayDuration={0} data-oid="grid-tooltip-provider">
             <div className="flex gap-2 min-w-max relative z-10 justify-center" data-oid="0fk3x1i">
               {weeks.map((week, weekIdx) => (
@@ -166,7 +141,7 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
                       return (
                         <div
                           key={dayIdx}
-                          className="w-3.5 h-3.5 rounded-[4px] bg-transparent"
+                          className="w-3.5 h-3.5 rounded-full bg-transparent"
                           data-oid="9alz25o"
                         />
                       );
@@ -177,10 +152,10 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
                         <TooltipTrigger asChild data-oid="d-cn9tm">
                           <div
                             className={cn(
-                              'w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-[4px] border transition-all duration-200 cursor-pointer',
+                              'w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full transition-all duration-200 cursor-pointer',
                               'hover:scale-125 hover:z-20 relative hover:shadow-lg',
                               dayData.intensity === 0
-                                ? 'bg-white dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-400'
+                                ? 'bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-slate-700'
                                 : getColor(dayData.intensity)
                             )}
                             data-oid="ubtw9wq"

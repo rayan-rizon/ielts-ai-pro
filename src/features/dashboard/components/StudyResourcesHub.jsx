@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BookOpen,
   FileText,
-  Download,
   Youtube,
   GraduationCap,
   ArrowRight,
-  Star,
   Play,
   ChevronDown,
   ExternalLink,
@@ -16,10 +14,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Resource } from '@/features/learning/services/Resource';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -172,10 +169,10 @@ const StudyResourcesHub = React.memo(
       <Card
         className={cn(
           'rounded-2xl transition-all duration-300 overflow-hidden group',
-          'bg-white/60 dark:bg-slate-900/50 backdrop-blur-2xl',
-          'border border-white/60 dark:border-white/[0.12]',
-          'shadow-[0_10px_40px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]',
-          'hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.2)] dark:hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.6)]',
+          'bg-white dark:bg-slate-900',
+          'border border-slate-200 dark:border-slate-800',
+          'shadow-sm',
+          'hover:shadow-md transition-shadow duration-300',
           'hover:border-indigo-500/40 dark:hover:border-indigo-500/40'
         )}
       >

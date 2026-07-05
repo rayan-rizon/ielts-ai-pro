@@ -243,14 +243,12 @@ export default function AIInsightsCard({
   isPremium,
   learningPhase,
   nextMilestone,
-  compact = false,
 }) {
   return (
     <motion.div variants={ITEM_VARIANTS} className="h-full" data-oid="uwa-quf">
       <Card
         className={cn(
-          'rounded-3xl bg-white dark:bg-slate-950 backdrop-blur-xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 h-full flex flex-col border border-border/40',
-          compact ? 'min-h-[280px]' : 'min-h-[280px]',
+          'rounded-2xl bg-white/80 dark:bg-slate-950/60 backdrop-blur-md shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col border border-border/30 dark:border-white/5 hover:border-primary/20 hover:-translate-y-0.5',
           isPremium ? 'ring-2 ring-amber-400/20 ring-offset-2 ring-offset-background' : ''
         )}
         data-oid="xikm8:d"

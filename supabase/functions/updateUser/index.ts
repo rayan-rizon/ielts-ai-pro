@@ -10,11 +10,7 @@ import {
   rateLimitedResponse,
 } from '../_shared/security.ts';
 
-const ALLOWED_USER_UPDATE_FIELDS = new Set([
-  'full_name',
-  'subscription_tier',
-  'role',
-]);
+const ALLOWED_USER_UPDATE_FIELDS = new Set(['full_name', 'subscription_tier', 'role']);
 
 function buildSafeUserUpdates(updates: Record<string, unknown>): Record<string, unknown> {
   const safeUpdates: Record<string, unknown> = {};
@@ -102,7 +98,11 @@ Deno.serve(async (req) => {
     try {
       safeUpdates = buildSafeUserUpdates(updates);
     } catch (validationError) {
-      return errorResponse((validationError as Error).message || 'Invalid update fields', 400, corsHeaders);
+      return errorResponse(
+        (validationError as Error).message || 'Invalid update fields',
+        400,
+        corsHeaders
+      );
     }
     if (Object.keys(safeUpdates).length === 0) {
       return errorResponse('No allowed user fields provided', 400, corsHeaders);

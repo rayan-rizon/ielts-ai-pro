@@ -209,7 +209,9 @@ const CoachBrief = ({
               <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
                 <span>Week</span>
               </div>
-              <div className="text-sm font-black text-slate-900 dark:text-white leading-none">{weeklyLabel}</div>
+              <div className="text-sm font-black text-slate-900 dark:text-white leading-none">
+                {weeklyLabel}
+              </div>
               <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-850 overflow-hidden mt-0.5">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500"
@@ -221,15 +223,21 @@ const CoachBrief = ({
             {/* Reviews Widget */}
             <div className="flex items-center justify-between rounded-2xl border border-slate-200/60 dark:border-slate-800/50 bg-slate-50/40 dark:bg-slate-900/20 p-3 shadow-md dark:shadow-slate-950/40 hover:shadow-lg hover:shadow-violet-500/10 transition-all duration-300">
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">Reviews</div>
-                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-none">Protect gains</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                  Reviews
+                </div>
+                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-none">
+                  Protect gains
+                </div>
               </div>
-              <div className={cn(
-                "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
-                dueReviewCount 
-                  ? "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20" 
-                  : "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20"
-              )}>
+              <div
+                className={cn(
+                  'px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider',
+                  dueReviewCount
+                    ? 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20'
+                    : 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20'
+                )}
+              >
                 {dueReviewCount ? `${dueReviewCount} due` : 'Clear'}
               </div>
             </div>
@@ -237,8 +245,12 @@ const CoachBrief = ({
             {/* Target Widget */}
             <div className="flex items-center justify-between rounded-2xl border border-slate-200/60 dark:border-slate-800/50 bg-slate-50/40 dark:bg-slate-900/20 p-3 shadow-md dark:shadow-slate-950/40 hover:shadow-lg hover:shadow-violet-500/10 transition-all duration-300">
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">Target</div>
-                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-none">{examLabel}</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                  Target
+                </div>
+                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-none">
+                  {examLabel}
+                </div>
               </div>
               <div className="text-xs font-black text-violet-600 dark:text-violet-400 bg-violet-500/10 px-2.5 py-1 rounded-full border border-violet-500/20">
                 Band {Number(targetBand).toFixed(1)}
@@ -603,10 +615,10 @@ const LearningPath = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="py-3 pl-14 pr-2 sm:p-3.5 md:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-3 sm:space-y-4 md:space-y-6 relative z-10"
+          className="py-4 px-3 sm:p-4 md:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-4 md:space-y-6 relative z-10"
         >
           {/* Header Section */}
-          <m.header variants={itemVariants} className="space-y-4">
+          <m.header variants={itemVariants} className="space-y-4 pl-12 md:pl-0">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2.5 sm:gap-3.5">
               <div className="max-w-3xl">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -691,7 +703,10 @@ const LearningPath = () => {
 
           {/* Today-first coaching layout */}
           <div className="grid grid-cols-12 gap-4 auto-rows-max items-start">
-            <m.div variants={itemVariants} className="col-span-12 lg:col-span-8 self-stretch flex flex-col">
+            <m.div
+              variants={itemVariants}
+              className="col-span-12 lg:col-span-8 self-stretch flex flex-col"
+            >
               <CoachBrief
                 dailyFocus={dailyFocus}
                 loading={isLoading}
@@ -711,7 +726,10 @@ const LearningPath = () => {
               />
             </m.div>
 
-            <m.div variants={itemVariants} className="col-span-12 lg:col-span-4 self-stretch flex flex-col">
+            <m.div
+              variants={itemVariants}
+              className="col-span-12 lg:col-span-4 self-stretch flex flex-col"
+            >
               <ProgressForecast
                 loading={isLoading}
                 currentReadiness={completionPercent}

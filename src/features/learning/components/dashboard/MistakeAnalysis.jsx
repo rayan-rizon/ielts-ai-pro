@@ -55,7 +55,10 @@ const MistakeAnalysis = ({ mistakePatterns, onSelectToday, className, loading = 
 
   return (
     <GlassCard
-      className={cn('relative p-5 sm:p-6 bg-gradient-to-br from-white/95 to-slate-50/95 dark:from-slate-950/90 dark:to-slate-900/90 border-t-2 border-t-indigo-500/40 shadow-md dark:shadow-slate-950/40 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 overflow-hidden', className)}
+      className={cn(
+        'relative p-5 sm:p-6 bg-gradient-to-br from-white/95 to-slate-50/95 dark:from-slate-950/90 dark:to-slate-900/90 border-t-2 border-t-indigo-500/40 shadow-md dark:shadow-slate-950/40 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 overflow-hidden',
+        className
+      )}
       data-oid="c52ljmm"
     >
       {/* Decorative Aura / Glows */}
@@ -165,7 +168,9 @@ const MistakeAnalysis = ({ mistakePatterns, onSelectToday, className, loading = 
                       className="text-[10px] font-bold text-slate-500 dark:text-slate-400"
                       data-oid="b5dn9bh"
                     >
-                      {targetModule ? `Train in ${targetModule.charAt(0).toUpperCase() + targetModule.slice(1)}` : 'Train now'}
+                      {targetModule
+                        ? `Train in ${targetModule.charAt(0).toUpperCase() + targetModule.slice(1)}`
+                        : 'Train now'}
                     </div>
                     <Button
                       size="sm"

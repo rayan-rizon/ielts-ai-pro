@@ -66,15 +66,15 @@ supabase/
 
 ## Key Commands
 
-| Action               | Command                           |
-| -------------------- | --------------------------------- |
-| **Dev Server**       | `npm run dev`                     |
-| **Build**            | `npm run build`                   |
-| **Unit Tests**       | `npm run test:unit`               |
-| **E2E Tests**        | `npx playwright test`             |
-| **Database Backup**  | `node scripts/backup-database.js` |
-| **Supabase Start**   | `supabase start`                  |
-| **Push Migrations**  | `supabase db push`                |
+| Action              | Command                           |
+| ------------------- | --------------------------------- |
+| **Dev Server**      | `npm run dev`                     |
+| **Build**           | `npm run build`                   |
+| **Unit Tests**      | `npm run test:unit`               |
+| **E2E Tests**       | `npx playwright test`             |
+| **Database Backup** | `node scripts/backup-database.js` |
+| **Supabase Start**  | `supabase start`                  |
+| **Push Migrations** | `supabase db push`                |
 
 ## Related Documentation
 

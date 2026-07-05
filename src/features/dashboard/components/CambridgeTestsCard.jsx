@@ -23,10 +23,10 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [], user }) => {
     <Card
       className={cn(
         'rounded-2xl transition-all duration-300 overflow-hidden group flex flex-col h-full',
-        'bg-white/60 dark:bg-slate-900/50 backdrop-blur-2xl',
-        'border border-white/60 dark:border-white/[0.12]',
-        'shadow-[0_10px_40px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]',
-        'hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.2)] dark:hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.6)]',
+        'bg-white dark:bg-slate-900',
+        'border border-slate-200 dark:border-slate-800',
+        'shadow-sm',
+        'hover:shadow-md transition-shadow duration-300',
         'hover:border-indigo-500/40 dark:hover:border-indigo-500/40'
       )}
       data-oid="d2101jw"
@@ -131,10 +131,10 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [], user }) => {
                       <div
                         className={cn(
                           'relative overflow-hidden h-full rounded-2xl transition-all duration-300',
-                          'bg-white/60 dark:bg-slate-900/50 backdrop-blur-md',
-                          'border border-slate-200/70 dark:border-white/10',
+                          'bg-slate-50/50 dark:bg-slate-900/50',
+                          'border border-slate-200 dark:border-slate-800',
                           'shadow-sm',
-                          'hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.2)] dark:hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.6)]',
+                          'hover:bg-white dark:hover:bg-slate-900 hover:shadow-md transition-all duration-300',
                           'hover:border-indigo-500/40 dark:hover:border-indigo-500/40'
                         )}
                         data-oid="5dk-ed4"

@@ -1,6 +1,6 @@
 export interface EmailTemplate {
-    subject: string;
-    html: string;
+  subject: string;
+  html: string;
 }
 
 // Brand & URL Constants
@@ -138,21 +138,20 @@ const wrapTemplate = (content: string, preheader: string, baseUrl: string) => `
 </html>
 `;
 
-
 export function getEmailTemplate(type: string, data: any): EmailTemplate {
-    const name = data.full_name || 'there';
-    const baseUrl = BASE_URL;
-    const sanitizedName = name.replace(/[<>]/g, ''); // Prevent HTML injection
-    
-    let subject = '';
-    let preheader = '';
-    let htmlContent = '';
+  const name = data.full_name || 'there';
+  const baseUrl = BASE_URL;
+  const sanitizedName = name.replace(/[<>]/g, ''); // Prevent HTML injection
 
-    switch (type) {
-        case 'welcome':
-            subject = "Your Premium IELTS training starts now 🚀";
-            preheader = "Unlimited AI feedback, priority processing, and personalized insights await.";
-            htmlContent = `
+  let subject = '';
+  let preheader = '';
+  let htmlContent = '';
+
+  switch (type) {
+    case 'welcome':
+      subject = 'Your Premium IELTS training starts now 🚀';
+      preheader = 'Unlimited AI feedback, priority processing, and personalized insights await.';
+      htmlContent = `
                 <h1>Welcome to Premium, ${sanitizedName}! 🎓</h1>
                 <p class="large">You've just unlocked everything you need to crush your target band score.</p>
                 
@@ -175,12 +174,12 @@ export function getEmailTemplate(type: string, data: any): EmailTemplate {
                     <strong>Need help?</strong> Open your dashboard anytime for support, practice, and progress tracking.
                 </p>
             `;
-            break;
+      break;
 
-        case 'renewal_confirmation':
-            subject = "Your Premium subscription renewed successfully ✅";
-            preheader = "Uninterrupted access to unlimited practice and expert feedback.";
-            htmlContent = `
+    case 'renewal_confirmation':
+      subject = 'Your Premium subscription renewed successfully ✅';
+      preheader = 'Uninterrupted access to unlimited practice and expert feedback.';
+      htmlContent = `
                 <h1>Subscription Renewed Successfully</h1>
                 <p class="large">Your IELTS AI Pro Premium membership is continuing strong.</p>
                 
@@ -205,12 +204,12 @@ export function getEmailTemplate(type: string, data: any): EmailTemplate {
                     <strong>Need to review your billing details?</strong> Visit your <a href="${baseUrl}/settings?tab=subscription">subscription settings</a> to view invoices, payment methods, and renewal dates.
                 </p>
             `;
-            break;
+      break;
 
-        case 'payment_failed':
-            subject = "❌ Payment failed—update your payment method";
-            preheader = "We couldn't process your renewal. Here's how to fix it quickly.";
-            htmlContent = `
+    case 'payment_failed':
+      subject = '❌ Payment failed—update your payment method';
+      preheader = "We couldn't process your renewal. Here's how to fix it quickly.";
+      htmlContent = `
                 <h1 style="color: #ef4444;">Payment Failed ⚠️</h1>
                 <p class="large">We tried to process your Premium subscription renewal, but it didn't go through.</p>
                 
@@ -233,12 +232,12 @@ export function getEmailTemplate(type: string, data: any): EmailTemplate {
                     <strong>Still having issues?</strong> Our support team is here to help. <a href="mailto:${SUPPORT_EMAIL}">Email us with your billing question</a>, and we'll resolve it ASAP.
                 </p>
             `;
-            break;
+      break;
 
-        case 'quota_conversion':
-            subject = "Upgrade now: You're down to your last evaluation 🎯";
-            preheader = "Unlock unlimited practice before your free credits run out.";
-            htmlContent = `
+    case 'quota_conversion':
+      subject = "Upgrade now: You're down to your last evaluation 🎯";
+      preheader = 'Unlock unlimited practice before your free credits run out.';
+      htmlContent = `
                 <h1>You're Making Real Progress! 🔥</h1>
                 <p class="large">You have just <span class="highlight">1 evaluation remaining</span> in your free practice quota.</p>
                 
@@ -263,15 +262,18 @@ export function getEmailTemplate(type: string, data: any): EmailTemplate {
                     or <a href="${baseUrl}/dashboard">use your last evaluation first</a>
                 </div>
             `;
-            break;
+      break;
 
-        case 'renewal_reminder':
-            const renewDate = data.subscription_end_date 
-                ? new Date(data.subscription_end_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
-                : 'next week';
-            subject = "Reminder: Your Premium renewal is in 7 days";
-            preheader = "Your subscription will automatically renew on " + renewDate + ".";
-            htmlContent = `
+    case 'renewal_reminder':
+      const renewDate = data.subscription_end_date
+        ? new Date(data.subscription_end_date).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+          })
+        : 'next week';
+      subject = 'Reminder: Your Premium renewal is in 7 days';
+      preheader = 'Your subscription will automatically renew on ' + renewDate + '.';
+      htmlContent = `
                 <h1>Subscription Renewal Reminder 📅</h1>
                 <p>Hi ${sanitizedName},</p>
                 
@@ -293,15 +295,18 @@ export function getEmailTemplate(type: string, data: any): EmailTemplate {
                     You can update your payment method, change your billing interval, or cancel anytime from your subscription settings. We're here to make it easy.
                 </p>
             `;
-            break;
+      break;
 
-        case 'trial_expiry':
-            const expiryDate = data.referral_bonus_expires_at 
-                ? new Date(data.referral_bonus_expires_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
-                : 'very soon';
-            subject = "⏳ 3 days left: Use your bonus credits before they expire";
-            preheader = "Your referral bonus evaluations expire on " + expiryDate + ".";
-            htmlContent = `
+    case 'trial_expiry':
+      const expiryDate = data.referral_bonus_expires_at
+        ? new Date(data.referral_bonus_expires_at).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+          })
+        : 'very soon';
+      subject = '⏳ 3 days left: Use your bonus credits before they expire';
+      preheader = 'Your referral bonus evaluations expire on ' + expiryDate + '.';
+      htmlContent = `
                 <h1 style="color: #f59e0b;">Your Bonus Credits Expire Soon ⏳</h1>
                 <p class="large">You have <strong>3 days left</strong> to use your bonus evaluation credits!</p>
                 
@@ -323,12 +328,12 @@ export function getEmailTemplate(type: string, data: any): EmailTemplate {
                     After ${expiryDate}, you can still practice with Premium or our free tier.<br>Ready to upgrade? <a href="${baseUrl}/pricing">See our Premium plans</a>.
                 </p>
             `;
-            break;
+      break;
 
-        case 'inactivity_warning':
-            subject = "Come back: Your IELTS prep is waiting for you 👋";
-            preheader = "Get back on track with a quick free practice session.";
-            htmlContent = `
+    case 'inactivity_warning':
+      subject = 'Come back: Your IELTS prep is waiting for you 👋';
+      preheader = 'Get back on track with a quick free practice session.';
+      htmlContent = `
                 <h1>We Notice You've Been Away 👋</h1>
                 <p class="large">It's been 7 days since your last practice session, ${sanitizedName}.</p>
                 
@@ -350,23 +355,23 @@ export function getEmailTemplate(type: string, data: any): EmailTemplate {
                 <h3 style="font-size: 16px; margin: 12px 0 8px 0; color: #1e293b; font-weight: 700;">Not sure what to practice?</h3>
                 <p style="font-size: 14px; margin: 0;">Try a <strong>Speaking test</strong> (takes ~15 min) or a <strong>Writing task</strong> (takes ~20 min). Pick whichever section needs the most work.</p>
             `;
-            break;
+      break;
 
-        default:
-            subject = "New message from IELTS AI Pro";
-            preheader = "Important notification";
-            htmlContent = `
+    default:
+      subject = 'New message from IELTS AI Pro';
+      preheader = 'Important notification';
+      htmlContent = `
                 <h1>Hello ${sanitizedName}</h1>
                 <p>You've received a notification from IELTS AI Pro. Please log in to your account to view details.</p>
                 <div class="cta-container">
                     <a href="${baseUrl}/dashboard" class="btn">Open Dashboard</a>
                 </div>
             `;
-            break;
-    }
+      break;
+  }
 
-    return {
-        subject,
-        html: wrapTemplate(htmlContent, preheader, baseUrl)
-    };
+  return {
+    subject,
+    html: wrapTemplate(htmlContent, preheader, baseUrl),
+  };
 }

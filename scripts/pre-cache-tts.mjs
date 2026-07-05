@@ -47,17 +47,17 @@ const STATIC_PHRASES = [
   },
   {
     id: 'greeting_part2_start',
-    text: "Alright, your preparation time is up. Please start speaking now. Remember, you should talk for 1 to 2 minutes.",
+    text: 'Alright, your preparation time is up. Please start speaking now. Remember, you should talk for 1 to 2 minutes.',
   },
 
   // ── Farewell / Part complete ──
   {
     id: 'farewell_part1',
-    text: "Thank you. That concludes Part 1. You did very well.",
+    text: 'Thank you. That concludes Part 1. You did very well.',
   },
   {
     id: 'farewell_part2',
-    text: "Thank you for your response. That brings us to the end of Part 2.",
+    text: 'Thank you for your response. That brings us to the end of Part 2.',
   },
   {
     id: 'farewell_part3',
@@ -65,7 +65,7 @@ const STATIC_PHRASES = [
   },
   {
     id: 'farewell_full_test',
-    text: "Thank you for completing all three parts of the IELTS Speaking Test. Your responses have been recorded and evaluated.",
+    text: 'Thank you for completing all three parts of the IELTS Speaking Test. Your responses have been recorded and evaluated.',
   },
 
   // ── Recovery / Retry ──
@@ -89,7 +89,7 @@ const STATIC_PHRASES = [
   },
   {
     id: 'transition_good_answer',
-    text: "Good. Let me ask you about something else now.",
+    text: 'Good. Let me ask you about something else now.',
   },
 
   // ── Timer expired messages ──
@@ -209,7 +209,9 @@ async function main() {
       }
 
       const { data: urlData } = supabase.storage.from(TTS_BUCKET).getPublicUrl(fileName);
-      console.log(` ✅ ${(audioBuffer.length / 1024).toFixed(1)}KB — ${urlData?.publicUrl?.slice(-50)}`);
+      console.log(
+        ` ✅ ${(audioBuffer.length / 1024).toFixed(1)}KB — ${urlData?.publicUrl?.slice(-50)}`
+      );
       cached++;
 
       // Small delay between API calls to be kind to the rate limit
@@ -224,7 +226,9 @@ async function main() {
   console.log(`   ✅ Newly cached : ${cached}`);
   console.log(`   ⏭️  Already cached: ${skipped}`);
   console.log(`   ❌ Failed       : ${failed}`);
-  console.log(`\n💰 Estimated cost: $${((cached * 150) / 1_000_000 * 16).toFixed(6)} (Google Neural2 pricing)\n`);
+  console.log(
+    `\n💰 Estimated cost: $${(((cached * 150) / 1_000_000) * 16).toFixed(6)} (Google Neural2 pricing)\n`
+  );
 }
 
 main().catch((err) => {

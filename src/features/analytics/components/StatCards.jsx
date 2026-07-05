@@ -91,7 +91,7 @@ export default function StatCards({ stats, progressToTarget }) {
         <Card
           key={idx}
           className={cn(
-            'rounded-2xl border border-border/40 bg-white dark:bg-slate-950 backdrop-blur-md shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden relative hover:-translate-y-1 h-full min-h-[132px]',
+            'rounded-2xl border border-border/30 bg-white/85 dark:bg-slate-950/60 backdrop-blur-md shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden relative hover:-translate-y-0.5 h-full min-h-[110px]',
             card.color === 'bg-primary'
               ? 'hover:border-primary/30 hover:shadow-primary/5'
               : card.color === 'bg-amber-500'
@@ -122,20 +122,20 @@ export default function StatCards({ stats, progressToTarget }) {
           />
 
           <CardContent
-            className="p-3.5 h-full flex flex-col justify-between relative z-10"
+            className="p-3 md:p-3.5 h-full flex flex-col justify-between relative z-10"
             data-oid="ls.-irc"
           >
-            <div className="flex items-start justify-between gap-2 mb-2" data-oid="96yih:u">
-              <div className="space-y-1 min-w-0" data-oid="v.erel8">
+            <div className="flex items-start justify-between gap-2 mb-1.5" data-oid="96yih:u">
+              <div className="space-y-0.5 min-w-0" data-oid="v.erel8">
                 <p
-                  className="text-[10px] font-black uppercase text-muted-foreground/80 tracking-wider"
+                  className="text-[9px] font-black uppercase text-muted-foreground/75 tracking-wider"
                   data-oid="4b9v7am"
                 >
                   {card.title}
                 </p>
                 <div className="flex flex-wrap items-center gap-1.5 min-w-0" data-oid="1ilsr:u">
                   <h2
-                    className="text-2xl font-black text-foreground tracking-tight leading-none"
+                    className="text-xl sm:text-2xl font-black text-foreground tracking-tight leading-none"
                     data-oid="ockgv13"
                   >
                     {card.value}
@@ -144,7 +144,7 @@ export default function StatCards({ stats, progressToTarget }) {
                     <Badge
                       variant="outline"
                       className={cn(
-                        'rounded-lg text-[9px] px-2 py-0.5 border-0 font-bold tracking-tight max-w-[108px] truncate',
+                        'rounded-lg text-[8px] px-1.5 py-0 border-0 font-bold tracking-tight max-w-[90px] truncate',
                         card.color === 'bg-primary'
                           ? 'bg-primary/10 text-primary'
                           : 'bg-amber-500/10 text-amber-500 dark:text-amber-400'
@@ -156,7 +156,7 @@ export default function StatCards({ stats, progressToTarget }) {
                   )}
                 </div>
                 {card.subtitle && (
-                  <p className="text-[9px] font-bold text-muted-foreground/60 tracking-wide truncate">
+                  <p className="text-[8px] font-bold text-muted-foreground/60 tracking-wide truncate">
                     {card.subtitle}
                   </p>
                 )}
@@ -164,24 +164,24 @@ export default function StatCards({ stats, progressToTarget }) {
               <IconWrapper
                 icon={card.icon}
                 color={card.color}
-                className="p-1.5 shadow-sm group-hover:scale-110 transition-transform duration-300 opacity-80 group-hover:opacity-100"
+                className="p-1 shadow-sm group-hover:scale-105 transition-transform duration-300 opacity-85 group-hover:opacity-100"
                 data-oid="g1z:dm:"
               />
             </div>
 
-            <div className="space-y-1.5 mt-auto" data-oid="0fi1-6p">
+            <div className="space-y-1 mt-auto" data-oid="0fi1-6p">
               {card.footerType === 'progress' && (
                 <>
                   <div className="flex items-end justify-between px-0.5" data-oid="ydynymb">
                     <span
-                      className="text-[10px] font-bold text-muted-foreground/70 tracking-wide"
+                      className="text-[9px] font-bold text-muted-foreground/70 tracking-wide"
                       data-oid="ewuwdg0"
                     >
                       {card.trendLabel}
                     </span>
                     <div
                       className={cn(
-                        'flex items-center gap-1 text-[9px] font-black',
+                        'flex items-center gap-1 text-[8px] font-black',
                         !hasScoreData
                           ? 'text-muted-foreground'
                           : Number(card.trend) >= 0
@@ -195,7 +195,7 @@ export default function StatCards({ stats, progressToTarget }) {
                     </div>
                   </div>
                   <div
-                    className="h-1.5 w-full bg-muted/50 rounded-full overflow-hidden"
+                    className="h-1 w-full bg-muted/50 rounded-full overflow-hidden"
                     data-oid="79-f5sg"
                   >
                     <motion.div
@@ -211,13 +211,13 @@ export default function StatCards({ stats, progressToTarget }) {
               {card.footerType === 'gap' && (
                 <div className="flex flex-col gap-0.5" data-oid="j3eh6pb">
                   <p
-                    className="text-[10px] font-bold text-muted-foreground/70 tracking-wide"
+                    className="text-[9px] font-bold text-muted-foreground/70 tracking-wide"
                     data-oid="66__cxl"
                   >
                     Remaining Gap
                   </p>
                   <div
-                    className="text-[11px] font-bold text-foreground leading-snug"
+                    className="text-[10px] font-bold text-foreground leading-snug"
                     data-oid="8q0-un5"
                   >
                     {!hasScoreData ? (
@@ -242,9 +242,9 @@ export default function StatCards({ stats, progressToTarget }) {
               )}
 
               {card.footerType === 'intensity' && (
-                <div className="flex flex-col gap-1" data-oid="88u_3h:">
+                <div className="flex flex-col gap-0.5" data-oid="88u_3h:">
                   <p
-                    className="text-[10px] font-bold text-muted-foreground/70 tracking-wide"
+                    className="text-[9px] font-bold text-muted-foreground/70 tracking-wide"
                     data-oid="4-52n2o"
                   >
                     Study Pattern
@@ -252,7 +252,7 @@ export default function StatCards({ stats, progressToTarget }) {
                   <div className="flex items-center justify-between gap-2" data-oid="omjuv_g">
                     <div
                       className={cn(
-                        'flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded-md',
+                        'flex items-center gap-1 text-[8px] font-black px-1.5 py-0.5 rounded-md',
                         card.trendPositive
                           ? 'bg-emerald-500/10 text-emerald-600'
                           : 'bg-rose-500/10 text-rose-600'
@@ -261,14 +261,14 @@ export default function StatCards({ stats, progressToTarget }) {
                     >
                       {card.trendIcon && (
                         <card.trendIcon
-                          className={cn('w-2.5 h-2.5', !card.trendPositive && 'rotate-180')}
+                          className={cn('w-2 h-2', !card.trendPositive && 'rotate-180')}
                           data-oid="1qsnatw"
                         />
                       )}
                       {card.trend}
                     </div>
                     <div
-                      className="text-[9px] font-black text-foreground/70 bg-muted/60 px-1.5 py-0.5 rounded-md whitespace-nowrap"
+                      className="text-[8px] font-black text-foreground/70 bg-muted/60 px-1.5 py-0.5 rounded-md whitespace-nowrap"
                       data-oid="_ak2o:8"
                     >
                       {averageMinutes ? `${averageMinutes} min/test` : 'No timing yet'}
@@ -280,12 +280,12 @@ export default function StatCards({ stats, progressToTarget }) {
               {card.footerType === 'vocab' && (
                 <div className="flex flex-col gap-0.5" data-oid="023wg95">
                   <p
-                    className="text-[10px] font-bold text-muted-foreground/70 tracking-wide"
+                    className="text-[9px] font-bold text-muted-foreground/70 tracking-wide"
                     data-oid="7333r.4"
                   >
                     Library Status
                   </p>
-                  <div className="text-xs font-bold text-foreground" data-oid="vpufnxb">
+                  <div className="text-[10px] font-bold text-foreground" data-oid="vpufnxb">
                     Active Entries
                   </div>
                 </div>

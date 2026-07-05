@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import { Inbox, Loader2, Lightbulb, ClipboardList, ChevronLeft, CheckCircle } from 'lucide-react';
+import { Inbox, Loader2, Lightbulb, ChevronLeft, CheckCircle } from 'lucide-react';
 import PremiumLoading from '@/components/ui/PremiumLoading';
-import { useAuth } from '@/features/auth/context/AuthContext';
 
 import { cn, formatInstructionHTML } from '@/lib/utils';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
@@ -28,12 +25,10 @@ import {
   ListeningTestProvider,
   useListeningTestState,
   useListeningTestDispatch,
-  LISTENING_ACTIONS,
 } from '../components/ListeningTest/context/ListeningTestContext';
 import { useTestNavigation } from '@/hooks/useTestNavigation';
 import { useGamification } from '@/hooks/useGamification';
 import ResizeHandle from '@/components/ui/resize-handle';
-import ListeningTestClock from '../components/ListeningTest/components/ListeningTestClock';
 import TranscriptPanel from '../components/ListeningTest/components/TranscriptPanel';
 import { useListeningTestLogic } from '../components/ListeningTest/hooks/useListeningTestLogic';
 import { useListeningTestStore } from '../store/useListeningTestStore';
@@ -62,8 +57,6 @@ const FlowchartRenderer = React.lazy(
 );
 
 function ListeningTestInner() {
-  const navigate = useNavigate();
-
   // Core Logic Hook
   const {
     audioPlayerRef,
@@ -77,7 +70,6 @@ function ListeningTestInner() {
   const {
     answers,
     testData,
-    questions,
     questionsWithNumbers,
     session,
     isLoading,
@@ -104,7 +96,9 @@ function ListeningTestInner() {
         : [];
   }, [testData]);
 
-  const currentSection = displaySections[activePart] || {};
+  const currentSection = React.useMemo(() => {
+    return displaySections[activePart] || {};
+  }, [displaySections, activePart]);
   // Section Questions Logic
   const sectionQuestions = React.useMemo(() => {
     if (!questionsWithNumbers) return [];
@@ -150,7 +144,8 @@ function ListeningTestInner() {
   }, [activePart]);
 
   // Gamification
-  const { showConfetti, showXPNotification, earnedXP, setShowXPNotification, setShowConfetti } = useGamification();
+  const { showConfetti, showXPNotification, earnedXP, setShowXPNotification, setShowConfetti } =
+    useGamification();
 
   // Navigation Blocker
   const { showExitDialog, setShowExitDialog, handleExit } = useTestNavigation({
@@ -399,9 +394,6 @@ function ListeningTestInner() {
 
     return { results, totalQ, totalAns };
   }, [displaySections, questionsWithNumbers, answers]);
-
-  const maxQuestions = stats.totalQ > 0 ? stats.totalQ : 40;
-  const progressPercentage = Math.round((stats.totalAns / maxQuestions) * 100);
 
   if (isLoading) {
     return <PremiumLoading message="Initializing listening test..." />;

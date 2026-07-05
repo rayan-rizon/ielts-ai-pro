@@ -111,10 +111,10 @@ const AILearningPathCard = React.memo(
         <Card
           className={cn(
             'relative rounded-2xl transition-all duration-300 overflow-hidden group/card h-full flex flex-col',
-            'bg-white/60 dark:bg-slate-950/60 backdrop-blur-2xl',
-            'border border-white/60 dark:border-white/[0.08]',
-            'shadow-[0_10px_40px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]',
-            'hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.2)] dark:hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.4)]',
+            'bg-white dark:bg-slate-900',
+            'border border-slate-200 dark:border-slate-800',
+            'shadow-sm',
+            'hover:shadow-md transition-shadow duration-300',
             'hover:border-indigo-500/40 dark:hover:border-indigo-500/40'
           )}
           data-oid=":5z6c6x"
@@ -314,7 +314,7 @@ const AILearningPathCard = React.memo(
                           src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`}
                           alt="avatar"
                           loading="lazy"
-                          fetchpriority="low"
+                          fetchPriority="low"
                           data-oid="pyh6m_l"
                         />
                       </div>

@@ -16,26 +16,26 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function fetchFromGemini(systemInstruction, userParts, isJson = false) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-  
+
   const payload = {
-    contents: [{ role: 'user', parts: [{text: systemInstruction}, ...userParts] }],
+    contents: [{ role: 'user', parts: [{ text: systemInstruction }, ...userParts] }],
     generationConfig: {
       temperature: 0.3,
       maxOutputTokens: 8192,
-    }
+    },
   };
-  
+
   if (isJson) {
-      payload.generationConfig.responseMimeType = 'application/json';
-      payload.contents = [{ parts: [{ text: systemInstruction }] }];
+    payload.generationConfig.responseMimeType = 'application/json';
+    payload.contents = [{ parts: [{ text: systemInstruction }] }];
   }
-  
+
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
-  
+
   if (!res.ok) {
     const err = await res.text();
     console.error(`Error: ${res.status} ${err}`);
@@ -44,16 +44,16 @@ async function fetchFromGemini(systemInstruction, userParts, isJson = false) {
   const data = await res.json();
   let text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (text) {
-      let cleanText = text.trim();
-      if (cleanText.startsWith('```json')) cleanText = cleanText.substring(7);
-      else if (cleanText.startsWith('```')) cleanText = cleanText.substring(3);
-      if (cleanText.endsWith('```')) cleanText = cleanText.substring(0, cleanText.length - 3);
-      try {
-          return JSON.parse(cleanText.trim());
-      } catch (e) {
-          console.error("JSON parse error, attempting to fix or returning empty object.", e.message);
-          return {}; // fallback
-      }
+    let cleanText = text.trim();
+    if (cleanText.startsWith('```json')) cleanText = cleanText.substring(7);
+    else if (cleanText.startsWith('```')) cleanText = cleanText.substring(3);
+    if (cleanText.endsWith('```')) cleanText = cleanText.substring(0, cleanText.length - 3);
+    try {
+      return JSON.parse(cleanText.trim());
+    } catch (e) {
+      console.error('JSON parse error, attempting to fix or returning empty object.', e.message);
+      return {}; // fallback
+    }
   }
   return null;
 }
@@ -250,88 +250,122 @@ Format output as pure JSON:
 }
 `;
 
-
-
 function stripHtml(html) {
-    if (!html) return '';
-    return html.replace(/<[^>]*>?/gm, '').trim();
+  if (!html) return '';
+  return html.replace(/<[^>]*>?/gm, '').trim();
 }
 
 async function run() {
-    // 1. Fetch real questions
-    console.log("Fetching real questions from Supabase...");
-    const { data: wTests } = await supabase.from('passages').select('*, questions(*)').eq('test_type', 'writing').limit(1);
-    const { data: sTests } = await supabase.from('passages').select('*, questions(*)').eq('test_type', 'speaking').limit(1);
+  // 1. Fetch real questions
+  console.log('Fetching real questions from Supabase...');
+  const { data: wTests } = await supabase
+    .from('passages')
+    .select('*, questions(*)')
+    .eq('test_type', 'writing')
+    .limit(1);
+  const { data: sTests } = await supabase
+    .from('passages')
+    .select('*, questions(*)')
+    .eq('test_type', 'speaking')
+    .limit(1);
 
-    const writingTest = wTests[0];
-    const speakingTest = sTests[0];
+  const writingTest = wTests[0];
+  const speakingTest = sTests[0];
 
-    let writingPromptTexts = writingTest.questions.sort((a,b) => a.question_number - b.question_number).map(q => stripHtml(q.question_text));
-    
-    // Task 1 and Task 2
-    let task1Prompt = writingPromptTexts[0] || "The given charts show the proportion of energy generation from various sources.";
-    let task2Prompt = writingPromptTexts[1] || "Describe the advantages and disadvantages of learning a new language.";
-    
-    // Provide a dummy response relevant to Task 1
-    const task1Text = "The provided charts illustrate the percentage of electricity produced from various sources in a specific nation over a ten-year period between 2010 and 2020. Overall, it is clearly seen that while the reliance on traditional fossil fuels such as coal and oil experienced a significant downward trend, the utilization of renewable energy, particularly solar and wind power, saw a substantial increase. In 2010, coal was the primary source, accounting for roughly 50% of the total, but this figure dropped to just under 30% by 2020.";
+  let writingPromptTexts = writingTest.questions
+    .sort((a, b) => a.question_number - b.question_number)
+    .map((q) => stripHtml(q.question_text));
 
-    // Provide a dummy response relevant to Task 2
-    const task2Text = "In today's globalized world, learning a foreign language has become increasingly important. However, it can also bring some challenges. I agree that while there are difficulties, the benefits far outweigh them.\n\nFirstly, learning a new language can be very difficult. Beginners often struggle with grammar and vocabulary, which causes frustration. For example, a student might feel shy when speaking to native speakers because of their accent. This can lead to social anxiety.\n\nOn the other hand, speaking a foreign language opens up many opportunities. It allows people to communicate with people from different cultures, which improves understanding. Moreover, many companies prefer to hire employees who are bilingual. Therefore, it can lead to better career prospects.\n\nIn conclusion, despite the initial practical and social problems, I believe that learning a foreign language is a valuable skill that offers numerous personal and professional benefits.";
+  // Task 1 and Task 2
+  let task1Prompt =
+    writingPromptTexts[0] ||
+    'The given charts show the proportion of energy generation from various sources.';
+  let task2Prompt =
+    writingPromptTexts[1] ||
+    'Describe the advantages and disadvantages of learning a new language.';
 
-    let sQ1 = speakingTest.questions.find(q => q.question_number === 1)?.correct_answer?.split('\n')[0] || "Where are you from?";
-    let sQ2 = speakingTest.questions.find(q => q.question_number === 2)?.correct_answer?.split('\n')[0] || "Describe a movie you watched recently.";
-    let sQ3 = speakingTest.questions.find(q => q.question_number === 3)?.correct_answer?.split('\n')[0] || "What kind of movies are popular in your country?";
+  // Provide a dummy response relevant to Task 1
+  const task1Text =
+    'The provided charts illustrate the percentage of electricity produced from various sources in a specific nation over a ten-year period between 2010 and 2020. Overall, it is clearly seen that while the reliance on traditional fossil fuels such as coal and oil experienced a significant downward trend, the utilization of renewable energy, particularly solar and wind power, saw a substantial increase. In 2010, coal was the primary source, accounting for roughly 50% of the total, but this figure dropped to just under 30% by 2020.';
 
-    const transcriptParts = {
-        1: [
-            { speaker: 'system', text: sQ1 },
-            { speaker: 'user', text: "Well, I think I do somewhat. But not as much as I should. I usually take the bus or drive when I go out." }
-        ],
-        2: [
-            { speaker: 'system', text: sQ2 },
-            { speaker: 'user', text: "Recently I watched an amazing film called Inception. It is a science fiction movie directed by Christopher Nolan. The story is very unique because it's about going inside people's dreams. I would love to watch it again with my friends because it is very confusing and we can discuss it afterwards." }
-        ],
-        3: [
-            { speaker: 'system', text: sQ3 },
-            { speaker: 'user', text: "In my country, romantic comedies and action movies are very popular. But nowadays, many young people are also watching thrillers and science fiction films. I think theater is still a good place for entertainment." }
-        ]
-    };
+  // Provide a dummy response relevant to Task 2
+  const task2Text =
+    "In today's globalized world, learning a foreign language has become increasingly important. However, it can also bring some challenges. I agree that while there are difficulties, the benefits far outweigh them.\n\nFirstly, learning a new language can be very difficult. Beginners often struggle with grammar and vocabulary, which causes frustration. For example, a student might feel shy when speaking to native speakers because of their accent. This can lead to social anxiety.\n\nOn the other hand, speaking a foreign language opens up many opportunities. It allows people to communicate with people from different cultures, which improves understanding. Moreover, many companies prefer to hire employees who are bilingual. Therefore, it can lead to better career prospects.\n\nIn conclusion, despite the initial practical and social problems, I believe that learning a foreign language is a valuable skill that offers numerous personal and professional benefits.";
 
-    let fullTranscript = '';
-    [1, 2, 3].forEach((part) => {
-        fullTranscript += '=== PART ' + part + ' ===\n';
-        transcriptParts[part].forEach((entry) => {
-            fullTranscript += (entry.speaker === 'user' ? 'Candidate' : 'Examiner') + ': ' + entry.text + '\n';
-        });
-        fullTranscript += '\n';
+  let sQ1 =
+    speakingTest.questions.find((q) => q.question_number === 1)?.correct_answer?.split('\n')[0] ||
+    'Where are you from?';
+  let sQ2 =
+    speakingTest.questions.find((q) => q.question_number === 2)?.correct_answer?.split('\n')[0] ||
+    'Describe a movie you watched recently.';
+  let sQ3 =
+    speakingTest.questions.find((q) => q.question_number === 3)?.correct_answer?.split('\n')[0] ||
+    'What kind of movies are popular in your country?';
+
+  const transcriptParts = {
+    1: [
+      { speaker: 'system', text: sQ1 },
+      {
+        speaker: 'user',
+        text: 'Well, I think I do somewhat. But not as much as I should. I usually take the bus or drive when I go out.',
+      },
+    ],
+    2: [
+      { speaker: 'system', text: sQ2 },
+      {
+        speaker: 'user',
+        text: "Recently I watched an amazing film called Inception. It is a science fiction movie directed by Christopher Nolan. The story is very unique because it's about going inside people's dreams. I would love to watch it again with my friends because it is very confusing and we can discuss it afterwards.",
+      },
+    ],
+    3: [
+      { speaker: 'system', text: sQ3 },
+      {
+        speaker: 'user',
+        text: 'In my country, romantic comedies and action movies are very popular. But nowadays, many young people are also watching thrillers and science fiction films. I think theater is still a good place for entertainment.',
+      },
+    ],
+  };
+
+  let fullTranscript = '';
+  [1, 2, 3].forEach((part) => {
+    fullTranscript += '=== PART ' + part + ' ===\n';
+    transcriptParts[part].forEach((entry) => {
+      fullTranscript +=
+        (entry.speaker === 'user' ? 'Candidate' : 'Examiner') + ': ' + entry.text + '\n';
     });
+    fullTranscript += '\n';
+  });
 
+  // 2. Run Gemini Evaluation
+  console.log('Analyzing Writing Feedback (Task 1 real prompt)...');
+  const task1Feedback = await fetchFromGemini(
+    writingSystemInstruction.replace('Task 2 (essay)', 'Task 1 (report)'),
+    [{ text: `Task Prompt: ${task1Prompt}\n\nStudent's Report:\n${task1Text}` }]
+  );
 
-    // 2. Run Gemini Evaluation
-    console.log("Analyzing Writing Feedback (Task 1 real prompt)...");
-    const task1Feedback = await fetchFromGemini(
-        writingSystemInstruction.replace("Task 2 (essay)", "Task 1 (report)"), 
-        [{ text: `Task Prompt: ${task1Prompt}\n\nStudent's Report:\n${task1Text}` }]
-    );
+  console.log('Analyzing Writing Feedback (Task 2 real prompt)...');
+  const task2Feedback = await fetchFromGemini(writingSystemInstruction, [
+    { text: `Task Prompt: ${task2Prompt}\n\nStudent's Essay:\n${task2Text}` },
+  ]);
 
-    console.log("Analyzing Writing Feedback (Task 2 real prompt)...");
-    const task2Feedback = await fetchFromGemini(
-        writingSystemInstruction, 
-        [{ text: `Task Prompt: ${task2Prompt}\n\nStudent's Essay:\n${task2Text}` }]
-    );
+  console.log('Analyzing Detailed Speaking Feedback (Real initial questions)...');
+  const detailedPrompt = detailedSpeakingPromptTemplate.replace(
+    '__TRANSCRIPT_PLACEHOLDER__',
+    fullTranscript
+  );
+  const detailedSpeakingFeedback = await fetchFromGemini(detailedPrompt, [], true);
 
-    console.log("Analyzing Detailed Speaking Feedback (Real initial questions)...");
-    const detailedPrompt = detailedSpeakingPromptTemplate.replace('__TRANSCRIPT_PLACEHOLDER__', fullTranscript);
-    const detailedSpeakingFeedback = await fetchFromGemini(detailedPrompt, [], true);
+  console.log('Analyzing Overall Speaking Evaluation...');
+  const overallPrompt = overallSpeakingPromptTemplate.replace(
+    '__TRANSCRIPT_PLACEHOLDER__',
+    fullTranscript
+  );
+  const overallSpeakingFeedback = await fetchFromGemini(overallPrompt, [], true);
 
-    console.log("Analyzing Overall Speaking Evaluation...");
-    const overallPrompt = overallSpeakingPromptTemplate.replace('__TRANSCRIPT_PLACEHOLDER__', fullTranscript);
-    const overallSpeakingFeedback = await fetchFromGemini(overallPrompt, [], true);
+  // 3. Export to Markdown
+  console.log('Generating Markdown report...');
 
-    // 3. Export to Markdown
-    console.log("Generating Markdown report...");
-    
-    let mdContent = `# IELTS Feedback Simulation Report (Real Questions)
+  let mdContent = `# IELTS Feedback Simulation Report (Real Questions)
 
 This report was generated using the exact evaluation prompts from the IELTS Mastery Pro app, simulating a candidate's test with real questions pulled from the database.
 
@@ -353,64 +387,76 @@ This report was generated using the exact evaluation prompts from the IELTS Mast
 
 **Strengths:**
 `;
-    if (task1Feedback && task1Feedback.strengths) {
-        task1Feedback.strengths.forEach(s => { mdContent += `- ${s}\n`; });
-    }
+  if (task1Feedback && task1Feedback.strengths) {
+    task1Feedback.strengths.forEach((s) => {
+      mdContent += `- ${s}\n`;
+    });
+  }
 
-    mdContent += `\n**Weaknesses:**\n`;
-    if (task1Feedback && task1Feedback.weaknesses) {
-        task1Feedback.weaknesses.forEach(w => { mdContent += `- ${w}\n`; });
-    }
+  mdContent += `\n**Weaknesses:**\n`;
+  if (task1Feedback && task1Feedback.weaknesses) {
+    task1Feedback.weaknesses.forEach((w) => {
+      mdContent += `- ${w}\n`;
+    });
+  }
 
-    mdContent += `\n**Suggestions for Improvement:**\n`;
-    if (task1Feedback && task1Feedback.suggestions) {
-        task1Feedback.suggestions.forEach(s => { mdContent += `- ${s}\n`; });
-    }
+  mdContent += `\n**Suggestions for Improvement:**\n`;
+  if (task1Feedback && task1Feedback.suggestions) {
+    task1Feedback.suggestions.forEach((s) => {
+      mdContent += `- ${s}\n`;
+    });
+  }
 
-    mdContent += `\n**Corrections:**\n`;
-    if (task1Feedback && task1Feedback.corrections) {
-        task1Feedback.corrections.forEach(c => { 
-            mdContent += `- **Original:** "${c.original}"\n  **Correction:** "${c.correction}"\n  **Reason:** ${c.explanation}\n\n`; 
-        });
-    }
+  mdContent += `\n**Corrections:**\n`;
+  if (task1Feedback && task1Feedback.corrections) {
+    task1Feedback.corrections.forEach((c) => {
+      mdContent += `- **Original:** "${c.original}"\n  **Correction:** "${c.correction}"\n  **Reason:** ${c.explanation}\n\n`;
+    });
+  }
 
-    mdContent += `**Vocabulary Enhancements:**\n`;
-    if (task1Feedback && task1Feedback.vocabularyEnhancements) {
-        task1Feedback.vocabularyEnhancements.forEach(v => { 
-            mdContent += `- **Word/Phrase:** "${v.original}"\n  **Better Alternatives:** ${v.alternatives?.join(', ')}\n  **Context:** ${v.context}\n\n`; 
-        });
-    }
+  mdContent += `**Vocabulary Enhancements:**\n`;
+  if (task1Feedback && task1Feedback.vocabularyEnhancements) {
+    task1Feedback.vocabularyEnhancements.forEach((v) => {
+      mdContent += `- **Word/Phrase:** "${v.original}"\n  **Better Alternatives:** ${v.alternatives?.join(', ')}\n  **Context:** ${v.context}\n\n`;
+    });
+  }
 
-    mdContent += `\n---\n\n### Task 2\n**Writing Prompt (Task 2):**\n> ${task2Prompt}\n\n**Simulated Candidate Response:**\n> ${task2Text}\n\n#### Task 2 Evaluation Results\n- **Overall Band**: ${task2Feedback?.overallBand || 'N/A'}\n- **Task Achievement**: ${task2Feedback?.criteriaScores?.TaskAchievement || 'N/A'}\n- **Coherence & Cohesion**: ${task2Feedback?.criteriaScores?.CoherenceAndCohesion || 'N/A'}\n- **Lexical Resource**: ${task2Feedback?.criteriaScores?.LexicalResource || 'N/A'}\n- **Grammar & Accuracy**: ${task2Feedback?.criteriaScores?.GrammaticalRangeAndAccuracy || 'N/A'}\n\n**Strengths:**\n`;
-    if (task2Feedback && task2Feedback.strengths) {
-        task2Feedback.strengths.forEach(s => { mdContent += `- ${s}\n`; });
-    }
+  mdContent += `\n---\n\n### Task 2\n**Writing Prompt (Task 2):**\n> ${task2Prompt}\n\n**Simulated Candidate Response:**\n> ${task2Text}\n\n#### Task 2 Evaluation Results\n- **Overall Band**: ${task2Feedback?.overallBand || 'N/A'}\n- **Task Achievement**: ${task2Feedback?.criteriaScores?.TaskAchievement || 'N/A'}\n- **Coherence & Cohesion**: ${task2Feedback?.criteriaScores?.CoherenceAndCohesion || 'N/A'}\n- **Lexical Resource**: ${task2Feedback?.criteriaScores?.LexicalResource || 'N/A'}\n- **Grammar & Accuracy**: ${task2Feedback?.criteriaScores?.GrammaticalRangeAndAccuracy || 'N/A'}\n\n**Strengths:**\n`;
+  if (task2Feedback && task2Feedback.strengths) {
+    task2Feedback.strengths.forEach((s) => {
+      mdContent += `- ${s}\n`;
+    });
+  }
 
-    mdContent += `\n**Weaknesses:**\n`;
-    if (task2Feedback && task2Feedback.weaknesses) {
-        task2Feedback.weaknesses.forEach(w => { mdContent += `- ${w}\n`; });
-    }
+  mdContent += `\n**Weaknesses:**\n`;
+  if (task2Feedback && task2Feedback.weaknesses) {
+    task2Feedback.weaknesses.forEach((w) => {
+      mdContent += `- ${w}\n`;
+    });
+  }
 
-    mdContent += `\n**Suggestions for Improvement:**\n`;
-    if (task2Feedback && task2Feedback.suggestions) {
-        task2Feedback.suggestions.forEach(s => { mdContent += `- ${s}\n`; });
-    }
+  mdContent += `\n**Suggestions for Improvement:**\n`;
+  if (task2Feedback && task2Feedback.suggestions) {
+    task2Feedback.suggestions.forEach((s) => {
+      mdContent += `- ${s}\n`;
+    });
+  }
 
-    mdContent += `\n**Corrections:**\n`;
-    if (task2Feedback && task2Feedback.corrections) {
-        task2Feedback.corrections.forEach(c => { 
-            mdContent += `- **Original:** "${c.original}"\n  **Correction:** "${c.correction}"\n  **Reason:** ${c.explanation}\n\n`; 
-        });
-    }
+  mdContent += `\n**Corrections:**\n`;
+  if (task2Feedback && task2Feedback.corrections) {
+    task2Feedback.corrections.forEach((c) => {
+      mdContent += `- **Original:** "${c.original}"\n  **Correction:** "${c.correction}"\n  **Reason:** ${c.explanation}\n\n`;
+    });
+  }
 
-    mdContent += `**Vocabulary Enhancements:**\n`;
-    if (task2Feedback && task2Feedback.vocabularyEnhancements) {
-        task2Feedback.vocabularyEnhancements.forEach(v => { 
-            mdContent += `- **Word/Phrase:** "${v.original}"\n  **Better Alternatives:** ${v.alternatives?.join(', ')}\n  **Context:** ${v.context}\n\n`; 
-        });
-    }
+  mdContent += `**Vocabulary Enhancements:**\n`;
+  if (task2Feedback && task2Feedback.vocabularyEnhancements) {
+    task2Feedback.vocabularyEnhancements.forEach((v) => {
+      mdContent += `- **Word/Phrase:** "${v.original}"\n  **Better Alternatives:** ${v.alternatives?.join(', ')}\n  **Context:** ${v.context}\n\n`;
+    });
+  }
 
-    mdContent += `---
+  mdContent += `---
 
 ## 2. Speaking Test Simulation
 
@@ -429,37 +475,41 @@ ${fullTranscript.trim()}
 ${overallSpeakingFeedback?.feedback || 'N/A'}
 
 **Strengths:**\n`;
-    if (overallSpeakingFeedback && overallSpeakingFeedback.strengths) {
-        overallSpeakingFeedback.strengths.forEach(s => { mdContent += `- ${s}\n`; });
-    }
+  if (overallSpeakingFeedback && overallSpeakingFeedback.strengths) {
+    overallSpeakingFeedback.strengths.forEach((s) => {
+      mdContent += `- ${s}\n`;
+    });
+  }
 
-    mdContent += `\n**Improvements:**\n`;
-    if (overallSpeakingFeedback && overallSpeakingFeedback.improvements) {
-        overallSpeakingFeedback.improvements.forEach(i => { mdContent += `- ${i}\n`; });
-    }
+  mdContent += `\n**Improvements:**\n`;
+  if (overallSpeakingFeedback && overallSpeakingFeedback.improvements) {
+    overallSpeakingFeedback.improvements.forEach((i) => {
+      mdContent += `- ${i}\n`;
+    });
+  }
 
-    mdContent += `\n### Detailed Question-by-Question Analysis\n`;
+  mdContent += `\n### Detailed Question-by-Question Analysis\n`;
 
-    if (detailedSpeakingFeedback && Array.isArray(detailedSpeakingFeedback)) {
-        detailedSpeakingFeedback.forEach(item => {
-            mdContent += `\n#### Part ${item.part}: ${item.question}\n`;
-            mdContent += `- **Candidate's Answer:** ${item.candidateAnswer || item.original}\n`;
-            mdContent += `- **Band 9.0 Suggestion:** ${item.suggestedAnswer || item.sample}\n`;
-            mdContent += `- **Examiner Feedback:** ${item.feedback}\n`;
-            if (item.topicDrift && item.topicDrift !== 'null') {
-                mdContent += `- **Topic Drift:** ${item.topicDrift}\n`;
-            }
-            if (item.grammaticalErrors && item.grammaticalErrors.length > 0) {
-                mdContent += `- **Grammatical Errors:**\n`;
-                item.grammaticalErrors.forEach(err => {
-                    mdContent += `  - *Incorrect:* ${err.incorrect} -> *Correct:* ${err.correct} (${err.explanation})\n`;
-                });
-            }
+  if (detailedSpeakingFeedback && Array.isArray(detailedSpeakingFeedback)) {
+    detailedSpeakingFeedback.forEach((item) => {
+      mdContent += `\n#### Part ${item.part}: ${item.question}\n`;
+      mdContent += `- **Candidate's Answer:** ${item.candidateAnswer || item.original}\n`;
+      mdContent += `- **Band 9.0 Suggestion:** ${item.suggestedAnswer || item.sample}\n`;
+      mdContent += `- **Examiner Feedback:** ${item.feedback}\n`;
+      if (item.topicDrift && item.topicDrift !== 'null') {
+        mdContent += `- **Topic Drift:** ${item.topicDrift}\n`;
+      }
+      if (item.grammaticalErrors && item.grammaticalErrors.length > 0) {
+        mdContent += `- **Grammatical Errors:**\n`;
+        item.grammaticalErrors.forEach((err) => {
+          mdContent += `  - *Incorrect:* ${err.incorrect} -> *Correct:* ${err.correct} (${err.explanation})\n`;
         });
-    }
+      }
+    });
+  }
 
-    fs.writeFileSync('IELTS_Mastery_Pro_Final_Evaluation_Results.md', mdContent);
-    console.log("Results exported to IELTS_Mastery_Pro_Final_Evaluation_Results.md");
+  fs.writeFileSync('IELTS_Mastery_Pro_Final_Evaluation_Results.md', mdContent);
+  console.log('Results exported to IELTS_Mastery_Pro_Final_Evaluation_Results.md');
 }
 
 run();

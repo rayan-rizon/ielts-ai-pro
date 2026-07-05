@@ -39,9 +39,18 @@ const keywordPages = [
       ],
     ],
     faqs: [
-      ['Can AI check IELTS writing?', 'Yes. IELTS Ai Pro uses AI to give fast writing feedback, estimated band scores, and improvement suggestions. Treat scores as practice guidance, not an official IELTS result.'],
-      ['Does it support Task 1 and Task 2?', 'Yes. You can practice Task 1 reports or letters and Task 2 essays with feedback for each IELTS writing criterion.'],
-      ['Is this useful for Band 7 preparation?', 'Yes. Feedback focuses on clarity, cohesion, vocabulary range, grammar control, and task achievement, which are common blockers for Band 7+.'],
+      [
+        'Can AI check IELTS writing?',
+        'Yes. IELTS Ai Pro uses AI to give fast writing feedback, estimated band scores, and improvement suggestions. Treat scores as practice guidance, not an official IELTS result.',
+      ],
+      [
+        'Does it support Task 1 and Task 2?',
+        'Yes. You can practice Task 1 reports or letters and Task 2 essays with feedback for each IELTS writing criterion.',
+      ],
+      [
+        'Is this useful for Band 7 preparation?',
+        'Yes. Feedback focuses on clarity, cohesion, vocabulary range, grammar control, and task achievement, which are common blockers for Band 7+.',
+      ],
     ],
   },
   {
@@ -70,9 +79,18 @@ const keywordPages = [
       ],
     ],
     faqs: [
-      ['Can AI score IELTS Speaking?', 'AI can estimate speaking performance for practice and show likely weak areas. Official IELTS scores only come from certified IELTS examiners.'],
-      ['Which speaking parts can I practice?', 'IELTS Ai Pro supports practice for common IELTS Speaking Part 1, Part 2 cue card, and Part 3 discussion-style answers.'],
-      ['How does speaking feedback help?', 'It shows patterns in fluency, vocabulary, grammar, pronunciation, answer length, and idea organization so you know what to fix next.'],
+      [
+        'Can AI score IELTS Speaking?',
+        'AI can estimate speaking performance for practice and show likely weak areas. Official IELTS scores only come from certified IELTS examiners.',
+      ],
+      [
+        'Which speaking parts can I practice?',
+        'IELTS Ai Pro supports practice for common IELTS Speaking Part 1, Part 2 cue card, and Part 3 discussion-style answers.',
+      ],
+      [
+        'How does speaking feedback help?',
+        'It shows patterns in fluency, vocabulary, grammar, pronunciation, answer length, and idea organization so you know what to fix next.',
+      ],
     ],
   },
   {
@@ -101,9 +119,18 @@ const keywordPages = [
       ],
     ],
     faqs: [
-      ['What is an IELTS mock test?', 'An IELTS mock test is a practice exam that simulates real IELTS timing, sections, and task types so you can estimate readiness before test day.'],
-      ['Can I practice all four skills?', 'Yes. IELTS Ai Pro covers Reading, Listening, Writing, and Speaking practice in one platform.'],
-      ['Do mock tests improve IELTS scores?', 'They help when paired with review. Mock tests reveal timing issues, weak skills, and repeated mistakes that targeted practice can fix.'],
+      [
+        'What is an IELTS mock test?',
+        'An IELTS mock test is a practice exam that simulates real IELTS timing, sections, and task types so you can estimate readiness before test day.',
+      ],
+      [
+        'Can I practice all four skills?',
+        'Yes. IELTS Ai Pro covers Reading, Listening, Writing, and Speaking practice in one platform.',
+      ],
+      [
+        'Do mock tests improve IELTS scores?',
+        'They help when paired with review. Mock tests reveal timing issues, weak skills, and repeated mistakes that targeted practice can fix.',
+      ],
     ],
   },
   {
@@ -132,9 +159,18 @@ const keywordPages = [
       ],
     ],
     faqs: [
-      ['Are these official Cambridge tests?', 'IELTS Ai Pro provides Cambridge-style practice materials and imported practice content where available. It is not affiliated with Cambridge, IDP, or British Council.'],
-      ['Can I practice Listening online?', 'Yes. Listening practice includes audio-based tasks, timing, and answer review.'],
-      ['Can I practice Reading online?', 'Yes. Reading practice includes academic-style passages, common IELTS question types, and timed sessions.'],
+      [
+        'Are these official Cambridge tests?',
+        'IELTS Ai Pro provides Cambridge-style practice materials and imported practice content where available. It is not affiliated with Cambridge, IDP, or British Council.',
+      ],
+      [
+        'Can I practice Listening online?',
+        'Yes. Listening practice includes audio-based tasks, timing, and answer review.',
+      ],
+      [
+        'Can I practice Reading online?',
+        'Yes. Reading practice includes academic-style passages, common IELTS question types, and timed sessions.',
+      ],
     ],
   },
   {
@@ -163,9 +199,18 @@ const keywordPages = [
       ],
     ],
     faqs: [
-      ['Are IELTS practice tests free?', 'IELTS Ai Pro offers free Reading and Listening practice options. Advanced AI feedback may require a paid plan.'],
-      ['Do I need an account?', 'An account helps save progress, track analytics, and access personalized recommendations.'],
-      ['What should I practice first?', 'Start with a timed Reading or Listening test, then use results to decide whether Writing, Speaking, vocabulary, or time management needs focus.'],
+      [
+        'Are IELTS practice tests free?',
+        'IELTS Ai Pro offers free Reading and Listening practice options. Advanced AI feedback may require a paid plan.',
+      ],
+      [
+        'Do I need an account?',
+        'An account helps save progress, track analytics, and access personalized recommendations.',
+      ],
+      [
+        'What should I practice first?',
+        'Start with a timed Reading or Listening test, then use results to decide whether Writing, Speaking, vocabulary, or time management needs focus.',
+      ],
     ],
   },
   {
@@ -194,9 +239,18 @@ const keywordPages = [
       ],
     ],
     faqs: [
-      ['Is IELTS Ai Pro an AI IELTS app?', 'Yes. It is a web-based AI IELTS preparation platform for practice, feedback, analytics, and study planning.'],
-      ['Can it help me reach Band 7?', 'It can help identify and practice the skills needed for Band 7, especially Writing and Speaking weaknesses. Score improvement also depends on consistency and starting level.'],
-      ['Does it replace a teacher?', 'No tool fully replaces expert human instruction, but AI feedback can support daily practice between lessons or when a teacher is unavailable.'],
+      [
+        'Is IELTS Ai Pro an AI IELTS app?',
+        'Yes. It is a web-based AI IELTS preparation platform for practice, feedback, analytics, and study planning.',
+      ],
+      [
+        'Can it help me reach Band 7?',
+        'It can help identify and practice the skills needed for Band 7, especially Writing and Speaking weaknesses. Score improvement also depends on consistency and starting level.',
+      ],
+      [
+        'Does it replace a teacher?',
+        'No tool fully replaces expert human instruction, but AI feedback can support daily practice between lessons or when a teacher is unavailable.',
+      ],
     ],
   },
   {
@@ -225,9 +279,18 @@ const keywordPages = [
       ],
     ],
     faqs: [
-      ['What is IELTS band score feedback?', 'It is feedback that estimates performance against IELTS band descriptors and explains what caused the score.'],
-      ['Is AI band feedback official?', 'No. AI feedback is for practice. Official results only come from IELTS test providers.'],
-      ['How often should I check my score?', 'Check after meaningful practice sessions, then revise based on feedback before submitting another attempt.'],
+      [
+        'What is IELTS band score feedback?',
+        'It is feedback that estimates performance against IELTS band descriptors and explains what caused the score.',
+      ],
+      [
+        'Is AI band feedback official?',
+        'No. AI feedback is for practice. Official results only come from IELTS test providers.',
+      ],
+      [
+        'How often should I check my score?',
+        'Check after meaningful practice sessions, then revise based on feedback before submitting another attempt.',
+      ],
     ],
   },
 ];
@@ -249,12 +312,24 @@ const utilityPages = [
       'Built for Academic and General Training learners',
     ],
     sections: [
-      ['Our mission', 'Make high-quality IELTS preparation more accessible, faster, and easier to practice consistently from anywhere.'],
-      ['Our approach', 'Combine IELTS scoring criteria, exam-style practice, and modern AI feedback so learners get clearer next steps after every session.'],
+      [
+        'Our mission',
+        'Make high-quality IELTS preparation more accessible, faster, and easier to practice consistently from anywhere.',
+      ],
+      [
+        'Our approach',
+        'Combine IELTS scoring criteria, exam-style practice, and modern AI feedback so learners get clearer next steps after every session.',
+      ],
     ],
     faqs: [
-      ['Who is IELTS Ai Pro for?', 'IELTS Ai Pro is for IELTS candidates preparing for study, work, immigration, or professional goals.'],
-      ['Is IELTS Ai Pro affiliated with IELTS?', 'No. IELTS Ai Pro is an independent preparation platform and is not affiliated with IELTS, IDP, British Council, or Cambridge.'],
+      [
+        'Who is IELTS Ai Pro for?',
+        'IELTS Ai Pro is for IELTS candidates preparing for study, work, immigration, or professional goals.',
+      ],
+      [
+        'Is IELTS Ai Pro affiliated with IELTS?',
+        'No. IELTS Ai Pro is an independent preparation platform and is not affiliated with IELTS, IDP, British Council, or Cambridge.',
+      ],
     ],
   },
   {
@@ -266,14 +341,31 @@ const utilityPages = [
     h1: 'Contact IELTS Ai Pro',
     intro:
       'Need help with IELTS Ai Pro? Contact support for account questions, technical issues, subscriptions, or preparation guidance.',
-    bullets: ['Email support: mail@ieltsai.pro', 'Help with accounts and billing', 'Support for IELTS practice tools', 'Feedback and partnership inquiries'],
+    bullets: [
+      'Email support: mail@ieltsai.pro',
+      'Help with accounts and billing',
+      'Support for IELTS practice tools',
+      'Feedback and partnership inquiries',
+    ],
     sections: [
-      ['Support scope', 'We help with platform access, AI feedback questions, billing, technical issues, and general product guidance.'],
-      ['Response time', 'Most support requests are reviewed as quickly as possible. Include your account email and clear issue details.'],
+      [
+        'Support scope',
+        'We help with platform access, AI feedback questions, billing, technical issues, and general product guidance.',
+      ],
+      [
+        'Response time',
+        'Most support requests are reviewed as quickly as possible. Include your account email and clear issue details.',
+      ],
     ],
     faqs: [
-      ['How do I contact IELTS Ai Pro?', 'Email mail@ieltsai.pro with your question and account email if relevant.'],
-      ['Can support give official IELTS advice?', 'Support can help with platform usage, but official IELTS exam rules should be confirmed with IELTS test providers.'],
+      [
+        'How do I contact IELTS Ai Pro?',
+        'Email mail@ieltsai.pro with your question and account email if relevant.',
+      ],
+      [
+        'Can support give official IELTS advice?',
+        'Support can help with platform usage, but official IELTS exam rules should be confirmed with IELTS test providers.',
+      ],
     ],
   },
   {
@@ -285,14 +377,28 @@ const utilityPages = [
     h1: 'Privacy Policy',
     intro:
       'IELTS Ai Pro protects learner data and explains how account, practice, payment, analytics, and support information may be used.',
-    bullets: ['Practice data powers feedback and analytics', 'Payment data is handled by payment providers', 'Users can contact support about privacy rights', 'Security controls protect account access'],
+    bullets: [
+      'Practice data powers feedback and analytics',
+      'Payment data is handled by payment providers',
+      'Users can contact support about privacy rights',
+      'Security controls protect account access',
+    ],
     sections: [
-      ['Data we process', 'We may process account details, practice submissions, feedback results, subscription data, support messages, and basic analytics.'],
+      [
+        'Data we process',
+        'We may process account details, practice submissions, feedback results, subscription data, support messages, and basic analytics.',
+      ],
       ['Contact', 'For privacy questions, contact mail@ieltsai.pro.'],
     ],
     faqs: [
-      ['Does IELTS Ai Pro sell personal data?', 'No. IELTS Ai Pro does not sell personal information.'],
-      ['How can I ask about my data?', 'Contact mail@ieltsai.pro with your account email and request details.'],
+      [
+        'Does IELTS Ai Pro sell personal data?',
+        'No. IELTS Ai Pro does not sell personal information.',
+      ],
+      [
+        'How can I ask about my data?',
+        'Contact mail@ieltsai.pro with your account email and request details.',
+      ],
     ],
   },
   {
@@ -304,14 +410,25 @@ const utilityPages = [
     h1: 'Terms of Service',
     intro:
       'These terms explain acceptable use of IELTS Ai Pro, subscriptions, AI feedback limits, and platform responsibilities.',
-    bullets: ['Use IELTS Ai Pro for lawful IELTS preparation', 'AI scores are practice estimates, not official IELTS results', 'Subscriptions follow plan limits shown at purchase', 'Contact support for billing or account issues'],
+    bullets: [
+      'Use IELTS Ai Pro for lawful IELTS preparation',
+      'AI scores are practice estimates, not official IELTS results',
+      'Subscriptions follow plan limits shown at purchase',
+      'Contact support for billing or account issues',
+    ],
     sections: [
-      ['Practice guidance', 'AI feedback and band estimates are educational tools. Official IELTS scores are issued only by authorized IELTS test providers.'],
+      [
+        'Practice guidance',
+        'AI feedback and band estimates are educational tools. Official IELTS scores are issued only by authorized IELTS test providers.',
+      ],
       ['Contact', 'Questions about these terms can be sent to mail@ieltsai.pro.'],
     ],
     faqs: [
       ['Are AI scores official?', 'No. AI scores are estimates for practice only.'],
-      ['Where can I ask billing questions?', 'Contact mail@ieltsai.pro with your account email and billing question.'],
+      [
+        'Where can I ask billing questions?',
+        'Contact mail@ieltsai.pro with your account email and billing question.',
+      ],
     ],
   },
 ];
