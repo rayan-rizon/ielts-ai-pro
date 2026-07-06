@@ -7,7 +7,17 @@ import prettier from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
 
 export default [
-  { ignores: ['dist', 'scripts', 'tailwind.config.js', 'vite.config.js', 'postcss.config.js'] },
+  {
+    ignores: [
+      'dist',
+      'scripts',
+      'tailwind.config.js',
+      'vite.config.js',
+      'postcss.config.js',
+      '.vercel',
+      'print_specific.js',
+    ],
+  },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {

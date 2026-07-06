@@ -53,12 +53,12 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
   const getColor = (intensity) => {
     switch (intensity) {
       case 1:
-        return 'bg-blue-200 dark:bg-blue-900/60';
+        return 'bg-blue-200 dark:bg-blue-600';
       case 2:
-        return 'bg-blue-400 dark:bg-blue-600/60';
+        return 'bg-blue-400 dark:bg-blue-400';
       case 3:
       case 4:
-        return 'bg-blue-600 dark:bg-blue-400';
+        return 'bg-blue-600 dark:bg-blue-300';
       default:
         // Fallback
         return 'bg-slate-100 dark:bg-slate-800';
@@ -75,73 +75,71 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
       )}
       data-oid="4dgh0kh"
     >
-      <CardHeader className="p-6 pb-2 relative z-10" data-oid="d88298x">
-        <div className="flex items-start justify-between" data-oid="tty22xw">
-          <div className="flex items-start gap-3" data-oid="f1atz4q">
-            <Calendar
-              className="w-6 h-6 text-blue-600 dark:text-blue-500 shrink-0 mt-0.5"
-              data-oid="1_4wiyb"
-            />
-            <div data-oid="1cng8oz" className="flex flex-col">
+      <CardHeader className="p-5 sm:p-6 pb-2 relative z-10" data-oid="d88298x">
+        <div className="flex flex-col gap-2" data-oid="tty22xw">
+          <div className="flex items-center justify-between gap-3" data-oid="f1atz4q">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Calendar
+                className="w-5 h-5 text-blue-600 dark:text-blue-500 shrink-0"
+                data-oid="1_4wiyb"
+              />
               <CardTitle
-                className="text-xl font-bold text-slate-900 dark:text-white tracking-tight"
+                className="text-lg font-bold text-slate-900 dark:text-white tracking-tight truncate"
                 data-oid="cd_:gl-"
               >
                 Activity Hub
               </CardTitle>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1" data-oid="xn1km3q">
-                Your daily test activity over the last 12 weeks.
-              </p>
+            </div>
+
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700 shrink-0"
+              data-oid="9alfodk"
+            >
+              <span
+                className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider"
+                data-oid="intensity-label"
+              >
+                Intensity
+              </span>
+              <div className="flex gap-0.5" data-oid="intensity-dots">
+                <div className={cn('w-2 h-2 rounded-full', getColor(1))} data-oid="abpak-:" />
+                <div className={cn('w-2 h-2 rounded-full', getColor(2))} data-oid="a08vk5r" />
+                <div className={cn('w-2 h-2 rounded-full', getColor(3))} data-oid="_zk0z49" />
+              </div>
             </div>
           </div>
 
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700"
-            data-oid="9alfodk"
+          <p
+            className="text-xs text-slate-500 dark:text-slate-400 leading-normal"
+            data-oid="xn1km3q"
           >
-            <span
-              className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider"
-              data-oid="intensity-label"
-            >
-              Intensity
-            </span>
-            <div className="flex gap-1" data-oid="intensity-dots">
-              <div
-                className="w-2.5 h-2.5 rounded-full bg-blue-200 dark:bg-blue-900/60"
-                data-oid="abpak-:"
-              />
-              <div
-                className="w-2.5 h-2.5 rounded-full bg-blue-400 dark:bg-blue-600/60"
-                data-oid="a08vk5r"
-              />
-              <div
-                className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-400"
-                data-oid="_zk0z49"
-              />
-            </div>
-          </div>
+            Your daily test activity over the last 12 weeks.
+          </p>
         </div>
       </CardHeader>
 
       <CardContent
-        className="relative p-6 pt-6 flex-1 flex flex-col justify-center z-10"
+        className="relative px-5 py-6 sm:px-6 pt-4 flex-1 flex flex-col justify-center z-10"
         data-oid="zxfz524"
       >
         <div
-          className="relative w-full flex items-center justify-center min-h-[160px]"
+          className="relative w-full flex items-center justify-start min-h-[160px] overflow-x-auto overflow-y-hidden pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           data-oid="-ui3chd"
         >
           <TooltipProvider delayDuration={0} data-oid="grid-tooltip-provider">
-            <div className="flex gap-2 min-w-max relative z-10 justify-center" data-oid="0fk3x1i">
+            <div
+              className="flex gap-1.5 sm:gap-2 min-w-max relative z-10 mx-auto px-2"
+              data-oid="0fk3x1i"
+            >
               {weeks.map((week, weekIdx) => (
-                <div key={weekIdx} className="flex flex-col gap-2" data-oid=":1fvh2m">
+                <div key={weekIdx} className="flex flex-col gap-1.5 sm:gap-2" data-oid=":1fvh2m">
                   {Array.from({ length: 7 }).map((_, dayIdx) => {
                     const dayData = week[dayIdx];
                     if (!dayData) {
                       return (
                         <div
                           key={dayIdx}
-                          className="w-3.5 h-3.5 rounded-full bg-transparent"
+                          className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-transparent"
                           data-oid="9alz25o"
                         />
                       );
@@ -152,11 +150,9 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
                         <TooltipTrigger asChild data-oid="d-cn9tm">
                           <div
                             className={cn(
-                              'w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full transition-all duration-200 cursor-pointer',
-                              'hover:scale-125 hover:z-20 relative hover:shadow-lg',
-                              dayData.intensity === 0
-                                ? 'bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-slate-700'
-                                : getColor(dayData.intensity)
+                              'w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full transition-all duration-200 cursor-pointer hover:scale-125 hover:z-20 relative hover:shadow-lg',
+                              getColor(dayData.intensity),
+                              dayData.intensity === 0 && 'hover:bg-blue-100 dark:hover:bg-slate-700'
                             )}
                             data-oid="ubtw9wq"
                           />
