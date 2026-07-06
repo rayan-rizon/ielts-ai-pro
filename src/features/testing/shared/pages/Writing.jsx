@@ -21,6 +21,7 @@ export default function Writing() {
 
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState('grid');
   const [hasMounted, setHasMounted] = useState(false);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
@@ -56,6 +57,8 @@ export default function Writing() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           tabs={TABS_CONFIG}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
         />
 
         <div className="min-h-[600px]" data-oid="wex:qw8">
@@ -73,6 +76,7 @@ export default function Writing() {
               hasMounted={hasMounted}
               activeTab={activeTab}
               searchQuery={searchQuery}
+              viewMode={viewMode}
             />
           )}
         </div>

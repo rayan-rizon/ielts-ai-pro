@@ -81,7 +81,7 @@ function mergeAllSessions(existingData, writingSessions) {
   return existingData ? mergeSessions(existingData.sessions, writingSessions) : writingSessions;
 }
 
-export async function fetchWritingData(user, page = 1, pageSize = 12, existingData = null) {
+export async function fetchWritingData(user, page = 1, pageSize = 32, existingData = null) {
   const offset = (page - 1) * pageSize;
 
   const {

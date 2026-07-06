@@ -4,6 +4,8 @@ import { BookOpen } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MemoizedTestCard } from './ReadingTestCard';
 import { resolveTestSessions } from './readingCardHelpers';
+import { getColor } from './readingColorConfig';
+import ReadingCardListView from './ReadingCardListView';
 
 // ---------------------------------------------------------------------------
 // Layout class constants
@@ -11,7 +13,57 @@ import { resolveTestSessions } from './readingCardHelpers';
 
 const GRID_CLASS =
   'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8';
-const LIST_CLASS = 'flex flex-col gap-4';
+const LIST_CLASS = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6';
+
+function getTestNumber(test) {
+  if (test.cambridge_test_number) return test.cambridge_test_number;
+  const match = test.title.match(/Test\s*(\d+)/i);
+  return match ? parseInt(match[1], 10) : 0;
+}
+
+function getGroupInfo(test) {
+  if (test.is_official_cambridge && test.cambridge_year) {
+    const bookNumber = test.cambridge_year - 2005;
+    return {
+      key: `cambridge-${bookNumber}`,
+      label: `IELTS ${bookNumber}`,
+      subtitle: `Official Cambridge ${test.cambridge_year}`,
+      bookNumber,
+    };
+  }
+  return {
+    key: 'general',
+    label: 'General Practice',
+    subtitle: 'Curated IELTS exercises',
+    bookNumber: 0,
+  };
+}
+
+// Helper to group tests by Cambridge Book volume
+function groupTestsByVolume(tests) {
+  const groups = {};
+
+  tests.forEach((test) => {
+    const { key, label, subtitle } = getGroupInfo(test);
+    if (!groups[key]) {
+      groups[key] = { key, label, subtitle, tests: [] };
+    }
+    groups[key].tests.push(test);
+  });
+
+  Object.values(groups).forEach((group) => {
+    group.tests.sort((a, b) => getTestNumber(a) - getTestNumber(b));
+  });
+
+  return Object.values(groups).sort((a, b) => {
+    if (a.key === 'general') return 1;
+    if (b.key === 'general') return -1;
+
+    const numA = getGroupInfo(a.tests[0]).bookNumber;
+    const numB = getGroupInfo(b.tests[0]).bookNumber;
+    return numB - numA;
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Empty state
@@ -39,18 +91,33 @@ function SkeletonListItem({ i }) {
   return (
     <div
       key={i}
-      className="bg-white dark:bg-[#121212] rounded-2xl border border-slate-200/60 dark:border-white/5 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 h-[92px] animate-pulse"
+      className="bg-white dark:bg-[#121212] rounded-2xl border border-slate-200/60 dark:border-white/5 p-4 flex flex-col justify-between h-[218px] animate-pulse"
     >
-      <div className="flex items-center gap-4 flex-1 min-w-0">
-        <Skeleton className="w-12 h-12 rounded-xl" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-5 w-1/3 rounded-lg" />
-          <Skeleton className="h-4 w-1/2 rounded-lg" />
+      <div>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100 dark:border-white/5">
+          <div className="flex items-center gap-2.5 flex-1">
+            <Skeleton className="w-9 h-9 rounded-lg" />
+            <div className="space-y-1.5 flex-1">
+              <Skeleton className="h-4 w-1/3 rounded-lg" />
+              <Skeleton className="h-3 w-1/2 rounded-lg" />
+            </div>
+          </div>
+          <Skeleton className="h-5 w-16 rounded-full" />
         </div>
-      </div>
-      <div className="flex items-center gap-6">
-        <Skeleton className="h-6 w-24 rounded-lg" />
-        <Skeleton className="h-10 w-32 rounded-xl" />
+
+        {/* Test Rows */}
+        <div className="space-y-3">
+          {[...Array(4)].map((_, idx) => (
+            <div key={idx} className="flex items-center justify-between py-1">
+              <div className="flex items-center gap-2 flex-1">
+                <Skeleton className="h-3.5 w-16 rounded" />
+                <Skeleton className="h-3.5 w-10 rounded" />
+              </div>
+              <Skeleton className="h-6.5 w-12 rounded-lg" />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -115,6 +182,39 @@ export function TestsGrid({
   searchQuery,
   activeTab,
 }) {
+  if (viewMode === 'list') {
+    const groups = groupTestsByVolume(filteredTests);
+    return (
+      <AnimatePresence mode="wait">
+        <m.div
+          key={activeTab + '-' + viewMode}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+          className={LIST_CLASS}
+          data-oid="35fc5ra-list"
+        >
+          {groups.map((group) => (
+            <ReadingCardListView
+              key={group.key}
+              group={group}
+              sessions={sessions}
+              userData={userData}
+              isAdmin={isAdmin}
+              hasMounted={hasMounted}
+              testCounts={testCounts}
+              questionCounts={questionCounts}
+              durations={durations}
+              color={getColor(group.label)}
+            />
+          ))}
+          {groups.length === 0 && <EmptyState searchQuery={searchQuery} />}
+        </m.div>
+      </AnimatePresence>
+    );
+  }
+
   return (
     <AnimatePresence mode="wait">
       <m.div
@@ -123,7 +223,7 @@ export function TestsGrid({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className={viewMode === 'list' ? LIST_CLASS : GRID_CLASS}
+        className={GRID_CLASS}
         data-oid="35fc5ra"
       >
         {filteredTests.map((test) => {

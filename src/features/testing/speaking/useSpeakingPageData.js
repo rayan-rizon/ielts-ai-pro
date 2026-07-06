@@ -16,7 +16,7 @@ function getNextPage(speakingData) {
 async function loadInitialData(userData, speakingData, setSpeakingData, setIsLoading) {
   if (!speakingData) setIsLoading(true);
   try {
-    const data = await fetchSpeakingData(userData, 1, 12);
+    const data = await fetchSpeakingData(userData, 1, 32);
     setSpeakingData(data);
   } catch (err) {
     console.error('Error loading speaking data:', err);
@@ -29,7 +29,7 @@ async function loadMoreData(userData, speakingData, setSpeakingData, setIsLoadin
   setIsLoadingMore(true);
   try {
     const nextPage = getNextPage(speakingData);
-    const more = await fetchSpeakingData(userData, nextPage, 12, speakingData);
+    const more = await fetchSpeakingData(userData, nextPage, 32, speakingData);
     setSpeakingData(more);
   } catch (err) {
     console.error('Error loading more speaking tests:', err);

@@ -130,7 +130,7 @@ const CoachBrief = ({
   }
 
   return (
-    <GlassCard className="relative p-5 sm:p-6 lg:p-8 bg-gradient-to-br from-white/95 to-slate-50/95 dark:from-slate-950/90 dark:to-slate-900/90 h-full">
+    <GlassCard className="relative p-4 sm:p-5 lg:p-6 bg-gradient-to-br from-white/95 to-slate-50/95 dark:from-slate-950/90 dark:to-slate-900/90 h-full">
       {/* Decorative Aura / Glows */}
       <div className="absolute -top-24 -left-20 w-80 h-80 bg-violet-500/10 rounded-full blur-3xl pointer-events-none dark:bg-violet-500/5" />
       <div className="absolute -bottom-24 -right-20 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl pointer-events-none dark:bg-pink-500/5" />
@@ -141,10 +141,10 @@ const CoachBrief = ({
       {/* Main card border gradient */}
       <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500" />
 
-      <div className="relative z-10 grid gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+      <div className="relative z-10 grid gap-5 lg:gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
         <div className="min-w-0 flex flex-col justify-between">
           <div>
-            <div className="flex flex-wrap items-center gap-2.5 mb-5">
+            <div className="flex flex-wrap items-center gap-2.5 mb-3">
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/5 dark:bg-white/5 border border-slate-950/10 dark:border-white/10 text-[10px] font-black uppercase tracking-[0.16em] text-slate-800 dark:text-slate-200">
                 <Sparkles className="w-3 h-3 text-purple-500 dark:text-purple-400 animate-pulse" />
                 Today&apos;s Coach Brief
@@ -156,13 +156,13 @@ const CoachBrief = ({
               {focusTitle}
             </h2>
 
-            <p className="mt-4 text-sm sm:text-base font-semibold leading-relaxed text-slate-500 dark:text-slate-400 max-w-2xl">
+            <p className="mt-2.5 text-sm sm:text-base font-semibold leading-relaxed text-slate-500 dark:text-slate-400 max-w-2xl">
               {focusReason}
             </p>
           </div>
 
           <div>
-            <div className="mt-6 grid max-w-2xl grid-cols-1 gap-3.5 sm:grid-cols-2 xl:max-w-[620px]">
+            <div className="mt-4 grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2 xl:max-w-[620px]">
               <Button
                 onClick={onStartTopTask}
                 className="group min-h-12 h-auto w-full min-w-0 rounded-2xl bg-slate-950 px-5 py-3.5 text-sm font-black leading-tight text-white shadow-xl shadow-slate-950/10 hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 sm:text-[15px] whitespace-normal transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-purple-500/10 hover:bg-gradient-to-r hover:from-violet-600 hover:to-pink-500 dark:hover:from-violet-400 dark:hover:to-pink-400 dark:hover:text-white"
@@ -181,7 +181,7 @@ const CoachBrief = ({
               </Button>
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <div className="mt-3.5 flex flex-wrap gap-2.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
               <button
                 type="button"
                 onClick={onTimerToggle}
@@ -202,8 +202,8 @@ const CoachBrief = ({
           </div>
         </div>
 
-        <div className="lg:border-l lg:border-slate-200/80 lg:dark:border-slate-800 lg:pl-6 flex flex-col justify-between gap-5">
-          <div className="grid grid-cols-3 lg:grid-cols-1 gap-3.5">
+        <div className="lg:border-l lg:border-slate-200/80 lg:dark:border-slate-800 lg:pl-6 flex flex-col justify-between gap-4">
+          <div className="grid grid-cols-3 lg:grid-cols-1 gap-2.5">
             {/* Week Progress Widget */}
             <div className="flex flex-col gap-2 rounded-2xl border border-slate-200/60 dark:border-slate-800/50 bg-slate-50/40 dark:bg-slate-900/20 p-3 shadow-md dark:shadow-slate-950/40 hover:shadow-lg hover:shadow-violet-500/10 transition-all duration-300">
               <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
@@ -259,8 +259,8 @@ const CoachBrief = ({
           </div>
 
           {!!secondaryTasks.length && (
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-              <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400 mb-3 flex items-center gap-1.5">
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800">
+              <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400 mb-2 flex items-center gap-1.5">
                 <Target className="w-3.5 h-3.5 text-violet-500 dark:text-violet-400" />
                 After the main task
               </div>
@@ -270,7 +270,7 @@ const CoachBrief = ({
                     key={`${task.title}-${index}`}
                     type="button"
                     onClick={onSelectToday}
-                    className="group relative w-full text-left rounded-2xl border border-slate-200/60 dark:border-slate-800/50 bg-slate-50/40 dark:bg-slate-900/20 p-3 shadow-md dark:shadow-slate-950/40 hover:border-violet-300 dark:hover:border-violet-500/40 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/10"
+                    className="group relative w-full text-left rounded-2xl border border-slate-200/60 dark:border-slate-800/50 bg-slate-50/40 dark:bg-slate-900/20 p-2.5 shadow-md dark:shadow-slate-950/40 hover:border-violet-300 dark:hover:border-violet-500/40 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/10"
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 group-hover:text-violet-500 dark:group-hover:text-violet-400 transition-colors">
@@ -737,7 +737,7 @@ const LearningPath = () => {
                 testDate={user?.test_date}
                 completedActivities={completedCount}
                 totalActivities={totalActivities}
-                className="h-full p-3 sm:p-4 md:p-6"
+                className="h-full p-3 sm:p-4 md:p-5"
                 hasHistory={(stats?.totalTests || 0) > 0}
                 onSetDate={() => navigate(`${createPageUrl('Settings')}?tab=goals`)}
               />

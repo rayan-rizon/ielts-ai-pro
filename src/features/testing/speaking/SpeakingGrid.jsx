@@ -4,6 +4,10 @@ import { Mic } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import SpeakingCardView from './SpeakingCardView';
 import { getSpeakingColor } from './speakingColorConfig';
+import SpeakingCardListView from './SpeakingCardListView';
+
+const COLOR_KEYS = ['rose', 'orange', 'blue', 'indigo', 'violet', 'cyan'];
+
 import {
   buildSpeakingDisplayTitle,
   resolveSpeakingIcon,
@@ -155,9 +159,60 @@ export function SpeakingSkeletonGrid() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Tests grid
-// ---------------------------------------------------------------------------
+function getTestNumber(test) {
+  return test.cambridge_test_number || test.title.match(/Test\s*(\d+)/i)?.[1] || 1;
+}
+
+function getGroupInfo(t) {
+  if (t.is_official_cambridge && t.cambridge_year) {
+    const volNum = t.cambridge_year - 2005;
+    return {
+      key: `cambridge-${volNum}`,
+      label: `IELTS ${volNum}`,
+      subtitle: `${t.cambridge_year} Official Tests`,
+      year: t.cambridge_year,
+      volumeNumber: volNum,
+      isOfficial: true,
+    };
+  }
+  return {
+    key: 'general',
+    label: 'General Practice',
+    subtitle: 'Extra Practice Tests',
+    year: 0,
+    volumeNumber: 0,
+    isOfficial: false,
+  };
+}
+
+function groupTestsByVolume(tests) {
+  const groups = {};
+  tests.forEach((t) => {
+    const info = getGroupInfo(t);
+    if (!groups[info.key]) {
+      groups[info.key] = {
+        id: info.key,
+        label: info.label,
+        subtitle: info.subtitle,
+        year: info.year,
+        volumeNumber: info.volumeNumber,
+        tests: [],
+        isOfficial: info.isOfficial,
+      };
+    }
+    groups[info.key].tests.push(t);
+  });
+
+  Object.values(groups).forEach((g) => {
+    g.tests.sort((a, b) => getTestNumber(a) - getTestNumber(b));
+  });
+
+  return Object.values(groups).sort((a, b) => {
+    if (a.id === 'general') return 1;
+    if (b.id === 'general') return -1;
+    return b.volumeNumber - a.volumeNumber;
+  });
+}
 
 export function SpeakingTestsGrid({
   filteredTests,
@@ -170,7 +225,40 @@ export function SpeakingTestsGrid({
   hasMounted,
   activeTab,
   searchQuery,
+  viewMode,
 }) {
+  if (viewMode === 'volumes') {
+    const grouped = groupTestsByVolume(filteredTests);
+    return (
+      <AnimatePresence>
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
+        >
+          {grouped.map((group, index) => {
+            const color = COLOR_KEYS[index % COLOR_KEYS.length];
+            return (
+              <SpeakingCardListView
+                key={group.id}
+                group={group}
+                sessions={sessions}
+                userData={userData}
+                isAdmin={isAdmin}
+                hasMounted={hasMounted}
+                color={color}
+              />
+            );
+          })}
+          {filteredTests.length === 0 && <SpeakingEmptyState searchQuery={searchQuery} />}
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
   return (
     <AnimatePresence>
       <motion.div

@@ -43,7 +43,7 @@ export function useInitialReadingLoad(userData, authLoading) {
     const load = async () => {
       if (!readingData) setIsLoading(true);
       try {
-        const data = await fetchReadingData(userData, 1, 24);
+        const data = await fetchReadingData(userData, 1, 32);
         setReadingData(data);
       } catch (err) {
         console.error('Error loading reading data:', err);
@@ -66,7 +66,7 @@ export function useReadingLoadMore(userData, readingData, setReadingData) {
     setIsLoadingMore(true);
     try {
       const nextPage = (readingData.currentPage || 1) + 1;
-      const moreData = await fetchReadingData(userData, nextPage, 24, readingData);
+      const moreData = await fetchReadingData(userData, nextPage, 32, readingData);
       setReadingData(moreData);
     } catch (err) {
       console.error('Error loading more reading tests:', err);

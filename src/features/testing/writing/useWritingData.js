@@ -16,7 +16,7 @@ function getNextPage(writingData) {
 async function loadInitialData(userData, writingData, setWritingData, setIsLoading) {
   if (!writingData) setIsLoading(true);
   try {
-    const data = await fetchWritingData(userData, 1, 12);
+    const data = await fetchWritingData(userData, 1, 32);
     setWritingData(data);
   } catch (err) {
     console.error('Error loading writing data:', err);
@@ -29,7 +29,7 @@ async function loadMoreData(userData, writingData, setWritingData, setIsLoadingM
   setIsLoadingMore(true);
   try {
     const nextPage = getNextPage(writingData);
-    const more = await fetchWritingData(userData, nextPage, 12, writingData);
+    const more = await fetchWritingData(userData, nextPage, 32, writingData);
     setWritingData(more);
   } catch (err) {
     console.error('Error loading more writing tests:', err);

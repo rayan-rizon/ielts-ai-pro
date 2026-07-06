@@ -140,7 +140,7 @@ function mergePassages(existingPassages, newPassages) {
  * @param {number}      pageSize
  * @param {object|null} existingData - previously loaded data (for "load more")
  */
-export async function fetchListeningData(user, page = 1, pageSize = 12, existingData = null) {
+export async function fetchListeningData(user, page = 1, pageSize = 32, existingData = null) {
   const [{ data: testsData, totalCount }, takenCountsData] = await Promise.all([
     fetchPassages(page, pageSize),
     fetchTakenCounts(),

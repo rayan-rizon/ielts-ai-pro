@@ -124,7 +124,7 @@ function mergeSessions(existingSessions, sessionsByPassage) {
  * Returns a merged snapshot that can be passed back as `existingData` for
  * subsequent "load more" calls.
  */
-export async function fetchReadingData(user, page = 1, pageSize = 24, existingData = null) {
+export async function fetchReadingData(user, page = 1, pageSize = 32, existingData = null) {
   const [{ data: testsData, totalCount }, takenCountsData] = await Promise.all([
     fetchPassages(page, pageSize),
     fetchTakenCounts(),

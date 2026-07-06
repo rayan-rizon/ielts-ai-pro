@@ -9,6 +9,8 @@ export default function WritingFilters({
   activeTab,
   onTabChange,
   tabs,
+  viewMode,
+  onViewModeChange,
 }) {
   return (
     <div className="sticky top-4 z-40 px-1" data-oid="v0m1rfc">
@@ -59,33 +61,38 @@ export default function WritingFilters({
           ))}
         </div>
 
-        {/* View Mode controls (Static / Read-only state matching original) */}
-        <div
-          className="hidden lg:flex items-center gap-4 px-6 border-l border-slate-200 dark:border-white/10 h-10"
-          data-oid="2m3d5dt"
-        >
-          <div
-            className="flex items-center gap-3 text-slate-400 hover:text-orange-500 transition-colors cursor-pointer group/view"
-            data-oid="9vmiask"
+        {/* View toggle (Grid / Volumes) */}
+        <div className="hidden lg:flex items-center gap-4 px-6 border-l border-slate-200 dark:border-white/10 h-10">
+          <button
+            onClick={() => onViewModeChange('grid')}
+            className={cn(
+              'flex items-center gap-3 transition-colors group/view',
+              viewMode === 'grid'
+                ? 'text-orange-500 font-black cursor-default'
+                : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer'
+            )}
           >
-            <LayoutGrid
-              className="w-5 h-5 group-hover/view:scale-110 transition-transform"
-              data-oid="fqtf44."
-            />
-            <span className="text-xs font-black uppercase tracking-[0.1em]" data-oid="ak4vjyu">
-              Grid
-            </span>
-          </div>
-          <div className="w-1.5 h-1.5 rounded-full bg-orange-500/20" data-oid="bg.5or5" />
+            <LayoutGrid className="w-5 h-5 group-hover/view:scale-110 transition-transform" />
+            <span className="text-xs font-black uppercase tracking-[0.1em]">Grid</span>
+          </button>
           <div
-            className="flex items-center gap-3 text-slate-300 dark:text-slate-700 cursor-not-allowed"
-            data-oid="2j_mnta"
+            className={cn(
+              'w-1.5 h-1.5 rounded-full transition-colors',
+              viewMode === 'grid' ? 'bg-orange-500/20' : 'bg-amber-500/20'
+            )}
+          />
+          <button
+            onClick={() => onViewModeChange('volumes')}
+            className={cn(
+              'flex items-center gap-3 transition-colors group/view',
+              viewMode === 'volumes'
+                ? 'text-amber-500 font-black cursor-default'
+                : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer'
+            )}
           >
-            <List className="w-5 h-5" data-oid="at01rz2" />
-            <span className="text-xs font-black uppercase tracking-[0.1em]" data-oid="7n0_zo7">
-              List
-            </span>
-          </div>
+            <List className="w-5 h-5 group-hover/view:scale-110 transition-transform" />
+            <span className="text-xs font-black uppercase tracking-[0.1em]">Volumes</span>
+          </button>
         </div>
       </div>
     </div>

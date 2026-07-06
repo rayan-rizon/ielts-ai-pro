@@ -12,7 +12,14 @@ const TABS = [
 /**
  * Sticky filter/search bar for the Listening page.
  */
-export default function ListeningFilters({ searchQuery, onSearchChange, activeTab, onTabChange }) {
+export default function ListeningFilters({
+  searchQuery,
+  onSearchChange,
+  activeTab,
+  onTabChange,
+  viewMode,
+  onViewModeChange,
+}) {
   return (
     <div className="sticky top-4 z-40 px-1">
       <div className="bg-white/80 dark:bg-[#0c0c0c]/80 backdrop-blur-3xl p-1 rounded-[1.5rem] md:rounded-[2rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)] border border-slate-200/60 dark:border-white/10 flex flex-col lg:flex-row gap-2 lg:gap-4 items-center justify-between">
@@ -48,17 +55,38 @@ export default function ListeningFilters({ searchQuery, onSearchChange, activeTa
           ))}
         </div>
 
-        {/* View toggle (grid active, list disabled) */}
+        {/* View toggle (Grid / Volumes) */}
         <div className="hidden lg:flex items-center gap-4 px-6 border-l border-slate-200 dark:border-white/10 h-10">
-          <div className="flex items-center gap-3 text-slate-400 hover:text-purple-500 transition-colors cursor-pointer group/view">
+          <button
+            onClick={() => onViewModeChange('grid')}
+            className={cn(
+              'flex items-center gap-3 transition-colors group/view',
+              viewMode === 'grid'
+                ? 'text-purple-500 font-black cursor-default'
+                : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer'
+            )}
+          >
             <LayoutGrid className="w-5 h-5 group-hover/view:scale-110 transition-transform" />
             <span className="text-xs font-black uppercase tracking-[0.1em]">Grid</span>
-          </div>
-          <div className="w-1.5 h-1.5 rounded-full bg-purple-500/20" />
-          <div className="flex items-center gap-3 text-slate-300 dark:text-slate-700 cursor-not-allowed">
-            <List className="w-5 h-5" />
-            <span className="text-xs font-black uppercase tracking-[0.1em]">List</span>
-          </div>
+          </button>
+          <div
+            className={cn(
+              'w-1.5 h-1.5 rounded-full transition-colors',
+              viewMode === 'grid' ? 'bg-purple-500/20' : 'bg-indigo-500/20'
+            )}
+          />
+          <button
+            onClick={() => onViewModeChange('volumes')}
+            className={cn(
+              'flex items-center gap-3 transition-colors group/view',
+              viewMode === 'volumes'
+                ? 'text-indigo-500 font-black cursor-default'
+                : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer'
+            )}
+          >
+            <List className="w-5 h-5 group-hover/view:scale-110 transition-transform" />
+            <span className="text-xs font-black uppercase tracking-[0.1em]">Volumes</span>
+          </button>
         </div>
       </div>
     </div>

@@ -97,7 +97,7 @@ function mergeAllPassages(existingData, testsData) {
   return existingData ? [...existingData.passages, ...safeArray(testsData)] : safeArray(testsData);
 }
 
-export async function fetchSpeakingData(user, page = 1, pageSize = 12, existingData = null) {
+export async function fetchSpeakingData(user, page = 1, pageSize = 32, existingData = null) {
   const offset = (page - 1) * pageSize;
 
   const {

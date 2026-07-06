@@ -43,7 +43,7 @@ export function useInitialLoad(userData, authLoading) {
     const load = async () => {
       if (!listeningData) setIsLoading(true);
       try {
-        const data = await fetchListeningData(userData, 1, 12);
+        const data = await fetchListeningData(userData, 1, 32);
         setListeningData(data);
       } catch (err) {
         console.error('Error loading listening data:', err);
@@ -66,7 +66,7 @@ export function useLoadMore(userData, listeningData, setListeningData) {
     setIsLoadingMore(true);
     try {
       const nextPage = (listeningData.currentPage || 1) + 1;
-      const moreData = await fetchListeningData(userData, nextPage, 12, listeningData);
+      const moreData = await fetchListeningData(userData, nextPage, 32, listeningData);
       setListeningData(moreData);
     } catch (err) {
       console.error('Error loading more tests:', err);

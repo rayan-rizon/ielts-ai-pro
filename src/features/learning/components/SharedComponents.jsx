@@ -11,9 +11,9 @@ export const GlassCard = ({ children, className, ...props }) => (
     whileHover={{ y: -2 }}
     transition={{ type: 'spring', stiffness: 300, damping: 25 }}
     className={cn(
-      'relative overflow-hidden bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/70 dark:border-slate-700/70 shadow-[0_10px_30px_rgba(15,23,42,0.055)] dark:shadow-[0_18px_42px_rgba(0,0,0,0.36)] rounded-2xl',
-      'hover:border-slate-300/90 dark:hover:border-slate-600 transition-all duration-300',
-      'hover:shadow-[0_16px_36px_rgba(37,99,235,0.07)] dark:hover:shadow-[0_22px_46px_rgba(14,165,233,0.08)]',
+      'relative overflow-hidden bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/70 dark:border-slate-700/70 shadow-[0_12px_36px_rgba(15,23,42,0.08)] dark:shadow-[0_18px_42px_rgba(0,0,0,0.45)] rounded-2xl',
+      'hover:border-slate-300/90 dark:hover:border-slate-700/70 transition-all duration-300',
+      'hover:shadow-[0_20px_48px_rgba(99,102,241,0.12)] dark:hover:shadow-[0_24px_56px_rgba(168,85,247,0.15)]',
       className
     )}
     {...props}

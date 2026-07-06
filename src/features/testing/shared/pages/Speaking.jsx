@@ -22,6 +22,7 @@ export default function Speaking() {
 
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState('grid');
   const [hasMounted, setHasMounted] = useState(false);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
@@ -58,6 +59,8 @@ export default function Speaking() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           tabs={TABS_CONFIG}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
         />
 
         <div className="min-h-[600px]" data-oid="toaita2">
@@ -75,6 +78,7 @@ export default function Speaking() {
               hasMounted={hasMounted}
               activeTab={activeTab}
               searchQuery={searchQuery}
+              viewMode={viewMode}
             />
           )}
         </div>

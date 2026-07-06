@@ -105,7 +105,7 @@ export default function ReadingFilters({
               data-oid="2t:8lmq"
             />
             <span className="text-xs font-black uppercase tracking-[0.1em]" data-oid="cxwazf-">
-              List
+              Volumes
             </span>
           </button>
         </div>

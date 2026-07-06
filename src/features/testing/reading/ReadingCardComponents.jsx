@@ -218,168 +218,143 @@ export function GridActions({
 }
 
 // ---------------------------------------------------------------------------
-// List Sub-components
+// Grouped Volume Card Sub-components
 // ---------------------------------------------------------------------------
 
-export function ListStatusBadge({ isLocked, isResuming, isCompleted, color }) {
-  if (isLocked) {
+export function BookProgressBadge({ tests, sessions }) {
+  let completed = 0;
+  let inProgress = 0;
+
+  tests.forEach((t) => {
+    const s = sessions.find((session) => session.passage_id === t.id);
+    if (s) {
+      if (s.is_completed) {
+        completed++;
+      } else {
+        inProgress++;
+      }
+    }
+  });
+
+  if (completed === tests.length) {
     return (
-      <div className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center shadow-md shrink-0">
-        <Lock className="w-3 h-3 text-white" />
-      </div>
+      <span className="inline-flex items-center gap-1 text-[11px] font-black px-2 py-0.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+        <CheckCircle2 className="w-3.5 h-3.5" /> All Done
+      </span>
+    );
+  }
+
+  if (completed > 0 || inProgress > 0) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[11px] font-black px-2 py-0.5 rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+        {completed}/{tests.length} Completed
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-slate-400 shrink-0">
+      0/{tests.length} Completed
+    </span>
+  );
+}
+
+export function TestRowBadge({ isLocked, isCompleted, isResuming, progress, score }) {
+  if (isLocked) {
+    return <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />;
+  }
+  if (isCompleted) {
+    return (
+      <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 shrink-0">
+        Band {typeof score === 'number' ? score.toFixed(1) : score}
+      </span>
     );
   }
   if (isResuming) {
     return (
-      <span
-        className={cn(
-          'flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0',
-          colorVariants[color].badge
-        )}
-      >
-        <span className="relative flex h-1.5 w-1.5">
-          <span
-            className={cn(
-              'animate-ping absolute inline-flex h-full w-full rounded-full opacity-75',
-              colorVariants[color].ping
-            )}
-          />
-          <span
-            className={cn(
-              'relative inline-flex rounded-full h-1.5 w-1.5',
-              colorVariants[color].dot
-            )}
-          />
-        </span>
-        In Progress
-      </span>
-    );
-  }
-  if (isCompleted) {
-    return (
-      <span
-        className={cn(
-          'flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0',
-          colorVariants[color].badge
-        )}
-      >
-        <CheckCircle2 className="w-3 h-3" />
-        Completed
+      <span className="inline-flex items-center gap-1 text-[10px] font-black text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 shrink-0">
+        {progress}%
       </span>
     );
   }
   return (
-    <Badge
-      variant="outline"
-      className="bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase shrink-0"
-    >
+    <span className="inline-flex items-center gap-1 text-[9.5px] font-black text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 shrink-0 uppercase tracking-wider">
       New
-    </Badge>
+    </span>
   );
 }
 
-export function ListScoreProgress({ isCompleted, isResuming, completedSession, progress, color }) {
-  if (isCompleted && completedSession) {
-    return (
-      <div className="flex flex-col items-start sm:items-end justify-center min-w-[70px]">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Score</span>
-        <div className="flex items-center gap-0.5">
-          <span className={cn('text-base font-black', colorVariants[color].text.split(' ')[0])}>
-            {typeof completedSession.score === 'number'
-              ? completedSession.score.toFixed(1)
-              : completedSession.score}
-          </span>
-          <span className="text-[10px] text-slate-400">/ 9.0</span>
-        </div>
-      </div>
-    );
-  }
-  if (isResuming) {
-    return (
-      <div className="flex flex-col gap-1 w-20">
-        <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-          <span>Progress</span>
-          <span className={colorVariants[color].text.split(' ')[0]}>{progress}%</span>
-        </div>
-        <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
-          <div
-            className={cn(
-              'h-full rounded-full transition-all duration-500 bg-gradient-to-r',
-              PROGRESS_GRADIENTS[color] || PROGRESS_GRADIENTS.indigo
-            )}
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </div>
-    );
-  }
-  return null;
-}
-
-export function ListActions({
-  isLocked,
-  isResuming,
-  isCompleted,
-  test,
-  session,
-  completedSession,
-  color,
-}) {
+export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, test, color }) {
   if (isLocked) {
     return (
-      <Link to={createPageUrl('Pricing')} className="w-full sm:w-auto">
-        <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl h-10 px-4 text-xs shadow-md transition-all flex items-center justify-center">
-          <Crown className="w-3.5 h-3.5 mr-1.5" /> Upgrade
-        </Button>
-      </Link>
+      <>
+        <Link to={createPageUrl('Pricing')}>
+          <Button
+            size="sm"
+            className="h-6.5 w-[76px] justify-center rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 hover:scale-105 active:scale-95 text-white font-bold text-[10px] shadow-sm flex items-center gap-1 border-0 transition-all duration-200"
+          >
+            <Crown className="w-2.5 h-2.5" /> Upgrade
+          </Button>
+        </Link>
+        <div className="w-6.5 h-6.5 shrink-0" />
+      </>
     );
   }
   if (isResuming) {
     return (
-      <Link to={`/reading-test/${session.id}`} className="w-full sm:w-auto">
-        <Button
-          className={cn(
-            'w-full bg-white dark:bg-transparent border font-bold rounded-xl h-10 px-4 text-xs shadow-none transition-all flex items-center justify-center gap-1',
-            colorVariants[color].button
-          )}
-        >
-          Resume <Play className="w-3 h-3 fill-current" />
-        </Button>
-      </Link>
+      <>
+        <Link to={`/reading-test/${testSession.id}`}>
+          <Button
+            size="sm"
+            className={cn(
+              'h-6.5 w-[76px] justify-center rounded-lg font-bold text-[10px] shadow-none flex items-center gap-1 bg-white dark:bg-transparent border hover:scale-105 active:scale-95 transition-all duration-200',
+              colorVariants[color].button
+            )}
+          >
+            Resume <Play className="w-2 h-2 fill-current" />
+          </Button>
+        </Link>
+        <div className="w-6.5 h-6.5 shrink-0" />
+      </>
     );
   }
   if (isCompleted) {
     return (
-      <div className="flex gap-1.5 w-full sm:w-auto">
-        <Link
-          to={`/reading-test/${completedSession.id}?view-results=true`}
-          className="flex-1 sm:flex-initial"
-        >
+      <>
+        <Link to={`/reading-test/${testSession.id}?view-results=true`}>
           <Button
+            size="sm"
             className={cn(
-              'w-full bg-white dark:bg-transparent border font-bold rounded-xl h-10 px-4 text-xs shadow-none transition-all flex items-center justify-center gap-1',
+              'h-6.5 w-[76px] justify-center rounded-lg font-bold text-[10px] shadow-none flex items-center justify-center gap-1 bg-white dark:bg-transparent border hover:scale-105 active:scale-95 transition-all duration-200',
               colorVariants[color].button
             )}
           >
-            Results <ArrowRight className="w-3 h-3" />
+            Results <ArrowRight className="w-2 h-2" />
           </Button>
         </Link>
         <Link to={`/reading-test?test-id=${test.id}&retake=true`}>
           <Button
+            size="sm"
             variant="outline"
-            className="h-10 w-10 p-0 rounded-xl border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center"
+            className="h-6.5 w-6.5 p-0 rounded-lg border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-2.5 h-2.5" />
           </Button>
         </Link>
-      </div>
+      </>
     );
   }
   return (
-    <Link to={`/reading-test?test-id=${test.id}`} className="w-full sm:w-auto">
-      <Button className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold rounded-xl h-10 px-4 text-xs shadow-md transition-all flex items-center justify-center border-0 gap-1">
-        Start Practice <ChevronRight className="w-3.5 h-3.5" />
-      </Button>
-    </Link>
+    <>
+      <Link to={`/reading-test?test-id=${test.id}`}>
+        <Button
+          size="sm"
+          className="h-6.5 w-[76px] justify-center rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500 hover:scale-105 active:scale-95 text-white font-bold text-[10px] shadow-sm flex items-center justify-center gap-1 border-0 transition-all duration-200"
+        >
+          Start <ChevronRight className="w-2.5 h-2.5" />
+        </Button>
+      </Link>
+      <div className="w-6.5 h-6.5 shrink-0" />
+    </>
   );
 }

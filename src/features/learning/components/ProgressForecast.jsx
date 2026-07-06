@@ -242,7 +242,7 @@ export default function ProgressForecast({
         </div>
 
         <div
-          className="rounded-2xl border border-slate-200/80 bg-white/80 p-3.5 shadow-sm dark:border-slate-700/70 dark:bg-white/[0.03]"
+          className="rounded-2xl border border-slate-200/80 bg-white/80 p-3 shadow-sm dark:border-slate-700/70 dark:bg-white/[0.03]"
           data-oid="2bxv9bq"
         >
           <div className="flex items-start justify-between gap-4">
@@ -310,7 +310,7 @@ export default function ProgressForecast({
 
         <div className="grid grid-cols-2 gap-2.5" data-oid="acktm14">
           <div
-            className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-2.5 dark:border-slate-700/70 dark:bg-white/[0.03]"
+            className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-2 dark:border-slate-700/70 dark:bg-white/[0.03]"
             data-oid="g8ldzsj"
           >
             <Calendar
@@ -329,7 +329,7 @@ export default function ProgressForecast({
           </div>
 
           <div
-            className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-2.5 dark:border-slate-700/70 dark:bg-white/[0.03]"
+            className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-2 dark:border-slate-700/70 dark:bg-white/[0.03]"
             data-oid="onv0iou"
           >
             <Sparkles
@@ -371,7 +371,7 @@ export default function ProgressForecast({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
-            className="mt-3 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2"
+            className="mt-2.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2"
             data-oid=".t-dz3a"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
