@@ -269,23 +269,90 @@ function CardActions({
 // Main card view
 // ---------------------------------------------------------------------------
 
-function SpeakingCardView({
-  test,
+function SpeakingCardOverlay({ colorVariants }) {
+  return (
+    <div
+      className={cn(
+        'absolute inset-0 bg-gradient-to-tr transition-opacity duration-500 opacity-0 group-hover:opacity-100 rounded-[2rem]',
+        colorVariants.hover
+      )}
+    />
+  );
+}
+
+function SpeakingCardHeader({ Icon, colorVariants, isLocked, isResuming, isCompleted }) {
+  return (
+    <div className="flex justify-between items-start mb-6 relative z-10">
+      <div
+        className={cn(
+          'w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300',
+          'bg-white dark:bg-white/5',
+          colorVariants.text,
+          'shadow-[0_10px_20px_-5px_rgba(0,0,0,0.1)] dark:shadow-none border',
+          colorVariants.border,
+          'group-hover:scale-110 group-hover:rotate-3'
+        )}
+      >
+        <Icon className="w-7 h-7" />
+      </div>
+      <div className="flex flex-col items-end gap-2.5">
+        <CardStatusBadge
+          isLocked={isLocked}
+          isResuming={isResuming}
+          isCompleted={isCompleted}
+          colorVariants={colorVariants}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SpeakingCardTitleBody({
   isLocked,
-  isResuming,
-  isCompleted,
-  progress,
-  displayScore,
+  colorVariants,
   displayTitle,
-  color,
-  Icon,
+  test,
   ContainerLink,
   linkProps,
-  hasMounted,
-  takenCount,
-  duration,
-  completedSessionId,
 }) {
+  return (
+    <div className={cn('mb-6 flex-grow relative z-10', isLocked && 'filter blur-sm select-none')}>
+      <ContainerLink {...linkProps} className="block group/title">
+        <h3
+          className={cn(
+            'text-xl font-bold text-slate-900 dark:text-white leading-snug mb-2 transition-colors cursor-pointer line-clamp-2',
+            `group-hover:${colorVariants.text.split(' ')[0]}`
+          )}
+        >
+          {displayTitle}
+        </h3>
+      </ContainerLink>
+      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium line-clamp-2">
+        {test.description || 'Authentic IELTS Speaking practice with interactive AI models.'}
+      </p>
+    </div>
+  );
+}
+
+function SpeakingCardView(props) {
+  const {
+    test,
+    isLocked,
+    isResuming,
+    isCompleted,
+    progress,
+    displayScore,
+    displayTitle,
+    color,
+    Icon,
+    ContainerLink,
+    linkProps,
+    hasMounted,
+    takenCount,
+    duration,
+    completedSessionId,
+  } = props;
+
   const colorVariants = getSpeakingColorVariants(color);
 
   return (
@@ -303,70 +370,25 @@ function SpeakingCardView({
         'hover:-translate-y-2 will-change-transform',
         isLocked && 'opacity-90 grayscale-[0.2]'
       )}
-      data-oid="t9f1m7e"
     >
-      <div
-        className={cn(
-          'absolute inset-0 bg-gradient-to-tr transition-opacity duration-500 opacity-0 group-hover:opacity-100 rounded-[2rem]',
-          colorVariants.hover
-        )}
-        data-oid="bp:.te-"
+      <SpeakingCardOverlay colorVariants={colorVariants} />
+      <SpeakingCardHeader
+        Icon={Icon}
+        colorVariants={colorVariants}
+        isLocked={isLocked}
+        isResuming={isResuming}
+        isCompleted={isCompleted}
+      />
+      <SpeakingCardTitleBody
+        isLocked={isLocked}
+        colorVariants={colorVariants}
+        displayTitle={displayTitle}
+        test={test}
+        ContainerLink={ContainerLink}
+        linkProps={linkProps}
       />
 
-      {/* Header row: icon + status badge */}
-      <div className="flex justify-between items-start mb-6 relative z-10" data-oid="ifdqc.z">
-        <div
-          className={cn(
-            'w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300',
-            'bg-white dark:bg-white/5',
-            colorVariants.text,
-            'shadow-[0_10px_20px_-5px_rgba(0,0,0,0.1)] dark:shadow-none border',
-            colorVariants.border,
-            'group-hover:scale-110 group-hover:rotate-3'
-          )}
-          data-oid="sy9nen7"
-        >
-          <Icon className="w-7 h-7" data-oid="nots4-d" />
-        </div>
-        <div className="flex flex-col items-end gap-2.5" data-oid="ngizc_n">
-          <CardStatusBadge
-            isLocked={isLocked}
-            isResuming={isResuming}
-            isCompleted={isCompleted}
-            colorVariants={colorVariants}
-          />
-        </div>
-      </div>
-
-      {/* Title + description */}
-      <div
-        className={cn('mb-6 flex-grow relative z-10', isLocked && 'filter blur-sm select-none')}
-        data-oid="dsiggr1"
-      >
-        <ContainerLink {...linkProps} className="block group/title" data-oid="ptwizl8">
-          <h3
-            className={cn(
-              'text-xl font-bold text-slate-900 dark:text-white leading-snug mb-2 transition-colors cursor-pointer line-clamp-2',
-              `group-hover:${colorVariants.text.split(' ')[0]}`
-            )}
-            data-oid="-4myz11"
-          >
-            {displayTitle}
-          </h3>
-        </ContainerLink>
-        <p
-          className="text-sm text-slate-500 dark:text-slate-400 font-medium line-clamp-2"
-          data-oid="lj4:12b"
-        >
-          {test.description || 'Authentic IELTS Speaking practice with interactive AI models.'}
-        </p>
-      </div>
-
-      {/* Meta chips + progress */}
-      <div
-        className={cn('mb-6 relative z-10 space-y-4', isLocked && 'filter blur-sm select-none')}
-        data-oid="06pani."
-      >
+      <div className={cn('mb-6 relative z-10 space-y-4', isLocked && 'filter blur-sm select-none')}>
         <CardMeta duration={duration} takenCount={takenCount} />
         <CardProgress
           isResuming={isResuming}
@@ -378,11 +400,7 @@ function SpeakingCardView({
         />
       </div>
 
-      {/* CTA buttons */}
-      <div
-        className="relative z-10 mt-auto pt-2 border-t border-slate-50 dark:border-white/5"
-        data-oid="df7:163"
-      >
+      <div className="relative z-10 mt-auto pt-2 border-t border-slate-50 dark:border-white/5">
         <CardActions
           isLocked={isLocked}
           isResuming={isResuming}
