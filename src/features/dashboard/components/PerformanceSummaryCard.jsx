@@ -38,6 +38,98 @@ const MODULES = [
   },
 ];
 
+// Check if we have averages to compare against
+const getProgressDiff = (latestScore, moduleAvg) => {
+  if (!latestScore || !moduleAvg) return null;
+  const diff = Number(latestScore) - Number(moduleAvg);
+  if (isNaN(diff) || diff === 0) return { val: '0.0', isImprovement: true, neutral: true };
+  return {
+    val: Math.abs(diff).toFixed(1),
+    isImprovement: diff >= 0,
+    neutral: false,
+  };
+};
+
+const PerformanceModuleCard = React.memo(({ module, test, avgScore }) => {
+  const { id, label, icon: Icon, color, bg } = module;
+  const score = test ? Number(test.score) : null;
+  const diffInfo = getProgressDiff(score, avgScore);
+
+  return (
+    <m.div
+      whileHover={{ y: -3, scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
+      className={cn(
+        'rounded-xl p-3.5 border flex flex-col justify-between group/mod hover:shadow-md transition-all duration-300 relative overflow-hidden',
+        id === 'reading' &&
+          'bg-blue-50/30 border-blue-100/60 dark:bg-blue-950/10 dark:border-blue-900/20 hover:bg-blue-50/60 dark:hover:bg-blue-950/20 hover:border-blue-300 dark:hover:border-blue-800',
+        id === 'listening' &&
+          'bg-violet-50/30 border-violet-100/60 dark:bg-violet-950/10 dark:border-violet-900/20 hover:bg-violet-50/60 dark:hover:bg-violet-950/20 hover:border-violet-300 dark:hover:border-violet-800',
+        id === 'writing' &&
+          'bg-amber-50/30 border-amber-100/60 dark:bg-amber-950/10 dark:border-amber-900/20 hover:bg-amber-50/60 dark:hover:bg-amber-950/20 hover:border-amber-300 dark:hover:border-amber-800',
+        id === 'speaking' &&
+          'bg-rose-50/30 border-rose-100/60 dark:bg-rose-950/10 dark:border-rose-900/20 hover:bg-rose-50/60 dark:hover:bg-rose-950/20 hover:border-rose-300 dark:hover:border-rose-800'
+      )}
+    >
+      {/* Module Highlight Gradient */}
+      <div
+        className={`absolute top-0 right-0 w-16 h-16 rounded-bl-full ${bg} opacity-30 dark:opacity-20 transition-transform group-hover/mod:scale-150 -translate-y-1/2 translate-x-1/2 blur-lg pointer-events-none`}
+      />
+
+      <div className="flex items-center justify-between mb-3 relative z-10">
+        <div
+          className={`p-1.5 rounded-lg ${bg} ${color} border border-slate-200/20 dark:border-white/5`}
+        >
+          <Icon className="w-3.5 h-3.5" />
+        </div>
+        <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+          {label}
+        </span>
+      </div>
+
+      <div className="relative z-10">
+        <div className="flex items-end gap-1.5">
+          <span className="text-2xl md:text-3.5xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">
+            {score ? score.toFixed(1) : '--'}
+          </span>
+          {score && (
+            <span className="text-[9px] font-black text-slate-400 dark:text-slate-555 uppercase tracking-widest mb-0.5">
+              Band
+            </span>
+          )}
+        </div>
+
+        {diffInfo && score && (
+          <div className="flex items-center gap-1.5 mt-2">
+            <span
+              className={cn(
+                'text-[10px] font-black px-2 py-0.5 rounded-full border leading-none',
+                diffInfo.neutral
+                  ? 'bg-slate-50 text-slate-500 border-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700/50'
+                  : diffInfo.isImprovement
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/25'
+                    : 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/25'
+              )}
+            >
+              {diffInfo.isImprovement && !diffInfo.neutral ? '+' : diffInfo.neutral ? '' : '-'}
+              {diffInfo.val}
+            </span>
+            <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              vs Avg
+            </span>
+          </div>
+        )}
+        {(!score || !diffInfo) && (
+          <div className="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-2 h-[20px] flex items-center">
+            {!score ? 'No tests taken' : 'New baseline'}
+          </div>
+        )}
+      </div>
+    </m.div>
+  );
+});
+PerformanceModuleCard.displayName = 'PerformanceModuleCard';
+
 const PerformanceSummaryCard = React.memo(({ recentTests = [], stats }) => {
   // Find latest test for each module
   const latestByModule = useMemo(() => {
@@ -92,18 +184,6 @@ const PerformanceSummaryCard = React.memo(({ recentTests = [], stats }) => {
     );
   }
 
-  // Check if we have averages to compare against
-  const getProgressDiff = (latestScore, moduleAvg) => {
-    if (!latestScore || !moduleAvg) return null;
-    const diff = Number(latestScore) - Number(moduleAvg);
-    if (isNaN(diff) || diff === 0) return { val: '0.0', isImprovement: true, neutral: true };
-    return {
-      val: Math.abs(diff).toFixed(1),
-      isImprovement: diff >= 0,
-      neutral: false,
-    };
-  };
-
   const avg = Number(stats?.avgScore) || 0;
 
   return (
@@ -138,78 +218,14 @@ const PerformanceSummaryCard = React.memo(({ recentTests = [], stats }) => {
 
       <CardContent className="p-4 md:p-5 flex-1 flex flex-col relative z-10">
         <div className="grid grid-cols-2 gap-3 md:gap-4 h-full">
-          {MODULES.map(({ id, label, icon: Icon, color, bg }) => {
-            const test = latestByModule[id];
-            const avgScore = stats?.moduleAverages?.[id];
-
-            const score = test ? Number(test.score) : null;
-            const diffInfo = getProgressDiff(score, avgScore);
-
-            return (
-              <m.div
-                key={id}
-                whileHover={{ y: -2 }}
-                className="bg-slate-50/50 dark:bg-slate-900/50 rounded-2xl p-3 md:p-4 border border-slate-200/60 dark:border-white/5 flex flex-col justify-between group/mod hover:bg-white dark:hover:bg-slate-900 hover:shadow-md transition-all duration-300 relative overflow-hidden"
-              >
-                {/* Module Highlight Gradient */}
-                <div
-                  className={`absolute top-0 right-0 w-16 h-16 rounded-bl-full ${bg} opacity-50 transition-transform group-hover/mod:scale-150 -translate-y-1/2 translate-x-1/2 blur-lg pointer-events-none`}
-                />
-
-                <div className="flex items-center justify-between mb-3 relative z-10">
-                  <div className={`p-1.5 rounded-lg ${bg} ${color}`}>
-                    <Icon className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    {label}
-                  </span>
-                </div>
-
-                <div className="relative z-10">
-                  <div className="flex items-end gap-2">
-                    <span className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">
-                      {score ? score.toFixed(1) : '--'}
-                    </span>
-                    {score && (
-                      <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">
-                        Band
-                      </span>
-                    )}
-                  </div>
-
-                  {diffInfo && score && (
-                    <div className="flex items-center gap-1.5 mt-2">
-                      <span
-                        className={cn(
-                          'text-[10px] font-bold px-1.5 py-0.5 rounded-md',
-                          diffInfo.neutral
-                            ? 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-                            : diffInfo.isImprovement
-                              ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
-                              : 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
-                        )}
-                      >
-                        {diffInfo.isImprovement && !diffInfo.neutral
-                          ? '+'
-                          : diffInfo.neutral
-                            ? ''
-                            : '-'}
-                        {diffInfo.val}
-                      </span>
-                      <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                        vs Avg
-                      </span>
-                    </div>
-                  )}
-                  {(!score || !diffInfo) && (
-                    <div className="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-2 h-[20px] flex items-center">
-                      {!score ? 'No tests taken' : 'New baseline'}
-                    </div>
-                  )}
-                </div>
-              </m.div>
-            );
-          })}
+          {MODULES.map((module) => (
+            <PerformanceModuleCard
+              key={module.id}
+              module={module}
+              test={latestByModule[module.id]}
+              avgScore={stats?.moduleAverages?.[module.id]}
+            />
+          ))}
         </div>
 
         <div className="mt-4 pt-4 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between font-black uppercase tracking-widest">

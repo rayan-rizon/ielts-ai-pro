@@ -70,11 +70,11 @@ const WeakestLinkCard = React.memo(({ weakestSkill }) => {
   return (
     <Card
       className={cn(
-        'relative rounded-2xl transition-all duration-400 overflow-hidden group h-full flex flex-col',
+        'relative rounded-2xl transition-all duration-400 overflow-hidden group h-full flex flex-col isolate transform-gpu',
         'bg-white dark:bg-slate-900',
-        'border border-rose-200 dark:border-rose-950',
+        'border border-slate-200 dark:border-slate-800',
         'shadow-sm',
-        'hover:border-rose-400/60 dark:hover:border-rose-400/40 hover:shadow-md transition-all duration-300'
+        'hover:border-indigo-500/40 dark:hover:border-indigo-500/40 hover:shadow-md transition-all duration-300'
       )}
     >
       <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/15 dark:bg-rose-500/10 rounded-full blur-[80px] -mr-10 -mt-10 pointer-events-none" />

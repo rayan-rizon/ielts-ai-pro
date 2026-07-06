@@ -191,7 +191,7 @@ const ProgressRingChart = React.memo(({ progressToTarget }) => {
     <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48" data-oid="gej.lip">
       <svg
         viewBox="0 0 120 120"
-        className="w-full h-full drop-shadow-[0_0_35px_rgba(99,102,241,0.4)]"
+        className="w-full h-full drop-shadow-[0_0_35px_rgba(99,102,241,0.25)] dark:drop-shadow-[0_0_35px_rgba(99,102,241,0.15)]"
         data-oid="h9pe1am"
       >
         {/* Background ring */}
@@ -221,7 +221,7 @@ const ProgressRingChart = React.memo(({ progressToTarget }) => {
           initial={{ strokeDasharray: circleDash(0) }}
           animate={{ strokeDasharray: circleDash(progressToTarget) }}
           transition={{ duration: 1.5, ease: 'circOut' }}
-          className="drop-shadow-[0_0_15px_rgba(99,102,241,0.6)]"
+          className="drop-shadow-[0_0_15px_rgba(99,102,241,0.4)] dark:drop-shadow-[0_0_15px_rgba(99,102,241,0.25)]"
           data-oid="4nh0su3"
         />
 
@@ -355,17 +355,19 @@ TargetScoreBar.displayName = 'TargetScoreBar';
 const HeroStatsDisplay = React.memo(({ progressToTarget, stats }) => {
   return (
     <div
-      className="flex flex-col items-center justify-center p-5 sm:p-6 bg-slate-50/80 dark:bg-black/40 rounded-3xl border border-slate-200 dark:border-white/15 shadow-inner relative group/chart w-full lg:w-auto"
+      className="flex flex-col items-center justify-center p-5 sm:p-6 bg-slate-50 dark:bg-slate-950/50 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-inner relative group/chart w-full lg:w-auto z-10"
       data-oid="hr4p9qs"
     >
       <div
-        className="absolute inset-0 bg-indigo-500/5 blur-[40px] rounded-full pointer-events-none group-hover/chart:bg-indigo-500/10 transition-colors"
+        className="absolute inset-0 bg-indigo-500/5 blur-[40px] rounded-full pointer-events-none group-hover/chart:bg-indigo-500/10 transition-colors z-0"
         data-oid="xh7_1ih"
       />
 
-      <ProgressRingChart progressToTarget={progressToTarget} />
-      <StatsGrid stats={stats} />
-      <TargetScoreBar stats={stats} progressToTarget={progressToTarget} />
+      <div className="relative z-10 flex flex-col items-center justify-center w-full">
+        <ProgressRingChart progressToTarget={progressToTarget} />
+        <StatsGrid stats={stats} />
+        <TargetScoreBar stats={stats} progressToTarget={progressToTarget} />
+      </div>
     </div>
   );
 });
@@ -376,29 +378,28 @@ const HeroCard = React.memo(({ recommended, progressToTarget, stats }) => {
     <div className="relative group" data-oid="3rifi:q">
       {/* Permanent Vibrant Outer Glow */}
       <div
-        className="absolute -inset-1.5 bg-gradient-to-r from-indigo-500/30 via-purple-500/10 to-indigo-500/30 rounded-[2.5rem] blur-2xl opacity-100 transition-opacity duration-700 -z-10"
+        className="absolute -inset-1.5 bg-gradient-to-r from-indigo-500/30 via-purple-500/10 to-indigo-500/30 dark:from-indigo-500/15 dark:via-purple-500/5 dark:to-indigo-500/15 rounded-[2.5rem] blur-2xl opacity-100 transition-opacity duration-700 -z-10"
         data-oid="cdy40do"
       />
 
       <Card
         className={cn(
           'relative rounded-3xl transition-all duration-500 overflow-hidden',
-          'bg-white/85 dark:bg-slate-900/80 backdrop-blur-2xl',
-          'border border-indigo-100 dark:border-indigo-900/50',
-          'shadow-[0_30px_60px_-15px_rgba(0,0,0,0.2)] dark:shadow-[0_45px_100px_rgba(0,0,0,0.7)]',
-          'hover:shadow-[0_40px_80px_-15px_rgba(99,102,241,0.25)] dark:hover:shadow-[0_50px_100px_rgba(99,102,241,0.35)]',
-          'ring-1 ring-indigo-200/50 dark:ring-indigo-800/30'
+          'bg-white dark:bg-slate-900',
+          'border border-slate-200 dark:border-slate-800',
+          'shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] dark:shadow-[0_45px_100px_rgba(0,0,0,0.5)]',
+          'hover:shadow-[0_40px_80px_-15px_rgba(99,102,241,0.2)] dark:hover:shadow-[0_50px_100px_rgba(99,102,241,0.15)]'
         )}
         data-oid="m4cfznh"
       >
         {/* Decorative background elements */}
         <div
-          className="absolute top-[-10%] right-[-10%] w-[35rem] h-[35rem] bg-indigo-500/15 dark:bg-indigo-500/25 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000 will-change-transform"
+          className="absolute top-[-10%] right-[-10%] w-[35rem] h-[35rem] bg-indigo-500/15 dark:bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000 will-change-transform"
           data-oid="b5m31uv"
         />
 
         <div
-          className="absolute bottom-[-10%] left-[-10%] w-[25rem] h-[25rem] bg-purple-500/10 dark:bg-purple-500/15 rounded-full blur-[80px] pointer-events-none will-change-transform"
+          className="absolute bottom-[-10%] left-[-10%] w-[25rem] h-[25rem] bg-purple-500/10 dark:bg-purple-500/8 rounded-full blur-[80px] pointer-events-none will-change-transform"
           data-oid="rvb:8ei"
         />
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target } from 'lucide-react';
+import { Target, Trophy } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
@@ -67,19 +67,15 @@ const SkillMapCard = React.memo(({ radarData, totalTests = 0 }) => {
           <SkillRadarChart data={radarData} data-oid="o5t4uab" />
         </div>
         <div className="mt-3 flex items-center justify-between px-1" data-oid="cp2q63s">
-          <div className="flex items-center gap-3" data-oid="4u5g:j7">
-            <div className="flex -space-x-2" data-oid="0r4u-bi">
-              <div
-                className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center border-[2px] border-white dark:border-slate-800 shadow-sm"
-                data-oid="th9s-3n"
-              >
-                <span
-                  className="text-xs font-black text-indigo-600 dark:text-indigo-400"
-                  data-oid="_9a37tx"
-                >
-                  {totalTests > 99 ? '99+' : totalTests}
-                </span>
-              </div>
+          <div className="flex items-center gap-2.5" data-oid="4u5g:j7">
+            <div
+              className="h-7 px-2.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 flex items-center gap-1.5 shadow-sm transition-transform duration-300 hover:scale-105"
+              data-oid="th9s-3n"
+            >
+              <Trophy className="w-3.5 h-3.5" data-oid="trophy-icon" />
+              <span className="text-xs font-black tabular-nums" data-oid="_9a37tx">
+                {totalTests > 99 ? '99+' : totalTests}
+              </span>
             </div>
             <span
               className="text-xs font-bold text-slate-700 dark:text-slate-200"

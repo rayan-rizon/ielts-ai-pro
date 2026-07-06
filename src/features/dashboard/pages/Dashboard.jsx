@@ -4,14 +4,12 @@ import { m } from 'framer-motion';
 import {
   BadgeCheck,
   BookOpen,
-  Calendar,
   Clock,
   Crown,
   Flame,
   Headphones,
   Mic,
   PenTool,
-  Target,
   Zap,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
@@ -20,24 +18,19 @@ import { cn } from '@/lib/cn';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-// All dashboard sub-components loaded as part of the Dashboard chunk.
-// Dashboard itself is already route-level lazy-loaded from App.jsx,
-// so these become a single download — no waterfall, no blank cards.
-const WeeklyMomentumChart = React.lazy(() => import('../components/WeeklyMomentumChart'));
-const SkillMapCard = React.lazy(() => import('../components/SkillMapCard'));
-
 import DashboardSkeleton from '../components/DashboardSkeleton';
 import HeroCard from '../components/HeroCard';
 import ModuleCards from '../components/ModuleCards';
 import useDashboardData from '../hooks/useDashboardData';
-const EngagementWidget = React.lazy(() => import('../components/EngagementWidget'));
-const AILearningPathCard = React.lazy(() => import('@/components/dashboard/AILearningPathCard'));
-const PerformanceSummaryCard = React.lazy(() => import('../components/PerformanceSummaryCard'));
-const WeakestLinkCard = React.lazy(() => import('../components/WeakestLinkCard'));
-const OnboardingCard = React.lazy(() => import('../components/OnboardingCard'));
-const CambridgeTestsCard = React.lazy(() => import('../components/CambridgeTestsCard'));
-const StudyResourcesHub = React.lazy(() => import('../components/StudyResourcesHub'));
-import { Suspense } from 'react';
+import WeeklyMomentumChart from '../components/WeeklyMomentumChart';
+import SkillMapCard from '../components/SkillMapCard';
+import EngagementWidget from '../components/EngagementWidget';
+import AILearningPathCard from '@/components/dashboard/AILearningPathCard';
+import PerformanceSummaryCard from '../components/PerformanceSummaryCard';
+import WeakestLinkCard from '../components/WeakestLinkCard';
+import OnboardingCard from '../components/OnboardingCard';
+import CambridgeTestsCard from '../components/CambridgeTestsCard';
+import StudyResourcesHub from '../components/StudyResourcesHub';
 
 // Optimized animation variants - use CSS transitions where possible
 const containerVariants = {
@@ -48,11 +41,6 @@ const containerVariants = {
 const itemVariants = {
   hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' } }, // Snappier duration
-};
-
-const statsContainerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.02 } },
 };
 
 // Module card config
@@ -104,9 +92,6 @@ export default function Dashboard() {
     isLoading,
     recentTests,
     weeklyProgress,
-    aiLoading,
-    aiPath,
-    aiTasks,
     aiFocus,
     aiProgress,
     aiFocusLoading,
@@ -178,14 +163,6 @@ export default function Dashboard() {
     return moduleCards.find((mod) => mod.key === weakest) || moduleCards[0];
   }, [stats.moduleAverages]);
 
-  const daysToExam = useMemo(() => {
-    if (!user?.test_date) return null;
-    const target = new Date(user.test_date);
-    if (Number.isNaN(target.getTime())) return null;
-    const diff = target.getTime() - Date.now();
-    return Math.max(0, Math.ceil(diff / 86400000));
-  }, [user?.test_date]);
-
   const { dateLabel, greeting } = useMemo(() => {
     const now = new Date();
     const label = now.toLocaleDateString(undefined, {
@@ -193,7 +170,6 @@ export default function Dashboard() {
       month: 'long',
       day: 'numeric',
     });
-    const hour = now.getHours();
     const greet = 'Hi';
     return { dateLabel: label, greeting: greet };
   }, []);
@@ -260,46 +236,9 @@ export default function Dashboard() {
     setShowOnboarding(false);
   }, []);
 
-  if (isLoading) return <DashboardSkeleton data-oid=":binn6-" />;
-
-  return (
-    <div
-      className="relative min-h-screen pb-20 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-blue-950/30 dark:to-indigo-950/40 transition-colors duration-500 overflow-hidden isolate"
-      data-oid="ht.2yi4"
-    >
-      {/* Enhanced Premium Background */}
-      <div
-        aria-hidden="true"
-        className="fixed inset-0 -z-10 pointer-events-none overflow-hidden"
-        data-oid="hskxaal"
-      >
-        {/* Multi-layered gradient mesh */}
-        <div
-          className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops)),rgba(99,102,241,0.12)_0%,transparent_40%),radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops)),rgba(168,85,247,0.08)_0%,transparent_40%),radial-gradient(ellipse_at_center,_var(--tw-gradient-stops)),rgba(59,130,246,0.06)_0%,transparent_50%)] dark:bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops)),rgba(99,102,241,0.2)_0%,transparent_40%),radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops)),rgba(168,85,247,0.15)_0%,transparent_40%),radial-gradient(ellipse_at_center,_var(--tw-gradient-stops)),rgba(59,130,246,0.1)_0%,transparent_50%)]"
-          data-oid="45bv.q-"
-        />
-
-        {/* Enhanced grid pattern with perspective */}
-        <div
-          className="absolute inset-0 bg-[linear-gradient(to_right,#6366f104_1px,transparent_1px),linear-gradient(to_bottom,#6366f104_1px,transparent_1px)] bg-[size:60px_60px] dark:bg-[linear-gradient(to_right,#ffffff04_1px,transparent_1px),linear-gradient(to_bottom,#ffffff04_1px,transparent_1px)]"
-          data-oid="e1fr11u"
-        />
-
-        {/* Subtle animated gradient overlay */}
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/5 dark:to-black/10 animate-pulse"
-          data-oid="7rth-uv"
-        />
-      </div>
-
-      <m.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="p-4 md:p-8 lg:p-10 max-w-[1600px] mx-auto space-y-8 relative z-10"
-        data-oid="sa9heal"
-      >
-        {/* Header */}
+  const DashboardHeader = React.memo(
+    ({ dateLabel, greeting, user, progressToTarget, stats, recommended }) => {
+      return (
         <m.header variants={itemVariants} className="space-y-6" data-oid="-l:v0.c">
           <div
             className="flex flex-col lg:flex-row lg:items-center justify-between gap-6"
@@ -377,7 +316,7 @@ export default function Dashboard() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className={cn(
-                  'grid grid-cols-2 md:flex md:flex-row items-center xl:items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/50 rounded-2xl p-0 md:p-1 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] w-full xl:w-auto overflow-hidden',
+                  'grid grid-cols-2 md:flex md:flex-row items-center xl:items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-0 md:p-1 shadow-sm w-full xl:w-auto overflow-hidden',
                   'hover:border-indigo-500/30 dark:hover:border-indigo-500/40 transition-all duration-300'
                 )}
                 data-oid="_y7fk07"
@@ -552,6 +491,59 @@ export default function Dashboard() {
             </div>
           </div>
         </m.header>
+      );
+    }
+  );
+  DashboardHeader.displayName = 'DashboardHeader';
+
+  if (isLoading) return <DashboardSkeleton data-oid=":binn6-" />;
+
+  return (
+    <div
+      className="relative min-h-screen pb-20 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-blue-950/30 dark:to-indigo-950/40 transition-colors duration-500 overflow-hidden isolate"
+      data-oid="ht.2yi4"
+    >
+      {/* Enhanced Premium Background */}
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 -z-10 pointer-events-none overflow-hidden"
+        data-oid="hskxaal"
+      >
+        {/* Multi-layered gradient mesh */}
+        <div
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops)),rgba(99,102,241,0.12)_0%,transparent_40%),radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops)),rgba(168,85,247,0.08)_0%,transparent_40%),radial-gradient(ellipse_at_center,_var(--tw-gradient-stops)),rgba(59,130,246,0.06)_0%,transparent_50%)] dark:bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops)),rgba(99,102,241,0.2)_0%,transparent_40%),radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops)),rgba(168,85,247,0.15)_0%,transparent_40%),radial-gradient(ellipse_at_center,_var(--tw-gradient-stops)),rgba(59,130,246,0.1)_0%,transparent_50%)]"
+          data-oid="45bv.q-"
+        />
+
+        {/* Enhanced grid pattern with perspective */}
+        <div
+          className="absolute inset-0 bg-[linear-gradient(to_right,#6366f104_1px,transparent_1px),linear-gradient(to_bottom,#6366f104_1px,transparent_1px)] bg-[size:60px_60px] dark:bg-[linear-gradient(to_right,#ffffff04_1px,transparent_1px),linear-gradient(to_bottom,#ffffff04_1px,transparent_1px)]"
+          data-oid="e1fr11u"
+        />
+
+        {/* Subtle animated gradient overlay */}
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/5 dark:to-black/10 animate-pulse"
+          data-oid="7rth-uv"
+        />
+      </div>
+
+      <m.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="p-4 md:p-8 lg:p-10 max-w-[1600px] mx-auto space-y-8 relative z-10"
+        data-oid="sa9heal"
+      >
+        {/* Header */}
+        <DashboardHeader
+          dateLabel={dateLabel}
+          greeting={greeting}
+          user={user}
+          progressToTarget={progressToTarget}
+          stats={stats}
+          recommended={recommended}
+        />
 
         {/* Main Bento Grid */}
         <div className="grid grid-cols-12 gap-5 lg:gap-6 auto-rows-max" data-oid=":xn8rdp">
@@ -569,52 +561,34 @@ export default function Dashboard() {
 
           <div className="col-span-12 lg:col-span-4" data-oid="u34ydy_">
             <div className="h-full" data-oid="rjpzhj8">
-              <Suspense
-                fallback={
-                  <div className="h-full min-h-[300px] w-full bg-slate-100 dark:bg-slate-900/40 rounded-[2rem] animate-pulse" />
-                }
-              >
-                <AILearningPathCard
-                  focus={aiFocus}
-                  progress={aiProgress}
-                  isLoading={aiFocusLoading}
-                  data-oid="j0q_txy"
-                />
-              </Suspense>
+              <AILearningPathCard
+                focus={aiFocus}
+                progress={aiProgress}
+                isLoading={aiFocusLoading}
+                data-oid="j0q_txy"
+              />
             </div>
           </div>
 
           {/* Row 2: Momentum & Skill Map */}
-          <div className="col-span-12 lg:col-span-8" data-oid="mz2acx:">
+          <div className="col-span-12 md:col-span-7 lg:col-span-8" data-oid="mz2acx:">
             <m.div variants={itemVariants} className="h-full" data-oid="mjbybw-">
-              <Suspense
-                fallback={
-                  <div className="h-[280px] w-full bg-slate-100 dark:bg-slate-900/40 rounded-[2rem] animate-pulse" />
-                }
-              >
-                <WeeklyMomentumChart weeklyProgress={weeklyProgress} data-oid="321tcy3" />
-              </Suspense>
+              <WeeklyMomentumChart weeklyProgress={weeklyProgress} data-oid="321tcy3" />
             </m.div>
           </div>
 
-          <div className="col-span-12 lg:col-span-4" data-oid="-c825t3">
+          <div className="col-span-12 md:col-span-5 lg:col-span-4" data-oid="-c825t3">
             <m.div variants={itemVariants} className="h-full" data-oid="vxyymb5">
-              <Suspense
-                fallback={
-                  <div className="h-[280px] w-full bg-slate-100 dark:bg-slate-900/40 rounded-[2rem] animate-pulse" />
-                }
-              >
-                <SkillMapCard
-                  radarData={radarData}
-                  totalTests={stats.totalTests}
-                  data-oid="i50m33k"
-                />
-              </Suspense>
+              <SkillMapCard
+                radarData={radarData}
+                totalTests={stats.totalTests}
+                data-oid="i50m33k"
+              />
             </m.div>
           </div>
 
           {/* Row 3: Module Launchpad, Performance & Milestones */}
-          <div className="col-span-12 lg:col-span-5" data-oid="ns_cfji">
+          <div className="col-span-12 lg:col-span-5 flex flex-col h-full" data-oid="ns_cfji">
             <ModuleCards
               moduleCards={moduleCards}
               stats={stats}
@@ -624,113 +598,72 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="col-span-12 lg:col-span-4" data-oid="w93bdf-">
+          <div
+            className="col-span-12 md:col-span-6 lg:col-span-4 flex flex-col h-full"
+            data-oid="w93bdf-"
+          >
             <m.div
               variants={itemVariants}
-              className="h-full [content-visibility:auto] [contain-intrinsic-size:auto_300px]"
+              className="flex-1 flex flex-col h-full"
               data-oid="-kckdv0"
             >
-              <Suspense
-                fallback={
-                  <div className="h-full min-h-[300px] w-full bg-slate-100 dark:bg-slate-900/40 rounded-[2rem] animate-pulse" />
-                }
-              >
-                <PerformanceSummaryCard
-                  recentTests={recentTests}
-                  stats={stats}
-                  data-oid="943hwgk"
-                />
-              </Suspense>
+              <PerformanceSummaryCard recentTests={recentTests} stats={stats} data-oid="943hwgk" />
             </m.div>
           </div>
 
-          <div className="col-span-12 lg:col-span-3" data-oid="jrz27xx">
+          <div
+            className="col-span-12 md:col-span-6 lg:col-span-3 flex flex-col h-full"
+            data-oid="jrz27xx"
+          >
             <m.div
               variants={itemVariants}
-              className="h-full [content-visibility:auto] [contain-intrinsic-size:auto_300px]"
+              className="flex-1 flex flex-col h-full"
               data-oid=":eke800"
             >
-              <Suspense
-                fallback={
-                  <div className="h-full min-h-[300px] w-full bg-slate-100 dark:bg-slate-900/40 rounded-[2rem] animate-pulse" />
-                }
-              >
-                <WeakestLinkCard weakestSkill={weakestSkill} data-oid="774s1u3" />
-              </Suspense>
+              <WeakestLinkCard weakestSkill={weakestSkill} data-oid="774s1u3" />
             </m.div>
           </div>
 
           {/* Row 4: Primary Training Section & Engagement */}
-          <div className="col-span-12 lg:col-span-8 flex flex-col" data-oid="l1q5hg4">
+          <div className="col-span-12 lg:col-span-8 flex flex-col h-full" data-oid="l1q5hg4">
             <m.div
               variants={itemVariants}
-              className="flex-1 [content-visibility:auto] [contain-intrinsic-size:auto_400px]"
+              className="flex-1 flex flex-col h-full"
               data-oid="mpq:5vl"
             >
-              <Suspense
-                fallback={
-                  <div className="h-full min-h-[400px] w-full bg-slate-100 dark:bg-slate-900/40 rounded-[2rem] animate-pulse" />
-                }
-              >
-                <CambridgeTestsCard
-                  cambridgeTests={cambridgeTests}
-                  user={user}
-                  data-oid="o_mq5hu"
-                />
-              </Suspense>
+              <CambridgeTestsCard cambridgeTests={cambridgeTests} user={user} data-oid="o_mq5hu" />
             </m.div>
           </div>
 
-          <div className="col-span-12 lg:col-span-4 flex flex-col" data-oid="e4osgw.">
-            <div
-              className="space-y-5 lg:space-y-6 flex-1 flex flex-col [content-visibility:auto] [contain-intrinsic-size:auto_400px]"
-              data-oid="6e8qz4o"
-            >
+          <div className="col-span-12 lg:col-span-4 flex flex-col h-full" data-oid="e4osgw.">
+            <div className="space-y-5 lg:space-y-6 flex-1 flex flex-col h-full" data-oid="6e8qz4o">
               {showOnboarding && (
-                <Suspense
-                  fallback={
-                    <div className="h-full min-h-[200px] w-full bg-slate-100 dark:bg-slate-900/40 rounded-[2rem] animate-pulse" />
-                  }
-                >
-                  <OnboardingCard
-                    showOnboarding={showOnboarding}
-                    onboardingSteps={onboardingSteps}
-                    dismissOnboarding={dismissOnboarding}
-                    onboardingHighlight={onboardingHighlight}
-                    data-oid="3nv8lk7"
-                  />
-                </Suspense>
+                <OnboardingCard
+                  showOnboarding={showOnboarding}
+                  onboardingSteps={onboardingSteps}
+                  dismissOnboarding={dismissOnboarding}
+                  onboardingHighlight={onboardingHighlight}
+                  data-oid="3nv8lk7"
+                />
               )}
-              <m.div variants={itemVariants} className="flex-1" data-oid="2z:3akc">
-                <Suspense
-                  fallback={
-                    <div className="h-full min-h-[200px] w-full bg-slate-100 dark:bg-slate-900/40 rounded-[2rem] animate-pulse" />
-                  }
-                >
-                  <EngagementWidget dailyActivity={stats.dailyActivity} data-oid="iicgew:" />
-                </Suspense>
+              <m.div
+                variants={itemVariants}
+                className="flex-1 flex flex-col h-full"
+                data-oid="2z:3akc"
+              >
+                <EngagementWidget dailyActivity={stats.dailyActivity} data-oid="iicgew:" />
               </m.div>
             </div>
           </div>
 
           {/* Footer Activity - Full width secondary */}
           <div className="col-span-12" data-oid="nuweh2n">
-            <m.div
-              variants={itemVariants}
-              className="[content-visibility:auto] [contain-intrinsic-size:auto_400px]"
-              data-oid="ax3smkt"
-            >
-              <Suspense
-                fallback={
-                  <div className="h-full min-h-[400px] w-full bg-slate-100 dark:bg-slate-900/40 rounded-[2rem] animate-pulse" />
-                }
-              >
-                <StudyResourcesHub
-                  initialResources={studyResources}
-                  isLoading={resourcesLoading}
-                  data-oid="mqx1sgg"
-                />
-              </Suspense>
+            <m.div variants={itemVariants} className="w-full" data-oid="ax3smkt">
+              <StudyResourcesHub
+                initialResources={studyResources}
+                isLoading={resourcesLoading}
+                data-oid="mqx1sgg"
+              />
             </m.div>
           </div>
         </div>
