@@ -19,6 +19,48 @@ const getWordLimit = (subscriptionTier) => {
   return VOCABULARY_LIMITS[tier] || VOCABULARY_LIMITS.free;
 };
 
+function checkWordLimit(user, allVocabularyCount, onShowAlert) {
+  const wordLimit = getWordLimit(user?.subscription_tier);
+  if (allVocabularyCount >= wordLimit) {
+    const tierName = (user?.subscription_tier || 'free').toLowerCase();
+    let message = '';
+    if (tierName === 'free') {
+      message = `Free accounts can save up to ${wordLimit} words. Upgrade to Pro for 50 words or Premium for unlimited storage.`;
+    } else if (tierName === 'pro') {
+      message = `Pro accounts can save up to ${wordLimit} words. Upgrade to Premium for unlimited storage.`;
+    }
+
+    onShowAlert({
+      title: 'Word Limit Reached',
+      message: message,
+    });
+    return true;
+  }
+  return false;
+}
+
+async function resolveDefinition(word, newDefinition, newExample, fetchDefinition) {
+  let finalDefinition = newDefinition.trim();
+  let finalExample = newExample.trim();
+
+  if (!finalDefinition) {
+    try {
+      const details = await fetchDefinition(word.trim());
+      if (details) {
+        finalDefinition = details.definition;
+        finalExample = details.example || '';
+      }
+    } catch (e) {
+      console.error('[Vocab] Fetch failed', e);
+    }
+  }
+
+  return {
+    definition: finalDefinition || 'User added word',
+    example: finalExample,
+  };
+}
+
 export default function QuickAddCard({
   onAddWord,
   isAdding,
@@ -35,9 +77,13 @@ export default function QuickAddCard({
   const { suggestions, fetchSuggestions, clearSuggestions } = useWordSuggestions();
   const { fetchWordDetails: fetchDefinition, isFetchingDef } = useWordDefinition();
 
-  // Fetch Autosuggestions
+  // Fetch Autosuggestions with Debounce
   useEffect(() => {
-    fetchSuggestions(newWord);
+    const delayDebounce = setTimeout(() => {
+      fetchSuggestions(newWord);
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
   }, [newWord, fetchSuggestions]);
 
   const handleSelectSuggestion = async (word) => {
@@ -58,49 +104,22 @@ export default function QuickAddCard({
       return;
     }
 
-    // Check tier limits
-    const wordLimit = getWordLimit(user?.subscription_tier);
-    if (allVocabularyCount >= wordLimit) {
-      const tierName = (user?.subscription_tier || 'free').toLowerCase();
-      let message = '';
-      if (tierName === 'free') {
-        message = `Free accounts can save up to ${wordLimit} words. Upgrade to Pro for 50 words or Premium for unlimited storage.`;
-      } else if (tierName === 'pro') {
-        message = `Pro accounts can save up to ${wordLimit} words. Upgrade to Premium for unlimited storage.`;
-      }
-
-      onShowAlert({
-        title: 'Word Limit Reached',
-        message: message,
-      });
+    if (checkWordLimit(user, allVocabularyCount, onShowAlert)) {
       return;
     }
 
-    let finalDefinition = newDefinition.trim();
-    let finalExample = newExample.trim();
-
-    // If no definition, try fetching from API
-    if (!finalDefinition) {
-      try {
-        const details = await fetchDefinition(newWord.trim());
-        if (details) {
-          finalDefinition = details.definition;
-          finalExample = details.example || '';
-        }
-      } catch (e) {
-        console.error('[Vocab] Fetch failed', e);
-      }
-    }
-
-    if (!finalDefinition) {
-      finalDefinition = 'User added word';
-    }
+    const { definition, example } = await resolveDefinition(
+      newWord,
+      newDefinition,
+      newExample,
+      fetchDefinition
+    );
 
     // Call the mutation prop
     const result = await onAddWord({
       word: newWord.trim(),
-      definition: finalDefinition,
-      example: finalExample,
+      definition,
+      example,
     });
 
     if (result.success) {
@@ -116,8 +135,8 @@ export default function QuickAddCard({
   };
 
   return (
-    <Card className="w-full border-none shadow-[0_20px_50px_rgba(79,70,229,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] bg-gradient-to-b from-white to-indigo-50/20 dark:from-slate-900 dark:to-slate-900/50 backdrop-blur-xl rounded-3xl border border-slate-200/50 dark:border-white/[0.12] relative z-30 overflow-hidden">
-      <CardHeader className="bg-gradient-to-br from-emerald-500/5 to-teal-500/5 dark:from-emerald-500/10 dark:to-teal-500/10 border-b border-emerald-100/50 dark:border-emerald-900/20 p-6">
+    <Card className="w-full overflow-visible border-none shadow-[0_20px_50px_rgba(79,70,229,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] bg-gradient-to-b from-white to-indigo-50/20 dark:from-slate-900 dark:to-slate-900/50 backdrop-blur-xl rounded-3xl border border-slate-200/50 dark:border-white/[0.12] relative z-30">
+      <CardHeader className="bg-gradient-to-br from-emerald-500/5 to-teal-500/5 dark:from-emerald-500/10 dark:to-teal-500/10 border-b border-emerald-100/50 dark:border-emerald-900/20 p-6 rounded-t-3xl">
         <CardTitle className="flex items-center gap-3 text-lg font-black text-emerald-900 dark:text-emerald-100 uppercase tracking-tight">
           <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">
             <Plus className="w-5 h-5 stroke-[2.5px]" />
@@ -125,7 +144,7 @@ export default function QuickAddCard({
           Quick Add
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-6 space-y-6">
+      <CardContent className="p-6 space-y-6 overflow-visible">
         <div className="space-y-2 relative">
           <label className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] pl-1">
             New Word
@@ -173,7 +192,10 @@ export default function QuickAddCard({
                   <div
                     key={index}
                     className="px-4 py-2.5 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/10 cursor-pointer text-sm font-bold text-slate-900 dark:text-slate-200 transition-all flex justify-between items-center group/item mx-1.5 rounded-lg"
-                    onClick={() => handleSelectSuggestion(sug.word)}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleSelectSuggestion(sug.word);
+                    }}
                   >
                     <div className="flex items-center gap-3">
                       <Search className="w-3.5 h-3.5 text-slate-400 group-hover/item:text-emerald-500 transition-colors" />

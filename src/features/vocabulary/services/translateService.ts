@@ -1,8 +1,15 @@
 // Translation Service using MyMemory API (free, no API key required)
 // https://mymemory.translated.net/doc/spec.php
 
+export interface Language {
+  code: string;
+  name: string;
+}
+
+export type LanguageCode = string;
+
 // Supported languages (commonly used)
-export const SUPPORTED_LANGUAGES = [
+export const SUPPORTED_LANGUAGES: Language[] = [
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Spanish' },
   { code: 'fr', name: 'French' },
@@ -28,11 +35,38 @@ export const SUPPORTED_LANGUAGES = [
 // Cache for translations to avoid repeated API calls
 const translationCache = new Map<string, string>();
 
+function buildCacheKey(text: string, sourceLang: LanguageCode, targetLang: LanguageCode): string {
+  return `${text}_${sourceLang}_${targetLang}`;
+}
+
+async function fetchFromMyMemory(
+  text: string,
+  sourceLang: LanguageCode,
+  targetLang: LanguageCode
+): Promise<string> {
+  const langPair = `${sourceLang}|${targetLang}`;
+  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(langPair)}`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    console.warn(`[Translate] API returned ${response.status}`);
+    return text;
+  }
+
+  const data = await response.json();
+  if (data.responseStatus === 200 && data.responseData?.translatedText) {
+    return data.responseData.translatedText;
+  }
+
+  console.warn('[Translate] No translation found:', data);
+  return text;
+}
+
 /**
  * Get saved language preference
  * @returns Language code
  */
-export function getSavedLanguage(): string {
+export function getSavedLanguage(): LanguageCode {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('vocabularyTargetLanguage') || 'en';
   }
@@ -43,7 +77,7 @@ export function getSavedLanguage(): string {
  * Save language preference
  * @param langCode - Language code to save
  */
-export function saveLanguagePreference(langCode: string): void {
+export function saveLanguagePreference(langCode: LanguageCode): void {
   if (typeof window !== 'undefined') {
     localStorage.setItem('vocabularyTargetLanguage', langCode);
   }
@@ -58,47 +92,25 @@ export function saveLanguagePreference(langCode: string): void {
  */
 export async function translateText(
   text: string,
-  targetLang: string,
-  sourceLang: string = 'en'
+  targetLang: LanguageCode,
+  sourceLang: LanguageCode = 'en'
 ): Promise<string> {
-  if (!text || !targetLang) {
+  const shouldSkipTranslation = !text || !targetLang || sourceLang === targetLang;
+  if (shouldSkipTranslation) {
     return text;
   }
 
-  // Don't translate if source and target are the same
-  if (sourceLang === targetLang) {
-    return text;
-  }
-
-  // Check cache first
-  const cacheKey = `${text}_${sourceLang}_${targetLang}`;
+  const cacheKey = buildCacheKey(text, sourceLang, targetLang);
   if (translationCache.has(cacheKey)) {
     return translationCache.get(cacheKey) || text;
   }
 
   try {
-    // MyMemory API endpoint
-    const langPair = `${sourceLang}|${targetLang}`;
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(langPair)}`;
-
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      console.warn(`[Translate] API returned ${response.status}`);
-      return text;
-    }
-
-    const data = await response.json();
-
-    if (data.responseStatus === 200 && data.responseData?.translatedText) {
-      const translatedText = data.responseData.translatedText;
-      // Cache the result
+    const translatedText = await fetchFromMyMemory(text, sourceLang, targetLang);
+    if (translatedText !== text) {
       translationCache.set(cacheKey, translatedText);
-      return translatedText;
-    } else {
-      console.warn('[Translate] No translation found:', data);
-      return text;
     }
+    return translatedText;
   } catch (error: any) {
     console.error('[Translate] Translation failed:', error.message);
     return text;
@@ -114,19 +126,17 @@ export async function translateText(
  */
 export async function batchTranslate(
   texts: string[],
-  targetLang: string,
-  sourceLang: string = 'en'
+  targetLang: LanguageCode,
+  sourceLang: LanguageCode = 'en'
 ): Promise<string[]> {
   if (!targetLang || targetLang === sourceLang) {
     return texts;
   }
 
-  // Translate each text with a small delay to avoid rate limiting
   const translations: string[] = [];
   for (const text of texts) {
     const translated = await translateText(text, targetLang, sourceLang);
     translations.push(translated);
-    // Small delay between requests to be respectful to the free API
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   return translations;
@@ -144,7 +154,7 @@ export function clearTranslationCache(): void {
  * @param code - Language code
  * @returns Language name
  */
-export function getLanguageName(code: string): string {
+export function getLanguageName(code: LanguageCode): string {
   const lang = SUPPORTED_LANGUAGES.find((l) => l.code === code);
   return lang ? lang.name : code;
 }
@@ -158,9 +168,9 @@ export function getLanguageName(code: string): string {
  */
 export function getCachedTranslation(
   text: string,
-  targetLang: string,
-  sourceLang: string = 'en'
+  targetLang: LanguageCode,
+  sourceLang: LanguageCode = 'en'
 ): string | null {
-  const cacheKey = `${text}_${sourceLang}_${targetLang}`;
+  const cacheKey = buildCacheKey(text, sourceLang, targetLang);
   return translationCache.get(cacheKey) || null;
 }

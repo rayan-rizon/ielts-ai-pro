@@ -1,6 +1,49 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
+
+function findAudioUrl(phonetics) {
+  if (!phonetics) return '';
+  const found = phonetics.find((p) => p.audio);
+  return found ? found.audio : '';
+}
+
+function extractFirstMeaning(meanings) {
+  const defaultResult = { definition: 'Definition unavailable.', example: '', partOfSpeech: '' };
+  if (!meanings || meanings.length === 0) return defaultResult;
+
+  const firstMeaning = meanings[0];
+  const partOfSpeech = firstMeaning.partOfSpeech || '';
+
+  const definitions = firstMeaning.definitions || [];
+  if (definitions.length === 0) {
+    return { definition: 'Definition unavailable.', example: '', partOfSpeech };
+  }
+
+  const firstDef = definitions[0];
+  return {
+    definition: firstDef.definition || 'Definition unavailable.',
+    example: firstDef.example || '',
+    partOfSpeech,
+  };
+}
+
+function parseDictionaryResponse(data) {
+  if (!data || data.length === 0) return null;
+  const firstEntry = data[0];
+  const meanings = firstEntry.meanings || [];
+  const { definition, example, partOfSpeech } = extractFirstMeaning(meanings);
+
+  return {
+    word: firstEntry.word,
+    phonetic: firstEntry.phonetic || '',
+    definition,
+    example,
+    partOfSpeech,
+    audio: findAudioUrl(firstEntry.phonetics),
+    allMeanings: meanings,
+  };
+}
 
 /**
  * Custom hook for fetching word definitions from dictionary API
@@ -11,7 +54,8 @@ export function useWordDefinition() {
   const [error, setError] = useState(null);
 
   const fetchWordDetails = useCallback(async (word) => {
-    if (!word?.trim()) return null;
+    const trimmed = (word || '').trim();
+    if (!trimmed) return null;
 
     setIsFetchingDef(true);
     setError(null);
@@ -20,7 +64,7 @@ export function useWordDefinition() {
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
     try {
-      const response = await fetch(`${DICTIONARY_API_URL}/${encodeURIComponent(word.trim())}`, {
+      const response = await fetch(`${DICTIONARY_API_URL}/${encodeURIComponent(trimmed)}`, {
         signal: controller.signal,
       });
 
@@ -29,40 +73,11 @@ export function useWordDefinition() {
       }
 
       const data = await response.json();
-
-      if (data && data.length > 0) {
-        const firstEntry = data[0];
-        const meanings = firstEntry.meanings || [];
-
-        // Get the first definition
-        let definition = '';
-        let example = '';
-        let partOfSpeech = '';
-
-        if (meanings.length > 0) {
-          const firstMeaning = meanings[0];
-          partOfSpeech = firstMeaning.partOfSpeech || '';
-
-          if (firstMeaning.definitions && firstMeaning.definitions.length > 0) {
-            definition = firstMeaning.definitions[0].definition || '';
-            example = firstMeaning.definitions[0].example || '';
-          }
-        }
-
-        const result = {
-          word: firstEntry.word,
-          phonetic: firstEntry.phonetic || '',
-          definition: definition || 'Definition unavailable.',
-          example,
-          partOfSpeech,
-          audio: firstEntry.phonetics?.find((p) => p.audio)?.audio || '',
-          allMeanings: meanings,
-        };
-
+      const result = parseDictionaryResponse(data);
+      if (result) {
         setWordData(result);
         return result;
       }
-
       return null;
     } catch (err) {
       const errorMessage = err.name === 'AbortError' ? 'Request timed out' : err.message;
@@ -88,38 +103,55 @@ export function useWordDefinition() {
   };
 }
 
+async function fetchSuggestionsFromAPI(query, signal) {
+  const response = await fetch(
+    `https://api.datamuse.com/sug?s=${encodeURIComponent(query)}&max=5`,
+    { signal }
+  );
+  if (!response.ok) throw new Error('Network response was not ok');
+  return response.json();
+}
+
 /**
  * Custom hook for word suggestions/autocomplete
  */
 export function useWordSuggestions() {
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const activeRequestRef = useRef(null);
 
   const fetchSuggestions = useCallback(async (query) => {
-    if (!query || query.length < 2) {
+    const trimmed = (query || '').trim();
+    if (trimmed.length < 2) {
       setSuggestions([]);
       return [];
     }
 
+    activeRequestRef.current?.abort();
+
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
+
     setIsLoading(true);
     try {
-      // Use datamuse API for suggestions
-      const response = await fetch(
-        `https://api.datamuse.com/sug?s=${encodeURIComponent(query)}&max=5`
-      );
-      const data = await response.json();
+      const data = await fetchSuggestionsFromAPI(trimmed, controller.signal);
       setSuggestions(data);
       return data;
     } catch (error) {
-      console.error('Suggestion fetch error:', error);
-      setSuggestions([]);
+      if (error.name !== 'AbortError') {
+        console.error('Suggestion fetch error:', error);
+        setSuggestions([]);
+      }
       return [];
     } finally {
-      setIsLoading(false);
+      if (activeRequestRef.current === controller) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
   const clearSuggestions = useCallback(() => {
+    activeRequestRef.current?.abort();
     setSuggestions([]);
   }, []);
 
