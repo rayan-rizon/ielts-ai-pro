@@ -33,7 +33,7 @@ function CompactState({ icon: Icon, title, description, action, className }) {
           {title}
         </h4>
         {description && (
-          <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 leading-normal">
+          <p className="text-sm font-medium text-slate-400 dark:text-slate-500 leading-normal">
             {description}
           </p>
         )}
@@ -88,9 +88,7 @@ function MockStatCards() {
               {stat.label}
             </span>
             <div className="text-3xl font-black text-slate-900 dark:text-white">{stat.value}</div>
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">
-              {stat.sub}
-            </span>
+            <span className="text-sm font-bold text-slate-400 dark:text-slate-500">{stat.sub}</span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
             <stat.icon className={cn('w-6 h-6', stat.color)} />
@@ -198,7 +196,7 @@ function BenefitItem({ benefit, index }) {
         <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
           {benefit.title}
         </h4>
-        <p className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-450 leading-normal">
+        <p className="text-sm sm:text-xs font-semibold text-slate-500 dark:text-slate-450 leading-normal">
           {benefit.desc}
         </p>
       </div>

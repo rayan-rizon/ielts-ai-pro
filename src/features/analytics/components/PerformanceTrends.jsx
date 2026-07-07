@@ -46,14 +46,14 @@ function CustomTooltip({ active, payload, label }) {
       className="rounded-2xl border border-border/80 bg-card/95 backdrop-blur-xl px-4 py-3 shadow-2xl border-opacity-50 min-w-[140px]"
       data-oid="qdrn1w5"
     >
-      <div className="text-[10px] font-black text-primary tracking-[0.2em] mb-1" data-oid="05wp2d7">
+      <div className="text-sm font-black text-primary tracking-[0.2em] mb-1" data-oid="05wp2d7">
         {label}
       </div>
       <div className="flex items-baseline gap-1" data-oid=":880-cr">
         <span className="text-xl font-black text-foreground dark:text-white" data-oid="dgefpjn">
           {formatBand(val)}
         </span>
-        <span className="text-[10px] font-bold text-muted-foreground/90" data-oid="wfhq1l6">
+        <span className="text-sm font-bold text-muted-foreground/90" data-oid="wfhq1l6">
           Score
         </span>
       </div>
@@ -69,7 +69,7 @@ const UniversalRadar = React.memo(function UniversalRadar({ data, name, color = 
       {!hasData && (
         <div className="absolute inset-0 flex items-center justify-center z-10" data-oid="rs:jonf">
           <Badge
-            className="bg-background/90 backdrop-blur-md border-primary/20 text-[10px] font-black tracking-widest text-muted-foreground px-4 py-1.5 rounded-xl shadow-xl"
+            className="bg-background/90 backdrop-blur-md border border-primary/20 text-[10px] font-black tracking-widest text-muted-foreground px-3 py-1 rounded-full shadow-xl uppercase"
             data-oid="5wl8q_3"
           >
             Awaiting Test Results
@@ -200,7 +200,7 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
               />
 
               <span
-                className="text-[12px] font-bold text-foreground dark:text-foreground tracking-tight"
+                className="text-sm font-bold text-foreground dark:text-foreground tracking-tight"
                 data-oid="32-hpvy"
               >
                 {item.type
@@ -245,13 +245,13 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
 
           <div className="flex items-center justify-between px-0.5 mt-1" data-oid="f7d3yd2">
             <span
-              className="text-[9px] font-black text-primary dark:text-blue-400 tracking-[0.15em] opacity-100"
+              className="text-xs font-black text-primary dark:text-blue-400 tracking-[0.15em] opacity-100"
               data-oid="hm1trio"
             >
               Success
             </span>
             <span
-              className="text-[10px] font-black text-muted-foreground dark:text-muted-foreground/90"
+              className="text-sm font-black text-muted-foreground dark:text-muted-foreground/90"
               data-oid="u5q:igr"
             >
               <span className="text-foreground dark:text-foreground" data-oid="67cswiw">
@@ -317,7 +317,7 @@ const LockedFeature = React.memo(function LockedFeature({
                 Unlock Pro Insights
               </div>
               <p
-                className="text-[11px] font-bold text-muted-foreground/80 leading-relaxed max-w-[240px]"
+                className="text-sm font-bold text-muted-foreground/80 leading-relaxed max-w-[240px]"
                 data-oid="xxx_xou"
               >
                 Gain access to detailed progress patterns and hit your{' '}
@@ -352,11 +352,11 @@ const LockedFeature = React.memo(function LockedFeature({
                       <AvatarFallback>U</AvatarFallback>
                     </Avatar>
                   ))}
-                  <div className="w-6 h-6 rounded-full bg-amber-500/10 flex items-center justify-center border-2 border-background text-[8px] font-black text-amber-600 ring-1 ring-amber-500/10">
+                  <div className="w-6 h-6 rounded-full bg-amber-500/10 flex items-center justify-center border-2 border-background text-xs font-black text-amber-600 ring-1 ring-amber-500/10">
                     +2k
                   </div>
                 </div>
-                <span className="text-[9px] font-black text-muted-foreground tracking-widest">
+                <span className="text-xs font-black text-muted-foreground tracking-widest">
                   Join 2,500+ successful students
                 </span>
               </div>
@@ -430,7 +430,7 @@ export default function PerformanceTrends({
                       tabIndex={isSelected ? 0 : -1}
                       onClick={() => setActiveTab(tab)}
                       className={cn(
-                        'px-4 py-1.5 text-[11px] font-black rounded-xl transition-all relative overflow-hidden',
+                        'px-4 py-1.5 text-sm font-black rounded-xl transition-all relative overflow-hidden',
                         isSelected
                           ? 'bg-background shadow-md text-primary'
                           : 'text-muted-foreground hover:text-foreground'
@@ -684,7 +684,7 @@ export default function PerformanceTrends({
                 </CardTitle>
                 <Badge
                   variant="outline"
-                  className="rounded-xl border-primary/20 bg-muted/40 text-[10px] font-black"
+                  className="rounded-full border-primary/20 bg-muted/40 text-[10px] font-black uppercase tracking-wider px-2 py-0.5"
                   data-oid="fb9l6zn"
                 >
                   Balance
@@ -718,7 +718,7 @@ export default function PerformanceTrends({
                   >
                     <div className="flex items-center justify-between px-1" data-oid="wz._gze">
                       <span
-                        className="text-[10px] font-black text-foreground/80 dark:text-foreground/70 tracking-widest"
+                        className="text-sm font-black text-foreground/80 dark:text-foreground/70 tracking-widest"
                         data-oid="ra-rsiz"
                       >
                         {item.subject}
@@ -763,7 +763,7 @@ export default function PerformanceTrends({
                 </CardTitle>
                 <Badge
                   variant="outline"
-                  className="rounded-xl border-emerald-500/30 bg-emerald-500/10 text-[10px] font-black text-emerald-600 dark:text-emerald-400"
+                  className="rounded-full border-emerald-500/30 bg-emerald-500/10 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 text-emerald-600 dark:text-emerald-400"
                   data-oid="9:3a._o"
                 >
                   Success
@@ -809,7 +809,7 @@ export default function PerformanceTrends({
                 </div>
                 {!isPremium && (
                   <Badge
-                    className="rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none px-3 py-1 font-black text-[9px] tracking-wider"
+                    className="rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none px-2.5 py-0.5 font-black text-[10px] uppercase tracking-wider"
                     data-oid="r6a_lzr"
                   >
                     Pro Feature
@@ -935,7 +935,7 @@ function StatMiniCard({ icon: Icon, label, value, alert, alertColor }) {
       />
 
       <span
-        className="text-[9px] font-black text-foreground/80 dark:text-foreground/70 tracking-tight mb-0.5"
+        className="text-xs font-black text-foreground/80 dark:text-foreground/70 tracking-tight mb-0.5"
         data-oid="m2xsq81"
       >
         {label}
@@ -962,7 +962,7 @@ function SectionHeading({ icon: Icon, label, subLabel, color }) {
     <div className="flex items-center justify-between px-1" data-oid="4-fb8tb">
       <span
         className={cn(
-          'text-[11px] font-black text-foreground/90 tracking-widest flex items-center gap-2',
+          'text-sm font-black text-foreground/90 tracking-widest flex items-center gap-2',
           color
         )}
         data-oid="xp9yc9d"
@@ -971,7 +971,7 @@ function SectionHeading({ icon: Icon, label, subLabel, color }) {
       </span>
       {subLabel && (
         <span
-          className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground/80"
+          className="text-sm font-bold text-muted-foreground dark:text-muted-foreground/80"
           data-oid="c070qju"
         >
           {subLabel}
@@ -984,10 +984,7 @@ function SectionHeading({ icon: Icon, label, subLabel, color }) {
 function SkillGapItem({ skill, avg }) {
   return (
     <div className="space-y-1.5" data-oid="bmdkccl">
-      <div
-        className="flex justify-between items-center text-[10px] font-bold px-1"
-        data-oid="2aleqd_"
-      >
+      <div className="flex justify-between items-center text-sm font-bold px-1" data-oid="2aleqd_">
         <span className="text-foreground font-black tracking-tight" data-oid="9xf0ipf">
           {skill}
         </span>

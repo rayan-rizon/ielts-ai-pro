@@ -146,7 +146,7 @@ export default function ActivityHeatmap({ rawSessions }) {
                     {stats.currentStreak}
                   </div>
                   <div
-                    className="text-[8px] font-bold text-muted-foreground tracking-widest mt-1"
+                    className="text-xs font-bold text-muted-foreground tracking-widest mt-1"
                     data-oid="uas034-"
                   >
                     Streak
@@ -160,7 +160,7 @@ export default function ActivityHeatmap({ rawSessions }) {
                     {stats.activeDays}
                   </div>
                   <div
-                    className="text-[8px] font-bold text-muted-foreground tracking-widest mt-1"
+                    className="text-xs font-bold text-muted-foreground tracking-widest mt-1"
                     data-oid="10o8762"
                   >
                     Days
@@ -174,7 +174,7 @@ export default function ActivityHeatmap({ rawSessions }) {
                     {stats.totalSessions}
                   </div>
                   <div
-                    className="text-[8px] font-bold text-muted-foreground tracking-widest mt-1"
+                    className="text-xs font-bold text-muted-foreground tracking-widest mt-1"
                     data-oid="7z4mnl5"
                   >
                     Tests
@@ -187,7 +187,7 @@ export default function ActivityHeatmap({ rawSessions }) {
                 data-oid="cuiujf_"
               >
                 <span
-                  className="text-[10px] font-black text-primary tracking-widest"
+                  className="text-sm font-black text-primary tracking-widest"
                   data-oid="62ic_:9"
                 >
                   Intensity
@@ -217,7 +217,7 @@ export default function ActivityHeatmap({ rawSessions }) {
                   <div
                     key={i}
                     className={cn(
-                      'text-[10px] font-black tracking-widest transition-colors',
+                      'text-sm font-black tracking-widest transition-colors',
                       isEven ? 'text-primary' : 'text-muted-foreground/60'
                     )}
                     style={{
@@ -236,7 +236,7 @@ export default function ActivityHeatmap({ rawSessions }) {
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
                   <div
                     key={day}
-                    className="h-2.5 text-[8px] font-black text-muted-foreground/50 tracking-tighter leading-none flex items-center justify-end w-6"
+                    className="h-2.5 text-xs font-black text-muted-foreground/50 tracking-tighter leading-none flex items-center justify-end w-6"
                     data-oid="t.lzg51"
                   >
                     {i % 2 === 1 ? day : ''}
@@ -285,7 +285,7 @@ export default function ActivityHeatmap({ rawSessions }) {
                           >
                             <div className="flex flex-col gap-0.5" data-oid="8duw2b0">
                               <p
-                                className="text-[10px] font-black text-primary tracking-widest"
+                                className="text-sm font-black text-primary tracking-widest"
                                 data-oid="svgo6_e"
                               >
                                 {day.date.toLocaleDateString(undefined, { weekday: 'long' })}
@@ -305,7 +305,7 @@ export default function ActivityHeatmap({ rawSessions }) {
                                 </p>
                               </div>
                               <p
-                                className="text-[9px] font-bold text-muted-foreground border-t border-border/30 mt-1 pt-1"
+                                className="text-xs font-bold text-muted-foreground border-t border-border/30 mt-1 pt-1"
                                 data-oid="gtkey.i"
                               >
                                 {day.date.toLocaleDateString(undefined, {
@@ -347,14 +347,14 @@ export default function ActivityHeatmap({ rawSessions }) {
                     Consistency is Key
                   </span>
                   <Badge
-                    className="bg-primary/10 text-primary border-0 text-[9px] font-black tracking-widest px-2 py-0.5 rounded-full"
+                    className="bg-primary/10 text-primary border-0 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full"
                     data-oid="-9.mz_m"
                   >
                     Insight
                   </Badge>
                 </div>
                 <p
-                  className="text-[11px] font-medium text-muted-foreground leading-relaxed max-w-lg"
+                  className="text-sm font-medium text-muted-foreground leading-relaxed max-w-lg"
                   data-oid="tkrcemf"
                 >
                   Students who practice at least{' '}

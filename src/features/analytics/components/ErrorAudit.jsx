@@ -15,13 +15,13 @@ const CustomTooltip = ({ active, payload }) => {
         className="rounded-xl border border-border/50 bg-card/95 backdrop-blur-xl p-3 shadow-2xl"
         data-oid="nq4uozw"
       >
-        <div className="text-[10px] font-black text-muted-foreground mb-1" data-oid="w8grf5t">
+        <div className="text-sm font-black text-muted-foreground mb-1" data-oid="w8grf5t">
           {data.name}
         </div>
         <div className="text-lg font-black text-foreground" data-oid="bdu7d4e">
           {data.value} Cases
         </div>
-        <div className="text-[9px] font-bold text-primary mt-1 animate-pulse" data-oid="r6i3_eg">
+        <div className="text-xs font-bold text-primary mt-1 animate-pulse" data-oid="r6i3_eg">
           Click to analyze patterns →
         </div>
       </div>
@@ -83,14 +83,14 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
             </CardTitle>
             <Badge
               variant="outline"
-              className="rounded-xl border-border/60 bg-muted/40 text-[10px] font-black"
+              className="rounded-xl border-border/60 bg-muted/40 text-xs font-black"
               data-oid="od1xci2"
             >
               Click Any Part
             </Badge>
           </div>
           <CardDescription
-            className="text-xs font-semibold text-muted-foreground/80"
+            className="text-sm font-medium text-muted-foreground/80"
             data-oid="jncrkaz"
           >
             See why you missed marks and get tips to improve.
@@ -111,7 +111,7 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
                     {totalPointsLost}
                   </div>
                   <div
-                    className="text-[9px] md:text-[10px] font-black text-muted-foreground tracking-widest leading-none"
+                    className="text-xs md:text-sm font-black text-muted-foreground tracking-widest leading-none"
                     data-oid="z0du9py"
                   >
                     Total Mistakes
@@ -156,7 +156,7 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
                     data-oid="insight-icon"
                   />
                   <p
-                    className="text-[11px] md:text-xs font-semibold text-foreground/80 leading-relaxed italic text-center"
+                    className="text-sm font-semibold text-foreground/80 leading-relaxed italic text-center"
                     data-oid="_2yp0gn"
                   >
                     "{getSmartDescription()}"
@@ -180,7 +180,7 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
 
                     <div className="flex-1 min-w-0" data-oid="dc_qyf7">
                       <div
-                        className="text-[8px] md:text-[9px] font-black text-muted-foreground leading-none truncate"
+                        className="text-xs md:text-sm font-black text-muted-foreground leading-none truncate"
                         data-oid="fow57u7"
                       >
                         {item.name}

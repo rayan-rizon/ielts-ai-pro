@@ -84,13 +84,13 @@ export default function StudyDistribution({ stats, chartData }) {
 
                 <div className="min-w-0" data-oid="jdmdo_5">
                   <div
-                    className="text-[10px] font-black text-foreground capitalize truncate leading-none mb-1"
+                    className="text-sm font-black text-foreground capitalize truncate leading-none mb-1"
                     data-oid="wz5kvod"
                   >
                     {entry.name}
                   </div>
                   <div
-                    className="text-[9px] font-bold text-muted-foreground tracking-widest whitespace-nowrap"
+                    className="text-xs font-bold text-muted-foreground tracking-widest whitespace-nowrap"
                     data-oid="15yd1tl"
                   >
                     {entry.value} Tests

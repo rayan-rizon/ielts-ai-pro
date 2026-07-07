@@ -152,7 +152,7 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
                               {session.type}
                             </span>
                             <span
-                              className="text-[10px] font-bold text-muted-foreground/60"
+                              className="text-sm font-bold text-muted-foreground/60"
                               data-oid="prinag3"
                             >
                               •{' '}
@@ -167,7 +167,7 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
                           <div className="flex flex-wrap gap-1.5 mt-2" data-oid="sn-e-4-">
                             <Badge
                               variant="outline"
-                              className="text-[10px] font-black h-5 border-rose-500/20 text-rose-500 bg-rose-500/5 dark:bg-rose-500/10 dark:text-rose-300"
+                              className="text-xs font-black h-5 border-rose-500/20 text-rose-500 bg-rose-500/5 dark:bg-rose-500/10 dark:text-rose-300"
                               data-oid="rw50hrh"
                             >
                               {session.count}{' '}
@@ -185,7 +185,7 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
                               <Badge
                                 key={tt}
                                 variant="secondary"
-                                className="text-[10px] font-bold h-5 bg-foreground/5 text-foreground/70 border-none"
+                                className="text-xs font-bold h-5 bg-foreground/5 text-foreground/70 border-none"
                                 data-oid="6467m8x"
                               >
                                 {tt}
@@ -200,7 +200,7 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
                           {session.score || '—'}
                         </div>
                         <div
-                          className="text-[9px] font-black text-muted-foreground leading-none mt-1 uppercase tracking-tight"
+                          className="text-xs font-black text-muted-foreground leading-none mt-1 uppercase tracking-tight"
                           data-oid="o_m7tfo"
                         >
                           Score
@@ -210,7 +210,7 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
                           asChild
                           variant="ghost"
                           size="sm"
-                          className="mt-4 h-8 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-[10px] font-bold group"
+                          className="mt-4 h-8 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm font-bold group"
                           data-oid="-b:ae28"
                         >
                           <Link to={getReviewUrl(session)} data-oid="m2w7x2u">

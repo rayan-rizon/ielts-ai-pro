@@ -25,21 +25,18 @@ const LearningRoadmap = React.memo(function LearningRoadmap({ phase, milestone }
             <Icon className="w-3 h-3" data-oid="bki5g06" />
           </div>
           <div data-oid="0n4ztw6">
-            <div
-              className="text-[10px] font-black text-foreground tracking-tight"
-              data-oid="vs7tywo"
-            >
+            <div className="text-sm font-black text-foreground tracking-tight" data-oid="vs7tywo">
               {phase.label} Phase
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2" data-oid="gl:ah94">
-          <span className="text-[10px] font-black text-foreground" data-oid="d8cj6yp">
+          <span className="text-sm font-black text-foreground" data-oid="d8cj6yp">
             {Math.round(phase.progress)}%
           </span>
           <Badge
             variant="outline"
-            className="rounded-lg border-primary/20 bg-primary/5 text-primary text-[8px] font-black px-1.5 py-0"
+            className="rounded-full border-primary/20 bg-primary/5 text-primary text-[10px] font-black px-2.5 py-0.5 uppercase tracking-wider"
             data-oid="w4fsad_"
           >
             Milestone: {milestone.target}
@@ -78,7 +75,7 @@ const FocusArea = React.memo(function FocusArea({ area, idx }) {
         </div>
         <div className="min-w-0" data-oid="d_p:vud">
           <p
-            className="text-[8px] font-black text-primary dark:text-primary/90 tracking-tighter truncate"
+            className="text-sm font-black text-primary dark:text-primary/90 tracking-tight truncate"
             data-oid="vv.e_x_"
           >
             {area.module || 'Focus Area'}
@@ -86,7 +83,7 @@ const FocusArea = React.memo(function FocusArea({ area, idx }) {
         </div>
       </div>
       <p
-        className="text-[9px] font-medium text-muted-foreground truncate italic mt-1 pl-1"
+        className="text-sm font-medium text-muted-foreground truncate italic mt-1 pl-1"
         data-oid="bxfh:qi"
       >
         {area.strategy || area.description || (typeof area === 'string' ? area : '')}
@@ -111,12 +108,12 @@ function PredictionCard({ icon, label, value, color }) {
 
         <div className="min-w-0" data-oid="nwkofu7">
           <div
-            className="text-[8px] font-black tracking-tighter text-muted-foreground"
+            className="text-xs font-black tracking-wider text-muted-foreground"
             data-oid="3egp:6."
           >
             {label}
           </div>
-          <div className="text-sm font-black text-foreground leading-none" data-oid="f6wa9k0">
+          <div className="text-base font-black text-foreground leading-none" data-oid="f6wa9k0">
             {value}
           </div>
         </div>
@@ -161,7 +158,7 @@ const LockedFeature = React.memo(function LockedFeature({ isLocked, children }) 
                 Unlock AI Roadmap
               </div>
               <p
-                className="text-[11px] sm:text-xs font-medium text-muted-foreground/80 leading-relaxed max-w-[220px] mx-auto"
+                className="text-sm sm:text-xs font-medium text-muted-foreground/80 leading-relaxed max-w-[220px] mx-auto"
                 data-oid="qou.wzv"
               >
                 Personalized study paths, band predictions, and specific strategies to hit your{' '}
@@ -178,7 +175,7 @@ const LockedFeature = React.memo(function LockedFeature({ isLocked, children }) 
             <div className="w-full pt-0.5" data-oid="l_am97w">
               <Button
                 asChild
-                className="w-full h-10 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white border-0 font-black text-[10px] tracking-[0.2em] rounded-2xl shadow-md shadow-amber-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full h-10 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white border-0 font-black text-sm tracking-[0.2em] rounded-2xl shadow-md shadow-amber-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Link to="/settings/subscription">Upgrade Now</Link>
               </Button>
@@ -197,13 +194,13 @@ const LockedFeature = React.memo(function LockedFeature({ isLocked, children }) 
                         src={`https://i.pravatar.cc/100?u=ielts_student_${i}`}
                         alt="Student"
                       />
-                      <AvatarFallback className="bg-amber-100 text-[8px] font-black text-amber-600">
+                      <AvatarFallback className="bg-amber-100 text-xs font-black text-amber-600">
                         {i}
                       </AvatarFallback>
                     </Avatar>
                   ))}
                 </div>
-                <p className="text-[9px] font-black text-muted-foreground/50 tracking-[0.15em]">
+                <p className="text-xs font-bold text-muted-foreground/75 tracking-[0.15em]">
                   Join 2,500+ successful students
                 </p>
               </div>
@@ -229,9 +226,7 @@ function CompactEmptyState({ icon: Icon, title, description }) {
         <h4 className="text-xs font-black text-slate-850 dark:text-white tracking-tight">
           {title}
         </h4>
-        <p className="text-[10px] font-bold text-muted-foreground/95 leading-normal">
-          {description}
-        </p>
+        <p className="text-sm font-medium text-muted-foreground/95 leading-normal">{description}</p>
       </div>
     </div>
   );
@@ -308,7 +303,7 @@ export default function AIInsightsCard({
             <div className="flex items-center gap-2" data-oid="xsaj8ol">
               {!isPremium && (
                 <Badge
-                  className="rounded-lg bg-orange-500 text-white border-0 font-black text-[7px] tracking-tighter px-1.5 py-0.5"
+                  className="rounded-full bg-orange-500 text-white border-0 font-black text-[10px] tracking-wider uppercase px-2 py-0.5 shadow-sm"
                   data-oid="9ug6b0s"
                 >
                   PRO
@@ -317,7 +312,7 @@ export default function AIInsightsCard({
               <Badge
                 variant="secondary"
                 className={cn(
-                  'rounded-lg border-0 font-bold text-[8px] tracking-tight px-2 py-1',
+                  'rounded-full border-0 font-black text-[10px] tracking-wider uppercase px-2.5 py-0.5',
                   isPremium
                     ? 'bg-primary/10 text-primary dark:text-blue-400'
                     : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
@@ -330,7 +325,7 @@ export default function AIInsightsCard({
           </div>
           <CardDescription
             className={cn(
-              'font-medium text-[11px] leading-tight max-w-sm relative z-10 mt-1.5 opacity-80',
+              'font-medium text-sm leading-tight max-w-sm relative z-10 mt-1.5 opacity-80',
               !isPremium && 'text-muted-foreground'
             )}
             data-oid="iqubwod"
@@ -370,14 +365,14 @@ export default function AIInsightsCard({
                       <div className="flex items-center gap-2 mb-1" data-oid="ix.5k0k">
                         <Rocket className="w-3.5 h-3.5 text-primary" data-oid="deniutw" />
                         <div
-                          className="text-[9px] font-black text-primary dark:text-primary/90 tracking-tighter"
+                          className="text-xs font-black text-primary dark:text-primary/90 tracking-tighter"
                           data-oid="h6e2dsd"
                         >
                           Growth Path
                         </div>
                       </div>
                       <div
-                        className="text-[11px] font-bold text-foreground leading-snug pl-0.5"
+                        className="text-sm font-bold text-foreground leading-snug pl-0.5"
                         data-oid="vxd8cqz"
                       >
                         {stats.insights.aiSuggestions.learning_path_overview ||
@@ -440,7 +435,7 @@ export default function AIInsightsCard({
               {stats?.insights?.recommendations?.length > 0 && (
                 <div className="space-y-2 mt-3 pt-2 border-t border-border/40" data-oid="5s:lwz7">
                   <div
-                    className="text-[10px] font-black text-muted-foreground tracking-[0.25em] px-2 flex items-center gap-2"
+                    className="text-sm font-black text-muted-foreground tracking-[0.25em] px-2 flex items-center gap-2"
                     data-oid="4q5myjb"
                   >
                     <div
@@ -496,7 +491,7 @@ export default function AIInsightsCard({
                             </div>
                             <div className="flex-1 min-w-0" data-oid="8yy7h1n">
                               {meta?.title && (
-                                <div className="text-[9px] font-black text-primary/80 dark:text-blue-400/80 tracking-widest mb-0.5">
+                                <div className="text-xs font-black text-primary/80 dark:text-blue-400/80 tracking-widest mb-0.5">
                                   {meta.title} Booster
                                 </div>
                               )}

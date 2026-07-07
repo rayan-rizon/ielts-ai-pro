@@ -19,7 +19,7 @@ function MarkerTopLabel({ isCurrent, isFinalGoal }) {
           data-oid="kp4mko9"
         >
           <Badge
-            className="bg-indigo-600 dark:bg-indigo-500 text-[10px] text-white border-0 font-black px-3 py-1 rounded-full shadow-lg shadow-indigo-500/30 tracking-[0.1em]"
+            className="bg-indigo-600 dark:bg-indigo-500 text-[10px] text-white border-0 font-black px-2.5 py-0.5 rounded-full shadow-lg shadow-indigo-500/30 tracking-[0.1em] uppercase"
             data-oid="npy:uyn"
           >
             Where You Are
@@ -28,7 +28,7 @@ function MarkerTopLabel({ isCurrent, isFinalGoal }) {
       )}
       {isFinalGoal && (
         <Badge
-          className="bg-rose-500 text-[10px] text-white border-0 font-black px-3 py-1 rounded-full shadow-lg shadow-rose-500/40 tracking-[0.1em] ring-2 ring-rose-500/20"
+          className="bg-rose-500 text-[10px] text-white border-0 font-black px-2.5 py-0.5 rounded-full shadow-lg shadow-rose-500/40 tracking-[0.1em] ring-2 ring-rose-500/20 uppercase"
           data-oid="q3kdcug"
         >
           Your Goal
@@ -94,7 +94,7 @@ function MarkerCaption({ isPast, isCurrent, isFinalGoal, isFuture, band }) {
     <div className="mt-1.5 text-center" data-oid="_gflt84">
       <p
         className={cn(
-          'text-[10px] font-black tracking-[0.12em] transition-colors',
+          'text-sm font-black tracking-[0.12em] transition-colors',
           isPast && 'text-emerald-500 opacity-90',
           isCurrent && 'text-indigo-600 dark:text-indigo-400',
           isFinalGoal && 'text-rose-500',
@@ -120,7 +120,7 @@ function MarkerTooltipContent({ isPast, isCurrent, isFinalGoal, band }) {
       side="bottom"
       className="bg-slate-900 text-white border-0 py-2 px-3 rounded-xl shadow-2xl"
     >
-      <div className="text-[10px] font-bold space-y-1">
+      <div className="text-sm font-bold space-y-1">
         <p className="tracking-widest text-slate-400">Milestone Details</p>
         <p className="text-sm font-black">Band {formatBand(band)} Mastery</p>
         <p className="font-medium text-slate-300">
@@ -204,10 +204,7 @@ function JourneyHeader({ targetBand, estimatedDays }) {
                 className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"
                 data-oid="-7hzl8k"
               />
-              <p
-                className="text-[10px] font-black text-slate-400 tracking-[0.16em]"
-                data-oid=":3qmtfi"
-              >
+              <p className="text-sm font-black text-slate-400 tracking-[0.16em]" data-oid=":3qmtfi">
                 Personalized for You
               </p>
             </div>
@@ -216,16 +213,14 @@ function JourneyHeader({ targetBand, estimatedDays }) {
 
         <div className="flex items-center gap-3" data-oid="pitbrk0">
           <div className="hidden sm:flex flex-col items-end" data-oid="cu4ehu1">
-            <span className="text-[10px] font-black text-slate-400 tracking-widest">
-              Target Score
-            </span>
+            <span className="text-sm font-black text-slate-400 tracking-widest">Target Score</span>
             <span className="text-base font-black text-rose-500 leading-tight">
               Band {targetBand}
             </span>
           </div>
           <div className="w-px h-8 bg-border/40 hidden sm:block" data-oid="divider" />
           <div className="flex flex-col items-end" data-oid="b-e_lmw">
-            <span className="text-[10px] font-black text-slate-400 tracking-widest">
+            <span className="text-sm font-black text-slate-400 tracking-widest">
               Estimated Arrival
             </span>
             <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
@@ -276,11 +271,11 @@ function JourneyGauge({ progressPercentage }) {
       data-oid="radial-gauge-container"
     >
       <div
-        className="relative w-28 h-28 flex items-center justify-center transform group-hover/gauge:scale-105 transition-transform duration-500"
+        className="relative w-36 h-36 flex items-center justify-center transform group-hover/gauge:scale-105 transition-transform duration-500"
         data-oid="gauge-wrapper"
       >
         <svg
-          className="w-28 h-28 transform -rotate-90 overflow-visible filter drop-shadow-[0_4px_16px_rgba(99,102,241,0.15)]"
+          className="w-36 h-36 transform -rotate-90 overflow-visible filter drop-shadow-[0_4px_10px_rgba(99,102,241,0.08)]"
           viewBox="0 0 100 100"
           data-oid="gauge-svg"
         >
@@ -304,7 +299,7 @@ function JourneyGauge({ progressPercentage }) {
             cy="50"
             r="42"
             stroke="url(#progressGrad)"
-            className="fill-none opacity-40 blur-[4px]"
+            className="fill-none opacity-20 blur-[2.5px]"
             strokeWidth="8"
             strokeLinecap="round"
             initial={{ strokeDashoffset: 263.89 }}
@@ -320,7 +315,7 @@ function JourneyGauge({ progressPercentage }) {
             cy="50"
             r="42"
             stroke="url(#progressGrad)"
-            className="fill-none drop-shadow-[0_0_8px_rgba(99,102,241,0.4)]"
+            className="fill-none drop-shadow-[0_0_4px_rgba(99,102,241,0.25)]"
             strokeWidth="8"
             strokeLinecap="round"
             initial={{ strokeDashoffset: 263.89 }}
@@ -341,13 +336,13 @@ function JourneyGauge({ progressPercentage }) {
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, ease: 'easeOut', delay: 0.6 }}
-            className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-br from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 tracking-tight leading-none drop-shadow-sm"
+            className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-br from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 tracking-tight leading-none drop-shadow-sm"
             data-oid="gauge-percentage"
           >
             {progressPercentage}%
           </motion.span>
           <span
-            className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.16em] mt-1"
+            className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.16em] mt-1"
             data-oid="gauge-sublabel"
           >
             Reached
@@ -367,7 +362,7 @@ function JourneyChecklist({ recommendations }) {
       <div className="space-y-0.5" data-oid="pathway-header">
         <div className="flex items-center gap-2" data-oid="pathway-title-row">
           <Badge
-            className="bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 border-0 font-black px-1.5 py-0.5 text-[8px] uppercase tracking-wider rounded-md"
+            className="bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 border-0 font-black px-2.5 py-0.5 text-[10px] uppercase tracking-wider rounded-full"
             data-oid="pathway-badge"
           >
             Action Plan
@@ -398,7 +393,7 @@ function JourneyChecklist({ recommendations }) {
               <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 stroke-[3px]" />
             </div>
             <p
-              className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 leading-relaxed group-hover/step:text-slate-900 dark:group-hover:text-white transition-colors pt-0.5"
+              className="text-sm font-semibold text-slate-700 dark:text-slate-300 leading-relaxed group-hover/step:text-slate-900 dark:group-hover:text-white transition-colors pt-0.5"
               data-oid={`pathway-step-text-${idx}`}
             >
               {rec}
@@ -422,7 +417,7 @@ function EmptyJourneyState() {
         </div>
         <div className="max-w-sm space-y-1">
           <h4 className="text-sm font-black text-foreground">Begin Your Journey</h4>
-          <p className="text-[10px] font-medium text-muted-foreground leading-relaxed">
+          <p className="text-sm font-medium text-muted-foreground leading-relaxed">
             Take your first practice test to unlock your personalized band score predictions on this
             roadmap.
           </p>
@@ -553,7 +548,7 @@ export default function BandScoreJourney({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: 'easeOut', delay: 0.3 }}
-              className="flex-1 grid grid-cols-1 md:grid-cols-[130px_minmax(0,1fr)] gap-5 py-3 my-1 border-t border-b border-slate-100/80 dark:border-white/5 relative items-center justify-between"
+              className="flex-1 grid grid-cols-1 md:grid-cols-[180px_minmax(0,1fr)] gap-6 md:gap-10 py-3 my-1 border-t border-b border-slate-100/80 dark:border-white/5 relative items-center justify-between"
               data-oid="trajectory-visualizer"
             >
               <JourneyGauge progressPercentage={journeyData.progressPercentage} />

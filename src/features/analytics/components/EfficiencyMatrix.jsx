@@ -27,18 +27,18 @@ const CustomTooltip = ({ active, payload }) => {
       >
         <div className="flex items-center gap-2 mb-2" data-oid="axs_q7f">
           <Badge
-            className="bg-primary/10 text-primary border-0 text-[10px] font-black tracking-tight"
+            className="bg-primary/10 text-primary border-0 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
             data-oid="x7f_179"
           >
             {data.type}
           </Badge>
-          <span className="text-[10px] font-black text-muted-foreground" data-oid="-x43ilw">
+          <span className="text-sm font-black text-muted-foreground" data-oid="-x43ilw">
             Session
           </span>
         </div>
         <div className="space-y-1.5" data-oid="142xude">
           <div className="flex justify-between items-center gap-4" data-oid="ago88xp">
-            <span className="text-[10px] font-bold text-muted-foreground" data-oid="wz:i4.k">
+            <span className="text-sm font-bold text-muted-foreground" data-oid="wz:i4.k">
               Accuracy
             </span>
             <span className="text-xs font-black text-foreground" data-oid="1s9m9sf">
@@ -46,7 +46,7 @@ const CustomTooltip = ({ active, payload }) => {
             </span>
           </div>
           <div className="flex justify-between items-center gap-4" data-oid=".8oyay4">
-            <span className="text-[10px] font-bold text-rose-500" data-oid="mkk.v-q">
+            <span className="text-sm font-bold text-rose-500" data-oid="mkk.v-q">
               Quick Responses
             </span>
             <span className="text-xs font-black text-rose-500" data-oid="prmxgfn">
@@ -54,7 +54,7 @@ const CustomTooltip = ({ active, payload }) => {
             </span>
           </div>
           <div className="flex justify-between items-center gap-4" data-oid="bdlk1uw">
-            <span className="text-[10px] font-bold text-amber-500" data-oid="jwo7vit">
+            <span className="text-sm font-bold text-amber-500" data-oid="jwo7vit">
               Carefully Answered
             </span>
             <span className="text-xs font-black text-amber-500" data-oid="00:wxh9">
@@ -64,7 +64,7 @@ const CustomTooltip = ({ active, payload }) => {
         </div>
         <div className="mt-2 pt-2 border-t border-border/10" data-oid="nqy9ozj">
           <p
-            className="text-[9px] italic font-medium text-indigo-500 dark:text-indigo-400 leading-tight"
+            className="text-xs italic font-medium text-indigo-500 dark:text-indigo-400 leading-tight"
             data-oid="60.oumd"
           >
             {data.rushed > data.overanalyzed
@@ -135,14 +135,14 @@ export default function EfficiencyMatrix({ paceData, onDrilldown }) {
             </CardTitle>
             <Badge
               variant="outline"
-              className="rounded-xl border-border/60 bg-muted/40 text-[10px] font-black"
+              className="rounded-full border-border/60 bg-muted/40 text-[10px] font-black uppercase tracking-wider px-2 py-0.5"
               data-oid="2x4isuw"
             >
               Speed Analysis
             </Badge>
           </div>
           <CardDescription
-            className="text-xs font-semibold text-muted-foreground/80"
+            className="text-sm font-medium text-muted-foreground/80"
             data-oid="lk3-j4:"
           >
             See if you are rushing or taking too much time on questions.
@@ -157,7 +157,7 @@ export default function EfficiencyMatrix({ paceData, onDrilldown }) {
                   data-oid="vf19a-q"
                 >
                   <div
-                    className="absolute top-4 right-4 text-[10px] font-black text-rose-500/60 dark:text-rose-400/80 tracking-wide text-right leading-tight"
+                    className="absolute top-4 right-4 text-sm font-black text-rose-500/60 dark:text-rose-400/80 tracking-wide text-right leading-tight"
                     data-oid="sui-haz"
                   >
                     Struggling Zone
@@ -165,7 +165,7 @@ export default function EfficiencyMatrix({ paceData, onDrilldown }) {
                     More Work Needed
                   </div>
                   <div
-                    className="absolute bottom-6 right-4 text-[10px] font-black text-amber-500/60 dark:text-amber-400/80 tracking-wide text-right leading-tight"
+                    className="absolute bottom-6 right-4 text-sm font-black text-amber-500/60 dark:text-amber-400/80 tracking-wide text-right leading-tight"
                     data-oid="4c8a-1u"
                   >
                     Taking Extra Time
@@ -173,7 +173,7 @@ export default function EfficiencyMatrix({ paceData, onDrilldown }) {
                     Very Careful
                   </div>
                   <div
-                    className="absolute top-4 left-4 text-[10px] font-black text-rose-400/60 dark:text-rose-400/80 tracking-wide leading-tight"
+                    className="absolute top-4 left-4 text-sm font-black text-rose-400/60 dark:text-rose-400/80 tracking-wide leading-tight"
                     data-oid="3ovh.08"
                   >
                     Rushing Zone
@@ -181,7 +181,7 @@ export default function EfficiencyMatrix({ paceData, onDrilldown }) {
                     Slow Down Slightly
                   </div>
                   <div
-                    className="absolute bottom-6 left-4 text-[10px] font-black text-emerald-500/60 dark:text-emerald-400/80 tracking-wide leading-tight"
+                    className="absolute bottom-6 left-4 text-sm font-black text-emerald-500/60 dark:text-emerald-400/80 tracking-wide leading-tight"
                     data-oid="dle.k:d"
                   >
                     Perfect Pace
@@ -275,25 +275,19 @@ export default function EfficiencyMatrix({ paceData, onDrilldown }) {
                 <div className="flex items-center gap-3" data-oid="aux4_67">
                   <div className="flex items-center gap-1.5" data-oid="cpusqe6">
                     <div className="w-1.5 h-1.5 rounded-full bg-rose-500" data-oid="4g-g9y-" />
-                    <span
-                      className="text-[10px] font-bold text-muted-foreground"
-                      data-oid="xtbt-c-"
-                    >
+                    <span className="text-sm font-bold text-muted-foreground" data-oid="xtbt-c-">
                       Quick
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5" data-oid="phlo:6y">
                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500" data-oid="_x-tb0o" />
-                    <span
-                      className="text-[10px] font-bold text-muted-foreground"
-                      data-oid=".ymx09u"
-                    >
+                    <span className="text-sm font-bold text-muted-foreground" data-oid=".ymx09u">
                       Careful
                     </span>
                   </div>
                 </div>
                 <span
-                  className="text-[10px] font-black text-muted-foreground/40 tracking-tighter italic"
+                  className="text-sm font-black text-muted-foreground/40 tracking-tighter italic"
                   data-oid="c89_boi"
                 >
                   Dot size = Accuracy %

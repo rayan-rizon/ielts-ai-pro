@@ -29,14 +29,14 @@ const LockedFeature = ({ isLocked, children }) => {
               Unlock Your Smart Review
             </div>
             <p
-              className="text-[10px] font-medium text-muted-foreground leading-relaxed"
+              className="text-sm font-medium text-muted-foreground leading-relaxed"
               data-oid="5q4r5g."
             >
               Get helpful tips and see exactly how to improve your score
             </p>
           </div>
           <Badge
-            className="bg-amber-500 hover:bg-amber-600 text-white border-0 font-black text-[10px] tracking-widest px-4 py-1.5 rounded-xl shadow-lg shadow-amber-500/20 cursor-pointer"
+            className="bg-amber-500 hover:bg-amber-600 text-white border-0 font-black text-[10px] tracking-widest px-3 py-1 rounded-full shadow-lg shadow-amber-500/20 cursor-pointer uppercase"
             data-oid="nqeu5ks"
           >
             Upgrade to Pro
@@ -77,7 +77,7 @@ export default function DeepDiveAccordion({ isPremium, children }) {
                   Deep Dive Analytics
                   <Badge
                     variant="secondary"
-                    className="rounded-xl bg-primary/10 text-primary dark:text-blue-400 border-0 font-black text-[10px] tracking-widest px-2"
+                    className="rounded-full bg-primary/10 text-primary dark:text-blue-400 border-0 font-black text-[10px] tracking-widest px-2.5 py-0.5 uppercase"
                     data-oid="e6i:o76"
                   >
                     Smart Review
@@ -86,7 +86,7 @@ export default function DeepDiveAccordion({ isPremium, children }) {
               </div>
               <div className="sm:ml-11" data-oid=".d8f-zm">
                 <CardDescription
-                  className="font-semibold text-xs leading-relaxed"
+                  className="font-semibold text-sm leading-relaxed"
                   data-oid="iycpgr-"
                 >
                   See your progress and find out how to get a better score

@@ -50,7 +50,7 @@ function QuadrantLabel({ quadrant, x, y }) {
         x={x}
         y={y - 2}
         textAnchor="middle"
-        className={cn('text-[11px] font-black tracking-wider fill-foreground')}
+        className={cn('text-sm font-black tracking-wider fill-foreground')}
         data-oid="ep2_ea2"
       >
         {config.name}
@@ -59,7 +59,7 @@ function QuadrantLabel({ quadrant, x, y }) {
         x={x}
         y={y + 11}
         textAnchor="middle"
-        className="text-[9px] font-bold fill-muted-foreground opacity-70"
+        className="text-xs font-bold fill-muted-foreground opacity-70"
         data-oid="hhstv91"
       >
         {config.description}
@@ -123,7 +123,7 @@ function CustomTooltip({ active, payload }) {
           <Badge
             variant="secondary"
             className={cn(
-              'text-[8px] px-2 py-0.5 border-0',
+              'text-xs px-2 py-0.5 border-0',
               quadrantConfig.color === 'emerald' &&
                 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
               quadrantConfig.color === 'blue' && 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
@@ -135,7 +135,7 @@ function CustomTooltip({ active, payload }) {
           >
             {quadrantConfig.name}
           </Badge>
-          <span className="text-[9px] text-muted-foreground" data-oid="ucfpyd:">
+          <span className="text-xs text-muted-foreground" data-oid="ucfpyd:">
             {data.total} questions
           </span>
         </div>
@@ -239,12 +239,12 @@ function QuadrantStats({ data }) {
             {stat.percentage}%
           </div>
           <div
-            className="text-[8px] md:text-[9px] font-black tracking-wide opacity-80 leading-tight px-0.5 overflow-hidden text-ellipsis whitespace-nowrap"
+            className="text-xs md:text-sm font-black tracking-wide opacity-80 leading-tight px-0.5 overflow-hidden text-ellipsis whitespace-nowrap"
             data-oid="ot14bwb"
           >
             {stat.name}
           </div>
-          <div className="text-[8px] md:text-[9px] font-bold opacity-60 mt-0.5" data-oid="c0_3rf6">
+          <div className="text-xs md:text-sm font-bold opacity-60 mt-0.5" data-oid="c0_3rf6">
             {stat.count} types
           </div>
         </div>
@@ -290,7 +290,7 @@ export default function TimeManagementQuadrant({ questionTypeData = [] }) {
               </CardDescription>
             </div>
             <Badge
-              className="bg-primary/10 text-primary border-0 font-black text-[10px] tracking-widest shrink-0"
+              className="bg-primary/10 text-primary border-0 font-black text-xs tracking-widest shrink-0"
               data-oid=":6rz877"
             >
               Improving Your Pace
@@ -427,14 +427,14 @@ export default function TimeManagementQuadrant({ questionTypeData = [] }) {
                       </div>
                       <Badge
                         variant="outline"
-                        className="text-[9px] font-black text-blue-600 dark:text-blue-400 border-blue-200"
+                        className="text-xs font-black text-blue-600 dark:text-blue-400 border-blue-200"
                         data-oid="qluz:qi"
                       >
                         {chartData.length} Type{chartData.length !== 1 ? 's' : ''} Analyzed
                       </Badge>
                     </div>
                     <div
-                      className="text-[11px] md:text-xs text-muted-foreground leading-relaxed italic border-l-2 border-blue-500/30 pl-3 py-1"
+                      className="text-sm md:text-base text-muted-foreground leading-relaxed italic border-l-2 border-blue-500/30 pl-3 py-1"
                       data-oid=":k35:3p"
                     >
                       "
@@ -469,7 +469,7 @@ export default function TimeManagementQuadrant({ questionTypeData = [] }) {
                           data-oid="fhf8b3:"
                         />
                         <span
-                          className="text-[10px] md:text-[11px] font-bold text-foreground/80 leading-none truncate"
+                          className="text-sm md:text-sm font-bold text-foreground/80 leading-none truncate"
                           data-oid="b0rpm43"
                         >
                           Perfect Pace: Balanced & Steady
@@ -481,7 +481,7 @@ export default function TimeManagementQuadrant({ questionTypeData = [] }) {
                           data-oid="oxip_yv"
                         />
                         <span
-                          className="text-[10px] md:text-[11px] font-bold text-foreground/80 leading-none truncate"
+                          className="text-sm md:text-sm font-bold text-foreground/80 leading-none truncate"
                           data-oid="ssaoa7l"
                         >
                           Taking Extra Time: Very Careful
@@ -493,7 +493,7 @@ export default function TimeManagementQuadrant({ questionTypeData = [] }) {
                           data-oid="9j_n79b"
                         />
                         <span
-                          className="text-[10px] md:text-[11px] font-bold text-foreground/80 leading-none truncate"
+                          className="text-sm md:text-sm font-bold text-foreground/80 leading-none truncate"
                           data-oid="con1n0i"
                         >
                           Rushing Zone: Slow Down Slightly
@@ -505,7 +505,7 @@ export default function TimeManagementQuadrant({ questionTypeData = [] }) {
                           data-oid="0txezfj"
                         />
                         <span
-                          className="text-[10px] md:text-[11px] font-bold text-foreground/80 leading-none truncate"
+                          className="text-sm md:text-sm font-bold text-foreground/80 leading-none truncate"
                           data-oid="165vuu4"
                         >
                           Struggling Zone: More Work Needed

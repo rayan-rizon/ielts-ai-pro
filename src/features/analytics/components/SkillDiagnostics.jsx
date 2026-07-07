@@ -80,14 +80,14 @@ const DiagnosticCard = React.memo(function DiagnosticCard({
               </h4>
               <div className="flex items-center gap-2" data-oid="7objp:r">
                 <span
-                  className={cn('text-[10px] font-black tracking-wider', statusColor)}
+                  className={cn('text-sm font-black tracking-wider', statusColor)}
                   data-oid="hmd.t95"
                 >
                   {status}
                 </span>
                 {isWeakest && (
                   <Badge
-                    className="bg-primary text-white border-0 font-black text-[8px] tracking-widest px-1.5 py-0 animate-pulse"
+                    className="bg-primary text-white border-0 font-black text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full animate-pulse"
                     data-oid="jc39o1l"
                   >
                     Focus
@@ -99,7 +99,7 @@ const DiagnosticCard = React.memo(function DiagnosticCard({
             {!compact && (
               <div className="text-right shrink-0" data-oid="9_ju:f:">
                 <p
-                  className="text-[9px] font-black tracking-widest text-muted-foreground/60"
+                  className="text-sm font-black tracking-widest text-muted-foreground/60"
                   data-oid="2cs47k1"
                 >
                   Score
@@ -117,7 +117,7 @@ const DiagnosticCard = React.memo(function DiagnosticCard({
           {/* Progress Bar */}
           <div className="space-y-1.5 flex-1" data-oid="yjizldo">
             <div
-              className="flex justify-between text-[10px] font-black tracking-widest text-muted-foreground/80"
+              className="flex justify-between text-sm font-black tracking-widest text-muted-foreground/80"
               data-oid="p16t7u4"
             >
               <span data-oid="0diwxsw">Progress</span>
@@ -149,7 +149,7 @@ const DiagnosticCard = React.memo(function DiagnosticCard({
                 )}
                 data-oid="vh9slxy"
               >
-                <p className="text-[9px] font-black text-muted-foreground" data-oid="3wxbtlx">
+                <p className="text-xs font-black text-muted-foreground" data-oid="3wxbtlx">
                   Attempts
                 </p>
                 <p
@@ -164,11 +164,11 @@ const DiagnosticCard = React.memo(function DiagnosticCard({
                   className="bg-muted/30 rounded-xl p-2.5 border border-border/20 text-center"
                   data-oid="6p21i8u"
                 >
-                  <p className="text-[9px] font-black text-muted-foreground" data-oid="-zjl9l4">
+                  <p className="text-xs font-black text-muted-foreground" data-oid="-zjl9l4">
                     Status
                   </p>
                   <p
-                    className={cn('text-[10px] font-black tracking-wider', statusColor)}
+                    className={cn('text-sm font-black tracking-wider', statusColor)}
                     data-oid="b68kp9s"
                   >
                     {status}

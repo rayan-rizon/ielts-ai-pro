@@ -36,16 +36,16 @@ function CriteriaBar({ label, score, color, index }) {
       className="space-y-1"
     >
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-semibold text-foreground/80">{label}</span>
+        <span className="text-sm font-semibold text-foreground/80">{label}</span>
         <div className="flex items-center gap-1.5">
           {isWeak && (
-            <span className="text-[8px] font-black text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full animate-pulse-subtle uppercase tracking-wider">
+            <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full animate-pulse-subtle uppercase tracking-wider">
               Focus area
             </span>
           )}
           <span
             className={cn(
-              'text-[12px] font-black tabular-nums',
+              'text-sm font-black tabular-nums',
               score == null
                 ? 'text-muted-foreground/40'
                 : isWeak
@@ -108,7 +108,7 @@ export default function CriteriaBreakdownCard({ module, criteria, labels }) {
               </div>
               <CardTitle className="text-sm font-bold text-foreground">{config.label}</CardTitle>
             </div>
-            <span className="text-[9px] text-muted-foreground/60 font-semibold tracking-wider uppercase">
+            <span className="text-xs text-muted-foreground/60 font-semibold tracking-wider uppercase">
               IELTS avg / 9.0
             </span>
           </div>
@@ -122,7 +122,7 @@ export default function CriteriaBreakdownCard({ module, criteria, labels }) {
               >
                 <Info className={cn('w-4 h-4', config.color)} />
               </div>
-              <p className="text-[11px] font-semibold text-muted-foreground/60 max-w-[180px] leading-relaxed">
+              <p className="text-sm font-semibold text-muted-foreground/60 max-w-[180px] leading-relaxed">
                 Complete a {module} test with AI evaluation to see your criteria breakdown
               </p>
             </div>

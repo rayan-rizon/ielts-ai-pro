@@ -37,7 +37,7 @@ const CustomTooltip = ({ active, payload }) => {
           >
             {data.isForecast ? 'Projection' : 'Current'}
           </Badge>
-          <span className="text-[10px] font-black text-muted-foreground" data-oid="fj9g561">
+          <span className="text-sm font-black text-muted-foreground" data-oid="fj9g561">
             {data.date}
           </span>
         </div>
@@ -45,7 +45,7 @@ const CustomTooltip = ({ active, payload }) => {
           <span className="text-2xl font-black text-foreground" data-oid="_6td1g9">
             {data.score.toFixed(1)}
           </span>
-          <span className="text-[10px] font-bold text-muted-foreground" data-oid="9zrj5ve">
+          <span className="text-sm font-bold text-muted-foreground" data-oid="9zrj5ve">
             Band
           </span>
         </div>
@@ -77,7 +77,7 @@ export default function ScoreForecast({ forecastData, targetScore }) {
               </CardTitle>
               <Badge
                 variant="outline"
-                className="rounded-xl border-border/60 bg-muted/40 text-[10px] font-black"
+                className="rounded-xl border-border/60 bg-muted/40 text-xs font-black"
                 data-oid="_zdt5oc"
               >
                 Motivation
@@ -121,7 +121,7 @@ export default function ScoreForecast({ forecastData, targetScore }) {
             </CardTitle>
             <Badge
               variant="outline"
-              className="rounded-xl border-border/60 bg-muted/40 text-[10px] font-black"
+              className="rounded-xl border-border/60 bg-muted/40 text-xs font-black"
               data-oid="6g66uzo"
             >
               Motivation

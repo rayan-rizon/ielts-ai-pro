@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, Flag, Clock, BookOpen, TrendingUp } from 'lucide-react';
+import { Target, Flag, Clock, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,7 +8,7 @@ import { IconWrapper } from './AnalyticsHeader';
 import { ITEM_VARIANTS } from '../constants';
 import { getBandLabel, formatBand } from '../utils';
 
-export default function StatCards({ stats, progressToTarget }) {
+export default function StatCards({ stats, _progressToTarget }) {
   if (!stats) return null;
 
   const hasScoreData = (stats.scoredTests ?? stats.totalTests ?? 0) > 0;
@@ -37,6 +37,33 @@ export default function StatCards({ stats, progressToTarget }) {
       )
     : null;
 
+  // 1. Predicted Band Subtitle
+  const scoredText = isOfficialBand
+    ? modulesWithData < 4
+      ? `${modulesWithData}/4 scored`
+      : 'All modules scored'
+    : 'Score average';
+  const improvementVal = parseFloat(stats.improvement);
+  const trendText =
+    hasScoreData && improvementVal !== 0
+      ? ` • ${improvementVal > 0 ? '▲' : '▼'} ${Math.abs(improvementVal)} bands`
+      : '';
+  const predictedBandSubtitle = `${scoredText}${trendText}`;
+
+  // 2. Your Goal Subtitle
+  const gap = Number(stats.targetScore) - Number(stats.avgScore);
+  const goalSubtitle = !hasScoreData
+    ? 'Awaiting test scores'
+    : gap <= 0
+      ? 'Target achieved!'
+      : `Gap: -${formatBand(gap)} band score`;
+
+  // 3. Study Effort Subtitle
+  const studySubtitle = averageMinutes ? `${averageMinutes} min/test average` : 'No timing data';
+
+  // 4. Words Learned Subtitle
+  const vocabSubtitle = 'Active vocabulary entries';
+
   const cards = [
     {
       title: isOfficialBand ? 'Predicted Band' : 'Your Score',
@@ -44,15 +71,7 @@ export default function StatCards({ stats, progressToTarget }) {
       badge: currentLabel,
       icon: Target,
       color: 'bg-primary',
-      trend: hasScoreData ? stats.improvement : '--',
-      trendLabel: 'Your Improvement',
-      progress: progressToTarget,
-      footerType: 'progress',
-      subtitle: isOfficialBand
-        ? modulesWithData < 4
-          ? `${modulesWithData}/4 modules scored`
-          : 'All modules scored'
-        : null,
+      subtitle: predictedBandSubtitle,
     },
     {
       title: 'Your Goal',
@@ -60,24 +79,28 @@ export default function StatCards({ stats, progressToTarget }) {
       badge: targetLabel,
       icon: Flag,
       color: 'bg-amber-500',
-      footerType: 'gap',
+      subtitle: goalSubtitle,
     },
     {
       title: 'Study Effort',
       value: `${stats.studyHours}h`,
       icon: Clock,
       color: 'bg-emerald-500',
-      trend: `${Math.abs(stats.studyHoursTrend)}%`,
-      trendIcon: TrendingUp,
-      trendPositive: stats.studyHoursTrend >= 0,
-      footerType: 'intensity',
+      subtitle: studySubtitle,
+      trendBadge:
+        stats.studyHoursTrend != null && stats.studyHoursTrend !== 0
+          ? {
+              text: `${stats.studyHoursTrend >= 0 ? '+' : ''}${stats.studyHoursTrend}%`,
+              isPositive: stats.studyHoursTrend >= 0,
+            }
+          : null,
     },
     {
       title: 'Words Learned',
       value: stats.vocabCount,
       icon: BookOpen,
       color: 'bg-indigo-500',
-      footerType: 'vocab',
+      subtitle: vocabSubtitle,
     },
   ];
 
@@ -91,7 +114,7 @@ export default function StatCards({ stats, progressToTarget }) {
         <Card
           key={idx}
           className={cn(
-            'rounded-2xl border border-border/30 bg-white/85 dark:bg-slate-950/60 backdrop-blur-md shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden relative hover:-translate-y-0.5 h-full min-h-[110px]',
+            'rounded-2xl border border-slate-200/60 dark:border-slate-800/60 bg-white/90 dark:bg-slate-900/60 backdrop-blur-md shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden relative hover:-translate-y-0.5 h-full flex flex-col justify-center min-h-[105px]',
             card.color === 'bg-primary'
               ? 'hover:border-primary/30 hover:shadow-primary/5'
               : card.color === 'bg-amber-500'
@@ -122,20 +145,20 @@ export default function StatCards({ stats, progressToTarget }) {
           />
 
           <CardContent
-            className="p-3 md:p-3.5 h-full flex flex-col justify-between relative z-10"
+            className="p-3 sm:p-3.5 flex flex-col justify-center relative z-10"
             data-oid="ls.-irc"
           >
-            <div className="flex items-start justify-between gap-2 mb-1.5" data-oid="96yih:u">
-              <div className="space-y-0.5 min-w-0" data-oid="v.erel8">
+            <div className="flex items-start justify-between gap-3" data-oid="96yih:u">
+              <div className="space-y-1 min-w-0" data-oid="v.erel8">
                 <p
-                  className="text-[9px] font-black uppercase text-muted-foreground/75 tracking-wider"
+                  className="text-[10px] sm:text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider leading-none"
                   data-oid="4b9v7am"
                 >
                   {card.title}
                 </p>
                 <div className="flex flex-wrap items-center gap-1.5 min-w-0" data-oid="1ilsr:u">
                   <h2
-                    className="text-xl sm:text-2xl font-black text-foreground tracking-tight leading-none"
+                    className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-50 tracking-tight leading-none"
                     data-oid="ockgv13"
                   >
                     {card.value}
@@ -144,152 +167,40 @@ export default function StatCards({ stats, progressToTarget }) {
                     <Badge
                       variant="outline"
                       className={cn(
-                        'rounded-lg text-[8px] px-1.5 py-0 border-0 font-bold tracking-tight max-w-[90px] truncate',
+                        'rounded-full text-[9px] px-2 py-0.5 border-0 font-extrabold uppercase tracking-wider max-w-[110px] truncate shadow-sm',
                         card.color === 'bg-primary'
                           ? 'bg-primary/10 text-primary'
-                          : 'bg-amber-500/10 text-amber-500 dark:text-amber-400'
+                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
                       )}
                       data-oid="99pvpe:"
                     >
                       {card.badge}
                     </Badge>
                   )}
+                  {card.trendBadge && (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'rounded-full text-[9px] px-2 py-0.5 border-0 font-extrabold tracking-wider shadow-sm',
+                        card.trendBadge.isPositive
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-450'
+                          : 'bg-rose-500/10 text-rose-600 dark:text-rose-450'
+                      )}
+                    >
+                      {card.trendBadge.text}
+                    </Badge>
+                  )}
                 </div>
-                {card.subtitle && (
-                  <p className="text-[8px] font-bold text-muted-foreground/60 tracking-wide truncate">
-                    {card.subtitle}
-                  </p>
-                )}
+                <p className="text-[11px] sm:text-xs font-medium text-slate-600 dark:text-slate-350 leading-relaxed truncate">
+                  {card.subtitle}
+                </p>
               </div>
               <IconWrapper
                 icon={card.icon}
                 color={card.color}
-                className="p-1 shadow-sm group-hover:scale-105 transition-transform duration-300 opacity-85 group-hover:opacity-100"
+                className="p-1.5 shadow-sm group-hover:scale-105 transition-transform duration-300 opacity-85 group-hover:opacity-100 shrink-0"
                 data-oid="g1z:dm:"
               />
-            </div>
-
-            <div className="space-y-1 mt-auto" data-oid="0fi1-6p">
-              {card.footerType === 'progress' && (
-                <>
-                  <div className="flex items-end justify-between px-0.5" data-oid="ydynymb">
-                    <span
-                      className="text-[9px] font-bold text-muted-foreground/70 tracking-wide"
-                      data-oid="ewuwdg0"
-                    >
-                      {card.trendLabel}
-                    </span>
-                    <div
-                      className={cn(
-                        'flex items-center gap-1 text-[8px] font-black',
-                        !hasScoreData
-                          ? 'text-muted-foreground'
-                          : Number(card.trend) >= 0
-                            ? 'text-emerald-500'
-                            : 'text-rose-500'
-                      )}
-                      data-oid="84ll69k"
-                    >
-                      {hasScoreData && Number(card.trend) > 0 ? '+' : ''}
-                      {card.trend}
-                    </div>
-                  </div>
-                  <div
-                    className="h-1 w-full bg-muted/50 rounded-full overflow-hidden"
-                    data-oid="79-f5sg"
-                  >
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${card.progress}%` }}
-                      className="h-full bg-primary rounded-full transition-all duration-1000"
-                      data-oid="y9_lels"
-                    />
-                  </div>
-                </>
-              )}
-
-              {card.footerType === 'gap' && (
-                <div className="flex flex-col gap-0.5" data-oid="j3eh6pb">
-                  <p
-                    className="text-[9px] font-bold text-muted-foreground/70 tracking-wide"
-                    data-oid="66__cxl"
-                  >
-                    Remaining Gap
-                  </p>
-                  <div
-                    className="text-[10px] font-bold text-foreground leading-snug"
-                    data-oid="8q0-un5"
-                  >
-                    {!hasScoreData ? (
-                      <span className="text-muted-foreground" data-oid="no-score-gap">
-                        Complete a scored test
-                      </span>
-                    ) : Number(stats.avgScore) >= Number(stats.targetScore) ? (
-                      <span className="text-emerald-500 font-black" data-oid="s7-xcvy">
-                        Goal Achieved!
-                      </span>
-                    ) : (
-                      <span data-oid="o3_ltkg">
-                        Need{' '}
-                        <span className="text-amber-500 font-black" data-oid=".ph.yiv">
-                          {formatBand(Number(stats.targetScore) - Number(stats.avgScore))}
-                        </span>{' '}
-                        band score
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {card.footerType === 'intensity' && (
-                <div className="flex flex-col gap-0.5" data-oid="88u_3h:">
-                  <p
-                    className="text-[9px] font-bold text-muted-foreground/70 tracking-wide"
-                    data-oid="4-52n2o"
-                  >
-                    Study Pattern
-                  </p>
-                  <div className="flex items-center justify-between gap-2" data-oid="omjuv_g">
-                    <div
-                      className={cn(
-                        'flex items-center gap-1 text-[8px] font-black px-1.5 py-0.5 rounded-md',
-                        card.trendPositive
-                          ? 'bg-emerald-500/10 text-emerald-600'
-                          : 'bg-rose-500/10 text-rose-600'
-                      )}
-                      data-oid="efcknqk"
-                    >
-                      {card.trendIcon && (
-                        <card.trendIcon
-                          className={cn('w-2 h-2', !card.trendPositive && 'rotate-180')}
-                          data-oid="1qsnatw"
-                        />
-                      )}
-                      {card.trend}
-                    </div>
-                    <div
-                      className="text-[8px] font-black text-foreground/70 bg-muted/60 px-1.5 py-0.5 rounded-md whitespace-nowrap"
-                      data-oid="_ak2o:8"
-                    >
-                      {averageMinutes ? `${averageMinutes} min/test` : 'No timing yet'}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {card.footerType === 'vocab' && (
-                <div className="flex flex-col gap-0.5" data-oid="023wg95">
-                  <p
-                    className="text-[9px] font-bold text-muted-foreground/70 tracking-wide"
-                    data-oid="7333r.4"
-                  >
-                    Library Status
-                  </p>
-                  <div className="text-[10px] font-bold text-foreground" data-oid="vpufnxb">
-                    Active Entries
-                  </div>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>

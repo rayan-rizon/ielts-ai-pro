@@ -34,7 +34,7 @@ export default function AnalyticsHeader({
           <IconWrapper icon={TrendingUp} color="bg-primary" className="p-2.5" data-oid="rz.k-jx" />
           <div data-oid="k-3c2x3">
             <h1
-              className="text-2xl md:text-3xl font-black text-foreground tracking-tight flex items-center gap-2"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white mt-3 leading-tight flex items-center gap-2"
               data-oid="biobx9:"
             >
               Analytics Dashboard
@@ -43,31 +43,31 @@ export default function AnalyticsHeader({
                 data-oid="7wu6wi1"
               />
             </h1>
-            <div
-              className="text-sm md:text-base text-muted-foreground font-semibold flex flex-wrap items-center gap-2"
+            <p
+              className="text-slate-600 dark:text-slate-300 text-base md:text-lg font-medium mt-2 flex flex-wrap items-center gap-2"
               data-oid=".f902yv"
             >
               Score, target gap, and the next practice focus.
               {tier === 'premium' ? (
                 <Badge
                   variant="outline"
-                  className="bg-amber-500/10 backdrop-blur-md border border-amber-500/20 text-amber-700 dark:text-amber-300 font-bold text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all hover:bg-amber-500/20"
+                  className="bg-purple-500/10 backdrop-blur-md border border-purple-500/20 text-purple-600 dark:text-purple-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all hover:bg-purple-500/20 hover:text-purple-700 dark:hover:text-purple-300"
                   data-oid="vq-_94z"
                 >
-                  <Crown className="w-3 h-3 fill-amber-600/20 dark:fill-amber-400/20" />
-                  Premium
+                  <Crown className="w-3 h-3 fill-purple-600/20 dark:fill-purple-400/20" />
+                  PREMIUM
                 </Badge>
               ) : tier === 'pro' || isPremium ? (
                 <Badge
                   variant="outline"
-                  className="bg-blue-500/10 backdrop-blur-md border border-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all hover:bg-blue-500/20 hover:text-blue-700 dark:hover:text-blue-300"
+                  className="bg-blue-500/10 backdrop-blur-md border border-blue-500/20 text-blue-600 dark:text-blue-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all hover:bg-blue-500/20 hover:text-blue-700 dark:hover:text-blue-300"
                   data-oid="vq-_94z"
                 >
                   <Zap className="w-3 h-3 fill-blue-600/20 dark:fill-blue-400/20" />
-                  Pro
+                  PRO
                 </Badge>
               ) : null}
-            </div>
+            </p>
           </div>
         </div>
       </div>
@@ -81,7 +81,7 @@ export default function AnalyticsHeader({
             key={tf}
             onClick={() => setSelectedTimeframe(tf)}
             className={cn(
-              'h-9 min-w-0 px-3 sm:px-4 rounded-xl text-[10px] font-bold transition-all tracking-wider',
+              'h-9 min-w-0 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all tracking-wider',
               selectedTimeframe === tf
                 ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-105'
                 : 'text-muted-foreground hover:bg-card/80'
