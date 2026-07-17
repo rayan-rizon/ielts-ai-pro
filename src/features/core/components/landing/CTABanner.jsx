@@ -3,6 +3,13 @@ import { m } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, ArrowRight, Star } from 'lucide-react';
 
+const studentImages = [
+  'https://images.unsplash.com/photo-1544168190-79c17527004f?w=100&h=100&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1548810020-ea2f1da35cff?w=100&h=100&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1558499932-9609acb6f443?w=100&h=100&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?w=100&h=100&fit=crop&crop=face',
+];
+
 export default function CTABanner({ handlePrimaryCta, handlePricing, viewport }) {
   return (
     <section className="py-8 md:py-12 relative overflow-hidden bg-background" data-oid="xomhbcx">
@@ -12,7 +19,7 @@ export default function CTABanner({ handlePrimaryCta, handlePricing, viewport })
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewport}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-zinc-900 dark:bg-card border border-white/10 px-6 py-12 md:px-12 md:py-16 text-center shadow-2xl"
+          className="relative overflow-hidden rounded-[1.5rem] bg-zinc-900 dark:bg-card border border-white/10 px-6 py-12 md:px-12 md:py-16 text-center shadow-2xl"
           data-oid="5hdv84j"
         >
           {/* Background Glows */}
@@ -38,14 +45,14 @@ export default function CTABanner({ handlePrimaryCta, handlePricing, viewport })
               data-oid=":vlgst2"
             >
               <div className="flex -space-x-2" data-oid="37:ikkt">
-                {[1, 2, 3, 4].map((i) => (
+                {studentImages.map((src, i) => (
                   <div
                     key={i}
                     className="h-6 w-6 rounded-full ring-2 ring-zinc-900 bg-zinc-800 overflow-hidden"
                     data-oid="xpmxja."
                   >
                     <img
-                      src={`https://i.pravatar.cc/100?img=${i + 10}`}
+                      src={src}
                       alt="IELTS AI Pro Learner"
                       className="h-full w-full object-cover"
                       loading="lazy"

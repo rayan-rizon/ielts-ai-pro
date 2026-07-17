@@ -101,13 +101,13 @@ export default function HowItWorksSection({ howItWorks, viewport }) {
                 data-oid="j04.zst"
               >
                 <div
-                  className="glass-card-premium !overflow-visible rounded-[2.5rem] p-6 lg:p-8 pb-4 lg:pb-6 flex flex-col items-center text-center group cursor-default transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 border-border bg-card/90 backdrop-blur-xl h-full"
+                  className="glass-card-premium !overflow-visible rounded-2xl p-6 lg:p-8 pb-4 lg:pb-6 flex flex-col items-center text-center group cursor-default transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 border-border bg-card/90 backdrop-blur-xl h-full"
                   data-oid="xkqjk-9"
                 >
                   {/* Glassy Background Effect */}
                   <div
                     className={cn(
-                      'absolute inset-0 opacity-0 transition-opacity duration-700 group-hover:opacity-100 rounded-[2.5rem] blur-3xl -z-10 bg-gradient-to-br',
+                      'absolute inset-0 opacity-0 transition-opacity duration-700 group-hover:opacity-100 rounded-2xl blur-3xl -z-10 bg-gradient-to-br',
                       step.accent
                     )}
                     data-oid="ksjy3v8"
@@ -119,7 +119,7 @@ export default function HowItWorksSection({ howItWorks, viewport }) {
                     data-oid="2u70bao"
                   >
                     <div
-                      className="h-12 w-12 rounded-2xl bg-primary flex items-center justify-center text-white font-black text-xl shadow-xl shadow-primary/30 ring-4 ring-background transition-all duration-500 group-hover:scale-110 group-hover:-rotate-3 group-hover:shadow-primary/40"
+                      className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-white font-black text-xl shadow-xl shadow-primary/30 ring-4 ring-background transition-all duration-500 group-hover:scale-110 group-hover:-rotate-3 group-hover:shadow-primary/40"
                       data-oid="iwjftz0"
                     >
                       {idx + 1}
@@ -137,7 +137,7 @@ export default function HowItWorksSection({ howItWorks, viewport }) {
                     />
 
                     <div
-                      className="h-20 w-20 rounded-[1.5rem] bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/5 flex items-center justify-center text-primary shadow-inner border border-primary/10 transition-all duration-500 group-hover:from-primary group-hover:to-primary/80 group-hover:text-white group-hover:shadow-lg group-hover:shadow-primary/30 group-hover:rotate-6"
+                      className="h-20 w-20 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/5 flex items-center justify-center text-primary shadow-inner border border-primary/10 transition-all duration-500 group-hover:from-primary group-hover:to-primary/80 group-hover:text-white group-hover:shadow-lg group-hover:shadow-primary/30 group-hover:rotate-6"
                       data-oid="88muk61"
                     >
                       <step.icon

@@ -28,7 +28,8 @@ test.describe('Authentication Flow', () => {
     await page.getByRole('button', { name: /sign in|log in/i }).click();
 
     // Should show validation feedback
-    await expect(page.locator('text=/email|required/i')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[role="alert"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[role="alert"]')).toContainText(/email|password|required/i);
   });
 
   test('should toggle between login and signup modes', async ({ page }) => {

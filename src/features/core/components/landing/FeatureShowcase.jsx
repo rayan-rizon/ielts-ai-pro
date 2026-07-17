@@ -8,8 +8,6 @@ import {
   Zap,
   TrendingUp,
   CheckCircle2,
-  Sparkles,
-  Award,
   ChevronRight,
   Play,
   XCircle,
@@ -187,7 +185,7 @@ function FeatureShowcase({ viewport }) {
                   tab.id === activeTab && (
                     <div key={tab.id} className="max-w-xl" data-oid="juk.nah">
                       <div
-                        className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${tab.accent} flex items-center justify-center mb-6 shadow-inner ring-1 ring-white/10`}
+                        className={`h-12 w-12 rounded-xl bg-gradient-to-br ${tab.accent} flex items-center justify-center mb-6 shadow-inner ring-1 ring-white/10`}
                         data-oid="rgc8-p2"
                       >
                         <tab.icon className="h-6 w-6 text-foreground" data-oid="sg7ah9a" />

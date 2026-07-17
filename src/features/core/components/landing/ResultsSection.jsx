@@ -6,11 +6,11 @@ import { Star } from 'lucide-react';
 function QuoteCard({ name, meta, quote, metric, icon: Icon }) {
   return (
     <div
-      className="w-[350px] md:w-[400px] shrink-0 glass-card-premium rounded-[2.5rem] p-8 hover-lift group border border-border/50 bg-white/70 dark:bg-slate-900/60 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 mx-4"
+      className="w-[350px] md:w-[400px] shrink-0 glass-card-premium rounded-2xl p-8 hover-lift group border border-border/50 bg-white/70 dark:bg-slate-900/60 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 mx-4"
       data-oid="dbnqo2p"
     >
       <div
-        className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 rounded-[2.5rem]"
+        className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 rounded-2xl"
         data-oid="_04sfjh"
       />
 

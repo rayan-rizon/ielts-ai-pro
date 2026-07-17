@@ -21,10 +21,10 @@ const itemVariants = {
   },
 };
 
-function FeatureCard({ icon: Icon, title, description, accent, index }) {
+function FeatureCard({ icon: Icon, title, description, accent }) {
   return (
     <div
-      className="relative h-full overflow-hidden rounded-[2rem] p-8 group transition-all duration-500 border border-black/[0.05] dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-sm hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/40 dark:hover:border-primary/50 hover:-translate-y-2"
+      className="relative h-full overflow-hidden rounded-2xl p-8 group transition-all duration-500 border border-black/[0.05] dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-sm hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/40 dark:hover:border-primary/50 hover:-translate-y-2"
       data-oid="_na_..8"
     >
       {/* Decorative animated gradient background */}
@@ -35,7 +35,7 @@ function FeatureCard({ icon: Icon, title, description, accent, index }) {
 
       <div className="relative z-10 flex flex-col h-full" data-oid=".4exs4z">
         <div
-          className="flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-gradient-to-br from-primary/10 to-primary/5 text-primary shadow-inner ring-1 ring-primary/20 transition-all duration-500 overflow-hidden relative group-hover:scale-110 group-hover:-rotate-3 group-hover:shadow-primary/30"
+          className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 text-primary shadow-inner ring-1 ring-primary/20 transition-all duration-500 overflow-hidden relative group-hover:scale-110 group-hover:-rotate-3 group-hover:shadow-primary/30"
           data-oid="6ik:_9w"
         >
           {/* Shine effect on hover */}
@@ -135,7 +135,6 @@ export default function FeaturesSection({ features, viewport }) {
                 title={f.title}
                 description={f.description}
                 accent={f.accent}
-                index={i}
                 data-oid="q:e..s:"
               />
             </m.div>

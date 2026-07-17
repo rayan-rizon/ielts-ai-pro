@@ -96,7 +96,7 @@ const PricingSkeleton = () => (
     {[1, 2, 3].map((i) => (
       <div
         key={i}
-        className="glass-card-premium rounded-[2.5rem] p-8 border border-border/50 h-[600px] flex flex-col"
+        className="glass-card-premium rounded-2xl p-8 border border-border/50 h-[600px] flex flex-col"
       >
         <Skeleton className="h-12 w-12 rounded-2xl mb-6" />
         <Skeleton className="h-8 w-1/2 mb-4" />
@@ -280,7 +280,7 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
                     viewport={viewport}
                     variants={itemVariants}
                     transition={{ delay: i * 0.1 }}
-                    className={`relative group flex flex-col h-full rounded-[2.5rem] p-8 border transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl ${
+                    className={`relative group flex flex-col h-full rounded-2xl p-8 border transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl ${
                       plan.popular
                         ? 'bg-white dark:bg-card border-primary/40 ring-2 ring-primary/30 shadow-[0_50px_100px_-20px_rgba(59,130,246,0.4)] md:-translate-y-4 z-20 hover:shadow-primary/40'
                         : 'glass-card-premium border-border dark:border-white/5 hover:border-primary/30 hover:shadow-primary/10'
@@ -288,7 +288,7 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
                   >
                     {/* Background animated glow for popular plan */}
                     {plan.popular && (
-                      <div className="absolute inset-0 -z-10 bg-primary/5 rounded-[2.5rem] blur-xl opacity-50 group-hover:opacity-100 transition-opacity duration-700 animate-pulse" />
+                      <div className="absolute inset-0 -z-10 bg-primary/5 rounded-2xl blur-xl opacity-50 group-hover:opacity-100 transition-opacity duration-700 animate-pulse" />
                     )}
                     {plan.popular && (
                       <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-[10px] font-black uppercase tracking-widest rounded-full text-white shadow-[0_8px_16px_rgba(59,130,246,0.4)] flex items-center justify-center gap-1.5 whitespace-nowrap leading-none">
@@ -299,7 +299,7 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
 
                     <div className="mb-8">
                       <div
-                        className={`h-12 w-12 rounded-2xl flex items-center justify-center mb-6 shadow-lg ${plan.popular ? 'bg-primary text-white shadow-primary/20' : 'bg-primary/10 text-primary'}`}
+                        className={`h-12 w-12 rounded-xl flex items-center justify-center mb-6 shadow-lg ${plan.popular ? 'bg-primary text-white shadow-primary/20' : 'bg-primary/10 text-primary'}`}
                       >
                         <plan.icon className="h-6 w-6" />
                       </div>

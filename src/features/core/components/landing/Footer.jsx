@@ -6,7 +6,7 @@ import Github from 'lucide-react/icons/github';
 import Linkedin from 'lucide-react/icons/linkedin';
 import Instagram from 'lucide-react/icons/instagram';
 import Heart from 'lucide-react/icons/heart';
-import Brain from 'lucide-react/icons/brain';
+import { Logo } from '@/components/shared/Logo';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -64,33 +64,11 @@ export default function Footer() {
           <div className="lg:col-span-5" data-oid="2lm30kq">
             <Link
               to="/"
-              className="flex items-center gap-3 mb-5 group w-fit"
+              className="mb-5 group block w-fit"
               aria-label="IELTS Ai Pro - Home"
               data-oid="-4f62t5"
             >
-              <div className="relative" data-oid="acfdye0">
-                <div
-                  className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-150 rotate-45 group-hover:scale-175 transition-transform duration-700"
-                  data-oid="lx1woaf"
-                />
-
-                <div
-                  className="relative flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-xl md:rounded-2xl bg-gradient-to-br from-primary to-indigo-600 text-white shadow-2xl shadow-primary/20 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6"
-                  data-oid="iehkws7"
-                >
-                  <Brain className="h-6 w-6 md:h-7 md:w-7" data-oid="b_1:bu1" />
-                </div>
-              </div>
-              <span
-                className="text-xl md:text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70"
-                data-oid="sd4:o6:"
-              >
-                IELTS{' '}
-                <span className="text-primary italic" data-oid=":-z-7lj">
-                  Ai
-                </span>{' '}
-                Pro
-              </span>
+              <Logo size="lg" />
             </Link>
             <p
               className="max-w-sm text-base font-medium leading-relaxed text-muted-foreground mb-6"

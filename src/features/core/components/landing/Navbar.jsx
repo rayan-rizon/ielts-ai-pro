@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { m, AnimatePresence } from 'framer-motion';
-import Brain from 'lucide-react/icons/brain';
+
 import Sun from 'lucide-react/icons/sun';
 import Moon from 'lucide-react/icons/moon';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import Menu from 'lucide-react/icons/menu';
 import X from 'lucide-react/icons/x';
+import ChevronRight from 'lucide-react/icons/chevron-right';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/cn';
+import { Logo } from '@/components/shared/Logo';
 
 export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hoveredLink, setHoveredLink] = useState(null);
 
   useEffect(() => {
     let ticking = false;
@@ -51,30 +54,77 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
     { label: 'FAQ', href: '/#faq' },
   ];
 
+  const menuVariants = {
+    hidden: {
+      opacity: 0,
+      scale: 0.95,
+      y: -10,
+    },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        type: 'spring',
+        duration: 0.3,
+        staggerChildren: 0.05,
+        delayChildren: 0.05,
+      },
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.95,
+      y: -10,
+      transition: {
+        duration: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: 'spring',
+        stiffness: 300,
+        damping: 25,
+      },
+    },
+  };
+
   return (
     <nav
       className={cn(
-        'fixed left-0 right-0 top-0 z-[100] transition-all duration-500 ease-out py-4',
-        isScrolled ? 'translate-y-0' : 'translate-y-2'
+        'fixed left-0 right-0 top-0 z-[100] transition-all duration-350 ease-out',
+        isScrolled ? 'py-2 px-6 translate-y-0' : 'py-0 px-0 translate-y-0'
       )}
       data-oid="t9q8_5n"
     >
-      <div className="mx-auto max-w-7xl px-6 flex justify-center" data-oid="ol47a-.">
+      <div
+        className={cn(
+          'mx-auto w-full transition-all duration-350 ease-out',
+          isScrolled ? 'max-w-7xl' : 'max-w-full'
+        )}
+        data-oid="ol47a-."
+      >
         <div
           className={cn(
-            'relative flex items-center justify-between w-full h-16 md:h-20 px-4 md:px-6 rounded-full transition-all duration-500',
+            'relative flex items-center w-full transition-all duration-350 ease-out',
             isScrolled
-              ? 'bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-primary/20 dark:border-white/10 shadow-2xl shadow-black/5 ring-1 ring-black/5 dark:ring-white/10'
-              : 'bg-white/60 dark:bg-white/5 backdrop-blur-md border-white/60 dark:border-white/10 shadow-sm ring-1 ring-black/5 dark:ring-white/5'
+              ? 'h-12 md:h-14 px-3 md:px-5 rounded-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border border-black/[0.06] dark:border-white/10 shadow-lg shadow-black/[0.03] ring-1 ring-black/5 dark:ring-white/10'
+              : 'h-14 md:h-16 px-0 rounded-none bg-white/40 dark:bg-zinc-950/40 backdrop-blur-md border-b border-black/5 dark:border-white/5 border-t-0 border-x-0'
           )}
-          style={{
-            borderWidth: '1px',
-          }}
+          style={isScrolled ? { borderWidth: '1px' } : undefined}
           data-oid="xp4..v-"
         >
           {/* Glass Reflection Effect */}
           <div
-            className="absolute inset-0 rounded-full overflow-hidden pointer-events-none"
+            className={cn(
+              'absolute inset-0 overflow-hidden pointer-events-none transition-all duration-350',
+              isScrolled ? 'rounded-full' : 'rounded-none'
+            )}
             data-oid="luem3vp"
           >
             <div
@@ -85,10 +135,11 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
               data-oid="hxrbzv."
             />
           </div>
+
           {/* Scroll Progress Bar */}
           {isScrolled && (
             <div
-              className="absolute top-0 left-8 right-8 h-[2px] bg-border/20 overflow-hidden rounded-full"
+              className="absolute bottom-0 left-8 right-8 h-[2px] bg-border/20 overflow-hidden rounded-full"
               data-oid=":fpku4w"
             >
               <m.div
@@ -101,145 +152,143 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
             </div>
           )}
 
-          <Link
-            to={createPageUrl('Index')}
-            className="flex items-center gap-2 sm:gap-3 group relative z-[101]"
-            aria-label="IELTS Ai Pro - Home"
-            data-oid="6et:210"
-          >
-            <div className="relative" data-oid="4b8ew.5">
-              <div
-                className="absolute inset-0 bg-primary/20 blur-lg rounded-full scale-125 group-hover:scale-150 transition-transform duration-500"
-                data-oid="06adu2k"
-              />
-
-              <div
-                className="relative flex h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 text-white shadow-lg shadow-primary/20 transition-all duration-300 group-hover:scale-105 group-hover:rotate-3"
-                data-oid="--9hiki"
-              >
-                <Brain className="h-5 w-5 md:h-6 md:w-6" data-oid="94pouab" />
-              </div>
-            </div>
-            <div className="block leading-tight" data-oid="o.3-fm2">
-              <div
-                className="text-sm sm:text-base md:text-lg font-bold tracking-tight text-foreground/90 group-hover:text-primary transition-colors"
-                data-oid="h2bdh3:"
-              >
-                IELTS{' '}
-                <span className="text-primary italic font-black" data-oid="5au3d2t">
-                  Ai
-                </span>{' '}
-                Pro
-              </div>
-            </div>
-          </Link>
-
-          {/* Desktop Navigation */}
+          {/* Centered Content Wrapper */}
           <div
-            className="hidden items-center gap-1 lg:flex bg-muted/40 dark:bg-zinc-900/40 p-1 rounded-full border border-black/5 dark:border-white/5 backdrop-blur-md shadow-inner"
-            data-oid="_3ruemn"
+            className={cn(
+              'flex items-center justify-between w-full transition-all duration-350 ease-out z-10',
+              isScrolled ? 'max-w-full' : 'max-w-7xl mx-auto px-6 md:px-8'
+            )}
           >
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="relative px-5 py-2 rounded-full text-sm font-bold text-muted-foreground transition-all duration-300 hover:text-primary hover:bg-white dark:hover:bg-white/10 hover:shadow-sm"
-                data-oid="b41jq1v"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2 md:gap-4 relative z-[101]" data-oid="z.sf-4g">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-xl md:rounded-2xl transition-all duration-300 hover:scale-110 hover:bg-primary/10 hover:text-primary"
-              onClick={() => setTheme(isDark ? 'light' : 'dark')}
-              aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
-              data-oid="6m:a:wq"
+            <Link
+              to={createPageUrl('Index')}
+              className="relative z-[101]"
+              aria-label="IELTS Ai Pro - Home"
+              data-oid="6et:210"
             >
-              <AnimatePresence mode="wait" data-oid="_k2b_9p">
-                <m.div
-                  key={isDark ? 'dark' : 'light'}
-                  initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
-                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                  exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
-                  transition={{ duration: 0.2 }}
-                  data-oid="wdgwl66"
-                >
-                  {isDark ? (
-                    <Sun className="h-5 w-5" data-oid="ybmc88k" />
-                  ) : (
-                    <Moon className="h-5 w-5" data-oid="ph2qf0-" />
-                  )}
-                </m.div>
-              </AnimatePresence>
-            </Button>
+              <Logo size="md" />
+            </Link>
 
-            <Button
-              className="hidden sm:inline-flex rounded-full px-6 md:px-8 h-10 md:h-11 font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-500 hover:-translate-y-1 hover:scale-105 active:scale-95 bg-gradient-to-r from-primary to-blue-600 border-none"
-              onClick={handlePrimaryCta}
-              data-oid="g5n7eo4"
+            {/* Desktop Navigation */}
+            <div
+              className="hidden items-center gap-1 lg:flex bg-muted/40 dark:bg-zinc-900/40 p-1 rounded-full border border-black/5 dark:border-white/5 backdrop-blur-md shadow-inner relative"
+              data-oid="_3ruemn"
             >
-              {isSignedIn ? 'Dashboard' : 'Get Started'}
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
-
-            {/* Mobile Menu Toggle */}
-            <button
-              className="lg:hidden p-2 rounded-xl bg-muted/50 text-foreground"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-              data-oid="bqhg9k2"
-            >
-              {mobileMenuOpen ? (
-                <X className="h-5 w-5" data-oid="h3.9c:4" />
-              ) : (
-                <Menu className="h-5 w-5" data-oid="vli-0_y" />
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence data-oid="cfglkhg">
-        {mobileMenuOpen && (
-          <m.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden absolute top-24 left-6 right-6 bg-white dark:bg-card rounded-[2rem] border border-border/50 shadow-2xl p-6 z-[99] overflow-hidden"
-            data-oid="iz_alpq"
-          >
-            <div className="flex flex-col gap-4" data-oid="r6wu019">
               {navLinks.map((link) => (
                 <a
                   key={link.label}
                   href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-lg font-black text-muted-foreground hover:text-primary py-2 transition-colors border-b border-border/10 last:border-0"
-                  data-oid="ywl:3a5"
+                  onMouseEnter={() => setHoveredLink(link.label)}
+                  onMouseLeave={() => setHoveredLink(null)}
+                  className="relative px-4 py-1.5 rounded-full text-[13px] md:text-sm font-bold tracking-wide text-muted-foreground/80 transition-colors duration-205 hover:text-primary dark:hover:text-white z-10"
+                  data-oid="b41jq1v"
                 >
-                  {link.label}
+                  {hoveredLink === link.label && (
+                    <m.span
+                      layoutId="nav-hover-pill"
+                      className="absolute inset-0 bg-primary/[0.06] dark:bg-white/[0.08] rounded-full border border-primary/10 dark:border-white/5 shadow-sm"
+                      transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+                      data-oid="hover-pill-bg"
+                    />
+                  )}
+                  <span className="relative z-10">{link.label}</span>
                 </a>
               ))}
-              <Button
-                className="w-full rounded-2xl h-14 font-black text-lg mt-4 shadow-xl"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handlePrimaryCta();
-                }}
-                data-oid="rwj8lbe"
-              >
-                {isSignedIn ? 'Go to Dashboard' : 'Get Started Now'}
-              </Button>
             </div>
-          </m.div>
-        )}
-      </AnimatePresence>
+
+            <div className="flex items-center gap-2 md:gap-3 relative z-[101]" data-oid="z.sf-4g">
+              <Button
+                variant="ghost"
+                className="h-8 w-8 md:h-9 md:w-9 rounded-full flex items-center justify-center p-0 hover:bg-primary/5 dark:hover:bg-white/10 transition-all duration-300 hover:scale-105 active:scale-95 text-muted-foreground hover:text-primary dark:hover:text-white"
+                onClick={() => setTheme(isDark ? 'light' : 'dark')}
+                aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+                data-oid="6m:a:wq"
+              >
+                <AnimatePresence mode="wait" data-oid="_k2b_9p">
+                  <m.div
+                    key={isDark ? 'dark' : 'light'}
+                    initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+                    animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                    exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
+                    transition={{ duration: 0.2 }}
+                    data-oid="wdgwl66"
+                  >
+                    {isDark ? (
+                      <Sun className="h-4.5 w-4.5" data-oid="ybmc88k" />
+                    ) : (
+                      <Moon className="h-4.5 w-4.5" data-oid="ph2qf0-" />
+                    )}
+                  </m.div>
+                </AnimatePresence>
+              </Button>
+
+              <Button
+                className="hidden sm:inline-flex rounded-full px-5 md:px-6 h-8 md:h-9 text-xs md:text-sm font-semibold shadow-md shadow-primary/10 hover:shadow-primary/25 hover:shadow-[0_4px_15px_rgba(99,102,241,0.3)] hover:-translate-y-[1px] hover:scale-[1.02] active:scale-98 transition-all duration-300 bg-gradient-to-r from-violet-600 via-primary to-indigo-600 text-white border-none"
+                onClick={handlePrimaryCta}
+                data-oid="g5n7eo4"
+              >
+                {isSignedIn ? 'Dashboard' : 'Get Started'}
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+
+              {/* Mobile Menu Toggle */}
+              <button
+                className="lg:hidden h-8 w-8 flex items-center justify-center p-0 rounded-full bg-black/5 dark:bg-white/5 text-foreground hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+                data-oid="bqhg9k2"
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-4.5 w-4.5" data-oid="h3.9c:4" />
+                ) : (
+                  <Menu className="h-4.5 w-4.5" data-oid="vli-0_y" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Menu */}
+          <AnimatePresence data-oid="cfglkhg">
+            {mobileMenuOpen && (
+              <m.div
+                variants={menuVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="lg:hidden absolute top-full left-4 right-4 mt-3 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-2xl rounded-3xl border border-black/10 dark:border-white/10 shadow-2xl p-5 z-[99] overflow-hidden"
+                data-oid="iz_alpq"
+              >
+                <m.div className="flex flex-col gap-1.5" data-oid="r6wu019">
+                  {navLinks.map((link) => (
+                    <m.a
+                      variants={itemVariants}
+                      key={link.label}
+                      href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="group text-sm font-bold tracking-wide text-muted-foreground/80 hover:text-primary dark:hover:text-white py-2.5 px-3 flex items-center justify-between border-b border-black/5 dark:border-white/5 last:border-0 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-200"
+                      data-oid="ywl:3a5"
+                    >
+                      <span>{link.label}</span>
+                      <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200" />
+                    </m.a>
+                  ))}
+                  <m.div variants={itemVariants} className="pt-2">
+                    <Button
+                      className="w-full rounded-full h-10 text-sm font-bold shadow-md bg-gradient-to-r from-violet-600 via-primary to-indigo-600 text-white mt-1 border-none"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handlePrimaryCta();
+                      }}
+                      data-oid="rwj8lbe"
+                    >
+                      {isSignedIn ? 'Go to Dashboard' : 'Get Started Now'}
+                    </Button>
+                  </m.div>
+                </m.div>
+              </m.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
     </nav>
   );
 }

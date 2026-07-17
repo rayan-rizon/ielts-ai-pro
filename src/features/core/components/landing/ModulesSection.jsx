@@ -274,7 +274,7 @@ export default function ModulesSection({ handlePrimaryCta, viewport }) {
                   key={mod.id}
                   onClick={() => setActiveTab(idx)}
                   className={cn(
-                    'w-full text-left flex items-center gap-4 rounded-[2rem] p-4 transition-all duration-300 border',
+                    'w-full text-left flex items-center gap-4 rounded-xl p-4 transition-all duration-300 border',
                     isActive
                       ? mod.activeBorder
                       : 'border-transparent hover:bg-white/60 dark:hover:bg-slate-800/60 hover:border-border/50 text-foreground'
@@ -282,7 +282,7 @@ export default function ModulesSection({ handlePrimaryCta, viewport }) {
                 >
                   <div
                     className={cn(
-                      'flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.25rem] transition-colors duration-300 shadow-inner',
+                      'flex h-14 w-14 shrink-0 items-center justify-center rounded-xl transition-colors duration-300 shadow-inner',
                       isActive ? 'bg-background shadow-sm' : mod.bgColor
                     )}
                   >
@@ -325,7 +325,7 @@ export default function ModulesSection({ handlePrimaryCta, viewport }) {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="w-full lg:w-[55%] h-[450px] lg:h-[500px] relative"
           >
-            <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/40 dark:border-white/10 shadow-2xl overflow-hidden p-10 flex items-center justify-center">
+            <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[1.5rem] border border-white/40 dark:border-white/10 shadow-2xl overflow-hidden p-10 flex items-center justify-center">
               {/* Glossy overlay */}
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none" />
 

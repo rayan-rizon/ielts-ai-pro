@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { createPageUrl } from '@/utils';
+import { Logo } from '@/components/shared/Logo';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import {
-  Brain,
   Loader2,
   AlertCircle,
   Eye,
@@ -395,7 +395,7 @@ export default function Login() {
         </div>
 
         <div
-          className="max-w-6xl w-full grid lg:grid-cols-5 gap-0 items-center relative z-10 glass-card-premium rounded-[2.5rem] border-white/30 dark:border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2),0_16px_32px_-8px_rgba(0,0,0,0.1),0_0_0_1px_rgba(255,255,255,0.1)] dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.05)] overflow-hidden"
+          className="max-w-6xl w-full grid lg:grid-cols-5 gap-0 items-center relative z-10 glass-card-premium rounded-2xl border border-border dark:border-white/10 shadow-2xl overflow-hidden"
           data-oid=":-4q___"
         >
           {/* Left Panel: Feature Highlights (3/5 width) */}
@@ -403,7 +403,7 @@ export default function Login() {
 
           {/* Right Panel: Auth Form (2/5 width) */}
           <div
-            className="lg:col-span-2 p-8 lg:p-10 relative flex flex-col justify-center bg-white dark:bg-zinc-950/50"
+            className="lg:col-span-2 p-8 lg:p-10 relative flex flex-col justify-center bg-white/90 dark:bg-zinc-950/45 backdrop-blur-xl border-l border-slate-200/50 dark:border-white/5"
             data-oid="d5v9mk6"
           >
             <motion.div
@@ -427,11 +427,8 @@ export default function Login() {
               </Link>
 
               <div className="text-center lg:text-left mb-6" data-oid="30o1_of">
-                <div
-                  className="lg:hidden mx-auto mb-4 w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/30"
-                  data-oid="6j7gtso"
-                >
-                  <Brain className="w-7 h-7 text-white" data-oid="n41hi1d" />
+                <div className="lg:hidden flex justify-center mb-6" data-oid="6j7gtso">
+                  <Logo iconOnly={true} size="lg" />
                 </div>
                 <h2
                   className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white leading-tight"
@@ -463,7 +460,7 @@ export default function Login() {
                         {/* Social Login */}
                         <Button
                           variant="outline"
-                          className="w-full h-12 bg-secondary/50 hover:bg-secondary dark:bg-zinc-900/50 dark:hover:bg-zinc-900/80 border-border/50 dark:border-white/5 hover-lift rounded-xl flex items-center justify-center gap-3 transition-all duration-300"
+                          className="w-full h-12 bg-white dark:bg-zinc-900/30 hover:bg-slate-50 dark:hover:bg-zinc-900/60 border border-slate-200 dark:border-white/5 shadow-sm hover:shadow hover:scale-[1.02] active:scale-[0.98] rounded-xl flex items-center justify-center gap-3 transition-all duration-300"
                           disabled={isLoading}
                           onClick={handleGoogleAuth}
                           type="button"
@@ -567,7 +564,7 @@ export default function Login() {
                                     }}
                                     onBlur={() => handleBlur('username')}
                                     className={cn(
-                                      'pl-11 h-12 bg-secondary/30 dark:bg-zinc-900/50 border-border/50 dark:border-white/10 rounded-xl focus:ring-primary/20 group-hover:bg-secondary/50 dark:group-hover:bg-zinc-900/80 transition-all dark:text-zinc-100 dark:placeholder:text-zinc-500',
+                                      'pl-11 h-12 bg-secondary/20 dark:bg-zinc-900/20 border border-slate-200 dark:border-white/10 rounded-xl transition-all duration-300 dark:text-zinc-100 dark:placeholder:text-slate-500 focus:border-primary/50 focus:bg-white dark:focus:bg-zinc-900/40 focus:ring-4 focus:ring-primary/10',
                                       touched.username &&
                                         fieldErrors.username &&
                                         'border-destructive focus:ring-destructive/10'
@@ -612,7 +609,7 @@ export default function Login() {
                                   }}
                                   onBlur={() => handleBlur('email')}
                                   className={cn(
-                                    'pl-11 h-12 bg-secondary/30 dark:bg-zinc-900/50 border-border/50 dark:border-white/10 rounded-xl focus:ring-primary/20 group-hover:bg-secondary/50 dark:group-hover:bg-zinc-900/80 transition-all dark:text-zinc-100 dark:placeholder:text-zinc-500',
+                                    'pl-11 h-12 bg-white/50 backdrop-blur-sm dark:bg-zinc-900/20 border border-slate-200 dark:border-white/10 rounded-xl transition-all duration-300 dark:text-zinc-100 dark:placeholder:text-slate-500 focus:border-primary/50 focus:bg-white dark:focus:bg-zinc-900/40 focus:ring-4 focus:ring-primary/10',
                                     touched.email &&
                                       fieldErrors.email &&
                                       'border-destructive focus:ring-destructive/10'
@@ -665,7 +662,7 @@ export default function Login() {
                                   placeholder="Enter your password"
                                   value={password}
                                   onChange={(e) => setPassword(e.target.value)}
-                                  className="pl-11 pr-11 h-12 bg-secondary/30 dark:bg-zinc-900/50 border-border/50 dark:border-white/10 rounded-xl focus:ring-primary/20 group-hover:bg-secondary/50 dark:group-hover:bg-zinc-900/80 transition-all dark:text-zinc-100 dark:placeholder:text-zinc-500"
+                                  className="pl-11 pr-11 h-12 bg-secondary/20 dark:bg-zinc-900/20 border border-slate-200 dark:border-white/10 rounded-xl transition-all duration-300 dark:text-zinc-100 dark:placeholder:text-slate-500 focus:border-primary/50 focus:bg-white dark:focus:bg-zinc-900/40 focus:ring-4 focus:ring-primary/10"
                                   data-oid="cr0:l26"
                                 />
 
@@ -738,13 +735,8 @@ export default function Login() {
                           <motion.div layout className="pt-2" data-oid="y:9z1-7">
                             <Button
                               type="submit"
-                              disabled={
-                                isLoading ||
-                                !email.trim() ||
-                                !password.trim() ||
-                                (authMode === 'signup' && !username.trim())
-                              }
-                              className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-[0.1em] text-sm rounded-xl shadow-lg shadow-primary/25 hover:shadow-primary/40 hover-lift flex items-center justify-center group"
+                              disabled={isLoading}
+                              className="w-full h-12 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-700 hover:via-indigo-700 hover:to-violet-700 text-white font-extrabold uppercase tracking-[0.1em] text-sm rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-indigo-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center group"
                               data-oid="ezeqau0"
                             >
                               {isLoading ? (

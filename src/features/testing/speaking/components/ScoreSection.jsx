@@ -71,7 +71,10 @@ export function OverallScoreRing({ overallScore, isTranscriptEstimate, hasMetric
       <div className="relative inline-flex items-center justify-center group/ring">
         <div className="absolute inset-0 bg-rose-500 blur-[60px] opacity-10 group-hover/ring:opacity-25 transition-opacity duration-700" />
 
-        <svg className="w-36 h-36 transform -rotate-90 drop-shadow-[0_0_25px_rgba(225,29,72,0.3)]">
+        <svg
+          className="w-36 h-36 transform -rotate-90 drop-shadow-[0_0_25px_rgba(225,29,72,0.3)]"
+          viewBox="0 0 144 144"
+        >
           <defs>
             <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#9f1239" />
@@ -110,7 +113,7 @@ export function OverallScoreRing({ overallScore, isTranscriptEstimate, hasMetric
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 1, duration: 0.5 }}
-            className="text-6xl font-black text-foreground tracking-tighter cursor-default"
+            className="text-6xl font-black text-foreground tracking-tighter cursor-default leading-none"
           >
             {formatScore(overallScore)}
           </motion.span>
