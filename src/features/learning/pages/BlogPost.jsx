@@ -34,8 +34,8 @@ const PRACTICE_LINKS = {
   Speaking: '/speaking',
   Reading: '/reading',
   Listening: '/listening',
-  'Study Planning': '/ielts-mock-test-online',
-  'Exam Updates': '/ielts-mock-test-online',
+  'Study Planning': '/cambridge-tests',
+  'Exam Updates': '/cambridge-tests',
 };
 
 const PRACTICE_LABELS = {

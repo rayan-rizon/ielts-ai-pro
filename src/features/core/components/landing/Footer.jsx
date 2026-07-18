@@ -11,17 +11,17 @@ const footerLinks = {
     { label: 'Frequently asked questions', href: '/#faq' },
   ],
   Practice: [
-    { label: 'Free IELTS practice tests', href: '/free-ielts-practice-tests' },
-    { label: 'IELTS Writing checker', href: '/ielts-writing-checker' },
-    { label: 'IELTS Speaking practice', href: '/ielts-speaking-practice-ai' },
-    { label: 'IELTS mock tests online', href: '/ielts-mock-test-online' },
+    { label: 'Free IELTS practice tests', href: '/cambridge-tests' },
+    { label: 'IELTS Writing checker', href: '/writing' },
+    { label: 'IELTS Speaking practice', href: '/speaking' },
+    { label: 'IELTS mock tests online', href: '/cambridge-tests' },
   ],
   Resources: [
     { label: 'IELTS preparation blog', href: '/blog' },
     { label: 'IELTS band score calculator', href: '/ielts-band-score-calculator' },
-    { label: 'Cambridge IELTS practice', href: '/cambridge-ielts-practice-tests' },
-    { label: 'IELTS band score feedback', href: '/ielts-band-score-feedback' },
-    { label: 'AI IELTS preparation', href: '/ai-ielts-preparation' },
+    { label: 'Cambridge IELTS practice', href: '/cambridge-tests' },
+    { label: 'IELTS band score feedback', href: '/analytics' },
+    { label: 'AI IELTS preparation', href: '/signup' },
     { label: 'Contact support', href: '/contact' },
   ],
 };
@@ -57,19 +57,7 @@ function FooterLink({ href, children }) {
   const className =
     'group relative w-fit text-sm font-medium text-slate-400 transition-colors hover:text-white';
 
-  const isStatic = [
-    '/free-ielts-practice-tests',
-    '/ielts-writing-checker',
-    '/ielts-speaking-practice-ai',
-    '/ielts-mock-test-online',
-    '/cambridge-ielts-practice-tests',
-    '/ielts-band-score-feedback',
-    '/ielts-band-score-calculator',
-    '/ai-ielts-preparation',
-    '/blog',
-  ].includes(href);
-
-  if (href.startsWith('/#') || isStatic) {
+  if (href.startsWith('/#')) {
     return (
       <a href={href} className={className}>
         {children}
@@ -138,7 +126,7 @@ export default function Footer() {
                 </h3>
                 <ul className="space-y-3">
                   {links.map((link) => (
-                    <li key={link.href}>
+                    <li key={link.label}>
                       <FooterLink href={link.href}>{link.label}</FooterLink>
                     </li>
                   ))}

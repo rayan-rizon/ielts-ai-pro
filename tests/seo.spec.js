@@ -7,6 +7,17 @@ import { test, expect } from '@playwright/test';
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 
+const footerAppDestinations = {
+  'Free IELTS practice tests': '/cambridge-tests',
+  'IELTS Writing checker': '/writing',
+  'IELTS Speaking practice': '/speaking',
+  'IELTS mock tests online': '/cambridge-tests',
+  'IELTS band score calculator': '/ielts-band-score-calculator',
+  'Cambridge IELTS practice': '/cambridge-tests',
+  'IELTS band score feedback': '/analytics',
+  'AI IELTS preparation': '/signup',
+};
+
 test.describe('SEO - Title Tags', () => {
   test('landing page should have proper title', async ({ page }) => {
     await page.goto(BASE_URL);
@@ -138,6 +149,18 @@ test.describe('SEO - Semantic HTML', () => {
       const ariaLabel = await link.getAttribute('aria-label');
       const hasAccessibleName = (text && text.trim().length > 0) || ariaLabel;
       expect(hasAccessibleName).toBeTruthy();
+    }
+  });
+
+  test('footer practice links point to app screens', async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForLoadState('domcontentloaded');
+
+    for (const [label, href] of Object.entries(footerAppDestinations)) {
+      await expect(page.getByRole('link', { name: label, exact: true })).toHaveAttribute(
+        'href',
+        href
+      );
     }
   });
 });

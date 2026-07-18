@@ -206,7 +206,7 @@ function WritingFeedbackCard() {
         </div>
       </div>
 
-      <FeatureLink to="/ielts-writing-checker">Try AI Writing Checker</FeatureLink>
+      <FeatureLink to="/writing">Try AI Writing Checker</FeatureLink>
     </div>
   );
 }
@@ -415,7 +415,7 @@ function PracticeLibraryCard() {
         </div>
       </div>
 
-      <FeatureLink to="/cambridge-ielts-practice-tests">Explore Test Sets</FeatureLink>
+      <FeatureLink to="/cambridge-tests">Explore Test Sets</FeatureLink>
     </div>
   );
 }

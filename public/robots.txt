@@ -1,19 +1,8 @@
 # IELTS Ai Pro - robots.txt
-# Last updated: 2026-07-18
+# Last updated: 2026-07-19
 
 User-agent: *
 Allow: /
-
-# Public SEO pages
-Allow: /blog
-Allow: /ielts-writing-checker
-Allow: /ielts-speaking-practice-ai
-Allow: /ielts-mock-test-online
-Allow: /cambridge-ielts-practice-tests
-Allow: /free-ielts-practice-tests
-Allow: /ai-ielts-preparation
-Allow: /ielts-band-score-feedback
-Allow: /ielts-band-score-calculator
 
 # Private/authenticated routes
 Disallow: /dashboard/
@@ -33,6 +22,11 @@ Disallow: /update-password
 # Protected app pages
 Disallow: /pricing
 Disallow: /resources
+Disallow: /cambridge-tests
+Disallow: /reading
+Disallow: /listening
+Disallow: /writing
+Disallow: /speaking
 
 # API and function routes
 Disallow: /api/
@@ -40,11 +34,5 @@ Disallow: /functions/
 
 Sitemap: https://www.ieltsai.pro/sitemap.xml
 
-# AI Training Signal (standard-compliant comment)
-# Content-Signal: search=yes,ai-train=no
-
-# AI answer engines (AEO): OAI-SearchBot, ChatGPT-User, PerplexityBot,
-# ClaudeBot, Claude-SearchBot, Google-Extended and other answer/search
-# crawlers are intentionally covered by the permissive "User-agent: *"
-# group above so the site can be cited in AI search results.
+# AI answer engines can cite the public marketing and calculator pages.
 # LLM-friendly site summary: https://www.ieltsai.pro/llms.txt

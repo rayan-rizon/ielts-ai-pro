@@ -39,38 +39,73 @@
       "permanent": true
     },
     {
+      "source": "/ielts-writing-checker",
+      "destination": "/writing",
+      "permanent": true
+    },
+    {
+      "source": "/ielts-speaking-practice-ai",
+      "destination": "/speaking",
+      "permanent": true
+    },
+    {
+      "source": "/ielts-mock-test-online",
+      "destination": "/cambridge-tests",
+      "permanent": true
+    },
+    {
+      "source": "/cambridge-ielts-practice-tests",
+      "destination": "/cambridge-tests",
+      "permanent": true
+    },
+    {
+      "source": "/free-ielts-practice-tests",
+      "destination": "/cambridge-tests",
+      "permanent": true
+    },
+    {
+      "source": "/ai-ielts-preparation",
+      "destination": "/signup",
+      "permanent": true
+    },
+    {
+      "source": "/ielts-band-score-feedback",
+      "destination": "/analytics",
+      "permanent": true
+    },
+    {
       "source": "/ielts-writing-checker/",
-      "destination": "/ielts-writing-checker",
+      "destination": "/writing",
       "permanent": true
     },
     {
       "source": "/ielts-speaking-practice-ai/",
-      "destination": "/ielts-speaking-practice-ai",
+      "destination": "/speaking",
       "permanent": true
     },
     {
       "source": "/ielts-mock-test-online/",
-      "destination": "/ielts-mock-test-online",
+      "destination": "/cambridge-tests",
       "permanent": true
     },
     {
       "source": "/cambridge-ielts-practice-tests/",
-      "destination": "/cambridge-ielts-practice-tests",
+      "destination": "/cambridge-tests",
       "permanent": true
     },
     {
       "source": "/free-ielts-practice-tests/",
-      "destination": "/free-ielts-practice-tests",
+      "destination": "/cambridge-tests",
       "permanent": true
     },
     {
       "source": "/ai-ielts-preparation/",
-      "destination": "/ai-ielts-preparation",
+      "destination": "/signup",
       "permanent": true
     },
     {
       "source": "/ielts-band-score-feedback/",
-      "destination": "/ielts-band-score-feedback",
+      "destination": "/analytics",
       "permanent": true
     },
     {
@@ -193,54 +228,6 @@
     {
       "source": "/blog/:slug",
       "destination": "/api/blog?slug=:slug"
-    },
-    {
-      "source": "/ielts-writing-checker",
-      "destination": "/ielts-writing-checker/index.html"
-    },
-    {
-      "source": "/ielts-speaking-practice-ai",
-      "destination": "/ielts-speaking-practice-ai/index.html"
-    },
-    {
-      "source": "/ielts-mock-test-online",
-      "destination": "/ielts-mock-test-online/index.html"
-    },
-    {
-      "source": "/cambridge-ielts-practice-tests",
-      "destination": "/cambridge-ielts-practice-tests/index.html"
-    },
-    {
-      "source": "/free-ielts-practice-tests",
-      "destination": "/free-ielts-practice-tests/index.html"
-    },
-    {
-      "source": "/ai-ielts-preparation",
-      "destination": "/ai-ielts-preparation/index.html"
-    },
-    {
-      "source": "/ielts-band-score-feedback",
-      "destination": "/ielts-band-score-feedback/index.html"
-    },
-    {
-      "source": "/ielts-band-score-calculator",
-      "destination": "/ielts-band-score-calculator/index.html"
-    },
-    {
-      "source": "/about",
-      "destination": "/about/index.html"
-    },
-    {
-      "source": "/contact",
-      "destination": "/contact/index.html"
-    },
-    {
-      "source": "/privacy",
-      "destination": "/privacy/index.html"
-    },
-    {
-      "source": "/terms",
-      "destination": "/terms/index.html"
     },
     {
       "source": "/((?!assets/|.*\\.|api/).*)",
