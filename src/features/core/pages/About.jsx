@@ -52,7 +52,7 @@ function CardGridBackground() {
 
 function AboutHero() {
   return (
-    <section className="relative pt-10 pb-8 md:pt-14 md:pb-10 px-6">
+    <section className="relative pt-2 pb-6 md:pt-4 md:pb-8 px-6">
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-40 top-12 h-[34rem] w-[34rem] rounded-full bg-blue-200/20 blur-[130px] dark:bg-blue-600/10" />
         <div className="absolute -right-40 top-8 h-[38rem] w-[38rem] rounded-full bg-violet-200/20 blur-[140px] dark:bg-violet-600/10" />
@@ -87,7 +87,7 @@ function AboutHero() {
 
 function AboutStoryAndStats() {
   return (
-    <section className="py-14 md:py-20 px-6 relative border-y border-slate-100 dark:border-white/5 bg-[#fafbfe] dark:bg-[#070912]/40">
+    <section className="py-10 md:py-16 px-6 relative border-y border-slate-100 dark:border-white/5 bg-[#fafbfe] dark:bg-[#070912]/40">
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-[#f3f7ff]/20 to-transparent dark:from-slate-950/10" />
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-16 items-center relative z-10">
         {/* Left Narrative Column */}
