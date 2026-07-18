@@ -89,7 +89,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative pt-12 pb-6 overflow-hidden bg-[#030303] border-t border-white/[0.05] dark">
+    <footer className="relative pt-10 pb-6 overflow-hidden bg-[#030303] border-t border-white/[0.05] dark">
       {/* Top Gradient Border */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-indigo-500/30 to-transparent" />
 
@@ -101,11 +101,11 @@ export default function Footer() {
       <div className="absolute top-0 right-1/4 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[140px] pointer-events-none opacity-40" />
 
       <div className="mx-auto max-w-7xl px-6 relative z-10">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-8 mb-10">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-8 mb-8">
           {/* Brand Column */}
-          <div className="lg:col-span-4 flex flex-col justify-between gap-6">
+          <div className="lg:col-span-4 flex flex-col justify-between gap-4">
             <div>
-              <Link to="/" className="mb-4 group block w-fit" aria-label="IELTS Ai Pro - Home">
+              <Link to="/" className="mb-3 group block w-fit" aria-label="IELTS Ai Pro - Home">
                 <Logo size="lg" className="text-white" />
               </Link>
               <p className="max-w-sm text-sm font-medium leading-relaxed text-muted-foreground mb-4">
@@ -114,7 +114,7 @@ export default function Footer() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {/* Social links */}
               <div className="flex items-center gap-2">
                 {socialLinks.map((social, i) => (
@@ -143,10 +143,10 @@ export default function Footer() {
           </div>
 
           {/* Links Columns (Sitemaps) */}
-          <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="lg:col-span-5 grid grid-cols-2 sm:grid-cols-3 gap-6">
             {Object.entries(footerLinks).map(([title, links]) => (
               <div key={title} className="flex flex-col">
-                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-4">
+                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-3">
                   {title}
                 </h3>
                 <ul className="space-y-2">
