@@ -191,7 +191,7 @@ export default function LandingPage() {
             </LazySection>
 
             <LazySection id="comparison" className="scroll-mt-28">
-              <ComparisonSection viewport={viewport} />
+              <ComparisonSection viewport={viewport} handlePrimaryCta={handlePrimaryCta} />
             </LazySection>
 
             <LazySection id="pricing" className="scroll-mt-28" minHeight="800px" data-oid="txw9f10">

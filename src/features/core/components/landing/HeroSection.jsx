@@ -439,8 +439,9 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
             variants={reveal}
             className="mt-6 text-[clamp(2.4rem,11vw,3.1rem)] font-extrabold leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white sm:text-[3.5rem] lg:text-[3.15rem] xl:text-[3.6rem] 2xl:text-[3.9rem]"
           >
-            <span className="block lg:whitespace-nowrap">AI-Powered IELTS Practice</span>
-            <span className="font-handwritten relative mt-2 block w-fit max-w-full pr-4 text-[0.92em] leading-[1.05] tracking-[-0.035em] text-[#5262ef] sm:pr-7 sm:text-[1.02em]">
+            <span className="block">AI-Powered</span>
+            <span className="block">IELTS Practice</span>
+            <span className="font-handwritten relative mt-2 block w-fit max-w-full pr-4 text-[0.92em] leading-[1.05] tracking-[-0.035em] text-[#5262ef] sm:pr-7 sm:text-[1.02em] sm:whitespace-nowrap">
               for a higher band score.
               <svg
                 className="absolute -bottom-3 left-[35%] h-3 w-[38%] text-[#8dc9f2]"

@@ -65,14 +65,28 @@ function AboutHero() {
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="space-y-6"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#bfe9df] bg-[#f2fbf8] px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#218b75] dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300 shadow-sm">
-            <Sparkles className="h-3 w-3 text-[#218b75] dark:text-emerald-300" />
-            Our Story & Vision
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#ddd8ff] bg-gradient-to-r from-[#f1edff]/95 to-white/75 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#4f35d8] shadow-sm backdrop-blur-xl dark:border-violet-400/20 dark:from-violet-400/10 dark:to-white/5 dark:text-violet-200">
+            <Sparkles className="h-3.5 w-3.5" /> Our Story & Vision
           </div>
 
-          <h1 className="text-[clamp(2.5rem,8vw,4.5rem)] font-extrabold leading-[1.05] tracking-[-0.05em] text-[#07142f] dark:text-white">
-            The Future of <br className="hidden sm:block" />
-            <span className="text-gradient-primary">IELTS Preparation</span>
+          <h1 className="text-[clamp(2.35rem,6.5vw,3.65rem)] font-black leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white">
+            <span className="block">The Future of</span>
+            <span className="relative inline-block font-handwritten mt-2.5 bg-gradient-to-r from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text pb-3 text-[1.02em] leading-[1.08] tracking-[-0.025em] text-transparent">
+              IELTS Preparation
+              <svg
+                className="absolute bottom-0 left-0 w-full h-3 text-[#7384f8]"
+                viewBox="0 0 200 10"
+                fill="none"
+                preserveAspectRatio="none"
+              >
+                <path
+                  d="M2 3C60 7 140 7 198 3"
+                  stroke="currentColor"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
           </h1>
 
           <p className="text-base sm:text-lg font-medium leading-relaxed text-[#515d74] dark:text-slate-300 max-w-2xl mx-auto">
@@ -99,7 +113,7 @@ function AboutStoryAndStats() {
           className="space-y-8"
         >
           <div className="space-y-4">
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#07142f] dark:text-white">
+            <h2 className="text-2xl md:text-3.5xl font-black tracking-[-0.04em] text-[#07142f] dark:text-white">
               More Than Just Practice
             </h2>
             <p className="text-base font-medium leading-relaxed text-[#515d74] dark:text-slate-300">
@@ -217,10 +231,10 @@ function AboutValues() {
     <section className="py-24 px-6 relative">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16 space-y-3">
-          <span className="text-[11px] font-black uppercase tracking-[0.15em] text-primary block">
+          <span className="text-[11px] font-black uppercase tracking-[0.15em] text-[#4f35d8] dark:text-violet-350 block">
             Integrity & Standard
           </span>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-[#07142f] dark:text-white">
+          <h2 className="text-3xl md:text-4xl font-black tracking-[-0.04em] text-[#07142f] dark:text-white">
             Our Core Values
           </h2>
           <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto text-sm sm:text-base">
@@ -292,20 +306,42 @@ function AboutValues() {
 
 function AboutCTA({ onSignup, onPricing }) {
   return (
-    <section className="py-20 px-6 relative">
+    <section className="py-16 md:py-24 px-6 relative">
       <div className="max-w-4xl mx-auto">
         <m.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-gradient-to-br from-[#3f6df1] to-[#6256ed] text-white rounded-[40px] p-8 md:p-16 relative overflow-hidden shadow-[0_24px_60px_-15px_rgba(66,88,232,0.4)] text-center group"
+          className="bg-gradient-to-br from-[#4f38ea] via-[#634df0] to-[#216ff0] text-white rounded-[32px] md:rounded-[40px] p-8 md:p-16 border border-white/10 shadow-[0_35px_75px_-20px_rgba(82,98,239,0.4)] dark:shadow-[0_45px_90px_-25px_rgba(0,0,0,0.7)] relative overflow-hidden text-center group"
         >
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 blur-[110px] rounded-full translate-x-1/3 -translate-y-1/3" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-black/10 blur-[90px] rounded-full -translate-x-1/3 translate-y-1/3" />
+          {/* Subtle Grid overlay */}
+          <div className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none">
+            <svg
+              className="w-full h-full"
+              xmlns="http://www.w3.org/2000/svg"
+              width="100"
+              height="100"
+              viewBox="0 0 100 100"
+            >
+              <pattern id="grid-cta" width="20" height="20" patternUnits="userSpaceOnUse">
+                <rect width="20" height="20" fill="none" />
+                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="1" />
+              </pattern>
+              <rect width="100%" height="100%" fill="url(#grid-cta)" />
+            </svg>
+          </div>
 
-          <h2 className="text-3xl md:text-5xl font-extrabold leading-tight tracking-tight relative z-10 max-w-2xl mx-auto">
-            Ready to Achieve Your Target Score?
+          <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/20 blur-3xl pointer-events-none" />
+          <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500/35 blur-3xl pointer-events-none" />
+          <Sparkles className="absolute left-10 top-12 h-6 w-6 text-white/20 animate-pulse pointer-events-none hidden md:block" />
+          <Sparkles className="absolute right-12 bottom-12 h-8 w-8 text-white/30 animate-pulse pointer-events-none hidden md:block" />
+
+          <h2 className="text-3xl md:text-5xl font-black leading-tight tracking-[-0.035em] relative z-10 max-w-2xl mx-auto text-balance">
+            Ready to Achieve Your{' '}
+            <span className="bg-gradient-to-r from-[#a6edff] to-[#dcf9ff] bg-clip-text text-transparent drop-shadow-sm">
+              Target Score?
+            </span>
           </h2>
 
           <p className="text-white/80 text-sm sm:text-base font-medium mt-4 mb-8 max-w-lg mx-auto relative z-10 leading-relaxed">
@@ -316,13 +352,13 @@ function AboutCTA({ onSignup, onPricing }) {
           <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
             <button
               onClick={onSignup}
-              className="h-14 px-8 rounded-xl bg-white text-slate-900 hover:bg-slate-50 font-extrabold text-sm sm:text-base shadow-md hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+              className="h-14 px-8 rounded-[16px] bg-white text-slate-900 hover:bg-slate-50 font-extrabold text-sm sm:text-base shadow-md hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             >
               Start Free Practice
             </button>
             <button
               onClick={onPricing}
-              className="h-14 px-8 rounded-xl border border-white/20 bg-white/10 text-white hover:bg-white/15 font-extrabold text-sm sm:text-base backdrop-blur-sm shadow-sm transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+              className="h-14 px-8 rounded-[16px] border border-white/20 bg-white/10 text-white hover:bg-white/15 font-extrabold text-sm sm:text-base backdrop-blur-sm shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             >
               View Pricing Plans
             </button>

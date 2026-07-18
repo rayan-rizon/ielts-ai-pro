@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Calculator from 'lucide-react/icons/calculator';
 import Repeat from 'lucide-react/icons/repeat';
+import Sparkles from 'lucide-react/icons/sparkles';
 import Navbar from '@/features/core/components/landing/Navbar';
 import DocumentHead from '@/components/shared/DocumentHead';
 import { useTheme } from '@/components/theme-provider';
@@ -34,14 +35,14 @@ const faqs = [
 function SectionLabel({ icon: Icon, eyebrow, title, description }) {
   return (
     <div className="mb-8">
-      <span className="inline-flex items-center gap-2 rounded-full border border-[#d7deeb] bg-white px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#4f46e5] shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-indigo-300">
+      <span className="inline-flex items-center gap-2 rounded-full border border-[#ddd8ff] bg-gradient-to-r from-[#f1edff]/95 to-white/75 px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#4f35d8] shadow-sm backdrop-blur-xl dark:border-violet-400/20 dark:from-violet-400/10 dark:to-white/5 dark:text-violet-200">
         <Icon className="h-3.5 w-3.5" />
         {eyebrow}
       </span>
-      <h2 className="mt-4 text-[clamp(1.5rem,3.5vw,2rem)] font-extrabold tracking-[-0.03em] text-[#07142f] dark:text-white">
+      <h2 className="mt-4 text-[clamp(1.5rem,3.5vw,2.1rem)] font-black tracking-[-0.04em] leading-tight text-[#07142f] dark:text-white">
         {title}
       </h2>
-      <p className="mt-2 max-w-[620px] text-[15px] leading-7 text-[#515d74] dark:text-slate-300">
+      <p className="mt-2.5 max-w-[620px] text-[15px] leading-relaxed text-[#515d74] dark:text-slate-300">
         {description}
       </p>
     </div>
@@ -121,13 +122,29 @@ export default function BandScoreCalculator() {
       <main className="pt-28 sm:pt-32">
         {/* Page hero — the single page title */}
         <section className="mx-auto max-w-[900px] px-5 text-center md:px-8">
-          <span className="inline-flex items-center rounded-full border border-[#d7deeb] bg-[#eef2ff] px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#4f46e5] dark:border-white/10 dark:bg-white/5 dark:text-indigo-300">
-            Free IELTS tool
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#ddd8ff] bg-gradient-to-r from-[#f1edff]/95 to-white/75 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#4f35d8] shadow-sm backdrop-blur-xl dark:border-violet-400/20 dark:from-violet-400/10 dark:to-white/5 dark:text-violet-200">
+            <Sparkles className="h-3.5 w-3.5" /> Free IELTS Tool
           </span>
-          <h1 className="mt-6 text-[clamp(2.1rem,7vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.04em] text-[#07142f] dark:text-white">
-            IELTS Band Score Calculator
+          <h1 className="mt-6 text-balance text-[clamp(2.35rem,5vw,3.65rem)] font-black leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white">
+            <span className="block">IELTS Band Score</span>
+            <span className="relative inline-block font-handwritten mt-2.5 bg-gradient-to-r from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text pb-3 text-[1.02em] leading-[1.08] tracking-[-0.025em] text-transparent">
+              Calculator
+              <svg
+                className="absolute bottom-0 left-0 w-full h-3 text-[#7384f8]"
+                viewBox="0 0 200 10"
+                fill="none"
+                preserveAspectRatio="none"
+              >
+                <path
+                  d="M2 3C60 7 140 7 198 3"
+                  stroke="currentColor"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
           </h1>
-          <p className="mx-auto mt-5 max-w-[640px] text-base leading-7 text-[#515d74] dark:text-slate-300 sm:text-[17px]">
+          <p className="mx-auto mt-6 max-w-[640px] text-base leading-relaxed text-[#515d74] dark:text-slate-300 sm:text-[17px]">
             Estimate your overall IELTS band from your four skill scores using the official rounding
             rules, set a target band, and convert Listening and Reading raw scores (out of 40) into
             band scores.
@@ -158,7 +175,7 @@ export default function BandScoreCalculator() {
 
         {/* Supporting content + FAQ */}
         <section className="mx-auto max-w-[820px] px-5 pb-20 pt-20 md:px-8">
-          <h2 className="text-2xl font-extrabold tracking-[-0.02em] text-[#07142f] dark:text-white">
+          <h2 className="text-2xl md:text-3xl font-black tracking-[-0.04em] text-[#07142f] dark:text-white">
             How the overall IELTS band score is calculated
           </h2>
           <p className="mt-4 text-[15px] leading-7 text-[#515d74] dark:text-slate-300">
