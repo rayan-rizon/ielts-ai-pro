@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, ShieldCheck, Twitter, Github, Linkedin, Instagram } from 'lucide-react';
+import { Mail, ShieldCheck, Twitter, Facebook, Linkedin, Instagram } from 'lucide-react';
 import { Logo } from '@/components/shared/Logo';
 
 const footerLinks = {
@@ -26,16 +26,22 @@ const footerLinks = {
 
 const socialLinks = [
   {
+    icon: Facebook,
+    label: 'Facebook',
+    href: 'https://www.facebook.com/ieltsaipro',
+    hoverClass: 'hover:text-[#1877F2] hover:border-[#1877F2]/30 hover:bg-[#1877F2]/10',
+  },
+  {
+    icon: Instagram,
+    label: 'Instagram',
+    href: 'https://www.instagram.com/ielts_ai_pro/',
+    hoverClass: 'hover:text-[#E1306C] hover:border-[#E1306C]/30 hover:bg-[#E1306C]/10',
+  },
+  {
     icon: Twitter,
     label: 'Twitter',
     href: '#',
     hoverClass: 'hover:text-[#1DA1F2] hover:border-[#1DA1F2]/30 hover:bg-[#1DA1F2]/10',
-  },
-  {
-    icon: Github,
-    label: 'GitHub',
-    href: '#',
-    hoverClass: 'hover:text-white hover:border-white/30 hover:bg-white/10',
   },
   {
     icon: Linkedin,
@@ -43,19 +49,23 @@ const socialLinks = [
     href: '#',
     hoverClass: 'hover:text-[#0A66C2] hover:border-[#0A66C2]/30 hover:bg-[#0A66C2]/10',
   },
-  {
-    icon: Instagram,
-    label: 'Instagram',
-    href: '#',
-    hoverClass: 'hover:text-[#E1306C] hover:border-[#E1306C]/30 hover:bg-[#E1306C]/10',
-  },
 ];
 
 function FooterLink({ href, children }) {
   const className =
     'group relative w-fit text-sm font-medium text-slate-400 transition-colors hover:text-white';
 
-  if (href.startsWith('/#')) {
+  const isStatic = [
+    '/free-ielts-practice-tests',
+    '/ielts-writing-checker',
+    '/ielts-speaking-practice-ai',
+    '/ielts-mock-test-online',
+    '/cambridge-ielts-practice-tests',
+    '/ielts-band-score-feedback',
+    '/ai-ielts-preparation',
+  ].includes(href);
+
+  if (href.startsWith('/#') || isStatic) {
     return (
       <a href={href} className={className}>
         {children}
@@ -98,16 +108,20 @@ export default function Footer() {
               </a>
 
               <div className="flex items-center gap-2">
-                {socialLinks.map((social, i) => (
-                  <a
-                    key={i}
-                    href={social.href}
-                    className={`h-9 w-9 rounded-xl bg-white/[0.02] border border-white/10 flex items-center justify-center text-slate-400 transition-all duration-300 ${social.hoverClass}`}
-                    aria-label={`Follow us on ${social.label}`}
-                  >
-                    <social.icon size={16} />
-                  </a>
-                ))}
+                {socialLinks.map((social, i) => {
+                  const isPlaceholder = social.href === '#';
+                  return (
+                    <a
+                      key={i}
+                      href={social.href}
+                      onClick={isPlaceholder ? (e) => e.preventDefault() : undefined}
+                      className={`h-9 w-9 rounded-xl bg-white/[0.02] border border-white/10 flex items-center justify-center text-slate-400 transition-all duration-300 ${social.hoverClass} ${isPlaceholder ? 'cursor-default opacity-40' : ''}`}
+                      aria-label={`Follow us on ${social.label}`}
+                    >
+                      <social.icon size={16} />
+                    </a>
+                  );
+                })}
               </div>
             </div>
           </div>
