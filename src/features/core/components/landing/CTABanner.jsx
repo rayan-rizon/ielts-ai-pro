@@ -1,124 +1,160 @@
 import React from 'react';
 import { m, useReducedMotion } from 'framer-motion';
-import { ArrowRight, Check, ChevronRight, Star } from 'lucide-react';
+import { ArrowRight, Sparkles, Target, LineChart, Star } from 'lucide-react';
 import { GlassPanel, SoftSection } from './LandingSection';
-import DashboardMockup from './DashboardMockup';
 
-const learners = [
-  ['A', '#efb5aa'],
-  ['R', '#75a9ed'],
-  ['S', '#9c8de8'],
-  ['K', '#62bc9d'],
+const benefits = [
+  {
+    icon: Target,
+    label: 'Set Your Goal',
+    detail: 'Tell us your target band score.',
+    colorClass:
+      'text-violet-600 bg-violet-500/5 border-violet-500/15 dark:text-violet-300 dark:bg-violet-500/10 dark:border-violet-500/20',
+  },
+  {
+    icon: LineChart,
+    label: 'Practice Smart',
+    detail: 'Get AI feedback and improve faster.',
+    colorClass:
+      'text-emerald-600 bg-emerald-500/5 border-emerald-500/15 dark:text-emerald-300 dark:bg-emerald-500/10 dark:border-emerald-500/20',
+  },
+  {
+    icon: Star,
+    label: 'Achieve More',
+    detail: 'Track progress and reach your band with confidence.',
+    colorClass:
+      'text-blue-600 bg-blue-500/5 border-blue-500/15 dark:text-blue-300 dark:bg-blue-500/10 dark:border-blue-500/20',
+  },
 ];
 
-export default function CTABanner({ handlePrimaryCta, handlePricing, viewport }) {
+const learners = [
+  'https://i.pravatar.cc/100?img=33',
+  'https://i.pravatar.cc/100?img=47',
+  'https://i.pravatar.cc/100?img=12',
+  'https://i.pravatar.cc/100?img=32',
+];
+
+export default function CTABanner({ handlePrimaryCta, viewport }) {
   const reduceMotion = useReducedMotion();
+
   return (
-    <SoftSection className="py-12 md:py-16">
-      <div className="relative z-10 mx-auto max-w-7xl px-5 md:px-8">
+    <SoftSection className="py-12 md:py-16 lg:py-20">
+      <div className="relative z-10 mx-auto max-w-[1540px] px-4 sm:px-5 md:px-8">
         <m.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: reduceMotion ? 0 : 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewport}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         >
-          <GlassPanel className="relative overflow-hidden rounded-[32px] px-6 py-10 md:px-12 md:py-12 lg:px-14 lg:py-12 text-left">
-            <div className="pointer-events-none absolute -left-28 -top-28 h-80 w-80 rounded-full bg-[#bdf2e5]/40 blur-[90px]" />
-            <div className="pointer-events-none absolute -bottom-32 right-[-3rem] h-96 w-96 rounded-full bg-[#cfd6ff]/50 blur-[90px]" />
+          <GlassPanel className="relative overflow-hidden rounded-[30px] px-5 py-8 text-left sm:px-7 sm:py-10 md:rounded-[38px] md:px-10 lg:px-12 lg:py-14 xl:min-h-[380px]">
+            <div className="pointer-events-none absolute -left-24 -top-32 h-80 w-80 rounded-full bg-[#c9f6ea]/45 blur-[90px]" />
+            <div className="pointer-events-none absolute -bottom-36 right-[8%] h-[28rem] w-[28rem] rounded-full bg-[#ced4ff]/55 blur-[100px]" />
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,.3),transparent_48%,rgba(130,112,255,.05))]" />
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
-              {/* Left Column: Content */}
-              <div className="lg:col-span-7 flex flex-col items-start">
-                <div className="inline-flex items-center gap-3 rounded-full border border-white bg-white/65 px-4 py-2 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
-                  <div className="flex -space-x-2">
-                    {learners.map(([letter, color]) => (
-                      <span
-                        key={letter}
-                        className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-[10px] font-black text-white"
-                        style={{ backgroundColor: color }}
-                      >
-                        {letter}
-                      </span>
-                    ))}
-                  </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-[.13em] text-[#42506a] dark:text-slate-200">
-                    Trusted by 10,000+ learners
-                  </span>
-                  <span className="hidden gap-0.5 text-amber-400 sm:flex">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} className="h-3 w-3 fill-current" />
-                    ))}
-                  </span>
-                </div>
+            <div className="relative z-10 grid h-full items-center gap-9 lg:grid-cols-2 xl:grid-cols-[0.85fr_1.3fr_0.85fr] xl:gap-10">
+              <div className="lg:pr-3">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#ddd8ff] bg-gradient-to-r from-[#f1edff]/90 to-white/75 px-4 py-1.5 text-[11px] font-extrabold text-[#4f35d8] shadow-sm backdrop-blur-xl dark:border-violet-400/20 dark:from-violet-400/10 dark:to-white/5 dark:text-violet-200">
+                  <Sparkles className="h-3.5 w-3.5" /> Take the Next Step
+                </span>
 
-                <h2 className="mt-5 text-balance text-[clamp(2.1rem,4.5vw,3.6rem)] font-black leading-[1.02] tracking-[-.05em] text-[#07142f] dark:text-white">
-                  Your target band is{' '}
-                  <span
-                    className="font-normal tracking-[-.035em] text-[#5262ef] block sm:inline-block"
-                    style={{
-                      fontFamily: "'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive",
-                    }}
-                  >
-                    closer than you think.
+                <h2 className="mt-6 text-balance text-[clamp(2.2rem,3.65vw,3.65rem)] font-black leading-[1.02] tracking-[-.055em] text-[#07142f] dark:text-white">
+                  <span className="block md:whitespace-nowrap">Your Best Score is</span>
+                  <span className="relative inline-block font-handwritten mt-2 bg-gradient-to-r from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text pb-3 text-[1.02em] leading-[1.08] tracking-[-.025em] text-transparent xl:whitespace-nowrap xl:text-[.9em] 2xl:text-[1em]">
+                    One Click Away!
+                    <svg
+                      className="absolute bottom-0 left-0 w-full h-3 text-[#7384f8]"
+                      viewBox="0 0 200 10"
+                      fill="none"
+                      preserveAspectRatio="none"
+                    >
+                      <path
+                        d="M2 3C60 7 140 7 198 3"
+                        stroke="currentColor"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                      />
+                    </svg>
                   </span>
                 </h2>
+              </div>
 
-                <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-[#5b687d] dark:text-slate-300">
-                  Start with a free band assessment, get clear AI feedback, and follow a plan built
-                  around the score you want.
+              <div className="flex flex-col gap-6 lg:pr-1 sm:border-l-2 border-slate-200/80 dark:border-white/10 pl-0 sm:pl-8">
+                <p className="max-w-lg text-[16px] font-semibold leading-7 text-[#26344f] dark:text-slate-200 sm:text-[17px]">
+                  Join thousands of learners who are improving every day with AI-powered practice
+                  and expert feedback.
                 </p>
 
-                <div className="mt-6 flex flex-col items-center justify-start gap-3 sm:flex-row w-full sm:w-auto">
-                  <button
-                    onClick={handlePrimaryCta}
-                    className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-[12px] bg-gradient-to-r from-[#2468ed] to-[#6658ef] px-6 text-xs font-extrabold text-white shadow-[0_12px_24px_-12px_rgba(61,83,225,.6)] transition hover:-translate-y-0.5 sm:w-auto"
-                  >
-                    Start free test <ArrowRight className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={handlePricing}
-                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-[12px] border border-[#d7dfed] bg-white/70 px-6 text-xs font-extrabold text-[#17233e] shadow-sm transition hover:-translate-y-0.5 hover:border-[#5262ef] dark:border-white/10 dark:bg-white/5 dark:text-white sm:w-auto"
-                  >
-                    Explore plans <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-
-                <div className="mt-6 flex flex-wrap items-center justify-start gap-x-5 gap-y-2 text-[10px] font-bold text-[#68758a]">
-                  {['No credit card required', 'Instant band assessment', 'Cancel anytime'].map(
-                    (item) => (
-                      <span key={item} className="flex items-center gap-1.5">
-                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#e8f8f2] text-[#218b75]">
-                          <Check className="h-2 w-2" />
-                        </span>
-                        {item}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 md:gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-white/5">
+                  {benefits.map(({ icon: Icon, label, detail, colorClass }, index) => (
+                    <m.div
+                      key={label}
+                      initial={{ opacity: 0, y: reduceMotion ? 0 : 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={viewport}
+                      transition={{ delay: 0.12 + index * 0.07, duration: 0.4 }}
+                      className="flex flex-col items-center text-center px-2 py-4 sm:py-0 sm:first:pl-0 sm:pl-4 first:border-t-0 sm:first:border-l-0"
+                    >
+                      <span
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border shadow-sm ${colorClass}`}
+                      >
+                        <Icon className="h-5 w-5" />
                       </span>
-                    )
-                  )}
+                      <h4 className="mt-3 text-sm font-bold text-[#15213a] dark:text-white leading-tight whitespace-nowrap sm:whitespace-normal xl:whitespace-nowrap">
+                        {label}
+                      </h4>
+                      <p className="mt-1 text-xs text-[#667287] dark:text-slate-400 font-medium">
+                        {detail}
+                      </p>
+                    </m.div>
+                  ))}
                 </div>
               </div>
 
-              {/* Right Column: Visual Mockup & Floating Card */}
-              <div className="lg:col-span-5 relative w-full lg:flex items-center justify-center hidden">
-                <div className="w-full max-w-[420px] scale-[0.82] xl:scale-[0.9] origin-right transition-transform duration-500 hover:scale-[0.85] xl:hover:scale-[0.93]">
-                  <DashboardMockup />
-                </div>
-
-                <m.div
-                  animate={reduceMotion ? {} : { y: [0, -6, 0], x: [0, 2, 0] }}
-                  transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                  className="absolute -left-4 bottom-4 p-3 rounded-2xl bg-white/95 dark:bg-[#070b17]/95 border border-white/50 dark:border-white/10 shadow-xl backdrop-blur-md flex items-center gap-3 w-fit scale-[0.85]"
+              <m.div
+                animate={reduceMotion ? undefined : { y: [0, -5, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                className="relative flex justify-center lg:col-span-2 xl:col-span-1 xl:justify-end"
+              >
+                <button
+                  type="button"
+                  onClick={handlePrimaryCta}
+                  className="group relative block w-full max-w-[290px] sm:max-w-[310px] overflow-hidden rounded-[24px] border border-slate-250 bg-white text-left shadow-[0_25px_55px_-10px_rgba(82,98,239,0.38)] dark:shadow-[0_30px_65px_-15px_rgba(0,0,0,0.7)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_35px_65px_-8px_rgba(82,98,239,0.46)] hover:border-slate-350 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#7664f2]/30 dark:border-white/15 dark:bg-[#0b0f19]"
                 >
-                  <img
-                    src="/ielts-hero-student.webp"
-                    alt="Student practicing"
-                    className="w-10 h-10 rounded-xl object-cover border border-white/20 shadow-inner"
-                  />
-                  <div>
-                    <p className="text-[10px] font-black text-[#07142f] dark:text-white">Rayan</p>
-                    <p className="text-[8px] font-bold text-emerald-500">Writing Band 8.0</p>
-                  </div>
-                </m.div>
-              </div>
+                  <span className="relative flex items-center justify-between overflow-hidden bg-gradient-to-br from-[#7638ea] via-[#6244ee] to-[#216ff0] px-5 py-5 text-white sm:px-6">
+                    <span className="pointer-events-none absolute -right-14 -top-20 h-52 w-52 rounded-full bg-white/15 blur-2xl" />
+                    <span className="relative z-10 pr-2">
+                      <b className="block text-lg font-black tracking-[-.035em] leading-tight">
+                        Start Your Free <br /> Test
+                      </b>
+                      <span className="mt-2 block max-w-[12rem] text-[11px] leading-relaxed text-white/80">
+                        Get personalized feedback in just a few minutes.
+                      </span>
+                    </span>
+                    <span className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#543ee4] shadow-md transition-transform duration-300 group-hover:translate-x-1">
+                      <ArrowRight className="h-4.5 w-4.5" />
+                    </span>
+                  </span>
+
+                  <span className="flex items-center gap-3 bg-white dark:bg-slate-950 px-5 py-3.5 sm:px-6 border-t border-slate-100 dark:border-white/5">
+                    <span className="flex shrink-0 -space-x-2.5" aria-hidden="true">
+                      {learners.map((avatar, index) => (
+                        <img
+                          key={index}
+                          src={avatar}
+                          alt={`Student ${index + 1}`}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-slate-100 object-cover shadow-sm dark:border-[#1a1c31]"
+                        />
+                      ))}
+                    </span>
+                    <span className="text-[12px] font-bold leading-5 text-[#1b2841] dark:text-white">
+                      Join 10,000+ successful learners
+                    </span>
+                  </span>
+                </button>
+
+                <Sparkles className="pointer-events-none absolute -right-2 -top-7 h-7 w-7 text-[#9c84ee] sm:-right-7 animate-pulse" />
+                <Sparkles className="pointer-events-none absolute -right-4 top-24 h-5 w-5 text-[#b398f1] sm:-right-8 animate-pulse" />
+              </m.div>
             </div>
           </GlassPanel>
         </m.div>

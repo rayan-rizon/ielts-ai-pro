@@ -120,14 +120,22 @@ export function generateFeatureStrings(tier, limits) {
   const speakingMonthly =
     limits?.speaking_monthly_limit ?? DEFAULT_LIMITS[tier]?.speaking_monthly_limit ?? 0;
 
-  const formatLimit = (limit, label) => {
-    if (limit === -1 || limit === '-1') return `Unlimited ${label}`;
-    return `${limit} ${label}`;
+  const formatLimit = (limit, singularLabel, pluralLabel) => {
+    if (limit === -1 || limit === '-1') return `Unlimited ${pluralLabel}`;
+    return `${limit} ${Number(limit) === 1 ? singularLabel : pluralLabel}`;
   };
 
   return {
-    writingFeature: formatLimit(writingMonthly, 'AI Writing Evaluations/month'),
-    speakingFeature: formatLimit(speakingMonthly, 'AI Speaking Sessions/month'),
+    writingFeature: formatLimit(
+      writingMonthly,
+      'AI Writing Evaluation/month',
+      'AI Writing Evaluations/month'
+    ),
+    speakingFeature: formatLimit(
+      speakingMonthly,
+      'AI Speaking Session/month',
+      'AI Speaking Sessions/month'
+    ),
   };
 }
 

@@ -249,10 +249,7 @@ function FeatureShowcase({ viewport }) {
             variants={landingReveal}
             className="relative mt-2 rounded-[30px] border border-[#d6e2fb] bg-white/65 p-4 shadow-[0_28px_80px_-42px_rgba(47,72,150,.48)] backdrop-blur-2xl dark:border-white/10 dark:bg-white/5 md:p-8"
           >
-            <div
-              className="pointer-events-none absolute -top-4 left-[18%] rotate-[-4deg] rounded-sm bg-[#d9c3ff] px-3 py-3 text-sm font-bold text-[#543b96] shadow-lg"
-              style={{ fontFamily: "'Bradley Hand', 'Segoe Print', cursive" }}
-            >
+            <div className="font-handwritten pointer-events-none absolute -top-4 left-[18%] rotate-[-4deg] rounded-sm bg-[#d9c3ff] px-3 py-3 text-sm text-[#543b96] shadow-lg">
               Keep going! ♥
             </div>
             <AnimatePresence mode="wait">
@@ -273,12 +270,7 @@ function FeatureShowcase({ viewport }) {
                   <h3 className="mt-4 text-[clamp(2rem,4vw,3.35rem)] font-black leading-[1.02] tracking-[-.05em] text-[#07142f] dark:text-white">
                     {activeTab.title}
                     <br />
-                    <span
-                      className="font-normal tracking-[-.03em] text-[#5262ef]"
-                      style={{
-                        fontFamily: "'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive",
-                      }}
-                    >
+                    <span className="font-handwritten tracking-[-.03em] text-[#5262ef]">
                       {activeTab.script}
                     </span>
                   </h3>

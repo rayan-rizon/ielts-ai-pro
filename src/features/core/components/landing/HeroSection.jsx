@@ -9,7 +9,6 @@ import PenLine from 'lucide-react/icons/pen-line';
 import Quote from 'lucide-react/icons/quote';
 import Sparkles from 'lucide-react/icons/sparkles';
 import Star from 'lucide-react/icons/star';
-import Bot from 'lucide-react/icons/bot';
 import TrendingUp from 'lucide-react/icons/trending-up';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
@@ -52,7 +51,7 @@ function FloatingCard({ className, delay = 0, children, label }) {
             }
       }
       className={cn(
-        'absolute z-30 rounded-2xl border border-white/40 bg-white/70 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.12),0_0_0_1px_rgba(15,23,42,0.04)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/75 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3),0_0_0_1px_rgba(255,255,255,0.05)] transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover:shadow-primary/5',
+        'absolute z-30 rounded-2xl border border-white/40 bg-white/70 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.12),0_0_0_1px_rgba(15,23,42,0.04)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/75 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3),0_0_0_1px_rgba(255,255,255,0.05)] transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover:shadow-primary/5 scale-[0.68] min-[400px]:scale-[0.78] sm:scale-100',
         className
       )}
     >
@@ -89,7 +88,7 @@ function SpeakingCard() {
     <FloatingCard
       label="Speaking feedback preview"
       delay={0.55}
-      className="left-0 sm:-left-4 lg:-left-8 xl:-left-10 top-[50px] w-[174px] p-3 sm:w-[205px] sm:p-4 lg:top-[64px]"
+      className="left-[-16px] sm:left-4 top-[50px] sm:top-[64px] w-[174px] p-3 sm:w-[205px] sm:p-4 origin-top-left"
     >
       <CardHeading icon={Mic} title="Speaking Feedback" tone="green" />
       <div className="mt-3 rounded-xl bg-[#fbfdfd]/60 p-3 dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
@@ -115,7 +114,7 @@ function ProgressCard() {
     <FloatingCard
       label="Overall progress preview"
       delay={0.72}
-      className="right-0 sm:-right-6 lg:-right-12 xl:-right-16 top-4 w-[176px] p-3 sm:top-8 sm:w-[222px] sm:p-4"
+      className="right-[-16px] sm:right-4 top-4 w-[176px] p-3 sm:top-8 sm:w-[222px] sm:p-4 origin-top-right"
     >
       <CardHeading icon={TrendingUp} title="Overall Progress" tone="blue" />
       <div className="mt-3 flex items-center justify-between">
@@ -123,52 +122,35 @@ function ProgressCard() {
           <p className="text-3xl font-black tracking-tight text-[#315ee9] dark:text-blue-400">
             7.0
           </p>
-          <p className="mt-1 text-[10px] font-extrabold text-[#238b78] bg-emerald-100/50 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-md">
+          <p className="mt-1 rounded-md bg-emerald-100/50 px-1.5 py-0.5 text-[10px] font-extrabold text-[#238b78] dark:bg-emerald-500/20">
             Target 7.5
           </p>
         </div>
         <div className="relative flex h-14 w-14 items-center justify-center">
-          <svg className="absolute inset-0 h-full w-full transform -rotate-90" viewBox="0 0 36 36">
+          <svg className="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 36 36">
             <circle
               cx="18"
               cy="18"
               r="15.915"
               fill="none"
-              stroke="rgba(0, 0, 0, 0.05)"
+              stroke="rgba(0,0,0,.05)"
               strokeWidth="3"
-              className="dark:stroke-white/5"
             />
             <circle
               cx="18"
               cy="18"
               r="15.915"
               fill="none"
-              stroke="url(#progressGrad)"
+              stroke="#3b82f6"
               strokeWidth="3"
               strokeDasharray="78 22"
               strokeLinecap="round"
             />
-            <defs>
-              <linearGradient id="progressGrad" x1="0" y1="0" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#3b82f6" />
-                <stop offset="100%" stopColor="#06b6d4" />
-              </linearGradient>
-            </defs>
           </svg>
           <span className="text-xs font-black text-[#315ee9] dark:text-blue-400">78%</span>
         </div>
       </div>
       <svg viewBox="0 0 170 42" className="mt-3 h-9 w-full" aria-hidden="true">
-        <defs>
-          <linearGradient id="hero-chart-fill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#6483ff" stopOpacity=".24" />
-            <stop offset="100%" stopColor="#6483ff" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path
-          d="M2 34 C18 17,28 31,43 21 S66 31,78 18 S98 25,113 14 S139 17,168 5 L168 42 L2 42 Z"
-          fill="url(#hero-chart-fill)"
-        />
         <path
           d="M2 34 C18 17,28 31,43 21 S66 31,78 18 S98 25,113 14 S139 17,168 5"
           fill="none"
@@ -194,7 +176,7 @@ function StudyPlanCard() {
     <FloatingCard
       label="Personalized study plan preview"
       delay={0.88}
-      className="bottom-[86px] right-0 sm:-right-8 lg:-right-16 xl:-right-22 w-[190px] p-3 sm:bottom-[116px] sm:w-[238px] sm:p-4"
+      className="bottom-[86px] sm:bottom-[116px] right-[-16px] sm:right-4 w-[190px] p-3 sm:w-[238px] sm:p-4 origin-bottom-right"
     >
       <CardHeading icon={CalendarDays} title="Personalized Study Plan" tone="violet" />
       <div className="mt-3 rounded-xl bg-[#fcfbff]/60 p-3 dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
@@ -222,7 +204,7 @@ function StudyPlanCard() {
               </span>
               {task.status === 'done' && <Check className="h-3.5 w-3.5 text-[#58c98a]" />}
               {task.status === 'in-progress' && (
-                <span className="rounded bg-violet-100 dark:bg-violet-950 px-1.5 py-0.5 text-[8px] font-extrabold text-[#7153dc] dark:text-violet-300">
+                <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[8px] font-extrabold text-[#7153dc] dark:bg-violet-950/30 dark:text-violet-300">
                   {task.progress}
                 </span>
               )}
@@ -242,7 +224,7 @@ function WritingCard() {
     <FloatingCard
       label="Writing evaluation preview"
       delay={1.02}
-      className="bottom-14 left-0 sm:-left-8 lg:-left-12 xl:-left-16 hidden w-[222px] p-3 sm:p-3.5 sm:block"
+      className="bottom-14 left-0 hidden w-[222px] p-3 sm:block sm:p-3.5"
     >
       <CardHeading icon={PenLine} title="Writing Evaluation" tone="blue" />
       <div className="mt-2.5 space-y-2">
@@ -257,9 +239,9 @@ function WritingCard() {
               <span>{label}</span>
               <span className="font-extrabold text-blue-600 dark:text-blue-400">{score}</span>
             </div>
-            <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden">
+            <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800/80">
               <div
-                className="h-full bg-blue-500/70 rounded-full"
+                className="h-full rounded-full bg-blue-500/70"
                 style={{ width: `${(parseFloat(score) / 9) * 100}%` }}
               />
             </div>
@@ -269,6 +251,64 @@ function WritingCard() {
       <span className="w-full mt-3 justify-center inline-flex items-center gap-1 bg-blue-500/5 hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/10 rounded-lg px-2.5 py-1.2 text-[10px] font-bold transition-all duration-200 cursor-pointer">
         View Full Report <ArrowRight className="ml-1 h-3 w-3" />
       </span>
+    </FloatingCard>
+  );
+}
+
+function AiTutorCard() {
+  return (
+    <FloatingCard
+      label="AI Tutor chat bubble"
+      delay={1.15}
+      className="bottom-0 sm:bottom-3 right-[-10px] sm:right-8 w-[210px] p-2.5 sm:w-[268px] sm:p-3.5 origin-bottom-right"
+    >
+      <div className="flex items-center gap-3">
+        {/* Robot Avatar */}
+        <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-blue-500 to-indigo-650 shadow-md overflow-hidden">
+          {/* Animated glow background inside the avatar */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400/20 to-transparent animate-pulse" />
+          <svg viewBox="0 0 40 40" className="relative z-10 h-7 w-7 text-white" fill="none">
+            {/* Robot Head */}
+            <rect x="10" y="14" width="20" height="13" rx="4" fill="currentColor" />
+            {/* Screen */}
+            <rect x="12" y="16" width="16" height="9" rx="2" fill="#0f172a" />
+            {/* Eyes */}
+            <circle cx="17" cy="20.5" r="1.5" fill="#38bdf8" className="animate-pulse" />
+            <circle cx="23" cy="20.5" r="1.5" fill="#38bdf8" className="animate-pulse" />
+            {/* Mouth */}
+            <path
+              d="M17 23.5 Q20 25 23 23.5"
+              stroke="#38bdf8"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+            />
+            {/* Antenna */}
+            <line
+              x1="20"
+              y1="14"
+              x2="20"
+              y2="9"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+            <circle cx="20" cy="8" r="1.5" fill="#f43f5e" />
+          </svg>
+        </div>
+
+        {/* Text Area */}
+        <div className="text-left">
+          <div className="flex items-center gap-1.5">
+            <b className="text-[11px] font-black tracking-tight text-[#0d1932] dark:text-white sm:text-xs">
+              Hi! I'm your AI tutor.
+            </b>
+            <Sparkles className="h-3 w-3 text-amber-500 dark:text-amber-400 animate-pulse" />
+          </div>
+          <p className="mt-0.5 text-[9px] font-semibold text-[#59667b] dark:text-slate-400 sm:text-[10px]">
+            Ask me anything about IELTS!
+          </p>
+        </div>
+      </div>
     </FloatingCard>
   );
 }
@@ -313,81 +353,56 @@ function StudentVisual() {
       <ProgressCard />
       <WritingCard />
       <StudyPlanCard />
-
-      <FloatingCard
-        label="AI tutor preview"
-        delay={1.14}
-        className="bottom-0 left-6 flex items-center gap-2.5 rounded-full py-2 pl-2 pr-4 sm:bottom-2 sm:left-auto sm:right-12"
-      >
-        <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#4b6cf0] to-[#7d58eb] text-white shadow-lg">
-          <Bot className="h-5 w-5" />
-          <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-950 animate-pulse" />
-        </span>
-        <div>
-          <p className="text-[10px] font-extrabold text-[#142344] dark:text-white">
-            Hi! I’m your AI tutor.
-          </p>
-          <p className="mt-0.5 hidden text-[9px] font-medium text-[#67738b] sm:block">
-            Ask me anything about IELTS!
-          </p>
-        </div>
-      </FloatingCard>
+      <AiTutorCard />
     </div>
   );
 }
 
 function LearnerProof() {
-  const studentImages = [
-    'https://images.unsplash.com/photo-1544168190-79c17527004f?w=100&h=100&fit=crop&crop=face',
-    'https://images.unsplash.com/photo-1548810020-ea2f1da35cff?w=100&h=100&fit=crop&crop=face',
-    'https://images.unsplash.com/photo-1558499932-9609acb6f443?w=100&h=100&fit=crop&crop=face',
-    'https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?w=100&h=100&fit=crop&crop=face',
-  ];
-
   return (
-    <div className="mt-8">
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-        <div className="flex -space-x-2.5" aria-label="IELTS learners worldwide">
-          {studentImages.map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              alt="IELTS learner avatar"
-              className="h-11 w-11 rounded-full border-[3px] border-white object-cover shadow-sm dark:border-slate-950"
-            />
-          ))}
-          <span className="flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-white bg-[#eef1ff] text-[11px] font-extrabold text-[#4d64e9] dark:border-slate-950 dark:bg-blue-950">
+    <div className="mt-8 max-w-[620px] space-y-4">
+      <div className="flex flex-wrap items-center gap-5">
+        <div className="flex items-center">
+          <div className="flex -space-x-2">
+            {[
+              'https://i.pravatar.cc/100?img=33',
+              'https://i.pravatar.cc/100?img=47',
+              'https://i.pravatar.cc/100?img=12',
+              'https://i.pravatar.cc/100?img=32',
+            ].map((avatar, index) => (
+              <img
+                key={index}
+                src={avatar}
+                alt={`Student ${index + 1}`}
+                className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-slate-100 object-cover shadow-sm dark:border-slate-900"
+              />
+            ))}
+          </div>
+          <span className="-ml-1 flex h-11 w-11 items-center justify-center rounded-full border-2 border-white bg-[#edf2ff] text-[10px] font-black text-[#5262ef] shadow-sm dark:border-slate-900 dark:bg-blue-500/15 dark:text-blue-300">
             10K+
           </span>
         </div>
         <div>
-          <div className="flex gap-1 text-[#ffb21d]">
-            {Array.from({ length: 5 }, (_, index) => (
-              <Star key={index} className="h-4 w-4 fill-current" />
+          <div className="flex gap-0.5 text-amber-400">
+            {[1, 2, 3, 4, 5].map((item) => (
+              <Star key={item} className="h-4 w-4 fill-current" />
             ))}
           </div>
-          <p className="mt-1 text-xs font-semibold text-[#536079] dark:text-slate-400">
+          <p className="mt-1 text-xs font-bold text-[#536078] dark:text-slate-300">
             Loved by 10,000+ IELTS learners
           </p>
-          <p className="text-[10px] font-medium text-[#8a94a8]">from 130+ countries</p>
         </div>
       </div>
 
-      <div className="mt-6 max-w-[560px] rounded-2xl border border-[#e4eaf7] bg-white/80 px-5 py-4 shadow-[0_18px_40px_-30px_rgba(40,65,120,0.45)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.04]">
-        <div className="flex gap-4">
-          <Quote className="mt-1 h-7 w-7 shrink-0 fill-[#bcb0f3] text-[#bcb0f3]" />
-          <div>
-            <p className="text-[11px] font-medium leading-5 text-[#4d5971] dark:text-slate-300 sm:text-xs">
-              “IELTS AI Pro helped me improve from Band 6.5 to 7.5 in just 8 weeks. The feedback is
-              detailed and easy to understand.”
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-[10px] font-semibold text-[#536079] dark:text-slate-400">
-              <span>— Ananya, India</span>
-              <span className="rounded-full bg-emerald-50 px-3 py-1 text-[#238b78] dark:bg-emerald-500/10 dark:text-emerald-300">
-                Band 7.5 Overall
-              </span>
-            </div>
-          </div>
+      <div className="flex gap-3 rounded-2xl border border-[#e2e8f3] bg-white/70 px-4 py-3 shadow-[0_18px_45px_-34px_rgba(31,52,106,.45)] backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
+        <Quote className="mt-0.5 h-5 w-5 shrink-0 fill-violet-200 text-violet-300" />
+        <div>
+          <p className="text-[11px] font-medium leading-5 text-[#526079] dark:text-slate-300">
+            “The feedback helped me see exactly what to fix between practice sessions.”
+          </p>
+          <p className="mt-1 text-[10px] font-extrabold text-[#26344e] dark:text-white">
+            Ananya, India · Band 7.5 overall
+          </p>
         </div>
       </div>
     </div>
@@ -412,29 +427,21 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
         >
           <m.div
             variants={reveal}
-            className="inline-flex items-center gap-2 rounded-full border border-[#bfe9df] bg-[#f2fbf8] px-3.5 py-2 text-[10px] font-extrabold uppercase tracking-[0.09em] text-[#218b75] dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300 sm:text-[11px]"
+            className="inline-flex items-center gap-2 rounded-2xl sm:rounded-full border border-[#bfe9df] bg-[#f2fbf8] px-3 py-1.5 sm:px-3.5 sm:py-2 text-[9px] sm:text-[11px] font-extrabold uppercase tracking-[0.04em] sm:tracking-[0.09em] text-[#218b75] dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300 shadow-sm"
           >
-            <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#9bd9cb] text-[#218b75] dark:text-emerald-300">
-              <Sparkles className="h-3 w-3" />
+            <span className="flex h-4.5 w-4.5 sm:h-5 sm:w-5 shrink-0 items-center justify-center rounded-full border border-[#9bd9cb] text-[#218b75] dark:text-emerald-300">
+              <Sparkles className="h-2.5 w-2.5" />
             </span>
-            AI-powered. Human-focused.
+            Focused IELTS practice with clear feedback
           </m.div>
 
           <m.h1
             variants={reveal}
-            className="mt-6 text-[3.3rem] font-extrabold leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white sm:text-[4rem] lg:text-[3.65rem] xl:text-[4.15rem] 2xl:text-[4.45rem]"
+            className="mt-6 text-[clamp(2.65rem,12.5vw,3.3rem)] font-extrabold leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white sm:text-[4rem] lg:text-[3.65rem] xl:text-[4.15rem] 2xl:text-[4.45rem]"
           >
-            Smarter Practice.
-            <br />
-            Higher Scores.
-            <span
-              className="relative mt-2 block w-fit pr-7 text-[0.84em] font-black italic leading-[1.05] tracking-[-0.035em] text-[#5262ef]"
-              style={{
-                fontFamily: "'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive",
-                WebkitTextStroke: '1px #5262ef',
-              }}
-            >
-              Your Dream, Closer.
+            Smarter IELTS Practice.
+            <span className="font-handwritten relative mt-2 block w-fit max-w-full pr-4 text-[0.72em] leading-[1.05] tracking-[-0.035em] text-[#5262ef] sm:pr-7 sm:text-[0.84em]">
+              Clear feedback. Better focus.
               <svg
                 className="absolute -bottom-3 left-[35%] h-3 w-[38%] text-[#8dc9f2]"
                 viewBox="0 0 180 16"
@@ -468,8 +475,9 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
             variants={reveal}
             className="mt-9 max-w-[560px] text-base font-medium leading-7 text-[#515d74] dark:text-slate-300 sm:text-[17px]"
           >
-            IELTS AI Pro gives you personalized feedback, a smart study plan, and real-time support
-            so you can learn faster, stay motivated, and reach your target band with confidence.
+            Practice Reading, Listening, Writing, and Speaking in one workspace. Review estimated
+            band feedback, track recurring weaknesses, and follow a study plan based on the work you
+            actually complete.
           </m.p>
 
           <m.div variants={reveal} className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -487,7 +495,7 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
               variant="outline"
               className="h-14 rounded-xl border-[#d7deeb] bg-white/80 px-6 text-base font-bold text-[#17223d] shadow-sm backdrop-blur-sm hover:border-[#5365ee]/40 hover:bg-white dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
             >
-              Explore Features <CirclePlay className="ml-3 h-5 w-5 text-[#5262ef]" />
+              Compare Plans <CirclePlay className="ml-3 h-5 w-5 text-[#5262ef]" />
             </Button>
           </m.div>
 

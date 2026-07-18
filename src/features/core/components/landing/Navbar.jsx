@@ -47,9 +47,8 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
   }, []);
 
   const navLinks = [
-    { label: 'Features', href: '/#features' },
-    { label: 'AI Evaluation', href: '/#showcase' },
-    { label: 'Modules', href: '/#modules' },
+    { label: 'Platform', href: '/#features' },
+    { label: 'How it works', href: '/#how-it-works' },
     { label: 'Pricing', href: '/#pricing' },
     { label: 'FAQ', href: '/#faq' },
   ];
@@ -226,7 +225,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
                 onClick={handlePrimaryCta}
                 data-oid="g5n7eo4"
               >
-                {isSignedIn ? 'Dashboard' : 'Get Started'}
+                {isSignedIn ? 'Dashboard' : 'Start Free'}
                 <ArrowRight className="ml-1.5 h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
               </Button>
 
@@ -280,7 +279,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
                       }}
                       data-oid="rwj8lbe"
                     >
-                      {isSignedIn ? 'Go to Dashboard' : 'Get Started Now'}
+                      {isSignedIn ? 'Go to Dashboard' : 'Start Free Practice'}
                     </Button>
                   </m.div>
                 </m.div>

@@ -48,10 +48,7 @@ export function SectionHeading({
       >
         {title}{' '}
         {script && (
-          <span
-            className="relative inline-block font-normal tracking-[-0.03em] text-[#5262ef]"
-            style={{ fontFamily: "'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive" }}
-          >
+          <span className="font-handwritten relative inline-block tracking-[-0.03em] text-[#5262ef]">
             {script}
             <span className="absolute -bottom-1 left-[5%] h-[3px] w-[90%] -rotate-1 rounded-full bg-gradient-to-r from-[#89d9d0] to-[#7086f6] opacity-70" />
           </span>

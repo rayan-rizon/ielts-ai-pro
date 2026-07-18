@@ -20,6 +20,12 @@ const HowItWorksSection = lazy(
 const FAQSection = lazy(() => import('@/features/core/components/landing/FAQSection'));
 const PricingSection = lazy(() => import('@/features/core/components/landing/PricingSection'));
 const CTABanner = lazy(() => import('@/features/core/components/landing/CTABanner'));
+const ComparisonSection = lazy(
+  () => import('@/features/core/components/landing/ComparisonSection')
+);
+const BandCalculatorSection = lazy(
+  () => import('@/features/core/components/landing/BandCalculatorSection')
+);
 
 const viewport = { once: true, amount: 0.12 };
 
@@ -181,8 +187,12 @@ export default function LandingPage() {
               <HowItWorksSection viewport={viewport} data-oid="jorp6_8" />
             </LazySection>
 
-            <LazySection id="faq" className="scroll-mt-28" minHeight="300px" data-oid="j:lurzc">
-              <FAQSection faqs={faqs} viewport={viewport} data-oid="cw9om1r" />
+            <LazySection id="calculator" className="scroll-mt-28">
+              <BandCalculatorSection handlePrimaryCta={handlePrimaryCta} viewport={viewport} />
+            </LazySection>
+
+            <LazySection id="comparison" className="scroll-mt-28">
+              <ComparisonSection viewport={viewport} />
             </LazySection>
 
             <LazySection id="pricing" className="scroll-mt-28" minHeight="800px" data-oid="txw9f10">
@@ -191,6 +201,10 @@ export default function LandingPage() {
                 viewport={viewport}
                 data-oid="zr_aidp"
               />
+            </LazySection>
+
+            <LazySection id="faq" className="scroll-mt-28" minHeight="300px" data-oid="j:lurzc">
+              <FAQSection faqs={faqs} viewport={viewport} data-oid="cw9om1r" />
             </LazySection>
 
             <LazySection minHeight="550px" data-oid="8sg2b2h">

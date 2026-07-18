@@ -452,7 +452,41 @@ function pageUrl(slug) {
   return `${siteUrl}/${slug}`;
 }
 
-function renderPage(page) {
+const PAGE_CSS = `
+    :root{color-scheme:light;--ink:#111827;--muted:#4b5563;--line:#e5e7eb;--brand:#4f46e5;--soft:#eef2ff;--bg:#f8fafc}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);line-height:1.65}
+    a{color:inherit}
+    .skip{position:absolute;left:-999px;top:12px;background:#fff;padding:10px 14px;border:1px solid var(--line);border-radius:8px;z-index:10}
+    .skip:focus{left:12px}
+    header{background:#fff;border-bottom:1px solid var(--line)}
+    nav{max-width:1120px;margin:0 auto;padding:18px 20px;display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .brand{font-weight:900;text-decoration:none;font-size:20px}
+    .links{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:14px}
+    .links a{text-decoration:none}
+    main{max-width:1120px;margin:0 auto;padding:48px 20px}
+    .hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:32px;align-items:center}
+    .eyebrow{display:inline-flex;padding:6px 10px;border-radius:999px;background:var(--soft);color:var(--brand);font-weight:800;font-size:13px}
+    h1{font-size:clamp(34px,6vw,68px);line-height:.98;margin:18px 0 18px;letter-spacing:0}
+    h2{font-size:clamp(24px,3vw,34px);line-height:1.15;margin:0 0 14px;letter-spacing:0}
+    p{margin:0 0 16px;color:var(--muted);font-size:17px}
+    .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:800}
+    .btn.primary{background:var(--brand);color:#fff}
+    .btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
+    .panel{background:#fff;border:1px solid var(--line);border-radius:8px;padding:24px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:32px}
+    ul{margin:0;padding-left:20px;color:var(--muted)}
+    li{margin:8px 0}
+    section{margin-top:48px}
+    .faq{display:grid;gap:12px}
+    details{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px}
+    summary{cursor:pointer;font-weight:800}
+    footer{max-width:1120px;margin:0 auto;padding:32px 20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+    @media (max-width:760px){.hero,.grid{grid-template-columns:1fr}main{padding-top:32px}nav{align-items:flex-start}.links{display:grid;grid-template-columns:1fr 1fr;width:100%}}
+`;
+
+function buildSchemas(page) {
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -501,6 +535,12 @@ function renderPage(page) {
     ],
   };
 
+  return { faqSchema, softwareSchema, breadcrumbSchema };
+}
+
+function renderPage(page) {
+  const { faqSchema, softwareSchema, breadcrumbSchema } = buildSchemas(page);
+
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -510,7 +550,6 @@ function renderPage(page) {
   <meta name="description" content="${escapeHtml(page.description)}">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="author" content="IELTS Ai Pro">
-  <meta name="keywords" content="${escapeHtml(page.keyword)}, IELTS preparation, IELTS AI feedback, IELTS band score, IELTS practice tests">
   <link rel="canonical" href="${pageUrl(page.slug)}">
   <link rel="icon" type="image/webp" href="/favicon.webp">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -527,39 +566,7 @@ function renderPage(page) {
   <script type="application/ld+json">${jsonLd(softwareSchema)}</script>
   <script type="application/ld+json">${jsonLd(faqSchema)}</script>
   <script type="application/ld+json">${jsonLd(breadcrumbSchema)}</script>
-  <style>
-    :root{color-scheme:light;--ink:#111827;--muted:#4b5563;--line:#e5e7eb;--brand:#4f46e5;--soft:#eef2ff;--bg:#f8fafc}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);line-height:1.65}
-    a{color:inherit}
-    .skip{position:absolute;left:-999px;top:12px;background:#fff;padding:10px 14px;border:1px solid var(--line);border-radius:8px;z-index:10}
-    .skip:focus{left:12px}
-    header{background:#fff;border-bottom:1px solid var(--line)}
-    nav{max-width:1120px;margin:0 auto;padding:18px 20px;display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-    .brand{font-weight:900;text-decoration:none;font-size:20px}
-    .links{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:14px}
-    .links a{text-decoration:none}
-    main{max-width:1120px;margin:0 auto;padding:48px 20px}
-    .hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:32px;align-items:center}
-    .eyebrow{display:inline-flex;padding:6px 10px;border-radius:999px;background:var(--soft);color:var(--brand);font-weight:800;font-size:13px}
-    h1{font-size:clamp(34px,6vw,68px);line-height:.98;margin:18px 0 18px;letter-spacing:0}
-    h2{font-size:clamp(24px,3vw,34px);line-height:1.15;margin:0 0 14px;letter-spacing:0}
-    p{margin:0 0 16px;color:var(--muted);font-size:17px}
-    .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
-    .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:800}
-    .btn.primary{background:var(--brand);color:#fff}
-    .btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
-    .panel{background:#fff;border:1px solid var(--line);border-radius:8px;padding:24px}
-    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:32px}
-    ul{margin:0;padding-left:20px;color:var(--muted)}
-    li{margin:8px 0}
-    section{margin-top:48px}
-    .faq{display:grid;gap:12px}
-    details{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px}
-    summary{cursor:pointer;font-weight:800}
-    footer{max-width:1120px;margin:0 auto;padding:32px 20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
-    @media (max-width:760px){.hero,.grid{grid-template-columns:1fr}main{padding-top:32px}nav{align-items:flex-start}.links{display:grid;grid-template-columns:1fr 1fr;width:100%}}
-  </style>
+  <style>${PAGE_CSS}</style>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -601,6 +608,15 @@ function renderPage(page) {
         )
         .join('')}
     </div>
+    <section class="panel">
+      <h2>How to use IELTS Ai Pro effectively</h2>
+      <p>Start with one timed practice activity and review the result before moving to another task. Reading and Listening attempts show answer-level performance. Writing and Speaking activities can add estimated AI feedback when your plan includes an available evaluation. Save each attempt so the analytics dashboard can show patterns across skills instead of treating one result as your final level.</p>
+      <p>Use the feedback to choose one specific change for the next session: improve timing, revise an essay paragraph, expand a speaking answer, review unfamiliar vocabulary, or repeat a weak question type. Focused repetition makes the practice history more useful and helps you avoid random study.</p>
+    </section>
+    <section class="panel">
+      <h2>Understand practice estimates</h2>
+      <p>AI-assisted bands and comments are preparation guidance, not official IELTS results. They are designed to organize feedback around relevant criteria and help you identify possible weaknesses. Always use official IELTS sources for current test rules, score requirements, and booking information. Official scores are issued only by authorized test providers after the real examination.</p>
+    </section>
     <section>
       <h2>IELTS Preparation FAQ</h2>
       <div class="faq">

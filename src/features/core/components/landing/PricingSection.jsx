@@ -30,12 +30,12 @@ const defaultPlans = [
       monthly: { price: '$0', period: '/mo', oldPrice: null },
       quarterly: { price: '$0', period: '/mo', oldPrice: null },
     },
-    desc: 'Perfect for getting started with Reading & Listening.',
+    desc: 'Start with Reading and Listening practice, then try one Writing evaluation.',
     features: [
       'Unlimited Reading & Listening',
       'All Cambridge Test Papers',
       '0 AI Speaking Sessions / month',
-      '5 AI Evaluations / month',
+      '1 AI Writing Evaluation / month',
       '100 Vocabulary Words',
       'Basic Performance Analytics',
     ],
@@ -52,7 +52,7 @@ const defaultPlans = [
       monthly: { price: '$9.99', period: '/mo', oldPrice: '$15' },
       quarterly: { price: '$8.49', period: '/mo', oldPrice: '$15', savings: 'SAVE 43%' },
     },
-    desc: 'The preferred choice for serious IELTS candidates.',
+    desc: 'More AI feedback and advanced analytics for regular IELTS practice.',
     features: [
       'Everything in Free',
       '100 AI Writing Evaluations',
@@ -74,14 +74,14 @@ const defaultPlans = [
       monthly: { price: '$15.99', period: '/mo', oldPrice: '$25' },
       quarterly: { price: '$13.59', period: '/mo', oldPrice: '$25', savings: 'SAVE 46%' },
     },
-    desc: 'Ultimate power with adaptive AI and deep insights.',
+    desc: 'Higher AI limits, adaptive planning, and deeper progress insights.',
     features: [
       'Everything in Pro Included',
       '200 AI Writing Evaluations',
       '100 AI Speaking Sessions',
       'Unlimited Vocabulary Words',
       'Adaptive AI Learning Path',
-      'Exclusive Study Group Access',
+      'Downloadable Practice Packs',
     ],
     buttonText: 'Get Premium',
     popular: false,
@@ -215,9 +215,9 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
         <div className="mb-10">
           <SectionHeading
             eyebrow="Pricing plans"
-            title="Invest in your"
-            script="future success."
-            description="Choose the plan that fits your target and unlock focused, examiner-level feedback."
+            title="Simple plans."
+            script="Clear limits."
+            description="Choose a transparent plan based on the practice tools and monthly AI limits you need."
             viewport={viewport}
           />
         </div>
@@ -251,7 +251,7 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
                 )}
               >
                 Quarterly
-                <span className="absolute -top-3 -right-4 bg-emerald-600 text-[9px] text-white px-2 py-0.5 rounded-full font-black shadow-lg border-2 border-white dark:border-zinc-900 animate-bounce">
+                <span className="absolute -top-3 -right-4 bg-emerald-600 text-[9px] text-white px-2 py-0.5 rounded-full font-black shadow-lg border-2 border-white dark:border-zinc-900">
                   SAVE 15%
                 </span>
               </button>
@@ -278,8 +278,8 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
                     transition={{ delay: i * 0.1 }}
                     className={`relative group flex flex-col h-full rounded-[28px] p-8 border backdrop-blur-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl ${
                       plan.popular
-                        ? 'bg-white/90 dark:bg-white/10 border-[#5262ef]/40 ring-2 ring-[#5262ef]/20 shadow-[0_45px_90px_-35px_rgba(82,98,239,.45)] md:-translate-y-4 z-20 hover:shadow-primary/40'
-                        : 'border-white/90 bg-white/[.68] dark:border-white/10 dark:bg-white/[.055] hover:border-primary/30 hover:shadow-primary/10'
+                        ? 'bg-white dark:bg-slate-900 border-[#5262ef]/60 ring-2 ring-[#5262ef]/25 shadow-[0_20px_50px_-12px_rgba(82,98,239,0.25)] dark:shadow-[0_20px_50px_-12px_rgba(82,98,239,0.35)] md:-translate-y-4 z-20 hover:shadow-primary/40'
+                        : 'border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950/40 hover:border-[#5262ef]/30 shadow-[0_8px_30px_rgb(0,0,0,0.02)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:shadow-[#5262ef]/10'
                     }`}
                   >
                     {/* Background animated glow for popular plan */}
@@ -289,7 +289,7 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
                     {plan.popular && (
                       <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-[10px] font-black uppercase tracking-widest rounded-full text-white shadow-[0_8px_16px_rgba(59,130,246,0.4)] flex items-center justify-center gap-1.5 whitespace-nowrap leading-none">
                         <Sparkles className="h-3 w-3" />
-                        <span>Most Popular</span>
+                        <span>Best for regular practice</span>
                       </div>
                     )}
 
