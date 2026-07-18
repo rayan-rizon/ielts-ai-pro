@@ -5,6 +5,7 @@ User-agent: *
 Allow: /
 
 # Public SEO pages
+Allow: /blog
 Allow: /ielts-writing-checker
 Allow: /ielts-speaking-practice-ai
 Allow: /ielts-mock-test-online

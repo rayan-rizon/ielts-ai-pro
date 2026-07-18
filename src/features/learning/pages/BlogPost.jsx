@@ -1,31 +1,421 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  Calendar,
-  Clock,
-  User,
   ArrowLeft,
-  Tag,
-  ChevronRight,
-  MessageCircle,
-  ThumbsUp,
+  ArrowRight,
+  BookOpen,
+  CalendarDays,
+  Check,
+  Clock3,
+  Copy,
+  Facebook,
+  GraduationCap,
+  Headphones,
+  Linkedin,
+  List,
+  Mic2,
+  PenLine,
+  Share2,
   Sparkles,
+  Tag,
+  UserRound,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/lib/supabase';
 import DOMPurify from 'dompurify';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import DocumentHead from '@/components/shared/DocumentHead';
+import Footer from '@/features/core/components/landing/Footer';
+import PublicNavbar from '@/features/core/components/landing/PublicNavbar';
+import { supabase } from '@/lib/supabase';
+
+const PRACTICE_LINKS = {
+  Writing: '/writing',
+  Speaking: '/speaking',
+  Reading: '/reading',
+  Listening: '/listening',
+  'Study Planning': '/ielts-mock-test-online',
+  'Exam Updates': '/ielts-mock-test-online',
+};
+
+const PRACTICE_LABELS = {
+  'Study Planning': 'Start a mock test',
+  'Exam Updates': 'Start a mock test',
+};
+
+function absoluteImageUrl(path) {
+  if (!path) return 'https://www.ieltsai.pro/ielts-hero-student.webp';
+  try {
+    return new URL(path, 'https://www.ieltsai.pro').toString();
+  } catch {
+    return 'https://www.ieltsai.pro/ielts-hero-student.webp';
+  }
+}
+
+function getExcerpt(htmlContent) {
+  if (!htmlContent) return '';
+  const plainText = DOMPurify.sanitize(htmlContent, { ALLOWED_TAGS: [] });
+  return `${plainText.substring(0, 160).trim()}${plainText.length > 160 ? '...' : ''}`;
+}
+
+function formatDate(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('en', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(value));
+}
+
+function slugify(value) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+function prepareArticleContent(content) {
+  const cleanHtml = DOMPurify.sanitize(content || '');
+  if (typeof DOMParser === 'undefined') return { html: cleanHtml, toc: [] };
+
+  const documentNode = new DOMParser().parseFromString(cleanHtml, 'text/html');
+  const seenIds = new Map();
+  const toc = [];
+  documentNode.querySelectorAll('h2, h3').forEach((heading) => {
+    const baseId = slugify(heading.textContent || '') || 'section';
+    const count = seenIds.get(baseId) || 0;
+    const id = count ? `${baseId}-${count + 1}` : baseId;
+    seenIds.set(baseId, count + 1);
+    heading.id = id;
+    toc.push({ id, text: heading.textContent, level: heading.tagName === 'H3' ? 3 : 2 });
+  });
+  return { html: documentNode.body.innerHTML, toc };
+}
+
+function RelatedCard({ article }) {
+  return (
+    <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-1 hover:border-indigo-200 dark:border-white/10 dark:bg-slate-900">
+      <Link to={`/blog/${article.slug}`}>
+        <div className="relative h-32 overflow-hidden bg-indigo-50 dark:bg-indigo-500/10">
+          <img
+            src={article.thumbnail_url || '/ielts-hero-student.webp'}
+            alt={`${article.title} - IELTS preparation guide`}
+            className="h-full w-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-105"
+          />
+          <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-indigo-700 shadow-sm backdrop-blur">
+            {article.category || 'IELTS Guide'}
+          </span>
+        </div>
+        <div className="p-4">
+          <h3 className="line-clamp-2 text-sm font-extrabold leading-5 tracking-[-0.015em] group-hover:text-indigo-700 dark:group-hover:text-indigo-300">
+            {article.title}
+          </h3>
+          <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 dark:text-indigo-300">
+            Read guide <ArrowRight className="h-3 w-3" />
+          </span>
+        </div>
+      </Link>
+    </article>
+  );
+}
+
+function BlogPostLoadingSkeleton() {
+  return (
+    <div className="min-h-screen bg-[#f7f9ff] dark:bg-[#080b12]">
+      <PublicNavbar />
+      <div className="mx-auto grid max-w-7xl gap-8 px-5 pb-14 pt-28 sm:px-6 lg:grid-cols-2">
+        <div className="space-y-6">
+          <Skeleton className="h-6 w-36" />
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-16 w-4/5" />
+        </div>
+        <Skeleton className="aspect-[16/10] rounded-3xl" />
+      </div>
+    </div>
+  );
+}
+
+function BlogPostHero({ post, publishedDate }) {
+  return (
+    <section className="relative overflow-hidden border-b border-indigo-100 bg-white dark:border-white/10 dark:bg-[#0b0f18]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_30%,rgba(99,102,241,.08),transparent_26%),radial-gradient(circle_at_85%_10%,rgba(45,212,191,.08),transparent_25%)]" />
+      <div className="relative mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:py-14">
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-8 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500"
+        >
+          <Link to="/blog" className="hover:text-indigo-700">
+            Blog library
+          </Link>
+          <span>/</span>
+          <span>{post.category || 'Guide'}</span>
+          <span>/</span>
+          <span className="max-w-[260px] truncate text-slate-700 dark:text-slate-300">
+            {post.title}
+          </span>
+        </nav>
+
+        <div className="grid items-center gap-9 lg:grid-cols-[.95fr_1.05fr]">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[.1em] text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+              <PenLineIcon category={post.category} /> {post.category || 'IELTS Guide'}
+            </span>
+            <h1 className="mt-5 max-w-3xl text-4xl font-extrabold leading-[1.1] tracking-[-0.045em] sm:text-5xl lg:text-[3.35rem]">
+              {post.title}
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+              {post.description}
+            </p>
+
+            <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-slate-500 dark:text-slate-400">
+              <span className="inline-flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-200">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+                  <UserRound className="h-4 w-4" />
+                </span>
+                IELTS Ai Pro team
+              </span>
+              <span className="hidden h-5 w-px bg-slate-200 sm:block dark:bg-white/10" />
+              <span className="inline-flex items-center gap-2">
+                <CalendarDays className="h-4 w-4" /> {formatDate(publishedDate)}
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <Clock3 className="h-4 w-4" /> {post.reading_minutes || 6} min read
+              </span>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="overflow-hidden rounded-[1.75rem] border border-indigo-100 bg-indigo-50 p-2 shadow-[0_28px_70px_-38px_rgba(79,70,229,.5)] dark:border-white/10 dark:bg-white/[.04]">
+              <img
+                src={post.thumbnail_url || '/ielts-hero-student.webp'}
+                alt={`${post.title} - IELTS strategy guide`}
+                className="aspect-[16/10] w-full rounded-[1.35rem] object-cover"
+              />
+            </div>
+            <div className="absolute -bottom-4 left-8 hidden rotate-[-3deg] rounded-lg bg-violet-100 px-4 py-3 text-xs font-bold text-violet-800 shadow-lg sm:block">
+              Plan · Practise · Review · Succeed
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BlogPostArticleBody({ post, preparedContent, practicePath }) {
+  return (
+    <article className="rounded-2xl border border-slate-200 bg-white px-5 py-7 shadow-[0_18px_50px_-38px_rgba(15,23,42,.3)] sm:px-8 sm:py-9 lg:px-10 dark:border-white/10 dark:bg-slate-900">
+      <div
+        className="prose prose-lg max-w-none prose-slate prose-headings:scroll-mt-32 prose-headings:font-extrabold prose-headings:tracking-[-0.025em] prose-h2:mb-4 prose-h2:mt-11 prose-h2:text-[1.65rem] prose-h2:leading-tight prose-h3:mb-3 prose-h3:mt-8 prose-h3:text-xl prose-p:my-4 prose-p:text-[1.035rem] prose-p:leading-[1.78] prose-li:text-[1.035rem] prose-li:leading-[1.7] prose-a:font-bold prose-a:text-indigo-700 prose-a:underline prose-a:decoration-indigo-200 prose-a:underline-offset-4 hover:prose-a:decoration-indigo-600 prose-table:my-8 prose-table:text-sm prose-th:bg-indigo-50 prose-th:px-4 prose-th:py-3 prose-td:px-4 prose-td:py-3 prose-blockquote:my-8 prose-blockquote:rounded-r-xl prose-blockquote:border-l-4 prose-blockquote:border-indigo-500 prose-blockquote:bg-gradient-to-r prose-blockquote:from-indigo-50 prose-blockquote:to-violet-50/50 prose-blockquote:px-6 prose-blockquote:py-5 prose-blockquote:text-lg prose-blockquote:font-semibold prose-blockquote:not-italic [&_aside]:my-7 [&_aside]:rounded-xl [&_aside]:border [&_aside]:border-indigo-200 [&_aside]:bg-gradient-to-r [&_aside]:from-indigo-50 [&_aside]:to-violet-50 [&_aside]:px-5 [&_aside]:py-4 [&_aside_p]:m-0 [&_aside_p]:text-indigo-950 dark:prose-invert dark:prose-a:text-indigo-300 dark:prose-th:bg-indigo-500/10 dark:prose-blockquote:from-indigo-500/10 dark:prose-blockquote:to-violet-500/5 dark:[&_aside]:border-indigo-500/20 dark:[&_aside]:from-indigo-500/10 dark:[&_aside]:to-violet-500/10 dark:[&_aside_p]:text-indigo-100"
+        dangerouslySetInnerHTML={{ __html: preparedContent.html }}
+      />
+
+      {post.seo_tags?.length > 0 && (
+        <div className="mt-11 flex flex-wrap gap-2 border-t border-slate-200 pt-6 dark:border-white/10">
+          {post.seo_tags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"
+            >
+              <Tag className="h-3 w-3" /> {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-10 flex flex-col gap-5 rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50 to-violet-50 p-6 sm:flex-row sm:items-center dark:border-indigo-500/20 dark:from-indigo-500/10 dark:to-violet-500/10">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm dark:bg-slate-900 dark:text-indigo-300">
+          <Sparkles className="h-6 w-6" />
+        </div>
+        <div className="flex-1">
+          <p className="text-xs font-bold uppercase tracking-[.12em] text-indigo-600 dark:text-indigo-300">
+            About this guide
+          </p>
+          <h2 className="mt-1 text-lg font-extrabold">
+            Reviewed by the IELTS Ai Pro editorial team
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Built around practical IELTS preparation and linked to focused activities inside the
+            application.
+          </p>
+        </div>
+        <Button asChild className="rounded-xl font-bold">
+          <Link to={practicePath}>
+            Practise now <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
+    </article>
+  );
+}
+
+function BlogPostRelatedPosts({ relatedPosts }) {
+  if (relatedPosts.length === 0) return null;
+  return (
+    <section className="mt-8">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-extrabold tracking-[-0.025em]">Related articles</h2>
+        <Link to="/blog" className="text-xs font-bold text-indigo-700 dark:text-indigo-300">
+          View library →
+        </Link>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {relatedPosts.map((article) => (
+          <RelatedCard key={article.id} article={article} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function BlogPostSidebar({
+  preparedContent,
+  canonicalUrl,
+  shareArticle,
+  copyArticleLink,
+  copied,
+  practicePath,
+  practiceLabel,
+}) {
+  return (
+    <aside className="space-y-5 self-start lg:sticky lg:top-24">
+      {preparedContent.toc.length > 0 && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_15px_40px_-32px_rgba(15,23,42,.3)] dark:border-white/10 dark:bg-slate-900">
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:bg-indigo-500/10 dark:text-indigo-300">
+              <List className="h-4 w-4" />
+            </span>
+            <h2 className="text-sm font-extrabold">On this page</h2>
+          </div>
+          <nav
+            className="mt-4 max-h-[55vh] space-y-1 overflow-y-auto"
+            aria-label="Article sections"
+          >
+            {preparedContent.toc.map((item, index) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                className={`block rounded-lg py-2 text-xs leading-5 transition-colors hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-200 ${
+                  item.level === 3
+                    ? 'pl-5 pr-2 text-slate-500'
+                    : `px-2 font-semibold ${index === 0 ? 'border-l-2 border-indigo-500 text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'}`
+                }`}
+              >
+                {item.text}
+              </a>
+            ))}
+          </nav>
+        </div>
+      )}
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-slate-900">
+        <div className="flex items-center gap-2">
+          <Share2 className="h-4 w-4 text-indigo-600" />
+          <h2 className="text-sm font-extrabold">Share this article</h2>
+        </div>
+        <div className="mt-4 flex gap-2">
+          <a
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonicalUrl)}`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Share on Facebook"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition hover:bg-blue-100"
+          >
+            <Facebook className="h-4 w-4" />
+          </a>
+          <a
+            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonicalUrl)}`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Share on LinkedIn"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-50 text-sky-700 transition hover:bg-sky-100"
+          >
+            <Linkedin className="h-4 w-4" />
+          </a>
+          <button
+            type="button"
+            onClick={shareArticle}
+            aria-label="Share using device"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-50 text-violet-700 transition hover:bg-violet-100"
+          >
+            <Share2 className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={copyArticleLink}
+            aria-label="Copy article link"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200"
+          >
+            {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+          </button>
+        </div>
+      </div>
+
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-500 p-6 text-white shadow-lg shadow-indigo-500/20">
+        <div className="absolute -right-9 -top-9 h-32 w-32 rounded-full border-[18px] border-white/10" />
+        <BookOpen className="h-8 w-8 text-indigo-100" />
+        <h2 className="mt-5 text-xl font-extrabold leading-tight">
+          Put this strategy into practice
+        </h2>
+        <p className="mt-3 text-sm leading-6 text-indigo-100">
+          Apply the steps while they are fresh and review your feedback before another attempt.
+        </p>
+        <Button
+          asChild
+          className="mt-6 w-full rounded-xl bg-white font-bold text-indigo-700 hover:bg-indigo-50"
+        >
+          <Link to={practicePath}>
+            {practiceLabel} <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
+
+      <Link
+        to="/blog"
+        className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition hover:border-indigo-200 hover:text-indigo-700 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200"
+      >
+        <ArrowLeft className="h-4 w-4" /> All IELTS articles
+      </Link>
+    </aside>
+  );
+}
+
+function BlogPostBottomCTA() {
+  return (
+    <section className="mx-auto mb-12 max-w-7xl px-5 sm:px-6">
+      <div className="flex flex-col items-start justify-between gap-5 overflow-hidden rounded-2xl border border-indigo-100 bg-white p-6 sm:flex-row sm:items-center lg:p-8 dark:border-white/10 dark:bg-slate-900">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[.14em] text-indigo-600 dark:text-indigo-300">
+            Practice makes progress
+          </p>
+          <h2 className="mt-2 text-2xl font-extrabold tracking-[-0.03em]">
+            Build your next study session around real feedback.
+          </h2>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Button asChild variant="outline" className="rounded-xl">
+            <Link to="/blog">Explore guides</Link>
+          </Button>
+          <Button asChild className="rounded-xl font-bold">
+            <Link to="/signup">
+              Start free practice <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 const BlogPost = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
+  const [relatedPosts, setRelatedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -35,20 +425,31 @@ const BlogPost = () => {
           .from('resources')
           .select('*')
           .eq('slug', slug)
-          .single();
+          .eq('content_type', 'blog')
+          .eq('is_published', true)
+          .maybeSingle();
 
         if (error || !data) {
           toast.error('Post not found');
-          navigate('/resources');
+          navigate('/blog');
           return;
         }
 
         setPost(data);
-
-        // Increment view count
+        const { data: related } = await supabase
+          .from('resources')
+          .select(
+            'id,title,slug,description,category,reading_minutes,published_at,created_at,thumbnail_url'
+          )
+          .eq('content_type', 'blog')
+          .eq('is_published', true)
+          .neq('id', data.id)
+          .order('published_at', { ascending: false, nullsFirst: false })
+          .limit(3);
+        setRelatedPosts(related || []);
         await supabase.rpc('increment_resource_view', { resource_id: data.id });
-      } catch (err) {
-        console.error('Error fetching blog post:', err);
+      } catch (error) {
+        console.error('Error fetching blog post:', error);
       } finally {
         setLoading(false);
       }
@@ -60,456 +461,119 @@ const BlogPost = () => {
   useEffect(() => {
     const handleScroll = () => {
       const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const currentScroll = window.scrollY;
-      if (totalScroll <= 0) {
-        setScrolled(0);
-        return;
-      }
-      setScrolled((currentScroll / totalScroll) * 100);
+      setScrolled(totalScroll > 0 ? Math.min((window.scrollY / totalScroll) * 100, 100) : 0);
     };
-
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  if (loading) {
-    return (
-      <div
-        className="min-h-screen bg-slate-50 dark:bg-[#020617] transition-colors duration-500"
-        data-oid="j_4bqok"
-      >
-        <div className="max-w-4xl mx-auto px-6 py-20 space-y-8" data-oid="3ko8geh">
-          <Skeleton className="h-10 w-2/3" data-oid="4l1ze4c" />
-          <Skeleton className="h-6 w-1/3" data-oid="nu1z5hr" />
-          <Skeleton className="aspect-[21/9] w-full rounded-[2.5rem]" data-oid="pja-ax3" />
-          <div className="space-y-4 pt-12" data-oid="l7mi06_">
-            <Skeleton className="h-4 w-full" data-oid="t.kd481" />
-            <Skeleton className="h-4 w-full" data-oid="b69_t5z" />
-            <Skeleton className="h-4 w-3/4" data-oid="anzu80l" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const preparedContent = prepareArticleContent(post?.content);
+  const description = post?.meta_description || post?.description || getExcerpt(post?.content);
+  const practicePath = PRACTICE_LINKS[post?.category] || '/signup';
+  const practiceLabel =
+    PRACTICE_LABELS[post?.category] || `Start ${post?.category || 'IELTS'} practice`;
+  const publishedDate = post?.published_at || post?.created_at;
+  const canonicalUrl = `https://www.ieltsai.pro/blog/${slug}`;
+  const socialImageUrl = absoluteImageUrl(post?.thumbnail_url);
 
-  if (!post) return null;
-
-  // Generate excerpt for meta description (first 160 chars of plain text)
-  const getExcerpt = (htmlContent) => {
-    if (!htmlContent) return '';
-    // Use DOMPurify to strip all tags safely
-    const plainText = DOMPurify.sanitize(htmlContent, { ALLOWED_TAGS: [] });
-    return plainText.substring(0, 160).trim() + (plainText.length > 160 ? '...' : '');
+  const copyArticleLink = async () => {
+    try {
+      await navigator.clipboard.writeText(canonicalUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      toast.error('Could not copy the article link');
+    }
   };
+
+  const shareArticle = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: post.title, text: description, url: canonicalUrl });
+        return;
+      }
+      await copyArticleLink();
+    } catch (error) {
+      if (error?.name !== 'AbortError') toast.error('Could not share this article');
+    }
+  };
+
+  if (loading) return <BlogPostLoadingSkeleton />;
+  if (!post) return null;
 
   return (
     <>
       <DocumentHead
         title={post.title}
-        description={post.meta_description || getExcerpt(post.content)}
-        canonicalUrl={`https://www.ieltsai.pro/blog/${slug}`}
-        image={post.thumbnail_url || 'https://www.ieltsai.pro/og-image.png'}
+        description={description}
+        canonicalUrl={canonicalUrl}
+        image={socialImageUrl}
         type="article"
         structuredData={{
           '@context': 'https://schema.org',
           '@type': 'Article',
           headline: post.title,
-          description: post.meta_description || getExcerpt(post.content),
-          image: post.thumbnail_url,
-          datePublished: post.created_at,
-          dateModified: post.updated_at || post.created_at,
-          author: {
-            '@type': 'Organization',
-            name: 'IELTS Ai Pro',
-          },
-          publisher: {
-            '@type': 'Organization',
-            name: 'IELTS Ai Pro',
-            logo: {
-              '@type': 'ImageObject',
-              url: 'https://www.ieltsai.pro/logo.png',
-            },
-          },
-          mainEntityOfPage: {
-            '@type': 'WebPage',
-            '@id': `https://www.ieltsai.pro/blog/${slug}`,
-          },
+          description,
+          image: socialImageUrl,
+          datePublished: publishedDate,
+          dateModified: post.updated_at || publishedDate,
+          author: { '@type': 'Organization', name: 'IELTS Ai Pro' },
+          publisher: { '@type': 'Organization', name: 'IELTS Ai Pro' },
+          mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
         }}
-        data-oid="3bf-s1:"
       />
 
-      <div
-        className="relative min-h-screen bg-slate-50 dark:bg-[#020617] selection:bg-indigo-500/30 selection:text-indigo-900 dark:selection:text-indigo-100 font-sans transition-colors duration-500 overflow-x-hidden"
-        data-oid="8au_e6w"
-      >
-        {/* Premium Background System */}
-        <div
-          aria-hidden="true"
-          className="fixed inset-0 z-0 pointer-events-none overflow-hidden"
-          data-oid="cqlwa0g"
-        >
+      <div className="min-h-screen bg-[#f7f9ff] font-sans text-slate-950 dark:bg-[#080b12] dark:text-white">
+        <div className="fixed left-0 top-0 z-[120] h-0.5 w-full bg-slate-100 dark:bg-white/10">
           <div
-            className="absolute top-[-10%] left-[-10%] w-[70rem] h-[70rem] rounded-full bg-slate-200/30 dark:bg-indigo-950/20 blur-[120px]"
-            data-oid=":oztpis"
-          />
-
-          <div
-            className="absolute bottom-[-20%] right-[-10%] w-[60rem] h-[60rem] rounded-full bg-indigo-100/20 dark:bg-slate-900/10 blur-[120px]"
-            data-oid="r3wpc-v"
-          />
-
-          <div
-            className="absolute inset-0 bg-[linear-gradient(to_right,#80808005_1px,transparent_1px),linear-gradient(to_bottom,#80808005_1px,transparent_1px)] bg-[size:48px_48px]"
-            data-oid="j87cpb2"
-          />
-        </div>
-
-        {/* Reading Progress Bar */}
-        <div
-          className="fixed top-0 left-0 w-full h-1 z-[110] bg-slate-100 dark:bg-white/5"
-          data-oid="d9sdu09"
-        >
-          <motion.div
-            className="h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]"
+            className="h-full bg-gradient-to-r from-indigo-500 to-violet-500"
             style={{ width: `${scrolled}%` }}
-            data-oid="zt94_tp"
           />
         </div>
 
-        {/* Navigation Header */}
-        <nav
-          className="sticky top-0 z-50 bg-white/60 dark:bg-[#020617]/60 backdrop-blur-2xl border-b border-slate-200/50 dark:border-white/5 py-5 transition-all"
-          data-oid="k4sj0uu"
-        >
-          <div
-            className="max-w-7xl mx-auto px-6 flex items-center justify-between"
-            data-oid="t634-j0"
-          >
-            <div className="flex items-center gap-6" data-oid="reacz3h">
-              <Link
-                to="/resources"
-                className="p-3 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-indigo-500 hover:text-indigo-500 transition-all group shadow-sm active:scale-90"
-                data-oid="advvij3"
-              >
-                <ArrowLeft
-                  className="w-5 h-5 group-hover:-translate-x-1 transition-transform"
-                  data-oid="jh1.:2h"
-                />
-              </Link>
-              <div
-                className="hidden md:flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400"
-                data-oid="37ame9o"
-              >
-                <Link
-                  to="/resources"
-                  className="hover:text-slate-900 dark:hover:text-white transition-colors"
-                  data-oid="-ca:pwb"
-                >
-                  Resources
-                </Link>
-                <ChevronRight className="w-3.5 h-3.5 opacity-50" data-oid="t5g.p77" />
-                <span
-                  className="text-indigo-600 dark:text-indigo-400 truncate max-w-[250px]"
-                  data-oid="ip1w:sc"
-                >
-                  {post.title}
-                </span>
-              </div>
-            </div>
-          </div>
-        </nav>
+        <PublicNavbar />
 
-        <div className="relative z-10" data-oid="d0wsv3r">
-          {/* Hero Section */}
-          <header className="relative pt-20 lg:pt-32 pb-16 overflow-hidden" data-oid="q:qwk_f">
-            <div className="max-w-4xl mx-auto px-6 text-center" data-oid="_1fdnj7">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-wrap items-center justify-center gap-4 mb-10"
-                data-oid="ce03i4h"
-              >
-                <Badge
-                  className="px-4 py-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 rounded-full font-black uppercase tracking-widest text-[10px]"
-                  data-oid="iqyggj6"
-                >
-                  <Sparkles className="w-3 h-3 mr-2 inline-block -mt-1" data-oid="xnr36li" />
-                  Premium Guide
-                </Badge>
-                <div
-                  className="flex items-center gap-2.5 text-xs font-black text-slate-400 uppercase tracking-widest"
-                  data-oid="kjvsq-u"
-                >
-                  <Clock className="w-4 h-4" data-oid=":rfyygm" />
-                  {Math.ceil(post.content?.length / 1000) || 5} min read
-                </div>
-              </motion.div>
+        <main className="pt-16">
+          <BlogPostHero post={post} publishedDate={publishedDate} />
 
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-slate-900 dark:text-white mb-10 leading-[1.05]"
-                data-oid="m5xx:l-"
-              >
-                {post.title}
-              </motion.h1>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="flex items-center justify-center gap-8 text-slate-500 dark:text-slate-400 pb-16"
-                data-oid="m29jeal"
-              >
-                <div className="flex items-center gap-3 font-bold text-sm" data-oid="7g3kxj_">
-                  <div
-                    className="w-10 h-10 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center shadow-sm"
-                    data-oid="kzj4zw1"
-                  >
-                    <User className="w-5 h-5 text-indigo-500" data-oid="njc2q-k" />
-                  </div>
-                  <span
-                    className="dark:text-white font-black uppercase tracking-widest text-[11px]"
-                    data-oid="rxrjl-c"
-                  >
-                    IELTS Pro Team
-                  </span>
-                </div>
-                <div
-                  className="w-2 h-2 rounded-full bg-slate-200 dark:bg-white/10"
-                  data-oid="ge1y:fw"
-                />
-
-                <div
-                  className="flex items-center gap-3 font-bold text-sm uppercase tracking-widest text-[11px]"
-                  data-oid="yg19ejy"
-                >
-                  <Calendar className="w-4 h-4" data-oid="t56r:m:" />
-                  <span data-oid="_lsl9o2">
-                    {new Date(post.created_at).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
-                  </span>
-                </div>
-              </motion.div>
-            </div>
-
-            {post.thumbnail_url && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3, duration: 0.6 }}
-                className="max-w-6xl mx-auto px-6"
-                data-oid="37lsooi"
-              >
-                <div
-                  className="relative aspect-[21/9] rounded-[3rem] lg:rounded-[4rem] overflow-hidden shadow-2xl border border-slate-200/50 dark:border-white/5 group"
-                  data-oid="9x7t0k6"
-                >
-                  <img
-                    src={post.thumbnail_url}
-                    alt={post.title}
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                    data-oid="k.gc6i_"
-                  />
-
-                  <div
-                    className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"
-                    data-oid="ns:ajyz"
-                  />
-                </div>
-              </motion.div>
-            )}
-          </header>
-
-          {/* Content Section */}
-          <main className="max-w-4xl mx-auto px-6 pb-32" data-oid="iy89ul0">
-            <article
-              className="prose prose-xl dark:prose-invert max-w-none prose-headings:font-black prose-headings:tracking-tight prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-img:rounded-[2.5rem] prose-blockquote:border-l-indigo-600 prose-blockquote:bg-indigo-50/30 dark:prose-blockquote:bg-indigo-900/10 dark:prose-blockquote:border-2 dark:prose-blockquote:border-l-[12px] dark:prose-blockquote:border-indigo-600/50 prose-blockquote:py-8 prose-blockquote:px-10 prose-blockquote:not-italic prose-blockquote:text-2xl prose-blockquote:font-black prose-blockquote:tracking-tight prose-blockquote:rounded-3xl"
-              data-oid="n4sckaj"
-            >
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(post.content),
-                }}
-                data-oid="20tdvw6"
+          <section className="mx-auto grid max-w-6xl items-start gap-6 px-5 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:py-10">
+            <div>
+              <BlogPostArticleBody
+                post={post}
+                preparedContent={preparedContent}
+                practicePath={practicePath}
               />
-            </article>
-
-            {/* Footer Section of Article */}
-            <div
-              className="mt-24 pt-16 border-t border-slate-200 dark:border-white/5"
-              data-oid="h197whq"
-            >
-              <div
-                className="flex flex-col md:flex-row items-center justify-between gap-10"
-                data-oid="olo0il2"
-              >
-                <div className="flex flex-wrap gap-3" data-oid="8hvk21p">
-                  {post.seo_tags?.map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant="outline"
-                      className="rounded-2xl px-5 py-2 flex items-center gap-2 font-black uppercase text-[10px] tracking-[0.15em] text-slate-500 hover:text-indigo-600 hover:border-indigo-600 bg-white/50 dark:bg-white/5 transition-all cursor-pointer hover:shadow-lg active:scale-95"
-                      data-oid="tm:pmu."
-                    >
-                      <Tag className="w-3.5 h-3.5" data-oid="jdms878" />
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex items-center gap-5" data-oid="g9b6l4o">
-                  <button
-                    className="flex items-center gap-3 group active:scale-90 transition-transform"
-                    data-oid="hnfkv60"
-                  >
-                    <span
-                      className="w-12 h-12 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center group-hover:bg-rose-500 group-hover:border-rose-500 transition-all shadow-sm"
-                      data-oid="bjmi5hz"
-                    >
-                      <ThumbsUp
-                        className="w-5 h-5 text-slate-500 group-hover:text-white transition-colors"
-                        data-oid="3_c0bw6"
-                      />
-                    </span>
-                    <span
-                      className="text-[11px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white"
-                      data-oid="q4tsjw9"
-                    >
-                      Helpful
-                    </span>
-                  </button>
-                  <button
-                    className="flex items-center gap-3 group active:scale-90 transition-transform"
-                    data-oid="udp_qy7"
-                  >
-                    <span
-                      className="w-12 h-12 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center group-hover:bg-indigo-600 group-hover:border-indigo-600 transition-all shadow-sm"
-                      data-oid="7aafb.8"
-                    >
-                      <MessageCircle
-                        className="w-5 h-5 text-slate-500 group-hover:text-white transition-colors"
-                        data-oid="4hettoa"
-                      />
-                    </span>
-                    <span
-                      className="text-[11px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white"
-                      data-oid="rvxrd2i"
-                    >
-                      Discuss
-                    </span>
-                  </button>
-                </div>
-              </div>
+              <BlogPostRelatedPosts relatedPosts={relatedPosts} />
             </div>
 
-            {/* Premium Author Box */}
-            <div
-              className="mt-24 p-10 md:p-16 rounded-[4rem] bg-gradient-to-br from-indigo-600 to-indigo-700 text-white relative overflow-hidden group shadow-[0_40px_80px_-15px_rgba(79,70,229,0.3)]"
-              data-oid="w8x7n.v"
-            >
-              <div
-                className="absolute top-0 right-0 w-[500px] h-[500px] bg-white text-white opacity-5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white transition-all duration-1000"
-                data-oid="as4fwmk"
-              />
+            <BlogPostSidebar
+              preparedContent={preparedContent}
+              canonicalUrl={canonicalUrl}
+              shareArticle={shareArticle}
+              copyArticleLink={copyArticleLink}
+              copied={copied}
+              practicePath={practicePath}
+              practiceLabel={practiceLabel}
+            />
+          </section>
 
-              <div
-                className="relative z-10 flex flex-col md:flex-row items-center gap-12"
-                data-oid="2dza7v4"
-              >
-                <div
-                  className="w-32 h-32 rounded-[2.5rem] bg-white shadow-2xl flex items-center justify-center border-4 border-white/20 relative group-hover:scale-105 transition-transform duration-500"
-                  data-oid="s-l0e_y"
-                >
-                  <Sparkles
-                    className="w-14 h-14 text-indigo-600 animate-pulse"
-                    data-oid="0zfaqbi"
-                  />
-                </div>
-                <div className="flex-1 text-center md:text-left space-y-4" data-oid="dwpgfku">
-                  <div className="space-y-1" data-oid="k:nd4ba">
-                    <span
-                      className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60"
-                      data-oid=".ldzu0c"
-                    >
-                      Article Author
-                    </span>
-                    <h4
-                      className="text-3xl font-black tracking-tight leading-none"
-                      data-oid="cnaspae"
-                    >
-                      IELTS Mastery Academy
-                    </h4>
-                  </div>
-                  <p
-                    className="text-indigo-50 font-medium leading-relaxed opacity-90 text-lg"
-                    data-oid="f8xj5hr"
-                  >
-                    Our expert educators and linguists specialize in high-impact IELTS preparation
-                    strategy. Every resource is crafted to provide you with a definitive advantage
-                    on your test day.
-                  </p>
-                  <div
-                    className="pt-6 flex flex-wrap justify-center md:justify-start gap-4"
-                    data-oid="inz46rs"
-                  >
-                    <Button
-                      className="bg-white text-indigo-600 hover:bg-white/90 rounded-[1.5rem] px-10 font-bold uppercase tracking-widest h-16 shadow-2xl shadow-indigo-900/50 text-sm active:scale-95 transition-all border-0"
-                      data-oid=":h31d-e"
-                    >
-                      Explore More Guides
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="border-white/30 text-white hover:bg-white/10 rounded-[1.5rem] px-10 font-bold uppercase tracking-widest h-16 text-sm backdrop-blur-sm active:scale-95 transition-all"
-                      data-oid="j393crp"
-                    >
-                      Refer a Friend
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </main>
-        </div>
+          <BlogPostBottomCTA />
+        </main>
 
-        <style data-oid="k4nl7w-">{`
-                article h2 {
-                    font-size: 3rem !important;
-                    margin-top: 2.5em !important;
-                    margin-bottom: 0.75em !important;
-                    line-height: 1.1 !important;
-                }
-                article h3 {
-                    font-size: 2rem !important;
-                    margin-top: 2em !important;
-                    margin-bottom: 0.5em !important;
-                }
-                article p {
-                    font-size: 1.25rem !important;
-                    line-height: 1.8 !important;
-                    margin-bottom: 1.75em !important;
-                    color: inherit;
-                    opacity: 0.95;
-                    font-weight: 500;
-                }
-                article strong {
-                    font-weight: 900 !important;
-                    color: #4F46E5 !important;
-                    letter-spacing: -0.01em;
-                }
-                @media (max-width: 768px) {
-                    article h2 { font-size: 2.25rem !important; }
-                    article h3 { font-size: 1.75rem !important; }
-                    article p { font-size: 1.125rem !important; }
-                }
-            `}</style>
+        <Footer />
       </div>
     </>
   );
 };
+
+function PenLineIcon({ category }) {
+  if (category === 'Reading') return <BookOpen className="h-3.5 w-3.5" />;
+  if (category === 'Listening') return <Headphones className="h-3.5 w-3.5" />;
+  if (category === 'Speaking') return <Mic2 className="h-3.5 w-3.5" />;
+  if (category === 'Study Planning') return <GraduationCap className="h-3.5 w-3.5" />;
+  if (category === 'Writing') return <PenLine className="h-3.5 w-3.5" />;
+  return <Sparkles className="h-3.5 w-3.5" />;
+}
 
 export default BlogPost;

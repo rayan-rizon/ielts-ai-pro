@@ -6,11 +6,25 @@ const publicDir = path.resolve(process.cwd(), 'public');
 const updated = '2026-07-18';
 
 const navLinks = [
+  ['IELTS Preparation Blog', '/blog'],
   ['IELTS Writing Checker', '/ielts-writing-checker'],
   ['IELTS Speaking Practice', '/ielts-speaking-practice-ai'],
   ['IELTS Mock Test', '/ielts-mock-test-online'],
   ['Band Score Calculator', '/ielts-band-score-calculator'],
   ['AI IELTS Prep', '/ai-ielts-preparation'],
+];
+
+const launchBlogSlugs = [
+  'ielts-writing-task-2-essay-structure-band-7',
+  'ielts-speaking-part-2-two-minute-answer',
+  'ielts-reading-true-false-not-given-strategy',
+  'ielts-listening-map-labelling-strategy',
+  '30-day-ielts-study-plan-band-7',
+  'ielts-test-changes-2026-computer-writing-on-paper',
+  'ielts-one-skill-retake-2026-rules-decision-guide',
+  'ielts-computer-test-typing-screen-strategy',
+  'ielts-writing-task-1-time-management-20-minutes',
+  'ielts-reading-time-management-computer-strategy',
 ];
 
 // --- IELTS band score calculator page (interactive widget + conversion tables) ---
@@ -170,13 +184,46 @@ const calculatorScript = `
 
   var bands = ${JSON.stringify({
     listening: [
-      [39, 9], [37, 8.5], [35, 8], [32, 7.5], [30, 7], [26, 6.5], [23, 6], [18, 5.5], [16, 5], [13, 4.5], [10, 4], [0, 3.5],
+      [39, 9],
+      [37, 8.5],
+      [35, 8],
+      [32, 7.5],
+      [30, 7],
+      [26, 6.5],
+      [23, 6],
+      [18, 5.5],
+      [16, 5],
+      [13, 4.5],
+      [10, 4],
+      [0, 3.5],
     ],
     readingAcademic: [
-      [39, 9], [37, 8.5], [35, 8], [33, 7.5], [30, 7], [27, 6.5], [23, 6], [19, 5.5], [15, 5], [13, 4.5], [10, 4], [0, 3.5],
+      [39, 9],
+      [37, 8.5],
+      [35, 8],
+      [33, 7.5],
+      [30, 7],
+      [27, 6.5],
+      [23, 6],
+      [19, 5.5],
+      [15, 5],
+      [13, 4.5],
+      [10, 4],
+      [0, 3.5],
     ],
     readingGeneral: [
-      [40, 9], [39, 8.5], [37, 8], [36, 7.5], [34, 7], [32, 6.5], [30, 6], [27, 5.5], [23, 5], [19, 4.5], [15, 4], [0, 3.5],
+      [40, 9],
+      [39, 8.5],
+      [37, 8],
+      [36, 7.5],
+      [34, 7],
+      [32, 6.5],
+      [30, 6],
+      [27, 5.5],
+      [23, 5],
+      [19, 4.5],
+      [15, 4],
+      [0, 3.5],
     ],
   })};
   function updateConversion() {
@@ -876,6 +923,12 @@ function renderPage(page) {
 function renderSitemap() {
   const urls = [
     { loc: `${siteUrl}/`, priority: '1.0', changefreq: 'weekly' },
+    { loc: `${siteUrl}/blog`, priority: '0.9', changefreq: 'weekly' },
+    ...launchBlogSlugs.map((slug) => ({
+      loc: `${siteUrl}/blog/${slug}`,
+      priority: '0.8',
+      changefreq: 'monthly',
+    })),
     ...allStaticPages.map((page) => ({
       loc: pageUrl(page.slug),
       priority: keywordPages.includes(page) ? '0.9' : '0.6',
@@ -907,6 +960,7 @@ User-agent: *
 Allow: /
 
 # Public SEO pages
+Allow: /blog
 Allow: /ielts-writing-checker
 Allow: /ielts-speaking-practice-ai
 Allow: /ielts-mock-test-online

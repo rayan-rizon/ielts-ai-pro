@@ -17,6 +17,11 @@ interface ResourceType {
   content?: string; // HTML content for blogs or JSON for vocabulary
   slug?: string;
   seo_tags?: string[];
+  meta_description?: string;
+  category?: string;
+  reading_minutes?: number;
+  published_at?: string;
+  featured?: boolean;
   content_type: 'video' | 'pdf' | 'blog' | 'vocabulary' | string;
   thumbnail_url?: string;
   is_published: boolean;
@@ -49,8 +54,8 @@ export const Resource = {
     // OPTIMIZATION: Explicitly select columns to EXCLUDE 'content' by default
     // 'content' can be very large (HTML/JSON), and we don't need it for most list views
     const selectFields = includeContent
-      ? 'id, title, description, url, slug, seo_tags, content_type, thumbnail_url, is_published, access_tier, created_by, created_at, updated_at, view_count, content'
-      : 'id, title, description, url, slug, seo_tags, content_type, thumbnail_url, is_published, access_tier, created_by, created_at, updated_at, view_count';
+      ? 'id, title, description, meta_description, url, slug, seo_tags, category, reading_minutes, published_at, featured, content_type, thumbnail_url, is_published, access_tier, created_by, created_at, updated_at, view_count, content'
+      : 'id, title, description, meta_description, url, slug, seo_tags, category, reading_minutes, published_at, featured, content_type, thumbnail_url, is_published, access_tier, created_by, created_at, updated_at, view_count';
 
     let query = supabase.from('resources').select(selectFields, { count: 'exact' });
 
@@ -174,6 +179,28 @@ export const Resource = {
     const { data, error } = await supabase.from('resources').select('*').eq('id', id).single();
 
     if (error) throw error;
+    return data as ResourceType;
+  },
+
+  /**
+   * Fetch the complete blog record required by the admin editor. Keeping this
+   * explicit prevents list-view projections or stale partial objects from
+   * clearing SEO fields when an article is edited.
+   */
+  async getBlogForEdit(id: string): Promise<ResourceType> {
+    const fields =
+      'id, title, description, meta_description, url, slug, seo_tags, category, reading_minutes, published_at, featured, content_type, thumbnail_url, is_published, access_tier, created_by, created_at, updated_at, view_count, content';
+    const { data, error } = await supabase
+      .from('resources')
+      .select(fields)
+      .eq('id', id)
+      .eq('content_type', 'blog')
+      .single();
+
+    if (error) throw error;
+    if (!data?.title || !data?.slug) {
+      throw new Error('This blog record is missing its title or slug.');
+    }
     return data as ResourceType;
   },
 

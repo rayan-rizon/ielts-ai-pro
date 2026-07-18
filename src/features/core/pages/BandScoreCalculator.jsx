@@ -120,36 +120,7 @@ export default function BandScoreCalculator() {
       />
 
       <main className="pt-28 sm:pt-32">
-        {/* Page hero — the single page title */}
-        <section className="mx-auto max-w-[900px] px-5 text-center md:px-8">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#ddd8ff] bg-gradient-to-r from-[#f1edff]/95 to-white/75 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#4f35d8] shadow-sm backdrop-blur-xl dark:border-violet-400/20 dark:from-violet-400/10 dark:to-white/5 dark:text-violet-200">
-            <Sparkles className="h-3.5 w-3.5" /> Free IELTS Tool
-          </span>
-          <h1 className="mt-6 text-balance text-[clamp(2.35rem,5vw,3.65rem)] font-black leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white">
-            <span className="block">IELTS Band Score</span>
-            <span className="relative inline-block font-handwritten mt-2.5 bg-gradient-to-r from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text pb-3 text-[1.02em] leading-[1.08] tracking-[-0.025em] text-transparent">
-              Calculator
-              <svg
-                className="absolute bottom-0 left-0 w-full h-3 text-[#7384f8]"
-                viewBox="0 0 200 10"
-                fill="none"
-                preserveAspectRatio="none"
-              >
-                <path
-                  d="M2 3C60 7 140 7 198 3"
-                  stroke="currentColor"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-[640px] text-base leading-relaxed text-[#515d74] dark:text-slate-300 sm:text-[17px]">
-            Estimate your overall IELTS band from your four skill scores using the official rounding
-            rules, set a target band, and convert Listening and Reading raw scores (out of 40) into
-            band scores.
-          </p>
-        </section>
+        <BandScoreCalculatorHero />
 
         {/* Tool 1: overall band */}
         <section className="mx-auto max-w-[1180px] px-5 pt-16 md:px-8">
@@ -173,42 +144,80 @@ export default function BandScoreCalculator() {
           <RawScoreConverter />
         </section>
 
-        {/* Supporting content + FAQ */}
-        <section className="mx-auto max-w-[820px] px-5 pb-20 pt-20 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-black tracking-[-0.04em] text-[#07142f] dark:text-white">
-            How the overall IELTS band score is calculated
-          </h2>
-          <p className="mt-4 text-[15px] leading-7 text-[#515d74] dark:text-slate-300">
-            Your overall band is the average of your Listening, Reading, Writing, and Speaking
-            bands, rounded to the nearest whole or half band. If the average ends in .25 it rounds
-            up to the next half band, and if it ends in .75 it rounds up to the next whole band. For
-            example, 6.5 + 6.5 + 6.0 + 6.0 gives an average of 6.25, which becomes an overall band
-            of 6.5.
-          </p>
-          <h2 className="mt-10 text-2xl font-extrabold tracking-[-0.02em] text-[#07142f] dark:text-white">
-            Frequently asked questions
-          </h2>
-          <div className="mt-4 space-y-3">
-            {faqs.map((item) => (
-              <details
-                key={item.q}
-                className="rounded-2xl border border-[#e5e7eb] bg-white p-5 dark:border-white/10 dark:bg-white/[0.03]"
-              >
-                <summary className="cursor-pointer text-[15px] font-bold text-[#07142f] dark:text-white">
-                  {item.q}
-                </summary>
-                <p className="mt-3 text-[15px] leading-7 text-[#515d74] dark:text-slate-300">
-                  {item.a}
-                </p>
-              </details>
-            ))}
-          </div>
-        </section>
+        <BandScoreCalculatorFaq faqs={faqs} />
       </main>
 
       <Suspense fallback={null}>
         <Footer />
       </Suspense>
     </div>
+  );
+}
+
+function BandScoreCalculatorHero() {
+  return (
+    <section className="mx-auto max-w-[900px] px-5 text-center md:px-8">
+      <span className="inline-flex items-center gap-2 rounded-full border border-[#ddd8ff] bg-gradient-to-r from-[#f1edff]/95 to-white/75 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#4f35d8] shadow-sm backdrop-blur-xl dark:border-violet-400/20 dark:from-violet-400/10 dark:to-white/5 dark:text-violet-200">
+        <Sparkles className="h-3.5 w-3.5" /> Free IELTS Tool
+      </span>
+      <h1 className="mt-6 text-balance text-[clamp(2.35rem,5vw,3.65rem)] font-black leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white">
+        <span className="block">IELTS Band Score</span>
+        <span className="relative inline-block font-handwritten mt-2.5 bg-gradient-to-r from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text pb-3 text-[1.02em] leading-[1.08] tracking-[-0.025em] text-transparent">
+          Calculator
+          <svg
+            className="absolute bottom-0 left-0 w-full h-3 text-[#7384f8]"
+            viewBox="0 0 200 10"
+            fill="none"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M2 3C60 7 140 7 198 3"
+              stroke="currentColor"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </span>
+      </h1>
+      <p className="mx-auto mt-6 max-w-[640px] text-base leading-relaxed text-[#515d74] dark:text-slate-300 sm:text-[17px]">
+        Estimate your overall IELTS band from your four skill scores using the official rounding
+        rules, set a target band, and convert Listening and Reading raw scores (out of 40) into band
+        scores.
+      </p>
+    </section>
+  );
+}
+
+function BandScoreCalculatorFaq({ faqs }) {
+  return (
+    <section className="mx-auto max-w-[820px] px-5 pb-20 pt-20 md:px-8">
+      <h2 className="text-2xl md:text-3xl font-black tracking-[-0.04em] text-[#07142f] dark:text-white">
+        How the overall IELTS band score is calculated
+      </h2>
+      <p className="mt-4 text-[15px] leading-7 text-[#515d74] dark:text-slate-300">
+        Your overall band is the average of your Listening, Reading, Writing, and Speaking bands,
+        rounded to the nearest whole or half band. If the average ends in .25 it rounds up to the
+        next half band, and if it ends in .75 it rounds up to the next whole band. For example, 6.5
+        + 6.5 + 6.0 + 6.0 gives an average of 6.25, which becomes an overall band of 6.5.
+      </p>
+      <h2 className="mt-10 text-2xl font-extrabold tracking-[-0.02em] text-[#07142f] dark:text-white">
+        Frequently asked questions
+      </h2>
+      <div className="mt-4 space-y-3">
+        {faqs.map((item) => (
+          <details
+            key={item.q}
+            className="rounded-2xl border border-[#e5e7eb] bg-white p-5 dark:border-white/10 dark:bg-white/[0.03]"
+          >
+            <summary className="cursor-pointer text-[15px] font-bold text-[#07142f] dark:text-white">
+              {item.q}
+            </summary>
+            <p className="mt-3 text-[15px] leading-7 text-[#515d74] dark:text-slate-300">
+              {item.a}
+            </p>
+          </details>
+        ))}
+      </div>
+    </section>
   );
 }

@@ -97,6 +97,16 @@
       "source": "/terms/",
       "destination": "/terms",
       "permanent": true
+    },
+    {
+      "source": "/blog/",
+      "destination": "/blog",
+      "permanent": true
+    },
+    {
+      "source": "/blog/:slug/",
+      "destination": "/blog/:slug",
+      "permanent": true
     }
   ],
   "headers": [
@@ -176,6 +186,14 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/blog",
+      "destination": "/api/blog"
+    },
+    {
+      "source": "/blog/:slug",
+      "destination": "/api/blog?slug=:slug"
+    },
     {
       "source": "/ielts-writing-checker",
       "destination": "/ielts-writing-checker/index.html"

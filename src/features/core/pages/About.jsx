@@ -99,12 +99,104 @@ function AboutHero() {
   );
 }
 
+const FEATURE_ITEMS = [
+  {
+    icon: Target,
+    title: 'Instant Writing Evaluation',
+    desc: 'Detailed essays breakdown covering Task Achievement, Coherence, Lexical Resource, and Grammar in seconds.',
+    color: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300',
+  },
+  {
+    icon: Sparkles,
+    title: 'Real-time Speaking Coach',
+    desc: 'Speak freely with our AI examiner that evaluates your fluency, pronunciation, grammar and vocabulary dynamically.',
+    color: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300',
+  },
+  {
+    icon: Shield,
+    title: 'Full-Length Mock Tests',
+    desc: 'Simulate the actual test environment with realistic Reading, Listening, Writing, and Speaking modules.',
+    color: 'bg-violet-500/10 text-violet-600 dark:bg-violet-500/20 dark:text-violet-300',
+  },
+];
+
+function FeatureList() {
+  return (
+    <ul className="space-y-4">
+      {FEATURE_ITEMS.map((item, i) => (
+        <li key={i} className="flex items-start gap-4">
+          <div
+            className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color}`}
+          >
+            <item.icon className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-extrabold text-[#07142f] dark:text-white">{item.title}</h4>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
+              {item.desc}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function StatsGrid() {
+  return (
+    <m.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+      className="grid grid-cols-2 gap-4"
+    >
+      <div className="col-span-2 rounded-[28px] border border-white/40 bg-white/70 shadow-[0_12px_36px_-12px_rgba(15,23,42,0.08)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/75 p-6 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden group">
+        <CardGridBackground />
+        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-2">
+          Our Reach
+        </span>
+        <span className="text-4xl font-extrabold text-blue-650 dark:text-blue-400 block tracking-tight">
+          10,000+
+        </span>
+        <span className="text-sm font-bold text-slate-700 dark:text-slate-200 mt-1 block">
+          Active Global Students
+        </span>
+        <p className="text-xs text-slate-400 dark:text-slate-450 mt-1">
+          Preparing for their dreams across 85 countries.
+        </p>
+      </div>
+
+      <div className="rounded-[28px] border border-white/40 bg-white/70 shadow-[0_12px_36px_-12px_rgba(15,23,42,0.08)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/75 p-5 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden group">
+        <CardGridBackground />
+        <span className="text-[10px] font-black uppercase tracking-wider text-emerald-500 dark:text-emerald-400 block mb-2">
+          Impact
+        </span>
+        <span className="text-3xl font-extrabold text-slate-900 dark:text-white block">+1.5</span>
+        <span className="text-xs font-bold text-slate-655 dark:text-slate-300 mt-1 block">
+          Avg Band Jump
+        </span>
+      </div>
+
+      <div className="rounded-[28px] border border-white/40 bg-white/70 shadow-[0_12px_36px_-12px_rgba(15,23,42,0.08)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/75 p-5 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden group">
+        <CardGridBackground />
+        <span className="text-[10px] font-black uppercase tracking-wider text-violet-500 dark:text-violet-400 block mb-2">
+          Accuracy
+        </span>
+        <span className="text-3xl font-extrabold text-slate-900 dark:text-white block">98.4%</span>
+        <span className="text-xs font-bold text-slate-655 dark:text-slate-300 mt-1 block">
+          Reliability Score
+        </span>
+      </div>
+    </m.div>
+  );
+}
+
 function AboutStoryAndStats() {
   return (
     <section className="py-10 md:py-16 px-6 relative border-y border-slate-100 dark:border-white/5 bg-[#fafbfe] dark:bg-[#070912]/40">
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-[#f3f7ff]/20 to-transparent dark:from-slate-950/10" />
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-16 items-center relative z-10">
-        {/* Left Narrative Column */}
         <m.div
           initial={{ opacity: 0, x: -25 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -123,46 +215,7 @@ function AboutStoryAndStats() {
             </p>
           </div>
 
-          <ul className="space-y-4">
-            {[
-              {
-                icon: Target,
-                title: 'Instant Writing Evaluation',
-                desc: 'Detailed essays breakdown covering Task Achievement, Coherence, Lexical Resource, and Grammar in seconds.',
-                color: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300',
-              },
-              {
-                icon: Sparkles,
-                title: 'Real-time Speaking Coach',
-                desc: 'Speak freely with our AI examiner that evaluates your fluency, pronunciation, grammar and vocabulary dynamically.',
-                color:
-                  'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300',
-              },
-              {
-                icon: Shield,
-                title: 'Full-Length Mock Tests',
-                desc: 'Simulate the actual test environment with realistic Reading, Listening, Writing, and Speaking modules.',
-                color:
-                  'bg-violet-500/10 text-violet-600 dark:bg-violet-500/20 dark:text-violet-300',
-              },
-            ].map((item, i) => (
-              <li key={i} className="flex items-start gap-4">
-                <div
-                  className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color}`}
-                >
-                  <item.icon className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-extrabold text-[#07142f] dark:text-white">
-                    {item.title}
-                  </h4>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
-                    {item.desc}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <FeatureList />
 
           <p className="text-sm sm:text-base font-medium leading-relaxed text-[#515d74] dark:text-slate-300 border-l-2 border-[#3f6df1]/40 pl-4">
             We don't just give you a static score; we deliver a personalized roadmap. Our platform
@@ -171,56 +224,7 @@ function AboutStoryAndStats() {
           </p>
         </m.div>
 
-        {/* Right Bento Grid Stats Column */}
-        <m.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="grid grid-cols-2 gap-4"
-        >
-          <div className="col-span-2 rounded-[28px] border border-white/40 bg-white/70 shadow-[0_12px_36px_-12px_rgba(15,23,42,0.08)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/75 p-6 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden group">
-            <CardGridBackground />
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-2">
-              Our Reach
-            </span>
-            <span className="text-4xl font-extrabold text-blue-650 dark:text-blue-400 block tracking-tight">
-              10,000+
-            </span>
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-200 mt-1 block">
-              Active Global Students
-            </span>
-            <p className="text-xs text-slate-400 dark:text-slate-450 mt-1">
-              Preparing for their dreams across 85 countries.
-            </p>
-          </div>
-
-          <div className="rounded-[28px] border border-white/40 bg-white/70 shadow-[0_12px_36px_-12px_rgba(15,23,42,0.08)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/75 p-5 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden group">
-            <CardGridBackground />
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-500 dark:text-emerald-400 block mb-2">
-              Impact
-            </span>
-            <span className="text-3xl font-extrabold text-slate-900 dark:text-white block">
-              +1.5
-            </span>
-            <span className="text-xs font-bold text-slate-655 dark:text-slate-300 mt-1 block">
-              Avg Band Jump
-            </span>
-          </div>
-
-          <div className="rounded-[28px] border border-white/40 bg-white/70 shadow-[0_12px_36px_-12px_rgba(15,23,42,0.08)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/75 p-5 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden group">
-            <CardGridBackground />
-            <span className="text-[10px] font-black uppercase tracking-wider text-violet-500 dark:text-violet-400 block mb-2">
-              Accuracy
-            </span>
-            <span className="text-3xl font-extrabold text-slate-900 dark:text-white block">
-              98.4%
-            </span>
-            <span className="text-xs font-bold text-slate-655 dark:text-slate-300 mt-1 block">
-              Reliability Score
-            </span>
-          </div>
-        </m.div>
+        <StatsGrid />
       </div>
     </section>
   );

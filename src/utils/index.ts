@@ -13,6 +13,7 @@ export function createPageUrl(pageName: string) {
     PrivacyPolicy: '/privacy',
     TermsOfService: '/terms',
     Resources: '/resources',
+    Blog: '/blog',
     SignUp: '/signup',
   };
   if (specialRoutes[pageName]) {

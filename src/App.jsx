@@ -49,28 +49,34 @@ const IdleToaster = () => {
 };
 
 /**
+ * Detects chunk load failures caused by stale caches after deployments.
+ */
+function isChunkLoadError(error) {
+  const errorString = error?.toString() || '';
+  return (
+    errorString.includes('Failed to fetch dynamically imported module') ||
+    errorString.includes('Importing a module script failed') ||
+    errorString.includes('error loading dynamically imported module')
+  );
+}
+
+function hasAlreadyForceRefreshed() {
+  return JSON.parse(window.sessionStorage.getItem('page-has-been-force-refreshed') || 'false');
+}
+
+/**
  * Lazy load with automatic retry and page reload on chunk load failure.
  * This handles stale cache issues after deployments where old chunk hashes
  * are no longer available on the server.
  */
 const lazyWithRetry = (componentImport) => {
   return lazy(async () => {
-    const pageHasAlreadyBeenForceRefreshed = JSON.parse(
-      window.sessionStorage.getItem('page-has-been-force-refreshed') || 'false'
-    );
-
     try {
       const component = await componentImport();
       window.sessionStorage.removeItem('page-has-been-force-refreshed');
       return component;
     } catch (error) {
-      const errorString = error?.toString() || '';
-      const isChunkError =
-        errorString.includes('Failed to fetch dynamically imported module') ||
-        errorString.includes('Importing a module script failed') ||
-        errorString.includes('error loading dynamically imported module');
-
-      if (isChunkError && !pageHasAlreadyBeenForceRefreshed) {
+      if (isChunkLoadError(error) && !hasAlreadyForceRefreshed()) {
         console.warn('[LazyRetry] Chunk load failure detected. Forcing page refresh...', error);
         window.sessionStorage.setItem('page-has-been-force-refreshed', 'true');
         window.location.reload();
@@ -89,19 +95,12 @@ const Error500 = lazyWithRetry(() => import('@/features/core/pages/Error500.jsx'
 
 const GlobalErrorElement = () => {
   const error = useRouteError();
-  const errorString = error?.toString() || '';
 
-  const isChunkError =
-    errorString.includes('Failed to fetch dynamically imported module') ||
-    errorString.includes('Importing a module script failed') ||
-    errorString.includes('error loading dynamically imported module') ||
+  const isRecoverableChunkError =
+    isChunkLoadError(error) ||
     (error instanceof Error && (error.name === 'TypeError' || error.name === 'ChunkLoadError'));
 
-  const pageHasAlreadyBeenForceRefreshed = JSON.parse(
-    window.sessionStorage.getItem('page-has-been-force-refreshed') || 'false'
-  );
-
-  if (isChunkError && !pageHasAlreadyBeenForceRefreshed) {
+  if (isRecoverableChunkError && !hasAlreadyForceRefreshed()) {
     console.warn('[GlobalErrorElement] Detected chunk load failure. Refreshing...', error);
     window.sessionStorage.setItem('page-has-been-force-refreshed', 'true');
     window.location.reload();
@@ -155,6 +154,7 @@ const Leaderboard = lazyWithRetry(() => import('@/features/gamification/pages/Le
 const LearningPath = lazyWithRetry(() => import('@/features/learning/pages/LearningPath.jsx'));
 const Onboarding = lazyWithRetry(() => import('@/features/onboarding/pages/Onboarding.jsx'));
 const ResourcesPage = lazyWithRetry(() => import('@/features/learning/pages/ResourcesPage.jsx'));
+const BlogIndex = lazyWithRetry(() => import('@/features/learning/pages/BlogIndex.jsx'));
 const BlogPost = lazyWithRetry(() => import('@/features/learning/pages/BlogPost.jsx'));
 const PrivacyPolicy = lazyWithRetry(() => import('@/features/core/pages/PrivacyPolicy.jsx'));
 const TermsOfService = lazyWithRetry(() => import('@/features/core/pages/TermsOfService.jsx'));
@@ -596,6 +596,14 @@ const router = createBrowserRouter(
             </LazyPage>
           </Layout>
         </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/blog',
+      element: (
+        <LazyPage>
+          <BlogIndex />
+        </LazyPage>
       ),
     },
     {

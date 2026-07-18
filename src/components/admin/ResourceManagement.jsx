@@ -52,30 +52,23 @@ import {
   BookOpen,
   Eye,
   EyeOff,
-  ExternalLink,
-  Image,
   Upload,
   AlertCircle,
   CheckCircle2,
-  Search,
-  Filter,
   Download,
   FileJson,
-  CheckSquare,
-  Square,
   X,
   Brain,
   MoreVertical,
   ChevronLeft,
   ChevronRight,
   LayoutGrid,
-  List as ListIcon,
   Sparkles,
   Search as SearchIcon,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Resource } from '@/entities';
-import { supabase, uploadFile, uploadToR2 } from '@/lib/supabase';
+import { uploadFile, uploadToR2 } from '@/lib/supabase';
 import { generatePdfThumbnail } from '@/lib/pdf-thumbnail';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
@@ -162,8 +155,11 @@ const ResourceManagement = () => {
   const openEditDialog = async (resource) => {
     const toastId = toast.loading('Loading resource details...');
     try {
-      // Fetch full resource to get the content field which is excluded in list view
-      const fullResource = await Resource.getById(resource.id);
+      // Blog editing needs the complete SEO record, not the lightweight list row.
+      const fullResource =
+        resource.content_type === 'blog'
+          ? await Resource.getBlogForEdit(resource.id)
+          : await Resource.getById(resource.id);
 
       setEditingResource(fullResource);
 
@@ -279,7 +275,7 @@ const ResourceManagement = () => {
         // Don't fail the whole upload if just the thumbnail fails
       }
 
-      const { file_url, key } = await uploadToR2(file);
+      const { file_url } = await uploadToR2(file);
 
       setFormData((prev) => ({
         ...prev,
@@ -378,7 +374,6 @@ const ResourceManagement = () => {
       editingResource ? 'Updating vocabulary list...' : 'Creating vocabulary list...'
     );
     try {
-      console.log('Saving vocabulary data:', vocabData);
       if (editingResource) {
         await Resource.update(editingResource.id, vocabData);
         toast.success('Vocabulary list updated successfully', { id: loadingToast });
@@ -402,6 +397,7 @@ const ResourceManagement = () => {
       toast.success(`Resource ${resource.is_published ? 'unpublished' : 'published'}`);
       fetchResources();
     } catch (error) {
+      console.error('Failed to update status:', error);
       toast.error('Failed to update status');
     }
   };
