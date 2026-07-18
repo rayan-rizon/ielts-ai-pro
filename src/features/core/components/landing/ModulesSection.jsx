@@ -1,353 +1,258 @@
-import React, { useState } from 'react';
-import { m, AnimatePresence } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { m, useReducedMotion } from 'framer-motion';
 import {
   ArrowRight,
-  BookOpen,
-  Headphones,
-  PenTool,
-  Mic,
-  PlayCircle,
-  CheckCircle2,
+  CalendarDays,
+  Check,
+  ClipboardCheck,
+  Mic2,
+  Sparkles,
+  Target,
+  Trophy,
 } from 'lucide-react';
-import { cn } from '@/lib/cn';
+import {
+  GlassPanel,
+  SectionHeading,
+  SoftSection,
+  landingReveal,
+  landingStagger,
+} from './LandingSection';
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30, filter: 'blur(5px)' },
-  show: {
-    opacity: 1,
-    y: 0,
-    filter: 'blur(0px)',
-    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
-  },
-};
-
-const modulesData = [
+const steps = [
   {
-    id: 'reading',
-    icon: BookOpen,
-    label: 'Reading Lab',
-    sub: 'Active reading & highlights',
-    colorColor: 'text-blue-500 dark:text-blue-400',
-    bgColor: 'bg-blue-500/10',
-    activeBorder:
-      'border-blue-500 text-blue-700 dark:text-blue-300 bg-blue-50/50 dark:bg-blue-500/10 ring-1 ring-blue-500/20 shadow-md shadow-blue-500/5',
-    content: (
-      <div className="flex flex-col gap-4 w-full h-full justify-center">
-        <h3 className="text-xl font-black text-foreground mb-2 flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-blue-500" /> Academic Reading
-        </h3>
-        <div className="space-y-3">
-          <div className="h-4 w-full bg-slate-100 dark:bg-slate-800 rounded-md overflow-hidden relative">
-            <div className="absolute top-0 left-0 h-full w-1/3 bg-blue-200/50 dark:bg-blue-500/20" />
-          </div>
-          <div className="h-4 w-[90%] bg-slate-100 dark:bg-slate-800 rounded-md" />
-          <div className="h-4 w-[95%] bg-slate-100 dark:bg-slate-800 rounded-md overflow-hidden relative">
-            <div className="absolute top-0 right-10 h-full w-1/4 bg-amber-200/50 dark:bg-amber-500/20" />
-          </div>
-          <div className="h-4 w-[80%] bg-slate-100 dark:bg-slate-800 rounded-md" />
-        </div>
-        <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/10 dark:to-slate-900 border border-blue-100 dark:border-blue-800/50 flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-sm font-black text-blue-700 dark:text-blue-400">
-            <CheckCircle2 className="h-4 w-4" /> Matching Headings Strategy
-          </div>
-          <p className="text-xs font-semibold text-muted-foreground">
-            AI highlights the exact sentence containing the answer justification.
-          </p>
-        </div>
-      </div>
-    ),
+    number: '1',
+    title: 'Mock Test',
+    copy: 'Take a real test, just like the real thing.',
+    icon: ClipboardCheck,
+    color: '#5262ef',
+    lift: 'lg:mt-28',
   },
   {
-    id: 'listening',
-    icon: Headphones,
-    label: 'Listening Studio',
-    sub: 'Full audio & transcripts',
-    colorColor: 'text-emerald-500 dark:text-emerald-400',
-    bgColor: 'bg-emerald-500/10',
-    activeBorder:
-      'border-emerald-500 text-emerald-700 dark:text-emerald-300 bg-emerald-50/50 dark:bg-emerald-500/10 ring-1 ring-emerald-500/20 shadow-md shadow-emerald-500/5',
-    content: (
-      <div className="flex flex-col gap-4 w-full h-full justify-center">
-        <h3 className="text-xl font-black text-foreground mb-2 flex items-center gap-2">
-          <Headphones className="h-5 w-5 text-emerald-500" /> Section 3 Dialogue
-        </h3>
-        <div className="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center gap-4">
-          <div className="h-10 w-10 shrink-0 rounded-full bg-emerald-500 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-lg shadow-emerald-500/30">
-            <PlayCircle className="h-5 w-5 text-white fill-emerald-500" />
-          </div>
-          <div className="flex-grow">
-            <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div className="h-full w-[45%] bg-emerald-500 rounded-full" />
-            </div>
-            <div className="flex justify-between mt-2 text-[10px] font-bold text-muted-foreground">
-              <span>01:12</span>
-              <span>04:30</span>
-            </div>
-          </div>
-        </div>
-        <div className="space-y-2 mt-2">
-          <div className="flex gap-3 items-start">
-            <div className="text-xs font-black text-slate-400 mt-0.5">M</div>
-            <div className="text-sm font-medium text-foreground bg-slate-100 dark:bg-slate-800 p-2.5 rounded-xl rounded-tl-sm">
-              So, regarding the assignment...
-            </div>
-          </div>
-          <div className="flex gap-3 items-start flex-row-reverse">
-            <div className="text-xs font-black text-emerald-400 mt-0.5">F</div>
-            <div className="text-sm font-medium text-emerald-900 dark:text-emerald-100 bg-emerald-100 dark:bg-emerald-900/30 p-2.5 rounded-xl rounded-tr-sm">
-              Yes, I've gathered the data.
-            </div>
-          </div>
-        </div>
-      </div>
-    ),
+    number: '2',
+    title: 'AI Analysis',
+    copy: 'Get instant, AI-powered feedback.',
+    icon: Sparkles,
+    color: '#2aae83',
+    lift: 'lg:mt-20',
   },
   {
-    id: 'writing',
-    icon: PenTool,
-    label: 'Writing Coach',
-    sub: 'Instant band scoring',
-    colorColor: 'text-violet-500 dark:text-violet-400',
-    bgColor: 'bg-violet-500/10',
-    activeBorder:
-      'border-violet-500 text-violet-700 dark:text-violet-300 bg-violet-50/50 dark:bg-violet-500/10 ring-1 ring-violet-500/20 shadow-md shadow-violet-500/5',
-    content: (
-      <div className="flex flex-col gap-4 w-full h-full justify-center">
-        <div className="flex justify-between items-end mb-2">
-          <h3 className="text-xl font-black text-foreground flex items-center gap-2">
-            <PenTool className="h-5 w-5 text-violet-500" /> Task 2 Essay
-          </h3>
-          <div className="px-3 py-1 bg-violet-500 text-white text-sm font-black rounded-lg shadow-lg shadow-violet-500/30">
-            Band 7.5
-          </div>
-        </div>
-        <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-sm font-medium leading-relaxed relative">
-          The chart illustrates the{' '}
-          <span className="underline decoration-red-400 decoration-wavy cursor-help">
-            amount of
-          </span>{' '}
-          <span className="absolute -top-3 left-32 text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded shadow-sm border border-red-200">
-            proportion of
-          </span>{' '}
-          people visiting the museum. Overall, there was a significant increase in...
-        </div>
-        <div className="grid grid-cols-2 gap-3 mt-2">
-          <div className="p-3 bg-violet-50 dark:bg-violet-900/10 rounded-xl border border-violet-100 dark:border-violet-800/50">
-            <div className="text-[10px] font-bold text-muted-foreground uppercase mb-1">
-              Lexical Resource
-            </div>
-            <div className="h-1.5 w-full bg-violet-200 dark:bg-violet-900 rounded-full overflow-hidden">
-              <div className="h-full w-[80%] bg-violet-500 rounded-full" />
-            </div>
-          </div>
-          <div className="p-3 bg-violet-50 dark:bg-violet-900/10 rounded-xl border border-violet-100 dark:border-violet-800/50">
-            <div className="text-[10px] font-bold text-muted-foreground uppercase mb-1">
-              Task Response
-            </div>
-            <div className="h-1.5 w-full bg-violet-200 dark:bg-violet-900 rounded-full overflow-hidden">
-              <div className="h-full w-[90%] bg-violet-500 rounded-full" />
-            </div>
-          </div>
-        </div>
-      </div>
-    ),
+    number: '3',
+    title: 'Smart Study Plan',
+    copy: 'Follow a plan made just for you.',
+    icon: CalendarDays,
+    color: '#8358e8',
+    lift: 'lg:mt-10',
   },
   {
-    id: 'speaking',
-    icon: Mic,
-    label: 'Speaking Drills',
-    sub: 'Fluency & pronunciation',
-    colorColor: 'text-amber-500 dark:text-amber-400',
-    bgColor: 'bg-amber-500/10',
-    activeBorder:
-      'border-amber-500 text-amber-700 dark:text-amber-300 bg-amber-50/50 dark:bg-amber-500/10 ring-1 ring-amber-500/20 shadow-md shadow-amber-500/5',
-    content: (
-      <div className="flex flex-col items-center justify-center gap-6 w-full h-full text-center">
-        <div className="relative">
-          <div className="absolute inset-0 bg-amber-400 rounded-full blur-xl opacity-20 animate-pulse" />
-          <div className="h-20 w-20 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center shadow-xl shadow-amber-500/30 relative z-10">
-            <Mic className="h-8 w-8 text-white" />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
-            Part 2: Long Turn
-          </h4>
-          <p className="text-lg font-black text-foreground">
-            Describe a memorable journey you made...
-          </p>
-        </div>
-
-        <div className="flex items-center gap-1">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className={`w-1 rounded-full bg-amber-500 animate-pulse`}
-              style={{
-                height: `${Math.max(10, Math.random() * 30 + 10)}px`,
-                animationDelay: `${i * 0.15}s`,
-              }}
-            />
-          ))}
-        </div>
-      </div>
-    ),
+    number: '4',
+    title: 'Real Improvement',
+    copy: 'Track progress. Hit your target.',
+    icon: Target,
+    color: '#3f66ef',
+    lift: 'lg:mt-0',
   },
 ];
 
-export default function ModulesSection({ handlePrimaryCta, viewport }) {
-  const [activeTab, setActiveTab] = useState(0);
-
+function MockTestBody() {
   return (
-    <section
-      id="modules"
-      className="scroll-mt-24 py-16 md:py-24 bg-slate-50/50 dark:bg-slate-950/20 border-y border-border/40 overflow-hidden relative"
-      data-oid="xhcshp:"
-    >
-      {/* Background Decorators */}
-      <div className="absolute -left-60 -top-60 w-[40rem] h-[40rem] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
+    <div className="mt-4 rounded-2xl bg-[#f7f9ff] p-4 dark:bg-white/5">
+      <b className="text-xs text-[#284dc2]">Full Mock Test</b>
+      <div className="mt-3 space-y-2">
+        {[
+          ['Listening', '30 mins'],
+          ['Reading', '60 mins'],
+          ['Writing', '60 mins'],
+          ['Speaking', '11–14 mins'],
+        ].map(([a, b]) => (
+          <div key={a} className="flex justify-between text-[11px] text-[#5d6980]">
+            <span>{a}</span>
+            <b>{b}</b>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 flex items-end justify-between border-t border-slate-200 pt-3">
+        <span className="text-[10px] font-bold text-slate-500">Estimated band</span>
+        <strong className="text-3xl font-black text-[#5262ef]">6.5</strong>
+      </div>
+    </div>
+  );
+}
 
-      <div className="mx-auto max-w-[85rem] px-6 relative z-10" data-oid="gk-5:wg">
+function AnalysisBody() {
+  return (
+    <div className="mt-4 space-y-3">
+      <div className="rounded-2xl bg-[#edfaf6] p-4 dark:bg-emerald-400/10">
+        <span className="text-xs font-bold text-[#38594e]">Overall Band Estimate</span>
+        <div className="mt-1 flex items-center justify-between">
+          <strong className="text-4xl font-black text-[#199174]">6.5</strong>
+          <span className="text-xs font-bold text-[#218b75]">Good</span>
+        </div>
+      </div>
+      {[
+        ['Speaking Feedback', '6.0'],
+        ['Writing Feedback', '6.5'],
+      ].map(([x, y]) => (
+        <div
+          key={x}
+          className="flex items-center gap-2 rounded-xl border border-slate-100 bg-white/70 p-3 text-[11px] dark:border-white/10 dark:bg-white/5"
+        >
+          <Mic2 className="h-4 w-4 text-[#5262ef]" />
+          <span className="flex-1 font-bold text-[#344159]">{x}</span>
+          <b className="text-[#5262ef]">{y}</b>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PlanBody() {
+  return (
+    <div className="mt-4 rounded-2xl border border-violet-100 bg-white/70 p-4 dark:border-white/10 dark:bg-white/5">
+      <b className="text-xs text-[#4d2ca6]">Your Weekly Plan</b>
+      <div className="mt-3 space-y-3">
+        {['Listening Practice', 'Reading Strategy', 'Writing Task 2', 'Speaking Practice'].map(
+          (x, i) => (
+            <div key={x} className="flex items-center gap-2 text-[11px] text-[#526076]">
+              <span
+                className={`flex h-4 w-4 items-center justify-center rounded-full ${i < 3 ? 'bg-[#55c998] text-white' : 'border-2 border-violet-400'}`}
+              >
+                {i < 3 && <Check className="h-2.5 w-2.5" />}
+              </span>
+              <span className="flex-1">{x}</span>
+              <b>{[30, 45, 60, 30][i]}m</b>
+            </div>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ProgressBody({ reduceMotion }) {
+  return (
+    <div className="mt-4 rounded-2xl bg-gradient-to-br from-[#f4f7ff] to-white p-4 dark:from-white/10 dark:to-white/5">
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="text-xs font-bold text-[#30405d]">Your Progress</span>
+          <strong className="mt-1 block text-4xl font-black text-[#5262ef]">7.5</strong>
+          <span className="text-xs font-bold text-[#218b75]">Target 7.5</span>
+        </div>
+        <m.div
+          initial={{ rotate: -90 }}
+          whileInView={{ rotate: reduceMotion ? 0 : 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1 }}
+          className="flex h-16 w-16 items-center justify-center rounded-full border-[7px] border-[#5262ef] border-l-[#7ad6c0]"
+        >
+          <b className="text-[#5262ef]">80%</b>
+        </m.div>
+      </div>
+      <svg viewBox="0 0 230 70" className="mt-3 w-full">
+        <path
+          d="M2 62 C28 53, 40 43, 62 46 S94 33, 116 35 S147 22, 169 23 S199 12, 228 5"
+          fill="none"
+          stroke="#4e70f6"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+      </svg>
+      <div className="mt-3 flex items-center gap-2 rounded-xl bg-[#eaf9f4] p-3 text-xs font-bold text-[#1a795f]">
+        <Trophy className="h-5 w-5" />
+        You’re almost there!
+      </div>
+    </div>
+  );
+}
+
+function StepCard({ step, index, reduceMotion }) {
+  const bodies = [
+    <MockTestBody key="mock" />,
+    <AnalysisBody key="analysis" />,
+    <PlanBody key="plan" />,
+    <ProgressBody key="progress" reduceMotion={reduceMotion} />,
+  ];
+  return (
+    <m.article
+      variants={landingReveal}
+      whileHover={reduceMotion ? {} : { y: -8, rotate: index % 2 ? 0.4 : -0.4 }}
+      className={`relative ${step.lift}`}
+    >
+      <GlassPanel className="relative min-h-[405px] overflow-visible rounded-[28px] p-5 transition-shadow duration-500 hover:shadow-[0_30px_75px_-35px_rgba(47,73,150,.5)]">
+        <div className="flex items-center gap-3">
+          <span
+            className="flex h-12 w-12 items-center justify-center rounded-full text-xl font-black text-white shadow-lg"
+            style={{ background: `linear-gradient(145deg, ${step.color}, #8f77f7)` }}
+          >
+            {step.number}
+          </span>
+          <div>
+            <h3 className="text-xl font-black tracking-tight text-[#0b1731] dark:text-white">
+              {step.title}
+            </h3>
+            <p className="mt-0.5 text-xs font-medium text-[#647086]">{step.copy}</p>
+          </div>
+        </div>
+        {bodies[index]}
+        <button className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-[#5262ef]">
+          View details <ArrowRight className="h-3.5 w-3.5" />
+        </button>
+      </GlassPanel>
+    </m.article>
+  );
+}
+
+export default function ModulesSection({ handlePrimaryCta, viewport }) {
+  const reduceMotion = useReducedMotion();
+  return (
+    <SoftSection id="modules" className="scroll-mt-24">
+      <div className="relative z-10 mx-auto max-w-[1450px] px-5 md:px-8">
+        <SectionHeading
+          eyebrow="Your learning path"
+          title="Step by step to your"
+          script="target band."
+          description="A clear journey from your first realistic test to measurable, confident improvement."
+          viewport={viewport}
+        />
         <m.div
           initial="hidden"
           whileInView="show"
           viewport={viewport}
-          variants={containerVariants}
-          className="text-center max-w-3xl mx-auto mb-16"
-          data-oid="5d47la3"
+          variants={landingStagger}
+          className="relative mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-4"
         >
-          <Badge
-            variant="secondary"
-            className="rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-foreground border-primary/20 dark:border-primary/30 px-5 py-2 text-[11px] font-black uppercase tracking-widest mb-6 shadow-sm"
-            data-oid="968ti3y"
+          <svg
+            className="pointer-events-none absolute left-[9%] top-[18%] hidden h-24 w-[82%] lg:block"
+            viewBox="0 0 1000 120"
+            preserveAspectRatio="none"
+            aria-hidden="true"
           >
-            Complete Coverage
-          </Badge>
-          <m.h2
-            variants={itemVariants}
-            className="text-4xl md:text-5xl font-black tracking-tighter"
-            data-oid="dzz6rpa"
-          >
-            Interactive practice for{' '}
-            <span
-              className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-500"
-              data-oid="5a8:3ol"
-            >
-              Every Module
-            </span>
-          </m.h2>
-          <m.p
-            variants={itemVariants}
-            className="mt-6 text-lg font-medium text-muted-foreground max-w-2xl mx-auto"
-            data-oid="mql.uc8"
-          >
-            Stop guessing your score. Experience realistic mock tests with targeted AI feedback for
-            Reading, Listening, Writing, and Speaking.
-          </m.p>
+            <path
+              d="M0 105 C180 85, 160 95, 310 75 S500 60, 610 46 S820 22, 1000 7"
+              fill="none"
+              stroke="#5a70f1"
+              strokeWidth="2"
+              strokeDasharray="7 8"
+              opacity=".55"
+            />
+          </svg>
+          {steps.map((step, index) => (
+            <StepCard key={step.title} step={step} index={index} reduceMotion={reduceMotion} />
+          ))}
         </m.div>
-
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center">
-          {/* Tabs Navigation */}
-          <m.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={viewport}
-            transition={{ duration: 0.8 }}
-            className="w-full lg:w-[45%] flex flex-col gap-3"
+        <m.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={viewport}
+          className="mt-10 flex justify-center"
+        >
+          <button
+            onClick={handlePrimaryCta}
+            className="inline-flex h-14 items-center gap-3 rounded-[16px] bg-gradient-to-r from-[#2468ed] to-[#6658ef] px-8 text-sm font-extrabold text-white shadow-[0_18px_35px_-18px_rgba(61,83,225,.75)] transition hover:-translate-y-1"
           >
-            {modulesData.map((mod, idx) => {
-              const isActive = activeTab === idx;
-              const Icon = mod.icon;
-              return (
-                <button
-                  key={mod.id}
-                  onClick={() => setActiveTab(idx)}
-                  className={cn(
-                    'w-full text-left flex items-center gap-4 rounded-xl p-4 transition-all duration-300 border',
-                    isActive
-                      ? mod.activeBorder
-                      : 'border-transparent hover:bg-white/60 dark:hover:bg-slate-800/60 hover:border-border/50 text-foreground'
-                  )}
-                >
-                  <div
-                    className={cn(
-                      'flex h-14 w-14 shrink-0 items-center justify-center rounded-xl transition-colors duration-300 shadow-inner',
-                      isActive ? 'bg-background shadow-sm' : mod.bgColor
-                    )}
-                  >
-                    <Icon
-                      className={cn('h-6 w-6', isActive ? mod.colorColor : 'text-foreground/70')}
-                    />
-                  </div>
-                  <div>
-                    <div className="text-lg font-black tracking-tight">{mod.label}</div>
-                    <div
-                      className={cn(
-                        'text-[13px] font-semibold',
-                        isActive ? mod.colorColor : 'text-muted-foreground'
-                      )}
-                    >
-                      {mod.sub}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-
-            <div className="mt-8 ml-2">
-              <Button
-                size="lg"
-                className="h-14 w-full sm:w-auto rounded-2xl px-8 font-black shiny-button shadow-xl shadow-primary/20 bg-gradient-to-b from-primary to-primary/90 text-[15px]"
-                onClick={handlePrimaryCta}
-                data-oid="u1e1k_8"
-              >
-                Start Practicing Free <ArrowRight className="ml-2 h-5 w-5" data-oid="gob:imf" />
-              </Button>
-            </div>
-          </m.div>
-
-          {/* Interactive Preview Pane */}
-          <m.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={viewport}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="w-full lg:w-[55%] h-[450px] lg:h-[500px] relative"
-          >
-            <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[1.5rem] border border-white/40 dark:border-white/10 shadow-2xl overflow-hidden p-10 flex items-center justify-center">
-              {/* Glossy overlay */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none" />
-
-              <AnimatePresence mode="wait">
-                <m.div
-                  key={activeTab}
-                  initial={{ opacity: 0, scale: 0.95, filter: 'blur(5px)' }}
-                  animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                  exit={{ opacity: 0, scale: 0.95, filter: 'blur(5px)' }}
-                  transition={{ duration: 0.3, ease: 'easeInOut' }}
-                  className="w-full h-full max-w-md mx-auto relative z-10"
-                >
-                  {modulesData[activeTab].content}
-                </m.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Background Glow */}
-            <div className="absolute -inset-4 bg-primary/5 blur-3xl rounded-[4rem] z-0 pointer-events-none" />
-          </m.div>
-        </div>
+            Start your free test <ArrowRight className="h-5 w-5" />
+          </button>
+        </m.div>
       </div>
-    </section>
+    </SoftSection>
   );
 }

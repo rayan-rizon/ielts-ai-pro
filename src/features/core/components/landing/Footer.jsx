@@ -1,36 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { m } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import {
-  Twitter,
-  Github,
-  Linkedin,
-  Instagram,
-  Heart,
-  ShieldCheck,
-  Activity,
-  ArrowRight,
-  Check,
-  Sparkles,
-} from 'lucide-react';
+import { Twitter, Github, Linkedin, Instagram, Heart, ShieldCheck } from 'lucide-react';
 import { Logo } from '@/components/shared/Logo';
-import { Input } from '@/components/ui/input';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
-
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    if (email.trim()) {
-      setSubscribed(true);
-      setTimeout(() => {
-        setSubscribed(false);
-        setEmail('');
-      }, 3000);
-    }
-  };
 
   const footerLinks = {
     Practice: [
@@ -89,7 +64,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative pt-10 pb-6 overflow-hidden bg-[#030303] border-t border-white/[0.05] dark">
+    <footer className="relative pt-16 pb-12 overflow-hidden bg-[#030303] border-t border-white/[0.05] dark">
       {/* Top Gradient Border */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-indigo-500/30 to-transparent" />
 
@@ -101,12 +76,12 @@ export default function Footer() {
       <div className="absolute top-0 right-1/4 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[140px] pointer-events-none opacity-40" />
 
       <div className="mx-auto max-w-7xl px-6 relative z-10">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-8 mb-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-8 mb-12">
           {/* Brand Column */}
-          <div className="lg:col-span-4 flex flex-col justify-between gap-4">
+          <div className="lg:col-span-5 flex flex-col justify-between gap-4">
             <div>
               <Link to="/" className="mb-3 group block w-fit" aria-label="IELTS Ai Pro - Home">
-                <Logo size="lg" className="text-white" />
+                <Logo className="text-white" />
               </Link>
               <p className="max-w-sm text-sm font-medium leading-relaxed text-muted-foreground mb-4">
                 Master the IELTS with AI-powered personalized coaching. Get instant evaluation on
@@ -143,7 +118,7 @@ export default function Footer() {
           </div>
 
           {/* Links Columns (Sitemaps) */}
-          <div className="lg:col-span-5 grid grid-cols-2 sm:grid-cols-3 gap-6">
+          <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-6">
             {Object.entries(footerLinks).map(([title, links]) => (
               <div key={title} className="flex flex-col">
                 <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-3">
@@ -155,7 +130,7 @@ export default function Footer() {
                       {link.href.startsWith('/') && !link.reload ? (
                         <Link
                           to={link.href}
-                          className="group relative flex items-center text-[13px] md:text-[14px] font-medium text-muted-foreground hover:text-white transition-all duration-300 w-fit"
+                          className="group relative flex items-center text-sm font-medium text-muted-foreground hover:text-white transition-all duration-300 w-fit"
                         >
                           <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">
                             {link.label}
@@ -165,7 +140,7 @@ export default function Footer() {
                       ) : (
                         <a
                           href={link.href}
-                          className="group relative flex items-center text-[13px] md:text-[14px] font-medium text-muted-foreground hover:text-white transition-all duration-300 w-fit"
+                          className="group relative flex items-center text-sm font-medium text-muted-foreground hover:text-white transition-all duration-300 w-fit"
                         >
                           <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">
                             {link.label}
@@ -179,73 +154,6 @@ export default function Footer() {
               </div>
             ))}
           </div>
-
-          {/* Newsletter Column */}
-          <div className="lg:col-span-3">
-            <div className="relative rounded-2xl bg-white/[0.01] dark:bg-slate-950/20 border border-white/[0.05] p-5 backdrop-blur-2xl">
-              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-foreground mb-1.5 flex items-center gap-1.5">
-                <Sparkles size={14} className="text-primary animate-pulse" />
-                <span>Stay Updated</span>
-              </h3>
-              <p className="text-[11px] leading-relaxed text-muted-foreground mb-3">
-                Receive band-boosting preparation tips and mock exam updates.
-              </p>
-
-              <form onSubmit={handleSubscribe} className="relative">
-                <div className="relative flex items-center">
-                  <Input
-                    type="email"
-                    required
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-slate-900/60 border-white/10 text-white placeholder-slate-400 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 rounded-xl py-5 pl-3.5 pr-10 text-xs transition-all duration-300"
-                  />
-                  <button
-                    type="submit"
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7 rounded-lg bg-primary hover:bg-primary/90 text-white transition-all duration-300 hover:scale-105 active:scale-95 group/btn"
-                  >
-                    {subscribed ? (
-                      <Check className="w-3.5 h-3.5" />
-                    ) : (
-                      <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
-                    )}
-                  </button>
-                </div>
-              </form>
-
-              {subscribed ? (
-                <m.p
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-2 text-[10px] font-bold text-emerald-400 flex items-center gap-1.5"
-                >
-                  <Check size={10} /> Subscribed successfully!
-                </m.p>
-              ) : (
-                <p className="mt-2 text-[10px] text-muted-foreground font-medium">
-                  Join 10,000+ IELTS candidates. Unsubscribe anytime.
-                </p>
-              )}
-
-              {/* Status and Diagnostics */}
-              <div className="mt-4 pt-4 border-t border-white/[0.05] flex flex-col gap-2">
-                <div className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-400 bg-emerald-500/5 px-2 py-1 rounded-lg w-fit border border-emerald-500/10">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                  </span>
-                  <span>All Systems Operational</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
-                  <Activity size={10} className="text-indigo-400" />
-                  <span>
-                    AI Band Response: <strong className="text-foreground">~2.4s</strong>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Bottom Bar */}
@@ -257,11 +165,6 @@ export default function Footer() {
               <div className="flex items-center gap-1">
                 <ShieldCheck size={13} className="text-primary/70" />
                 <span>Secured by Stripe</span>
-              </div>
-              <div className="h-3 w-px bg-white/10" />
-              <div className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500/70" />
-                <span>Powered by Supabase</span>
               </div>
             </div>
           </div>

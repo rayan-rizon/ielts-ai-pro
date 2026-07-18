@@ -1,15 +1,5 @@
-import React, { useMemo, lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Award from 'lucide-react/icons/award';
-import BadgeCheck from 'lucide-react/icons/badge-check';
-import BarChart3 from 'lucide-react/icons/bar-chart-3';
-import BookOpen from 'lucide-react/icons/book-open';
-import Calendar from 'lucide-react/icons/calendar';
-import Sparkles from 'lucide-react/icons/sparkles';
-import Target from 'lucide-react/icons/target';
-import Trophy from 'lucide-react/icons/trophy';
-import ShieldCheck from 'lucide-react/icons/shield-check';
-import Brain from 'lucide-react/icons/brain';
 
 import CookieConsent from '@/components/shared/CookieConsent';
 import DocumentHead from '@/components/shared/DocumentHead';
@@ -23,20 +13,42 @@ import HeroSection from '@/features/core/components/landing/HeroSection';
 
 // Lazy loaded sections
 const Footer = lazy(() => import('@/features/core/components/landing/Footer'));
-const SocialProofSection = lazy(
-  () => import('@/features/core/components/landing/SocialProofSection')
-);
-const ProblemSection = lazy(() => import('@/features/core/components/landing/ProblemSection'));
 const FeaturesSection = lazy(() => import('@/features/core/components/landing/FeaturesSection'));
-const FeatureShowcase = lazy(() => import('@/features/core/components/landing/FeatureShowcase'));
-const ModulesSection = lazy(() => import('@/features/core/components/landing/ModulesSection'));
 const HowItWorksSection = lazy(
   () => import('@/features/core/components/landing/HowItWorksSection')
 );
-const ResultsSection = lazy(() => import('@/features/core/components/landing/ResultsSection'));
 const FAQSection = lazy(() => import('@/features/core/components/landing/FAQSection'));
 const PricingSection = lazy(() => import('@/features/core/components/landing/PricingSection'));
 const CTABanner = lazy(() => import('@/features/core/components/landing/CTABanner'));
+
+const viewport = { once: true, amount: 0.12 };
+
+const faqs = [
+  {
+    q: 'What can I practice for free?',
+    a: 'The Free plan includes IELTS Reading and Listening practice, Cambridge test sets available to free learners, one AI Writing evaluation per month, vocabulary tools, and basic progress analytics. Current limits are always shown on the pricing page.',
+  },
+  {
+    q: 'How does the IELTS Writing feedback work?',
+    a: 'After a practice task, IELTS Ai Pro returns an estimated practice band with feedback across Task Achievement or Task Response, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy. The report also highlights specific corrections and next steps.',
+  },
+  {
+    q: 'What does the Speaking report assess?',
+    a: 'Speaking reports organize practice feedback around Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation. When acoustic pronunciation evidence is unavailable, the product identifies transcript-based estimates instead of presenting them as measured pronunciation scores.',
+  },
+  {
+    q: 'Are AI band scores official IELTS results?',
+    a: 'No. AI band scores are practice estimates designed to help you find patterns and choose what to improve next. Official IELTS results are issued only by authorized IELTS test providers and trained examiners.',
+  },
+  {
+    q: 'How is the AI learning path personalized?',
+    a: 'For eligible plans, the learning path uses completed practice, skill performance, target band, and study schedule to recommend focused activities. You can review progress in the analytics dashboard and continue directly into the suggested module.',
+  },
+  {
+    q: 'Does IELTS Ai Pro cover all four IELTS skills?',
+    a: 'Yes. The app includes Reading, Listening, Writing, and Speaking practice, plus Cambridge test sets, vocabulary review, study resources, progress analytics, and an adaptive learning path for eligible plans.',
+  },
+];
 
 const PrimaryGlow = () => {
   return (
@@ -92,142 +104,6 @@ export default function LandingPage() {
     }
   }, [user, authLoading, authCheckComplete, navigate]);
 
-  const viewport = useMemo(() => ({ once: true, amount: 0.15 }), []);
-
-  const features = useMemo(
-    () => [
-      {
-        icon: Sparkles,
-        title: 'Instant AI Feedback',
-        description:
-          'Master IELTS Writing and Speaking with real-time fixes and band score guidance.',
-        accent: 'bg-gradient-to-br from-primary/10 via-transparent to-transparent',
-      },
-      {
-        icon: BookOpen,
-        title: 'Realistic Mock Tests',
-        description:
-          'Practice with timed Reading and Listening modules that feel like the real exam.',
-        accent: 'bg-gradient-to-br from-indigo-500/10 via-transparent to-transparent',
-      },
-      {
-        icon: BarChart3,
-        title: 'Band Score Analytics',
-        description:
-          'Track your growth and identify exactly where to focus to hit your target score.',
-        accent: 'bg-gradient-to-br from-blue-500/10 via-transparent to-transparent',
-      },
-      {
-        icon: Brain,
-        title: 'AI Study Planner',
-        description:
-          'Get a personalized daily learning roadmap that adapts to your performance levels.',
-        accent: 'bg-gradient-to-br from-violet-500/10 via-transparent to-transparent',
-      },
-      {
-        icon: Trophy,
-        title: 'Consistent Progress',
-        description: 'Stay motivated with daily streaks, badges, and habit-focused learning loops.',
-        accent: 'bg-gradient-to-br from-amber-500/10 via-transparent to-transparent',
-      },
-      {
-        icon: ShieldCheck,
-        title: 'Learn Anytime, Anywhere',
-        description:
-          'Study on any device with a lightning-fast interface designed for maximum focus.',
-        accent: 'bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent',
-      },
-    ],
-
-    []
-  );
-
-  const howItWorks = useMemo(
-    () => [
-      {
-        icon: Target,
-        title: 'Analyze Level',
-        description:
-          'Take a quick diagnostic test to pinpoint the exact sub-skills holding your score back.',
-        accent: 'from-primary/20 via-primary/5 to-transparent',
-      },
-      {
-        icon: Brain,
-        title: 'AI Coaching',
-        description:
-          'Get instant feedback on Writing and Speaking with clear fixes and band score guidance.',
-        accent: 'from-indigo-500/20 via-indigo-500/5 to-transparent',
-      },
-      {
-        icon: Trophy,
-        title: 'Mock Exams',
-        description:
-          'Practice with full-length, exam-real modules to build speed and testing confidence.',
-        accent: 'from-emerald-500/20 via-emerald-500/5 to-transparent',
-      },
-    ],
-
-    []
-  );
-
-  const testimonials = useMemo(
-    () => [
-      {
-        name: 'Amina R.',
-        meta: 'Academic · 6-week sprint',
-        quote:
-          'The IELTS Writing feedback is clear and actionable. I stopped guessing and started improving with intent.',
-        metric: '+1.0 band',
-        icon: Award,
-      },
-      {
-        name: 'Daniel K.',
-        meta: 'General Training · Busy schedule',
-        quote:
-          'The study plan kept me consistent. I always knew the next IELTS task, even with 20 minutes a day.',
-        metric: 'Daily plan',
-        icon: Calendar,
-      },
-      {
-        name: 'Mei L.',
-        meta: 'Academic · Target 7+',
-        quote:
-          'The practice feels like the real IELTS exam. Clean UI, great timing tools, and analytics that help.',
-        metric: 'Exam-ready',
-        icon: BadgeCheck,
-      },
-    ],
-
-    []
-  );
-
-  const faqs = useMemo(
-    () => [
-      {
-        q: 'Are the Cambridge IELTS tests free?',
-        a: 'Yes! All Cambridge IELTS Reading and Listening practice tests are now completely free for all users.',
-      },
-      {
-        q: 'Do I need a subscription for AI feedback?',
-        a: 'While the tests are free, a Pro or Premium subscription is required for deep AI evaluations of your Writing and Speaking sessions.',
-      },
-      {
-        q: 'How fast do I get my AI feedback?',
-        a: 'It’s instantaneous. Our AI models analyze your writing and speaking responses in seconds, providing a detailed breakdown and an estimated band score immediately after you finish your task.',
-      },
-      {
-        q: 'Can I track my band score progress over time?',
-        a: 'Absolutely. Your personal Analytics Dashboard tracks every test and drill you take, visualizing your growth across all four modules and identifying exactly which band descriptors you need to work on.',
-      },
-      {
-        q: 'How does the Speaking AI assess my pronunciation?',
-        a: 'Our advanced speech recognition technology analyzes your recordings for fluency, intonation, and clarity. It follows official IELTS criteria to pinpoint pronunciation errors and suggests specific improvements to hit Band 7+.',
-      },
-    ],
-
-    []
-  );
-
   const handlePrimaryCta = () =>
     navigate(user && !authLoading ? createPageUrl('Dashboard') : createPageUrl('Login'));
   const handlePricing = () => navigate(createPageUrl('Pricing'));
@@ -235,8 +111,8 @@ export default function LandingPage() {
   return (
     <>
       <DocumentHead
-        title="AI IELTS Prep App With Feedback | IELTS Ai Pro"
-        description="Prepare for IELTS with AI writing feedback, speaking practice, realistic mock tests, band score analytics, and personalized study plans for Band 7+ goals."
+        title="AI IELTS Practice, Feedback and Mock Tests | IELTS Ai Pro"
+        description="Practice IELTS Reading, Listening, Writing and Speaking with AI feedback, Cambridge test sets, progress analytics, vocabulary review and an adaptive study plan."
         canonicalUrl="https://www.ieltsai.pro/"
         keywords="AI IELTS preparation, IELTS writing checker, IELTS speaking practice AI, IELTS mock test online, IELTS band score feedback, free IELTS practice tests"
         structuredData={{
@@ -247,7 +123,7 @@ export default function LandingPage() {
           applicationCategory: 'EducationalApplication',
           operatingSystem: 'Web',
           description:
-            'AI-powered IELTS preparation platform with instant writing and speaking feedback, realistic mock tests, and personalized AI coaching.',
+            'Web-based IELTS practice platform with Reading and Listening tests, AI-assisted Writing and Speaking feedback, progress analytics, vocabulary review, and adaptive study planning.',
           datePublished: '2025-10-15',
           dateModified: new Date().toISOString().split('T')[0],
           offers: {
@@ -297,41 +173,12 @@ export default function LandingPage() {
               data-oid="fmlzvda"
             />
 
-            <LazySection minHeight="140px" data-oid="6c:x1jw">
-              <SocialProofSection data-oid="veq7adg" />
-            </LazySection>
-
-            <LazySection id="problem" className="scroll-mt-28" minHeight="650px" data-oid="1njgb:6">
-              <ProblemSection viewport={viewport} data-oid="xs5pnxr" />
-            </LazySection>
-
             <LazySection id="features" className="scroll-mt-28" data-oid="5f-ve:-">
-              <FeaturesSection features={features} viewport={viewport} data-oid="ddzrln_" />
-            </LazySection>
-
-            <LazySection
-              id="showcase"
-              className="scroll-mt-28"
-              minHeight="750px"
-              data-oid="7nlwl3q"
-            >
-              <FeatureShowcase viewport={viewport} data-oid="d2cvnd5" />
-            </LazySection>
-
-            <LazySection id="modules" className="scroll-mt-28" minHeight="600px" data-oid="zc:cj9r">
-              <ModulesSection
-                handlePrimaryCta={handlePrimaryCta}
-                viewport={viewport}
-                data-oid="gixfpcy"
-              />
+              <FeaturesSection viewport={viewport} data-oid="ddzrln_" />
             </LazySection>
 
             <LazySection id="how-it-works" className="scroll-mt-28" data-oid="8.voqxh">
-              <HowItWorksSection howItWorks={howItWorks} viewport={viewport} data-oid="jorp6_8" />
-            </LazySection>
-
-            <LazySection id="results" className="scroll-mt-28" minHeight="400px" data-oid="yyqf3ji">
-              <ResultsSection testimonials={testimonials} viewport={viewport} data-oid="l2bqgtl" />
+              <HowItWorksSection viewport={viewport} data-oid="jorp6_8" />
             </LazySection>
 
             <LazySection id="faq" className="scroll-mt-28" minHeight="300px" data-oid="j:lurzc">
@@ -356,7 +203,7 @@ export default function LandingPage() {
             </LazySection>
           </main>
 
-          <LazySection minHeight="400px" data-oid="2hv100n-wrap">
+          <LazySection minHeight="auto" data-oid="2hv100n-wrap">
             <Footer data-oid="2hv100n" />
           </LazySection>
         </div>

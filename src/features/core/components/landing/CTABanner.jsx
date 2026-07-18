@@ -1,138 +1,128 @@
 import React from 'react';
-import { m } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { ChevronRight, ArrowRight, Star } from 'lucide-react';
+import { m, useReducedMotion } from 'framer-motion';
+import { ArrowRight, Check, ChevronRight, Star } from 'lucide-react';
+import { GlassPanel, SoftSection } from './LandingSection';
+import DashboardMockup from './DashboardMockup';
 
-const studentImages = [
-  'https://images.unsplash.com/photo-1544168190-79c17527004f?w=100&h=100&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1548810020-ea2f1da35cff?w=100&h=100&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1558499932-9609acb6f443?w=100&h=100&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?w=100&h=100&fit=crop&crop=face',
+const learners = [
+  ['A', '#efb5aa'],
+  ['R', '#75a9ed'],
+  ['S', '#9c8de8'],
+  ['K', '#62bc9d'],
 ];
 
 export default function CTABanner({ handlePrimaryCta, handlePricing, viewport }) {
+  const reduceMotion = useReducedMotion();
   return (
-    <section className="py-8 md:py-12 relative overflow-hidden bg-background" data-oid="xomhbcx">
-      <div className="mx-auto max-w-7xl px-4 relative z-10" data-oid="-2f4mf.">
+    <SoftSection className="py-12 md:py-16">
+      <div className="relative z-10 mx-auto max-w-7xl px-5 md:px-8">
         <m.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewport}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="relative overflow-hidden rounded-[1.5rem] bg-zinc-900 dark:bg-card border border-white/10 px-6 py-12 md:px-12 md:py-16 text-center shadow-2xl"
-          data-oid="5hdv84j"
         >
-          {/* Background Glows */}
-          <div className="absolute inset-0 z-0 pointer-events-none" data-oid="uw9mn2l">
-            <div
-              className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[600px] h-[300px] bg-primary/20 blur-[100px] opacity-50 rounded-full"
-              data-oid="14_mmce"
-            />
+          <GlassPanel className="relative overflow-hidden rounded-[32px] px-6 py-10 md:px-12 md:py-12 lg:px-14 lg:py-12 text-left">
+            <div className="pointer-events-none absolute -left-28 -top-28 h-80 w-80 rounded-full bg-[#bdf2e5]/40 blur-[90px]" />
+            <div className="pointer-events-none absolute -bottom-32 right-[-3rem] h-96 w-96 rounded-full bg-[#cfd6ff]/50 blur-[90px]" />
 
-            <div
-              className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-indigo-500/10 blur-[80px] opacity-30 rounded-full"
-              data-oid="o28t5g3"
-            />
-          </div>
-
-          <div className="relative z-10 mx-auto" data-oid="si6-4_1">
-            {/* Trust Badge with Real Avatars */}
-            <m.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-              className="inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-4 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6 backdrop-blur-sm shadow-inner shadow-white/5"
-              data-oid=":vlgst2"
-            >
-              <div className="flex -space-x-2" data-oid="37:ikkt">
-                {studentImages.map((src, i) => (
-                  <div
-                    key={i}
-                    className="h-6 w-6 rounded-full ring-2 ring-zinc-900 bg-zinc-800 overflow-hidden"
-                    data-oid="xpmxja."
-                  >
-                    <img
-                      src={src}
-                      alt="IELTS AI Pro Learner"
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                      width="24"
-                      height="24"
-                      data-oid="ud81c:q"
-                    />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+              {/* Left Column: Content */}
+              <div className="lg:col-span-7 flex flex-col items-start">
+                <div className="inline-flex items-center gap-3 rounded-full border border-white bg-white/65 px-4 py-2 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
+                  <div className="flex -space-x-2">
+                    {learners.map(([letter, color]) => (
+                      <span
+                        key={letter}
+                        className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-[10px] font-black text-white"
+                        style={{ backgroundColor: color }}
+                      >
+                        {letter}
+                      </span>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-2" data-oid=".006gft">
-                <span
-                  className="text-[10px] font-bold uppercase tracking-widest text-zinc-200"
-                  data-oid="3-:1r1-"
-                >
-                  Trusted by IELTS learners worldwide
-                </span>
-                <div className="flex gap-0.5" data-oid="4v.9kzy">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star
-                      key={i}
-                      className="h-2.5 w-2.5 fill-primary text-primary"
-                      data-oid="9jv.w-h"
-                    />
-                  ))}
+                  <span className="text-[10px] font-extrabold uppercase tracking-[.13em] text-[#42506a] dark:text-slate-200">
+                    Trusted by 10,000+ learners
+                  </span>
+                  <span className="hidden gap-0.5 text-amber-400 sm:flex">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star key={i} className="h-3 w-3 fill-current" />
+                    ))}
+                  </span>
+                </div>
+
+                <h2 className="mt-5 text-balance text-[clamp(2.1rem,4.5vw,3.6rem)] font-black leading-[1.02] tracking-[-.05em] text-[#07142f] dark:text-white">
+                  Your target band is{' '}
+                  <span
+                    className="font-normal tracking-[-.035em] text-[#5262ef] block sm:inline-block"
+                    style={{
+                      fontFamily: "'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive",
+                    }}
+                  >
+                    closer than you think.
+                  </span>
+                </h2>
+
+                <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-[#5b687d] dark:text-slate-300">
+                  Start with a free band assessment, get clear AI feedback, and follow a plan built
+                  around the score you want.
+                </p>
+
+                <div className="mt-6 flex flex-col items-center justify-start gap-3 sm:flex-row w-full sm:w-auto">
+                  <button
+                    onClick={handlePrimaryCta}
+                    className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-[12px] bg-gradient-to-r from-[#2468ed] to-[#6658ef] px-6 text-xs font-extrabold text-white shadow-[0_12px_24px_-12px_rgba(61,83,225,.6)] transition hover:-translate-y-0.5 sm:w-auto"
+                  >
+                    Start free test <ArrowRight className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={handlePricing}
+                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-[12px] border border-[#d7dfed] bg-white/70 px-6 text-xs font-extrabold text-[#17233e] shadow-sm transition hover:-translate-y-0.5 hover:border-[#5262ef] dark:border-white/10 dark:bg-white/5 dark:text-white sm:w-auto"
+                  >
+                    Explore plans <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <div className="mt-6 flex flex-wrap items-center justify-start gap-x-5 gap-y-2 text-[10px] font-bold text-[#68758a]">
+                  {['No credit card required', 'Instant band assessment', 'Cancel anytime'].map(
+                    (item) => (
+                      <span key={item} className="flex items-center gap-1.5">
+                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#e8f8f2] text-[#218b75]">
+                          <Check className="h-2 w-2" />
+                        </span>
+                        {item}
+                      </span>
+                    )
+                  )}
                 </div>
               </div>
-            </m.div>
 
-            {/* Main Heading */}
-            <h2
-              className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white mb-6 leading-[1.1]"
-              data-oid="0kzghms"
-            >
-              Stop guessing. <br data-oid=":ya6rnp" />
-              <span className="text-primary" data-oid="nlu4yvx">
-                Start succeeding.
-              </span>
-            </h2>
+              {/* Right Column: Visual Mockup & Floating Card */}
+              <div className="lg:col-span-5 relative w-full lg:flex items-center justify-center hidden">
+                <div className="w-full max-w-[420px] scale-[0.82] xl:scale-[0.9] origin-right transition-transform duration-500 hover:scale-[0.85] xl:hover:scale-[0.93]">
+                  <DashboardMockup />
+                </div>
 
-            <p
-              className="text-sm md:text-base font-medium text-zinc-400 mb-8 max-w-xl mx-auto leading-relaxed"
-              data-oid="5m2ux0z"
-            >
-              Get AI-driven IELTS feedback, real-time analytics, and a study plan that targets your
-              band score goals.
-            </p>
-
-            {/* Buttons */}
-            <div
-              className="flex flex-col sm:flex-row gap-3 justify-center items-center w-full max-w-sm mx-auto sm:max-w-none"
-              data-oid="hi1abu7"
-            >
-              <Button
-                className="h-11 px-8 rounded-xl font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 w-full sm:w-auto transition-all hover:scale-105"
-                onClick={handlePrimaryCta}
-                data-oid="cxluzm."
-              >
-                Try Free Now <ArrowRight className="ml-2 h-4 w-4" data-oid="58e6qbc" />
-              </Button>
-              <Button
-                variant="secondary"
-                className="h-11 px-8 rounded-xl font-bold text-sm bg-white text-zinc-900 hover:bg-zinc-100 w-full sm:w-auto transition-all hover:scale-105"
-                onClick={handlePricing}
-                data-oid="v.4.7oa"
-              >
-                Explore IELTS Plans{' '}
-                <ChevronRight className="ml-1 h-4 w-4 text-zinc-400" data-oid="c6_53h2" />
-              </Button>
+                <m.div
+                  animate={reduceMotion ? {} : { y: [0, -6, 0], x: [0, 2, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute -left-4 bottom-4 p-3 rounded-2xl bg-white/95 dark:bg-[#070b17]/95 border border-white/50 dark:border-white/10 shadow-xl backdrop-blur-md flex items-center gap-3 w-fit scale-[0.85]"
+                >
+                  <img
+                    src="/ielts-hero-student.webp"
+                    alt="Student practicing"
+                    className="w-10 h-10 rounded-xl object-cover border border-white/20 shadow-inner"
+                  />
+                  <div>
+                    <p className="text-[10px] font-black text-[#07142f] dark:text-white">Rayan</p>
+                    <p className="text-[8px] font-bold text-emerald-500">Writing Band 8.0</p>
+                  </div>
+                </m.div>
+              </div>
             </div>
-
-            <p
-              className="mt-6 text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400"
-              data-oid="xglwxaj"
-            >
-              Free Band Assessment · No Credit Card Required
-            </p>
-          </div>
+          </GlassPanel>
         </m.div>
       </div>
-    </section>
+    </SoftSection>
   );
 }

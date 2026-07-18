@@ -1,12 +1,12 @@
 import React, { memo } from 'react';
-import { m } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
+import { m, useReducedMotion } from 'framer-motion';
 import { Star } from 'lucide-react';
+import { SectionHeading, SoftSection } from './LandingSection';
 
 function QuoteCard({ name, meta, quote, metric, icon: Icon }) {
   return (
     <div
-      className="w-[350px] md:w-[400px] shrink-0 glass-card-premium rounded-2xl p-8 hover-lift group border border-border/50 bg-white/70 dark:bg-slate-900/60 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 mx-4"
+      className="relative mx-3 w-[330px] shrink-0 overflow-hidden rounded-[24px] border border-white/90 bg-white/[0.74] p-7 shadow-[0_24px_60px_-36px_rgba(31,52,106,.42)] backdrop-blur-2xl transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_30px_70px_-34px_rgba(63,81,181,.45)] dark:border-white/10 dark:bg-white/[.055] md:w-[390px]"
       data-oid="dbnqo2p"
     >
       <div
@@ -54,6 +54,7 @@ function QuoteCard({ name, meta, quote, metric, icon: Icon }) {
 }
 
 function ResultsSection({ testimonials, viewport }) {
+  const reduceMotion = useReducedMotion();
   // Duplicate array for an infinitely scrolling marquee effect
   const duplicatedTestimonials = [
     ...testimonials,
@@ -63,9 +64,9 @@ function ResultsSection({ testimonials, viewport }) {
   ];
 
   return (
-    <section
+    <SoftSection
       id="results"
-      className="scroll-mt-24 py-16 md:py-24 relative overflow-hidden bg-white/40 dark:bg-[#0f1115]/30 border-y border-border/40"
+      className="scroll-mt-24 border-y border-[#e9eef8]/70"
       data-oid="gzcdor9"
     >
       {/* Background Decoration */}
@@ -74,39 +75,14 @@ function ResultsSection({ testimonials, viewport }) {
         data-oid=":624unr"
       />
 
-      <div className="mx-auto max-w-7xl px-6 relative z-10 mb-12 lg:mb-16" data-oid="b649gwu">
-        <m.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
+      <div className="relative z-10 mx-auto mb-12 max-w-7xl px-6 lg:mb-16" data-oid="b649gwu">
+        <SectionHeading
+          eyebrow="IELTS success stories"
+          title="Real progress from"
+          script="real learners."
+          description="Join learners who turned focused practice and clear feedback into the band score they needed."
           viewport={viewport}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center max-w-3xl mx-auto"
-          data-oid="0oxzxh_"
-        >
-          <Badge
-            variant="secondary"
-            className="rounded-full bg-primary/10 dark:bg-primary/20 text-blue-700 dark:text-primary-foreground border-primary/20 dark:border-primary/30 px-5 py-2 text-[11px] font-black uppercase tracking-widest mb-6 shadow-sm"
-            data-oid="e5p607_"
-          >
-            IELTS Success Stories
-          </Badge>
-          <h2 className="text-4xl md:text-5xl font-black tracking-tighter" data-oid="_ef-5cw">
-            Real results from <br className="md:hidden" />
-            <span
-              className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-500"
-              data-oid="a5_xyz9"
-            >
-              IELTS Learners
-            </span>
-          </h2>
-          <p
-            className="mt-6 text-lg font-medium text-muted-foreground max-w-2xl mx-auto"
-            data-oid="c.gyzpg"
-          >
-            Join thousands of learners who fast-tracked their IELTS preparation and secured their
-            target band scores.
-          </p>
-        </m.div>
+        />
       </div>
 
       {/* Infinite Scrolling Marquee */}
@@ -119,7 +95,7 @@ function ResultsSection({ testimonials, viewport }) {
         {/* Row 1: Scroll Left */}
         <m.div
           className="flex w-max"
-          animate={{ x: ['0%', '-50%'] }}
+          animate={reduceMotion ? {} : { x: ['0%', '-50%'] }}
           transition={{
             repeat: Infinity,
             repeatType: 'loop',
@@ -135,7 +111,7 @@ function ResultsSection({ testimonials, viewport }) {
         {/* Row 2: Scroll Right (reverse) */}
         <m.div
           className="flex w-max"
-          animate={{ x: ['-50%', '0%'] }}
+          animate={reduceMotion ? {} : { x: ['-50%', '0%'] }}
           transition={{
             repeat: Infinity,
             repeatType: 'loop',
@@ -148,7 +124,7 @@ function ResultsSection({ testimonials, viewport }) {
           ))}
         </m.div>
       </div>
-    </section>
+    </SoftSection>
   );
 }
 

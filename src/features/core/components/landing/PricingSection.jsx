@@ -8,6 +8,7 @@ import { cn } from '@/lib/cn';
 import { SystemSetting } from '@/features/admin/services/SystemSetting';
 import { detectLocation, getPriceData, calculatePrice } from '@/lib/pricingUtils';
 import { fetchAllTierLimits, generateFeatureStrings } from '@/lib/tierLimitsUtils';
+import { SectionHeading, SoftSection } from './LandingSection';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -201,16 +202,25 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
   };
 
   return (
-    <section
+    <SoftSection
       ref={sectionRef}
       id="pricing"
-      className="scroll-mt-24 py-8 md:py-12 relative bg-muted/30 dark:bg-muted/10 border-t border-border overflow-hidden"
+      className="scroll-mt-24 border-t border-[#e9eef8]/70"
     >
       {/* Background Decorations */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -z-10" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[100px] -z-10" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="mb-10">
+          <SectionHeading
+            eyebrow="Pricing plans"
+            title="Invest in your"
+            script="future success."
+            description="Choose the plan that fits your target and unlock focused, examiner-level feedback."
+            viewport={viewport}
+          />
+        </div>
         <m.div
           initial="hidden"
           whileInView="show"
@@ -218,22 +228,8 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
           variants={containerVariants}
           className="text-center mb-10"
         >
-          <Badge
-            variant="secondary"
-            className="rounded-full bg-primary/10 dark:bg-primary/20 text-blue-900 dark:text-primary-foreground border-primary/20 dark:border-primary/30 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest mb-6"
-          >
-            Pricing Plans
-          </Badge>
-          <m.h2 variants={itemVariants} className="heading-lg">
-            Invest in your <span className="text-gradient-primary">Future Success</span>
-          </m.h2>
-          <m.p variants={itemVariants} className="body-lg max-w-2xl mx-auto mb-8">
-            Choose the roadmap that fits your band score target. Unlock examiner-level feedback and
-            start practicing with intent.
-          </m.p>
-
           <m.div variants={itemVariants} className="flex flex-col items-center gap-4">
-            <div className="flex items-center p-1.5 bg-white dark:bg-zinc-900 rounded-full border border-border shadow-xl backdrop-blur-md">
+            <div className="flex items-center rounded-full border border-white/90 bg-white/[.72] p-1.5 shadow-[0_14px_35px_-24px_rgba(31,52,106,.5)] backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
               <button
                 onClick={() => setBillingCycle('monthly')}
                 className={cn(
@@ -280,10 +276,10 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
                     viewport={viewport}
                     variants={itemVariants}
                     transition={{ delay: i * 0.1 }}
-                    className={`relative group flex flex-col h-full rounded-2xl p-8 border transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl ${
+                    className={`relative group flex flex-col h-full rounded-[28px] p-8 border backdrop-blur-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl ${
                       plan.popular
-                        ? 'bg-white dark:bg-card border-primary/40 ring-2 ring-primary/30 shadow-[0_50px_100px_-20px_rgba(59,130,246,0.4)] md:-translate-y-4 z-20 hover:shadow-primary/40'
-                        : 'glass-card-premium border-border dark:border-white/5 hover:border-primary/30 hover:shadow-primary/10'
+                        ? 'bg-white/90 dark:bg-white/10 border-[#5262ef]/40 ring-2 ring-[#5262ef]/20 shadow-[0_45px_90px_-35px_rgba(82,98,239,.45)] md:-translate-y-4 z-20 hover:shadow-primary/40'
+                        : 'border-white/90 bg-white/[.68] dark:border-white/10 dark:bg-white/[.055] hover:border-primary/30 hover:shadow-primary/10'
                     }`}
                   >
                     {/* Background animated glow for popular plan */}
@@ -389,6 +385,6 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
           )}
         </div>
       </div>
-    </section>
+    </SoftSection>
   );
 }

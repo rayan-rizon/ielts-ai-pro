@@ -1,12 +1,12 @@
 import React, { memo } from 'react';
 import { m } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { SectionHeading, SoftSection } from './LandingSection';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -23,34 +23,16 @@ const itemVariants = {
 
 function FAQSection({ faqs, viewport }) {
   return (
-    <section
-      id="faq"
-      className="scroll-mt-24 py-8 md:py-12 relative overflow-hidden bg-background"
-      data-oid="_3z_paz"
-    >
+    <SoftSection id="faq" className="scroll-mt-24" data-oid="_3z_paz">
       <div className="mx-auto max-w-3xl px-6" data-oid="f03zlwo">
-        <m.div
-          initial="hidden"
-          whileInView="show"
+        <SectionHeading
+          eyebrow="Questions, answered"
+          title="Everything you need to"
+          script="start confidently."
+          description="Clear answers about the platform, feedback, and your IELTS preparation."
           viewport={viewport}
-          variants={containerVariants}
-          className="mb-10 text-center"
-          data-oid="7_qn-lf"
-        >
-          <Badge
-            variant="secondary"
-            className="rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-foreground border-primary/20 dark:border-primary/30 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest mb-4"
-            data-oid="duol0pg"
-          >
-            FAQ
-          </Badge>
-          <m.h2 variants={itemVariants} className="heading-lg" data-oid="uv9i7d0">
-            Frequently Asked{' '}
-            <span className="text-gradient-primary" data-oid="c4rdhlo">
-              Questions
-            </span>
-          </m.h2>
-        </m.div>
+          className="mb-12"
+        />
 
         <m.div
           initial="hidden"
@@ -65,7 +47,7 @@ function FAQSection({ faqs, viewport }) {
               <Accordion type="single" collapsible className="w-full" data-oid="j369p:y">
                 <AccordionItem
                   value={`item-${idx}`}
-                  className="border-border bg-card/80 dark:bg-card/60 backdrop-blur-xl px-5 rounded-2xl overflow-hidden shadow-sm"
+                  className="overflow-hidden rounded-[20px] border border-white/90 bg-white/[0.74] px-6 shadow-[0_18px_45px_-34px_rgba(31,52,106,.45)] backdrop-blur-2xl dark:border-white/10 dark:bg-white/[.055]"
                   data-oid="hevmppg"
                 >
                   <AccordionTrigger
@@ -86,7 +68,7 @@ function FAQSection({ faqs, viewport }) {
           ))}
         </m.div>
       </div>
-    </section>
+    </SoftSection>
   );
 }
 
