@@ -23,10 +23,6 @@ const CTABanner = lazy(() => import('@/features/core/components/landing/CTABanne
 const ComparisonSection = lazy(
   () => import('@/features/core/components/landing/ComparisonSection')
 );
-const BandCalculatorSection = lazy(
-  () => import('@/features/core/components/landing/BandCalculatorSection')
-);
-
 const viewport = { once: true, amount: 0.12 };
 
 const faqs = [
@@ -111,14 +107,21 @@ export default function LandingPage() {
   }, [user, authLoading, authCheckComplete, navigate]);
 
   const handlePrimaryCta = () =>
-    navigate(user && !authLoading ? createPageUrl('Dashboard') : createPageUrl('Login'));
-  const handlePricing = () => navigate(createPageUrl('Pricing'));
+    navigate(user && !authLoading ? createPageUrl('Dashboard') : createPageUrl('SignUp'));
+  const handlePricing = () => {
+    // /pricing is auth-gated; anonymous visitors compare plans on the landing page itself
+    if (user && !authLoading) {
+      navigate(createPageUrl('Pricing'));
+      return;
+    }
+    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <>
       <DocumentHead
-        title="AI IELTS Practice, Feedback and Mock Tests | IELTS Ai Pro"
-        description="Practice IELTS Reading, Listening, Writing and Speaking with AI feedback, Cambridge test sets, progress analytics, vocabulary review and an adaptive study plan."
+        title="Free AI IELTS Practice, Band Scores & Mock Tests | IELTS Ai Pro"
+        description="Get instant AI band scores for IELTS Writing & Speaking, plus free Cambridge-style Reading and Listening mock tests. Track progress and start free today."
         canonicalUrl="https://www.ieltsai.pro/"
         keywords="AI IELTS preparation, IELTS writing checker, IELTS speaking practice AI, IELTS mock test online, IELTS band score feedback, free IELTS practice tests"
         structuredData={{
@@ -185,10 +188,6 @@ export default function LandingPage() {
 
             <LazySection id="how-it-works" className="scroll-mt-28" data-oid="8.voqxh">
               <HowItWorksSection viewport={viewport} data-oid="jorp6_8" />
-            </LazySection>
-
-            <LazySection id="calculator" className="scroll-mt-28">
-              <BandCalculatorSection handlePrimaryCta={handlePrimaryCta} viewport={viewport} />
             </LazySection>
 
             <LazySection id="comparison" className="scroll-mt-28">

@@ -3,14 +3,197 @@ import path from 'node:path';
 
 const siteUrl = 'https://www.ieltsai.pro';
 const publicDir = path.resolve(process.cwd(), 'public');
-const updated = '2026-06-19';
+const updated = '2026-07-18';
 
 const navLinks = [
   ['IELTS Writing Checker', '/ielts-writing-checker'],
   ['IELTS Speaking Practice', '/ielts-speaking-practice-ai'],
   ['IELTS Mock Test', '/ielts-mock-test-online'],
+  ['Band Score Calculator', '/ielts-band-score-calculator'],
   ['AI IELTS Prep', '/ai-ielts-preparation'],
 ];
+
+// --- IELTS band score calculator page (interactive widget + conversion tables) ---
+
+const bandOptions = Array.from({ length: 13 }, (_, i) => (9 - i * 0.5).toFixed(1));
+
+const calculatorCss = `
+    .calc{background:#fff;border:1px solid var(--line);border-radius:8px;padding:24px;margin-top:32px}
+    .calc h2{margin-top:0}
+    .calc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}
+    .calc-grid label{display:block;font-weight:800;font-size:13px;margin-bottom:6px;color:var(--ink)}
+    .calc select,.calc input[type=number]{width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:16px;background:#fff;color:var(--ink)}
+    .calc-result{margin-top:8px;padding:18px;border-radius:8px;background:var(--soft);display:flex;flex-wrap:wrap;gap:18px;align-items:center}
+    .calc-band{font-size:44px;font-weight:900;color:var(--brand);line-height:1}
+    .calc-meta{flex:1;min-width:220px}
+    .calc-meta b{display:block;font-size:16px;color:var(--ink)}
+    .calc-meta p{margin:4px 0 0;font-size:14px}
+    .conv-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:18px 0}
+    table{width:100%;border-collapse:collapse;font-size:15px}
+    th,td{border:1px solid var(--line);padding:8px 10px;text-align:center;color:var(--muted)}
+    th{background:var(--soft);color:var(--ink);font-weight:800}
+    caption{caption-side:top;font-weight:800;color:var(--ink);padding:6px 0;text-align:left}
+    @media (max-width:760px){.calc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.conv-row{grid-template-columns:1fr}}
+`;
+
+const conversionTables = {
+  listening: [
+    ['39–40', '9.0'],
+    ['37–38', '8.5'],
+    ['35–36', '8.0'],
+    ['32–34', '7.5'],
+    ['30–31', '7.0'],
+    ['26–29', '6.5'],
+    ['23–25', '6.0'],
+    ['18–22', '5.5'],
+    ['16–17', '5.0'],
+    ['13–15', '4.5'],
+    ['10–12', '4.0'],
+  ],
+  readingAcademic: [
+    ['39–40', '9.0'],
+    ['37–38', '8.5'],
+    ['35–36', '8.0'],
+    ['33–34', '7.5'],
+    ['30–32', '7.0'],
+    ['27–29', '6.5'],
+    ['23–26', '6.0'],
+    ['19–22', '5.5'],
+    ['15–18', '5.0'],
+    ['13–14', '4.5'],
+    ['10–12', '4.0'],
+  ],
+  readingGeneral: [
+    ['40', '9.0'],
+    ['39', '8.5'],
+    ['37–38', '8.0'],
+    ['36', '7.5'],
+    ['34–35', '7.0'],
+    ['32–33', '6.5'],
+    ['30–31', '6.0'],
+    ['27–29', '5.5'],
+    ['23–26', '5.0'],
+    ['19–22', '4.5'],
+    ['15–18', '4.0'],
+  ],
+};
+
+function renderConversionTable(caption, rows) {
+  return `<table>
+        <caption>${escapeHtml(caption)}</caption>
+        <thead><tr><th scope="col">Correct answers (out of 40)</th><th scope="col">Band score</th></tr></thead>
+        <tbody>${rows.map(([raw, band]) => `<tr><td>${raw}</td><td>${band}</td></tr>`).join('')}</tbody>
+      </table>`;
+}
+
+const calculatorWidgetHtml = `
+    <section class="calc" aria-label="Overall IELTS band score calculator">
+      <h2>Calculate your overall IELTS band score</h2>
+      <p>Select your band for each skill. The overall band is the average of the four scores, rounded to the nearest half band using the official IELTS rounding rules.</p>
+      <div class="calc-grid">
+        ${['Listening', 'Reading', 'Writing', 'Speaking']
+          .map(
+            (skill) => `<div>
+          <label for="calc-${skill.toLowerCase()}">${skill}</label>
+          <select id="calc-${skill.toLowerCase()}">
+            ${bandOptions.map((b) => `<option value="${b}"${b === '6.5' ? ' selected' : ''}>${b}</option>`).join('')}
+          </select>
+        </div>`
+          )
+          .join('')}
+      </div>
+      <div class="calc-result" aria-live="polite">
+        <span class="calc-band" id="calc-overall">6.5</span>
+        <div class="calc-meta">
+          <b id="calc-level">Competent User</b>
+          <p id="calc-advice">You have a generally effective command of the language despite some inaccuracies.</p>
+        </div>
+      </div>
+    </section>
+    <section class="calc" aria-label="Raw score to band converter">
+      <h2>Convert raw scores to IELTS bands</h2>
+      <p>Enter how many answers you got correct out of 40 in a Listening or Reading practice test to see the equivalent band score.</p>
+      <div class="calc-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+        <div>
+          <label for="conv-test">Test section</label>
+          <select id="conv-test">
+            <option value="listening">Listening</option>
+            <option value="readingAcademic">Reading (Academic)</option>
+            <option value="readingGeneral">Reading (General Training)</option>
+          </select>
+        </div>
+        <div>
+          <label for="conv-raw">Correct answers (0–40)</label>
+          <input type="number" id="conv-raw" min="0" max="40" value="30" inputmode="numeric" />
+        </div>
+      </div>
+      <div class="calc-result" aria-live="polite">
+        <span class="calc-band" id="conv-band">7.0</span>
+        <div class="calc-meta">
+          <b>Estimated band score</b>
+          <p>Conversion tables are typical values; exact thresholds can vary slightly between test versions.</p>
+        </div>
+      </div>
+      <div class="conv-row">
+        ${renderConversionTable('IELTS Listening: raw score to band score', conversionTables.listening)}
+        ${renderConversionTable('IELTS Reading (Academic): raw score to band score', conversionTables.readingAcademic)}
+      </div>
+      <div class="conv-row">
+        ${renderConversionTable('IELTS Reading (General Training): raw score to band score', conversionTables.readingGeneral)}
+      </div>
+    </section>`;
+
+const calculatorScript = `
+(function () {
+  var levels = [
+    [8.0, 'Expert User', 'You have a fully operational command of the language. Keep skills sharp with full-length mock tests.'],
+    [7.0, 'Good User', 'You have an operational command of the language with occasional inaccuracies. Around 40-60 hours of focused practice keeps you at peak.'],
+    [6.0, 'Competent User', 'You have a generally effective command of the language despite some inaccuracies. This is the typical Band 6.5 bottleneck - target Writing and Speaking.'],
+    [0, 'Modest User', 'You have a partial command of the language. Build core grammar, sentence structure, and vocabulary before full mock tests.']
+  ];
+  var ids = ['calc-listening', 'calc-reading', 'calc-writing', 'calc-speaking'];
+  function updateOverall() {
+    var sum = 0;
+    ids.forEach(function (id) { sum += parseFloat(document.getElementById(id).value); });
+    var overall = Math.round((sum / 4) * 2) / 2;
+    document.getElementById('calc-overall').textContent = overall.toFixed(1);
+    for (var i = 0; i < levels.length; i++) {
+      if (overall >= levels[i][0]) {
+        document.getElementById('calc-level').textContent = levels[i][1];
+        document.getElementById('calc-advice').textContent = levels[i][2];
+        break;
+      }
+    }
+  }
+  ids.forEach(function (id) { document.getElementById(id).addEventListener('change', updateOverall); });
+  updateOverall();
+
+  var bands = ${JSON.stringify({
+    listening: [
+      [39, 9], [37, 8.5], [35, 8], [32, 7.5], [30, 7], [26, 6.5], [23, 6], [18, 5.5], [16, 5], [13, 4.5], [10, 4], [0, 3.5],
+    ],
+    readingAcademic: [
+      [39, 9], [37, 8.5], [35, 8], [33, 7.5], [30, 7], [27, 6.5], [23, 6], [19, 5.5], [15, 5], [13, 4.5], [10, 4], [0, 3.5],
+    ],
+    readingGeneral: [
+      [40, 9], [39, 8.5], [37, 8], [36, 7.5], [34, 7], [32, 6.5], [30, 6], [27, 5.5], [23, 5], [19, 4.5], [15, 4], [0, 3.5],
+    ],
+  })};
+  function updateConversion() {
+    var test = document.getElementById('conv-test').value;
+    var raw = Math.max(0, Math.min(40, parseInt(document.getElementById('conv-raw').value, 10) || 0));
+    var table = bands[test];
+    var band = 3.5;
+    for (var i = 0; i < table.length; i++) {
+      if (raw >= table[i][0]) { band = table[i][1]; break; }
+    }
+    document.getElementById('conv-band').textContent = band.toFixed(1);
+  }
+  document.getElementById('conv-test').addEventListener('change', updateConversion);
+  document.getElementById('conv-raw').addEventListener('input', updateConversion);
+  updateConversion();
+})();
+`;
 
 const keywordPages = [
   {
@@ -293,6 +476,53 @@ const keywordPages = [
       ],
     ],
   },
+  {
+    slug: 'ielts-band-score-calculator',
+    title: 'IELTS Band Score Calculator (Overall + Raw Score)',
+    description:
+      'Free IELTS band score calculator: get your overall band from Listening, Reading, Writing and Speaking scores, plus raw score to band conversion tables.',
+    keyword: 'IELTS band score calculator',
+    h1: 'IELTS Band Score Calculator',
+    intro:
+      'Work out your overall IELTS band score from your four skill scores, and convert Listening and Reading raw scores (out of 40) into band scores with the official rounding rules.',
+    bullets: [
+      'Overall band score from Listening, Reading, Writing and Speaking',
+      'Official IELTS rounding rules (.25 rounds up to .5, .75 rounds up)',
+      'Listening and Reading raw score to band conversion tables',
+      'Study recommendations based on your estimated level',
+    ],
+    widgetHtml: calculatorWidgetHtml,
+    extraCss: calculatorCss,
+    script: calculatorScript,
+    sections: [
+      [
+        'How the overall IELTS band score is calculated',
+        'Your overall band is the average of your Listening, Reading, Writing and Speaking bands, rounded to the nearest whole or half band. If the average ends in .25 it rounds up to the next half band, and if it ends in .75 it rounds up to the next whole band. For example, 6.5 + 6.5 + 6.0 + 6.0 gives an average of 6.25, which becomes an overall band of 6.5.',
+      ],
+      [
+        'How Listening and Reading are scored',
+        'Listening and Reading each have 40 questions worth one mark each, with no penalty for wrong answers. Your raw score out of 40 is converted to a band score. Academic and General Training use the same Listening conversion, but General Training Reading requires more correct answers for the same band.',
+      ],
+    ],
+    faqs: [
+      [
+        'How is the overall IELTS band score calculated?',
+        'The overall band is the average of the four skill bands rounded to the nearest half band: an average of 6.25 rounds up to 6.5, and 6.75 rounds up to 7.0. An average of 6.125 rounds down to 6.0.',
+      ],
+      [
+        'How many correct answers do I need for Band 7 in Listening?',
+        'Typically 30-31 correct answers out of 40 in IELTS Listening gives Band 7.0. For Academic Reading it is usually 30-32, and for General Training Reading around 34-35. Exact thresholds vary slightly between test versions.',
+      ],
+      [
+        'Is this IELTS band score calculator official?',
+        'No. It uses the published IELTS averaging rules and typical raw-score conversion tables for practice estimation. Official scores come only from authorized IELTS test providers.',
+      ],
+      [
+        'How are Writing and Speaking band scores decided?',
+        'Examiners score Writing and Speaking against four criteria each, awarding a band for every criterion; the skill band is the average. On IELTS Ai Pro you can practice both skills and get AI feedback organized around the same criteria.',
+      ],
+    ],
+  },
 ];
 
 const utilityPages = [
@@ -566,7 +796,7 @@ function renderPage(page) {
   <script type="application/ld+json">${jsonLd(softwareSchema)}</script>
   <script type="application/ld+json">${jsonLd(faqSchema)}</script>
   <script type="application/ld+json">${jsonLd(breadcrumbSchema)}</script>
-  <style>${PAGE_CSS}</style>
+  <style>${PAGE_CSS}${page.extraCss || ''}</style>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -598,6 +828,7 @@ function renderPage(page) {
         </ul>
       </aside>
     </section>
+    ${page.widgetHtml || ''}
     <div class="grid">
       ${page.sections
         .map(
@@ -636,6 +867,7 @@ function renderPage(page) {
     <p><a href="/privacy">Privacy Policy</a> · <a href="/terms">Terms of Service</a> · <a href="/contact">Contact</a></p>
     <p>Updated ${updated}. © 2026 IELTS Ai Pro.</p>
   </footer>
+  ${page.script ? `<script>${page.script}</script>` : ''}
 </body>
 </html>
 `;
@@ -682,6 +914,7 @@ Allow: /cambridge-ielts-practice-tests
 Allow: /free-ielts-practice-tests
 Allow: /ai-ielts-preparation
 Allow: /ielts-band-score-feedback
+Allow: /ielts-band-score-calculator
 
 # Private/authenticated routes
 Disallow: /dashboard/
@@ -710,6 +943,12 @@ Sitemap: ${siteUrl}/sitemap.xml
 
 # AI Training Signal (standard-compliant comment)
 # Content-Signal: search=yes,ai-train=no
+
+# AI answer engines (AEO): OAI-SearchBot, ChatGPT-User, PerplexityBot,
+# ClaudeBot, Claude-SearchBot, Google-Extended and other answer/search
+# crawlers are intentionally covered by the permissive "User-agent: *"
+# group above so the site can be cited in AI search results.
+# LLM-friendly site summary: ${siteUrl}/llms.txt
 `;
 }
 

@@ -17,6 +17,7 @@ const footerLinks = {
     { label: 'IELTS mock tests online', href: '/ielts-mock-test-online' },
   ],
   Resources: [
+    { label: 'IELTS band score calculator', href: '/ielts-band-score-calculator' },
     { label: 'Cambridge IELTS practice', href: '/cambridge-ielts-practice-tests' },
     { label: 'IELTS band score feedback', href: '/ielts-band-score-feedback' },
     { label: 'AI IELTS preparation', href: '/ai-ielts-preparation' },
@@ -62,6 +63,7 @@ function FooterLink({ href, children }) {
     '/ielts-mock-test-online',
     '/cambridge-ielts-practice-tests',
     '/ielts-band-score-feedback',
+    '/ielts-band-score-calculator',
     '/ai-ielts-preparation',
   ].includes(href);
 

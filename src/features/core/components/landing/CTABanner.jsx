@@ -58,7 +58,7 @@ export default function CTABanner({ handlePrimaryCta, viewport }) {
                 </span>
 
                 <h2 className="mt-6 text-balance text-[clamp(2.2rem,3.65vw,3.65rem)] font-black leading-[1.02] tracking-[-.055em] text-[#07142f] dark:text-white">
-                  <span className="block md:whitespace-nowrap">Your Best Score is</span>
+                  <span className="block md:whitespace-nowrap">Your Best IELTS Score is</span>
                   <span className="relative inline-block font-handwritten mt-2 bg-gradient-to-r from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text pb-3 text-[1.02em] leading-[1.08] tracking-[-.025em] text-transparent xl:whitespace-nowrap xl:text-[.9em] 2xl:text-[1em]">
                     One Click Away!
                     <svg

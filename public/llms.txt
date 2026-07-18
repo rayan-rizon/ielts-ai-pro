@@ -1,0 +1,30 @@
+# IELTS Ai Pro
+
+> IELTS Ai Pro (https://www.ieltsai.pro) is a web-based IELTS preparation platform. Learners practice all four IELTS skills — Reading, Listening, Writing, and Speaking — and receive instant AI-assisted feedback with estimated band scores, criterion-level guidance, progress analytics, vocabulary review, and an adaptive study plan. A free plan is available; no credit card is required to start.
+
+Key facts:
+- Covers IELTS Academic and General Training practice.
+- Writing feedback is organized around the official IELTS criteria: Task Achievement/Task Response, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy.
+- Speaking feedback covers Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation; transcript-based estimates are clearly labeled when acoustic evidence is unavailable.
+- Reading and Listening practice uses timed, Cambridge-style test sets with answer review and saved attempt history.
+- The Free plan includes Reading and Listening practice, one AI Writing evaluation per month, vocabulary tools, and basic progress analytics. Paid plans (up to $15.99/month) increase evaluation limits and add advanced analytics and an adaptive learning path.
+- AI band scores are practice estimates, not official IELTS results. IELTS Ai Pro is an independent platform, not affiliated with IELTS, IDP, the British Council, or Cambridge University Press & Assessment.
+
+## Main pages
+
+- [Home](https://www.ieltsai.pro/): Overview of the platform, features, pricing, band score calculator, and FAQ.
+- [IELTS Writing Checker](https://www.ieltsai.pro/ielts-writing-checker): Check Task 1 and Task 2 essays with AI feedback and estimated band scores.
+- [IELTS Speaking Practice with AI](https://www.ieltsai.pro/ielts-speaking-practice-ai): Record speaking answers and get criterion-level feedback.
+- [IELTS Mock Test Online](https://www.ieltsai.pro/ielts-mock-test-online): Timed, realistic IELTS mock tests for Reading and Listening.
+- [Cambridge IELTS Practice Tests](https://www.ieltsai.pro/cambridge-ielts-practice-tests): Practice with Cambridge-style test sets.
+- [Free IELTS Practice Tests](https://www.ieltsai.pro/free-ielts-practice-tests): What is included in the free plan.
+- [AI IELTS Preparation](https://www.ieltsai.pro/ai-ielts-preparation): How AI-assisted IELTS preparation works on the platform.
+- [IELTS Band Score Feedback](https://www.ieltsai.pro/ielts-band-score-feedback): How estimated band scores and analytics work.
+- [IELTS Band Score Calculator](https://www.ieltsai.pro/ielts-band-score-calculator): Free calculator for the overall IELTS band (with official rounding rules) and Listening/Reading raw score to band conversion tables.
+- [About](https://www.ieltsai.pro/about): Mission and story.
+- [Contact](https://www.ieltsai.pro/contact): Support email: mail@ieltsai.pro.
+
+## Policies
+
+- [Privacy Policy](https://www.ieltsai.pro/privacy)
+- [Terms of Service](https://www.ieltsai.pro/terms)

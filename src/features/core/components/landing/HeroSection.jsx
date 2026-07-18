@@ -437,11 +437,11 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
 
           <m.h1
             variants={reveal}
-            className="mt-6 text-[clamp(2.65rem,12.5vw,3.3rem)] font-extrabold leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white sm:text-[4rem] lg:text-[3.65rem] xl:text-[4.15rem] 2xl:text-[4.45rem]"
+            className="mt-6 text-[clamp(2.4rem,11vw,3.1rem)] font-extrabold leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white sm:text-[3.5rem] lg:text-[3.15rem] xl:text-[3.6rem] 2xl:text-[3.9rem]"
           >
-            Smarter IELTS Practice.
-            <span className="font-handwritten relative mt-2 block w-fit max-w-full pr-4 text-[0.72em] leading-[1.05] tracking-[-0.035em] text-[#5262ef] sm:pr-7 sm:text-[0.84em]">
-              Clear feedback. Better focus.
+            <span className="block lg:whitespace-nowrap">AI-Powered IELTS Practice</span>
+            <span className="font-handwritten relative mt-2 block w-fit max-w-full pr-4 text-[0.92em] leading-[1.05] tracking-[-0.035em] text-[#5262ef] sm:pr-7 sm:text-[1.02em]">
+              for a higher band score.
               <svg
                 className="absolute -bottom-3 left-[35%] h-3 w-[38%] text-[#8dc9f2]"
                 viewBox="0 0 180 16"
@@ -498,6 +498,16 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
               Compare Plans <CirclePlay className="ml-3 h-5 w-5 text-[#5262ef]" />
             </Button>
           </m.div>
+
+          {!isSignedIn && (
+            <m.p
+              variants={reveal}
+              className="mt-4 flex items-center gap-2 text-[13px] font-semibold text-[#66738c] dark:text-slate-400"
+            >
+              <Check className="h-4 w-4 text-[#2cc2a0]" aria-hidden="true" />
+              Free plan available — no credit card required
+            </m.p>
+          )}
 
           <m.div variants={reveal}>
             <LearnerProof />

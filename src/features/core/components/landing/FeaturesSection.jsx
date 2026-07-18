@@ -860,7 +860,7 @@ export default function FeaturesSection({ viewport }) {
       <div className="relative z-10 mx-auto max-w-[1450px] px-5 md:px-8">
         <SectionHeading
           eyebrow="BUILT TO HELP YOU SCORE"
-          title="Tools that actually"
+          title="IELTS tools that actually"
           script="move the needle."
           description="From AI writing feedback to speaking practice and adaptive study plans — everything you need to hit your target band score."
           viewport={viewport}

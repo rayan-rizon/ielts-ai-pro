@@ -225,7 +225,7 @@ function FAQSection({ faqs, viewport, handlePrimaryCta }) {
               variants={reveal}
               className="mt-6 max-w-md text-[15px] font-medium leading-relaxed text-[#59657a] dark:text-slate-300"
             >
-              Everything you need to know about IELTS AI Pro—from features to plans. Can&apos;t find
+              Everything you need to know about IELTS Ai Pro—from features to plans. Can&apos;t find
               what you&apos;re looking for? We&apos;re here to help!
             </m.p>
 

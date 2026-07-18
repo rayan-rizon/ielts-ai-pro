@@ -161,6 +161,9 @@ const TermsOfService = lazyWithRetry(() => import('@/features/core/pages/TermsOf
 const NotFound = lazyWithRetry(() => import('@/features/core/pages/NotFound.jsx'));
 const About = lazyWithRetry(() => import('@/features/core/pages/About.jsx'));
 const Contact = lazyWithRetry(() => import('@/features/core/pages/Contact.jsx'));
+const BandScoreCalculator = lazyWithRetry(
+  () => import('@/features/core/pages/BandScoreCalculator.jsx')
+);
 const SubscriptionSuccess = lazyWithRetry(
   () => import('@/features/subscription/pages/SubscriptionSuccess.jsx')
 );
@@ -205,6 +208,14 @@ const router = createBrowserRouter(
       element: (
         <LazyPage data-oid="contact-page">
           <Contact data-oid="contact-comp" />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/ielts-band-score-calculator',
+      element: (
+        <LazyPage data-oid="calc-page">
+          <BandScoreCalculator data-oid="calc-comp" />
         </LazyPage>
       ),
     },
@@ -700,6 +711,11 @@ function App() {
       // Check if no active navigation in progress and location actually changed
       if (state.navigation.state === 'idle' && state.location.pathname !== lastPathname) {
         lastPathname = state.location.pathname;
+
+        // Scroll to top on page change (skip if navigating to an anchor hash link)
+        if (!state.location.hash) {
+          window.scrollTo(0, 0);
+        }
 
         trackPageView(state.location.pathname);
 

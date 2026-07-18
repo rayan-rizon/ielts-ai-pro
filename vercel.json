@@ -74,6 +74,11 @@
       "permanent": true
     },
     {
+      "source": "/ielts-band-score-calculator/",
+      "destination": "/ielts-band-score-calculator",
+      "permanent": true
+    },
+    {
       "source": "/about/",
       "destination": "/about",
       "permanent": true
@@ -198,6 +203,10 @@
     {
       "source": "/ielts-band-score-feedback",
       "destination": "/ielts-band-score-feedback/index.html"
+    },
+    {
+      "source": "/ielts-band-score-calculator",
+      "destination": "/ielts-band-score-calculator/index.html"
     },
     {
       "source": "/about",
