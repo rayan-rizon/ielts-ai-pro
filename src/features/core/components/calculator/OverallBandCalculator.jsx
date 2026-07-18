@@ -8,43 +8,55 @@ import Sparkles from 'lucide-react/icons/sparkles';
 import Target from 'lucide-react/icons/target';
 import TrendingUp from 'lucide-react/icons/trending-up';
 import ArrowRight from 'lucide-react/icons/arrow-right';
+import Clock from 'lucide-react/icons/clock';
 import { Button } from '@/components/ui/button';
 import { roundOverallBand, getRecommendation } from './calculatorData';
 
 const TARGET_OPTIONS = ['6.0', '6.5', '7.0', '7.5', '8.0', '8.5', '9.0'];
 
-function BandSliderRow({ name, value, set, icon: Icon, color }) {
+function BandSliderRow({ name, value, set, icon: Icon, color, description }) {
   return (
-    <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all duration-300 hover:border-slate-200 dark:border-white/5 dark:bg-slate-950 dark:shadow-none dark:hover:border-white/10">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${color}`}>
-            <Icon className="h-4.5 w-4.5" />
-          </span>
-          <span className="text-[15px] font-extrabold text-slate-800 dark:text-slate-200">
-            {name}
-          </span>
+    <div className="group flex h-full flex-col justify-between rounded-3xl border border-slate-100 bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-200 hover:shadow-[0_12px_40px_rgba(0,0,0,0.04)] dark:border-white/5 dark:bg-slate-950 dark:shadow-none dark:hover:border-white/10 dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)]">
+      <div className="space-y-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <span
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110 ${color}`}
+            >
+              <Icon className="h-5 w-5" />
+            </span>
+            <div>
+              <span className="block text-[15px] font-extrabold text-slate-800 dark:text-slate-200 leading-tight">
+                {name}
+              </span>
+              <span className="mt-1 block text-xs font-semibold text-slate-400 dark:text-slate-500 leading-none">
+                {description}
+              </span>
+            </div>
+          </div>
+          <strong className="text-xl font-black text-slate-900 dark:text-white leading-none">
+            {value.toFixed(1)}
+          </strong>
         </div>
-        <strong className="text-xl font-black text-slate-900 dark:text-white">
-          {value.toFixed(1)}
-        </strong>
+
+        <div className="pt-1.5">
+          <input
+            type="range"
+            min="4.0"
+            max="9.0"
+            step="0.5"
+            value={value}
+            aria-label={`${name} band score`}
+            onChange={(e) => set(parseFloat(e.target.value))}
+            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-100 accent-primary dark:bg-slate-800"
+            style={{
+              background: `linear-gradient(to right, #5262ef 0%, #5262ef ${((value - 4) / 5) * 100}%, #e2e8f0 ${((value - 4) / 5) * 100}%)`,
+            }}
+          />
+        </div>
       </div>
 
-      <input
-        type="range"
-        min="4.0"
-        max="9.0"
-        step="0.5"
-        value={value}
-        aria-label={`${name} band score`}
-        onChange={(e) => set(parseFloat(e.target.value))}
-        className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-100 accent-primary dark:bg-slate-800"
-        style={{
-          background: `linear-gradient(to right, #5262ef 0%, #5262ef ${((value - 4) / 5) * 100}%, #e2e8f0 ${((value - 4) / 5) * 100}%)`,
-        }}
-      />
-
-      <div className="mt-2.5 flex justify-between px-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+      <div className="mt-3.5 flex justify-between px-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
         <span>4.0</span>
         <span>6.5</span>
         <span>9.0</span>
@@ -67,6 +79,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
       set: setListening,
       icon: Headphones,
       color: 'text-blue-500 bg-blue-500/10',
+      description: 'Lectures, conversations & details',
     },
     {
       name: 'Reading',
@@ -74,6 +87,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
       set: setReading,
       icon: BookOpen,
       color: 'text-indigo-500 bg-indigo-500/10',
+      description: 'Skimming, scanning & comprehension',
     },
     {
       name: 'Writing',
@@ -81,6 +95,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
       set: setWriting,
       icon: PenLine,
       color: 'text-violet-500 bg-violet-500/10',
+      description: 'Essay structure, vocabulary & grammar',
     },
     {
       name: 'Speaking',
@@ -88,6 +103,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
       set: setSpeaking,
       icon: Mic,
       color: 'text-emerald-500 bg-emerald-500/10',
+      description: 'Fluency, pronunciation & coherence',
     },
   ];
 
@@ -101,13 +117,13 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
 
   return (
     <div className="grid items-stretch gap-6 lg:grid-cols-12">
-      <div className="grid gap-4 sm:grid-cols-2 lg:col-span-7 lg:content-start">
+      <div className="grid h-full gap-4 sm:grid-cols-2 lg:col-span-7">
         {skills.map((skill) => (
           <BandSliderRow key={skill.name} {...skill} />
         ))}
 
         {/* Target band tracker */}
-        <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] dark:border-white/5 dark:bg-slate-950 dark:shadow-none sm:col-span-2">
+        <div className="flex h-full flex-col justify-between rounded-3xl border border-slate-100 bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all duration-300 hover:border-slate-200 dark:border-white/5 dark:bg-slate-950 dark:shadow-none sm:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/10 text-rose-500">
@@ -128,7 +144,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
                   key={option}
                   type="button"
                   onClick={() => setTarget(option)}
-                  className={`h-9 min-w-[44px] rounded-xl px-2 text-[13px] font-extrabold transition-all ${
+                  className={`h-9 min-w-[44px] rounded-xl px-2 text-[13px] font-extrabold transition-all hover:scale-105 active:scale-95 ${
                     target === option
                       ? 'bg-primary text-white shadow-md shadow-primary/25'
                       : 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
@@ -140,25 +156,39 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
             </div>
           </div>
           <div
-            className={`mt-4 flex items-start gap-2.5 rounded-2xl px-4 py-3 text-[13px] font-bold leading-relaxed ${
+            className={`mt-4 flex items-center gap-3 rounded-2xl px-4 py-3.5 text-[13px] font-bold leading-relaxed border transition-all duration-300 ${
               gap <= 0
-                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                ? 'bg-emerald-50/80 border-emerald-100 text-emerald-800 dark:bg-emerald-950/20 dark:border-emerald-900/30 dark:text-emerald-300'
+                : 'bg-amber-50/80 border-amber-100 text-amber-800 dark:bg-amber-950/20 dark:border-amber-900/30 dark:text-amber-300'
             }`}
             aria-live="polite"
           >
-            <TrendingUp className="mt-0.5 h-4 w-4 shrink-0" />
-            {gap <= 0 ? (
-              <span>
-                Your estimated {overallBand.toFixed(1)} meets your {target} target. Confirm it with
-                a full mock test before exam day.
-              </span>
-            ) : (
-              <span>
-                You are {gap.toFixed(1)} below your {target} target. Raising your weakest skill —{' '}
-                {weakest.name} at {weakest.value.toFixed(1)} — lifts the average fastest.
-              </span>
-            )}
+            <span
+              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                gap <= 0
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+              }`}
+            >
+              <TrendingUp className="h-4 w-4" />
+            </span>
+            <div>
+              {gap <= 0 ? (
+                <span>
+                  Your estimated {overallBand.toFixed(1)} meets your {target} target. Confirm it
+                  with a full mock test before exam day.
+                </span>
+              ) : (
+                <span>
+                  You are <strong className="font-extrabold">{gap.toFixed(1)}</strong> below your{' '}
+                  {target} target. Raising your weakest skill —{' '}
+                  <span className="font-extrabold text-amber-700 dark:text-amber-400">
+                    {weakest.name} ({weakest.value.toFixed(1)})
+                  </span>{' '}
+                  — lifts the average fastest.
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -192,7 +222,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
                   stroke="#5262ef"
                   strokeWidth="6"
                   strokeDasharray="276.4"
-                  animate={{ strokeDashoffset: 276.4 - (276.4 * (overallBand - 4)) / 5 }}
+                  animate={{ strokeDashoffset: 276.4 - (276.4 * overallBand) / 9 }}
                   transition={{ type: 'spring', stiffness: 60, damping: 12 }}
                   strokeLinecap="round"
                 />
@@ -218,20 +248,30 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
           </div>
 
           <div className="relative z-10 mt-7 space-y-4 border-t border-slate-100 pt-6 text-left dark:border-white/5">
-            <div>
-              <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">
-                Priority Focus Area
-              </span>
-              <p className="mt-1 text-xs font-bold leading-relaxed text-slate-800 dark:text-white">
+            <div className="rounded-2xl border border-slate-100/50 bg-slate-50 p-4 transition-all hover:bg-slate-100/80 dark:border-white/5 dark:bg-slate-900/40 dark:hover:bg-slate-900/60">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="flex h-5.5 w-5.5 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                  <Target className="h-3.5 w-3.5" />
+                </span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  Priority Focus Area
+                </span>
+              </div>
+              <p className="text-[13px] font-bold leading-relaxed text-slate-800 dark:text-slate-200">
                 {recommendation.focus}
               </p>
             </div>
 
-            <div>
-              <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">
-                Recommended Study Time
-              </span>
-              <p className="mt-1 text-xs font-bold text-slate-800 dark:text-white">
+            <div className="rounded-2xl border border-slate-100/50 bg-slate-50 p-4 transition-all hover:bg-slate-100/80 dark:border-white/5 dark:bg-slate-900/40 dark:hover:bg-slate-900/60">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="flex h-5.5 w-5.5 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                  <Clock className="h-3.5 w-3.5" />
+                </span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  Recommended Study Time
+                </span>
+              </div>
+              <p className="text-[13px] font-bold leading-relaxed text-slate-800 dark:text-slate-200">
                 {recommendation.hours}
               </p>
             </div>
@@ -239,7 +279,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
             <Button
               onClick={handlePrimaryCta}
               size="lg"
-              className="mt-4 h-12 w-full rounded-xl bg-gradient-to-r from-primary to-[#6256ed] text-xs font-black uppercase tracking-wider text-white shadow-lg transition-transform hover:-translate-y-0.5 hover:shadow-xl"
+              className="mt-4 h-12 w-full rounded-xl bg-gradient-to-r from-primary to-[#6256ed] text-xs font-black uppercase tracking-wider text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
             >
               Start Focused Practice
               <ArrowRight className="ml-2 h-4 w-4" />

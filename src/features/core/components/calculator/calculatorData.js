@@ -11,30 +11,32 @@ export function getRecommendation(score) {
   if (score >= 8.0) {
     return {
       level: 'Expert User',
-      desc: 'You have a fully operational command of the language. Focus on keeping your skills sharp with full-length mock tests.',
-      hours: '20–30 hours of practice',
-      focus: 'Drill IELTS Writing Task 2 structure to maintain consistency.',
+      desc: 'You have a fully operational command of the English language, demonstrating high fluency, flow, and precision. Keep your skills sharp with regular practice.',
+      hours: '20–30 hours of targeted practice',
+      focus: 'Refine nuance in Writing Task 2 essays and maintain speed/accuracy in Reading.',
     };
   } else if (score >= 7.0) {
     return {
       level: 'Good User',
-      desc: 'You have an operational command of the language with occasional inaccuracies. You are close to your peak performance.',
-      hours: '40–60 hours of practice',
-      focus: 'Work on advanced vocabulary range and speaking pronunciation details.',
+      desc: 'You have an operational command of the language with only occasional inaccuracies. You are well-positioned to achieve your target band with slight refinements.',
+      hours: '40–60 hours of structured study',
+      focus: 'Expand your advanced lexical resource and refine Speaking coherence under pressure.',
     };
   } else if (score >= 6.0) {
     return {
       level: 'Competent User',
-      desc: 'You have a generally effective command of the language despite some inaccuracies. This is the typical Band 6.5 bottleneck.',
-      hours: '80–100 hours of practice',
-      focus: 'Fix grammatical redundancies in Writing and practice complex sentences in Speaking.',
+      desc: 'You have a generally effective command of the language. You handle complex structures well, though minor inaccuracies remain.',
+      hours: '80–100 hours of focused practice',
+      focus:
+        'Eliminate grammatical errors in Writing and develop complex sentence structures in Speaking.',
     };
   }
   return {
     level: 'Modest User',
-    desc: 'You have a partial command of the language. Focus on building core grammar, sentence structure, and vocabulary.',
-    hours: '120+ hours of practice',
-    focus: 'Master basic IELTS templates and build core grammar before taking full tests.',
+    desc: 'You have a partial command of the language. Focus on strengthening your core skills, grammar, paragraph structure, and academic vocabulary.',
+    hours: '120+ hours of foundational study',
+    focus:
+      'Master basic IELTS essay templates, practice listening for details, and build grammar confidence.',
   };
 }
 

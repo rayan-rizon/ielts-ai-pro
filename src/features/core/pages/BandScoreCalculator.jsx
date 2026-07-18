@@ -59,7 +59,7 @@ export default function BandScoreCalculator() {
   const handlePricing = () => navigate(createPageUrl('Pricing'));
 
   return (
-    <div className="min-h-screen bg-[#fcfdff] text-foreground transition-colors duration-300 dark:bg-[#070912]">
+    <div className="min-h-screen bg-slate-50 text-foreground transition-colors duration-300 dark:bg-[#070912]">
       <DocumentHead
         title="IELTS Band Score Calculator (Overall + Raw Score) | IELTS Ai Pro"
         description="Free IELTS band score calculator: get your overall band from Listening, Reading, Writing and Speaking scores, plus raw score to band conversion for Listening and Reading."
@@ -119,7 +119,7 @@ export default function BandScoreCalculator() {
         isSignedIn={Boolean(user && !authLoading)}
       />
 
-      <main className="pt-28 sm:pt-32">
+      <main className="pt-24 pb-16">
         <BandScoreCalculatorHero />
 
         {/* Tool 1: overall band */}
