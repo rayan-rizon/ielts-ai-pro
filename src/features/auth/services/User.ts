@@ -246,7 +246,7 @@ export const User = {
       password,
       options: {
         data: { full_name: username },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${window.location.origin}/login`,
       },
     });
     if (error) throw error;

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 
 /**
@@ -26,6 +27,22 @@ export default function DocumentHead({
   robots,
   structuredData,
 }) {
+  useEffect(() => {
+    const selectors = [
+      'meta[name="description"]',
+      'meta[name="robots"]',
+      'link[rel="canonical"]',
+      'meta[property^="og:"]',
+      'meta[name^="twitter:"]',
+    ];
+
+    selectors.forEach((selector) => {
+      document.querySelectorAll(selector).forEach((element) => {
+        if (!element.hasAttribute('data-rh')) element.remove();
+      });
+    });
+  }, []);
+
   const siteName = 'IELTS Ai Pro';
   const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
   const robotsContent =

@@ -4,7 +4,6 @@ import path from 'node:path';
 const root = process.cwd();
 const siteUrl = 'https://www.ieltsai.pro';
 const retiredRoutes = {
-  '/ielts-writing-checker': '/writing',
   '/ielts-speaking-practice-ai': '/speaking',
   '/ielts-mock-test-online': '/cambridge-tests',
   '/cambridge-ielts-practice-tests': '/cambridge-tests',
@@ -28,6 +27,7 @@ const removedStaticPagePaths = [
 ];
 const publicRoutes = [
   '/',
+  '/ielts-writing-checker',
   '/ielts-band-score-calculator',
   '/blog',
   '/about',
@@ -44,6 +44,11 @@ const sitemap = readFileSync(path.join(root, 'public/sitemap.xml'), 'utf8');
 const robots = readFileSync(path.join(root, 'public/robots.txt'), 'utf8');
 const llms = readFileSync(path.join(root, 'public/llms.txt'), 'utf8');
 const vercel = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8'));
+const appSource = readFileSync(path.join(root, 'src/App.jsx'), 'utf8');
+
+if (!appSource.includes("path: '/ielts-writing-checker'")) {
+  fail('the public writing checker React route is missing');
+}
 
 for (const route of publicRoutes) {
   if (!sitemap.includes(`<loc>${siteUrl}${route}</loc>`)) {

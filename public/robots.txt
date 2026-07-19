@@ -3,6 +3,7 @@
 
 User-agent: *
 Allow: /
+Allow: /ielts-writing-checker
 
 # Private/authenticated routes
 Disallow: /dashboard/

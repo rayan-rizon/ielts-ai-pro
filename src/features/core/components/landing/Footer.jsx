@@ -12,7 +12,7 @@ const footerLinks = {
   ],
   Practice: [
     { label: 'Free IELTS practice tests', href: '/cambridge-tests' },
-    { label: 'IELTS Writing checker', href: '/writing' },
+    { label: 'IELTS Writing checker', href: '/ielts-writing-checker' },
     { label: 'IELTS Speaking practice', href: '/speaking' },
     { label: 'IELTS mock tests online', href: '/cambridge-tests' },
   ],

@@ -48,11 +48,11 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
 
   const navLinks = [
     { label: 'Platform', href: '/#features' },
+    { label: 'Writing checker', href: '/ielts-writing-checker' },
     { label: 'How it works', href: '/#how-it-works' },
     { label: 'Blog', href: '/blog' },
     { label: 'Calculator', href: '/ielts-band-score-calculator' },
     { label: 'Pricing', href: '/#pricing' },
-    { label: 'FAQ', href: '/#faq' },
   ];
 
   const menuVariants = {
