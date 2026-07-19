@@ -145,6 +145,48 @@ function TargetFlag() {
   );
 }
 
+/** Resolve the Tailwind text-color class for a score change value. */
+function getChangeColor(change) {
+  if (change == null || change === 0) return 'text-slate-700 dark:text-slate-200';
+  return change > 0 ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300';
+}
+
+/** Format the change arrow + value string. */
+function getChangeLabel(change) {
+  if (change == null) return '—';
+  const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '•';
+  return `${arrow} ${formatChange(change)}`;
+}
+
+/** Animated SVG line chart for the sparkline widget. */
+function SparklineChart({ path, last }) {
+  return (
+    <svg viewBox="0 0 140 48" className="h-9 w-20" aria-hidden="true">
+      <defs>
+        <linearGradient id="journeySparkline" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#9c86fa" />
+          <stop offset="100%" stopColor="#6645ef" />
+        </linearGradient>
+      </defs>
+      {path && <path d={`${path} L 134 47 L 6 47 Z`} fill="url(#journeySparkline)" opacity="0.1" />}
+      {path && (
+        <motion.path
+          d={path}
+          fill="none"
+          stroke="url(#journeySparkline)"
+          strokeWidth="2.8"
+          strokeLinecap="round"
+          pathLength="1"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 0.9, ease: 'easeOut' }}
+        />
+      )}
+      {last && <circle cx={last.x} cy={last.y} r="3.5" fill="#6645ef" />}
+    </svg>
+  );
+}
+
 function JourneySparkline({ history, change }) {
   const points = useMemo(() => {
     if (history.length < 2) return [];
@@ -159,56 +201,21 @@ function JourneySparkline({ history, change }) {
   }, [history]);
 
   const path = points
-    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`)
+    .map((point, i) => `${i === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`)
     .join(' ');
   const last = points[points.length - 1];
 
   return (
     <div className="hidden min-w-[200px] rounded-xl border border-slate-100 bg-white/90 px-3 py-2 shadow-[0_12px_28px_-24px_rgba(30,41,59,0.55)] dark:border-white/10 dark:bg-slate-900/80 md:flex md:items-center md:gap-3">
       <div>
-        <p
-          className={cn(
-            'text-base font-black tracking-tight',
-            change == null || change === 0
-              ? 'text-slate-700 dark:text-slate-200'
-              : change > 0
-                ? 'text-emerald-600 dark:text-emerald-300'
-                : 'text-rose-600 dark:text-rose-300'
-          )}
-        >
-          {change == null
-            ? '—'
-            : `${change > 0 ? '↑' : change < 0 ? '↓' : '•'} ${formatChange(change)}`}
+        <p className={cn('text-base font-black tracking-tight', getChangeColor(change))}>
+          {getChangeLabel(change)}
         </p>
         <p className="mt-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
           {change == null ? 'Need 2 scored sessions' : 'Since previous score'}
         </p>
       </div>
-      <svg viewBox="0 0 140 48" className="h-9 w-20" aria-hidden="true">
-        <defs>
-          <linearGradient id="journeySparkline" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#9c86fa" />
-            <stop offset="100%" stopColor="#6645ef" />
-          </linearGradient>
-        </defs>
-        {path ? (
-          <path d={`${path} L 134 47 L 6 47 Z`} fill="url(#journeySparkline)" opacity="0.1" />
-        ) : null}
-        {path ? (
-          <motion.path
-            d={path}
-            fill="none"
-            stroke="url(#journeySparkline)"
-            strokeWidth="2.8"
-            strokeLinecap="round"
-            pathLength="1"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.9, ease: 'easeOut' }}
-          />
-        ) : null}
-        {last ? <circle cx={last.x} cy={last.y} r="3.5" fill="#6645ef" /> : null}
-      </svg>
+      <SparklineChart path={path} last={last} />
     </div>
   );
 }
@@ -244,6 +251,213 @@ function JourneyStat({ icon: Icon, tone, label, value, detail, progress }) {
   );
 }
 
+/** Derive the milestone kind from its step keys and position. */
+function getMilestoneKind(step, index, currentIndex) {
+  if (step.keys.includes('current')) return 'current';
+  if (step.keys.includes('target')) return 'target';
+  if (step.keys.includes('baseline')) return 'baseline';
+  return index > currentIndex ? 'future' : 'completed';
+}
+
+/** Build the accessible description text for a milestone. */
+function getMilestoneDescription(kind, step) {
+  if (kind === 'current') return 'Your current overall band from completed scored practice.';
+  if (kind === 'target') return 'Your saved target band.';
+  if (kind === 'baseline') return 'Your earliest scored baseline in this selected period.';
+  if (kind === 'future')
+    return `${formatBand(Math.max(0, step.value - Number(step.currentScore || 0)))} band from your current score.`;
+  return 'Milestone completed in your progress history.';
+}
+
+/** The dot indicator for a milestone node. */
+function MilestoneDot({ tone, isCurrent, selected }) {
+  return (
+    <span
+      className={cn(
+        'relative flex h-7 w-7 items-center justify-center rounded-full border-[3px] shadow-md ring-4 transition duration-200 group-hover:scale-110 sm:h-9 sm:w-9 sm:border-4',
+        tone.dot,
+        isCurrent && 'h-10 w-10 ring-6 sm:h-12 sm:w-12 sm:ring-8',
+        selected && !isCurrent && 'scale-110 ring-8'
+      )}
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-white" />
+    </span>
+  );
+}
+
+/** Animated tooltip shown when a milestone is active. */
+function MilestoneTooltip({ id, step, description, isCurrent, isTarget }) {
+  const positionClass = isCurrent
+    ? 'left-full top-1/2 ml-4 -translate-y-1/2'
+    : isTarget
+      ? 'right-full top-1/2 mr-4 -translate-y-1/2'
+      : 'left-1/2 top-full mt-10 -translate-x-1/2';
+  return (
+    <motion.span
+      id={id}
+      role="tooltip"
+      initial={{ opacity: 0, y: 5, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      className={cn(
+        'absolute z-50 w-40 rounded-xl bg-slate-950 px-3 py-2 text-left text-white shadow-[0_16px_38px_rgba(15,23,42,0.3)] dark:bg-white dark:text-slate-950',
+        positionClass
+      )}
+    >
+      <span className="block text-xs font-black">Band {formatBand(step.value)}</span>
+      <span className="mt-0.5 block text-[10px] font-medium leading-relaxed text-slate-300 dark:text-slate-600">
+        {description}
+      </span>
+    </motion.span>
+  );
+}
+
+/** Band score + label text placed above/below a milestone dot. */
+function MilestoneLabel({ step, tone, labelBelow }) {
+  return (
+    <span
+      className={cn(
+        'pointer-events-none absolute left-1/2 w-16 -translate-x-1/2 text-center sm:w-24',
+        labelBelow ? 'top-full mt-3' : 'bottom-full mb-3'
+      )}
+    >
+      <span
+        className={cn(
+          'block text-[13px] font-black leading-none tracking-tight sm:text-lg',
+          tone.text
+        )}
+      >
+        {formatBand(step.value)}
+      </span>
+      <span
+        className={cn('mt-0.5 block text-[8px] font-bold leading-tight sm:text-[10px]', tone.text)}
+      >
+        {step.label}
+      </span>
+    </span>
+  );
+}
+
+/** Empty state shown when no scored history is available. */
+function JourneyEmptyState() {
+  return (
+    <motion.div variants={ITEM_VARIANTS} className="h-full">
+      <Card className="h-full rounded-[26px] border-slate-200/80 bg-white dark:border-white/10 dark:bg-slate-950">
+        <CardContent className="flex min-h-60 flex-col items-center justify-center text-center">
+          <Sparkles className="mb-3 h-8 w-8 text-indigo-300" />
+          <p className="font-bold text-slate-900 dark:text-white">
+            Your journey starts with a scored test
+          </p>
+          <p className="mt-1 max-w-sm text-sm text-slate-500">
+            Complete any IELTS module to establish a real baseline.
+          </p>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+/** The SVG journey path + milestone nodes. Extracted to reduce main component LoC/cc. */
+function JourneyPathSvg({
+  ready,
+  reduceMotion,
+  journey,
+  selectedKey,
+  hoveredKey,
+  setSelectedKey,
+  setHoveredKey,
+}) {
+  return (
+    <div
+      className="relative mt-1 h-[210px] overflow-visible sm:mt-2 sm:h-[240px]"
+      data-testid="band-journey-path"
+    >
+      <svg
+        viewBox="0 0 1000 260"
+        preserveAspectRatio="none"
+        className="absolute inset-0 h-full w-full"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="journeyBase" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#d8deec" />
+            <stop offset="100%" stopColor="#e7eaf2" />
+          </linearGradient>
+          <linearGradient id="journeyProgress" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#aebce6" />
+            <stop offset="30%" stopColor="#4f82f4" />
+            <stop offset="62%" stopColor="#7046ec" />
+            <stop offset="82%" stopColor="#36b67c" />
+            <stop offset="100%" stopColor="#f3b32b" />
+          </linearGradient>
+          <filter id="journeyPathGlow" x="-10%" y="-20%" width="120%" height="140%">
+            <feGaussianBlur stdDeviation="2.2" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <path
+          d={JOURNEY_PATH}
+          fill="none"
+          stroke="url(#journeyBase)"
+          strokeWidth="12"
+          strokeLinecap="round"
+        />
+        <path
+          d={JOURNEY_PATH}
+          fill="none"
+          stroke="url(#journeyProgress)"
+          strokeWidth="5"
+          strokeLinecap="round"
+          pathLength="1"
+          strokeDasharray="1"
+          strokeDashoffset={ready ? 0 : 1}
+          filter="url(#journeyPathGlow)"
+          style={{
+            transition: reduceMotion
+              ? 'none'
+              : 'stroke-dashoffset 1.35s cubic-bezier(0.2, 0.8, 0.2, 1)',
+          }}
+        />
+      </svg>
+      {journey.steps.map((step, index) => (
+        <Milestone
+          key={step.key}
+          step={{ ...step, currentScore: journey.current }}
+          index={index}
+          currentIndex={journey.currentIndex}
+          active={selectedKey === step.key || hoveredKey === step.key}
+          selected={selectedKey === step.key}
+          onToggle={(key) => setSelectedKey((prev) => (prev === key ? null : key))}
+          onHover={setHoveredKey}
+          reduceMotion={reduceMotion}
+          ready={ready}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Pre-compute all aria- props to move ternaries out of the Milestone render. */
+function getMilestoneAriaProps({ active, selected, isCurrent, tooltipId, step, description }) {
+  return {
+    'aria-pressed': selected,
+    'aria-expanded': active,
+    'aria-describedby': active ? tooltipId : undefined,
+    'aria-current': isCurrent ? 'step' : undefined,
+    'aria-label': `Band ${formatBand(step.value)}: ${step.label}. ${description}`,
+  };
+}
+
+/** CSS classes for the dashed connector line above/below a milestone. */
+function getMilestoneConnectorClass(labelBelow) {
+  return cn(
+    'absolute left-1/2 w-px -translate-x-1/2 border-l border-dashed border-slate-200 dark:border-white/15',
+    labelBelow ? 'top-full h-9' : 'bottom-full h-8'
+  );
+}
+
 function Milestone({
   step,
   index,
@@ -255,32 +469,29 @@ function Milestone({
   reduceMotion,
   ready,
 }) {
-  const isCurrent = step.keys.includes('current');
-  const isTarget = step.keys.includes('target');
-  const isBaseline = step.keys.includes('baseline');
-  const isFuture = index > currentIndex;
-  const kind = isCurrent
-    ? 'current'
-    : isTarget
-      ? 'target'
-      : isBaseline
-        ? 'baseline'
-        : isFuture
-          ? 'future'
-          : 'completed';
+  const kind = getMilestoneKind(step, index, currentIndex);
+  const isCurrent = kind === 'current';
+  const isTarget = kind === 'target';
   const tone = TONES[kind];
   const labelBelow = isCurrent || isTarget;
-  const description = isCurrent
-    ? 'Your current overall band from completed scored practice.'
-    : isTarget
-      ? 'Your saved target band.'
-      : isBaseline
-        ? 'Your earliest scored baseline in this selected period.'
-        : isFuture
-          ? `${formatBand(Math.max(0, step.value - Number(step.currentScore || 0)))} band from your current score.`
-          : 'Milestone completed in your progress history.';
-
+  const description = getMilestoneDescription(kind, step);
   const tooltipId = `band-journey-${step.key}-tooltip`;
+
+  const animate = { opacity: ready ? 1 : 0, scale: ready ? 1 : 0.7, y: ready ? 0 : 8 };
+  const transition = {
+    delay: reduceMotion ? 0 : index * 0.1,
+    type: reduceMotion ? 'tween' : 'spring',
+    stiffness: 250,
+    damping: 18,
+  };
+  const ariaProps = getMilestoneAriaProps({
+    active,
+    selected,
+    isCurrent,
+    tooltipId,
+    step,
+    description,
+  });
 
   return (
     <div
@@ -290,98 +501,177 @@ function Milestone({
       <motion.button
         type="button"
         initial={false}
-        animate={{
-          opacity: ready ? 1 : 0,
-          scale: ready ? 1 : 0.7,
-          y: ready ? 0 : 8,
-        }}
-        transition={{
-          delay: reduceMotion ? 0 : index * 0.1,
-          type: reduceMotion ? 'tween' : 'spring',
-          stiffness: 250,
-          damping: 18,
-        }}
+        animate={animate}
+        transition={transition}
         onClick={() => onToggle(step.key)}
         onMouseEnter={() => onHover(step.key)}
         onMouseLeave={() => onHover(null)}
         onFocus={() => onHover(step.key)}
         onBlur={() => onHover(null)}
-        aria-pressed={selected}
-        aria-expanded={active}
-        aria-describedby={active ? tooltipId : undefined}
-        aria-current={isCurrent ? 'step' : undefined}
-        aria-label={`Band ${formatBand(step.value)}: ${step.label}. ${description}`}
+        {...ariaProps}
         className="group relative block text-left outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-4"
       >
-        {!isCurrent && !isTarget ? (
-          <span
-            className={cn(
-              'absolute left-1/2 w-px -translate-x-1/2 border-l border-dashed border-slate-200 dark:border-white/15',
-              labelBelow ? 'top-full h-9' : 'bottom-full h-8'
-            )}
-            aria-hidden="true"
-          />
-        ) : null}
-        {isCurrent ? <JourneyRobot reduceMotion={reduceMotion} /> : null}
-        {isTarget ? <TargetFlag /> : null}
-        <span
-          className={cn(
-            'pointer-events-none absolute left-1/2 w-16 -translate-x-1/2 text-center sm:w-24',
-            labelBelow ? 'top-full mt-3' : 'bottom-full mb-3'
-          )}
-        >
-          <span
-            className={cn(
-              'block text-[13px] font-black leading-none tracking-tight sm:text-lg',
-              tone.text
-            )}
-          >
-            {formatBand(step.value)}
-          </span>
-          <span
-            className={cn(
-              'mt-0.5 block text-[8px] font-bold leading-tight sm:text-[10px]',
-              tone.text
-            )}
-          >
-            {step.label}
-          </span>
-        </span>
-        <span
-          className={cn(
-            'relative flex h-7 w-7 items-center justify-center rounded-full border-[3px] shadow-md ring-4 transition duration-200 group-hover:scale-110 sm:h-9 sm:w-9 sm:border-4',
-            tone.dot,
-            isCurrent && 'h-10 w-10 ring-6 sm:h-12 sm:w-12 sm:ring-8',
-            selected && !isCurrent && 'scale-110 ring-8'
-          )}
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-white" />
-        </span>
-
-        {active ? (
-          <motion.span
+        {!isCurrent && !isTarget && (
+          <span className={getMilestoneConnectorClass(labelBelow)} aria-hidden="true" />
+        )}
+        {isCurrent && <JourneyRobot reduceMotion={reduceMotion} />}
+        {isTarget && <TargetFlag />}
+        <MilestoneLabel step={step} tone={tone} labelBelow={labelBelow} />
+        <MilestoneDot tone={tone} isCurrent={isCurrent} selected={selected} />
+        {active && (
+          <MilestoneTooltip
             id={tooltipId}
-            role="tooltip"
-            initial={{ opacity: 0, y: 5, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            className={cn(
-              'absolute z-50 w-40 rounded-xl bg-slate-950 px-3 py-2 text-left text-white shadow-[0_16px_38px_rgba(15,23,42,0.3)] dark:bg-white dark:text-slate-950',
-              isCurrent
-                ? 'left-full top-1/2 ml-4 -translate-y-1/2'
-                : isTarget
-                  ? 'right-full top-1/2 mr-4 -translate-y-1/2'
-                  : 'left-1/2 top-full mt-10 -translate-x-1/2'
-            )}
-          >
-            <span className="block text-xs font-black">Band {formatBand(step.value)}</span>
-            <span className="mt-0.5 block text-[10px] font-medium leading-relaxed text-slate-300 dark:text-slate-600">
-              {description}
-            </span>
-          </motion.span>
-        ) : null}
+            step={step}
+            description={description}
+            isCurrent={isCurrent}
+            isTarget={isTarget}
+          />
+        )}
       </motion.button>
     </div>
   );
+}
+
+/**
+ * Pure computation — builds the journey data model from raw props.
+ * Extracted to reduce the main component's cyclomatic complexity.
+ */
+/** Compute progress percentage from baseline → current → target. */
+function computeProgress(current, baseline, target) {
+  if (target > baseline)
+    return Math.round(clamp01((current - baseline) / (target - baseline)) * 100);
+  return current >= target ? 100 : 0;
+}
+
+/** Return the module with the lowest average score, or undefined. */
+function findWeakestModule(moduleStats) {
+  return moduleStats
+    .filter((m) => m.count > 0 && isBand(m.avg))
+    .slice()
+    .sort((a, b) => Number(a.avg) - Number(b.avg))[0];
+}
+
+function buildJourney({ currentScore, targetScore, testHistory, testDate, moduleStats }) {
+  const history = testHistory
+    .filter((item) => isBand(item?.score))
+    .map((item) => ({ score: Number(item.score), date: item.date }))
+    .slice(-10);
+  const current = isBand(currentScore) ? Number(currentScore) : 0;
+  const target = isBand(targetScore) && Number(targetScore) > 0 ? Number(targetScore) : 7;
+  const baseline = history.length ? history[0].score : current;
+  const steps = positionSteps(buildJourneyMilestones({ baseline, current, target }));
+  const currentIndex = Math.max(
+    0,
+    steps.findIndex((s) => s.keys.includes('current'))
+  );
+  const previousScore = history.length > 1 ? history[history.length - 2].score : null;
+  const next = steps.slice(currentIndex + 1).find((s) => s.value > current + 0.01) || null;
+  const weakestModule = findWeakestModule(moduleStats);
+
+  return {
+    current,
+    target,
+    steps,
+    currentIndex,
+    history,
+    change: previousScore == null ? null : Number((current - previousScore).toFixed(1)),
+    next,
+    progress: computeProgress(current, baseline, target),
+    weeksUntil: getWeeksUntil(testDate),
+    weakestModule,
+    animationKey: `${baseline}-${current}-${target}-${history.map((item) => item.score).join('-')}`,
+  };
+}
+
+/**
+ * Stats grid + CTA panel rendered below the journey path.
+ */
+function JourneyFooter({ journey, nextBand, nextGap, focusCopy, selectedStep }) {
+  const navigate = useNavigate();
+
+  return (
+    <>
+      <div className="grid divide-y divide-slate-100 rounded-xl border border-slate-100 bg-white/70 py-0.5 shadow-[0_10px_24px_-24px_rgba(15,23,42,0.5)] dark:divide-white/10 dark:border-white/10 dark:bg-slate-900/50 sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">
+        <JourneyStat
+          icon={ArrowUpRight}
+          tone="bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300"
+          label="Overall progress"
+          value={`${journey.progress}%`}
+          detail="From baseline to target"
+          progress={journey.progress}
+        />
+        <JourneyStat
+          icon={Target}
+          tone="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"
+          label="To next milestone"
+          value={`${formatBand(nextGap)}`}
+          detail={nextGap ? 'band to go' : 'milestone reached'}
+        />
+        <JourneyStat
+          icon={CalendarDays}
+          tone="bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
+          label={journey.weeksUntil ? 'Time to exam' : 'Exam schedule'}
+          value={journey.weeksUntil || 'Not set'}
+          detail={
+            journey.weeksUntil ? 'Based on your saved exam date' : 'Set an exam date in settings'
+          }
+        />
+        <JourneyStat
+          icon={Flag}
+          tone="bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300"
+          label="Target band"
+          value={formatBand(journey.target)}
+          detail="Your saved IELTS goal"
+        />
+      </div>
+
+      <div className="mt-3 flex flex-col gap-3 rounded-xl border border-violet-100 bg-violet-50/65 p-3 dark:border-violet-500/15 dark:bg-violet-500/5 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+        <div className="flex min-w-0 items-start gap-2.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-violet-600 shadow-sm dark:bg-slate-900 dark:text-violet-300">
+            <Rocket className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-extrabold text-slate-950 dark:text-white">
+              Next milestone: Band {formatBand(nextBand)}
+            </p>
+            <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+              {focusCopy}
+            </p>
+            <p className="sr-only" aria-live="polite">
+              Selected: Band {formatBand(selectedStep.value)} · {selectedStep.label}
+            </p>
+          </div>
+        </div>
+        <Button
+          onClick={() => navigate('/learning-path')}
+          className="h-9 shrink-0 rounded-lg bg-violet-600 px-4 text-xs font-extrabold text-white hover:bg-violet-700"
+        >
+          View Study Plan <ArrowUpRight className="ml-1.5 h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </>
+  );
+}
+
+/** Manage the two-frame animation-ready state for milestone entrance. */
+function useJourneyAnimation(animationKey, reduceMotion) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (reduceMotion) {
+      setReady(true);
+      return undefined;
+    }
+    setReady(false);
+    let secondFrame;
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => setReady(true));
+    });
+    return () => {
+      cancelAnimationFrame(firstFrame);
+      if (secondFrame) cancelAnimationFrame(secondFrame);
+    };
+  }, [animationKey, reduceMotion]);
+  return ready;
 }
 
 export default function BandScoreJourney({
@@ -391,88 +681,18 @@ export default function BandScoreJourney({
   testDate,
   moduleStats = [],
 }) {
-  const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
   const [selectedKey, setSelectedKey] = useState(null);
   const [hoveredKey, setHoveredKey] = useState(null);
-  const [ready, setReady] = useState(false);
 
-  const journey = useMemo(() => {
-    const history = testHistory
-      .filter((item) => isBand(item?.score))
-      .map((item) => ({ score: Number(item.score), date: item.date }))
-      .slice(-10);
-    const current = isBand(currentScore) ? Number(currentScore) : 0;
-    const target = isBand(targetScore) && Number(targetScore) > 0 ? Number(targetScore) : 7;
-    const baseline = history.length ? history[0].score : current;
-    const steps = positionSteps(buildJourneyMilestones({ baseline, current, target }));
-    const currentIndex = Math.max(
-      0,
-      steps.findIndex((step) => step.keys.includes('current'))
-    );
-    const previousScore = history.length > 1 ? history[history.length - 2].score : null;
-    const next = steps.slice(currentIndex + 1).find((step) => step.value > current + 0.01) || null;
-    const weakestModule = moduleStats
-      .filter((module) => module.count > 0 && isBand(module.avg))
-      .slice()
-      .sort((a, b) => Number(a.avg) - Number(b.avg))[0];
-    const progress =
-      target > baseline
-        ? Math.round(clamp01((current - baseline) / (target - baseline)) * 100)
-        : current >= target
-          ? 100
-          : 0;
+  const journey = useMemo(
+    () => buildJourney({ currentScore, targetScore, testHistory, testDate, moduleStats }),
+    [currentScore, moduleStats, targetScore, testDate, testHistory]
+  );
 
-    return {
-      current,
-      target,
-      steps,
-      currentIndex,
-      history,
-      change: previousScore == null ? null : Number((current - previousScore).toFixed(1)),
-      next,
-      progress,
-      weeksUntil: getWeeksUntil(testDate),
-      weakestModule,
-      animationKey: `${baseline}-${current}-${target}-${history.map((item) => item.score).join('-')}`,
-    };
-  }, [currentScore, moduleStats, targetScore, testDate, testHistory]);
+  const ready = useJourneyAnimation(journey.animationKey, reduceMotion);
 
-  useEffect(() => {
-    if (reduceMotion) {
-      setReady(true);
-      return undefined;
-    }
-
-    setReady(false);
-    let secondFrame;
-    const firstFrame = requestAnimationFrame(() => {
-      secondFrame = requestAnimationFrame(() => setReady(true));
-    });
-
-    return () => {
-      cancelAnimationFrame(firstFrame);
-      if (secondFrame) cancelAnimationFrame(secondFrame);
-    };
-  }, [journey.animationKey, reduceMotion]);
-
-  if (!journey.current) {
-    return (
-      <motion.div variants={ITEM_VARIANTS} className="h-full">
-        <Card className="h-full rounded-[26px] border-slate-200/80 bg-white dark:border-white/10 dark:bg-slate-950">
-          <CardContent className="flex min-h-60 flex-col items-center justify-center text-center">
-            <Sparkles className="mb-3 h-8 w-8 text-indigo-300" />
-            <p className="font-bold text-slate-900 dark:text-white">
-              Your journey starts with a scored test
-            </p>
-            <p className="mt-1 max-w-sm text-sm text-slate-500">
-              Complete any IELTS module to establish a real baseline.
-            </p>
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
-  }
+  if (!journey.current) return <JourneyEmptyState />;
 
   const selectedStep =
     journey.steps.find((step) => step.key === selectedKey) || journey.steps[journey.currentIndex];
@@ -503,136 +723,23 @@ export default function BandScoreJourney({
             <JourneySparkline history={journey.history} change={journey.change} />
           </div>
 
-          <div
-            className="relative mt-1 h-[210px] overflow-visible sm:mt-2 sm:h-[240px]"
-            data-testid="band-journey-path"
-          >
-            <svg
-              viewBox="0 0 1000 260"
-              preserveAspectRatio="none"
-              className="absolute inset-0 h-full w-full"
-              aria-hidden="true"
-            >
-              <defs>
-                <linearGradient id="journeyBase" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#d8deec" />
-                  <stop offset="100%" stopColor="#e7eaf2" />
-                </linearGradient>
-                <linearGradient id="journeyProgress" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#aebce6" />
-                  <stop offset="30%" stopColor="#4f82f4" />
-                  <stop offset="62%" stopColor="#7046ec" />
-                  <stop offset="82%" stopColor="#36b67c" />
-                  <stop offset="100%" stopColor="#f3b32b" />
-                </linearGradient>
-                <filter id="journeyPathGlow" x="-10%" y="-20%" width="120%" height="140%">
-                  <feGaussianBlur stdDeviation="2.2" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              <path
-                d={JOURNEY_PATH}
-                fill="none"
-                stroke="url(#journeyBase)"
-                strokeWidth="12"
-                strokeLinecap="round"
-              />
-              <path
-                d={JOURNEY_PATH}
-                fill="none"
-                stroke="url(#journeyProgress)"
-                strokeWidth="5"
-                strokeLinecap="round"
-                pathLength="1"
-                strokeDasharray="1"
-                strokeDashoffset={ready ? 0 : 1}
-                filter="url(#journeyPathGlow)"
-                style={{
-                  transition: reduceMotion
-                    ? 'none'
-                    : 'stroke-dashoffset 1.35s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                }}
-              />
-            </svg>
-            {journey.steps.map((step, index) => (
-              <Milestone
-                key={step.key}
-                step={{ ...step, currentScore: journey.current }}
-                index={index}
-                currentIndex={journey.currentIndex}
-                active={selectedKey === step.key || hoveredKey === step.key}
-                selected={selectedKey === step.key}
-                onToggle={(key) => setSelectedKey((selected) => (selected === key ? null : key))}
-                onHover={setHoveredKey}
-                reduceMotion={reduceMotion}
-                ready={ready}
-              />
-            ))}
-          </div>
+          <JourneyPathSvg
+            ready={ready}
+            reduceMotion={reduceMotion}
+            journey={journey}
+            selectedKey={selectedKey}
+            hoveredKey={hoveredKey}
+            setSelectedKey={setSelectedKey}
+            setHoveredKey={setHoveredKey}
+          />
 
-          <div className="grid divide-y divide-slate-100 rounded-xl border border-slate-100 bg-white/70 py-0.5 shadow-[0_10px_24px_-24px_rgba(15,23,42,0.5)] dark:divide-white/10 dark:border-white/10 dark:bg-slate-900/50 sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">
-            <JourneyStat
-              icon={ArrowUpRight}
-              tone="bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300"
-              label="Overall progress"
-              value={`${journey.progress}%`}
-              detail="From baseline to target"
-              progress={journey.progress}
-            />
-            <JourneyStat
-              icon={Target}
-              tone="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"
-              label="To next milestone"
-              value={`${formatBand(nextGap)}`}
-              detail={nextGap ? 'band to go' : 'milestone reached'}
-            />
-            <JourneyStat
-              icon={CalendarDays}
-              tone="bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
-              label={journey.weeksUntil ? 'Time to exam' : 'Exam schedule'}
-              value={journey.weeksUntil || 'Not set'}
-              detail={
-                journey.weeksUntil
-                  ? 'Based on your saved exam date'
-                  : 'Set an exam date in settings'
-              }
-            />
-            <JourneyStat
-              icon={Flag}
-              tone="bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300"
-              label="Target band"
-              value={formatBand(journey.target)}
-              detail="Your saved IELTS goal"
-            />
-          </div>
-
-          <div className="mt-3 flex flex-col gap-3 rounded-xl border border-violet-100 bg-violet-50/65 p-3 dark:border-violet-500/15 dark:bg-violet-500/5 sm:flex-row sm:items-center sm:justify-between sm:px-4">
-            <div className="flex min-w-0 items-start gap-2.5">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-violet-600 shadow-sm dark:bg-slate-900 dark:text-violet-300">
-                <Rocket className="h-4 w-4" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-extrabold text-slate-950 dark:text-white">
-                  Next milestone: Band {formatBand(nextBand)}
-                </p>
-                <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                  {focusCopy}
-                </p>
-                <p className="sr-only" aria-live="polite">
-                  Selected: Band {formatBand(selectedStep.value)} · {selectedStep.label}
-                </p>
-              </div>
-            </div>
-            <Button
-              onClick={() => navigate('/learning-path')}
-              className="h-9 shrink-0 rounded-lg bg-violet-600 px-4 text-xs font-extrabold text-white hover:bg-violet-700"
-            >
-              View Study Plan <ArrowUpRight className="ml-1.5 h-3.5 w-3.5" />
-            </Button>
-          </div>
+          <JourneyFooter
+            journey={journey}
+            nextBand={nextBand}
+            nextGap={nextGap}
+            focusCopy={focusCopy}
+            selectedStep={selectedStep}
+          />
         </CardContent>
       </Card>
     </motion.div>
