@@ -35,6 +35,29 @@ import { AuthLeftPanel } from '@/features/auth/components/AuthLeftPanel';
 import { VerificationView } from '@/features/auth/components/VerificationView';
 import { trackAppEvent } from '@/lib/tracking';
 
+const AUTH_DESTINATION_KEY = 'auth_destination';
+
+function isSafeInternalDestination(destination) {
+  return (
+    typeof destination === 'string' && destination.startsWith('/') && !destination.startsWith('//')
+  );
+}
+
+function getRequestedDestination(location, fallback = createPageUrl('Dashboard')) {
+  const from = location.state?.from;
+  const stateDestination = from?.pathname
+    ? `${from.pathname}${from.search || ''}${from.hash || ''}`
+    : null;
+  const storedDestination = window.sessionStorage.getItem(AUTH_DESTINATION_KEY);
+  if (isSafeInternalDestination(stateDestination)) return stateDestination;
+  if (isSafeInternalDestination(storedDestination)) return storedDestination;
+  return fallback;
+}
+
+function clearRequestedDestination() {
+  window.sessionStorage.removeItem(AUTH_DESTINATION_KEY);
+}
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -84,8 +107,11 @@ export default function Login() {
 
         User.signInWithGoogle(idToken, nonce)
           .then(() => {
-            const dest = sessionStorage.getItem('auth_destination') || '/dashboard';
-            sessionStorage.removeItem('auth_destination');
+            const storedDestination = sessionStorage.getItem(AUTH_DESTINATION_KEY);
+            const dest = isSafeInternalDestination(storedDestination)
+              ? storedDestination
+              : '/dashboard';
+            clearRequestedDestination();
             sessionStorage.removeItem('google_oauth_nonce');
             navigate(dest, { replace: true });
           })
@@ -140,10 +166,11 @@ export default function Login() {
 
   useEffect(() => {
     if (user && authCheckComplete) {
-      if (isAdmin) navigate(createPageUrl('AdminPanel'));
-      else navigate(createPageUrl('Dashboard'));
+      const destination = isAdmin ? createPageUrl('AdminPanel') : getRequestedDestination(location);
+      clearRequestedDestination();
+      navigate(destination, { replace: true });
     }
-  }, [user, authCheckComplete, isAdmin, navigate]);
+  }, [user, authCheckComplete, isAdmin, location, navigate]);
 
   useEffect(() => {
     setAuthMode(location.pathname === '/signup' ? 'signup' : 'signin');
@@ -190,13 +217,16 @@ export default function Login() {
           const isUserAdmin = await checkIsAdmin(data.id);
           const destination = isUserAdmin
             ? createPageUrl('AdminPanel')
-            : location.state?.from?.pathname || createPageUrl('Dashboard');
+            : getRequestedDestination(location);
 
+          clearRequestedDestination();
           navigate(destination, { replace: true });
           return;
         }
         setError('Authentication failed. Please verify your email and password.');
       } else {
+        const requestedDestination = getRequestedDestination(location);
+        window.sessionStorage.setItem(AUTH_DESTINATION_KEY, requestedDestination);
         const referralCode = localStorage.getItem('referral_code');
         const data = await signUp(email, password, username, referralCode);
         if (data?.session) {
@@ -206,7 +236,8 @@ export default function Login() {
             has_referral: Boolean(referralCode),
           });
 
-          navigate(createPageUrl('Dashboard'), { replace: true });
+          clearRequestedDestination();
+          navigate(requestedDestination, { replace: true });
         } else {
           trackAppEvent('signup_verification_sent', {
             method: 'email',
@@ -267,8 +298,8 @@ export default function Login() {
     sessionStorage.setItem('google_oauth_nonce', rawNonce);
 
     // Save destination so we can redirect appropriately after login
-    const destination = location.state?.from?.pathname || createPageUrl('Dashboard');
-    sessionStorage.setItem('auth_destination', destination);
+    const destination = getRequestedDestination(location);
+    sessionStorage.setItem(AUTH_DESTINATION_KEY, destination);
 
     trackAppEvent('signin_started', {
       method: 'google',

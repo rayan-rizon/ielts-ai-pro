@@ -11,6 +11,7 @@ Key facts:
 ## Public pages
 
 - [Home](https://www.ieltsai.pro/): Platform overview, product features, pricing, FAQ, and sign-up path.
+- [Free IELTS Writing Checker for Task 1 & Task 2](https://www.ieltsai.pro/ielts-writing-checker): Public Academic IELTS writing workspace with a readable demo report. After a learner requests analysis, signup unlocks personalised estimated bands and feedback on all four writing criteria; new accounts include three free writing feedback reports.
 - [IELTS Band Score Calculator](https://www.ieltsai.pro/ielts-band-score-calculator): Overall-band calculator using IELTS rounding rules plus Listening and Reading raw-score conversions.
 - [Blog](https://www.ieltsai.pro/blog): IELTS preparation articles and study guidance.
 - [About](https://www.ieltsai.pro/about): Platform mission and story.

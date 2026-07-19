@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { m, AnimatePresence } from 'framer-motion';
 
@@ -7,115 +7,59 @@ import Moon from 'lucide-react/icons/moon';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import Menu from 'lucide-react/icons/menu';
 import X from 'lucide-react/icons/x';
-import ChevronRight from 'lucide-react/icons/chevron-right';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/cn';
 import { Logo } from '@/components/shared/Logo';
+import { useScrollProgress } from './useScrollProgress';
+import DesktopNavLinks from './DesktopNavLinks';
+import MobileNavMenu from './MobileNavMenu';
+
+const NAV_LINKS = [
+  { label: 'Platform', href: '/#features' },
+  { label: 'Writing checker', href: '/ielts-writing-checker' },
+  { label: 'How it works', href: '/#how-it-works' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Calculator', href: '/ielts-band-score-calculator' },
+  { label: 'Pricing', href: '/#pricing' },
+];
+
+/** Compute Tailwind classes based on scroll state. */
+function getNavClasses(isScrolled) {
+  return {
+    nav: isScrolled ? 'py-2 px-6 translate-y-0' : 'py-0 px-0 translate-y-0',
+    wrapper: isScrolled ? 'max-w-7xl' : 'max-w-full',
+    bar: isScrolled
+      ? 'h-12 md:h-14 px-3 md:px-5 rounded-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border border-black/[0.06] dark:border-white/10 shadow-lg shadow-black/[0.03] ring-1 ring-black/5 dark:ring-white/10'
+      : 'h-14 md:h-16 px-0 rounded-none bg-white/40 dark:bg-zinc-950/40 backdrop-blur-md border-b border-black/5 dark:border-white/5 border-t-0 border-x-0',
+    glass: isScrolled ? 'rounded-full' : 'rounded-none',
+    glassOpacity: isScrolled ? 'opacity-40' : 'opacity-20',
+    content: isScrolled ? 'max-w-full' : 'max-w-7xl mx-auto px-6 md:px-8',
+  };
+}
 
 export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn }) {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const { isScrolled, scrollProgress } = useScrollProgress(20);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(null);
-
-  useEffect(() => {
-    let ticking = false;
-
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const scrolled = window.scrollY > 20;
-          setIsScrolled(scrolled);
-
-          // Calculate scroll progress
-          const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-          const height =
-            document.documentElement.scrollHeight - document.documentElement.clientHeight;
-          if (height > 0) {
-            const scrolled_pct = (winScroll / height) * 100;
-            setScrollProgress(scrolled_pct);
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const navLinks = [
-    { label: 'Platform', href: '/#features' },
-    { label: 'How it works', href: '/#how-it-works' },
-    { label: 'Blog', href: '/blog' },
-    { label: 'Calculator', href: '/ielts-band-score-calculator' },
-    { label: 'Pricing', href: '/#pricing' },
-    { label: 'FAQ', href: '/#faq' },
-  ];
-
-  const menuVariants = {
-    hidden: {
-      opacity: 0,
-      scale: 0.95,
-      y: -10,
-    },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      transition: {
-        type: 'spring',
-        duration: 0.3,
-        staggerChildren: 0.05,
-        delayChildren: 0.05,
-      },
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.95,
-      y: -10,
-      transition: {
-        duration: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: 'spring',
-        stiffness: 300,
-        damping: 25,
-      },
-    },
-  };
+  const cls = getNavClasses(isScrolled);
 
   return (
     <nav
       className={cn(
         'fixed left-0 right-0 top-0 z-[100] transition-all duration-350 ease-out',
-        isScrolled ? 'py-2 px-6 translate-y-0' : 'py-0 px-0 translate-y-0'
+        cls.nav
       )}
       data-oid="t9q8_5n"
     >
       <div
-        className={cn(
-          'mx-auto w-full transition-all duration-350 ease-out',
-          isScrolled ? 'max-w-7xl' : 'max-w-full'
-        )}
+        className={cn('mx-auto w-full transition-all duration-350 ease-out', cls.wrapper)}
         data-oid="ol47a-."
       >
         <div
           className={cn(
             'relative flex items-center w-full transition-all duration-350 ease-out',
-            isScrolled
-              ? 'h-12 md:h-14 px-3 md:px-5 rounded-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border border-black/[0.06] dark:border-white/10 shadow-lg shadow-black/[0.03] ring-1 ring-black/5 dark:ring-white/10'
-              : 'h-14 md:h-16 px-0 rounded-none bg-white/40 dark:bg-zinc-950/40 backdrop-blur-md border-b border-black/5 dark:border-white/5 border-t-0 border-x-0'
+            cls.bar
           )}
           style={isScrolled ? { borderWidth: '1px' } : undefined}
           data-oid="xp4..v-"
@@ -124,14 +68,14 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
           <div
             className={cn(
               'absolute inset-0 overflow-hidden pointer-events-none transition-all duration-350',
-              isScrolled ? 'rounded-full' : 'rounded-none'
+              cls.glass
             )}
             data-oid="luem3vp"
           >
             <div
               className={cn(
                 'absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent transition-opacity duration-500',
-                isScrolled ? 'opacity-40' : 'opacity-20'
+                cls.glassOpacity
               )}
               data-oid="hxrbzv."
             />
@@ -170,31 +114,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
             </Link>
 
             {/* Desktop Navigation */}
-            <div
-              className="hidden items-center gap-1 lg:flex bg-muted/40 dark:bg-zinc-900/40 p-1 rounded-full border border-black/5 dark:border-white/5 backdrop-blur-md shadow-inner relative"
-              data-oid="_3ruemn"
-            >
-              {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  onMouseEnter={() => setHoveredLink(link.label)}
-                  onMouseLeave={() => setHoveredLink(null)}
-                  className="relative px-4 py-1.5 rounded-full text-[13px] md:text-sm font-bold tracking-wide text-muted-foreground/80 transition-colors duration-205 hover:text-primary dark:hover:text-white z-10"
-                  data-oid="b41jq1v"
-                >
-                  {hoveredLink === link.label && (
-                    <m.span
-                      layoutId="nav-hover-pill"
-                      className="absolute inset-0 bg-primary/[0.06] dark:bg-white/[0.08] rounded-full border border-primary/10 dark:border-white/5 shadow-sm"
-                      transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-                      data-oid="hover-pill-bg"
-                    />
-                  )}
-                  <span className="relative z-10">{link.label}</span>
-                </a>
-              ))}
-            </div>
+            <DesktopNavLinks links={NAV_LINKS} hoveredLink={hoveredLink} onHover={setHoveredLink} />
 
             <div className="flex items-center gap-2 md:gap-3 relative z-[101]" data-oid="z.sf-4g">
               <Button
@@ -248,46 +168,13 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
           </div>
 
           {/* Mobile Menu */}
-          <AnimatePresence data-oid="cfglkhg">
-            {mobileMenuOpen && (
-              <m.div
-                variants={menuVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="lg:hidden absolute top-full left-4 right-4 mt-3 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-2xl rounded-3xl border border-black/10 dark:border-white/10 shadow-2xl p-5 z-[99] overflow-hidden"
-                data-oid="iz_alpq"
-              >
-                <m.div className="flex flex-col gap-1.5" data-oid="r6wu019">
-                  {navLinks.map((link) => (
-                    <m.a
-                      variants={itemVariants}
-                      key={link.label}
-                      href={link.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="group text-sm font-bold tracking-wide text-muted-foreground/80 hover:text-primary dark:hover:text-white py-2.5 px-3 flex items-center justify-between border-b border-black/5 dark:border-white/5 last:border-0 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-200"
-                      data-oid="ywl:3a5"
-                    >
-                      <span>{link.label}</span>
-                      <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200" />
-                    </m.a>
-                  ))}
-                  <m.div variants={itemVariants} className="pt-2">
-                    <Button
-                      className="w-full rounded-full h-10 text-sm font-bold shadow-md bg-gradient-to-r from-violet-600 via-primary to-indigo-600 text-white mt-1 border-none"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        handlePrimaryCta();
-                      }}
-                      data-oid="rwj8lbe"
-                    >
-                      {isSignedIn ? 'Go to Dashboard' : 'Start Free Practice'}
-                    </Button>
-                  </m.div>
-                </m.div>
-              </m.div>
-            )}
-          </AnimatePresence>
+          <MobileNavMenu
+            isOpen={mobileMenuOpen}
+            onClose={() => setMobileMenuOpen(false)}
+            links={NAV_LINKS}
+            isSignedIn={isSignedIn}
+            handlePrimaryCta={handlePrimaryCta}
+          />
         </div>
       </div>
     </nav>

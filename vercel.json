@@ -39,11 +39,6 @@
       "permanent": true
     },
     {
-      "source": "/ielts-writing-checker",
-      "destination": "/writing",
-      "permanent": true
-    },
-    {
       "source": "/ielts-speaking-practice-ai",
       "destination": "/speaking",
       "permanent": true
@@ -71,11 +66,6 @@
     {
       "source": "/ielts-band-score-feedback",
       "destination": "/analytics",
-      "permanent": true
-    },
-    {
-      "source": "/ielts-writing-checker/",
-      "destination": "/writing",
       "permanent": true
     },
     {

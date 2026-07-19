@@ -164,6 +164,9 @@ const Contact = lazyWithRetry(() => import('@/features/core/pages/Contact.jsx'))
 const BandScoreCalculator = lazyWithRetry(
   () => import('@/features/core/pages/BandScoreCalculator.jsx')
 );
+const IeltsWritingChecker = lazyWithRetry(
+  () => import('@/features/core/pages/IeltsWritingChecker.jsx')
+);
 const SubscriptionSuccess = lazyWithRetry(
   () => import('@/features/subscription/pages/SubscriptionSuccess.jsx')
 );
@@ -216,6 +219,14 @@ const router = createBrowserRouter(
       element: (
         <LazyPage data-oid="calc-page">
           <BandScoreCalculator data-oid="calc-comp" />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/ielts-writing-checker',
+      element: (
+        <LazyPage data-oid="writing-checker-page">
+          <IeltsWritingChecker data-oid="writing-checker-comp" />
         </LazyPage>
       ),
     },
