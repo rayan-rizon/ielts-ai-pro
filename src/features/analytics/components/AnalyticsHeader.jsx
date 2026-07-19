@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, TrendingUp, Crown, Zap } from 'lucide-react';
+import { TrendingUp, Crown, Zap } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Badge } from '@/components/ui/badge';
 
@@ -19,11 +19,18 @@ const IconWrapper = React.memo(function IconWrapper({ icon: Icon, color, classNa
 });
 
 export default function AnalyticsHeader({
+  user,
+  stats,
   isPremium,
   tier,
   selectedTimeframe,
   setSelectedTimeframe,
 }) {
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const displayName = user?.full_name || user?.username || user?.email?.split('@')[0] || '';
+  const firstName = displayName.trim().split(/\s+/)[0];
+
   return (
     <div
       className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-1"
@@ -34,20 +41,20 @@ export default function AnalyticsHeader({
           <IconWrapper icon={TrendingUp} color="bg-primary" className="p-2.5" data-oid="rz.k-jx" />
           <div data-oid="k-3c2x3">
             <h1
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white mt-3 leading-tight flex items-center gap-2"
+              className="text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl"
               data-oid="biobx9:"
             >
               Analytics Dashboard
-              <Sparkles
-                className="w-5 h-5 text-primary animate-pulse hidden md:block"
-                data-oid="7wu6wi1"
-              />
             </h1>
-            <p
-              className="text-slate-600 dark:text-slate-300 text-base md:text-lg font-medium mt-2 flex flex-wrap items-center gap-2"
+            <div
+              className="mt-1.5 flex flex-wrap items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400"
               data-oid=".f902yv"
             >
-              Score, target gap, and the next practice focus.
+              {greeting}
+              {firstName ? `, ${firstName}` : ''}
+              {stats?.totalTests
+                ? ` · ${stats.totalTests} completed session${stats.totalTests === 1 ? '' : 's'} in this period · target band ${stats.targetScore}`
+                : ' · Your performance, pace, and next practice focus.'}
               {tier === 'premium' ? (
                 <Badge
                   variant="outline"
@@ -67,24 +74,27 @@ export default function AnalyticsHeader({
                   PRO
                 </Badge>
               ) : null}
-            </p>
+            </div>
           </div>
         </div>
       </div>
 
       <div
-        className="grid grid-cols-4 w-full sm:w-auto gap-1 p-1 bg-white/90 dark:bg-slate-950/70 backdrop-blur-md rounded-2xl border border-border/60 shadow-sm"
+        className="grid w-full grid-cols-4 gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm dark:border-white/10 dark:bg-slate-950 sm:w-auto"
         data-oid="q-mczo."
+        aria-label="Analytics timeframe"
       >
         {['7d', '30d', '90d', 'all'].map((tf) => (
           <button
             key={tf}
+            type="button"
             onClick={() => setSelectedTimeframe(tf)}
+            aria-pressed={selectedTimeframe === tf}
             className={cn(
-              'h-9 min-w-0 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all tracking-wider',
+              'h-8 min-w-0 rounded-lg px-3 text-xs font-extrabold transition-all sm:px-4',
               selectedTimeframe === tf
-                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-105'
-                : 'text-muted-foreground hover:bg-card/80'
+                ? 'bg-indigo-50 text-indigo-700 shadow-sm ring-1 ring-indigo-100 dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-500/20'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white'
             )}
             data-oid="llu3bgs"
           >

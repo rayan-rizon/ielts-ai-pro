@@ -1,80 +1,83 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Headphones, Mic, Sparkles, Wifi, Volume2 } from 'lucide-react';
+import { Check, Mic2, Volume2 } from 'lucide-react';
 
-const InitialWelcomeScreen = ({ partNumber, title }) => {
-  return (
-    <div className="h-full min-h-[300px] flex flex-col items-center justify-center p-4 text-center space-y-6">
-      {/* Animated Icon Container */}
-      <div className="relative w-40 h-40 flex items-center justify-center">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="w-20 h-20 bg-gradient-to-br from-rose-100 to-orange-100 dark:from-rose-900/20 dark:to-orange-900/20 rounded-full flex items-center justify-center relative z-10"
-        >
-          <Headphones className="w-10 h-10 text-rose-500" />
-        </motion.div>
+const readinessItems = [
+  {
+    icon: Mic2,
+    label: 'Microphone ready',
+    detail: 'Allow access when prompted',
+    className: 'bg-emerald-500/[0.07] text-emerald-600 dark:text-emerald-400',
+  },
+  {
+    icon: Volume2,
+    label: 'Sound on',
+    detail: 'Listen for each question',
+    className: 'bg-primary/[0.07] text-primary',
+  },
+];
 
-        {/* Orbiting Elements */}
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
-          className="absolute inset-2 z-0"
-        >
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-7 h-7 bg-white dark:bg-zinc-800 rounded-full shadow-lg flex items-center justify-center border border-rose-100 dark:border-rose-900/50">
-            <Mic className="w-3.5 h-3.5 text-orange-500" />
-          </div>
-          <div className="absolute top-1/2 right-0 -translate-y-1/2 w-7 h-7 bg-white dark:bg-zinc-800 rounded-full shadow-lg flex items-center justify-center border border-rose-100 dark:border-rose-900/50">
-            <Wifi className="w-3.5 h-3.5 text-rose-500" />
-          </div>
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-7 h-7 bg-white dark:bg-zinc-800 rounded-full shadow-lg flex items-center justify-center border border-rose-100 dark:border-rose-900/50">
-            <Volume2 className="w-3.5 h-3.5 text-orange-500" />
-          </div>
-          <div className="absolute top-1/2 left-0 -translate-y-1/2 w-7 h-7 bg-white dark:bg-zinc-800 rounded-full shadow-lg flex items-center justify-center border border-rose-100 dark:border-rose-900/50">
-            <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-          </div>
-        </motion.div>
+const PART_INTROS = {
+  1: "You'll answer a few questions about yourself and familiar topics.",
+  2: "You'll prepare a topic, then speak about it for one to two minutes.",
+  3: "You'll discuss broader ideas and explain your opinions in more detail.",
+};
 
-        {/* Pulsing Rings */}
-        <div className="absolute inset-4 rounded-full border border-rose-500/10 scale-125 animate-[ping_3s_ease-in-out_infinite]" />
-        <div className="absolute inset-8 rounded-full border border-orange-500/10 scale-110 animate-[pulse_4s_ease-in-out_infinite]" />
+const InitialWelcomeScreen = ({ partNumber, title }) => (
+  <div className="flex h-full min-h-[280px] items-center justify-center px-0 py-1 sm:min-h-[390px] sm:px-5 sm:py-3 xl:min-h-0 xl:py-1 2xl:py-4">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      className="flex w-full max-w-3xl flex-col items-center text-center"
+    >
+      <div className="relative w-full max-w-[12rem] sm:max-w-[16rem] 2xl:max-w-[21rem]">
+        <img
+          src="/speaking-assets/examiner-welcome-v1.png"
+          alt="AI speaking examiner wearing a headset"
+          className="aspect-[3/2] w-full object-cover object-center mix-blend-multiply dark:mix-blend-normal"
+          loading="eager"
+        />
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-card to-transparent"
+          aria-hidden="true"
+        />
       </div>
 
-      {/* Text Content */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="space-y-4 max-w-md"
-      >
-        <div className="space-y-1">
-          <h2 className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-rose-600 to-orange-600">
-            IELTS Speaking Test
-          </h2>
-          <p className="text-lg font-bold text-foreground/80">
-            Part {partNumber}: {title}
-          </p>
-        </div>
+      <h2 className="mt-0.5 text-xl font-black tracking-[-0.035em] text-foreground sm:text-3xl">
+        Ready to start Part {partNumber}?
+      </h2>
+      <p className="mt-1 text-xs font-bold text-rose-500 sm:text-sm">{title}</p>
+      <p className="mt-1.5 max-w-xl text-xs leading-5 text-muted-foreground sm:text-sm sm:leading-6">
+        {PART_INTROS[partNumber] || 'Answer naturally, listen carefully, and speak clearly.'}
+        <br className="hidden sm:block" /> Answer naturally and speak clearly.
+      </p>
 
-        <p className="text-muted-foreground leading-relaxed text-sm max-w-sm mx-auto">
-          Your AI Examiner is ready. Find a quiet space and ensure your microphone is working.
-        </p>
-
-        {/* Tips Grid */}
-        <div className="grid grid-cols-2 gap-3 mt-4">
-          <div className="bg-muted/30 p-2 rounded-lg border border-border/50 text-xs font-semibold text-muted-foreground flex items-center justify-center gap-2 text-center">
-            <Sparkles className="w-3 h-3 text-amber-500" />
-            Speak Naturally
+      <div className="mt-3 grid w-full max-w-lg grid-cols-2 gap-2">
+        {readinessItems.map(({ icon: Icon, label, detail, className }) => (
+          <div
+            key={label}
+            className="flex min-w-0 items-center gap-2 rounded-xl border border-border/60 bg-background/65 p-2 text-left sm:gap-3 sm:rounded-2xl sm:p-3"
+          >
+            <span
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg sm:h-9 sm:w-9 sm:rounded-xl ${className}`}
+            >
+              <Icon className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="flex items-center gap-1 text-[10px] font-extrabold text-foreground sm:gap-1.5 sm:text-xs">
+                {label}
+                <Check className="h-3 w-3 text-emerald-500" aria-hidden="true" />
+              </p>
+              <p className="mt-0.5 hidden truncate text-[9px] text-muted-foreground min-[360px]:block sm:text-[10px]">
+                {detail}
+              </p>
+            </div>
           </div>
-          <div className="bg-muted/30 p-2 rounded-lg border border-border/50 text-xs font-semibold text-muted-foreground flex items-center justify-center gap-2 text-center">
-            <Volume2 className="w-3 h-3 text-blue-500" />
-            Clear Audio
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
+        ))}
+      </div>
+    </motion.div>
+  </div>
+);
 
 export default InitialWelcomeScreen;

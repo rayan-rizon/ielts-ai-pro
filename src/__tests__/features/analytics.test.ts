@@ -1,6 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { calculateScoreForecast } from '@/features/analytics/utils';
+import { calculateScoreForecast, calculateTargetLikelihood } from '@/features/analytics/utils';
 import { calculateErrorPatterns } from '@/services/testMetricsService';
+import {
+  buildPacingSummary,
+  computeRecentPractice,
+  computeChartData,
+  computeModuleStats,
+  getSessionAccuracy,
+  getRecordedDurationSeconds,
+} from '@/features/analytics/hooks/analyticsCalculations';
+import { buildJourneyMilestones } from '@/features/analytics/components/bandJourneyUtils';
 
 /**
  * Analytics Unit Tests
@@ -204,6 +213,37 @@ describe('Analytics - Data Quality Guards', () => {
     expect(forecast[0]).toMatchObject({ date: 'Now', score: 3, isForecast: false });
   });
 
+  it('keeps sparse 30-day score forecasts within one IELTS band of the current average', () => {
+    const sessions = [
+      { score: 4.5, completed_at: '2026-07-02T00:00:00Z' },
+      { score: 4, completed_at: '2026-07-02T02:00:00Z' },
+      { score: 2.5, completed_at: '2026-07-19T00:00:00Z' },
+    ];
+
+    const forecast = calculateScoreForecast(sessions, 3.7, 7);
+
+    expect(forecast[1]).toMatchObject({ date: '+30 Days', score: 2.5, confidence: 'low' });
+    expect(forecast[1].targetLikelihood).toBeLessThan(10);
+  });
+
+  it('uses a conservative target likelihood instead of a fixed marketing percentage', () => {
+    const wellSupported = calculateTargetLikelihood({
+      projectedScore: 6.5,
+      targetScore: 6.5,
+      standardDeviation: 0.15,
+      sampleSize: 8,
+    });
+    const sparseBelowTarget = calculateTargetLikelihood({
+      projectedScore: 4.5,
+      targetScore: 7,
+      standardDeviation: 0.8,
+      sampleSize: 3,
+    });
+
+    expect(wellSupported).toBeGreaterThan(50);
+    expect(sparseBelowTarget).toBeLessThan(10);
+  });
+
   it('should never return a negative unanswered count', () => {
     const patterns = calculateErrorPatterns(
       { answer_a: 'one', answer_b: 'two' },
@@ -214,5 +254,106 @@ describe('Analytics - Data Quality Guards', () => {
     );
 
     expect(patterns.unansweredCount).toBe(0);
+  });
+
+  it('does not invent accuracy when answer totals are missing', () => {
+    expect(getSessionAccuracy({ correct: 12 })).toBeNull();
+    expect(getSessionAccuracy({ correctAnswers: 18, totalQuestions: 20 })).toBe(90);
+    expect(getSessionAccuracy({ correct: 22, total: 20 })).toBe(100);
+  });
+
+  it('keeps missing pacing durations unavailable', () => {
+    const pacing = buildPacingSummary({ reading: 42, writing: 0, listening: 38 });
+
+    expect(pacing.find((item) => item.type === 'reading')).toMatchObject({
+      averageMinutes: 42,
+      benchmarkMinutes: 60,
+      deltaMinutes: -18,
+    });
+    expect(pacing.find((item) => item.type === 'speaking')).toMatchObject({
+      averageMinutes: null,
+      benchmarkMinutes: 15,
+      deltaMinutes: null,
+    });
+  });
+
+  it('prefers tracked elapsed time over initialized duration values', () => {
+    expect(
+      getRecordedDurationSeconds({
+        test_type: 'writing',
+        duration_minutes: 60,
+        content_data: { timeMetrics: { totalTimeSpent: 1500 }, time_remaining: 2100 },
+      })
+    ).toBe(1500);
+
+    expect(
+      getRecordedDurationSeconds({
+        test_type: 'writing',
+        duration_minutes: 60,
+        content_data: { time_remaining: 2100 },
+      })
+    ).toBe(1500);
+  });
+
+  it('builds recent practice rows from completed session facts', () => {
+    const sessions = [
+      {
+        id: 'session-1',
+        test_type: 'Reading',
+        score: 6.5,
+        duration_minutes: 18,
+        completed_at: '2026-07-18T10:00:00Z',
+        content_data: { correctAnswers: 30, totalQuestions: 40 },
+        passage: { title: 'Academic Reading Test 4' },
+      },
+      {
+        id: 'session-2',
+        test_type: 'speaking',
+        score: 6,
+        created_at: '2026-07-17T09:15:00Z',
+        completed_at: '2026-07-17T10:00:00Z',
+        content_data: {},
+      },
+    ];
+    const moduleStats = computeModuleStats(sessions);
+    const chartData = computeChartData(sessions, moduleStats, '6.3', 7);
+
+    expect(chartData.recentPractice[0]).toMatchObject({
+      title: 'Academic Reading Test 4',
+      type: 'reading',
+      score: 6.5,
+      accuracy: 75,
+      durationMinutes: 18,
+      resultData: {
+        bandScore: 6.5,
+        correctAnswers: 30,
+        totalQuestions: 40,
+      },
+    });
+    expect(chartData.recentPractice[1]).toMatchObject({
+      title: 'Speaking practice',
+      accuracy: null,
+      durationMinutes: null,
+    });
+  });
+
+  it('keeps every completed session available to the view-all results dialog', () => {
+    const sessions = Array.from({ length: 8 }, (_, index) => ({
+      id: `session-${index}`,
+      test_type: 'reading',
+      score: 6,
+      completed_at: `2026-07-${String(18 - index).padStart(2, '0')}T10:00:00Z`,
+      content_data: { correctAnswers: 28, totalQuestions: 40 },
+    }));
+
+    expect(computeRecentPractice(sessions)).toHaveLength(8);
+  });
+
+  it('builds an accurate half-band journey matching baseline, current, and target', () => {
+    const milestones = buildJourneyMilestones({ baseline: 5, current: 6.5, target: 7.5 });
+
+    expect(milestones.map((step) => step.value)).toEqual([5, 5.5, 6, 6.5, 7, 7.5]);
+    expect(milestones.find((step) => step.keys.includes('current'))?.value).toBe(6.5);
+    expect(milestones.find((step) => step.keys.includes('target'))?.value).toBe(7.5);
   });
 });

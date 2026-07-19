@@ -162,6 +162,46 @@ const UniversalRadar = React.memo(function UniversalRadar({ data, name, color = 
   );
 });
 
+function getQuestionSuccessSummary(data = []) {
+  const totals = data.reduce(
+    (summary, item) => ({
+      correct: summary.correct + (Number(item.correct) || 0),
+      total: summary.total + (Number(item.total) || 0),
+    }),
+    { correct: 0, total: 0 }
+  );
+
+  return {
+    ...totals,
+    accuracy: totals.total ? Math.round((totals.correct / totals.total) * 100) : 0,
+  };
+}
+
+function questionSuccessTone(accuracy) {
+  if (accuracy >= 70) {
+    return {
+      label: 'Strong',
+      accent: 'bg-emerald-500',
+      text: 'text-emerald-600 dark:text-emerald-400',
+      badge: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+    };
+  }
+  if (accuracy >= 50) {
+    return {
+      label: 'Developing',
+      accent: 'bg-amber-500',
+      text: 'text-amber-600 dark:text-amber-400',
+      badge: 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
+    };
+  }
+  return {
+    label: 'Focus next',
+    accent: 'bg-rose-500',
+    text: 'text-rose-600 dark:text-rose-400',
+    badge: 'bg-rose-500/10 text-rose-700 dark:text-rose-300',
+  };
+}
+
 const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
   if (!data || !data.length)
     return (
@@ -174,93 +214,100 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
       />
     );
 
+  const summary = getQuestionSuccessSummary(data);
+
   return (
-    <div className="space-y-2 mt-2" data-oid="t9.c66m">
+    <div className="space-y-3 pt-1" data-oid="t9.c66m">
+      <div className="flex items-center justify-between rounded-2xl border border-primary/15 bg-primary/[0.045] px-3 py-2.5 dark:bg-primary/[0.08]">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-muted-foreground">
+            Weighted accuracy
+          </p>
+          <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
+            {summary.correct} correct from {summary.total} graded questions
+          </p>
+        </div>
+        <p className="text-2xl font-black tracking-tight text-primary">{summary.accuracy}%</p>
+      </div>
       {data.map((item, idx) => (
-        <motion.div
+        <motion.article
           key={idx}
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: idx * 0.05 }}
-          className="group relative rounded-xl border border-primary/20 bg-card/95 p-2.5 hover:bg-card hover:shadow-md transition-all"
+          className="group relative rounded-2xl border border-border/70 bg-card p-3 transition-all hover:border-primary/25 hover:shadow-md"
           data-oid="qpfmnea"
         >
-          <div className="flex items-center justify-between mb-1.5 px-0.5" data-oid="d:oa..r">
-            <div className="flex items-center gap-2 min-w-0" data-oid="::ydhmk">
-              <div
-                className={cn(
-                  'w-1.5 h-1.5 rounded-full shrink-0',
-                  item.accuracy >= 70
-                    ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]'
-                    : item.accuracy >= 50
-                      ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
-                      : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]'
-                )}
-                data-oid="ozi547e"
-              />
+          {(() => {
+            const tone = questionSuccessTone(item.accuracy);
+            return (
+              <>
+                <div className="flex items-start justify-between gap-3" data-oid="d:oa..r">
+                  <div className="flex items-center gap-2 min-w-0" data-oid="::ydhmk">
+                    <div
+                      className={cn(
+                        'h-2 w-2 shrink-0 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.35)]',
+                        tone.accent
+                      )}
+                      data-oid="ozi547e"
+                    />
 
-              <span
-                className="text-sm font-bold text-foreground dark:text-foreground tracking-tight"
-                data-oid="32-hpvy"
-              >
-                {item.type
-                  .split(/_|\s+/)
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                  .join(' ')}
-              </span>
-            </div>
-            <span
-              className={cn(
-                'text-xs font-black',
-                item.accuracy >= 70
-                  ? 'text-emerald-500'
-                  : item.accuracy >= 50
-                    ? 'text-amber-500'
-                    : 'text-rose-500 dark:text-rose-400'
-              )}
-              data-oid="2-:-ndm"
-            >
-              {item.accuracy}%
-            </span>
-          </div>
+                    <span
+                      className="text-sm font-bold text-foreground dark:text-foreground tracking-tight"
+                      data-oid="32-hpvy"
+                    >
+                      {item.type
+                        .split(/_|\s+/)
+                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                        .join(' ')}
+                    </span>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p
+                      className={cn('text-lg font-black leading-none', tone.text)}
+                      data-oid="2-:-ndm"
+                    >
+                      {item.accuracy}%
+                    </p>
+                    <span
+                      className={cn(
+                        'mt-1 inline-flex rounded-full px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide',
+                        tone.badge
+                      )}
+                    >
+                      {tone.label}
+                    </span>
+                  </div>
+                </div>
 
-          <div
-            className="h-1.5 w-full bg-muted/50 dark:bg-muted/30 rounded-full overflow-hidden mb-1.5"
-            data-oid="pwl9tjb"
-          >
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${item.accuracy}%` }}
-              className={cn(
-                'h-full rounded-full transition-all duration-1000',
-                item.accuracy >= 70
-                  ? 'bg-emerald-500'
-                  : item.accuracy >= 50
-                    ? 'bg-amber-500'
-                    : 'bg-rose-500'
-              )}
-              data-oid="vdpsru:"
-            />
-          </div>
+                <div
+                  className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted/60 dark:bg-muted/30"
+                  data-oid="pwl9tjb"
+                >
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${item.accuracy}%` }}
+                    className={cn('h-full rounded-full transition-all duration-1000', tone.accent)}
+                    data-oid="vdpsru:"
+                  />
+                </div>
 
-          <div className="flex items-center justify-between px-0.5 mt-1" data-oid="f7d3yd2">
-            <span
-              className="text-xs font-black text-primary dark:text-blue-400 tracking-[0.15em] opacity-100"
-              data-oid="hm1trio"
-            >
-              Success
-            </span>
-            <span
-              className="text-sm font-black text-muted-foreground dark:text-muted-foreground/90"
-              data-oid="u5q:igr"
-            >
-              <span className="text-foreground dark:text-foreground" data-oid="67cswiw">
-                {item.correct}
-              </span>{' '}
-              / {item.total}
-            </span>
-          </div>
-        </motion.div>
+                <div
+                  className="mt-2 flex items-center justify-between text-[11px] font-semibold text-muted-foreground"
+                  data-oid="f7d3yd2"
+                >
+                  <span>Correct answers</span>
+                  <span data-oid="u5q:igr">
+                    <span className="font-black text-foreground" data-oid="67cswiw">
+                      {item.correct}
+                    </span>{' '}
+                    of {item.total}
+                  </span>
+                </div>
+              </>
+            );
+          })()}
+        </motion.article>
       ))}
     </div>
   );
@@ -382,6 +429,8 @@ export default function PerformanceTrends({
   tabsRef,
 }) {
   if (!stats || !chartData) return null;
+  const questionSuccessSummary = getQuestionSuccessSummary(stats.typeAccuracy);
+
   return (
     <div className="space-y-6 lg:space-y-8" data-oid="ez4903f">
       {/* Performance Trends Chart */}
@@ -749,7 +798,7 @@ export default function PerformanceTrends({
 
           {/* Question Types */}
           <Card
-            className="rounded-2xl border-primary/20 bg-card/95 backdrop-blur shadow-md overflow-hidden hover:shadow-2xl transition-all h-[360px]"
+            className="flex h-[380px] flex-col overflow-hidden rounded-2xl border-primary/20 bg-card/95 shadow-md backdrop-blur transition-all hover:shadow-2xl"
             data-oid="3bnrh6g"
           >
             <CardHeader className="pb-3" data-oid="n9word6">
@@ -766,15 +815,17 @@ export default function PerformanceTrends({
                   className="rounded-full border-emerald-500/30 bg-emerald-500/10 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 text-emerald-600 dark:text-emerald-400"
                   data-oid="9:3a._o"
                 >
-                  Success
+                  {questionSuccessSummary.total
+                    ? `${questionSuccessSummary.accuracy}% overall`
+                    : 'No data'}
                 </Badge>
               </div>
               <CardDescription data-oid="c2x3g-r">
-                How you perform in each type of question.
+                Weighted accuracy across completed, graded questions.
               </CardDescription>
             </CardHeader>
             <CardContent
-              className="pt-0 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted"
+              className="flex-1 overflow-y-auto px-5 pb-5 pt-0 scrollbar-thin scrollbar-thumb-muted"
               data-oid="huwghdg"
             >
               <QuestionTypeTable data={stats.typeAccuracy} data-oid="uv1t-vc" />

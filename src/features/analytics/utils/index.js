@@ -88,6 +88,49 @@ export function clamp01(n) {
   return Math.max(0, Math.min(1, v));
 }
 
+function normalCdf(value) {
+  // Abramowitz and Stegun approximation. Accurate enough for a learner-facing
+  // trend estimate without presenting the result as an exact statistical model.
+  const sign = value < 0 ? -1 : 1;
+  const x = Math.abs(value) / Math.sqrt(2);
+  const t = 1 / (1 + 0.3275911 * x);
+  const erf =
+    1 -
+    ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) *
+      t *
+      Math.exp(-x * x);
+  return 0.5 * (1 + sign * erf);
+}
+
+/**
+ * Estimate the likelihood of reaching a target band from the same bounded
+ * 30-day trend used in the forecast. This is deliberately conservative: it
+ * widens uncertainty for sparse or volatile histories and never claims 100%.
+ */
+export function calculateTargetLikelihood({
+  projectedScore,
+  targetScore,
+  standardDeviation,
+  sampleSize,
+}) {
+  const projected = Number(projectedScore);
+  const target = Number(targetScore);
+  const deviation = Number(standardDeviation);
+  const samples = Number(sampleSize);
+
+  if (!Number.isFinite(projected) || !Number.isFinite(target) || !Number.isFinite(samples)) {
+    return null;
+  }
+
+  const evidencePenalty = samples < 5 ? 0.6 : samples < 7 ? 0.4 : 0.25;
+  const uncertainty = Math.max(0.45, Number.isFinite(deviation) ? deviation : 0) + evidencePenalty;
+  // IELTS bands are reported in half-band increments, so the threshold starts
+  // halfway between the previous available band and the requested target.
+  const zScore = (target - 0.25 - projected) / uncertainty;
+  const probability = 1 - normalCdf(zScore);
+  return Math.max(0, Math.min(99, Math.round(probability * 100)));
+}
+
 /**
  * Calculate improvement using weighted moving average of recent scores vs older scores.
  * More accurate than simple first-half vs second-half comparison.
@@ -150,10 +193,16 @@ export function calculateScoreForecast(sessions, currentScore, targetScore) {
 
   // Linear regression: y = mx + b
   const n = dataPoints.length;
-  const sumX = dataPoints.reduce((sum, p) => sum + p.time, 0);
+  const originTime = dataPoints[0].time;
+  const dayMs = 24 * 60 * 60 * 1000;
+  const centeredPoints = dataPoints.map((point) => ({
+    x: (point.time - originTime) / dayMs,
+    score: point.score,
+  }));
+  const sumX = centeredPoints.reduce((sum, p) => sum + p.x, 0);
   const sumY = dataPoints.reduce((sum, p) => sum + p.score, 0);
-  const sumXY = dataPoints.reduce((sum, p) => sum + p.time * p.score, 0);
-  const sumX2 = dataPoints.reduce((sum, p) => sum + p.time * p.time, 0);
+  const sumXY = centeredPoints.reduce((sum, p) => sum + p.x * p.score, 0);
+  const sumX2 = centeredPoints.reduce((sum, p) => sum + p.x * p.x, 0);
 
   const denominator = n * sumX2 - sumX * sumX;
   let slope = 0;
@@ -164,18 +213,35 @@ export function calculateScoreForecast(sessions, currentScore, targetScore) {
     intercept = (sumY - slope * sumX) / n;
   }
 
-  // Predict score 30 days from now
-  const now = Date.now();
-  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
-  const predictedScore = Math.min(9, Math.max(0, intercept + slope * (now + thirtyDaysMs)));
+  // Extrapolate 30 days from the latest observation, then bound the movement.
+  // Sparse practice data should guide learners without projecting an implausible collapse or leap.
+  const predictionX = (dataPoints[dataPoints.length - 1].time - originTime) / dayMs + 30;
+  const rawPrediction = intercept + slope * predictionX;
+  const boundedPrediction = Math.min(avgScore + 1, Math.max(avgScore - 1, rawPrediction));
+  const predictedScore = Math.min(9, Math.max(0, Math.round(boundedPrediction * 2) / 2));
 
   // Calculate confidence based on data points and variance
   const variance = dataPoints.reduce((sum, p) => sum + Math.pow(p.score - avgScore, 2), 0) / n;
-  const confidence = variance < 0.5 ? 'high' : variance < 1.5 ? 'medium' : 'low';
+  const standardDeviation = Math.sqrt(variance);
+  const confidence = n >= 7 && variance < 0.5 ? 'high' : n >= 5 && variance < 1 ? 'medium' : 'low';
+  const targetLikelihood = calculateTargetLikelihood({
+    projectedScore: predictedScore,
+    targetScore: target,
+    standardDeviation,
+    sampleSize: n,
+  });
 
   return [
     { date: 'Now', score: avgScore, isForecast: false },
-    { date: '+30 Days', score: Number(predictedScore.toFixed(1)), isForecast: true, confidence },
+    {
+      date: '+30 Days',
+      score: Number(predictedScore.toFixed(1)),
+      isForecast: true,
+      confidence,
+      sampleSize: n,
+      standardDeviation: Number(standardDeviation.toFixed(2)),
+      targetLikelihood,
+    },
     { date: 'Target', score: target, isForecast: true },
   ];
 }

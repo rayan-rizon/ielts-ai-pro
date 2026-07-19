@@ -24,7 +24,7 @@ export default function useAnalyticsData(selectedTimeframe) {
         { user_id: userId },
         '-completed_at',
         1000,
-        'id, created_at, completed_at, score, duration_minutes, test_type, is_completed, content_data'
+        'id, passage_id, created_at, completed_at, score, duration_minutes, test_type, is_completed, content_data, passage:passages(title, cambridge_title, test_format)'
       ),
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,

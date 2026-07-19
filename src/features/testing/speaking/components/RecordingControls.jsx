@@ -26,7 +26,7 @@ const RecordingControls = React.memo(
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3"
+            className="mb-3 flex w-full max-w-2xl items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-3 dark:border-red-900/50 dark:bg-red-950/30"
           >
             <MicOff className="w-5 h-5 text-red-500 flex-shrink-0" />
             <p className="text-red-700 text-sm">{micError}</p>
@@ -39,31 +39,25 @@ const RecordingControls = React.memo(
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-2 bg-white/50 dark:bg-black/20 p-4 sm:p-5 rounded-xl border-2 border-dashed border-rose-200 dark:border-rose-500/20 max-w-[280px] sm:max-w-sm mx-auto"
+          className="mx-auto flex w-full max-w-sm flex-col items-center gap-2 text-center"
         >
-          <div className="w-10 h-10 bg-rose-500/10 rounded-full flex items-center justify-center mx-auto">
-            <PlayCircle className="w-5 h-5 text-rose-500" />
-          </div>
-          <div className="space-y-1">
-            <h4 className="text-sm sm:text-base font-bold tracking-tight">Ready to begin?</h4>
-            <p className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
-              Your speaking session is ready. Click the button below to start.
-            </p>
-          </div>
           <Button
             onClick={onStartTest}
             size="lg"
-            className="bg-gradient-to-r from-rose-500 to-orange-600 hover:from-rose-600 hover:to-orange-700 text-white shadow-lg shadow-rose-500/10 px-5 sm:px-6 py-4 text-xs sm:text-sm font-black tracking-tight rounded-lg gap-2 hover-lift w-full sm:w-auto mt-2"
+            className="h-12 w-full gap-2 rounded-xl bg-rose-500 px-7 text-sm font-extrabold text-white shadow-lg shadow-rose-500/20 transition-transform hover:-translate-y-0.5 hover:bg-rose-600"
           >
-            <PlayCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            Begin Now
+            <PlayCircle className="h-4 w-4" aria-hidden="true" />
+            Begin test
           </Button>
+          <p className="hidden text-[10px] leading-relaxed text-muted-foreground 2xl:block">
+            You can’t pause or go back once the test starts.
+          </p>
         </motion.div>
       )}
 
       {/* Unified Status Area */}
       {testStarted && !isPart2Prep && (
-        <div className="h-14 flex flex-col justify-center items-center gap-1.5">
+        <div className="flex h-9 flex-col items-center justify-center gap-1">
           <AnimatePresence mode="wait">
             {isProcessing ? (
               <motion.div
@@ -71,9 +65,9 @@ const RecordingControls = React.memo(
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
-                className="flex items-center gap-3 text-primary"
+                className="flex items-center gap-2 text-primary"
               >
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="font-black text-[10px] uppercase tracking-[0.2em]">
                   {processingStatus}
                 </span>
@@ -85,7 +79,7 @@ const RecordingControls = React.memo(
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
-                className="flex items-center gap-2 bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/20 px-4 py-1 rounded-full"
+                className="flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1"
               >
                 <motion.div
                   animate={{ scale: [1, 1.2, 1] }}
@@ -104,7 +98,7 @@ const RecordingControls = React.memo(
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="flex items-center gap-2 bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/20 px-4 py-1 rounded-full"
+                className="flex items-center gap-2 rounded-full border border-rose-500/20 bg-rose-500/5 px-3 py-1 dark:bg-rose-500/10"
               >
                 {/* Animated soundwave bars */}
                 <div className="flex items-center gap-0.5">
@@ -132,11 +126,11 @@ const RecordingControls = React.memo(
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="flex flex-col items-center gap-1.5"
+                className="flex items-center gap-3"
               >
                 {/* Audio Level Visualizer — CSS-only, shown while recording */}
-                <div className="flex items-center gap-1 h-5 py-0.5">
-                  {Array.from({ length: 24 }, (_, i) => (
+                <div className="flex h-5 items-center gap-1 py-0.5" aria-hidden="true">
+                  {Array.from({ length: 18 }, (_, i) => (
                     <div
                       key={i}
                       className="w-0.5 sm:w-1 bg-gradient-to-t from-rose-500 to-orange-400 rounded-full animate-pulse"
@@ -148,7 +142,7 @@ const RecordingControls = React.memo(
                     />
                   ))}
                 </div>
-                <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 px-4 py-0.5 rounded-full">
+                <div className="rounded-full border border-primary/20 bg-primary/5 px-3 py-0.5 dark:bg-primary/10">
                   <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] text-primary flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
                     LISTENING... SPEAK NATURALLY
@@ -162,8 +156,8 @@ const RecordingControls = React.memo(
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 transition-opacity hover:opacity-100 italic">
-                  Click the microphone to speak
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-muted-foreground/70">
+                  Tap the microphone when you are ready
                 </p>
               </motion.div>
             )}
@@ -173,75 +167,98 @@ const RecordingControls = React.memo(
 
       {/* Microphone Button */}
       {testStarted && !isPart2Prep && (
-        <div className="flex flex-col items-center gap-3">
-          <div className="relative">
-            <motion.div
-              className="absolute inset-0 rounded-full bg-rose-500/20 dark:bg-rose-500/10 blur-xl"
-              animate={{
-                scale: isListening ? [1, 1.4, 1] : 1,
-                opacity: isListening ? [0.3, 0.6, 0.3] : 0,
-              }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            />
+        <div className="flex flex-col items-center gap-1">
+          <div className="flex items-center gap-3 sm:gap-5">
+            <div className="hidden items-center gap-1 sm:flex" aria-hidden="true">
+              {[7, 13, 20, 11, 17, 8, 14].map((height, index) => (
+                <span
+                  key={`left-${index}`}
+                  className="w-0.5 rounded-full bg-rose-500/35"
+                  style={{ height }}
+                />
+              ))}
+            </div>
 
-            <div className="relative group">
-              <div
-                className={`absolute -inset-1.5 bg-gradient-to-br transition-opacity duration-700 blur-2xl opacity-20 dark:opacity-40 group-hover:opacity-60 ${isListening ? 'from-rose-500 to-orange-600 animate-pulse' : 'from-rose-500 to-orange-400'}`}
+            <div className="relative">
+              <motion.div
+                className="absolute inset-0 rounded-full bg-rose-500/20 dark:bg-rose-500/10 blur-xl"
+                animate={{
+                  scale: isListening ? [1, 1.4, 1] : 1,
+                  opacity: isListening ? [0.3, 0.6, 0.3] : 0,
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
               />
 
-              <motion.button
-                onClick={isListening ? onStopListening : onStartListening}
-                disabled={isProcessing || isSpeaking || isTTSLoading || timerExpiredRef?.current}
-                whileTap={!isProcessing && !isSpeaking && !isTTSLoading ? { scale: 0.95 } : {}}
-                title={isListening ? 'Send my answer' : 'Start speaking'}
-                className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-[1.15rem] sm:rounded-[1.25rem] flex items-center justify-center transition-colors duration-500 border-4 transform-gpu ${
-                  isProcessing || isSpeaking || isTTSLoading
-                    ? 'bg-muted dark:bg-zinc-800 border-muted-foreground/10 cursor-not-allowed opacity-50'
-                    : isListening
-                      ? 'bg-gradient-to-br from-rose-500 via-rose-600 to-orange-700 border-rose-400/30'
-                      : 'bg-gradient-to-br from-white to-zinc-50 dark:from-zinc-800 dark:to-zinc-900 border-rose-500/20 hover:border-rose-500/40 shadow-xl group/btn'
-                }`}
-              >
-                {isProcessing ? (
-                  <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground animate-spin" />
-                ) : isTTSLoading ? (
-                  /* Pulsing volume icon while TTS is loading */
-                  <motion.div
-                    animate={{ opacity: [0.4, 1, 0.4] }}
-                    transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-                  >
-                    <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
-                  </motion.div>
-                ) : isSpeaking ? (
-                  /* Animated volume icon while examiner is speaking */
-                  <motion.div
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
-                  >
-                    <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
-                  </motion.div>
-                ) : isListening ? (
-                  <div className="relative flex items-center justify-center -ml-0.5 mt-0.5">
-                    <Send className="w-5 h-5 sm:w-6 sm:h-6 text-white fill-white/10" />
-                  </div>
-                ) : (
-                  <div className="relative transition-transform group-hover/btn:scale-110 duration-500">
-                    <Mic className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500 group-hover:text-rose-600 transition-colors" />
-                  </div>
-                )}
-              </motion.button>
+              <div className="relative group">
+                <div className="absolute -inset-2 rounded-full bg-rose-500/15 opacity-50 blur-xl transition-opacity duration-500 group-hover:opacity-80" />
+
+                <motion.button
+                  onClick={isListening ? onStopListening : onStartListening}
+                  disabled={isProcessing || isSpeaking || isTTSLoading || timerExpiredRef?.current}
+                  whileTap={!isProcessing && !isSpeaking && !isTTSLoading ? { scale: 0.95 } : {}}
+                  title={isListening ? 'Send my answer' : 'Start speaking'}
+                  aria-label={
+                    isListening ? 'Stop recording and send answer' : 'Start recording answer'
+                  }
+                  className={`relative flex h-16 w-16 transform-gpu items-center justify-center rounded-full border transition-colors duration-300 sm:h-[4.5rem] sm:w-[4.5rem] ${
+                    isProcessing || isSpeaking || isTTSLoading
+                      ? 'cursor-not-allowed border-border bg-muted opacity-55'
+                      : isListening
+                        ? 'border-rose-400 bg-rose-500 shadow-lg shadow-rose-500/25'
+                        : 'group/btn border-rose-500/20 bg-card text-rose-500 shadow-lg shadow-rose-500/10 hover:border-rose-500/40 hover:bg-rose-500/[0.04]'
+                  }`}
+                >
+                  {isProcessing ? (
+                    <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground animate-spin" />
+                  ) : isTTSLoading ? (
+                    /* Pulsing volume icon while TTS is loading */
+                    <motion.div
+                      animate={{ opacity: [0.4, 1, 0.4] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
+                    </motion.div>
+                  ) : isSpeaking ? (
+                    /* Animated volume icon while examiner is speaking */
+                    <motion.div
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
+                    </motion.div>
+                  ) : isListening ? (
+                    <div className="relative flex items-center justify-center -ml-0.5 mt-0.5">
+                      <Send className="h-6 w-6 fill-white/10 text-white" />
+                    </div>
+                  ) : (
+                    <div className="relative transition-transform group-hover/btn:scale-110 duration-500">
+                      <Mic className="h-6 w-6 text-rose-500 transition-transform duration-300 group-hover/btn:scale-110" />
+                    </div>
+                  )}
+                </motion.button>
+              </div>
+            </div>
+
+            <div className="hidden items-center gap-1 sm:flex" aria-hidden="true">
+              {[14, 8, 17, 11, 20, 13, 7].map((height, index) => (
+                <span
+                  key={`right-${index}`}
+                  className="w-0.5 rounded-full bg-rose-500/35"
+                  style={{ height }}
+                />
+              ))}
             </div>
           </div>
 
           {/* Helper Text Area */}
-          <div className="h-6 flex items-center justify-center mt-1 sm:mt-2">
+          <div className="flex h-5 items-center justify-center">
             <AnimatePresence>
               {isListening && (
                 <motion.div
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 5 }}
-                  className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-rose-500/70 dark:text-rose-400/70 animate-pulse"
+                  className="animate-pulse text-[9px] font-extrabold uppercase tracking-[0.16em] text-rose-500/80 sm:text-[10px] dark:text-rose-400/80"
                 >
                   Tap to send your response
                 </motion.div>

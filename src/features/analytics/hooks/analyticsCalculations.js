@@ -2,6 +2,12 @@ import { formatBand, calculateImprovement, calculateScoreForecast } from '../uti
 
 export const MODULES = ['reading', 'writing', 'listening', 'speaking'];
 export const MAX_REASONABLE_TEST_SECONDS = 4 * 60 * 60;
+export const PACING_BENCHMARK_MINUTES = {
+  reading: 60,
+  writing: 60,
+  listening: 40,
+  speaking: 15,
+};
 
 export function isValidBandScore(score) {
   const value = Number(score);
@@ -47,6 +53,25 @@ export function getKnownDurationSeconds(session) {
   const metDur = extractDurationFromMetrics(session);
   if (metDur !== null) return metDur;
   return extractDurationFromDates(session);
+}
+
+export function getRecordedDurationSeconds(session) {
+  if (!session) return null;
+  const metricDuration = extractDurationFromMetrics(session);
+  if (metricDuration !== null) return metricDuration;
+
+  const type = String(session.test_type || '').toLowerCase();
+  const benchmarkMinutes = PACING_BENCHMARK_MINUTES[type];
+  const remaining = Number(session.content_data?.time_remaining);
+  if (benchmarkMinutes && Number.isFinite(remaining) && remaining >= 0) {
+    const elapsed = benchmarkMinutes * 60 - remaining;
+    if (isValidDuration(elapsed)) return elapsed;
+  }
+
+  // Pace needs an explicit test duration. A created-to-completed timestamp span can
+  // include pauses or background time, so it is suitable for study totals but not
+  // for comparing a learner with the test clock.
+  return extractDurationFromMinutes(session);
 }
 
 export function filterSessionsByTimeframe(rawSessions, selectedTimeframe) {
@@ -262,7 +287,7 @@ function processSkillGaps(content, aggState) {
 }
 
 function processModuleEfficiency(s, type, aggState) {
-  const durationSeconds = getKnownDurationSeconds(s);
+  const durationSeconds = getRecordedDurationSeconds(s);
   const isValidModule = Boolean(type) && aggState.moduleEfficiency[type] !== undefined;
 
   if (isValidModule && durationSeconds !== null) {
@@ -460,17 +485,14 @@ function computeEfficiency(aggState) {
   return efficiency;
 }
 
-function getSessionAccuracy(content) {
+export function getSessionAccuracy(content) {
   const c = content || {};
-  let correct = c.correct;
-  if (correct === undefined) correct = c.correctAnswers;
-  if (correct === undefined) correct = 0;
-
-  let total = c.total;
-  if (total === undefined) total = c.totalQuestions;
-  if (total === undefined) total = 1;
-
-  return Math.round((correct / total) * 100);
+  const correct = Number(c.correct ?? c.correctAnswers);
+  const total = Number(c.total ?? c.totalQuestions);
+  if (!Number.isFinite(correct) || !Number.isFinite(total) || total <= 0 || correct < 0) {
+    return null;
+  }
+  return Math.round((Math.min(correct, total) / total) * 100);
 }
 
 function extractPaceData(s) {
@@ -487,7 +509,25 @@ function extractPaceData(s) {
 }
 
 function computePaceData(filteredSessions) {
-  return filteredSessions.map(extractPaceData).filter((d) => d.rushed > 0 || d.overanalyzed > 0);
+  return filteredSessions
+    .map(extractPaceData)
+    .filter((d) => d.accuracy !== null && (d.rushed > 0 || d.overanalyzed > 0));
+}
+
+export function buildPacingSummary(efficiency = {}) {
+  return MODULES.map((type) => {
+    const rawAverage = Number(efficiency[type]);
+    const averageMinutes =
+      Number.isFinite(rawAverage) && rawAverage > 0 ? Math.round(rawAverage) : null;
+    const benchmarkMinutes = PACING_BENCHMARK_MINUTES[type];
+    return {
+      type,
+      label: type.charAt(0).toUpperCase() + type.slice(1),
+      averageMinutes,
+      benchmarkMinutes,
+      deltaMinutes: averageMinutes === null ? null : averageMinutes - benchmarkMinutes,
+    };
+  });
 }
 
 function computeEnhancedMetricsResult(aggState, paceData) {
@@ -715,7 +755,7 @@ function computeModuleHistory(scoredSessions) {
   const moduleHistory = {};
   MODULES.forEach((mType) => {
     moduleHistory[mType] = scoredSessions
-      .filter((s) => s.test_type === mType)
+      .filter((s) => String(s.test_type || '').toLowerCase() === mType)
       .slice()
       .reverse()
       .reduce((acc, s) => {
@@ -739,6 +779,47 @@ function computeModuleHistory(scoredSessions) {
   return moduleHistory;
 }
 
+function getPracticeTitle(session) {
+  const relation = session.passage || session.passages;
+  const relatedPassage = Array.isArray(relation) ? relation[0] : relation;
+  const content = session.content_data || {};
+  const title =
+    relatedPassage?.title ||
+    relatedPassage?.cambridge_title ||
+    content.title ||
+    content.testTitle ||
+    content.topic;
+  if (typeof title === 'string' && title.trim()) return title.trim();
+  const type = String(session.test_type || 'Practice').toLowerCase();
+  return `${type.charAt(0).toUpperCase() + type.slice(1)} practice`;
+}
+
+export function computeRecentPractice(filteredSessions) {
+  return filteredSessions.map((session) => {
+    const durationSeconds = getRecordedDurationSeconds(session);
+    const durationMinutes =
+      durationSeconds === null ? null : Math.max(1, Math.round(durationSeconds / 60));
+    const content = session.content_data || {};
+    const score = toValidBandScore(session.score);
+    return {
+      id: session.id,
+      type: String(session.test_type || '').toLowerCase(),
+      title: getPracticeTitle(session),
+      score,
+      accuracy: getSessionAccuracy(content),
+      durationMinutes,
+      date: session.completed_at || session.created_at,
+      passageId: session.passage_id || content.passage_id || content.id || null,
+      resultData: {
+        ...content,
+        bandScore: score,
+        score,
+        durationMinutes,
+      },
+    };
+  });
+}
+
 function computeDistribution(moduleStats) {
   return moduleStats
     .map((m) => ({ name: m.type.charAt(0).toUpperCase() + m.type.slice(1), value: m.count }))
@@ -752,6 +833,7 @@ export function computeChartData(filteredSessions, moduleStats, avgScoreStr, tar
   const pie = computeDistribution(moduleStats);
   const moduleHistory = computeModuleHistory(scoredSessions);
   const forecast = calculateScoreForecast(scoredSessions, avgScoreStr, targetScore);
+  const recentPractice = computeRecentPractice(filteredSessions);
 
-  return { history, pie, moduleHistory, forecast };
+  return { history, pie, moduleHistory, forecast, recentPractice };
 }

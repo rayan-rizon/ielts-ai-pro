@@ -4,12 +4,12 @@ import { Link } from 'react-router-dom';
 import { generateStudyRecommendations } from '@/utils/api';
 import useAnalyticsData from '@/features/analytics/hooks/useAnalyticsData';
 import { Button } from '@/components/ui/button';
+import DocumentHead from '@/components/shared/DocumentHead';
 import { getFromCache, setInCache, CACHE_TTL } from '@/lib/apiCache';
 
 // Critical path components - load immediately
 import AnalyticsHeader from '../components/AnalyticsHeader';
 import StatCards from '../components/StatCards';
-import PerformanceNarrative from '../components/PerformanceNarrative';
 import EmptyAnalyticsState from '../components/EmptyAnalyticsState';
 import CriteriaBreakdownCard from '../components/CriteriaBreakdownCard';
 
@@ -18,6 +18,7 @@ const PerformanceTrends = React.lazy(() => import('../components/PerformanceTren
 const AIInsightsCard = React.lazy(() => import('../components/AIInsightsCard'));
 const DeepDiveAccordion = React.lazy(() => import('../components/DeepDiveAccordion'));
 const BandScoreJourney = React.lazy(() => import('../components/BandScoreJourney'));
+const AnalyticsOverview = React.lazy(() => import('../components/AnalyticsOverview'));
 const TimeManagementQuadrant = React.lazy(() => import('../components/TimeManagementQuadrant'));
 const EfficiencyMatrix = React.lazy(() => import('../components/EfficiencyMatrix'));
 const ErrorAudit = React.lazy(() => import('../components/ErrorAudit'));
@@ -187,7 +188,14 @@ export default function Analytics() {
         className="p-3 md:p-4 max-w-[1600px] mx-auto space-y-4"
         data-oid="flrz3b6-empty"
       >
+        <DocumentHead
+          title="Analytics Dashboard"
+          description="Review your IELTS band progress, section performance, pacing, score prediction, and completed practice results."
+          noIndex
+        />
         <AnalyticsHeader
+          user={user}
+          stats={stats}
           isPremium={isPremium}
           tier={user?.subscription_tier}
           role={user?.role}
@@ -216,14 +224,6 @@ export default function Analytics() {
       ? clamp01(Number(stats.avgScore) / Number(stats.targetScore)) * 100
       : 0;
 
-  // Bug fix: derive studyPace from absolute hours studied, not the trend percentage
-  const studyPace =
-    (stats?.studyHours || 0) > 20
-      ? 'intensive'
-      : (stats?.studyHours || 0) > 10
-        ? 'moderate'
-        : 'casual';
-
   return (
     <motion.div
       variants={CONTAINER_VARIANTS}
@@ -232,7 +232,14 @@ export default function Analytics() {
       className="p-3 md:p-4 max-w-[1600px] mx-auto space-y-4"
       data-oid="flrz3b6"
     >
+      <DocumentHead
+        title="Analytics Dashboard"
+        description="Review your IELTS band progress, section performance, pacing, score prediction, and completed practice results."
+        noIndex
+      />
       <AnalyticsHeader
+        user={user}
+        stats={stats}
         isPremium={isPremium}
         tier={user?.subscription_tier}
         role={user?.role}
@@ -241,22 +248,8 @@ export default function Analytics() {
         data-oid="relgpvl"
       />
 
-      {/* ─────────────────────────────────────────────────────────────────
-               TIER 1: HERO SUMMARY - Unified Dashboard Overview Panel
-              ───────────────────────────────────────────────────────────────── */}
-      <section
-        className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch"
-        data-oid="tier1-hero"
-      >
-        <div className="col-span-12 lg:col-span-4 xl:col-span-3 flex" data-oid="hero-coach">
-          <PerformanceNarrative insights={stats?.insights} stats={stats} data-oid="m5ew116" />
-        </div>
-        <div
-          className="col-span-12 lg:col-span-8 xl:col-span-9 flex flex-col justify-center"
-          data-oid="hero-stats"
-        >
-          <StatCards stats={stats} progressToTarget={progressToTarget} data-oid="b85992g" />
-        </div>
+      <section data-oid="tier1-hero">
+        <StatCards stats={stats} progressToTarget={progressToTarget} data-oid="b85992g" />
       </section>
 
       {/* ─────────────────────────────────────────────────────────────────
@@ -270,16 +263,11 @@ export default function Analytics() {
               data-oid=":n4io18"
             >
               <BandScoreJourney
-                currentScore={
-                  stats?.predictedOverallBand != null
-                    ? stats.predictedOverallBand
-                    : parseFloat(stats?.avgScore)
-                }
+                currentScore={parseFloat(stats?.avgScore)}
                 targetScore={stats?.targetScore}
                 testHistory={chartData?.history || []}
                 testDate={user?.test_date}
-                studyPace={studyPace}
-                forecastData={chartData?.forecast}
+                moduleStats={stats?.moduleStats || []}
                 data-oid="2pu74s7"
               />
             </Suspense>
@@ -303,10 +291,24 @@ export default function Analytics() {
         </div>
       </section>
 
+      <Suspense fallback={<ChartSkeleton height="h-[620px]" />}>
+        <AnalyticsOverview stats={stats} chartData={chartData} user={user} />
+      </Suspense>
+
       {/* ─────────────────────────────────────────────────────────────────
                TIER 3: DEEP DIVE - Advanced analytics for power users
               ───────────────────────────────────────────────────────────────── */}
       <section className="space-y-4" data-oid="_ue32ts">
+        <div className="flex items-end justify-between gap-4 px-1 pt-2">
+          <div>
+            <h2 className="text-xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+              Advanced analysis
+            </h2>
+            <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
+              Explore module trends, question patterns, timing behavior, and scoring criteria.
+            </p>
+          </div>
+        </div>
         <Suspense fallback={<ChartSkeleton height="h-96" data-oid="9otx:wk" />} data-oid="_ud6929">
           <PerformanceTrends
             stats={stats}

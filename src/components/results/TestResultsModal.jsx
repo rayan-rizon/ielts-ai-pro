@@ -111,13 +111,13 @@ const TabsNav = () => (
 );
 
 // Main TestResultsModal component
-function useCelebration(showResults, testResults) {
+function useCelebration(showResults, testResults, celebrate) {
   const [showCelebration, setShowCelebration] = React.useState(false);
   const [particleCount, setParticleCount] = React.useState(0);
   const [celebrationTheme, setCelebrationTheme] = React.useState('default');
 
   React.useEffect(() => {
-    if (showResults && testResults?.bandScore) {
+    if (celebrate && showResults && testResults?.bandScore) {
       const score = parseFloat(testResults.bandScore);
       const { count, theme } = calculateCelebrationParams(score);
       if (count > 0) {
@@ -126,7 +126,7 @@ function useCelebration(showResults, testResults) {
         setShowCelebration(true);
       }
     }
-  }, [showResults, testResults]);
+  }, [celebrate, showResults, testResults]);
 
   return { showCelebration, particleCount, celebrationTheme, setShowCelebration };
 }
@@ -232,6 +232,7 @@ export default function TestResultsModal({
   onClose,
   onReviewAnswers,
   testType = 'reading', // 'reading' or 'listening'
+  celebrate = true,
   _dashboardUrl = '/dashboard',
 }) {
   const navigate = useNavigate();
@@ -246,7 +247,8 @@ export default function TestResultsModal({
 
   const { showCelebration, particleCount, celebrationTheme, setShowCelebration } = useCelebration(
     showResults,
-    testResults
+    testResults,
+    celebrate
   );
 
   if (!showResults || !testResults) return null;

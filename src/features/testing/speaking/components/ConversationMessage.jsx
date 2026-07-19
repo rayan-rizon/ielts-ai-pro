@@ -1,5 +1,4 @@
 import React from 'react';
-import { Bot } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 function MessageAvatar({ entry, authUser }) {
@@ -12,14 +11,14 @@ function MessageAvatar({ entry, authUser }) {
       <img
         src={authUser.avatar_url}
         alt={authUser?.full_name || 'User'}
-        className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg object-cover shadow-md bg-zinc-100"
+        className="h-8 w-8 rounded-xl bg-muted object-cover shadow-sm sm:h-9 sm:w-9"
       />
     );
   }
 
   return (
-    <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md bg-gradient-to-br from-blue-500 to-indigo-500">
-      <span className="text-white text-xs font-bold">
+    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-sm sm:h-9 sm:w-9">
+      <span className="text-xs font-bold">
         {(authUser?.full_name || 'C').charAt(0).toUpperCase()}
       </span>
     </div>
@@ -28,14 +27,14 @@ function MessageAvatar({ entry, authUser }) {
 
 function getBubbleClass(entry) {
   if (entry.speaker !== 'user') {
-    return 'bg-gradient-to-br from-rose-600/10 to-rose-600/5 dark:from-rose-500/20 dark:to-rose-500/5 border border-rose-500/20 dark:border-rose-500/20 rounded-[1.25rem] text-left font-medium text-slate-800 dark:text-slate-200';
+    return 'rounded-2xl rounded-tl-md border border-rose-500/15 bg-rose-500/[0.055] text-left font-medium text-foreground dark:bg-rose-500/[0.09]';
   }
 
   if (entry.error) {
-    return 'bg-red-100/80 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-[1.25rem] rounded-tr-none text-red-700 dark:text-red-300 text-right italic font-medium';
+    return 'rounded-2xl rounded-tr-md border border-red-300 bg-red-100/80 text-right font-medium italic text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-300';
   }
 
-  return 'bg-gradient-to-br from-blue-500/10 to-indigo-500/5 dark:from-blue-500/20 dark:to-indigo-500/5 border border-blue-500/10 dark:border-blue-500/10 rounded-[1.25rem] rounded-tr-none text-right font-medium text-slate-800 dark:text-slate-200';
+  return 'rounded-2xl rounded-tr-md border border-primary/10 bg-primary/[0.065] text-left font-medium text-foreground dark:bg-primary/[0.11]';
 }
 
 function LoadingText() {
@@ -69,27 +68,27 @@ const ConversationMessage = React.memo(({ entry, index, authUser }) => (
     initial={{ opacity: 0, y: 20, scale: 0.98 }}
     animate={{ opacity: 1, y: 0, scale: 1 }}
     transition={{ duration: 0.3, delay: 0.1 }}
-    className={`flex items-start gap-3 ${entry.speaker === 'user' ? 'flex-row-reverse' : ''}`}
+    className={`flex items-start gap-2.5 sm:gap-3 ${entry.speaker === 'user' ? 'flex-row-reverse' : ''}`}
   >
     <MessageAvatar entry={entry} authUser={authUser} />
 
     <div
-      className={`max-w-[90%] sm:max-w-[85%] ${entry.speaker === 'user' ? 'text-right' : ''} space-y-1.5 min-w-0`}
+      className={`min-w-0 max-w-[91%] space-y-1.5 sm:max-w-[82%] ${entry.speaker === 'user' ? 'text-right' : ''}`}
     >
       <div
         className={`flex items-center gap-2 px-1 ${entry.speaker === 'user' ? 'flex-row-reverse' : ''}`}
       >
-        <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest truncate">
+        <span className="truncate text-[9px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground sm:text-[10px]">
           {entry.speaker === 'ai' ? 'Examiner' : authUser?.full_name || 'Candidate'}
         </span>
         {entry.timestamp && (
-          <span className="text-[9px] sm:text-[10px] text-muted-foreground/40 font-mono flex-shrink-0">
+          <span className="flex-shrink-0 font-mono text-[9px] text-muted-foreground/50 sm:text-[10px]">
             {entry.timestamp}
           </span>
         )}
       </div>
       <div
-        className={`px-3.5 py-2.5 sm:px-4 sm:py-3 text-[14px] sm:text-[15px] leading-relaxed tracking-normal shadow-sm ${getBubbleClass(entry)}`}
+        className={`px-4 py-3 text-left text-[14px] leading-6 tracking-normal shadow-sm sm:px-5 sm:py-3.5 sm:text-[15px] ${getBubbleClass(entry)}`}
       >
         <MessageBody entry={entry} />
       </div>

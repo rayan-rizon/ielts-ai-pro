@@ -99,7 +99,7 @@ export default function PerformanceNarrative({ insights, stats }) {
                       className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-wider"
                       data-oid="aa80x1e"
                     >
-                      +{stats.improvement} Bands
+                      {stats.improvement} Bands
                     </span>
                   </div>
                 </div>

@@ -1,227 +1,129 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from 'recharts';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Target } from 'lucide-react';
-import { cn } from '@/lib/cn';
+import React, { useMemo } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Sparkles } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { ITEM_VARIANTS } from '../constants';
-import EmptyAnalyticsState from './EmptyAnalyticsState';
+import { formatBand } from '../utils';
 
-const CustomTooltip = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div
-        className="rounded-xl border border-border/50 bg-card/95 backdrop-blur-xl p-3 shadow-2xl"
-        data-oid=":qwe4om"
-      >
-        <div className="flex items-center gap-2 mb-2" data-oid="2ergm3n">
-          <Badge
-            className={cn(
-              data.isForecast
-                ? 'bg-indigo-500/10 text-indigo-500 dark:text-indigo-400'
-                : 'bg-primary/10 text-primary dark:text-blue-400',
-              'border-0'
-            )}
-            data-oid="_31sywd"
-          >
-            {data.isForecast ? 'Projection' : 'Current'}
-          </Badge>
-          <span className="text-sm font-black text-muted-foreground" data-oid="fj9g561">
-            {data.date}
-          </span>
-        </div>
-        <div className="flex items-baseline gap-1" data-oid="vc9inot">
-          <span className="text-2xl font-black text-foreground" data-oid="_6td1g9">
-            {data.score.toFixed(1)}
-          </span>
-          <span className="text-sm font-bold text-muted-foreground" data-oid="9zrj5ve">
-            Band
-          </span>
-        </div>
-      </div>
-    );
-  }
-  return null;
-};
+const GAUGE_PATH = 'M 26 132 A 94 94 0 0 1 214 132';
 
-export default function ScoreForecast({ forecastData, targetScore }) {
-  if (!forecastData || forecastData.length === 0) {
-    return (
-      <motion.div variants={ITEM_VARIANTS} className="h-full" data-oid="c1teu:f">
-        <Card
-          className="rounded-2xl border-border/50 bg-card/75 backdrop-blur shadow-sm overflow-hidden h-[400px] flex flex-col"
-          data-oid="i:bueg2"
-        >
-          <CardHeader className="pb-2" data-oid="6t.tu80">
-            <div className="flex items-center justify-between gap-3" data-oid="e6rb0u6">
-              <CardTitle
-                className="text-xl font-black text-foreground flex items-center gap-2"
-                data-oid="t-q9d3q"
-              >
-                <Target
-                  className="w-5 h-5 text-indigo-500 dark:text-indigo-400"
-                  data-oid="nrdzosg"
-                />
-                Band 9 Projector
-              </CardTitle>
-              <Badge
-                variant="outline"
-                className="rounded-xl border-border/60 bg-muted/40 text-xs font-black"
-                data-oid="_zdt5oc"
-              >
-                Motivation
-              </Badge>
-            </div>
-            <CardDescription data-oid="z374fg6">
-              Estimated path to your target score based on current trend.
-            </CardDescription>
-          </CardHeader>
-          <CardContent
-            className="flex-1 flex flex-col justify-center items-center"
-            data-oid="pd3:pf-"
-          >
-            <EmptyAnalyticsState
-              icon={Target}
-              title="Forecasting Pending"
-              description="Complete at least 3 practice tests to unlock your AI-powered band score projection."
-              compact
-              data-oid="w7:0dde"
-            />
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
-  }
+function ForecastGauge({ likelihood, available }) {
+  const reduceMotion = useReducedMotion();
+  const progress = available ? likelihood : 0;
 
   return (
-    <motion.div variants={ITEM_VARIANTS} className="h-full" data-oid="rbcr9-f">
-      <Card
-        className="rounded-2xl border-border/50 bg-card/75 backdrop-blur shadow-sm overflow-hidden hover:shadow-xl transition-all h-[400px] flex flex-col"
-        data-oid="qha72_n"
-      >
-        <CardHeader className="pb-2" data-oid="_m62w1z">
-          <div className="flex items-center justify-between gap-3" data-oid="wod3056">
-            <CardTitle
-              className="text-xl font-black text-foreground flex items-center gap-2"
-              data-oid="djnbfk."
-            >
-              <Target className="w-5 h-5 text-indigo-500" data-oid="my4-5wl" />
-              Band 9 Projector
-            </CardTitle>
-            <Badge
-              variant="outline"
-              className="rounded-xl border-border/60 bg-muted/40 text-xs font-black"
-              data-oid="6g66uzo"
-            >
-              Motivation
-            </Badge>
+    <div className="relative mx-auto mt-4 h-[188px] w-full max-w-[320px]" aria-hidden="true">
+      <svg viewBox="0 0 240 150" className="h-full w-full overflow-visible">
+        <defs>
+          <linearGradient id="scorePredictorArc" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0%" stopColor="#6246ea" />
+            <stop offset="100%" stopColor="#b86cf5" />
+          </linearGradient>
+        </defs>
+        <path
+          d={GAUGE_PATH}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="13"
+          strokeLinecap="round"
+          className="text-violet-50 dark:text-white/10"
+        />
+        <motion.path
+          d={GAUGE_PATH}
+          fill="none"
+          stroke="url(#scorePredictorArc)"
+          strokeWidth="13"
+          strokeLinecap="round"
+          pathLength="100"
+          strokeDasharray="100"
+          initial={{ strokeDashoffset: 100 }}
+          animate={{ strokeDashoffset: 100 - progress }}
+          transition={{ duration: reduceMotion ? 0 : 0.9, ease: 'easeOut' }}
+        />
+      </svg>
+      <div className="absolute inset-x-0 bottom-[14px] text-center">
+        <p className="text-6xl font-black tracking-[-0.06em] text-violet-600 dark:text-violet-300 sm:text-7xl">
+          {available ? `${progress}%` : '—'}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default function ScoreForecast({ forecastData = [], targetScore }) {
+  const projection = useMemo(
+    () => forecastData.find((point) => point.date === '+30 Days') || null,
+    [forecastData]
+  );
+  const current = useMemo(
+    () => forecastData.find((point) => point.date === 'Now') || null,
+    [forecastData]
+  );
+  const hasForecast = Boolean(
+    projection && current && Number.isFinite(projection.targetLikelihood)
+  );
+  const target = Number(targetScore) || 7;
+  const likelihood = hasForecast ? projection.targetLikelihood : 0;
+  const direction = hasForecast ? Number(projection.score) - Number(current.score) : 0;
+  const outlook = !hasForecast
+    ? 'Complete three scored sessions to unlock a personalised forecast.'
+    : direction >= 0.25
+      ? 'Your recent trend is moving in the right direction. Keep the momentum going.'
+      : direction <= -0.25
+        ? 'Build a steadier practice rhythm to improve this outlook.'
+        : 'Continue your current pace while focusing on your weakest section.';
+
+  return (
+    <motion.div variants={ITEM_VARIANTS} className="h-full">
+      <Card className="flex h-full min-h-[350px] flex-col overflow-hidden rounded-[22px] border-violet-100 bg-white shadow-[0_16px_45px_-34px_rgba(15,23,42,0.55)] dark:border-violet-500/20 dark:bg-slate-950">
+        <CardContent className="flex flex-1 flex-col p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-xl">
+                Score Predictor
+              </h3>
+              <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
+                What can you achieve?
+              </p>
+            </div>
+            <span className="rounded-xl bg-violet-50 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-violet-600 dark:bg-violet-500/10 dark:text-violet-300">
+              Premium
+            </span>
           </div>
-          <CardDescription data-oid="iorkmnl">
-            Estimated path to your target score based on current trend.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-0 flex-1 min-h-0 relative" data-oid="a2drvx7">
-          <ResponsiveContainer width="100%" height="100%" data-oid="krbal9s">
-            <AreaChart
-              data={forecastData}
-              margin={{ top: 20, right: 30, left: -20, bottom: 0 }}
-              data-oid="se40zo1"
-            >
-              <defs data-oid="hx_yse0">
-                <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1" data-oid="eog35ly">
-                  <stop
-                    offset="5%"
-                    stopColor="hsl(var(--primary))"
-                    stopOpacity={0.3}
-                    data-oid=":2v2o-j"
-                  />
 
-                  <stop
-                    offset="95%"
-                    stopColor="hsl(var(--primary))"
-                    stopOpacity={0}
-                    data-oid="y02xl.z"
-                  />
-                </linearGradient>
-                <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1" data-oid="znv.tv2">
-                  <stop
-                    offset="5%"
-                    stopColor="rgb(99, 102, 241)"
-                    stopOpacity={0.3}
-                    data-oid="r6r3_.y"
-                  />
+          <ForecastGauge likelihood={likelihood} available={hasForecast} />
 
-                  <stop
-                    offset="95%"
-                    stopColor="rgb(99, 102, 241)"
-                    stopOpacity={0}
-                    data-oid="2jyru6:"
-                  />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="hsl(var(--border))"
-                opacity={0.2}
-                data-oid="x_h9ngb"
-              />
+          <div className="text-center">
+            <p className="text-sm font-extrabold text-slate-800 dark:text-slate-100 sm:text-base">
+              {hasForecast
+                ? `Estimated likelihood of Band ${formatBand(target)}+`
+                : 'Forecast needs more scored practice'}
+            </p>
+            <p className="mx-auto mt-3 max-w-xs text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400">
+              {outlook}
+            </p>
+          </div>
 
-              <XAxis
-                dataKey="date"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700 }}
-                dy={10}
-                data-oid="lw1mmc1"
-              />
-
-              <YAxis
-                domain={[0, 9]}
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700 }}
-                data-oid="4y2w-h7"
-              />
-
-              <Tooltip content={<CustomTooltip data-oid="15k32ip" />} data-oid="o91vu9w" />
-              <ReferenceLine
-                y={targetScore}
-                stroke="hsl(var(--indigo-500))"
-                strokeDasharray="5 5"
-                label={{
-                  value: 'Target',
-                  fill: 'hsl(var(--indigo-500))',
-                  fontSize: 10,
-                  fontWeight: 900,
-                  position: 'right',
-                }}
-                data-oid="7w3cpjh"
-              />
-
-              <Area
-                type="monotone"
-                dataKey="score"
-                stroke="hsl(var(--primary))"
-                strokeWidth={4}
-                fillOpacity={1}
-                fill="url(#colorScore)"
-                animationDuration={2000}
-                data-oid="qqphfyx"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div className="mt-5 grid grid-cols-3 divide-x divide-violet-100 rounded-2xl border border-violet-100 bg-violet-50/50 px-2 py-3 text-center dark:divide-violet-500/15 dark:border-violet-500/15 dark:bg-violet-500/5">
+            {[
+              ['Current', hasForecast ? formatBand(current.score) : '—'],
+              ['30 days', hasForecast ? formatBand(projection.score) : '—'],
+              ['Evidence', hasForecast ? `${projection.sampleSize} tests` : 'Need 3'],
+            ].map(([label, value]) => (
+              <div key={label} className="min-w-0 px-1">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  {label}
+                </p>
+                <p className="mt-1 truncate text-xs font-black text-slate-800 dark:text-slate-100">
+                  {value}
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 flex items-start gap-1.5 text-[10px] font-medium leading-relaxed text-slate-400">
+            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-500" />A conservative trend
+            estimate from completed scored practice, not an official IELTS prediction.
+          </p>
         </CardContent>
       </Card>
     </motion.div>
