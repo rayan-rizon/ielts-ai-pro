@@ -91,26 +91,59 @@ function LazySection({ children, minHeight = 'auto', id = '', className = '' }) 
   );
 }
 
+const getStructuredData = () => ({
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'IELTS Ai Pro',
+  url: 'https://www.ieltsai.pro/',
+  applicationCategory: 'EducationalApplication',
+  operatingSystem: 'Web',
+  description:
+    'Web-based IELTS practice platform with Reading and Listening tests, AI-assisted Writing and Speaking feedback, progress analytics, vocabulary review, and adaptive study planning.',
+  datePublished: '2025-10-15',
+  dateModified: new Date().toISOString().split('T')[0],
+  offers: {
+    '@type': 'AggregateOffer',
+    priceCurrency: 'USD',
+    lowPrice: '0',
+    highPrice: '15.99',
+    offerCount: '3',
+  },
+  featureList: [
+    'Instant AI Writing Evaluation with Band Score',
+    'AI Speaking Practice with Pronunciation Analysis',
+    'Realistic IELTS Mock Tests',
+    'Personalized AI Study Planner',
+    'Band Score Analytics Dashboard',
+    'Cambridge-style Practice Materials',
+  ],
+  author: {
+    '@type': 'Organization',
+    name: 'IELTS Ai Pro',
+  },
+});
+
 export default function LandingPage() {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { user, loading: authLoading, authCheckComplete } = useAuth();
 
-  useEffect(() => {
-    if (authCheckComplete && user && !authLoading) {
-      if (user.onboarding_completed) {
-        navigate(createPageUrl('Dashboard'));
-      } else {
-        navigate(createPageUrl('Onboarding'));
-      }
-    }
-  }, [user, authLoading, authCheckComplete, navigate]);
+  const isSignedIn = Boolean(user && !authLoading);
 
-  const handlePrimaryCta = () =>
-    navigate(user && !authLoading ? createPageUrl('Dashboard') : createPageUrl('SignUp'));
+  useEffect(() => {
+    if (authCheckComplete && isSignedIn) {
+      const targetPage = user?.onboarding_completed ? 'Dashboard' : 'Onboarding';
+      navigate(createPageUrl(targetPage));
+    }
+  }, [authCheckComplete, isSignedIn, user?.onboarding_completed, navigate]);
+
+  const handlePrimaryCta = () => {
+    navigate(createPageUrl(isSignedIn ? 'Dashboard' : 'SignUp'));
+  };
+
   const handlePricing = () => {
     // /pricing is auth-gated; anonymous visitors compare plans on the landing page itself
-    if (user && !authLoading) {
+    if (isSignedIn) {
       navigate(createPageUrl('Pricing'));
       return;
     }
@@ -124,37 +157,7 @@ export default function LandingPage() {
         description="Get instant AI band scores for IELTS Writing & Speaking, plus free Cambridge-style Reading and Listening mock tests. Track progress and start free today."
         canonicalUrl="https://www.ieltsai.pro/"
         keywords="AI IELTS preparation, IELTS writing checker, IELTS speaking practice AI, IELTS mock test online, IELTS band score feedback, free IELTS practice tests"
-        structuredData={{
-          '@context': 'https://schema.org',
-          '@type': 'WebApplication',
-          name: 'IELTS Ai Pro',
-          url: 'https://www.ieltsai.pro/',
-          applicationCategory: 'EducationalApplication',
-          operatingSystem: 'Web',
-          description:
-            'Web-based IELTS practice platform with Reading and Listening tests, AI-assisted Writing and Speaking feedback, progress analytics, vocabulary review, and adaptive study planning.',
-          datePublished: '2025-10-15',
-          dateModified: new Date().toISOString().split('T')[0],
-          offers: {
-            '@type': 'AggregateOffer',
-            priceCurrency: 'USD',
-            lowPrice: '0',
-            highPrice: '15.99',
-            offerCount: '3',
-          },
-          featureList: [
-            'Instant AI Writing Evaluation with Band Score',
-            'AI Speaking Practice with Pronunciation Analysis',
-            'Realistic IELTS Mock Tests',
-            'Personalized AI Study Planner',
-            'Band Score Analytics Dashboard',
-            'Cambridge-style Practice Materials',
-          ],
-          author: {
-            '@type': 'Organization',
-            name: 'IELTS Ai Pro',
-          },
-        }}
+        structuredData={getStructuredData()}
         data-oid="r0p_zrs"
       />
 
@@ -170,7 +173,7 @@ export default function LandingPage() {
             setTheme={setTheme}
             handlePricing={handlePricing}
             handlePrimaryCta={handlePrimaryCta}
-            isSignedIn={Boolean(user && !authLoading)}
+            isSignedIn={isSignedIn}
             data-oid=":.wx3iw"
           />
 
@@ -178,7 +181,7 @@ export default function LandingPage() {
             <HeroSection
               handlePricing={handlePricing}
               handlePrimaryCta={handlePrimaryCta}
-              isSignedIn={Boolean(user && !authLoading)}
+              isSignedIn={isSignedIn}
               data-oid="fmlzvda"
             />
 
