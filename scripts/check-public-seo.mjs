@@ -78,7 +78,7 @@ for (const [source, destination] of Object.entries(retiredRoutes)) {
 
 for (const rewrite of vercel.rewrites || []) {
   if (Object.hasOwn(retiredRoutes, rewrite.source)) fail(`retired route ${rewrite.source} still rewrites`);
-  if (rewrite.destination.includes('/index.html') && rewrite.source !== '/((?!assets/|.*\\.|api/).*)') {
+  if (rewrite.destination.includes('/index.html') && !['/:path*', '/(.*)', '/:path(.*)'].includes(rewrite.source)) {
     fail(`standalone static rewrite remains for ${rewrite.source}`);
   }
 }

@@ -212,7 +212,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!assets/|.*\\.|api/).*)",
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ]
