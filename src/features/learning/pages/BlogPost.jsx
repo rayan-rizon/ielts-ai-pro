@@ -27,6 +27,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import DocumentHead from '@/components/shared/DocumentHead';
 import Footer from '@/features/core/components/landing/Footer';
 import PublicNavbar from '@/features/core/components/landing/PublicNavbar';
+import {
+  BLOG_COVER_HEIGHT,
+  BLOG_COVER_WIDTH,
+  getBlogCoverAlt,
+} from '@/features/learning/utils/blogCoverMeta';
 import { supabase } from '@/lib/supabase';
 
 const PRACTICE_LINKS = {
@@ -100,7 +105,11 @@ function RelatedCard({ article }) {
         <div className="relative h-32 overflow-hidden bg-indigo-50 dark:bg-indigo-500/10">
           <img
             src={article.thumbnail_url || '/ielts-hero-student.webp'}
-            alt={`${article.title} - IELTS preparation guide`}
+            alt={getBlogCoverAlt(article)}
+            width={BLOG_COVER_WIDTH}
+            height={BLOG_COVER_HEIGHT}
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-105"
           />
           <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-indigo-700 shadow-sm backdrop-blur">
@@ -130,7 +139,7 @@ function BlogPostLoadingSkeleton() {
           <Skeleton className="h-28 w-full" />
           <Skeleton className="h-16 w-4/5" />
         </div>
-        <Skeleton className="aspect-[16/10] rounded-3xl" />
+        <Skeleton className="aspect-[16/9] rounded-3xl" />
       </div>
     </div>
   );
@@ -189,8 +198,12 @@ function BlogPostHero({ post, publishedDate }) {
             <div className="overflow-hidden rounded-[1.75rem] border border-indigo-100 bg-indigo-50 p-2 shadow-[0_28px_70px_-38px_rgba(79,70,229,.5)] dark:border-white/10 dark:bg-white/[.04]">
               <img
                 src={post.thumbnail_url || '/ielts-hero-student.webp'}
-                alt={`${post.title} - IELTS strategy guide`}
-                className="aspect-[16/10] w-full rounded-[1.35rem] object-cover"
+                alt={getBlogCoverAlt(post)}
+                width={BLOG_COVER_WIDTH}
+                height={BLOG_COVER_HEIGHT}
+                decoding="async"
+                fetchPriority="high"
+                className="aspect-[16/9] w-full rounded-[1.35rem] object-cover"
               />
             </div>
             <div className="absolute -bottom-4 left-8 hidden rotate-[-3deg] rounded-lg bg-violet-100 px-4 py-3 text-xs font-bold text-violet-800 shadow-lg sm:block">
@@ -538,7 +551,7 @@ const BlogPost = () => {
           <BlogPostHero post={post} publishedDate={publishedDate} />
 
           <section className="mx-auto grid max-w-6xl items-start gap-6 px-5 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:py-10">
-            <div>
+            <div className="min-w-0">
               <BlogPostArticleBody
                 post={post}
                 preparedContent={preparedContent}

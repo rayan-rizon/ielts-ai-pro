@@ -26,6 +26,11 @@ import DocumentHead from '@/components/shared/DocumentHead';
 import Footer from '@/features/core/components/landing/Footer';
 import PublicNavbar from '@/features/core/components/landing/PublicNavbar';
 import { useResources } from '@/features/learning/hooks/useResources';
+import {
+  BLOG_COVER_HEIGHT,
+  BLOG_COVER_WIDTH,
+  getBlogCoverAlt,
+} from '@/features/learning/utils/blogCoverMeta';
 import { cn } from '@/lib/cn';
 
 const EMPTY_ARTICLES = [];
@@ -123,9 +128,12 @@ function ArticleVisual({ article }) {
       <div className="relative h-40 overflow-hidden bg-indigo-50">
         <img
           src={article.thumbnail_url}
-          alt={`${article.title} - IELTS preparation guide`}
+          alt={getBlogCoverAlt(article)}
+          width={BLOG_COVER_WIDTH}
+          height={BLOG_COVER_HEIGHT}
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           loading="lazy"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/20 via-transparent to-transparent" />
         <div className="absolute bottom-4 left-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/70 bg-white/90 text-indigo-700 shadow-lg backdrop-blur">
@@ -355,7 +363,11 @@ function BlogFeaturedCard({ featured }) {
         <Link to={`/blog/${featured.slug}`} className="relative overflow-hidden rounded-xl">
           <img
             src={featured.thumbnail_url || '/ielts-hero-student.webp'}
-            alt={`${featured.title} - featured IELTS preparation guide`}
+            alt={getBlogCoverAlt(featured)}
+            width={BLOG_COVER_WIDTH}
+            height={BLOG_COVER_HEIGHT}
+            decoding="async"
+            fetchPriority="high"
             className="h-full min-h-64 w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           <span className="absolute left-4 top-4 rounded-full bg-indigo-600 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[.12em] text-white shadow-lg">

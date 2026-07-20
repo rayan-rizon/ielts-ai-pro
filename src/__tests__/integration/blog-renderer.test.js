@@ -77,6 +77,12 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain(
       'property="og:image" content="https://www.ieltsai.pro/blog-images/reading-strategy.webp"'
     );
+    expect(response.body).toContain(
+      'alt="Reading practice guide: learner studying with a laptop and notebook"'
+    );
+    expect(response.body).toContain(
+      'width="1200" height="675" decoding="async" fetchpriority="high"'
+    );
   });
 
   it('returns an indexable-safe 404 when a published article is absent', async () => {
