@@ -212,14 +212,6 @@
   ],
   "rewrites": [
     {
-      "source": "/blog",
-      "destination": "/api/blog"
-    },
-    {
-      "source": "/blog/:slug",
-      "destination": "/api/blog?slug=:slug"
-    },
-    {
       "source": "/((?!assets/|.*\\.|api/).*)",
       "destination": "/index.html"
     }

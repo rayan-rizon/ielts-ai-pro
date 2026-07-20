@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ArrowRight,
@@ -61,6 +61,12 @@ const CATEGORY_CONFIG = {
     label: 'Study Planning',
     chip: 'bg-violet-50 text-violet-700 border-violet-100',
     visual: 'from-violet-50 via-indigo-50 to-purple-100 text-violet-600',
+  },
+  'Exam Updates': {
+    icon: Sparkles,
+    label: 'Exam Updates',
+    chip: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+    visual: 'from-indigo-50 via-blue-50 to-purple-100 text-indigo-600',
   },
 };
 
@@ -559,8 +565,19 @@ function BlogArticleListContent({
   );
 }
 
+const DEFAULT_CATEGORIES = [
+  'All',
+  'Writing',
+  'Speaking',
+  'Reading',
+  'Listening',
+  'Study Planning',
+  'Exam Updates',
+];
+
 function extractBlogCategories(articles) {
-  return ['All', ...new Set(articles.map((a) => a.category).filter(Boolean))];
+  const articleCats = articles.map((a) => a.category).filter(Boolean);
+  return [...new Set([...DEFAULT_CATEGORIES, ...articleCats])];
 }
 
 function extractBlogPopularTags(articles) {
@@ -661,10 +678,55 @@ function useBlogArticles({ query, category, currentPage, setCurrentPage, article
 }
 
 export default function BlogIndex() {
-  const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('All');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryParam = searchParams.get('category') || 'All';
+  const queryParam = searchParams.get('q') || '';
+  const pageParam = Number(searchParams.get('page')) || 1;
+
+  const [query, setQuery] = useState(queryParam);
+  const [category, setCategory] = useState(categoryParam);
+  const [currentPage, setCurrentPage] = useState(pageParam);
   const articleListHeadingRef = useRef(null);
+
+  useEffect(() => {
+    setCategory(searchParams.get('category') || 'All');
+    setQuery(searchParams.get('q') || '');
+    setCurrentPage(Number(searchParams.get('page')) || 1);
+  }, [searchParams]);
+
+  const updateCategory = (newCat) => {
+    setCategory(newCat);
+    setCurrentPage(1);
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      if (newCat === 'All') p.delete('category');
+      else p.set('category', newCat);
+      p.delete('page');
+      return p;
+    });
+  };
+
+  const updateQuery = (newQ) => {
+    setQuery(newQ);
+    setCurrentPage(1);
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      if (!newQ) p.delete('q');
+      else p.set('q', newQ);
+      p.delete('page');
+      return p;
+    });
+  };
+
+  const updatePage = (newPage) => {
+    setCurrentPage(newPage);
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      if (newPage <= 1) p.delete('page');
+      else p.set('page', String(newPage));
+      return p;
+    });
+  };
 
   const {
     isLoading,
@@ -681,12 +743,17 @@ export default function BlogIndex() {
     showFeatured,
     isEditorialView,
     changePage,
-  } = useBlogArticles({ query, category, currentPage, setCurrentPage, articleListHeadingRef });
+  } = useBlogArticles({
+    query,
+    category,
+    currentPage,
+    setCurrentPage: updatePage,
+    articleListHeadingRef,
+  });
 
   const resetLibraryFilters = () => {
-    setQuery('');
-    setCategory('All');
-    setCurrentPage(1);
+    updateQuery('');
+    updateCategory('All');
   };
 
   let mainContent;
@@ -709,8 +776,8 @@ export default function BlogIndex() {
         changePage={changePage}
         articles={articles}
         popularTags={popularTags}
-        setQuery={setQuery}
-        setCurrentPage={setCurrentPage}
+        setQuery={updateQuery}
+        setCurrentPage={updatePage}
       />
     );
   } else {
@@ -740,8 +807,8 @@ export default function BlogIndex() {
           <BlogCategoryBar
             categories={categories}
             category={category}
-            setCategory={setCategory}
-            setCurrentPage={setCurrentPage}
+            setCategory={updateCategory}
+            setCurrentPage={updatePage}
           />
 
           <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:py-12">
@@ -758,10 +825,7 @@ export default function BlogIndex() {
                 <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
                   value={query}
-                  onChange={(event) => {
-                    setQuery(event.target.value);
-                    setCurrentPage(1);
-                  }}
+                  onChange={(event) => updateQuery(event.target.value)}
                   placeholder="Search skills, questions, or goals"
                   aria-label="Search IELTS articles"
                   className="h-11 rounded-xl border-slate-200 bg-white pl-10 shadow-sm dark:border-white/10 dark:bg-white/[.04]"
