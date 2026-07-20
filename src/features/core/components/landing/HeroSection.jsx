@@ -411,7 +411,10 @@ function LearnerProof() {
 
 export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedIn }) {
   return (
-    <header className="relative bg-[#fcfdff] pb-16 pt-28 dark:bg-[#070912] lg:pb-20 lg:pt-32">
+    <section
+      className="relative bg-[#fcfdff] pb-16 pt-28 dark:bg-[#070912] lg:pb-20 lg:pt-32"
+      aria-label="Hero"
+    >
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-40 top-12 h-[34rem] w-[34rem] rounded-full bg-blue-200/20 blur-[130px] dark:bg-blue-600/10" />
         <div className="absolute -right-40 top-8 h-[38rem] w-[38rem] rounded-full bg-violet-200/20 blur-[140px] dark:bg-violet-600/10" />
@@ -439,8 +442,8 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
             variants={reveal}
             className="mt-6 text-[clamp(2.4rem,11vw,3.1rem)] font-extrabold leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white sm:text-[3.5rem] lg:text-[3.15rem] xl:text-[3.6rem] 2xl:text-[3.9rem]"
           >
-            <span className="block">AI-Powered</span>
-            <span className="block">IELTS Practice</span>
+            <span className="block">AI-Powered </span>
+            <span className="block">IELTS Practice </span>
             <span className="font-handwritten relative mt-2 block w-fit max-w-full pr-4 text-[0.92em] leading-[1.05] tracking-[-0.035em] text-[#5262ef] sm:pr-7 sm:text-[1.02em] sm:whitespace-nowrap">
               for a higher band score.
               <svg
@@ -524,6 +527,6 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
           <StudentVisual />
         </m.div>
       </div>
-    </header>
+    </section>
   );
 }
