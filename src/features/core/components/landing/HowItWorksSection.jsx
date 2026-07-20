@@ -166,16 +166,12 @@ function GoalPreview() {
       </div>
       {/* Animated SVG Path drawing */}
       <svg viewBox="0 0 230 80" className="mt-3 w-full overflow-visible">
-        <m.path
+        <path
           d="M2 72 C30 65, 43 52, 66 56 S98 41, 119 43 S151 25, 176 28 S203 13, 228 6"
           fill="none"
           stroke="#4b70fa"
           strokeWidth="3.5"
           strokeLinecap="round"
-          initial={{ pathLength: 0 }}
-          whileInView={{ pathLength: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.8, ease: 'easeOut' }}
         />
       </svg>
     </div>

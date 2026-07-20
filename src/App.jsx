@@ -5,7 +5,7 @@ import { trackAppEvent, trackPageView } from '@/lib/tracking';
 
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 
-const loadFeatures = () => import('framer-motion').then((res) => res.domAnimation);
+const loadFeatures = () => import('framer-motion').then((res) => res.domMax);
 
 const LazySonnerToaster = lazy(() =>
   import('@/components/ui/sonner').then((module) => ({ default: module.Toaster }))

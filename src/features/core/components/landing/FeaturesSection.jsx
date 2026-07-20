@@ -631,38 +631,28 @@ function AnalyticsCard() {
               strokeDasharray="3"
             />
 
-            <m.path
+            {/* Gradient Area Fill */}
+            <path
+              d="M4 48 C28 43,40 33,64 36 S96 22,124 26 S158 10,186 13 S216 4,256 1 L256 60 L4 60Z"
+              fill="url(#ag-fill-2)"
+              className="opacity-80"
+            />
+
+            {/* Main Trend Line */}
+            <path
               d="M4 48 C28 43,40 33,64 36 S96 22,124 26 S158 10,186 13 S216 4,256 1"
               fill="none"
               stroke="#6366f1"
               strokeWidth="2.5"
               strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              whileInView={{ pathLength: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.5, ease: 'easeOut' }}
             />
-            <m.path
-              d="M4 48 C28 43,40 33,64 36 S96 22,124 26 S158 10,186 13 S216 4,256 1 L256 60 L4 60Z"
-              fill="url(#ag-fill-2)"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-            />
-            {/* Interactive dot hover */}
-            <m.circle
-              cx="124"
-              cy="26"
-              r="4"
-              fill="#6366f1"
-              stroke="#fff"
-              strokeWidth="1.5"
-              initial={{ scale: 0 }}
-              whileInView={{ scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ type: 'spring', delay: 1 }}
-            />
+
+            {/* Trend Data Dots */}
+            <circle cx="4" cy="48" r="3" fill="#6366f1" />
+            <circle cx="64" cy="36" r="3" fill="#6366f1" />
+            <circle cx="124" cy="26" r="4.5" fill="#6366f1" stroke="#fff" strokeWidth="1.5" />
+            <circle cx="186" cy="13" r="3" fill="#6366f1" />
+            <circle cx="256" cy="1" r="3.5" fill="#6366f1" />
           </svg>
         </div>
       </div>
