@@ -1,6 +1,5 @@
 import React, { Suspense } from 'react';
-import { motion } from 'framer-motion';
-import { Sparkles, Loader2, Type, LayoutPanelLeft, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Type, LayoutPanelLeft, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 
@@ -39,8 +38,6 @@ export function WritingEditor({
   wordCount: globalWordCount,
   targetLimit,
   isCompleted,
-  isAnalyzing,
-  currentFeedback,
   isSidebarClosed,
   onToggleSidebar,
   title,
@@ -48,11 +45,16 @@ export function WritingEditor({
 }) {
   const [localValue, setLocalValue] = React.useState(writing);
   const [localWordCount, setLocalWordCount] = React.useState(globalWordCount);
+  const [isFocused, setIsFocused] = React.useState(false);
   const debounceTimerRef = React.useRef(null);
+
+  // Track the last value we synced to/from the parent to avoid self-updates
+  const lastWritingRef = React.useRef(writing);
 
   // Sync local state when external writing changes (e.g. task switch, session load)
   React.useEffect(() => {
-    if (writing !== localValue) {
+    if (writing !== lastWritingRef.current) {
+      lastWritingRef.current = writing;
       setLocalValue(writing);
 
       // Update local word count immediately on external sync
@@ -69,7 +71,11 @@ export function WritingEditor({
     const words = content.replace(/<[^>]*>?/gm, ' ').match(/\S+/g) || [];
     setLocalWordCount(words.length);
 
-    // 3. Debounce the heavy global store update to prevent main thread thrashing
+    // 3. Update the ref immediately so that when the parent re-renders with the new value,
+    // we know it was an update initiated by us and we don't reset the editor value.
+    lastWritingRef.current = content;
+
+    // 4. Debounce the heavy global store update to prevent main thread thrashing
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
@@ -83,19 +89,22 @@ export function WritingEditor({
 
   return (
     <div
-      className={cn(
-        'w-full h-full bg-[#fcfcfc] dark:bg-[#050505] p-2 md:p-4 pt-0 md:pt-0' // Reduced padding and removed top padding
-      )}
+      className={cn('w-full h-full bg-[#fcfcfc] dark:bg-[#050505] p-2 md:p-4 pt-0 md:pt-0')}
       data-oid="d7m1g:5"
     >
       {/* Editor Card */}
       <div
-        className="w-full h-full flex flex-col bg-white dark:bg-[#0D0E1A] rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm overflow-hidden relative"
+        className={cn(
+          'w-full h-full flex flex-col bg-white dark:bg-[#0D0E1A] rounded-2xl border shadow-sm overflow-hidden relative transition-all duration-300',
+          isFocused
+            ? 'border-indigo-400 dark:border-indigo-500/30 ring-4 ring-indigo-500/[0.04] dark:ring-indigo-500/[0.02]'
+            : 'border-slate-200/60 dark:border-white/5'
+        )}
         data-oid="h1s38r1"
       >
         {/* Header - Matches Annotation Card Header */}
         <div
-          className="flex-none px-6 py-3 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-white dark:bg-[#0D0E1A]"
+          className="flex-none px-6 py-2.5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-white dark:bg-[#0D0E1A]"
           data-oid="h0d5wu9"
         >
           <div className="flex items-center gap-3" data-oid="oc:4-p.">
@@ -152,20 +161,25 @@ export function WritingEditor({
         </div>
 
         {/* Editor Area */}
-        <div className="flex-1 flex flex-col relative" data-oid="-xg5pl7">
+        <div
+          className="flex-1 flex flex-col relative bg-slate-50/[0.12] dark:bg-slate-950/20"
+          data-oid="-xg5pl7"
+        >
           <Suspense fallback={<EditorSkeleton data-oid=":m0npyd" />} data-oid="6d2awu9">
             <ReactQuill
               theme="snow"
               value={localValue}
               onChange={handleChange}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               readOnly={isCompleted}
               placeholder="Start writing your essay here..."
               className="flex-1 flex flex-col h-full bg-transparent
                                [&_.ql-container]:flex-1
                                [&_.ql-container]:border-none
-                               [&_.ql-editor]:p-4 md:p-6 pt-2 md:pt-4
-                               [&_.ql-editor]:text-[15px]
-                               [&_.ql-editor]:leading-7
+                               [&_.ql-editor]:px-4 md:[&_.ql-editor]:px-6 [&_.ql-editor]:!pt-1.5 [&_.ql-editor]:!pb-4 [&_.ql-editor.ql-blank::before]:!top-1.5
+                               [&_.ql-editor]:text-[16px]
+                               [&_.ql-editor]:leading-8
                                [&_.ql-editor]:font-serif
                                [&_.ql-editor]:text-slate-700
                                dark:[&_.ql-editor]:text-slate-100
@@ -184,6 +198,28 @@ export function WritingEditor({
               data-oid=":_0az-u"
             />
           </Suspense>
+        </div>
+
+        {/* Editor Status Bar */}
+        <div
+          className="flex-none px-6 py-2.5 border-t border-slate-100 dark:border-white/5 flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#0D0E1A] text-xs text-slate-400 font-medium"
+          data-oid="editor-status-bar"
+        >
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              Auto-saved to cloud
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-400">
+            <span>{(localValue || '').replace(/<[^>]*>?/gm, '').length} characters</span>
+            <span className="w-px h-3 bg-slate-200 dark:bg-white/10"></span>
+            <span>Estimated: {Math.max(1, Math.ceil(localWordCount / 200))} min read</span>
+          </div>
         </div>
       </div>
     </div>

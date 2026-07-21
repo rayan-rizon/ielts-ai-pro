@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Lightbulb, ChevronUp, ChevronDown, AlertTriangle, ZoomIn } from 'lucide-react';
+import {
+  BookOpen,
+  Lightbulb,
+  ChevronUp,
+  ChevronDown,
+  AlertTriangle,
+  ZoomIn,
+  Clock,
+  FileText,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn, formatInstructionHTML, getProxiedImageUrl } from '@/lib/utils';
 import { sanitizeHtml } from '@/lib/security';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 
 /**
  * Image display component with premium styling and zoom capability
@@ -21,11 +31,11 @@ function ImageDisplay({ imageUrl: rawImageUrl }) {
   if (hasError) {
     return (
       <div
-        className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/10 p-4 text-center w-full"
+        className="rounded-xl border border-amber-200/60 bg-amber-50/50 dark:bg-amber-900/10 p-4 text-center w-full"
         data-oid="r0_5hwj"
       >
-        <AlertTriangle className="w-6 h-6 text-amber-500 mx-auto mb-2" data-oid="h5f.wp4" />
-        <p className="text-amber-700 dark:text-amber-400 font-medium text-sm" data-oid="dg0hae4">
+        <AlertTriangle className="w-5 h-5 text-amber-500 mx-auto mb-2" data-oid="h5f.wp4" />
+        <p className="text-amber-700 dark:text-amber-400 font-medium text-xs" data-oid="dg0hae4">
           Image referenced in task could not be loaded
         </p>
       </div>
@@ -84,7 +94,6 @@ function ImageDisplay({ imageUrl: rawImageUrl }) {
           className="relative w-full h-full flex items-center justify-center pointer-events-none"
           data-oid="m0jh-p3"
         >
-          {/* Pointer events none on container to let clicks pass if needed, but DialogOverlay handles closing */}
           <img
             src={imageUrl}
             alt="Task Reference Full"
@@ -98,6 +107,8 @@ function ImageDisplay({ imageUrl: rawImageUrl }) {
 }
 
 export function TaskPanel({ task, showSample, setShowSample, isInset = false }) {
+  const activeType = useWritingTestStore((state) => state.activeType) || 'Task 1';
+
   if (!task) return null;
 
   return (
@@ -115,63 +126,93 @@ export function TaskPanel({ task, showSample, setShowSample, isInset = false }) 
       data-oid="zit35s_"
     >
       <div
-        className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
+        className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
         data-oid="ull-mmp"
       >
-        {/* Instructions Card */}
+        {/* Unified Writing Task Card */}
         <div
-          className="px-5 py-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-900/10 shadow-sm border border-indigo-100 dark:border-indigo-900/30"
-          data-oid="kd_:al8"
+          className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-[#0D0E1A]/80 shadow-sm backdrop-blur-md overflow-hidden"
+          data-oid="unified-card"
         >
+          {/* Card Header & Parameters */}
           <div
-            className="flex items-center gap-2 mb-3 pb-2 border-b border-indigo-200/50 dark:border-indigo-800/30"
-            data-oid="pxbquvx"
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30"
+            data-oid="card-header"
           >
-            <BookOpen className="w-4 h-4 text-indigo-500" data-oid="nqqeqwk" />
-            <span
-              className="text-xs font-bold text-indigo-900 dark:text-indigo-300 uppercase tracking-widest"
-              data-oid="jdu8sva"
-            >
-              Instructions
-            </span>
-          </div>
-          {task.instructions && (
-            <div
-              className="prose prose-slate dark:prose-invert max-w-none 
-                         prose-p:text-slate-700 dark:prose-p:text-slate-300 
-                         prose-p:text-base prose-p:font-medium prose-p:leading-snug
-                         prose-headings:font-bold prose-headings:text-sm prose-headings:my-1
-                         [&_p]:my-0 [&_p+p]:mt-1"
-              dangerouslySetInnerHTML={{ __html: formatInstructionHTML(task.instructions) }}
-              data-oid="-lym03:"
-            />
-          )}
-        </div>
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400">
+                <BookOpen className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                    {activeType} Brief
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className="bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/30 text-[10px] uppercase font-bold tracking-wider text-indigo-600 dark:text-indigo-400"
+                  >
+                    {activeType === 'Task 2' ? 'Essay' : 'Report'}
+                  </Badge>
+                </div>
+              </div>
+            </div>
 
-        {/* Prompt/Question Card */}
-        <div
-          className="p-4 rounded-2xl bg-orange-50/60 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 text-slate-800 dark:text-slate-200 shadow-sm"
-          data-oid="3t_zrfc"
-        >
-          <h3
-            className="text-[10px] font-extrabold text-orange-600 dark:text-orange-400 uppercase tracking-widest mb-2 flex items-center gap-2 opacity-80"
-            data-oid="xfg.e76"
-          >
-            Essay Topic
-          </h3>
-          <div
-            className="text-base font-serif font-medium leading-relaxed"
-            dangerouslySetInnerHTML={{
-              __html: sanitizeHtml(
-                task.prompt ||
-                  (typeof task.content === 'string' && !task.content.startsWith('{')
-                    ? task.content
-                    : '') ||
-                  '<em class="text-slate-400">Task content not available. Please select a different task or contact support.</em>'
-              ),
-            }}
-            data-oid="ah152is"
-          />
+            {/* Visual Tags */}
+            <div className="flex flex-wrap gap-2">
+              <Badge
+                className="bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100/50 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 text-[11px] py-1 px-2.5 font-medium"
+                variant="outline"
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>
+                  {activeType === 'Task 2' ? '40 Mins Recommended' : '20 Mins Recommended'}
+                </span>
+              </Badge>
+              <Badge
+                className="bg-blue-50/50 dark:bg-blue-950/20 border-blue-100/50 dark:border-blue-900/30 text-blue-700 dark:text-blue-400 flex items-center gap-1.5 text-[11px] py-1 px-2.5 font-medium"
+                variant="outline"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>{activeType === 'Task 2' ? 'Min 250 Words' : 'Min 150 Words'}</span>
+              </Badge>
+            </div>
+          </div>
+
+          {/* Instructions Section */}
+          {task.instructions && (
+            <div className="px-5 py-3.5 bg-slate-50/20 dark:bg-transparent border-b border-slate-100 dark:border-slate-800/60">
+              <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+                Instructions
+              </h4>
+              <div
+                className="prose prose-slate dark:prose-invert max-w-none 
+                           prose-p:text-slate-600 dark:prose-p:text-slate-400 
+                           prose-p:text-[13px] prose-p:font-normal prose-p:leading-relaxed
+                           [&_p]:my-0 [&_p+p]:mt-1"
+                dangerouslySetInnerHTML={{ __html: formatInstructionHTML(task.instructions) }}
+              />
+            </div>
+          )}
+
+          {/* Essay Topic Section */}
+          <div className="p-5 bg-white dark:bg-transparent">
+            <h4 className="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest mb-2 flex items-center gap-1.5 opacity-90">
+              Essay Topic
+            </h4>
+            <div
+              className="text-base font-serif font-medium leading-relaxed text-slate-800 dark:text-slate-100 border-l-2 border-orange-500/40 pl-4 py-1 bg-orange-500/[0.01] dark:bg-orange-500/[0.005] rounded-r-lg"
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHtml(
+                  task.prompt ||
+                    (typeof task.content === 'string' && !task.content.startsWith('{')
+                      ? task.content
+                      : '') ||
+                    '<em class="text-slate-400">Task content not available. Please select a different task or contact support.</em>'
+                ),
+              }}
+            />
+          </div>
         </div>
 
         {/* Enhanced Image Display */}
@@ -185,14 +226,14 @@ export function TaskPanel({ task, showSample, setShowSample, isInset = false }) 
               onClick={() => setShowSample(!showSample)}
               className={`w-full justify-between items-center group h-auto py-3 px-4 rounded-2xl border transition-all duration-300 ${
                 showSample
-                  ? 'bg-amber-50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-900/30 shadow-sm'
-                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10'
+                  ? 'bg-amber-500/[0.04] border-amber-200 dark:bg-amber-500/[0.02] dark:border-amber-500/20 shadow-sm'
+                  : 'bg-slate-500/[0.02] dark:bg-slate-500/[0.01] border-slate-200 dark:border-slate-800 hover:bg-amber-500/[0.02] hover:border-amber-500/30 dark:hover:bg-amber-500/[0.01] dark:hover:border-amber-500/20'
               }`}
               data-oid="4jmai9z"
             >
               <div className="flex items-center gap-2.5" data-oid=".agen5.">
                 <div
-                  className={`p-1.5 rounded-full transition-colors ${showSample ? 'bg-amber-100 dark:bg-amber-800/30 text-amber-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 group-hover:bg-amber-100 group-hover:text-amber-600'}`}
+                  className={`p-1.5 rounded-full transition-colors ${showSample ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 group-hover:bg-amber-500/20 group-hover:text-amber-600 dark:group-hover:text-amber-400'}`}
                   data-oid="axd8hp2"
                 >
                   <Lightbulb className="w-3.5 h-3.5" data-oid="p1no2wj" />
@@ -225,13 +266,13 @@ export function TaskPanel({ task, showSample, setShowSample, isInset = false }) 
                   data-oid=".gz5-z_"
                 >
                   <div
-                    className="mt-2 p-5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border border-amber-100 dark:border-amber-900/30 text-base leading-relaxed shadow-inner"
+                    className="mt-2 p-5 rounded-2xl bg-amber-500/[0.01] border border-amber-100/50 dark:border-amber-900/10 text-base leading-relaxed"
                     data-oid="b-ecjg0"
                   >
                     <div
                       className="ql-editor !p-0 !min-h-0 prose prose-slate dark:prose-invert max-w-none 
                                 prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-p:leading-8
-                                prose-headings:font-bold prose-headings:text-amber-900 dark:prose-headings:text-amber-100
+                                prose-headings:font-bold prose-headings:text-amber-950 dark:prose-headings:text-amber-100
                                 [&>p]:mb-4 [&_p]:mb-4 space-y-4 [&>*:first-child]:mt-0 font-serif"
                       dangerouslySetInnerHTML={{ __html: sanitizeHtml(task.sample_answer || '') }}
                       data-oid="ib.uee1"
