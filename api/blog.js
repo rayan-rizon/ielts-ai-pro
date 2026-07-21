@@ -152,6 +152,12 @@ const COVER_ALT_BY_SLUG = {
     'IELTS learner recording a speaking answer beside colour-coded grammar and vocabulary notes',
   'ielts-mock-test-score-readiness-checklist':
     'IELTS learner comparing three mock-test result sheets with a timer on a bright desk',
+  'ielts-writing-task-2-stay-on-topic':
+    'IELTS learner checking an essay outline with arrows and paragraph boxes beside a laptop',
+  'ielts-reading-band-6-5-error-log':
+    'IELTS learner comparing a reading passage with a colour-coded error log on a bright desk',
+  'ielts-listening-missed-answer-recovery':
+    'IELTS learner using headphones and a skipped-question sequence to practise listening recovery',
 };
 
 function coverAlt(post) {

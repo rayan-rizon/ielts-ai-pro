@@ -16,11 +16,9 @@ import {
   Search,
   Sparkles,
   Star,
-  Target,
   TrendingUp,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import DocumentHead from '@/components/shared/DocumentHead';
 import Footer from '@/features/core/components/landing/Footer';
@@ -32,6 +30,7 @@ import {
   getBlogCoverAlt,
 } from '@/features/learning/utils/blogCoverMeta';
 import { cn } from '@/lib/cn';
+import { SidebarPracticeCard } from '@/features/learning/components/SidebarPracticeCard';
 
 const EMPTY_ARTICLES = [];
 const ARTICLES_PER_PAGE = 9;
@@ -461,24 +460,12 @@ function BlogSidebar({ articles, popularTags, setQuery, setCurrentPage }) {
         </div>
       </div>
 
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-500 p-6 text-white shadow-lg shadow-indigo-500/20">
-        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full border-[18px] border-white/10" />
-        <Target className="h-8 w-8 text-violet-100" />
-        <h2 className="mt-5 text-xl font-extrabold leading-tight">
-          Ready to turn insight into progress?
-        </h2>
-        <p className="mt-3 text-sm leading-6 text-indigo-100">
-          Take a focused practice test and see which skill needs your attention next.
-        </p>
-        <Button
-          asChild
-          className="mt-6 w-full rounded-xl bg-white font-bold text-indigo-700 hover:bg-indigo-50"
-        >
-          <Link to="/signup">
-            Start free practice <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      </div>
+      <SidebarPracticeCard
+        title="Ready to put your knowledge into action?"
+        subtitle="Take a practice test and see where you stand."
+        actionLabel="Start Free Test"
+        actionPath="/signup"
+      />
     </aside>
   );
 }

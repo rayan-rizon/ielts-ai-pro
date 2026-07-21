@@ -33,6 +33,7 @@ import {
   getBlogCoverAlt,
 } from '@/features/learning/utils/blogCoverMeta';
 import { supabase } from '@/lib/supabase';
+import { SidebarPracticeCard } from '@/features/learning/components/SidebarPracticeCard';
 
 const PRACTICE_LINKS = {
   Writing: '/writing',
@@ -291,33 +292,92 @@ function BlogPostSidebar({
   practicePath,
   practiceLabel,
 }) {
+  const [activeId, setActiveId] = useState('');
+
+  useEffect(() => {
+    const headingElements = preparedContent.toc
+      .map((item) => document.getElementById(item.id))
+      .filter(Boolean);
+
+    if (headingElements.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+      {
+        rootMargin: '-80px 0px -75% 0px',
+      }
+    );
+
+    headingElements.forEach((el) => observer.observe(el));
+
+    const handleScroll = () => {
+      if (window.scrollY < 200 && headingElements.length > 0) {
+        setActiveId(headingElements[0].id);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [preparedContent.toc]);
+
   return (
     <aside className="space-y-5 self-start lg:sticky lg:top-24">
       {preparedContent.toc.length > 0 && (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_15px_40px_-32px_rgba(15,23,42,.3)] dark:border-white/10 dark:bg-slate-900">
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:bg-indigo-500/10 dark:text-indigo-300">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
               <List className="h-4 w-4" />
             </span>
             <h2 className="text-sm font-extrabold">On this page</h2>
           </div>
           <nav
-            className="mt-4 max-h-[55vh] space-y-1 overflow-y-auto"
+            className="mt-4 max-h-[55vh] space-y-1 overflow-y-auto pr-1"
             aria-label="Article sections"
           >
-            {preparedContent.toc.map((item, index) => (
-              <a
-                key={item.id}
-                href={`#${item.id}`}
-                className={`block rounded-lg py-2 text-xs leading-5 transition-colors hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-200 ${
-                  item.level === 3
-                    ? 'pl-5 pr-2 text-slate-500'
-                    : `px-2 font-semibold ${index === 0 ? 'border-l-2 border-indigo-500 text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'}`
-                }`}
-              >
-                {item.text}
-              </a>
-            ))}
+            {preparedContent.toc.map((item) => {
+              const isActive = activeId === item.id;
+              return (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  className={`relative flex items-center rounded-xl py-2 px-3 text-xs transition-all duration-200 group ${
+                    isActive
+                      ? 'bg-indigo-50/70 text-indigo-700 font-bold dark:bg-indigo-500/10 dark:text-indigo-300'
+                      : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-white/[0.03]'
+                  }`}
+                >
+                  {/* Active Indicator Accent Bar */}
+                  {isActive && (
+                    <span
+                      className={`absolute w-0.5 rounded-full bg-indigo-600 dark:bg-indigo-400 ${
+                        item.level === 3 ? 'left-[16px] h-2.5' : 'left-[6px] h-4'
+                      }`}
+                    />
+                  )}
+
+                  {/* Text label */}
+                  <span
+                    className={`${
+                      item.level === 3
+                        ? 'pl-5 text-[11px] text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-300'
+                        : 'pl-2'
+                    }`}
+                  >
+                    {item.text}
+                  </span>
+                </a>
+              );
+            })}
           </nav>
         </div>
       )}
@@ -365,24 +425,12 @@ function BlogPostSidebar({
         </div>
       </div>
 
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-500 p-6 text-white shadow-lg shadow-indigo-500/20">
-        <div className="absolute -right-9 -top-9 h-32 w-32 rounded-full border-[18px] border-white/10" />
-        <BookOpen className="h-8 w-8 text-indigo-100" />
-        <h2 className="mt-5 text-xl font-extrabold leading-tight">
-          Put this strategy into practice
-        </h2>
-        <p className="mt-3 text-sm leading-6 text-indigo-100">
-          Apply the steps while they are fresh and review your feedback before another attempt.
-        </p>
-        <Button
-          asChild
-          className="mt-6 w-full rounded-xl bg-white font-bold text-indigo-700 hover:bg-indigo-50"
-        >
-          <Link to={practicePath}>
-            {practiceLabel} <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      </div>
+      <SidebarPracticeCard
+        title="Ready to put your knowledge into action?"
+        subtitle="Take a practice test and see where you stand."
+        actionLabel={practiceLabel}
+        actionPath={practicePath}
+      />
 
       <Link
         to="/blog"
@@ -391,33 +439,6 @@ function BlogPostSidebar({
         <ArrowLeft className="h-4 w-4" /> All IELTS articles
       </Link>
     </aside>
-  );
-}
-
-function BlogPostBottomCTA() {
-  return (
-    <section className="mx-auto mb-12 max-w-7xl px-5 sm:px-6">
-      <div className="flex flex-col items-start justify-between gap-5 overflow-hidden rounded-2xl border border-indigo-100 bg-white p-6 sm:flex-row sm:items-center lg:p-8 dark:border-white/10 dark:bg-slate-900">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[.14em] text-indigo-600 dark:text-indigo-300">
-            Practice makes progress
-          </p>
-          <h2 className="mt-2 text-2xl font-extrabold tracking-[-0.03em]">
-            Build your next study session around real feedback.
-          </h2>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <Button asChild variant="outline" className="rounded-xl">
-            <Link to="/blog">Explore guides</Link>
-          </Button>
-          <Button asChild className="rounded-xl font-bold">
-            <Link to="/signup">
-              Start free practice <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -570,8 +591,6 @@ const BlogPost = () => {
               practiceLabel={practiceLabel}
             />
           </section>
-
-          <BlogPostBottomCTA />
         </main>
 
         <Footer />
