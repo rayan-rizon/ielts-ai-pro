@@ -3,6 +3,7 @@
 
 export { default as TableCompletionRenderer } from './TableCompletionRenderer';
 export { default as NotesCompletionRenderer } from './NotesCompletionRenderer';
+export { default as FlowchartRenderer } from './FlowchartRenderer';
 
 // Default exports for lazy loading
 // Usage: const TableCompletionRenderer = React.lazy(() => import('./QuestionRenderers/TableCompletionRenderer'))

@@ -374,6 +374,34 @@ export const scoreQuestion = (question, answers) => {
     return result;
   }
 
+  // Flow-chart Completion
+  if ((q.type === 'flowchart' || q.type === 'flow_chart_completion') && q.flowchart?.steps) {
+    let gapIndex = 0;
+    q.flowchart.steps.forEach((step) => {
+      const gapCount = (step.text?.match(/\[gap\]/g) || []).length;
+      for (let i = 0; i < gapCount; i++) {
+        const gapNumber = step.gap_numbers?.[i] ?? Number(q.question_number || 1) + gapIndex;
+        const answerKey = `${q.id}_gap_${gapNumber}`;
+        const userAnswer = (answers[answerKey] || '').trim();
+        const correctAnswer =
+          q.flowchart.answers?.[gapIndex] ?? q.flowchart.answers?.[gapNumber] ?? '';
+        const isCorrect = userAnswer === '' ? null : isAnswerCorrect(userAnswer, correctAnswer);
+
+        result.total++;
+        if (isCorrect === true) result.correct++;
+        result.details.push({
+          questionId: answerKey,
+          questionNumber: gapNumber,
+          userAnswer,
+          correctAnswer,
+          isCorrect,
+        });
+        gapIndex++;
+      }
+    });
+    return result;
+  }
+
   // Completion types with multiple blanks
   if (['sentence_completion', 'summary_completion', 'short_answer'].includes(q.type)) {
     const text = q.question_text || '';

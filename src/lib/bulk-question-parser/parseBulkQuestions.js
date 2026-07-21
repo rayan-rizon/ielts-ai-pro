@@ -2,7 +2,7 @@
  * Bulk IELTS reading question parser internals.
  */
 import { LINE_SPLIT_REGEX, RANGE_REGEX, SINGLE_QUESTION_REGEX } from './constants';
-import { parseBlock } from './parseBlock';
+import { cleanQuestionText, parseBlock } from './parseBlock';
 
 export const parseBulkQuestions = (text, targetSection = '') => {
   if (!text || !text.trim()) return [];
@@ -73,6 +73,7 @@ export const parseBulkQuestions = (text, targetSection = '') => {
   // 3. Normalize and validate
   return allQuestions.map((q) => ({
     ...q,
+    question_text: cleanQuestionText(q.question_text, q.type),
     section: targetSection,
   }));
 };

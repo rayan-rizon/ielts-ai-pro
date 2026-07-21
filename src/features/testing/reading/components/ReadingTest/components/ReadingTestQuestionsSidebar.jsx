@@ -22,6 +22,7 @@ import DeepDivePopover from '../../DeepDivePopover';
 // Direct imports for question renderers (no lazy loading to avoid blank states)
 import TableCompletionRenderer from './QuestionRenderers/TableCompletionRenderer';
 import NotesCompletionRenderer from './QuestionRenderers/NotesCompletionRenderer';
+import FlowchartRenderer from './QuestionRenderers/FlowchartRenderer';
 import MultipleChoiceRenderer from './QuestionRenderers/MultipleChoiceRenderer';
 import MatchingRenderer from './QuestionRenderers/MatchingRenderer';
 import TrueFalseRenderer from './QuestionRenderers/TrueFalseRenderer';
@@ -166,6 +167,27 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                                 openDeepDive={openDeepDive}
                                 setOpenDeepDive={setOpenDeepDive}
                                 data-oid="k7f9.al"
+                              />
+                            </ErrorBoundary>
+                          );
+                        } else if (
+                          (question.type === 'flowchart' ||
+                            question.type === 'flow_chart_completion') &&
+                          question.flowchart?.steps
+                        ) {
+                          questionContent = (
+                            <ErrorBoundary fallbackMessage="Could not load flow-chart question">
+                              <FlowchartRenderer
+                                question={question}
+                                answers={answers}
+                                onAnswerChange={handleAnswerChange}
+                                flaggedQuestions={flaggedQuestions}
+                                onToggleFlag={toggleFlag}
+                                disabled={isFinished}
+                                validationMap={validationMap}
+                                explanationData={question.explanation_data}
+                                openDeepDive={openDeepDive}
+                                setOpenDeepDive={setOpenDeepDive}
                               />
                             </ErrorBoundary>
                           );
@@ -374,6 +396,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                                     ((question.type === 'summary_completion' ||
                                       question.type === 'note_completion' ||
                                       question.type === 'notes_completion' ||
+                                      question.type === 'flowchart' ||
                                       question.type === 'flow_chart_completion' ||
                                       question.type === 'diagram_completion') &&
                                       Object.keys(answers).some(

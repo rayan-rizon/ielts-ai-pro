@@ -19,6 +19,7 @@ export const QUESTION_TYPE_LABELS = {
   summary_completion: 'Summary Completion',
   note_completion: 'Note Completion',
   flow_chart_completion: 'Flow Chart Completion',
+  flowchart: 'Flow Chart Completion',
   diagram_completion: 'Diagram Completion',
   short_answer: 'Short Answer Questions',
 };

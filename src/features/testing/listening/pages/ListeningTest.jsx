@@ -36,25 +36,13 @@ import { useListeningTestStore } from '../store/useListeningTestStore';
 import ListeningTestHeader from '../components/ListeningTestHeader';
 import AudioPlayer from '../components/ListeningTest/components/AudioPlayer';
 
-// Lazy Load Renderers
-const GapFillRenderer = React.lazy(
-  () => import('../components/ListeningTest/components/QuestionRenderers/GapFillRenderer')
-);
-const TableCompletionRenderer = React.lazy(
-  () => import('../components/ListeningTest/components/QuestionRenderers/TableCompletionRenderer')
-);
-const MultipleChoiceRenderer = React.lazy(
-  () => import('../components/ListeningTest/components/QuestionRenderers/MultipleChoiceRenderer')
-);
-const MatchingFeaturesRenderer = React.lazy(
-  () => import('../components/ListeningTest/components/QuestionRenderers/MatchingFeaturesRenderer')
-);
-const MapLabelingRenderer = React.lazy(
-  () => import('../components/ListeningTest/components/QuestionRenderers/MapLabelingRenderer')
-);
-const FlowchartRenderer = React.lazy(
-  () => import('../components/ListeningTest/components/QuestionRenderers/FlowchartRenderer')
-);
+// Question Renderers
+import GapFillRenderer from '../components/ListeningTest/components/QuestionRenderers/GapFillRenderer';
+import TableCompletionRenderer from '../components/ListeningTest/components/QuestionRenderers/TableCompletionRenderer';
+import MultipleChoiceRenderer from '../components/ListeningTest/components/QuestionRenderers/MultipleChoiceRenderer';
+import MatchingFeaturesRenderer from '../components/ListeningTest/components/QuestionRenderers/MatchingFeaturesRenderer';
+import MapLabelingRenderer from '../components/ListeningTest/components/QuestionRenderers/MapLabelingRenderer';
+import FlowchartRenderer from '../components/ListeningTest/components/QuestionRenderers/FlowchartRenderer';
 
 function ListeningTestInner() {
   // Core Logic Hook

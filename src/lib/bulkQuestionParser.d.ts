@@ -54,6 +54,19 @@ export interface ParsedQuestion {
     box_title?: string;
     question_count?: number;
   };
+  flowchart?: {
+    box_title?: string;
+    style?: string;
+    answer_mode?: 'input' | 'dropdown';
+    steps?: Array<{
+      id: string;
+      text: string;
+      type?: string;
+      gap_numbers?: number[];
+    }>;
+    options?: string[];
+    answers?: Record<number, string>;
+  };
 }
 
 export interface ParseResult {

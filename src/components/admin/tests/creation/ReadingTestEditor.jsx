@@ -53,6 +53,7 @@ import { sanitizeHtml } from '@/lib/security';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import TableBuilder from '../builders/TableBuilder';
 import MatchingFeaturesBuilder from '../builders/MatchingFeaturesBuilder';
+import FlowchartBuilder from '../builders/FlowchartBuilder';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1057,6 +1058,13 @@ const getQuestionCount = (q) => {
     if (q.questions) return q.questions.length;
     if (q.options) return q.options.length;
     return 1;
+  }
+
+  if ((q.type === 'flowchart' || q.type === 'flow_chart_completion') && q.flowchart?.steps) {
+    return q.flowchart.steps.reduce(
+      (total, step) => total + (step.text?.match(/\[gap\]/g) || []).length,
+      0
+    );
   }
 
   if (
@@ -2436,6 +2444,14 @@ const QuestionGroupEditor = ({
                             </div>
                           )}
                         </div>
+                      )}
+
+                      {(q.type === 'flowchart' || q.type === 'flow_chart_completion') && (
+                        <FlowchartBuilder
+                          initialData={q.flowchart}
+                          onChange={(flowchart) => updateQuestion(qIdx, 'flowchart', flowchart)}
+                          theme={theme}
+                        />
                       )}
 
                       {/* TFNG Types */}

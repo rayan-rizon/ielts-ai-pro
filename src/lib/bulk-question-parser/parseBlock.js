@@ -7,6 +7,7 @@ import { parseMatchingQuestions } from './matching';
 import { parseNotesCompletion } from './notesCompletion';
 import { parseShortAnswer } from './shortAnswer';
 import { parseTableCompletion } from './tableCompletion';
+import { parseFlowchart } from './flowchart';
 
 export const parseBlock = (block) => {
   const lines = block.raw;
@@ -260,6 +261,10 @@ export const parseBlock = (block) => {
     return parseTableCompletion(questionLines, instructions, rangeStart);
   }
 
+  if (type === 'flowchart') {
+    return parseFlowchart(questionLines, instructions, block.range);
+  }
+
   if (type === 'short_answer' || type === 'summary_completion') {
     return parseShortAnswer(questionLines, instructions, type, rangeStart);
   }
@@ -280,7 +285,10 @@ export const parseBlock = (block) => {
     const numMatch = line.match(/^(\d+)[.)]\s*(.*)/);
 
     if (numMatch) {
-      if (currentQ) questions.push(currentQ);
+      if (currentQ) {
+        currentQ.question_text = cleanQuestionText(currentQ.question_text, type);
+        questions.push(currentQ);
+      }
 
       let qNum = parseInt(numMatch[1]);
       if (questions.length === 0 && qNum === 1 && nextNum > 1) {
@@ -294,7 +302,7 @@ export const parseBlock = (block) => {
 
       currentQ = {
         question_number: qNum,
-        question_text: numMatch[2],
+        question_text: cleanQuestionText(numMatch[2], type),
         type: type,
         group_instructions: instructions,
         options: [],
@@ -311,14 +319,71 @@ export const parseBlock = (block) => {
         if (text) {
           currentQ.options.push(`${letter}. ${text}`);
         }
+      } else if (
+        (type === 'true_false_not_given' || type === 'yes_no_not_given') &&
+        isTfngOptionLine(line)
+      ) {
+        // Skip standalone TRUE / FALSE / NOT GIVEN or YES / NO / NOT GIVEN option lines
+        continue;
       } else {
         currentQ.question_text += ' ' + line;
       }
     }
   }
 
-  if (currentQ) questions.push(currentQ);
+  if (currentQ) {
+    currentQ.question_text = cleanQuestionText(currentQ.question_text, type);
+    questions.push(currentQ);
+  }
   return questions;
+};
+
+/**
+ * Detects standalone True/False/Not Given or Yes/No/Not Given option lines.
+ */
+export const isTfngOptionLine = (line) => {
+  if (!line) return false;
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+
+  // Single option line: e.g. "TRUE", "FALSE", "NOT GIVEN", "YES", "NO", "True.", "(NOT GIVEN)"
+  if (/^(?:[([{\s]*)(?:TRUE|FALSE|NOT\s+GIVEN|YES|NO)(?:[\])}\s.]*)$/i.test(trimmed)) {
+    return true;
+  }
+
+  // Combined option group line: e.g. "TRUE / FALSE / NOT GIVEN", "YES/NO/NOT GIVEN", "[TRUE / FALSE / NOT GIVEN]"
+  if (/^(?:[([{\s]*)(?:TRUE|FALSE|NOT\s+GIVEN|YES|NO|\/|\s|-)+(?:[\])}\s.]*)$/i.test(trimmed)) {
+    if (/\b(?:TRUE|FALSE|NOT\s+GIVEN|YES|NO)\b/i.test(trimmed)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+/**
+ * Clean question text by stripping option labels (TRUE, FALSE, NOT GIVEN, YES, NO)
+ * that may have been pasted inline or appended at the end of statement questions.
+ */
+export const cleanQuestionText = (text, type) => {
+  if (!text) return '';
+  let cleaned = text.trim();
+
+  if (type === 'true_false_not_given' || type === 'yes_no_not_given') {
+    // 1. Remove trailing bracketed/parenthesized option groups
+    // e.g., "[TRUE / FALSE / NOT GIVEN]", "(TRUE/FALSE/NOT GIVEN)"
+    cleaned = cleaned.replace(/[\s(-]*[[(]\s*(?:TRUE|FALSE|NOT\s+GIVEN|YES|NO|\/|\s|-)+\s*[\])][\s.]*$/gi, '');
+
+    // 2. Remove trailing sequence of 2+ option keywords, preserving sentence-ending punctuation
+    // e.g. "Statement. TRUE FALSE NOT GIVEN" -> "Statement."
+    cleaned = cleaned.replace(/(?<=[.!?])[\s,.-/]+(?:TRUE|FALSE|NOT\s+GIVEN|YES|NO)(?:[\s,.-/]+(?:TRUE|FALSE|NOT\s+GIVEN|YES|NO))+[\s,.-/]*$/gi, '');
+    cleaned = cleaned.replace(/[\s,-/]+(?:TRUE|FALSE|NOT\s+GIVEN|YES|NO)(?:[\s,-/]+(?:TRUE|FALSE|NOT\s+GIVEN|YES|NO))+[\s,.-/]*$/gi, '');
+
+    // 3. Remove trailing single option keyword if preceded by sentence ending punctuation
+    cleaned = cleaned.replace(/(?<=[.!?])\s*(?:TRUE|FALSE|NOT\s+GIVEN|YES|NO)[\s.]*$/gi, '');
+  }
+
+  return cleaned.trim();
 };
 
 // --- Pattern Matchers ---

@@ -52,8 +52,19 @@ export const detectType = (instructions, lines, range) => {
     return 'matching_features';
   }
 
-  // Explicit instruction for notes/flow
-  if (lower.includes('complete the notes') || lower.includes('complete the flow')) {
+  // Flow-chart completion must be distinguished from structured notes.
+  if (
+    lower.includes('complete the flowchart') ||
+    lower.includes('complete the flow-chart') ||
+    lower.includes('complete the flow chart') ||
+    lines.some((line) => /[↓→]|[-=]>/.test(line))
+  ) {
+    console.log('[detectType] → flowchart');
+    return 'flowchart';
+  }
+
+  // Explicit instruction for notes
+  if (lower.includes('complete the notes')) {
     console.log('[detectType] → notes_completion (explicit instruction)');
     return 'notes_completion';
   }
@@ -115,14 +126,22 @@ export const detectType = (instructions, lines, range) => {
   // PRIORITY 2: TRUE/FALSE/NOT GIVEN and YES/NO/NOT GIVEN
   // ============================================================
 
-  if (lower.includes('true') && lower.includes('false') && lower.includes('not given')) {
+  const combinedText = (instructions + ' ' + lines.join(' ')).toLowerCase();
+
+  if (
+    (lower.includes('true') && lower.includes('false') && lower.includes('not given')) ||
+    lower.includes('statements agree with the information') ||
+    (combinedText.includes('true') && combinedText.includes('false') && combinedText.includes('not given'))
+  ) {
     console.log('[detectType] → true_false_not_given');
     return 'true_false_not_given';
   }
 
   if (
     (lower.includes('yes') && lower.includes('no') && lower.includes('not given')) ||
-    (lower.includes('views') && lower.includes('writer'))
+    (lower.includes('views') && lower.includes('writer')) ||
+    lower.includes('claims of the writer') ||
+    (combinedText.includes('yes') && combinedText.includes('no') && combinedText.includes('not given'))
   ) {
     console.log('[detectType] → yes_no_not_given');
     return 'yes_no_not_given';

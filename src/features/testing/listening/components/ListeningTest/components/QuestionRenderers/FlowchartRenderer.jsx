@@ -47,16 +47,18 @@ const FlowchartRenderer = ({
         )}
 
         {/* Flowchart Outer Border Box - Matches Global Theme */}
-        <div className="border border-slate-200 dark:border-slate-800 p-3 sm:p-4 rounded-2xl bg-white dark:bg-slate-950/50 w-full shadow-sm">
+        <div className="border border-slate-200/80 dark:border-slate-800 p-2.5 sm:p-3.5 rounded-2xl bg-slate-50/40 dark:bg-slate-900/30 w-full shadow-xs backdrop-blur-xs">
           {/* Flowchart Title - Styled for Consistency */}
           {flowchart.box_title && (
-            <p className="font-semibold text-base text-slate-900 dark:text-slate-100 mb-4 text-center leading-relaxed">
-              {flowchart.box_title}
-            </p>
+            <div className="mb-3 text-center">
+              <h3 className="font-bold text-lg sm:text-xl text-slate-900 dark:text-slate-100 tracking-tight leading-snug">
+                {flowchart.box_title}
+              </h3>
+            </div>
           )}
 
           {/* Steps Container */}
-          <div className="flex flex-col items-center max-w-2xl mx-auto space-y-0">
+          <div className="flex flex-col items-center max-w-3xl mx-auto space-y-0">
             {(() => {
               let cumulativeGaps = 0;
               return flowchart.steps.map((step, idx) => {
@@ -67,8 +69,8 @@ const FlowchartRenderer = ({
                 const result = (
                   <React.Fragment key={step.id}>
                     {/* Step Box - Standard Card Style */}
-                    <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 flex items-center rounded-xl shadow-sm hover:border-primary/30 transition-colors">
-                      <div className="w-full">
+                    <div className="w-full bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800/90 px-3 py-2.5 sm:px-4 sm:py-3 flex items-center rounded-xl shadow-xs hover:border-blue-400/40 dark:hover:border-blue-500/40 transition-all duration-200 relative">
+                      <div className="w-full text-base font-medium leading-[2.2rem] text-slate-800 dark:text-slate-200">
                         <GapFillContent
                           question={{
                             id: question.id,
@@ -90,10 +92,13 @@ const FlowchartRenderer = ({
                       </div>
                     </div>
 
-                    {/* Arrow - Improved Visibility */}
+                    {/* Arrow Connector */}
                     {idx < flowchart.steps.length - 1 && (
-                      <div className="py-2 flex justify-center">
-                        <ArrowDown className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+                      <div className="py-1 flex justify-center">
+                        <ArrowDown
+                          className="w-6 h-6 text-slate-700 dark:text-slate-300"
+                          aria-hidden="true"
+                        />
                       </div>
                     )}
                   </React.Fragment>

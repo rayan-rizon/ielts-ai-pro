@@ -285,6 +285,15 @@ const ReadingTestSheet = ({
             const gaps = (text.match(/\[\d+\]/g) || []).length;
             questionCounter += Math.max(gaps, 1);
           } else if (
+            (q.type === 'flowchart' || q.type === 'flow_chart_completion') &&
+            q.flowchart?.steps
+          ) {
+            const gaps = q.flowchart.steps.reduce(
+              (total, step) => total + (step.text?.match(/\[gap\]/g) || []).length,
+              0
+            );
+            questionCounter += Math.max(gaps, 1);
+          } else if (
             [
               'sentence_completion',
               'summary_completion',
@@ -419,7 +428,8 @@ const ReadingTestSheet = ({
           'flow_chart_completion',
           'diagram_completion',
           'short_answer',
-        ].includes(q.type)
+        ].includes(q.type) &&
+        !(q.type === 'flow_chart_completion' && q.flowchart?.steps)
       ) {
         // Determine blank count
         const text = q.question_text || q.text || '';
@@ -461,6 +471,22 @@ const ReadingTestSheet = ({
           answerEntries.push(renderAnswerInput(q, baseQuestionNumber));
         }
         questionCounter += Math.max(gapCount, 1);
+      } else if (
+        (q.type === 'flowchart' || q.type === 'flow_chart_completion') &&
+        q.flowchart?.steps
+      ) {
+        let gapIndex = 0;
+        q.flowchart.steps.forEach((step) => {
+          const gapCount = (step.text?.match(/\[gap\]/g) || []).length;
+          for (let i = 0; i < gapCount; i++) {
+            const gapNumber = step.gap_numbers?.[i] ?? Number(baseQuestionNumber) + gapIndex;
+            const correctAnswer =
+              q.flowchart.answers?.[gapIndex] ?? q.flowchart.answers?.[gapNumber];
+            answerEntries.push(renderAnswerInput(q, gapNumber, `gap_${gapNumber}`, correctAnswer));
+            gapIndex++;
+          }
+        });
+        questionCounter += Math.max(gapIndex, 1);
       } else if (q.type === 'multiple_choice' && q.allow_multiple && q.question_count > 1) {
         // Handle multi-select MCQs
         for (let i = 0; i < q.question_count; i++) {

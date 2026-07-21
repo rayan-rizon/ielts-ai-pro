@@ -166,6 +166,29 @@ export const mergeAnswers = (questions, answerMap) => {
       };
     }
 
+    // Special handling for Flowchart Completion
+    if (q.type === 'flowchart' && q.flowchart?.steps) {
+      const newAnswers = { ...(q.flowchart.answers || {}) };
+      let gapIndex = 0;
+
+      q.flowchart.steps.forEach((step) => {
+        const gapCount = (step.text?.match(/\[gap\]/g) || []).length;
+        for (let i = 0; i < gapCount; i++) {
+          const gapNumber = step.gap_numbers?.[i] ?? Number(q.question_number || 1) + gapIndex;
+          if (answerMap[gapNumber]) newAnswers[gapIndex] = answerMap[gapNumber];
+          gapIndex++;
+        }
+      });
+
+      return {
+        ...q,
+        flowchart: {
+          ...q.flowchart,
+          answers: newAnswers,
+        },
+      };
+    }
+
     // Standard Question Answer Mapping (including Multi-select MCQ range aggregation)
     const isMultiSelectMCQ =
       q.type === 'multiple_choice' && (q.allow_multiple || (q.question_count || 1) > 1);

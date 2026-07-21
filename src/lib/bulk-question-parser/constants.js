@@ -41,9 +41,11 @@ export const formatIeltsInstructions = (text) => {
   formatted = formatted.replace(/([.!?])\s+(Write|Choose|Complete|Read|Label)\b/g, '$1\n\n$2');
 
   constraintPatterns.forEach((pattern) => {
-    formatted = formatted.replace(pattern, (match) => {
+    formatted = formatted.replace(pattern, (match, offset, source) => {
       // Avoid double bolding
       if (match.trim().startsWith('**') && match.trim().endsWith('**')) return match;
+      const boldMarkersBeforeMatch = (source.slice(0, offset).match(/\*\*/g) || []).length;
+      if (boldMarkersBeforeMatch % 2 === 1) return match;
       return `**${match}**`;
     });
   });

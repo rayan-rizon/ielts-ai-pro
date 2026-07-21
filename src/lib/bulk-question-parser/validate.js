@@ -63,6 +63,21 @@ export const validateBulkData = (questions) => {
           isSubItem: true,
         });
       });
+    } else if (q.type === 'flowchart' && q.flowchart?.steps) {
+      let gapIndex = 0;
+      q.flowchart.steps.forEach((step) => {
+        const gapCount = (step.text?.match(/\[gap\]/g) || []).length;
+        for (let i = 0; i < gapCount; i++) {
+          const number = step.gap_numbers?.[i] ?? Number(q.question_number || 1) + gapIndex;
+          allitems.push({
+            number,
+            id: q.id,
+            hasAnswer: !!q.flowchart.answers?.[gapIndex],
+            isSubItem: true,
+          });
+          gapIndex++;
+        }
+      });
     } else {
       allitems.push({
         number: q.question_number,

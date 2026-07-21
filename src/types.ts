@@ -91,7 +91,11 @@ export interface Question {
     answers?: Record<string, any>;
   };
   flowchart?: {
-    steps?: { text: string }[];
+    box_title?: string;
+    answer_mode?: 'input' | 'dropdown';
+    steps?: { id?: string; text: string; gap_numbers?: number[] }[];
+    options?: string[];
+    answers?: Record<string | number, string>;
   };
   map_labeling?: {
     questions?: any[];
