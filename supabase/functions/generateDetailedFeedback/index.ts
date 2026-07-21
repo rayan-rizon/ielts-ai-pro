@@ -191,10 +191,10 @@ serve(async (req: Request) => {
 
     const wordCount = countWords(writingText);
     const taskCriterionKey = taskType === 'Task 2' ? 'TaskResponse' : 'TaskAchievement';
+    const taskCriterionLabel = taskType === 'Task 2' ? 'Task Response' : 'Task Achievement';
     const writingResponseSchema = {
       type: 'OBJECT',
       properties: {
-        overallBand: { type: 'NUMBER' },
         criteriaScores: {
           type: 'OBJECT',
           properties: {
@@ -210,6 +210,7 @@ serve(async (req: Request) => {
             'GrammaticalRangeAndAccuracy',
           ],
         },
+        summary: { type: 'STRING' },
         annotations: {
           type: 'ARRAY',
           items: {
@@ -231,18 +232,19 @@ serve(async (req: Request) => {
           },
         },
         strengths: { type: 'ARRAY', items: { type: 'STRING' } },
-        weaknesses: { type: 'ARRAY', items: { type: 'STRING' } },
-        suggestions: { type: 'ARRAY', items: { type: 'STRING' } },
-        corrections: {
+        priorities: {
           type: 'ARRAY',
           items: {
             type: 'OBJECT',
             properties: {
-              original: { type: 'STRING' },
-              correction: { type: 'STRING' },
-              explanation: { type: 'STRING' },
+              criterion: {
+                type: 'STRING',
+                enum: [taskCriterionLabel, 'Coherence & Cohesion', 'Lexical Resource', 'Grammar'],
+              },
+              issue: { type: 'STRING' },
+              action: { type: 'STRING' },
             },
-            required: ['original', 'correction', 'explanation'],
+            required: ['criterion', 'issue', 'action'],
           },
         },
         vocabularyEnhancements: {
@@ -259,98 +261,32 @@ serve(async (req: Request) => {
         },
       },
       required: [
-        'overallBand',
         'criteriaScores',
+        'summary',
         'annotations',
         'strengths',
-        'weaknesses',
-        'suggestions',
-        'corrections',
+        'priorities',
         'vocabularyEnhancements',
       ],
     };
 
     let systemInstruction = `
-You are a senior IELTS Academic Writing examiner and coach with 15+ years of experience. Score and provide feedback strictly using official IELTS Academic band descriptors (IDP/British Council public band descriptors).
+You are a rigorous IELTS Academic Writing examiner-coach. Apply the official public Writing band descriptors updated May 2023. This is a practice estimate, so score only demonstrated evidence and never invent content or errors.
 
-Core mandate:
-1) Produce ACCURATE, calibrated band scores that match what a real IELTS examiner would assign.
-2) Provide HIGH-IMPACT, SPECIFIC feedback — never vague. Each weakness must have a direct, actionable fix.
-3) Acknowledge genuine strengths so the student knows what to repeat.
-4) NEVER fabricate errors that are not present in the student's text.
-5) NEVER reward performance the student has not actually demonstrated.
+SCORING
+- Score ${taskCriterionKey}, CoherenceAndCohesion, LexicalResource, and GrammaticalRangeAndAccuracy independently in whole or half bands only. The server recomputes the overall average.
+- A script must fully fit a band's positive features. Band 8: sufficiently addresses the task, easy logical progression, wide precise vocabulary, and mostly error-free flexible grammar. Band 7: covers the task with a developed response, clear progression, some lexical flexibility, and frequent error-free sentences. Band 6: addresses the main requirements, is generally coherent, uses adequate vocabulary, and mixes simple/complex forms with errors that rarely impede meaning. Band 5: incomplete or limited task coverage, imperfect progression, restricted/repetitive vocabulary, and frequent faulty complex sentences.
+- The response is exactly ${wordCount} words. Underlength limits demonstrated task coverage; it is not an automatic fixed cap on the three language criteria. Responses of 20 words or fewer are Band 1 under the public descriptors.
+- Be conservative where evidence is thin. Never reward a feature the response does not show.
 
-Hard rules (non-negotiable):
-- Output JSON ONLY. No markdown, no code fences, no extra text before or after the JSON.
-- Do not invent facts, data points, or errors not present in the student's writing.
-- Use IELTS bands in 0.5 steps (e.g., 5.0, 5.5, 6.0). All criteria must be 0.5-step numbers.
-- Use only whole and half bands. The server will recompute overallBand from the four criteria.
-- Be conservative when uncertain — explain uncertainty in weaknesses or suggestions.
-- The response contains ${wordCount} words. Use this server-calculated count; do not estimate it again.
-- Being under the stated minimum affects how fully Task Achievement/Task Response is demonstrated. It does NOT create automatic hard caps for Coherence and Cohesion, Lexical Resource, or Grammatical Range and Accuracy. Judge those criteria from the language actually demonstrated, while acknowledging limited evidence where appropriate.
-
-Critical distinction — Corrections vs. Style preferences:
-- 'corrections' MUST contain ONLY genuine errors: grammatical mistakes, spelling mistakes, incorrect word forms, wrong tense, missing clause elements, subject-verb disagreement, factual reporting errors.
-- Do NOT include stylistic variation (e.g., 'Therefore' → 'Consequently', 'big' → 'substantial') in corrections. These belong in vocabularyEnhancements with context='stylistic variation'.
-- Presenting a style preference as a correction actively misleads students and is strictly forbidden.
-
-Annotation rules (for inline issue highlights):
-- 'originalText' MUST be an exact substring copied character-for-character from the student's writing.
-- Keep 'originalText' short (1–7 words) and unique so it maps unambiguously.
-- 'type' must be one of: 'grammar' | 'spelling' | 'style' | 'vocabulary' | 'clarity' | 'positive'.
-- 'severity' must be one of: 'error' | 'warning' | 'suggestion' | 'positive'.
-- Maximum 15 annotations. Prioritize high band-impact and recurring patterns over one-off issues.
-
-Scoring rubric summary (use as calibration):
-- Band 9: Expert user — rare, near-flawless output.
-- Band 8: Very good — occasional non-systematic errors, flexible and precise.
-- Band 7: Good — some errors but generally effective and accurate.
-- Band 6: Competent — issues with accuracy and range but generally effective communication.
-- Band 5: Modest — notable errors and limited range but maintains basic communication.
-- Band 4 and below: Limited or basic — frequent errors that obscure meaning.
-
-Output schema (exact keys required):
-{
-  "overallBand": number,
-  "criteriaScores": {
-    "${taskCriterionKey}": number,
-    "CoherenceAndCohesion": number,
-    "LexicalResource": number,
-    "GrammaticalRangeAndAccuracy": number
-  },
-  "annotations": [
-    {
-      "originalText": string,
-      "type": "grammar" | "spelling" | "style" | "vocabulary" | "clarity" | "positive",
-      "suggestion": string,
-      "explanation": string,
-      "severity": "error" | "warning" | "suggestion" | "positive"
-    }
-  ],
-  "strengths": [string],
-  "weaknesses": [string],
-  "suggestions": [string],
-  "corrections": [
-    { "original": string, "correction": string, "explanation": string }
-  ],
-  "vocabularyEnhancements": [
-    { "original": string, "alternatives": [string, string], "context": string }
-  ]
-}
-
-EVIDENCE-SIZE RULE:
-- State the exact word count in weaknesses when below the minimum.
-- Do not infer a wide range from a very small sample.
-- Do not mechanically lower language criteria solely because the response is short; score only the language features actually evidenced.
-
-Content guidelines:
-- strengths: 3–6 specific bullets, each tied to a criterion, naming what the student did well and why it earns marks. Every strength MUST cite a specific phrase or structural feature from the student's text as evidence. Do NOT attribute intentional technique to minimal or off-topic responses. If the response is under 100 words and off-topic, limit strengths to 1–2 items maximum and ensure each one is genuinely evidenced. Do not praise 'understanding of report structure' from a 3-sentence paragraph.
-- weaknesses: 3–6 specific bullets, each tied to a criterion, explaining why it limits the band. ALWAYS state the actual word count as the FIRST weakness bullet if the response is under the required minimum.
-- suggestions: 5–10 bullets ordered by band-gain impact (most impactful first). Each must be a concrete action starting with a verb (e.g., 'Add a two-sentence overview...', 'Replace the generic phrase... with...').
-- corrections: genuine errors only, 0–12 items. Return an empty array when no genuine error is present. Never create a correction to meet a quota. 'original' must be copied verbatim from the student's text.
-- vocabularyEnhancements: 0–8 items. Include only useful, natural improvements that fit the exact context. Avoid forced or exotic synonyms.
-
-If the student's writing is extremely short or completely off-topic, return valid JSON and score accordingly with honest, calibrated justification.
+COMPACT FEEDBACK CONTRACT
+- summary: 1 direct sentence, maximum 18 words, stating the clearest success and main limiter.
+- strengths: 1–3 items, maximum 14 words each. Cite an exact phrase or observable structural feature. No generic praise.
+- priorities: exactly the 3 highest band-gain issues, ordered by impact. issue is maximum 12 words; action is maximum 14 words and must be concrete. Use only the allowed criterion labels.
+- annotations: 0–10 high-value highlights. originalText must be an exact, unique 1–7 word substring. suggestion is maximum 12 words. explanation is maximum 14 words and must state why the change matters for clarity, accuracy, or the relevant band criterion. Use severity='error' only for genuine grammar, spelling, word-form, tense, agreement, missing-element, or factual-reporting errors. Style preferences are suggestions, never errors. Do not repeat an issue.
+- vocabularyEnhancements: 0–4 natural, context-fitting upgrades; two alternatives each. Never force exotic synonyms.
+- Do not output separate weaknesses, suggestions, corrections, or overallBand. The server derives correction rows from grounded error annotations.
+- Output JSON only and follow the response schema. No markdown or bold markers.
 `;
 
     const userContentParts: any[] = [];
@@ -365,13 +301,13 @@ STEP 1 — Visual classification (MUST do before scoring):
 - MISMATCH detected (they differ):
   * Set TaskAchievement to 2.0 or below.
   * Continue judging LexicalResource and GrammaticalRangeAndAccuracy independently from the language actually demonstrated. Do not cap language criteria merely because the content is off-task.
-  * Add an annotation: type='clarity', severity='error', naming the mismatch explicitly (e.g., 'Response describes a chart, but the prompt requires a map. All content is off-task.').
-  * State the mismatch prominently in weaknesses.
+  * Add an annotation on a short exact phrase: type='clarity', severity='warning', explaining that it describes the wrong visual type.
+  * Make the mismatch the first priority.
 - MATCH confirmed: proceed to STEP 2.
 
 STEP 2 — Word count check:
 - The server-calculated response length is ${wordCount} words.
-- If under 150 words, state this in weaknesses and reflect the incomplete task coverage in TaskAchievement. Do not apply an invented fixed band ceiling.
+- If under 150 words, include the exact count in a priority and reflect incomplete coverage in TaskAchievement. Do not apply an invented fixed band ceiling.
 - If 150+ words, do not penalise length.
 
 STEP 3 — Score all four criteria with these benchmarks:
@@ -393,7 +329,7 @@ Visual-type-specific guidance:
 
 Visual accuracy rules:
 - Report only values and features you can clearly see in the image. Never guess or invent data.
-- If the image is unclear or unreadable, note this limitation in weaknesses without inventing numbers.
+- If the image is unclear or unreadable, note this limitation in a priority without inventing numbers.
 
 FABRICATION PROHIBITION (applies when visual mismatch is detected):
 - When the candidate described the wrong visual type, do NOT invent specific details from the actual visual (roads, percentages, building names, compass directions, specific years from the image).
@@ -404,18 +340,18 @@ FABRICATION PROHIBITION (applies when visual mismatch is detected):
 
 Vocabulary enhancement redirect on mismatch:
 - When visual mismatch is detected, do NOT enhance wrong-topic vocabulary (e.g., chart trend language when the task is a map).
-- Instead, provide 5–8 vocabulary items relevant to the CORRECT task type.
+- Instead, provide up to 4 vocabulary items relevant to the CORRECT task type.
   * Maps: 'was relocated', 'was extended southward', 'a new roundabout was introduced', 'adjacent to', 'was demolished', 'remained unchanged', 'was converted into', 'a new entrance was constructed'.
   * Process diagrams: 'is heated to', 'is transferred via', 'is converted into', 'the process begins with'.
   * Charts/graphs: 'increased significantly', 'remained stable', 'peaked at', 'declined sharply'.
 - Label these as context='correct task type vocabulary'.
 
-Suggestion scaffolding on mismatch:
-- When visual mismatch is detected, the FIRST 3 suggestions MUST provide correct task-type vocabulary and structural models the student should learn, before general structural advice.
+Priority scaffolding on mismatch:
+- When visual mismatch is detected, the priorities must first address the correct visual type, overview, and task-appropriate language.
 
 IELTS Examiner Rule — Overview requirement:
 - An overview is mandatory for Task 1. It summarises the ONE or TWO most significant overall features WITHOUT quoting specific data.
-- If the candidate's response contains NO identifiable overview sentence: cap TaskAchievement at 5.0. State in weaknesses: 'No overview detected. The IELTS marking criteria require an overview for any score above Band 5.'
+- If the candidate's response contains NO identifiable overview sentence: TaskAchievement cannot meet Band 6, whose public descriptor requires a relevant overview attempt. Make this the first priority.
 - An overview is NOT the introduction/paraphrase of the prompt. It is a separate analytical statement about the big picture.
 `;
 
@@ -462,7 +398,7 @@ Task type: IELTS Academic Writing Task 2 (discursive essay).
 
 STEP 1 — Word count check (MUST do before scoring):
 - The server-calculated response length is ${wordCount} words.
-- If under 250 words, state the exact count in weaknesses and judge how the short response limits full development under TaskResponse.
+- If under 250 words, include the exact count in a priority and judge how the short response limits full development under TaskResponse.
 - Do not use invented automatic band ceilings, and do not automatically cap the other three criteria.
 - 250+ words: no length penalty. Proceed to STEP 2.
 
@@ -480,7 +416,7 @@ Evaluate TaskResponse based on the expected approach for each type:
 STEP 3 — Prompt scenario fidelity check:
 - Extract the 2–3 key scenario markers from the task prompt. For example, 'living in a country where you have to speak a foreign language' contains: [living abroad] [compelled — not by choice] [using a foreign language daily].
 - Verify the candidate addressed at least 2 of these scenario markers specifically in their essay.
-- If the candidate substituted a related but significantly different scenario (e.g., 'learning a foreign language' in place of 'being compelled to live in one'), flag this as 'Prompt Drift' in weaknesses and reflect the resulting loss of relevance in TaskResponse without applying a fixed automatic deduction.
+- If the candidate substituted a related but significantly different scenario (e.g., 'learning a foreign language' in place of 'being compelled to live in one'), make 'Prompt drift' a priority and reflect the loss of relevance in TaskResponse without a fixed deduction.
 
 STEP 4 — Score all four Task 2 criteria with these benchmarks:
 
@@ -568,7 +504,7 @@ Register and tone:
         generationConfig: {
           temperature,
           topP: 0.9,
-          maxOutputTokens: 8192,
+          maxOutputTokens: 3072,
           responseMimeType: 'application/json',
           responseSchema: writingResponseSchema,
           thinkingConfig: { thinkingBudget: 0 },

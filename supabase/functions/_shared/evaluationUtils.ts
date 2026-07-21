@@ -1,4 +1,4 @@
-export const FEEDBACK_EVALUATOR_VERSION = '2026-06-14-v2';
+export const FEEDBACK_EVALUATOR_VERSION = '2026-07-21-v3';
 
 const VALID_ANNOTATION_TYPES = new Set([
   'grammar',
@@ -10,6 +10,14 @@ const VALID_ANNOTATION_TYPES = new Set([
 ]);
 
 const VALID_ANNOTATION_SEVERITIES = new Set(['error', 'warning', 'suggestion', 'positive']);
+
+const VALID_WRITING_CRITERIA = new Set([
+  'Task Achievement',
+  'Task Response',
+  'Coherence & Cohesion',
+  'Lexical Resource',
+  'Grammar',
+]);
 
 const INVALID_SPEAKING_RESPONSES = [
   /^\s*$/,
@@ -129,6 +137,10 @@ function compactFeedbackText(value: unknown, maxSentences = 1, maxChars = 160): 
   const normalized = value
     .trim()
     .replace(/^[`"'“”]+|[`"'“”]+$/g, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/~~([^~]+)~~/g, '$1')
     .replace(/\s+/g, ' ');
   if (!normalized) return '';
 
@@ -224,10 +236,17 @@ export function normalizeWritingEvaluation(
             typeof annotation.suggestion === 'string' &&
             typeof annotation.explanation === 'string'
         )
-        .slice(0, 15)
+        .map((annotation: any) => ({
+          originalText: annotation.originalText,
+          type: annotation.type,
+          suggestion: compactFeedbackText(annotation.suggestion, 1, 90),
+          explanation: compactFeedbackText(annotation.explanation, 1, 105),
+          severity: annotation.severity,
+        }))
+        .slice(0, 10)
     : [];
 
-  const corrections = Array.isArray(raw.corrections)
+  const suppliedCorrections = Array.isArray(raw.corrections)
     ? raw.corrections
         .filter(
           (correction: any) =>
@@ -238,8 +257,32 @@ export function normalizeWritingEvaluation(
             correction.correction.trim() !== correction.original.trim() &&
             typeof correction.explanation === 'string'
         )
-        .slice(0, 12)
+        .map((correction: any) => ({
+          original: correction.original,
+          correction: compactFeedbackText(correction.correction, 1, 90),
+          explanation: compactFeedbackText(correction.explanation, 1, 105),
+        }))
+        .slice(0, 6)
     : [];
+
+  // The compact v3 model contract emits each issue once as an annotation. Build the
+  // correction comparison from those grounded annotations instead of paying the model
+  // to repeat the same text in a separate array. Keep legacy corrections for old caches.
+  const corrections = suppliedCorrections.length
+    ? suppliedCorrections
+    : annotations
+        .filter(
+          (annotation: any) =>
+            annotation.severity === 'error' &&
+            annotation.suggestion &&
+            annotation.suggestion.trim() !== annotation.originalText.trim()
+        )
+        .map((annotation: any) => ({
+          original: annotation.originalText,
+          correction: annotation.suggestion,
+          explanation: annotation.explanation,
+        }))
+        .slice(0, 6);
 
   const vocabularyEnhancements = Array.isArray(
     raw.vocabularyEnhancements || raw.vocabulary_enhancements
@@ -260,12 +303,31 @@ export function normalizeWritingEvaluation(
           alternatives: stringArray(item.alternatives, 3),
           context: typeof item.context === 'string' ? item.context.trim() : '',
         }))
-        .slice(0, 8)
+        .slice(0, 4)
+    : [];
+
+  const priorities = Array.isArray(raw.priorities)
+    ? raw.priorities
+        .filter(
+          (priority: any) =>
+            isPlainObject(priority) &&
+            VALID_WRITING_CRITERIA.has(priority.criterion) &&
+            typeof priority.issue === 'string' &&
+            priority.issue.trim().length > 0 &&
+            typeof priority.action === 'string' &&
+            priority.action.trim().length > 0
+        )
+        .map((priority: any) => ({
+          criterion: priority.criterion,
+          issue: compactFeedbackText(priority.issue, 1, 90),
+          action: compactFeedbackText(priority.action, 1, 105),
+        }))
+        .slice(0, 3)
     : [];
 
   const wordCount = countWords(sourceText);
   const minimumWords = taskType === 'Task 1' ? 150 : 250;
-  const weaknesses = stringArray(raw.weaknesses, 8);
+  const weaknesses = compactFeedbackList(raw.weaknesses, 4, 140);
   if (wordCount < minimumWords) {
     const deterministicLengthNote = `Response length: ${wordCount} words, below the ${minimumWords}-word minimum. This limits how fully the task can be addressed, but language criteria are still judged from the language actually demonstrated.`;
     if (!weaknesses.some((item) => /\bword(?:s| count| length)\b/i.test(item))) {
@@ -277,9 +339,11 @@ export function normalizeWritingEvaluation(
     overallBand: averageBandScores([taskCriterion, coherence, lexical, grammar]),
     criteriaScores,
     annotations,
-    strengths: stringArray(raw.strengths, 6),
+    summary: compactFeedbackText(raw.summary, 1, 140),
+    strengths: compactFeedbackList(raw.strengths, 3, 100),
+    priorities,
     weaknesses,
-    suggestions: stringArray(raw.suggestions, 10),
+    suggestions: compactFeedbackList(raw.suggestions, 4, 140),
     corrections,
     vocabularyEnhancements,
     wordCount,

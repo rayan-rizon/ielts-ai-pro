@@ -8,9 +8,7 @@ import {
   Sparkles,
   BookOpen,
   X,
-  Check,
   ChevronDown,
-  Palette,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,8 +19,8 @@ const ANNOTATION_CONFIG = {
   grammar: {
     icon: AlertCircle,
     color: 'rose',
-    bgClass: 'bg-rose-100/50 dark:bg-rose-500/15',
-    borderClass: 'border-rose-200 dark:border-rose-400/30',
+    bgClass: 'bg-rose-50/80 dark:bg-rose-500/10',
+    borderClass: 'border-rose-200/80 dark:border-rose-500/30',
     textClass: 'text-rose-700 dark:text-rose-300',
     underlineClass: 'decoration-rose-400 decoration-wavy',
     label: 'Grammar',
@@ -30,8 +28,8 @@ const ANNOTATION_CONFIG = {
   spelling: {
     icon: AlertCircle,
     color: 'rose',
-    bgClass: 'bg-rose-100/50 dark:bg-rose-500/15',
-    borderClass: 'border-rose-200 dark:border-rose-400/30',
+    bgClass: 'bg-rose-50/80 dark:bg-rose-500/10',
+    borderClass: 'border-rose-200/80 dark:border-rose-500/30',
     textClass: 'text-rose-700 dark:text-rose-300',
     underlineClass: 'decoration-rose-400 decoration-wavy',
     label: 'Spelling',
@@ -39,8 +37,8 @@ const ANNOTATION_CONFIG = {
   style: {
     icon: AlertTriangle,
     color: 'orange',
-    bgClass: 'bg-orange-100/50 dark:bg-orange-500/15',
-    borderClass: 'border-orange-200 dark:border-orange-400/30',
+    bgClass: 'bg-orange-50/80 dark:bg-orange-500/10',
+    borderClass: 'border-orange-200/80 dark:border-orange-500/30',
     textClass: 'text-orange-700 dark:text-orange-300',
     underlineClass: 'decoration-orange-400 decoration-wavy',
     label: 'Style',
@@ -48,8 +46,8 @@ const ANNOTATION_CONFIG = {
   vocabulary: {
     icon: BookOpen,
     color: 'indigo',
-    bgClass: 'bg-indigo-100/50 dark:bg-indigo-500/15',
-    borderClass: 'border-indigo-200 dark:border-indigo-400/30',
+    bgClass: 'bg-indigo-50/80 dark:bg-indigo-500/10',
+    borderClass: 'border-indigo-200/80 dark:border-indigo-500/30',
     textClass: 'text-indigo-700 dark:text-indigo-300',
     underlineClass: 'decoration-indigo-400 decoration-dashed',
     label: 'Vocabulary',
@@ -57,8 +55,8 @@ const ANNOTATION_CONFIG = {
   clarity: {
     icon: Lightbulb,
     color: 'sky',
-    bgClass: 'bg-sky-100/50 dark:bg-sky-500/15',
-    borderClass: 'border-sky-200 dark:border-sky-400/30',
+    bgClass: 'bg-sky-50/80 dark:bg-sky-500/10',
+    borderClass: 'border-sky-200/80 dark:border-sky-500/30',
     textClass: 'text-sky-700 dark:text-sky-300',
     underlineClass: 'decoration-sky-400 decoration-dotted',
     label: 'Clarity',
@@ -66,8 +64,8 @@ const ANNOTATION_CONFIG = {
   positive: {
     icon: CheckCircle2,
     color: 'teal',
-    bgClass: 'bg-teal-100/50 dark:bg-teal-500/15',
-    borderClass: 'border-teal-200 dark:border-teal-400/30',
+    bgClass: 'bg-teal-50/80 dark:bg-teal-500/10',
+    borderClass: 'border-teal-200/80 dark:border-teal-500/30',
     textClass: 'text-teal-700 dark:text-teal-300',
     underlineClass: 'decoration-teal-400 decoration-double',
     label: 'Good',
@@ -427,7 +425,7 @@ const VocabularyCard = ({ enhancement }) => {
                 Enhance
               </span>
               <span
-                className="font-bold text-slate-700 dark:text-slate-200 truncate"
+                className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate"
                 data-oid="t.7z7xv"
               >
                 "{enhancement.original}"
@@ -466,7 +464,7 @@ const VocabularyCard = ({ enhancement }) => {
                 {enhancement.alternatives?.map((alt, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-50 dark:bg-indigo-500/10 text-xs font-medium text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-500/20"
+                    className="inline-flex items-center px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-500/15 text-xs font-semibold text-indigo-700 dark:text-indigo-200 border border-indigo-100 dark:border-indigo-500/20"
                     data-oid="wlrcgql"
                   >
                     {alt}
@@ -486,7 +484,7 @@ const VocabularyCard = ({ enhancement }) => {
               {enhancement.alternatives.slice(0, 2).map((alt, i) => (
                 <span
                   key={i}
-                  className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/5 px-1.5 py-0.5 rounded"
+                  className="text-[11px] font-bold text-indigo-600 dark:text-indigo-200 bg-indigo-50/60 dark:bg-indigo-500/15 px-1.5 py-0.5 rounded-md border border-indigo-100/50 dark:border-indigo-500/10"
                   data-oid="f_f.5ea"
                 >
                   {alt}
@@ -714,23 +712,22 @@ export default function AnnotatedText({
                   }}
                   whileHover={{ scale: 1.02 }}
                   className={cn(
-                    'cursor-pointer px-1.5 py-0.5 rounded-lg mx-0.5 transition-all duration-200 border-b-2 bg-transparent',
+                    'cursor-pointer px-2 py-0.5 rounded-lg mx-0.5 transition-all duration-200 border shadow-[0_1px_2px_rgba(0,0,0,0.02)]',
                     'inline [box-decoration-break:clone] [-webkit-box-decoration-break:clone]', // Added box-decoration-break for multiline highlights
-                    effectiveConfig.underlineClass,
                     effectiveConfig.borderClass,
+                    effectiveConfig.bgClass,
                     isActive &&
                       cn(
-                        'ring-2 ring-indigo-500/30 bg-indigo-50/10 dark:bg-indigo-500/5',
-                        'z-10 relative shadow-sm'
+                        'ring-2 ring-indigo-500/40 bg-indigo-100/30 dark:bg-indigo-500/20',
+                        'z-10 relative shadow-md scale-[1.01]'
                       )
                   )}
                   data-oid="x:jeyc1"
                 >
                   <span
                     className={cn(
-                      isError
-                        ? 'text-rose-700 dark:text-rose-400'
-                        : 'text-slate-700 dark:text-slate-200'
+                      effectiveConfig.textClass,
+                      'font-medium transition-colors duration-200'
                     )}
                     data-oid="o18cs4y"
                   >

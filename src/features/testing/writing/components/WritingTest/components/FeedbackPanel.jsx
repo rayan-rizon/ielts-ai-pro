@@ -1,27 +1,244 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Sparkles,
-  CheckCircle,
   AlertTriangle,
-  Lightbulb,
+  ArrowRight,
+  Check,
+  CheckCircle2,
+  ChevronDown,
   Info,
+  Lightbulb,
   RefreshCw,
+  Sparkles,
   Target,
   TrendingUp,
-  ChevronDown,
-  XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
-
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 
-/**
- * FeedbackPanel
- *
- * Premium AI feedback display with tabs and scoring gauges.
- */
+const CRITERIA = [
+  { keys: ['TaskAchievement', 'TaskResponse'], short: 'TA', taskLabel: true },
+  { keys: ['CoherenceAndCohesion', 'Coherence & Cohesion', 'CC'], short: 'CC' },
+  { keys: ['LexicalResource', 'Lexical Resource', 'LR'], short: 'LR' },
+  {
+    keys: ['GrammaticalRangeAndAccuracy', 'Grammatical Range & Accuracy', 'GRA'],
+    short: 'GRA',
+  },
+];
+
+function getCriterionLabel(item, taskType) {
+  if (item.taskLabel) return taskType === 'Task 2' ? 'Task Response' : 'Task Achievement';
+  if (item.short === 'CC') return 'Coherence & Cohesion';
+  if (item.short === 'LR') return 'Lexical Resource';
+  return 'Grammar Range & Accuracy';
+}
+
+function getCriterionScore(scores, keys) {
+  const key = keys.find((candidate) => scores?.[candidate] != null);
+  return key ? Number(scores[key]) : null;
+}
+
+function cleanFeedbackText(value, { dropHeading = false } = {}) {
+  let text = typeof value === 'string' ? value : '';
+  if (dropHeading) {
+    text = text.replace(/^\s*\*\*[^*\n:]{2,64}:\*\*\s*/u, '');
+  }
+
+  return text
+    .replace(/\*\*([^*]+)\*\*/gu, '$1')
+    .replace(/__([^_]+)__/gu, '$1')
+    .replace(/`([^`]+)`/gu, '$1')
+    .replace(/~~([^~]+)~~/gu, '$1')
+    .replace(/^\s*[-*•]\s+/u, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+}
+
+function compactUiText(value, maxChars, options) {
+  const cleaned = cleanFeedbackText(value, options);
+  if (!cleaned || cleaned.length <= maxChars) return cleaned;
+
+  const firstSentence = cleaned.match(/^.*?[.!?](?:\s|$)/u)?.[0]?.trim();
+  if (firstSentence && firstSentence.length <= maxChars) return firstSentence;
+
+  const clipped = cleaned.slice(0, maxChars - 1);
+  const lastSpace = clipped.lastIndexOf(' ');
+  return `${clipped.slice(0, lastSpace > maxChars * 0.65 ? lastSpace : clipped.length).trim()}…`;
+}
+
+function inferCriterion(text, taskType) {
+  const value = String(text || '').toLowerCase();
+  if (/grammar|sentence|article|tense|punctuation/.test(value)) return 'Grammar';
+  if (/vocab|word|lexical|collocation|spelling/.test(value)) return 'Lexical Resource';
+  if (/coher|paragraph|link|progression|organis|organiz/.test(value)) {
+    return 'Coherence & Cohesion';
+  }
+  return taskType === 'Task 2' ? 'Task Response' : 'Task Achievement';
+}
+
+function createLegacyPriorities(feedback) {
+  const weaknesses = Array.isArray(feedback?.weaknesses) ? feedback.weaknesses : [];
+  const suggestions = Array.isArray(feedback?.suggestions) ? feedback.suggestions : [];
+
+  return weaknesses.slice(0, 3).map((issue, index) => ({
+    criterion: inferCriterion(issue, feedback.taskType),
+    issue: compactUiText(issue, 96, { dropHeading: true }),
+    action: compactUiText(
+      suggestions[index] || 'Rewrite this part once, applying the feedback shown.',
+      108,
+      { dropHeading: true }
+    ),
+  }));
+}
+
+function buildSummary(feedback, priorities) {
+  if (feedback?.summary) return compactUiText(feedback.summary, 128, { dropHeading: true });
+  const band = Number(feedback?.overallBand || 0);
+  const level =
+    band >= 8 ? 'strong' : band >= 7 ? 'effective' : band >= 6 ? 'competent' : 'developing';
+  const nextCriterion = cleanFeedbackText(priorities[0]?.criterion).toLowerCase();
+  const article = /^[aeiou]/i.test(level) ? 'An' : 'A';
+  return nextCriterion
+    ? `${article} ${level} response. Focus next on ${nextCriterion}.`
+    : `${article} ${level} response across the four IELTS Writing criteria.`;
+}
+
+function ScoreRing({ score }) {
+  const safeScore = Math.max(0, Math.min(9, Number(score) || 0));
+  const radius = 48;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (safeScore / 9) * circumference;
+
+  return (
+    <div
+      className="relative h-32 w-32 shrink-0 sm:h-36 sm:w-36"
+      aria-label={`Band ${safeScore} out of 9`}
+    >
+      <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
+        <defs>
+          <linearGradient id="writing-score-gradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#fbbf24" />
+            <stop offset="100%" stopColor="#f59e0b" />
+          </linearGradient>
+        </defs>
+        <circle
+          cx="60"
+          cy="60"
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="9"
+          className="text-white/10"
+        />
+        <motion.circle
+          cx="60"
+          cy="60"
+          r={radius}
+          fill="none"
+          stroke="url(#writing-score-gradient)"
+          strokeWidth="9"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 0.9, ease: 'easeOut' }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-[9px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+          Band
+        </span>
+        <span className="text-4xl font-black tracking-tight text-white">
+          {safeScore.toFixed(1)}
+        </span>
+        <span className="text-[10px] font-semibold text-slate-400">of 9.0</span>
+      </div>
+    </div>
+  );
+}
+
+function AnalyzingState({ loadingMessage }) {
+  const steps = ['Grammar & spelling', 'Vocabulary', 'Coherence', 'Band calibration'];
+
+  return (
+    <motion.div
+      key="analyzing"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="flex min-h-[520px] flex-1 items-center justify-center bg-white p-6 dark:bg-[#070812]"
+    >
+      <div className="w-full max-w-sm rounded-[28px] border border-indigo-100 bg-gradient-to-b from-indigo-50/80 to-white p-7 text-center shadow-[0_24px_80px_-42px_rgba(79,70,229,0.55)] dark:border-white/10 dark:from-indigo-500/10 dark:to-[#0b0c18]">
+        <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+            className="absolute inset-0 rounded-full border-2 border-transparent border-t-indigo-500 border-r-violet-400"
+          />
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/25">
+            <Sparkles className="h-6 w-6" />
+          </div>
+        </div>
+        <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-300">
+          Building your review
+        </p>
+        <h2 className="mt-2 text-xl font-black text-slate-950 dark:text-white">
+          Checking evidence against IELTS criteria
+        </h2>
+        <p className="mt-2 min-h-5 text-sm text-slate-500 dark:text-slate-400">
+          {loadingMessage || 'Reading your response carefully...'}
+        </p>
+        <div className="mt-6 grid grid-cols-2 gap-2 text-left">
+          {steps.map((step, index) => (
+            <div
+              key={step}
+              className="flex items-center gap-2 rounded-xl border border-slate-100 bg-white px-3 py-2.5 text-xs font-bold text-slate-600 dark:border-white/5 dark:bg-white/5 dark:text-slate-300"
+            >
+              <span
+                className={cn(
+                  'h-2 w-2 rounded-full',
+                  index === 0 ? 'animate-pulse bg-indigo-500' : 'bg-slate-200 dark:bg-white/15'
+                )}
+              />
+              {step}
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function ErrorState({ feedbackError, handleGetFeedback }) {
+  return (
+    <motion.div
+      key="error"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex min-h-[480px] flex-1 items-center justify-center p-6 text-center"
+    >
+      <div className="max-w-sm rounded-3xl border border-rose-100 bg-white p-7 shadow-sm dark:border-rose-500/20 dark:bg-[#0b0c18]">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 dark:bg-rose-500/10">
+          <AlertTriangle className="h-6 w-6" />
+        </div>
+        <h2 className="mt-4 text-xl font-black text-slate-950 dark:text-white">
+          We could not finish the review
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+          {feedbackError || 'The analysis service is temporarily unavailable.'}
+        </p>
+        <Button
+          onClick={handleGetFeedback}
+          className="mt-5 h-11 rounded-xl bg-slate-950 px-5 font-bold text-white hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500"
+        >
+          <RefreshCw className="mr-2 h-4 w-4" /> Try again
+        </Button>
+      </div>
+    </motion.div>
+  );
+}
+
 export function FeedbackPanel({
   feedback,
   isAnalyzing,
@@ -30,828 +247,299 @@ export function FeedbackPanel({
   loadingMessage,
 }) {
   const allFeedbacks = useWritingTestStore((state) => state.feedbacks);
-
-  // Compute the IELTS-weighted combined band (Task 2 = 2/3, Task 1 = 1/3)
-  // Only shown when both tasks have been scored
-  const task1Band = allFeedbacks['Task 1']?.overallBand;
-  const task2Band = allFeedbacks['Task 2']?.overallBand;
-  const combinedBand =
-    task1Band && task2Band ? Math.round(((task1Band + task2Band * 2) / 3) * 2) / 2 : null;
-
   const [showAllCorrections, setShowAllCorrections] = useState(false);
-  const [showAllStrengths, setShowAllStrengths] = useState(false);
-  const [showAllSuggestions, setShowAllSuggestions] = useState(false);
-  const [showAllWeaknesses, setShowAllWeaknesses] = useState(false);
 
+  const task1Band = Number(allFeedbacks['Task 1']?.overallBand);
+  const task2Band = Number(allFeedbacks['Task 2']?.overallBand);
+  const combinedBand =
+    task1Band > 0 && task2Band > 0 ? Math.round(((task1Band + task2Band * 2) / 3) * 2) / 2 : null;
+
+  const taskType = feedback?.taskType === 'Task 2' ? 'Task 2' : 'Task 1';
+  const criteria = useMemo(
+    () =>
+      CRITERIA.map((item) => ({
+        ...item,
+        label: getCriterionLabel(item, taskType),
+        score: getCriterionScore(feedback?.criteriaScores, item.keys),
+      })).filter((item) => item.score != null),
+    [feedback?.criteriaScores, taskType]
+  );
+  const priorities = useMemo(() => {
+    if (Array.isArray(feedback?.priorities) && feedback.priorities.length) {
+      return feedback.priorities.slice(0, 3).map((priority) => ({
+        criterion: cleanFeedbackText(priority.criterion),
+        issue: compactUiText(priority.issue, 96, { dropHeading: true }),
+        action: compactUiText(priority.action, 108, { dropHeading: true }),
+      }));
+    }
+    return createLegacyPriorities(feedback);
+  }, [feedback]);
+  const summary = useMemo(() => buildSummary(feedback, priorities), [feedback, priorities]);
+  const strengths = useMemo(
+    () =>
+      (Array.isArray(feedback?.strengths) ? feedback.strengths : [])
+        .slice(0, 3)
+        .map((strength) => compactUiText(strength, 104, { dropHeading: true }))
+        .filter(Boolean),
+    [feedback?.strengths]
+  );
+  const corrections = useMemo(
+    () =>
+      (Array.isArray(feedback?.corrections) ? feedback.corrections : []).map((item) => ({
+        original: compactUiText(item.original, 88),
+        correction: compactUiText(item.correction, 88),
+        explanation: compactUiText(item.explanation, 112, { dropHeading: true }),
+      })),
+    [feedback?.corrections]
+  );
+  const visibleCorrections = showAllCorrections ? corrections : corrections.slice(0, 3);
   if (!feedback && !isAnalyzing && !feedbackError) return null;
 
   return (
     <div
       id="feedback-section"
-      className="h-full flex flex-col bg-[#F8FAFC] dark:bg-[#05060B] relative"
-      data-oid="qk_:zx8"
+      className="flex h-full min-h-0 flex-col bg-[#f6f7fb] text-slate-900 dark:bg-[#060711] dark:text-white"
     >
-      <AnimatePresence mode="wait" data-oid="._:6688">
+      <AnimatePresence mode="wait">
         {isAnalyzing ? (
-          <motion.div
-            key="analyzing"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex-1 flex flex-col items-center justify-center p-8 bg-white dark:bg-[#05060B] relative overflow-hidden"
-            data-oid="-vbf2bx"
-          >
-            {/* Premium Background Elements */}
-            <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none"
-              data-oid="vbwftqt"
-            >
-              <div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-[120px] animate-pulse"
-                data-oid="jt7.dfd"
-              ></div>
-              <div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-[80px] animate-pulse [animation-delay:1s]"
-                data-oid="q5azi6h"
-              ></div>
-            </div>
-
-            <div
-              className="relative z-10 w-full max-w-sm space-y-10 flex flex-col items-center"
-              data-oid="f2kuyz4"
-            >
-              {/* Dynamic AI Orb Animation */}
-              <div className="relative w-32 h-32" data-oid="5z0su3z">
-                {/* Outer Rotating Ring */}
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-                  className="absolute inset-0 rounded-full border-t-2 border-b-2 border-indigo-500/30 dark:border-indigo-400/20"
-                  data-oid="7ypmvgc"
-                />
-
-                {/* Inner Counter-Rotating Ring */}
-                <motion.div
-                  animate={{ rotate: -360 }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-                  className="absolute inset-2 rounded-full border-r-2 border-l-2 border-blue-500/40 dark:border-blue-400/30"
-                  data-oid="9s3uwco"
-                />
-
-                {/* Central Glowing Orb */}
-                <div
-                  className="absolute inset-4 rounded-full bg-gradient-to-br from-indigo-500/20 to-blue-500/20 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-[0_0_30px_rgba(79,70,229,0.3)]"
-                  data-oid="y56p9l:"
-                >
-                  <Sparkles
-                    className="w-8 h-8 text-indigo-500 dark:text-indigo-400 animate-pulse"
-                    data-oid="sjz:qnk"
-                  />
-                </div>
-
-                {/* Orbiting Particles */}
-                {[0, 120, 240].map((angle, i) => (
-                  <motion.div
-                    key={i}
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 3 + i, repeat: Infinity, ease: 'linear' }}
-                    className="absolute inset-0"
-                    data-oid="wdd1kgb"
-                  >
-                    <div
-                      className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(79,70,229,0.8)]"
-                      style={{ transformOrigin: 'center 64px' }}
-                      data-oid="wu8g6w6"
-                    />
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Status Information */}
-              <div className="text-center space-y-4" data-oid="s1-5jnx">
-                <motion.h3
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-2xl font-black text-slate-900 dark:text-white tracking-tight"
-                  data-oid="4suy_jg"
-                >
-                  AI{' '}
-                  <span
-                    className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-indigo-400 dark:to-blue-400"
-                    data-oid="ln_lqyc"
-                  >
-                    Analysis
-                  </span>{' '}
-                  in Progress
-                </motion.h3>
-
-                <div className="h-6 relative overflow-hidden" data-oid="7wz-vmi">
-                  <AnimatePresence mode="wait" data-oid="n-x_9zt">
-                    <motion.p
-                      key={loadingMessage}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]"
-                      data-oid="e9psoa8"
-                    >
-                      {loadingMessage || 'Orchestrating AI Pipeline...'}
-                    </motion.p>
-                  </AnimatePresence>
-                </div>
-              </div>
-
-              {/* Step Progress Indicator */}
-              <div className="w-full space-y-3 px-4" data-oid="ltjhmb0">
-                {[
-                  { label: 'Grammar & Spelling', key: 'grammar' },
-                  { label: 'Lexical Complexity', key: 'vocab' },
-                  { label: 'Coherence & Logic', key: 'logic' },
-                  { label: 'Final Band Calculation', key: 'score' },
-                ].map((step, idx) => {
-                  // Determine if this step is "current" or "completed" based on the index and a simple timer simulation
-                  const messages = [
-                    'Checking grammar and spelling...',
-                    'Analyzing vocabulary usage...',
-                    'Evaluating coherence and cohesion...',
-                    'Assessing task achievement...',
-                    'Calculating band score...',
-                  ];
-
-                  const currentMsgIdx = messages.indexOf(loadingMessage);
-                  const isCompleted = idx < currentMsgIdx;
-                  const isCurrent = idx === currentMsgIdx;
-
-                  return (
-                    <div key={idx} className="flex items-center gap-3" data-oid="l-q.5d5">
-                      <div
-                        className={cn(
-                          'w-5 h-5 rounded-full flex items-center justify-center transition-all duration-500 border',
-                          isCompleted
-                            ? 'bg-emerald-500 border-emerald-500 text-white'
-                            : isCurrent
-                              ? 'border-indigo-500/50 bg-indigo-50 dark:bg-indigo-500/10 shadow-[0_0_10px_rgba(79,70,229,0.2)]'
-                              : 'border-slate-200 dark:border-white/5 bg-transparent'
-                        )}
-                        data-oid=":y0z.26"
-                      >
-                        {isCompleted ? (
-                          <CheckCircle className="w-3 h-3" data-oid="39yvf.:" />
-                        ) : isCurrent ? (
-                          <RefreshCw
-                            className="w-2.5 h-2.5 text-indigo-500 animate-spin"
-                            data-oid="qpxinlo"
-                          />
-                        ) : (
-                          <div
-                            className="w-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-800"
-                            data-oid="yx.rocr"
-                          />
-                        )}
-                      </div>
-                      <span
-                        className={cn(
-                          'text-[11px] font-bold tracking-wide transition-colors duration-500',
-                          isCompleted
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : isCurrent
-                              ? 'text-slate-900 dark:text-white'
-                              : 'text-slate-400 dark:text-slate-600'
-                        )}
-                        data-oid="7lbrnu."
-                      >
-                        {step.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Progress Bar Footer */}
-              <div className="w-full space-y-2" data-oid="2hj60mt">
-                <div
-                  className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden"
-                  data-oid="o3gimfc"
-                >
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600 rounded-full"
-                    animate={{
-                      width: ['10%', '90%'],
-                      backgroundPosition: ['0% 50%', '100% 50%'],
-                    }}
-                    transition={{
-                      width: { duration: 15, ease: 'linear' },
-                      backgroundPosition: { duration: 3, repeat: Infinity, ease: 'linear' },
-                    }}
-                    data-oid="vht_37e"
-                  />
-                </div>
-                <p
-                  className="text-[10px] text-center text-slate-400 font-bold uppercase tracking-widest"
-                  data-oid="trfv9p."
-                >
-                  Estimated time: ~15 seconds
-                </p>
-              </div>
-            </div>
-          </motion.div>
+          <AnalyzingState loadingMessage={loadingMessage} />
         ) : feedbackError ? (
-          <motion.div
-            key="error"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="flex-1 flex flex-col items-center justify-center p-8 text-center relative overflow-hidden"
-            data-oid="izxtr:a"
-          >
-            {/* Error Glow */}
-            <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-rose-500/10 rounded-full blur-[80px] pointer-events-none"
-              data-oid="d9v8szp"
-            ></div>
-
-            <div
-              className="relative z-10 flex flex-col items-center space-y-6 max-w-sm"
-              data-oid="zd8lv_n"
-            >
-              <div
-                className="w-20 h-20 rounded-3xl bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center border border-rose-100 dark:border-rose-500/20 shadow-sm"
-                data-oid="qtk.zrj"
-              >
-                <AlertTriangle className="w-10 h-10 text-rose-500" data-oid="1hn-hm0" />
-              </div>
-
-              <div className="space-y-2" data-oid="h_qivx8">
-                <h3
-                  className="text-xl font-black text-slate-900 dark:text-white tracking-tight"
-                  data-oid="wn83.8_"
-                >
-                  {feedbackError?.includes('connect') ||
-                  feedbackError?.includes('network') ||
-                  feedbackError?.includes('internet')
-                    ? 'Connection Issue'
-                    : feedbackError?.includes('rate') || feedbackError?.includes('Too many')
-                      ? 'Please Slow Down'
-                      : feedbackError?.includes('log in') || feedbackError?.includes('session')
-                        ? 'Session Expired'
-                        : 'AI Service Temporarily Unavailable'}
-                </h3>
-                <p
-                  className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed"
-                  data-oid="t.l93df"
-                >
-                  {feedbackError?.includes('connect') ||
-                  feedbackError?.includes('network') ||
-                  feedbackError?.includes('internet')
-                    ? 'Please check your internet connection and try again.'
-                    : feedbackError?.includes('Worker failed to boot')
-                      ? "We're having trouble connecting to our specialized IELTS analysis engine. This is usually temporary—please try again after a few seconds."
-                      : feedbackError?.includes('rate') || feedbackError?.includes('Too many')
-                        ? "You've made too many requests. Please wait a moment before trying again."
-                        : feedbackError?.includes('log in') || feedbackError?.includes('session')
-                          ? 'Your session has expired. Please log in again to continue.'
-                          : feedbackError ||
-                            'Our AI systems encountered an unexpected hurdle while evaluating your work.'}
-                </p>
-              </div>
-
-              <Button
-                onClick={handleGetFeedback}
-                className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 h-12 px-8 rounded-2xl font-bold shadow-lg shadow-slate-900/10 dark:shadow-white/5 transition-all active:scale-95 gap-3"
-                data-oid="uv2iwgl"
-              >
-                <RefreshCw className="w-4 h-4" data-oid="zzfd76h" />
-                Resume Analysis
-              </Button>
-            </div>
-          </motion.div>
+          <ErrorState feedbackError={feedbackError} handleGetFeedback={handleGetFeedback} />
         ) : (
           <motion.div
             key="results"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="flex-1 flex flex-col"
-            data-oid="8ga_8ox"
+            transition={{ duration: 0.35 }}
+            className="flex-1 space-y-3 overflow-y-auto p-3 sm:p-4"
           >
-            {/* 1. New Feedback Header Design */}
-            <div
-              className="shrink-0 z-10 sticky top-0 bg-[#F8FAFC] dark:bg-[#05060B]"
-              data-oid="g5o8l-f"
-            >
-              {/* Dark Navy Card */}
-              <div
-                className="mx-2 sm:mx-4 mt-2 rounded-2xl sm:rounded-3xl bg-[#0F1035] dark:bg-[#0B0C24] p-4 sm:p-6 text-white shadow-xl relative overflow-hidden ring-1 ring-white/5"
-                data-oid="yn3:fmk"
-              >
-                {/* Background Glows */}
-                <div
-                  className="absolute top-0 right-0 w-32 sm:w-64 h-32 sm:h-64 bg-indigo-500/20 rounded-full blur-2xl sm:blur-3xl -mr-8 sm:-mr-16 -mt-8 sm:-mt-16 pointer-events-none"
-                  data-oid="-pz.7os"
-                ></div>
-                <div
-                  className="absolute bottom-0 left-0 w-24 sm:w-48 h-24 sm:h-48 bg-blue-500/10 rounded-full blur-2xl sm:blur-3xl -ml-5 sm:-ml-10 -mb-5 sm:-mb-10 pointer-events-none"
-                  data-oid=":y8l:b6"
-                ></div>
+            <section className="overflow-hidden rounded-[24px] border border-slate-200/80 bg-white shadow-[0_18px_60px_-42px_rgba(15,23,42,0.35)] dark:border-white/10 dark:bg-gradient-to-b dark:from-[#0d0f20] dark:to-[#070814] dark:shadow-[0_0_50px_-12px_rgba(99,102,241,0.12)]">
+              <div className="relative overflow-hidden bg-[#0F1035] dark:bg-gradient-to-br dark:from-[#171946]/95 dark:via-[#0e102d]/98 dark:to-[#070814] px-4 py-4 text-white sm:px-5 sm:py-5">
+                <div className="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-indigo-500/20 blur-3xl" />
+                <div className="pointer-events-none absolute -bottom-16 left-8 h-36 w-36 rounded-full bg-blue-500/10 blur-3xl" />
 
-                <div
-                  className="relative z-10 flex items-center justify-between gap-4"
-                  data-oid="wqo09mq"
-                >
-                  {/* Left Side: Title & Badge */}
-                  <div
-                    className="flex flex-col items-start gap-2 sm:gap-4 min-w-0"
-                    data-oid="qhx257m"
-                  >
-                    <div
-                      className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-white/10 border border-white/10 backdrop-blur-md"
-                      data-oid=".fivh.3"
-                    >
-                      <Sparkles
-                        className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-amber-400"
-                        data-oid="zehudlb"
-                      />
-                      <span
-                        className="text-[8px] sm:text-[10px] font-bold tracking-widest uppercase text-white/90"
-                        data-oid="dw2l3ig"
-                      >
-                        AI Analysis Complete
-                      </span>
-                    </div>
-                    <div className="min-w-0" data-oid="xnfcvr_">
-                      <h2
-                        className="text-xl sm:text-3xl font-black tracking-tight text-white mb-0.5 sm:mb-1 truncate"
-                        data-oid="ygkc.p7"
-                      >
-                        Task {feedback.writing?.taskType === 'task2' ? '2' : '1'} Feedback
-                      </h2>
-                      <p className="text-[10px] sm:text-sm font-medium pr-4" data-oid="1f4q-h1">
-                        {feedback.isBelowMinimumWordCount ? (
-                          <span className="text-amber-400 font-bold flex items-center gap-1.5 line-clamp-2">
-                            <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> Lower Confidence
-                            Practice Estimate
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">IELTS Band Descriptor Analysis</span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Right Side: Big Ring Gauge */}
-                  <div
-                    className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0"
-                    data-oid=":kgvuf1"
-                  >
-                    <svg className="w-full h-full transform -rotate-90" data-oid="g.lj:g7">
-                      {/* Track */}
-                      <circle
-                        cx="50%"
-                        cy="50%"
-                        r="42%"
-                        className="stroke-slate-700/50"
-                        strokeWidth="10"
-                        fill="transparent"
-                        data-oid="gr93cm6"
-                      />
-
-                      {/* Gradient Def */}
-                      <defs data-oid="3cp20ol">
-                        <linearGradient
-                          id="scoreGradient"
-                          x1="0%"
-                          y1="0%"
-                          x2="100%"
-                          y2="0%"
-                          data-oid="r-mggq5"
-                        >
-                          <stop offset="0%" stopColor="#fbbf24" data-oid="wppugyw" />
-                          <stop offset="100%" stopColor="#f59e0b" data-oid="x0ca9oq" />
-                        </linearGradient>
-                      </defs>
-
-                      {/* Progress */}
-                      <motion.circle
-                        cx="50%"
-                        cy="50%"
-                        r="42%"
-                        stroke="url(#scoreGradient)"
-                        strokeWidth="10"
-                        fill="transparent"
-                        strokeDasharray="264"
-                        initial={{ strokeDashoffset: 264 }}
-                        animate={{
-                          strokeDashoffset: 264 - (264 * (feedback.overallBand || 0)) / 9,
-                        }}
-                        transition={{ duration: 1.5, ease: 'easeOut' }}
-                        strokeLinecap="round"
-                        className="drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]"
-                        data-oid="39s82r_"
-                      />
-                    </svg>
-                    <div
-                      className="absolute inset-0 flex flex-col items-center justify-center pt-0.5 sm:pt-1"
-                      data-oid="2rcm7ia"
-                    >
-                      <span
-                        className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0 sm:mb-0.5"
-                        data-oid="jrg6jgr"
-                      >
-                        BAND
-                      </span>
-                      <span
-                        className="text-3xl sm:text-5xl font-black text-white leading-none tracking-tighter"
-                        data-oid="h2r:9g_"
-                      >
-                        {feedback.overallBand}
-                      </span>
-                      <span
-                        className="text-[8px] sm:text-[10px] font-bold text-slate-500 mt-0.5 sm:mt-1 dark:text-slate-400"
-                        data-oid="4r.sk0x"
-                      >
-                        of 9.0
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Combined Writing Band — shown only when both tasks are scored */}
-              {combinedBand && (
-                <div className="mx-2 sm:mx-4 mt-2 flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-300 dark:border-amber-700/60 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                    <span className="text-sm font-bold text-slate-900 dark:text-amber-50 uppercase tracking-wider">
-                      Overall Writing Band
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-extrabold">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-amber-300 ring-1 ring-white/10">
+                      <Sparkles className="h-4 w-4" />
                     </span>
-                    <span className="text-[10px] font-medium text-slate-600 dark:text-amber-100/70">
-                      (T1 × ⅓ + T2 × ⅔)
-                    </span>
+                    AI feedback summary
                   </div>
-                  <span className="text-3xl sm:text-4xl font-black text-amber-600 dark:text-amber-300 tracking-tight">
-                    {combinedBand}
+                  <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-300 ring-1 ring-white/10">
+                    {taskType}
                   </span>
                 </div>
-              )}
 
-              {/* Criteria Cards Grid */}
-              <div
-                className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 p-2 sm:p-3"
-                data-oid="5:lz1dz"
-              >
-                {Object.entries(feedback.criteriaScores || {}).map(([key, score], idx) => {
-                  let label = key
-                    .replace(/([A-Z])/g, ' $1')
-                    .trim()
-                    .toUpperCase();
-                  const words = label.split(' ');
-
-                  return (
-                    <motion.div
-                      key={key}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 + idx * 0.1 }}
-                      className="bg-white dark:bg-[#0B0C24]/60 dark:backdrop-blur-xl rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-sm border border-slate-100 dark:border-white/5 flex flex-col items-center justify-center text-center gap-1.5 sm:gap-2 hover:shadow-md transition-all duration-300 min-h-[100px] sm:min-h-[120px]"
-                      data-oid="ndrqbqa"
-                    >
-                      {/* Single Circle Score */}
-                      <div
-                        className="w-10 h-10 sm:w-14 h-14 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shadow-sm border border-indigo-100 dark:border-indigo-500/20"
-                        data-oid="8r6tcox"
-                      >
-                        <span
-                          className="text-lg sm:text-2xl font-black text-indigo-600 dark:text-indigo-300 pt-0.5"
-                          data-oid="hav6ny-"
-                        >
-                          {score}
-                        </span>
-                      </div>
-
-                      {/* Label */}
-                      <div className="flex flex-col items-center leading-none" data-oid="o.4tckq">
-                        {words.map((w, i) => (
-                          <span
-                            key={i}
-                            className="text-[8px] sm:text-[9px] font-bold text-slate-500 dark:text-slate-300/80 tracking-wider"
-                            data-oid="0:e8ea_"
-                          >
-                            {w}
-                          </span>
-                        ))}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 2. Scrollable Body */}
-            <div
-              className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
-              data-oid="548_1in"
-            >
-              {feedback.isBelowMinimumWordCount && (
-                <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-4 rounded-xl flex gap-3 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center shrink-0">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <div className="relative mt-2 grid items-center gap-3 sm:grid-cols-[136px_1fr]">
+                  <div className="mx-auto">
+                    <ScoreRing score={feedback.overallBand} />
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-amber-800 dark:text-amber-300">
-                      Below Word Count Minimum
-                    </h4>
-                    <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1 leading-relaxed">
-                      Your essay is below the official IELTS minimum word count (
-                      {feedback.taskType === 'Task 2' ? '250' : '150'} words). While this feedback
-                      provides helpful language corrections, the band score is a lower-confidence
-                      practice estimate as short essays typically incur severe penalties.
+                  <div className="text-center sm:border-l sm:border-white/10 sm:pl-5 sm:text-left">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-amber-300">
+                      Main takeaway
+                    </p>
+                    <p className="mt-1.5 text-sm font-semibold leading-5 text-slate-100 sm:text-[15px]">
+                      {summary}
+                    </p>
+                    <p className="mt-2 text-[10px] font-medium text-slate-400">
+                      Practice estimate based on public IELTS descriptors
                     </p>
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* Action Plan / Top Issues */}
-              {feedback.corrections && feedback.corrections.length > 0 && (
-                <section data-oid="yk_3d0v">
-                  <h3
-                    className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-3"
-                    data-oid="zv0x-h:"
+              <div className="grid grid-cols-2 border-t border-slate-100 dark:border-white/5 sm:grid-cols-4">
+                {criteria.map((item, index) => (
+                  <div
+                    key={item.short}
+                    className={cn(
+                      'p-2.5 text-center sm:py-3 sm:px-2 transition-all duration-300 hover:bg-slate-50/50 dark:hover:bg-white/[0.02]',
+                      index > 0 && 'border-l border-slate-100 dark:border-white/5',
+                      index > 1 && 'border-t sm:border-t-0 border-slate-100 dark:border-white/5'
+                    )}
                   >
-                    <Target className="w-3.5 h-3.5" data-oid="2tp96qy" />
-                    Key Corrections
-                  </h3>
-                  <div className="space-y-3" data-oid="f4f1d.3">
-                    {(showAllCorrections
-                      ? feedback.corrections
-                      : feedback.corrections.slice(0, 3)
-                    ).map((item, i) => (
-                      <div
-                        key={i}
-                        className="bg-white dark:bg-[#0D0E1A] p-4 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-shadow duration-200"
-                        data-oid="p93yi-4"
-                      >
-                        <div className="flex flex-col gap-3" data-oid="1rcgo7y">
-                          {/* Comparison View */}
-                          <div
-                            className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-50 dark:border-slate-800/50"
-                            data-oid="t6itzie"
-                          >
-                            <div className="space-y-1" data-oid="aq6:b50">
-                              <span
-                                className="text-[10px] font-bold text-rose-500 uppercase tracking-wider"
-                                data-oid="9z8:d-c"
-                              >
-                                Original
-                              </span>
-                              <p
-                                className="text-sm text-slate-500 line-through decoration-rose-300 dark:decoration-rose-700/50 decoration-2"
-                                data-oid="oj7owmz"
-                              >
-                                {item.original}
-                              </p>
-                            </div>
-                            <div
-                              className="space-y-1 sm:border-l sm:border-slate-100 sm:dark:border-slate-800 sm:pl-3"
-                              data-oid="6wn3rem"
-                            >
-                              <span
-                                className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-wider"
-                                data-oid="9ys:4.z"
-                              >
-                                Better
-                              </span>
-                              <p
-                                className="text-sm font-semibold text-emerald-700 dark:text-emerald-400"
-                                data-oid="_xdgqx:"
-                              >
-                                {item.correction}
-                              </p>
-                            </div>
-                          </div>
+                    <div className="text-lg sm:text-xl font-extrabold text-indigo-600 dark:text-indigo-300 leading-none">
+                      {item.score.toFixed(1)}
+                    </div>
+                    <div className="mt-1 min-h-[22px] text-[9px] font-bold uppercase leading-tight tracking-[0.08em] text-slate-500 dark:text-slate-400">
+                      {item.label}
+                    </div>
+                    <div className="mx-auto mt-1.5 h-1 w-full max-w-20 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(item.score / 9) * 100}%` }}
+                        transition={{ delay: 0.15 + index * 0.08, duration: 0.6 }}
+                        className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 dark:from-indigo-400 dark:to-purple-500 dark:shadow-[0_0_8px_rgba(129,140,248,0.6)]"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
 
-                          {/* Explanation */}
-                          <div
-                            className="flex items-start gap-2 bg-slate-50/50 dark:bg-indigo-500/5 p-2 rounded-lg border border-transparent dark:border-indigo-500/10"
-                            data-oid="i4ks.jn"
-                          >
-                            <Info
-                              className="w-3.5 h-3.5 text-slate-400 mt-0.5 shrink-0"
-                              data-oid="td09bof"
-                            />
+            {combinedBand && (
+              <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-500/20 dark:bg-amber-500/10">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-900 dark:text-amber-200">
+                  <TrendingUp className="h-3.5 w-3.5" /> Writing estimate{' '}
+                  <span className="hidden text-[10px] font-medium text-amber-700/70 sm:inline dark:text-amber-300/70">
+                    Task 1 × ⅓ + Task 2 × ⅔
+                  </span>
+                </div>
+                <span className="text-xl font-black text-amber-700 dark:text-amber-300">
+                  {combinedBand.toFixed(1)}
+                </span>
+              </div>
+            )}
 
-                            <p
-                              className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium"
-                              data-oid="hum9c2i"
-                            >
-                              {item.explanation}
-                            </p>
-                          </div>
+            {feedback.isBelowMinimumWordCount && (
+              <div className="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-500/20 dark:bg-amber-500/10">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <div>
+                  <p className="text-xs font-extrabold text-amber-900 dark:text-amber-200">
+                    Below the {taskType === 'Task 2' ? '250' : '150'}-word minimum
+                  </p>
+                  <p className="mt-0.5 text-[11px] leading-5 text-amber-800/80 dark:text-amber-300/80">
+                    With {feedback.wordCount ?? 'fewer'} words, there is less evidence of full task
+                    coverage. Language criteria are still judged from what you demonstrated.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="grid gap-3 xl:grid-cols-2">
+              <section className="rounded-[22px] border border-emerald-100 bg-emerald-50/55 p-4 dark:border-emerald-500/15 dark:bg-emerald-500/[0.07] transition-all duration-300 hover:shadow-sm hover:border-emerald-200 dark:hover:border-emerald-500/25">
+                <div className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.1em] text-emerald-800 dark:text-emerald-300">
+                  <CheckCircle2 className="h-4 w-4" /> Key strengths
+                </div>
+                <div className="space-y-2.5">
+                  {strengths.map((strength, index) => (
+                    <div
+                      key={`${strength}-${index}`}
+                      className="flex gap-2.5 text-xs font-medium leading-5 text-slate-700 dark:text-slate-200"
+                    >
+                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
+                        <Check className="h-2.5 w-2.5" />
+                      </span>
+                      <span>{strength}</span>
+                    </div>
+                  ))}
+                  {strengths.length === 0 && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      No reliable strength was identified from the available evidence.
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              <section className="rounded-[22px] border border-orange-100 bg-orange-50/55 p-4 dark:border-orange-500/15 dark:bg-orange-500/[0.07] transition-all duration-300 hover:shadow-sm hover:border-orange-200 dark:hover:border-orange-500/25">
+                <div className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.1em] text-orange-800 dark:text-orange-300">
+                  <Target className="h-4 w-4" /> Top 3 priorities
+                </div>
+                <div className="space-y-3">
+                  {priorities.map((priority, index) => (
+                    <div
+                      key={`${priority.issue}-${index}`}
+                      className="grid grid-cols-[24px_1fr] gap-x-2.5"
+                    >
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100 text-[11px] font-black text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wide text-orange-700 dark:text-orange-300">
+                            {priority.criterion}
+                          </span>
+                          <span className="text-xs font-semibold text-slate-800 dark:text-slate-100">
+                            {priority.issue}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[11px] leading-4 text-slate-600 dark:text-slate-400">
+                          <span className="font-bold text-slate-800 dark:text-slate-200">Do:</span>{' '}
+                          {priority.action}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {priorities.length === 0 && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      No priority data is available for this saved attempt.
+                    </p>
+                  )}
+                </div>
+              </section>
+            </div>
+
+            {corrections.length > 0 && (
+              <section className="overflow-hidden rounded-[22px] border border-slate-200 bg-white dark:border-white/10 dark:bg-gradient-to-b dark:from-[#0d0f20] dark:to-[#070814] dark:shadow-[0_0_50px_-12px_rgba(99,102,241,0.12)]">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.01]">
+                  <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.1em]">
+                    <Lightbulb className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />{' '}
+                    Corrections & improvements
+                  </div>
+                  <span className="rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-bold text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
+                    {corrections.length} {corrections.length === 1 ? 'fix' : 'fixes'}
+                  </span>
+                </div>
+                <div className="divide-y divide-slate-100 dark:divide-white/5">
+                  {visibleCorrections.map((item, index) => (
+                    <div
+                      key={`${item.original}-${index}`}
+                      className="border-l-2 border-rose-400 px-4 py-3 transition-colors duration-200 hover:bg-slate-50/30 dark:hover:bg-white/[0.01]"
+                    >
+                      <div className="grid items-center gap-2 sm:grid-cols-[1fr_22px_1fr]">
+                        <div>
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-rose-500">
+                            Original
+                          </span>
+                          <p className="mt-0.5 text-xs font-medium text-slate-600 line-through decoration-rose-300 dark:text-slate-300">
+                            {item.original}
+                          </p>
+                        </div>
+                        <ArrowRight className="hidden h-4 w-4 text-slate-300 sm:block" />
+                        <div>
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                            Better
+                          </span>
+                          <p className="mt-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                            {item.correction}
+                          </p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  {feedback.corrections.length > 3 && (
-                    <button
-                      onClick={() => setShowAllCorrections((v) => !v)}
-                      className="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-indigo-500 hover:text-indigo-600 transition-colors"
-                    >
-                      <ChevronDown
-                        className={`w-3.5 h-3.5 transition-transform duration-200 ${showAllCorrections ? 'rotate-180' : ''}`}
-                      />
-                      {showAllCorrections
-                        ? 'Show less'
-                        : `Show ${feedback.corrections.length - 3} more`}
-                    </button>
-                  )}
-                </section>
-              )}
-
-              {/* Detailed Review - Moved to Left Pane */}
-              {/* <section>...</section> */}
-
-              {/* Strengths / Weaknesses / Suggestions */}
-              <div className="grid grid-cols-1 gap-4" data-oid="o.mv23b">
-                {feedback.strengths && feedback.strengths.length > 0 && (
-                  <section data-oid="mkqk:q2">
-                    <h3
-                      className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2 px-1"
-                      data-oid="gki2zb8"
-                    >
-                      <CheckCircle className="w-3 h-3 text-emerald-500" data-oid="3xolxy-" />
-                      What You Did Well
-                    </h3>
-                    <div className="grid gap-2" data-oid="kio5y_v">
-                      {(showAllStrengths ? feedback.strengths : feedback.strengths.slice(0, 4)).map(
-                        (str, i) => {
-                          const match = str.match(/^\*\*(.*?)\*\*(.*)/);
-                          return (
-                            <div
-                              key={i}
-                              className="group flex items-start gap-2.5 text-[12px] text-slate-600 dark:text-slate-300 leading-normal bg-white dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800/60 hover:shadow-sm transition-all duration-300"
-                              data-oid="gu9.ac6"
-                            >
-                              <div
-                                className="mt-0.5 w-4 h-4 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0"
-                                data-oid="w4s61.e"
-                              >
-                                <div
-                                  className="w-1.5 h-1.5 rounded-full bg-emerald-500"
-                                  data-oid="8rikdha"
-                                ></div>
-                              </div>
-                              <div data-oid="0bl9gt1">
-                                {match ? (
-                                  <>
-                                    <span className="font-bold text-slate-900 dark:text-white mr-1">
-                                      {match[1]}
-                                    </span>
-                                    <span className="text-slate-600 dark:text-slate-400">
-                                      {match[2]}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <span className="text-slate-600 dark:text-slate-400">{str}</span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        }
+                      <p className="mt-2 flex gap-2 rounded-lg bg-slate-50 px-2.5 py-2 text-[11px] leading-4 text-slate-600 dark:bg-white/5 dark:text-slate-400">
+                        <Info className="mt-0.5 h-3 w-3 shrink-0 text-indigo-500" />
+                        <span>
+                          <strong className="text-slate-800 dark:text-slate-200">
+                            Why it matters:
+                          </strong>{' '}
+                          {item.explanation}
+                        </span>
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                {corrections.length > 3 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllCorrections((value) => !value)}
+                    className="flex w-full items-center justify-center gap-1 border-t border-slate-100 py-3 text-[11px] font-extrabold text-indigo-600 hover:bg-indigo-50/50 dark:border-white/5 dark:text-indigo-300 dark:hover:bg-indigo-500/5"
+                  >
+                    {showAllCorrections
+                      ? 'Show fewer corrections'
+                      : `View all ${corrections.length} corrections`}
+                    <ChevronDown
+                      className={cn(
+                        'h-3.5 w-3.5 transition-transform',
+                        showAllCorrections && 'rotate-180'
                       )}
-                    </div>
-                    {feedback.strengths.length > 4 && (
-                      <button
-                        onClick={() => setShowAllStrengths((v) => !v)}
-                        className="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-indigo-500 hover:text-indigo-600 transition-colors"
-                      >
-                        <ChevronDown
-                          className={`w-3.5 h-3.5 transition-transform duration-200 ${showAllStrengths ? 'rotate-180' : ''}`}
-                        />
-                        {showAllStrengths
-                          ? 'Show less'
-                          : `Show ${feedback.strengths.length - 4} more`}
-                      </button>
-                    )}
-                  </section>
+                    />
+                  </button>
                 )}
+              </section>
+            )}
 
-                {feedback.weaknesses && feedback.weaknesses.length > 0 && (
-                  <section>
-                    <h3 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2 px-1">
-                      <XCircle className="w-3 h-3 text-rose-500" />
-                      Areas to Improve
-                    </h3>
-                    <div className="grid gap-2">
-                      {(showAllWeaknesses
-                        ? feedback.weaknesses
-                        : feedback.weaknesses.slice(0, 4)
-                      ).map((item, i) => {
-                        const match = item.match(/^\*\*(.*?)\*\*(.*)/);
-                        return (
-                          <div
-                            key={i}
-                            className="group flex items-start gap-2.5 text-[12px] text-slate-600 dark:text-slate-300 leading-normal bg-white dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-100 dark:border-rose-900/20 hover:shadow-sm transition-all duration-300"
-                          >
-                            <div className="mt-0.5 w-4 h-4 rounded-full bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center shrink-0">
-                              <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>
-                            </div>
-                            <div>
-                              {match ? (
-                                <>
-                                  <span className="font-bold text-slate-900 dark:text-white mr-1">
-                                    {match[1]}
-                                  </span>
-                                  <span className="text-slate-600 dark:text-slate-400">
-                                    {match[2]}
-                                  </span>
-                                </>
-                              ) : (
-                                <span className="text-slate-600 dark:text-slate-400">{item}</span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {feedback.weaknesses.length > 4 && (
-                      <button
-                        onClick={() => setShowAllWeaknesses((v) => !v)}
-                        className="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-indigo-500 hover:text-indigo-600 transition-colors"
-                      >
-                        <ChevronDown
-                          className={`w-3.5 h-3.5 transition-transform duration-200 ${showAllWeaknesses ? 'rotate-180' : ''}`}
-                        />
-                        {showAllWeaknesses
-                          ? 'Show less'
-                          : `Show ${feedback.weaknesses.length - 4} more`}
-                      </button>
-                    )}
-                  </section>
-                )}
-
-                {feedback.suggestions && feedback.suggestions.length > 0 && (
-                  <section data-oid="wgjok6z">
-                    <h3
-                      className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2 px-1"
-                      data-oid="ce8hjdq"
-                    >
-                      <Lightbulb className="w-3 h-3 text-amber-500" data-oid="pyftcx9" />
-                      Tips for Next Time
-                    </h3>
-                    <div className="grid gap-2" data-oid="c.siyys">
-                      {(showAllSuggestions
-                        ? feedback.suggestions
-                        : feedback.suggestions.slice(0, 4)
-                      ).map((sugg, i) => {
-                        const match = sugg.match(/^\*\*(.*?)\*\*(.*)/);
-                        return (
-                          <div
-                            key={i}
-                            className="group flex items-start gap-2.5 text-[12px] text-slate-600 dark:text-slate-300 leading-normal bg-white dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800/60 hover:shadow-sm transition-all duration-300"
-                            data-oid="rmnzi6x"
-                          >
-                            <div
-                              className="mt-0.5 w-4 h-4 rounded-full bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center shrink-0"
-                              data-oid="1iho01y"
-                            >
-                              <div
-                                className="w-1.5 h-1.5 rounded-full bg-amber-500"
-                                data-oid="4m2ul4i"
-                              ></div>
-                            </div>
-                            <div data-oid="cnak38z">
-                              {match ? (
-                                <>
-                                  <span className="font-bold text-slate-900 dark:text-white mr-1">
-                                    {match[1]}
-                                  </span>
-                                  <span className="text-slate-600 dark:text-slate-400">
-                                    {match[2]}
-                                  </span>
-                                </>
-                              ) : (
-                                <span className="text-slate-600 dark:text-slate-400">{sugg}</span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {feedback.suggestions.length > 4 && (
-                      <button
-                        onClick={() => setShowAllSuggestions((v) => !v)}
-                        className="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-indigo-500 hover:text-indigo-600 transition-colors"
-                      >
-                        <ChevronDown
-                          className={`w-3.5 h-3.5 transition-transform duration-200 ${showAllSuggestions ? 'rotate-180' : ''}`}
-                        />
-                        {showAllSuggestions
-                          ? 'Show less'
-                          : `Show ${feedback.suggestions.length - 4} more`}
-                      </button>
-                    )}
-                  </section>
-                )}
-              </div>
+            <div className="flex items-center gap-2 px-1 pb-1 text-[10px] leading-4 text-slate-400 dark:text-slate-500">
+              <Info className="h-3 w-3 shrink-0" /> Practice estimate based on public IELTS
+              descriptors—not an official examiner score.
             </div>
           </motion.div>
         )}

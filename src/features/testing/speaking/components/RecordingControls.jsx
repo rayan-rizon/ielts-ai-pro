@@ -126,25 +126,11 @@ const RecordingControls = React.memo(
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="flex items-center gap-3"
+                className="flex items-center"
               >
-                {/* Audio Level Visualizer — CSS-only, shown while recording */}
-                <div className="flex h-5 items-center gap-1 py-0.5" aria-hidden="true">
-                  {Array.from({ length: 18 }, (_, i) => (
-                    <div
-                      key={i}
-                      className="w-0.5 sm:w-1 bg-gradient-to-t from-rose-500 to-orange-400 rounded-full animate-pulse"
-                      style={{
-                        height: `${Math.max(4, 6 + Math.sin(i * 0.8) * 8)}px`,
-                        animationDelay: `${i * 60}ms`,
-                        animationDuration: `${600 + (i % 5) * 100}ms`,
-                      }}
-                    />
-                  ))}
-                </div>
-                <div className="rounded-full border border-primary/20 bg-primary/5 px-3 py-0.5 dark:bg-primary/10">
+                <div className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 dark:bg-primary/10">
                   <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] text-primary flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                     LISTENING... SPEAK NATURALLY
                   </p>
                 </div>
@@ -168,15 +154,29 @@ const RecordingControls = React.memo(
       {/* Microphone Button */}
       {testStarted && !isPart2Prep && (
         <div className="flex flex-col items-center gap-1">
-          <div className="flex items-center gap-3 sm:gap-5">
-            <div className="hidden items-center gap-1 sm:flex" aria-hidden="true">
-              {[7, 13, 20, 11, 17, 8, 14].map((height, index) => (
-                <span
-                  key={`left-${index}`}
-                  className="w-0.5 rounded-full bg-rose-500/35"
-                  style={{ height }}
-                />
-              ))}
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex items-center gap-1 h-8 justify-end w-16" aria-hidden="true">
+              {Array.from({ length: 7 }, (_, i) => {
+                const height = isListening
+                  ? Math.max(4, 6 + Math.sin(i * 0.6) * 16)
+                  : [4, 8, 14, 20, 12, 8, 4][i];
+                return (
+                  <motion.div
+                    key={`wave-l-${i}`}
+                    layout
+                    className={`w-0.5 sm:w-1 rounded-full transition-all duration-300 ${
+                      isListening
+                        ? 'bg-gradient-to-t from-rose-500 to-orange-400 animate-pulse'
+                        : 'bg-slate-200 dark:bg-white/10'
+                    }`}
+                    style={{
+                      height: `${height}px`,
+                      animationDelay: isListening ? `${(6 - i) * 70}ms` : undefined,
+                      animationDuration: isListening ? `${500 + ((6 - i) % 3) * 150}ms` : undefined,
+                    }}
+                  />
+                );
+              })}
             </div>
 
             <div className="relative">
@@ -239,14 +239,28 @@ const RecordingControls = React.memo(
               </div>
             </div>
 
-            <div className="hidden items-center gap-1 sm:flex" aria-hidden="true">
-              {[14, 8, 17, 11, 20, 13, 7].map((height, index) => (
-                <span
-                  key={`right-${index}`}
-                  className="w-0.5 rounded-full bg-rose-500/35"
-                  style={{ height }}
-                />
-              ))}
+            <div className="flex items-center gap-1 h-8 justify-start w-16" aria-hidden="true">
+              {Array.from({ length: 7 }, (_, i) => {
+                const height = isListening
+                  ? Math.max(4, 6 + Math.sin(i * 0.6) * 16)
+                  : [4, 8, 12, 20, 14, 8, 4][i];
+                return (
+                  <motion.div
+                    key={`wave-r-${i}`}
+                    layout
+                    className={`w-0.5 sm:w-1 rounded-full transition-all duration-300 ${
+                      isListening
+                        ? 'bg-gradient-to-t from-rose-500 to-orange-400 animate-pulse'
+                        : 'bg-slate-200 dark:bg-white/10'
+                    }`}
+                    style={{
+                      height: `${height}px`,
+                      animationDelay: isListening ? `${i * 70}ms` : undefined,
+                      animationDuration: isListening ? `${500 + (i % 3) * 150}ms` : undefined,
+                    }}
+                  />
+                );
+              })}
             </div>
           </div>
 

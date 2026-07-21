@@ -7,7 +7,7 @@ import { generateDetailedFeedback } from '@/utils/api';
 import { removeFromCache } from '@/hooks/useDataQuery';
 import { trackAppEvent } from '@/lib/tracking';
 
-const CURRENT_FEEDBACK_EVALUATOR_VERSION = '2026-06-14-v2';
+const CURRENT_FEEDBACK_EVALUATOR_VERSION = '2026-07-21-v3';
 
 /**
  * useWritingFeedback
@@ -235,6 +235,8 @@ export function useWritingFeedback(awardXP) {
                 ? raw.vocabularyEnhancements || raw.vocabulary_enhancements
                 : [],
             strengths: feedbackData.strengths || raw.strengths || [],
+            summary: feedbackData.summary || raw.summary || '',
+            priorities: feedbackData.priorities || raw.priorities || [],
             weaknesses: feedbackData.weaknesses || raw.weaknesses || [],
             suggestions: feedbackData.suggestions || raw.suggestions || [],
             corrections: feedbackData.corrections || raw.corrections || [],

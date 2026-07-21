@@ -89,6 +89,76 @@ describe('evaluationUtils', () => {
     expect(result.weaknesses[0]).toContain('below the 250-word minimum');
   });
 
+  it('normalizes the compact writing contract and derives corrections from grounded annotations', () => {
+    const source =
+      'Public transport reduce congestion, and reliable services encourage commuters to leave their cars at home.';
+    const result = normalizeWritingEvaluation(
+      {
+        criteriaScores: {
+          TaskResponse: 6,
+          CoherenceAndCohesion: 6.5,
+          LexicalResource: 6.5,
+          GrammaticalRangeAndAccuracy: 5.5,
+        },
+        summary:
+          'The position is clear, but recurring agreement errors reduce grammatical accuracy. This sentence should be removed by the compact normalizer.',
+        annotations: [
+          {
+            originalText: 'transport reduce',
+            type: 'grammar',
+            suggestion: 'transport reduces',
+            explanation: 'A singular subject requires a singular verb.',
+            severity: 'error',
+          },
+        ],
+        strengths: [
+          '**Task Response:** The position is clear from the opening clause.',
+          'The cause-and-effect link is easy to follow.',
+          'The phrase “reliable services” is precise.',
+          'This fourth strength must be removed.',
+        ],
+        priorities: [
+          {
+            criterion: 'Grammar',
+            issue: 'Subject–verb agreement is not consistently controlled.',
+            action: 'Check every present-tense verb against its subject.',
+          },
+          {
+            criterion: 'Unsupported criterion',
+            issue: 'This item must be filtered.',
+            action: 'Do nothing.',
+          },
+        ],
+        vocabularyEnhancements: [],
+      },
+      'Task 2',
+      source
+    );
+
+    expect(result.overallBand).toBe(6);
+    expect(result.summary).toBe(
+      'The position is clear, but recurring agreement errors reduce grammatical accuracy.'
+    );
+    expect(result.strengths).toHaveLength(3);
+    expect(result.strengths[0]).toBe(
+      'Task Response: The position is clear from the opening clause.'
+    );
+    expect(result.priorities).toEqual([
+      {
+        criterion: 'Grammar',
+        issue: 'Subject–verb agreement is not consistently controlled.',
+        action: 'Check every present-tense verb against its subject.',
+      },
+    ]);
+    expect(result.corrections).toEqual([
+      {
+        original: 'transport reduce',
+        correction: 'transport reduces',
+        explanation: 'A singular subject requires a singular verb.',
+      },
+    ]);
+  });
+
   it('does not turn missing pronunciation evidence into a zero speaking score', () => {
     const transcript = buildSpeakingTranscript({
       1: [
