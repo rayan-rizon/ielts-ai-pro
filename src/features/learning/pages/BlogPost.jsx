@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { m } from 'framer-motion';
 import {
   ArrowLeft,
   ArrowRight,
@@ -167,7 +168,11 @@ function BlogPostHero({ post, publishedDate }) {
         </nav>
 
         <div className="grid items-center gap-9 lg:grid-cols-[.95fr_1.05fr]">
-          <div>
+          <m.div
+            initial={{ opacity: 0, x: -20, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          >
             <span className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[.1em] text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
               <PenLineIcon category={post.category} /> {post.category || 'IELTS Guide'}
             </span>
@@ -193,9 +198,14 @@ function BlogPostHero({ post, publishedDate }) {
                 <Clock3 className="h-4 w-4" /> {post.reading_minutes || 6} min read
               </span>
             </div>
-          </div>
+          </m.div>
 
-          <div className="relative">
+          <m.div
+            initial={{ opacity: 0, x: 20, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
+            className="relative"
+          >
             <div className="overflow-hidden rounded-[1.75rem] border border-indigo-100 bg-indigo-50 p-2 shadow-[0_28px_70px_-38px_rgba(79,70,229,.5)] dark:border-white/10 dark:bg-white/[.04]">
               <img
                 src={post.thumbnail_url || '/ielts-hero-student.webp'}
@@ -210,7 +220,7 @@ function BlogPostHero({ post, publishedDate }) {
             <div className="absolute -bottom-4 left-8 hidden rotate-[-3deg] rounded-lg bg-violet-100 px-4 py-3 text-xs font-bold text-violet-800 shadow-lg sm:block">
               Plan · Practise · Review · Succeed
             </div>
-          </div>
+          </m.div>
         </div>
       </div>
     </section>

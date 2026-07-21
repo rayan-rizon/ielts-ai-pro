@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, BarChart3, Check, Sparkles } from 'lucide-react';
+import { m } from 'framer-motion';
 import CheckerWorkspace from './CheckerWorkspace';
 import TrustBadges from './TrustBadges';
 import WhatYouReceiveSection from './WhatYouReceiveSection';
@@ -31,7 +32,12 @@ export default function HeroSection({ user, authLoading }) {
 /** Left-column hero copy block. */
 function HeroCopy() {
   return (
-    <div className="max-w-2xl">
+    <m.div
+      initial={{ opacity: 0, x: -22, filter: 'blur(4px)' }}
+      animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+      transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+      className="max-w-2xl"
+    >
       <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-1.5 text-[11px] font-black uppercase tracking-[.14em] text-indigo-700 shadow-sm">
         <Sparkles className="h-3.5 w-3.5" /> Free Academic IELTS Writing Checker
       </div>
@@ -70,14 +76,19 @@ function HeroCopy() {
           See sample feedback
         </a>
       </div>
-    </div>
+    </m.div>
   );
 }
 
 /** Right-column hero visual with floating cards. */
 function HeroVisual() {
   return (
-    <div className="relative mx-auto w-full max-w-2xl">
+    <m.div
+      initial={{ opacity: 0, x: 22, filter: 'blur(4px)' }}
+      animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+      transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
+      className="relative mx-auto w-full max-w-2xl"
+    >
       <div className="absolute -left-3 top-16 z-10 w-36 rotate-[-3deg] rounded-2xl border border-indigo-100 bg-white p-4 shadow-xl sm:-left-8 sm:w-40">
         <span className="text-3xl font-black text-indigo-600">7.0</span>
         <p className="mt-1 text-xs font-extrabold text-emerald-600">Example band</p>
@@ -112,6 +123,6 @@ function HeroVisual() {
           <BarChart3 className="h-5 w-5" />
         </div>
       </div>
-    </div>
+    </m.div>
   );
 }

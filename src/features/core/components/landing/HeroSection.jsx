@@ -88,7 +88,7 @@ function SpeakingCard() {
     <FloatingCard
       label="Speaking feedback preview"
       delay={0.55}
-      className="left-[-16px] sm:left-4 top-[50px] sm:top-[64px] w-[174px] p-3 sm:w-[205px] sm:p-4 origin-top-left"
+      className="left-0 sm:left-4 top-4 sm:top-[64px] w-[165px] sm:w-[205px] p-3 sm:p-4 origin-top-left"
     >
       <CardHeading icon={Mic} title="Speaking Feedback" tone="green" />
       <div className="mt-3 rounded-xl bg-[#fbfdfd]/60 p-3 dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
@@ -114,7 +114,7 @@ function ProgressCard() {
     <FloatingCard
       label="Overall progress preview"
       delay={0.72}
-      className="right-[-16px] sm:right-4 top-4 w-[176px] p-3 sm:top-8 sm:w-[222px] sm:p-4 origin-top-right"
+      className="hidden sm:block right-[-16px] sm:right-4 top-4 w-[176px] p-3 sm:top-8 sm:w-[222px] sm:p-4 origin-top-right"
     >
       <CardHeading icon={TrendingUp} title="Overall Progress" tone="blue" />
       <div className="mt-3 flex items-center justify-between">
@@ -176,7 +176,7 @@ function StudyPlanCard() {
     <FloatingCard
       label="Personalized study plan preview"
       delay={0.88}
-      className="bottom-[86px] sm:bottom-[116px] right-[-16px] sm:right-4 w-[190px] p-3 sm:w-[238px] sm:p-4 origin-bottom-right"
+      className="hidden sm:block bottom-[86px] sm:bottom-[116px] right-[-16px] sm:right-4 w-[190px] p-3 sm:w-[238px] sm:p-4 origin-bottom-right"
     >
       <CardHeading icon={CalendarDays} title="Personalized Study Plan" tone="violet" />
       <div className="mt-3 rounded-xl bg-[#fcfbff]/60 p-3 dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
@@ -260,7 +260,7 @@ function AiTutorCard() {
     <FloatingCard
       label="AI Tutor chat bubble"
       delay={1.15}
-      className="bottom-0 sm:bottom-3 right-[-10px] sm:right-8 w-[210px] p-2.5 sm:w-[268px] sm:p-3.5 origin-bottom-right"
+      className="bottom-0 sm:bottom-3 right-0 sm:right-8 w-[235px] sm:w-[270px] p-2.5 sm:p-3.5 origin-bottom-right"
     >
       <div className="flex items-center gap-3">
         {/* Robot Avatar */}
@@ -297,14 +297,14 @@ function AiTutorCard() {
         </div>
 
         {/* Text Area */}
-        <div className="text-left">
+        <div className="text-left min-w-0">
           <div className="flex items-center gap-1.5">
-            <b className="text-[11px] font-black tracking-tight text-[#0d1932] dark:text-white sm:text-xs">
+            <b className="whitespace-nowrap text-[11px] font-black tracking-tight text-[#0d1932] dark:text-white sm:text-xs">
               Hi! I'm your AI tutor.
             </b>
-            <Sparkles className="h-3 w-3 text-amber-500 dark:text-amber-400 animate-pulse" />
+            <Sparkles className="h-3 w-3 shrink-0 text-amber-500 dark:text-amber-400 animate-pulse" />
           </div>
-          <p className="mt-0.5 text-[9px] font-semibold text-[#59667b] dark:text-slate-400 sm:text-[10px]">
+          <p className="mt-0.5 whitespace-nowrap text-[9px] font-semibold text-[#59667b] dark:text-slate-400 sm:text-[10px]">
             Ask me anything about IELTS!
           </p>
         </div>

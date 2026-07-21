@@ -77,7 +77,12 @@ function FaqAccordionItem({ question, answer, isOpen, onClick }) {
 
 function ContactInfo() {
   return (
-    <div className="space-y-12">
+    <m.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+      className="space-y-12"
+    >
       <div className="space-y-6">
         <div className="inline-flex items-center gap-2 rounded-full border border-[#bfe9df] bg-[#f2fbf8] px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#218b75] dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300 shadow-sm">
           <Sparkles className="h-3 w-3 text-[#218b75] dark:text-emerald-300" />
@@ -134,7 +139,7 @@ function ContactInfo() {
           </div>
         </Card>
       </div>
-    </div>
+    </m.div>
   );
 }
 
@@ -165,7 +170,12 @@ function ContactForm() {
   };
 
   return (
-    <div className="relative">
+    <m.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
+      className="relative"
+    >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-[#6256ed]/5 to-transparent blur-3xl -z-10 rounded-[3rem] opacity-60" />
 
       <Card className="p-8 md:p-10 border border-white/40 bg-white/70 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.08)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/75 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.2)] rounded-[32px] relative overflow-hidden group">
@@ -283,7 +293,7 @@ function ContactForm() {
           </form>
         )}
       </Card>
-    </div>
+    </m.div>
   );
 }
 
@@ -319,7 +329,13 @@ function ContactFaqs() {
 
   return (
     <section className="py-16 px-6 relative border-t border-slate-100 dark:border-white/5 bg-[#fafbfe] dark:bg-[#070912]/40">
-      <div className="max-w-4xl mx-auto">
+      <m.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.12 }}
+        transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+        className="max-w-4xl mx-auto"
+      >
         <div className="text-center mb-12 space-y-3">
           <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <HelpCircle className="w-5 h-5" />
@@ -343,7 +359,7 @@ function ContactFaqs() {
             />
           ))}
         </div>
-      </div>
+      </m.div>
     </section>
   );
 }

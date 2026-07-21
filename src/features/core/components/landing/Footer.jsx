@@ -53,6 +53,21 @@ const socialLinks = [
   },
 ];
 
+function scrollToPageTopImmediately(event) {
+  if (event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
+    return;
+  }
+
+  const root = document.documentElement;
+  const previousScrollBehavior = root.style.scrollBehavior;
+
+  root.style.scrollBehavior = 'auto';
+  window.scrollTo(0, 0);
+  root.scrollTop = 0;
+  document.body.scrollTop = 0;
+  root.style.scrollBehavior = previousScrollBehavior;
+}
+
 function FooterLink({ href, children }) {
   const className =
     'group relative w-fit text-sm font-medium text-slate-400 transition-colors hover:text-white';
@@ -66,7 +81,7 @@ function FooterLink({ href, children }) {
   }
 
   return (
-    <Link to={href} className={className}>
+    <Link to={href} className={className} onClick={scrollToPageTopImmediately} viewTransition>
       {children}
     </Link>
   );
@@ -83,7 +98,7 @@ export default function Footer() {
       <div className="relative z-10 mx-auto max-w-7xl px-6">
         <div className="grid gap-12 border-b border-white/[0.07] pb-12 lg:grid-cols-[1.05fr_1.4fr]">
           <div>
-            <Link to="/" className="block w-fit" aria-label="IELTS Ai Pro home">
+            <Link to="/" className="block w-fit" aria-label="IELTS Ai Pro home" viewTransition>
               <Logo size="lg" className="text-white" />
             </Link>
             <p className="mt-4 max-w-md text-sm leading-7 text-slate-400">
@@ -139,13 +154,28 @@ export default function Footer() {
         <div className="flex flex-col gap-5 pt-7 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <span>© {currentYear} IELTS Ai Pro</span>
-            <Link to="/privacy" className="hover:text-white">
+            <Link
+              to="/privacy"
+              className="hover:text-white"
+              onClick={scrollToPageTopImmediately}
+              viewTransition
+            >
               Privacy
             </Link>
-            <Link to="/terms" className="hover:text-white">
+            <Link
+              to="/terms"
+              className="hover:text-white"
+              onClick={scrollToPageTopImmediately}
+              viewTransition
+            >
               Terms
             </Link>
-            <Link to="/about" className="hover:text-white">
+            <Link
+              to="/about"
+              className="hover:text-white"
+              onClick={scrollToPageTopImmediately}
+              viewTransition
+            >
               About
             </Link>
           </div>

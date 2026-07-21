@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { m } from 'framer-motion';
 
 import CookieConsent from '@/components/shared/CookieConsent';
 import DocumentHead from '@/components/shared/DocumentHead';
@@ -109,10 +110,40 @@ export default function IeltsWritingChecker() {
       <PublicNavbar />
 
       <main>
-        <HeroSection user={user} authLoading={authLoading} />
-        <HowItWorksSection />
-        <FaqSection />
-        <CtaSection />
+        <m.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <HeroSection user={user} authLoading={authLoading} />
+        </m.div>
+
+        <m.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.12 }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <HowItWorksSection />
+        </m.div>
+
+        <m.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.12 }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <FaqSection />
+        </m.div>
+
+        <m.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.12 }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <CtaSection />
+        </m.div>
       </main>
 
       <Footer />

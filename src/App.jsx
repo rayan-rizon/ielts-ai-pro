@@ -1,11 +1,11 @@
 import React, { lazy, Suspense } from 'react';
-import { LazyMotion } from 'framer-motion';
+import { LazyMotion, m } from 'framer-motion';
 import {
   createBrowserRouter,
   RouterProvider,
   Navigate,
-  useRouteError,
   useLocation,
+  useRouteError,
 } from 'react-router-dom';
 import { trackAppEvent, trackPageView } from '@/lib/tracking';
 
@@ -177,23 +177,38 @@ const SubscriptionSuccess = lazyWithRetry(
   () => import('@/features/subscription/pages/SubscriptionSuccess.jsx')
 );
 
-const ScrollToTop = () => {
+const LazyPage = ({ children }) => {
   const { pathname } = useLocation();
 
   React.useLayoutEffect(() => {
-    window.scrollTo(0, 0);
+    if (!window.location.hash) {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
   }, [pathname]);
 
-  return null;
+  return (
+    <Suspense
+      fallback={<RouteLoading message="Loading..." data-oid="n1xqtod" />}
+      data-oid="fnq31q0"
+    >
+      <m.div
+        key={pathname}
+        initial={{ opacity: 0, y: 22, filter: 'blur(5px)' }}
+        animate={{
+          opacity: 1,
+          y: 0,
+          filter: 'blur(0px)',
+          transitionEnd: { transform: 'none', filter: 'none' },
+        }}
+        transition={{ duration: 0.58, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {children}
+      </m.div>
+    </Suspense>
+  );
 };
-
-// Wrapper for lazy loaded components
-const LazyPage = ({ children }) => (
-  <Suspense fallback={<RouteLoading message="Loading..." data-oid="n1xqtod" />} data-oid="fnq31q0">
-    <ScrollToTop />
-    {children}
-  </Suspense>
-);
 
 const router = createBrowserRouter(
   [
@@ -722,9 +737,18 @@ function ErrorButton() {
 
 function App() {
   React.useEffect(() => {
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = 'manual';
-    }
+    const scrollToPageTop = () => {
+      const root = document.documentElement;
+      const previousScrollBehavior = root.style.scrollBehavior;
+
+      // Page anchors use smooth scrolling, but route changes must not animate from
+      // the previous page's position.
+      root.style.scrollBehavior = 'auto';
+      window.scrollTo(0, 0);
+      root.scrollTop = 0;
+      document.body.scrollTop = 0;
+      root.style.scrollBehavior = previousScrollBehavior;
+    };
 
     const detectTestType = (pathname) => {
       if (pathname.startsWith('/reading-test')) return 'reading';
@@ -735,7 +759,7 @@ function App() {
     };
 
     let lastPathname = window.location.pathname;
-    let lastTrackedPathname = window.location.pathname;
+    let lastNavigationPathname = lastPathname;
 
     trackPageView(lastPathname);
 
@@ -747,19 +771,23 @@ function App() {
       });
     }
 
-    // Subscribe to router state changes to track subsequent page views
+    // Reset scroll as soon as a new route starts loading. Waiting for the lazy route
+    // to finish would briefly leave the landing-page footer visible on the next page.
     const unsubscribe = router.subscribe((state) => {
-      // 1. Scroll to top immediately on path change (do not wait for lazy chunk loading)
-      if (state.location.pathname !== lastPathname) {
-        lastPathname = state.location.pathname;
-        if (!state.location.hash) {
-          window.scrollTo(0, 0);
+      const nextLocation = state.navigation.location ?? state.location;
+
+      if (nextLocation.pathname !== lastNavigationPathname) {
+        lastNavigationPathname = nextLocation.pathname;
+
+        // Preserve intentional in-page anchor navigation.
+        if (!nextLocation.hash) {
+          scrollToPageTop();
         }
       }
 
-      // 2. Track page view only when navigation is idle and route location matches
-      if (state.navigation.state === 'idle' && state.location.pathname !== lastTrackedPathname) {
-        lastTrackedPathname = state.location.pathname;
+      // Track completed route changes after the router has committed the destination.
+      if (state.navigation.state === 'idle' && state.location.pathname !== lastPathname) {
+        lastPathname = state.location.pathname;
         trackPageView(state.location.pathname);
 
         const testType = detectTestType(state.location.pathname);
@@ -772,7 +800,9 @@ function App() {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   return (

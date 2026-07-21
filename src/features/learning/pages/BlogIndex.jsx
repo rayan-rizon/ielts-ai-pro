@@ -324,85 +324,180 @@ function BlogHeroSection() {
 
 function BlogCategoryBar({ categories, category, setCategory, setCurrentPage }) {
   return (
-    <section className="sticky top-16 z-40 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-[#0b0f18]/95">
-      <div
-        className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-5 py-3 sm:px-6"
-        aria-label="Article categories"
-      >
-        {categories.map((item) => {
-          const config = item === 'All' ? null : getCategoryConfig(item);
-          const Icon = config?.icon || FileText;
-          return (
-            <button
-              key={item}
-              onClick={() => {
-                setCategory(item);
-                setCurrentPage(1);
-              }}
-              className={cn(
-                'inline-flex shrink-0 items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold transition-all',
-                category === item
-                  ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm dark:bg-indigo-500/15 dark:text-indigo-200'
-                  : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-50 dark:text-slate-300 dark:hover:border-white/10 dark:hover:bg-white/[.04]'
-              )}
-            >
-              <Icon className="h-4 w-4" /> {item === 'All' ? 'All articles' : item}
-            </button>
-          );
-        })}
+    <section className="py-6 border-b border-slate-100 dark:border-white/5 bg-white dark:bg-[#0b0f18]">
+      <div className="mx-auto max-w-7xl px-5 sm:px-6 flex justify-center">
+        <div className="relative flex gap-1 items-center bg-slate-100/70 border border-slate-200/30 p-1 rounded-2xl overflow-x-auto no-scrollbar max-w-full dark:bg-slate-900/50 dark:border-white/5">
+          {categories.map((item) => {
+            const config = item === 'All' ? null : getCategoryConfig(item);
+            const Icon = config?.icon || FileText;
+            const isActive = category === item;
+            return (
+              <button
+                key={item}
+                onClick={() => {
+                  setCategory(item);
+                  setCurrentPage(1);
+                }}
+                className={cn(
+                  'relative inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black transition-all duration-200 outline-none',
+                  !isActive && 'hover:bg-slate-200/50 dark:hover:bg-slate-800/40'
+                )}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeBlogCategoryTab"
+                    className="absolute inset-0 bg-white rounded-xl shadow-[0_3px_10px_rgba(15,23,42,0.06)] border border-slate-200/10 dark:bg-slate-800 dark:border-white/5"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <span
+                  className={cn(
+                    'relative z-10 inline-flex items-center gap-2 transition-colors duration-200',
+                    isActive
+                      ? 'text-indigo-600 dark:text-indigo-300'
+                      : 'text-slate-500 hover:text-slate-800 dark:text-slate-450 dark:hover:text-slate-100'
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {item === 'All' ? 'All articles' : item}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
 }
 
-function BlogFeaturedCard({ featured }) {
+function BlogFeaturedCarousel({ featuredArticles }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (featuredArticles.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % featuredArticles.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [activeIndex, featuredArticles.length]);
+
+  const handlePrev = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveIndex((prev) => (prev - 1 + featuredArticles.length) % featuredArticles.length);
+  };
+
+  const handleNext = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveIndex((prev) => (prev + 1) % featuredArticles.length);
+  };
+
+  const article = featuredArticles[activeIndex];
+  if (!article) return null;
+
   return (
-    <article className="group mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_18px_50px_-35px_rgba(15,23,42,.3)] dark:border-white/10 dark:bg-slate-900">
-      <div className="grid gap-3 md:grid-cols-[.92fr_1.08fr]">
-        <Link to={`/blog/${featured.slug}`} className="relative overflow-hidden rounded-xl">
-          <img
-            src={featured.thumbnail_url || '/ielts-hero-student.webp'}
-            alt={getBlogCoverAlt(featured)}
-            width={BLOG_COVER_WIDTH}
-            height={BLOG_COVER_HEIGHT}
-            decoding="async"
-            fetchPriority="high"
-            className="h-full min-h-64 w-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
-          <span className="absolute left-4 top-4 rounded-full bg-indigo-600 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[.12em] text-white shadow-lg">
-            Featured story
-          </span>
-        </Link>
-        <div className="flex flex-col p-5 sm:p-7">
-          <div className="flex flex-wrap items-center gap-3">
-            <CategoryChip category={featured.category} />
-            <ArticleMeta article={featured} compact />
-          </div>
-          <h2 className="mt-5 text-2xl font-extrabold leading-tight tracking-[-0.035em] sm:text-3xl">
-            <Link
-              to={`/blog/${featured.slug}`}
-              className="hover:text-indigo-700 dark:hover:text-indigo-300"
-            >
-              {featured.title}
-            </Link>
-          </h2>
-          <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-            {featured.description}
-          </p>
-          <div className="mt-auto flex items-center justify-between gap-4 pt-7">
-            <span className="text-xs font-semibold text-slate-500">
-              IELTS Ai Pro editorial team
+    <div className="relative group/carousel w-full mb-10">
+      {/* Navigation Buttons */}
+      <button
+        onClick={handlePrev}
+        className="absolute left-[-22px] top-1/2 z-30 -translate-y-1/2 hidden sm:flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-md transition-all hover:scale-105 hover:bg-slate-50 active:scale-95 dark:border-white/10 dark:bg-slate-950 dark:text-slate-200"
+        aria-label="Previous featured article"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+      <button
+        onClick={handleNext}
+        className="absolute right-[-22px] top-1/2 z-30 -translate-y-1/2 hidden sm:flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-md transition-all hover:scale-105 hover:bg-slate-50 active:scale-95 dark:border-white/10 dark:bg-slate-950 dark:text-slate-200"
+        aria-label="Next featured article"
+      >
+        <ChevronRight className="h-5 w-5" />
+      </button>
+
+      {/* Main Card */}
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-[0_16px_48px_-16px_rgba(15,23,42,0.05)] dark:border-white/10 dark:bg-slate-950/75 transition-all duration-300">
+        <motion.div
+          key={activeIndex}
+          initial={{ opacity: 0, x: 15 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -15 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          className="grid gap-6 md:grid-cols-[1.05fr_1.25fr] p-4 lg:p-5"
+        >
+          {/* Image Container */}
+          <Link
+            to={`/blog/${article.slug}`}
+            className="relative aspect-[16/10] md:aspect-auto md:h-full w-full overflow-hidden rounded-xl group block"
+          >
+            <img
+              src={article.thumbnail_url || '/ielts-hero-student.webp'}
+              alt={getBlogCoverAlt(article)}
+              className="h-full min-h-[220px] md:min-h-[280px] w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            <span className="absolute left-4 top-4 rounded-full bg-[#5262ef] px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-lg">
+              Featured
             </span>
-            <Link
-              to={`/blog/${featured.slug}`}
-              className="inline-flex items-center gap-1.5 text-sm font-bold text-indigo-700 dark:text-indigo-300"
-            >
-              Read story <ArrowRight className="h-4 w-4" />
-            </Link>
+          </Link>
+
+          {/* Text/Content Container */}
+          <div className="flex flex-col justify-between py-2 sm:pl-2 sm:pr-4">
+            <div className="space-y-4">
+              {/* Category & Reading Time */}
+              <div className="flex items-center gap-3">
+                <span className="rounded-full bg-indigo-50 dark:bg-indigo-950/50 px-3.5 py-1 text-xs font-black text-indigo-600 dark:text-indigo-300 uppercase tracking-wider text-[10px]">
+                  {article.category}
+                </span>
+                <span className="text-slate-400 dark:text-slate-500 text-xs font-bold">
+                  {article.reading_minutes || 6} min read
+                </span>
+              </div>
+
+              {/* Title */}
+              <h2 className="text-xl sm:text-2xl lg:text-[2rem] font-black leading-[1.12] tracking-[-0.035em] text-slate-950 dark:text-white mt-3">
+                <Link
+                  to={`/blog/${article.slug}`}
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                >
+                  {article.title}
+                </Link>
+              </h2>
+
+              {/* Description */}
+              <p className="text-sm md:text-[15px] text-slate-500 dark:text-slate-455 font-medium leading-relaxed line-clamp-3">
+                {article.description}
+              </p>
+            </div>
+
+            {/* Author details & Published Date */}
+            <div className="flex items-center justify-between gap-4 border-t border-slate-100 dark:border-white/5 pt-5 mt-6">
+              <span className="text-xs font-semibold text-slate-500">
+                IELTS Ai Pro editorial team
+              </span>
+              <span className="text-xs font-bold text-slate-400 dark:text-slate-500">
+                {formatDate(article.published_at)}
+              </span>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </article>
+
+      {/* Circle point indicators */}
+      <div className="flex justify-center gap-1.5 mt-4">
+        {featuredArticles.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setActiveIndex(idx)}
+            className={cn(
+              'h-2 w-2 rounded-full transition-all duration-300',
+              idx === activeIndex
+                ? 'bg-[#5262ef]'
+                : 'bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700'
+            )}
+            aria-label={`Go to slide ${idx + 1}`}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -513,7 +608,6 @@ function BlogEmptyState({ onReset }) {
 
 function BlogArticleListContent({
   showFeatured,
-  featured,
   isEditorialView,
   visibleArticles,
   paginatedArticles,
@@ -527,10 +621,15 @@ function BlogArticleListContent({
   setQuery,
   setCurrentPage,
 }) {
+  const featuredArticles = useMemo(() => {
+    const list = articles.filter((a) => a.featured);
+    return list.length >= 2 ? list : articles.slice(0, 3);
+  }, [articles]);
+
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
       <div>
-        {showFeatured && <BlogFeaturedCard featured={featured} />}
+        {showFeatured && <BlogFeaturedCarousel featuredArticles={featuredArticles} />}
 
         <div className="mb-5 flex items-center justify-between">
           <h2
