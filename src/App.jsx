@@ -1,6 +1,12 @@
 import React, { lazy, Suspense } from 'react';
 import { LazyMotion } from 'framer-motion';
-import { createBrowserRouter, RouterProvider, Navigate, useRouteError } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+  useRouteError,
+  useLocation,
+} from 'react-router-dom';
 import { trackAppEvent, trackPageView } from '@/lib/tracking';
 
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
@@ -171,9 +177,20 @@ const SubscriptionSuccess = lazyWithRetry(
   () => import('@/features/subscription/pages/SubscriptionSuccess.jsx')
 );
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  React.useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
 // Wrapper for lazy loaded components
 const LazyPage = ({ children }) => (
   <Suspense fallback={<RouteLoading message="Loading..." data-oid="n1xqtod" />} data-oid="fnq31q0">
+    <ScrollToTop />
     {children}
   </Suspense>
 );
@@ -705,6 +722,10 @@ function ErrorButton() {
 
 function App() {
   React.useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
     const detectTestType = (pathname) => {
       if (pathname.startsWith('/reading-test')) return 'reading';
       if (pathname.startsWith('/listening-test')) return 'listening';
@@ -714,6 +735,7 @@ function App() {
     };
 
     let lastPathname = window.location.pathname;
+    let lastTrackedPathname = window.location.pathname;
 
     trackPageView(lastPathname);
 
@@ -727,15 +749,17 @@ function App() {
 
     // Subscribe to router state changes to track subsequent page views
     const unsubscribe = router.subscribe((state) => {
-      // Check if no active navigation in progress and location actually changed
-      if (state.navigation.state === 'idle' && state.location.pathname !== lastPathname) {
+      // 1. Scroll to top immediately on path change (do not wait for lazy chunk loading)
+      if (state.location.pathname !== lastPathname) {
         lastPathname = state.location.pathname;
-
-        // Scroll to top on page change (skip if navigating to an anchor hash link)
         if (!state.location.hash) {
           window.scrollTo(0, 0);
         }
+      }
 
+      // 2. Track page view only when navigation is idle and route location matches
+      if (state.navigation.state === 'idle' && state.location.pathname !== lastTrackedPathname) {
+        lastTrackedPathname = state.location.pathname;
         trackPageView(state.location.pathname);
 
         const testType = detectTestType(state.location.pathname);
