@@ -30,7 +30,7 @@ const writingCriteria = [
 
 /* ─── Shared Card Styles ─────────────────────────────────────── */
 const CARD =
-  'h-full rounded-[28px] border p-5 flex flex-col justify-between transition-all duration-350 hover:-translate-y-1.5 select-none relative overflow-hidden group shadow-[0_8px_32px_rgba(15,23,42,0.03)] backdrop-blur-xl';
+  'h-full rounded-[28px] border p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 select-none relative overflow-hidden group shadow-[0_8px_32px_rgba(15,23,42,0.03)] backdrop-blur-xl transform-gpu';
 
 /* Background Grid Pattern for Cards */
 function CardGridBackground() {

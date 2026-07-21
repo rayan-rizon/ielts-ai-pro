@@ -51,7 +51,7 @@ function FloatingCard({ className, delay = 0, children, label }) {
             }
       }
       className={cn(
-        'absolute z-30 rounded-2xl border border-white/40 bg-white/70 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.12),0_0_0_1px_rgba(15,23,42,0.04)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/75 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3),0_0_0_1px_rgba(255,255,255,0.05)] transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover:shadow-primary/5 scale-[0.68] min-[400px]:scale-[0.78] sm:scale-100',
+        'absolute z-30 rounded-2xl border border-white/40 bg-white/75 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.12),0_0_0_1px_rgba(15,23,42,0.04)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/80 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.05)] transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover:shadow-indigo-500/10 scale-[0.68] min-[400px]:scale-[0.78] sm:scale-100 transform-gpu will-change-transform',
         className
       )}
     >
@@ -318,7 +318,7 @@ function StudentVisual() {
 
   return (
     <div
-      className="relative mx-auto min-h-[500px] w-full max-w-[760px] overflow-visible sm:min-h-[590px] lg:min-h-[650px]"
+      className="relative mx-auto min-h-[500px] w-full max-w-[760px] overflow-visible sm:min-h-[590px] lg:min-h-[650px] transform-gpu"
       aria-label="IELTS AI Pro learning experience preview"
     >
       <m.div
@@ -335,7 +335,7 @@ function StudentVisual() {
                 y: { duration: 6.4, delay: 1, repeat: Infinity, ease: 'easeInOut' },
               }
         }
-        className="absolute bottom-12 left-6 right-6 top-14 overflow-hidden rounded-[2rem] border-2 border-white bg-[#eef2ff] shadow-[0_34px_80px_-30px_rgba(54,75,140,0.45)] dark:border-slate-800 dark:bg-slate-900 sm:bottom-8 sm:left-12 sm:right-10 sm:top-8 lg:left-14"
+        className="absolute bottom-12 left-6 right-6 top-14 overflow-hidden rounded-[2rem] border-2 border-white bg-[#eef2ff] shadow-[0_34px_80px_-30px_rgba(54,75,140,0.45)] dark:border-slate-800 dark:bg-slate-900 sm:bottom-8 sm:left-12 sm:right-10 sm:top-8 lg:left-14 transform-gpu"
       >
         <img
           src="/ielts-hero-student.webp"
@@ -344,6 +344,8 @@ function StudentVisual() {
           width="1200"
           height="900"
           loading="eager"
+          decoding="async"
+          fetchPriority="high"
           data-oid="hero-student-img"
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-[#6c79ef]/10 via-transparent to-white/15" />
@@ -375,6 +377,8 @@ function LearnerProof() {
                 src={avatar}
                 alt={`Student ${index + 1}`}
                 className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-slate-100 object-cover shadow-sm dark:border-slate-900"
+                loading="lazy"
+                decoding="async"
               />
             ))}
           </div>
@@ -394,7 +398,7 @@ function LearnerProof() {
         </div>
       </div>
 
-      <div className="flex gap-3 rounded-2xl border border-[#e2e8f3] bg-white/70 px-4 py-3 shadow-[0_18px_45px_-34px_rgba(31,52,106,.45)] backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
+      <div className="flex gap-3 rounded-2xl border border-[#e2e8f3] bg-white/75 px-4 py-3 shadow-[0_18px_45px_-34px_rgba(31,52,106,.45)] backdrop-blur-xl dark:border-white/10 dark:bg-white/5 transition-all hover:border-indigo-200 dark:hover:border-white/20">
         <Quote className="mt-0.5 h-5 w-5 shrink-0 fill-violet-200 text-violet-300" />
         <div>
           <p className="text-[11px] font-medium leading-5 text-[#526079] dark:text-slate-300">
@@ -412,12 +416,12 @@ function LearnerProof() {
 export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedIn }) {
   return (
     <section
-      className="relative bg-[#fcfdff] pb-16 pt-28 dark:bg-[#070912] lg:pb-20 lg:pt-32"
+      className="relative bg-[#fcfdff] pb-16 pt-28 dark:bg-[#070912] lg:pb-20 lg:pt-32 overflow-hidden"
       aria-label="Hero"
     >
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 top-12 h-[34rem] w-[34rem] rounded-full bg-blue-200/20 blur-[130px] dark:bg-blue-600/10" />
-        <div className="absolute -right-40 top-8 h-[38rem] w-[38rem] rounded-full bg-violet-200/20 blur-[140px] dark:bg-violet-600/10" />
+        <div className="absolute -left-40 top-12 h-[34rem] w-[34rem] rounded-full bg-blue-200/20 blur-[130px] dark:bg-blue-600/10 transform-gpu" />
+        <div className="absolute -right-40 top-8 h-[38rem] w-[38rem] rounded-full bg-violet-200/20 blur-[140px] dark:bg-violet-600/10 transform-gpu" />
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#f3f7ff]/50 to-transparent dark:from-slate-950/40" />
       </div>
 
@@ -488,7 +492,7 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
             <Button
               onClick={handlePrimaryCta}
               size="lg"
-              className="h-14 rounded-xl bg-gradient-to-r from-[#3f6df1] to-[#6256ed] px-7 text-base font-bold text-white shadow-[0_15px_32px_-14px_rgba(66,88,232,0.65)] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_36px_-14px_rgba(66,88,232,0.72)]"
+              className="h-14 rounded-xl bg-gradient-to-r from-[#3f6df1] to-[#6256ed] px-7 text-base font-bold text-white shadow-[0_15px_32px_-14px_rgba(66,88,232,0.65)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_36px_-14px_rgba(66,88,232,0.72)] active:scale-[0.98]"
             >
               {isSignedIn ? 'Continue Learning' : 'Start Free Test'}
               <ArrowRight className="ml-3 h-5 w-5" />
@@ -497,7 +501,7 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
               onClick={handlePricing}
               size="lg"
               variant="outline"
-              className="h-14 rounded-xl border-[#d7deeb] bg-white/80 px-6 text-base font-bold text-[#17223d] shadow-sm backdrop-blur-sm hover:border-[#5365ee]/40 hover:bg-white dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+              className="h-14 rounded-xl border-[#d7deeb] bg-white/80 px-6 text-base font-bold text-[#17223d] shadow-sm backdrop-blur-sm transition-all duration-200 hover:border-[#5365ee]/40 hover:bg-white active:scale-[0.98] dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
             >
               Compare Plans <CirclePlay className="ml-3 h-5 w-5 text-[#5262ef]" />
             </Button>
@@ -522,7 +526,7 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.7, delay: 0.18 }}
-          className="relative z-10 min-w-0 overflow-visible"
+          className="relative z-10 min-w-0 overflow-visible transform-gpu"
         >
           <StudentVisual />
         </m.div>

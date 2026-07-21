@@ -1,190 +1,289 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, ShieldCheck, Twitter, Facebook, Linkedin, Instagram } from 'lucide-react';
 import { Logo } from '@/components/shared/Logo';
+import ChevronRight from 'lucide-react/icons/chevron-right';
+import Sparkles from 'lucide-react/icons/sparkles';
+import Mail from 'lucide-react/icons/mail';
+import ShieldCheck from 'lucide-react/icons/shield-check';
+import ArrowUp from 'lucide-react/icons/arrow-up';
+import Layers from 'lucide-react/icons/layers';
+import BookOpen from 'lucide-react/icons/book-open';
+import SparklesIcon from 'lucide-react/icons/sparkles';
+import Building2 from 'lucide-react/icons/building-2';
+import Twitter from 'lucide-react/icons/twitter';
+import Youtube from 'lucide-react/icons/youtube';
+import Linkedin from 'lucide-react/icons/linkedin';
+import Facebook from 'lucide-react/icons/facebook';
+import Instagram from 'lucide-react/icons/instagram';
+import { toast } from 'sonner';
 
 const footerLinks = {
-  Platform: [
-    { label: 'Platform features', href: '/#features' },
-    { label: 'How it works', href: '/#how-it-works' },
-    { label: 'Pricing', href: '/#pricing' },
-    { label: 'Frequently asked questions', href: '/#faq' },
-  ],
-  Practice: [
-    { label: 'Free IELTS practice tests', href: '/cambridge-tests' },
-    { label: 'IELTS Writing checker', href: '/ielts-writing-checker' },
-    { label: 'IELTS Speaking practice', href: '/speaking' },
-    { label: 'IELTS mock tests online', href: '/cambridge-tests' },
-  ],
-  Resources: [
-    { label: 'IELTS preparation blog', href: '/blog' },
-    { label: 'IELTS band score calculator', href: '/ielts-band-score-calculator' },
-    { label: 'Cambridge IELTS practice', href: '/cambridge-tests' },
-    { label: 'IELTS band score feedback', href: '/analytics' },
-    { label: 'AI IELTS preparation', href: '/signup' },
-    { label: 'Contact support', href: '/contact' },
-  ],
+  'Core Features': {
+    icon: Layers,
+    links: [
+      { label: 'Band Score Calculator', href: '/ielts-band-score-calculator' },
+      { label: 'Writing Task Evaluator', href: '/ielts-writing-checker' },
+      { label: 'Speaking Test Simulator', href: '/speaking' },
+      { label: 'Listening Practice Hub', href: '/listening' },
+      { label: 'Reading Comprehension', href: '/reading' },
+    ],
+  },
+  'Test Prep': {
+    icon: BookOpen,
+    links: [
+      { label: 'Writing Band Score Criteria', href: '/writing' },
+      { label: 'Speaking Criteria Breakdown', href: '/speaking' },
+      { label: 'Vocabulary Builder', href: '/vocabulary' },
+      { label: 'Mock Test Analytics', href: '/analytics' },
+    ],
+  },
+  Resources: {
+    icon: SparklesIcon,
+    links: [
+      { label: 'IELTS Prep Blog & Guides', href: '/blog' },
+      { label: 'Cambridge Practice Material', href: '/resources' },
+      { label: 'Pricing Plans & Access', href: '/pricing' },
+    ],
+  },
+  Company: {
+    icon: Building2,
+    links: [
+      { label: 'About Platform', href: '/about' },
+      { label: 'Contact Support', href: '/contact' },
+      { label: 'Privacy Policy', href: '/privacy' },
+      { label: 'Terms of Service', href: '/terms' },
+    ],
+  },
 };
 
 const socialLinks = [
   {
     icon: Facebook,
     label: 'Facebook',
-    href: 'https://www.facebook.com/ieltsaipro',
-    hoverClass: 'hover:text-[#1877F2] hover:border-[#1877F2]/30 hover:bg-[#1877F2]/10',
+    href: 'https://facebook.com',
+    hoverClass: 'hover:text-[#1877F2] hover:border-[#1877F2]/40 hover:bg-[#1877F2]/10',
   },
   {
     icon: Instagram,
     label: 'Instagram',
-    href: 'https://www.instagram.com/ielts_ai_pro/',
-    hoverClass: 'hover:text-[#E1306C] hover:border-[#E1306C]/30 hover:bg-[#E1306C]/10',
+    href: 'https://instagram.com',
+    hoverClass: 'hover:text-[#E4405F] hover:border-[#E4405F]/40 hover:bg-[#E4405F]/10',
   },
   {
     icon: Twitter,
-    label: 'Twitter',
-    href: '#',
-    hoverClass: 'hover:text-[#1DA1F2] hover:border-[#1DA1F2]/30 hover:bg-[#1DA1F2]/10',
+    label: 'X (Twitter)',
+    href: 'https://x.com',
+    hoverClass: 'hover:text-[#1DA1F2] hover:border-[#1DA1F2]/40 hover:bg-[#1DA1F2]/10',
+  },
+  {
+    icon: Youtube,
+    label: 'YouTube',
+    href: 'https://youtube.com',
+    hoverClass: 'hover:text-[#FF0000] hover:border-[#FF0000]/40 hover:bg-[#FF0000]/10',
   },
   {
     icon: Linkedin,
     label: 'LinkedIn',
-    href: '#',
-    hoverClass: 'hover:text-[#0A66C2] hover:border-[#0A66C2]/30 hover:bg-[#0A66C2]/10',
+    href: 'https://linkedin.com',
+    hoverClass: 'hover:text-[#0A66C2] hover:border-[#0A66C2]/40 hover:bg-[#0A66C2]/10',
   },
 ];
 
+function isModifiedEvent(event) {
+  if (!event) return false;
+  return event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey;
+}
+
 function scrollToPageTopImmediately(event) {
-  if (event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
+  if (isModifiedEvent(event)) {
     return;
   }
 
   const root = document.documentElement;
   const previousScrollBehavior = root.style.scrollBehavior;
 
-  root.style.scrollBehavior = 'auto';
-  window.scrollTo(0, 0);
-  root.scrollTop = 0;
-  document.body.scrollTop = 0;
-  root.style.scrollBehavior = previousScrollBehavior;
+  root.style.scrollBehavior = 'smooth';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => {
+    root.style.scrollBehavior = previousScrollBehavior;
+  }, 500);
 }
 
 function FooterLink({ href, children }) {
   const className =
-    'group relative w-fit text-sm font-medium text-slate-400 transition-colors hover:text-white';
+    'group flex items-center gap-1.5 text-sm font-medium text-slate-400 transition-all duration-200 hover:text-white hover:translate-x-1';
 
   if (href.startsWith('/#')) {
     return (
       <a href={href} className={className}>
-        {children}
+        <ChevronRight className="w-3 h-3 text-indigo-400/0 opacity-0 group-hover:opacity-100 group-hover:text-indigo-400 transition-all duration-200 -ml-4 group-hover:ml-0" />
+        <span>{children}</span>
       </a>
     );
   }
 
   return (
     <Link to={href} className={className} onClick={scrollToPageTopImmediately} viewTransition>
-      {children}
+      <ChevronRight className="w-3 h-3 text-indigo-400/0 opacity-0 group-hover:opacity-100 group-hover:text-indigo-400 transition-all duration-200 -ml-4 group-hover:ml-0" />
+      <span>{children}</span>
     </Link>
+  );
+}
+
+function FooterBrandSection({ handleCopyEmail }) {
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center gap-3">
+        <Link to="/" className="block w-fit" aria-label="IELTS Ai Pro home" viewTransition>
+          <Logo size="lg" className="text-white" />
+        </Link>
+        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-0.5 rounded-full backdrop-blur-md">
+          <Sparkles className="w-3 h-3 text-indigo-400 animate-pulse" />
+          AI Powered
+        </span>
+      </div>
+
+      <p className="max-w-md text-sm leading-relaxed text-slate-400 font-medium">
+        Web-based IELTS practice platform for Reading, Listening, Writing, and Speaking with instant
+        examiner-grade AI feedback, score analytics, and Cambridge rubric alignment.
+      </p>
+
+      <div className="pt-1 flex flex-wrap items-center gap-3">
+        <button
+          onClick={handleCopyEmail}
+          className="group inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] px-3.5 py-2 text-xs font-bold text-slate-200 transition-all duration-200 hover:border-indigo-400/40 hover:shadow-lg hover:shadow-indigo-500/10"
+          title="Click to copy email address"
+        >
+          <Mail className="h-3.5 w-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
+          <span>mail@ieltsai.pro</span>
+        </button>
+
+        <div className="flex items-center gap-2">
+          {socialLinks.map((social, i) => (
+            <a
+              key={i}
+              href={social.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`h-9 w-9 rounded-xl bg-white/[0.03] border border-white/15 flex items-center justify-center text-slate-400 transition-all duration-300 ${social.hoverClass}`}
+              aria-label={`Follow us on ${social.label}`}
+            >
+              <social.icon size={16} />
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FooterNavigationGrid() {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8">
+      {Object.entries(footerLinks).map(([title, category]) => {
+        const Icon = category.icon;
+        return (
+          <div key={title} className="space-y-4">
+            <div className="flex items-center gap-1.5 text-indigo-400">
+              <Icon className="w-3.5 h-3.5" />
+              <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+                {title}
+              </h3>
+            </div>
+
+            <ul className="space-y-2.5">
+              {category.links.map((link) => (
+                <li key={link.label}>
+                  <FooterLink href={link.href}>{link.label}</FooterLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function FooterBottomBar({ currentYear }) {
+  return (
+    <div className="flex flex-col gap-5 pt-8 text-xs text-slate-400 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-medium">
+        <span className="text-slate-500">© {currentYear} IELTS Ai Pro</span>
+        <Link
+          to="/privacy"
+          className="hover:text-white transition-colors"
+          onClick={scrollToPageTopImmediately}
+          viewTransition
+        >
+          Privacy Policy
+        </Link>
+        <span className="text-slate-700">•</span>
+        <Link
+          to="/terms"
+          className="hover:text-white transition-colors"
+          onClick={scrollToPageTopImmediately}
+          viewTransition
+        >
+          Terms of Service
+        </Link>
+        <span className="text-slate-700">•</span>
+        <Link
+          to="/about"
+          className="hover:text-white transition-colors"
+          onClick={scrollToPageTopImmediately}
+          viewTransition
+        >
+          About Platform
+        </Link>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold text-slate-400 backdrop-blur-md">
+          <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-indigo-400" />
+          <span>
+            Independent prep platform. Not affiliated with IELTS, IDP, or British Council.
+          </span>
+        </div>
+
+        <button
+          onClick={() => scrollToPageTopImmediately()}
+          className="h-9 w-9 rounded-xl bg-white/[0.04] border border-white/15 hover:border-indigo-400/50 hover:bg-indigo-500/20 text-slate-300 hover:text-white flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 shadow-sm shrink-0"
+          title="Back to top"
+        >
+          <ArrowUp className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
   );
 }
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
+  const handleCopyEmail = (e) => {
+    e.preventDefault();
+    navigator.clipboard.writeText('mail@ieltsai.pro');
+    toast.success('Email address copied to clipboard!');
+  };
+
   return (
-    <footer className="dark relative overflow-hidden border-t border-white/[0.05] bg-[#050711] pb-10 pt-16">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-      <div className="pointer-events-none absolute -top-44 left-1/3 h-96 w-96 rounded-full bg-primary/10 blur-[130px]" />
+    <footer className="dark relative overflow-hidden border-t border-white/10 bg-[#050711] text-slate-300 pb-10 pt-16 transition-colors duration-300">
+      {/* Top ambient glowing divider bar */}
+      <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent" />
+
+      {/* Decorative background lighting blobs */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 left-1/4 h-[32rem] w-[32rem] rounded-full bg-indigo-600/10 blur-[140px]" />
+        <div className="absolute -bottom-40 right-1/4 h-[32rem] w-[32rem] rounded-full bg-purple-600/10 blur-[140px]" />
+      </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-6">
-        <div className="grid gap-12 border-b border-white/[0.07] pb-12 lg:grid-cols-[1.05fr_1.4fr]">
-          <div>
-            <Link to="/" className="block w-fit" aria-label="IELTS Ai Pro home" viewTransition>
-              <Logo size="lg" className="text-white" />
-            </Link>
-            <p className="mt-4 max-w-md text-sm leading-7 text-slate-400">
-              A web-based IELTS practice platform for Reading, Listening, Writing, and Speaking,
-              with AI-assisted feedback, progress analytics, vocabulary review, and an adaptive
-              learning path on eligible plans.
-            </p>
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <a
-                href="mailto:mail@ieltsai.pro"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-bold text-slate-300 transition hover:border-primary/40 hover:text-white"
-              >
-                <Mail className="h-3.5 w-3.5 text-primary" /> mail@ieltsai.pro
-              </a>
-
-              <div className="flex items-center gap-2">
-                {socialLinks.map((social, i) => {
-                  const isPlaceholder = social.href === '#';
-                  return (
-                    <a
-                      key={i}
-                      href={social.href}
-                      onClick={isPlaceholder ? (e) => e.preventDefault() : undefined}
-                      className={`h-9 w-9 rounded-xl bg-white/[0.02] border border-white/10 flex items-center justify-center text-slate-400 transition-all duration-300 ${social.hoverClass} ${isPlaceholder ? 'cursor-default opacity-40' : ''}`}
-                      aria-label={`Follow us on ${social.label}`}
-                    >
-                      <social.icon size={16} />
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-x-5 gap-y-9 sm:grid-cols-3">
-            {Object.entries(footerLinks).map(([title, links]) => (
-              <div key={title}>
-                <h3 className="mb-4 text-[11px] font-black uppercase tracking-[.18em] text-slate-500">
-                  {title}
-                </h3>
-                <ul className="space-y-3">
-                  {links.map((link) => (
-                    <li key={link.label}>
-                      <FooterLink href={link.href}>{link.label}</FooterLink>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+        <div className="grid gap-12 border-b border-white/10 pb-12 lg:grid-cols-[1fr_2fr]">
+          <FooterBrandSection handleCopyEmail={handleCopyEmail} />
+          <FooterNavigationGrid />
         </div>
-
-        <div className="flex flex-col gap-5 pt-7 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span>© {currentYear} IELTS Ai Pro</span>
-            <Link
-              to="/privacy"
-              className="hover:text-white"
-              onClick={scrollToPageTopImmediately}
-              viewTransition
-            >
-              Privacy
-            </Link>
-            <Link
-              to="/terms"
-              className="hover:text-white"
-              onClick={scrollToPageTopImmediately}
-              viewTransition
-            >
-              Terms
-            </Link>
-            <Link
-              to="/about"
-              className="hover:text-white"
-              onClick={scrollToPageTopImmediately}
-              viewTransition
-            >
-              About
-            </Link>
-          </div>
-          <span className="flex max-w-xl items-start gap-2 leading-5 md:text-right">
-            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-            Independent preparation platform. Not affiliated with IELTS, IDP, the British Council,
-            or Cambridge University Press &amp; Assessment.
-          </span>
-        </div>
+        <FooterBottomBar currentYear={currentYear} />
       </div>
     </footer>
   );
