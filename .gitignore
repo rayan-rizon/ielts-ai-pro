@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+scripts/node_modules
 dist
 dist-ssr
 *.local
@@ -17,6 +18,7 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .DS_Store
+**/.DS_Store
 .AppleDouble
 .LSOverride
 Icon
@@ -37,6 +39,7 @@ Desktop.ini
 .env.production
 .env.development
 .env.staging
+.env*.local
 
 # --- Database and Backups ---
 # supabase/backups/ is used for sensitivity - ensure any local json backups are also handled if needed
@@ -44,6 +47,7 @@ backups/*.json
 supabase/backups/*.sql
 supabase/backups/*.sql.gz
 supabase/backups/*.dump
+supabase/.temp/
 
 # --- CI and Tooling ---
 .vercel
