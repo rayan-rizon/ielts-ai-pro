@@ -87,7 +87,7 @@ const TableCompletionRenderer = React.memo(
     // Helper for input styles
     const getInputStyles = (isCorrect, value) => {
       let styles =
-        'inline-flex w-32 h-8 px-2 py-1 text-center border rounded-md transition-colors text-base shadow-sm';
+        'inline-flex w-32 h-8 px-2 py-1 text-center border rounded-md transition-colors text-[15px] shadow-sm';
       const showValidation = disabled && value?.trim() !== '';
 
       if (disabled) {
@@ -118,7 +118,7 @@ const TableCompletionRenderer = React.memo(
     return (
       <div className="overflow-x-auto rounded-lg mb-4" data-oid="_:f3hf2">
         <table
-          className="w-full text-base border-collapse border border-slate-200/60 dark:border-slate-700/60 rounded-lg overflow-hidden"
+          className="w-full text-[15px] border-collapse border border-slate-200/60 dark:border-slate-700/60 rounded-lg overflow-hidden"
           data-oid="3:da4lp"
         >
           <thead data-oid="svu6nmp">

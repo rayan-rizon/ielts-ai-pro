@@ -535,13 +535,13 @@ const MatchingRenderer = memo(function MatchingRenderer({
                       data-oid="i:xgxfb"
                     >
                       <span
-                        className="font-bold text-blue-600 dark:text-blue-400 min-w-[1.5rem] text-base text-right"
+                        className="font-bold text-blue-600 dark:text-blue-400 min-w-[1.5rem] text-[15px] text-right"
                         data-oid="z25a8kq"
                       >
                         {label}.
                       </span>
                       <span
-                        className="text-foreground leading-relaxed text-base"
+                        className="text-foreground leading-relaxed text-[15px]"
                         data-oid="0v50ild"
                       >
                         {opt}
@@ -596,7 +596,7 @@ const MatchingRenderer = memo(function MatchingRenderer({
                               : 'unanswered';
                       }
 
-                      let selectStyle = `inline-flex w-[90px] h-8 px-2 py-1 text-center bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/40 focus-visible:border-blue-500/50 hover:border-slate-400/80 dark:hover:border-slate-600/80 transition-all text-base ${isFinished ? 'opacity-100 cursor-not-allowed' : ''}`;
+                      let selectStyle = `inline-flex w-[90px] h-8 px-2 py-1 text-center bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/40 focus-visible:border-blue-500/50 hover:border-slate-400/80 dark:hover:border-slate-600/80 transition-all text-[15px] ${isFinished ? 'opacity-100 cursor-not-allowed' : ''}`;
                       if (isFinished && value) {
                         if (isCorrect)
                           selectStyle +=
@@ -734,7 +734,7 @@ const MatchingRenderer = memo(function MatchingRenderer({
                     className="flex-1 min-w-0 flex items-center justify-start gap-8"
                     data-oid="vvpxgdr"
                   >
-                    <div className="text-foreground text-base leading-relaxed" data-oid="ofvjdev">
+                    <div className="text-foreground text-[15px] leading-relaxed" data-oid="ofvjdev">
                       {q.text}
                     </div>
 
@@ -764,7 +764,7 @@ const MatchingRenderer = memo(function MatchingRenderer({
                             <SelectItem
                               key={oIdx}
                               value={label}
-                              className="text-base"
+                              className="text-[15px]"
                               data-oid="kp_qks8"
                             >
                               {label}

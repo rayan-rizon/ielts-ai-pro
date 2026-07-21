@@ -28,7 +28,7 @@ const NotesCompletionRenderer = React.memo(
     // Helper for input styles
     const getInputStyles = (isCorrect, value) => {
       let styles =
-        'inline-flex w-32 h-8 px-2 py-1 text-center border rounded-md transition-colors text-base';
+        'inline-flex w-32 h-8 px-2 py-1 text-center border rounded-md transition-colors text-[15px]';
       const showValidation = disabled && value?.trim() !== '';
 
       if (disabled) {
@@ -163,7 +163,7 @@ const NotesCompletionRenderer = React.memo(
               // Remove the bold markers
               trimmedLine = trimmedLine.slice(2, -2);
               return (
-                <p key={idx} className="font-bold text-base mt-3 mb-1" data-oid="unmygo3">
+                <p key={idx} className="font-bold text-[15px] mt-3 mb-1" data-oid="unmygo3">
                   {renderLineWithGaps(trimmedLine, idx)}
                 </p>
               );
@@ -172,7 +172,7 @@ const NotesCompletionRenderer = React.memo(
             // Detect bold headers (lines ending with : that aren't bullets)
             if (trimmedLine.endsWith(':') && !trimmedLine.match(/^[●•–\-]/)) {
               return (
-                <p key={idx} className="font-bold text-base mt-3 mb-1" data-oid="nskbdnl">
+                <p key={idx} className="font-bold text-[15px] mt-3 mb-1" data-oid="nskbdnl">
                   {renderLineWithGaps(trimmedLine, idx)}
                 </p>
               );

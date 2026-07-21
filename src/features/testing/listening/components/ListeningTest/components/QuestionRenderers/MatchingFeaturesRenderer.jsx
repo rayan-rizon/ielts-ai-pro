@@ -86,7 +86,7 @@ const MatchingFeaturesRenderer = ({
                     {label}
                   </span>
                   <span
-                    className="text-slate-700 dark:text-slate-300 text-base leading-relaxed"
+                    className="text-slate-700 dark:text-slate-300 text-[15px] leading-relaxed"
                     data-oid="rl5l9:-"
                   >
                     {opt.replace(/^[A-Z]\s*[\.\\)]\s*/i, '')}
@@ -105,7 +105,7 @@ const MatchingFeaturesRenderer = ({
       >
         {question.matching_features?.questions_title && (
           <h4
-            className="font-bold text-slate-800 dark:text-slate-200 text-base mb-2 px-1"
+            className="font-bold text-slate-800 dark:text-slate-200 text-[15px] mb-2 px-1"
             data-oid="1gzj0yw"
           >
             {question.matching_features.questions_title}
@@ -146,7 +146,7 @@ const MatchingFeaturesRenderer = ({
                 />
 
                 <div
-                  className="text-base font-semibold text-slate-800 dark:text-slate-100 leading-normal"
+                  className="text-[15px] font-semibold text-slate-800 dark:text-slate-100 leading-normal"
                   data-oid="6w2kexr"
                 >
                   {q.text}

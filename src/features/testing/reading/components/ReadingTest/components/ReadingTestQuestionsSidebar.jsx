@@ -32,7 +32,7 @@ const renderInstructionText = (text) => {
 
   return (
     <div
-      className="text-base font-medium text-slate-700 dark:text-slate-300 leading-snug"
+      className="text-[15px] font-medium text-slate-700 dark:text-slate-300 leading-snug"
       dangerouslySetInnerHTML={{
         __html: formatInstructionHTML(text),
       }}
@@ -262,7 +262,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                               question.matching_features?.mode === 'paragraph'
                             ) ? (
                               <h4
-                                className="text-base font-medium text-foreground mb-3"
+                                className="text-[15px] font-medium text-foreground mb-3"
                                 data-oid="9ra7tn7"
                               >
                                 {question.question_text}
@@ -320,7 +320,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
 
                               <div className="flex-1 flex items-start gap-1">
                                 <p
-                                  className="text-base text-foreground leading-relaxed font-medium"
+                                  className="text-[15px] text-foreground leading-relaxed font-medium"
                                   data-oid="vo:pzhf"
                                 >
                                   {cleanText}

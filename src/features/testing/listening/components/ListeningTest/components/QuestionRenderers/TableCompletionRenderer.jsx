@@ -46,7 +46,7 @@ const TableCompletionRenderer = ({
       }
 
       if (bullets.length > 0) {
-        return `<ul class="list-disc pl-4 space-y-0.5 text-base">${bullets.map((b) => `<li>${b}</li>`).join('')}</ul>`;
+        return `<ul class="list-disc pl-4 space-y-0.5 text-[15px]">${bullets.map((b) => `<li>${b}</li>`).join('')}</ul>`;
       }
     }
 
@@ -81,7 +81,7 @@ const TableCompletionRenderer = ({
   // Get input styling based on correctness
   const getInputStyle = (answerKey) => {
     const baseStyle =
-      'w-32 h-8 px-2 py-1 text-center text-base md:text-sm rounded-lg transition-all duration-200 shadow-sm';
+      'w-32 h-8 px-2 py-1 text-center text-[15px] rounded-lg transition-all duration-200 shadow-sm';
 
     if (!isFinished) {
       return cn(
@@ -137,7 +137,7 @@ const TableCompletionRenderer = ({
       let currentGapPointer = 0;
 
       return (
-        <ul className="space-y-1.5 text-base list-none pl-1" data-oid="25jna6h">
+        <ul className="space-y-1.5 text-[15px] list-none pl-1" data-oid="25jna6h">
           {lines.map((line, lineIdx) => {
             const lineMatches = line.match(/\[gap\]|__BLANK__|__BLANK_\d+__/gi) || [];
             const cleanLine = line.replace(/^[•●-]\s*/, '').trim();
@@ -352,7 +352,7 @@ const TableCompletionRenderer = ({
               className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800"
               data-oid="pwzgsjf"
             >
-              <table className="w-full text-base text-left border-collapse" data-oid=":j3mju6">
+              <table className="w-full text-[15px] text-left border-collapse" data-oid=":j3mju6">
                 <thead data-oid="h6c:cr2">
                   <tr
                     className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700"
@@ -361,7 +361,7 @@ const TableCompletionRenderer = ({
                     {tableHeaders.map((h, i) => (
                       <th
                         key={i}
-                        className="px-2 py-2 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide text-sm md:text-base border-r border-slate-200 dark:border-slate-700 last:border-0"
+                        className="px-2 py-2 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide text-sm md:text-[15px] border-r border-slate-200 dark:border-slate-700 last:border-0"
                         data-oid="2ncd:42"
                       >
                         <span
@@ -381,7 +381,7 @@ const TableCompletionRenderer = ({
                       {row.map((cell, cIdx) => (
                         <td
                           key={cIdx}
-                          className="px-2 py-2 border-r border-slate-100 dark:border-slate-800 last:border-0 align-top text-base"
+                          className="px-2 py-2 border-r border-slate-100 dark:border-slate-800 last:border-0 align-top text-[15px]"
                           data-oid=".:-leog"
                         >
                           {renderCellWithGaps(cell, rIdx, cIdx)}

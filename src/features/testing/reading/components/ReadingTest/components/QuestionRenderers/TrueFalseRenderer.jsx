@@ -18,7 +18,7 @@ const TrueFalseRenderer = memo(function TrueFalseRenderer({
       : ['Yes', 'No', 'Not Given'];
 
   return (
-    <div className="flex gap-2 flex-wrap mt-2 justify-start ml-10" data-oid="qu01ivn">
+    <div className="flex gap-2 flex-wrap mt-2 justify-start ml-0.5 sm:ml-1" data-oid="qu01ivn">
       {options.map((option) => {
         const isSelected = answers[question.id] === option;
         const validation = validationMap?.[question.id];
@@ -26,45 +26,40 @@ const TrueFalseRenderer = memo(function TrueFalseRenderer({
           isFinished && validation && isAnswerCorrect(option, validation.correctAnswer);
 
         let optionClass =
-          'flex items-center gap-2.5 px-4 py-1.5 rounded-xl border transition-all duration-300 relative overflow-hidden ';
-        let radioClass =
-          "appearance-none w-3.5 h-3.5 rounded-full border-2 transition-all duration-300 focus:outline-none focus:ring-2 relative after:content-[''] after:absolute after:inset-[2px] after:rounded-full after:scale-0 checked:after:scale-100 after:transition-transform ";
+          'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-150 select-none cursor-pointer ';
+        let dotClass =
+          'w-3.5 h-3.5 rounded-full border transition-all shrink-0 flex items-center justify-center ';
 
         if (isFinished) {
           optionClass += 'cursor-not-allowed opacity-100 ';
           if (isSelected) {
             if (validation?.isCorrect === true) {
               optionClass +=
-                'bg-emerald-500/10 border-emerald-500/50 text-emerald-700 dark:text-emerald-400 font-bold shadow-sm';
-              radioClass +=
-                'border-emerald-500 checked:border-emerald-600 dark:checked:border-emerald-400 after:bg-emerald-600 dark:after:bg-emerald-400';
+                'bg-emerald-50/90 border-emerald-500 text-emerald-950 dark:bg-emerald-950/40 dark:border-emerald-500/70 dark:text-emerald-200 font-semibold shadow-xs';
+              dotClass += 'border-emerald-600 bg-emerald-600';
             } else {
               optionClass +=
-                'bg-rose-500/10 border-rose-500/50 text-rose-700 dark:text-rose-400 font-bold shadow-sm';
-              radioClass +=
-                'border-rose-500 checked:border-rose-600 dark:checked:border-rose-400 after:bg-rose-600 dark:after:bg-rose-400';
+                'bg-rose-50/90 border-rose-500 text-rose-950 dark:bg-rose-950/40 dark:border-rose-500/70 dark:text-rose-200 font-semibold shadow-xs';
+              dotClass += 'border-rose-600 bg-rose-600';
             }
           } else if (isActualCorrect) {
-            // Highlight the correct answer if the user missed it
             optionClass +=
-              'bg-emerald-500/5 border-emerald-500/40 text-emerald-700/80 dark:text-emerald-400/80 font-semibold border-dashed';
-            radioClass += 'border-emerald-400/50 dark:border-emerald-500/50';
+              'bg-emerald-50/40 border-emerald-400/70 border-dashed text-emerald-800 dark:bg-emerald-950/20 dark:border-emerald-500/50 dark:text-emerald-300 font-medium';
+            dotClass += 'border-emerald-500/60 bg-emerald-500/20';
           } else {
             optionClass +=
-              'bg-slate-50/50 border-slate-200/60 dark:bg-slate-900/40 dark:border-slate-800 text-slate-400 dark:text-slate-500';
-            radioClass += 'border-slate-300 dark:border-slate-600';
+              'bg-slate-50/50 border-slate-200/50 dark:bg-slate-900/30 dark:border-slate-800/80 text-slate-400 dark:text-slate-500';
+            dotClass += 'border-slate-300 dark:border-slate-700 bg-transparent';
           }
         } else {
-          optionClass += 'cursor-pointer backdrop-blur-sm ';
-          radioClass +=
-            'border-slate-300 dark:border-slate-600 checked:border-blue-500 dark:checked:border-blue-400 after:bg-blue-500 dark:after:bg-blue-400 focus:ring-blue-500/20';
-
           if (isSelected) {
             optionClass +=
-              'bg-blue-600/10 border-blue-500 text-blue-700 dark:bg-blue-500/20 dark:border-blue-400 dark:text-blue-100 font-semibold shadow-sm ring-1 ring-blue-500/20';
+              'bg-blue-50/90 border-blue-500/80 text-blue-950 dark:bg-blue-950/40 dark:border-blue-500/60 dark:text-blue-100 font-semibold shadow-xs ring-1 ring-blue-500/20';
+            dotClass += 'border-blue-600 bg-blue-600 dark:border-blue-500 dark:bg-blue-500';
           } else {
             optionClass +=
-              'bg-white/60 border-slate-200 text-slate-600 dark:bg-slate-900/60 dark:border-slate-800 dark:text-slate-300 hover:border-blue-400/50 dark:hover:border-blue-500/50 hover:bg-blue-50/30 dark:hover:bg-blue-500/5 hover:scale-[1.02] active:scale-[0.98]';
+              'bg-white/80 border-slate-200/90 text-slate-700 dark:bg-slate-900/70 dark:border-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:border-blue-300 dark:hover:border-blue-700';
+            dotClass += 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900';
           }
         }
 
@@ -76,18 +71,14 @@ const TrueFalseRenderer = memo(function TrueFalseRenderer({
               value={option}
               checked={isSelected}
               onChange={(e) => onAnswerChange(question.id, e.target.value)}
-              className={radioClass}
+              className="sr-only"
               disabled={isFinished}
               data-oid="y4imoyv"
             />
-
-            {isSelected && !isFinished && (
-              <div
-                className="absolute inset-0 bg-blue-500/5 dark:bg-blue-400/5 animate-pulse pointer-events-none"
-                data-oid="5:ca8e7"
-              />
-            )}
-            <span className="text-sm tracking-wide relative z-10" data-oid=".eweqmm">
+            <span className={dotClass}>
+              {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+            </span>
+            <span className="relative z-10" data-oid=".eweqmm">
               {option}
             </span>
           </label>

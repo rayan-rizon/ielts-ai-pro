@@ -14,8 +14,8 @@ const PremiumLoading = ({ message = 'Verifying access...', fullScreen = true, cl
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center bg-slate-50/50 dark:bg-[#050505]/50 backdrop-blur-xl z-[100]',
-        fullScreen ? 'fixed inset-0 h-screen w-screen' : 'h-full w-full py-20',
+        'flex flex-col items-center justify-center bg-slate-50/60 dark:bg-[#050505]/70 backdrop-blur-2xl z-[100] transition-all duration-300 animate-in fade-in-50 duration-200',
+        fullScreen ? 'fixed inset-0 w-full h-full' : 'flex-1 min-h-[60vh] w-full py-12',
         className
       )}
       data-oid="premium-loader"

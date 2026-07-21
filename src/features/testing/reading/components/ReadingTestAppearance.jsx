@@ -16,19 +16,19 @@ const ReadingTestAppearance = ({
 }) => {
   // Text size presets mapping to Tailwind classes
   const sizeLabels = {
-    'text-base': 'Standard',
-    'text-lg': 'Large',
-    'text-xl': 'Extra Large',
+    'text-[15px]': 'Standard',
+    'text-base': 'Large',
+    'text-lg': 'Extra Large',
   };
 
   const handleIncreaseSize = () => {
-    if (textSize === 'text-base') setTextSize('text-lg');
-    else if (textSize === 'text-lg') setTextSize('text-xl');
+    if (textSize === 'text-[15px]') setTextSize('text-base');
+    else if (textSize === 'text-base') setTextSize('text-lg');
   };
 
   const handleDecreaseSize = () => {
-    if (textSize === 'text-xl') setTextSize('text-lg');
-    else if (textSize === 'text-lg') setTextSize('text-base');
+    if (textSize === 'text-lg') setTextSize('text-base');
+    else if (textSize === 'text-base') setTextSize('text-[15px]');
   };
 
   return (
@@ -67,7 +67,7 @@ const ReadingTestAppearance = ({
                 variant="ghost"
                 size="sm"
                 onClick={handleDecreaseSize}
-                disabled={textSize === 'text-base'}
+                disabled={textSize === 'text-[15px]'}
                 className="h-8 w-8 hover:bg-white dark:hover:bg-slate-800"
                 data-oid="-apj40s"
               >
@@ -82,7 +82,7 @@ const ReadingTestAppearance = ({
                 variant="ghost"
                 size="sm"
                 onClick={handleIncreaseSize}
-                disabled={textSize === 'text-xl'}
+                disabled={textSize === 'text-lg'}
                 className="h-8 w-8 hover:bg-white dark:hover:bg-slate-800"
                 data-oid="8njbem8"
               >

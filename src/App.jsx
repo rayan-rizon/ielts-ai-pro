@@ -10,6 +10,7 @@ import {
 import { trackAppEvent, trackPageView } from '@/lib/tracking';
 
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import PremiumLoading from '@/components/ui/PremiumLoading';
 
 const loadFeatures = () => import('framer-motion').then((res) => res.domMax);
 
@@ -17,17 +18,8 @@ const LazySonnerToaster = lazy(() =>
   import('@/components/ui/sonner').then((module) => ({ default: module.Toaster }))
 );
 
-const RouteLoading = ({ message = 'Loading...', fullScreen = false }) => (
-  <div
-    className={[
-      'flex flex-col items-center justify-center bg-slate-50/80 text-slate-700 dark:bg-[#050505]/80 dark:text-slate-200',
-      fullScreen ? 'fixed inset-0 z-[100] h-screen w-screen' : 'h-full min-h-48 w-full py-16',
-    ].join(' ')}
-    data-oid="route-loading"
-  >
-    <div className="h-8 w-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
-    <p className="mt-4 text-sm font-semibold">{message}</p>
-  </div>
+const RouteLoading = ({ message = 'Loading...', fullScreen = true }) => (
+  <PremiumLoading message={message} fullScreen={fullScreen} />
 );
 
 const IdleToaster = () => {
@@ -190,19 +182,18 @@ const LazyPage = ({ children }) => {
 
   return (
     <Suspense
-      fallback={<RouteLoading message="Loading..." data-oid="n1xqtod" />}
+      fallback={<RouteLoading message="Loading..." fullScreen data-oid="n1xqtod" />}
       data-oid="fnq31q0"
     >
       <m.div
         key={pathname}
-        initial={{ opacity: 0, y: 22, filter: 'blur(5px)' }}
+        initial={{ opacity: 0, y: 6 }}
         animate={{
           opacity: 1,
           y: 0,
-          filter: 'blur(0px)',
-          transitionEnd: { transform: 'none', filter: 'none' },
+          transitionEnd: { transform: 'none' },
         }}
-        transition={{ duration: 0.58, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
       >
         {children}
       </m.div>

@@ -17,7 +17,7 @@ const ReadingTestAppearance = React.lazy(() => import('../../ReadingTestAppearan
  * @param {number} props.passageIndex - Current passage index (0-based)
  * @param {React.RefObject} props.passageRef - Ref for passage container (used for text selection)
  * @param {string} props.paperTheme - Theme: 'light', 'sepia', or 'dark'
- * @param {string} props.textSize - Text size class: 'text-sm', 'text-base', 'text-lg'
+ * @param {string} props.textSize - Text size class: 'text-[15px]', 'text-base', 'text-lg'
  * @param {Function} props.onTextSelection - Handler for text selection/click
  * @param {Function} props.onMouseMove - Handler for mouse move (hover detection)
  * @param {Function} props.onMouseLeave - Handler for mouse leave

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useAuth } from '@/features/auth/context/AuthContext';
@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import MaintenanceScreen from '@/components/shared/MaintenanceScreen';
 import AnnouncementBanner from '@/components/shared/AnnouncementBanner';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import { cn } from '@/lib/cn';
 
 // Modular Components
 import { SidebarStyles } from '@/features/core/components/Sidebar/SidebarStyles';
@@ -259,7 +260,7 @@ export default function Layout({ children, currentPageName }) {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-auto" data-oid="at8d7y7">
+              <div className={cn('flex-1', isTestPage ? 'flex flex-col h-full min-h-0 overflow-hidden' : 'overflow-auto')} data-oid="at8d7y7">
                 {children}
               </div>
             </main>
@@ -270,28 +271,37 @@ export default function Layout({ children, currentPageName }) {
   );
 }
 
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 /**
  * SidebarController
  * Imperatively controls the sidebar state based on layout changes.
  * Used inside SidebarProvider to access useSidebar hook.
  */
 function SidebarController({ isTestPage }) {
-  const { setOpen, setOpenMobile } = useSidebar();
+  const { open, setOpen, setOpenMobile } = useSidebar();
   const { pathname } = useLocation();
-  const lastState = useRef(isTestPage);
+  const savedOpenRef = useRef(null);
 
   // Automatically close mobile sidebar when the route changes
   useEffect(() => {
     setOpenMobile(false);
   }, [pathname, setOpenMobile]);
 
-  useEffect(() => {
-    // Only auto-collapse when switching from a non-test page to a test page
-    if (isTestPage && !lastState.current) {
-      setOpen(false);
+  useIsomorphicLayoutEffect(() => {
+    if (isTestPage) {
+      if (open) {
+        savedOpenRef.current = true;
+        setOpen(false);
+      }
+    } else {
+      if (savedOpenRef.current === true && !open) {
+        setOpen(true);
+        savedOpenRef.current = null;
+      }
     }
-    lastState.current = isTestPage;
-  }, [isTestPage, setOpen]);
+  }, [isTestPage, open, setOpen]);
 
   return null;
 }

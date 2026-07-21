@@ -102,16 +102,14 @@ const AdminSidebarHeader = memo(() => (
     >
       <div className="flex items-center gap-3" data-oid="_sq00kt">
         <div
-          className="w-10 h-10 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center shadow-lg relative overflow-hidden"
+          className="w-10 h-10 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 rounded-xl flex items-center justify-center shadow-md relative overflow-hidden bg-background border border-border/60 shrink-0"
           data-oid="nggp_nh"
         >
-          <div
-            className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"
-            data-oid="tdj_tyv"
-          />
-          <ShieldCheck
-            className="w-5 h-5 text-white relative z-10 group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:h-4"
-            data-oid="g8i2x4l"
+          <img
+            src="/favicon.webp"
+            alt="IELTS Ai Pro Logo"
+            className="w-full h-full object-cover rounded-xl"
+            data-oid="admin-sidebar-logo-img"
           />
         </div>
         <div className="min-w-0 group-data-[collapsible=icon]:hidden" data-oid="21p78tx">
@@ -126,7 +124,7 @@ const AdminSidebarHeader = memo(() => (
             data-oid="rl3xc:a"
           >
             <Sparkles
-              className="w-2.5 h-2.5 text-yellow-500/80 animate-pulse-subtle"
+              className="w-2.5 h-2.5 text-rose-500 animate-pulse-subtle"
               data-oid="7jlhww."
             />
             SYSTEM ACCESS

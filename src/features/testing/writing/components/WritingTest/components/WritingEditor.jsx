@@ -162,7 +162,7 @@ export function WritingEditor({
 
         {/* Editor Area */}
         <div
-          className="flex-1 flex flex-col relative bg-slate-50/[0.12] dark:bg-slate-950/20"
+          className="flex-1 flex flex-col relative bg-slate-50/[0.12] dark:bg-slate-950/20 min-h-0"
           data-oid="-xg5pl7"
         >
           <Suspense fallback={<EditorSkeleton data-oid=":m0npyd" />} data-oid="6d2awu9">
@@ -176,8 +176,15 @@ export function WritingEditor({
               placeholder="Start writing your essay here..."
               className="flex-1 flex flex-col h-full bg-transparent
                                [&_.ql-container]:flex-1
+                               [&_.ql-container]:flex
+                               [&_.ql-container]:flex-col
+                               [&_.ql-container]:h-full
+                               [&_.ql-container]:min-h-0
                                [&_.ql-container]:border-none
-                               [&_.ql-editor]:px-4 md:[&_.ql-editor]:px-6 [&_.ql-editor]:!pt-1.5 [&_.ql-editor]:!pb-4 [&_.ql-editor.ql-blank::before]:!top-1.5
+                               [&_.ql-editor]:flex-1
+                               [&_.ql-editor]:h-full
+                               [&_.ql-editor]:min-h-[350px]
+                               [&_.ql-editor]:px-4 md:[&_.ql-editor]:px-6 [&_.ql-editor]:!pt-3 [&_.ql-editor]:!pb-4 [&_.ql-editor.ql-blank::before]:!top-3
                                [&_.ql-editor]:text-[16px]
                                [&_.ql-editor]:leading-8
                                [&_.ql-editor]:font-serif

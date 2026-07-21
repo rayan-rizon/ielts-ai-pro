@@ -122,7 +122,7 @@ function WritingTaskContent() {
       />
 
       <div
-        className="flex-1 flex flex-col lg:flex-row overflow-hidden max-w-[1920px] mx-auto w-full relative"
+        className="flex-1 flex flex-col md:flex-row overflow-hidden max-w-[1920px] mx-auto w-full relative"
         data-oid="50emge."
       >
         <AnimatePresence mode="wait" initial={false} data-oid=".rp02r7">
@@ -235,10 +235,10 @@ function WritingEditorPane({
       className={cn(
         'flex flex-col bg-[#fcfcfc] dark:bg-[#050505] relative overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10 z-30',
         hasFeedback
-          ? 'w-full lg:w-1/2 h-full border-r border-slate-200 dark:border-slate-800'
+          ? 'w-full md:w-1/2 h-full border-r border-slate-200 dark:border-slate-800'
           : isSidebarClosed
             ? 'w-full h-full'
-            : 'w-full lg:w-1/2 h-1/2 lg:h-full'
+            : 'w-full md:w-1/2 h-1/2 md:h-full'
       )}
       data-oid="ctlrd56"
     >

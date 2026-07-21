@@ -120,7 +120,7 @@ export function TaskPanel({ task, showSample, setShowSample, isInset = false }) 
       className={cn(
         'flex flex-col relative z-0',
         !isInset
-          ? 'h-1/2 lg:h-full w-full lg:w-1/2 border-b lg:border-b-0 lg:border-r border-slate-200/60 dark:border-slate-800/60 bg-white/50 dark:bg-[#0a0a0a] backdrop-blur-sm'
+          ? 'h-1/2 md:h-full w-full md:w-1/2 border-b md:border-b-0 md:border-r border-slate-200/60 dark:border-slate-800/60 bg-white/50 dark:bg-[#0a0a0a] backdrop-blur-sm'
           : 'h-full w-full'
       )}
       data-oid="zit35s_"

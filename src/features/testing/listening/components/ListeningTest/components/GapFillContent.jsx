@@ -122,7 +122,7 @@ const GapFillContent = memo(function GapFillContent({
           trimmedLine.endsWith(':') && trimmedLine.length < 80 && !trimmedLine.includes('[gap]');
         if (isHeader) {
           processedLines.push(
-            `<div class="font-bold text-foreground mt-1 mb-0 text-base">${trimmedLine}</div>`
+            `<div class="font-bold text-foreground mt-1 mb-0 text-[15px]">${trimmedLine}</div>`
           );
         } else if (trimmedLine === '') {
           processedLines.push('<div class="h-1"></div>');
@@ -165,7 +165,7 @@ const GapFillContent = memo(function GapFillContent({
     const baseStyle =
       variant === 'flowchart'
         ? 'h-8 w-[70px] px-2 py-0.5 text-center text-sm rounded-lg transition-all duration-200 border'
-        : 'h-8 w-32 px-2 py-1 text-center text-base rounded-lg transition-all duration-200 shadow-sm';
+        : 'h-8 w-32 px-2 py-1 text-center text-[15px] rounded-lg transition-all duration-200 shadow-sm';
 
     if (!isFinished) {
       return cn(
@@ -194,7 +194,7 @@ const GapFillContent = memo(function GapFillContent({
     <div
       className={cn(
         'leading-relaxed text-foreground font-medium font-sans gap-fill-container',
-        variant === 'flowchart' ? 'text-base w-full' : 'text-base'
+        variant === 'flowchart' ? 'text-[15px] w-full' : 'text-[15px]'
       )}
       data-oid="pi3r:an"
     >

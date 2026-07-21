@@ -23,7 +23,7 @@ const GapFillRenderer = ({
             data-oid="yv67yft"
           >
             <h4
-              className="font-bold text-center text-base text-slate-700 dark:text-slate-300 tracking-wide uppercase"
+              className="font-bold text-center text-[15px] text-slate-700 dark:text-slate-300 tracking-wide uppercase"
               data-oid="mmtlkhn"
             >
               {question.gap_fill.box_title}

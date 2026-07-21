@@ -84,104 +84,105 @@ const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({
     }
   }, [isFinished, validationMap, isMultiSelect, question.id]);
 
+  const parseOption = (optionStr, index) => {
+    const fallbackLetter = String.fromCharCode(65 + index);
+    if (!optionStr || typeof optionStr !== 'string') {
+      return { letter: fallbackLetter, body: optionStr || '' };
+    }
+    const match = optionStr.match(/^([A-Z])[\.\)\s]\s*(.*)/i);
+    if (match) {
+      return { letter: match[1].toUpperCase(), body: match[2].trim() || optionStr };
+    }
+    return { letter: fallbackLetter, body: optionStr };
+  };
+
   return (
-    <div className="space-y-2 ml-10" data-oid="gt9t:w6">
+    <div className="mt-1.5 space-y-1 ml-0.5 sm:ml-1" data-oid="gt9t:w6">
       {/* Options */}
       {question.options.map((option, index) => {
+        const { letter, body } = parseOption(option, index);
         const isSelected = isOptionSelected(option);
-        const optionLetter = option.match(/^([A-E])/)?.[1] || option;
 
         // Find if this specific option is one of the correct answers
         const isActualCorrect =
-          isFinished && correctAnswersList.some((ans) => isAnswerCorrect(optionLetter, ans));
+          isFinished && correctAnswersList.some((ans) => isAnswerCorrect(letter, ans));
 
         let labelClass =
-          'flex items-center gap-3 px-4 py-2 rounded-xl border transition-all duration-300 relative overflow-hidden ';
-        let inputClass = isMultiSelect
-          ? "appearance-none w-4 h-4 rounded-md border-2 transition-all duration-300 focus:outline-none focus:ring-2 relative after:content-['✓'] after:absolute after:inset-0 after:flex after:items-center after:justify-center after:text-white after:text-[10px] after:font-bold after:opacity-0 checked:after:opacity-100 "
-          : "appearance-none w-4 h-4 rounded-full border-2 transition-all duration-300 focus:outline-none focus:ring-2 relative after:content-[''] after:absolute after:inset-[2px] after:rounded-full after:scale-0 checked:after:scale-100 after:transition-transform ";
+          'flex items-start gap-2.5 px-2 py-1 rounded-md border transition-all duration-150 relative overflow-hidden select-none group ';
+        let badgeClass =
+          'w-5 h-5 min-w-[20px] rounded-full flex items-center justify-center text-[11px] font-bold transition-all shrink-0 mt-0.5 ';
 
         if (isFinished) {
           labelClass += 'cursor-not-allowed opacity-100 ';
           if (isSelected) {
-            // For multi-select, if it's selected AND in the correct list, it's correct.
-            // For single-select, just check validationMap[question.id].isCorrect
             const isCorrectSelection = isMultiSelect
               ? isActualCorrect
               : validationMap[question.id]?.isCorrect === true;
 
             if (isCorrectSelection) {
               labelClass +=
-                'bg-emerald-500/10 border-emerald-500/50 text-emerald-700 dark:text-emerald-400 font-bold shadow-sm';
-              inputClass +=
-                'border-emerald-500 checked:border-emerald-600 dark:checked:border-emerald-400 checked:bg-emerald-600 dark:checked:bg-emerald-400';
-              if (!isMultiSelect) inputClass += ' after:bg-emerald-600 dark:after:bg-emerald-400';
+                'bg-emerald-50/90 border-emerald-500 text-emerald-950 dark:bg-emerald-950/40 dark:border-emerald-500/70 dark:text-emerald-200 font-semibold shadow-xs';
+              badgeClass += 'bg-emerald-600 text-white dark:bg-emerald-500';
             } else {
               labelClass +=
-                'bg-rose-500/10 border-rose-500/50 text-rose-700 dark:text-rose-400 font-bold shadow-sm';
-              inputClass +=
-                'border-rose-500 checked:border-rose-600 dark:checked:border-rose-400 checked:bg-rose-600 dark:checked:bg-rose-400';
-              if (!isMultiSelect) inputClass += ' after:bg-rose-600 dark:after:bg-rose-400';
+                'bg-rose-50/90 border-rose-500 text-rose-950 dark:bg-rose-950/40 dark:border-rose-500/70 dark:text-rose-200 font-semibold shadow-xs';
+              badgeClass += 'bg-rose-600 text-white dark:bg-rose-500';
             }
           } else if (isActualCorrect) {
             labelClass +=
-              'bg-emerald-500/5 border-emerald-500/40 text-emerald-700/80 dark:text-emerald-400/80 font-semibold border-dashed';
-            inputClass += 'border-emerald-400/50 dark:border-emerald-500/50';
+              'bg-emerald-50/40 border-emerald-400/70 border-dashed text-emerald-800 dark:bg-emerald-950/20 dark:border-emerald-500/50 dark:text-emerald-300 font-medium';
+            badgeClass +=
+              'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
           } else {
             labelClass +=
-              'bg-slate-50/50 border-slate-200/60 dark:bg-slate-900/40 dark:border-slate-800 text-slate-400 dark:text-slate-500';
-            inputClass += 'border-slate-300 dark:border-slate-600';
+              'border-transparent bg-transparent text-slate-400 dark:text-slate-500';
+            badgeClass +=
+              'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600';
           }
         } else {
-          labelClass += 'cursor-pointer backdrop-blur-sm ';
-          inputClass +=
-            'border-slate-300 dark:border-slate-600 checked:border-blue-500 dark:checked:border-blue-400 checked:bg-blue-500 dark:checked:bg-blue-400 focus:ring-blue-500/20';
-          if (!isMultiSelect)
-            inputClass +=
-              ' after:bg-blue-500 dark:after:bg-blue-400 checked:bg-transparent dark:checked:bg-transparent'; // radio specific
-
+          labelClass += 'cursor-pointer ';
           if (isSelected) {
             labelClass +=
-              'bg-blue-600/10 border-blue-500 text-blue-700 dark:bg-blue-500/20 dark:border-blue-400 dark:text-blue-100 font-semibold shadow-sm ring-1 ring-blue-500/20';
+              'bg-blue-50/90 border-blue-500/80 text-blue-950 dark:bg-blue-950/40 dark:border-blue-500/60 dark:text-blue-100 font-medium shadow-xs ring-1 ring-blue-500/20';
+            badgeClass += 'bg-blue-600 text-white dark:bg-blue-500 shadow-xs scale-105';
           } else {
             labelClass +=
-              'bg-white/60 border-slate-200 text-slate-600 dark:bg-slate-900/60 dark:border-slate-800 dark:text-slate-300 hover:border-blue-400/50 dark:hover:border-blue-500/50 hover:bg-blue-50/30 dark:hover:bg-blue-500/5 hover:scale-[1.005] active:scale-[0.995]';
+              'border-transparent bg-transparent text-slate-700 dark:text-slate-200 hover:bg-slate-100/70 dark:hover:bg-slate-800/50 hover:border-slate-200/60 dark:hover:border-slate-700/60';
+            badgeClass +=
+              'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 group-hover:text-blue-700 dark:group-hover:text-blue-300';
           }
         }
 
         return (
           <label key={index} className={labelClass} data-oid="jcsdbv.">
-            {isMultiSelect ? (
+            <div className="flex items-center gap-2 shrink-0">
               <input
-                type="checkbox"
-                name={`question-${question.id}-${index}`}
+                type={isMultiSelect ? 'checkbox' : 'radio'}
+                name={
+                  isMultiSelect
+                    ? `question-${question.id}-${index}`
+                    : `question-${question.id}`
+                }
                 value={option}
                 checked={isSelected}
-                onChange={(e) => handleMultiSelectChange(option, e.target.checked)}
-                className={inputClass}
+                onChange={(e) =>
+                  isMultiSelect
+                    ? handleMultiSelectChange(option, e.target.checked)
+                    : onAnswerChange(question.id, e.target.value)
+                }
                 disabled={isFinished}
-                data-oid="qyle9xz"
+                className="sr-only"
+                data-oid="mcq-input-option"
               />
-            ) : (
-              <input
-                type="radio"
-                name={`question-${question.id}`}
-                value={option}
-                checked={isSelected}
-                onChange={(e) => onAnswerChange(question.id, e.target.value)}
-                className={inputClass}
-                disabled={isFinished}
-                data-oid="wrk:0e:"
-              />
-            )}
-            {isSelected && !isFinished && (
-              <div
-                className="absolute inset-0 bg-blue-500/5 dark:bg-blue-400/5 animate-pulse pointer-events-none"
-                data-oid="v92amr."
-              />
-            )}
-            <span className="text-sm font-medium tracking-wide relative z-10" data-oid="as1ywry">
-              {option}
+              <span className={badgeClass} data-oid="mcq-badge">
+                {letter}
+              </span>
+            </div>
+            <span
+              className="text-[13.5px] sm:text-sm leading-tight flex-1 font-medium"
+              data-oid="as1ywry"
+            >
+              {body}
             </span>
           </label>
         );

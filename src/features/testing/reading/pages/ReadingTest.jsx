@@ -231,7 +231,8 @@ function ReadingTestContent() {
   const [isResizing, setIsResizing] = useState(false);
 
   // Appearance Settings
-  const [textSize, setTextSize] = useState('text-base');
+  // Start at a compact, exam-like reading size; learners can still increase it from Appearance.
+  const [textSize, setTextSize] = useState('text-[15px]');
   const [paperTheme, setPaperTheme] = useState('light'); // light, sepia, dark
 
   const passageRef = useRef(null);

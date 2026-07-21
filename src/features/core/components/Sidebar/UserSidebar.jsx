@@ -206,29 +206,26 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
             <m.div
               whileHover={{ scale: 1.05, rotate: 5 }}
               transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-              className="w-12 h-12 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg relative overflow-hidden"
+              className="w-10 h-10 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 rounded-xl flex items-center justify-center shadow-md relative overflow-hidden bg-background border border-border/60 shrink-0"
               data-oid="5jo1y60"
             >
-              <div
-                className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"
-                data-oid="rqrs.dj"
-              />
-
-              <Brain
-                className="w-6 h-6 text-white relative z-10 group-data-[collapsible=icon]:w-4 group-data-[collapsible=icon]:h-4"
-                data-oid="crapl_:"
+              <img
+                src="/favicon.webp"
+                alt="IELTS Ai Pro Logo"
+                className="w-full h-full object-cover rounded-xl"
+                data-oid="sidebar-logo-img"
               />
             </m.div>
             <div className="min-w-0 group-data-[collapsible=icon]:hidden" data-oid="03:p4g9">
-              <h2 className="font-bold text-base truncate text-brand-primary" data-oid="zpyd:z.">
-                IELTS Ai Pro
+              <h2 className="font-bold text-base truncate text-foreground" data-oid="zpyd:z.">
+                IELTS <span className="text-primary italic font-black">Ai</span> Pro
               </h2>
               <div
                 className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5"
                 data-oid="70s5cti"
               >
                 <Sparkles
-                  className="w-2.5 h-2.5 text-yellow-500/80 animate-spin-slow"
+                  className="w-2.5 h-2.5 text-amber-500 animate-spin-slow"
                   data-oid=".59199j"
                 />
                 AI-Powered Platform

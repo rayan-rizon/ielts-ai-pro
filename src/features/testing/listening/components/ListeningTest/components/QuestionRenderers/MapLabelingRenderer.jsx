@@ -187,7 +187,7 @@ const MapLabelingRenderer = ({
 
               {/* Question Text */}
               <div
-                className="text-base font-semibold text-slate-800 dark:text-slate-100"
+                className="text-[15px] font-semibold text-slate-800 dark:text-slate-100"
                 data-oid="_11s_3t"
               >
                 {q.text}

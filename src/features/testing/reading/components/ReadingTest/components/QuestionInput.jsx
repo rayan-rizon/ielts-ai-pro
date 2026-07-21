@@ -94,7 +94,7 @@ const QuestionInput = memo(function QuestionInput({
                 disabled={disabled}
                 placeholder="answer"
                 className={cn(
-                  'w-32 h-8 px-2 py-1 text-center text-base rounded-lg transition-all duration-200 shadow-sm',
+                  'w-32 h-8 px-2 py-1 text-center text-[15px] rounded-lg transition-all duration-200 shadow-sm',
                   inputClass,
                   'focus-visible:outline-none focus-visible:ring-1'
                 )}
@@ -132,7 +132,7 @@ const QuestionInput = memo(function QuestionInput({
 
         // Regular text - preserve all whitespace
         return (
-          <span key={idx} className="text-base font-medium" data-oid="t.i_9.z">
+          <span key={idx} className="text-[15px] font-medium" data-oid="t.i_9.z">
             {part}
           </span>
         );

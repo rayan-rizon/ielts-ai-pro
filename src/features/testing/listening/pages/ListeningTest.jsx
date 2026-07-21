@@ -647,20 +647,15 @@ function ListeningTestInner() {
                             return groups;
                           }, [])
                           .map((group, gIdx) => (
-                            <div key={gIdx} className="mb-2" data-oid=".ffofwm">
+                            <div key={gIdx} className="mb-2.5" data-oid=".ffofwm">
                               <div
-                                className="relative bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-700/60 rounded-2xl shadow-sm overflow-hidden group/card backdrop-blur-sm"
+                                className="relative bg-white/70 dark:bg-slate-900/55 border border-slate-200/60 dark:border-slate-700/60 rounded-lg shadow-sm overflow-hidden group/card backdrop-blur-sm transition-all duration-200"
                                 data-oid="yfsdv5u"
                               >
-                                <div
-                                  className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-80"
-                                  data-oid="963tpc:"
-                                />
-
                                 {group.instructions && group.instructions !== '<p><br></p>' && (
-                                  <div className="px-3 pt-3" data-oid="wdnm:1-">
+                                  <div className="px-2.5 pt-2" data-oid="wdnm:1-">
                                     <div
-                                      className="mb-2 p-2 rounded-lg bg-blue-50/60 dark:bg-blue-900/20 border border-blue-100/80 dark:border-blue-800 text-sm font-medium text-slate-700 dark:text-slate-300 flex items-start gap-2"
+                                      className="mb-1.5 p-2 rounded-lg bg-blue-50/60 dark:bg-blue-900/20 border border-blue-100/80 dark:border-blue-800 text-sm font-medium text-slate-700 dark:text-slate-300 flex items-start gap-2"
                                       data-oid="6dw9uti"
                                     >
                                       <div className="mt-0.5 flex-shrink-0" data-oid="ip7:at9">
@@ -670,7 +665,7 @@ function ListeningTestInner() {
                                         />
                                       </div>
                                       <div
-                                        className="text-base font-medium text-slate-700 dark:text-slate-300 leading-snug"
+                                        className="text-[14.5px] font-medium text-slate-700 dark:text-slate-300 leading-snug"
                                         dangerouslySetInnerHTML={{
                                           __html: formatInstructionHTML(group.instructions),
                                         }}
@@ -681,9 +676,9 @@ function ListeningTestInner() {
                                 )}
 
                                 {group.mcq_title && (
-                                  <div className="px-3 pt-2" data-oid="z15c3c.">
+                                  <div className="px-2.5 pt-2" data-oid="z15c3c.">
                                     <div
-                                      className="flex items-center justify-center gap-3 mb-3"
+                                      className="flex items-center justify-center gap-3 mb-2"
                                       data-oid="1n1k.e1"
                                     >
                                       <div
@@ -692,7 +687,7 @@ function ListeningTestInner() {
                                       />
 
                                       <h3
-                                        className="text-center font-bold text-lg text-slate-800 dark:text-slate-200 tracking-tight"
+                                        className="text-center font-bold text-base text-slate-800 dark:text-slate-200 tracking-tight"
                                         data-oid="g6izwei"
                                       >
                                         {group.mcq_title}
@@ -706,28 +701,28 @@ function ListeningTestInner() {
                                 )}
 
                                 <div
-                                  className={`px-3 pb-3 ${!group.mcq_title && !group.instructions ? 'p-3' : 'pt-2'}`}
+                                  className={`px-2.5 pb-2.5 ${!group.mcq_title && !group.instructions ? 'p-2 sm:p-2.5' : 'pt-1'}`}
                                   data-oid="mt_5c5t"
                                 >
                                   {(!group.instructions || group.instructions === '<p><br></p>') &&
                                     !group.mcq_title && (
-                                      <div className="mb-3" data-oid="jh.-gh7">
+                                      <div className="mb-2" data-oid="jh.-gh7">
                                         <div
-                                          className="flex items-center gap-3 mb-2"
+                                          className="flex items-center gap-3 mb-1.5"
                                           data-oid=".vlkfrk"
                                         >
                                           <div
-                                            className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20"
+                                            className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20"
                                             data-oid="1_4q4.x"
                                           >
                                             <Lightbulb
-                                              className="w-4 h-4 text-white"
+                                              className="w-3.5 h-3.5 text-white"
                                               data-oid=":cg-0hu"
                                             />
                                           </div>
                                           <div data-oid="oh:s49w">
                                             <h2
-                                              className="text-base font-bold tracking-tight text-slate-800 dark:text-slate-200"
+                                              className="text-sm font-bold tracking-tight text-slate-800 dark:text-slate-200"
                                               data-oid="gj95ryw"
                                             >
                                               Questions {group.questions[0]?._displayStartNumber}–
@@ -736,17 +731,11 @@ function ListeningTestInner() {
                                                   ?._displayEndNumber
                                               }
                                             </h2>
-                                            <p
-                                              className="text-xs text-slate-500 dark:text-slate-400 mt-0.5"
-                                              data-oid="qxu0apz"
-                                            >
-                                              Complete the questions below
-                                            </p>
                                           </div>
                                         </div>
                                       </div>
                                     )}
-                                  <div className="space-y-2" data-oid="kt4a2v0">
+                                  <div className="space-y-3" data-oid="kt4a2v0">
                                     {group.questions.map((question) =>
                                       renderQuestion(question, true)
                                     )}

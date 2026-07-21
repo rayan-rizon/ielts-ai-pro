@@ -70,7 +70,7 @@ const FlowchartRenderer = ({
                   <React.Fragment key={step.id}>
                     {/* Step Box - Standard Card Style */}
                     <div className="w-full bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800/90 px-3 py-2.5 sm:px-4 sm:py-3 flex items-center rounded-xl shadow-xs hover:border-blue-400/40 dark:hover:border-blue-500/40 transition-all duration-200 relative">
-                      <div className="w-full text-base font-medium leading-[2.2rem] text-slate-800 dark:text-slate-200">
+                      <div className="w-full text-[15px] font-medium leading-7 text-slate-800 dark:text-slate-200">
                         <GapFillContent
                           question={{
                             id: question.id,

@@ -61,7 +61,7 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
               disabled={disabled}
               placeholder={disabled ? '' : 'answer'}
               className={cn(
-                'h-9 sm:h-10 w-36 px-2.5 text-center text-base rounded-lg border shadow-xs transition-all duration-200 font-medium',
+                'h-8 w-32 px-2 py-1 text-center text-[15px] rounded-lg border shadow-xs transition-all duration-200 font-medium',
                 disabled && validation?.isCorrect
                   ? 'border-emerald-500/80 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-semibold ring-1 ring-emerald-500/20'
                   : disabled && value
@@ -128,16 +128,13 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
         {flowchart.steps.map((step, index) => (
           <React.Fragment key={step.id || index}>
             <div
-              className="w-full border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-slate-900/90 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-base font-medium leading-[2.2rem] text-slate-800 dark:text-slate-200 shadow-xs hover:border-blue-400/40 dark:hover:border-blue-500/40 transition-all duration-200"
+              className="w-full border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-slate-900/90 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-[15px] font-medium leading-7 text-slate-800 dark:text-slate-200 shadow-xs hover:border-blue-400/40 dark:hover:border-blue-500/40 transition-all duration-200"
               data-testid="flowchart-step"
             >
               {renderStep(step)}
             </div>
             {index < flowchart.steps.length - 1 && (
-              <div
-                className="py-1 flex justify-center"
-                data-testid="flowchart-arrow"
-              >
+              <div className="py-1 flex justify-center" data-testid="flowchart-arrow">
                 <ArrowDown
                   className="w-6 h-6 text-slate-700 dark:text-slate-300"
                   aria-hidden="true"
@@ -154,4 +151,3 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
 FlowchartRenderer.displayName = 'FlowchartRenderer';
 
 export default FlowchartRenderer;
-
