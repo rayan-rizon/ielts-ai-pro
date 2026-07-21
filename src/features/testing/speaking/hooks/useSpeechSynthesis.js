@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 /**
  * useSpeechSynthesis
  *
- * Premium TTS hook using Google Cloud TTS Neural2 (en-GB-Neural2-D) via a
+ * Premium TTS hook using Google Cloud TTS Neural2 (en-GB-Neural2-B) via a
  * Supabase Edge Function with content-addressed Supabase Storage caching.
  *
  * Bug fixes in this version:
@@ -192,7 +192,7 @@ export default function useSpeechSynthesis() {
 
       try {
         const { data, error } = await supabase.functions.invoke('synthesizeSpeech', {
-          body: { text: cleanText },
+          body: { text: cleanText, voice: 'en-GB-Neural2-B' },
         });
 
         // Bail if superseded or unmounted

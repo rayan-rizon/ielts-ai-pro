@@ -150,9 +150,9 @@ describe('evaluationUtils', () => {
       3: [{ speaker: 'user', text: 'Public transport can reduce congestion in large cities.' }],
     });
     const pronunciation = aggregatePronunciationEvidence({
-      1: [{ pronunciationScore: 6.2 }],
-      2: [{ pronunciationScore: 6.8 }],
-      3: [{ pronunciationScore: 6.7 }],
+      1: [{ provider: 'azure-speech', pronunciationScore: 6.2 }],
+      2: [{ provider: 'azure-speech', pronunciationScore: 6.8 }],
+      3: [{ provider: 'azure-speech', pronunciationScore: 6.7 }],
     });
     const result = normalizeSpeakingEvaluation(
       {

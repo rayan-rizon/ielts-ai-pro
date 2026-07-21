@@ -282,15 +282,21 @@ serve(async (req: Request) => {
       }
 
       const data = await response.json();
+      const usage = data.usageMetadata || {};
       return {
         data,
         text: data.candidates?.[0]?.content?.parts?.[0]?.text || '',
-        tokens: data.usageMetadata?.totalTokenCount || 0,
+        tokens: usage.totalTokenCount || 0,
+        promptTokens: usage.promptTokenCount || 0,
+        outputTokens: (usage.candidatesTokenCount || 0) + (usage.thoughtsTokenCount || 0),
       };
     };
 
     let providerResult = await requestGeminiEvaluation(0.2);
     let tokensUsed = providerResult.tokens;
+    let promptTokens = providerResult.promptTokens;
+    let outputTokens = providerResult.outputTokens;
+    let providerCalls = 1;
     let evaluation;
 
     try {
@@ -301,6 +307,9 @@ serve(async (req: Request) => {
         console.warn('Gemini returned invalid speaking JSON; retrying once:', firstParseError);
         providerResult = await requestGeminiEvaluation(0);
         tokensUsed += providerResult.tokens;
+        promptTokens += providerResult.promptTokens;
+        outputTokens += providerResult.outputTokens;
+        providerCalls += 1;
         parsed = parseStructuredJson(providerResult.text);
       }
 
@@ -332,9 +341,16 @@ serve(async (req: Request) => {
     }
 
     // Log successful usage
+    const estimatedProviderCostUsd = promptTokens * 0.0000003 + outputTokens * 0.0000025;
     await logApiUsage(supabase, user.id, 'evaluateSpeakingTest', false, tokensUsed, {
       testId,
+      speakingSessionId,
       partsCompleted: Object.keys(allPartsConversation).length,
+      model: 'gemini-2.5-flash',
+      promptTokens,
+      outputTokens,
+      providerCalls,
+      estimatedProviderCostUsd,
     });
 
     return new Response(

@@ -65,7 +65,7 @@ if (isProduction && typeof window !== 'undefined') {
 }
 
 // PERFORMANCE: Defer Sentry initialization to idle time.
-// browserTracingIntegration and replayIntegration are heavy modules (~100-150ms).
+// Browser tracing, replay, and profiling are heavy modules (~100-150ms).
 // Using requestIdleCallback ensures they load after First Contentful Paint.
 const initSentry = () => {
   import('@sentry/react').then((Sentry) => {
@@ -76,8 +76,15 @@ const initSentry = () => {
         import.meta.env.VITE_SENTRY_DSN ||
         'https://03ed8b4e6214256395735d17f027f8f4@o4511451727331328.ingest.us.sentry.io/4511452061040640',
       environment: isProduction ? 'production' : 'development',
-      integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
+      integrations: [
+        Sentry.browserTracingIntegration(),
+        Sentry.browserProfilingIntegration(),
+        Sentry.replayIntegration(),
+      ],
       tracesSampleRate: isProduction ? 0.15 : 0,
+      // The browser-profile decision is made once per session. Keep production
+      // sampling below tracing to control profiling volume and overhead.
+      profileSessionSampleRate: isProduction ? 0.1 : 0,
       replaysSessionSampleRate: isProduction ? 0.1 : 0,
       replaysOnErrorSampleRate: isProduction ? 1.0 : 0,
       sendDefaultPii: true,

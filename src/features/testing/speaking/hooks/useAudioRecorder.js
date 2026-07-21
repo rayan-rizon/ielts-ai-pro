@@ -22,6 +22,7 @@ export default function useAudioRecorder({ processRecording }) {
   const streamRef = useRef(null);
   const maxRecordingTimerRef = useRef(null);
   const startTimeRef = useRef(0); // Track start time
+  const discardRecordingRef = useRef(false);
 
   // Web Speech API refs (parallel confidence collection)
   const speechRecognitionRef = useRef(null);
@@ -64,12 +65,21 @@ export default function useAudioRecorder({ processRecording }) {
     isRecordingRef.current = false;
   }, []);
 
+  // End microphone capture without submitting the buffered audio. This is used
+  // when the test completes or the page unmounts so a late MediaRecorder event
+  // cannot create another paid turn or overwrite the completed report.
+  const cancelListening = useCallback(() => {
+    discardRecordingRef.current = true;
+    stopListening();
+  }, [stopListening]);
+
   // Start listening — user presses the mic button
   const startListening = useCallback(async () => {
     if (isProcessingRef.current || isRecordingRef.current || isListeningRef.current) return;
 
     try {
       setMicError(null);
+      discardRecordingRef.current = false;
 
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -103,6 +113,12 @@ export default function useAudioRecorder({ processRecording }) {
 
       mediaRecorder.onstop = async () => {
         const duration = Date.now() - startTimeRef.current;
+
+        if (discardRecordingRef.current) {
+          discardRecordingRef.current = false;
+          audioChunksRef.current = [];
+          return;
+        }
 
         // Enforce minimum duration (e.g. 1.5 seconds) to prevent accidental clicks
         if (duration < 1500) {
@@ -183,13 +199,14 @@ export default function useAudioRecorder({ processRecording }) {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      stopListening();
+      cancelListening();
     };
-  }, [stopListening]);
+  }, [cancelListening]);
 
   return {
     startListening,
     stopListening,
+    cancelListening,
     isListening,
     isRecording,
     micError,

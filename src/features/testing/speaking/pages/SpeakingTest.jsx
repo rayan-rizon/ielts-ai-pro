@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
 
@@ -113,7 +113,7 @@ export default function SpeakingTest() {
     isMountedRef,
   });
 
-  const saveSessionProgress = useSpeakingSessionPersistence(session?.id);
+  const saveSessionProgress = useSpeakingSessionPersistence(session?.id, session?.content_data);
 
   const {
     loadingMessage,
@@ -191,6 +191,7 @@ export default function SpeakingTest() {
   const {
     startListening,
     stopListening,
+    cancelListening,
     isListening,
     isRecording,
     micError,
@@ -201,6 +202,12 @@ export default function SpeakingTest() {
   useEffect(() => {
     setRecorderProcessing(isProcessing);
   }, [isProcessing, setRecorderProcessing]);
+
+  useEffect(() => {
+    if (isTestComplete) {
+      cancelListening();
+    }
+  }, [cancelListening, isTestComplete]);
 
   const moveToNextPart = useMoveToNextSpeakingPart({
     allParts,
@@ -290,6 +297,8 @@ export default function SpeakingTest() {
     isPartComplete,
     setIsPartComplete,
     isSpeaking,
+    isListening,
+    cancelListening,
     setConversation,
     handleStartPart2Speaking,
     isPart2Prep,

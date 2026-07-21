@@ -876,10 +876,18 @@ Output JSON schema:
       if (geminiResponse.ok) {
         const geminiData = await geminiResponse.json();
         const aiContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        const tokensUsed = geminiData.usageMetadata?.totalTokenCount || 0;
+        const usage = geminiData.usageMetadata || {};
+        const tokensUsed = usage.totalTokenCount || 0;
+        const promptTokens = usage.promptTokenCount || 0;
+        const outputTokens = (usage.candidatesTokenCount || 0) + (usage.thoughtsTokenCount || 0);
+        const estimatedProviderCostUsd = promptTokens * 0.0000001 + outputTokens * 0.0000004;
 
         await finalizeApiUsage(supabase, quotaReservation.reservationId, tokensUsed, false, {
           source: 'adaptive_learning_path',
+          model: 'gemini-2.5-flash-lite',
+          promptTokens,
+          outputTokens,
+          estimatedProviderCostUsd,
         });
 
         if (aiContent) {

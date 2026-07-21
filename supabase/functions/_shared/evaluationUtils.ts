@@ -401,6 +401,7 @@ function processAudioSample(
     wordIssues: Array<{ word: string; issue: string; severity: string }>;
   }
 ) {
+  if (sample?.provider !== 'azure-speech') return;
   const score = normalizeBandScore(sample?.pronunciationScore, false);
   if (score !== null) {
     state.scores.push(score);
@@ -483,8 +484,16 @@ export function aggregatePronunciationEvidence(
     }
   }
 
+  const hasRepresentativeCoverage =
+    state.scores.length >= 2 && state.coveredParts.has('1') && state.coveredParts.has('3');
+  if (state.scores.length > 0 && !hasRepresentativeCoverage) {
+    state.summaryLines.push(
+      'Pronunciation remains unscored until valid audio samples cover both Part 1 and Part 3.'
+    );
+  }
+
   return {
-    score: state.scores.length > 0 ? averageBandScores(state.scores) : null,
+    score: hasRepresentativeCoverage ? averageBandScores(state.scores) : null,
     sampleCount: state.scores.length,
     partCount: state.coveredParts.size,
     summary: state.summaryLines.join('\n'),
@@ -539,7 +548,7 @@ function buildPronunciationNote(
   hasPronunciationEvidence: boolean
 ): string {
   if (!hasPronunciationEvidence) return '';
-  return `${pronunciationEvidence.sampleCount} audio sample(s) across ${pronunciationEvidence.partCount} part(s) were available. Final pronunciation score uses the rounded audio-sample average.`;
+  return `${pronunciationEvidence.sampleCount} short audio samples across ${pronunciationEvidence.partCount} parts were available. This is a provisional acoustic estimate, not an official IELTS mark.`;
 }
 
 function buildCriterionNotes(

@@ -97,6 +97,7 @@ function isPartCompletionBlocked({
   isPartComplete,
   isProcessingRef,
   isSpeaking,
+  isListening,
   timerExpiredRef,
 }) {
   return (
@@ -105,11 +106,12 @@ function isPartCompletionBlocked({
     isPartComplete ||
     isProcessingRef.current ||
     isSpeaking ||
+    isListening ||
     timerExpiredRef.current
   );
 }
 
-function shouldAutoCompletePart({
+export function shouldAutoCompletePart({
   timeLeft,
   testStarted,
   isLoading,
@@ -117,6 +119,7 @@ function shouldAutoCompletePart({
   isPartComplete,
   isProcessingRef,
   isSpeaking,
+  isListening,
   conversationRef,
   timerExpiredRef,
 }) {
@@ -129,6 +132,7 @@ function shouldAutoCompletePart({
       isPartComplete,
       isProcessingRef,
       isSpeaking,
+      isListening,
       timerExpiredRef,
     })
   ) {
@@ -173,6 +177,8 @@ function useTimerExpiryCompletion({
   isPartComplete,
   setIsPartComplete,
   isSpeaking,
+  isListening,
+  cancelListening,
   currentPartNumber,
   setConversation,
   saveSessionProgress,
@@ -183,6 +189,11 @@ function useTimerExpiryCompletion({
   pendingTimersRef,
 }) {
   useEffect(() => {
+    if (timeLeft === 0 && isListening) {
+      cancelListening();
+      return;
+    }
+
     if (
       !shouldAutoCompletePart({
         timeLeft,
@@ -192,6 +203,7 @@ function useTimerExpiryCompletion({
         isPartComplete,
         isProcessingRef,
         isSpeaking,
+        isListening,
         conversationRef,
         timerExpiredRef,
       })
@@ -216,6 +228,8 @@ function useTimerExpiryCompletion({
     isPartComplete,
     setIsPartComplete,
     isSpeaking,
+    isListening,
+    cancelListening,
     currentPartNumber,
     setConversation,
     saveSessionProgress,

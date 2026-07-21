@@ -24,7 +24,6 @@ import {
   FileText,
   Sparkles,
   Trash2,
-  Settings2,
   Info,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -284,6 +283,7 @@ const ExplanationImportModal = ({
 
     // Sort by question_number — must parse range strings first, e.g. "8-13" -> 8
     const parseNum = (q) => {
+      if (!q) return 0;
       const raw = q.question_number || q.question_start;
       if (!raw && raw !== 0) return 0;
       const str = String(raw).trim();
@@ -293,7 +293,7 @@ const ExplanationImportModal = ({
 
     const sorted = [...source].sort((a, b) => parseNum(a) - parseNum(b));
 
-    let counter = parseNum(sorted[0]) || startNum - 1;
+    let counter = sorted.length > 0 ? parseNum(sorted[0]) || startNum - 1 : startNum - 1;
 
     sorted.forEach((q) => {
       // Parse question_number to integer — critical for range strings!
@@ -474,12 +474,12 @@ const ExplanationImportModal = ({
             });
           } else {
             // Flat data — store it keyed by this question number
-            const { type, ...rest } = explanationData;
+            const { type: _type, ...rest } = explanationData;
             existing.data.blanks[qNum] = rest;
           }
         } else {
           // Standard question — each gets its own explanation_data object
-          const { type, ...rest } = explanationData;
+          const { type: _type, ...rest } = explanationData;
           questionUpdates.set(dbId, { question, data: rest });
         }
       }

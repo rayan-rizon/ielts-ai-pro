@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { callEdgeFunction } from '@/utils/api';
@@ -10,6 +10,11 @@ import {
   getQuestionLines,
   isTranscriptError,
 } from '../utils/speakingTestUtils';
+import {
+  blobToBase64,
+  convertAudioBlobToWav16kMono,
+  shouldRequestPronunciationSample,
+} from '../utils/audioProcessing';
 
 export default function useSpeakingRecordingProcessor({
   allParts,
@@ -32,6 +37,8 @@ export default function useSpeakingRecordingProcessor({
   testId,
   timerExpiredRef,
 }) {
+  const pronunciationAttemptedPartsRef = useRef(new Set());
+
   return useCallback(
     async (audioBlob, metadata = {}) => {
       if (metadata.error === 'too_short') {
@@ -55,22 +62,43 @@ export default function useSpeakingRecordingProcessor({
       setConversation((prev) => [...prev, { speaker: 'user', text: '...', isLoading: true }]);
 
       try {
-        const reader = new FileReader();
-        const audioBase64 = await new Promise((resolve, reject) => {
-          reader.onloadend = () => resolve(reader.result.split(',')[1]);
-          reader.onerror = reject;
-          reader.readAsDataURL(audioBlob);
-        });
+        const audioBase64 = await blobToBase64(audioBlob);
 
         const snapshotQuestionIndex = questionIndexRef.current;
         const currentPart = allParts[currentPartNumber];
         const questionLines = getQuestionLines(currentPart?.questions);
         const questionContext = questionLines[snapshotQuestionIndex] || '';
 
-        setProcessingStatus('AI is analyzing your response...');
+        setProcessingStatus('Transcribing your answer...');
+
+        let pronunciationAudioBase64 = null;
+        const partSampleAlreadyAttempted =
+          pronunciationAttemptedPartsRef.current.has(currentPartNumber);
+        const requestPronunciation =
+          !partSampleAlreadyAttempted &&
+          shouldRequestPronunciationSample({
+            partNumber: currentPartNumber,
+            durationMs: Number(metadata.duration),
+            existingSamples: acousticMetricsRef.current,
+          });
+
+        if (requestPronunciation) {
+          // One bounded attempt per eligible part keeps payloads and Azure usage
+          // predictable even when the provider is not configured or unavailable.
+          pronunciationAttemptedPartsRef.current.add(currentPartNumber);
+          try {
+            setProcessingStatus('Checking pronunciation...');
+            const pronunciationBlob = await convertAudioBlobToWav16kMono(audioBlob);
+            pronunciationAudioBase64 = await blobToBase64(pronunciationBlob);
+          } catch (error) {
+            console.warn('Pronunciation sample conversion unavailable:', error);
+          }
+        }
 
         const response = await processSpeakingTurn({
           audioBase64,
+          audioMimeType: audioBlob.type || 'audio/webm',
+          audioDurationMs: Number(metadata.duration) || null,
           allParts,
           conversationHistory: buildConversationHistory(conversationRef.current),
           currentPartNumber,
@@ -78,6 +106,9 @@ export default function useSpeakingRecordingProcessor({
           sessionId: session?.id,
           snapshotQuestionIndex,
           speechConfidence: metadata.speechConfidence || null,
+          pronunciationAudioBase64,
+          pronunciationDurationMs: pronunciationAudioBase64 ? Number(metadata.duration) : null,
+          requestPronunciation: Boolean(pronunciationAudioBase64),
           testId,
         });
 
@@ -143,6 +174,8 @@ export default function useSpeakingRecordingProcessor({
 
 async function processSpeakingTurn({
   audioBase64,
+  audioMimeType,
+  audioDurationMs,
   allParts,
   conversationHistory,
   currentPartNumber,
@@ -150,6 +183,9 @@ async function processSpeakingTurn({
   sessionId,
   snapshotQuestionIndex,
   speechConfidence,
+  pronunciationAudioBase64,
+  pronunciationDurationMs,
+  requestPronunciation,
   testId,
 }) {
   try {
@@ -159,10 +195,15 @@ async function processSpeakingTurn({
       turnId: crypto.randomUUID(),
       partNumber: currentPartNumber,
       audioBase64,
+      audioMimeType,
+      audioDurationMs,
       conversationHistory,
       currentQuestionIndex: snapshotQuestionIndex,
       questionContext,
       speechConfidence,
+      pronunciationAudioBase64,
+      pronunciationDurationMs,
+      requestPronunciation,
     });
   } catch (error) {
     console.error('Edge Function failed:', error);
@@ -227,12 +268,10 @@ function handleSuccessfulTurn(response, context) {
   const {
     acousticMetricsRef,
     currentPartNumber,
-    pendingTimersRef,
     questionIndexRef,
     saveSessionProgress,
     session,
     setAllPartsAcousticMetrics,
-    setConversation,
     setCurrentQuestionIndex,
   } = context;
 

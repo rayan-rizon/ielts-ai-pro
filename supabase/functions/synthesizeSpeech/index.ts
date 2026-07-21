@@ -29,6 +29,7 @@ declare const EdgeRuntime: any;
 // ============================================================
 
 const TTS_BUCKET = 'tts-cache';
+const GOOGLE_NEURAL2_COST_PER_CHARACTER_USD = 0.000016;
 
 // en-GB-Neural2-B: male, warm, natural British English — least robotic Neural2 voice
 const DEFAULT_VOICE = 'en-GB-Neural2-B';
@@ -342,6 +343,7 @@ serve(async (req: Request) => {
       voice: voiceName,
       audioBytes: audioBuffer.byteLength,
       billingUnit: 'characters',
+      estimatedProviderCostUsd: cleanText.length * GOOGLE_NEURAL2_COST_PER_CHARACTER_USD,
     });
 
     return new Response(
