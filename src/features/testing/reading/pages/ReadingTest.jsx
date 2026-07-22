@@ -1039,6 +1039,7 @@ function ReadingTestContent() {
           testData={testData}
           earnedXP={earnedXP}
           user={user}
+          sessionId={session?.id}
           onClose={() => setShowResults(false)}
           onReviewAnswers={() => {
             setShowResults(false);

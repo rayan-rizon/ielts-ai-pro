@@ -88,65 +88,65 @@ export function HeroScoreCard({ testResults }) {
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 px-3 py-2.5">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/70 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 px-3.5 py-2.5">
             <div className="flex items-center gap-2.5 min-w-0">
               <StatIcon tone="blue">
                 <Check className="w-4 h-4 stroke-[2.5]" />
               </StatIcon>
               <div>
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Correct
                 </p>
-                <p className="text-base font-black leading-none text-slate-950 dark:text-white">
-                  {correct} <span className="text-xs font-semibold text-slate-400">/ {total}</span>
+                <p className="text-base font-black leading-none text-slate-900 dark:text-white mt-0.5">
+                  {correct} <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">/ {total}</span>
                 </p>
               </div>
             </div>
             <div className="text-right shrink-0">
               <p className="text-sm font-black text-blue-600 dark:text-blue-400">{accuracy}%</p>
-              <p className="text-[9px] font-semibold text-slate-400">Accuracy</p>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Accuracy</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <div className="flex items-center gap-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 px-3 py-2.5">
+            <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/70 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 px-3.5 py-2.5">
               <StatIcon tone="rose">
                 <X className="w-4 h-4 stroke-[2.5]" />
               </StatIcon>
               <div>
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Mistakes
                 </p>
-                <p className="text-base font-black leading-none text-slate-950 dark:text-white">
+                <p className="text-base font-black leading-none text-slate-900 dark:text-white mt-0.5">
                   {mistakes}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 px-3 py-2.5">
+            <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/70 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 px-3.5 py-2.5">
               <StatIcon tone="amber">
                 <Minus className="w-4 h-4 stroke-[2.5]" />
               </StatIcon>
               <div>
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Skipped
                 </p>
-                <p className="text-base font-black leading-none text-slate-950 dark:text-white">
+                <p className="text-base font-black leading-none text-slate-900 dark:text-white mt-0.5">
                   {unanswered}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 px-3 py-2">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/70 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 px-3.5 py-2.5">
             <div className="flex items-center gap-2.5 min-w-0">
               <StatIcon tone="slate">
                 <Clock className="w-4 h-4" />
               </StatIcon>
-              <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                 Time taken
               </span>
             </div>
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">
               {formattedTime}
             </span>
           </div>

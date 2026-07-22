@@ -39,24 +39,24 @@ const ModalFooter = ({ isPremium, handleUpgrade, onReviewAnswers, onClose }) => 
             <Crown className="w-3.5 h-3.5" />
           </div>
           <div className="text-left">
-            <p className="text-[10px] font-black uppercase tracking-wide text-amber-600 dark:text-amber-400 leading-tight">
+            <p className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 leading-tight">
               Pro Analysis
             </p>
-            <p className="text-[10px] font-semibold text-slate-500 leading-tight">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 leading-tight">
               Unlock all insights
             </p>
           </div>
         </div>
       ) : (
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500">
-            <Sparkles className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-500">
+            <Sparkles className="w-4 h-4" />
           </div>
           <div className="text-left">
-            <p className="text-[10px] font-black uppercase tracking-wide text-emerald-600 dark:text-emerald-400 leading-tight">
+            <p className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 leading-tight">
               Premium Active
             </p>
-            <p className="text-[10px] font-semibold text-slate-500 leading-tight">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 leading-tight">
               Full analysis visible
             </p>
           </div>
@@ -152,6 +152,10 @@ function checkIsPremium(user, isAdmin) {
 const ModalContent = React.memo(
   ({
     testResults,
+    testData,
+    userId,
+    sessionId,
+    targetBand,
     isPremium,
     testType,
     activeTab,
@@ -159,6 +163,7 @@ const ModalContent = React.memo(
     handleUpgrade,
     onReviewAnswers,
     onNavigateToQuestion,
+    onReviewQuestion,
     onClose,
   }) => (
     <motion.div
@@ -206,15 +211,14 @@ const ModalContent = React.memo(
                 <TabsContent value="analysis" forceMount className="m-0 focus-visible:outline-none">
                   <DetailedAnalysisTab
                     testResults={testResults}
-                    isLocked={!isPremium}
+                    testData={testData}
+                    userId={userId}
+                    sessionId={sessionId}
+                    targetBand={targetBand}
                     onUpgrade={handleUpgrade}
                     isPremium={isPremium}
                     testType={testType}
-                    totalTimeSeconds={
-                      testResults?.timeMetrics?.totalTimeSpent ||
-                      testResults?.durationMinutes * 60 ||
-                      0
-                    }
+                    onReviewQuestion={onReviewQuestion}
                   />
                 </TabsContent>
               )}
@@ -238,7 +242,8 @@ ModalContent.displayName = 'ModalContent';
 export default function TestResultsModal({
   showResults,
   testResults,
-  _testData,
+  testData,
+  sessionId,
   _earnedXP,
   user,
   onClose,
@@ -261,6 +266,18 @@ export default function TestResultsModal({
   const handleUpgrade = React.useCallback(() => {
     navigate('/pricing');
   }, [navigate]);
+
+  const handleReviewQuestion = React.useCallback(
+    (questionNumber) => {
+      onClose?.();
+      if (onNavigateToQuestion) {
+        onNavigateToQuestion(questionNumber);
+      } else {
+        onReviewAnswers?.();
+      }
+    },
+    [onClose, onNavigateToQuestion, onReviewAnswers]
+  );
 
   const { showCelebration, particleCount, celebrationTheme, setShowCelebration } = useCelebration(
     showResults,
@@ -287,6 +304,10 @@ export default function TestResultsModal({
 
         <ModalContent
           testResults={normalizedResults}
+          testData={testData}
+          userId={user?.id}
+          sessionId={sessionId}
+          targetBand={user?.target_band_score}
           isPremium={isPremium}
           testType={testType}
           activeTab={activeTab}
@@ -294,6 +315,7 @@ export default function TestResultsModal({
           handleUpgrade={handleUpgrade}
           onReviewAnswers={onReviewAnswers}
           onNavigateToQuestion={onNavigateToQuestion}
+          onReviewQuestion={handleReviewQuestion}
           onClose={onClose}
         />
       </motion.div>

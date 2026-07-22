@@ -79,7 +79,7 @@ export const AnswerKeySection = React.memo(
             <button
               onClick={() => setFilterTab('all')}
               className={cn(
-                'px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all',
+                'px-3 py-1 rounded-lg text-xs font-bold transition-all',
                 filterTab === 'all'
                   ? 'bg-blue-600 text-white shadow-xs'
                   : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
@@ -90,7 +90,7 @@ export const AnswerKeySection = React.memo(
             <button
               onClick={() => setFilterTab('wrong')}
               className={cn(
-                'px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all',
+                'px-3 py-1 rounded-lg text-xs font-bold transition-all',
                 filterTab === 'wrong'
                   ? 'bg-rose-500 text-white shadow-xs'
                   : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
@@ -101,7 +101,7 @@ export const AnswerKeySection = React.memo(
             <button
               onClick={() => setFilterTab('skipped')}
               className={cn(
-                'px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all',
+                'px-3 py-1 rounded-lg text-xs font-bold transition-all',
                 filterTab === 'skipped'
                   ? 'bg-amber-500 text-white shadow-xs'
                   : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
@@ -131,7 +131,7 @@ export const AnswerKeySection = React.memo(
                     }
                   }}
                   className={cn(
-                    'h-7 rounded-lg flex items-center justify-center text-[10px] font-black transition-all border',
+                    'h-8 rounded-lg flex items-center justify-center text-xs font-black transition-all border',
                     'active:scale-95 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500/50',
                     status === 'correct'
                       ? 'bg-emerald-50/90 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-800/60 hover:bg-emerald-100'

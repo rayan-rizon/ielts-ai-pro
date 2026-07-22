@@ -102,9 +102,16 @@ export const useListeningTestLogic = () => {
                     ? [testData]
                     : []
               );
+              const storedMetrics = existingSession.content_data || {};
+              const hydratedResults = {
+                ...results,
+                responseDetails: storedMetrics.responseDetails || results.responseDetails,
+                answerChangeCounts: storedMetrics.answerChangeCounts || {},
+                durationMinutes: existingSession.duration_minutes || null,
+              };
 
               dispatch({ type: ACTIONS.SET_CORRECT_ANSWERS_MAP, payload: results.answersMap });
-              dispatch({ type: ACTIONS.SET_RESULTS, payload: results });
+              dispatch({ type: ACTIONS.SET_RESULTS, payload: hydratedResults });
 
               // Only show modal if EXPLICITLY requested via URL
               if (viewResults) {
@@ -387,15 +394,26 @@ export const useListeningTestLogic = () => {
           };
         }
 
+        dispatch({
+          type: ACTIONS.SET_RESULTS,
+          payload: {
+            ...results,
+            answerChangeCounts,
+            durationMinutes: actualTimeSpentMinutes,
+          },
+        });
+
         await TestSession.update(session.id, {
           is_completed: true,
           score: results.bandScore,
           completed_at: new Date().toISOString(),
           duration_minutes: actualTimeSpentMinutes,
+          user_responses: answers || {},
           content_data: {
             ...session.content_data,
             // Core metrics
             correctAnswersMap: results.answersMap || {},
+            responseDetails: results.responseDetails || [],
             totalQuestions: results.totalQuestions || 40,
             correctAnswers: results.correctAnswers || 0,
             percentage: results.percentage || 0,

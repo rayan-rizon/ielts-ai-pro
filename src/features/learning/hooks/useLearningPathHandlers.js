@@ -32,12 +32,15 @@ export function usePathStrategy(queryClient) {
 export function useTaskActions(activityByKey, scheduleTasks, toggleActivity) {
   const handleTaskToggle = useCallback(
     async (dayName, taskIdx) => {
-      const activityKey = `${dayName}_${taskIdx}`;
-      const existing = activityByKey[activityKey];
-      const wasCompleted = !!existing?.is_completed;
       const dayIndex = dayNames.indexOf(dayName);
       const tasks = scheduleTasks[dayIndex]?.tasks || [];
       const task = tasks[taskIdx];
+      const activityKey =
+        typeof task === 'object' && task?.activity_key
+          ? task.activity_key
+          : `${dayName}_${taskIdx}`;
+      const existing = activityByKey[activityKey];
+      const wasCompleted = !!existing?.is_completed;
 
       try {
         await toggleActivity({
@@ -59,7 +62,10 @@ export function useTaskActions(activityByKey, scheduleTasks, toggleActivity) {
 
   const handleQuickComplete = useCallback(
     async (dayName, taskIdx, task) => {
-      const activityKey = `${dayName}_${taskIdx}`;
+      const activityKey =
+        typeof task === 'object' && task?.activity_key
+          ? task.activity_key
+          : `${dayName}_${taskIdx}`;
       try {
         await toggleActivity({
           activityKey,

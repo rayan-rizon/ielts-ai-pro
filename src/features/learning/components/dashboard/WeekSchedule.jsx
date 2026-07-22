@@ -195,7 +195,7 @@ const WeekSchedule = ({
                   }
                 : t;
             const config = moduleConfig[task.module] || moduleConfig.reading;
-            const activityKey = `${dayNames[selectedDayIndex]}_${idx}`;
+            const activityKey = task.activity_key || `${dayNames[selectedDayIndex]}_${idx}`;
             const record = activityByKey[activityKey];
             const isDone = !!record?.is_completed;
             const outcomeScore = record?.outcome_score;

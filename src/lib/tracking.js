@@ -30,6 +30,10 @@ const META_SUPPRESSED_EVENTS = new Set([
   'writing_submitted',
   'speaking_submitted',
   'subscription_activation_error',
+  'premium_analysis_viewed',
+  'premium_analysis_review_clicked',
+  'premium_plan_saved',
+  'premium_analysis_upgrade_clicked',
 ]);
 
 const isBrowser = () => typeof window !== 'undefined';

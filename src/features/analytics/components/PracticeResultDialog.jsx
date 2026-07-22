@@ -290,6 +290,7 @@ export default function PracticeResultDialog({ session, user, onClose }) {
       <TestResultsModal
         showResults
         testResults={testResults}
+        sessionId={session.id}
         user={user}
         testType={session.type}
         celebrate={false}

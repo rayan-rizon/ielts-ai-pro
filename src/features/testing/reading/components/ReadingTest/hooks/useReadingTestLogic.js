@@ -157,6 +157,9 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
                   typeStats: contentData.typeStats || {},
                   correctAnswersMap: contentData.correctAnswersMap || {},
                   userResponses: userResponses,
+                  responseDetails: contentData.responseDetails || [],
+                  passageTimes: contentData.passageTimes || {},
+                  answerChangeCounts: contentData.answerChangeCounts || {},
                   // Enhanced metrics (may not exist for older sessions)
                   timeMetrics: contentData.timeMetrics || null,
                   errorPatterns: contentData.errorPatterns || null,
@@ -442,6 +445,8 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
           // Include timestamps for AnswerJourneyCard
           answerTimestamps,
           timePerQuestionSeconds,
+          passageTimes,
+          answerChangeCounts,
           // Include previous score for Band Trend badge
           previousBandScore,
         };
@@ -464,6 +469,7 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
             sectionStats: results.sectionStats,
             typeStats: results.typeStats,
             correctAnswersMap: results.correctAnswersMap,
+            responseDetails: results.responseDetails,
             totalQuestions: results.totalQuestions,
             correctAnswers: results.correctAnswers,
             percentage: Math.round(results.percentage),

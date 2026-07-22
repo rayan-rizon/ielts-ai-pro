@@ -92,7 +92,7 @@ export function QuestionTypeBreakdown({ testResults }) {
                   <IconComponent className="w-3.5 h-3.5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="min-h-[22px] text-[10px] font-bold text-slate-800 dark:text-slate-200 leading-[1.1] line-clamp-2">
+                  <h4 className="min-h-[24px] text-xs font-extrabold text-slate-900 dark:text-white leading-tight line-clamp-2">
                     {item.label}
                   </h4>
                 </div>
@@ -101,15 +101,15 @@ export function QuestionTypeBreakdown({ testResults }) {
               <div className="flex items-baseline justify-between pt-1">
                 <p className="text-xs font-black text-slate-900 dark:text-white leading-none">
                   {item.correct}{' '}
-                  <span className="text-[11px] font-semibold text-slate-400">/ {item.total}</span>
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">/ {item.total}</span>
                 </p>
-                <span className="text-xs font-black text-slate-700 dark:text-slate-300">
+                <span className="text-xs font-black text-slate-800 dark:text-slate-200">
                   {item.accuracy}%
                 </span>
               </div>
 
               {/* Progress Bar */}
-              <div className="h-1.5 bg-slate-200/70 dark:bg-slate-700/60 rounded-full overflow-hidden">
+              <div className="h-2 bg-slate-200/70 dark:bg-slate-700/60 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${item.accuracy}%` }}

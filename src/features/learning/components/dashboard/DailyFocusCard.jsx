@@ -270,7 +270,7 @@ const DailyFocusCard = ({
                               estimated_time: 30,
                             }
                           : t;
-                      const activityKey = `${todaysTasks.day}_${idx}`;
+                      const activityKey = task.activity_key || `${todaysTasks.day}_${idx}`;
                       const done = !!activityByKey[activityKey]?.is_completed;
                       return (
                         <button

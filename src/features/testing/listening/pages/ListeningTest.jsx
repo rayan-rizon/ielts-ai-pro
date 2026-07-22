@@ -847,6 +847,7 @@ function ListeningTestInner() {
           testData={testData}
           earnedXP={earnedXP}
           user={currentUser}
+          sessionId={session?.id}
           onClose={() => dispatch({ type: ACTIONS.SHOW_RESULTS_MODAL, payload: false })}
           onReviewAnswers={() => {
             dispatch({ type: ACTIONS.SHOW_RESULTS_MODAL, payload: false });

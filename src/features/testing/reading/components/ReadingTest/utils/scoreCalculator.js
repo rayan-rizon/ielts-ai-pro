@@ -652,14 +652,14 @@ export const calculateTestResults = (questions, answers, sections = []) => {
     sectionStats,
     correctAnswersMap,
     userResponses,
-    responseDetails: allDetails.map((detail) => ({
+    responseDetails: userResponses.map((detail) => ({
       questionId: detail.questionId,
       questionNumber: detail.questionNumber,
       type: detail.type,
       sectionIndex: detail.sectionIndex,
       userAnswer: detail.userAnswer,
       correctAnswer: detail.correctAnswer,
-      isCorrect: detail.isQuestionCorrect ?? detail.isCorrect,
+      isCorrect: detail.isCorrect,
     })),
   };
 };

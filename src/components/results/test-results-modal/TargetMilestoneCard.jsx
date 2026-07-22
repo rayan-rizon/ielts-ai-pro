@@ -89,7 +89,7 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
 
       {/* Header */}
       <div className="flex items-center justify-between z-10">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 flex items-center justify-center">
             <Target className="w-4 h-4" />
           </div>
@@ -97,14 +97,14 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
             Your Path to Band {nextBand.toFixed(1)}
           </h3>
         </div>
-        <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 text-[10px] font-bold border border-blue-200 dark:border-blue-800">
+        <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 text-xs font-bold border border-blue-200 dark:border-blue-800">
           Band {nextBand.toFixed(1)}
         </span>
       </div>
 
       {/* Milestone Progress Bar (Clean non-overlapping header) */}
-      <div className="space-y-1 z-10">
-        <div className="flex items-center justify-between text-[11px] font-bold">
+      <div className="space-y-1.5 z-10">
+        <div className="flex items-center justify-between text-xs font-bold">
           <span className="text-slate-500 dark:text-slate-400">
             Progress to Band {nextBand.toFixed(1)}
           </span>
@@ -112,7 +112,7 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
             {progressPct}%
           </span>
         </div>
-        <div className="h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progressPct}%` }}
@@ -123,18 +123,18 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
       </div>
 
       {/* Key Weakness Card */}
-      <div className="p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 flex items-start gap-2.5 z-10">
-        <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900 flex items-center justify-center shrink-0">
-          <Target className="w-3.5 h-3.5" />
+      <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 flex items-start gap-3 z-10">
+        <div className="w-8.5 h-8.5 rounded-xl bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900 flex items-center justify-center shrink-0">
+          <Target className="w-4 h-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[9px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
+          <p className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
             Key weakness
           </p>
           <h4 className="text-sm font-black text-slate-950 dark:text-white leading-tight my-0.5">
             {weakestLabel}
           </h4>
-          <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-snug">
             Focus on improving accuracy in {weakestLabel.toLowerCase()} questions.
           </p>
         </div>

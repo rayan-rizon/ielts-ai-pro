@@ -84,9 +84,12 @@ function calculateCompletion(scheduleTasks, activityByKey) {
   let total = 0;
   let completed = 0;
   scheduleTasks.forEach((day, dIdx) => {
-    (day.tasks || []).forEach((_task, tIdx) => {
+    (day.tasks || []).forEach((task, tIdx) => {
       total++;
-      const key = `${dayNames[dIdx]}_${tIdx}`;
+      const key =
+        typeof task === 'object' && task?.activity_key
+          ? task.activity_key
+          : `${dayNames[dIdx]}_${tIdx}`;
       if (activityByKey?.[key]?.is_completed) completed++;
     });
   });
