@@ -17,13 +17,38 @@ export { normalizeAnswer, isAnswerCorrect };
  */
 export const calculateBandScore = calculateReadingBandScore;
 
+function findBlankMetadata(patternNum, absoluteIdx, blanksMetadata, sortedBlanks) {
+  let blankMeta = blanksMetadata.find((b) => b.blankNumber === patternNum);
+  if (!blankMeta && sortedBlanks[patternNum - 1]) blankMeta = sortedBlanks[patternNum - 1];
+  if (!blankMeta && sortedBlanks[absoluteIdx]) blankMeta = sortedBlanks[absoluteIdx];
+  return blankMeta;
+}
+
+function processInlineCellMatches(cellStr, blanksMetadata, sortedBlanks, absoluteIdx, qId, allGaps) {
+  const inlineMatches = cellStr.match(/__BLANK_(\d+)__/g);
+  if (!inlineMatches) return absoluteIdx;
+
+  let currentIdx = absoluteIdx;
+  inlineMatches.forEach((match) => {
+    const patternNum = parseInt(match.match(/__BLANK_(\d+)__/)[1], 10);
+    const blankMeta = findBlankMetadata(patternNum, currentIdx, blanksMetadata, sortedBlanks);
+    const actualQuestionNumber = blankMeta?.blankNumber || patternNum;
+
+    allGaps.push({
+      blankNum: actualQuestionNumber,
+      absoluteIdx: currentIdx,
+      answerKey: `${qId}_${currentIdx}`,
+      correctAnswer: blankMeta?.answer || blankMeta?.correct_answer || '',
+    });
+    currentIdx++;
+  });
+  return currentIdx;
+}
+
 /**
- * Score a single question and return scoring details
- * @param {Object} question - Question object
- * @param {Object} answers - User answers map { questionId: answer }
- * @returns {{ total: number, correct: number, details: Array }} Scoring result
+ * Extract table gap metadata from table rows and cells.
  */
-function scoreTableQuestion(q, answers, result) {
+function collectTableGaps(q) {
   const rows = q.table_data?.rows || [];
   const blanksMetadata = q.table_data?.blanks || q.table_data?.blank_positions || [];
   const sortedBlanks = [...blanksMetadata].sort(
@@ -37,24 +62,7 @@ function scoreTableQuestion(q, answers, result) {
     const cells = Array.isArray(row) ? row : [];
     cells.forEach((cell, cIdx) => {
       const cellStr = cell || '';
-      const inlineMatches = cellStr.match(/__BLANK_(\d+)__/g);
-      if (inlineMatches) {
-        inlineMatches.forEach((match) => {
-          const patternNum = parseInt(match.match(/__BLANK_(\d+)__/)[1]);
-          let blankMeta = blanksMetadata.find((b) => b.blankNumber === patternNum);
-          if (!blankMeta && sortedBlanks[patternNum - 1]) blankMeta = sortedBlanks[patternNum - 1];
-          if (!blankMeta && sortedBlanks[absoluteIdx]) blankMeta = sortedBlanks[absoluteIdx];
-          const actualQuestionNumber = blankMeta?.blankNumber || patternNum;
-
-          allGaps.push({
-            blankNum: actualQuestionNumber,
-            absoluteIdx,
-            answerKey: `${q.id}_${absoluteIdx}`,
-            correctAnswer: blankMeta?.answer || blankMeta?.correct_answer || '',
-          });
-          absoluteIdx++;
-        });
-      }
+      absoluteIdx = processInlineCellMatches(cellStr, blanksMetadata, sortedBlanks, absoluteIdx, q.id, allGaps);
 
       const legacyBlank = blanksMetadata.find((b) => b.row === rIdx && b.col === cIdx);
       if (legacyBlank && !cellStr.includes('__BLANK_')) {
@@ -70,78 +78,103 @@ function scoreTableQuestion(q, answers, result) {
     });
   });
 
+  return allGaps;
+}
+
+function checkMultiplePartAnswers(userAnswers, correctAnswerParts, groupGapsCount) {
+  if (userAnswers.length < correctAnswerParts.length) return false;
+  if (correctAnswerParts.length !== groupGapsCount) return false;
+
+  const allPartsCorrect = userAnswers.every((userAns, idx) =>
+    isAnswerCorrect(userAns, correctAnswerParts[idx] || correctAnswerParts[0])
+  );
+  const orderIndependent =
+    correctAnswerParts.every((correctPart) =>
+      userAnswers.some((userAns) => isAnswerCorrect(userAns, correctPart))
+    ) && userAnswers.length === correctAnswerParts.length;
+
+  return allPartsCorrect || orderIndependent;
+}
+
+/**
+ * Evaluate accuracy for a group of table gap inputs.
+ */
+function evaluateTableGapGroup(group, answers) {
+  const correctAnswerStr = group.gaps[0]?.correctAnswer || '';
+  const userAnswers = group.gaps
+    .map((gap) => (answers[gap.answerKey] || '').trim())
+    .filter(Boolean);
+
+  if (userAnswers.length === 0) return null;
+  if (group.gaps.length <= 1) {
+    return userAnswers.some((userAns) => isAnswerCorrect(userAns, correctAnswerStr));
+  }
+
+  const correctAnswerParts = correctAnswerStr
+    .split(/,\s*/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  return checkMultiplePartAnswers(userAnswers, correctAnswerParts, group.gaps.length);
+}
+
+function evaluateGapInputStatus(userAns, isCorrect, hasMultipleInputs, correctAnswerParts, correctAnswerStr, idx) {
+  if (userAns === '') return null;
+  if (hasMultipleInputs && correctAnswerParts.length > idx) {
+    return isAnswerCorrect(userAns, correctAnswerParts[idx]);
+  }
+  if (!hasMultipleInputs) {
+    return isAnswerCorrect(userAns, correctAnswerStr);
+  }
+  return isCorrect;
+}
+
+/**
+ * Score table completion question type.
+ */
+function scoreTableQuestion(q, answers, result) {
+  const allGaps = collectTableGaps(q);
   const groupedByBlankNum = {};
+
   allGaps.forEach((gap) => {
     if (!groupedByBlankNum[gap.blankNum]) {
-      groupedByBlankNum[gap.blankNum] = { blankNum: gap.blankNum, gaps: [], correctAnswers: [] };
+      groupedByBlankNum[gap.blankNum] = { blankNum: gap.blankNum, gaps: [] };
     }
     groupedByBlankNum[gap.blankNum].gaps.push(gap);
   });
 
   Object.values(groupedByBlankNum).forEach((group) => {
     result.total++;
-    const correctAnswerStr = group.gaps[0]?.correctAnswer || '';
-    const userAnswers = group.gaps
-      .map((gap) => (answers[gap.answerKey] || '').trim())
-      .filter(Boolean);
-    const hasMultipleInputs = group.gaps.length > 1;
-    const isQuestionAnswered = userAnswers.length > 0;
-    let isCorrect = null;
-
-    if (!isQuestionAnswered) {
-      isCorrect = null;
-    } else if (hasMultipleInputs) {
-      const correctAnswerParts = correctAnswerStr
-        .split(/,\s*/)
-        .map((p) => p.trim())
-        .filter(Boolean);
-      if (userAnswers.length < correctAnswerParts.length) {
-        isCorrect = false;
-      } else if (correctAnswerParts.length === group.gaps.length) {
-        const allPartsCorrect = userAnswers.every((userAns, idx) =>
-          isAnswerCorrect(userAns, correctAnswerParts[idx] || correctAnswerParts[0])
-        );
-        const orderIndependent =
-          correctAnswerParts.every((correctPart) =>
-            userAnswers.some((userAns) => isAnswerCorrect(userAns, correctPart))
-          ) && userAnswers.length === correctAnswerParts.length;
-
-        isCorrect = allPartsCorrect || orderIndependent;
-      } else {
-        isCorrect = false;
-      }
-    } else {
-      isCorrect = userAnswers.some((userAns) => isAnswerCorrect(userAns, correctAnswerStr));
-    }
-
+    const isCorrect = evaluateTableGapGroup(group, answers);
     if (isCorrect === true) result.correct++;
 
+    const correctAnswerStr = group.gaps[0]?.correctAnswer || '';
     const correctAnswerParts = correctAnswerStr
       .split(/,\s*/)
       .map((p) => p.trim())
       .filter(Boolean);
+    const hasMultipleInputs = group.gaps.length > 1;
 
     group.gaps.forEach((gap, idx) => {
       const userAns = (answers[gap.answerKey] || '').trim();
-      const isInputEmpty = userAns === '';
-      let inputIsCorrect = isCorrect;
-      if (isInputEmpty) {
-        inputIsCorrect = null;
-      } else if (hasMultipleInputs && correctAnswerParts.length > idx) {
-        inputIsCorrect = isAnswerCorrect(userAns, correctAnswerParts[idx]);
-      } else if (!hasMultipleInputs) {
-        inputIsCorrect = isAnswerCorrect(userAns, correctAnswerStr);
-      }
+      const inputIsCorrect = evaluateGapInputStatus(
+        userAns,
+        isCorrect,
+        hasMultipleInputs,
+        correctAnswerParts,
+        correctAnswerStr,
+        idx
+      );
 
       result.details.push({
         questionId: gap.answerKey,
         questionNumber: group.blankNum,
         userAnswer: userAns,
-        correctAnswer: gap.correctAnswer || group.gaps[0]?.correctAnswer || '',
+        correctAnswer: gap.correctAnswer || correctAnswerStr,
         isCorrect: inputIsCorrect,
         isQuestionCorrect: isCorrect,
-        isInputEmpty,
-        isGroupedQuestion: group.gaps.length > 1,
+        isInputEmpty: userAns === '',
+        isGroupedQuestion: hasMultipleInputs,
         groupIndex: idx,
         groupSize: group.gaps.length,
       });
@@ -151,43 +184,44 @@ function scoreTableQuestion(q, answers, result) {
   return result;
 }
 
+/**
+ * Helper to record normalized single-answer option scores.
+ */
+function scoreNormalizedPair({ answerKey, questionNumber, rawUserAns, correctAnswer }, result) {
+  result.total++;
+  const userAnswer = normalizeAnswer(rawUserAns);
+  const isCorrect = userAnswer === normalizeAnswer(correctAnswer);
+
+  if (isCorrect) result.correct++;
+  result.details.push({
+    questionId: answerKey,
+    questionNumber,
+    userAnswer: (rawUserAns || '').trim(),
+    correctAnswer,
+    isCorrect,
+  });
+}
+
 function scoreMatchingHeadingsQuestion(q, answers, result) {
   q.matching_data.paragraphs.forEach((para) => {
-    result.total++;
     const answerKey = `${q.id}_${para.label}`;
-    const userAnswer = normalizeAnswer(answers[answerKey]);
-    const correctAnswer = para.correct_heading || '';
-    const isCorrect = userAnswer === normalizeAnswer(correctAnswer);
-
-    if (isCorrect) result.correct++;
-    result.details.push({
-      questionId: answerKey,
-      questionNumber: para.label,
-      userAnswer: (answers[answerKey] || '').trim(),
-      correctAnswer,
-      isCorrect,
-    });
+    scoreNormalizedPair(
+      { answerKey, questionNumber: para.label, rawUserAns: answers[answerKey], correctAnswer: para.correct_heading || '' },
+      result
+    );
   });
   return result;
 }
 
 function scoreMatchingQuestion(q, answers, result) {
   q.options.forEach((option, idx) => {
-    result.total++;
     const letter = String.fromCharCode(65 + idx);
     const answerKey = `${q.id}_${letter}`;
-    const userAnswer = normalizeAnswer(answers[answerKey]);
-    const correctAnswer = q.correct_answers?.[letter] || '';
-    const isCorrect = userAnswer === normalizeAnswer(correctAnswer);
-
-    if (isCorrect) result.correct++;
-    result.details.push({
-      questionId: answerKey,
-      questionNumber: `${q.question_number || '•'}${letter.toLowerCase()}`,
-      userAnswer: (answers[answerKey] || '').trim(),
-      correctAnswer,
-      isCorrect,
-    });
+    const questionNumber = `${q.question_number || '•'}${letter.toLowerCase()}`;
+    scoreNormalizedPair(
+      { answerKey, questionNumber, rawUserAns: answers[answerKey], correctAnswer: q.correct_answers?.[letter] || '' },
+      result
+    );
   });
   return result;
 }
@@ -195,40 +229,64 @@ function scoreMatchingQuestion(q, answers, result) {
 function scoreMatchingFeaturesQuestion(q, answers, result) {
   if (q.matching_features.mode === 'paragraph' && q.matching_features.answers) {
     Object.entries(q.matching_features.answers).forEach(([qNum, correctAns]) => {
-      result.total++;
       const answerKey = `${q.id}_${qNum}`;
-      const userAnswer = normalizeAnswer(answers[answerKey]);
-      const isCorrect = userAnswer === normalizeAnswer(correctAns);
-
-      if (isCorrect) result.correct++;
-      result.details.push({
-        questionId: answerKey,
-        questionNumber: qNum,
-        userAnswer: (answers[answerKey] || '').trim(),
-        correctAnswer: correctAns || '',
-        isCorrect,
-      });
+      scoreNormalizedPair(
+        { answerKey, questionNumber: qNum, rawUserAns: answers[answerKey], correctAnswer: correctAns || '' },
+        result
+      );
     });
   } else if (q.matching_features.questions) {
     q.matching_features.questions.forEach((mfq, idx) => {
-      result.total++;
       const answerKey = `${q.id}_${mfq.id || idx}`;
-      const userAnswer = normalizeAnswer(answers[answerKey]);
+      const qNum = mfq.questionNumber || (q.question_number ? parseInt(q.question_number, 10) + idx : idx + 1);
       const correctAnswer = mfq.answer || mfq.correct_answer || '';
-      const isCorrect = userAnswer === normalizeAnswer(correctAnswer);
-
-      if (isCorrect) result.correct++;
-      result.details.push({
-        questionId: answerKey,
-        questionNumber:
-          mfq.questionNumber || (q.question_number ? parseInt(q.question_number) + idx : idx + 1),
-        userAnswer: (answers[answerKey] || '').trim(),
-        correctAnswer,
-        isCorrect,
-      });
+      scoreNormalizedPair(
+        { answerKey, questionNumber: qNum, rawUserAns: answers[answerKey], correctAnswer },
+        result
+      );
     });
   }
   return result;
+}
+
+function scoreNotesStructuredText(q, answers, gapMatches, result) {
+  gapMatches.forEach((match) => {
+    result.total++;
+    const gapNum = parseInt(match[1], 10);
+    const answerKey = `${q.id}_gap_${gapNum}`;
+    const userAns = (answers[answerKey] || '').trim();
+    const correctAnswer = q.gap_fill.answers?.[gapNum] || '';
+    const isCorrect = userAns === '' ? null : isAnswerCorrect(userAns, correctAnswer);
+
+    if (isCorrect === true) result.correct++;
+    result.details.push({
+      questionId: answerKey,
+      questionNumber: gapNum,
+      userAnswer: userAns,
+      correctAnswer,
+      isCorrect,
+    });
+  });
+}
+
+function scoreNotesFallbackGaps(q, answers, result) {
+  const gapCount = q.gap_fill.gap_count || 1;
+  for (let i = 0; i < gapCount; i++) {
+    result.total++;
+    const answerKey = `${q.id}_gap_${i + 1}`;
+    const userAns = (answers[answerKey] || '').trim();
+    const correctAnswer = q.gap_fill.answers?.[i + 1] || q.gap_fill.answers?.[i] || '';
+    const isCorrect = userAns === '' ? null : isAnswerCorrect(userAns, correctAnswer);
+
+    if (isCorrect === true) result.correct++;
+    result.details.push({
+      questionId: answerKey,
+      questionNumber: q.question_number ? parseInt(String(q.question_number), 10) + i : i + 1,
+      userAnswer: userAns,
+      correctAnswer,
+      isCorrect,
+    });
+  }
 }
 
 function scoreNotesCompletionQuestion(q, answers, result) {
@@ -236,43 +294,9 @@ function scoreNotesCompletionQuestion(q, answers, result) {
   const gapMatches = Array.from(text.matchAll(/\[(\d+)\]/g));
 
   if (gapMatches.length > 0) {
-    gapMatches.forEach((match) => {
-      result.total++;
-      const gapNum = parseInt(match[1]);
-      const answerKey = `${q.id}_gap_${gapNum}`;
-      const userAns = (answers[answerKey] || '').trim();
-      const correctAnswer = q.gap_fill.answers?.[gapNum] || '';
-
-      const isCorrect = userAns === '' ? null : isAnswerCorrect(userAns, correctAnswer);
-
-      if (isCorrect === true) result.correct++;
-      result.details.push({
-        questionId: answerKey,
-        questionNumber: gapNum,
-        userAnswer: userAns,
-        correctAnswer,
-        isCorrect,
-      });
-    });
+    scoreNotesStructuredText(q, answers, gapMatches, result);
   } else {
-    const gapCount = q.gap_fill.gap_count || 1;
-    for (let i = 0; i < gapCount; i++) {
-      result.total++;
-      const answerKey = `${q.id}_gap_${i + 1}`;
-      const userAns = (answers[answerKey] || '').trim();
-      const correctAnswer = q.gap_fill.answers?.[i + 1] || q.gap_fill.answers?.[i] || '';
-
-      const isCorrect = userAns === '' ? null : isAnswerCorrect(userAns, correctAnswer);
-
-      if (isCorrect === true) result.correct++;
-      result.details.push({
-        questionId: answerKey,
-        questionNumber: q.question_number ? parseInt(String(q.question_number)) + i : i + 1,
-        userAnswer: userAns,
-        correctAnswer,
-        isCorrect,
-      });
-    }
+    scoreNotesFallbackGaps(q, answers, result);
   }
   return result;
 }
@@ -304,158 +328,126 @@ function scoreFlowchartQuestion(q, answers, result) {
   return result;
 }
 
+function scoreSentenceSingle(q, answers, blankCount, result) {
+  result.total++;
+  let correctBlanks = 0;
+
+  for (let i = 0; i < blankCount; i++) {
+    const answerKey = `${q.id}_blank_${i + 1}`;
+    const correctAnswer = q.correct_answers?.[i] || '';
+    const isCorrect = isAnswerCorrect(answers[answerKey], correctAnswer);
+    if (isCorrect) correctBlanks++;
+
+    result.details.push({
+      questionId: answerKey,
+      questionNumber: q.question_number,
+      userAnswer: (answers[answerKey] || '').trim(),
+      correctAnswer,
+      isCorrect,
+    });
+  }
+
+  if (correctBlanks === blankCount) result.correct++;
+}
+
+function scoreSentenceMulti(q, answers, blankCount, result) {
+  for (let i = 0; i < blankCount; i++) {
+    result.total++;
+    const answerKey = `${q.id}_blank_${i + 1}`;
+    const correctAnswer = q.correct_answers?.[i] || '';
+    const isCorrect = isAnswerCorrect(answers[answerKey], correctAnswer);
+
+    if (isCorrect) result.correct++;
+    result.details.push({
+      questionId: answerKey,
+      questionNumber: q.question_number ? `${q.question_number}.${i + 1}` : i + 1,
+      userAnswer: (answers[answerKey] || '').trim(),
+      correctAnswer,
+      isCorrect,
+    });
+  }
+}
+
 function scoreSentenceCompletionQuestion(q, answers, result) {
   const text = q.question_text || '';
   const blankCount = (text.match(/_____/g) || []).length || 1;
+  if (blankCount <= 1) return null;
 
-  let isSingleQuestion = false;
+  const isSingleQuestion = Boolean(
+    q.question_number &&
+    !String(q.question_number).includes('-') &&
+    String(q.question_number).match(/\d+/)
+  );
+
+  if (isSingleQuestion) {
+    scoreSentenceSingle(q, answers, blankCount, result);
+  } else {
+    scoreSentenceMulti(q, answers, blankCount, result);
+  }
+  return result;
+}
+
+function parseMultiAnswers(rawAnswer) {
+  if (!rawAnswer) return [];
+  if (Array.isArray(rawAnswer)) return rawAnswer.map((a) => normalizeAnswer(a));
+
+  let parsed = rawAnswer;
+  try {
+    if (typeof rawAnswer === 'string' && rawAnswer.trim().startsWith('[')) {
+      parsed = JSON.parse(rawAnswer);
+    }
+  } catch {
+    // Keep as string
+  }
+
+  if (Array.isArray(parsed)) return parsed.map((a) => normalizeAnswer(a));
+  return String(rawAnswer)
+    .split(/[,;]/)
+    .map((a) => normalizeAnswer(a.trim()))
+    .filter(Boolean);
+}
+
+function getMcqQuestionCount(q) {
+  if (q.question_count) return parseInt(String(q.question_count), 10);
   if (q.question_number) {
-    const qNumStr = String(q.question_number);
-    const isRange = qNumStr.match(/(\d+)\s*-\s*(\d+)/);
-    if (!isRange && qNumStr.match(/\d+/)) {
-      isSingleQuestion = true;
+    const rangeMatch = String(q.question_number).match(/(\d+)\s*[-–—]\s*(\d+)/);
+    if (rangeMatch) {
+      return Math.max(1, parseInt(rangeMatch[2], 10) - parseInt(rangeMatch[1], 10) + 1);
     }
   }
-
-  if (blankCount > 1) {
-    if (isSingleQuestion) {
-      result.total++;
-      let correctBlanks = 0;
-
-      for (let i = 0; i < blankCount; i++) {
-        const answerKey = `${q.id}_blank_${i + 1}`;
-        const correctAnswer = q.correct_answers?.[i] || '';
-        if (isAnswerCorrect(answers[answerKey], correctAnswer)) {
-          correctBlanks++;
-        }
-
-        result.details.push({
-          questionId: answerKey,
-          questionNumber: q.question_number,
-          userAnswer: (answers[answerKey] || '').trim(),
-          correctAnswer,
-          isCorrect: isAnswerCorrect(answers[answerKey], correctAnswer),
-        });
-      }
-
-      if (correctBlanks === blankCount) {
-        result.correct++;
-      }
-    } else {
-      for (let i = 0; i < blankCount; i++) {
-        result.total++;
-        const answerKey = `${q.id}_blank_${i + 1}`;
-        const correctAnswer = q.correct_answers?.[i] || '';
-        const isCorrect = isAnswerCorrect(answers[answerKey], correctAnswer);
-
-        if (isCorrect) result.correct++;
-        result.details.push({
-          questionId: answerKey,
-          questionNumber: q.question_number ? `${q.question_number}.${i + 1}` : i + 1,
-          userAnswer: (answers[answerKey] || '').trim(),
-          correctAnswer,
-          isCorrect,
-        });
-      }
-    }
-    return result;
-  }
-  return null;
+  if (q.allow_multiple) return 2;
+  return 1;
 }
 
 function scoreMultiSelectMCQQuestion(q, answers, result) {
-  let questionCount = 1;
-  if (q.question_count) {
-    questionCount = parseInt(String(q.question_count));
-  } else if (q.question_number) {
-    const qNumStr = String(q.question_number);
-    const rangeMatch = qNumStr.match(/(\d+)\s*[-–—]\s*(\d+)/);
-    if (rangeMatch) {
-      const start = parseInt(rangeMatch[1]);
-      const end = parseInt(rangeMatch[2]);
-      questionCount = Math.max(1, end - start + 1);
-    }
-  } else if (q.allow_multiple) {
-    questionCount = 2;
+  const questionCount = getMcqQuestionCount(q);
+  if (questionCount <= 1) return null;
+
+  result.total += questionCount;
+  const userAnswers = parseMultiAnswers(answers[q.id]);
+  const correctAnswers = parseMultiAnswers(q.correct_answer);
+  const baseNum = q.question_number
+    ? parseInt(String(q.question_number).match(/\d+/)?.[0], 10) || 1
+    : 1;
+
+  for (let i = 0; i < questionCount; i++) {
+    const userAns = userAnswers[i] || '';
+    const correctAns = correctAnswers[i] || '';
+    const isCorrect = Boolean(userAns && correctAns && userAns === correctAns);
+
+    if (isCorrect) result.correct++;
+    result.details.push({
+      questionId: `${q.id}_multi_${i}`,
+      questionNumber: baseNum + i,
+      userAnswer: userAns,
+      correctAnswer: correctAns,
+      isCorrect,
+    });
   }
-
-  if (questionCount > 1) {
-    result.total += questionCount;
-
-    let userAnswers = [];
-    const rawAnswer = answers[q.id];
-    if (Array.isArray(rawAnswer)) {
-      userAnswers = rawAnswer.map((a) => normalizeAnswer(a));
-    } else if (rawAnswer) {
-      let parsed = rawAnswer;
-      try {
-        if (typeof rawAnswer === 'string' && rawAnswer.trim().startsWith('[')) {
-          parsed = JSON.parse(rawAnswer);
-        }
-      } catch {
-        // Keep as string
-      }
-
-      if (Array.isArray(parsed)) {
-        userAnswers = parsed.map((a) => normalizeAnswer(a));
-      } else {
-        userAnswers = String(rawAnswer)
-          .split(/[,;]/)
-          .map((a) => normalizeAnswer(a.trim()))
-          .filter(Boolean);
-      }
-    }
-
-    let correctAnswers = [];
-    if (Array.isArray(q.correct_answer)) {
-      correctAnswers = q.correct_answer.map((a) => normalizeAnswer(a));
-    } else if (q.correct_answer) {
-      let parsed = q.correct_answer;
-      try {
-        if (typeof q.correct_answer === 'string' && q.correct_answer.trim().startsWith('[')) {
-          parsed = JSON.parse(q.correct_answer);
-        }
-      } catch {
-        // Keep as string
-      }
-
-      if (Array.isArray(parsed)) {
-        correctAnswers = parsed.map((a) => normalizeAnswer(a));
-      } else {
-        correctAnswers = String(q.correct_answer)
-          .split(/[,;]/)
-          .map((a) => normalizeAnswer(a.trim()))
-          .filter(Boolean);
-      }
-    }
-
-    const baseNum = q.question_number
-      ? parseInt(String(q.question_number).match(/\d+/)?.[0]) || 1
-      : 1;
-
-    for (let i = 0; i < questionCount; i++) {
-      const userAns = userAnswers[i] || '';
-      const correctAns = correctAnswers[i] || '';
-      const isCorrect = Boolean(userAns && correctAns && userAns === correctAns);
-
-      if (isCorrect) result.correct++;
-      result.details.push({
-        questionId: `${q.id}_multi_${i}`,
-        questionNumber: baseNum + i,
-        userAnswer: userAnswers[i] || '',
-        correctAnswer: correctAnswers[i] || '',
-        isCorrect,
-      });
-    }
-    return result;
-  }
-  return null;
+  return result;
 }
 
-export const scoreQuestion = (question, answers) => {
-  const result = { total: 0, correct: 0, details: [] };
-  const q = question;
-
+function scoreCustomTypeQuestion(q, answers, result) {
   if (q.type === 'table_completion' && q.table_data?.rows) {
     return scoreTableQuestion(q, answers, result);
   }
@@ -475,24 +467,29 @@ export const scoreQuestion = (question, answers) => {
     return scoreFlowchartQuestion(q, answers, result);
   }
   if (['sentence_completion', 'summary_completion', 'short_answer'].includes(q.type)) {
-    const scResult = scoreSentenceCompletionQuestion(q, answers, result);
-    if (scResult) return scResult;
+    return scoreSentenceCompletionQuestion(q, answers, result);
   }
   if (q.type === 'multiple_choice') {
-    const mcqResult = scoreMultiSelectMCQQuestion(q, answers, result);
-    if (mcqResult) return mcqResult;
+    return scoreMultiSelectMCQQuestion(q, answers, result);
   }
+  return null;
+}
+
+export const scoreQuestion = (question, answers) => {
+  const result = { total: 0, correct: 0, details: [] };
+  const customResult = scoreCustomTypeQuestion(question, answers, result);
+  if (customResult) return customResult;
 
   // Standard single-answer question (MCQ, T/F/NG, Y/N/NG, etc.)
   result.total++;
-  const userAnswer = (answers[q.id] || '').trim();
-  const correctAnswer = q.correct_answer || '';
+  const userAnswer = (answers[question.id] || '').trim();
+  const correctAnswer = question.correct_answer || '';
   const isCorrect = userAnswer === '' ? null : isAnswerCorrect(userAnswer, correctAnswer);
 
   if (isCorrect === true) result.correct++;
   result.details.push({
-    questionId: q.id,
-    questionNumber: q.question_number || '•',
+    questionId: question.id,
+    questionNumber: question.question_number || '•',
     userAnswer,
     correctAnswer,
     isCorrect,
@@ -500,6 +497,68 @@ export const scoreQuestion = (question, answers) => {
 
   return result;
 };
+
+function findSectionIndex(q, sections) {
+  if (sections.length <= 1) return 0;
+  const parsedSection = Number.parseInt(String(q.section || '').match(/\d+/)?.[0], 10);
+
+  const foundIndex = sections.findIndex((section, index) => {
+    const sectionNumber = Number(section.section_number || index + 1);
+    return (
+      (section.id && q.section_id === section.id) ||
+      (Number.isFinite(parsedSection) && parsedSection === sectionNumber)
+    );
+  });
+
+  return Math.max(0, foundIndex);
+}
+
+function isQuestionInReadingSection(q, sectionNum, sectionsLength) {
+  if (sectionsLength === 1) return true;
+  if (!q.section) return false;
+  const parsed = parseInt(String(q.section).match(/\d+/)?.[0], 10);
+  return !isNaN(parsed) && parsed === sectionNum;
+}
+
+function updateQuestionNumberEntry(existing, d) {
+  existing.allInputs.push({ userAnswer: d.userAnswer, isCorrect: d.isCorrect });
+  if (d.userAnswer) {
+    existing.userAnswer = existing.userAnswer
+      ? `${existing.userAnswer}, ${d.userAnswer}`
+      : d.userAnswer;
+  }
+}
+
+function aggregateUserResponses(allDetails) {
+  const questionNumberMap = new Map();
+
+  allDetails.forEach((d) => {
+    const qNum = d.questionNumber;
+    const existing = questionNumberMap.get(qNum);
+
+    if (!existing) {
+      questionNumberMap.set(qNum, {
+        questionId: d.questionId,
+        questionNumber: qNum,
+        userAnswer: d.userAnswer,
+        correctAnswer: d.correctAnswer,
+        isCorrect: d.isQuestionCorrect !== undefined ? d.isQuestionCorrect : d.isCorrect,
+        isGroupedQuestion: d.isGroupedQuestion || false,
+        type: d.type,
+        sectionIndex: d.sectionIndex,
+        allInputs: [{ userAnswer: d.userAnswer, isCorrect: d.isCorrect }],
+      });
+    } else if (d.isGroupedQuestion) {
+      updateQuestionNumberEntry(existing, d);
+    }
+  });
+
+  return Array.from(questionNumberMap.values()).sort((a, b) => {
+    const numA = typeof a.questionNumber === 'number' ? a.questionNumber : parseInt(a.questionNumber, 10) || 0;
+    const numB = typeof b.questionNumber === 'number' ? b.questionNumber : parseInt(b.questionNumber, 10) || 0;
+    return numA - numB;
+  });
+}
 
 /**
  * Calculate complete test results
@@ -514,29 +573,14 @@ export const calculateTestResults = (questions, answers, sections = []) => {
   const typeStats = {};
   const allDetails = [];
 
-  // Score each question
   questions.forEach((q) => {
     const result = scoreQuestion(q, answers);
     const qType = q.type || 'multiple_choice';
-    const parsedSection = Number.parseInt(String(q.section || '').match(/\d+/)?.[0], 10);
-    const sectionIndex =
-      sections.length <= 1
-        ? 0
-        : Math.max(
-            0,
-            sections.findIndex((section, index) => {
-              const sectionNumber = Number(section.section_number || index + 1);
-              return (
-                (section.id && q.section_id === section.id) ||
-                (Number.isFinite(parsedSection) && parsedSection === sectionNumber)
-              );
-            })
-          );
+    const sectionIndex = findSectionIndex(q, sections);
 
     totalCorrect += result.correct;
     totalQuestions += result.total;
 
-    // Aggregate type stats
     if (!typeStats[qType]) typeStats[qType] = { total: 0, correct: 0 };
     typeStats[qType].total += result.total;
     typeStats[qType].correct += result.correct;
@@ -550,23 +594,14 @@ export const calculateTestResults = (questions, answers, sections = []) => {
     );
   });
 
-  // Calculate percentage and band score
   const percentage = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
   const bandScore = calculateBandScore(totalCorrect, totalQuestions);
 
-  // Calculate section stats if sections provided
   const sectionStats = sections.map((section, idx) => {
     const sectionNum = section.section_number || idx + 1;
-
-    // Find questions for this section
-    const sectionQuestions = questions.filter((q) => {
-      if (sections.length === 1) return true;
-      if (q.section) {
-        const parsed = parseInt(q.section.toString().match(/\d+/)?.[0]);
-        return !isNaN(parsed) && parsed === sectionNum;
-      }
-      return false;
-    });
+    const sectionQuestions = questions.filter((q) =>
+      isQuestionInReadingSection(q, sectionNum, sections.length)
+    );
 
     let sectionCorrect = 0;
     let sectionTotal = 0;
@@ -586,7 +621,6 @@ export const calculateTestResults = (questions, answers, sections = []) => {
     };
   });
 
-  // Build answers map for answer sheet (keeps per-input details for UI validation)
   const correctAnswersMap = {};
   allDetails.forEach((d) => {
     correctAnswersMap[d.questionId] = {
@@ -599,49 +633,7 @@ export const calculateTestResults = (questions, answers, sections = []) => {
     };
   });
 
-  // Build userResponses with ONE entry per unique questionNumber
-  // This is critical for the Quick Answer Key which iterates 1-40
-  const questionNumberMap = new Map();
-
-  allDetails.forEach((d) => {
-    const qNum = d.questionNumber;
-    const existing = questionNumberMap.get(qNum);
-
-    if (!existing) {
-      // First entry for this question number
-      questionNumberMap.set(qNum, {
-        questionId: d.questionId,
-        questionNumber: qNum,
-        userAnswer: d.userAnswer,
-        correctAnswer: d.correctAnswer,
-        isCorrect: d.isQuestionCorrect !== undefined ? d.isQuestionCorrect : d.isCorrect,
-        isGroupedQuestion: d.isGroupedQuestion || false,
-        type: d.type,
-        sectionIndex: d.sectionIndex,
-        allInputs: [{ userAnswer: d.userAnswer, isCorrect: d.isCorrect }],
-      });
-    } else if (d.isGroupedQuestion) {
-      // Additional input for a grouped question - aggregate
-      existing.allInputs.push({ userAnswer: d.userAnswer, isCorrect: d.isCorrect });
-      // Combine user answers for display
-      if (d.userAnswer) {
-        existing.userAnswer = existing.userAnswer
-          ? `${existing.userAnswer}, ${d.userAnswer}`
-          : d.userAnswer;
-      }
-      // The isCorrect for the question is from isQuestionCorrect (already set)
-    }
-  });
-
-  // Convert to array sorted by questionNumber
-  const userResponses = Array.from(questionNumberMap.values()).sort((a, b) => {
-    // Handle numeric and string question numbers
-    const numA =
-      typeof a.questionNumber === 'number' ? a.questionNumber : parseInt(a.questionNumber) || 0;
-    const numB =
-      typeof b.questionNumber === 'number' ? b.questionNumber : parseInt(b.questionNumber) || 0;
-    return numA - numB;
-  });
+  const userResponses = aggregateUserResponses(allDetails);
 
   return {
     correctAnswers: totalCorrect,
