@@ -12,8 +12,6 @@ import {
   Clock3,
   Headphones,
   History,
-  LayoutGrid,
-  LayoutList,
   Lightbulb,
   LockKeyhole,
   Save,
@@ -167,7 +165,9 @@ function ScoreBridge({ currentBand, targetBand, additionalCorrect }) {
 
       {/* Gap Pill */}
       <div className="rounded-xl border border-amber-300/80 bg-amber-500/10 px-3 py-1.5 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-300 shadow-2xs flex-1 sm:flex-none text-center">
-        <p className="text-[9px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">Gap</p>
+        <p className="text-[9px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
+          Gap
+        </p>
         <p className="text-xs font-black leading-tight">+{additionalCorrect} answers</p>
       </div>
     </div>
@@ -189,7 +189,9 @@ function Blockers({ analysis, currentBand }) {
   ];
 
   return (
-    <section className={`${CARD} overflow-hidden p-3.5 sm:p-4 bg-gradient-to-r from-blue-50/50 via-white to-indigo-50/40 dark:from-slate-900/90 dark:via-slate-900/50 dark:to-slate-950`}>
+    <section
+      className={`${CARD} overflow-hidden p-3.5 sm:p-4 bg-gradient-to-r from-blue-50/50 via-white to-indigo-50/40 dark:from-slate-900/90 dark:via-slate-900/50 dark:to-slate-950`}
+    >
       <div className="grid gap-3.5 xl:grid-cols-[minmax(300px,0.85fr)_minmax(0,1.15fr)] xl:items-center">
         {/* Left Brief Column */}
         <div className="space-y-1">
@@ -386,7 +388,9 @@ function TargetPlanner({ analysis, selectedTarget, onTargetChange }) {
             <p className="mt-0.5 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               +{analysis.target.additionalCorrect}
             </p>
-            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">additional correct answers</p>
+            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+              additional correct answers
+            </p>
           </div>
           <div className="text-right">
             <p className="text-lg font-bold text-slate-900 dark:text-white">
@@ -590,7 +594,8 @@ function SectionStrategy({ analysis, testType }) {
       )}
     </section>
   );
-}function TrendSparkline({ scores }) {
+}
+function TrendSparkline({ scores }) {
   const values = scores.map((entry) => Number(entry.score) || 0);
   const minVal = Math.max(0, Math.min(...values) - 0.5);
   const maxVal = Math.min(9, Math.max(...values) + 0.5);
@@ -635,9 +640,7 @@ function SectionStrategy({ analysis, testType }) {
         ))}
 
         {/* Area Gradient Fill */}
-        {values.length > 1 && (
-          <polygon points={polygonPoints} fill="url(#sparklineGradient)" />
-        )}
+        {values.length > 1 && <polygon points={polygonPoints} fill="url(#sparklineGradient)" />}
 
         {/* Trend Line */}
         {values.length > 1 && (
@@ -654,14 +657,7 @@ function SectionStrategy({ analysis, testType }) {
         {/* Glowing Data Dots */}
         {pointsArray.map((p, index) => (
           <g key={index}>
-            <circle
-              cx={p.x}
-              cy={p.y}
-              r="4"
-              fill="#ffffff"
-              stroke="#2563eb"
-              strokeWidth="2.5"
-            />
+            <circle cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#2563eb" strokeWidth="2.5" />
             {/* Highlight current / last score value */}
             {index === pointsArray.length - 1 && (
               <text
@@ -704,9 +700,7 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
             {formatBand(currentBand)}
           </span>
           <div>
-            <p className="text-xs font-bold text-slate-900 dark:text-white">
-              Baseline recorded
-            </p>
+            <p className="text-xs font-bold text-slate-900 dark:text-white">Baseline recorded</p>
             <p className="text-[11px] text-slate-400 dark:text-slate-500">
               Your next same-module result will start the trend line.
             </p>
@@ -718,7 +712,9 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
             <TrendSparkline scores={scores} />
             <div className="flex justify-between items-center px-2 pt-2 text-[11px] font-bold text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800/80 mt-1">
               <span>Start: {formatBand(scores[0].score)}</span>
-              <span className="text-blue-600 dark:text-blue-400 font-extrabold">Current: Band {formatBand(currentBand)}</span>
+              <span className="text-blue-600 dark:text-blue-400 font-extrabold">
+                Current: Band {formatBand(currentBand)}
+              </span>
             </div>
           </div>
           <div className="flex flex-wrap gap-2 pt-1">
