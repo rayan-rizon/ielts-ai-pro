@@ -24,7 +24,8 @@ function findBlankMetadata(patternNum, absoluteIdx, blanksMetadata, sortedBlanks
   return blankMeta;
 }
 
-function processInlineCellMatches(cellStr, blanksMetadata, sortedBlanks, absoluteIdx, qId, allGaps) {
+function processInlineCellMatches(opts) {
+  const { cellStr, blanksMetadata, sortedBlanks, absoluteIdx, qId, allGaps } = opts;
   const inlineMatches = cellStr.match(/__BLANK_(\d+)__/g);
   if (!inlineMatches) return absoluteIdx;
 
@@ -62,7 +63,14 @@ function collectTableGaps(q) {
     const cells = Array.isArray(row) ? row : [];
     cells.forEach((cell, cIdx) => {
       const cellStr = cell || '';
-      absoluteIdx = processInlineCellMatches(cellStr, blanksMetadata, sortedBlanks, absoluteIdx, q.id, allGaps);
+      absoluteIdx = processInlineCellMatches({
+        cellStr,
+        blanksMetadata,
+        sortedBlanks,
+        absoluteIdx,
+        qId: q.id,
+        allGaps,
+      });
 
       const legacyBlank = blanksMetadata.find((b) => b.row === rIdx && b.col === cIdx);
       if (legacyBlank && !cellStr.includes('__BLANK_')) {
@@ -118,7 +126,8 @@ function evaluateTableGapGroup(group, answers) {
   return checkMultiplePartAnswers(userAnswers, correctAnswerParts, group.gaps.length);
 }
 
-function evaluateGapInputStatus(userAns, isCorrect, hasMultipleInputs, correctAnswerParts, correctAnswerStr, idx) {
+function evaluateGapInputStatus(opts) {
+  const { userAns, isCorrect, hasMultipleInputs, correctAnswerParts, correctAnswerStr, idx } = opts;
   if (userAns === '') return null;
   if (hasMultipleInputs && correctAnswerParts.length > idx) {
     return isAnswerCorrect(userAns, correctAnswerParts[idx]);
@@ -157,14 +166,14 @@ function scoreTableQuestion(q, answers, result) {
 
     group.gaps.forEach((gap, idx) => {
       const userAns = (answers[gap.answerKey] || '').trim();
-      const inputIsCorrect = evaluateGapInputStatus(
+      const inputIsCorrect = evaluateGapInputStatus({
         userAns,
         isCorrect,
         hasMultipleInputs,
         correctAnswerParts,
         correctAnswerStr,
-        idx
-      );
+        idx,
+      });
 
       result.details.push({
         questionId: gap.answerKey,
@@ -226,25 +235,33 @@ function scoreMatchingQuestion(q, answers, result) {
   return result;
 }
 
+function scoreMatchingFeaturesParagraphMode(q, answers, result) {
+  Object.entries(q.matching_features.answers).forEach(([qNum, correctAns]) => {
+    const answerKey = `${q.id}_${qNum}`;
+    scoreNormalizedPair(
+      { answerKey, questionNumber: qNum, rawUserAns: answers[answerKey], correctAnswer: correctAns || '' },
+      result
+    );
+  });
+}
+
+function scoreMatchingFeaturesQuestionsMode(q, answers, result) {
+  q.matching_features.questions.forEach((mfq, idx) => {
+    const answerKey = `${q.id}_${mfq.id || idx}`;
+    const qNum = mfq.questionNumber || (q.question_number ? parseInt(q.question_number, 10) + idx : idx + 1);
+    const correctAnswer = mfq.answer || mfq.correct_answer || '';
+    scoreNormalizedPair(
+      { answerKey, questionNumber: qNum, rawUserAns: answers[answerKey], correctAnswer },
+      result
+    );
+  });
+}
+
 function scoreMatchingFeaturesQuestion(q, answers, result) {
   if (q.matching_features.mode === 'paragraph' && q.matching_features.answers) {
-    Object.entries(q.matching_features.answers).forEach(([qNum, correctAns]) => {
-      const answerKey = `${q.id}_${qNum}`;
-      scoreNormalizedPair(
-        { answerKey, questionNumber: qNum, rawUserAns: answers[answerKey], correctAnswer: correctAns || '' },
-        result
-      );
-    });
+    scoreMatchingFeaturesParagraphMode(q, answers, result);
   } else if (q.matching_features.questions) {
-    q.matching_features.questions.forEach((mfq, idx) => {
-      const answerKey = `${q.id}_${mfq.id || idx}`;
-      const qNum = mfq.questionNumber || (q.question_number ? parseInt(q.question_number, 10) + idx : idx + 1);
-      const correctAnswer = mfq.answer || mfq.correct_answer || '';
-      scoreNormalizedPair(
-        { answerKey, questionNumber: qNum, rawUserAns: answers[answerKey], correctAnswer },
-        result
-      );
-    });
+    scoreMatchingFeaturesQuestionsMode(q, answers, result);
   }
   return result;
 }
@@ -301,27 +318,31 @@ function scoreNotesCompletionQuestion(q, answers, result) {
   return result;
 }
 
+function scoreFlowchartStepItem(step, i, q, answers, gapIndex, result) {
+  const gapNumber = step.gap_numbers?.[i] ?? Number(q.question_number || 1) + gapIndex;
+  const answerKey = `${q.id}_gap_${gapNumber}`;
+  const userAnswer = (answers[answerKey] || '').trim();
+  const correctAnswer =
+    q.flowchart.answers?.[gapIndex] ?? q.flowchart.answers?.[gapNumber] ?? '';
+  const isCorrect = userAnswer === '' ? null : isAnswerCorrect(userAnswer, correctAnswer);
+
+  result.total++;
+  if (isCorrect === true) result.correct++;
+  result.details.push({
+    questionId: answerKey,
+    questionNumber: gapNumber,
+    userAnswer,
+    correctAnswer,
+    isCorrect,
+  });
+}
+
 function scoreFlowchartQuestion(q, answers, result) {
   let gapIndex = 0;
   q.flowchart.steps.forEach((step) => {
     const gapCount = (step.text?.match(/\[gap\]/g) || []).length;
     for (let i = 0; i < gapCount; i++) {
-      const gapNumber = step.gap_numbers?.[i] ?? Number(q.question_number || 1) + gapIndex;
-      const answerKey = `${q.id}_gap_${gapNumber}`;
-      const userAnswer = (answers[answerKey] || '').trim();
-      const correctAnswer =
-        q.flowchart.answers?.[gapIndex] ?? q.flowchart.answers?.[gapNumber] ?? '';
-      const isCorrect = userAnswer === '' ? null : isAnswerCorrect(userAnswer, correctAnswer);
-
-      result.total++;
-      if (isCorrect === true) result.correct++;
-      result.details.push({
-        questionId: answerKey,
-        questionNumber: gapNumber,
-        userAnswer,
-        correctAnswer,
-        isCorrect,
-      });
+      scoreFlowchartStepItem(step, i, q, answers, gapIndex, result);
       gapIndex++;
     }
   });
@@ -447,40 +468,28 @@ function scoreMultiSelectMCQQuestion(q, answers, result) {
   return result;
 }
 
+const CUSTOM_QUESTION_SCORERS = [
+  { match: (q) => q.type === 'table_completion' && q.table_data?.rows, score: scoreTableQuestion },
+  { match: (q) => q.type === 'matching_headings' && q.matching_data?.paragraphs, score: scoreMatchingHeadingsQuestion },
+  { match: (q) => q.type === 'matching' && q.options, score: scoreMatchingQuestion },
+  { match: (q) => q.type === 'matching_features' && q.matching_features, score: scoreMatchingFeaturesQuestion },
+  { match: (q) => (q.type === 'notes_completion' || q.type === 'note_completion') && q.gap_fill, score: scoreNotesCompletionQuestion },
+  { match: (q) => (q.type === 'flowchart' || q.type === 'flow_chart_completion') && q.flowchart?.steps, score: scoreFlowchartQuestion },
+  { match: (q) => ['sentence_completion', 'summary_completion', 'short_answer'].includes(q.type), score: scoreSentenceCompletionQuestion },
+  { match: (q) => q.type === 'multiple_choice', score: scoreMultiSelectMCQQuestion },
+];
+
 function scoreCustomTypeQuestion(q, answers, result) {
-  if (q.type === 'table_completion' && q.table_data?.rows) {
-    return scoreTableQuestion(q, answers, result);
-  }
-  if (q.type === 'matching_headings' && q.matching_data?.paragraphs) {
-    return scoreMatchingHeadingsQuestion(q, answers, result);
-  }
-  if (q.type === 'matching' && q.options) {
-    return scoreMatchingQuestion(q, answers, result);
-  }
-  if (q.type === 'matching_features' && q.matching_features) {
-    return scoreMatchingFeaturesQuestion(q, answers, result);
-  }
-  if ((q.type === 'notes_completion' || q.type === 'note_completion') && q.gap_fill) {
-    return scoreNotesCompletionQuestion(q, answers, result);
-  }
-  if ((q.type === 'flowchart' || q.type === 'flow_chart_completion') && q.flowchart?.steps) {
-    return scoreFlowchartQuestion(q, answers, result);
-  }
-  if (['sentence_completion', 'summary_completion', 'short_answer'].includes(q.type)) {
-    return scoreSentenceCompletionQuestion(q, answers, result);
-  }
-  if (q.type === 'multiple_choice') {
-    return scoreMultiSelectMCQQuestion(q, answers, result);
+  for (const entry of CUSTOM_QUESTION_SCORERS) {
+    if (entry.match(q)) {
+      const res = entry.score(q, answers, result);
+      if (res) return res;
+    }
   }
   return null;
 }
 
-export const scoreQuestion = (question, answers) => {
-  const result = { total: 0, correct: 0, details: [] };
-  const customResult = scoreCustomTypeQuestion(question, answers, result);
-  if (customResult) return customResult;
-
-  // Standard single-answer question (MCQ, T/F/NG, Y/N/NG, etc.)
+function scoreStandardSingleQuestion(question, answers, result) {
   result.total++;
   const userAnswer = (answers[question.id] || '').trim();
   const correctAnswer = question.correct_answer || '';
@@ -494,8 +503,15 @@ export const scoreQuestion = (question, answers) => {
     correctAnswer,
     isCorrect,
   });
-
   return result;
+}
+
+export const scoreQuestion = (question, answers) => {
+  const result = { total: 0, correct: 0, details: [] };
+  const customResult = scoreCustomTypeQuestion(question, answers, result);
+  if (customResult) return customResult;
+
+  return scoreStandardSingleQuestion(question, answers, result);
 };
 
 function findSectionIndex(q, sections) {
@@ -529,6 +545,20 @@ function updateQuestionNumberEntry(existing, d) {
   }
 }
 
+function buildSingleQuestionMapEntry(d) {
+  return {
+    questionId: d.questionId,
+    questionNumber: d.questionNumber,
+    userAnswer: d.userAnswer,
+    correctAnswer: d.correctAnswer,
+    isCorrect: d.isQuestionCorrect !== undefined ? d.isQuestionCorrect : d.isCorrect,
+    isGroupedQuestion: d.isGroupedQuestion || false,
+    type: d.type,
+    sectionIndex: d.sectionIndex,
+    allInputs: [{ userAnswer: d.userAnswer, isCorrect: d.isCorrect }],
+  };
+}
+
 function aggregateUserResponses(allDetails) {
   const questionNumberMap = new Map();
 
@@ -537,17 +567,7 @@ function aggregateUserResponses(allDetails) {
     const existing = questionNumberMap.get(qNum);
 
     if (!existing) {
-      questionNumberMap.set(qNum, {
-        questionId: d.questionId,
-        questionNumber: qNum,
-        userAnswer: d.userAnswer,
-        correctAnswer: d.correctAnswer,
-        isCorrect: d.isQuestionCorrect !== undefined ? d.isQuestionCorrect : d.isCorrect,
-        isGroupedQuestion: d.isGroupedQuestion || false,
-        type: d.type,
-        sectionIndex: d.sectionIndex,
-        allInputs: [{ userAnswer: d.userAnswer, isCorrect: d.isCorrect }],
-      });
+      questionNumberMap.set(qNum, buildSingleQuestionMapEntry(d));
     } else if (d.isGroupedQuestion) {
       updateQuestionNumberEntry(existing, d);
     }
@@ -558,6 +578,21 @@ function aggregateUserResponses(allDetails) {
     const numB = typeof b.questionNumber === 'number' ? b.questionNumber : parseInt(b.questionNumber, 10) || 0;
     return numA - numB;
   });
+}
+
+function buildCorrectAnswersMap(allDetails) {
+  const map = {};
+  allDetails.forEach((d) => {
+    map[d.questionId] = {
+      questionNumber: d.questionNumber,
+      userAnswer: d.userAnswer,
+      correctAnswer: d.correctAnswer,
+      isCorrect: d.isCorrect,
+      type: d.type,
+      sectionIndex: d.sectionIndex,
+    };
+  });
+  return map;
 }
 
 /**
@@ -621,18 +656,7 @@ export const calculateTestResults = (questions, answers, sections = []) => {
     };
   });
 
-  const correctAnswersMap = {};
-  allDetails.forEach((d) => {
-    correctAnswersMap[d.questionId] = {
-      questionNumber: d.questionNumber,
-      userAnswer: d.userAnswer,
-      correctAnswer: d.correctAnswer,
-      isCorrect: d.isCorrect,
-      type: d.type,
-      sectionIndex: d.sectionIndex,
-    };
-  });
-
+  const correctAnswersMap = buildCorrectAnswersMap(allDetails);
   const userResponses = aggregateUserResponses(allDetails);
 
   return {
