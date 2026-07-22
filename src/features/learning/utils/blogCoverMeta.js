@@ -20,6 +20,12 @@ const COVER_ALT_BY_SLUG = {
     'IELTS learner typing a Listening answer while using headphones and an accuracy checklist',
   'ielts-reading-paraphrase-traps':
     'IELTS learner matching highlighted paraphrases between a reading passage and a laptop',
+  'cambridge-ielts-21-academic-2026-practice-tests':
+    'Cambridge IELTS 21 Academic 2026 title above a learner planning four practice sets',
+  'ielts-listening-multiple-choice-part-3':
+    'IELTS learner tracking two speakers and multiple-choice decisions with headphones',
+  'ielts-writing-task-1-overview-key-features':
+    'IELTS learner selecting key trends from charts before writing a Task 1 overview',
 };
 
 export function getBlogCoverAlt(article) {

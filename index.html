@@ -6,8 +6,6 @@
       (function () {
         var DEFAULT_GTM_ID = 'GTM-TR6XQ2R3';
         var DEFAULT_PIXEL_ID = '991226963227159';
-        var CONSENT_STORAGE_KEY = 'ielts_cookie_consent';
-
         var config = window.__TRACKING_CONFIG__ || {};
         var gtmId = config.gtmId || DEFAULT_GTM_ID;
         var pixelId = config.pixelId || DEFAULT_PIXEL_ID;
@@ -24,13 +22,14 @@
             window.dataLayer.push(arguments);
           };
 
-        // Nothing optional may leave the browser before the visitor chooses.
+        // Product analytics and advertising measurement are enabled by default.
+        // Keep the network work off the critical startup path; GTM owns the
+        // Meta Pixel tag, so it is loaded only once.
         window.gtag('consent', 'default', {
-          analytics_storage: 'denied',
-          ad_storage: 'denied',
-          ad_user_data: 'denied',
-          ad_personalization: 'denied',
-          wait_for_update: 500,
+          analytics_storage: 'granted',
+          ad_storage: 'granted',
+          ad_user_data: 'granted',
+          ad_personalization: 'granted',
         });
 
         var loadGtm = function () {
@@ -47,38 +46,23 @@
           window.__gtmLoaded = true;
         };
 
-        var readConsent = function () {
-          try {
-            var stored = window.localStorage.getItem(CONSENT_STORAGE_KEY);
-            return stored ? JSON.parse(stored) : null;
-          } catch (_error) {
-            return null;
-          }
-        };
-
-        var applyConsent = function (consent) {
-          window.gtag('consent', 'update', {
-            analytics_storage: consent && consent.analytics === true ? 'granted' : 'denied',
-            ad_storage: consent && consent.marketing === true ? 'granted' : 'denied',
-            ad_user_data: consent && consent.marketing === true ? 'granted' : 'denied',
-            ad_personalization: consent && consent.marketing === true ? 'granted' : 'denied',
-          });
-        };
-
-        var scheduleGtm = function (consent) {
-          applyConsent(consent);
-
-          if (!consent || (consent.analytics !== true && consent.marketing !== true)) return;
+        var scheduleGtm = function () {
           if (window.__gtmLoaded || window.__gtmScheduled) return;
           window.__gtmScheduled = true;
 
           var startWhenIdle = function () {
-            if (typeof window.requestIdleCallback === 'function') {
-              window.requestIdleCallback(loadGtm, { timeout: 6000 });
-              return;
-            }
+            // Give the app time to paint and hydrate before third-party code runs.
+            // The fallback also works in browsers without requestIdleCallback.
+            var loadWhenIdle = function () {
+              if (typeof window.requestIdleCallback === 'function') {
+                window.requestIdleCallback(loadGtm, { timeout: 4000 });
+                return;
+              }
 
-            window.setTimeout(loadGtm, 4000);
+              loadGtm();
+            };
+
+            window.setTimeout(loadWhenIdle, 3000);
           };
 
           if (document.readyState === 'complete') {
@@ -90,10 +74,7 @@
 
         // GTM owns the Meta Pixel tag. Loading Pixel here as well downloaded and
         // executed fbevents.js twice on every landing-page visit.
-        scheduleGtm(readConsent());
-        window.addEventListener('cookie-consent-updated', function () {
-          scheduleGtm(readConsent());
-        });
+        scheduleGtm();
       })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

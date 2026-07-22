@@ -227,7 +227,7 @@ function BlogPostHero({ post, publishedDate }) {
                 width={BLOG_COVER_WIDTH}
                 height={BLOG_COVER_HEIGHT}
                 decoding="async"
-                fetchPriority="high"
+                {...{ fetchpriority: 'high' }}
                 className="aspect-[16/9] w-full rounded-[1.35rem] object-cover"
               />
             </div>
@@ -623,7 +623,7 @@ const BlogPost = () => {
         <main className="pt-16">
           <BlogPostHero post={post} publishedDate={publishedDate} />
 
-          <section className="mx-auto grid max-w-6xl items-start gap-6 px-5 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:py-10">
+          <section className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-6 px-5 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:py-10">
             <div className="min-w-0">
               <BlogPostArticleBody
                 post={post}
