@@ -1,38 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import {
-  Sparkles,
-  ArrowRight,
-  Lightbulb,
-  BookOpen,
-  AlertTriangle,
-  Target,
-  ChevronDown,
-} from 'lucide-react';
+import { Sparkles, ArrowRight, Lightbulb, AlertTriangle, Target } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-
-/**
- * Renders a single explanation entry (passage_highlight, synonym_map, why_correct, why_wrong).
- * Reused for both standard questions and individual blanks.
- */
-const PassageSection = ({ text }) => (
-  <div className="space-y-3 group">
-    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-emerald-600 dark:text-emerald-400">
-      <div className="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center shadow-sm transition-transform duration-300">
-        <BookOpen className="w-3.5 h-3.5" />
-      </div>
-      Passage Evidence
-    </div>
-    <div className="relative overflow-hidden rounded-xl border border-emerald-200/60 dark:border-emerald-500/20 bg-emerald-50/40 dark:bg-emerald-500/[0.03] p-3.5 shadow-sm transition-all duration-300 hover:shadow-[0_8px_20px_-6px_rgba(16,185,129,0.15)] hover:bg-emerald-50/60 dark:hover:bg-emerald-500/5 group-hover:border-emerald-300/50 dark:group-hover:border-emerald-500/40">
-      <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-gradient-to-b from-emerald-400 to-teal-400 dark:from-emerald-500/60 dark:to-teal-500/60 opacity-80 group-hover:opacity-100 transition-opacity" />
-      <p className="text-[12.5px] text-slate-700 dark:text-emerald-50/90 leading-relaxed italic pl-3 pr-1 font-medium">
-        "{text}"
-      </p>
-    </div>
-  </div>
-);
 
 const SynonymSection = ({ synonymMap }) => {
   if (!synonymMap || synonymMap.length === 0) return null;
@@ -98,24 +69,6 @@ const SynonymSection = ({ synonymMap }) => {
   );
 };
 
-const WhyCorrectSection = ({ text }) => (
-  <div className="space-y-3">
-    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-blue-600 dark:text-blue-400">
-      <div className="w-6 h-6 rounded-lg bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center shadow-sm">
-        <Lightbulb className="w-3.5 h-3.5" />
-      </div>
-      Explanation
-    </div>
-    <div className="relative group overflow-hidden rounded-xl border border-blue-200/60 dark:border-blue-500/20 bg-gradient-to-br from-blue-50/80 to-indigo-50/50 dark:from-blue-900/20 dark:to-indigo-900/10 p-3.5 shadow-sm transition-all duration-300 hover:shadow-[0_8px_20px_-6px_rgba(59,130,246,0.15)] group-hover:border-blue-300/60 dark:group-hover:border-blue-500/40 backdrop-blur-md">
-      <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-gradient-to-b from-blue-400 to-indigo-400 dark:from-blue-500/60 dark:to-indigo-500/60 opacity-80 group-hover:opacity-100 transition-opacity" />
-      <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-blue-400/10 dark:bg-blue-400/15 rounded-full blur-2xl pointer-events-none transition-transform duration-700 group-hover:scale-125" />
-      <p className="text-[12px] text-slate-800 dark:text-blue-50/90 leading-relaxed relative z-10 font-semibold pl-2">
-        {text}
-      </p>
-    </div>
-  </div>
-);
-
 const WhyWrongSection = ({ whyWrong }) => {
   const keys = Object.keys(whyWrong || {});
   if (keys.length === 0) return null;
@@ -171,18 +124,8 @@ const WhyWrongSection = ({ whyWrong }) => {
   );
 };
 
-const DeepDivePopover = ({
-  explanationData,
-  userAnswer,
-  isOpen,
-  onToggle,
-  questionType,
-  blankKey,
-  questionNumber,
-  inline = false,
-}) => {
-  // Resolve what to show: either a single entry, or multiple blank entries
-  const { entries, isMultiBlank } = useMemo(() => {
+function useExplanationEntries(explanationData, blankKey, questionNumber) {
+  return useMemo(() => {
     if (!explanationData) return { entries: [], isMultiBlank: false };
 
     if (explanationData.blanks && typeof explanationData.blanks === 'object') {
@@ -210,28 +153,10 @@ const DeepDivePopover = ({
       isMultiBlank: false,
     };
   }, [explanationData, blankKey, questionNumber]);
+}
 
-  // Dispatch highlight event when popover opens
-  React.useEffect(() => {
-    if (isOpen && entries.length > 0) {
-      // Find all valid question keys
-      const keys = entries.map((e) => e.key).filter(Boolean);
-      if (keys.length > 0) {
-        window.dispatchEvent(
-          new CustomEvent('set-passage-highlight', {
-            detail: { type: 'specific', keys },
-          })
-        );
-      }
-    }
-    // Notice: We deliberatly omit the 'clear' dispatch on unmount or on !isOpen,
-    // because sibling conditionally-rendered Popovers running their cleanup
-    // would wipe out the new highlight in a race condition.
-    // Clearing is managed cleanly by ReadingTestQuestionsSidebar when openDeepDive turns null.
-  }, [isOpen, entries]);
-
-  // Consolidate redundant information
-  const { sharedPassage, sharedWhyWrong, consolidatedSynonyms, individualEntries } = useMemo(() => {
+function useConsolidatedEntries(entries) {
+  return useMemo(() => {
     if (entries.length <= 1) {
       return {
         sharedPassage: null,
@@ -247,23 +172,17 @@ const DeepDivePopover = ({
     }
 
     const firstEntry = entries[0].data;
-
-    // 1. Check for shared passage highlight
     const isAllPassageSame = entries.every(
       (e) => e.data.passage_highlight === firstEntry.passage_highlight
     );
     const sharedPassage = isAllPassageSame ? firstEntry.passage_highlight : null;
 
-    // 2. Check for shared why_wrong
     const firstWhyWrongStr = JSON.stringify(firstEntry.why_wrong || {});
     const isAllWhyWrongSame = entries.every(
       (e) => JSON.stringify(e.data.why_wrong || {}) === firstWhyWrongStr
     );
     const sharedWhyWrong = isAllWhyWrongSame ? firstEntry.why_wrong : null;
 
-    // 3. Collect unique synonyms globally if they are mostly redundant
-    // For IELTS multi-mcq, we'll deduplicate all synonyms and show them once at top
-    // unless they are very different. But for now, let's just deduplicate.
     const allSyns = entries.flatMap((e) => e.data.synonym_map || []);
     const consolidatedSynonyms = allSyns.filter(
       (s, index, self) =>
@@ -282,10 +201,196 @@ const DeepDivePopover = ({
         ...e,
         showPassage: !isAllPassageSame,
         showWhyWrong: !isAllWhyWrongSame,
-        synonymMap: isAllPassageSame ? null : e.data.synonym_map, // Only hide if we pulled them to global
+        synonymMap: isAllPassageSame ? null : e.data.synonym_map,
       })),
     };
   }, [entries]);
+}
+
+const DeepDiveTrigger = React.memo(({ inline, isOpen, isMultiBlank, entriesCount }) => (
+  <PopoverTrigger asChild>
+    <motion.button
+      initial={false}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.95 }}
+      className={cn(
+        inline
+          ? 'inline-flex w-[26px] h-[26px] ml-3 align-middle items-center justify-center rounded-full outline-none focus:outline-none transition-all shrink-0 relative group p-[1px] overflow-hidden'
+          : 'w-full mt-2 flex items-center justify-between px-3 py-2 rounded-lg border text-xs font-medium transition-all group',
+        isOpen && !inline
+          ? 'bg-violet-100 border-violet-200 text-violet-800 dark:bg-violet-900/40 dark:border-violet-800/60 dark:text-violet-200 shadow-sm'
+          : !inline
+            ? 'bg-white/50 border-slate-200/60 text-slate-600 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 dark:bg-slate-900/50 dark:border-slate-800/60 dark:text-slate-400 dark:hover:bg-violet-900/20 dark:hover:border-violet-800/40 dark:hover:text-violet-300'
+            : '',
+        inline && !isOpen ? 'shadow-lg shadow-violet-500/20' : '',
+        inline && isOpen ? 'ring-2 ring-violet-500/40' : ''
+      )}
+      data-oid="deep-dive-trigger"
+    >
+      {inline && !isOpen && (
+        <>
+          <motion.div
+            className="absolute inset-[-150%] rounded-full opacity-100 z-0"
+            style={{
+              background:
+                'conic-gradient(from 0deg, transparent 0%, #8b5cf6 50%, #c084fc 70%, transparent 100%)',
+            }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          />
+          <motion.div
+            className="absolute inset-[-150%] rounded-full opacity-60 blur-sm z-0"
+            style={{
+              background:
+                'conic-gradient(from 90deg, transparent 0%, #3b82f6 50%, transparent 100%)',
+            }}
+            animate={{ rotate: 2.5, repeat: Infinity, ease: 'linear' }}
+          />
+          <div className="absolute inset-0 rounded-full bg-violet-50/80 dark:bg-slate-950 m-[1px] z-10" />
+          <div className="absolute inset-0 rounded-full bg-violet-100/30 dark:bg-violet-500/10 z-10" />
+        </>
+      )}
+
+      {inline ? (
+        <motion.div
+          className="relative z-10 flex items-center justify-center w-full h-full rounded-full bg-violet-50/50 dark:bg-slate-900/90 backdrop-blur-sm"
+          animate={isOpen ? { rotate: 90 } : { rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        >
+          <Sparkles
+            className={cn(
+              'w-3.5 h-3.5 transition-colors duration-300',
+              isOpen
+                ? 'text-violet-700 dark:text-violet-400'
+                : 'text-violet-600 dark:text-violet-400 group-hover:text-violet-800 dark:group-hover:text-violet-300'
+            )}
+          />
+        </motion.div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              'w-6 h-6 rounded-md flex items-center justify-center transition-colors',
+              isOpen ? 'bg-violet-200 dark:bg-violet-800' : 'bg-slate-100 dark:bg-slate-800'
+            )}
+          >
+            <Sparkles
+              className={cn(
+                'w-3.5 h-3.5',
+                isOpen
+                  ? 'text-violet-700 dark:text-violet-300'
+                  : 'text-slate-500 dark:text-slate-400'
+              )}
+            />
+          </div>
+          <span>Paraphrase Detective</span>
+          {isMultiBlank && (
+            <Badge
+              variant="secondary"
+              className="text-[9px] px-1.5 py-0 h-4 bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 border-0"
+            >
+              {entriesCount} explanations
+            </Badge>
+          )}
+        </div>
+      )}
+
+      {!inline && (
+        <span className="text-[10px] bg-white/60 dark:bg-black/20 px-2 py-0.5 rounded-full border border-black/5 dark:border-white/5">
+          {isOpen ? 'Close' : 'View Details'}
+        </span>
+      )}
+    </motion.button>
+  </PopoverTrigger>
+));
+DeepDiveTrigger.displayName = 'DeepDiveTrigger';
+
+const DeepDiveBody = React.memo(
+  ({ consolidatedSynonyms, individualEntries, isMultiBlank, sharedWhyWrong }) => (
+    <div className="max-h-[min(65vh,550px)] overflow-y-auto overflow-x-hidden p-3 sm:p-4 relative scrollbar-thin scrollbar-thumb-violet-200 dark:scrollbar-thumb-white/10">
+      <div className="space-y-4 relative z-10">
+        {consolidatedSynonyms && consolidatedSynonyms.length > 0 && (
+          <SynonymSection synonymMap={consolidatedSynonyms} />
+        )}
+
+        <div className="space-y-4">
+          {individualEntries.map((entry, idx) => (
+            <div key={entry.key ?? idx} className="space-y-2.5">
+              {entry.synonymMap && <SynonymSection synonymMap={entry.synonymMap} />}
+
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-blue-600/80 dark:text-blue-400/80 px-1">
+                  <Lightbulb className="w-2.5 h-2.5" />
+                  {isMultiBlank ? `Reasoning for Q${entry.key}` : 'Why is this correct?'}
+                </div>
+
+                <div className="relative group overflow-hidden rounded-xl border border-blue-200/50 dark:border-blue-500/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-blue-900/10 dark:to-indigo-900/5 p-3 shadow-sm transition-all duration-300 hover:shadow-[0_8px_20px_-10px_rgba(59,130,246,0.12)] group-hover:border-blue-300/40 dark:group-hover:border-blue-500/30 backdrop-blur-md">
+                  <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-gradient-to-b from-blue-400/80 to-indigo-400/80 dark:from-blue-500/40 dark:to-indigo-500/40 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-blue-400/10 dark:bg-blue-400/20 rounded-full blur-xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+
+                  <p className="text-[11.5px] text-slate-700 dark:text-blue-50/90 leading-relaxed relative z-10 font-medium pl-2.5">
+                    {entry.data.why_correct}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {sharedWhyWrong && <WhyWrongSection whyWrong={sharedWhyWrong} />}
+        {individualEntries.some((e) => e.showWhyWrong && e.data.why_wrong) && (
+          <div className="space-y-2">
+            {individualEntries
+              .filter((e) => e.showWhyWrong && e.data.why_wrong)
+              .map((e) => (
+                <div key={e.key}>
+                  {isMultiBlank && (
+                    <div className="text-[9px] font-bold text-rose-400/70 mb-1 uppercase">
+                      Q{e.key} Distractors
+                    </div>
+                  )}
+                  <WhyWrongSection whyWrong={e.data.why_wrong} />
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+);
+DeepDiveBody.displayName = 'DeepDiveBody';
+
+const DeepDivePopover = ({
+  explanationData,
+  userAnswer: _userAnswer,
+  isOpen,
+  onToggle,
+  questionType: _questionType,
+  blankKey,
+  questionNumber,
+  inline = false,
+}) => {
+  const { entries, isMultiBlank } = useExplanationEntries(
+    explanationData,
+    blankKey,
+    questionNumber
+  );
+
+  React.useEffect(() => {
+    if (isOpen && entries.length > 0) {
+      const keys = entries.map((e) => e.key).filter(Boolean);
+      if (keys.length > 0) {
+        window.dispatchEvent(
+          new CustomEvent('set-passage-highlight', {
+            detail: { type: 'specific', keys },
+          })
+        );
+      }
+    }
+  }, [isOpen, entries]);
+
+  const { sharedWhyWrong, consolidatedSynonyms, individualEntries } =
+    useConsolidatedEntries(entries);
 
   if (entries.length === 0) return null;
 
@@ -296,105 +401,12 @@ const DeepDivePopover = ({
         if (open !== isOpen) onToggle();
       }}
     >
-      <PopoverTrigger asChild>
-        <motion.button
-          initial={false}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          className={cn(
-            inline
-              ? 'inline-flex w-[26px] h-[26px] ml-3 align-middle items-center justify-center rounded-full outline-none focus:outline-none transition-all shrink-0 relative group p-[1px] overflow-hidden'
-              : 'w-full mt-2 flex items-center justify-between px-3 py-2 rounded-lg border text-xs font-medium transition-all group',
-            isOpen && !inline
-              ? 'bg-violet-100 border-violet-200 text-violet-800 dark:bg-violet-900/40 dark:border-violet-800/60 dark:text-violet-200 shadow-sm'
-              : !inline
-                ? 'bg-white/50 border-slate-200/60 text-slate-600 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 dark:bg-slate-900/50 dark:border-slate-800/60 dark:text-slate-400 dark:hover:bg-violet-900/20 dark:hover:border-violet-800/40 dark:hover:text-violet-300'
-                : '',
-            inline && !isOpen ? 'shadow-lg shadow-violet-500/20' : '',
-            inline && isOpen ? 'ring-2 ring-violet-500/40' : ''
-          )}
-          data-oid="deep-dive-trigger"
-        >
-          {inline && !isOpen && (
-            <>
-              {/* Primary Rotating 'Comet' Sweep */}
-              <motion.div
-                className="absolute inset-[-150%] rounded-full opacity-100 z-0"
-                style={{
-                  background:
-                    'conic-gradient(from 0deg, transparent 0%, #8b5cf6 50%, #c084fc 70%, transparent 100%)',
-                }}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              />
-              {/* Secondary Glow Sweep (slightly offset) */}
-              <motion.div
-                className="absolute inset-[-150%] rounded-full opacity-60 blur-sm z-0"
-                style={{
-                  background:
-                    'conic-gradient(from 90deg, transparent 0%, #3b82f6 50%, transparent 100%)',
-                }}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}
-              />
-              {/* Center Mask with soft tint */}
-              <div className="absolute inset-0 rounded-full bg-violet-50/80 dark:bg-slate-950 m-[1px] z-10" />
-              {/* Inner Glow Core */}
-              <div className="absolute inset-0 rounded-full bg-violet-100/30 dark:bg-violet-500/10 z-10" />
-            </>
-          )}
-
-          {inline ? (
-            <motion.div
-              className="relative z-10 flex items-center justify-center w-full h-full rounded-full bg-violet-50/50 dark:bg-slate-900/90 backdrop-blur-sm"
-              animate={isOpen ? { rotate: 90 } : { rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            >
-              <Sparkles
-                className={cn(
-                  'w-3.5 h-3.5 transition-colors duration-300',
-                  isOpen
-                    ? 'text-violet-700 dark:text-violet-400'
-                    : 'text-violet-600 dark:text-violet-400 group-hover:text-violet-800 dark:group-hover:text-violet-300'
-                )}
-              />
-            </motion.div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <div
-                className={cn(
-                  'w-6 h-6 rounded-md flex items-center justify-center transition-colors',
-                  isOpen ? 'bg-violet-200 dark:bg-violet-800' : 'bg-slate-100 dark:bg-slate-800'
-                )}
-              >
-                <Sparkles
-                  className={cn(
-                    'w-3.5 h-3.5',
-                    isOpen
-                      ? 'text-violet-700 dark:text-violet-300'
-                      : 'text-slate-500 dark:text-slate-400'
-                  )}
-                />
-              </div>
-              <span>Paraphrase Detective</span>
-              {isMultiBlank && (
-                <Badge
-                  variant="secondary"
-                  className="text-[9px] px-1.5 py-0 h-4 bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 border-0"
-                >
-                  {entries.length} explanations
-                </Badge>
-              )}
-            </div>
-          )}
-
-          {!inline && (
-            <span className="text-[10px] bg-white/60 dark:bg-black/20 px-2 py-0.5 rounded-full border border-black/5 dark:border-white/5">
-              {isOpen ? 'Close' : 'View Details'}
-            </span>
-          )}
-        </motion.button>
-      </PopoverTrigger>
+      <DeepDiveTrigger
+        inline={inline}
+        isOpen={isOpen}
+        isMultiBlank={isMultiBlank}
+        entriesCount={entries.length}
+      />
 
       <PopoverContent
         side="bottom"
@@ -404,65 +416,15 @@ const DeepDivePopover = ({
         className="w-[calc(100vw-2rem)] sm:w-[420px] p-0 border border-violet-200/60 dark:border-white/10 shadow-2xl rounded-2xl overflow-hidden z-[100] backdrop-blur-xl bg-white/95 dark:bg-slate-950/95 flex flex-col relative"
         data-oid="deep-dive-content"
       >
-        {/* Background glowing orbs */}
         <div className="absolute -top-20 -right-20 w-48 h-48 bg-violet-500/10 dark:bg-violet-400/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-blue-500/5 dark:bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Scrollable Content */}
-        <div className="max-h-[min(65vh,550px)] overflow-y-auto overflow-x-hidden p-3 sm:p-4 relative scrollbar-thin scrollbar-thumb-violet-200 dark:scrollbar-thumb-white/10">
-          <div className="space-y-4 relative z-10">
-            {/* 2. Consolidated Synonyms */}
-            {consolidatedSynonyms && consolidatedSynonyms.length > 0 && (
-              <SynonymSection synonymMap={consolidatedSynonyms} />
-            )}
-
-            {/* 3. Answer Justifications */}
-            <div className="space-y-4">
-              {individualEntries.map((entry, idx) => (
-                <div key={entry.key ?? idx} className="space-y-2.5">
-                  {/* Synonyms/Mapping tied to this specific entry if not shared */}
-                  {entry.synonymMap && <SynonymSection synonymMap={entry.synonymMap} />}
-
-                  {/* Justification Card with context-aware label */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-blue-600/80 dark:text-blue-400/80 px-1">
-                      <Lightbulb className="w-2.5 h-2.5" />
-                      {isMultiBlank ? `Reasoning for Q${entry.key}` : 'Why is this correct?'}
-                    </div>
-
-                    <div className="relative group overflow-hidden rounded-xl border border-blue-200/50 dark:border-blue-500/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-blue-900/10 dark:to-indigo-900/5 p-3 shadow-sm transition-all duration-300 hover:shadow-[0_8px_20px_-10px_rgba(59,130,246,0.12)] group-hover:border-blue-300/40 dark:group-hover:border-blue-500/30 backdrop-blur-md">
-                      <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-gradient-to-b from-blue-400/80 to-indigo-400/80 dark:from-blue-500/40 dark:to-indigo-500/40 opacity-70 group-hover:opacity-100 transition-opacity" />
-                      <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-blue-400/10 dark:bg-blue-400/20 rounded-full blur-xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-
-                      <p className="text-[11.5px] text-slate-700 dark:text-blue-50/90 leading-relaxed relative z-10 font-medium pl-2.5">
-                        {entry.data.why_correct}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* 4. Shared or Individual Why Wrong Footer */}
-            {sharedWhyWrong && <WhyWrongSection whyWrong={sharedWhyWrong} />}
-            {individualEntries.some((e) => e.showWhyWrong && e.data.why_wrong) && (
-              <div className="space-y-2">
-                {individualEntries
-                  .filter((e) => e.showWhyWrong && e.data.why_wrong)
-                  .map((e) => (
-                    <div key={e.key}>
-                      {isMultiBlank && (
-                        <div className="text-[9px] font-bold text-rose-400/70 mb-1 uppercase">
-                          Q{e.key} Distractors
-                        </div>
-                      )}
-                      <WhyWrongSection whyWrong={e.data.why_wrong} />
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
-        </div>
+        <DeepDiveBody
+          consolidatedSynonyms={consolidatedSynonyms}
+          individualEntries={individualEntries}
+          isMultiBlank={isMultiBlank}
+          sharedWhyWrong={sharedWhyWrong}
+        />
       </PopoverContent>
     </Popover>
   );
