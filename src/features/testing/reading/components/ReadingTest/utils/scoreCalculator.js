@@ -46,6 +46,32 @@ function processInlineCellMatches(opts) {
   return currentIdx;
 }
 
+function processTableCell(opts) {
+  const { cell, rIdx, cIdx, blanksMetadata, sortedBlanks, absoluteIdx, qId, allGaps } = opts;
+  const cellStr = cell || '';
+  let currentIdx = processInlineCellMatches({
+    cellStr,
+    blanksMetadata,
+    sortedBlanks,
+    absoluteIdx,
+    qId,
+    allGaps,
+  });
+
+  const legacyBlank = blanksMetadata.find((b) => b.row === rIdx && b.col === cIdx);
+  if (legacyBlank && !cellStr.includes('__BLANK_')) {
+    const blankNum = legacyBlank.blankNumber || currentIdx + 1;
+    allGaps.push({
+      blankNum,
+      absoluteIdx: currentIdx,
+      answerKey: `${qId}_${currentIdx}`,
+      correctAnswer: legacyBlank.answer || legacyBlank.correct_answer || '',
+    });
+    currentIdx++;
+  }
+  return currentIdx;
+}
+
 /**
  * Extract table gap metadata from table rows and cells.
  */
@@ -62,27 +88,16 @@ function collectTableGaps(q) {
   rows.forEach((row, rIdx) => {
     const cells = Array.isArray(row) ? row : [];
     cells.forEach((cell, cIdx) => {
-      const cellStr = cell || '';
-      absoluteIdx = processInlineCellMatches({
-        cellStr,
+      absoluteIdx = processTableCell({
+        cell,
+        rIdx,
+        cIdx,
         blanksMetadata,
         sortedBlanks,
         absoluteIdx,
         qId: q.id,
         allGaps,
       });
-
-      const legacyBlank = blanksMetadata.find((b) => b.row === rIdx && b.col === cIdx);
-      if (legacyBlank && !cellStr.includes('__BLANK_')) {
-        const blankNum = legacyBlank.blankNumber || absoluteIdx + 1;
-        allGaps.push({
-          blankNum,
-          absoluteIdx,
-          answerKey: `${q.id}_${absoluteIdx}`,
-          correctAnswer: legacyBlank.answer || legacyBlank.correct_answer || '',
-        });
-        absoluteIdx++;
-      }
     });
   });
 
@@ -318,7 +333,8 @@ function scoreNotesCompletionQuestion(q, answers, result) {
   return result;
 }
 
-function scoreFlowchartStepItem(step, i, q, answers, gapIndex, result) {
+function scoreFlowchartStepItem(opts) {
+  const { step, i, q, answers, gapIndex, result } = opts;
   const gapNumber = step.gap_numbers?.[i] ?? Number(q.question_number || 1) + gapIndex;
   const answerKey = `${q.id}_gap_${gapNumber}`;
   const userAnswer = (answers[answerKey] || '').trim();
@@ -342,7 +358,7 @@ function scoreFlowchartQuestion(q, answers, result) {
   q.flowchart.steps.forEach((step) => {
     const gapCount = (step.text?.match(/\[gap\]/g) || []).length;
     for (let i = 0; i < gapCount; i++) {
-      scoreFlowchartStepItem(step, i, q, answers, gapIndex, result);
+      scoreFlowchartStepItem({ step, i, q, answers, gapIndex, result });
       gapIndex++;
     }
   });
@@ -440,6 +456,20 @@ function getMcqQuestionCount(q) {
   return 1;
 }
 
+function scoreMultiSelectMCQItem(opts) {
+  const { userAns, correctAns, baseNum, i, qId, result } = opts;
+  const isCorrect = Boolean(userAns && correctAns && userAns === correctAns);
+
+  if (isCorrect) result.correct++;
+  result.details.push({
+    questionId: `${qId}_multi_${i}`,
+    questionNumber: baseNum + i,
+    userAnswer: userAns,
+    correctAnswer: correctAns,
+    isCorrect,
+  });
+}
+
 function scoreMultiSelectMCQQuestion(q, answers, result) {
   const questionCount = getMcqQuestionCount(q);
   if (questionCount <= 1) return null;
@@ -452,17 +482,13 @@ function scoreMultiSelectMCQQuestion(q, answers, result) {
     : 1;
 
   for (let i = 0; i < questionCount; i++) {
-    const userAns = userAnswers[i] || '';
-    const correctAns = correctAnswers[i] || '';
-    const isCorrect = Boolean(userAns && correctAns && userAns === correctAns);
-
-    if (isCorrect) result.correct++;
-    result.details.push({
-      questionId: `${q.id}_multi_${i}`,
-      questionNumber: baseNum + i,
-      userAnswer: userAns,
-      correctAnswer: correctAns,
-      isCorrect,
+    scoreMultiSelectMCQItem({
+      userAns: userAnswers[i] || '',
+      correctAns: correctAnswers[i] || '',
+      baseNum,
+      i,
+      qId: q.id,
+      result,
     });
   }
   return result;
