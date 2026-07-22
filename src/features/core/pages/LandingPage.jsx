@@ -79,14 +79,57 @@ const PrimaryGlow = () => {
 
 /**
  * LazySection - Performance Optimization Wrapper
- * Uses Suspense for code-splitting but renders immediately for SEO.
+ * Keeps below-the-fold modules out of the initial network and render work.
+ * Equivalent semantic content remains available in index.html for crawlers.
  */
-function LazySection({ children, minHeight = 'auto', id = '', className = '' }) {
+function LazySection({
+  children,
+  minHeight = 'auto',
+  id = '',
+  className = '',
+  rootMargin = '500px 0px',
+}) {
+  const sectionRef = React.useRef(null);
+  const [shouldRender, setShouldRender] = React.useState(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return undefined;
+
+    if (!('IntersectionObserver' in window)) {
+      setShouldRender(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setShouldRender(true);
+        observer.disconnect();
+      },
+      { rootMargin }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [rootMargin]);
+
   return (
-    <div id={id} style={{ minHeight }} className={`w-full ${className}`} data-oid="vy4_.1x">
-      <Suspense fallback={<SectionSkeleton data-oid="kp:glno" />} data-oid="siy5l8e">
-        {children}
-      </Suspense>
+    <div
+      ref={sectionRef}
+      id={id}
+      style={{ minHeight }}
+      className={`w-full ${className}`}
+      aria-busy={!shouldRender}
+      data-oid="vy4_.1x"
+    >
+      {shouldRender ? (
+        <Suspense fallback={<SectionSkeleton data-oid="kp:glno" />} data-oid="siy5l8e">
+          {children}
+        </Suspense>
+      ) : (
+        <div aria-hidden="true" data-oid="deferred-section-placeholder" />
+      )}
     </div>
   );
 }
@@ -185,19 +228,29 @@ export default function LandingPage() {
               data-oid="fmlzvda"
             />
 
-            <LazySection id="features" className="scroll-mt-28" data-oid="5f-ve:-">
+            <LazySection
+              id="features"
+              className="scroll-mt-28"
+              minHeight="1100px"
+              data-oid="5f-ve:-"
+            >
               <FeaturesSection viewport={viewport} data-oid="ddzrln_" />
             </LazySection>
 
-            <LazySection id="how-it-works" className="scroll-mt-28" data-oid="8.voqxh">
+            <LazySection
+              id="how-it-works"
+              className="scroll-mt-28"
+              minHeight="900px"
+              data-oid="8.voqxh"
+            >
               <HowItWorksSection viewport={viewport} data-oid="jorp6_8" />
             </LazySection>
 
-            <LazySection id="comparison" className="scroll-mt-28">
+            <LazySection id="comparison" className="scroll-mt-28" minHeight="900px">
               <ComparisonSection viewport={viewport} handlePrimaryCta={handlePrimaryCta} />
             </LazySection>
 
-            <LazySection id="pricing" className="scroll-mt-28" minHeight="800px" data-oid="txw9f10">
+            <LazySection id="pricing" className="scroll-mt-28" minHeight="850px" data-oid="txw9f10">
               <PricingSection
                 handlePrimaryCta={handlePrimaryCta}
                 viewport={viewport}
@@ -205,7 +258,7 @@ export default function LandingPage() {
               />
             </LazySection>
 
-            <LazySection id="faq" className="scroll-mt-28" minHeight="300px" data-oid="j:lurzc">
+            <LazySection id="faq" className="scroll-mt-28" minHeight="650px" data-oid="j:lurzc">
               <FAQSection faqs={faqs} viewport={viewport} data-oid="cw9om1r" />
             </LazySection>
 
@@ -219,9 +272,11 @@ export default function LandingPage() {
             </LazySection>
           </main>
 
-          <LazySection minHeight="auto" data-oid="2hv100n-wrap">
-            <Footer data-oid="2hv100n" />
-          </LazySection>
+          <div data-oid="2hv100n-wrap">
+            <Suspense fallback={<SectionSkeleton />}>
+              <Footer data-oid="2hv100n" />
+            </Suspense>
+          </div>
         </div>
         <CookieConsent data-oid="cp1ushb" />
       </div>

@@ -14,6 +14,12 @@ const COVER_ALT_BY_SLUG = {
     'IELTS learner comparing a reading passage with a colour-coded error log on a bright desk',
   'ielts-listening-missed-answer-recovery':
     'IELTS learner using headphones and a skipped-question sequence to practise listening recovery',
+  'ielts-speaking-part-3-stop-rambling':
+    'IELTS learner practising a clear Part 3 answer with a microphone and sequenced prompt cards',
+  'ielts-listening-spelling-plurals-word-limits':
+    'IELTS learner typing a Listening answer while using headphones and an accuracy checklist',
+  'ielts-reading-paraphrase-traps':
+    'IELTS learner matching highlighted paraphrases between a reading passage and a laptop',
 };
 
 export function getBlogCoverAlt(article) {

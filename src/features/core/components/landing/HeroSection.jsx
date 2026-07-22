@@ -337,17 +337,21 @@ function StudentVisual() {
         }
         className="absolute bottom-12 left-6 right-6 top-14 overflow-hidden rounded-[2rem] border-2 border-white bg-[#eef2ff] shadow-[0_34px_80px_-30px_rgba(54,75,140,0.45)] dark:border-slate-800 dark:bg-slate-900 sm:bottom-8 sm:left-12 sm:right-10 sm:top-8 lg:left-14 transform-gpu"
       >
-        <img
-          src="/ielts-hero-student.webp"
-          alt="IELTS learner studying with a laptop"
-          className="h-full w-full object-cover object-[53%_center]"
-          width="1200"
-          height="900"
-          loading="eager"
-          decoding="async"
-          fetchPriority="high"
-          data-oid="hero-student-img"
-        />
+        <picture className="block h-full w-full">
+          <source media="(max-width: 767px)" srcSet="/ielts-hero-student-640.webp" />
+          <source media="(max-width: 1599px)" srcSet="/ielts-hero-student-960.webp" />
+          <img
+            src="/ielts-hero-student.webp"
+            alt="IELTS learner studying with a laptop"
+            className="h-full w-full object-cover object-[53%_center]"
+            width="1200"
+            height="900"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            data-oid="hero-student-img"
+          />
+        </picture>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-[#6c79ef]/10 via-transparent to-white/15" />
       </m.div>
 

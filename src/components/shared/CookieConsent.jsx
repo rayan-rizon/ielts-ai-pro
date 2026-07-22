@@ -51,7 +51,6 @@ export default function CookieConsent() {
 
       // Notify other tabs/components if needed
       window.dispatchEvent(new Event('storage'));
-      window.dispatchEvent(new Event('cookie-consent-updated'));
       refreshTrackingBootstrap();
       trackPageView(window.location.pathname);
     } catch (error) {
@@ -252,11 +251,17 @@ export default function CookieConsent() {
                   {showDetails ? 'Hide' : 'Customize'}
                 </Button>
                 <Button
-                  onClick={() => saveConsent(preferences)}
+                  onClick={() =>
+                    saveConsent(
+                      showDetails
+                        ? preferences
+                        : { functional: true, analytics: true, marketing: true }
+                    )
+                  }
                   className="flex-1 rounded-lg h-9 text-[11px] font-black bg-primary hover:bg-primary/90 text-white"
                   data-oid="80dss-w"
                 >
-                  Accept All
+                  {showDetails ? 'Save choices' : 'Accept All'}
                 </Button>
               </div>
 

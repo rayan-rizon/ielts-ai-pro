@@ -26,8 +26,10 @@ export function Logo({ className, iconOnly = false, size = 'md', animated = true
         )}
       >
         <img
-          src="/favicon.webp"
+          src="/favicon-64.webp"
           alt="IELTS Ai Pro Logo"
+          width="64"
+          height="64"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
       </div>

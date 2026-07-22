@@ -6,6 +6,7 @@
       (function () {
         var DEFAULT_GTM_ID = 'GTM-TR6XQ2R3';
         var DEFAULT_PIXEL_ID = '991226963227159';
+        var CONSENT_STORAGE_KEY = 'ielts_cookie_consent';
 
         var config = window.__TRACKING_CONFIG__ || {};
         var gtmId = config.gtmId || DEFAULT_GTM_ID;
@@ -16,9 +17,24 @@
           pixelId: pixelId,
         };
 
+        window.dataLayer = window.dataLayer || [];
+        window.gtag =
+          window.gtag ||
+          function () {
+            window.dataLayer.push(arguments);
+          };
+
+        // Nothing optional may leave the browser before the visitor chooses.
+        window.gtag('consent', 'default', {
+          analytics_storage: 'denied',
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          wait_for_update: 500,
+        });
+
         var loadGtm = function () {
           if (window.__gtmLoaded || !gtmId) return;
-          window.dataLayer = window.dataLayer || [];
           window.dataLayer.push({
             'gtm.start': new Date().getTime(),
             event: 'gtm.js',
@@ -27,55 +43,64 @@
           var script = document.createElement('script');
           script.async = true;
           script.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtmId);
-          // Use a more robust insertion method that doesn't depend on existing script tags
           (document.head || document.getElementsByTagName('head')[0]).appendChild(script);
           window.__gtmLoaded = true;
         };
 
-        var loadPixel = function () {
-          if (window.__pixelLoaded || !pixelId) return;
-
-          (function (f, b, e, v, n, t, s) {
-            if (f.fbq) return;
-            n = f.fbq = function () {
-              n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-            };
-            if (!f._fbq) f._fbq = n;
-            n.push = n;
-            n.loaded = true;
-            n.version = '2.0';
-            n.queue = [];
-            t = b.createElement(e);
-            t.async = true;
-            t.src = v;
-            (b.head || b.getElementsByTagName('head')[0]).appendChild(t);
-          })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-
-          window.fbq('init', pixelId);
-          window.fbq('track', 'PageView');
-          window.__pixelLoaded = true;
+        var readConsent = function () {
+          try {
+            var stored = window.localStorage.getItem(CONSENT_STORAGE_KEY);
+            return stored ? JSON.parse(stored) : null;
+          } catch (_error) {
+            return null;
+          }
         };
 
-        // Load with a slight delay to allow critical content (LCP) to render first
-        setTimeout(function () {
-          if (typeof window.requestIdleCallback === 'function') {
-            window.requestIdleCallback(function () {
-              loadGtm();
-              loadPixel();
-            });
+        var applyConsent = function (consent) {
+          window.gtag('consent', 'update', {
+            analytics_storage: consent && consent.analytics === true ? 'granted' : 'denied',
+            ad_storage: consent && consent.marketing === true ? 'granted' : 'denied',
+            ad_user_data: consent && consent.marketing === true ? 'granted' : 'denied',
+            ad_personalization: consent && consent.marketing === true ? 'granted' : 'denied',
+          });
+        };
+
+        var scheduleGtm = function (consent) {
+          applyConsent(consent);
+
+          if (!consent || (consent.analytics !== true && consent.marketing !== true)) return;
+          if (window.__gtmLoaded || window.__gtmScheduled) return;
+          window.__gtmScheduled = true;
+
+          var startWhenIdle = function () {
+            if (typeof window.requestIdleCallback === 'function') {
+              window.requestIdleCallback(loadGtm, { timeout: 6000 });
+              return;
+            }
+
+            window.setTimeout(loadGtm, 4000);
+          };
+
+          if (document.readyState === 'complete') {
+            startWhenIdle();
           } else {
-            loadGtm();
-            loadPixel();
+            window.addEventListener('load', startWhenIdle, { once: true });
           }
-        }, 500);
+        };
+
+        // GTM owns the Meta Pixel tag. Loading Pixel here as well downloaded and
+        // executed fbevents.js twice on every landing-page visit.
+        scheduleGtm(readConsent());
+        window.addEventListener('cookie-consent-updated', function () {
+          scheduleGtm(readConsent());
+        });
       })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://zvrmvycajimjxghrnpgy.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://o4511451727331328.ingest.us.sentry.io" />
-    <link rel="dns-prefetch" href="https://connect.facebook.net" />
     <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-    <link rel="icon" type="image/webp" href="/favicon.webp" />
+    <link rel="icon" type="image/webp" href="/favicon-64.webp" sizes="64x64" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
     <link
@@ -96,7 +121,10 @@
     />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <link rel="canonical" href="https://www.ieltsai.pro/" />
-    <meta property="og:title" content="Free AI IELTS Practice, Band Scores & Mock Tests | IELTS Ai Pro" />
+    <meta
+      property="og:title"
+      content="Free AI IELTS Practice, Band Scores & Mock Tests | IELTS Ai Pro"
+    />
     <meta
       property="og:description"
       content="Get instant AI band scores for IELTS Writing & Speaking, plus free Cambridge-style Reading and Listening mock tests. Track progress and start free today."
@@ -230,7 +258,7 @@
       }
     </script>
 
-    <!-- Meta Pixel: Loaded conditionally via consent system above (lines 47-69) -->
+    <!-- Meta Pixel is managed by GTM after consent. -->
     <style>
       #seo-content {
         position: absolute !important;
@@ -304,8 +332,8 @@
       <article id="static-prerender-content" class="sr-only">
         <h1>AI-Powered IELTS Practice for a Higher Band Score</h1>
         <p>
-          Practice Reading, Listening, Writing, and Speaking in one workspace. Review estimated
-          band feedback, track recurring weaknesses, and follow a study plan based on the work you
+          Practice Reading, Listening, Writing, and Speaking in one workspace. Review estimated band
+          feedback, track recurring weaknesses, and follow a study plan based on the work you
           actually complete.
         </p>
 
@@ -317,12 +345,13 @@
           </p>
           <ul>
             <li>
-              <strong>AI-Assisted Writing Feedback:</strong> Instant evaluation across Task Achievement,
-              Coherence and Cohesion, Lexical Resource, and Grammatical Range with dynamic inline corrections.
+              <strong>AI-Assisted Writing Feedback:</strong> Instant evaluation across Task
+              Achievement, Coherence and Cohesion, Lexical Resource, and Grammatical Range with
+              dynamic inline corrections.
             </li>
             <li>
-              <strong>AI Speaking Practice:</strong> Record answers for common IELTS Speaking tasks and
-              review feedback across fluency, vocabulary, grammar, and pronunciation criteria.
+              <strong>AI Speaking Practice:</strong> Record answers for common IELTS Speaking tasks
+              and review feedback across fluency, vocabulary, grammar, and pronunciation criteria.
             </li>
             <li>
               <strong>Reading and Listening Tests:</strong> Practise with timed activities, common
@@ -346,10 +375,22 @@
         <section>
           <h2>How IELTS Ai Pro Works</h2>
           <ol>
-            <li><strong>01. Choose a Task:</strong> Select Reading, Listening, Writing, or Speaking practice.</li>
-            <li><strong>02. Review Feedback:</strong> Get instant estimated AI band scores and detailed breakdown reports.</li>
-            <li><strong>03. Follow a Plan:</strong> Use personalized recommended actions to target weak points.</li>
-            <li><strong>04. Track Progress:</strong> Monitor score growth and history on your dashboard.</li>
+            <li>
+              <strong>01. Choose a Task:</strong> Select Reading, Listening, Writing, or Speaking
+              practice.
+            </li>
+            <li>
+              <strong>02. Review Feedback:</strong> Get instant estimated AI band scores and
+              detailed breakdown reports.
+            </li>
+            <li>
+              <strong>03. Follow a Plan:</strong> Use personalized recommended actions to target
+              weak points.
+            </li>
+            <li>
+              <strong>04. Track Progress:</strong> Monitor score growth and history on your
+              dashboard.
+            </li>
           </ol>
         </section>
 
@@ -362,8 +403,9 @@
             learning path.
           </p>
           <p>
-            IELTS Ai Pro is an independent preparation platform designed to help learners build confidence,
-            understand scoring criteria, and practice effectively for academic and general training tests.
+            IELTS Ai Pro is an independent preparation platform designed to help learners build
+            confidence, understand scoring criteria, and practice effectively for academic and
+            general training tests.
           </p>
         </section>
 
@@ -391,16 +433,6 @@
         </footer>
       </article>
     </main>
-
-    <!-- Google Tag Manager (noscript) -->
-    <noscript>
-      <iframe
-        src="https://www.googletagmanager.com/ns.html?id=GTM-TR6XQ2R3"
-        height="0"
-        width="0"
-        style="display: none; visibility: hidden"
-      ></iframe>
-    </noscript>
 
     <script type="module" src="/src/main.tsx"></script>
   </body>

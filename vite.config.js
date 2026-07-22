@@ -135,10 +135,18 @@ export default defineConfig({
             if (id.includes('supabase-js')) {
               return 'supabase-vendor';
             }
-            // Radix UI primitives - shared across many pages
-            if (id.includes('@radix-ui')) {
-              return 'radix-vendor';
+            // The critical Button only needs Radix Slot. Keep it out of the much
+            // larger async primitives chunk so the landing page does not download
+            // every dialog/select/menu implementation just to render a button.
+            if (
+              id.includes('/node_modules/@radix-ui/react-slot/') ||
+              id.includes('/node_modules/@radix-ui/react-compose-refs/')
+            ) {
+              return 'radix-slot-vendor';
             }
+            // Leave the remaining Radix primitives with their route-level chunks.
+            // A single manual Radix chunk pulled unrelated shared helpers into the
+            // Supabase dependency path and made the whole UI library load at startup.
             // Framer Motion - used for animations across the app
             if (id.includes('framer-motion')) {
               return 'framer-vendor';

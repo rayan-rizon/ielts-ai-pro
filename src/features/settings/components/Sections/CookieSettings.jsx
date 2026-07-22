@@ -5,9 +5,7 @@ import { Shield, BarChart3, Megaphone, Cookie } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-
-const CONSENT_STORAGE_KEY = 'ielts_cookie_consent';
-const CONSENT_VERSION = '1.0';
+import { CONSENT_STORAGE_KEY, CONSENT_VERSION, refreshTrackingBootstrap } from '@/lib/tracking';
 
 export default function CookieSettings() {
   const [preferences, setPreferences] = useState({
@@ -42,6 +40,8 @@ export default function CookieSettings() {
         timestamp: new Date().toISOString(),
       };
       localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(consentData));
+      window.dispatchEvent(new Event('storage'));
+      refreshTrackingBootstrap();
 
       const {
         data: { user },
