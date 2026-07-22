@@ -90,15 +90,18 @@ function processTableRow(row, rIdx, opts) {
   return currentIdx;
 }
 
+function getSortedTableBlanks(q) {
+  const blanksMetadata = q.table_data?.blanks || q.table_data?.blank_positions || [];
+  return [...blanksMetadata].sort((a, b) => (a.blankNumber || 0) - (b.blankNumber || 0));
+}
+
 /**
  * Extract table gap metadata from table rows and cells.
  */
 function collectTableGaps(q) {
   const rows = q.table_data?.rows || [];
   const blanksMetadata = q.table_data?.blanks || q.table_data?.blank_positions || [];
-  const sortedBlanks = [...blanksMetadata].sort(
-    (a, b) => (a.blankNumber || 0) - (b.blankNumber || 0)
-  );
+  const sortedBlanks = getSortedTableBlanks(q);
 
   const allGaps = [];
   let absoluteIdx = 0;
@@ -293,23 +296,27 @@ function scoreMatchingFeaturesQuestion(q, answers, result) {
   return result;
 }
 
+function scoreNotesSingleMatch(match, q, answers, result) {
+  result.total++;
+  const gapNum = parseInt(match[1], 10);
+  const answerKey = `${q.id}_gap_${gapNum}`;
+  const userAns = (answers[answerKey] || '').trim();
+  const correctAnswer = q.gap_fill.answers?.[gapNum] || '';
+  const isCorrect = userAns === '' ? null : isAnswerCorrect(userAns, correctAnswer);
+
+  if (isCorrect === true) result.correct++;
+  result.details.push({
+    questionId: answerKey,
+    questionNumber: gapNum,
+    userAnswer: userAns,
+    correctAnswer,
+    isCorrect,
+  });
+}
+
 function scoreNotesStructuredText(q, answers, gapMatches, result) {
   gapMatches.forEach((match) => {
-    result.total++;
-    const gapNum = parseInt(match[1], 10);
-    const answerKey = `${q.id}_gap_${gapNum}`;
-    const userAns = (answers[answerKey] || '').trim();
-    const correctAnswer = q.gap_fill.answers?.[gapNum] || '';
-    const isCorrect = userAns === '' ? null : isAnswerCorrect(userAns, correctAnswer);
-
-    if (isCorrect === true) result.correct++;
-    result.details.push({
-      questionId: answerKey,
-      questionNumber: gapNum,
-      userAnswer: userAns,
-      correctAnswer,
-      isCorrect,
-    });
+    scoreNotesSingleMatch(match, q, answers, result);
   });
 }
 
