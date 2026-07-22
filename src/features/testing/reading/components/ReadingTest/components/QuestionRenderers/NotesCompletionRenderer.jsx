@@ -149,7 +149,10 @@ const NotesCompletionRenderer = React.memo(
         )}
 
         {/* Structured content */}
-        <div className="space-y-1.5 text-foreground leading-[2.4rem]" data-oid="il2kek2">
+        <div
+          className="space-y-1.5 text-[15px] text-foreground leading-[2.4rem]"
+          data-oid="il2kek2"
+        >
           {lines.map((line, idx) => {
             let trimmedLine = line.trim();
             if (!trimmedLine) return <div key={idx} className="h-1" data-oid="g4vk_3k" />;

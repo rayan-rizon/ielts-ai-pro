@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { m } from 'framer-motion';
 import {
@@ -9,6 +9,7 @@ import {
   Check,
   Clock3,
   Copy,
+  Eye,
   Facebook,
   GraduationCap,
   Headphones,
@@ -72,6 +73,13 @@ function formatDate(value) {
     month: 'long',
     year: 'numeric',
   }).format(new Date(value));
+}
+
+function formatReadCount(value) {
+  const count = Math.max(0, Number(value) || 0);
+  return `${new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(
+    count
+  )} ${count === 1 ? 'read' : 'reads'}`;
 }
 
 function slugify(value) {
@@ -196,6 +204,12 @@ function BlogPostHero({ post, publishedDate }) {
               </span>
               <span className="inline-flex items-center gap-2">
                 <Clock3 className="h-4 w-4" /> {post.reading_minutes || 6} min read
+              </span>
+              <span
+                className="inline-flex items-center gap-2"
+                title={`${Number(post.view_count) || 0} reads`}
+              >
+                <Eye className="h-4 w-4" /> {formatReadCount(post.view_count)}
               </span>
             </div>
           </m.div>
@@ -460,6 +474,7 @@ const BlogPost = () => {
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(0);
   const [copied, setCopied] = useState(false);
+  const countedResourceIdsRef = useRef(new Set());
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -491,7 +506,34 @@ const BlogPost = () => {
           .order('published_at', { ascending: false, nullsFirst: false })
           .limit(3);
         setRelatedPosts(related || []);
-        await supabase.rpc('increment_resource_view', { resource_id: data.id });
+        const readStorageKey = `ielts-blog-read:${data.id}`;
+        let hasBeenCounted = countedResourceIdsRef.current.has(data.id);
+        try {
+          hasBeenCounted = hasBeenCounted || window.sessionStorage.getItem(readStorageKey) === '1';
+        } catch {
+          // Privacy settings can disable session storage; the read can still be counted.
+        }
+
+        if (!hasBeenCounted) {
+          countedResourceIdsRef.current.add(data.id);
+          const { error: viewError } = await supabase.rpc('increment_resource_view', {
+            resource_id: data.id,
+          });
+          if (!viewError) {
+            try {
+              window.sessionStorage.setItem(readStorageKey, '1');
+            } catch {
+              // The in-memory guard still prevents duplicate counts during this visit.
+            }
+            setPost((currentPost) =>
+              currentPost
+                ? { ...currentPost, view_count: (Number(currentPost.view_count) || 0) + 1 }
+                : currentPost
+            );
+          } else {
+            countedResourceIdsRef.current.delete(data.id);
+          }
+        }
       } catch (error) {
         console.error('Error fetching blog post:', error);
       } finally {

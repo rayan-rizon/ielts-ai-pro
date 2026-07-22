@@ -1,56 +1,63 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BandScoreHero } from './BandScoreHero';
-import { QuickStatsGrid } from './QuickStatsGrid';
-import { GuidanceMilestones } from './GuidanceMilestones';
-import { PassagePerformanceSection } from './PassagePerformanceSection';
+import { HeroScoreCard } from './HeroScoreCard';
+import { TargetMilestoneCard } from './TargetMilestoneCard';
+import { QuestionTypeBreakdown } from './QuestionTypeBreakdown';
+import { PassageBreakdownCard } from './PassageBreakdownCard';
 import { AnswerKeySection } from './AnswerKeySection';
 
 export const OverviewTab = ({
   testResults,
-  getAssessmentMessage,
+  _getAssessmentMessage,
   onReviewAnswers,
   testType,
   onNavigateToQuestion,
 }) => {
-  const wrongCount = Math.max(
-    0,
-    testResults.totalQuestions - testResults.correctAnswers - (testResults.unanswered || 0)
-  );
-  const unansweredCount = testResults.unanswered || 0;
-
   return (
     <motion.div
       key="overview"
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 10 }}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -6 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="p-4 lg:p-6 space-y-5"
-      data-oid="qsbm9v."
+      className="p-3 sm:p-4 max-w-[1400px] mx-auto space-y-3"
     >
-      {/* 1. Band Score Hero */}
-      <BandScoreHero testResults={testResults} getAssessmentMessage={getAssessmentMessage} />
+      {/* Top Row: Hero Score Card (Left) + Path to Milestone Card (Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
+        <div className="lg:col-span-7 flex flex-col">
+          <HeroScoreCard testResults={testResults} />
+        </div>
+        <div className="lg:col-span-5 flex flex-col">
+          <TargetMilestoneCard
+            testResults={testResults}
+            onReviewAnswers={onReviewAnswers}
+            testType={testType}
+          />
+        </div>
+      </div>
 
-      {/* 2. Quick Stats Grid */}
-      <QuickStatsGrid
-        testResults={testResults}
-        wrongCount={wrongCount}
-        unansweredCount={unansweredCount}
-      />
+      {/* Middle Row: Question Type Breakdown */}
+      <QuestionTypeBreakdown testResults={testResults} />
 
-      {/* 3. Guidance & Milestones Grid */}
-      <GuidanceMilestones testResults={testResults} testType={testType} />
-
-      {/* 4. Passage Performance Section */}
-      <PassagePerformanceSection testResults={testResults} testType={testType} />
-
-      {/* 5. Quick Answer Key Map */}
-      <AnswerKeySection
-        testResults={testResults}
-        onNavigateToQuestion={onNavigateToQuestion}
-        onReviewAnswers={onReviewAnswers}
-      />
+      {/* Bottom Row: Passage Breakdown (Left) + Answer Key Review Matrix (Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
+        <div className="lg:col-span-5 flex flex-col">
+          <PassageBreakdownCard
+            testResults={testResults}
+            testType={testType}
+            onReviewAnswers={onReviewAnswers}
+          />
+        </div>
+        <div className="lg:col-span-7 flex flex-col">
+          <AnswerKeySection
+            testResults={testResults}
+            onNavigateToQuestion={onNavigateToQuestion}
+            onReviewAnswers={onReviewAnswers}
+          />
+        </div>
+      </div>
     </motion.div>
   );
 };
+
+export default OverviewTab;

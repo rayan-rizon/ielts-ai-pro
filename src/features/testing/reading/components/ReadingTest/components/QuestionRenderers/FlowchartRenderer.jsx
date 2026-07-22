@@ -166,7 +166,7 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
       )}
 
       {flowchart.instruction && (
-        <div className="mb-3 text-xs sm:text-sm text-slate-600 dark:text-slate-400 italic">
+        <div className="mb-3 text-[15px] text-slate-600 dark:text-slate-400 italic">
           {flowchart.instruction}
         </div>
       )}
@@ -174,7 +174,7 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
       <div className="flex flex-col items-center gap-2 sm:gap-3 w-full max-w-2xl mx-auto">
         {flowchart.steps.map((step, stepIndex) => (
           <React.Fragment key={step.id || stepIndex}>
-            <div className="w-full bg-white/80 dark:bg-slate-950/70 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 sm:p-4 text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+            <div className="w-full bg-white/80 dark:bg-slate-950/70 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 sm:p-4 text-[15px] text-slate-800 dark:text-slate-200 leading-relaxed shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
               {renderStep(step)}
             </div>
 

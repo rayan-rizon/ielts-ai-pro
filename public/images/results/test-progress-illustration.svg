@@ -1,0 +1,43 @@
+<svg width="180" height="110" viewBox="0 0 180 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tile" x1="18" y1="10" x2="152" y2="103" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FAFF"/>
+      <stop offset="1" stop-color="#E7EEFF"/>
+    </linearGradient>
+    <linearGradient id="book" x1="22" y1="58" x2="102" y2="98" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#CFE0FF"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="28" x2="0" y2="95" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7898FF"/>
+      <stop offset="1" stop-color="#315EEB"/>
+    </linearGradient>
+    <linearGradient id="flag" x1="134" y1="13" x2="159" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7856FF"/>
+      <stop offset="1" stop-color="#3564F2"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#315EEB" flood-opacity=".18"/>
+    </filter>
+  </defs>
+
+  <rect x="3" y="3" width="174" height="104" rx="28" fill="url(#tile)"/>
+  <ellipse cx="94" cy="94" rx="66" ry="8" fill="#BFD1F7" fill-opacity=".32"/>
+
+  <path d="M19 88C32 77 49 76 67 84V55C50 48 32 49 19 59V88Z" fill="url(#book)" stroke="#82A7F7" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M115 88C102 77 85 76 67 84V55C84 48 102 49 115 59V88Z" fill="url(#book)" stroke="#82A7F7" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M29 64L58 59M29 71L58 66M29 78L54 74M77 59L105 64M77 66L105 71M80 74L105 78" stroke="#A7C2F8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M67 55V84" stroke="#6E93EB" stroke-width="1.5"/>
+
+  <g filter="url(#shadow)">
+    <rect x="90" y="68" width="18" height="27" rx="5" fill="url(#bar)"/>
+    <rect x="115" y="50" width="18" height="45" rx="5" fill="url(#bar)"/>
+    <rect x="140" y="29" width="18" height="66" rx="5" fill="url(#bar)"/>
+  </g>
+  <path d="M98 61C108 53 115 47 124 38C132 30 140 24 149 20" stroke="#5378F3" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="4 5"/>
+  <circle cx="98" cy="61" r="3.5" fill="white" stroke="#5378F3" stroke-width="2"/>
+  <circle cx="124" cy="38" r="3.5" fill="white" stroke="#5378F3" stroke-width="2"/>
+  <path d="M149 13V31" stroke="#355FEA" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M151 13.5C158 13.5 160 17 166 16V25C160 26 158 22.5 151 22.5V13.5Z" fill="url(#flag)"/>
+  <path d="M164 43L165.5 47L169.5 48.5L165.5 50L164 54L162.5 50L158.5 48.5L162.5 47L164 43Z" fill="#F5B93A"/>
+</svg>

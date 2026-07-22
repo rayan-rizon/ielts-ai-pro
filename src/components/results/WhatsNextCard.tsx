@@ -112,26 +112,26 @@ export function WhatsNextCard({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          'p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-100 dark:border-emerald-900/50',
+          'p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs',
           className
         )}
         data-oid="2g00ofi"
       >
         <div className="flex items-start gap-3" data-oid="3bccakn">
           <div
-            className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0"
+            className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0"
             data-oid="rlom:uf"
           >
-            <encouragement.icon className="w-5 h-5 text-white" data-oid="q_y0:u3" />
+            <encouragement.icon className="w-4 h-4" data-oid="q_y0:u3" />
           </div>
           <div className="flex-1 min-w-0" data-oid="4.xtt1y">
             <h4
-              className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1"
+              className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-0.5"
               data-oid="l42-z2l"
             >
               {encouragement.message}
             </h4>
-            <p className="text-xs text-slate-600 dark:text-slate-400" data-oid="4w012nl">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed" data-oid="4w012nl">
               Your performance is strong! Continue with more practice tests to maintain consistency.
             </p>
           </div>
@@ -149,58 +149,58 @@ export function WhatsNextCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        'p-3 rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30 border border-indigo-100 dark:border-indigo-900/50',
+        'p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs',
         className
       )}
       data-oid="stww8ye"
     >
       <div className="flex items-start gap-3" data-oid="hg5ax3u">
         <div
-          className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0"
+          className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0"
           data-oid="p60baa4"
         >
-          <Icon className="w-4.5 h-4.5 text-white" data-oid="0iq.ozs" />
+          <Icon className="w-4 h-4" data-oid="0iq.ozs" />
         </div>
         <div className="flex-1 min-w-0" data-oid="4bz.zr2">
           <div className="flex items-center gap-2 mb-1" data-oid="upwq5ox">
             <span
-              className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider"
+              className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider"
               data-oid="7lhd.3y"
             >
-              What's Next
+              Action Plan
             </span>
             <span
-              className="px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-[9px] font-black text-amber-600 dark:text-amber-400"
+              className="px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 text-[9px] font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60"
               data-oid="ts-8mfi"
             >
               Focus Area
             </span>
           </div>
           <h4
-            className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1"
+            className="text-xs font-bold text-slate-900 dark:text-white mb-0.5"
             data-oid="qa_buo0"
           >
             Practice {typeLabel}
           </h4>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-2.5" data-oid="rre8mqd">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2 leading-relaxed" data-oid="rre8mqd">
             {tip}
           </p>
-          <div className="flex items-center justify-between" data-oid="skk7wc9">
+          <div className="flex items-center justify-between gap-2" data-oid="skk7wc9">
             <div className="flex items-center gap-2" data-oid="x_k:k:o">
               <div
-                className="w-16 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden"
+                className="w-16 h-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"
                 data-oid="3s2.5f9"
               >
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${weakestType.percentage}%` }}
                   transition={{ delay: 0.3, duration: 0.8 }}
-                  className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500"
+                  className="h-full rounded-full bg-indigo-500"
                   data-oid="hr1wvv1"
                 />
               </div>
               <span
-                className="text-[10px] font-bold text-slate-500 dark:text-slate-400"
+                className="text-[10px] font-semibold text-slate-400"
                 data-oid="q4y_8ro"
               >
                 {Math.round(weakestType.percentage)}% accuracy
@@ -209,7 +209,7 @@ export function WhatsNextCard({
             {onPractice && (
               <button
                 onClick={onPractice}
-                className="h-7 px-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-md transition-colors inline-flex items-center gap-1"
+                className="h-6 px-2 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded transition-colors inline-flex items-center gap-1"
                 data-oid="4gzgwta"
               >
                 Practice

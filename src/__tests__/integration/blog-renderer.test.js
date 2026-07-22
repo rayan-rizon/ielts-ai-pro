@@ -18,6 +18,7 @@ const article = {
   updated_at: '2026-07-18T09:00:00Z',
   thumbnail_url: '/blog-images/reading-strategy.webp',
   featured: true,
+  view_count: 1234,
 };
 
 function createResponse() {
@@ -60,6 +61,7 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('<title>IELTS Preparation Blog');
     expect(response.body).toContain('/blog/ielts-reading-strategy');
     expect(response.body).toContain('CollectionPage');
+    expect(response.body).toContain('1.2K reads');
   });
 
   it('renders Article schema and strips executable HTML', async () => {
@@ -80,6 +82,7 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain(
       'alt="Reading practice guide: learner studying with a laptop and notebook"'
     );
+    expect(response.body).toContain('1.2K reads');
     expect(response.body).toContain(
       'width="1200" height="675" decoding="async" fetchpriority="high"'
     );

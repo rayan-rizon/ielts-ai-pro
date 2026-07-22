@@ -134,10 +134,8 @@ const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({
             badgeClass +=
               'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
           } else {
-            labelClass +=
-              'border-transparent bg-transparent text-slate-400 dark:text-slate-500';
-            badgeClass +=
-              'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600';
+            labelClass += 'border-transparent bg-transparent text-slate-400 dark:text-slate-500';
+            badgeClass += 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600';
           }
         } else {
           labelClass += 'cursor-pointer ';
@@ -159,9 +157,7 @@ const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({
               <input
                 type={isMultiSelect ? 'checkbox' : 'radio'}
                 name={
-                  isMultiSelect
-                    ? `question-${question.id}-${index}`
-                    : `question-${question.id}`
+                  isMultiSelect ? `question-${question.id}-${index}` : `question-${question.id}`
                 }
                 value={option}
                 checked={isSelected}
@@ -178,10 +174,7 @@ const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({
                 {letter}
               </span>
             </div>
-            <span
-              className="text-[13.5px] sm:text-sm leading-tight flex-1 font-medium"
-              data-oid="as1ywry"
-            >
+            <span className="text-[15px] leading-tight flex-1 font-medium" data-oid="as1ywry">
               {body}
             </span>
           </label>

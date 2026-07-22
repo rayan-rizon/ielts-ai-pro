@@ -90,7 +90,8 @@ export function TimeEfficiencyCard({
   };
 
   const paceStatus = getPaceStatus();
-  const fatigue = passageProficiency?.fatigueFactor || 0;
+  const hasPassageData = (passageProficiency?.bySection?.length || 0) > 1;
+  const fatigue = hasPassageData ? Math.max(0, passageProficiency?.fatigueFactor || 0) : null;
 
   const formatTime = (seconds: number) => {
     if (seconds < 60) return `${Math.round(seconds)}s`;
@@ -189,11 +190,17 @@ export function TimeEfficiencyCard({
           <div
             className={cn(
               'text-2xl sm:text-3xl font-black',
-              fatigue > 20 ? 'text-rose-500' : fatigue > 10 ? 'text-amber-500' : 'text-emerald-500'
+              fatigue === null
+                ? 'text-slate-400'
+                : fatigue > 20
+                  ? 'text-rose-500'
+                  : fatigue > 10
+                    ? 'text-amber-500'
+                    : 'text-emerald-500'
             )}
             data-oid="59qclh7"
           >
-            {Math.round(fatigue)}%
+            {fatigue === null ? '--' : `${Math.round(fatigue)}%`}
           </div>
         </div>
       </div>
@@ -251,7 +258,7 @@ export function TimeEfficiencyCard({
       )}
 
       {/* Stamina Alert */}
-      {fatigue > 15 && (
+      {fatigue !== null && fatigue > 15 && (
         <div
           className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10 flex gap-3"
           data-oid="q:z5qps"
@@ -278,7 +285,7 @@ export function TimeEfficiencyCard({
         </div>
       )}
 
-      {fatigue <= 15 && (
+      {fatigue !== null && fatigue <= 15 && (
         <div
           className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10 flex gap-2.5"
           data-oid="ib:uaae"
@@ -303,6 +310,22 @@ export function TimeEfficiencyCard({
               You maintained consistent performance throughout{' '}
               {testType === 'listening' ? 'all four parts' : 'all three passages'}. Your mental
               endurance is high!
+            </p>
+          </div>
+        </div>
+      )}
+
+      {fatigue === null && (
+        <div className="p-3 rounded-xl bg-slate-500/5 border border-slate-200 dark:border-slate-800 flex gap-2.5">
+          <div className="w-6 h-6 rounded-full bg-slate-500/10 flex items-center justify-center shrink-0">
+            <BarChart3 className="w-3.5 h-3.5 text-slate-400" />
+          </div>
+          <div className="space-y-0.5">
+            <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
+              Section trend unavailable
+            </p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
+              At least two scored sections are needed to compare your stamina pattern.
             </p>
           </div>
         </div>

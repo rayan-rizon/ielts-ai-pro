@@ -18,6 +18,7 @@ const ARTICLE_FIELDS = [
   'updated_at',
   'thumbnail_url',
   'featured',
+  'view_count',
 ].join(',');
 
 function escapeHtml(value = '') {
@@ -41,6 +42,13 @@ function formatDate(value) {
     year: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(value));
+}
+
+function formatReadCount(value) {
+  const count = Math.max(0, Number(value) || 0);
+  return `${new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(
+    count
+  )} ${count === 1 ? 'read' : 'reads'}`;
 }
 
 function practicePath(category) {
@@ -264,7 +272,7 @@ function renderIndex(posts) {
         <div class="featured-image"><img src="${escapeHtml(featured.thumbnail_url || '/ielts-hero-student.webp')}" alt="${escapeHtml(coverAlt(featured))}" width="1200" height="675" decoding="async" fetchpriority="high"><span class="category">Featured story</span></div>
         <div class="featured-copy"><span class="category">Featured · ${escapeHtml(featured.category || 'IELTS guide')}</span>
           <h2>${escapeHtml(featured.title)}</h2><p>${escapeHtml(featured.description)}</p>
-          <span class="meta"><span>${escapeHtml(formatDate(featured.published_at || featured.created_at))}</span><span>${Number(featured.reading_minutes) || 6} min read</span><span>Read featured article →</span></span>
+          <span class="meta"><span>${escapeHtml(formatDate(featured.published_at || featured.created_at))}</span><span>${Number(featured.reading_minutes) || 6} min read</span><span>${formatReadCount(featured.view_count)}</span><span>Read featured article →</span></span>
         </div>
       </a>`
     : '';
@@ -274,16 +282,22 @@ function renderIndex(posts) {
         <div class="card-visual"><img src="${escapeHtml(post.thumbnail_url || '/ielts-hero-student.webp')}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" loading="lazy" decoding="async"></div>
         <div class="card-copy"><span class="category">${escapeHtml(post.category || 'IELTS guide')}</span>
           <h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p>
-          <span class="meta"><span>${Number(post.reading_minutes) || 6} min read</span><span>Read guide →</span></span>
+          <span class="meta"><span>${Number(post.reading_minutes) || 6} min read</span><span>${formatReadCount(post.view_count)}</span><span>Read guide →</span></span>
         </div>
       </a>`
     )
     .join('');
-  const trending = posts
+  const trending = [...posts]
+    .sort(
+      (first, second) =>
+        (Number(second.view_count) || 0) - (Number(first.view_count) || 0) ||
+        new Date(second.published_at || second.created_at || 0) -
+          new Date(first.published_at || first.created_at || 0)
+    )
     .slice(0, 5)
     .map(
       (post, index) =>
-        `<a class="trend" href="/blog/${escapeHtml(post.slug)}"><b>${String(index + 1).padStart(2, '0')}</b><span>${escapeHtml(post.title)}<small style="display:block;color:#8a94a8;font-weight:500">${Number(post.reading_minutes) || 6} min read</small></span></a>`
+        `<a class="trend" href="/blog/${escapeHtml(post.slug)}"><b>${String(index + 1).padStart(2, '0')}</b><span>${escapeHtml(post.title)}<small style="display:block;color:#8a94a8;font-weight:500">${formatReadCount(post.view_count)} · ${Number(post.reading_minutes) || 6} min read</small></span></a>`
     )
     .join('');
   return layout({
@@ -360,7 +374,7 @@ function renderArticle(post, allPosts = []) {
     structuredData: [articleSchema, breadcrumbSchema],
     image: socialImageUrl,
     body: `<main id="main">
-      <section class="article-hero"><div class="shell"><div class="meta" style="margin-bottom:24px"><a href="/blog">Blog library</a><span>/</span><span>${escapeHtml(post.category || 'Guide')}</span><span>/</span><span>${escapeHtml(post.title)}</span></div><div class="article-hero-grid"><div><span class="category">✎ ${escapeHtml(post.category || 'IELTS guide')}</span><h1>${escapeHtml(post.title)}</h1><p class="intro">${escapeHtml(post.description)}</p><div class="meta" style="margin-top:24px"><strong>IELTS Ai Pro team</strong><span>${escapeHtml(formatDate(publishedAt))}</span><span>${Number(post.reading_minutes) || 6} min read</span></div></div><div class="article-photo"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" decoding="async" fetchpriority="high"></div></div></div></section>
+      <section class="article-hero"><div class="shell"><div class="meta" style="margin-bottom:24px"><a href="/blog">Blog library</a><span>/</span><span>${escapeHtml(post.category || 'Guide')}</span><span>/</span><span>${escapeHtml(post.title)}</span></div><div class="article-hero-grid"><div><span class="category">✎ ${escapeHtml(post.category || 'IELTS guide')}</span><h1>${escapeHtml(post.title)}</h1><p class="intro">${escapeHtml(post.description)}</p><div class="meta" style="margin-top:24px"><strong>IELTS Ai Pro team</strong><span>${escapeHtml(formatDate(publishedAt))}</span><span>${Number(post.reading_minutes) || 6} min read</span><span>${formatReadCount(post.view_count)}</span></div></div><div class="article-photo"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" decoding="async" fetchpriority="high"></div></div></div></section>
       <div class="shell article-layout"><div><article class="article-card article">${prepared.html}<div class="tags">${tags}</div><aside class="cta"><div><span class="eyebrow">Turn the strategy into a score</span><h2>Put this guide into practice</h2><p>Apply the steps while they are fresh, then review your feedback before your next attempt.</p></div><a class="button" href="${practicePath(post.category)}">${escapeHtml(practiceLabel(post.category))}</a></aside></article>${related ? `<h2 class="section-title" style="margin-top:26px">Related articles</h2><div class="cards">${related}</div>` : ''}</div><aside class="sidebar">${toc ? `<div class="toc-card"><h2>☷ On this page</h2>${toc}</div>` : ''}<div class="side-card"><h2>Share this article</h2><a class="button" style="width:100%" href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}">Share on LinkedIn</a></div><div class="practice-card"><span>◎</span><h2>Put this strategy into practice</h2><p>Apply the steps while they are fresh and review your feedback.</p><a class="button" href="${practicePath(post.category)}">Practise now →</a></div><a class="login" style="display:block;text-align:center" href="/blog">← All IELTS articles</a></aside></div>
     </main>`,
   });

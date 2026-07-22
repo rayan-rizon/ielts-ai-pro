@@ -6,6 +6,7 @@
  */
 
 import { normalizeAnswer, isAnswerCorrect } from '@/lib/ieltsAnswerValidation';
+import { calculateListeningBandScore as calculateListeningBandScoreFromRaw } from '@/lib/ieltsBandScore';
 
 // Re-export for backward compatibility
 export { normalizeAnswer, isAnswerCorrect };
@@ -16,31 +17,7 @@ export { normalizeAnswer, isAnswerCorrect };
  * @param {number} total - Total number of questions
  * @returns {number} IELTS band score (1.0-9.0)
  */
-export const calculateListeningBandScore = (correct, total) => {
-  if (total === 0 || correct < 1) return 0;
-
-  // Official IELTS Listening Band Score Calculator (Academic & General Training)
-  // Based on raw score scaled to 40
-  const rawScore40 = (correct / total) * 40;
-
-  if (rawScore40 >= 39) return 9.0;
-  if (rawScore40 >= 37) return 8.5;
-  if (rawScore40 >= 35) return 8.0;
-  if (rawScore40 >= 32) return 7.5;
-  if (rawScore40 >= 30) return 7.0;
-  if (rawScore40 >= 26) return 6.5;
-  if (rawScore40 >= 23) return 6.0;
-  if (rawScore40 >= 18) return 5.5;
-  if (rawScore40 >= 16) return 5.0;
-  if (rawScore40 >= 13) return 4.5;
-  if (rawScore40 >= 11) return 4.0;
-  if (rawScore40 >= 10) return 3.5;
-  if (rawScore40 >= 6) return 3.0;
-  if (rawScore40 >= 4) return 2.5;
-  if (rawScore40 >= 2) return 2.0;
-  if (rawScore40 >= 1) return 1.0;
-  return 0;
-};
+export const calculateListeningBandScore = calculateListeningBandScoreFromRaw;
 
 /**
  * Calculate complete listening test results

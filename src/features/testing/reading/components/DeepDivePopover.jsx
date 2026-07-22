@@ -401,15 +401,15 @@ const DeepDivePopover = ({
         align={inline ? 'end' : 'start'}
         sideOffset={inline ? 12 : 8}
         collisionPadding={24}
-        className="w-[calc(100vw-2rem)] sm:w-[420px] p-0 border border-violet-200/60 dark:border-white/10 shadow-2xl rounded-2xl overflow-hidden z-[100] backdrop-blur-xl bg-white/95 dark:bg-slate-950/95 flex flex-col"
+        className="w-[calc(100vw-2rem)] sm:w-[420px] p-0 border border-violet-200/60 dark:border-white/10 shadow-2xl rounded-2xl overflow-hidden z-[100] backdrop-blur-xl bg-white/95 dark:bg-slate-950/95 flex flex-col relative"
         data-oid="deep-dive-content"
       >
+        {/* Background glowing orbs */}
+        <div className="absolute -top-20 -right-20 w-48 h-48 bg-violet-500/10 dark:bg-violet-400/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-blue-500/5 dark:bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />
+
         {/* Scrollable Content */}
         <div className="max-h-[min(65vh,550px)] overflow-y-auto overflow-x-hidden p-3 sm:p-4 relative scrollbar-thin scrollbar-thumb-violet-200 dark:scrollbar-thumb-white/10">
-          {/* Background glowing orbs */}
-          <div className="absolute -top-20 -right-20 w-48 h-48 bg-violet-500/10 dark:bg-violet-400/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-blue-500/5 dark:bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />
-
           <div className="space-y-4 relative z-10">
             {/* 2. Consolidated Synonyms */}
             {consolidatedSynonyms && consolidatedSynonyms.length > 0 && (

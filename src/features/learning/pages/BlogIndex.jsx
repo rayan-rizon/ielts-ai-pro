@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight,
   BookOpen,
@@ -12,6 +12,7 @@ import {
   GraduationCap,
   Headphones,
   Mic2,
+  Eye,
   PenLine,
   Search,
   Sparkles,
@@ -39,37 +40,37 @@ const CATEGORY_CONFIG = {
   Writing: {
     icon: PenLine,
     label: 'Writing',
-    chip: 'bg-rose-50 text-rose-700 border-rose-100',
+    chip: 'bg-rose-50/90 text-rose-700 border-rose-200/80 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30',
     visual: 'from-rose-50 via-orange-50 to-amber-100 text-rose-600',
   },
   Speaking: {
     icon: Mic2,
     label: 'Speaking',
-    chip: 'bg-amber-50 text-amber-700 border-amber-100',
+    chip: 'bg-amber-50/90 text-amber-800 border-amber-200/80 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30',
     visual: 'from-amber-50 via-yellow-50 to-orange-100 text-amber-600',
   },
   Reading: {
     icon: BookOpen,
     label: 'Reading',
-    chip: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+    chip: 'bg-emerald-50/90 text-emerald-800 border-emerald-200/80 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30',
     visual: 'from-emerald-50 via-teal-50 to-cyan-100 text-emerald-600',
   },
   Listening: {
     icon: Headphones,
     label: 'Listening',
-    chip: 'bg-sky-50 text-sky-700 border-sky-100',
+    chip: 'bg-sky-50/90 text-sky-800 border-sky-200/80 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30',
     visual: 'from-sky-50 via-blue-50 to-indigo-100 text-sky-600',
   },
   'Study Planning': {
     icon: GraduationCap,
     label: 'Study Planning',
-    chip: 'bg-violet-50 text-violet-700 border-violet-100',
+    chip: 'bg-violet-50/90 text-violet-800 border-violet-200/80 dark:bg-violet-500/15 dark:text-violet-300 dark:border-violet-500/30',
     visual: 'from-violet-50 via-indigo-50 to-purple-100 text-violet-600',
   },
   'Exam Updates': {
     icon: Sparkles,
     label: 'Exam Updates',
-    chip: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+    chip: 'bg-indigo-50/90 text-indigo-800 border-indigo-200/80 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30',
     visual: 'from-indigo-50 via-blue-50 to-purple-100 text-indigo-600',
   },
 };
@@ -87,32 +88,53 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-function CategoryChip({ category }) {
+function formatReadCount(value) {
+  const count = Math.max(0, Number(value) || 0);
+  return `${new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(
+    count
+  )} ${count === 1 ? 'read' : 'reads'}`;
+}
+
+function CategoryChip({ category, size = 'default' }) {
   const config = getCategoryConfig(category);
   const Icon = config.icon;
   return (
     <span
       className={cn(
-        'inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold',
+        'inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border font-bold transition-all duration-200',
+        size === 'sm'
+          ? 'px-2.5 py-0.5 text-[11px]'
+          : 'px-3 py-1 text-xs tracking-tight',
         config.chip
       )}
     >
-      <Icon className="h-3 w-3" /> {category || 'IELTS Guide'}
+      <Icon className={cn('shrink-0', size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5')} />
+      <span>{category || 'IELTS Guide'}</span>
     </span>
   );
 }
 
 function ArticleMeta({ article, compact = false }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-medium text-slate-500">
+    <div className="flex items-center shrink-0 whitespace-nowrap gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400">
       {!compact && (
-        <span className="inline-flex items-center gap-1.5">
-          <CalendarDays className="h-3.5 w-3.5" />
-          {formatDate(article.published_at || article.created_at)}
-        </span>
+        <>
+          <span className="inline-flex items-center gap-1">
+            <CalendarDays className="h-3 w-3" />
+            {formatDate(article.published_at || article.created_at)}
+          </span>
+          <span className="text-slate-300 dark:text-slate-700">•</span>
+        </>
       )}
-      <span className="inline-flex items-center gap-1.5">
-        <Clock3 className="h-3.5 w-3.5" /> {article.reading_minutes || 6} min read
+      <span className="inline-flex items-center gap-1">
+        <Clock3 className="h-3 w-3" /> {article.reading_minutes || 6} min read
+      </span>
+      <span className="text-slate-300 dark:text-slate-700">•</span>
+      <span
+        className="inline-flex items-center gap-1"
+        title={`${Number(article.view_count) || 0} reads`}
+      >
+        <Eye className="h-3 w-3" /> {formatReadCount(article.view_count)}
       </span>
     </div>
   );
@@ -164,23 +186,23 @@ function ArticleVisual({ article }) {
 function ArticleCard({ article, index }) {
   return (
     <motion.article
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.04 }}
-      className="group overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_12px_35px_-28px_rgba(15,23,42,.35)] transition duration-300 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-[0_20px_45px_-28px_rgba(79,70,229,.3)] dark:border-white/10 dark:bg-slate-900"
+      exit={{ opacity: 0, y: -16 }}
+      transition={{ duration: 0.35, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] }}
+      className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_12px_35px_-28px_rgba(15,23,42,.35)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-indigo-300 hover:shadow-xl dark:border-white/10 dark:bg-slate-900 dark:hover:border-indigo-500/30"
     >
       <Link to={`/blog/${article.slug}`} aria-label={`Read ${article.title}`}>
         <ArticleVisual article={article} />
       </Link>
-      <div className="flex min-h-[230px] flex-col p-5">
-        <div className="flex items-center justify-between gap-3">
-          <CategoryChip category={article.category} />
-          <ArticleMeta article={article} compact />
+      <div className="flex flex-1 flex-col p-5">
+        <div>
+          <CategoryChip category={article.category} size="sm" />
         </div>
-        <h2 className="mt-4 text-lg font-bold leading-snug tracking-[-0.02em] text-slate-950 dark:text-white">
+        <h2 className="mt-3 text-lg font-bold leading-snug tracking-[-0.02em] text-slate-950 dark:text-white">
           <Link
             to={`/blog/${article.slug}`}
-            className="transition-colors group-hover:text-indigo-700 dark:group-hover:text-indigo-300"
+            className="transition-colors duration-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-300"
           >
             {article.title}
           </Link>
@@ -188,12 +210,16 @@ function ArticleCard({ article, index }) {
         <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
           {article.description}
         </p>
-        <Link
-          to={`/blog/${article.slug}`}
-          className="mt-auto inline-flex items-center gap-1.5 pt-5 text-xs font-bold text-indigo-700 dark:text-indigo-300"
-        >
-          Read guide <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 mt-5 dark:border-white/5">
+          <ArticleMeta article={article} compact />
+          <Link
+            to={`/blog/${article.slug}`}
+            className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 transition-colors duration-200 dark:text-indigo-300 group-hover:text-indigo-600 shrink-0"
+          >
+            <span>Read guide</span>
+            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 ease-out group-hover:translate-x-1" />
+          </Link>
+        </div>
       </div>
     </motion.article>
   );
@@ -247,13 +273,20 @@ function ArticlePagination({ currentPage, totalPages, totalArticles, onPageChang
                 aria-current={item === currentPage ? 'page' : undefined}
                 aria-label={`Page ${item}`}
                 className={cn(
-                  'flex h-9 min-w-9 items-center justify-center rounded-xl px-2 text-xs font-extrabold transition',
+                  'relative flex h-9 min-w-9 items-center justify-center rounded-xl px-2 text-xs font-extrabold transition-colors duration-200',
                   item === currentPage
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
+                    ? 'text-white'
                     : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 dark:text-slate-300 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-200'
                 )}
               >
-                {item}
+                {item === currentPage && (
+                  <motion.div
+                    layoutId="activeBlogPageBadge"
+                    className="absolute inset-0 rounded-xl bg-indigo-600 shadow-md shadow-indigo-500/25"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10">{item}</span>
               </button>
             ) : (
               <span key={item} className="px-1 text-sm font-bold text-slate-400" aria-hidden="true">
@@ -370,138 +403,249 @@ function BlogCategoryBar({ categories, category, setCategory, setCurrentPage }) 
   );
 }
 
+const slideVariants = {
+  enter: (direction) => ({
+    x: direction > 0 ? 60 : direction < 0 ? -60 : 0,
+    opacity: 0,
+    scale: 0.98,
+  }),
+  center: {
+    zIndex: 1,
+    x: 0,
+    opacity: 1,
+    scale: 1,
+  },
+  exit: (direction) => ({
+    zIndex: 0,
+    x: direction < 0 ? 60 : direction > 0 ? -60 : 0,
+    opacity: 0,
+    scale: 0.98,
+  }),
+};
+
 function BlogFeaturedCarousel({ featuredArticles }) {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [[page, direction], setPage] = useState([0, 0]);
+  const [isPaused, setIsPaused] = useState(false);
+  const touchStartX = useRef(null);
+
+  const articleCount = featuredArticles.length;
+  const activeIndex = articleCount > 0 ? ((page % articleCount) + articleCount) % articleCount : 0;
+
+  const paginate = (newDirection) => {
+    setPage(([prevPage]) => [prevPage + newDirection, newDirection]);
+  };
 
   useEffect(() => {
-    if (featuredArticles.length <= 1) return;
+    if (articleCount <= 1 || isPaused) return;
     const timer = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % featuredArticles.length);
+      paginate(1);
     }, 6000);
     return () => clearInterval(timer);
-  }, [activeIndex, featuredArticles.length]);
+  }, [articleCount, isPaused]);
+
+  useEffect(() => {
+    setPage(([_, dir]) => [Math.min(activeIndex, Math.max(articleCount - 1, 0)), dir]);
+  }, [articleCount, activeIndex]);
 
   const handlePrev = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setActiveIndex((prev) => (prev - 1 + featuredArticles.length) % featuredArticles.length);
+    paginate(-1);
   };
 
   const handleNext = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setActiveIndex((prev) => (prev + 1) % featuredArticles.length);
+    paginate(1);
   };
 
   const article = featuredArticles[activeIndex];
   if (!article) return null;
 
   return (
-    <div className="relative group/carousel w-full mb-10">
+    <div
+      className="relative group/carousel mb-5 w-full"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Featured IELTS articles"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocusCapture={() => setIsPaused(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setIsPaused(false);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          paginate(-1);
+        }
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          paginate(1);
+        }
+      }}
+      onTouchStart={(event) => {
+        touchStartX.current = event.touches[0]?.clientX ?? null;
+      }}
+      onTouchEnd={(event) => {
+        const startX = touchStartX.current;
+        const endX = event.changedTouches[0]?.clientX;
+        touchStartX.current = null;
+        if (startX === null || typeof endX !== 'number' || Math.abs(startX - endX) < 48) return;
+        if (startX > endX) paginate(1);
+        else paginate(-1);
+      }}
+    >
       {/* Navigation Buttons */}
       <button
+        type="button"
         onClick={handlePrev}
-        className="absolute left-[-22px] top-1/2 z-30 -translate-y-1/2 hidden sm:flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-md transition-all hover:scale-105 hover:bg-slate-50 active:scale-95 dark:border-white/10 dark:bg-slate-950 dark:text-slate-200"
+        className="absolute left-[-12px] top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-md transition-all duration-200 hover:scale-110 hover:bg-slate-50 hover:shadow-lg active:scale-95 sm:left-[-22px] sm:h-11 sm:w-11 dark:border-white/10 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
         aria-label="Previous featured article"
       >
-        <ChevronLeft className="h-5 w-5" />
+        <ChevronLeft className="h-5 w-5 transition-transform duration-200 group-hover:-translate-x-0.5" />
       </button>
       <button
+        type="button"
         onClick={handleNext}
-        className="absolute right-[-22px] top-1/2 z-30 -translate-y-1/2 hidden sm:flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-md transition-all hover:scale-105 hover:bg-slate-50 active:scale-95 dark:border-white/10 dark:bg-slate-950 dark:text-slate-200"
+        className="absolute right-[-12px] top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-md transition-all duration-200 hover:scale-110 hover:bg-slate-50 hover:shadow-lg active:scale-95 sm:right-[-22px] sm:h-11 sm:w-11 dark:border-white/10 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
         aria-label="Next featured article"
       >
-        <ChevronRight className="h-5 w-5" />
+        <ChevronRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-0.5" />
       </button>
 
       {/* Main Card */}
       <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-[0_16px_48px_-16px_rgba(15,23,42,0.05)] dark:border-white/10 dark:bg-slate-950/75 transition-all duration-300">
-        <motion.div
-          key={activeIndex}
-          initial={{ opacity: 0, x: 15 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -15 }}
-          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="grid gap-6 md:grid-cols-[1.05fr_1.25fr] p-4 lg:p-5"
-        >
-          {/* Image Container */}
-          <Link
-            to={`/blog/${article.slug}`}
-            className="relative aspect-[16/10] md:aspect-auto md:h-full w-full overflow-hidden rounded-xl group block"
+        <AnimatePresence mode="wait" custom={direction} initial={false}>
+          <motion.div
+            key={page}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{
+              x: { type: 'spring', stiffness: 320, damping: 32 },
+              opacity: { duration: 0.25 },
+              scale: { duration: 0.25 },
+            }}
+            className="grid gap-6 p-4 md:grid-cols-[1.05fr_1.25fr] lg:p-5"
+            aria-live="polite"
           >
-            <img
-              src={article.thumbnail_url || '/ielts-hero-student.webp'}
-              alt={getBlogCoverAlt(article)}
-              className="h-full min-h-[220px] md:min-h-[280px] w-full object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-            <span className="absolute left-4 top-4 rounded-full bg-[#5262ef] px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-lg">
-              Featured
-            </span>
-          </Link>
+            {/* Image Container */}
+            <Link
+              to={`/blog/${article.slug}`}
+              className="relative aspect-[16/10] md:aspect-auto md:h-full w-full overflow-hidden rounded-xl group block"
+            >
+              <img
+                src={article.thumbnail_url || '/ielts-hero-student.webp'}
+                alt={getBlogCoverAlt(article)}
+                className="h-full min-h-[220px] md:min-h-[280px] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-indigo-600/90 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-md backdrop-blur-md">
+                <Sparkles className="h-3 w-3 fill-amber-300 text-amber-300" /> Featured
+              </span>
+            </Link>
 
-          {/* Text/Content Container */}
-          <div className="flex flex-col justify-between py-2 sm:pl-2 sm:pr-4">
-            <div className="space-y-4">
-              {/* Category & Reading Time */}
-              <div className="flex items-center gap-3">
-                <span className="rounded-full bg-indigo-50 dark:bg-indigo-950/50 px-3.5 py-1 text-xs font-black text-indigo-600 dark:text-indigo-300 uppercase tracking-wider text-[10px]">
-                  {article.category}
-                </span>
-                <span className="text-slate-400 dark:text-slate-500 text-xs font-bold">
-                  {article.reading_minutes || 6} min read
-                </span>
+            {/* Text/Content Container */}
+            <div className="flex flex-col justify-between py-2 sm:pl-2 sm:pr-4">
+              <div className="space-y-4">
+                {/* Category & Reading Time */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <CategoryChip category={article.category} />
+                  <span className="text-xs font-bold text-slate-400 dark:text-slate-500">
+                    {article.reading_minutes || 6} min read
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-400 dark:text-slate-500">
+                    <Eye className="h-3.5 w-3.5" /> {formatReadCount(article.view_count)}
+                  </span>
+                </div>
+
+                {/* Title */}
+                <h2 className="text-xl sm:text-2xl lg:text-[2rem] font-black leading-[1.12] tracking-[-0.035em] text-slate-950 dark:text-white mt-3">
+                  <Link
+                    to={`/blog/${article.slug}`}
+                    className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200"
+                  >
+                    {article.title}
+                  </Link>
+                </h2>
+
+                {/* Description */}
+                <p className="text-sm md:text-[15px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed line-clamp-3">
+                  {article.description}
+                </p>
               </div>
 
-              {/* Title */}
-              <h2 className="text-xl sm:text-2xl lg:text-[2rem] font-black leading-[1.12] tracking-[-0.035em] text-slate-950 dark:text-white mt-3">
-                <Link
-                  to={`/blog/${article.slug}`}
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                >
-                  {article.title}
-                </Link>
-              </h2>
-
-              {/* Description */}
-              <p className="text-sm md:text-[15px] text-slate-500 dark:text-slate-455 font-medium leading-relaxed line-clamp-3">
-                {article.description}
-              </p>
+              {/* Author details & Published Date */}
+              <div className="flex items-center justify-between gap-4 border-t border-slate-100 dark:border-white/5 pt-5 mt-6">
+                <span className="text-xs font-semibold text-slate-500">
+                  IELTS Ai Pro editorial team
+                </span>
+                <span className="text-xs font-bold text-slate-400 dark:text-slate-500">
+                  {formatDate(article.published_at)}
+                </span>
+              </div>
             </div>
-
-            {/* Author details & Published Date */}
-            <div className="flex items-center justify-between gap-4 border-t border-slate-100 dark:border-white/5 pt-5 mt-6">
-              <span className="text-xs font-semibold text-slate-500">
-                IELTS Ai Pro editorial team
-              </span>
-              <span className="text-xs font-bold text-slate-400 dark:text-slate-500">
-                {formatDate(article.published_at)}
-              </span>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
-      {/* Circle point indicators */}
-      <div className="flex justify-center gap-1.5 mt-4">
-        {featuredArticles.map((_, idx) => (
-          <button
-            key={idx}
-            onClick={() => setActiveIndex(idx)}
-            className={cn(
-              'h-2 w-2 rounded-full transition-all duration-300',
-              idx === activeIndex
-                ? 'bg-[#5262ef]'
-                : 'bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700'
-            )}
-            aria-label={`Go to slide ${idx + 1}`}
-          />
-        ))}
+      <div className="mt-2.5 flex items-center justify-center gap-3">
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
+          {activeIndex + 1} of {articleCount}
+        </span>
+        {/* Circle point indicators */}
+        <div className="flex items-center justify-center gap-1.5">
+          {featuredArticles.map((_, idx) => {
+            const isActive = idx === activeIndex;
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  const dir = idx > activeIndex ? 1 : idx < activeIndex ? -1 : 0;
+                  setPage([idx, dir]);
+                }}
+                className="relative flex h-3 items-center justify-center p-0.5 focus:outline-none"
+                aria-label={`Go to slide ${idx + 1}`}
+                aria-current={isActive ? 'true' : undefined}
+              >
+                <motion.div
+                  className={cn(
+                    'h-2 rounded-full',
+                    isActive
+                      ? 'bg-[#5262ef]'
+                      : 'bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700'
+                  )}
+                  animate={{
+                    width: isActive ? 20 : 8,
+                  }}
+                  transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                />
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 }
 
 function BlogSidebar({ articles, popularTags, setQuery, setCurrentPage }) {
+  const trendingArticles = useMemo(
+    () =>
+      [...articles]
+        .sort(
+          (first, second) =>
+            (Number(second.view_count) || 0) - (Number(first.view_count) || 0) ||
+            new Date(second.published_at || second.created_at || 0) -
+              new Date(first.published_at || first.created_at || 0)
+        )
+        .slice(0, 5),
+    [articles]
+  );
+
   return (
     <aside className="space-y-5 lg:sticky lg:top-36">
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_15px_40px_-32px_rgba(15,23,42,.3)] dark:border-white/10 dark:bg-slate-900">
@@ -512,7 +656,7 @@ function BlogSidebar({ articles, popularTags, setQuery, setCurrentPage }) {
           <h2 className="text-base font-extrabold">Trending now</h2>
         </div>
         <div className="mt-4 space-y-1">
-          {articles.slice(0, 5).map((article, index) => (
+          {trendingArticles.map((article, index) => (
             <Link
               key={article.id}
               to={`/blog/${article.slug}`}
@@ -526,7 +670,7 @@ function BlogSidebar({ articles, popularTags, setQuery, setCurrentPage }) {
                   {article.title}
                 </span>
                 <span className="mt-1 block text-[10px] text-slate-500">
-                  {article.reading_minutes || 6} min read
+                  {formatReadCount(article.view_count)} · {article.reading_minutes || 6} min read
                 </span>
               </span>
             </Link>
@@ -640,11 +784,20 @@ function BlogArticleListContent({
             {isEditorialView ? 'Latest articles' : `${visibleArticles.length} articles found`}
           </h2>
         </div>
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {paginatedArticles.map((article, index) => (
-            <ArticleCard key={article.id} article={article} index={index} />
-          ))}
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${isEditorialView ? 'editorial' : 'search'}-${safeCurrentPage}-${articlesToPaginate.length}`}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className="grid gap-5 md:grid-cols-2 xl:grid-cols-3"
+          >
+            {paginatedArticles.map((article, index) => (
+              <ArticleCard key={article.id} article={article} index={index} />
+            ))}
+          </motion.div>
+        </AnimatePresence>
         <ArticlePagination
           currentPage={safeCurrentPage}
           totalPages={totalPages}
@@ -909,8 +1062,8 @@ export default function BlogIndex() {
             setCurrentPage={updatePage}
           />
 
-          <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:py-12">
-            <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <section className="mx-auto max-w-7xl px-5 py-6 sm:px-6 lg:py-8">
+            <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[.16em] text-indigo-600">
                   The study desk

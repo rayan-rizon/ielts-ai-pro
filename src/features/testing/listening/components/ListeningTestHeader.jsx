@@ -156,12 +156,12 @@ const ListeningTestHeader = ({
         >
           {/* Segmented Progress Bar */}
           <div className="flex w-full max-w-[320px] gap-1.5" data-oid=".qrp4:2">
-            {stats.results.map((result) => {
+            {stats.results.map((result, index) => {
               const pct =
                 result.sQCount > 0 ? Math.round((result.sAnswered / result.sQCount) * 100) : 0;
               const cappedPct = Math.min(pct, 100);
               return (
-                <div key={result.idx} className="flex-1 group relative" data-oid="2u66tdr">
+                <div key={`part-${index}`} className="flex-1 group relative" data-oid="2u66tdr">
                   <div
                     className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden relative border border-black/5 dark:border-white/5"
                     data-oid="rb5.1oh"

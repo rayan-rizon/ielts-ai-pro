@@ -44,6 +44,7 @@ interface SkillGapRadarProps {
   skillGaps: SkillGaps | null;
   typeStats?: TypeStats;
   testType?: 'reading' | 'listening';
+  compact?: boolean;
 }
 
 const TooltipContentAny = TooltipContent as any;
@@ -121,16 +122,16 @@ const TYPE_TO_SKILL: Record<string, keyof SkillGaps> = {
   matching_headings: 'globalComprehension',
 };
 
-export function SkillGapRadar({ skillGaps, typeStats, testType = 'reading' }: SkillGapRadarProps) {
-  // Calculate skills from typeStats if skillGaps not provided
+export function SkillGapRadar({
+  skillGaps,
+  typeStats,
+  testType = 'reading',
+  compact = false,
+}: SkillGapRadarProps) {
+  // Prefer the normalized question-type totals shown elsewhere in this report.
+  // Stored skill aggregates remain a fallback for older sessions without typeStats.
   const computedSkills = useMemo(() => {
-    if (skillGaps) {
-      return skillGaps;
-    }
-
-    if (!typeStats) {
-      return null;
-    }
+    if (!typeStats || Object.keys(typeStats).length === 0) return skillGaps;
 
     // Calculate from typeStats
     const skillCalc: Record<keyof SkillGaps, { correct: number; total: number }> = {
@@ -218,32 +219,44 @@ export function SkillGapRadar({ skillGaps, typeStats, testType = 'reading' }: Sk
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="w-full p-5 rounded-3xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden flex flex-col group"
+      className={cn(
+        'w-full rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden flex flex-col group',
+        compact ? 'p-3.5' : 'p-5'
+      )}
       data-oid="g.qofcw"
     >
       {/* Background Decorative Gradients */}
       <div
-        className="absolute top-0 right-0 w-48 h-48 bg-violet-500/10 blur-[60px] rounded-full -mr-20 -mt-20 pointer-events-none group-hover:bg-violet-500/15 transition-all duration-700"
+        className="absolute top-0 right-0 w-40 h-40 bg-violet-500/[0.06] blur-[60px] rounded-full -mr-20 -mt-20 pointer-events-none"
         data-oid="-ua06-c"
       />
 
       <div
-        className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/5 blur-[50px] rounded-full -ml-16 -mb-16 pointer-events-none group-hover:bg-blue-500/10 transition-all duration-700"
+        className="absolute bottom-0 left-0 w-28 h-28 bg-blue-500/[0.04] blur-[50px] rounded-full -ml-16 -mb-16 pointer-events-none"
         data-oid="y-uepju"
       />
 
       {/* Header Area */}
-      <div className="flex items-center justify-between mb-5 relative z-10" data-oid="_uj_zju">
+      <div
+        className={cn('flex items-center justify-between relative z-10', compact ? 'mb-2' : 'mb-5')}
+        data-oid="_uj_zju"
+      >
         <div className="flex items-center gap-3" data-oid="s-m366m">
           <div
-            className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 transform group-hover:scale-110 transition-transform duration-500"
+            className={cn(
+              'rounded-xl bg-violet-600 flex items-center justify-center text-white shadow-md shadow-violet-500/20',
+              compact ? 'w-8 h-8' : 'w-10 h-10'
+            )}
             data-oid="0i8-ig:"
           >
-            <Brain className="w-5 h-5 text-white" data-oid="pi2qi6d" />
+            <Brain className={compact ? 'w-4 h-4' : 'w-5 h-5'} data-oid="pi2qi6d" />
           </div>
           <div data-oid="5in056k">
             <h3
-              className="text-base font-black text-slate-900 dark:text-white tracking-tight"
+              className={cn(
+                'font-black text-slate-900 dark:text-white tracking-tight',
+                compact ? 'text-sm' : 'text-base'
+              )}
               data-oid="sb5p6b8"
             >
               Skill Breakdown
@@ -286,7 +299,10 @@ export function SkillGapRadar({ skillGaps, typeStats, testType = 'reading' }: Sk
       </div>
 
       {/* Radar Chart Display - Reduced Height */}
-      <div className="h-[210px] w-full relative z-10 mb-4 px-2" data-oid="f8gsbk3">
+      <div
+        className={cn('w-full relative z-10 px-2', compact ? 'h-[136px] mb-2' : 'h-[210px] mb-4')}
+        data-oid="f8gsbk3"
+      >
         <ResponsiveContainer width="100%" height="100%" data-oid="cjwufqq">
           <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData} data-oid="7.72vxh">
             <PolarGrid stroke="#94a3b8" strokeOpacity={0.15} data-oid="vgdv4bm" />
@@ -330,11 +346,17 @@ export function SkillGapRadar({ skillGaps, typeStats, testType = 'reading' }: Sk
       </div>
 
       {/* Insights Section - Improved Layout Consistency */}
-      <div className="grid grid-cols-2 gap-3 relative z-10" data-oid="7_sredo">
+      <div
+        className={cn('grid grid-cols-2 relative z-10', compact ? 'gap-2' : 'gap-3')}
+        data-oid="7_sredo"
+      >
         {weakest && (
           <motion.div
             whileHover={{ y: -2 }}
-            className="p-3 rounded-2xl bg-rose-50/40 dark:bg-rose-950/20 border border-rose-100/50 dark:border-rose-900/30 flex flex-col items-start gap-0.5 group/item"
+            className={cn(
+              'rounded-xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 flex flex-col items-start gap-0.5 group/item',
+              compact ? 'p-2' : 'p-3'
+            )}
             data-oid="tvymbly"
           >
             <div
@@ -367,7 +389,10 @@ export function SkillGapRadar({ skillGaps, typeStats, testType = 'reading' }: Sk
         {strongest && strongest.score >= 60 ? (
           <motion.div
             whileHover={{ y: -2 }}
-            className="p-3 rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-100/50 dark:border-emerald-900/30 flex flex-col items-start gap-0.5 group/item"
+            className={cn(
+              'rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 flex flex-col items-start gap-0.5 group/item',
+              compact ? 'p-2' : 'p-3'
+            )}
             data-oid="sxr8:qt"
           >
             <div
@@ -397,7 +422,10 @@ export function SkillGapRadar({ skillGaps, typeStats, testType = 'reading' }: Sk
           </motion.div>
         ) : (
           <div
-            className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 border-dashed flex items-center justify-center"
+            className={cn(
+              'rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 border-dashed flex items-center justify-center',
+              compact ? 'p-2' : 'p-3'
+            )}
             data-oid="7.::dno"
           >
             <p
@@ -413,7 +441,10 @@ export function SkillGapRadar({ skillGaps, typeStats, testType = 'reading' }: Sk
 
       {/* Bottom Footer Details */}
       <div
-        className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between"
+        className={cn(
+          'border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between',
+          compact ? 'mt-2 pt-2' : 'mt-4 pt-4'
+        )}
         data-oid="p.y0e64"
       >
         <p

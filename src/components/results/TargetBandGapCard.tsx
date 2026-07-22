@@ -168,30 +168,27 @@ export function TargetBandGapCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        'p-3 rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-violet-950/30 border border-blue-200 dark:border-blue-800/50 relative overflow-hidden',
+        'p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs relative overflow-hidden',
         className
       )}
       data-oid="target-band-gap-card"
     >
-      {/* Subtle background decoration */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-[60px] rounded-full" />
-
       <div className="relative">
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20">
-              <Target className="w-3.5 h-3.5 text-white" />
+            <div className="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+              <Target className="w-3.5 h-3.5" />
             </div>
             <div>
-              <h4 className="text-[11px] font-black text-slate-800 dark:text-slate-200 tracking-wider">
+              <h4 className="text-[11px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                 Next Milestone
               </h4>
             </div>
           </div>
           {nextBand && (
-            <div className="px-2.5 py-1 rounded-full bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 shadow-sm">
-              <span className="text-xs font-black text-blue-600 dark:text-blue-400">
+            <div className="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/60 dark:border-indigo-800/60">
+              <span className="text-[11px] font-black text-indigo-600 dark:text-indigo-400">
                 Band {nextBand.toFixed(1)}
               </span>
             </div>
@@ -201,60 +198,46 @@ export function TargetBandGapCard({
         {/* Main Content */}
         <div className="space-y-2.5">
           {/* Progress Bar */}
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <div className="flex justify-between items-center">
-              <span className="text-[10px] font-bold text-slate-500 tracking-wider">
+              <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">
                 Progress to Band {nextBand?.toFixed(1)}
               </span>
               <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400">
                 {Math.round(progressToNext)}%
               </span>
             </div>
-            <div className="h-2 bg-white dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+            <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progressToNext}%` }}
                 transition={{ delay: 0.3, duration: 1, ease: 'circOut' }}
-                className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
+                className="h-full bg-indigo-500 rounded-full"
               />
             </div>
           </div>
 
           {/* Action Card */}
-          <div className="p-2.5 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 backdrop-blur-sm">
-            <div className="flex items-start gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <Zap className="w-4 h-4 text-emerald-500" />
+          <div className="p-2.5 rounded-lg bg-slate-50/80 dark:bg-slate-950/50 border border-slate-200/60 dark:border-slate-800">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <Zap className="w-3.5 h-3.5" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-2xl font-black text-slate-900 dark:text-white">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-lg font-black text-slate-900 dark:text-white leading-none">
                     +{neededForNext}
                   </span>
-                  <span className="text-xs font-bold text-slate-500">more correct</span>
+                  <span className="text-xs font-bold text-slate-500">more correct needed</span>
                 </div>
-                {weakestLabel ? (
-                  <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Focus on{' '}
-                    <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                      {weakestLabel}
-                    </span>{' '}
-                    questions
-                    <span className="text-slate-400">
-                      {' '}
-                      ({Math.round(weakestType?.accuracy || 0)}% accuracy)
-                    </span>
-                  </p>
-                ) : (
-                  <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                    Keep practicing to reach your goal!
+                {weakestLabel && (
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                    Focus on <span className="font-semibold text-slate-700 dark:text-slate-300">{weakestLabel}</span> questions
                   </p>
                 )}
               </div>
             </div>
           </div>
-
-          {/* Tip hidden for height reduction */}
         </div>
       </div>
     </motion.div>

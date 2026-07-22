@@ -36,7 +36,7 @@ export interface TimeMetrics {
   totalTimeSpent: number;
   /** Recommended pace per question for this test type */
   recommendedPace: number;
-  /** Pace efficiency: actual/recommended (1.0 is perfect, < 1 is too slow) */
+  /** Pace efficiency: recommended/actual (1.0 is on pace, > 1 is faster) */
   paceEfficiency: number;
 }
 

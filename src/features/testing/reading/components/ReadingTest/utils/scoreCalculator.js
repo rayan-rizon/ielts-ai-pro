@@ -5,6 +5,7 @@
 
 import { getQuestionCount } from '@/lib/utils';
 import { normalizeAnswer, isAnswerCorrect } from '@/lib/ieltsAnswerValidation';
+import { calculateReadingBandScore } from '@/lib/ieltsBandScore';
 
 // Re-export for backward compatibility
 export { normalizeAnswer, isAnswerCorrect };
@@ -15,28 +16,7 @@ export { normalizeAnswer, isAnswerCorrect };
  * @param {number} total - Total number of questions
  * @returns {number} IELTS band score (1.0-9.0)
  */
-export const calculateBandScore = (correct, total) => {
-  if (total === 0 || correct < 1) return 0;
-
-  const rawScore40 = (correct / total) * 40;
-
-  if (rawScore40 >= 39) return 9.0;
-  if (rawScore40 >= 37) return 8.5;
-  if (rawScore40 >= 35) return 8.0;
-  if (rawScore40 >= 33) return 7.5;
-  if (rawScore40 >= 30) return 7.0;
-  if (rawScore40 >= 27) return 6.5;
-  if (rawScore40 >= 23) return 6.0;
-  if (rawScore40 >= 19) return 5.5;
-  if (rawScore40 >= 15) return 5.0;
-  if (rawScore40 >= 13) return 4.5;
-  if (rawScore40 >= 10) return 4.0;
-  if (rawScore40 >= 8) return 3.5;
-  if (rawScore40 >= 6) return 3.0;
-  if (rawScore40 >= 4) return 2.5;
-  if (rawScore40 >= 2) return 2.0;
-  return 1.0;
-};
+export const calculateBandScore = calculateReadingBandScore;
 
 /**
  * Score a single question and return scoring details

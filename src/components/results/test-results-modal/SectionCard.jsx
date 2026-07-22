@@ -8,29 +8,25 @@ export const SectionCard = ({ index, title, correct, total, percentage, isLocked
     if (pct >= 80)
       return {
         bar: 'bg-emerald-500',
-        text: 'text-emerald-600 dark:text-emerald-400',
-        bg: 'bg-emerald-50 dark:bg-emerald-500/10',
-        icon: 'text-emerald-500',
+        badge: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-800/60',
+        iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
       };
     if (pct >= 60)
       return {
-        bar: 'bg-blue-500',
-        text: 'text-blue-600 dark:text-blue-400',
-        bg: 'bg-blue-50 dark:bg-blue-500/10',
-        icon: 'text-blue-500',
+        bar: 'bg-indigo-500',
+        badge: 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border-indigo-200/60 dark:border-indigo-800/60',
+        iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
       };
     if (pct >= 40)
       return {
         bar: 'bg-amber-500',
-        text: 'text-amber-600 dark:text-amber-400',
-        bg: 'bg-amber-50 dark:bg-amber-500/10',
-        icon: 'text-amber-500',
+        badge: 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border-amber-200/60 dark:border-amber-800/60',
+        iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
       };
     return {
       bar: 'bg-rose-500',
-      text: 'text-rose-600 dark:text-rose-400',
-      bg: 'bg-rose-50 dark:bg-rose-500/10',
-      icon: 'text-rose-500',
+      badge: 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border-rose-200/60 dark:border-rose-800/60',
+      iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
     };
   };
 
@@ -38,81 +34,70 @@ export const SectionCard = ({ index, title, correct, total, percentage, isLocked
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.05 * index }}
       className={cn(
-        'group relative overflow-hidden p-3.5 rounded-xl transition-all duration-300',
-        'bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800',
-        'hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700',
+        'group relative overflow-hidden p-3 rounded-xl transition-all duration-200',
+        'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs',
+        'hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs',
         isLocked && 'opacity-50 blur-[1px]'
       )}
       data-oid="mx98p.:"
     >
-      <div className="flex items-center justify-between gap-3 relative z-10" data-oid="g:dv8mn">
+      <div className="flex items-center justify-between gap-2 mb-2" data-oid="g:dv8mn">
         <div className="flex items-center gap-2 min-w-0" data-oid="6fssem6">
           <div
             className={cn(
-              'w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 shadow-sm',
-              colors.bg
+              'w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-105',
+              colors.iconBg
             )}
             data-oid="84xa7w1"
           >
-            <BookOpen className={cn('w-3.5 h-3.5', colors.icon)} data-oid="5dkph:c" />
+            <BookOpen className="w-3.5 h-3.5" data-oid="5dkph:c" />
           </div>
           <div className="min-w-0 flex-1" data-oid="eqmllhc">
-            <div className="flex items-center gap-1.5 flex-wrap min-w-0" data-oid="p5jxdv8-wrap">
-              <h4
-                className="text-xs sm:text-[13px] font-black text-slate-800 dark:text-slate-200 truncate leading-tight shrink-0"
-                data-oid="p5jxdv8"
-              >
-                {title.includes('Part') || title.includes('Passage')
-                  ? title
-                  : `Passage ${index + 1}`}
-              </h4>
-            </div>
-            <div className="flex items-center gap-1.5 mt-0.5" data-oid="e1oc14a">
-              <span
-                className={cn(
-                  'text-[9px] sm:text-[10px] font-black uppercase tracking-wider',
-                  colors.text
-                )}
-                data-oid="lgm-2mk"
-              >
-                {percentage}% Accuracy
-              </span>
-            </div>
+            <h4
+              className="text-xs font-black text-slate-800 dark:text-slate-200 truncate leading-tight"
+              data-oid="p5jxdv8"
+            >
+              {title.includes('Part') || title.includes('Passage')
+                ? title
+                : `Passage ${index + 1}`}
+            </h4>
           </div>
         </div>
 
-        <div
-          className="flex flex-col items-end justify-center shrink-0 min-w-[28px]"
-          data-oid="m1ndtdc"
-        >
+        <div className="flex items-center gap-1.5 shrink-0">
           <span
-            className="text-sm font-black tracking-tight leading-none text-slate-900 dark:text-white"
-            data-oid="i7i7q0v"
+            className={cn(
+              'px-1.5 py-0.5 rounded text-[10px] font-bold border',
+              colors.badge
+            )}
+            data-oid="lgm-2mk"
           >
-            {correct}
+            {percentage}%
           </span>
-          <span
-            className="text-[10px] font-bold text-slate-400 dark:text-slate-500 leading-none mt-0.5"
-            data-oid="j3j80w_"
-          >
-            /{total}
-          </span>
+          <div className="text-right min-w-[28px]">
+            <span className="text-xs font-black text-slate-900 dark:text-white leading-none">
+              {correct}
+            </span>
+            <span className="text-[10px] font-semibold text-slate-400 leading-none">
+              /{total}
+            </span>
+          </div>
         </div>
       </div>
 
       <div
-        className="mt-2.5 h-1 w-full bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden"
+        className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"
         data-oid="k86idui"
       >
         <motion.div
           className={cn('h-full rounded-full', colors.bar)}
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
-          transition={{ duration: 1, delay: 0.3 + index * 0.1, ease: 'circOut' }}
+          transition={{ duration: 0.8, delay: 0.2 + index * 0.1, ease: 'easeOut' }}
           data-oid="76vi9u1"
         />
       </div>

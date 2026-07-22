@@ -19,32 +19,32 @@ const StatCard = ({
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
-    className="p-3.5 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 relative overflow-hidden group h-full"
+    className="p-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 relative overflow-hidden group h-full"
   >
     <div className="relative">
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-1.5">
         <div
           className={cn(
-            'w-8 h-8 rounded-xl flex items-center justify-center border',
+            'w-7 h-7 rounded-lg flex items-center justify-center border',
             bgClass,
             borderClass
           )}
         >
-          <Icon className={cn('w-4 h-4', iconColorClass)} />
+          <Icon className={cn('w-3.5 h-3.5', iconColorClass)} />
         </div>
         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
           {title}
         </span>
       </div>
       <div className="flex items-baseline gap-1">
-        <span className="text-3xl font-black text-slate-900 dark:text-white">{value}</span>
-        <span className="text-lg font-bold text-slate-400">{unit}</span>
+        <span className="text-2xl font-black text-slate-900 dark:text-white">{value}</span>
+        <span className="text-sm font-bold text-slate-400">{unit}</span>
       </div>
     </div>
   </motion.div>
 );
 
-const HighlightCard = ({ title, stat, type, icon: Icon, colorTheme, delay = 0 }) => {
+const HighlightCard = ({ title, stat, type, icon: Icon, colorTheme, delay = 0, className }) => {
   const themes = {
     emerald: {
       bg: 'bg-emerald-500/10',
@@ -58,6 +58,12 @@ const HighlightCard = ({ title, stat, type, icon: Icon, colorTheme, delay = 0 })
       text: 'text-rose-600 dark:text-rose-400',
       bar: 'bg-rose-500',
     },
+    blue: {
+      bg: 'bg-blue-500/10',
+      icon: 'text-blue-500',
+      text: 'text-blue-600 dark:text-blue-400',
+      bar: 'bg-blue-500',
+    },
   };
   const t = themes[colorTheme];
 
@@ -66,10 +72,13 @@ const HighlightCard = ({ title, stat, type, icon: Icon, colorTheme, delay = 0 })
       initial={{ opacity: 0, x: type === 'strength' ? -10 : 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="p-3.5 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 relative overflow-hidden group"
+      className={cn(
+        'p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 relative overflow-hidden group',
+        className
+      )}
     >
       <div className="relative">
-        <div className="flex items-center gap-2 mb-2.5">
+        <div className="flex items-center gap-2 mb-2">
           <div className={cn('w-6 h-6 rounded flex items-center justify-center', t.bg)}>
             <Icon className={cn('w-3.5 h-3.5', t.icon)} />
           </div>
@@ -77,7 +86,7 @@ const HighlightCard = ({ title, stat, type, icon: Icon, colorTheme, delay = 0 })
             {title}
           </span>
         </div>
-        <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 truncate">
+        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-2 truncate">
           {stat.label}
         </p>
         <div className="flex items-center gap-2">
@@ -107,15 +116,15 @@ const AllTypesList = ({ types }) => (
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ delay: 0.4 }}
-    className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-slate-950/50 border border-slate-100 dark:border-slate-800"
+    className="p-3 rounded-xl bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-slate-950/50 border border-slate-100 dark:border-slate-800"
   >
     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
       All Question Types
     </p>
-    <div className="space-y-2">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-2">
       {types.slice(0, 5).map((qType, idx) => (
         <div key={qType.type} className="flex items-center gap-3">
-          <span className="text-xs text-slate-600 dark:text-slate-400 truncate flex-1">
+          <span className="text-[11px] text-slate-600 dark:text-slate-400 truncate flex-1">
             {qType.label}
           </span>
           <div className="w-16 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -154,7 +163,7 @@ const AllTypesList = ({ types }) => (
 function calculateStats(typeStats, propTotalQuestions, propCorrectAnswers) {
   if (!typeStats) return null;
 
-  const entries = Object.entries(typeStats);
+  const entries = Object.entries(typeStats).filter(([, stat]) => Number(stat?.total) > 0);
   if (entries.length === 0) return null;
 
   const typeCorrect = entries.reduce((acc, [, s]) => acc + s.correct, 0);
@@ -174,7 +183,12 @@ function calculateStats(typeStats, propTotalQuestions, propCorrectAnswers) {
       accuracy: s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0,
       ...s,
     }))
-    .sort((a, b) => b.accuracy - a.accuracy);
+    .sort((a, b) => b.accuracy - a.accuracy || b.correct - a.correct || b.total - a.total);
+
+  const weakest = [...sorted].sort(
+    (a, b) => a.accuracy - b.accuracy || b.total - b.correct - (a.total - a.correct)
+  )[0];
+  const strongest = sorted[0]?.accuracy > 0 ? sorted[0] : null;
 
   const improvementPotential = sorted.reduce((acc, type) => acc + (type.total - type.correct), 0);
 
@@ -182,8 +196,8 @@ function calculateStats(typeStats, propTotalQuestions, propCorrectAnswers) {
     overallAccuracy,
     totalCorrect,
     totalQuestions,
-    strongest: sorted[0],
-    weakest: sorted[sorted.length - 1],
+    strongest,
+    weakest,
     questionTypes: sorted.length,
     allTypes: sorted,
     improvementPotential,
@@ -208,7 +222,7 @@ export const DetailedSkillBreakdown = ({
   if (!stats) return null;
 
   return (
-    <div className="space-y-5 relative" data-oid="esrvnvs">
+    <div className="space-y-3.5 relative" data-oid="esrvnvs">
       <div className="flex items-center gap-2" data-oid=".-202bj">
         <div
           className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-200/50 dark:border-indigo-800/50"
@@ -225,8 +239,8 @@ export const DetailedSkillBreakdown = ({
         {isLocked && <Lock className="w-3 h-3 text-slate-400 ml-auto" data-oid="ju-nvr1" />}
       </div>
 
-      <div className={cn('relative', isLocked && 'min-h-[300px]')} data-oid="buxjet:">
-        <div className="space-y-4" data-oid="6.uxfls">
+      <div className={cn('relative', isLocked && 'min-h-[220px]')} data-oid="buxjet:">
+        <div className="space-y-3" data-oid="6.uxfls">
           <div className="grid grid-cols-2 gap-3" data-oid="3xaqc1o">
             <StatCard
               icon={Target}
@@ -255,7 +269,7 @@ export const DetailedSkillBreakdown = ({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="col-span-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3"
+                className="col-span-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3"
               >
                 <div className="p-1.5 bg-amber-500/20 rounded-lg shrink-0">
                   <TrendingUp className="w-4 h-4 text-amber-600 dark:text-amber-500" />
@@ -265,7 +279,7 @@ export const DetailedSkillBreakdown = ({
                     Growth Opportunity
                   </p>
                   <p className="text-[10px] text-amber-700/80 dark:text-amber-500/80 truncate">
-                    Mastering current mistakes could boost score by +0.5 band
+                    Review missed answers to build accuracy for your next band milestone
                   </p>
                 </div>
               </motion.div>
@@ -275,11 +289,11 @@ export const DetailedSkillBreakdown = ({
           <div className="grid grid-cols-2 gap-3" data-oid="g:t68x9">
             {stats.strongest && (
               <HighlightCard
-                title="Top Strength"
+                title={stats.strongest.accuracy >= 60 ? 'Top Strength' : 'Best Result'}
                 stat={stats.strongest}
                 type="strength"
                 icon={Target}
-                colorTheme="emerald"
+                colorTheme={stats.strongest.accuracy >= 60 ? 'emerald' : 'blue'}
                 delay={0.2}
               />
             )}
@@ -291,6 +305,7 @@ export const DetailedSkillBreakdown = ({
                 icon={AlertTriangle}
                 colorTheme="rose"
                 delay={0.3}
+                className={!stats.strongest ? 'col-span-2' : undefined}
               />
             )}
           </div>
