@@ -239,6 +239,14 @@ export const useWritingTestStore = create(
         switchTaskFull: (newType) => {
           const state = get();
           const newTaskData = state.compositeTasks[newType] || {};
+          const {
+            prompt: _previousPrompt,
+            instructions: _previousInstructions,
+            image_url: _previousImageUrl,
+            sample_answer: _previousSampleAnswer,
+            activeType: _previousActiveType,
+            ...taskMetadata
+          } = state.task || {};
 
           // Recalculate word count for the target draft
           const targetDraft = state.drafts[newType] || '';
@@ -252,7 +260,7 @@ export const useWritingTestStore = create(
             activeType: newType,
             currentFeedback: state.feedbacks[newType] || null,
             task: {
-              ...state.task,
+              ...taskMetadata,
               ...newTaskData,
               activeType: newType,
             },
@@ -358,7 +366,7 @@ export const useWritingTestStore = create(
 
         onRehydrateStorage: () => (state) => {
           if (state) {
-            console.log('[WritingTestStore] Hydrated from sessionStorage');
+            console.info('[WritingTestStore] Hydrated from sessionStorage');
           }
         },
       }

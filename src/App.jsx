@@ -169,7 +169,7 @@ const SubscriptionSuccess = lazyWithRetry(
   () => import('@/features/subscription/pages/SubscriptionSuccess.jsx')
 );
 
-const LazyPage = ({ children }) => {
+const LazyPage = ({ children, className }) => {
   const { pathname } = useLocation();
 
   React.useLayoutEffect(() => {
@@ -186,6 +186,7 @@ const LazyPage = ({ children }) => {
       data-oid="fnq31q0"
     >
       <m.div
+        className={className}
         key={pathname}
         initial={{ opacity: 0, y: 6 }}
         animate={{
@@ -529,7 +530,7 @@ const router = createBrowserRouter(
       element: (
         <ProtectedRoute data-oid="jk:flzt">
           <Layout currentPageName="WritingTask" data-oid="g6k0zze">
-            <LazyPage data-oid="o5hp-6f">
+            <LazyPage className="flex h-full min-h-0 flex-col" data-oid="o5hp-6f">
               <WritingTask data-oid="ex866do" />
             </LazyPage>
           </Layout>
@@ -541,7 +542,7 @@ const router = createBrowserRouter(
       element: (
         <ProtectedRoute data-oid="huf60xh">
           <Layout currentPageName="WritingTask" data-oid="yjbtplh">
-            <LazyPage data-oid="ivw.4.t">
+            <LazyPage className="flex h-full min-h-0 flex-col" data-oid="ivw.4.t">
               <WritingTask data-oid="dbtdq9." />
             </LazyPage>
           </Layout>

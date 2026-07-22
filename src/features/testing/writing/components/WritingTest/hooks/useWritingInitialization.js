@@ -160,13 +160,18 @@ export function useWritingInitialization() {
           currentTaskData = { prompt: selectedTask.content };
         }
 
-        const finalActiveType = store.activeType || initialActiveType;
+        // A resumed session can reopen on Task 2. Keep the displayed task data in
+        // sync with that persisted tab instead of always retaining Task 1's media.
+        const finalActiveType = compositeTasks[store.activeType]
+          ? store.activeType
+          : initialActiveType;
+        const finalTaskData = compositeTasks[finalActiveType] || currentTaskData;
 
         // Set Task Data
         store.setTask(
           {
             ...selectedTask,
-            ...currentTaskData,
+            ...finalTaskData,
             activeType: finalActiveType,
           },
           compositeTasks

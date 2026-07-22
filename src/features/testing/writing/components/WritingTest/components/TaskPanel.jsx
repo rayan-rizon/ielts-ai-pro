@@ -118,7 +118,7 @@ export function TaskPanel({ task, showSample, setShowSample, isInset = false }) 
       exit={!isInset ? { y: 15, opacity: 0 } : { opacity: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        'flex flex-col relative z-0',
+        'relative z-0 flex min-h-0 flex-col',
         !isInset
           ? 'h-1/2 md:h-full w-full md:w-1/2 border-b md:border-b-0 md:border-r border-slate-200/60 dark:border-slate-800/60 bg-white/50 dark:bg-[#0a0a0a] backdrop-blur-sm'
           : 'h-full w-full'
@@ -126,7 +126,7 @@ export function TaskPanel({ task, showSample, setShowSample, isInset = false }) 
       data-oid="zit35s_"
     >
       <div
-        className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
+        className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
         data-oid="ull-mmp"
       >
         {/* Unified Writing Task Card */}
@@ -146,7 +146,7 @@ export function TaskPanel({ task, showSample, setShowSample, isInset = false }) 
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                    {activeType} Brief
+                    {activeType}
                   </span>
                   <Badge
                     variant="outline"

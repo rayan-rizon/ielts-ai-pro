@@ -1,7 +1,8 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva } from 'class-variance-authority';
-import { PanelLeft, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { PanelLeft } from 'lucide-react';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/cn';
@@ -30,6 +31,19 @@ function useSidebar() {
   return context;
 }
 
+function getInitialOpenState(defaultOpen) {
+  if (defaultOpen === false) {
+    return false;
+  }
+  if (typeof document !== 'undefined') {
+    const match = document.cookie.match(new RegExp(`(^| )${SIDEBAR_COOKIE_NAME}=([^;]+)`));
+    if (match) {
+      return match[2] === 'true';
+    }
+  }
+  return defaultOpen;
+}
+
 const SidebarProvider = React.forwardRef(
   (
     {
@@ -48,20 +62,7 @@ const SidebarProvider = React.forwardRef(
 
     // This is the internal state of the sidebar.
     // We use openProp and setOpenProp for control from outside the component.
-    const [_open, _setOpen] = React.useState(() => {
-      // Prioritize explicit defaultOpen=false (e.g. for test pages)
-      if (defaultOpen === false) {
-        return false;
-      }
-      // Try to read cookie first
-      if (typeof document !== 'undefined') {
-        const match = document.cookie.match(new RegExp(`(^| )${SIDEBAR_COOKIE_NAME}=([^;]+)`));
-        if (match) {
-          return match[2] === 'true';
-        }
-      }
-      return defaultOpen;
-    });
+    const [_open, _setOpen] = React.useState(() => getInitialOpenState(defaultOpen));
     const open = openProp ?? _open;
     const setOpen = React.useCallback(
       (value) => {
@@ -86,7 +87,9 @@ const SidebarProvider = React.forwardRef(
     // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
       const handleKeyDown = (event) => {
-        if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
+        const isShortcutKey = event.key === SIDEBAR_KEYBOARD_SHORTCUT;
+        const isModifierPressed = event.metaKey || event.ctrlKey;
+        if (isShortcutKey && isModifierPressed) {
           event.preventDefault();
           toggleSidebar();
         }
@@ -243,7 +246,7 @@ const Sidebar = React.forwardRef(
 Sidebar.displayName = 'Sidebar';
 
 const SidebarTrigger = React.forwardRef(({ className, onClick, ...props }, ref) => {
-  const { toggleSidebar, state } = useSidebar();
+  const { toggleSidebar } = useSidebar();
 
   return (
     <Button
@@ -304,89 +307,63 @@ const SidebarInset = React.forwardRef(({ className, ...props }, ref) => {
 });
 SidebarInset.displayName = 'SidebarInset';
 
-const SidebarInput = React.forwardRef(({ className, ...props }, ref) => {
-  return (
-    <Input
+const createSidebarElement = (Tag, { dataSidebar, defaultClassName, displayName, oid }) => {
+  const Comp = React.forwardRef(({ className, ...props }, ref) => (
+    <Tag
       ref={ref}
-      data-sidebar="input"
-      className={cn(
-        'h-8 w-full bg-background shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
-        className
-      )}
+      data-sidebar={dataSidebar}
+      className={cn(defaultClassName, className)}
       {...props}
-      data-oid="lyfd0n-"
+      data-oid={oid}
     />
-  );
-});
-SidebarInput.displayName = 'SidebarInput';
+  ));
+  Comp.displayName = displayName;
+  return Comp;
+};
 
-const SidebarHeader = React.forwardRef(({ className, ...props }, ref) => {
-  return (
-    <div
-      ref={ref}
-      data-sidebar="header"
-      className={cn('flex flex-col gap-2 p-2', className)}
-      {...props}
-      data-oid="q3wqusk"
-    />
-  );
+const SidebarInput = createSidebarElement(Input, {
+  dataSidebar: 'input',
+  defaultClassName:
+    'h-8 w-full bg-background shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
+  displayName: 'SidebarInput',
+  oid: 'lyfd0n-',
 });
-SidebarHeader.displayName = 'SidebarHeader';
 
-const SidebarFooter = React.forwardRef(({ className, ...props }, ref) => {
-  return (
-    <div
-      ref={ref}
-      data-sidebar="footer"
-      className={cn('flex flex-col gap-2 p-2', className)}
-      {...props}
-      data-oid="kupot4k"
-    />
-  );
+const SidebarHeader = createSidebarElement('div', {
+  dataSidebar: 'header',
+  defaultClassName: 'flex flex-col gap-2 p-2',
+  displayName: 'SidebarHeader',
+  oid: 'q3wqusk',
 });
-SidebarFooter.displayName = 'SidebarFooter';
 
-const SidebarSeparator = React.forwardRef(({ className, ...props }, ref) => {
-  return (
-    <Separator
-      ref={ref}
-      data-sidebar="separator"
-      className={cn('mx-2 w-auto bg-sidebar-border', className)}
-      {...props}
-      data-oid="t6e1f8w"
-    />
-  );
+const SidebarFooter = createSidebarElement('div', {
+  dataSidebar: 'footer',
+  defaultClassName: 'flex flex-col gap-2 p-2',
+  displayName: 'SidebarFooter',
+  oid: 'kupot4k',
 });
-SidebarSeparator.displayName = 'SidebarSeparator';
 
-const SidebarContent = React.forwardRef(({ className, ...props }, ref) => {
-  return (
-    <div
-      ref={ref}
-      data-sidebar="content"
-      className={cn(
-        'flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden',
-        className
-      )}
-      {...props}
-      data-oid=".bn53te"
-    />
-  );
+const SidebarSeparator = createSidebarElement(Separator, {
+  dataSidebar: 'separator',
+  defaultClassName: 'mx-2 w-auto bg-sidebar-border',
+  displayName: 'SidebarSeparator',
+  oid: 't6e1f8w',
 });
-SidebarContent.displayName = 'SidebarContent';
 
-const SidebarGroup = React.forwardRef(({ className, ...props }, ref) => {
-  return (
-    <div
-      ref={ref}
-      data-sidebar="group"
-      className={cn('relative flex w-full min-w-0 flex-col px-2 pt-1 pb-1', className)}
-      {...props}
-      data-oid="bt75zf8"
-    />
-  );
+const SidebarContent = createSidebarElement('div', {
+  dataSidebar: 'content',
+  defaultClassName:
+    'flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden',
+  displayName: 'SidebarContent',
+  oid: '.bn53te',
 });
-SidebarGroup.displayName = 'SidebarGroup';
+
+const SidebarGroup = createSidebarElement('div', {
+  dataSidebar: 'group',
+  defaultClassName: 'relative flex w-full min-w-0 flex-col px-2 pt-1 pb-1',
+  displayName: 'SidebarGroup',
+  oid: 'bt75zf8',
+});
 
 const SidebarGroupLabel = React.forwardRef(({ className, asChild = false, ...props }, ref) => {
   const Comp = asChild ? Slot : 'div';
@@ -428,38 +405,26 @@ const SidebarGroupAction = React.forwardRef(({ className, asChild = false, ...pr
 });
 SidebarGroupAction.displayName = 'SidebarGroupAction';
 
-const SidebarGroupContent = React.forwardRef(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    data-sidebar="group-content"
-    className={cn('w-full text-sm', className)}
-    {...props}
-    data-oid="lw6soh1"
-  />
-));
-SidebarGroupContent.displayName = 'SidebarGroupContent';
+const SidebarGroupContent = createSidebarElement('div', {
+  dataSidebar: 'group-content',
+  defaultClassName: 'w-full text-sm',
+  displayName: 'SidebarGroupContent',
+  oid: 'lw6soh1',
+});
 
-const SidebarMenu = React.forwardRef(({ className, ...props }, ref) => (
-  <ul
-    ref={ref}
-    data-sidebar="menu"
-    className={cn('flex w-full min-w-0 flex-col gap-1', className)}
-    {...props}
-    data-oid="ol1jvke"
-  />
-));
-SidebarMenu.displayName = 'SidebarMenu';
+const SidebarMenu = createSidebarElement('ul', {
+  dataSidebar: 'menu',
+  defaultClassName: 'flex w-full min-w-0 flex-col gap-1',
+  displayName: 'SidebarMenu',
+  oid: 'ol1jvke',
+});
 
-const SidebarMenuItem = React.forwardRef(({ className, ...props }, ref) => (
-  <li
-    ref={ref}
-    data-sidebar="menu-item"
-    className={cn('group/menu-item relative', className)}
-    {...props}
-    data-oid="ro5dfd7"
-  />
-));
-SidebarMenuItem.displayName = 'SidebarMenuItem';
+const SidebarMenuItem = createSidebarElement('li', {
+  dataSidebar: 'menu-item',
+  defaultClassName: 'group/menu-item relative',
+  displayName: 'SidebarMenuItem',
+  oid: 'ro5dfd7',
+});
 
 const sidebarMenuButtonVariants = cva(
   'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding,background-color] duration-200 ease-sidebar hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',

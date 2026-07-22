@@ -16,7 +16,7 @@ const ReactQuill = React.lazy(() =>
 // Loading fallback for the editor
 const EditorSkeleton = () => (
   <div
-    className="flex-1 flex flex-col min-h-[450px] items-center justify-center bg-slate-50 dark:bg-slate-900/50 container-border rounded-xl"
+    className="flex-1 flex min-h-[220px] flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-900/50 md:min-h-[260px] container-border"
     data-oid=".9ka2dl"
   >
     <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mb-4 opacity-50" data-oid="ndugygt" />
@@ -89,13 +89,13 @@ export function WritingEditor({
 
   return (
     <div
-      className={cn('w-full h-full bg-[#fcfcfc] dark:bg-[#050505] p-2 md:p-4 pt-0 md:pt-0')}
+      className={cn('h-full min-h-0 w-full bg-[#fcfcfc] p-2 pt-0 md:p-4 md:pt-0 dark:bg-[#050505]')}
       data-oid="d7m1g:5"
     >
       {/* Editor Card */}
       <div
         className={cn(
-          'w-full h-full flex flex-col bg-white dark:bg-[#0D0E1A] rounded-2xl border shadow-sm overflow-hidden relative transition-all duration-300',
+          'relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 dark:bg-[#0D0E1A]',
           isFocused
             ? 'border-indigo-400 dark:border-indigo-500/30 ring-4 ring-indigo-500/[0.04] dark:ring-indigo-500/[0.02]'
             : 'border-slate-200/60 dark:border-white/5'
@@ -183,7 +183,8 @@ export function WritingEditor({
                                [&_.ql-container]:border-none
                                [&_.ql-editor]:flex-1
                                [&_.ql-editor]:h-full
-                               [&_.ql-editor]:min-h-[350px]
+                               [&_.ql-editor]:min-h-[220px]
+                               md:[&_.ql-editor]:min-h-[260px]
                                [&_.ql-editor]:px-4 md:[&_.ql-editor]:px-6 [&_.ql-editor]:!pt-3 [&_.ql-editor]:!pb-4 [&_.ql-editor.ql-blank::before]:!top-3
                                [&_.ql-editor]:text-[16px]
                                [&_.ql-editor]:leading-8

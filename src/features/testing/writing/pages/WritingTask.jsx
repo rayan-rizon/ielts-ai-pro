@@ -111,7 +111,7 @@ function WritingTaskContent() {
 
   return (
     <div
-      className="flex flex-col h-full w-full bg-slate-50 dark:bg-[#05060B] relative overflow-hidden"
+      className="flex min-h-0 h-full w-full flex-col overflow-hidden bg-slate-50 relative dark:bg-[#05060B]"
       data-oid="ypz5..c"
     >
       <MemoizedWritingHeader
@@ -122,7 +122,7 @@ function WritingTaskContent() {
       />
 
       <div
-        className="flex-1 flex flex-col md:flex-row overflow-hidden max-w-[1920px] mx-auto w-full relative"
+        className="relative mx-auto flex min-h-0 w-full max-w-[1920px] flex-1 flex-col overflow-hidden md:flex-row"
         data-oid="50emge."
       >
         <AnimatePresence mode="wait" initial={false} data-oid=".rp02r7">
@@ -233,7 +233,7 @@ function WritingEditorPane({
       initial={false}
       transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
       className={cn(
-        'flex flex-col bg-[#fcfcfc] dark:bg-[#050505] relative overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10 z-30',
+        'relative z-30 flex min-h-0 flex-col overflow-hidden bg-[#fcfcfc] dark:bg-[#050505]',
         hasFeedback
           ? 'w-full md:w-1/2 h-full border-r border-slate-200 dark:border-slate-800'
           : isSidebarClosed
