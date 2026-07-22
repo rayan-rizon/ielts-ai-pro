@@ -35,43 +35,51 @@ function fillDummyAnswers({ q, answersMap, questionNum, size, keyPrefix = '' }) 
   }
 }
 
+function scoreGapFillKeys({ q, answers, answersMap, answerKeys, baseNum }) {
+  let correctCount = 0;
+  answerKeys.forEach((key) => {
+    const userAnswer = answers[`${q.id}_${key}`] || '';
+    const correct = q.gap_fill.answers[key] || '';
+    const isCorrect = isAnswerCorrect(userAnswer, correct);
+
+    if (isCorrect) correctCount++;
+
+    const displayNum = baseNum + parseInt(key, 10);
+    answersMap[`${q.id}_${key}`] = {
+      questionNumber: displayNum,
+      userAnswer,
+      correctAnswer: correct,
+      isCorrect,
+    };
+  });
+  return correctCount;
+}
+
+function scoreGapFillFallback({ q, answers, answersMap, baseNum, size }) {
+  for (let i = 0; i < size; i++) {
+    const key = i.toString();
+    const userAnswer = answers[`${q.id}_${key}`] || answers[`${q.id}_${i + 1}`] || '';
+    answersMap[`${q.id}_${key}`] = {
+      questionNumber: baseNum + i,
+      userAnswer,
+      correctAnswer: '—',
+      isCorrect: false,
+    };
+  }
+  return 0;
+}
+
 /**
  * Score gap fill, notes completion, and sentence completion question types.
  */
 function scoreGapFill({ q, answers, answersMap, questionNum, size }) {
-  let correctCount = 0;
   const answerKeys = q.gap_fill?.answers ? Object.keys(q.gap_fill.answers) : [];
   const baseNum = parseInt(questionNum, 10) || 0;
 
   if (answerKeys.length > 0) {
-    answerKeys.forEach((key) => {
-      const userAnswer = answers[`${q.id}_${key}`] || '';
-      const correct = q.gap_fill.answers[key] || '';
-      const isCorrect = isAnswerCorrect(userAnswer, correct);
-
-      if (isCorrect) correctCount++;
-
-      const displayNum = baseNum + parseInt(key, 10);
-      answersMap[`${q.id}_${key}`] = {
-        questionNumber: displayNum,
-        userAnswer,
-        correctAnswer: correct,
-        isCorrect,
-      };
-    });
-  } else {
-    for (let i = 0; i < size; i++) {
-      const key = i.toString();
-      const userAnswer = answers[`${q.id}_${key}`] || answers[`${q.id}_${i + 1}`] || '';
-      answersMap[`${q.id}_${key}`] = {
-        questionNumber: baseNum + i,
-        userAnswer,
-        correctAnswer: '—',
-        isCorrect: false,
-      };
-    }
+    return scoreGapFillKeys({ q, answers, answersMap, answerKeys, baseNum });
   }
-  return correctCount;
+  return scoreGapFillFallback({ q, answers, answersMap, baseNum, size });
 }
 
 function calculateTotalGaps(steps) {
@@ -137,6 +145,24 @@ function scoreFlowchart({ q, answers, answersMap, questionNum, size }) {
   return 0;
 }
 
+function processSingleCellMatch(opts) {
+  const { q, answers, answersMap, sortedBlanks, baseNum, gapIndex } = opts;
+  const ansKey = `${q.id}_${gapIndex}`;
+  const userAnswer = answers[ansKey] || '';
+  const blankMeta = sortedBlanks[gapIndex];
+  const correctAns = blankMeta?.answer || q.table_data?.answers?.[gapIndex] || '';
+
+  const isCorrect = isAnswerCorrect(userAnswer, correctAns);
+
+  answersMap[ansKey] = {
+    questionNumber: baseNum + gapIndex,
+    userAnswer,
+    correctAnswer: correctAns,
+    isCorrect,
+  };
+  return isCorrect ? 1 : 0;
+}
+
 function evaluateTableCellMatches({ q, answers, answersMap, sortedBlanks, baseNum }) {
   let correctCount = 0;
   let gapIndex = 0;
@@ -148,20 +174,14 @@ function evaluateTableCellMatches({ q, answers, answersMap, sortedBlanks, baseNu
       const cellMatches = cellStr.match(/\[gap\]|__BLANK__|__BLANK_\d+__/gi) || [];
 
       cellMatches.forEach(() => {
-        const ansKey = `${q.id}_${gapIndex}`;
-        const userAnswer = answers[ansKey] || '';
-        const blankMeta = sortedBlanks[gapIndex];
-        const correctAns = blankMeta?.answer || q.table_data?.answers?.[gapIndex] || '';
-
-        const isCorrect = isAnswerCorrect(userAnswer, correctAns);
-        if (isCorrect) correctCount++;
-
-        answersMap[ansKey] = {
-          questionNumber: baseNum + gapIndex,
-          userAnswer,
-          correctAnswer: correctAns,
-          isCorrect,
-        };
+        correctCount += processSingleCellMatch({
+          q,
+          answers,
+          answersMap,
+          sortedBlanks,
+          baseNum,
+          gapIndex,
+        });
         gapIndex++;
       });
     });
@@ -192,65 +212,61 @@ function scoreTableCompletion({ q, answers, answersMap, questionNum, size }) {
   return correctCount;
 }
 
+function scoreSubQuestionItem(opts) {
+  const { subQ, idx, q, answers, answersMap, baseNum, keyPrefix } = opts;
+  const qNum = subQ.questionNumber || baseNum + idx;
+  const qId = keyPrefix
+    ? `${keyPrefix}_${q.id}_${qNum}`
+    : (subQ.id || `${q.id}_${idx}`);
+  const userAnswer = answers[qId] || '';
+  const correctAns = subQ.answer || q.matching_features?.answers?.[qId] || '';
+
+  const isCorrect = isAnswerCorrect(userAnswer, correctAns);
+  answersMap[qId] = {
+    questionNumber: qNum,
+    userAnswer,
+    correctAnswer: correctAns,
+    isCorrect,
+  };
+  return isCorrect ? 1 : 0;
+}
+
 /**
  * Score matching features question type.
  */
 function scoreMatchingFeatures({ q, answers, answersMap, questionNum, size }) {
-  let correctCount = 0;
   const subQuestions = q.matching_features?.questions || [];
   const baseNum = parseInt(questionNum, 10) || 0;
 
   if (subQuestions.length > 0) {
+    let correctCount = 0;
     subQuestions.forEach((subQ, idx) => {
-      const qId = subQ.id || `${q.id}_${idx}`;
-      const userAnswer = answers[qId] || '';
-      const correctAns = subQ.answer || q.matching_features?.answers?.[qId] || '';
-
-      const isCorrect = isAnswerCorrect(userAnswer, correctAns);
-      if (isCorrect) correctCount++;
-
-      answersMap[qId] = {
-        questionNumber: baseNum + idx,
-        userAnswer,
-        correctAnswer: correctAns,
-        isCorrect,
-      };
+      correctCount += scoreSubQuestionItem({ subQ, idx, q, answers, answersMap, baseNum, keyPrefix: '' });
     });
-  } else {
-    fillDummyAnswers({ q, answersMap, questionNum: baseNum, size });
+    return correctCount;
   }
-  return correctCount;
+
+  fillDummyAnswers({ q, answersMap, questionNum: baseNum, size });
+  return 0;
 }
 
 /**
  * Score map labeling question type.
  */
 function scoreMapLabeling({ q, answers, answersMap, questionNum, size }) {
-  let correctCount = 0;
   const subQuestions = q.map_labeling?.questions || [];
   const baseNum = parseInt(questionNum, 10) || 0;
 
   if (subQuestions.length > 0) {
+    let correctCount = 0;
     subQuestions.forEach((subQ, idx) => {
-      const qNum = subQ.questionNumber || baseNum + idx;
-      const qId = `map_${q.id}_${qNum}`;
-      const userAnswer = answers[qId] || '';
-      const correctAns = subQ.answer || '';
-
-      const isCorrect = isAnswerCorrect(userAnswer, correctAns);
-      if (isCorrect) correctCount++;
-
-      answersMap[qId] = {
-        questionNumber: qNum,
-        userAnswer,
-        correctAnswer: correctAns,
-        isCorrect,
-      };
+      correctCount += scoreSubQuestionItem({ subQ, idx, q, answers, answersMap, baseNum, keyPrefix: 'map' });
     });
-  } else {
-    fillDummyAnswers({ q, answersMap, questionNum: baseNum, size, keyPrefix: 'map' });
+    return correctCount;
   }
-  return correctCount;
+
+  fillDummyAnswers({ q, answersMap, questionNum: baseNum, size, keyPrefix: 'map' });
+  return 0;
 }
 
 function parseMultiChoiceAnswerList(rawAnswer) {
@@ -266,11 +282,31 @@ function parseMultiChoiceAnswerList(rawAnswer) {
   return Array.isArray(rawAnswer) ? rawAnswer : [];
 }
 
+function scoreMultiOptionRow(opts) {
+  const { idx, q, correctAnswers, matchedCorrectAnswers, userAnswers, answersMap } = opts;
+  const correctAns = correctAnswers[idx] || '';
+  const wasMatched = matchedCorrectAnswers.has(correctAns);
+
+  let userDisplay = '(not selected)';
+  if (wasMatched) {
+    userDisplay = correctAns.toUpperCase();
+  } else if (userAnswers[idx]) {
+    userDisplay = userAnswers[idx].toUpperCase();
+  }
+
+  const displayNum = q._displayStartNumber + idx;
+  answersMap[`${q.id}_option_${idx}`] = {
+    questionNumber: displayNum,
+    userAnswer: userDisplay,
+    correctAnswer: correctAns ? correctAns.toUpperCase() : '—',
+    isCorrect: wasMatched,
+  };
+}
+
 /**
  * Score multiple choice question with multiple selections allowed.
  */
 function scoreMultipleChoiceMulti({ q, answers, answersMap, size }) {
-  let correctCount = 0;
   const userAns = answers[q.id] || [];
   const rawCorrect = parseMultiChoiceAnswerList(q.correct_answer);
 
@@ -284,61 +320,51 @@ function scoreMultipleChoiceMulti({ q, answers, answersMap, size }) {
     }
   });
 
-  correctCount += matchedCorrectAnswers.size;
-
   for (let idx = 0; idx < size; idx++) {
-    const correctAns = correctAnswers[idx] || '';
-    const wasMatched = matchedCorrectAnswers.has(correctAns);
-
-    let userDisplay = '(not selected)';
-    if (wasMatched) {
-      userDisplay = correctAns.toUpperCase();
-    } else if (userAnswers[idx]) {
-      userDisplay = userAnswers[idx].toUpperCase();
-    }
-
-    const displayNum = q._displayStartNumber + idx;
-    answersMap[`${q.id}_option_${idx}`] = {
-      questionNumber: displayNum,
-      userAnswer: userDisplay,
-      correctAnswer: correctAns ? correctAns.toUpperCase() : '—',
-      isCorrect: wasMatched,
-    };
+    scoreMultiOptionRow({
+      idx,
+      q,
+      correctAnswers,
+      matchedCorrectAnswers,
+      userAnswers,
+      answersMap,
+    });
   }
-  return correctCount;
+  return matchedCorrectAnswers.size;
+}
+
+function formatSingleQuestionNumber(q) {
+  return q._displaySize > 1
+    ? `${q._displayStartNumber}-${q._displayEndNumber}`
+    : `${q._displayStartNumber}`;
 }
 
 /**
  * Score single answer question.
  */
 function scoreSingleQuestion({ q, answers, answersMap }) {
-  let correctCount = 0;
   const userAnswer = answers[q.id] || '';
 
   if (q.correct_answer) {
     const isCorrect = isAnswerCorrect(userAnswer, q.correct_answer);
-    if (isCorrect) correctCount++;
-
     answersMap[q.id] = {
-      questionNumber:
-        q._displaySize > 1
-          ? `${q._displayStartNumber}-${q._displayEndNumber}`
-          : `${q._displayStartNumber}`,
+      questionNumber: formatSingleQuestionNumber(q),
       userAnswer: Array.isArray(userAnswer) ? userAnswer.join(', ') : userAnswer,
       correctAnswer: Array.isArray(q.correct_answer)
         ? q.correct_answer.join(', ')
         : q.correct_answer,
       isCorrect,
     };
-  } else {
-    answersMap[q.id] = {
-      questionNumber: `${q._displayStartNumber}`,
-      userAnswer: userAnswer || '',
-      correctAnswer: '—',
-      isCorrect: false,
-    };
+    return isCorrect ? 1 : 0;
   }
-  return correctCount;
+
+  answersMap[q.id] = {
+    questionNumber: `${q._displayStartNumber}`,
+    userAnswer: userAnswer || '',
+    correctAnswer: '—',
+    isCorrect: false,
+  };
+  return 0;
 }
 
 /**
@@ -395,6 +421,59 @@ function calculateSectionStats(displaySections, questions, answersMap) {
   });
 }
 
+function calculateTypeStats(questions, answersMap) {
+  const typeStats = {};
+  questions.forEach((q) => {
+    const type = q.type || 'unknown';
+    if (!typeStats[type]) {
+      typeStats[type] = { correct: 0, total: 0 };
+    }
+
+    const qKeys = Object.keys(answersMap).filter(
+      (key) => key === String(q.id) || key.startsWith(`${q.id}_`) || key.startsWith(`map_${q.id}_`)
+    );
+
+    if (qKeys.length > 0) {
+      qKeys.forEach((key) => {
+        typeStats[type].total++;
+        if (answersMap[key].isCorrect) typeStats[type].correct++;
+      });
+    } else {
+      typeStats[type].total += q._displaySize || 1;
+    }
+  });
+  return typeStats;
+}
+
+function calculateErrorPatterns(answersMap, typeStats, totalScoredItems) {
+  const unansweredCount = Object.values(answersMap).filter(
+    (entry) => !entry.userAnswer || entry.userAnswer === '' || entry.userAnswer === '(not selected)'
+  ).length;
+
+  const troubleTypes = Object.entries(typeStats)
+    .map(([type, stats]) => ({
+      type,
+      accuracy: stats.total > 0 ? (stats.correct / stats.total) * 100 : 0,
+    }))
+    .sort((a, b) => a.accuracy - b.accuracy)
+    .slice(0, 3)
+    .map((t) => t.type);
+
+  const answeredCount = totalScoredItems - unansweredCount;
+  const confidenceIndex =
+    totalScoredItems > 0 ? Math.round((answeredCount / totalScoredItems) * 100) : 0;
+
+  return {
+    unansweredCount,
+    troubleTypes,
+    nearMissCount: 0,
+    changedAnswers: 0,
+    totalAnswerChanges: 0,
+    confidenceIndex,
+    indecisionScore: 0,
+  };
+}
+
 function buildResponseDetails(questions, displaySections, answersMap) {
   return questions.flatMap((question) => {
     const type = question.type || 'unknown';
@@ -445,56 +524,8 @@ export const calculateListeningTestResults = (questions, answers, displaySection
   const bandScore = calculateListeningBandScore(correctCount, totalScoredItems);
 
   const sectionStats = calculateSectionStats(displaySections, questions, answersMap);
-
-  // Type Stats
-  const typeStats = {};
-  questions.forEach((q) => {
-    const type = q.type || 'unknown';
-    if (!typeStats[type]) {
-      typeStats[type] = { correct: 0, total: 0 };
-    }
-
-    const qKeys = Object.keys(answersMap).filter(
-      (key) => key === String(q.id) || key.startsWith(`${q.id}_`) || key.startsWith(`map_${q.id}_`)
-    );
-
-    if (qKeys.length > 0) {
-      qKeys.forEach((key) => {
-        typeStats[type].total++;
-        if (answersMap[key].isCorrect) typeStats[type].correct++;
-      });
-    } else {
-      typeStats[type].total += q._displaySize || 1;
-    }
-  });
-
-  const unansweredCount = Object.values(answersMap).filter(
-    (entry) => !entry.userAnswer || entry.userAnswer === '' || entry.userAnswer === '(not selected)'
-  ).length;
-
-  const troubleTypes = Object.entries(typeStats)
-    .map(([type, stats]) => ({
-      type,
-      accuracy: stats.total > 0 ? (stats.correct / stats.total) * 100 : 0,
-    }))
-    .sort((a, b) => a.accuracy - b.accuracy)
-    .slice(0, 3)
-    .map((t) => t.type);
-
-  const answeredCount = totalScoredItems - unansweredCount;
-  const confidenceIndex =
-    totalScoredItems > 0 ? Math.round((answeredCount / totalScoredItems) * 100) : 0;
-
-  const errorPatterns = {
-    unansweredCount,
-    troubleTypes,
-    nearMissCount: 0,
-    changedAnswers: 0,
-    totalAnswerChanges: 0,
-    confidenceIndex,
-    indecisionScore: 0,
-  };
-
+  const typeStats = calculateTypeStats(questions, answersMap);
+  const errorPatterns = calculateErrorPatterns(answersMap, typeStats, totalScoredItems);
   const responseDetails = buildResponseDetails(questions, displaySections, answersMap);
 
   return {

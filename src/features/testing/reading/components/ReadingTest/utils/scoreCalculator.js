@@ -72,6 +72,24 @@ function processTableCell(opts) {
   return currentIdx;
 }
 
+function processTableRow(row, rIdx, opts) {
+  const cells = Array.isArray(row) ? row : [];
+  let currentIdx = opts.absoluteIdx;
+  cells.forEach((cell, cIdx) => {
+    currentIdx = processTableCell({
+      cell,
+      rIdx,
+      cIdx,
+      blanksMetadata: opts.blanksMetadata,
+      sortedBlanks: opts.sortedBlanks,
+      absoluteIdx: currentIdx,
+      qId: opts.qId,
+      allGaps: opts.allGaps,
+    });
+  });
+  return currentIdx;
+}
+
 /**
  * Extract table gap metadata from table rows and cells.
  */
@@ -86,18 +104,12 @@ function collectTableGaps(q) {
   let absoluteIdx = 0;
 
   rows.forEach((row, rIdx) => {
-    const cells = Array.isArray(row) ? row : [];
-    cells.forEach((cell, cIdx) => {
-      absoluteIdx = processTableCell({
-        cell,
-        rIdx,
-        cIdx,
-        blanksMetadata,
-        sortedBlanks,
-        absoluteIdx,
-        qId: q.id,
-        allGaps,
-      });
+    absoluteIdx = processTableRow(row, rIdx, {
+      blanksMetadata,
+      sortedBlanks,
+      absoluteIdx,
+      qId: q.id,
+      allGaps,
     });
   });
 
@@ -301,23 +313,28 @@ function scoreNotesStructuredText(q, answers, gapMatches, result) {
   });
 }
 
+function scoreNotesFallbackItem(i, q, answers, result) {
+  result.total++;
+  const answerKey = `${q.id}_gap_${i + 1}`;
+  const userAns = (answers[answerKey] || '').trim();
+  const correctAnswer = q.gap_fill.answers?.[i + 1] || q.gap_fill.answers?.[i] || '';
+  const isCorrect = userAns === '' ? null : isAnswerCorrect(userAns, correctAnswer);
+  const questionNumber = q.question_number ? parseInt(String(q.question_number), 10) + i : i + 1;
+
+  if (isCorrect === true) result.correct++;
+  result.details.push({
+    questionId: answerKey,
+    questionNumber,
+    userAnswer: userAns,
+    correctAnswer,
+    isCorrect,
+  });
+}
+
 function scoreNotesFallbackGaps(q, answers, result) {
   const gapCount = q.gap_fill.gap_count || 1;
   for (let i = 0; i < gapCount; i++) {
-    result.total++;
-    const answerKey = `${q.id}_gap_${i + 1}`;
-    const userAns = (answers[answerKey] || '').trim();
-    const correctAnswer = q.gap_fill.answers?.[i + 1] || q.gap_fill.answers?.[i] || '';
-    const isCorrect = userAns === '' ? null : isAnswerCorrect(userAns, correctAnswer);
-
-    if (isCorrect === true) result.correct++;
-    result.details.push({
-      questionId: answerKey,
-      questionNumber: q.question_number ? parseInt(String(q.question_number), 10) + i : i + 1,
-      userAnswer: userAns,
-      correctAnswer,
-      isCorrect,
-    });
+    scoreNotesFallbackItem(i, q, answers, result);
   }
 }
 
