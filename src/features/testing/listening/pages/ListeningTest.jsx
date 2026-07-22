@@ -44,6 +44,85 @@ import MatchingFeaturesRenderer from '../components/ListeningTest/components/Que
 import MapLabelingRenderer from '../components/ListeningTest/components/QuestionRenderers/MapLabelingRenderer';
 import FlowchartRenderer from '../components/ListeningTest/components/QuestionRenderers/FlowchartRenderer';
 
+function isNonEmptyAnswer(val) {
+  return val !== undefined && val !== '';
+}
+
+function countMcqAnswered(q, answers, size) {
+  const ans = answers[q.id];
+  if (q.allow_multiple) {
+    return Array.isArray(ans) && ans.length > 0 ? Math.min(ans.length, size) : 0;
+  }
+  return isNonEmptyAnswer(ans) ? 1 : 0;
+}
+
+function countIndexedAnswered(qId, size, answers) {
+  let count = 0;
+  for (let i = 0; i < size; i++) {
+    if (isNonEmptyAnswer(answers[`${qId}_${i}`])) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
+function countAnsweredBlanksForQuestion(q, answers, answerKeys) {
+  const size = q._displaySize || 1;
+  if (q.type === 'multiple_choice') {
+    return countMcqAnswered(q, answers, size);
+  }
+  if (q.type === 'table_completion' || q.type === 'gap_fill') {
+    return countIndexedAnswered(q.id, size, answers);
+  }
+  if (size === 1) {
+    return isNonEmptyAnswer(answers[q.id]) ? 1 : 0;
+  }
+  const count = countIndexedAnswered(q.id, size, answers);
+  const tableKeys = answerKeys.filter(
+    (k) => k.startsWith(`${q.id}_r`) && isNonEmptyAnswer(answers[k])
+  );
+  return Math.min(count + tableKeys.length, size);
+}
+
+function isQuestionInSection(q, secNum, isFirstSection) {
+  if (q.section !== undefined) return parseInt(q.section) === secNum || q.section == secNum;
+  if (q.part_number !== undefined) return q.part_number === secNum || q.part_number == secNum;
+  return isFirstSection;
+}
+
+function calculateListeningStats(displaySections, questionsWithNumbers, answers) {
+  const answerKeys = Object.keys(answers || {});
+
+  const results = displaySections.map((sec, idx) => {
+    const secNum = sec.section_number || idx + 1;
+    const qInSec = (questionsWithNumbers || []).filter((q) =>
+      isQuestionInSection(q, secNum, idx === 0)
+    );
+
+    const totalBlanks = qInSec.reduce((acc, q) => acc + (q._displaySize || 1), 0);
+    let answeredBlanks = 0;
+
+    qInSec.forEach((q) => {
+      answeredBlanks += countAnsweredBlanksForQuestion(q, answers, answerKeys);
+    });
+
+    const validAnswered = Math.min(answeredBlanks, totalBlanks);
+    return {
+      sectionIndex: idx,
+      totalQuestions: totalBlanks,
+      answeredQuestions: validAnswered,
+      isComplete: totalBlanks > 0 && validAnswered >= totalBlanks,
+    };
+  });
+
+  const totalQuestions = results.reduce((acc, r) => acc + r.totalQuestions, 0);
+  const totalAnswered = results.reduce((acc, r) => acc + r.answeredQuestions, 0);
+  const overallPercentage =
+    totalQuestions > 0 ? Math.round((totalAnswered / totalQuestions) * 100) : 0;
+
+  return { results, totalQuestions, totalAnswered, overallPercentage };
+}
+
 function ListeningTestInner() {
   // Core Logic Hook
   const {
@@ -110,9 +189,11 @@ function ListeningTestInner() {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (mobile && leftPanelWidth !== 0 && leftPanelWidth !== 100) {
+      const isSplitView = leftPanelWidth !== 0 && leftPanelWidth !== 100;
+      const isFullWidthView = leftPanelWidth === 0 || leftPanelWidth === 100;
+      if (mobile && isSplitView) {
         setLeftPanelWidth(0); // Default to Questions on mobile
-      } else if (!mobile && (leftPanelWidth === 0 || leftPanelWidth === 100)) {
+      } else if (!mobile && isFullWidthView) {
         setLeftPanelWidth(40); // Restore split view on desktop
       }
     };
@@ -287,101 +368,10 @@ function ListeningTestInner() {
   };
 
   // Stats for progress bar - Count actual IELTS question numbers, not question cards
-  const stats = React.useMemo(() => {
-    const answerKeys = Object.keys(answers);
-
-    const results = displaySections.map((sec, idx) => {
-      const secNum = sec.section_number || idx + 1;
-      const qInSec = (questionsWithNumbers || []).filter((q) => {
-        if (q.section !== undefined) return parseInt(q.section) === secNum || q.section == secNum;
-        if (q.part_number !== undefined) return q.part_number === secNum || q.part_number == secNum;
-        return idx === 0;
-      });
-
-      // Count TOTAL individual questions (blanks) in this section
-      const totalBlanksInSection = qInSec.reduce((acc, q) => acc + (q._displaySize || 1), 0);
-
-      // Count ANSWERED blanks for this section
-      let answeredBlanksInSection = 0;
-
-      qInSec.forEach((q) => {
-        const size = q._displaySize || 1;
-        const qType = q.type;
-
-        if (qType === 'multiple_choice') {
-          // MCQ: Check if question.id has an answer
-          const ans = answers[q.id];
-          if (q.allow_multiple) {
-            // Multi-select: count how many options are selected (up to size)
-            if (Array.isArray(ans) && ans.length > 0) {
-              answeredBlanksInSection += Math.min(ans.length, size);
-            }
-          } else {
-            // Single select: 1 answer
-            if (ans !== undefined && ans !== '') {
-              answeredBlanksInSection += 1;
-            }
-          }
-        } else if (qType === 'table_completion') {
-          // Table: now uses pattern `${q.id}_${i}` like gap_fill
-          for (let i = 0; i < size; i++) {
-            const blankKey = `${q.id}_${i}`;
-            if (answers[blankKey] !== undefined && answers[blankKey] !== '') {
-              answeredBlanksInSection += 1;
-            }
-          }
-        } else if (qType === 'gap_fill') {
-          // Gap Fill: answers use pattern `${q.id}_${i}`
-          for (let i = 0; i < size; i++) {
-            const blankKey = `${q.id}_${i}`;
-            if (answers[blankKey] !== undefined && answers[blankKey] !== '') {
-              answeredBlanksInSection += 1;
-            }
-          }
-        } else if (qType === 'matching_features' || qType === 'map_labeling') {
-          // Matching/Map: can use `${q.id}_${i}` or direct `q.id` for simple ones
-          if (size === 1) {
-            if (answers[q.id] !== undefined && answers[q.id] !== '') {
-              answeredBlanksInSection += 1;
-            }
-          } else {
-            for (let i = 0; i < size; i++) {
-              const blankKey = `${q.id}_${i}`;
-              if (answers[blankKey] !== undefined && answers[blankKey] !== '') {
-                answeredBlanksInSection += 1;
-              }
-            }
-          }
-        } else {
-          // Fallback for unknown types
-          if (size === 1) {
-            if (answers[q.id] !== undefined && answers[q.id] !== '') {
-              answeredBlanksInSection += 1;
-            }
-          } else {
-            // Check both patterns
-            let found = 0;
-            for (let i = 0; i < size; i++) {
-              if (answers[`${q.id}_${i}`] !== undefined && answers[`${q.id}_${i}`] !== '') {
-                found += 1;
-              }
-            }
-            // Also check table pattern
-            const tableKeys = answerKeys.filter((k) => k.startsWith(`${q.id}_r`));
-            found += tableKeys.filter((k) => answers[k] !== undefined && answers[k] !== '').length;
-            answeredBlanksInSection += Math.min(found, size);
-          }
-        }
-      });
-
-      return { idx, sQCount: totalBlanksInSection, sAnswered: answeredBlanksInSection };
-    });
-
-    const totalQ = results.reduce((acc, r) => acc + r.sQCount, 0);
-    const totalAns = results.reduce((acc, r) => acc + r.sAnswered, 0);
-
-    return { results, totalQ, totalAns };
-  }, [displaySections, questionsWithNumbers, answers]);
+  const stats = React.useMemo(
+    () => calculateListeningStats(displaySections, questionsWithNumbers, answers),
+    [displaySections, questionsWithNumbers, answers]
+  );
 
   if (isLoading) {
     return <PremiumLoading message="Initializing listening test..." />;
@@ -462,7 +452,10 @@ function ListeningTestInner() {
                 // 3. Duration is valid
                 // Use getLatestState to avoid stale closure
                 const state = useListeningTestStore.getState();
-                if (state.timeRemaining === 0 && !state.isFinished && d > 0) {
+                const isTimerUnset = state.timeRemaining === 0;
+                const hasValidDuration = d > 0;
+                const shouldSetInitialTime = isTimerUnset && !state.isFinished && hasValidDuration;
+                if (shouldSetInitialTime) {
                   dispatch({ type: ACTIONS.SET_TIME, payload: Math.ceil(d) + 60 });
 
                   // Robust auto-play for new tests: start playing as soon as duration is known
@@ -630,12 +623,13 @@ function ListeningTestInner() {
                             const currentInstr = q.group_instructions || '';
                             const hasTitle = !!q.mcq_title;
 
-                            // Start a new group if instructions mismatch OR if the question has its own title
-                            if (
-                              lastGroup &&
-                              (lastGroup.instructions || '') === currentInstr &&
-                              !hasTitle
-                            ) {
+                            const isSameInstruction =
+                              (lastGroup?.instructions || '') === currentInstr;
+                            const canMergeGroup = Boolean(
+                              lastGroup && isSameInstruction && !hasTitle
+                            );
+
+                            if (canMergeGroup) {
                               lastGroup.questions.push(q);
                             } else {
                               groups.push({
@@ -772,7 +766,11 @@ function ListeningTestInner() {
                 src={currentSection.audio_url}
                 onDurationChange={(d) => {
                   const state = useListeningTestStore.getState();
-                  if (state.timeRemaining === 0 && !state.isFinished && d > 0) {
+                  const isTimerUnset = state.timeRemaining === 0;
+                  const hasValidDuration = d > 0;
+                  const shouldSetInitialTime =
+                    isTimerUnset && !state.isFinished && hasValidDuration;
+                  if (shouldSetInitialTime) {
                     dispatch({ type: ACTIONS.SET_TIME, payload: Math.ceil(d) + 60 });
                     if (audioPlayerRef.current && !isFinished) {
                       audioPlayerRef.current.play();

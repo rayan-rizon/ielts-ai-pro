@@ -5,6 +5,107 @@ import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
 import DeepDivePopover from '@/features/testing/reading/components/DeepDivePopover';
 import { cn } from '@/lib/cn';
 
+function getFlowchartGapStatus(disabled, validation, value) {
+  if (!disabled) return 'default';
+  if (validation?.isCorrect) return 'correct';
+  return value ? 'incorrect' : 'unanswered';
+}
+
+function getFlowchartInputStyle(disabled, validation, value) {
+  if (disabled && validation?.isCorrect) {
+    return 'border-emerald-500/80 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-semibold ring-1 ring-emerald-500/20';
+  }
+  if (disabled && value) {
+    return 'border-rose-500/80 bg-rose-50/80 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-semibold ring-1 ring-rose-500/20';
+  }
+  return 'bg-slate-50/80 dark:bg-slate-950/60 border-slate-300/90 dark:border-slate-700/90 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-blue-400 dark:hover:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/30 focus-visible:border-blue-500';
+}
+
+function FlowchartDeepDive({
+  disabled,
+  explanationData,
+  openDeepDive,
+  setOpenDeepDive,
+  answerKey,
+  questionType,
+  gapNumber,
+  value,
+}) {
+  if (!disabled || !explanationData) return null;
+  return (
+    <DeepDivePopover
+      explanationData={explanationData}
+      userAnswer={value}
+      isOpen={openDeepDive === answerKey}
+      onToggle={() => setOpenDeepDive?.(openDeepDive === answerKey ? null : answerKey)}
+      questionType={questionType}
+      blankKey={gapNumber.toString()}
+      questionNumber={gapNumber}
+      inline={true}
+    />
+  );
+}
+
+function FlowchartStepGap({
+  part,
+  index,
+  stepStartOffset,
+  step,
+  question,
+  answers,
+  onAnswerChange,
+  flaggedQuestions,
+  onToggleFlag,
+  disabled,
+  validationMap,
+  explanationData,
+  openDeepDive,
+  setOpenDeepDive,
+}) {
+  const gapIndex = stepStartOffset + index;
+  const gapNumber = step.gap_numbers?.[index] ?? Number(question.question_number || 1) + gapIndex;
+  const answerKey = `${question.id}_gap_${gapNumber}`;
+  const value = answers?.[answerKey] || '';
+  const validation = validationMap?.[answerKey];
+  const status = getFlowchartGapStatus(disabled, validation, value);
+  const inputStyle = getFlowchartInputStyle(disabled, validation, value);
+
+  return (
+    <React.Fragment key={`gap-${gapNumber}-${index}`}>
+      <span>{part}</span>
+      <span className="inline-flex items-center gap-1.5 mx-1.5 align-middle whitespace-nowrap">
+        <QuestionNumberCircle
+          number={gapNumber}
+          isFlagged={flaggedQuestions?.has(answerKey)}
+          onClick={() => onToggleFlag?.(answerKey)}
+          status={status}
+          size="sm"
+        />
+        <DebouncedInput
+          value={value}
+          onChange={(nextValue) => onAnswerChange?.(answerKey, nextValue)}
+          disabled={disabled}
+          placeholder={disabled ? '' : 'answer'}
+          className={cn(
+            'h-8 w-32 px-2 py-1 text-center text-[15px] rounded-lg border shadow-xs transition-all duration-200 font-medium',
+            inputStyle
+          )}
+        />
+        <FlowchartDeepDive
+          disabled={disabled}
+          explanationData={explanationData}
+          openDeepDive={openDeepDive}
+          setOpenDeepDive={setOpenDeepDive}
+          answerKey={answerKey}
+          questionType={question.type}
+          gapNumber={gapNumber}
+          value={value}
+        />
+      </span>
+    </React.Fragment>
+  );
+}
+
 const FlowchartRenderer = React.memo(function FlowchartRenderer({
   question,
   answers,
@@ -29,60 +130,24 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
 
     return parts.map((part, index) => {
       if (index === parts.length - 1) return <span key={`text-${index}`}>{part}</span>;
-
-      const gapIndex = stepStartOffset + index;
-      const gapNumber =
-        step.gap_numbers?.[index] ?? Number(question.question_number || 1) + gapIndex;
-      const answerKey = `${question.id}_gap_${gapNumber}`;
-      const value = answers?.[answerKey] || '';
-      const validation = validationMap?.[answerKey];
-      const status = disabled
-        ? validation?.isCorrect
-          ? 'correct'
-          : value
-            ? 'incorrect'
-            : 'unanswered'
-        : 'default';
-
       return (
-        <React.Fragment key={`gap-${gapNumber}-${index}`}>
-          <span>{part}</span>
-          <span className="inline-flex items-center gap-1.5 mx-1.5 align-middle whitespace-nowrap">
-            <QuestionNumberCircle
-              number={gapNumber}
-              isFlagged={flaggedQuestions?.has(answerKey)}
-              onClick={() => onToggleFlag?.(answerKey)}
-              status={status}
-              size="sm"
-            />
-            <DebouncedInput
-              value={value}
-              onChange={(nextValue) => onAnswerChange?.(answerKey, nextValue)}
-              disabled={disabled}
-              placeholder={disabled ? '' : 'answer'}
-              className={cn(
-                'h-8 w-32 px-2 py-1 text-center text-[15px] rounded-lg border shadow-xs transition-all duration-200 font-medium',
-                disabled && validation?.isCorrect
-                  ? 'border-emerald-500/80 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-semibold ring-1 ring-emerald-500/20'
-                  : disabled && value
-                    ? 'border-rose-500/80 bg-rose-50/80 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-semibold ring-1 ring-rose-500/20'
-                    : 'bg-slate-50/80 dark:bg-slate-950/60 border-slate-300/90 dark:border-slate-700/90 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-blue-400 dark:hover:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/30 focus-visible:border-blue-500'
-              )}
-            />
-            {disabled && explanationData && (
-              <DeepDivePopover
-                explanationData={explanationData}
-                userAnswer={value}
-                isOpen={openDeepDive === answerKey}
-                onToggle={() => setOpenDeepDive?.(openDeepDive === answerKey ? null : answerKey)}
-                questionType={question.type}
-                blankKey={gapNumber.toString()}
-                questionNumber={gapNumber}
-                inline={true}
-              />
-            )}
-          </span>
-        </React.Fragment>
+        <FlowchartStepGap
+          key={`gap-${index}`}
+          part={part}
+          index={index}
+          stepStartOffset={stepStartOffset}
+          step={step}
+          question={question}
+          answers={answers}
+          onAnswerChange={onAnswerChange}
+          flaggedQuestions={flaggedQuestions}
+          onToggleFlag={onToggleFlag}
+          disabled={disabled}
+          validationMap={validationMap}
+          explanationData={explanationData}
+          openDeepDive={openDeepDive}
+          setOpenDeepDive={setOpenDeepDive}
+        />
       );
     });
   };
@@ -100,45 +165,22 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
         </div>
       )}
 
-      {flowchart.options?.length > 0 && (
-        <div className="mb-3 border border-slate-200/90 dark:border-slate-800/90 p-2.5 bg-white/80 dark:bg-slate-900/80 rounded-xl shadow-xs">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-            Options
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {flowchart.options.map((opt, idx) => {
-              const label = String.fromCharCode(65 + idx);
-              return (
-                <div
-                  key={idx}
-                  className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 px-2.5 py-1 rounded-lg border border-slate-200/60 dark:border-slate-700/60"
-                >
-                  <span className="shrink-0 w-5 h-5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-bold text-xs flex items-center justify-center">
-                    {label}
-                  </span>
-                  <span>{opt}</span>
-                </div>
-              );
-            })}
-          </div>
+      {flowchart.instruction && (
+        <div className="mb-3 text-xs sm:text-sm text-slate-600 dark:text-slate-400 italic">
+          {flowchart.instruction}
         </div>
       )}
 
-      <div className="flex flex-col items-center w-full max-w-3xl mx-auto">
-        {flowchart.steps.map((step, index) => (
-          <React.Fragment key={step.id || index}>
-            <div
-              className="w-full border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-slate-900/90 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-[15px] font-medium leading-7 text-slate-800 dark:text-slate-200 shadow-xs hover:border-blue-400/40 dark:hover:border-blue-500/40 transition-all duration-200"
-              data-testid="flowchart-step"
-            >
+      <div className="flex flex-col items-center gap-2 sm:gap-3 w-full max-w-2xl mx-auto">
+        {flowchart.steps.map((step, stepIndex) => (
+          <React.Fragment key={step.id || stepIndex}>
+            <div className="w-full bg-white/80 dark:bg-slate-950/70 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 sm:p-4 text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
               {renderStep(step)}
             </div>
-            {index < flowchart.steps.length - 1 && (
-              <div className="py-1 flex justify-center" data-testid="flowchart-arrow">
-                <ArrowDown
-                  className="w-6 h-6 text-slate-700 dark:text-slate-300"
-                  aria-hidden="true"
-                />
+
+            {stepIndex < flowchart.steps.length - 1 && (
+              <div className="flex items-center justify-center text-blue-500/70 dark:text-blue-400/70 py-0.5">
+                <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
               </div>
             )}
           </React.Fragment>
@@ -147,7 +189,5 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
     </div>
   );
 });
-
-FlowchartRenderer.displayName = 'FlowchartRenderer';
 
 export default FlowchartRenderer;

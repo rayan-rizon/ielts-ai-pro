@@ -1,11 +1,113 @@
 import React, { useState, useMemo, useLayoutEffect, memo } from 'react';
 import ReactDOM from 'react-dom';
-import { Input } from '@/components/ui/input';
 import DebouncedInput from '@/components/ui/debounced-input';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { sanitizeHtml } from '@/lib/security';
 import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
 import { cn } from '@/lib/cn';
+
+function ensureListState(targetType, listState, processedLines) {
+  if (listState.inList && listState.listType !== targetType) {
+    processedLines.push(`</${listState.listType}>`);
+    listState.inList = false;
+  }
+  if (!listState.inList) {
+    const listTag =
+      targetType === 'ul'
+        ? '<ul class="list-disc pl-5 my-1.5 space-y-2 list-outside">'
+        : '<ol class="list-decimal pl-6 my-0.5 space-y-0.5">';
+    processedLines.push(listTag);
+    listState.inList = true;
+    listState.listType = targetType;
+  }
+}
+
+function closeListState(listState, processedLines) {
+  if (listState.inList) {
+    processedLines.push(`</${listState.listType}>`);
+    listState.inList = false;
+  }
+}
+
+function processSingleMarkdownLine(line, listState, processedLines) {
+  const trimmedLine = line.trim();
+  const isNumbered = trimmedLine.match(/^(\d+)[.)]\s+(.*)/);
+  const bulletMatch =
+    trimmedLine.match(/^([-•●*])\s+(.*)/i) || trimmedLine.match(/^<[^>]+>([-•●*])\s+(.*)/i);
+
+  if (bulletMatch) {
+    ensureListState('ul', listState, processedLines);
+    const content = bulletMatch[2] || bulletMatch[1];
+    processedLines.push(
+      `<li class="text-foreground leading-normal pl-2 font-medium">${content}</li>`
+    );
+    return;
+  }
+
+  if (isNumbered) {
+    ensureListState('ol', listState, processedLines);
+    processedLines.push(`<li class="text-foreground leading-normal">${isNumbered[2]}</li>`);
+    return;
+  }
+
+  closeListState(listState, processedLines);
+  const isHeader =
+    trimmedLine.endsWith(':') && trimmedLine.length < 80 && !trimmedLine.includes('[gap]');
+
+  if (isHeader) {
+    processedLines.push(
+      `<div class="font-bold text-foreground mt-1 mb-0 text-[15px]">${trimmedLine}</div>`
+    );
+  } else if (trimmedLine === '') {
+    processedLines.push('<div class="h-1"></div>');
+  } else {
+    processedLines.push(`<div class="my-0 leading-normal">${line}</div>`);
+  }
+}
+
+function processMarkdownLines(lines, variant) {
+  const processedLines = [];
+  const listState = { inList: false, listType: 'ul' };
+
+  for (let i = 0; i < lines.length; i++) {
+    processSingleMarkdownLine(lines[i], listState, processedLines);
+  }
+  closeListState(listState, processedLines);
+
+  const renderedHtml = processedLines.join('');
+  return variant === 'flowchart'
+    ? `<div class="flowchart-step-text text-slate-800 dark:text-slate-200">${renderedHtml}</div>`
+    : renderedHtml;
+}
+
+function convertMarkdownToHtml(content, variant) {
+  if (!content) return '';
+
+  let html = content;
+  html = html
+    .replace(/<\/p>\s*<p>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/div>\s*<div>/gi, '\n')
+    .replace(/^<p>/i, '')
+    .replace(/<\/p>$/i, '')
+    .replace(/^<div>/i, '')
+    .replace(/<\/div>$/i)
+    .replace(/<\/li>\s*<li>/gi, '\n')
+    .replace(/<li>/gi, '- ')
+    .replace(/<\/li>/gi, '')
+    .replace(/<\/?ul>/gi, '')
+    .replace(/<\/?ol>/gi)
+    .replace(/&nbsp;/g, ' ');
+
+  html = html
+    .replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-foreground">$1</strong>')
+    .replace(/__([^_]+)__/g, '<strong class="font-bold text-foreground">$1</strong>')
+    .replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em class="italic text-muted-foreground">$1</em>')
+    .replace(/(?<!_)_([^_\n]+)_(?!_)/g, '<em class="italic text-muted-foreground">$1</em>');
+
+  const lines = html.split('\n');
+  return processMarkdownLines(lines, variant);
+}
 
 /**
  * GapFillContent - Component for rendering gap-fill questions with inline input fields.
@@ -34,113 +136,8 @@ const GapFillContent = memo(function GapFillContent({
 
   const domIdBase = idPrefix || question.id;
 
-  const convertMarkdownToHtml = (content) => {
-    if (!content) return '';
-
-    let html = content;
-
-    // Normalize and clean
-    html = html
-      .replace(/<\/p>\s*<p>/gi, '\n')
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/div>\s*<div>/gi, '\n')
-      .replace(/^<p>/i, '')
-      .replace(/<\/p>$/i, '')
-      .replace(/^<div>/i, '')
-      .replace(/<\/div>$/i);
-
-    // Bullet normalization
-    html = html
-      .replace(/<\/li>\s*<li>/gi, '\n')
-      .replace(/<li>/gi, '- ')
-      .replace(/<\/li>/gi, '')
-      .replace(/<\/?ul>/gi, '')
-      .replace(/<\/?ol>/gi);
-
-    html = html.replace(/&nbsp;/g, ' ');
-
-    // Special handling for flowcharts to ensure they use the standard processing
-    // but with a specific wrapper for style targeting
-    const wrapperClass = variant === 'flowchart' ? 'flowchart-step-process' : '';
-
-    // Standard markdown conversion for non-flowcharts
-    html = html.replace(
-      /\*\*([^*]+)\*\*/g,
-      '<strong class="font-bold text-foreground">$1</strong>'
-    );
-    html = html.replace(/__([^_]+)__/g, '<strong class="font-bold text-foreground">$1</strong>');
-    html = html.replace(
-      /(?<!\*)\*([^*\n]+)\*(?!\*)/g,
-      '<em class="italic text-muted-foreground">$1</em>'
-    );
-    html = html.replace(
-      /(?<!_)_([^_\n]+)_(?!_)/g,
-      '<em class="italic text-muted-foreground">$1</em>'
-    );
-
-    const lines = html.split('\n');
-    const processedLines = [];
-    let inBulletList = false;
-    let listType = 'ul';
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const trimmedLine = line.trim();
-
-      const isNumbered = trimmedLine.match(/^(\d+)[.)]\s+(.*)/);
-
-      // Catch bullets even if they have some preceding tags (like <strong> or <span>)
-      const bulletMatch =
-        trimmedLine.match(/^([-•●*])\s+(.*)/i) || trimmedLine.match(/^<[^>]+>([-•●*])\s+(.*)/i);
-
-      if (bulletMatch) {
-        const bulletContent = bulletMatch[2] || bulletMatch[1];
-        if (!inBulletList || listType !== 'ul') {
-          if (inBulletList) processedLines.push(`</${listType}>`);
-          processedLines.push('<ul class="list-disc pl-5 my-1.5 space-y-2 list-outside">');
-          inBulletList = true;
-          listType = 'ul';
-        }
-        processedLines.push(
-          `<li class="text-foreground leading-normal pl-2 font-medium">${bulletContent}</li>`
-        );
-      } else if (isNumbered) {
-        const numberedContent = isNumbered[2];
-        if (!inBulletList || listType !== 'ol') {
-          if (inBulletList) processedLines.push(`</${listType}>`);
-          processedLines.push('<ol class="list-decimal pl-6 my-0.5 space-y-0.5">');
-          inBulletList = true;
-          listType = 'ol';
-        }
-        processedLines.push(`<li class="text-foreground leading-normal">${numberedContent}</li>`);
-      } else {
-        if (inBulletList) {
-          processedLines.push(`</${listType}>`);
-          inBulletList = false;
-        }
-        const isHeader =
-          trimmedLine.endsWith(':') && trimmedLine.length < 80 && !trimmedLine.includes('[gap]');
-        if (isHeader) {
-          processedLines.push(
-            `<div class="font-bold text-foreground mt-1 mb-0 text-[15px]">${trimmedLine}</div>`
-          );
-        } else if (trimmedLine === '') {
-          processedLines.push('<div class="h-1"></div>');
-        } else {
-          processedLines.push(`<div class="my-0 leading-normal">${line}</div>`);
-        }
-      }
-    }
-    if (inBulletList) processedLines.push(`</${listType}>`);
-
-    const renderedHtml = processedLines.join('');
-    return variant === 'flowchart'
-      ? `<div class="flowchart-step-text text-slate-800 dark:text-slate-200">${renderedHtml}</div>`
-      : renderedHtml;
-  };
-
   const htmlContent = useMemo(() => {
-    let processedHtml = convertMarkdownToHtml(text);
+    let processedHtml = convertMarkdownToHtml(text, variant);
     let gapIndex = 0;
 
     processedHtml = processedHtml.replace(/\[gap\]|__BLANK__|__BLANK_\d+__/g, () => {
