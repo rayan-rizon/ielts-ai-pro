@@ -10,14 +10,11 @@ import {
   GraduationCap,
   ChevronRight,
   CheckCircle2,
-  Lock,
   Sparkles,
-  Play,
   Award,
   TrendingUp,
   Target,
   LayoutGrid,
-  List,
   Users,
   ShieldCheck,
 } from 'lucide-react';
@@ -34,158 +31,83 @@ const MODULE_THEMES = {
   reading: {
     color: 'blue',
     url: '/reading-test',
-    bg: 'bg-blue-500/[0.03] dark:bg-blue-500/[0.06]',
-    border: 'border-blue-500/15 dark:border-blue-500/10',
-    shadow: 'shadow-[0_0_15px_rgba(59,130,246,0.06)]',
+    bg: 'bg-blue-500/[0.04] dark:bg-blue-500/[0.08] hover:bg-blue-500/[0.08] dark:hover:bg-blue-500/[0.14]',
+    border: 'border-blue-500/15 dark:border-blue-400/20',
+    shadow: 'shadow-2xs shadow-blue-500/5',
     iconActive: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400',
-    iconHover: 'group-hover/module:text-blue-500',
-    textMain: 'text-blue-600 dark:text-blue-400',
-    textSub: 'text-blue-500/80 dark:text-blue-400/60',
-    textResume: 'text-blue-500/80 dark:text-blue-400/80',
+    textMain: 'text-slate-900 dark:text-white font-black',
+    textSub: 'text-blue-600 dark:text-blue-400 font-bold',
+    arrow: 'text-blue-500/60 dark:text-blue-400/60',
   },
   listening: {
     color: 'purple',
     url: '/listening-test',
-    bg: 'bg-purple-500/[0.03] dark:bg-purple-500/[0.06]',
-    border: 'border-purple-500/15 dark:border-purple-500/10',
-    shadow: 'shadow-[0_0_15px_rgba(168,85,247,0.06)]',
+    bg: 'bg-purple-500/[0.04] dark:bg-purple-500/[0.08] hover:bg-purple-500/[0.08] dark:hover:bg-purple-500/[0.14]',
+    border: 'border-purple-500/15 dark:border-purple-400/20',
+    shadow: 'shadow-2xs shadow-purple-500/5',
     iconActive: 'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400',
-    iconHover: 'group-hover/module:text-purple-500',
-    textMain: 'text-purple-600 dark:text-purple-400',
-    textSub: 'text-purple-500/80 dark:text-purple-400/60',
-    textResume: 'text-purple-500/80 dark:text-purple-400/80',
+    textMain: 'text-slate-900 dark:text-white font-black',
+    textSub: 'text-purple-600 dark:text-purple-400 font-bold',
+    arrow: 'text-purple-500/60 dark:text-purple-400/60',
   },
   writing: {
     color: 'orange',
     url: '/writing-task?taskId=',
-    bg: 'bg-orange-500/[0.03] dark:bg-orange-500/[0.06]',
-    border: 'border-orange-500/15 dark:border-orange-500/10',
-    shadow: 'shadow-[0_0_15px_rgba(249,115,22,0.06)]',
+    bg: 'bg-orange-500/[0.04] dark:bg-orange-500/[0.08] hover:bg-orange-500/[0.08] dark:hover:bg-orange-500/[0.14]',
+    border: 'border-orange-500/15 dark:border-orange-400/20',
+    shadow: 'shadow-2xs shadow-orange-500/5',
     iconActive: 'bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400',
-    iconHover: 'group-hover/module:text-orange-500',
-    textMain: 'text-orange-600 dark:text-orange-400',
-    textSub: 'text-orange-500/80 dark:text-orange-400/60',
-    textResume: 'text-orange-500/80 dark:text-orange-400/80',
+    textMain: 'text-slate-900 dark:text-white font-black',
+    textSub: 'text-orange-600 dark:text-orange-400 font-bold',
+    arrow: 'text-orange-500/60 dark:text-orange-400/60',
   },
   speaking: {
     color: 'rose',
     url: '/speaking-test',
-    bg: 'bg-rose-500/[0.03] dark:bg-rose-500/[0.06]',
-    border: 'border-rose-500/15 dark:border-rose-500/10',
-    shadow: 'shadow-[0_0_15px_rgba(244,63,94,0.06)]',
+    bg: 'bg-rose-500/[0.04] dark:bg-rose-500/[0.08] hover:bg-rose-500/[0.08] dark:hover:bg-rose-500/[0.14]',
+    border: 'border-rose-500/15 dark:border-rose-400/20',
+    shadow: 'shadow-2xs shadow-rose-500/5',
     iconActive: 'bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400',
-    iconHover: 'group-hover/module:text-rose-500',
-    textMain: 'text-rose-600 dark:text-rose-400',
-    textSub: 'text-rose-500/80 dark:text-rose-400/60',
-    textResume: 'text-rose-500/80 dark:text-rose-400/80',
+    textMain: 'text-slate-900 dark:text-white font-black',
+    textSub: 'text-rose-600 dark:text-rose-400 font-bold',
+    arrow: 'text-rose-500/60 dark:text-rose-400/60',
   },
 };
 
 const INACTIVE_ICONS = {
-  reading: <BookOpen className="w-4 h-4 text-slate-400 shrink-0" data-oid="nb-8esl" />,
-  listening: <Headphones className="w-4 h-4 text-slate-400 shrink-0" data-oid="y4v7q7n" />,
-  writing: <PenTool className="w-4 h-4 text-slate-400 shrink-0" data-oid="h56y1gb" />,
-  speaking: <Mic className="w-4 h-4 text-slate-400 shrink-0" data-oid="77txrqc" />,
+  reading: <BookOpen className="w-3.5 h-3.5 text-slate-400 shrink-0" data-oid="nb-8esl" />,
+  listening: <Headphones className="w-3.5 h-3.5 text-slate-400 shrink-0" data-oid="y4v7q7n" />,
+  writing: <PenTool className="w-3.5 h-3.5 text-slate-400 shrink-0" data-oid="h56y1gb" />,
+  speaking: <Mic className="w-3.5 h-3.5 text-slate-400 shrink-0" data-oid="77txrqc" />,
 };
 
 const ACTIVE_ICONS = {
-  reading: <BookOpen className="w-4 h-4" data-oid="m0t0rzc" />,
-  listening: <Headphones className="w-4 h-4" data-oid="3_ty1xz" />,
-  writing: <PenTool className="w-4 h-4" data-oid="vv5apgx" />,
-  speaking: <Mic className="w-4 h-4" data-oid="6l80m7l" />,
+  reading: <BookOpen className="w-3.5 h-3.5" data-oid="m0t0rzc" />,
+  listening: <Headphones className="w-3.5 h-3.5" data-oid="3_ty1xz" />,
+  writing: <PenTool className="w-3.5 h-3.5" data-oid="vv5apgx" />,
+  speaking: <Mic className="w-3.5 h-3.5" data-oid="6l80m7l" />,
 };
 
 const InactiveModuleLink = ({ type }) => {
   return (
     <div
-      className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 opacity-40 cursor-not-allowed h-[52px]"
+      className="flex items-center gap-2 px-2.5 rounded-xl bg-slate-50/60 dark:bg-white/[0.02] border border-slate-200/40 dark:border-white/5 opacity-40 cursor-not-allowed h-10 sm:h-11"
       data-oid="a:viu2i"
     >
-      {INACTIVE_ICONS[type]}
-      <span
-        className="text-[10px] font-black uppercase tracking-wider text-slate-400 truncate"
-        data-oid="u2hrqpi"
-      >
-        {type}
-      </span>
-    </div>
-  );
-};
-
-const ActiveModuleIcon = ({ type, theme, isResuming }) => {
-  return (
-    <div
-      className={cn(
-        'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm transition-all duration-300 group-hover/module:scale-105',
-        isResuming
-          ? theme.iconActive
-          : cn(
-              'bg-white dark:bg-slate-800/80 border border-white/50 dark:border-white/10',
-              theme.textResume
-            )
-      )}
-      data-oid="nlwbe.w"
-    >
-      {ACTIVE_ICONS[type]}
-    </div>
-  );
-};
-
-const ActiveModuleText = ({ type, theme, isResuming }) => {
-  return (
-    <div className="flex flex-col flex-1 min-w-0 relative z-10" data-oid="t6rwjoz">
-      <span
-        className={cn(
-          'text-[10px] font-black uppercase tracking-tight leading-none',
-          isResuming ? theme.textMain : 'text-slate-700 dark:text-slate-300'
-        )}
-        data-oid="avbjq01"
-      >
-        {type}
-      </span>
-      <span
-        className={cn(
-          'text-[8px] font-bold uppercase tracking-tighter opacity-70',
-          isResuming ? theme.textSub : 'text-slate-400 dark:text-slate-500'
-        )}
-        data-oid="d-is4gf"
-      >
-        {isResuming ? 'Resume' : 'Start Now'}
-      </span>
-    </div>
-  );
-};
-
-const ActiveModuleAction = ({ isLocked, isResuming, theme }) => {
-  if (isLocked) {
-    return (
-      <Lock
-        className="w-3 h-3 text-slate-300 dark:text-slate-600 ml-auto shrink-0"
-        data-oid="d8nfzwq"
-      />
-    );
-  }
-  return (
-    <div className="ml-auto shrink-0 relative z-10" data-oid="8v5ti5f">
-      {isResuming ? (
-        <div
-          className={cn(
-            'w-6 h-6 rounded-full flex items-center justify-center bg-white/50 dark:bg-black/20',
-            theme.textResume
-          )}
-          data-oid="5a51zxh"
+      <div className="w-6 h-6 rounded-lg bg-slate-200/50 dark:bg-white/10 flex items-center justify-center shrink-0">
+        {INACTIVE_ICONS[type]}
+      </div>
+      <div className="flex flex-col min-w-0">
+        <span
+          className="text-[9.5px] font-black uppercase tracking-tight text-slate-400 truncate leading-none"
+          data-oid="u2hrqpi"
         >
-          <Play
-            className="w-2 h-2 fill-current transition-transform group-hover/module:scale-110"
-            data-oid="i:funu7"
-          />
-        </div>
-      ) : (
-        <ChevronRight
-          className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover/module:translate-x-0.5 transition-transform"
-          data-oid="k0x72op"
-        />
-      )}
+          {type}
+        </span>
+        <span className="text-[7.5px] font-bold uppercase tracking-wider text-slate-400/70 leading-tight mt-0.5">
+          N/A
+        </span>
+      </div>
     </div>
   );
 };
@@ -195,41 +117,52 @@ const ActiveModuleLink = ({ type, data, session, isLocked }) => {
   const theme = MODULE_THEMES[type];
   const href = type === 'writing' ? `${theme.url}${data.id}` : `${theme.url}/${data.id}`;
 
-  const gradientClasses = {
-    blue: 'from-blue-500',
-    purple: 'from-purple-500',
-    orange: 'from-orange-500',
-    rose: 'from-rose-500',
-  };
-
   return (
     <Link
       to={isLocked ? '#' : href}
-      className={cn('block group/module h-[52px]', isLocked && 'cursor-not-allowed')}
+      className={cn('block group/module h-10 sm:h-11', isLocked && 'cursor-not-allowed')}
       data-oid="q3p34_4"
     >
       <div
         className={cn(
-          'flex items-center gap-2.5 p-2 rounded-[1.25rem] border transition-all duration-300 h-full relative overflow-hidden',
+          'flex items-center gap-2 px-2.5 py-1 rounded-xl border transition-all duration-200 h-full relative overflow-hidden',
           theme.bg,
           theme.border,
-          isResuming ? theme.shadow : 'hover:shadow-md opacity-80 hover:opacity-100'
+          theme.shadow
         )}
         data-oid="nz9t:m4"
       >
-        {isResuming && (
-          <div
+        <div
+          className={cn(
+            'w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover/module:scale-105',
+            theme.iconActive
+          )}
+        >
+          {ACTIVE_ICONS[type]}
+        </div>
+        <div className="flex flex-col flex-1 min-w-0 relative z-10">
+          <span
+            className={cn('text-[9.5px] uppercase tracking-tight leading-none', theme.textMain)}
+          >
+            {type}
+          </span>
+          <span
             className={cn(
-              'absolute inset-0 opacity-[0.05] dark:opacity-[0.1] bg-gradient-to-br to-transparent',
-              gradientClasses[theme.color]
+              'text-[8px] uppercase tracking-wider leading-tight mt-0.5',
+              theme.textSub
             )}
-            data-oid="qvrbzoa"
+          >
+            {isResuming ? 'Resume' : 'Start'}
+          </span>
+        </div>
+        <div className="ml-auto shrink-0 relative z-10">
+          <ChevronRight
+            className={cn(
+              'w-3.5 h-3.5 group-hover/module:translate-x-0.5 transition-transform',
+              theme.arrow
+            )}
           />
-        )}
-
-        <ActiveModuleIcon type={type} theme={theme} isResuming={isResuming} />
-        <ActiveModuleText type={type} theme={theme} isResuming={isResuming} />
-        <ActiveModuleAction isLocked={isLocked} isResuming={isResuming} theme={theme} />
+        </div>
       </div>
     </Link>
   );
@@ -567,7 +500,7 @@ const CambridgeTestCard = ({ title, modules, sessions }) => {
   return (
     <div
       className={cn(
-        'rounded-[2.5rem] border p-5 shadow-xl dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] group flex flex-col h-full relative transition-all duration-500 hover:shadow-2xl hover:translate-y-[-4px] overflow-hidden backdrop-blur-3xl',
+        'rounded-3xl border p-4 sm:p-4.5 shadow-md dark:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] group flex flex-col h-full relative transition-all duration-300 hover:shadow-xl hover:translate-y-[-2px] overflow-hidden backdrop-blur-3xl space-y-3',
         theme.bg
       )}
       data-oid="dck9ud6"
@@ -583,21 +516,21 @@ const CambridgeTestCard = ({ title, modules, sessions }) => {
 
       <TestCardHeader theme={theme} progressPercent={progressPercent} />
 
-      <div className="flex-grow flex flex-col min-h-0 relative z-10 mb-5" data-oid="6d1m55k">
+      <div className="flex-grow flex flex-col min-h-0 relative z-10 mb-2" data-oid="6d1m55k">
         <h3
-          className="text-2xl font-black text-slate-900 dark:text-white leading-tight mb-2 transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400 tracking-tight"
+          className="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-snug mb-1 transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400 tracking-tight"
           data-oid="317hn8k"
         >
           {title}
         </h3>
         <p
-          className="text-sm text-slate-500 dark:text-slate-400 font-bold leading-relaxed line-clamp-2 mb-4 uppercase tracking-tight opacity-80"
+          className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-normal line-clamp-1 mb-2.5 uppercase tracking-tight opacity-80"
           data-oid="9u05k7b"
         >
           Full IELTS exam simulation including all four skills.
         </p>
 
-        <div className="mt-auto grid grid-cols-2 gap-3" data-oid="8h7-m86">
+        <div className="mt-auto grid grid-cols-2 gap-2" data-oid="8h7-m86">
           {moduleTypes.map((type) => (
             <ModuleLink
               key={type}
@@ -723,95 +656,127 @@ const fetchCambridgeTestData = async () => {
   };
 };
 
+function StatChip({ icon: Icon, iconBg, iconShadow, value, label }) {
+  return (
+    <div className="inline-flex items-center gap-2.5 bg-white/80 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 px-3.5 py-1.5 rounded-full shadow-2xs backdrop-blur-xl">
+      <div
+        className={`w-7 h-7 rounded-full ${iconBg} text-white flex items-center justify-center shrink-0 shadow-xs ${iconShadow}`}
+      >
+        <Icon className="w-3.5 h-3.5" />
+      </div>
+      <div className="flex flex-col justify-center">
+        <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-none">
+          {value}
+        </span>
+        <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider leading-tight mt-0.5">
+          {label}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 const WeeklyChallengeCard = ({ totalKits }) => {
   return (
     <div className="lg:block hidden" data-oid="j.8jnt9">
-      <div className="relative p-1" data-oid="e_oixsc">
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="relative p-0.5"
+        data-oid="e_oixsc"
+      >
         <div
-          className="absolute -inset-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-[3rem] blur-2xl opacity-50"
+          className="absolute -inset-1.5 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-lg opacity-50 group-hover:opacity-100 transition-opacity"
           data-oid="ea6memu"
         />
 
         <div
-          className="relative w-72 bg-white/90 dark:bg-slate-900/80 backdrop-blur-3xl border border-white dark:border-white/10 rounded-[2.5rem] p-4 shadow-2xl overflow-hidden"
+          className="relative w-64 bg-white/80 dark:bg-slate-900/60 backdrop-blur-2xl border border-white dark:border-white/10 rounded-2xl p-3 shadow-xl overflow-hidden space-y-2"
           data-oid="liejukw"
         >
-          <div className="absolute top-0 right-0 p-5" data-oid="il:smx9">
+          <div className="absolute top-0 right-0 p-3" data-oid="il:smx9">
             <div
-              className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20"
+              className="w-7 h-7 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20"
               data-oid="-bbprnq"
             >
-              <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" data-oid="4nipkju" />
+              <Target className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" data-oid="4nipkju" />
             </div>
           </div>
-          <div className="space-y-3" data-oid="z885cgf">
+
+          <div className="space-y-2" data-oid="z885cgf">
             <div className="flex flex-col" data-oid="pz8bv7v">
               <span
-                className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1"
+                className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-0.5"
                 data-oid="mb8ewh1"
               >
                 Weekly Challenge
               </span>
-              <h4 className="text-xl font-black text-slate-900 dark:text-white" data-oid="2w2b:uw">
+              <h4
+                className="text-base font-black text-slate-900 dark:text-white"
+                data-oid="2w2b:uw"
+              >
                 Full Exam Prep
               </h4>
             </div>
-            <div className="space-y-3" data-oid="rq8_1-g">
+
+            <div className="space-y-1.5" data-oid="rq8_1-g">
               <div className="flex justify-between items-end" data-oid="xq64u2d">
-                <span className="text-xs font-bold text-slate-500" data-oid="z0qjw.o">
+                <span className="text-[11px] font-bold text-slate-500" data-oid="z0qjw.o">
                   2 Kits Fully Done
                 </span>
-                <span className="text-sm font-black text-blue-600" data-oid="66fjrbu">
+                <span className="text-xs font-black text-blue-600" data-oid="66fjrbu">
                   25%
                 </span>
               </div>
               <div
-                className="h-2 w-full bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden p-[1px] border border-slate-200 dark:border-white/10"
+                className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden p-[1px] border border-slate-200 dark:border-white/5"
                 data-oid="-h.ul00"
               >
-                <div
-                  style={{ width: '25%' }}
-                  className="h-full bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: '25%' }}
+                  className="h-full bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-[0_0_10px_rgba(37,99,235,0.4)]"
                   data-oid="s94dp_0"
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 pb-1" data-oid="a2ke1ln">
+
+            <div className="grid grid-cols-2 gap-2 pt-0.5" data-oid="a2ke1ln">
               <div
-                className="bg-slate-50 dark:bg-white/5 rounded-2xl p-3 border border-slate-100 dark:border-white/5"
+                className="bg-slate-50 dark:bg-white/5 rounded-xl p-2 border border-slate-100 dark:border-white/5"
                 data-oid="_cy1g-g"
               >
-                <div className="flex items-center gap-2 mb-1" data-oid="vaa5kkm">
+                <div className="flex items-center gap-1.5 mb-0.5" data-oid="vaa5kkm">
                   <BookOpen className="w-3.5 h-3.5 text-blue-500" data-oid="2dm3qcg" />
                   <span
-                    className="text-lg font-black text-slate-900 dark:text-white leading-none"
+                    className="text-base font-black text-slate-900 dark:text-white leading-none"
                     data-oid="1wdmnn7"
                   >
                     {totalKits}
                   </span>
                 </div>
                 <span
-                  className="text-[9px] font-bold text-slate-500 uppercase tracking-widest"
+                  className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider"
                   data-oid="61.bbrw"
                 >
                   Total Kits
                 </span>
               </div>
               <div
-                className="bg-slate-50 dark:bg-white/5 rounded-2xl p-3 border border-slate-100 dark:border-white/5"
+                className="bg-slate-50 dark:bg-white/5 rounded-xl p-2 border border-slate-100 dark:border-white/5"
                 data-oid="9h2:12f"
               >
-                <div className="flex items-center gap-2 mb-1" data-oid="tt.3l76">
+                <div className="flex items-center gap-1.5 mb-0.5" data-oid="tt.3l76">
                   <Users className="w-3.5 h-3.5 text-emerald-500" data-oid=":4bhcfx" />
                   <span
-                    className="text-lg font-black text-slate-900 dark:text-white leading-none"
+                    className="text-base font-black text-slate-900 dark:text-white leading-none"
                     data-oid="hq7nm7q"
                   >
                     3.1k
                   </span>
                 </div>
                 <span
-                  className="text-[9px] font-bold text-slate-500 uppercase tracking-widest"
+                  className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider"
                   data-oid=".pp1xbe"
                 >
                   Active Today
@@ -819,16 +784,92 @@ const WeeklyChallengeCard = ({ totalKits }) => {
               </div>
             </div>
           </div>
+
+          <div
+            className="absolute -bottom-6 -right-6 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl"
+            data-oid="m5l.oro"
+          />
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+const CambridgeTestsControls = ({ searchQuery, setSearchQuery, activeTab, setActiveTab, tabs }) => {
+  return (
+    <div
+      className="flex flex-col lg:flex-row gap-3 items-center justify-between w-full"
+      data-oid="lf.b.95"
+    >
+      {/* Search box - Spacious & rounded */}
+      <div className="relative w-full lg:w-[24rem] group" data-oid="93milaj">
+        <div
+          className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"
+          data-oid=".5br913"
+        >
+          <Search
+            className="h-4.5 w-4.5 text-slate-400 group-focus-within:text-indigo-500 transition-all duration-300 group-focus-within:scale-110"
+            data-oid="kbcu647"
+          />
+        </div>
+        <Input
+          placeholder="Find a series or book..."
+          className="pl-11 pr-4 h-10 md:h-11 bg-white/90 dark:bg-white/5 border border-slate-200/90 dark:border-white/15 focus-visible:ring-2 focus-visible:ring-indigo-500/25 rounded-full text-xs md:text-sm font-medium placeholder:text-slate-400 transition-all shadow-2xs group-hover:border-indigo-400 dark:group-hover:border-white/30"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          data-oid="4bg9zu4"
+        />
+      </div>
+
+      {/* Tabs selection buttons */}
+      <div
+        className="flex items-center bg-white/70 dark:bg-white/5 backdrop-blur-xl p-0.5 rounded-full gap-0.5 w-full lg:w-auto overflow-x-auto no-scrollbar border border-slate-200/70 dark:border-white/10 px-1"
+        data-oid="jwdtsc-"
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              'flex items-center gap-1 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-xs font-black transition-all duration-200 whitespace-nowrap shrink-0 lg:flex-none uppercase tracking-wider hover:scale-105 active:scale-95 cursor-pointer',
+              activeTab === tab.id
+                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10'
+            )}
+            data-oid="0auvr6i"
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* View indicator */}
+      <div
+        className="hidden lg:flex items-center gap-3.5 px-4 border-l border-slate-200/80 dark:border-white/10 h-9"
+        data-oid="ejp7ofd"
+      >
+        <div className="flex items-center gap-2 text-indigo-500 font-black" data-oid="cuh_:20">
+          <LayoutGrid className="w-4.5 h-4.5" data-oid="cq70_7c" />
+          <span className="text-xs font-black uppercase tracking-[0.1em]" data-oid="qpo59pg">
+            Grid
+          </span>
         </div>
       </div>
     </div>
   );
 };
 
-const CambridgeTestsHeader = ({ totalKits }) => {
+const CambridgeTestsHeader = ({
+  totalKits,
+  searchQuery,
+  setSearchQuery,
+  activeTab,
+  setActiveTab,
+  tabs,
+}) => {
   return (
     <div
-      className="relative group overflow-hidden rounded-[2.5rem] p-3 md:p-4 border border-indigo-200/60 dark:border-indigo-800/40 bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/80 dark:from-indigo-500/5 dark:via-transparent dark:to-purple-500/5 backdrop-blur-3xl shadow-xl shadow-indigo-500/10 dark:shadow-indigo-500/20"
+      className="relative group overflow-hidden rounded-2xl md:rounded-3xl px-4 sm:px-6 pt-3 sm:pt-3.5 pb-1.5 sm:pb-2 border border-indigo-200/60 dark:border-indigo-800/40 bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/80 dark:from-indigo-500/5 dark:via-transparent dark:to-purple-500/5 backdrop-blur-3xl shadow-xl shadow-indigo-500/5 dark:shadow-indigo-500/10 space-y-2"
       data-oid=".vvf0ma"
     >
       <div
@@ -842,23 +883,23 @@ const CambridgeTestsHeader = ({ totalKits }) => {
       />
 
       <div
-        className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10"
+        className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10"
         data-oid="frjulib"
       >
-        <div className="space-y-4 max-w-2xl text-center md:text-left" data-oid="qcz_hsx">
+        <div className="space-y-2 max-w-2xl text-left" data-oid="qcz_hsx">
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-600/5 dark:bg-indigo-400/10 border border-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[9px] font-black uppercase tracking-[0.2em] backdrop-blur-md"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-600/10 dark:bg-indigo-400/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] backdrop-blur-md"
             data-oid="a10tj_7"
           >
-            <Sparkles className="w-3.5 h-3.5" data-oid="p-u1o7u" />
+            <Sparkles className="w-3 h-3" data-oid="p-u1o7u" />
             <span>Standard Mastery Kits</span>
           </motion.div>
 
-          <div className="space-y-2" data-oid="vycb:7s">
+          <div className="space-y-1" data-oid="vycb:7s">
             <h1
-              className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-tight"
+              className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-none sm:leading-tight"
               data-oid="u65.dti"
             >
               Cambridge{' '}
@@ -870,147 +911,43 @@ const CambridgeTestsHeader = ({ totalKits }) => {
               </span>
             </h1>
             <p
-              className="text-slate-500 dark:text-slate-400 text-base md:text-lg font-semibold leading-relaxed max-w-lg mx-auto md:mx-0"
+              className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium leading-relaxed max-w-xl"
               data-oid="1:07-hm"
             >
               Precision-curated full exam kits from official Cambridge IELTS books 10 through 20.
             </p>
           </div>
 
-          <div
-            className="flex flex-wrap gap-3 items-center justify-center md:justify-start"
-            data-oid="8ktzzqi"
-          >
-            <div
-              className="flex items-center gap-3 bg-white/70 dark:bg-white/5 border border-white dark:border-white/10 px-3 py-2 rounded-2xl shadow-sm backdrop-blur-2xl"
-              data-oid="rose1y4"
-            >
-              <div
-                className="w-7 h-7 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20"
-                data-oid="ukyq-of"
-              >
-                <TrendingUp className="w-4 h-4" data-oid="sjyj9gf" />
-              </div>
-              <div className="flex flex-col" data-oid="aqrugca">
-                <h4
-                  className="text-base font-black text-slate-900 dark:text-white leading-none"
-                  data-oid="s0l5a13"
-                >
-                  Official
-                </h4>
-                <span
-                  className="text-[10px] font-bold text-slate-500 uppercase tracking-widest"
-                  data-oid="qp4:ues"
-                >
-                  Materials
-                </span>
-              </div>
-            </div>
-            <div
-              className="flex items-center gap-3 bg-white/70 dark:bg-white/5 border border-white dark:border-white/10 px-3 py-2 rounded-2xl shadow-sm backdrop-blur-2xl"
-              data-oid="qtd-obm"
-            >
-              <div
-                className="w-7 h-7 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20"
-                data-oid="4vnz-ga"
-              >
-                <CheckCircle2 className="w-4 h-4" data-oid="welbb7a" />
-              </div>
-              <div className="flex flex-col" data-oid=".jazib_">
-                <h4
-                  className="text-base font-black text-slate-900 dark:text-white leading-none"
-                  data-oid="m4.b856"
-                >
-                  Simulation
-                </h4>
-                <span
-                  className="text-[10px] font-bold text-slate-500 uppercase tracking-widest"
-                  data-oid="nx3e9un"
-                >
-                  Full Kits
-                </span>
-              </div>
-            </div>
+          <div className="flex flex-wrap gap-2.5 items-center pt-0.5" data-oid="8ktzzqi">
+            <StatChip
+              icon={TrendingUp}
+              iconBg="bg-blue-500"
+              iconShadow="shadow-blue-500/20"
+              value="Official"
+              label="Cambridge Content"
+            />
+            <StatChip
+              icon={CheckCircle2}
+              iconBg="bg-emerald-500"
+              iconShadow="shadow-emerald-500/20"
+              value="Simulation"
+              label="Full Exam Kits"
+            />
           </div>
         </div>
 
         <WeeklyChallengeCard totalKits={totalKits} />
       </div>
-    </div>
-  );
-};
 
-const CambridgeTestsControls = ({ searchQuery, setSearchQuery, activeTab, setActiveTab, tabs }) => {
-  return (
-    <div className="sticky top-6 z-40" data-oid="lf.b.95">
-      <div
-        className="bg-white/80 dark:bg-[#0c0c0c]/85 backdrop-blur-3xl p-1 rounded-[1.5rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)] border border-slate-200/50 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center justify-between"
-        data-oid="s:_lyw7"
-      >
-        <div className="relative w-full lg:max-w-md group" data-oid="93milaj">
-          <div
-            className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none"
-            data-oid=".5br913"
-          >
-            <Search
-              className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-all duration-300 group-focus-within:scale-110"
-              data-oid="kbcu647"
-            />
-          </div>
-          <Input
-            placeholder="Find a series or book..."
-            className="pl-14 h-11 bg-slate-100/60 dark:bg-white/5 border border-slate-200 dark:border-transparent focus-visible:ring-2 focus-visible:ring-blue-500/25 rounded-[1.3rem] text-sm font-semibold placeholder:text-slate-400 transition-all group-hover:bg-slate-200/50 dark:group-hover:bg-white/[0.08]"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            data-oid="4bg9zu4"
-          />
-        </div>
-
-        <div
-          className="flex items-center bg-white/60 dark:bg-white/5 backdrop-blur-xl p-1 rounded-xl gap-1 w-full lg:w-auto overflow-x-auto no-scrollbar border border-slate-200/50 dark:border-white/10 px-2 lg:p-1"
-          data-oid="jwdtsc-"
-        >
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                'flex shrink-0 items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-black transition-all duration-300 whitespace-nowrap uppercase tracking-widest',
-                activeTab === tab.id
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/20'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10'
-              )}
-              data-oid="0auvr6i"
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <div
-          className="hidden lg:flex items-center gap-4 px-6 border-l border-slate-200/60 dark:border-white/10 h-8"
-          data-oid="ejp7ofd"
-        >
-          <div
-            className="flex items-center gap-2 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer group/view"
-            data-oid="cuh_:20"
-          >
-            <LayoutGrid className="w-4.5 h-4.5" data-oid="cq70_7c" />
-            <span className="text-[10px] font-black uppercase tracking-widest" data-oid="qpo59pg">
-              Grid
-            </span>
-          </div>
-          <div className="w-1 h-1 rounded-full bg-blue-500/20" data-oid="-lqp7rj" />
-          <div
-            className="flex items-center gap-2 text-slate-300 dark:text-slate-700 cursor-not-allowed"
-            data-oid="66_7rl-"
-          >
-            <List className="w-4.5 h-4.5" data-oid="pe-nivb" />
-            <span className="text-[10px] font-black uppercase tracking-widest" data-oid="r6jhnzc">
-              List
-            </span>
-          </div>
-        </div>
+      {/* Unified Filter Row */}
+      <div className="pt-1.5 sm:pt-2 border-t border-indigo-100/80 dark:border-white/10 relative z-10">
+        <CambridgeTestsControls
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          tabs={tabs}
+        />
       </div>
     </div>
   );
@@ -1136,10 +1073,12 @@ export default function CambridgeTests() {
       className="min-h-screen bg-[#FDFDFF] dark:bg-[#050505] font-sans text-slate-900 dark:text-slate-100"
       data-oid="ynth8s."
     >
-      <div className="max-w-[1600px] mx-auto px-6 py-6 space-y-4" data-oid="c_8ei7c">
-        <CambridgeTestsHeader totalKits={groupedTests.length} />
-
-        <CambridgeTestsControls
+      <div
+        className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-2 sm:pt-3 pb-6 space-y-4"
+        data-oid="c_8ei7c"
+      >
+        <CambridgeTestsHeader
+          totalKits={groupedTests.length}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           activeTab={activeTab}

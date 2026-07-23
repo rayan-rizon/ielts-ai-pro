@@ -5,7 +5,6 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 import { useDebounce } from '@/hooks/useDebounce';
 
 import WritingHeader from '@/features/testing/writing/WritingHeader';
-import WritingFilters from '@/features/testing/writing/WritingFilters';
 import { WritingSkeletonGrid, WritingTestsGrid } from '@/features/testing/writing/WritingGrid';
 import { useWritingData } from '@/features/testing/writing/useWritingData';
 import { filterWritingTests } from '@/features/testing/writing/writingFilterUtils';
@@ -46,12 +45,14 @@ export default function Writing() {
   return (
     <div
       className="min-h-screen bg-[#FDFDFF] dark:bg-[#050505] font-sans text-slate-900 dark:text-slate-100"
-      data-oid="t_qr8bg"
+      data-oid="wm8:xgq"
     >
-      <div className="max-w-[1600px] mx-auto px-6 py-6 space-y-4" data-oid="r7c-88f">
-        <WritingHeader totalPassages={passages.length} />
-
-        <WritingFilters
+      <div
+        className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-2 sm:pt-3 pb-6 space-y-4"
+        data-oid="f56k7km"
+      >
+        <WritingHeader
+          totalPassages={passages.length}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           activeTab={activeTab}

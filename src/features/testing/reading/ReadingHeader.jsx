@@ -2,24 +2,21 @@ import React from 'react';
 import { m } from 'framer-motion';
 import { Sparkles, TrendingUp, Award } from 'lucide-react';
 import { ReadingInsightsCard } from './ReadingInsightsCard';
-
-// ---------------------------------------------------------------------------
-// Local sub-components
-// ---------------------------------------------------------------------------
+import ReadingFilters from './ReadingFilters';
 
 function StatChip({ icon: Icon, iconBg, iconShadow, value, label }) {
   return (
-    <div className="flex items-center gap-3 bg-white/60 dark:bg-white/5 border border-white dark:border-white/10 px-3 py-2 rounded-2xl shadow-sm backdrop-blur-xl">
+    <div className="inline-flex items-center gap-2.5 bg-white/80 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 px-3.5 py-1.5 rounded-full shadow-2xs backdrop-blur-xl">
       <div
-        className={`w-7 h-7 rounded-lg ${iconBg} text-white flex items-center justify-center shadow-lg ${iconShadow}`}
+        className={`w-7 h-7 rounded-full ${iconBg} text-white flex items-center justify-center shrink-0 shadow-xs ${iconShadow}`}
       >
-        <Icon className="w-4 h-4" />
+        <Icon className="w-3.5 h-3.5" />
       </div>
-      <div className="flex flex-col">
-        <h4 className="text-base font-black text-slate-900 dark:text-white leading-none">
+      <div className="flex flex-col justify-center">
+        <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-none">
           {value}
-        </h4>
-        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+        </span>
+        <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider leading-tight mt-0.5">
           {label}
         </span>
       </div>
@@ -29,20 +26,20 @@ function StatChip({ icon: Icon, iconBg, iconShadow, value, label }) {
 
 function ReadingHeaderLeft() {
   return (
-    <div className="space-y-4 max-w-2xl" data-oid="ihd0sbo">
+    <div className="space-y-2 max-w-2xl" data-oid="ihd0sbo">
       <m.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-600/5 dark:bg-blue-400/10 border border-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-[0.2em] backdrop-blur-md"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-600/10 dark:bg-blue-400/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] backdrop-blur-md"
         data-oid="q:ms_70"
       >
         <Sparkles className="w-3 h-3" data-oid="agv7rce" />
         <span data-oid="eoq63i.">Premium Practice Hub</span>
       </m.div>
 
-      <div className="space-y-2" data-oid="50ypi0v">
+      <div className="space-y-1" data-oid="50ypi0v">
         <h1
-          className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-tight"
+          className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-none sm:leading-tight"
           data-oid="fohbhse"
         >
           Reading{' '}
@@ -54,27 +51,27 @@ function ReadingHeaderLeft() {
           </span>
         </h1>
         <p
-          className="text-slate-500 dark:text-slate-400 text-base md:text-lg font-medium leading-relaxed max-w-lg"
+          className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium leading-relaxed max-w-xl"
           data-oid="5-rlh65"
         >
-          Master the IELTS Reading section with our authentic, Cambridge-style practice materials.
+          Master the IELTS Reading section with authentic, Cambridge-style practice materials.
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-3 items-center" data-oid="xlv0qgd">
+      <div className="flex flex-wrap gap-2.5 items-center pt-0.5" data-oid="xlv0qgd">
         <StatChip
           icon={TrendingUp}
           iconBg="bg-blue-500"
           iconShadow="shadow-blue-500/20"
           value="87%"
-          label="Success"
+          label="Success Rate"
         />
         <StatChip
           icon={Award}
           iconBg="bg-amber-500"
           iconShadow="shadow-amber-500/20"
           value="Official"
-          label="Content"
+          label="Cambridge Content"
         />
       </div>
     </div>
@@ -82,13 +79,21 @@ function ReadingHeaderLeft() {
 }
 
 // ---------------------------------------------------------------------------
-// Main export
+// Main export - Unified Header + Filter Bar
 // ---------------------------------------------------------------------------
 
-export default function ReadingHeader({ totalPassages }) {
+export default function ReadingHeader({
+  totalPassages,
+  searchQuery,
+  onSearchChange,
+  activeTab,
+  onTabChange,
+  viewMode,
+  onViewModeChange,
+}) {
   return (
     <div
-      className="relative group overflow-hidden rounded-[2.5rem] p-3 md:p-4 border border-indigo-200/60 dark:border-indigo-800/40 bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/80 dark:from-blue-500/5 dark:via-transparent dark:to-indigo-500/5 backdrop-blur-3xl shadow-xl shadow-blue-500/10 dark:shadow-blue-500/20"
+      className="relative group overflow-hidden rounded-2xl md:rounded-3xl px-4 sm:px-6 pt-3 sm:pt-3.5 pb-1.5 sm:pb-2 border border-indigo-200/60 dark:border-indigo-800/40 bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/80 dark:from-blue-500/5 dark:via-transparent dark:to-indigo-500/5 backdrop-blur-3xl shadow-xl shadow-blue-500/5 dark:shadow-blue-500/10 space-y-2"
       data-oid="q3yh4__"
     >
       {/* Decorative blobs */}
@@ -102,11 +107,23 @@ export default function ReadingHeader({ totalPassages }) {
       />
 
       <div
-        className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10"
+        className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10"
         data-oid="p.3vb3x"
       >
         <ReadingHeaderLeft />
         <ReadingInsightsCard totalPassages={totalPassages} />
+      </div>
+
+      {/* Unified Filter Row */}
+      <div className="pt-1.5 sm:pt-2 border-t border-indigo-100/80 dark:border-white/10 relative z-10">
+        <ReadingFilters
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+          viewMode={viewMode}
+          onViewModeChange={onViewModeChange}
+        />
       </div>
     </div>
   );

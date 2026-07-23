@@ -4,31 +4,33 @@ import { Target, Mic, Users } from 'lucide-react';
 
 function InsightsStatCell({ icon: Icon, iconColor, value, label }) {
   return (
-    <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-3 border border-slate-100 dark:border-white/5">
-      <div className="flex items-center gap-2 mb-1">
+    <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-2 border border-slate-100 dark:border-white/5">
+      <div className="flex items-center gap-1.5 mb-0.5">
         <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
-        <span className="text-lg font-black text-slate-900 dark:text-white leading-none">
+        <span className="text-base font-black text-slate-900 dark:text-white leading-none">
           {value}
         </span>
       </div>
-      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{label}</span>
+      <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider">
+        {label}
+      </span>
     </div>
   );
 }
 
 function ProgressBar() {
   return (
-    <div className="space-y-3" data-oid=".t-00iz">
+    <div className="space-y-1.5" data-oid=".t-00iz">
       <div className="flex justify-between items-end" data-oid="2z8z4xc">
-        <span className="text-xs font-bold text-slate-500" data-oid="fte5wt8">
+        <span className="text-[11px] font-bold text-slate-500" data-oid="fte5wt8">
           4 of 6 Tests Completed
         </span>
-        <span className="text-sm font-black text-rose-600" data-oid="2:jvn-y">
+        <span className="text-xs font-black text-rose-600" data-oid="2:jvn-y">
           66%
         </span>
       </div>
       <div
-        className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden p-[1px] border border-slate-200 dark:border-white/5"
+        className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden p-[1px] border border-slate-200 dark:border-white/5"
         data-oid="6umq2zj"
       >
         <motion.div
@@ -48,42 +50,45 @@ export function SpeakingInsightsCard({ totalPassages }) {
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="relative p-1"
+        className="relative p-0.5"
         data-oid="0obb40s"
       >
         <div
-          className="absolute -inset-2 bg-gradient-to-r from-rose-500/20 to-orange-500/20 rounded-[2.5rem] blur-xl opacity-50 group-hover:opacity-100 transition-opacity"
+          className="absolute -inset-1.5 bg-gradient-to-r from-rose-500/20 to-orange-500/20 rounded-2xl blur-lg opacity-50 group-hover:opacity-100 transition-opacity"
           data-oid="l76twcx"
         />
         <div
-          className="relative w-72 bg-white/80 dark:bg-slate-900/60 backdrop-blur-2xl border border-white dark:border-white/10 rounded-[2rem] p-4 shadow-2xl overflow-hidden"
+          className="relative w-64 bg-white/80 dark:bg-slate-900/60 backdrop-blur-2xl border border-white dark:border-white/10 rounded-2xl p-3 shadow-xl overflow-hidden space-y-2"
           data-oid="-msck35"
         >
-          <div className="absolute top-0 right-0 p-4" data-oid="gh9xdh:">
+          <div className="absolute top-0 right-0 p-3" data-oid="gh9xdh:">
             <div
-              className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center border border-rose-500/20"
+              className="w-7 h-7 rounded-full bg-rose-500/10 flex items-center justify-center border border-rose-500/20"
               data-oid="y_2cziw"
             >
-              <Target className="w-5 h-5 text-rose-600 dark:text-rose-400" data-oid="o5:7l0f" />
+              <Target className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" data-oid="o5:7l0f" />
             </div>
           </div>
 
-          <div className="space-y-3" data-oid="jsqm04q">
+          <div className="space-y-2" data-oid="jsqm04q">
             <div className="flex flex-col" data-oid="w9c4j3-">
               <span
-                className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest mb-1"
+                className="text-[9px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest mb-0.5"
                 data-oid="x--cuk7"
               >
                 Weekly Target
               </span>
-              <h4 className="text-xl font-black text-slate-900 dark:text-white" data-oid="zpulp5_">
+              <h4
+                className="text-base font-black text-slate-900 dark:text-white"
+                data-oid="zpulp5_"
+              >
                 Speaking Fluency
               </h4>
             </div>
 
             <ProgressBar />
 
-            <div className="grid grid-cols-2 gap-3 pt-2" data-oid="zh_6xw5">
+            <div className="grid grid-cols-2 gap-2 pt-0.5" data-oid="zh_6xw5">
               <InsightsStatCell
                 icon={Mic}
                 iconColor="text-rose-500"

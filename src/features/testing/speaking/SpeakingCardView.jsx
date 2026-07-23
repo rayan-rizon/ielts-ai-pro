@@ -28,20 +28,23 @@ function CardStatusBadge({ isLocked, isResuming, isCompleted, colorVariants }) {
   if (isLocked) {
     return (
       <div
-        className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center shadow-lg transform rotate-12"
+        className="w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center shadow-md transform rotate-12"
         data-oid="5bm:9ax"
       >
-        <Lock className="w-4 h-4 text-white" data-oid="96riw8z" />
+        <Lock className="w-3.5 h-3.5 text-white" data-oid="96riw8z" />
       </div>
     );
   }
   if (isResuming) {
     return (
       <div
-        className={cn('flex items-center gap-2 rounded-full px-3 py-1 border', colorVariants.badge)}
+        className={cn(
+          'flex items-center gap-1.5 rounded-full px-2.5 py-0.5 border backdrop-blur-md shadow-xs',
+          colorVariants.badge
+        )}
         data-oid="w3:66zz"
       >
-        <span className="relative flex h-2 w-2" data-oid="nngk90m">
+        <span className="relative flex h-1.5 w-1.5" data-oid="nngk90m">
           <span
             className={cn(
               'animate-ping absolute inline-flex h-full w-full rounded-full opacity-75',
@@ -50,11 +53,11 @@ function CardStatusBadge({ isLocked, isResuming, isCompleted, colorVariants }) {
             data-oid="bgb6jg0"
           />
           <span
-            className={cn('relative inline-flex rounded-full h-2 w-2', colorVariants.dot)}
+            className={cn('relative inline-flex rounded-full h-1.5 w-1.5', colorVariants.dot)}
             data-oid="si_fvbl"
           />
         </span>
-        <span className="text-[11px] font-bold tracking-wide uppercase" data-oid="sjobrqa">
+        <span className="text-[10px] font-bold tracking-wider uppercase" data-oid="sjobrqa">
           In Progress
         </span>
       </div>
@@ -63,11 +66,14 @@ function CardStatusBadge({ isLocked, isResuming, isCompleted, colorVariants }) {
   if (isCompleted) {
     return (
       <div
-        className={cn('flex items-center gap-2 rounded-full px-3 py-1 border', colorVariants.badge)}
+        className={cn(
+          'flex items-center gap-1.5 rounded-full px-2.5 py-0.5 border backdrop-blur-md shadow-xs',
+          colorVariants.badge
+        )}
         data-oid="8c4b9yh"
       >
-        <CheckCircle2 className="w-3.5 h-3.5" data-oid="cji.oc:" />
-        <span className="text-[11px] font-bold tracking-wide uppercase" data-oid="grtthm:">
+        <CheckCircle2 className="w-3 h-3" data-oid="cji.oc:" />
+        <span className="text-[10px] font-bold tracking-wider uppercase" data-oid="grtthm:">
           Completed
         </span>
       </div>
@@ -76,7 +82,7 @@ function CardStatusBadge({ isLocked, isResuming, isCompleted, colorVariants }) {
   return (
     <Badge
       variant="outline"
-      className="bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 px-3 py-1 text-[11px] font-bold tracking-wider uppercase"
+      className="bg-slate-50/80 dark:bg-slate-800/80 backdrop-blur-md text-slate-600 border-slate-200 dark:border-slate-700 dark:text-slate-300 px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase shadow-xs"
       data-oid=":u9d0cl"
     >
       New Practice
@@ -86,26 +92,26 @@ function CardStatusBadge({ isLocked, isResuming, isCompleted, colorVariants }) {
 
 function CardMeta({ duration, takenCount }) {
   return (
-    <div className="flex flex-wrap items-center gap-2" data-oid="ayj1gw.">
+    <div className="flex flex-wrap items-center gap-1.5" data-oid="ayj1gw.">
       <div
-        className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 flex items-center gap-2"
+        className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-md sm:rounded-lg px-2.5 py-1 flex items-center gap-1.5 shadow-2xs"
         data-oid="8:vrw0v"
       >
-        <Clock className="w-3.5 h-3.5 text-slate-400" data-oid="5bass4-" />
+        <Clock className="w-3 h-3 text-slate-400" data-oid="5bass4-" />
         <span
-          className="text-xs font-semibold text-slate-600 dark:text-slate-300"
+          className="text-[11px] sm:text-xs font-semibold text-slate-600 dark:text-slate-300"
           data-oid="bx4z_m1"
         >
           {duration} min
         </span>
       </div>
       <div
-        className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 flex items-center gap-2"
+        className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-md sm:rounded-lg px-2.5 py-1 flex items-center gap-1.5 shadow-2xs"
         data-oid="y2s:j2q"
       >
-        <MessageSquare className="w-3.5 h-3.5 text-slate-400" data-oid="8pdnfnd" />
+        <MessageSquare className="w-3 h-3 text-slate-400" data-oid="8pdnfnd" />
         <span
-          className="text-xs font-semibold text-slate-600 dark:text-slate-300"
+          className="text-[11px] sm:text-xs font-semibold text-slate-600 dark:text-slate-300"
           data-oid="jfhh80-"
         >
           3 Parts
@@ -113,12 +119,12 @@ function CardMeta({ duration, takenCount }) {
       </div>
       {takenCount > 0 && (
         <div
-          className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 flex items-center gap-2"
+          className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-slate-200/60 dark:border-white/10 rounded-md sm:rounded-lg px-2.5 py-1 flex items-center gap-1.5 shadow-2xs"
           data-oid="a7ca:--"
         >
-          <Users className="w-3.5 h-3.5 text-slate-400" data-oid="l2w0mp1" />
+          <Users className="w-3 h-3 text-slate-400" data-oid="l2w0mp1" />
           <span
-            className="text-xs font-semibold text-slate-600 dark:text-slate-300"
+            className="text-[11px] sm:text-xs font-semibold text-slate-600 dark:text-slate-300"
             data-oid="ek7qvh4"
           >
             {takenCount} Taken
@@ -137,20 +143,29 @@ function CardProgress({ isResuming, isCompleted, displayScore, progress, color, 
   if (isResuming) {
     return (
       <div
-        className="space-y-4 pt-2 border-t border-slate-100 dark:border-white/5"
+        className="space-y-2 pt-2 border-t border-slate-100/80 dark:border-white/5"
         data-oid="z.tomk1"
       >
-        <div className="flex justify-between text-xs font-bold tracking-wide" data-oid="oa2tksl">
-          <span className="text-slate-700 dark:text-slate-300 uppercase" data-oid="fycg16p">
+        <div
+          className="flex justify-between text-[11px] font-bold tracking-wide"
+          data-oid="oa2tksl"
+        >
+          <span
+            className="text-slate-600 dark:text-slate-400 uppercase text-[10px]"
+            data-oid="fycg16p"
+          >
             Completion
           </span>
-          <span className={cn('font-black', colorVariants.text.split(' ')[0])} data-oid="lo2yfyj">
+          <span
+            className={cn('font-black text-xs', colorVariants.text.split(' ')[0])}
+            data-oid="lo2yfyj"
+          >
             {progress}%
           </span>
         </div>
         <Progress
           value={progress}
-          className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full"
+          className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full"
           indicatorClassName={cn(
             'bg-gradient-to-r',
             color === 'rose' ? 'from-rose-500 to-red-600' : 'from-violet-500 to-indigo-600'
@@ -162,22 +177,22 @@ function CardProgress({ isResuming, isCompleted, displayScore, progress, color, 
   }
   if (isCompleted && displayScore !== undefined) {
     return (
-      <div className="pt-2 border-t border-slate-100 dark:border-white/5" data-oid="18slee0">
+      <div className="pt-2 border-t border-slate-100/80 dark:border-white/5" data-oid="18slee0">
         <div className="flex items-center justify-between" data-oid="om0e4zl">
           <span
-            className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wide uppercase"
+            className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase"
             data-oid="nbh.cz8"
           >
             Your Score
           </span>
-          <div className="flex items-center gap-2" data-oid="shpc1n3">
+          <div className="flex items-center gap-1.5" data-oid="shpc1n3">
             <span
-              className={cn('text-2xl font-black', colorVariants.text.split(' ')[0])}
+              className={cn('text-xl font-black', colorVariants.text.split(' ')[0])}
               data-oid="8lelnw9"
             >
               {formatScore(displayScore)}
             </span>
-            <span className="text-xs text-slate-400" data-oid="lvrgg68">
+            <span className="text-[11px] font-semibold text-slate-400" data-oid="lvrgg68">
               / 9.0
             </span>
           </div>
@@ -198,34 +213,34 @@ function CardActions({
 }) {
   if (isLocked) {
     return (
-      <Link to={createPageUrl('Pricing')} className="block mt-4" data-oid="1-3e0hv">
+      <Link to={createPageUrl('Pricing')} className="block mt-3" data-oid="1-3e0hv">
         <Button
-          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl h-11 text-sm shadow-lg transition-all"
+          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-lg sm:rounded-xl h-10 text-xs sm:text-sm shadow-md transition-all active:scale-[0.98]"
           data-oid="5fm42bn"
         >
-          <Crown className="w-4 h-4 mr-2" data-oid="5-w_or7" /> Upgrade to Access
+          <Crown className="w-4 h-4 mr-1.5" data-oid="5-w_or7" /> Upgrade to Access
         </Button>
       </Link>
     );
   }
   if (isResuming) {
     return (
-      <Link to={`/speaking-test/${test.id}`} className="block mt-4" data-oid=":zh0p1.">
+      <Link to={`/speaking-test/${test.id}`} className="block mt-3" data-oid=":zh0p1.">
         <Button
           className={cn(
-            'w-full bg-white dark:bg-transparent border font-bold rounded-xl h-11 text-sm shadow-none transition-all',
+            'w-full bg-white/90 dark:bg-transparent backdrop-blur-md border font-bold rounded-lg sm:rounded-xl h-10 text-xs sm:text-sm shadow-2xs hover:shadow-xs transition-all active:scale-[0.98]',
             colorVariants.button
           )}
           data-oid="kkql700"
         >
-          Resume Test <Play className="w-3.5 h-3.5 ml-2 fill-current" data-oid="3itzqz:" />
+          Resume Test <Play className="w-3.5 h-3.5 ml-1.5 fill-current" data-oid="3itzqz:" />
         </Button>
       </Link>
     );
   }
   if (isCompleted) {
     return (
-      <div className="flex gap-2 mt-4" data-oid="z7ec8v0">
+      <div className="flex gap-2 mt-3" data-oid="z7ec8v0">
         <Link
           to={`/speaking-test/${completedSessionId}?view-score=true`}
           className="flex-1"
@@ -233,18 +248,18 @@ function CardActions({
         >
           <Button
             className={cn(
-              'w-full bg-white dark:bg-transparent border font-bold rounded-xl h-11 text-sm shadow-none transition-all',
+              'w-full bg-white/90 dark:bg-transparent backdrop-blur-md border font-bold rounded-lg sm:rounded-xl h-10 text-xs sm:text-sm shadow-2xs hover:shadow-xs transition-all active:scale-[0.98]',
               colorVariants.button
             )}
             data-oid="qhptw:o"
           >
-            View Feedback <ArrowRight className="w-3.5 h-3.5 ml-2" data-oid="kqmoi6:" />
+            View Feedback <ArrowRight className="w-4 h-4 ml-1.5" data-oid="kqmoi6:" />
           </Button>
         </Link>
         <Link to={`/speaking-test?test-id=${test.id}&retake=true`} data-oid="uyc57.d">
           <Button
             variant="outline"
-            className="h-11 px-4 rounded-xl border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="h-10 px-3.5 rounded-lg sm:rounded-xl border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 backdrop-blur-md active:scale-[0.98]"
             data-oid="mwvc8dz"
           >
             <RotateCcw className="w-4 h-4" data-oid="pdh8st4" />
@@ -254,26 +269,24 @@ function CardActions({
     );
   }
   return (
-    <Link to={`/speaking-test?test-id=${test.id}`} className="block mt-4" data-oid="telg.3f">
+    <Link to={`/speaking-test?test-id=${test.id}`} className="block mt-3" data-oid="telg.3f">
       <Button
-        className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-bold rounded-xl h-11 text-sm shadow-lg shadow-slate-900/20 dark:shadow-rose-900/40 transition-all group-hover:scale-[1.02] border-0"
+        className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-bold rounded-lg sm:rounded-xl h-10 text-xs sm:text-sm shadow-md shadow-slate-900/10 dark:shadow-rose-900/30 transition-all hover:scale-[1.01] active:scale-[0.98] border-0"
         data-oid="7ks8n2n"
       >
-        Start Practice <ChevronRight className="w-4 h-4 ml-1.5" data-oid="yuz4ryn" />
+        Start Practice <ChevronRight className="w-4 h-4 ml-1" data-oid="u_qthly" />
       </Button>
     </Link>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Main card view
-// ---------------------------------------------------------------------------
 
 function SpeakingCardOverlay({ colorVariants }) {
   return (
     <div
       className={cn(
-        'absolute inset-0 bg-gradient-to-tr transition-opacity duration-500 opacity-0 group-hover:opacity-100 rounded-[2rem]',
+        'absolute inset-0 bg-gradient-to-tr transition-opacity duration-300 opacity-0 group-hover:opacity-100 rounded-2xl sm:rounded-3xl backdrop-blur-xs pointer-events-none',
         colorVariants.hover
       )}
     />
@@ -282,20 +295,20 @@ function SpeakingCardOverlay({ colorVariants }) {
 
 function SpeakingCardHeader({ Icon, colorVariants, isLocked, isResuming, isCompleted }) {
   return (
-    <div className="flex justify-between items-start mb-6 relative z-10">
+    <div className="flex justify-between items-start mb-3.5 relative z-10 shrink-0">
       <div
         className={cn(
-          'w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300',
-          'bg-white dark:bg-white/5',
+          'w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300',
+          'bg-white/90 dark:bg-white/10 backdrop-blur-md',
           colorVariants.text,
-          'shadow-[0_10px_20px_-5px_rgba(0,0,0,0.1)] dark:shadow-none border',
+          'shadow-xs border',
           colorVariants.border,
-          'group-hover:scale-110 group-hover:rotate-3'
+          'group-hover:scale-105 group-hover:rotate-2'
         )}
       >
-        <Icon className="w-7 h-7" />
+        <Icon className="w-5.5 h-5.5 sm:w-6 sm:h-6" />
       </div>
-      <div className="flex flex-col items-end gap-2.5">
+      <div className="flex flex-col items-end gap-2">
         <CardStatusBadge
           isLocked={isLocked}
           isResuming={isResuming}
@@ -316,18 +329,18 @@ function SpeakingCardTitleBody({
   linkProps,
 }) {
   return (
-    <div className={cn('mb-6 flex-grow relative z-10', isLocked && 'filter blur-sm select-none')}>
+    <div className={cn('mb-3.5 relative z-10 shrink-0', isLocked && 'filter blur-sm select-none')}>
       <ContainerLink {...linkProps} className="block group/title">
         <h3
           className={cn(
-            'text-xl font-bold text-slate-900 dark:text-white leading-snug mb-2 transition-colors cursor-pointer line-clamp-2',
+            'text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug mb-1 transition-colors cursor-pointer line-clamp-2',
             `group-hover:${colorVariants.text.split(' ')[0]}`
           )}
         >
           {displayTitle}
         </h3>
       </ContainerLink>
-      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium line-clamp-2">
+      <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-normal line-clamp-2 leading-relaxed">
         {test.description || 'Authentic IELTS Speaking practice with interactive AI models.'}
       </p>
     </div>
@@ -362,45 +375,52 @@ function SpeakingCardView(props) {
       exit={{ opacity: 0, scale: 0.98 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
       className={cn(
-        'group relative flex flex-col h-full rounded-[2rem] p-6 transition-all duration-500 ease-sidebar',
-        'bg-white dark:bg-[#121212] border border-slate-200/60 dark:border-white/5',
+        'group relative flex flex-col justify-between h-full min-h-[300px] rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all duration-300 ease-out',
+        'bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/70 dark:border-white/10',
         `bg-gradient-to-b ${colorVariants.gradient}`,
-        'shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] hover:shadow-[0_60px_120px_-30px_rgba(0,0,0,0.15)]',
-        'dark:shadow-[0_10px_40px_-15px_rgba(0,0,0,0.2)] dark:hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5)]',
-        'hover:-translate-y-2 will-change-transform',
+        'shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06),0_2px_6px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)]',
+        'dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.4)] dark:hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.6)]',
+        'hover:-translate-y-1.5 hover:border-slate-300/80 dark:hover:border-white/20 will-change-transform',
         isLocked && 'opacity-90 grayscale-[0.2]'
       )}
     >
       <SpeakingCardOverlay colorVariants={colorVariants} />
-      <SpeakingCardHeader
-        Icon={Icon}
-        colorVariants={colorVariants}
-        isLocked={isLocked}
-        isResuming={isResuming}
-        isCompleted={isCompleted}
-      />
-      <SpeakingCardTitleBody
-        isLocked={isLocked}
-        colorVariants={colorVariants}
-        displayTitle={displayTitle}
-        test={test}
-        ContainerLink={ContainerLink}
-        linkProps={linkProps}
-      />
-
-      <div className={cn('mb-6 relative z-10 space-y-4', isLocked && 'filter blur-sm select-none')}>
-        <CardMeta duration={duration} takenCount={takenCount} />
-        <CardProgress
+      <div className="flex flex-col">
+        <SpeakingCardHeader
+          Icon={Icon}
+          colorVariants={colorVariants}
+          isLocked={isLocked}
           isResuming={isResuming}
           isCompleted={isCompleted}
-          displayScore={displayScore}
-          progress={progress}
-          color={color}
-          colorVariants={colorVariants}
         />
+        <SpeakingCardTitleBody
+          isLocked={isLocked}
+          colorVariants={colorVariants}
+          displayTitle={displayTitle}
+          test={test}
+          ContainerLink={ContainerLink}
+          linkProps={linkProps}
+        />
+
+        <div
+          className={cn(
+            'mb-3.5 relative z-10 space-y-2.5 shrink-0',
+            isLocked && 'filter blur-sm select-none'
+          )}
+        >
+          <CardMeta duration={duration} takenCount={takenCount} />
+          <CardProgress
+            isResuming={isResuming}
+            isCompleted={isCompleted}
+            displayScore={displayScore}
+            progress={progress}
+            color={color}
+            colorVariants={colorVariants}
+          />
+        </div>
       </div>
 
-      <div className="relative z-10 mt-auto pt-2 border-t border-slate-50 dark:border-white/5">
+      <div className="relative z-10 mt-auto pt-2.5 border-t border-slate-100/80 dark:border-white/5 shrink-0">
         <CardActions
           isLocked={isLocked}
           isResuming={isResuming}

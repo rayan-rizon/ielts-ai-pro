@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import {
-  ArrowLeft,
-  BookOpen,
-  Download,
-  GraduationCap,
-  Home,
-  LoaderCircle,
-  MessageCircleMore,
-} from 'lucide-react';
+import { ArrowLeft, BookOpen, Download, GraduationCap, Home, LoaderCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
@@ -23,6 +15,7 @@ import SpeakingReportErrorState from './SpeakingReportErrorState';
 import SpeakingReportSummary from './SpeakingReportSummary';
 import SpeakingReportDeepDive from './SpeakingReportDeepDive';
 import usePronunciationBreakdown from '../hooks/usePronunciationBreakdown';
+import { HeaderWaveBackground, SpeechBubbleGraphic } from './SpeakingReportHeaderGraphic';
 
 export default function SpeakingReport({
   finalEvaluation,
@@ -152,22 +145,17 @@ export default function SpeakingReport({
       >
         <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl shadow-rose-950/5 dark:border-white/10 dark:bg-zinc-950">
           {/* Header Banner */}
-          <header className="relative overflow-hidden bg-gradient-to-r from-rose-600 via-rose-500 to-rose-700 px-5 pb-7 pt-5 text-white sm:px-8 lg:px-10 lg:pb-8 lg:pt-6">
-            <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-              <div className="absolute -right-16 -top-28 h-80 w-80 rounded-full border-[34px] border-white/[0.07]" />
-              <div className="absolute right-32 top-8 h-44 w-44 rounded-full border border-white/15" />
-              <div className="absolute right-12 top-10 h-28 w-28 rounded-full border border-white/15" />
-              <div className="absolute bottom-0 left-1/3 h-28 w-96 bg-white/15 blur-[80px]" />
-            </div>
+          <header className="relative overflow-hidden bg-gradient-to-r from-rose-500 via-rose-500 to-rose-600 px-5 pb-5 pt-4 text-white sm:px-8 lg:px-10 lg:pb-6 lg:pt-5">
+            <HeaderWaveBackground />
 
-            <div className="relative mb-6 flex items-center justify-between gap-4">
+            <div className="relative mb-3 flex items-center justify-between gap-4">
               <Button
                 asChild
                 variant="ghost"
-                className="-ml-3 h-9 rounded-full px-4 text-xs font-extrabold text-white hover:bg-white/15 hover:text-white backdrop-blur-md transition-all"
+                className="-ml-3 h-8 rounded-full px-3.5 text-xs font-extrabold text-white hover:bg-white/15 hover:text-white backdrop-blur-md transition-all"
               >
                 <Link to="/speaking">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  <ArrowLeft className="mr-2 h-3.5 w-3.5" />
                   Back to speaking
                 </Link>
               </Button>
@@ -176,12 +164,12 @@ export default function SpeakingReport({
                 type="button"
                 onClick={handleDownloadPdf}
                 disabled={isDownloadingPdf}
-                className="h-10 rounded-xl border border-white/30 bg-white/95 px-4 text-xs font-black text-rose-700 shadow-xl shadow-rose-950/20 hover:bg-white hover:scale-105 active:scale-95 disabled:opacity-70 transition-all sm:px-5"
+                className="h-9 rounded-xl border border-white/30 bg-white/95 px-3.5 text-xs font-black text-rose-700 shadow-lg shadow-rose-950/20 hover:bg-white hover:scale-105 active:scale-95 disabled:opacity-70 transition-all sm:px-4.5"
               >
                 {isDownloadingPdf ? (
-                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                  <LoaderCircle className="mr-2 h-3.5 w-3.5 animate-spin" />
                 ) : (
-                  <Download className="mr-2 h-4 w-4" />
+                  <Download className="mr-2 h-3.5 w-3.5" />
                 )}
                 <span className="hidden sm:inline">
                   {isDownloadingPdf ? 'Preparing PDF...' : 'Download PDF'}
@@ -190,28 +178,24 @@ export default function SpeakingReport({
               </Button>
             </div>
 
-            <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1fr)_14rem] lg:items-end">
+            <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1fr)_13rem] lg:items-end">
               <div>
                 <h1 className="text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
                   Speaking Report
                 </h1>
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <span className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-3.5 py-1.5 text-xs font-extrabold backdrop-blur-md shadow-sm">
-                    <GraduationCap className="h-4 w-4 text-rose-100" />
+                <div className="mt-4 flex flex-wrap items-center gap-3.5">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-4 py-1.5 text-xs font-bold backdrop-blur-md shadow-sm">
+                    <GraduationCap className="h-4 w-4 text-white" />
                     {testTitle || 'IELTS Academic'}
                   </span>
-                  <span className="text-xs font-semibold text-rose-100">
+                  <span className="text-xs font-bold text-white/90">
                     Test Date: {testDateFormatted}
                   </span>
                 </div>
               </div>
 
               <div className="hidden justify-self-end lg:block" aria-hidden="true">
-                <div className="relative flex h-24 w-40 items-center justify-center rounded-3xl border border-white/30 bg-white/20 shadow-2xl backdrop-blur-md">
-                  <MessageCircleMore className="h-12 w-12 text-white" />
-                  <span className="absolute right-5 top-5 h-2 w-2 rounded-full bg-white/90 animate-ping" />
-                  <span className="absolute right-5 top-5 h-2 w-2 rounded-full bg-white" />
-                </div>
+                <SpeechBubbleGraphic />
               </div>
             </div>
           </header>

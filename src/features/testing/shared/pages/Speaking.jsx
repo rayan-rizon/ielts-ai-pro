@@ -5,8 +5,6 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 import { useDebounce } from '@/hooks/useDebounce';
 
 import SpeakingHeader from '@/features/testing/speaking/SpeakingHeader';
-import SpeakingProBanner from '@/features/testing/speaking/SpeakingProBanner';
-import SpeakingFilters from '@/features/testing/speaking/SpeakingFilters';
 import { SpeakingSkeletonGrid, SpeakingTestsGrid } from '@/features/testing/speaking/SpeakingGrid';
 import { useSpeakingPageData } from '@/features/testing/speaking/useSpeakingPageData';
 import { filterSpeakingTests } from '@/features/testing/speaking/speakingFilterUtils';
@@ -14,7 +12,7 @@ import { filterSpeakingTests } from '@/features/testing/speaking/speakingFilterU
 const TABS_CONFIG = [
   { id: 'all', label: 'All Tests', icon: LayoutGrid },
   { id: 'cambridge', label: 'Cambridge', icon: Award },
-  { id: 'inprogress', label: 'In Progress', icon: Clock },
+  { id: 'in-progress', label: 'In Progress', icon: Clock },
 ];
 
 export default function Speaking() {
@@ -49,11 +47,12 @@ export default function Speaking() {
       className="min-h-screen bg-[#FDFDFF] dark:bg-[#050505] font-sans text-slate-900 dark:text-slate-100"
       data-oid="b-dgzsd"
     >
-      <div className="max-w-[1600px] mx-auto px-6 py-6 space-y-4" data-oid="_:ejdhs">
-        <SpeakingHeader totalPassages={passages.length} />
-        <SpeakingProBanner userData={userData} />
-
-        <SpeakingFilters
+      <div
+        className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-2 sm:pt-3 pb-6 space-y-4"
+        data-oid="_:ejdhs"
+      >
+        <SpeakingHeader
+          totalPassages={passages.length}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           activeTab={activeTab}

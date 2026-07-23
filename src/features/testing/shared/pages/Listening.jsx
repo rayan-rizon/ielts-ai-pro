@@ -4,7 +4,6 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 import { useDebounce } from '@/hooks/useDebounce';
 
 import ListeningHeader from '@/features/testing/listening/ListeningHeader';
-import ListeningFilters from '@/features/testing/listening/ListeningFilters';
 import { useListeningData } from '@/features/testing/listening/useListeningData';
 import {
   ListeningSkeletonGrid,
@@ -87,11 +86,16 @@ export default function Listening() {
   const filteredTests = filterTests(passages, sessions, activeTab, debouncedSearchQuery);
 
   return (
-    <div className="min-h-screen bg-[#FDFDFF] dark:bg-[#050505] font-sans text-slate-900 dark:text-slate-100">
-      <div className="max-w-[1600px] mx-auto px-6 py-6 space-y-4">
-        <ListeningHeader totalPassages={passages.length} />
-
-        <ListeningFilters
+    <div
+      className="min-h-screen bg-[#FDFDFF] dark:bg-[#050505] font-sans text-slate-900 dark:text-slate-100"
+      data-oid="wm8:xgq"
+    >
+      <div
+        className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-2 sm:pt-3 pb-6 space-y-4"
+        data-oid="f56k7km"
+      >
+        <ListeningHeader
+          totalPassages={passages.length}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           activeTab={activeTab}
