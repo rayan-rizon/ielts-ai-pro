@@ -1,11 +1,14 @@
 import { useEffect } from 'react';
 
 import { Passage } from '@/features/testing/shared/services/Passage';
+import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { supabase } from '@/lib/supabase';
 
 import {
   buildAverageSpeakingEvaluation,
+  buildCueCardTopic,
   buildLegacySpeakingEvaluation,
+  buildSpeakingResumeState,
   getQuestionLines,
 } from '../utils/speakingTestUtils';
 
@@ -21,14 +24,17 @@ export default function useSpeakingTestInitialization({
   setAllPartsAcousticMetrics,
   setAllPartsConversation,
   setConversation,
+  setCueCardTopic,
   setCurrentPartNumber,
   setCurrentQuestionIndex,
   setError,
   setFinalEvaluation,
   setIsLoading,
+  setIsPart2Prep,
   setIsPartComplete,
   setIsTestComplete,
   setSession,
+  setPrepTimeLeft,
   setTestStarted,
   setTestTitle,
   setTimeLeft,
@@ -117,6 +123,10 @@ export default function useSpeakingTestInitialization({
 
     const restoreCompletedSession = (matchingSession) => {
       setSession(matchingSession);
+      const savedMetrics =
+        matchingSession.content_data?.allPartsAcousticMetrics ||
+        matchingSession.content_data?.allPartsPronunciation ||
+        {};
 
       if (matchingSession.content_data?.finalEvaluation) {
         setFinalEvaluation(matchingSession.content_data.finalEvaluation);
@@ -132,6 +142,8 @@ export default function useSpeakingTestInitialization({
       if (matchingSession.content_data?.allPartsConversation) {
         setAllPartsConversation(matchingSession.content_data.allPartsConversation);
       }
+      acousticMetricsRef.current = savedMetrics;
+      setAllPartsAcousticMetrics(savedMetrics);
 
       setIsTestComplete(true);
       setIsLoading(false);
@@ -141,20 +153,39 @@ export default function useSpeakingTestInitialization({
       setSession(matchingSession);
 
       const resumePart = matchingSession.content_data?.currentPart || 1;
-      const resumeHistory = matchingSession.answers?.conversation || [];
-      const resumeQuestionIndex = matchingSession.answers?.currentQuestionIndex || 0;
       const resumeAllPartsConversation = matchingSession.content_data?.allPartsConversation || {};
-      const savedMetrics = matchingSession.content_data?.allPartsAcousticMetrics || {};
+      const savedMetrics =
+        matchingSession.content_data?.allPartsAcousticMetrics ||
+        matchingSession.content_data?.allPartsPronunciation ||
+        {};
+      const currentPartData = dbParts[resumePart] || Object.values(dbParts)[0];
+      const isPart2Prep = Boolean(matchingSession.content_data?.isPart2Prep);
+      const resumeState = buildSpeakingResumeState({
+        conversation: matchingSession.answers?.conversation,
+        currentQuestionIndex: matchingSession.answers?.currentQuestionIndex,
+        currentPart: currentPartData,
+        isPart2Prep,
+      });
 
       acousticMetricsRef.current = savedMetrics;
       setAllPartsAcousticMetrics(savedMetrics);
       setCurrentPartNumber(resumePart);
-      setConversation(resumeHistory);
-      setCurrentQuestionIndex(resumeQuestionIndex);
+      setConversation(resumeState.conversation);
+      setCurrentQuestionIndex(resumeState.currentQuestionIndex);
       setAllPartsConversation(resumeAllPartsConversation);
       setIsPartComplete(Boolean(matchingSession.content_data?.isPartComplete));
+      setIsPart2Prep(isPart2Prep);
+      setPrepTimeLeft(
+        typeof matchingSession.content_data?.prepTimeLeft === 'number'
+          ? matchingSession.content_data.prepTimeLeft
+          : 60
+      );
+      setCueCardTopic(
+        isPart2Prep
+          ? matchingSession.content_data?.cueCardTopic || buildCueCardTopic(currentPartData)
+          : null
+      );
 
-      const currentPartData = dbParts[resumePart] || Object.values(dbParts)[0];
       if (currentPartData) {
         const savedTimeLeft = matchingSession.answers?.timeLeft;
         setTimeLeft(
@@ -165,7 +196,20 @@ export default function useSpeakingTestInitialization({
       setTestStarted(true);
       setIsLoading(false);
 
-      if (resumeHistory.filter((entry) => entry.speaker === 'user').length === 0) {
+      if (resumeState.repaired) {
+        TestSession.update(matchingSession.id, {
+          answers: {
+            ...matchingSession.answers,
+            conversation: resumeState.conversation,
+            currentQuestionIndex: resumeState.currentQuestionIndex,
+          },
+          updated_at: new Date().toISOString(),
+        }).catch((error) => {
+          console.warn('Failed to repair resumed speaking session:', error);
+        });
+      }
+
+      if (resumeState.conversation.filter((entry) => entry.speaker === 'user').length === 0) {
         checkCurrentQuota();
       }
 

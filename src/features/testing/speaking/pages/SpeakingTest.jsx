@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
 
@@ -115,6 +115,44 @@ export default function SpeakingTest() {
 
   const saveSessionProgress = useSpeakingSessionPersistence(session?.id, session?.content_data);
 
+  const flushCurrentSession = useCallback(() => {
+    if (!session?.id || !testStarted || isTestComplete) return Promise.resolve();
+
+    return saveSessionProgress({
+      answers: {
+        ...session.answers,
+        conversation: conversationRef.current,
+        currentQuestionIndex: questionIndexRef.current,
+        timeLeft: timeLeftRef.current,
+      },
+      content_data: {
+        ...session.content_data,
+        currentPart: currentPartNumber,
+        isPartComplete,
+        isPart2Prep,
+        prepTimeLeft,
+        cueCardTopic,
+        allPartsConversation,
+        allPartsAcousticMetrics,
+      },
+    });
+  }, [
+    allPartsAcousticMetrics,
+    allPartsConversation,
+    cueCardTopic,
+    currentPartNumber,
+    conversationRef,
+    isPart2Prep,
+    isPartComplete,
+    isTestComplete,
+    prepTimeLeft,
+    questionIndexRef,
+    saveSessionProgress,
+    session,
+    testStarted,
+    timeLeftRef,
+  ]);
+
   const {
     loadingMessage,
     finalEvaluation,
@@ -154,7 +192,7 @@ export default function SpeakingTest() {
     isExiting,
     evaluationError,
     showUpgradeDialog,
-    conversationLength: conversation.length,
+    testStarted,
     setShowExitDialog,
   });
 
@@ -242,14 +280,17 @@ export default function SpeakingTest() {
     setAllPartsAcousticMetrics,
     setAllPartsConversation,
     setConversation,
+    setCueCardTopic,
     setCurrentPartNumber,
     setCurrentQuestionIndex,
     setError,
     setFinalEvaluation,
     setIsLoading,
+    setIsPart2Prep,
     setIsPartComplete,
     setIsTestComplete,
     setSession,
+    setPrepTimeLeft,
     setTestStarted,
     setTestTitle,
     setTimeLeft,
@@ -259,7 +300,6 @@ export default function SpeakingTest() {
     allParts,
     authUser,
     checkCurrentQuota,
-    conversation,
     firstQuestionInsertedRef,
     isStartingTestRef,
     pendingGreetingRef,
@@ -280,6 +320,8 @@ export default function SpeakingTest() {
     setCueCardTopic,
     setCurrentQuestionIndex,
     setIsPart2Prep,
+    saveSessionProgress,
+    session,
     speakText,
   });
 
@@ -314,6 +356,9 @@ export default function SpeakingTest() {
     isProcessingRef,
     timerExpiredRef,
     pendingTimersRef,
+    cueCardTopic,
+    allPartsConversation,
+    allPartsAcousticMetrics,
   });
 
   return (
@@ -350,12 +395,12 @@ export default function SpeakingTest() {
         allParts,
         authUser,
         blocker,
-        conversationLength: conversation.length,
         currentPart,
         currentPartNumber,
         exitDialogProps: {
           onOpenChange: setShowExitDialog,
           isExitingRef: isExiting,
+          onBeforeExit: flushCurrentSession,
         },
         headerProps: {
           currentQuestionIndex,
@@ -389,6 +434,7 @@ export default function SpeakingTest() {
         setShowExitDialog,
         showExitDialog,
         showUpgradeDialog,
+        testStarted,
         testTitle,
         totalParts: Object.keys(allParts).length,
         upgradeDialogProps: {

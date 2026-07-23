@@ -12,8 +12,29 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-const ExitDialog = React.memo(({ open, onOpenChange, blocker, isExitingRef }) => {
+const ExitDialog = React.memo(({ open, onOpenChange, blocker, isExitingRef, onBeforeExit }) => {
   const navigate = useNavigate();
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  const handleExit = async () => {
+    if (isSaving) return;
+    const target = blocker.location;
+    setIsSaving(true);
+    try {
+      await onBeforeExit?.();
+    } finally {
+      isExitingRef.current = true;
+      onOpenChange(false);
+      setIsSaving(false);
+    }
+
+    if (blocker.state === 'blocked') {
+      blocker.reset();
+      setTimeout(() => navigate(target), 0);
+    } else {
+      navigate('/speaking');
+    }
+  };
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -38,20 +59,11 @@ const ExitDialog = React.memo(({ open, onOpenChange, blocker, isExitingRef }) =>
             Continue Test
           </AlertDialogCancel>
           <AlertDialogAction
-            onClick={() => {
-              isExitingRef.current = true;
-              onOpenChange(false);
-              if (blocker.state === 'blocked') {
-                const target = blocker.location;
-                blocker.reset();
-                setTimeout(() => navigate(target), 0);
-              } else {
-                navigate('/speaking');
-              }
-            }}
+            onClick={handleExit}
+            disabled={isSaving}
             className="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-500/20 border-none px-8 rounded-xl hover:scale-105 active:scale-95 transition-colors duration-200 font-bold"
           >
-            Exit
+            {isSaving ? 'Saving…' : 'Save & Exit'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

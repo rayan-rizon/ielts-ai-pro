@@ -4,6 +4,7 @@ import {
   buildCueCardTopic,
   formatIeltsQuestion,
   getQuestionLines,
+  PART_TWO_PREP_MESSAGE,
 } from '../utils/speakingTestUtils';
 
 export default function useMoveToNextSpeakingPart({
@@ -126,23 +127,28 @@ function startPartTwoPreparation({
   setPrepTimeLeft,
   speakText,
 }) {
-  setCueCardTopic(buildCueCardTopic(nextPart));
   setIsPart2Prep(true);
   setPrepTimeLeft(60);
 
-  const message =
-    "Now it's time for Part 2, the Individual Long Turn. I'm going to give you a topic and I'd like you to talk about it for 1 to 2 minutes. Before you talk, you'll have one minute to think about what you're going to say. Here's your topic card.";
+  const cueCardTopic = buildCueCardTopic(nextPart);
+  const message = PART_TWO_PREP_MESSAGE;
 
+  setCueCardTopic(cueCardTopic);
   setConversation([{ speaker: 'ai', text: message }]);
   speakText(message);
   saveNextPartProgress({
     currentConversation,
     currentPartNumber,
-    message,
     nextAllPartsConversation,
     nextPartNumber,
+    nextConversation: [{ speaker: 'ai', text: message }],
     saveSessionProgress,
     session,
+    contentData: {
+      isPart2Prep: true,
+      prepTimeLeft: 60,
+      cueCardTopic,
+    },
   });
 }
 
@@ -163,9 +169,9 @@ function startDiscussionPart({
   setConversation([{ speaker: 'ai', text: message }]);
 
   const questionLines = getQuestionLines(nextPart.questions);
+  const firstQuestion = questionLines.length > 0 ? formatIeltsQuestion(questionLines[0]) : null;
   if (questionLines.length > 0) {
     messagePromise.then(() => {
-      const firstQuestion = formatIeltsQuestion(questionLines[0]);
       setConversation((prev) => [...prev, { speaker: 'ai', text: firstQuestion }]);
       speakText(firstQuestion);
       setCurrentQuestionIndex(0);
@@ -175,25 +181,34 @@ function startDiscussionPart({
   saveNextPartProgress({
     currentConversation,
     currentPartNumber,
-    message,
     nextAllPartsConversation,
     nextPartNumber,
+    nextConversation: [
+      { speaker: 'ai', text: message },
+      ...(firstQuestion ? [{ speaker: 'ai', text: firstQuestion }] : []),
+    ],
     saveSessionProgress,
     session,
+    contentData: {
+      isPart2Prep: false,
+      prepTimeLeft: null,
+      cueCardTopic: null,
+    },
   });
 }
 
 function saveNextPartProgress({
   currentConversation,
   currentPartNumber,
-  message,
   nextAllPartsConversation,
   nextPartNumber,
+  nextConversation,
   saveSessionProgress,
   session,
+  contentData = {},
 }) {
   saveSessionProgress({
-    answers: { conversation: [{ speaker: 'ai', text: message }], currentQuestionIndex: 0 },
+    answers: { conversation: nextConversation, currentQuestionIndex: 0 },
     content_data: {
       ...session?.content_data,
       currentPart: nextPartNumber,
@@ -202,6 +217,7 @@ function saveNextPartProgress({
         [currentPartNumber]: currentConversation,
       },
       isPartComplete: false,
+      ...contentData,
     },
   });
 }

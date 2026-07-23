@@ -2,13 +2,12 @@ import { useCallback } from 'react';
 
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 
-import { formatIeltsQuestion, getQuestionLines } from '../utils/speakingTestUtils';
+import { buildInitialSpeakingConversation } from '../utils/speakingTestUtils';
 
 export default function useStartSpeakingTest({
   allParts,
   authUser,
   checkCurrentQuota,
-  conversation,
   firstQuestionInsertedRef,
   isStartingTestRef,
   pendingGreetingRef,
@@ -36,8 +35,8 @@ export default function useStartSpeakingTest({
 
     if (!session) {
       await createSpeakingSession({
+        allParts,
         authUser,
-        conversation,
         pendingGreetingRef,
         setSession,
         testId,
@@ -59,7 +58,6 @@ export default function useStartSpeakingTest({
     allParts,
     authUser,
     checkCurrentQuota,
-    conversation,
     firstQuestionInsertedRef,
     isStartingTestRef,
     pendingGreetingRef,
@@ -74,8 +72,8 @@ export default function useStartSpeakingTest({
 }
 
 async function createSpeakingSession({
+  allParts,
   authUser,
-  conversation,
   pendingGreetingRef,
   setSession,
   testId,
@@ -84,13 +82,18 @@ async function createSpeakingSession({
 
   try {
     const resolvedPassageId = pendingGreetingRef.current?.testId || testId;
+    const partNumber = pendingGreetingRef.current?.partNumber || 1;
+    const initialConversation = buildInitialSpeakingConversation({
+      greeting: pendingGreetingRef.current?.greeting,
+      currentPart: allParts[partNumber],
+    });
     const newSession = await TestSession.create({
       user_id: authUser.id,
       test_type: 'speaking',
       passage_id: resolvedPassageId,
       is_completed: false,
-      content_data: { passage_id: resolvedPassageId, currentPart: 1 },
-      answers: { conversation, currentQuestionIndex: -1 },
+      content_data: { passage_id: resolvedPassageId, currentPart: partNumber },
+      answers: { conversation: initialConversation, currentQuestionIndex: 0 },
     });
     setSession(newSession);
   } catch (error) {
@@ -108,8 +111,12 @@ function playInitialGreeting({
   speakText,
 }) {
   const { greeting, partNumber } = pendingGreetingRef.current;
+  const initialConversation = buildInitialSpeakingConversation({
+    greeting,
+    currentPart: allParts[partNumber],
+  });
 
-  setConversation([{ speaker: 'ai', text: greeting }]);
+  setConversation(initialConversation.slice(0, 1));
   const greetingPromise = speakText(greeting);
   setTestStarted(true);
 
@@ -118,18 +125,13 @@ function playInitialGreeting({
     await greetingPromise;
     firstQuestionInsertedRef.current = false;
 
-    const currentPart = allParts[partNumber];
-    if (!currentPart?.questions) return;
-
-    const questionLines = getQuestionLines(currentPart.questions);
-    const firstQuestion = questionLines[0] || "Let's begin. Can you tell me about yourself?";
-
     if (firstQuestionInsertedRef.current) return;
 
     firstQuestionInsertedRef.current = true;
-    const cleanedFirstQuestion = formatIeltsQuestion(firstQuestion);
-    setConversation((prev) => [...prev, { speaker: 'ai', text: cleanedFirstQuestion }]);
-    speakText(cleanedFirstQuestion);
+    const firstQuestion = initialConversation[1]?.text;
+    if (!firstQuestion) return;
+    setConversation((prev) => [...prev, { speaker: 'ai', text: firstQuestion }]);
+    speakText(firstQuestion);
     setCurrentQuestionIndex(0);
   })();
 }

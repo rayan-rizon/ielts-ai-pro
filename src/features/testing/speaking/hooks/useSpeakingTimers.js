@@ -36,6 +36,12 @@ function persistProgressSnapshot({
   conversationRef,
   questionIndexRef,
   timeLeftRef,
+  isPartComplete,
+  isPart2Prep,
+  prepTimeLeft,
+  cueCardTopic,
+  allPartsConversation,
+  allPartsAcousticMetrics,
 }) {
   if (timeLeftRef.current <= 0) return;
 
@@ -48,6 +54,12 @@ function persistProgressSnapshot({
     content_data: {
       ...session?.content_data,
       currentPart: currentPartNumber,
+      isPartComplete,
+      isPart2Prep,
+      prepTimeLeft,
+      cueCardTopic,
+      allPartsConversation,
+      allPartsAcousticMetrics,
     },
   });
 }
@@ -61,6 +73,12 @@ function usePeriodicProgressSave({
   conversationRef,
   questionIndexRef,
   timeLeftRef,
+  isPartComplete,
+  isPart2Prep,
+  prepTimeLeft,
+  cueCardTopic,
+  allPartsConversation,
+  allPartsAcousticMetrics,
 }) {
   useEffect(() => {
     if (!shouldSaveProgress({ testStarted, isTestComplete, session })) return;
@@ -73,6 +91,12 @@ function usePeriodicProgressSave({
         conversationRef,
         questionIndexRef,
         timeLeftRef,
+        isPartComplete,
+        isPart2Prep,
+        prepTimeLeft,
+        cueCardTopic,
+        allPartsConversation,
+        allPartsAcousticMetrics,
       });
     }, 15000);
 
@@ -87,6 +111,12 @@ function usePeriodicProgressSave({
     conversationRef,
     questionIndexRef,
     timeLeftRef,
+    isPartComplete,
+    isPart2Prep,
+    prepTimeLeft,
+    cueCardTopic,
+    allPartsConversation,
+    allPartsAcousticMetrics,
     session,
   ]);
 }

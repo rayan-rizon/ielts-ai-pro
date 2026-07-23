@@ -314,6 +314,7 @@ function handleSuccessfulTurn(response, context) {
       ...session?.content_data,
       currentPart: currentPartNumber,
       allPartsPronunciation: acousticMetricsRef.current,
+      allPartsAcousticMetrics: acousticMetricsRef.current,
       isPartComplete: !!response.isPartComplete,
     },
   });

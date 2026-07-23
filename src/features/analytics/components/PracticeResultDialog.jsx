@@ -106,8 +106,8 @@ function SummaryResultDialog({ session, onClose }) {
 
   return (
     <Dialog open onOpenChange={(open) => (open ? undefined : onClose())}>
-      <DialogContent className="max-h-[92vh] w-[calc(100vw-1.5rem)] max-w-3xl grid-cols-[minmax(0,1fr)] gap-0 overflow-hidden rounded-[24px] border-slate-200 bg-white p-0 shadow-2xl dark:border-white/10 dark:bg-slate-950">
-        <DialogHeader className="min-w-0 overflow-hidden border-b border-slate-100 px-5 py-5 pr-14 text-left dark:border-white/10 sm:px-7">
+      <DialogContent className="max-h-[92vh] w-[calc(100vw-1.5rem)] max-w-3xl grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden rounded-[24px] border-slate-200 bg-white p-0 shadow-2xl dark:border-white/10 dark:bg-slate-950">
+        <DialogHeader className="min-w-0 shrink-0 overflow-hidden border-b border-slate-100 px-5 py-5 pr-14 text-left dark:border-white/10 sm:px-7">
           <div className="flex items-center gap-3">
             <div
               className={`flex h-10 w-10 items-center justify-center rounded-2xl ${meta.soft} ${meta.color}`}
@@ -125,7 +125,7 @@ function SummaryResultDialog({ session, onClose }) {
           </div>
         </DialogHeader>
 
-        <div className="min-w-0 overflow-x-hidden overflow-y-auto px-5 py-5 sm:px-7">
+        <div className="custom-scrollbar min-h-0 min-w-0 touch-pan-y overscroll-contain overflow-x-hidden overflow-y-auto px-5 py-5 sm:px-7">
           <div className="grid min-w-0 gap-4 sm:grid-cols-[1.15fr_1fr]">
             <div className="relative min-w-0 overflow-hidden rounded-[22px] bg-slate-950 p-6 text-white">
               <div className="absolute -right-8 -top-12 h-36 w-36 rounded-full bg-indigo-500/35 blur-3xl" />
@@ -229,7 +229,7 @@ function SummaryResultDialog({ session, onClose }) {
           ) : null}
         </div>
 
-        <DialogFooter className="min-w-0 border-t border-slate-100 px-5 py-4 dark:border-white/10 sm:px-7">
+        <DialogFooter className="min-w-0 shrink-0 border-t border-slate-100 px-5 py-4 dark:border-white/10 sm:px-7">
           <Button variant="outline" onClick={onClose} className="rounded-xl font-bold">
             Close
           </Button>

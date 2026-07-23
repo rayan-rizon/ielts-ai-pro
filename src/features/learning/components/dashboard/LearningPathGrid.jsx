@@ -1,8 +1,6 @@
 import React from 'react';
 import { m } from 'framer-motion';
-import { createPageUrl } from '@/utils';
 import CoachBrief from './CoachBrief';
-import ProgressForecast from '../ProgressForecast';
 import WeekSchedule from './WeekSchedule';
 import BandGapBreakdown from './BandGapBreakdown';
 import ReviewQueue from './ReviewQueue';
@@ -31,8 +29,6 @@ export function LearningPathGrid({
   todaysTasks,
   handleSelectToday,
   handleStartTopTask,
-  user,
-  navigate,
   selectedDayIndex,
   setSelectedDayIndex,
   currentDayTasks,
@@ -67,23 +63,6 @@ export function LearningPathGrid({
           todaysTasks={todaysTasks}
           onSelectToday={handleSelectToday}
           onStartTopTask={handleStartTopTask}
-        />
-      </m.div>
-
-      <m.div
-        variants={itemVariants}
-        className="col-span-12 lg:col-span-4 self-stretch flex flex-col"
-      >
-        <ProgressForecast
-          loading={isLoading}
-          currentReadiness={completionPercent}
-          targetScore={targetBand}
-          testDate={user?.test_date}
-          completedActivities={completedCount}
-          totalActivities={totalActivities}
-          className="h-full p-3 sm:p-4 md:p-5"
-          hasHistory={(stats?.totalTests || 0) > 0}
-          onSetDate={() => navigate(`${createPageUrl('Settings')}?tab=goals`)}
         />
       </m.div>
 

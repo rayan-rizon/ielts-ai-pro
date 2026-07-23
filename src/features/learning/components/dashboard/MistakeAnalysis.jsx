@@ -56,7 +56,7 @@ const MistakeAnalysis = ({ mistakePatterns, onSelectToday, className, loading = 
   return (
     <GlassCard
       className={cn(
-        'relative p-5 sm:p-6 bg-gradient-to-br from-white/95 to-slate-50/95 dark:from-slate-950/90 dark:to-slate-900/90 border-t-2 border-t-indigo-500/40 shadow-md dark:shadow-slate-950/40 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 overflow-hidden',
+        'relative p-5 sm:p-6 bg-gradient-to-br from-indigo-50/80 via-purple-50/40 to-white/90 border border-indigo-100/90 shadow-lg shadow-indigo-500/10 hover:shadow-xl hover:shadow-indigo-500/15 rounded-3xl dark:from-slate-900 dark:via-indigo-950/30 dark:to-slate-900 dark:border-indigo-500/20 transition-all duration-300 overflow-hidden',
         className
       )}
       data-oid="c52ljmm"

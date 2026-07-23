@@ -87,7 +87,10 @@ export default function SpeakingReport({
   if (!finalEvaluation) return null;
 
   return (
-    <div className="min-h-screen py-12 px-4 md:px-6 relative isolate">
+    <div
+      data-testid="speaking-report-scroll"
+      className="custom-scrollbar relative isolate h-full min-h-0 overflow-y-auto overscroll-contain px-4 py-12 md:px-6"
+    >
       {showConfetti && (
         <Confetti
           width={width}

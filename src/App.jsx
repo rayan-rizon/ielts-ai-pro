@@ -482,7 +482,7 @@ const router = createBrowserRouter(
       element: (
         <ProtectedRoute data-oid="4dabvb.">
           <Layout currentPageName="SpeakingTest" data-oid="1gl_hmj">
-            <LazyPage data-oid="0hqo37c">
+            <LazyPage className="flex h-full min-h-0 flex-col" data-oid="0hqo37c">
               <SpeakingTest data-oid="cld_opi" />
             </LazyPage>
           </Layout>
@@ -494,7 +494,7 @@ const router = createBrowserRouter(
       element: (
         <ProtectedRoute data-oid="kn.-mu1">
           <Layout currentPageName="SpeakingTest" data-oid="j4e35mg">
-            <LazyPage data-oid="x.c:i45">
+            <LazyPage className="flex h-full min-h-0 flex-col" data-oid="x.c:i45">
               <SpeakingTest data-oid="vcvm0eq" />
             </LazyPage>
           </Layout>

@@ -33,7 +33,6 @@ export default function SpeakingTestPageView({
   const {
     authUser,
     blocker,
-    conversationLength,
     conversationPanelProps,
     currentPart,
     currentPartNumber,
@@ -43,6 +42,7 @@ export default function SpeakingTestPageView({
     setShowExitDialog,
     showExitDialog,
     showUpgradeDialog,
+    testStarted,
     testTitle,
     totalParts,
     upgradeDialogProps,
@@ -66,7 +66,7 @@ export default function SpeakingTestPageView({
           testTitle={testTitle}
           isPart2Prep={conversationPanelProps.isPart2Prep}
           onShowExitDialog={() => {
-            if (!shellIsTestComplete && conversationLength > 1) {
+            if (!shellIsTestComplete && testStarted) {
               setShowExitDialog(true);
             } else {
               navigate(createPageUrl('Speaking'));

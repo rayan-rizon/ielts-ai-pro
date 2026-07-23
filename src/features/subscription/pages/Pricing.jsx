@@ -84,7 +84,6 @@ const containerVariants = {
 };
 
 // Temporary kill switch for Bangladesh manual payment flow.
-// Set to true when you want to restore bKash/Nagad checkout.
 const MANUAL_BD_PAYMENT_ENABLED = true;
 
 export default function Pricing() {
@@ -140,13 +139,8 @@ export default function Pricing() {
   };
 
   const handleOpenPortal = async () => {
-    // Industry-standard guard: only users with an active Stripe subscription
-    // (stripe_subscription_id set) can use the Customer Portal.
-    // stripe_customer_id alone is insufficient — promo-granted users may have
-    // acquired one from an abandoned checkout attempt without ever subscribing.
     if (!user?.stripe_subscription_id) {
-      // Fall through to checkout for promo-granted or non-Stripe users
-      return false; // signal: not eligible for portal
+      return false;
     }
 
     trackAppEvent('billing_portal_opened', {
@@ -173,12 +167,9 @@ export default function Pricing() {
 
       const data = await response.json();
 
-      // The edge function returns 'no_stripe_subscription' when the user has no
-      // active Stripe subscription (e.g. promo grant). Treat this silently and
-      // fall back to checkout instead of showing a confusing error.
       if (!response.ok) {
         if (data.error === 'no_stripe_subscription') {
-          return false; // caller will route to checkout
+          return false;
         }
         throw new Error(data.error || 'Failed to open billing portal');
       }
@@ -226,17 +217,10 @@ export default function Pricing() {
       return;
     }
 
-    // INDUSTRY STANDARD: Only route to Customer Portal if the user has an active
-    // Stripe subscription (stripe_subscription_id is set). This is the definitive
-    // check — stripe_customer_id alone can exist from an abandoned checkout.
-    //
-    // Promo-granted users have no stripe_subscription_id, so they fall through
-    // to Stripe Checkout, starting a real subscription for the first time.
     const hasStripeSubscription = Boolean(user.stripe_subscription_id);
     if (hasStripeSubscription && !useManualBdPayment) {
       const portaled = await handleOpenPortal();
-      if (portaled !== false) return; // portal opened successfully
-      // portaled === false means no Stripe sub → fall through to checkout
+      if (portaled !== false) return;
     }
 
     if (useManualBdPayment) {
@@ -286,7 +270,7 @@ export default function Pricing() {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
-          'X-Requested-With': 'XMLHttpRequest', // CSRF protection header
+          'X-Requested-With': 'XMLHttpRequest',
         },
         body: JSON.stringify({
           tier: planTier,
@@ -338,59 +322,55 @@ export default function Pricing() {
         keywords="IELTS pricing, IELTS courses cost, affordable IELTS prep, IELTS plans"
       />
 
-      <div className="relative min-h-screen pb-20 bg-slate-50 dark:bg-background transition-colors duration-500 overflow-hidden font-sans">
-        {/* Background */}
+      <div className="relative min-h-screen pb-16 bg-slate-50 dark:bg-background transition-colors duration-500 overflow-hidden font-sans">
+        {/* Background Radial Lights */}
         <div aria-hidden="true" className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-10%] left-[-10%] w-[70rem] h-[70rem] rounded-full bg-slate-200/30 dark:bg-primary/10 blur-[120px]" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-[60rem] h-[60rem] rounded-full bg-indigo-100/20 dark:bg-indigo-500/5 blur-[120px]" />
-          <div className="absolute top-[20%] right-[10%] w-[40rem] h-[40rem] rounded-full bg-slate-200/10 dark:bg-primary/5 blur-[80px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-0 dark:opacity-40 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.03)_0%,transparent_70%)]" />
-          <div className="absolute inset-0 opacity-[0.2] dark:opacity-40 bg-[radial-gradient(at_top_left,rgba(71,85,105,0.05)_0%,transparent_50%),radial-gradient(at_bottom_right,rgba(30,41,59,0.05)_0%,transparent_50%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808005_1px,transparent_1px),linear-gradient(to_bottom,#80808005_1px,transparent_1px)] bg-[size:48px_48px]" />
+          <div className="absolute top-[-10%] left-[-10%] w-[70rem] h-[70rem] rounded-full bg-indigo-500/10 dark:bg-primary/10 blur-[120px]" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-[60rem] h-[60rem] rounded-full bg-purple-500/10 dark:bg-purple-500/5 blur-[120px]" />
         </div>
 
         <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="px-4 md:px-6 lg:px-8 pt-4 md:pt-6 lg:pt-8 pb-10 md:pb-20 max-w-[1400px] mx-auto space-y-8 relative z-10"
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="px-4 md:px-8 pt-8 md:pt-12 pb-16 md:pb-24 max-w-[1360px] mx-auto space-y-12 relative z-10"
         >
           {/* Hero Section */}
           <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-16 space-y-4"
+            className="text-center mb-14 space-y-4"
           >
             <div className="flex flex-col items-center gap-2">
               <Badge
                 variant="outline"
-                className="px-4 py-1.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 rounded-full font-bold tracking-wide"
+                className="px-4 py-1.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 rounded-full text-xs font-black tracking-wider"
               >
-                PRICING PLANS
+                FLEXIBLE PLANS FOR EVERY CANDIDATE
               </Badge>
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
-              AI-Powered{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-blue-600 dark:from-indigo-400 dark:via-violet-400 dark:to-blue-400">
-                IELTS Success
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-slate-950 dark:text-white">
+              Invest in Your{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400">
+                Target Band Score
               </span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto font-medium px-2">
-              Join thousands of successful students who reached their target band with our
-              AI-powered personalized learning ecosystem.
+            <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto font-medium px-2 leading-relaxed">
+              Choose the ideal preparation plan to accelerate your IELTS learning path with
+              unlimited practice, instant AI scoring, and personalized diagnostics.
             </p>
 
-            {/* Billing Toggle */}
-            <div className="mt-8 flex flex-col items-center gap-6">
-              <div className="flex items-center justify-center gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-1.5 rounded-full border border-slate-200 dark:border-white/10 w-fit shadow-lg">
+            {/* Billing Toggle & Promo Code */}
+            <div className="mt-8 flex flex-col items-center gap-5">
+              <div className="flex items-center justify-center gap-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-1.5 rounded-full border border-slate-200/90 dark:border-white/10 w-fit shadow-md">
                 <button
                   onClick={() => setBillingInterval('monthly')}
                   className={cn(
-                    'px-4 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-300',
+                    'px-5 sm:px-6 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200',
                     billingInterval === 'monthly'
                       ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                      : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
                   )}
                 >
                   Monthly
@@ -398,30 +378,31 @@ export default function Pricing() {
                 <button
                   onClick={() => setBillingInterval('quarterly')}
                   className={cn(
-                    'px-4 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 relative',
+                    'px-5 sm:px-6 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200 relative',
                     billingInterval === 'quarterly'
                       ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                      : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
                   )}
                 >
                   Quarterly
                   {billingInterval !== 'quarterly' && (
-                    <span className="absolute -top-3 -right-2 bg-emerald-700 text-[10px] text-white px-2 py-0.5 rounded-full font-black animate-bounce shadow-md">
+                    <span className="absolute -top-3 -right-2 bg-emerald-600 text-[10px] text-white px-2 py-0.5 rounded-full font-black shadow-md">
                       15% OFF
                     </span>
                   )}
                 </button>
               </div>
 
-              <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col items-center gap-2 pt-1">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-px bg-slate-200 dark:bg-slate-800" />
-                  <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-[0.3em]">
-                    Special Offer?
+                  <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                    Promo Code?
                   </span>
                   <div className="w-8 h-px bg-slate-200 dark:bg-slate-800" />
                 </div>
-                <div className="inline-flex items-center gap-2 p-1 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl rounded-3xl border border-slate-200/60 dark:border-white/5 shadow-2xl shadow-indigo-500/5 transition-all duration-500 hover:shadow-indigo-500/10 hover:-translate-y-0.5 group/promo relative z-50">
+                {/* Direct PromoCodeRedemption without redundant double-border wrapper */}
+                <div className="relative z-50">
                   <PromoCodeRedemption
                     onPromoApplied={handlePromoApplied}
                     existingDiscount={promoDiscount}
@@ -431,12 +412,12 @@ export default function Pricing() {
             </div>
           </m.div>
 
-          {/* Pricing Cards */}
+          {/* Spacious Pricing Cards Grid */}
           <m.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10 mb-32"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10 mb-20 items-stretch"
           >
             {plans.map((plan) => {
               const displayPrice = calculatePrice(plan.basePrice, billingInterval, promoDiscount);
@@ -462,19 +443,16 @@ export default function Pricing() {
             <m.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center gap-4 mb-20 -mt-10"
+              className="flex flex-col items-center gap-3 mb-16 -mt-8"
             >
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+              <p className="text-slate-600 dark:text-slate-400 text-xs font-semibold">
                 Want to manage your current subscription or payment methods?
               </p>
-              {/* Show billing portal only for users with an active Stripe subscription.
-                  stripe_subscription_id is the definitive check — promo-granted users
-                  may have a stripe_customer_id from an abandoned checkout but no subscription. */}
               {useManualBdPayment || !user?.stripe_subscription_id ? (
                 <Button
                   variant="outline"
                   onClick={() => window.open('mailto:support@ieltsai.pro', '_blank')}
-                  className="rounded-full px-8 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase tracking-widest text-xs"
+                  className="rounded-full px-8 h-11 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase tracking-widest text-xs shadow-sm"
                 >
                   Contact Support
                 </Button>
@@ -483,7 +461,7 @@ export default function Pricing() {
                   variant="outline"
                   onClick={handleOpenPortal}
                   disabled={isLoading}
-                  className="rounded-full px-8 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase tracking-widest text-xs"
+                  className="rounded-full px-8 h-11 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase tracking-widest text-xs shadow-sm"
                 >
                   {isLoading ? 'Opening…' : 'Open Billing Portal'}
                 </Button>

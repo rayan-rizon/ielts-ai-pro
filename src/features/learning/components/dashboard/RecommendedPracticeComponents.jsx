@@ -55,8 +55,8 @@ export function PracticeItem({ item, compact, onClick }) {
       whileHover={{ x: 5 }}
       onClick={() => onClick(item)}
       className={cn(
-        'w-full text-left bg-white/70 dark:bg-slate-950/40 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 shadow-md dark:shadow-slate-950/20 transition-all duration-300 group',
-        'hover:scale-[1.01] hover:border-cyan-300 dark:hover:border-cyan-400/40 hover:bg-cyan-50/85 dark:hover:bg-cyan-500/15 hover:shadow-lg hover:shadow-cyan-500/10 dark:hover:shadow-[0_0_18px_rgba(6,182,212,0.18)]',
+        'w-full text-left bg-white dark:bg-slate-900/90 p-3.5 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm transition-all duration-300 group',
+        'hover:scale-[1.01] hover:border-cyan-300 dark:hover:border-cyan-400/40 hover:bg-cyan-50/90 dark:hover:bg-cyan-500/15 hover:shadow-md',
         compact && 'p-3.5'
       )}
     >

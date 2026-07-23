@@ -13,6 +13,9 @@ const DEV_FOLLOW_UP_RESPONSES = [
   "Excellent response. Let's continue with the next question.",
 ];
 
+export const PART_TWO_PREP_MESSAGE =
+  "Now it's time for Part 2, the Individual Long Turn. I'm going to give you a topic and I'd like you to talk about it for 1 to 2 minutes. Before you talk, you'll have one minute to think about what you're going to say. Here's your topic card.";
+
 export function formatIeltsQuestion(text = '') {
   return String(text || '')
     .replace(/\[\s*Why\s*\/\s*Why\s*not\s*\?*\]/gi, '(Why or why not?)')
@@ -25,6 +28,79 @@ export function getQuestionLines(questions = '') {
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean);
+}
+
+export function buildInitialSpeakingConversation({ greeting, currentPart }) {
+  const firstQuestion =
+    getQuestionLines(currentPart?.questions)[0] || "Let's begin. Can you tell me about yourself?";
+
+  return [
+    ...(greeting ? [{ speaker: 'ai', text: greeting }] : []),
+    { speaker: 'ai', text: formatIeltsQuestion(firstQuestion) },
+  ];
+}
+
+export function buildSpeakingResumeState({
+  conversation,
+  currentQuestionIndex,
+  currentPart,
+  isPart2Prep = false,
+}) {
+  const savedConversation = Array.isArray(conversation)
+    ? conversation.filter(
+        (entry) =>
+          entry &&
+          !entry.isLoading &&
+          (entry.speaker === 'ai' || entry.speaker === 'user') &&
+          typeof entry.text === 'string' &&
+          entry.text.trim()
+      )
+    : [];
+  const questionLines = getQuestionLines(currentPart?.questions).map(formatIeltsQuestion);
+  const parsedQuestionIndex = Number(currentQuestionIndex);
+  const hasValidQuestionIndex = Number.isInteger(parsedQuestionIndex) && parsedQuestionIndex >= 0;
+  const normalizedQuestionIndex = hasValidQuestionIndex
+    ? Math.min(parsedQuestionIndex, Math.max(questionLines.length - 1, 0))
+    : 0;
+  const questionIndexWasNormalized =
+    !hasValidQuestionIndex || normalizedQuestionIndex !== parsedQuestionIndex;
+
+  if (isPart2Prep) {
+    const prepConversation =
+      savedConversation.length > 0
+        ? savedConversation
+        : [{ speaker: 'ai', text: PART_TWO_PREP_MESSAGE }];
+
+    return {
+      conversation: prepConversation,
+      currentQuestionIndex: 0,
+      repaired: prepConversation.length !== savedConversation.length || questionIndexWasNormalized,
+    };
+  }
+
+  const currentQuestion =
+    questionLines[normalizedQuestionIndex] ||
+    questionLines[0] ||
+    "Let's continue with your speaking test.";
+  const alreadyContainsCurrentQuestion = savedConversation.some(
+    (entry) => entry.speaker === 'ai' && formatIeltsQuestion(entry.text).trim() === currentQuestion
+  );
+  const hasUserResponse = savedConversation.some((entry) => entry.speaker === 'user');
+  const shouldRestorePrompt =
+    savedConversation.length === 0 ||
+    ((questionIndexWasNormalized || !hasUserResponse) && !alreadyContainsCurrentQuestion);
+  const restoredConversation = shouldRestorePrompt
+    ? [...savedConversation, { speaker: 'ai', text: currentQuestion }]
+    : savedConversation;
+
+  return {
+    conversation: restoredConversation,
+    currentQuestionIndex: normalizedQuestionIndex,
+    repaired:
+      restoredConversation.length !== savedConversation.length ||
+      questionIndexWasNormalized ||
+      savedConversation.length !== (Array.isArray(conversation) ? conversation.length : 0),
+  };
 }
 
 export function buildConversationHistory(conversation = []) {

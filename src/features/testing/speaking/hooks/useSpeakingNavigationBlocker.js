@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useBlocker } from 'react-router-dom';
 
 export default function useSpeakingNavigationBlocker({
@@ -6,20 +6,14 @@ export default function useSpeakingNavigationBlocker({
   isExiting,
   evaluationError,
   showUpgradeDialog,
-  conversationLength,
+  testStarted,
   setShowExitDialog,
 }) {
-  const conversationLengthRef = useRef(0);
-
-  useEffect(() => {
-    conversationLengthRef.current = conversationLength;
-  }, [conversationLength]);
-
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
       !isTestComplete &&
       !isExiting.current &&
-      conversationLengthRef.current > 1 &&
+      testStarted &&
       !evaluationError &&
       !showUpgradeDialog &&
       currentLocation.pathname !== nextLocation.pathname

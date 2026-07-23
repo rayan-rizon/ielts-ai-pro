@@ -57,10 +57,8 @@ export default function RecommendedPractice({
   return (
     <GlassCard
       className={cn(
-        compact
-          ? 'relative p-5 border-t-2 border-t-cyan-500/40'
-          : 'relative p-5 sm:p-6 md:p-8 border-t-2 border-t-cyan-500/40',
-        'bg-gradient-to-br from-white/95 to-slate-50/95 dark:from-slate-950/90 dark:to-slate-900/90 shadow-md dark:shadow-slate-950/40 hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-300 overflow-hidden',
+        compact ? 'relative p-5' : 'relative p-5 sm:p-6 md:p-8',
+        'bg-gradient-to-br from-cyan-50/80 via-indigo-50/40 to-white/90 border border-cyan-100/90 shadow-lg shadow-cyan-500/10 hover:shadow-xl hover:shadow-cyan-500/15 rounded-3xl dark:from-slate-900 dark:via-cyan-950/30 dark:to-slate-900 dark:border-cyan-500/20 transition-all duration-300 overflow-hidden',
         className
       )}
     >

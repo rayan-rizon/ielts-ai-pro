@@ -4,9 +4,11 @@ import {
   buildAverageSpeakingEvaluation,
   buildConversationHistory,
   buildCueCardTopic,
+  buildInitialSpeakingConversation,
   buildLegacySpeakingEvaluation,
   buildLocalDevSpeakingResponse,
   buildPartContexts,
+  buildSpeakingResumeState,
   formatIeltsQuestion,
   getQuestionLines,
   isTranscriptError,
@@ -27,6 +29,66 @@ describe('speakingTestUtils', () => {
       'First question',
       'Second question',
     ]);
+  });
+
+  it('seeds a new session with the opening prompt before audio playback finishes', () => {
+    expect(
+      buildInitialSpeakingConversation({
+        greeting: 'Welcome to the test.',
+        currentPart: { questions: 'Do you work or study? [Why / Why not?]' },
+      })
+    ).toEqual([
+      { speaker: 'ai', text: 'Welcome to the test.' },
+      { speaker: 'ai', text: 'Do you work or study? (Why or why not?)' },
+    ]);
+  });
+
+  it('repairs an empty saved session with its current question', () => {
+    expect(
+      buildSpeakingResumeState({
+        conversation: [],
+        currentQuestionIndex: -1,
+        currentPart: { questions: 'Do you work or study?\nWhat do you enjoy about it?' },
+      })
+    ).toEqual({
+      conversation: [{ speaker: 'ai', text: 'Do you work or study?' }],
+      currentQuestionIndex: 0,
+      repaired: true,
+    });
+  });
+
+  it('restores the first question when navigation interrupted the opening greeting', () => {
+    expect(
+      buildSpeakingResumeState({
+        conversation: [{ speaker: 'ai', text: 'Welcome to the test.' }],
+        currentQuestionIndex: 0,
+        currentPart: { questions: 'Do you work or study?' },
+      })
+    ).toEqual({
+      conversation: [
+        { speaker: 'ai', text: 'Welcome to the test.' },
+        { speaker: 'ai', text: 'Do you work or study?' },
+      ],
+      currentQuestionIndex: 0,
+      repaired: true,
+    });
+  });
+
+  it('removes stale loading messages and preserves a valid resumed turn', () => {
+    expect(
+      buildSpeakingResumeState({
+        conversation: [
+          { speaker: 'ai', text: 'What do you enjoy about it?' },
+          { speaker: 'user', text: '...', isLoading: true },
+        ],
+        currentQuestionIndex: 1,
+        currentPart: { questions: 'Do you work or study?\nWhat do you enjoy about it?' },
+      })
+    ).toEqual({
+      conversation: [{ speaker: 'ai', text: 'What do you enjoy about it?' }],
+      currentQuestionIndex: 1,
+      repaired: true,
+    });
   });
 
   it('builds conversation history for the edge function', () => {

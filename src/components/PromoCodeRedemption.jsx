@@ -3,19 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Crown,
   Gift,
   Loader2,
   Check,
-  RefreshCw,
   Trash2,
   Sparkles,
   Ticket,
@@ -44,7 +36,7 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
     if (feedback.type === 'error' && promoCode !== '') {
       setFeedback({ type: 'idle', message: '', details: '' });
     }
-  }, [promoCode]);
+  }, [promoCode, feedback.type]);
 
   useEffect(() => {
     if (isOpen) {
@@ -145,10 +137,10 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
       <DialogTrigger asChild data-oid="wuvjy4w">
         <button
           className={cn(
-            'group relative px-6 py-2.5 rounded-2xl text-[13px] font-black transition-all duration-500 flex items-center gap-2.5 overflow-hidden border shadow-xl active:scale-95 hover:shadow-indigo-500/20',
+            'group relative inline-flex items-center gap-2 rounded-full px-5 py-2 text-xs font-black transition-all duration-300 shadow-sm border active:scale-95',
             existingDiscount
-              ? 'bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-              : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-slate-200 dark:border-white/10 hover:border-indigo-500/40'
+              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40'
+              : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200/90 dark:border-white/10 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:shadow-md'
           )}
           data-oid="zhja.eo"
         >
