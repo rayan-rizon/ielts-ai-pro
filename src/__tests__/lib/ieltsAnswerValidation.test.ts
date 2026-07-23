@@ -140,6 +140,24 @@ describe('IELTS Answer Validation', () => {
       expect(isAnswerCorrect('1 hundred', 'a/one/1 hundred')).toBe(true);
       expect(isAnswerCorrect('two hundred', 'a/one/1 hundred')).toBe(false);
     });
+
+    it('should handle hyphen vs space flexibility', () => {
+      expect(isAnswerCorrect('forty eight', '48 / forty-eight')).toBe(true);
+      expect(isAnswerCorrect('sixty seven fifty', '67.50 / sixty-seven fifty')).toBe(true);
+      expect(isAnswerCorrect('wi-fi', 'wifi')).toBe(true);
+    });
+
+    it('should handle decimal numeric equivalence', () => {
+      expect(isAnswerCorrect('67.5', '67.50 / sixty-seven fifty')).toBe(true);
+      expect(isAnswerCorrect('67.50', '67.50')).toBe(true);
+    });
+
+    it('should handle date order inversion', () => {
+      expect(isAnswerCorrect('January 13th', '(the) 13(th) (of) January / 13.01 / 13.1')).toBe(
+        true
+      );
+      expect(isAnswerCorrect('April 6th', '(the) 6(th) (of) April / 06.04 / 6.4')).toBe(true);
+    });
   });
 
   describe('clearAnswerCache', () => {

@@ -59,18 +59,18 @@ const MatchingFeaturesRenderer = ({
       {/* Box for Options */}
       {question.matching_features?.options?.length > 0 && (
         <div
-          className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-xl p-3 mb-2 shadow-sm"
+          className="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 rounded-xl p-3.5 mb-3 shadow-xs"
           data-oid="xl5fcqg"
         >
           {question.matching_features.box_title && (
-            <h4
-              className="font-bold text-center mb-3 text-slate-800 dark:text-slate-200 text-sm tracking-widest uppercase border-b border-slate-200 dark:border-slate-700 pb-2 mx-auto max-w-xs"
+            <h3
+              className="font-extrabold text-center text-slate-900 dark:text-slate-100 text-base sm:text-lg tracking-wider uppercase mb-3 border-b border-slate-200/80 dark:border-slate-700/80 pb-2"
               data-oid=".2mc:94"
             >
               {question.matching_features.box_title}
-            </h4>
+            </h3>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0.5" data-oid="cbcg6-x">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1" data-oid="cbcg6-x">
             {question.matching_features.options.map((opt, idx) => {
               // Handle style (ABC vs Roman)
               let label = String.fromCharCode(65 + idx);
@@ -78,18 +78,18 @@ const MatchingFeaturesRenderer = ({
                 label = toRoman(idx + 1).toLowerCase();
               }
               return (
-                <div key={idx} className="flex gap-3 items-baseline" data-oid="4qq1hg2">
+                <div key={idx} className="flex gap-3 items-baseline py-0.5" data-oid="4qq1hg2">
                   <span
-                    className="font-bold text-blue-600 dark:text-blue-400 min-w-[1.2rem] text-right text-sm"
+                    className="font-extrabold text-blue-600 dark:text-blue-400 min-w-[1.2rem] text-right text-sm"
                     data-oid="m59z936"
                   >
                     {label}
                   </span>
                   <span
-                    className="text-slate-700 dark:text-slate-300 text-[15px] leading-relaxed"
+                    className="text-slate-700 dark:text-slate-300 text-[14.5px] font-medium leading-relaxed"
                     data-oid="rl5l9:-"
                   >
-                    {opt.replace(/^[A-Z]\s*[\.\\)]\s*/i, '')}
+                    {opt.replace(/^[A-Z]\s*[.)]\s*/i, '')}
                   </span>
                 </div>
               );
@@ -100,16 +100,21 @@ const MatchingFeaturesRenderer = ({
 
       {/* Questions List */}
       <div
-        className="flex flex-col rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+        className="flex flex-col rounded-xl overflow-hidden border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-slate-900 shadow-xs"
         data-oid="1s2u7h4"
       >
         {question.matching_features?.questions_title && (
-          <h4
-            className="font-bold text-slate-800 dark:text-slate-200 text-[15px] mb-2 px-1"
-            data-oid="1gzj0yw"
+          <div
+            className="px-4 py-3 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200/80 dark:border-slate-800"
+            data-oid="1gzj0yw-container"
           >
-            {question.matching_features.questions_title}
-          </h4>
+            <h3
+              className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-slate-100 tracking-tight"
+              data-oid="1gzj0yw"
+            >
+              {question.matching_features.questions_title}
+            </h3>
+          </div>
         )}
         {question.matching_features?.questions?.map((q, idx) => {
           // Internal Question ID

@@ -5,10 +5,7 @@ import {
   AlertTriangle,
   ShieldCheck,
   CheckCircle,
-  Clock,
   Loader2,
-  Volume2,
-  FileText,
   ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -30,16 +27,16 @@ import ListeningTestClock from './ListeningTest/components/ListeningTestClock';
 const ListeningTestHeader = ({
   testData,
   activePart,
-  displaySections,
-  answers,
+  displaySections = [],
+  answers: _answers,
   // timeRemaining, // Removed to prevent re-renders
   showExitDialog,
   setShowExitDialog,
   onExit,
   onContinue,
-  formatTime,
+  formatTime: _formatTime,
   totalQuestions,
-  stats,
+  stats = {},
   isFinished = false,
   isSaving,
   lastSaved,
@@ -50,9 +47,12 @@ const ListeningTestHeader = ({
   onViewResults,
   onNextPart,
 }) => {
-  const maxQuestions = stats.totalQ > 0 ? stats.totalQ : totalQuestions || 40;
-  const solvedCount = stats.totalAns; // Using direct stats for consistency
-  const progressPercentage = Math.round((solvedCount / maxQuestions) * 100);
+  const maxQuestions = (stats && (stats.totalQuestions || stats.totalQ)) || totalQuestions || 40;
+  const solvedCount = (stats && (stats.totalAnswered ?? stats.totalAns)) ?? 0;
+  const progressPercentage =
+    maxQuestions > 0 && !isNaN(solvedCount)
+      ? Math.min(100, Math.max(0, Math.round((solvedCount / maxQuestions) * 100)))
+      : 0;
 
   const isLastPart = activePart === displaySections.length - 1;
 
@@ -156,10 +156,12 @@ const ListeningTestHeader = ({
         >
           {/* Segmented Progress Bar */}
           <div className="flex w-full max-w-[320px] gap-1.5" data-oid=".qrp4:2">
-            {stats.results.map((result, index) => {
-              const pct =
-                result.sQCount > 0 ? Math.round((result.sAnswered / result.sQCount) * 100) : 0;
+            {(stats?.results || []).map((result, index) => {
+              const partTotal = result.totalQuestions ?? result.sQCount ?? 0;
+              const partAnswered = result.answeredQuestions ?? result.sAnswered ?? 0;
+              const pct = partTotal > 0 ? Math.round((partAnswered / partTotal) * 100) : 0;
               const cappedPct = Math.min(pct, 100);
+              const partIndex = result.sectionIndex ?? result.idx ?? index;
               return (
                 <div key={`part-${index}`} className="flex-1 group relative" data-oid="2u66tdr">
                   <div
@@ -185,7 +187,7 @@ const ListeningTestHeader = ({
                     className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-500 whitespace-nowrap bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded shadow-sm z-10"
                     data-oid="ic4_:7-"
                   >
-                    Part {result.idx + 1}: {result.sAnswered}/{result.sQCount}
+                    Part {partIndex + 1}: {partAnswered}/{partTotal}
                   </div>
                 </div>
               );

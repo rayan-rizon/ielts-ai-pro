@@ -386,7 +386,7 @@ const router = createBrowserRouter(
       element: (
         <ProtectedRoute data-oid="wj_t-8q">
           <Layout currentPageName="ListeningTest" data-oid="mf.rj6p">
-            <LazyPage data-oid="1._qfi_">
+            <LazyPage className="flex h-full min-h-0 flex-col" data-oid="1._qfi_">
               <ListeningTest data-oid="ukl40:i" />
             </LazyPage>
           </Layout>
@@ -398,7 +398,7 @@ const router = createBrowserRouter(
       element: (
         <ProtectedRoute data-oid="1uu.7xp">
           <Layout currentPageName="ListeningTest" data-oid="uldn6:q">
-            <LazyPage data-oid="12hl6f_">
+            <LazyPage className="flex h-full min-h-0 flex-col" data-oid="12hl6f_">
               <ListeningTest data-oid="4:4-0ey" />
             </LazyPage>
           </Layout>
@@ -422,7 +422,7 @@ const router = createBrowserRouter(
       element: (
         <ProtectedRoute data-oid="5xj-lkv">
           <Layout currentPageName="ReadingTest" data-oid="t7xxst3">
-            <LazyPage data-oid="2-8ue88">
+            <LazyPage className="flex h-full min-h-0 flex-col" data-oid="2-8ue88">
               <ReadingTest data-oid="zgd9x6n" />
             </LazyPage>
           </Layout>
@@ -434,7 +434,7 @@ const router = createBrowserRouter(
       element: (
         <ProtectedRoute data-oid="-1uf170">
           <Layout currentPageName="ReadingTest" data-oid="5ek0v6b">
-            <LazyPage data-oid="-31lp4y">
+            <LazyPage className="flex h-full min-h-0 flex-col" data-oid="-31lp4y">
               <ReadingTest data-oid="-d7e.lz" />
             </LazyPage>
           </Layout>

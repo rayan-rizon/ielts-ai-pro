@@ -109,8 +109,11 @@ function calculateListeningStats(displaySections, questionsWithNumbers, answers)
     const validAnswered = Math.min(answeredBlanks, totalBlanks);
     return {
       sectionIndex: idx,
+      idx,
       totalQuestions: totalBlanks,
+      sQCount: totalBlanks,
       answeredQuestions: validAnswered,
+      sAnswered: validAnswered,
       isComplete: totalBlanks > 0 && validAnswered >= totalBlanks,
     };
   });
@@ -120,7 +123,14 @@ function calculateListeningStats(displaySections, questionsWithNumbers, answers)
   const overallPercentage =
     totalQuestions > 0 ? Math.round((totalAnswered / totalQuestions) * 100) : 0;
 
-  return { results, totalQuestions, totalAnswered, overallPercentage };
+  return {
+    results,
+    totalQuestions,
+    totalQ: totalQuestions,
+    totalAnswered,
+    totalAns: totalAnswered,
+    overallPercentage,
+  };
 }
 
 function ListeningTestInner() {
@@ -326,8 +336,8 @@ function ListeningTestInner() {
       correctAnswersMap, // Added for review mode colors
       isInsideMergedCard,
       cardClass: isInsideMergedCard
-        ? 'mb-2 bg-slate-50/30 dark:bg-slate-800/20 rounded-xl p-3 border border-slate-100 dark:border-slate-800/50'
-        : 'mb-3 border border-slate-200/80 dark:border-slate-700/60 shadow-sm bg-white dark:bg-slate-900 rounded-2xl overflow-hidden',
+        ? 'mb-2.5 bg-transparent p-0 border-0 shadow-none'
+        : 'mb-3.5 border border-slate-200/80 dark:border-slate-800 shadow-2xs bg-white dark:bg-slate-900 rounded-xl overflow-hidden',
     };
 
     return (
@@ -389,7 +399,7 @@ function ListeningTestInner() {
 
   return (
     <div
-      className="h-full w-full flex flex-col bg-background overflow-hidden font-sans antialiased text-foreground relative"
+      className="h-full w-full flex flex-col flex-1 min-h-0 bg-background overflow-hidden font-sans antialiased text-foreground relative"
       data-oid="ocjmio6"
     >
       <ListeningTestHeader
@@ -422,9 +432,12 @@ function ListeningTestInner() {
       />
 
       {/* Split Pane & Answer Sheet Container */}
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden relative" data-oid="m0_71d5">
+      <div
+        className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden relative"
+        data-oid="m0_71d5"
+      >
         <div
-          className="flex-1 flex flex-col md:flex-row overflow-hidden w-full relative z-10"
+          className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden w-full relative z-10"
           ref={containerRef}
           data-oid="9o3tmui"
         >
@@ -494,7 +507,7 @@ function ListeningTestInner() {
           {/* Right Panel: Questions */}
           <div
             className={cn(
-              'flex-1 flex flex-col bg-slate-50/50 dark:bg-slate-950/50 relative overflow-hidden transition-all duration-300',
+              'flex-1 flex flex-col min-h-0 bg-slate-50/50 dark:bg-slate-950/50 relative overflow-hidden transition-all duration-300',
               isMobile && leftPanelWidth === 100 && 'hidden'
             )}
             style={{ width: isMobile ? '100%' : `${100 - leftPanelWidth}%` }}
@@ -602,7 +615,7 @@ function ListeningTestInner() {
             {/* Questions Scroll Area */}
             <div
               ref={scrollContainerRef}
-              className="flex-1 overflow-y-auto p-2 md:p-4 custom-scrollbar"
+              className="flex-1 overflow-y-auto min-h-0 p-2 md:p-4 custom-scrollbar"
               data-oid="ei0mpxi"
             >
               <div className="max-w-4xl mx-auto pb-8" data-oid="mazna.x">
@@ -641,31 +654,27 @@ function ListeningTestInner() {
                             return groups;
                           }, [])
                           .map((group, gIdx) => (
-                            <div key={gIdx} className="mb-2.5" data-oid=".ffofwm">
+                            <div key={gIdx} className="mb-3" data-oid=".ffofwm">
                               <div
-                                className="relative bg-white/70 dark:bg-slate-900/55 border border-slate-200/60 dark:border-slate-700/60 rounded-lg shadow-sm overflow-hidden group/card backdrop-blur-sm transition-all duration-200"
+                                className="relative bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl shadow-2xs overflow-hidden transition-all duration-200"
                                 data-oid="yfsdv5u"
                               >
                                 {group.instructions && group.instructions !== '<p><br></p>' && (
-                                  <div className="px-2.5 pt-2" data-oid="wdnm:1-">
+                                  <div
+                                    className="px-3.5 py-2.5 bg-blue-50/50 dark:bg-blue-950/25 border-b border-blue-100/70 dark:border-blue-900/30 flex items-start gap-2.5"
+                                    data-oid="6dw9uti"
+                                  >
+                                    <Lightbulb
+                                      className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0"
+                                      data-oid="3h83xkd"
+                                    />
                                     <div
-                                      className="mb-1.5 p-2 rounded-lg bg-blue-50/60 dark:bg-blue-900/20 border border-blue-100/80 dark:border-blue-800 text-sm font-medium text-slate-700 dark:text-slate-300 flex items-start gap-2"
-                                      data-oid="6dw9uti"
-                                    >
-                                      <div className="mt-0.5 flex-shrink-0" data-oid="ip7:at9">
-                                        <Lightbulb
-                                          className="w-4 h-4 text-blue-500"
-                                          data-oid="3h83xkd"
-                                        />
-                                      </div>
-                                      <div
-                                        className="text-[14.5px] font-medium text-slate-700 dark:text-slate-300 leading-snug"
-                                        dangerouslySetInnerHTML={{
-                                          __html: formatInstructionHTML(group.instructions),
-                                        }}
-                                        data-oid="cpz5p_a"
-                                      />
-                                    </div>
+                                      className="text-[14px] font-medium text-slate-700 dark:text-slate-300 leading-relaxed"
+                                      dangerouslySetInnerHTML={{
+                                        __html: formatInstructionHTML(group.instructions),
+                                      }}
+                                      data-oid="cpz5p_a"
+                                    />
                                   </div>
                                 )}
 

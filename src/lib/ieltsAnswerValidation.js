@@ -227,6 +227,41 @@ export const isAnswerCorrect = (userAnswer, correctAnswer) => {
     if (userWithoutCurrency === valid) return true;
     if (normalizedUser === validWithoutCurrency) return true;
 
+    // Hyphen / space flexibility: e.g. "forty-eight" vs "forty eight" or "wi-fi" vs "wifi"
+    const userNoHyphen = normalizedUser.replace(/-/g, ' ').replace(/\s+/g, ' ');
+    const validNoHyphen = valid.replace(/-/g, ' ').replace(/\s+/g, ' ');
+    if (userNoHyphen === validNoHyphen) return true;
+
+    const userCleanHyphen = normalizedUser.replace(/-/g, '');
+    const validCleanHyphen = valid.replace(/-/g, '');
+    if (userCleanHyphen === validCleanHyphen) return true;
+
+    // Numeric decimal equivalence: e.g. "67.5" vs "67.50"
+    const numUser = Number(userWithoutCurrency);
+    const numValid = Number(validWithoutCurrency);
+    if (
+      !isNaN(numUser) &&
+      !isNaN(numValid) &&
+      userWithoutCurrency.length > 0 &&
+      validWithoutCurrency.length > 0
+    ) {
+      if (numUser === numValid) return true;
+    }
+
+    // Date Month Order Inversion: e.g., "13th January" vs "January 13th"
+    const datePattern = /^(\d{1,2}(?:st|nd|rd|th)?)\s+(?:of\s+)?([a-z]+)$/;
+    const userDateMatch = normalizedUser.match(datePattern);
+    const validDateMatch = valid.match(datePattern);
+
+    if (userDateMatch) {
+      const invertedUser = `${userDateMatch[2]} ${userDateMatch[1]}`;
+      if (invertedUser === valid) return true;
+    }
+    if (validDateMatch) {
+      const invertedValid = `${validDateMatch[2]} ${validDateMatch[1]}`;
+      if (normalizedUser === invertedValid) return true;
+    }
+
     return false;
   });
 };

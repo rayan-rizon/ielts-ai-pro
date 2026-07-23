@@ -150,7 +150,7 @@ const AudioPlayer = React.forwardRef(({ src, onDurationChange, onTimeUpdate }, r
 
   return (
     <div
-      className="bg-white/95 dark:bg-slate-900/90 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200/60 dark:border-slate-800 p-3 sm:p-5 backdrop-blur-xl relative overflow-hidden transition-all duration-300"
+      className="bg-white/80 dark:bg-slate-900/80 rounded-xl shadow-2xs border border-slate-200/70 dark:border-slate-800 p-3 sm:p-3.5 backdrop-blur-md relative overflow-hidden transition-all duration-300"
       data-oid="gf2zoyb"
     >
       <div
