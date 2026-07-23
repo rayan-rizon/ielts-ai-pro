@@ -1,7 +1,18 @@
 import React from 'react';
 import { cn } from '@/lib/cn';
-import { Mic2, CheckCircle2, Bot, Zap } from 'lucide-react';
+import {
+  Mic2,
+  CheckCircle2,
+  TrendingUp,
+  Target,
+  BookOpen,
+  Lightbulb,
+  Shapes,
+  Activity,
+  ArrowRight,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 const PRACTICE_TIPS = {
   '/θ/': 'practice: think/sink, three/free, bath/bass',
@@ -23,6 +34,174 @@ const getPracticeTip = (firstSound) => {
   return 'record yourself reading aloud and compare with native speakers';
 };
 
+export function StrengthsSection({ conciseStrengths }) {
+  if (conciseStrengths.length === 0) return null;
+
+  return (
+    <div className="flex h-full flex-col justify-between rounded-2xl border border-emerald-200/90 bg-emerald-50/30 p-6 shadow-sm transition-all duration-300 dark:border-emerald-500/20 dark:bg-emerald-950/20">
+      <div>
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300">
+            <TrendingUp className="h-4 w-4" />
+          </div>
+          <h3 className="text-sm font-black tracking-tight text-emerald-600 dark:text-emerald-400">
+            Strengths
+          </h3>
+        </div>
+
+        <div className="space-y-3">
+          {conciseStrengths.map((item, idx) => (
+            <div key={idx} className="flex items-start gap-3">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+              <p className="text-xs font-semibold leading-relaxed text-slate-700 dark:text-zinc-200">
+                {item}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ImprovementsSection({ conciseImprovements }) {
+  if (conciseImprovements.length === 0) return null;
+
+  return (
+    <div className="flex h-full flex-col justify-between rounded-2xl border border-rose-200/90 bg-rose-50/30 p-6 shadow-sm transition-all duration-300 dark:border-rose-500/20 dark:bg-rose-950/20">
+      <div>
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300">
+            <Target className="h-4 w-4" />
+          </div>
+          <h3 className="text-sm font-black tracking-tight text-rose-600 dark:text-rose-400">
+            Areas to Improve
+          </h3>
+        </div>
+
+        <div className="space-y-3">
+          {conciseImprovements.map((item, idx) => (
+            <div key={idx} className="flex items-start gap-3">
+              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-rose-500" />
+              <div>
+                {item.title && (
+                  <p className="text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                    {item.title}
+                  </p>
+                )}
+                <p className="text-xs font-semibold leading-relaxed text-slate-700 dark:text-zinc-200">
+                  {item.content || item}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function StudyRecommendationsSection() {
+  const recommendations = [
+    {
+      title: 'Expand Vocabulary',
+      description: 'Learn topic-specific vocabulary and practice using it in sentences.',
+      buttonText: 'Practice Vocabulary',
+      icon: BookOpen,
+      color:
+        'bg-blue-50 text-blue-600 border-blue-200/80 dark:bg-blue-950/30 dark:border-blue-900/40',
+      iconBg: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300',
+      btnBorder:
+        'border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-900 dark:text-blue-300',
+    },
+    {
+      title: 'Develop Ideas',
+      description: 'Give reasons, examples and explanations to extend your answers.',
+      buttonText: 'See Example Answers',
+      icon: Lightbulb,
+      color:
+        'bg-orange-50 text-orange-600 border-orange-200/80 dark:bg-orange-950/30 dark:border-orange-900/40',
+      iconBg: 'bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-300',
+      btnBorder:
+        'border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-900 dark:text-orange-300',
+    },
+    {
+      title: 'Improve Grammar',
+      description: 'Focus on accurate sentence structures and variety in your responses.',
+      buttonText: 'Grammar Guide',
+      icon: Shapes,
+      color:
+        'bg-purple-50 text-purple-600 border-purple-200/80 dark:bg-purple-950/30 dark:border-purple-900/40',
+      iconBg: 'bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300',
+      btnBorder:
+        'border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-purple-900 dark:text-purple-300',
+    },
+    {
+      title: 'Speak with Fluency',
+      description: 'Practice speaking regularly to improve fluency and reduce hesitation.',
+      buttonText: 'Fluency Exercises',
+      icon: Activity,
+      color:
+        'bg-teal-50 text-teal-600 border-teal-200/80 dark:bg-teal-950/30 dark:border-teal-900/40',
+      iconBg: 'bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-300',
+      btnBorder:
+        'border-teal-200 text-teal-600 hover:bg-teal-50 dark:border-teal-900 dark:text-teal-300',
+    },
+  ];
+
+  return (
+    <section className="space-y-4">
+      <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
+        Study Recommendations
+      </h3>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {recommendations.map((item, idx) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={idx}
+              className={cn(
+                'flex flex-col justify-between rounded-2xl border p-5 transition-all duration-300 hover:shadow-md dark:bg-zinc-950',
+                item.color
+              )}
+            >
+              <div>
+                <div className="mb-3 flex items-center gap-3">
+                  <div
+                    className={cn(
+                      'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl',
+                      item.iconBg
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h4 className="text-xs font-black text-slate-900 dark:text-white">
+                    {item.title}
+                  </h4>
+                </div>
+                <p className="mb-4 text-[11px] font-medium leading-relaxed text-slate-500 dark:text-zinc-400">
+                  {item.description}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  'h-8 w-full justify-between rounded-xl px-3 text-[10px] font-bold shadow-none',
+                  item.btnBorder
+                )}
+              >
+                <span>{item.buttonText}</span>
+                <ArrowRight className="h-3 w-3" />
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export function PronunciationBreakdownSection({ pronunciationBreakdown }) {
   if (!pronunciationBreakdown) return null;
 
@@ -30,27 +209,32 @@ export function PronunciationBreakdownSection({ pronunciationBreakdown }) {
   const hasProblematicSounds = problematicSounds.length > 0;
 
   return (
-    <div className="mt-4 p-5 bg-rose-500/[0.02] dark:bg-rose-950/20 border-2 border-rose-500/20 dark:border-rose-500/30 rounded-[2rem] space-y-4">
-      <div className="flex items-center gap-2">
-        <Mic2 className="w-4 h-4 text-rose-500" />
-        <h3 className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-[0.3em]">
+    <div className="space-y-4 rounded-2xl border border-rose-500/20 bg-gradient-to-br from-white via-white to-rose-50/30 p-5 shadow-sm transition-all duration-300 dark:border-rose-500/30 dark:from-zinc-950 dark:via-zinc-950 dark:to-rose-950/20">
+      <div className="flex items-center gap-2.5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/10 dark:bg-rose-500/20">
+          <Mic2 className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+        </div>
+        <h3 className="text-xs font-black uppercase tracking-[0.25em] text-rose-600 dark:text-rose-400">
           Pronunciation Breakdown
         </h3>
-        <Badge variant="outline" className="text-[8px] border-rose-500/30 text-rose-500 ml-auto">
+        <Badge
+          variant="outline"
+          className="ml-auto border-rose-500/30 text-[9px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400"
+        >
           Enhanced Analysis
         </Badge>
       </div>
 
       {hasProblematicSounds && (
         <div>
-          <p className="text-[10px] font-bold text-muted-foreground dark:text-zinc-400 uppercase tracking-wider mb-2">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-400">
             Problematic Sounds
           </p>
           <div className="flex flex-wrap gap-2">
             {problematicSounds.map((sound, idx) => (
               <span
                 key={idx}
-                className="px-3 py-1.5 bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300 rounded-lg text-xs font-mono font-bold border border-rose-500/20"
+                className="rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 font-mono text-xs font-bold text-rose-600 transition-all hover:scale-105 dark:bg-rose-500/20 dark:text-rose-300"
               >
                 {sound}
               </span>
@@ -61,24 +245,25 @@ export function PronunciationBreakdownSection({ pronunciationBreakdown }) {
 
       {wordIssues.length > 0 && (
         <div>
-          <p className="text-[10px] font-bold text-muted-foreground dark:text-zinc-400 uppercase tracking-wider mb-2">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-400">
             Word-Level Issues
           </p>
-          <div className="space-y-1.5">
+          <div className="grid gap-2 sm:grid-cols-2">
             {wordIssues.slice(0, 10).map((item, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-3 p-2.5 bg-white dark:bg-zinc-900 rounded-xl border border-rose-500/10 dark:border-rose-500/20"
+                className="flex items-center gap-3 rounded-xl border border-rose-500/10 bg-white p-3 shadow-sm transition-all hover:border-rose-500/30 dark:border-rose-500/20 dark:bg-zinc-900"
               >
                 <span
-                  className={cn('w-2 h-2 rounded-full shrink-0', getSeverityColor(item.severity))}
+                  className={cn(
+                    'h-2.5 w-2.5 shrink-0 rounded-full',
+                    getSeverityColor(item.severity)
+                  )}
                 />
-                <span className="text-xs font-bold text-foreground dark:text-zinc-100">
+                <span className="text-xs font-bold text-slate-900 dark:text-zinc-100">
                   &ldquo;{item.word}&rdquo;
                 </span>
-                <span className="text-[11px] text-muted-foreground dark:text-zinc-400">
-                  {item.issue}
-                </span>
+                <span className="text-xs text-slate-500 dark:text-zinc-400">{item.issue}</span>
               </div>
             ))}
           </div>
@@ -86,93 +271,19 @@ export function PronunciationBreakdownSection({ pronunciationBreakdown }) {
       )}
 
       {hasProblematicSounds && (
-        <div className="pt-2 border-t border-rose-500/10">
-          <p className="text-[10px] font-bold text-muted-foreground dark:text-zinc-400 uppercase tracking-wider mb-1.5">
+        <div className="border-t border-rose-500/10 pt-3">
+          <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-400">
             Practice Tip
           </p>
-          <p className="text-xs text-muted-foreground dark:text-zinc-300 leading-relaxed">
+          <p className="text-xs font-medium leading-relaxed text-slate-600 dark:text-zinc-300">
             Focus on minimal pairs to improve these sounds. For example,{' '}
-            {getPracticeTip(problematicSounds[0])}. Repeat daily for best results.
+            <span className="font-semibold text-rose-600 dark:text-rose-400">
+              {getPracticeTip(problematicSounds[0])}
+            </span>
+            . Repeat daily for best results.
           </p>
         </div>
       )}
-    </div>
-  );
-}
-
-export function StrengthsSection({ conciseStrengths }) {
-  if (conciseStrengths.length === 0) return null;
-
-  return (
-    <div className="p-5 bg-emerald-500/[0.02] dark:bg-emerald-950/20 border-2 border-emerald-500/20 dark:border-emerald-500/30 rounded-[1.75rem] space-y-3 shadow-lg shadow-emerald-500/[0.02]">
-      <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-        <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">Keep Doing</h3>
-      </div>
-      <div className="space-y-2">
-        {conciseStrengths.map((item, idx) => (
-          <div
-            key={idx}
-            className="bg-white dark:bg-zinc-900 p-3 rounded-xl border border-emerald-500/10 dark:border-emerald-500/20 flex gap-3 items-start shadow-sm shadow-emerald-500/5"
-          >
-            <div className="mt-0.5 w-5 h-5 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-            </div>
-            <p className="text-[13px] font-semibold dark:text-zinc-200 leading-relaxed">{item}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export function ImprovementsSection({ conciseImprovements }) {
-  if (conciseImprovements.length === 0) return null;
-
-  return (
-    <div className="p-5 bg-rose-500/[0.02] dark:bg-rose-950/20 border-2 border-rose-500/20 dark:border-rose-500/30 rounded-[1.75rem] space-y-3 shadow-lg shadow-rose-500/[0.02]">
-      <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
-        <div className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
-        <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">Fix Next</h3>
-      </div>
-      <div className="space-y-2">
-        {conciseImprovements.map((item, idx) => (
-          <div
-            key={idx}
-            className="bg-white dark:bg-zinc-900 p-3.5 rounded-xl border border-rose-500/10 dark:border-rose-500/20 space-y-1 shadow-sm shadow-rose-500/5"
-          >
-            <h4 className="text-[11px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-wide">
-              {item.title}
-            </h4>
-            <p className="text-[13px] text-muted-foreground dark:text-zinc-300 font-medium leading-relaxed">
-              {item.content}
-            </p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export function TargetTipSection({ showTargetTip, conciseTargetTip }) {
-  if (!showTargetTip) return null;
-
-  return (
-    <div className="bg-zinc-950 dark:bg-zinc-950 p-5 md:p-6 rounded-[1.5rem] text-white relative overflow-hidden border border-white/10 mt-6">
-      <div className="absolute top-1/2 right-6 -translate-y-1/2 opacity-10">
-        <Zap className="w-24 h-24" />
-      </div>
-      <div className="relative z-10 grid gap-3 md:grid-cols-[180px_1fr] md:items-start">
-        <div className="flex items-center gap-3 text-rose-500">
-          <Bot className="w-5 h-5" />
-          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-400">
-            Next Score Move
-          </h3>
-        </div>
-        <p className="text-sm md:text-base font-semibold leading-relaxed text-zinc-100">
-          {conciseTargetTip}
-        </p>
-      </div>
     </div>
   );
 }

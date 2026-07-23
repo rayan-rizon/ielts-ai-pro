@@ -40,7 +40,7 @@ export default function DeepDivePartSection({
   const ThemeIcon = theme.icon;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex items-center gap-3 px-2">
         <div
           className={`w-8 h-8 rounded-lg ${theme.bg} flex items-center justify-center border ${theme.border}`}
@@ -53,7 +53,7 @@ export default function DeepDivePartSection({
         <div className="flex-1 h-px bg-gradient-to-r from-border/60 to-transparent ml-2" />
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {partQuestions.map((item, localIdx) => {
           const globalIdx = detailedFeedback.indexOf(item);
           const isExpanded = isAllExpanded || expandedQuestion === globalIdx;

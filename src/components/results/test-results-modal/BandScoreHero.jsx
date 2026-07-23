@@ -5,15 +5,12 @@ import { cn } from '@/lib/cn';
 
 function getBandDescriptor(score) {
   const num = parseFloat(score);
-  if (num >= 9.0) return 'Expert User';
-  if (num >= 8.0) return 'Very Good User';
-  if (num >= 7.0) return 'Good User';
-  if (num >= 6.0) return 'Competent User';
-  if (num >= 5.0) return 'Modest User';
-  if (num >= 4.0) return 'Limited User';
-  if (num >= 3.0) return 'Extremely Limited';
-  if (num >= 2.0) return 'Intermittent User';
-  return 'Initial Level';
+  if (num >= 8.5) return 'Expert Level';
+  if (num >= 7.5) return 'Advanced Level';
+  if (num >= 6.5) return 'Upper Intermediate';
+  if (num >= 5.5) return 'Intermediate Level';
+  if (num >= 4.5) return 'Pre-Intermediate';
+  return 'Basic Level';
 }
 
 const ScoreGaugeCircle = React.memo(({ scoreNum, bandText }) => {

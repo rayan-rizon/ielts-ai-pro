@@ -27,7 +27,7 @@ function useDeepDiveExpansion() {
 
 function DeepDiveContent({ detailedFeedback, isAllExpanded, expandedQuestion, onToggleQuestion }) {
   return (
-    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-5 duration-1000">
+    <div className="animate-in space-y-7 fade-in slide-in-from-bottom-5 duration-1000">
       {[1, 2, 3].map((partNumber) => (
         <DeepDivePartSection
           key={partNumber}
@@ -56,7 +56,7 @@ export default function SpeakingReportDeepDive({
   const showEmptyPrompt = !deepDiveError && !isGeneratingDetailed && !detailedFeedback;
 
   return (
-    <div className="mt-10 mb-6">
+    <div className="mb-4 mt-7">
       <DeepDiveHeader
         detailedFeedback={detailedFeedback}
         isAllExpanded={isAllExpanded}

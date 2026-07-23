@@ -108,6 +108,15 @@ describe('server-rendered IELTS blog', () => {
     expect(getBlogCoverAlt({ slug: 'ielts-writing-task-1-overview-key-features' })).toBe(
       'IELTS learner selecting key trends from charts before writing a Task 1 overview'
     );
+    expect(getBlogCoverAlt({ slug: 'ielts-overall-band-score-rounding-calculator' })).toBe(
+      'IELTS learner comparing four skill score cards with a calculator on a bright study desk'
+    );
+    expect(getBlogCoverAlt({ slug: 'ielts-writing-task-2-examples' })).toBe(
+      'IELTS learner planning a Task 2 paragraph from an idea through explanation to an example'
+    );
+    expect(getBlogCoverAlt({ slug: 'ai-ielts-speaking-score-accuracy' })).toBe(
+      'IELTS learner recording a speaking answer while reviewing four AI feedback indicators'
+    );
   });
 
   it('returns an indexable-safe 404 when a published article is absent', async () => {

@@ -26,6 +26,12 @@ const COVER_ALT_BY_SLUG = {
     'IELTS learner tracking two speakers and multiple-choice decisions with headphones',
   'ielts-writing-task-1-overview-key-features':
     'IELTS learner selecting key trends from charts before writing a Task 1 overview',
+  'ielts-overall-band-score-rounding-calculator':
+    'IELTS learner comparing four skill score cards with a calculator on a bright study desk',
+  'ielts-writing-task-2-examples':
+    'IELTS learner planning a Task 2 paragraph from an idea through explanation to an example',
+  'ai-ielts-speaking-score-accuracy':
+    'IELTS learner recording a speaking answer while reviewing four AI feedback indicators',
 };
 
 export function getBlogCoverAlt(article) {

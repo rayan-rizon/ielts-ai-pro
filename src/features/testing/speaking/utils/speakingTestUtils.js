@@ -213,8 +213,41 @@ export function buildLocalDevSpeakingResponse({
   };
 }
 
+const getPartNumberFromEvaluationKey = (key, fallbackIndex) => {
+  const matchedPart = String(key).match(/(?:part)?[_\s-]*([1-3])$/i);
+  if (matchedPart) return Number(matchedPart[1]);
+  return fallbackIndex + 1;
+};
+
+const getEvaluationEntries = (evaluations) => {
+  if (Array.isArray(evaluations))
+    return evaluations.map((evaluation, index) => [index + 1, evaluation]);
+  if (evaluations && typeof evaluations === 'object') return Object.entries(evaluations);
+  return [];
+};
+
+const buildHistoricalPartScores = (entries) => {
+  const partScores = {};
+
+  entries.forEach(([key, evaluation], index) => {
+    const partNumber = getPartNumberFromEvaluationKey(key, index);
+    if (!evaluation || partNumber < 1 || partNumber > 3 || partScores[`part${partNumber}`]) return;
+
+    const band = Number(evaluation.overallBand);
+    if (!Number.isFinite(band)) return;
+
+    partScores[`part${partNumber}`] = {
+      band,
+      keyObservation: evaluation.feedback || '',
+    };
+  });
+
+  return partScores;
+};
+
 export function buildAverageSpeakingEvaluation(evaluations = []) {
-  const validEvaluations = evaluations.filter(Boolean);
+  const evaluationEntries = getEvaluationEntries(evaluations);
+  const validEvaluations = evaluationEntries.map(([, evaluation]) => evaluation).filter(Boolean);
   if (validEvaluations.length === 0) return null;
 
   const average = (field) =>
@@ -232,6 +265,7 @@ export function buildAverageSpeakingEvaluation(evaluations = []) {
     improvements: validEvaluations
       .flatMap((evaluation) => evaluation.improvements || [])
       .slice(0, 3),
+    partScores: buildHistoricalPartScores(evaluationEntries),
   };
 }
 

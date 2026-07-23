@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 
 export function DeepDiveHeader({ detailedFeedback, isAllExpanded, onToggleExpandAll }) {
   return (
-    <div className="flex items-center justify-between mb-6 border-b border-border/40 pb-4">
-      <h3 className="text-xl md:text-2xl font-black text-foreground flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0">
-          <Bot className="w-5 h-5 text-orange-500" />
+    <div className="mb-5 flex items-center justify-between border-b border-slate-200/80 pb-4 dark:border-white/10">
+      <h3 className="flex items-center gap-3 text-lg font-black text-slate-900 dark:text-white md:text-xl">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 dark:border-rose-500/20 dark:bg-rose-500/10">
+          <Bot className="h-5 w-5 text-rose-600 dark:text-rose-400" />
         </div>
         Question Deep Dive
       </h3>
@@ -29,21 +29,26 @@ function ExpandCollapseButton({ isAllExpanded, onClick }) {
       variant="ghost"
       size="sm"
       onClick={onClick}
-      className="text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/10 hover:text-rose-600 transition-colors hidden md:flex"
+      className="hidden text-xs font-black uppercase tracking-wider text-rose-600 transition-colors hover:bg-rose-500/10 hover:text-rose-700 dark:text-rose-400 md:flex"
     >
-      <Icon className="w-3 h-3 mr-1.5" /> {label}
+      <Icon className="mr-1.5 h-4 w-4" /> {label}
     </Button>
   );
 }
 
 export function DeepDiveErrorState({ onRetry }) {
   return (
-    <div className="p-8 text-center rounded-[2rem] border border-red-500/20 bg-red-500/5">
-      <p className="text-sm text-muted-foreground mb-3">
+    <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6 text-center shadow-sm">
+      <p className="mb-4 text-sm font-semibold text-slate-600 dark:text-zinc-300">
         Deep dive analysis could not be generated.
       </p>
-      <Button variant="outline" size="sm" onClick={onRetry} className="text-xs font-bold">
-        <RefreshCw className="w-3 h-3 mr-1.5" /> Retry
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onRetry}
+        className="rounded-xl border-red-500/30 text-xs font-black uppercase tracking-wider text-red-600 hover:bg-red-500/10"
+      >
+        <RefreshCw className="mr-2 h-3.5 w-3.5" /> Retry
       </Button>
     </div>
   );
@@ -51,18 +56,17 @@ export function DeepDiveErrorState({ onRetry }) {
 
 export function DeepDiveEmptyPrompt({ onGenerate }) {
   return (
-    <div className="p-8 text-center rounded-[2rem] border border-orange-500/20 bg-orange-500/5">
-      <p className="text-sm text-muted-foreground mb-4 max-w-lg mx-auto">
+    <div className="relative overflow-hidden rounded-2xl border border-rose-200/80 bg-gradient-to-br from-white via-rose-50/30 to-white p-6 text-center shadow-md shadow-rose-950/5 dark:border-rose-500/20 dark:from-zinc-950 dark:via-rose-950/20 dark:to-zinc-950">
+      <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-rose-500/10 blur-2xl" />
+      <p className="mx-auto mb-4 max-w-lg text-xs font-semibold leading-relaxed text-slate-600 dark:text-zinc-300">
         Generate an optional question-by-question review when you need detailed corrections and
         stronger sample answers.
       </p>
       <Button
-        variant="outline"
-        size="sm"
         onClick={onGenerate}
-        className="text-xs font-bold border-orange-500/30 hover:bg-orange-500/10"
+        className="h-10 rounded-xl bg-white px-5 text-xs font-black text-rose-700 border border-rose-200 shadow-sm hover:bg-rose-50 hover:scale-105 active:scale-95 transition-all dark:bg-rose-600 dark:text-white dark:border-transparent dark:hover:bg-rose-700"
       >
-        <Sparkles className="w-3 h-3 mr-1.5" /> Generate Deep Dive
+        <Sparkles className="mr-2 h-4 w-4 text-rose-500 dark:text-white" /> Generate Deep Dive
       </Button>
     </div>
   );

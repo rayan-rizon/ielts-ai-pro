@@ -22,7 +22,7 @@ function GrammaticalErrorItem({ err }) {
 
 export default function DeepDiveQuestionContent({ item }) {
   return (
-    <div className="p-5 md:p-6 pt-2 space-y-6 border-t border-border/50">
+    <div className="space-y-4 border-t border-border/50 p-4 pt-2">
       {/* Candidate Answer */}
       <div className="space-y-2.5">
         <div className="flex items-center gap-2">
@@ -93,8 +93,8 @@ export default function DeepDiveQuestionContent({ item }) {
               Examiner Feedback
             </span>
           </div>
-          <div className="bg-rose-50/50 dark:bg-rose-950/20 p-4 rounded-xl border border-rose-500/20 dark:border-rose-500/20 relative group-hover/feedback:border-rose-500/40 transition-colors">
-            <p className="text-[13px] text-foreground/80 dark:text-rose-50/80 font-medium italic leading-relaxed">
+          <div className="bg-rose-50/70 dark:bg-rose-950/30 p-4 rounded-xl border border-rose-200/80 dark:border-rose-900/40 relative group-hover/feedback:border-rose-400 transition-colors">
+            <p className="text-[13px] md:text-[14px] text-slate-800 dark:text-zinc-100 font-semibold leading-relaxed">
               {item.feedback}
             </p>
           </div>

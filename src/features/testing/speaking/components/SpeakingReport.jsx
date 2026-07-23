@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, ArrowLeft, Home } from 'lucide-react';
+import {
+  ArrowLeft,
+  BookOpen,
+  Download,
+  GraduationCap,
+  Home,
+  LoaderCircle,
+  MessageCircleMore,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -39,8 +46,15 @@ export default function SpeakingReport({
 }) {
   const { width, height } = useWindowSize();
   const [isGeneratingDetailedLocal, setIsGeneratingDetailedLocal] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
   const isGeneratingDetailed = isGeneratingDetailedProp ?? isGeneratingDetailedLocal;
   const pronunciationBreakdown = usePronunciationBreakdown(allPartsPronunciation);
+  const testDateFormatted = new Date().toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 
   const handleGenerateDetailed = async () => {
     if (!testId || !allPartsConversation) {
@@ -71,6 +85,24 @@ export default function SpeakingReport({
 
   const handleRetryDeepDive = onRetryDeepDive || handleGenerateDetailed;
 
+  const handleDownloadPdf = async () => {
+    if (isDownloadingPdf) return;
+
+    setIsDownloadingPdf(true);
+    try {
+      const { downloadSpeakingReportPdf } = await import('../utils/speakingReportPdf');
+      downloadSpeakingReportPdf({ finalEvaluation, testTitle });
+      toast.success('Speaking report downloaded');
+    } catch (error) {
+      console.error(error);
+      toast.error('Could not download the PDF', {
+        description: 'Please try again in a moment.',
+      });
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   if (isEvaluating) {
     return <SpeakingAnalysis loadingMessage={loadingMessage} />;
   }
@@ -89,7 +121,7 @@ export default function SpeakingReport({
   return (
     <div
       data-testid="speaking-report-scroll"
-      className="custom-scrollbar relative isolate h-full min-h-0 overflow-y-auto overscroll-contain px-4 py-12 md:px-6"
+      className="custom-scrollbar relative isolate h-full min-h-0 overflow-y-auto overscroll-contain bg-slate-50/70 px-4 py-4 dark:bg-[#080808] sm:px-6 sm:py-6 lg:px-8 lg:py-8"
     >
       {showConfetti && (
         <Confetti
@@ -112,29 +144,80 @@ export default function SpeakingReport({
       />
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: 'easeOut' }}
         key="report"
-        className="max-w-5xl mx-auto relative"
+        className="relative mx-auto w-full max-w-[1280px]"
       >
-        <Card className="glass-card-premium border-none shadow-2xl rounded-[2.5rem] overflow-hidden">
-          <CardHeader className="text-center bg-gradient-to-br from-rose-500 via-rose-600 to-rose-700 dark:from-rose-900 dark:via-rose-950 dark:to-zinc-950 dark:border-b dark:border-white/5 text-white pt-4 pb-3 md:pt-7 md:pb-5 transition-colors duration-500">
-            <div className="flex justify-center mb-3">
-              <div className="w-12 h-12 bg-white/20 dark:bg-rose-500/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 dark:border-rose-500/30">
-                <Trophy className="w-6 h-6 text-white" />
+        <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl shadow-rose-950/5 dark:border-white/10 dark:bg-zinc-950">
+          {/* Header Banner */}
+          <header className="relative overflow-hidden bg-gradient-to-r from-rose-600 via-rose-500 to-rose-700 px-5 pb-7 pt-5 text-white sm:px-8 lg:px-10 lg:pb-8 lg:pt-6">
+            <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+              <div className="absolute -right-16 -top-28 h-80 w-80 rounded-full border-[34px] border-white/[0.07]" />
+              <div className="absolute right-32 top-8 h-44 w-44 rounded-full border border-white/15" />
+              <div className="absolute right-12 top-10 h-28 w-28 rounded-full border border-white/15" />
+              <div className="absolute bottom-0 left-1/3 h-28 w-96 bg-white/15 blur-[80px]" />
+            </div>
+
+            <div className="relative mb-6 flex items-center justify-between gap-4">
+              <Button
+                asChild
+                variant="ghost"
+                className="-ml-3 h-9 rounded-full px-4 text-xs font-extrabold text-white hover:bg-white/15 hover:text-white backdrop-blur-md transition-all"
+              >
+                <Link to="/speaking">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to speaking
+                </Link>
+              </Button>
+
+              <Button
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={isDownloadingPdf}
+                className="h-10 rounded-xl border border-white/30 bg-white/95 px-4 text-xs font-black text-rose-700 shadow-xl shadow-rose-950/20 hover:bg-white hover:scale-105 active:scale-95 disabled:opacity-70 transition-all sm:px-5"
+              >
+                {isDownloadingPdf ? (
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">
+                  {isDownloadingPdf ? 'Preparing PDF...' : 'Download PDF'}
+                </span>
+                <span className="sm:hidden">{isDownloadingPdf ? 'Preparing' : 'PDF'}</span>
+              </Button>
+            </div>
+
+            <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1fr)_14rem] lg:items-end">
+              <div>
+                <h1 className="text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
+                  Speaking Report
+                </h1>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <span className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-3.5 py-1.5 text-xs font-extrabold backdrop-blur-md shadow-sm">
+                    <GraduationCap className="h-4 w-4 text-rose-100" />
+                    {testTitle || 'IELTS Academic'}
+                  </span>
+                  <span className="text-xs font-semibold text-rose-100">
+                    Test Date: {testDateFormatted}
+                  </span>
+                </div>
+              </div>
+
+              <div className="hidden justify-self-end lg:block" aria-hidden="true">
+                <div className="relative flex h-24 w-40 items-center justify-center rounded-3xl border border-white/30 bg-white/20 shadow-2xl backdrop-blur-md">
+                  <MessageCircleMore className="h-12 w-12 text-white" />
+                  <span className="absolute right-5 top-5 h-2 w-2 rounded-full bg-white/90 animate-ping" />
+                  <span className="absolute right-5 top-5 h-2 w-2 rounded-full bg-white" />
+                </div>
               </div>
             </div>
-            <CardTitle className="text-3xl md:text-5xl font-black tracking-tight mb-2">
-              Speaking Report
-            </CardTitle>
-            <div className="pt-6">
-              <CardDescription className="text-white font-black text-xs md:text-sm uppercase tracking-wider bg-black/10 dark:bg-white/10 inline-block px-5 py-2 rounded-xl border border-white/10 dark:border-white/20 backdrop-blur-sm shadow-sm dark:text-rose-100 max-w-[85%] mx-auto">
-                {testTitle || 'IELTS Academic'}
-              </CardDescription>
-            </div>
-          </CardHeader>
+          </header>
 
-          <CardContent className="p-4 md:p-6 space-y-6">
+          {/* Main Content Area */}
+          <div className="space-y-6 p-4 sm:p-6 lg:p-8">
             <SpeakingReportSummary
               finalEvaluation={finalEvaluation}
               pronunciationBreakdown={pronunciationBreakdown}
@@ -147,30 +230,30 @@ export default function SpeakingReport({
               handleRetryDeepDive={handleRetryDeepDive}
             />
 
-            {/* Action buttons */}
-            <div className="flex flex-col md:flex-row gap-4 justify-center pt-8 border-t border-border/50">
+            {/* Bottom Footer Actions Bar */}
+            <div className="flex flex-col justify-between gap-4 border-t border-slate-200 pt-6 dark:border-white/10 sm:flex-row sm:items-center">
               <Button
                 asChild
                 variant="outline"
-                className="h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] border-2 hover:bg-muted"
+                className="h-11 rounded-xl border-slate-200 px-6 text-xs font-black uppercase tracking-wider hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5 transition-all"
               >
                 <Link to="/speaking">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <BookOpen className="mr-2.5 h-4 w-4" />
                   Speaking Library
                 </Link>
               </Button>
               <Button
                 asChild
-                className="h-12 px-10 rounded-xl font-black uppercase tracking-widest text-[10px] bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-500/20"
+                className="h-11 rounded-xl bg-rose-600 px-8 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-rose-600/25 hover:bg-rose-700 hover:scale-105 active:scale-95 transition-all"
               >
                 <Link to="/dashboard">
-                  <Home className="w-4 h-4 mr-2" />
+                  <Home className="mr-2.5 h-4 w-4" />
                   Return to Dashboard
                 </Link>
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </motion.div>
     </div>
   );

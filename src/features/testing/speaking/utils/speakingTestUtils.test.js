@@ -219,6 +219,20 @@ describe('speakingTestUtils', () => {
     });
   });
 
+  it('preserves per-part scores when restoring historical per-part evaluations', () => {
+    const restored = buildAverageSpeakingEvaluation({
+      part1: { overallBand: 4, feedback: 'Very brief answer.' },
+      part2: { overallBand: 5, feedback: 'Some relevant development.' },
+      part3: { overallBand: 4.5, feedback: 'Ideas needed more depth.' },
+    });
+
+    expect(restored.partScores).toEqual({
+      part1: { band: 4, keyObservation: 'Very brief answer.' },
+      part2: { band: 5, keyObservation: 'Some relevant development.' },
+      part3: { band: 4.5, keyObservation: 'Ideas needed more depth.' },
+    });
+  });
+
   it('detects transcript failures shown to learners', () => {
     expect(isTranscriptError('')).toBe(true);
     expect(isTranscriptError('(Unable to transcribe - please try again)')).toBe(true);

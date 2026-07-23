@@ -11,13 +11,13 @@ export default function QuestionAccordionItem({ item, localIdx, globalIdx, isExp
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: globalIdx * 0.05 }}
       className={cn(
-        'group/card bg-white dark:bg-zinc-950 border border-border/80 hover:border-zinc-300 dark:hover:border-zinc-700/80 rounded-[1.2rem] overflow-hidden transition-all duration-300',
+        'group/card bg-white dark:bg-zinc-950 border border-border/80 hover:border-zinc-300 dark:hover:border-zinc-700/80 rounded-xl overflow-hidden transition-all duration-300',
         isExpanded ? 'shadow-xl shadow-rose-500/5 ring-1 ring-rose-500/20' : 'shadow-sm'
       )}
     >
       <button
         onClick={onToggle}
-        className="w-full text-left p-4 md:p-5 flex items-start gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
+        className="flex w-full items-start gap-3 p-3 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/50 md:p-4"
       >
         <div
           className={cn(

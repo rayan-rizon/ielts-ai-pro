@@ -59,6 +59,7 @@ export default defineConfig({
             'helmet-vendor',
             'radix-vendor',
             'pdf-vendor',
+            'pdf-export-vendor',
             'editor-vendor',
           ];
           return !excludeKeywords.some((keyword) => dep.includes(keyword));
@@ -109,6 +110,9 @@ export default defineConfig({
             // PDF.js - heavy library, only needed in specific pages
             if (id.includes('pdfjs-dist')) {
               return 'pdf-vendor';
+            }
+            if (id.includes('/node_modules/jspdf/')) {
+              return 'pdf-export-vendor';
             }
             // TanStack Query - data fetching
             if (id.includes('@tanstack/react-query')) {

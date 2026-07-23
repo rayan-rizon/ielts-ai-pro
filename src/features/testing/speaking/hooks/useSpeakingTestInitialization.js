@@ -131,9 +131,7 @@ export default function useSpeakingTestInitialization({
       if (matchingSession.content_data?.finalEvaluation) {
         setFinalEvaluation(matchingSession.content_data.finalEvaluation);
       } else if (matchingSession.content_data?.allEvaluations) {
-        const avgEval = buildAverageSpeakingEvaluation(
-          Object.values(matchingSession.content_data.allEvaluations)
-        );
+        const avgEval = buildAverageSpeakingEvaluation(matchingSession.content_data.allEvaluations);
         if (avgEval) setFinalEvaluation(avgEval);
       } else if (matchingSession.score != null) {
         setFinalEvaluation(buildLegacySpeakingEvaluation(matchingSession.score));
