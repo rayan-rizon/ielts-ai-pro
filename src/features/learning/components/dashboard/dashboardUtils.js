@@ -138,6 +138,10 @@ export const DAY_FORMAT = new Intl.DateTimeFormat(undefined, {
   day: 'numeric',
 });
 
+/**
+ * @param {Date | string | number} [value]
+ * @returns {string}
+ */
 export const dateKey = (value = new Date()) => {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return '';
