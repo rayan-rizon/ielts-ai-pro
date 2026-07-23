@@ -103,8 +103,8 @@ const buildCriteria = (finalEvaluation, hasPronunciation) => {
       ? Number(finalEvaluation[criterion.key])
       : null,
     note: compactText(notes[criterion.noteKey] || legacy[criterion.legacyKey], {
-      maxSentences: 1,
-      maxChars: 155,
+      maxSentences: 2,
+      maxChars: 300,
     }),
   })).filter(
     (criterion) =>
@@ -152,7 +152,7 @@ const normalizePartScore = (rawPart) => {
   const band = rawPart.band ?? rawPart.score ?? rawPart.overallBand;
   const observation = compactText(
     rawPart.keyObservation ?? rawPart.observation ?? rawPart.feedback ?? rawPart.note,
-    { maxSentences: 1, maxChars: 145 }
+    { maxSentences: 2, maxChars: 300 }
   );
 
   return {
@@ -185,12 +185,12 @@ export const buildSpeakingReportSummary = (finalEvaluation = {}) => {
   const hasPronunciation = isFiniteScore(finalEvaluation.pronunciation);
   const isTranscriptEstimate = finalEvaluation.scoreBasis === 'transcript' || !hasPronunciation;
   const conciseFeedback = compactText(finalEvaluation.feedback, {
-    maxSentences: 2,
-    maxChars: 240,
+    maxSentences: 4,
+    maxChars: 800,
   });
   const conciseTargetTip = compactText(finalEvaluation.targetBandTips, {
-    maxSentences: 1,
-    maxChars: 190,
+    maxSentences: 2,
+    maxChars: 400,
   });
 
   return {

@@ -1,4 +1,4 @@
-export const compactText = (value, { maxSentences = 1, maxChars = 160 } = {}) => {
+export const compactText = (value, { maxSentences = 3, maxChars = 500 } = {}) => {
   if (typeof value !== 'string') return '';
   const normalized = value
     .trim()
@@ -7,13 +7,29 @@ export const compactText = (value, { maxSentences = 1, maxChars = 160 } = {}) =>
   if (!normalized) return '';
 
   const sentences = normalized.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [normalized];
-  const selected = sentences
+  const selectedSentences = sentences
     .map((sentence) => sentence.trim())
     .filter(Boolean)
-    .slice(0, maxSentences)
-    .join(' ');
+    .slice(0, maxSentences);
+
+  const selected = selectedSentences.join(' ');
 
   if (selected.length <= maxChars) return selected;
+
+  // Prefer returning as many complete sentences as fit within maxChars
+  let sentenceCombined = '';
+  for (const sentence of selectedSentences) {
+    const candidate = sentenceCombined ? `${sentenceCombined} ${sentence}` : sentence;
+    if (candidate.length <= maxChars) {
+      sentenceCombined = candidate;
+    } else {
+      break;
+    }
+  }
+
+  if (sentenceCombined) return sentenceCombined;
+
+  // Fallback if a single sentence is longer than maxChars:
   const clipped = selected.slice(0, maxChars - 3);
   const lastSpace = clipped.lastIndexOf(' ');
   return `${clipped.slice(0, lastSpace > 80 ? lastSpace : clipped.length).trim()}...`;
@@ -38,7 +54,7 @@ export const uniqueCompactList = (items, options = {}) => {
 };
 
 const cleanStrengthText = (value) => {
-  const normalized = compactText(value, { maxSentences: 1, maxChars: 260 })
+  const normalized = compactText(value, { maxSentences: 2, maxChars: 400 })
     .replace(/^(the\s+)?candidate\s+/i, '')
     .replace(/^(showed|demonstrated|displayed)\s+some\s+/i, '')
     .replace(/^(attempted|tried)\s+to\s+/i, 'Attempted to ')
@@ -83,7 +99,7 @@ const getDevelopmentAreaContent = (item) => {
 
 export const compactDevelopmentArea = (item) => {
   return {
-    title: compactText(getDevelopmentAreaTitle(item), { maxSentences: 1, maxChars: 32 }),
-    content: compactText(getDevelopmentAreaContent(item), { maxSentences: 1, maxChars: 170 }),
+    title: compactText(getDevelopmentAreaTitle(item), { maxSentences: 1, maxChars: 40 }),
+    content: compactText(getDevelopmentAreaContent(item), { maxSentences: 2, maxChars: 300 }),
   };
 };

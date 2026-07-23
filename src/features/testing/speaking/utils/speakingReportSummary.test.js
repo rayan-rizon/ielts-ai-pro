@@ -104,4 +104,17 @@ describe('speaking report summary', () => {
     expect(filename).toBe('speaking-report-6.5.pdf');
     expect(summary).not.toHaveProperty('detailedFeedback');
   });
+
+  it('preserves full multi-sentence feedback without mid-sentence truncation', () => {
+    const feedbackText =
+      'The candidate provided very brief and underdeveloped responses across all parts of the test, significantly limiting the demonstration of fluency and coherence. Vocabulary and grammatical structures were basic, with frequent errors that impacted overall communication.';
+
+    const summary = buildSpeakingReportSummary({
+      overallBand: 5.5,
+      feedback: feedbackText,
+    });
+
+    expect(summary.conciseFeedback).toBe(feedbackText);
+    expect(summary.conciseFeedback).not.toContain('...');
+  });
 });
