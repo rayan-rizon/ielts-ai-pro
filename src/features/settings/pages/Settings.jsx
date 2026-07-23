@@ -33,6 +33,11 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
 import { Badge } from '@/components/ui/badge';
 import { useSearchParams } from 'react-router-dom';
+import { generateAdaptiveLearningPath } from '@/utils/api';
+import {
+  getWeeklyCapacity,
+  normalizeStudyAvailability,
+} from '../../../../supabase/functions/_shared/learningPathV2';
 
 // Extracted Sections
 import ProfileSection from '../components/Sections/ProfileSection';
@@ -113,7 +118,8 @@ export default function Settings() {
     avatar_url: AVATARS[0],
     target_band_score: 7.0,
     exam_type: 'academic',
-    study_hours_goal: 45,
+    study_hours_goal: 10,
+    study_availability: null,
     test_date: '',
   });
 
@@ -126,20 +132,37 @@ export default function Settings() {
         target_band_score: user.target_band_score || 7.0,
         exam_type: user.exam_type || 'academic',
         study_hours_goal: user.study_hours_goal || 1,
+        study_availability: user.study_availability || null,
         test_date: user.test_date ? user.test_date.split('T')[0] : '',
       });
     }
   }, [user]);
 
   const handleSave = async () => {
-    updateProfileMutation.mutate({
-      full_name: formData.full_name,
-      avatar_url: formData.avatar_url,
-      target_band_score: formData.target_band_score,
-      exam_type: formData.exam_type,
-      study_hours_goal: formData.study_hours_goal,
-      test_date: formData.test_date || null,
-    });
+    const studyAvailability = normalizeStudyAvailability(
+      formData.study_availability,
+      formData.study_hours_goal,
+      Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+    );
+    const legacyWeeklyHours = Math.max(1, Math.round(getWeeklyCapacity(studyAvailability) / 60));
+    try {
+      await updateProfileMutation.mutateAsync({
+        full_name: formData.full_name,
+        avatar_url: formData.avatar_url,
+        target_band_score: formData.target_band_score,
+        exam_type: formData.exam_type,
+        study_hours_goal: legacyWeeklyHours,
+        study_availability: studyAvailability,
+        test_date: formData.test_date || null,
+      });
+      if (['pro', 'premium'].includes(String(user?.subscription_tier).toLowerCase())) {
+        await generateAdaptiveLearningPath({ trigger: 'goal_changed' });
+        queryClient.invalidateQueries({ queryKey: ['learningPath'] });
+      }
+    } catch (error) {
+      // The profile mutation and plan generator provide their own user-facing errors.
+      console.warn('Study goal save did not fully complete:', error?.message);
+    }
   };
 
   const handleUpdatePassword = async () => {

@@ -170,15 +170,12 @@ export async function callEdgeFunction(functionName, payload = {}, options = {})
  * Identity derived from JWT token (no userId needed)
  * @returns {Promise<object>} - Learning path data
  */
-export async function generateAdaptiveLearningPath() {
-  return callEdgeFunction(
-    'generateAdaptiveLearningPath',
-    {},
-    {
-      rateLimit: RATE_LIMITS.AI_OPERATION,
-      cache: { ttl: CACHE_TTL.LONG }, // 30 minutes - learning paths don't change frequently
-    }
-  );
+export async function generateAdaptiveLearningPath(payload = { trigger: 'manual_refresh' }) {
+  return callEdgeFunction('generateAdaptiveLearningPath', payload, {
+    rateLimit: RATE_LIMITS.AI_OPERATION,
+    // The Edge Function owns fingerprint caching because profile/test evidence is server-side.
+    // Client caching here could return a stale path after a goal or availability change.
+  });
 }
 
 /**

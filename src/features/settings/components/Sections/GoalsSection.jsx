@@ -8,9 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Calendar } from 'lucide-react';
+import StudyAvailabilityEditor from '@/features/learning/components/StudyAvailabilityEditor';
 
 export default function GoalsSection({ formData, setFormData }) {
   return (
@@ -68,25 +68,17 @@ export default function GoalsSection({ formData, setFormData }) {
         </div>
       </div>
 
-      {/* Study Goal Slider */}
+      {/* Explicit day-by-day availability; the legacy weekly total is derived when saving. */}
       <div className="mt-10 space-y-6 bg-slate-50 dark:bg-white/5 p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-white/5">
-        <div className="flex justify-between items-end">
-          <div>
-            <Label className="text-lg font-black">Daily Study Goal</Label>
-            <p className="text-sm text-slate-500 font-medium">Hours per day</p>
-          </div>
-          <span className="text-4xl font-black text-indigo-600 dark:text-indigo-400 tabular-nums">
-            {formData.study_hours_goal}h
-          </span>
-        </div>
-        <Slider
-          value={[formData.study_hours_goal]}
-          max={12}
-          min={1}
-          step={1}
-          onValueChange={(val) => setFormData({ ...formData, study_hours_goal: val[0] })}
-          className="py-6"
+        <StudyAvailabilityEditor
+          value={formData.study_availability}
+          legacyWeeklyHours={formData.study_hours_goal}
+          onChange={(study_availability) => setFormData({ ...formData, study_availability })}
         />
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          The older weekly-hours field remains only for compatibility and is recalculated from these
+          minutes.
+        </p>
       </div>
     </motion.div>
   );

@@ -101,18 +101,26 @@ export async function getWeakSkills(userId: string, limit: number = 5): Promise<
       console.warn('RPC get_user_weak_skills failed, falling back to direct query:', error);
       // Fallback: direct query
       const skills = await getUserSkillProficiencies(userId);
-      return skills.slice(0, limit).map((s) => ({
-        skill_code: s.skill_code,
-        module: s.module,
-        mastery_probability: s.mastery_probability,
-        practice_count: s.practice_count,
-        days_since_practice: s.last_practiced_at
-          ? Math.floor(
-              (Date.now() - new Date(s.last_practiced_at).getTime()) / (1000 * 60 * 60 * 24)
-            )
-          : 999,
-        priority_score: (1 - s.mastery_probability) * 0.6 + 0.4,
-      }));
+      return skills
+        .filter(
+          (s) =>
+            Number(s.practice_count || 0) >= 5 &&
+            Number(s.confidence_level || 0) >= 0.4 &&
+            Number(s.mastery_probability || 0.5) < 0.75
+        )
+        .slice(0, limit)
+        .map((s) => ({
+          skill_code: s.skill_code,
+          module: s.module,
+          mastery_probability: s.mastery_probability,
+          practice_count: s.practice_count,
+          days_since_practice: s.last_practiced_at
+            ? Math.floor(
+                (Date.now() - new Date(s.last_practiced_at).getTime()) / (1000 * 60 * 60 * 24)
+              )
+            : 999,
+          priority_score: (1 - s.mastery_probability) * 0.6 + 0.4,
+        }));
     }
 
     return data || [];
@@ -259,80 +267,27 @@ export async function refreshLearningPathAfterTest(
   testScore: number
 ): Promise<void> {
   try {
-    // Check if learning path is stale (older than 24 hours or score changed significantly)
     const { data: user } = await supabase
       .from('users')
-      .select('last_path_generated_at, subscription_tier')
+      .select('subscription_tier')
       .eq('id', userId)
       .single();
 
     if (!user) return;
-
-    // Only auto-refresh for pro/premium users
     if (user.subscription_tier !== 'pro' && user.subscription_tier !== 'premium') {
       return;
     }
+    if (!Number.isFinite(testScore) || testScore <= 0) return;
 
-    const lastGenerated = user.last_path_generated_at
-      ? new Date(user.last_path_generated_at)
-      : null;
-
-    const hoursSinceLastGeneration = lastGenerated
-      ? (Date.now() - lastGenerated.getTime()) / (1000 * 60 * 60)
-      : Infinity;
-
-    // Check for significant score change (compare to previous average for this module)
-    let significantScoreChange = false;
-    if (testScore > 0) {
-      const { data: prevSessions } = await supabase
-        .from('test_sessions')
-        .select('score')
-        .eq('user_id', userId)
-        .eq('test_type', testType)
-        .eq('is_completed', true)
-        .order('completed_at', { ascending: false })
-        .limit(5);
-
-      if (prevSessions && prevSessions.length >= 2) {
-        // Calculate previous average (excluding current test)
-        const prevScores = prevSessions
-          .slice(1)
-          .map((s) => s.score)
-          .filter((s) => s > 0);
-        if (prevScores.length > 0) {
-          const prevAvg = prevScores.reduce((a, b) => a + b, 0) / prevScores.length;
-          const scoreDiff = Math.abs(testScore - prevAvg);
-          // Trigger if score changed by more than 0.8 band
-          significantScoreChange = scoreDiff >= 0.8;
+    // Every newly scored test is a meaningful event. The server-side fingerprint is the
+    // source of truth and suppresses both AI usage and duplicate path rows when inputs match.
+    generateAdaptiveLearningPath({ trigger: 'test_completed', module: testType })
+      .then(() => queryClient.invalidateQueries({ queryKey: ['learningPath'] }))
+      .catch((err) => {
+        if (err?.status !== 403) {
+          console.warn('Background learning path refresh failed:', err?.message || err);
         }
-      }
-    }
-
-    // Refresh if path is older than 24 hours, never generated, or significant score change
-    if (hoursSinceLastGeneration >= 24 || significantScoreChange) {
-      const reason = significantScoreChange
-        ? 'significant score change'
-        : 'path older than 24 hours';
-      console.log(`[AdaptiveLearning] Refreshing learning path after test completion (${reason})`);
-
-      // Fire and forget - don't block the submission
-      generateAdaptiveLearningPath()
-        .then(() => {
-          // Invalidate client-side TanStack Query cache so the learning path page shows fresh data
-          queryClient.invalidateQueries({ queryKey: ['learningPath'] });
-        })
-        .catch((err) => {
-          // 403 = free tier, expected — skip silently
-          if (err?.status !== 403)
-            console.warn('Background learning path refresh failed:', err?.message || err);
-        });
-
-      // Update last generated timestamp
-      await supabase
-        .from('users')
-        .update({ last_path_generated_at: new Date().toISOString() })
-        .eq('id', userId);
-    }
+      });
   } catch (err) {
     console.warn('Error in refreshLearningPathAfterTest:', err);
   }

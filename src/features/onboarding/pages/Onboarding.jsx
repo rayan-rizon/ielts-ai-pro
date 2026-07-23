@@ -19,6 +19,10 @@ import {
 import { createPageUrl } from '@/utils';
 import { generateAdaptiveLearningPath } from '@/utils/api';
 import { toast } from 'sonner';
+import {
+  getWeeklyCapacity,
+  normalizeStudyAvailability,
+} from '../../../../supabase/functions/_shared/learningPathV2';
 
 import WelcomeStep from '@/features/onboarding/components/steps/WelcomeStep';
 import TargetStep from '@/features/onboarding/components/steps/TargetStep';
@@ -49,8 +53,8 @@ const steps = [
   },
   {
     id: 'studyTime',
-    title: 'How many hours can you study weekly?',
-    description: 'Be realistic — consistency beats intensity.',
+    title: 'When can you study each week?',
+    description: 'Choose days and minute limits so the plan fits real life.',
     icon: Clock,
   },
   {
@@ -79,7 +83,16 @@ export default function Onboarding() {
     test_date: null,
     timeline_type: null, // 'specific' or 'estimated'
     estimated_weeks: null,
-    study_hours_goal: 10,
+    study_hours_goal: 4,
+    study_availability: normalizeStudyAvailability(
+      {
+        version: 1,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+        days: { monday: 45, wednesday: 60, friday: 45, saturday: 90 },
+      },
+      4,
+      Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+    ),
     weak_area: null,
   });
 
@@ -212,6 +225,9 @@ export default function Onboarding() {
     if (currentStepId === 'focus') {
       return !!formData.weak_area;
     }
+    if (currentStepId === 'studyTime') {
+      return Object.keys(formData.study_availability?.days || {}).length > 0;
+    }
     return true;
   };
 
@@ -261,8 +277,16 @@ export default function Onboarding() {
         return (
           <StudyTimeStep
             studyHoursGoal={formData.study_hours_goal}
-            onChangeStudyHours={(val) =>
-              setFormData((prev) => ({ ...prev, study_hours_goal: val }))
+            studyAvailability={formData.study_availability}
+            onChangeAvailability={(study_availability) =>
+              setFormData((prev) => ({
+                ...prev,
+                study_availability,
+                study_hours_goal: Math.max(
+                  1,
+                  Math.round(getWeeklyCapacity(study_availability) / 60)
+                ),
+              }))
             }
           />
         );
@@ -546,6 +570,9 @@ function buildOnboardingPayload(formData) {
   if (formData.study_hours_goal) {
     payload.study_hours_goal = formData.study_hours_goal;
   }
+  if (formData.study_availability) {
+    payload.study_availability = formData.study_availability;
+  }
 
   return payload;
 }
@@ -555,7 +582,7 @@ function triggerBackgroundPathGeneration(user) {
   const userId = user.id;
   if (!userId) return;
 
-  generateAdaptiveLearningPath().catch((pathError) => {
+  generateAdaptiveLearningPath({ trigger: 'goal_changed' }).catch((pathError) => {
     const status = pathError?.status;
     if (status === 403) {
       return;

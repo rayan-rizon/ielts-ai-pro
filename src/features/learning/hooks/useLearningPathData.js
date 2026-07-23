@@ -157,12 +157,30 @@ async function fetchLearningPathData(userId) {
   }
 
   // Fetch activities for this path
-  const { data: activities } = await supabase
+  let { data: activities, error: activitiesError } = await supabase
     .from('learning_path_activities')
     .select(
-      'id, activity_key, scheduled_day, is_completed, completed_at, outcome_score, outcome_data, title, module, estimated_minutes, priority, activity_type, skill_targets'
+      'id, activity_key, scheduled_day, scheduled_date, is_completed, completed_at, outcome_score, outcome_data, title, description, module, estimated_minutes, priority, activity_type, skill_targets'
     )
     .eq('learning_path_id', pathRecord.id);
+
+  // Keep the page usable during the schema-first rollout window. Older projects do not yet
+  // expose scheduled_date, so retry with the V1 column set and let path_data supply dates.
+  if (activitiesError && /scheduled_date/i.test(activitiesError.message || '')) {
+    const legacyResult = await supabase
+      .from('learning_path_activities')
+      .select(
+        'id, activity_key, scheduled_day, is_completed, completed_at, outcome_score, outcome_data, title, description, module, estimated_minutes, priority, activity_type, skill_targets'
+      )
+      .eq('learning_path_id', pathRecord.id);
+    activities = (legacyResult.data || []).map((activity) => ({
+      ...activity,
+      scheduled_date: null,
+    }));
+    activitiesError = legacyResult.error;
+  }
+
+  if (activitiesError) throw activitiesError;
 
   const activityByKey = {};
   (activities || []).forEach((a) => {
@@ -457,6 +475,7 @@ export function useLearningPathData(isPremium = true) {
         user_id: userId,
         activity_key: activityKey,
         scheduled_day: dayName,
+        scheduled_date: taskObj.scheduled_date || null,
         is_completed: isCompleted,
         completed_at: isCompleted ? new Date().toISOString() : null,
         outcome_score: outcomeScore ?? null,
@@ -481,6 +500,19 @@ export function useLearningPathData(isPremium = true) {
     },
   });
 
+  const rescheduleActivityMutation = useMutation({
+    mutationFn: async ({ activityId, scheduledDate }) => {
+      if (!activityId || !scheduledDate) throw new Error('Activity and date are required');
+      const { data, error } = await supabase.rpc('reschedule_learning_path_activity', {
+        p_activity_id: activityId,
+        p_scheduled_date: scheduledDate,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['learningPath'] }),
+  });
+
   return {
     user: user || null,
     isLoading,
@@ -491,7 +523,9 @@ export function useLearningPathData(isPremium = true) {
     stats: finalStatsData || EMPTY_STATS,
     skillMap: finalSkillMap || EMPTY_SKILL_MAP,
     toggleActivity: toggleActivityMutation.mutateAsync,
+    rescheduleActivity: rescheduleActivityMutation.mutateAsync,
     isToggling: toggleActivityMutation.isPending,
+    isRescheduling: rescheduleActivityMutation.isPending,
   };
 }
 

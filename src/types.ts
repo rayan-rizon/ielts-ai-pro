@@ -12,6 +12,16 @@ export interface UserProfile {
   onboarding_completed?: boolean;
   weak_area?: string;
   study_hours_goal?: number;
+  study_availability?: {
+    version: 1;
+    timezone: string;
+    days: Partial<
+      Record<
+        'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday',
+        number
+      >
+    >;
+  } | null;
   target_band_score?: number;
   test_date?: string | null;
   [key: string]: any; // specific fields

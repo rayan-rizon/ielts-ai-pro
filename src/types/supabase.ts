@@ -1335,6 +1335,7 @@ export type Database = {
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
           study_hours_goal: number | null;
+          study_availability: Json | null;
           study_streak_days: number | null;
           subscription_amount: number | null;
           subscription_currency: string | null;
@@ -1387,6 +1388,7 @@ export type Database = {
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           study_hours_goal?: number | null;
+          study_availability?: Json | null;
           study_streak_days?: number | null;
           subscription_amount?: number | null;
           subscription_currency?: string | null;
@@ -1439,6 +1441,7 @@ export type Database = {
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           study_hours_goal?: number | null;
+          study_availability?: Json | null;
           study_streak_days?: number | null;
           subscription_amount?: number | null;
           subscription_currency?: string | null;

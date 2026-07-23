@@ -622,6 +622,10 @@ const router = createBrowserRouter(
       ),
     },
     {
+      path: '/learning-path-preview',
+      element: <Navigate to="/learning-path" replace />,
+    },
+    {
       path: '/resources',
       element: (
         <ProtectedRoute data-oid="4cw5.c1">
