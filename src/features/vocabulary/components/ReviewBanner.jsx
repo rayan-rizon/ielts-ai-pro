@@ -1,187 +1,284 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Zap, Play } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Play, Volume2, ChevronLeft, ChevronRight, CheckCircle2, BookmarkPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
+import { playPronunciation } from '../utils/audioUtils';
 
-/**
- * Review Banner Component
- * Shows the daily review call-to-action with flashcard preview
- */
-export default function ReviewBanner({ dueForReview, onStartReview, totalWords = 0 }) {
+const FEATURED_WORDS = [
+  {
+    word: 'meticulous',
+    ipa: '/məsˈtɪkjələs/',
+    pos: 'ADJECTIVE',
+    definition: 'Showing great attention to detail; very careful and precise.',
+    example: 'The researcher was meticulous in documenting every observation for the Band 8 essay.',
+    band: 'Band 8.0+',
+  },
+  {
+    word: 'persuasive',
+    ipa: '/pəˈsweɪ.sɪv/',
+    pos: 'ADJECTIVE',
+    definition: 'Good at persuading someone to do or believe something through reasoning.',
+    example: 'She presented a persuasive argument regarding environmental policy changes.',
+    band: 'Band 8.5+',
+  },
+  {
+    word: 'substantial',
+    ipa: '/səbˈstæn.ʃəl/',
+    pos: 'ADJECTIVE',
+    definition: 'Considerable in amount, size, or worth; strongly built.',
+    example: 'There has been a substantial increase in public transport usage over the decade.',
+    band: 'Band 7.5+',
+  },
+  {
+    word: 'accommodate',
+    ipa: '/əˈkɒm.ə.deɪt/',
+    pos: 'VERB',
+    definition: 'To provide lodging or space for; fit in with the wishes or needs of.',
+    example: 'The new urban plan will comfortably accommodate growing population demands.',
+    band: 'Band 8.0+',
+  },
+  {
+    word: 'inherent',
+    ipa: '/ɪnˈhɪər.ənt/',
+    pos: 'ADJECTIVE',
+    definition: 'Existing in something as a permanent, essential, or characteristic attribute.',
+    example: 'There are inherent risks involved in rapid industrial growth.',
+    band: 'Band 8.5+',
+  },
+];
+
+export default function ReviewBanner({
+  dueForReview = [],
+  onStartReview,
+  totalWords = 0,
+  onAddWord,
+}) {
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [addedFeatured, setAddedFeatured] = useState({});
+
   const hasDueItems = dueForReview.length > 0;
-  const nextItem = dueForReview[0];
+  const featured = FEATURED_WORDS[currentIdx];
 
-  const isEmpty = totalWords === 0;
-  const isCaughtUp = !hasDueItems && !isEmpty;
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIdx((prev) => (prev + 1) % FEATURED_WORDS.length);
+    }, 7000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleNext = (e) => {
+    e.stopPropagation();
+    setCurrentIdx((prev) => (prev + 1) % FEATURED_WORDS.length);
+  };
+
+  const handlePrev = (e) => {
+    e.stopPropagation();
+    setCurrentIdx((prev) => (prev - 1 + FEATURED_WORDS.length) % FEATURED_WORDS.length);
+  };
+
+  const handleAudio = (e) => {
+    e.stopPropagation();
+    setIsPlayingAudio(true);
+    playPronunciation(featured.word).finally(() => setIsPlayingAudio(false));
+  };
+
+  const handleAddFeatured = async (e) => {
+    e.stopPropagation();
+    if (!onAddWord) return;
+    setAddedFeatured((prev) => ({ ...prev, [featured.word]: 'loading' }));
+    try {
+      const res = await onAddWord({
+        word: featured.word,
+        definition: featured.definition,
+        example: featured.example,
+      });
+      if (res?.success || res) {
+        setAddedFeatured((prev) => ({ ...prev, [featured.word]: true }));
+      }
+    } catch {
+      setAddedFeatured((prev) => ({ ...prev, [featured.word]: false }));
+    }
+  };
+
+  const clearedPercent =
+    totalWords > 0 ? Math.round(((totalWords - dueForReview.length) / totalWords) * 100) : 100;
 
   return (
-    <div
-      className="relative overflow-hidden rounded-3xl bg-slate-900 dark:bg-slate-900/80 shadow-[0_30px_60px_-15px_rgba(79,70,229,0.4)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] text-white p-8 md:p-10 border border-white/10 group"
-      data-oid="37qn-0y"
-    >
-      {/* Premium Gradient Background */}
-      <div
-        className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 via-transparent to-purple-600/20 group-hover:opacity-100 opacity-60 transition-opacity duration-1000"
-        data-oid="tkiy:k_"
-      />
-
-      {/* Decorative Elements */}
-      <div
-        className="absolute top-0 right-0 w-[40%] h-full bg-gradient-to-l from-indigo-500/10 to-transparent pointer-events-none"
-        data-oid="kfw8qdm"
-      />
-
-      <div
-        className="absolute -top-20 -right-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] animate-pulse"
-        data-oid=".e6w228"
-      />
-
-      <div
-        className="flex flex-col md:flex-row items-center justify-between gap-10 relative z-10"
-        data-oid="1y--giy"
-      >
-        <div className="space-y-6 max-w-lg" data-oid="ik:z2iq">
-          <div className="flex items-center gap-3" data-oid="fegwgn:">
-            <div
-              className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 text-[10px] font-black tracking-[0.2em] uppercase shadow-inner text-indigo-100"
-              data-oid="ys3v0qi"
-            >
-              <Zap className="w-3 h-3 text-amber-400 fill-current" data-oid="dkgdg52" />
-              <span data-oid="tea_wxe">Daily Goal</span>
-            </div>
-            {hasDueItems && (
-              <span
-                className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400 animate-pulse"
-                data-oid="jlzb-m0"
-              >
-                <div
-                  className="w-1.5 h-1.5 rounded-full bg-current shadow-[0_0_8px_rgba(52,211,153,0.8)]"
-                  data-oid="m97h2a5"
-                />
-                Review Needed
-              </span>
-            )}
-          </div>
-
-          <div className="space-y-3" data-oid="v7i:8zr">
-            <h2
-              className="text-3xl md:text-4xl font-black leading-tight tracking-tight"
-              data-oid="s6awo_z"
-            >
-              {isEmpty ? 'Start Your' : isCaughtUp ? 'All Caught' : 'Daily Review'}{' '}
-              <br data-oid="7udn1wi" />
-              <span className="text-indigo-400" data-oid="e07nrvy">
-                {isEmpty ? 'Journey' : isCaughtUp ? 'Up!' : 'Session'}
-              </span>
+    <div className="relative overflow-hidden rounded-3xl bg-[#F1EFFF] dark:bg-slate-900/90 text-slate-900 dark:text-white p-6 sm:p-7 border border-indigo-100 dark:border-slate-800 shadow-xs group">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10">
+        {/* Left Side: Daily Review Queue */}
+        <div className="lg:col-span-6 space-y-4">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h2 className="text-xl sm:text-2xl font-black leading-tight tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+              Daily Review
             </h2>
-            <p
-              className="text-indigo-100/70 leading-relaxed font-medium text-sm md:text-base"
-              data-oid="b4iqqe."
+            <Badge
+              variant="outline"
+              className="px-2.5 py-0.5 rounded-md bg-[#E4E0FF] dark:bg-indigo-950/60 border-none text-[#635BFF] dark:text-indigo-300 font-black text-[10px] uppercase tracking-wider"
             >
-              {isEmpty ? (
-                'Your library is waiting to be filled. Add new words to begin your active recall journey.'
-              ) : isCaughtUp ? (
-                "Excellent progress! You've reviewed all pending items. Come back later for more."
-              ) : (
-                <>
-                  You have{' '}
-                  <span
-                    className="text-white font-black underline decoration-indigo-500/50 underline-offset-4"
-                    data-oid="ye.wles"
-                  >
-                    {dueForReview.length} items
-                  </span>{' '}
-                  waiting for review. Practice now to remember them better.
-                </>
-              )}
-            </p>
+              SMART REVIEW
+            </Badge>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 pt-2" data-oid="ngn9z41">
+          <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm font-semibold leading-relaxed max-w-md">
+            Strengthen retention with spaced repetition.
+          </p>
+
+          {/* Progress Bar */}
+          <div className="space-y-1.5 max-w-md pt-1">
+            <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+              <span>
+                {dueForReview.length} of {totalWords > 0 ? totalWords : 30} items
+              </span>
+              <span className="text-[#635BFF] dark:text-indigo-400 font-black">
+                {clearedPercent}%
+              </span>
+            </div>
+            <div className="w-full h-2 bg-[#E4E0FF] dark:bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#635BFF] rounded-full transition-all duration-700"
+                style={{
+                  width: `${totalWords > 0 ? Math.max(8, clearedPercent) : 80}%`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Solid Color Buttons (NO Gradients) */}
+          <div className="pt-2 flex flex-wrap items-center gap-2.5">
             <Button
               onClick={onStartReview}
               disabled={!hasDueItems}
               className={cn(
-                'h-14 px-10 rounded-2xl font-black uppercase tracking-[0.15em] text-xs transition-all duration-500 group-active:scale-95 shadow-xl shadow-indigo-500/20',
+                'h-11 px-6 rounded-xl font-bold text-xs transition-all shadow-xs flex items-center gap-2',
                 hasDueItems
-                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white border-b-4 border-indigo-800 active:border-b-0 translate-y-[-2px] active:translate-y-[2px]'
-                  : 'bg-slate-800 text-slate-500 border-none cursor-not-allowed opacity-50'
+                  ? 'bg-[#635BFF] hover:bg-[#5249E6] text-white shadow-indigo-500/20 active:scale-[0.98]'
+                  : 'bg-slate-300 dark:bg-slate-800 text-slate-500 border-none cursor-not-allowed'
               )}
-              data-oid="4c3:be6"
             >
-              <Play className="w-3.5 h-3.5 mr-2 fill-current" data-oid="f:8_u3x" />
-              Start Review
+              <Play className="w-3.5 h-3.5 fill-current" />
+              {hasDueItems ? 'Start Review Session' : 'Review Queue Clear'}
             </Button>
-            {!hasDueItems && (
-              <div
-                className="text-slate-500 text-xs font-bold uppercase tracking-widest italic flex items-center gap-2"
-                data-oid=":uflwqj"
-              >
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" data-oid="r7b703g" />
-                System Synchronized
-              </div>
-            )}
+
+            <Button
+              onClick={onStartReview}
+              variant="outline"
+              className="h-11 px-5 rounded-xl font-bold text-xs bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 shadow-2xs"
+            >
+              Review All Due ({dueForReview.length})
+            </Button>
           </div>
         </div>
 
-        {/* Interactive Flashcard Preview */}
-        <div
-          className="hidden lg:block relative w-80 h-56 perspective-1000 group/card cursor-pointer"
-          onClick={hasDueItems ? onStartReview : undefined}
-          data-oid="ie5bjpe"
-        >
-          <div
-            className="absolute inset-0 bg-indigo-500/10 rounded-3xl border border-indigo-400/20 transform rotate-6 scale-95 transition-transform duration-700 group-hover/card:rotate-[12deg]"
-            data-oid="uu:yvfa"
-          />
+        {/* Right Side: Featured Word Card */}
+        <div className="lg:col-span-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs h-[215px] flex flex-col justify-between relative overflow-hidden group/featured">
+            {/* Top Row: Badge & Pagination */}
+            <div className="flex items-center justify-between gap-2 pb-1 shrink-0">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#635BFF] dark:text-indigo-400">
+                FEATURED WORD
+              </span>
 
-          <div
-            className="absolute inset-0 bg-slate-900/80 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center p-8 text-center transition-all duration-500 group-hover/card:-translate-y-4 group-hover/card:shadow-[0_40px_80px_rgba(79,70,229,0.3)]"
-            data-oid="i3zd7vj"
-          >
-            <div
-              className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent rounded-t-full"
-              data-oid="k2fou3v"
-            />
-
-            <div
-              className="text-[11px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-6 opacity-100"
-              data-oid="6.z-nms"
-            >
-              {hasDueItems ? 'Up Next' : isCaughtUp ? 'Victory' : 'Get Started'}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={handlePrev}
+                  className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors cursor-pointer"
+                  title="Previous word"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleNext}
+                  className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors cursor-pointer"
+                  title="Next word"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            <div className="relative mb-4 w-full px-6" data-oid="icke5sq">
-              <div
-                className="absolute inset-0 blur-3xl bg-indigo-500/30 animate-pulse pointer-events-none"
-                data-oid="5sg6erd"
-              />
+            {/* Middle Content Box */}
+            <div className="flex-1 overflow-hidden flex flex-col justify-center my-0.5">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={featured.word}
+                  initial={{ opacity: 0, y: 3 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -3 }}
+                  transition={{ duration: 0.15 }}
+                  className="space-y-1.5"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xl sm:text-2xl font-black tracking-tight text-[#635BFF] dark:text-indigo-400">
+                          {featured.word}
+                        </h3>
+                        <button
+                          onClick={handleAudio}
+                          className={cn(
+                            'p-1 rounded-full hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-[#635BFF] transition-colors cursor-pointer',
+                            isPlayingAudio && 'text-amber-500 animate-pulse'
+                          )}
+                          title="Listen audio pronunciation"
+                        >
+                          <Volume2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-slate-500 font-mono mt-0.5">
+                        <span>{featured.ipa}</span>
+                        <Badge className="bg-[#635BFF] text-white border-none text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md">
+                          {featured.pos}
+                        </Badge>
+                      </div>
+                    </div>
 
-              <h3
-                className="text-4xl md:text-5xl font-black text-white relative z-10 italic tracking-tighter drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] truncate"
-                data-oid="72.qwsi"
-              >
-                {hasDueItems ? nextItem?.word : isCaughtUp ? 'Caught Up!' : 'Empty List'}
-              </h3>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleAddFeatured}
+                      disabled={addedFeatured[featured.word] === true}
+                      className="h-8 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold uppercase tracking-wider border border-slate-200 dark:border-slate-700 shrink-0 cursor-pointer"
+                    >
+                      {addedFeatured[featured.word] === true ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-500" /> Saved
+                        </>
+                      ) : (
+                        <>
+                          <BookmarkPlus className="w-3.5 h-3.5 mr-1 text-[#635BFF]" /> Add to Bank
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-medium line-clamp-2">
+                    {featured.definition}
+                  </p>
+
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal flex items-center gap-1 truncate">
+                    <span className="text-[#635BFF] font-bold">"</span>
+                    <span className="italic truncate">{featured.example}</span>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
             </div>
 
-            <div
-              className="text-[11px] text-indigo-200 font-bold uppercase tracking-[0.2em] leading-relaxed line-clamp-2 max-w-[220px] opacity-80 italic"
-              data-oid="9ovogor"
-            >
-              {hasDueItems
-                ? nextItem?.definition
-                : isCaughtUp
-                  ? "You've mastered all your words for today."
-                  : 'Add words to your library to begin your review sessions.'}
-            </div>
-
-            <div
-              className="text-[10px] text-indigo-300/80 font-black uppercase tracking-[0.3em] mt-4"
-              data-oid="e-yowq5"
-            >
-              {hasDueItems ? 'Click to begin' : isCaughtUp ? 'Check back later' : 'Start learning'}
+            {/* Bottom Pagination Dots */}
+            <div className="flex items-center justify-center gap-1.5 pt-1 shrink-0">
+              {FEATURED_WORDS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentIdx(i)}
+                  className={cn(
+                    'h-1.5 rounded-full transition-all duration-300',
+                    i === currentIdx ? 'w-5 bg-[#635BFF]' : 'w-1.5 bg-slate-200 dark:bg-slate-700'
+                  )}
+                />
+              ))}
             </div>
           </div>
         </div>

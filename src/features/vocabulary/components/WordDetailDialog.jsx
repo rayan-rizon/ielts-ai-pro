@@ -9,70 +9,70 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { X, BookOpen, Star, Clock, Brain, Languages, Zap, Trash2 } from 'lucide-react';
+import { X, Star, Clock, Brain, Languages, Trash2, Volume2 } from 'lucide-react';
 import {
   translateText,
   SUPPORTED_LANGUAGES,
   getLanguageName,
 } from '@/features/vocabulary/services/translateService';
+import { playPronunciation } from '../utils/audioUtils';
 
-// Subcomponents to reduce cyclomatic complexity
-const WordHeader = ({ viewingWord }) => (
-  <div
-    className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 px-8 pb-8 pt-14 pr-16 text-white relative group overflow-hidden"
-    data-oid="g5_6781"
-  >
-    <div
-      className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"
-      data-oid="17yfw:k"
-    ></div>
-    <div
-      className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-1000"
-      data-oid=".-3y.tf"
-    >
-      <BookOpen className="w-32 h-32" data-oid="hybtvfg" />
-    </div>
+const WordHeader = ({ viewingWord }) => {
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
-    <div className="relative z-10 space-y-3 max-w-[85%]" data-oid="cu4_dnd">
-      <div className="flex flex-wrap items-center gap-2" data-oid="5gv7t6f">
-        <Badge
-          className="bg-white/20 hover:bg-white/30 text-white border-white/10 text-[9px] font-black uppercase tracking-[0.2em] shadow-sm"
-          data-oid="b3pleh8"
-        >
-          {viewingWord.source || 'Manual Record'}
-        </Badge>
-        {(viewingWord.mastery_level || 0) >= 4 && (
-          <Badge
-            className="bg-emerald-400/20 text-emerald-100 border-emerald-400/30 text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-2 shadow-sm"
-            data-oid="rp0rp4d"
-          >
-            <Star className="w-3 h-3 fill-current" data-oid="g-yso:x" /> Mastery Reached
+  const handleAudio = (e) => {
+    e.stopPropagation();
+    setIsPlayingAudio(true);
+    playPronunciation(viewingWord.word).finally(() => setIsPlayingAudio(false));
+  };
+
+  return (
+    <div className="bg-[#635BFF] dark:bg-slate-900 px-6 pt-6 pb-5 pr-12 text-white relative group overflow-hidden">
+      <div className="relative z-10 space-y-2.5 max-w-[92%]">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge className="bg-white/20 hover:bg-white/30 text-white border-none text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md">
+            {viewingWord.source || 'Academic'}
           </Badge>
-        )}
-      </div>
-      <h2 className="text-4xl font-black tracking-tighter drop-shadow-lg" data-oid="r22zj8:">
-        {viewingWord.word}
-      </h2>
-      <div
-        className="flex items-center gap-6 text-[10px] text-white/70 font-black uppercase tracking-widest pt-2"
-        data-oid="bu72mu7"
-      >
-        <div className="flex items-center gap-2" data-oid="vmqlf8t">
-          <Clock className="w-3.5 h-3.5" data-oid="fwrhin:" /> Reviewed:{' '}
-          <span className="text-white" data-oid="hf6b89i">
-            {viewingWord.times_reviewed || 0}
+          {(viewingWord.mastery_level || 0) >= 4 && (
+            <Badge className="bg-emerald-400/25 text-emerald-100 border-none text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1">
+              <Star className="w-3 h-3 fill-current text-amber-300" /> Mastered
+            </Badge>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight drop-shadow-2xs">
+            {viewingWord.word}
+          </h2>
+          <button
+            onClick={handleAudio}
+            className={`p-1.5 rounded-full bg-white/15 hover:bg-white/30 transition-all cursor-pointer ${isPlayingAudio ? 'text-amber-300 animate-pulse' : 'text-white'}`}
+            title="Listen pronunciation"
+          >
+            <Volume2 className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2.5 text-xs text-indigo-100/90 font-mono">
+          <span>{viewingWord.ipa || `/${viewingWord.word}/`}</span>
+          <span className="font-sans font-bold uppercase tracking-wider text-[9px] px-2 py-0.5 rounded bg-white/15">
+            {viewingWord.pos || 'Word'}
           </span>
         </div>
-        <div className="flex items-center gap-2" data-oid="wn9xbds">
-          <Brain className="w-3.5 h-3.5" data-oid="i5e:ckg" /> Retention:{' '}
-          <span className="text-white" data-oid="5p:vn7g">
-            88%
-          </span>
+
+        <div className="flex items-center gap-4 text-[9px] text-white/80 font-black uppercase tracking-wider pt-0.5">
+          <div className="flex items-center gap-1">
+            <Clock className="w-3 h-3" /> Reviewed:{' '}
+            <span className="text-white">{viewingWord.times_reviewed || 0} times</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Brain className="w-3 h-3" /> Retention: <span className="text-white">88%</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const TranslationSection = ({
   viewingWord,
@@ -82,31 +82,19 @@ const TranslationSection = ({
   translatedDefinition,
   isTranslating,
 }) => (
-  <>
-    {/* Language Selector */}
-    <div className="flex items-center justify-between" data-oid="e-hn8l0">
-      <h3
-        className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] flex items-center gap-3"
-        data-oid="f6a9bo2"
-      >
-        <Languages className="w-4 h-4" data-oid="yfc6vb9" />
+  <div className="space-y-3">
+    <div className="flex items-center justify-between">
+      <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+        <Languages className="w-3.5 h-3.5 text-[#635BFF]" />
         Translate to
       </h3>
-      <Select value={targetLanguage} onValueChange={setTargetLanguage} data-oid="yf27:l.">
-        <SelectTrigger
-          className="w-[160px] h-9 rounded-xl bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-sm font-bold"
-          data-oid="qx1qi5b"
-        >
-          <SelectValue placeholder="Select language" data-oid="0lghnaa" />
+      <Select value={targetLanguage} onValueChange={setTargetLanguage}>
+        <SelectTrigger className="w-[130px] h-7.5 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200/90 dark:border-slate-700 text-xs font-bold">
+          <SelectValue placeholder="Language" />
         </SelectTrigger>
-        <SelectContent className="rounded-xl" data-oid="-5ul3ar">
+        <SelectContent className="rounded-xl">
           {SUPPORTED_LANGUAGES.map((lang) => (
-            <SelectItem
-              key={lang.code}
-              value={lang.code}
-              className="font-medium"
-              data-oid="ddqr1-p"
-            >
+            <SelectItem key={lang.code} value={lang.code} className="font-medium text-xs">
               {lang.name}
             </SelectItem>
           ))}
@@ -114,93 +102,53 @@ const TranslationSection = ({
       </Select>
     </div>
 
-    {/* Definition Section */}
-    <div className="space-y-3" data-oid="khy24rs">
-      <h3
-        className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] flex items-center gap-3"
-        data-oid="dxt33y5"
-      >
-        <div className="w-1.5 h-4 bg-indigo-500 rounded-full" data-oid="vb.t8cj" />
-        Definition
+    <div className="space-y-1.5">
+      <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+        <div className="w-1.5 h-3 bg-[#635BFF] rounded-full" />
+        Meaning / Definition
       </h3>
-      <p
-        className="text-xl text-slate-800 dark:text-slate-200 leading-snug font-serif italic border-l-4 border-indigo-500/20 pl-5 py-1"
-        data-oid="rf7dm40"
-      >
+      <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-medium border-l-2 border-[#635BFF] pl-3 py-0.5">
         {viewingWord.definition || 'Definition unavailable.'}
       </p>
 
-      {/* Translation Display */}
       {targetLanguage !== 'en' && (
-        <div
-          className="mt-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-2xl border border-indigo-100 dark:border-indigo-800/30"
-          data-oid="q7llcyv"
-        >
-          <div className="flex items-center gap-2 mb-2" data-oid="s20e-g1">
-            <Languages className="w-3.5 h-3.5 text-indigo-500" data-oid=".3.0p_m" />
-            <span
-              className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest"
-              data-oid="i9--.t6"
-            >
+        <div className="mt-2 p-3 bg-indigo-50/70 dark:bg-indigo-950/40 rounded-xl border border-indigo-100/90 dark:border-indigo-900/40 space-y-1">
+          <div className="flex items-center gap-1.5">
+            <Languages className="w-3 h-3 text-[#635BFF]" />
+            <span className="text-[9px] font-black text-[#635BFF] dark:text-indigo-400 uppercase tracking-wider">
               {getLanguageName(targetLanguage)} Translation
             </span>
             {isTranslating && (
-              <span className="text-[9px] text-slate-400 animate-pulse" data-oid="ao04sru">
-                Translating...
-              </span>
+              <span className="text-[9px] text-slate-400 animate-pulse">Translating...</span>
             )}
           </div>
           {translatedWord && (
-            <p
-              className="text-lg font-bold text-indigo-700 dark:text-indigo-300 mb-1"
-              data-oid="yanawqo"
-            >
-              {translatedWord}
-            </p>
+            <p className="text-xs font-black text-slate-900 dark:text-white">{translatedWord}</p>
           )}
           {translatedDefinition && (
-            <p className="text-base text-slate-700 dark:text-slate-300 italic" data-oid="3c_9s90">
+            <p className="text-xs text-slate-600 dark:text-slate-300 italic">
               {translatedDefinition}
-            </p>
-          )}
-          {!isTranslating && !translatedWord && !translatedDefinition && (
-            <p className="text-sm text-slate-500 italic" data-oid="ttgvuv7">
-              Translation unavailable
             </p>
           )}
         </div>
       )}
     </div>
-  </>
+  </div>
 );
 
 const ExampleSection = ({ viewingWord }) => {
-  if (!viewingWord.example && !viewingWord.example_sentence) return null;
+  const exampleText = viewingWord.example || viewingWord.example_sentence;
+  if (!exampleText) return null;
 
   return (
-    <div className="space-y-4" data-oid="jyvsw0v">
-      <h3
-        className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] flex items-center gap-3"
-        data-oid="i41nev."
-      >
-        <div className="w-1.5 h-4 bg-amber-500 rounded-full" data-oid="-d4zblp" />
-        Example
+    <div className="space-y-1.5">
+      <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+        <div className="w-1.5 h-3 bg-amber-500 rounded-full" />
+        Context Example
       </h3>
-      <div
-        className="bg-slate-50 dark:bg-white/5 p-6 rounded-3xl border border-slate-100 dark:border-white/5 relative overflow-hidden group/context"
-        data-oid=":h.5sej"
-      >
-        <div
-          className="absolute top-0 right-0 p-4 opacity-5 group-hover/context:scale-110 transition-transform"
-          data-oid="qiygw_o"
-        >
-          <Zap className="w-12 h-12" data-oid="fb773-2" />
-        </div>
-        <p
-          className="text-base md:text-lg text-slate-600 dark:text-slate-400 leading-relaxed italic font-serif relative z-10"
-          data-oid="in1n94h"
-        >
-          "{viewingWord.example || viewingWord.example_sentence}"
+      <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed italic">
+          "{exampleText}"
         </p>
       </div>
     </div>
@@ -208,31 +156,23 @@ const ExampleSection = ({ viewingWord }) => {
 };
 
 const OperationalControls = ({ viewingWord, setViewingWord, handleDeleteWord }) => (
-  <div
-    className="pt-8 flex items-center justify-between border-t border-slate-100 dark:border-white/5"
-    data-oid="hyg27po"
-  >
+  <div className="pt-3 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
     <Button
       variant="ghost"
-      className="h-12 px-6 rounded-xl text-red-500 hover:bg-red-500/5 font-black uppercase tracking-widest text-[9px] group transition-all"
+      className="h-8.5 px-3 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-black uppercase tracking-wider text-[10px] cursor-pointer"
       onClick={() => {
         handleDeleteWord(viewingWord.id);
         setViewingWord(null);
       }}
-      data-oid="r01932v"
     >
-      <Trash2 className="w-4 h-4 mr-3 group-hover:animate-bounce" data-oid=":9wqekp" /> Purge Entry
+      <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Delete Entry
     </Button>
     <Button
       type="button"
-      className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 h-10 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-2xl active:scale-95 transition-all"
-      onClick={(e) => {
-        e.preventDefault();
-        setViewingWord(null);
-      }}
-      data-oid="rv0h_zf"
+      className="bg-[#635BFF] hover:bg-[#5249E6] text-white h-8.5 px-5 rounded-xl font-black uppercase tracking-wider text-[10px] shadow-2xs active:scale-95 transition-all cursor-pointer"
+      onClick={() => setViewingWord(null)}
     >
-      Acknowledge
+      Close
     </Button>
   </div>
 );
@@ -266,8 +206,6 @@ export default function WordDetailDialog({
         setTranslatedDefinition(defTrans);
       } catch (error) {
         console.error('Translation failed:', error);
-        setTranslatedWord('');
-        setTranslatedDefinition('');
       } finally {
         setIsTranslating(false);
       }
@@ -277,29 +215,18 @@ export default function WordDetailDialog({
   }, [viewingWord, targetLanguage]);
 
   return (
-    <Dialog
-      open={!!viewingWord}
-      onOpenChange={(open) => !open && setViewingWord(null)}
-      data-oid=".dg5vna"
-    >
+    <Dialog open={!!viewingWord} onOpenChange={(open) => !open && setViewingWord(null)}>
       <DialogContent
         hideClose
-        className="max-w-lg bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl border-none shadow-[0_40px_100px_rgba(0,0,0,0.2)] dark:shadow-[0_40px_100px_rgba(0,0,0,0.5)] p-0 overflow-hidden rounded-3xl"
-        data-oid="t8t277p"
+        className="max-w-md bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xl p-0 overflow-hidden rounded-2xl"
       >
-        <DialogClose
-          className="absolute top-4 right-4 p-2 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 transition-all text-white/80 hover:text-white backdrop-blur-md z-[60] ring-1 ring-white/20"
-          data-oid="300yw7t"
-        >
-          <X className="w-5 h-5" data-oid="ajvd.uo" />
-          <span className="sr-only" data-oid="d3jqqib">
-            Close
-          </span>
+        <DialogClose className="absolute top-3.5 right-3.5 p-1.5 rounded-full bg-black/15 hover:bg-black/25 text-white z-50 transition-colors cursor-pointer">
+          <X className="w-3.5 h-3.5" />
         </DialogClose>
         {viewingWord && (
-          <div className="flex flex-col italic" data-oid="fl2_w67">
+          <div className="flex flex-col">
             <WordHeader viewingWord={viewingWord} />
-            <div className="p-8 space-y-6" data-oid="wof-yw3">
+            <div className="p-5 space-y-4">
               <TranslationSection
                 viewingWord={viewingWord}
                 targetLanguage={targetLanguage}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Zap, Clock, Target, ChevronRight } from 'lucide-react';
+import { Zap, Clock, Target, ChevronRight, Layers, PenTool } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 export default function SimulationHub({ onStartSpeedQuiz, onStartMatchPairs }) {
@@ -9,61 +9,88 @@ export default function SimulationHub({ onStartSpeedQuiz, onStartMatchPairs }) {
       id: 'quiz',
       name: 'Speed Match',
       icon: Clock,
-      color: 'bg-red-500',
-      hover: 'hover:border-red-500/30 hover:bg-red-500/5',
       start: onStartSpeedQuiz,
-      desc: 'Race against time.',
+      desc: 'Race against the clock to match terms.',
+      iconBg:
+        'bg-amber-100/80 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200/80 dark:border-amber-900/40',
+      hoverBorder: 'hover:border-amber-300 dark:hover:border-amber-800',
     },
     {
       id: 'match',
       name: 'Match Pairs',
       icon: Target,
-      color: 'bg-purple-500',
-      hover: 'hover:border-purple-500/30 hover:bg-purple-500/5',
       start: onStartMatchPairs,
-      desc: 'Match word meanings.',
+      desc: 'Pair high-impact words with definitions.',
+      iconBg:
+        'bg-emerald-100/80 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-900/40',
+      hoverBorder: 'hover:border-emerald-300 dark:hover:border-emerald-800',
+    },
+    {
+      id: 'flashcards',
+      name: 'Smart Flashcards',
+      icon: Layers,
+      start: onStartSpeedQuiz,
+      desc: 'Interactive active recall card deck.',
+      iconBg:
+        'bg-indigo-100/80 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-900/40',
+      hoverBorder: 'hover:border-indigo-300 dark:hover:border-indigo-800',
+    },
+    {
+      id: 'gapfill',
+      name: 'Sentence Fill',
+      icon: PenTool,
+      start: onStartMatchPairs,
+      desc: 'Insert target vocabulary in context.',
+      iconBg:
+        'bg-purple-100/80 text-purple-600 dark:bg-purple-950/60 dark:text-purple-300 border-purple-200/80 dark:border-purple-900/40',
+      hoverBorder: 'hover:border-purple-300 dark:hover:border-purple-800',
     },
   ];
 
   return (
-    <Card className="w-full border-none shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] bg-white/95 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-slate-200/50 dark:border-white/[0.12] overflow-hidden">
-      <CardHeader className="p-6 pb-2">
-        <CardTitle className="flex items-center gap-3 text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
-          <div className="w-9 h-9 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/20">
-            <Zap className="w-5 h-5 stroke-[2.5px] fill-current" />
+    <Card className="w-full border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm rounded-2xl overflow-hidden">
+      <CardHeader className="p-4 pb-2.5 border-b border-slate-100 dark:border-slate-800/60">
+        <CardTitle className="flex items-center justify-between text-sm font-black text-slate-900 dark:text-white">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 flex items-center justify-center border border-amber-200 dark:border-amber-800">
+              <Zap className="w-3.5 h-3.5" />
+            </div>
+            <span>Practice Arena</span>
           </div>
-          Practice Arena
+          <span className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider hover:underline cursor-pointer">
+            Explore All
+          </span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-6 space-y-4">
+      <CardContent className="p-3 space-y-2">
         {games.map((game) => (
           <div
             key={game.id}
             onClick={game.start}
             className={cn(
-              'group flex items-center justify-between p-4 rounded-2xl border border-slate-100 dark:border-white/[0.12] cursor-pointer transition-all duration-300 hover:shadow-lg',
-              game.hover
+              'group flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-950/40 cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm',
+              game.hoverBorder
             )}
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div
                 className={cn(
-                  'w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-xl transition-transform group-hover:scale-110 group-hover:rotate-3',
-                  game.color
+                  'w-9 h-9 rounded-xl flex items-center justify-center border transition-transform group-hover:scale-105',
+                  game.iconBg
                 )}
               >
-                <game.icon className="w-5 h-5 stroke-[2.5px]" />
+                <game.icon className="w-4 h-4" />
               </div>
-              <div className="space-y-0.5">
-                <h4 className="font-black text-slate-800 dark:text-slate-100 text-[13px] uppercase tracking-tight italic">
+              <div>
+                <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">
                   {game.name}
                 </h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 font-medium">
                   {game.desc}
                 </p>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-all translate-x-0 group-hover:translate-x-1" />
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-transform group-hover:translate-x-1" />
           </div>
         ))}
       </CardContent>

@@ -50,7 +50,6 @@ const GameModals = lazy(() =>
             gameState={speedQuiz.gameState}
             gameScore={speedQuiz.gameScore}
             onAnswer={speedQuiz.handleQuizAnswer}
-            data-oid="4jcnyai"
           />
           <module.MatchPairsModal
             isOpen={matchPairs.isMatchPairsOpen}
@@ -60,7 +59,6 @@ const GameModals = lazy(() =>
             gameScore={matchPairs.gameScore}
             onCardClick={matchPairs.handleCardClick}
             onRestart={onRestartMatchPairs}
-            data-oid="awuudbs"
           />
         </>
       );
@@ -73,105 +71,61 @@ const getWordLimit = (subscriptionTier) =>
   VOCABULARY_LIMITS[(subscriptionTier || 'free').toLowerCase()] || VOCABULARY_LIMITS.free;
 
 const PageHeader = ({ stats, user }) => (
-  <div
-    className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative"
-    data-oid="l8.0yzd"
-  >
-    <div className="flex-1 space-y-4" data-oid="d2:o_2-">
-      <div className="flex items-center gap-3" data-oid="ot18hv_">
+  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5 pb-5 border-b border-slate-200/80 dark:border-slate-800">
+    {/* Left Side: Bolder Title & Subtitle (No PREMIUM badge as requested) */}
+    <div className="space-y-1.5 max-w-2xl">
+      <div className="flex items-center gap-2">
         <Badge
           variant="outline"
-          className="px-3 py-1 rounded-full bg-indigo-500/5 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold text-[10px] uppercase tracking-wider"
-          data-oid="n6d-iw0"
+          className="px-3 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-black text-[10px] uppercase tracking-wider"
         >
-          Smart Vocabulary
+          IELTS Vocabulary Engine
         </Badge>
       </div>
-      <h1
-        className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white mt-3 leading-tight italic"
-        data-oid="963i93."
-      >
-        Vocab{' '}
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
-          Mastery
-        </span>{' '}
-        🧠
+
+      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+        Vocabulary Mastery
       </h1>
-      <p
-        className="text-slate-600 dark:text-slate-300 text-base md:text-lg font-medium max-w-xl"
-        data-oid="mn_n46j"
-      >
-        Master high-precision words and unlock an 8.0+ Band Score.
+      <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base font-semibold leading-relaxed">
+        Master high-precision vocabulary, active recall flashcards, and topic word lists for IELTS
+        Band 8.0+.
       </p>
     </div>
-    <div className="w-full lg:w-auto flex justify-start lg:justify-end" data-oid="c0vzl5j">
+
+    {/* Right Side: Header Stats Cluster */}
+    <div className="w-full xl:w-auto flex justify-start xl:justify-end">
       <VocabularyStats
         stats={stats}
         wordLimit={getWordLimit(user?.subscription_tier)}
-        data-oid="nwe16ew"
+        dueCount={stats?.dueForReviewCount || 0}
       />
     </div>
   </div>
 );
 
 const BackgroundDecor = () => (
-  <div
-    aria-hidden="true"
-    className="fixed inset-0 -z-10 pointer-events-none overflow-hidden"
-    data-oid="chnv4zm"
-  >
-    <div
-      className="absolute top-[-10%] left-[-10%] w-[70rem] h-[70rem] rounded-full bg-slate-200/30 dark:bg-indigo-950/20 blur-[120px]"
-      data-oid="q5v6bkj"
-    />
-    <div
-      className="absolute bottom-[-20%] right-[-10%] w-[60rem] h-[60rem] rounded-full bg-indigo-100/20 dark:bg-slate-900/10 blur-[120px]"
-      data-oid="evk_.l3"
-    />
-    <div
-      className="absolute top-[20%] right-[10%] w-[40rem] h-[40rem] rounded-full bg-slate-200/10 dark:bg-slate-900/15 blur-[80px]"
-      data-oid="-pu1p9d"
-    />
-    <div
-      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-0 dark:opacity-40 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.03)_0%,transparent_70%)]"
-      data-oid=":lx4mdl"
-    />
-    <div
-      className="absolute inset-0 opacity-[0.2] dark:opacity-40 bg-[radial-gradient(at_top_left,rgba(71,85,105,0.05)_0%,transparent_50%),radial-gradient(at_bottom_right,rgba(30,41,59,0.05)_0%,transparent_50%)]"
-      data-oid="zzl442g"
-    />
-    <div
-      className="absolute inset-0 bg-[linear-gradient(to_right,#80808005_1px,transparent_1px),linear-gradient(to_bottom,#80808005_1px,transparent_1px)] bg-[size:48px_48px]"
-      data-oid="s7g.tim"
-    />
+  <div aria-hidden="true" className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+    <div className="absolute top-[-10%] left-[-10%] w-[50rem] h-[50rem] rounded-full bg-indigo-500/10 blur-[130px]" />
+    <div className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] rounded-full bg-purple-500/10 blur-[130px]" />
   </div>
 );
 
 const LoadingSkeleton = () => (
-  <div
-    className="min-h-screen bg-slate-50 dark:bg-[#020617] p-8 space-y-8"
-    data-oid="skeleton-loader"
-  >
+  <div className="min-h-screen bg-slate-50 dark:bg-[#020617] p-8 space-y-8">
     <div className="max-w-[1600px] mx-auto space-y-8">
       <div className="flex justify-between items-start gap-6">
         <div className="space-y-4">
           <Skeleton className="h-10 w-64 rounded-xl" />
           <Skeleton className="h-6 w-96 rounded-lg" />
         </div>
-        <div className="hidden lg:block">
-          <Skeleton className="h-32 w-80 rounded-3xl" />
-        </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 space-y-6">
           <Skeleton className="h-64 w-full rounded-3xl" />
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-24 w-full rounded-2xl" />
-            ))}
-          </div>
+          <Skeleton className="h-48 w-full rounded-3xl" />
+          <Skeleton className="h-96 w-full rounded-3xl" />
         </div>
-        <div className="space-y-8">
+        <div className="lg:col-span-4 space-y-6">
           <Skeleton className="h-48 w-full rounded-3xl" />
           <Skeleton className="h-96 w-full rounded-3xl" />
         </div>
@@ -181,52 +135,25 @@ const LoadingSkeleton = () => (
 );
 
 const AlertDialog = ({ config, setConfig }) => (
-  <Dialog
-    open={config.open}
-    onOpenChange={(open) => setConfig((prev) => ({ ...prev, open }))}
-    data-oid="i_0c5q6"
-  >
-    <DialogContent
-      className="max-w-md bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl border-none shadow-[0_40px_100px_rgba(0,0,0,0.2)] rounded-3xl p-10 overflow-hidden"
-      data-oid="ib78nab"
-    >
-      <div
-        className="absolute -top-20 -right-20 w-40 h-40 bg-amber-500/10 rounded-full blur-[60px]"
-        data-oid="kn:_g7d"
-      />
-      <div
-        className="flex flex-col items-center text-center gap-6 relative z-10"
-        data-oid="cngf3i-"
-      >
-        <div
-          className="w-16 h-16 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center shadow-inner group transition-transform hover:scale-110"
-          data-oid="3wfd3kk"
-        >
-          <AlertCircle
-            className="w-8 h-8 group-hover:rotate-12 transition-transform"
-            data-oid=".jhaq33"
-          />
+  <Dialog open={config.open} onOpenChange={(open) => setConfig((prev) => ({ ...prev, open }))}>
+    <DialogContent className="max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-2xl p-6">
+      <div className="flex flex-col items-center text-center gap-4">
+        <div className="w-12 h-12 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center">
+          <AlertCircle className="w-6 h-6" />
         </div>
-        <div className="space-y-2" data-oid="kaz6ldb">
-          <DialogTitle
-            className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-wide"
-            data-oid="9py22_u"
-          >
+        <div className="space-y-1">
+          <DialogTitle className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
             {config.title}
           </DialogTitle>
-          <p
-            className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
-            data-oid="vc:nusu"
-          >
+          <p className="text-slate-600 dark:text-slate-300 font-semibold text-xs leading-relaxed">
             {config.message}
           </p>
         </div>
         <Button
-          className="bg-slate-900 dark:bg-amber-600 hover:bg-slate-800 dark:hover:bg-amber-500 text-white h-14 rounded-2xl px-12 font-black uppercase tracking-[0.2em] text-[10px] w-full shadow-xl shadow-amber-500/10 active:scale-95 transition-all"
+          className="bg-indigo-600 hover:bg-indigo-500 text-white h-10 rounded-xl px-8 font-black text-xs w-full shadow-md"
           onClick={() => setConfig((prev) => ({ ...prev, open: false }))}
-          data-oid="p7sms.g"
         >
-          Verify & Close
+          Close
         </Button>
       </div>
     </DialogContent>
@@ -250,47 +177,26 @@ const PersonalWordBank = ({
   handleDeleteWord,
   handleLoadMore,
 }) => (
-  <div
-    className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-200/50 dark:border-white/[0.12] transition-all duration-300 relative z-20"
-    data-oid="fvej1td"
-  >
-    <div
-      className="p-4 sm:p-5 border-b border-slate-100 dark:border-white/[0.12] flex flex-col xl:flex-row xl:items-center justify-between gap-5"
-      data-oid="x3oyikf"
-    >
-      <div className="space-y-0.5" data-oid="2hgdqsb">
-        <h3
-          className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2"
-          data-oid="7lumcwf"
-        >
-          <div
-            className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20"
-            data-oid="4h01zqy"
-          >
-            <BookOpen className="w-3.5 h-3.5" data-oid="y1brrrm" />
-          </div>
-          Personal Word Bank
+  <div className="bg-gradient-to-b from-white via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900/80 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05)] border border-slate-200/80 dark:border-slate-800 p-5 space-y-4">
+    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+      <div className="space-y-0.5">
+        <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+          <BookOpen className="w-4 h-4 text-indigo-500" />
+          My Saved Words
         </h3>
-        <p className="text-xs text-slate-600 dark:text-slate-300 font-medium" data-oid="n_19477">
-          Review your saved words and track your mastery progress.
+        <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">
+          Review saved words, track memory strength, and translate definitions.
         </p>
       </div>
 
-      <div
-        className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full xl:w-auto"
-        data-oid="1.:amm1"
-      >
-        <div className="relative group w-full sm:w-64" data-oid="9qbioq:">
-          <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors"
-            data-oid="y588ntb"
-          />
+      <div className="flex flex-wrap items-center gap-2.5">
+        <div className="relative group w-full sm:w-60">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
           <Input
-            placeholder="Filter by term..."
+            placeholder="Search saved words..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-11 bg-slate-50 dark:bg-slate-950 border-slate-200/60 dark:border-white/[0.12] h-10 rounded-xl focus:ring-blue-500/20 transition-all font-medium"
-            data-oid="dusi_wc"
+            className="pl-9 bg-slate-50 dark:bg-slate-950 border-slate-200/80 dark:border-slate-800 h-9 rounded-xl font-semibold text-xs shadow-inner"
           />
         </div>
 
@@ -300,77 +206,51 @@ const PersonalWordBank = ({
             setTargetLanguage(val);
             saveLanguagePreference(val);
           }}
-          data-oid="05fu28m"
         >
-          <SelectTrigger
-            className="w-[130px] h-10 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200/60 dark:border-white/[0.12] text-sm font-bold"
-            data-oid="t18rko7"
-          >
-            <Languages className="w-4 h-4 mr-2 text-indigo-500" data-oid="pb8-xz." />
-            <SelectValue placeholder="Language" data-oid="xgz10jd" />
+          <SelectTrigger className="w-[125px] h-9 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200/80 dark:border-slate-800 text-xs font-bold">
+            <Languages className="w-3.5 h-3.5 mr-1 text-indigo-500" />
+            <SelectValue placeholder="Language" />
           </SelectTrigger>
-          <SelectContent className="rounded-xl" data-oid="-ksaote">
+          <SelectContent className="rounded-xl">
             {SUPPORTED_LANGUAGES.map((lang) => (
-              <SelectItem
-                key={lang.code}
-                value={lang.code}
-                className="font-medium"
-                data-oid="dvj5diy"
-              >
+              <SelectItem key={lang.code} value={lang.code} className="font-semibold">
                 {lang.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        <div className="relative" data-oid="51q1sut">
+        <div className="relative">
           <Button
             variant="outline"
             size="icon"
-            className="h-10 w-10 rounded-xl border-slate-200/60 dark:border-white/[0.12] bg-white dark:bg-slate-950 transition-all hover:bg-slate-50 dark:hover:bg-slate-900 shadow-sm"
+            className="h-9 w-9 rounded-xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            data-oid="wheit8b"
           >
-            <MoreVertical
-              className="w-4 h-4 text-slate-600 dark:text-slate-300"
-              data-oid="tnx0rt2"
-            />
+            <MoreVertical className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" />
           </Button>
 
-          <AnimatePresence data-oid="4_3ndk1">
+          <AnimatePresence>
             {isDropdownOpen && (
               <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                initial={{ opacity: 0, y: 8, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/50 dark:border-white/[0.12] z-50 overflow-hidden"
-                data-oid="vjt-wvd"
+                exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                className="absolute right-0 top-full mt-1.5 w-44 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 z-50 overflow-hidden p-1"
               >
-                <div className="p-1.5" data-oid="qnsf9iu">
-                  <button
-                    onClick={handleExportWords}
-                    className="w-full text-left px-4 py-3 text-xs font-black uppercase tracking-widest hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-600 dark:text-slate-300 rounded-xl transition-all flex items-center gap-3 group"
-                    data-oid="9io5for"
-                  >
-                    <BookOpen
-                      className="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform"
-                      data-oid="bg2e9fu"
-                    />{' '}
-                    Export Library
-                  </button>
-                  <div className="h-px bg-slate-100 dark:bg-white/5 my-1 mx-2" data-oid="pzqiqfs" />
-                  <button
-                    onClick={handleClearAllWords}
-                    className="w-full text-left px-4 py-3 text-xs font-black uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl transition-all flex items-center gap-3 group"
-                    data-oid="v1blxrj"
-                  >
-                    <Trash2
-                      className="w-4 h-4 text-red-500 group-hover:animate-bounce"
-                      data-oid="5dcxyk0"
-                    />{' '}
-                    Wipe Data
-                  </button>
-                </div>
+                <button
+                  onClick={handleExportWords}
+                  className="w-full text-left px-3 py-2 text-xs font-bold uppercase tracking-wider hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg transition-all flex items-center gap-2"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-indigo-500" /> Export Library
+                </button>
+                <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
+                <button
+                  onClick={handleClearAllWords}
+                  className="w-full text-left px-3 py-2 text-xs font-bold uppercase tracking-wider hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-lg transition-all flex items-center gap-2"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-500" /> Clear All Words
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -387,7 +267,6 @@ const PersonalWordBank = ({
       onDeleteWord={handleDeleteWord}
       onLoadMore={handleLoadMore}
       targetLanguage={targetLanguage}
-      data-oid="uho3no2"
     />
   </div>
 );
@@ -414,12 +293,20 @@ export default function Vocabulary() {
     setDueForReview,
     isLoading,
     curatedLists,
-    stats,
+    stats: rawStats,
     hasMoreItems,
     isLoadingMore,
     handleLoadMore,
     loadItems,
   } = useVocabularyData(user);
+
+  const stats = useMemo(
+    () => ({
+      ...rawStats,
+      dueForReviewCount: dueForReview.length,
+    }),
+    [rawStats, dueForReview]
+  );
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -464,13 +351,7 @@ export default function Vocabulary() {
   const handleToggleMastery = async (id, currentLevel) => {
     const result = await hookToggleMastery(id, currentLevel);
     if (!result.success) {
-      if (result.error?.includes('column') || result.error?.includes('42703')) {
-        alert(
-          "⚠️ Database Schema Update Required: The 'mastery_level' column is missing. Please run the provided SQL script."
-        );
-      } else {
-        alert('Failed to update mastery status.');
-      }
+      alert('Failed to update mastery status.');
     }
   };
 
@@ -541,31 +422,32 @@ export default function Vocabulary() {
   if (isLoading && !allVocabulary.length) return <LoadingSkeleton />;
 
   return (
-    <div
-      className="relative min-h-screen pb-20 bg-slate-50 dark:bg-[#020617] transition-colors duration-500 overflow-hidden"
-      data-oid="fzsba6k"
-    >
+    <div className="relative min-h-screen pb-20 bg-slate-50 dark:bg-[#020617] transition-colors duration-300 overflow-hidden">
       <BackgroundDecor />
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="p-3 sm:p-4 md:p-8 lg:p-10 max-w-[1600px] mx-auto space-y-6 sm:space-y-8 relative z-10"
-        data-oid="04-8.zd"
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        className="p-4 sm:p-6 md:p-8 max-w-[1600px] mx-auto space-y-6 relative z-10"
       >
+        {/* Page Header (Bolder title, stats on top right, no PREMIUM badge) */}
         <PageHeader stats={stats} user={user} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8" data-oid="thpedsw">
-          <div className="lg:col-span-8 space-y-8" data-oid="g20156_">
+        {/* Main Dashboard Layout Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Main Wide Column (8 cols) */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* Hero Card: Daily Review Queue + Featured Flashcard */}
             <ReviewBanner
               dueForReview={dueForReview}
               totalWords={allVocabulary.length}
               onStartReview={startReviewSession}
-              data-oid="npauksz"
+              onAddWord={hookAddWord}
             />
 
-            <div className="block lg:hidden w-full mb-8">
+            {/* Mobile Quick Add */}
+            <div className="block lg:hidden w-full">
               <QuickAddCard
                 onAddWord={hookAddWord}
                 isAdding={isAdding}
@@ -576,6 +458,7 @@ export default function Vocabulary() {
               />
             </div>
 
+            {/* Topic Word Lists */}
             <WordGroupList
               curatedLists={curatedLists}
               user={user}
@@ -586,6 +469,7 @@ export default function Vocabulary() {
               onViewAll={() => (window.location.href = '/resources?type=vocabulary')}
             />
 
+            {/* My Saved Words (Table & Cards View) */}
             <PersonalWordBank
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
@@ -605,7 +489,8 @@ export default function Vocabulary() {
             />
           </div>
 
-          <div className="hidden lg:flex lg:col-span-4 space-y-6 flex-col" data-oid="wec88t_">
+          {/* Sidebar Column (4 cols) */}
+          <div className="hidden lg:flex lg:col-span-4 flex-col space-y-5">
             <VocabularySidebar
               user={user}
               allVocabularyCount={allVocabulary.length}
@@ -615,11 +500,15 @@ export default function Vocabulary() {
               onSuccess={() => loadItems()}
               onStartSpeedQuiz={startSpeedQuiz}
               onStartMatchPairs={startMatchPairs}
+              onStartReview={startReviewSession}
               stats={stats}
+              dueForReview={dueForReview}
+              allVocabulary={allVocabulary}
             />
           </div>
         </div>
 
+        {/* Modals */}
         {isReviewSessionOpen && (
           <Suspense fallback={null}>
             <ReviewSession
@@ -629,7 +518,6 @@ export default function Vocabulary() {
               isFlipped={isFlipped}
               onFlip={flipCard}
               onSubmit={handleReviewSubmit}
-              data-oid="61wwuoy"
             />
           </Suspense>
         )}
@@ -660,12 +548,8 @@ export default function Vocabulary() {
         <Dialog
           open={!!selectedCuratedList}
           onOpenChange={(open) => !open && setSelectedCuratedList(null)}
-          data-oid="vf_hnpl"
         >
-          <DialogContent
-            className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-[3rem] border-none p-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl"
-            data-oid="8pmj:55"
-          >
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border-none p-0 bg-white dark:bg-slate-950">
             {selectedCuratedList && (
               <VocabularyStudyView
                 resource={selectedCuratedList}
@@ -673,7 +557,6 @@ export default function Vocabulary() {
                 onClose={() => setSelectedCuratedList(null)}
                 onAddWord={hookAddWord}
                 allVocabulary={allVocabulary}
-                data-oid="_kv.uwh"
               />
             )}
           </DialogContent>
