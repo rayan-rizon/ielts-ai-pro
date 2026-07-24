@@ -174,12 +174,18 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
       <div className="flex flex-col items-center gap-2 sm:gap-3 w-full max-w-2xl mx-auto">
         {flowchart.steps.map((step, stepIndex) => (
           <React.Fragment key={step.id || stepIndex}>
-            <div className="w-full bg-white/80 dark:bg-slate-950/70 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 sm:p-4 text-[15px] text-slate-800 dark:text-slate-200 leading-relaxed shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+            <div
+              data-testid="flowchart-step"
+              className="w-full bg-white/80 dark:bg-slate-950/70 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 sm:p-4 text-[15px] text-slate-800 dark:text-slate-200 leading-relaxed shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+            >
               {renderStep(step)}
             </div>
 
             {stepIndex < flowchart.steps.length - 1 && (
-              <div className="flex items-center justify-center text-blue-500/70 dark:text-blue-400/70 py-0.5">
+              <div
+                data-testid="flowchart-arrow"
+                className="flex items-center justify-center text-blue-500/70 dark:text-blue-400/70 py-0.5"
+              >
                 <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
               </div>
             )}
