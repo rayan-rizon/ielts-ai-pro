@@ -111,362 +111,341 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
             }
 
             return (
-              <div key={instruction} data-oid="8jksp:y">
-                <Card
-                  className="mb-1 border border-slate-200/60 dark:border-slate-700/60 shadow-none bg-white/70 dark:bg-slate-900/50 hover:bg-white/80 dark:hover:bg-slate-900/65 transition-all duration-300 hover:shadow-sm"
-                  data-oid="vb:lorr"
-                >
-                  <CardContent className="p-1.5 sm:p-2" data-oid="c_oc:w-">
-                    {displayInstruction.trim() && (
+              <div key={instruction} className="mb-3 space-y-1.5" data-oid="8jksp:y">
+                {displayInstruction.trim() && (
+                  <div
+                    className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 text-slate-800 dark:text-slate-200 mb-1.5 shadow-2xs"
+                    data-oid="6dw9uti"
+                  >
+                    <div
+                      className="p-1 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
+                      data-oid="ip7:at9"
+                    >
+                      <Lightbulb className="w-4 h-4" data-oid="3h83xkd" />
+                    </div>
+                    <div className="text-sm font-medium leading-relaxed" data-oid="fuf-zbg">
+                      {renderInstructionText(displayInstruction)}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1" data-oid="qpvl_ys">
+                  {qList.map((question) => {
+                    const questionKey = question.id;
+                    const isFlagged = flaggedQuestions.has(questionKey);
+
+                    // Calculate global question number across all groups
+                    const globalQuestionNumber = calculateGlobalQuestionNumber(
+                      allQuestions,
+                      question.id
+                    );
+
+                    // Helper for calculating global number for blanks
+                    const calculateGlobalNum = (questionId, blankIndex) =>
+                      calculateGlobalQuestionNumber(allQuestions, questionId, blankIndex);
+
+                    // Determine what to render based on type
+                    let questionContent;
+                    if (question.type === 'table_completion') {
+                      questionContent = (
+                        <ErrorBoundary
+                          fallbackMessage="Could not load table question"
+                          data-oid="izyb0tk"
+                        >
+                          <TableCompletionRenderer
+                            question={question}
+                            globalQuestionNumber={globalQuestionNumber}
+                            answers={answers}
+                            onAnswerChange={handleAnswerChange}
+                            flaggedQuestions={flaggedQuestions}
+                            onToggleFlag={toggleFlag}
+                            calculateGlobalNum={calculateGlobalNum}
+                            disabled={isFinished}
+                            validationMap={validationMap}
+                            explanationData={question.explanation_data}
+                            openDeepDive={openDeepDive}
+                            setOpenDeepDive={setOpenDeepDive}
+                            data-oid="k7f9.al"
+                          />
+                        </ErrorBoundary>
+                      );
+                    } else if (
+                      (question.type === 'flowchart' ||
+                        question.type === 'flow_chart_completion') &&
+                      question.flowchart?.steps
+                    ) {
+                      questionContent = (
+                        <ErrorBoundary fallbackMessage="Could not load flow-chart question">
+                          <FlowchartRenderer
+                            question={question}
+                            answers={answers}
+                            onAnswerChange={handleAnswerChange}
+                            flaggedQuestions={flaggedQuestions}
+                            onToggleFlag={toggleFlag}
+                            disabled={isFinished}
+                            validationMap={validationMap}
+                            explanationData={question.explanation_data}
+                            openDeepDive={openDeepDive}
+                            setOpenDeepDive={setOpenDeepDive}
+                          />
+                        </ErrorBoundary>
+                      );
+                    } else if (
+                      question.type === 'notes_completion' &&
+                      question.gap_fill?.structured_text
+                    ) {
+                      // Structured notes completion with title, bullets, and inline gaps
+                      questionContent = (
+                        <ErrorBoundary
+                          fallbackMessage="Could not load notes question"
+                          data-oid="021c8.m"
+                        >
+                          <NotesCompletionRenderer
+                            question={question}
+                            answers={answers}
+                            onAnswerChange={handleAnswerChange}
+                            flaggedQuestions={flaggedQuestions}
+                            onToggleFlag={toggleFlag}
+                            disabled={isFinished}
+                            validationMap={validationMap}
+                            explanationData={question.explanation_data}
+                            openDeepDive={openDeepDive}
+                            setOpenDeepDive={setOpenDeepDive}
+                            data-oid="s0p2lto"
+                          />
+                        </ErrorBoundary>
+                      );
+                    } else if (
+                      question.type === 'sentence_completion' ||
+                      question.type === 'summary_completion' ||
+                      question.type === 'notes_completion' ||
+                      question.type === 'note_completion' ||
+                      question.type === 'flow_chart_completion' ||
+                      question.type === 'diagram_completion' ||
+                      question.type === 'short_answer'
+                    ) {
+                      let text = question.question_text || '';
+                      // For short_answer, if no gap markers exist, append a placeholder
+                      // Gap markers can be underscores (___) or [N] format
+                      const hasGapMarker = /_{3,}|\[\d+\]/.test(text);
+                      if (question.type === 'short_answer' && !hasGapMarker) {
+                        text += ` [${question.question_number || globalQuestionNumber}]`;
+                      }
+                      questionContent = (
+                        <QuestionInput
+                          text={text}
+                          questionId={question.id}
+                          globalNum={question.question_number || globalQuestionNumber}
+                          answers={answers}
+                          onAnswerChange={handleAnswerChange}
+                          flaggedQuestions={flaggedQuestions}
+                          onToggleFlag={toggleFlag}
+                          disabled={isFinished}
+                          validationMap={validationMap}
+                          explanationData={question.explanation_data}
+                          openDeepDive={openDeepDive}
+                          setOpenDeepDive={setOpenDeepDive}
+                          data-oid="503k8pk"
+                        />
+                      );
+                    } else if (
+                      question.type === 'matching_headings' ||
+                      question.type === 'matching_features' ||
+                      question.type === 'matching'
+                    ) {
+                      questionContent =
+                        question.question_text &&
+                        question.question_text !== 'Match the correct items' &&
+                        !(
+                          question.type === 'matching_features' &&
+                          question.matching_features?.mode === 'paragraph'
+                        ) ? (
+                          <h4
+                            className="text-[15px] font-medium text-foreground mb-3"
+                            data-oid="9ra7tn7"
+                          >
+                            {question.question_text}
+                          </h4>
+                        ) : null;
+                    } else {
+                      // Default render - for T/F/NG and other simple question types
+                      // Strip answer options from question text if present
+                      let cleanText = question.question_text || '';
+                      if (question.type === 'true_false_not_given') {
+                        cleanText = cleanText
+                          .replace(/\s*TRUE\s*FALSE\s*NOT\s*GIVEN\s*$/i, '')
+                          .trim();
+                      } else if (question.type === 'yes_no_not_given') {
+                        cleanText = cleanText.replace(/\s*YES\s*NO\s*NOT\s*GIVEN\s*$/i, '').trim();
+                      }
+
+                      const isMultiSelectMCQ =
+                        question.type === 'multiple_choice' &&
+                        (question.allow_multiple || (question.question_count || 1) > 1);
+
+                      const qStart = question.question_number || globalQuestionNumber;
+                      const qRange = isMultiSelectMCQ
+                        ? `${qStart}-${qStart + (question.question_count || 1) - 1}`
+                        : qStart;
+
+                      const validation = validationMap?.[question.id];
+                      const value = answers?.[question.id];
+                      let circleStatus = 'default';
+                      if (isFinished && validation) {
+                        const hasAnswer = Array.isArray(value) ? value.length > 0 : !!value;
+                        circleStatus =
+                          validation?.isCorrect === true
+                            ? 'correct'
+                            : hasAnswer
+                              ? 'incorrect'
+                              : 'unanswered';
+                      }
+
+                      questionContent = (
+                        <div className="flex gap-3 items-baseline" data-oid="1dtvi85">
+                          <QuestionNumberCircle
+                            number={qRange}
+                            isFlagged={isFlagged}
+                            onClick={() => toggleFlag(questionKey)}
+                            status={circleStatus}
+                            className={cn(
+                              'translate-y-[1px]',
+                              isMultiSelectMCQ && 'w-12 h-6 px-1.5 rounded-lg'
+                            )}
+                            data-oid="su-j6uf"
+                          />
+
+                          <div className="flex-1 flex items-start gap-1">
+                            <p
+                              className="text-[15px] text-foreground leading-relaxed font-medium"
+                              data-oid="vo:pzhf"
+                            >
+                              {cleanText}
+                            </p>
+                            {isFinished &&
+                              question.explanation_data &&
+                              (!question.explanation_data.blanks ||
+                                [
+                                  'multiple_choice',
+                                  'true_false_not_given',
+                                  'yes_no_not_given',
+                                ].includes(question.type)) && (
+                                <DeepDivePopover
+                                  explanationData={question.explanation_data}
+                                  userAnswer={answers[question.id]}
+                                  isOpen={openDeepDive === question.id}
+                                  onToggle={() =>
+                                    setOpenDeepDive(
+                                      openDeepDive === question.id ? null : question.id
+                                    )
+                                  }
+                                  questionType={question.type}
+                                  blankKey={null}
+                                  questionNumber={question.question_number || globalQuestionNumber}
+                                  inline={true}
+                                />
+                              )}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
                       <div
-                        className="mb-2 p-2 rounded-lg bg-blue-50/60 dark:bg-blue-900/20 border border-blue-100/80 dark:border-blue-800 text-sm font-medium text-slate-700 dark:text-slate-300 flex items-start gap-2"
-                        data-oid="6dw9uti"
+                        key={question.id}
+                        id={`question-${question.id}`}
+                        className={cn(
+                          'relative px-3.5 py-3 sm:px-4 sm:py-3 rounded-xl border transition-all duration-200 bg-white/90 dark:bg-slate-900/90 shadow-2xs hover:shadow-xs',
+                          isFlagged
+                            ? 'border-amber-300 dark:border-amber-800/80 ring-1 ring-amber-400/20 bg-amber-50/20 dark:bg-amber-950/10'
+                            : 'border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700',
+                          highlightedQuestionId === question.id &&
+                            'ring-2 ring-indigo-500 border-indigo-500 dark:border-indigo-500 shadow-indigo-500/10 scale-[1.005]'
+                        )}
+                        data-oid="duo5yge"
                       >
-                        <div className="mt-0.5 flex-shrink-0" data-oid="ip7:at9">
-                          <Lightbulb className="w-4 h-4 text-blue-500" data-oid="3h83xkd" />
-                        </div>
-                        <div className="text-sm leading-snug" data-oid="fuf-zbg">
-                          {renderInstructionText(displayInstruction)}
-                        </div>
-                      </div>
-                    )}
-                    <div className="space-y-1" data-oid="qpvl_ys">
-                      {qList.map((question) => {
-                        const questionKey = question.id;
-                        const isFlagged = flaggedQuestions.has(questionKey);
-
-                        // Calculate global question number across all groups
-                        const globalQuestionNumber = calculateGlobalQuestionNumber(
-                          allQuestions,
-                          question.id
-                        );
-
-                        // Helper for calculating global number for blanks
-                        const calculateGlobalNum = (questionId, blankIndex) =>
-                          calculateGlobalQuestionNumber(allQuestions, questionId, blankIndex);
-
-                        // Determine what to render based on type
-                        let questionContent;
-                        if (question.type === 'table_completion') {
-                          questionContent = (
-                            <ErrorBoundary
-                              fallbackMessage="Could not load table question"
-                              data-oid="izyb0tk"
-                            >
-                              <TableCompletionRenderer
-                                question={question}
-                                globalQuestionNumber={globalQuestionNumber}
-                                answers={answers}
-                                onAnswerChange={handleAnswerChange}
-                                flaggedQuestions={flaggedQuestions}
-                                onToggleFlag={toggleFlag}
-                                calculateGlobalNum={calculateGlobalNum}
-                                disabled={isFinished}
-                                validationMap={validationMap}
-                                explanationData={question.explanation_data}
-                                openDeepDive={openDeepDive}
-                                setOpenDeepDive={setOpenDeepDive}
-                                data-oid="k7f9.al"
+                        {/* Check for answers for complex types as well */}
+                        {!isFinished &&
+                          (answers[question.id] ||
+                            (question.type === 'multiple_choice' &&
+                              question.allow_multiple &&
+                              answers[question.id]?.length > 0) ||
+                            (question.type === 'matching_headings' &&
+                              Object.keys(answers).some((key) =>
+                                key.startsWith(`${question.id}_`)
+                              )) ||
+                            (question.type === 'table_completion' &&
+                              Object.keys(answers).some((key) =>
+                                key.startsWith(`${question.id}_blank_`)
+                              )) ||
+                            (question.type === 'matching' &&
+                              Object.keys(answers).some((key) =>
+                                key.startsWith(`${question.id}_`)
+                              )) ||
+                            ((question.type === 'summary_completion' ||
+                              question.type === 'note_completion' ||
+                              question.type === 'notes_completion' ||
+                              question.type === 'flowchart' ||
+                              question.type === 'flow_chart_completion' ||
+                              question.type === 'diagram_completion') &&
+                              Object.keys(answers).some(
+                                (key) =>
+                                  key.startsWith(`${question.id}_blank_`) ||
+                                  key.startsWith(`${question.id}_gap_`)
+                              ))) && (
+                            <div className="absolute top-3 right-3" data-oid="hnmve5q">
+                              <CheckCircle
+                                className="w-3.5 h-3.5 text-emerald-500"
+                                data-oid="t_tdond"
                               />
-                            </ErrorBoundary>
-                          );
-                        } else if (
-                          (question.type === 'flowchart' ||
-                            question.type === 'flow_chart_completion') &&
-                          question.flowchart?.steps
-                        ) {
-                          questionContent = (
-                            <ErrorBoundary fallbackMessage="Could not load flow-chart question">
-                              <FlowchartRenderer
-                                question={question}
-                                answers={answers}
-                                onAnswerChange={handleAnswerChange}
-                                flaggedQuestions={flaggedQuestions}
-                                onToggleFlag={toggleFlag}
-                                disabled={isFinished}
-                                validationMap={validationMap}
-                                explanationData={question.explanation_data}
-                                openDeepDive={openDeepDive}
-                                setOpenDeepDive={setOpenDeepDive}
-                              />
-                            </ErrorBoundary>
-                          );
-                        } else if (
-                          question.type === 'notes_completion' &&
-                          question.gap_fill?.structured_text
-                        ) {
-                          // Structured notes completion with title, bullets, and inline gaps
-                          questionContent = (
-                            <ErrorBoundary
-                              fallbackMessage="Could not load notes question"
-                              data-oid="021c8.m"
-                            >
-                              <NotesCompletionRenderer
-                                question={question}
-                                answers={answers}
-                                onAnswerChange={handleAnswerChange}
-                                flaggedQuestions={flaggedQuestions}
-                                onToggleFlag={toggleFlag}
-                                disabled={isFinished}
-                                validationMap={validationMap}
-                                explanationData={question.explanation_data}
-                                openDeepDive={openDeepDive}
-                                setOpenDeepDive={setOpenDeepDive}
-                                data-oid="s0p2lto"
-                              />
-                            </ErrorBoundary>
-                          );
-                        } else if (
-                          question.type === 'sentence_completion' ||
-                          question.type === 'summary_completion' ||
-                          question.type === 'notes_completion' ||
-                          question.type === 'note_completion' ||
-                          question.type === 'flow_chart_completion' ||
-                          question.type === 'diagram_completion' ||
-                          question.type === 'short_answer'
-                        ) {
-                          let text = question.question_text || '';
-                          // For short_answer, if no gap markers exist, append a placeholder
-                          // Gap markers can be underscores (___) or [N] format
-                          const hasGapMarker = /_{3,}|\[\d+\]/.test(text);
-                          if (question.type === 'short_answer' && !hasGapMarker) {
-                            text += ` [${question.question_number || globalQuestionNumber}]`;
-                          }
-                          questionContent = (
-                            <QuestionInput
-                              text={text}
-                              questionId={question.id}
-                              globalNum={question.question_number || globalQuestionNumber}
+                            </div>
+                          )}
+
+                        <div className="space-y-2" data-oid="i8otiyt">
+                          {questionContent}
+
+                          {/* Multiple Choice Questions */}
+                          <MultipleChoiceRenderer
+                            question={question}
+                            answers={answers}
+                            onAnswerChange={handleAnswerChange}
+                            isFinished={isFinished}
+                            validationMap={validationMap}
+                            data-oid="67.qra4"
+                          />
+
+                          {/* Matching Questions (Generic, Headings, Features) */}
+                          <MatchingRenderer
+                            question={question}
+                            answers={answers}
+                            onAnswerChange={handleAnswerChange}
+                            flaggedQuestions={flaggedQuestions}
+                            onToggleFlag={toggleFlag}
+                            isFinished={isFinished}
+                            validationMap={validationMap}
+                            allQuestions={allQuestions}
+                            explanationData={question.explanation_data}
+                            openDeepDive={openDeepDive}
+                            setOpenDeepDive={setOpenDeepDive}
+                            data-oid="k1v4.w1"
+                          />
+
+                          {(question.type === 'true_false_not_given' ||
+                            question.type === 'yes_no_not_given') && (
+                            <TrueFalseRenderer
+                              question={question}
                               answers={answers}
                               onAnswerChange={handleAnswerChange}
-                              flaggedQuestions={flaggedQuestions}
-                              onToggleFlag={toggleFlag}
-                              disabled={isFinished}
+                              isFinished={isFinished}
                               validationMap={validationMap}
-                              explanationData={question.explanation_data}
-                              openDeepDive={openDeepDive}
-                              setOpenDeepDive={setOpenDeepDive}
-                              data-oid="503k8pk"
+                              data-oid="-e5.m_k"
                             />
-                          );
-                        } else if (
-                          question.type === 'matching_headings' ||
-                          question.type === 'matching_features' ||
-                          question.type === 'matching'
-                        ) {
-                          questionContent =
-                            question.question_text &&
-                            question.question_text !== 'Match the correct items' &&
-                            !(
-                              question.type === 'matching_features' &&
-                              question.matching_features?.mode === 'paragraph'
-                            ) ? (
-                              <h4
-                                className="text-[15px] font-medium text-foreground mb-3"
-                                data-oid="9ra7tn7"
-                              >
-                                {question.question_text}
-                              </h4>
-                            ) : null;
-                        } else {
-                          // Default render - for T/F/NG and other simple question types
-                          // Strip answer options from question text if present
-                          let cleanText = question.question_text || '';
-                          if (question.type === 'true_false_not_given') {
-                            cleanText = cleanText
-                              .replace(/\s*TRUE\s*FALSE\s*NOT\s*GIVEN\s*$/i, '')
-                              .trim();
-                          } else if (question.type === 'yes_no_not_given') {
-                            cleanText = cleanText
-                              .replace(/\s*YES\s*NO\s*NOT\s*GIVEN\s*$/i, '')
-                              .trim();
-                          }
-
-                          const isMultiSelectMCQ =
-                            question.type === 'multiple_choice' &&
-                            (question.allow_multiple || (question.question_count || 1) > 1);
-
-                          const qStart = question.question_number || globalQuestionNumber;
-                          const qRange = isMultiSelectMCQ
-                            ? `${qStart}-${qStart + (question.question_count || 1) - 1}`
-                            : qStart;
-
-                          const validation = validationMap?.[question.id];
-                          const value = answers?.[question.id];
-                          let circleStatus = 'default';
-                          if (isFinished && validation) {
-                            const hasAnswer = Array.isArray(value) ? value.length > 0 : !!value;
-                            circleStatus =
-                              validation?.isCorrect === true
-                                ? 'correct'
-                                : hasAnswer
-                                  ? 'incorrect'
-                                  : 'unanswered';
-                          }
-
-                          questionContent = (
-                            <div className="flex gap-3 items-baseline" data-oid="1dtvi85">
-                              <QuestionNumberCircle
-                                number={qRange}
-                                isFlagged={isFlagged}
-                                onClick={() => toggleFlag(questionKey)}
-                                status={circleStatus}
-                                className={cn(
-                                  'translate-y-[1px]',
-                                  isMultiSelectMCQ && 'w-12 h-6 px-1.5 rounded-lg'
-                                )}
-                                data-oid="su-j6uf"
-                              />
-
-                              <div className="flex-1 flex items-start gap-1">
-                                <p
-                                  className="text-[15px] text-foreground leading-relaxed font-medium"
-                                  data-oid="vo:pzhf"
-                                >
-                                  {cleanText}
-                                </p>
-                                {isFinished &&
-                                  question.explanation_data &&
-                                  (!question.explanation_data.blanks ||
-                                    [
-                                      'multiple_choice',
-                                      'true_false_not_given',
-                                      'yes_no_not_given',
-                                    ].includes(question.type)) && (
-                                    <DeepDivePopover
-                                      explanationData={question.explanation_data}
-                                      userAnswer={answers[question.id]}
-                                      isOpen={openDeepDive === question.id}
-                                      onToggle={() =>
-                                        setOpenDeepDive(
-                                          openDeepDive === question.id ? null : question.id
-                                        )
-                                      }
-                                      questionType={question.type}
-                                      blankKey={null}
-                                      questionNumber={
-                                        question.question_number || globalQuestionNumber
-                                      }
-                                      inline={true}
-                                    />
-                                  )}
-                              </div>
-                            </div>
-                          );
-                        }
-
-                        return (
-                          <div
-                            key={question.id}
-                            id={`question-${question.id}`}
-                            className="relative"
-                            data-oid="duo5yge"
-                          >
-                            <Card
-                              className={`bg-white/70 dark:bg-slate-900/55 border border-slate-200/60 dark:border-slate-700/60 hover:border-blue-400/30 dark:hover:border-blue-400/30 hover:bg-white/80 dark:hover:bg-slate-900/70 transition-all duration-300 group rounded-lg relative overflow-hidden shadow-sm hover:shadow-md
-                              ${isFlagged ? 'ring-1 ring-orange-500/30 border-orange-200 dark:border-orange-900/50' : ''}
-                              ${highlightedQuestionId === question.id ? 'ring-2 ring-blue-500/50 shadow-md shadow-blue-500/10 scale-[1.005] z-10' : ''}
-                            `}
-                              data-oid="8jbu_s2"
-                            >
-                              {/* Flag button removed - integrated into question number */}
-
-                              <CardContent
-                                className="pt-1.5 pr-2 pb-1.5 pl-1.5 relative rounded-lg"
-                                data-oid="xoabsgq"
-                              >
-                                {/* Check for answers for complex types as well */}
-                                {!isFinished &&
-                                  (answers[question.id] ||
-                                    (question.type === 'multiple_choice' &&
-                                      question.allow_multiple &&
-                                      answers[question.id]?.length > 0) ||
-                                    (question.type === 'matching_headings' &&
-                                      Object.keys(answers).some((key) =>
-                                        key.startsWith(`${question.id}_`)
-                                      )) ||
-                                    (question.type === 'table_completion' &&
-                                      Object.keys(answers).some((key) =>
-                                        key.startsWith(`${question.id}_blank_`)
-                                      )) ||
-                                    (question.type === 'matching' &&
-                                      Object.keys(answers).some((key) =>
-                                        key.startsWith(`${question.id}_`)
-                                      )) ||
-                                    ((question.type === 'summary_completion' ||
-                                      question.type === 'note_completion' ||
-                                      question.type === 'notes_completion' ||
-                                      question.type === 'flowchart' ||
-                                      question.type === 'flow_chart_completion' ||
-                                      question.type === 'diagram_completion') &&
-                                      Object.keys(answers).some(
-                                        (key) =>
-                                          key.startsWith(`${question.id}_blank_`) ||
-                                          key.startsWith(`${question.id}_gap_`)
-                                      ))) && (
-                                    <div className="absolute top-2.5 right-1.5" data-oid="hnmve5q">
-                                      <CheckCircle
-                                        className="w-3.5 h-3.5 text-green-500"
-                                        data-oid="t_tdond"
-                                      />
-                                    </div>
-                                  )}
-
-                                <div className="space-y-2" data-oid="i8otiyt">
-                                  {questionContent}
-
-                                  {/* Multiple Choice Questions */}
-                                  <MultipleChoiceRenderer
-                                    question={question}
-                                    answers={answers}
-                                    onAnswerChange={handleAnswerChange}
-                                    isFinished={isFinished}
-                                    validationMap={validationMap}
-                                    data-oid="67.qra4"
-                                  />
-
-                                  {/* Matching Questions (Generic, Headings, Features) */}
-                                  <MatchingRenderer
-                                    question={question}
-                                    answers={answers}
-                                    onAnswerChange={handleAnswerChange}
-                                    flaggedQuestions={flaggedQuestions}
-                                    onToggleFlag={toggleFlag}
-                                    isFinished={isFinished}
-                                    validationMap={validationMap}
-                                    allQuestions={allQuestions}
-                                    explanationData={question.explanation_data}
-                                    openDeepDive={openDeepDive}
-                                    setOpenDeepDive={setOpenDeepDive}
-                                    data-oid="k1v4.w1"
-                                  />
-
-                                  {/* Table Completion Questions - Enhanced with proper styling and numbering */}
-
-                                  {/* Table Completion Questions - Enhanced with proper styling and numbering */}
-
-                                  {(question.type === 'true_false_not_given' ||
-                                    question.type === 'yes_no_not_given') && (
-                                    <TrueFalseRenderer
-                                      question={question}
-                                      answers={answers}
-                                      onAnswerChange={handleAnswerChange}
-                                      isFinished={isFinished}
-                                      validationMap={validationMap}
-                                      data-oid="-e5.m_k"
-                                    />
-                                  )}
-
-                                  {/* Deep Dive — Inline Explanation (shown after test completion) - MOVED INLINE for these types */}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             );
           })}

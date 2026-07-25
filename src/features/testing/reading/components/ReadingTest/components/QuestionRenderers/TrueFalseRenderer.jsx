@@ -18,7 +18,7 @@ const TrueFalseRenderer = memo(function TrueFalseRenderer({
       : ['Yes', 'No', 'Not Given'];
 
   return (
-    <div className="flex gap-2 flex-wrap mt-2 justify-start ml-0.5 sm:ml-1" data-oid="qu01ivn">
+    <div className="flex gap-2 flex-wrap mt-2.5 justify-start ml-0.5 sm:ml-1" data-oid="qu01ivn">
       {options.map((option) => {
         const isSelected = answers[question.id] === option;
         const validation = validationMap?.[question.id];
@@ -26,7 +26,7 @@ const TrueFalseRenderer = memo(function TrueFalseRenderer({
           isFinished && validation && isAnswerCorrect(option, validation.correctAnswer);
 
         let optionClass =
-          'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[15px] font-medium transition-all duration-150 select-none cursor-pointer ';
+          'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm sm:text-[15px] font-medium transition-all duration-150 select-none cursor-pointer ';
         let dotClass =
           'w-3.5 h-3.5 rounded-full border transition-all shrink-0 flex items-center justify-center ';
 

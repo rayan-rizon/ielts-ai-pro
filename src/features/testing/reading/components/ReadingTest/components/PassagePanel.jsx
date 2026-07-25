@@ -92,11 +92,11 @@ const PassagePanel = memo(function PassagePanel({
             .replace(/\[center\](.*?)\[\/center\]/g, '<div class="text-center">$1</div>')
             .replace(
               /\[title\](.*?)\[\/title\]/g,
-              '<h2 class="text-2xl font-bold text-center mb-4">$1</h2>'
+              '<h2 class="text-2xl font-bold text-center mb-4 px-16 sm:px-24 md:px-28">$1</h2>'
             )
             .replace(
               /\[heading\](.*?)\[\/heading\]/g,
-              '<h3 class="text-xl font-semibold text-center mb-3">$1</h3>'
+              '<h3 class="text-xl font-semibold text-center mb-3 px-16 sm:px-24 md:px-28">$1</h3>'
             )
             .replace(/\[image\](.*?)\[\/image\]/g, (match, url) => {
               // Sanitize URL by removing all spaces
@@ -201,7 +201,7 @@ const PassagePanel = memo(function PassagePanel({
     >
       {/* Appearance Controls - Floating Button */}
       <div
-        className="sticky top-3 right-3 z-30 flex justify-end pointer-events-none px-3 sm:px-4"
+        className="sticky top-2 right-2 sm:right-3 z-30 flex justify-end pointer-events-none px-2 sm:px-3 mb-[-2.5rem]"
         data-oid="fw_3sk7"
       >
         <div className="pointer-events-auto" data-oid=":pvn-ot">
@@ -266,7 +266,10 @@ const PassagePanel = memo(function PassagePanel({
           />
         )}
 
-        <h1 className="text-3xl text-center font-bold mb-4 text-foreground" data-oid="q._2bvq">
+        <h1
+          className="text-2xl sm:text-3xl text-center font-bold mb-4 pt-2 sm:pt-3 px-16 sm:px-24 md:px-28 text-foreground"
+          data-oid="q._2bvq"
+        >
           {currentPassage.passage_name || currentPassage.title || `Passage ${passageIndex + 1}`}
         </h1>
         {formattedContent}

@@ -46,7 +46,7 @@ function ImageDisplay({ imageUrl: rawImageUrl }) {
     <Dialog data-oid="v1hltkq">
       <DialogTrigger asChild data-oid="mjxjwpl">
         <div
-          className="group relative rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden cursor-zoom-in transition-all duration-300 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 w-full"
+          className="group relative rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden cursor-zoom-in transition-all duration-300 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 w-full flex items-center justify-center p-1.5 sm:p-2"
           data-oid="y5v0kqo"
         >
           {isLoading && (
@@ -54,28 +54,28 @@ function ImageDisplay({ imageUrl: rawImageUrl }) {
               className="absolute inset-0 flex items-center justify-center bg-slate-100 dark:bg-slate-800/50 animate-pulse z-10"
               data-oid="1lb4kmo"
             >
-              <span className="text-slate-400 text-sm font-medium" data-oid="8f-:a25">
+              <span className="text-slate-400 text-xs font-medium" data-oid="8f-:a25">
                 Loading task visual...
               </span>
             </div>
           )}
 
           <div
-            className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity z-20"
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
             data-oid="bz2gkkn"
           >
             <div
-              className="bg-black/50 backdrop-blur-md text-white p-2 rounded-full"
+              className="bg-black/50 backdrop-blur-md text-white p-1.5 rounded-full"
               data-oid="0tfznl7"
             >
-              <ZoomIn className="w-4 h-4" data-oid="ys85w8_" />
+              <ZoomIn className="w-3.5 h-3.5" data-oid="ys85w8_" />
             </div>
           </div>
 
           <img
             src={imageUrl}
             alt="Task Reference"
-            className={`w-full h-auto object-contain bg-white dark:bg-black/20 transition-all duration-500 ${isLoading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+            className={`w-full max-h-[380px] sm:max-h-[460px] h-auto object-contain bg-white dark:bg-black/20 rounded-lg transition-all duration-500 ${isLoading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
             onLoad={() => setIsLoading(false)}
             onError={() => {
               console.error('Image load failed inside ImageDisplay:', imageUrl);
@@ -126,31 +126,31 @@ export function TaskPanel({ task, showSample, setShowSample, isInset = false }) 
       data-oid="zit35s_"
     >
       <div
-        className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
+        className="min-h-0 flex-1 space-y-3 overflow-y-auto p-2.5 sm:p-3.5 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
         data-oid="ull-mmp"
       >
         {/* Unified Writing Task Card */}
         <div
-          className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-[#0D0E1A]/80 shadow-sm backdrop-blur-md overflow-hidden"
+          className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-[#0D0E1A]/80 shadow-xs backdrop-blur-md overflow-hidden"
           data-oid="unified-card"
         >
           {/* Card Header & Parameters */}
           <div
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30"
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30"
             data-oid="card-header"
           >
-            <div className="flex items-center gap-2.5">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400">
-                <BookOpen className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400">
+                <BookOpen className="w-3.5 h-3.5" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
                     {activeType}
                   </span>
                   <Badge
                     variant="outline"
-                    className="bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/30 text-[10px] uppercase font-bold tracking-wider text-indigo-600 dark:text-indigo-400"
+                    className="bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/30 text-[9px] uppercase font-bold tracking-wider text-indigo-600 dark:text-indigo-400 py-0 px-1.5"
                   >
                     {activeType === 'Task 2' ? 'Essay' : 'Report'}
                   </Badge>
@@ -159,21 +159,19 @@ export function TaskPanel({ task, showSample, setShowSample, isInset = false }) 
             </div>
 
             {/* Visual Tags */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               <Badge
-                className="bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100/50 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 text-[11px] py-1 px-2.5 font-medium"
+                className="bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100/50 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 flex items-center gap-1 text-[10px] py-0.5 px-2 font-medium"
                 variant="outline"
               >
-                <Clock className="w-3.5 h-3.5" />
-                <span>
-                  {activeType === 'Task 2' ? '40 Mins Recommended' : '20 Mins Recommended'}
-                </span>
+                <Clock className="w-3 h-3" />
+                <span>{activeType === 'Task 2' ? '40 Mins' : '20 Mins'}</span>
               </Badge>
               <Badge
-                className="bg-blue-50/50 dark:bg-blue-950/20 border-blue-100/50 dark:border-blue-900/30 text-blue-700 dark:text-blue-400 flex items-center gap-1.5 text-[11px] py-1 px-2.5 font-medium"
+                className="bg-blue-50/50 dark:bg-blue-950/20 border-blue-100/50 dark:border-blue-900/30 text-blue-700 dark:text-blue-400 flex items-center gap-1 text-[10px] py-0.5 px-2 font-medium"
                 variant="outline"
               >
-                <FileText className="w-3.5 h-3.5" />
+                <FileText className="w-3 h-3" />
                 <span>{activeType === 'Task 2' ? 'Min 250 Words' : 'Min 150 Words'}</span>
               </Badge>
             </div>
@@ -181,27 +179,27 @@ export function TaskPanel({ task, showSample, setShowSample, isInset = false }) 
 
           {/* Instructions Section */}
           {task.instructions && (
-            <div className="px-5 py-3.5 bg-slate-50/20 dark:bg-transparent border-b border-slate-100 dark:border-slate-800/60">
-              <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+            <div className="px-3.5 py-2 bg-slate-50/20 dark:bg-transparent border-b border-slate-100 dark:border-slate-800/60">
+              <h4 className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
                 Instructions
               </h4>
               <div
                 className="prose prose-slate dark:prose-invert max-w-none 
                            prose-p:text-slate-600 dark:prose-p:text-slate-400 
-                           prose-p:text-[13px] prose-p:font-normal prose-p:leading-relaxed
-                           [&_p]:my-0 [&_p+p]:mt-1"
+                           prose-p:text-[11.5px] sm:prose-p:text-[12px] prose-p:font-normal prose-p:leading-snug
+                           [&_p]:my-0 [&_p+p]:mt-0.5"
                 dangerouslySetInnerHTML={{ __html: formatInstructionHTML(task.instructions) }}
               />
             </div>
           )}
 
           {/* Essay Topic Section */}
-          <div className="p-5 bg-white dark:bg-transparent">
-            <h4 className="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest mb-2 flex items-center gap-1.5 opacity-90">
+          <div className="p-3 sm:p-3.5 bg-white dark:bg-transparent">
+            <h4 className="text-[9px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest mb-1 flex items-center gap-1 opacity-90">
               Essay Topic
             </h4>
             <div
-              className="text-base font-serif font-medium leading-relaxed text-slate-800 dark:text-slate-100 border-l-2 border-orange-500/40 pl-4 py-1 bg-orange-500/[0.01] dark:bg-orange-500/[0.005] rounded-r-lg"
+              className="text-sm font-serif font-medium leading-relaxed text-slate-800 dark:text-slate-100 border-l-2 border-orange-500/40 pl-3 py-0.5 bg-orange-500/[0.01] dark:bg-orange-500/[0.005] rounded-r-lg"
               dangerouslySetInnerHTML={{
                 __html: sanitizeHtml(
                   task.prompt ||

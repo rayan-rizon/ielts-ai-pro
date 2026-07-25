@@ -152,14 +152,14 @@ const ReadingTestHeader = ({
   return (
     <motion.div
       layout
-      className="sticky top-0 z-50 w-full px-2 py-2 sm:px-4 sm:py-3"
+      className="sticky top-0 z-50 w-full px-2 py-0.5 sm:px-3 sm:py-1"
       data-oid="lp5gz86"
     >
       <div
-        className="w-full rounded-2xl flex items-center justify-between py-2 px-2 sm:py-3 sm:px-4 border border-slate-200/50 dark:border-white/10 bg-white/80 dark:bg-[#0B0C1A]/95 backdrop-blur-2xl shadow-[0_8px_32px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] ring-1 ring-transparent dark:ring-white/5 transition-all duration-300"
+        className="w-full rounded-2xl flex items-center justify-between py-1 px-2.5 sm:py-1.5 sm:px-3.5 border border-slate-200/50 dark:border-white/10 bg-white/80 dark:bg-[#0B0C1A]/95 backdrop-blur-2xl shadow-[0_8px_32px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] ring-1 ring-transparent dark:ring-white/5 transition-all duration-300"
         data-oid="1i74cg9"
       >
-        <div className="flex items-center gap-2 sm:gap-4 shrink-0" data-oid="8kvko2h">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0" data-oid="8kvko2h">
           <Button
             variant="ghost"
             size="icon"
@@ -170,10 +170,10 @@ const ReadingTestHeader = ({
                 onExit();
               }
             }}
-            className="shrink-0 h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors flex items-center justify-center p-0"
+            className="shrink-0 h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors flex items-center justify-center p-0"
             data-oid="ibxe.t4"
           >
-            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" data-oid="xwqe86n" />
+            <ArrowLeft className="w-4 h-4 sm:w-4.5 sm:h-4.5" data-oid="xwqe86n" />
           </Button>
 
           <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog} data-oid="36i5njv">
@@ -351,7 +351,7 @@ const ReadingTestHeader = ({
             </span>
           </div>
           <div
-            className="flex items-center gap-1.5 bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-full border border-white/20 dark:border-white/5 shadow-inner"
+            className="flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/80 backdrop-blur-md p-1 rounded-full border border-slate-200/80 dark:border-white/10 shadow-xs"
             data-oid="zjhsbll"
           >
             {/* Answer Toggle */}
@@ -366,18 +366,21 @@ const ReadingTestHeader = ({
                 }
               }}
               className={cn(
-                'flex items-center gap-1.5 px-2 sm:px-3 py-1 h-7 rounded-full transition-all duration-300 font-bold text-[10px] uppercase tracking-wider',
+                'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 h-7.5 rounded-full transition-all duration-200 font-bold text-[9.5px] sm:text-[10px] uppercase tracking-wider select-none hover:scale-105 active:scale-95',
                 highlightedAnswerQs === 'all'
-                  ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-300'
+                  ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-300'
               )}
               title="Toggle Correct Answers"
               data-oid="k97.pn1"
             >
               {highlightedAnswerQs === 'all' ? (
-                <Eye className="w-3.5 h-3.5" data-oid="ypy0d4u" />
+                <Eye className="w-3.5 h-3.5 text-white" data-oid="ypy0d4u" />
               ) : (
-                <EyeOff className="w-3.5 h-3.5" data-oid="d5k8phi" />
+                <EyeOff
+                  className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400"
+                  data-oid="d5k8phi"
+                />
               )}
               <span className="hidden sm:inline" data-oid="7k2l_no">
                 Answers
@@ -394,10 +397,10 @@ const ReadingTestHeader = ({
                 if (next) setShowAnswerSheet(false);
               }}
               className={cn(
-                'flex items-center gap-1.5 px-2 sm:px-3 py-1 h-7 rounded-full transition-all duration-300 font-bold text-[10px] uppercase tracking-wider',
+                'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 h-7.5 rounded-full transition-all duration-200 font-bold text-[9.5px] sm:text-[10px] uppercase tracking-wider select-none hover:scale-105 active:scale-95',
                 showNotes
-                  ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-500/10 dark:hover:text-amber-300'
+                  ? 'bg-amber-500 text-white hover:bg-amber-600 hover:text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-amber-500/10 hover:text-amber-600 dark:hover:bg-amber-500/20 dark:hover:text-amber-300'
               )}
               data-oid="yq1l6l7"
             >
@@ -407,7 +410,12 @@ const ReadingTestHeader = ({
               </span>
               {notes.length > 0 && (
                 <span
-                  className="flex items-center justify-center bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded-full text-[9px] min-w-[16px] font-black"
+                  className={cn(
+                    'flex items-center justify-center px-1.5 py-0.2 rounded-full text-[8.5px] font-black min-w-[15px] text-center ml-0.5 transition-colors',
+                    showNotes
+                      ? 'bg-white/20 text-white'
+                      : 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
+                  )}
                   data-oid="_vhiwyg"
                 >
                   {notes.length}
@@ -426,10 +434,10 @@ const ReadingTestHeader = ({
                 if (next) setShowNotes(false);
               }}
               className={cn(
-                'flex items-center gap-1.5 px-2 sm:px-3 py-1 h-7 rounded-full transition-all duration-300 font-bold text-[10px] uppercase tracking-wider',
+                'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 h-7.5 rounded-full transition-all duration-200 font-bold text-[9.5px] sm:text-[10px] uppercase tracking-wider select-none hover:scale-105 active:scale-95',
                 showAnswerSheet
-                  ? 'bg-purple-500 text-white shadow-md shadow-purple-500/20'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-purple-50 hover:text-purple-700 dark:hover:bg-purple-500/10 dark:hover:text-purple-300'
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-700 hover:text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:bg-indigo-500/20 dark:hover:text-indigo-300'
               )}
               data-oid="_55gaum"
             >

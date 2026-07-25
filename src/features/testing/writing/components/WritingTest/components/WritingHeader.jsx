@@ -29,9 +29,9 @@ export function WritingHeader({ task, handleGetFeedback, handleSwitchTask }) {
   const setShowExitDialog = useWritingTestStore((state) => state.setShowExitDialog);
 
   return (
-    <div className="sticky top-0 z-50 w-full px-2 sm:px-4 py-2 sm:py-3" data-oid=":8ypqdh">
+    <div className="sticky top-0 z-50 w-full px-2 py-0.5 sm:px-3 sm:py-1" data-oid=":8ypqdh">
       <div
-        className="w-full rounded-xl sm:rounded-2xl flex items-center justify-between py-2 sm:py-3 px-2 sm:px-4 border border-slate-200/50 dark:border-white/10 bg-white/80 dark:bg-[#0B0C1A]/95 backdrop-blur-2xl shadow-[0_8px_32px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] ring-1 ring-transparent dark:ring-white/5 transition-all duration-300 gap-2"
+        className="w-full rounded-2xl flex items-center justify-between py-1 px-2.5 sm:py-1.5 sm:px-3.5 border border-slate-200/50 dark:border-white/10 bg-white/80 dark:bg-[#0B0C1A]/95 backdrop-blur-2xl shadow-[0_8px_32px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] ring-1 ring-transparent dark:ring-white/5 transition-all duration-300 gap-2"
         data-oid="djy-d0b"
       >
         {/* Left: Navigation & Info */}
@@ -50,10 +50,10 @@ export function WritingHeader({ task, handleGetFeedback, handleSwitchTask }) {
                 window.history.back();
               }
             }}
-            className="shrink-0 h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors"
+            className="shrink-0 h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors flex items-center justify-center p-0"
             data-oid="hk29.7f"
           >
-            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" data-oid="9sfx_0v" />
+            <ArrowLeft className="w-4 h-4 sm:w-4.5 sm:h-4.5" data-oid="9sfx_0v" />
           </Button>
 
           <div className="flex flex-col min-w-0" data-oid="m4bipk0">
@@ -188,7 +188,7 @@ export function WritingHeader({ task, handleGetFeedback, handleSwitchTask }) {
               }
             }}
             disabled={isAnalyzing}
-            className={`flex items-center gap-1.5 sm:gap-2 font-black px-3 sm:px-6 h-9 sm:h-11 rounded-lg sm:rounded-xl shadow-lg transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-80 disabled:hover:translate-y-0 text-[10px] sm:text-xs uppercase tracking-widest ${
+            className={`flex items-center gap-1.5 sm:gap-2 font-black px-3 sm:px-5 h-8 sm:h-9.5 rounded-lg sm:rounded-xl shadow-md transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-80 disabled:hover:translate-y-0 text-[10px] sm:text-xs uppercase tracking-widest ${
               currentFeedback && isCompleted
                 ? 'bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 text-white shadow-blue-500/30 hover:shadow-blue-500/50 border-none'
                 : 'bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 shadow-slate-900/25 dark:shadow-indigo-500/20'

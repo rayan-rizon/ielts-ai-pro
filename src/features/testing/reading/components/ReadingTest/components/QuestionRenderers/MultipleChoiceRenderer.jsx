@@ -97,7 +97,7 @@ const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({
   };
 
   return (
-    <div className="mt-1.5 space-y-1 ml-0.5 sm:ml-1" data-oid="gt9t:w6">
+    <div className="mt-2.5 space-y-1 ml-0.5 sm:ml-1" data-oid="gt9t:w6">
       {/* Options */}
       {question.options.map((option, index) => {
         const { letter, body } = parseOption(option, index);
@@ -108,9 +108,9 @@ const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({
           isFinished && correctAnswersList.some((ans) => isAnswerCorrect(letter, ans));
 
         let labelClass =
-          'flex items-start gap-2.5 px-2 py-1 rounded-md border transition-all duration-150 relative overflow-hidden select-none group ';
+          'flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border transition-all duration-150 relative overflow-hidden select-none group ';
         let badgeClass =
-          'w-5 h-5 min-w-[20px] rounded-full flex items-center justify-center text-[11px] font-bold transition-all shrink-0 mt-0.5 ';
+          'w-5 h-5 min-w-[20px] rounded-full flex items-center justify-center text-[11px] font-bold transition-all shrink-0 ';
 
         if (isFinished) {
           labelClass += 'cursor-not-allowed opacity-100 ';
@@ -121,11 +121,11 @@ const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({
 
             if (isCorrectSelection) {
               labelClass +=
-                'bg-emerald-50/90 border-emerald-500 text-emerald-950 dark:bg-emerald-950/40 dark:border-emerald-500/70 dark:text-emerald-200 font-semibold shadow-xs';
+                'bg-emerald-50/90 border-emerald-500 text-emerald-950 dark:bg-emerald-950/40 dark:border-emerald-500/70 dark:text-emerald-200 font-semibold shadow-2xs';
               badgeClass += 'bg-emerald-600 text-white dark:bg-emerald-500';
             } else {
               labelClass +=
-                'bg-rose-50/90 border-rose-500 text-rose-950 dark:bg-rose-950/40 dark:border-rose-500/70 dark:text-rose-200 font-semibold shadow-xs';
+                'bg-rose-50/90 border-rose-500 text-rose-950 dark:bg-rose-950/40 dark:border-rose-500/70 dark:text-rose-200 font-semibold shadow-2xs';
               badgeClass += 'bg-rose-600 text-white dark:bg-rose-500';
             }
           } else if (isActualCorrect) {
@@ -141,8 +141,8 @@ const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({
           labelClass += 'cursor-pointer ';
           if (isSelected) {
             labelClass +=
-              'bg-blue-50/90 border-blue-500/80 text-blue-950 dark:bg-blue-950/40 dark:border-blue-500/60 dark:text-blue-100 font-medium shadow-xs ring-1 ring-blue-500/20';
-            badgeClass += 'bg-blue-600 text-white dark:bg-blue-500 shadow-xs scale-105';
+              'bg-blue-50/90 border-blue-500/80 text-blue-950 dark:bg-blue-950/40 dark:border-blue-500/60 dark:text-blue-100 font-medium shadow-2xs ring-1 ring-blue-500/20';
+            badgeClass += 'bg-blue-600 text-white dark:bg-blue-500 shadow-2xs scale-105';
           } else {
             labelClass +=
               'border-transparent bg-transparent text-slate-700 dark:text-slate-200 hover:bg-slate-100/70 dark:hover:bg-slate-800/50 hover:border-slate-200/60 dark:hover:border-slate-700/60';
@@ -153,7 +153,7 @@ const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({
 
         return (
           <label key={index} className={labelClass} data-oid="jcsdbv.">
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0">
               <input
                 type={isMultiSelect ? 'checkbox' : 'radio'}
                 name={
@@ -174,7 +174,10 @@ const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({
                 {letter}
               </span>
             </div>
-            <span className="text-[15px] leading-tight flex-1 font-medium" data-oid="as1ywry">
+            <span
+              className="text-sm sm:text-[15px] leading-snug flex-1 font-medium"
+              data-oid="as1ywry"
+            >
               {body}
             </span>
           </label>

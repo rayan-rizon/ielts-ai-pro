@@ -140,7 +140,7 @@ const NotesCompletionRenderer = React.memo(
     };
 
     return (
-      <div className="rounded-xl p-4 sm:p-5" data-oid="kn-33aq">
+      <div className="p-1 sm:p-2" data-oid="kn-33aq">
         {/* Title - centered and bold */}
         {title && (
           <h2 className="text-xl font-bold text-center text-foreground mb-6" data-oid=".1avyxm">
