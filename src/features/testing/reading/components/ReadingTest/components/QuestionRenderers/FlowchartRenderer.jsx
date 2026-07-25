@@ -13,12 +13,15 @@ function getFlowchartGapStatus(disabled, validation, value) {
 
 function getFlowchartInputStyle(disabled, validation, value) {
   if (disabled && validation?.isCorrect) {
-    return 'border-emerald-500/80 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-semibold ring-1 ring-emerald-500/20';
+    return 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold';
   }
   if (disabled && value) {
-    return 'border-rose-500/80 bg-rose-50/80 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-semibold ring-1 ring-rose-500/20';
+    return 'border-rose-500 bg-rose-50/70 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 font-bold';
   }
-  return 'bg-slate-50/80 dark:bg-slate-950/60 border-slate-300/90 dark:border-slate-700/90 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-blue-400 dark:hover:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/30 focus-visible:border-blue-500';
+  if (disabled) {
+    return 'bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-foreground';
+  }
+  return 'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground hover:border-slate-400/80 dark:hover:border-slate-600/80 focus-visible:ring-1 focus-visible:ring-blue-500/40 focus-visible:border-blue-500/50';
 }
 
 function FlowchartDeepDive({
@@ -73,7 +76,7 @@ function FlowchartStepGap({
   return (
     <React.Fragment key={`gap-${gapNumber}-${index}`}>
       <span>{part}</span>
-      <span className="inline-flex items-center gap-1.5 mx-1.5 align-middle whitespace-nowrap">
+      <span className="inline-flex items-center gap-1.5 mx-1 align-middle whitespace-nowrap">
         <QuestionNumberCircle
           number={gapNumber}
           isFlagged={flaggedQuestions?.has(answerKey)}
@@ -87,7 +90,7 @@ function FlowchartStepGap({
           disabled={disabled}
           placeholder={disabled ? '' : 'answer'}
           className={cn(
-            'h-8 w-32 px-2 py-1 text-center text-[15px] rounded-lg border shadow-xs transition-all duration-200 font-medium',
+            'w-32 h-8 px-2 py-1 text-center text-[15px] rounded-lg transition-all duration-200 shadow-sm font-medium focus-visible:outline-none focus-visible:ring-1',
             inputStyle
           )}
         />
@@ -154,29 +157,29 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
 
   return (
     <div
-      className="w-full bg-slate-50/40 dark:bg-slate-900/30 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-2.5 sm:p-3.5 shadow-xs backdrop-blur-xs my-2"
+      className="w-full bg-slate-50/40 dark:bg-slate-900/30 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-2.5 sm:p-3 shadow-xs backdrop-blur-xs my-1.5"
       data-testid="reading-flowchart"
     >
       {flowchart.box_title && (
-        <div className="mb-3 text-center">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-snug">
+        <div className="mb-2 text-center">
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-snug">
             {flowchart.box_title}
           </h3>
         </div>
       )}
 
       {flowchart.instruction && (
-        <div className="mb-3 text-[15px] text-slate-600 dark:text-slate-400 italic">
+        <div className="mb-2 text-sm text-slate-600 dark:text-slate-400 italic">
           {flowchart.instruction}
         </div>
       )}
 
-      <div className="flex flex-col items-center gap-2 sm:gap-3 w-full max-w-2xl mx-auto">
+      <div className="flex flex-col items-center gap-1 sm:gap-1.5 w-full max-w-2xl mx-auto">
         {flowchart.steps.map((step, stepIndex) => (
           <React.Fragment key={step.id || stepIndex}>
             <div
               data-testid="flowchart-step"
-              className="w-full bg-white/80 dark:bg-slate-950/70 border border-slate-200/90 dark:border-slate-800 rounded-xl p-3 sm:p-4 text-[15px] text-slate-800 dark:text-slate-200 leading-relaxed shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+              className="w-full bg-white/80 dark:bg-slate-950/70 border border-slate-200/90 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-[15px] text-slate-800 dark:text-slate-200 leading-relaxed shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
             >
               {renderStep(step)}
             </div>
@@ -184,9 +187,9 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
             {stepIndex < flowchart.steps.length - 1 && (
               <div
                 data-testid="flowchart-arrow"
-                className="flex items-center justify-center text-blue-500/70 dark:text-blue-400/70 py-0.5"
+                className="flex items-center justify-center text-blue-500/70 dark:text-blue-400/70 py-0"
               >
-                <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
+                <ArrowDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" />
               </div>
             )}
           </React.Fragment>

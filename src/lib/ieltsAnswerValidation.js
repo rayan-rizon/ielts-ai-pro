@@ -6,6 +6,7 @@
  * - Optional content in parentheses: (£) 115
  * - Inline alternatives: a/one hundred
  * - Main alternatives separated by " / "
+ * - Legacy admin alternatives separated by " , " or " ; "
  * - Currency symbol flexibility
  *
  * Includes memoization for performance optimization.
@@ -72,7 +73,7 @@ export const parseIeltsAnswerVariations = (answerPattern) => {
 };
 
 /**
- * Split answer pattern by main alternatives (separated by " / ")
+ * Split answer pattern by main alternatives (separated by " / ", " , ", or " ; ")
  * but ignore slashes that are inside parentheses
  * @param {string} pattern
  * @returns {string[]}
@@ -93,17 +94,19 @@ const splitMainAlternatives = (pattern) => {
       current += char;
     } else if (
       parenDepth === 0 &&
-      char === '/' &&
-      // Split as main alternative ONLY if it has a space on EITHER side
-      // (to distinguish from inline alternatives like "a/one")
-      (pattern[i - 1] === ' ' || pattern[i + 1] === ' ')
+      ((char === '/' &&
+        // Distinguish main alternatives from inline alternatives like "a/one".
+        (pattern[i - 1] === ' ' || pattern[i + 1] === ' ')) ||
+        // Older admin entries used whitespace-wrapped commas/semicolons.
+        // Requiring whitespace on both sides avoids splitting normal punctuation.
+        ((char === ',' || char === ';') && pattern[i - 1] === ' ' && pattern[i + 1] === ' '))
     ) {
       // This is a main separator outside parentheses
       if (current.trim()) {
         alternatives.push(current.trim());
       }
       current = '';
-      // If there's a space after "/", skip it
+      // Skip the separator's trailing space.
       if (pattern[i + 1] === ' ') i++;
     } else {
       current += char;

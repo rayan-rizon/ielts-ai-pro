@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import FlowchartBuilder from '@/components/admin/tests/builders/FlowchartBuilder';
 import FlowchartRenderer from '@/features/testing/reading/components/ReadingTest/components/QuestionRenderers/FlowchartRenderer';
 import { scoreQuestion } from '@/features/testing/reading/components/ReadingTest/utils/scoreCalculator';
 
@@ -52,5 +53,39 @@ describe('reading flow-chart learner experience', () => {
     expect(result.total).toBe(3);
     expect(result.correct).toBe(2);
     expect(result.details.map((detail) => detail.questionNumber)).toEqual([8, 9, 10]);
+  });
+
+  it.each(['fermentation', 'fermentation process'])(
+    'accepts "%s" when legacy admin data stores both alternatives with a comma',
+    (answer) => {
+      const legacyQuestion = {
+        ...question,
+        flowchart: {
+          ...question.flowchart,
+          answers: {
+            ...question.flowchart.answers,
+            1: 'fermentation , fermentation process',
+          },
+        },
+      };
+
+      const result = scoreQuestion(legacyQuestion, {
+        'flow-1_gap_9': answer,
+      });
+
+      expect(result.details.find((detail) => detail.questionNumber === 9)).toMatchObject({
+        userAnswer: answer,
+        isCorrect: true,
+      });
+    }
+  );
+
+  it('shows learner-facing question numbers in the admin answer key', () => {
+    render(<FlowchartBuilder initialData={question.flowchart} onChange={vi.fn()} />);
+
+    expect(screen.getByText('Question 8')).toBeInTheDocument();
+    expect(screen.getByText('Question 9')).toBeInTheDocument();
+    expect(screen.getByText('Question 10')).toBeInTheDocument();
+    expect(screen.getByText(/Separate accepted alternatives with \//)).toBeInTheDocument();
   });
 });

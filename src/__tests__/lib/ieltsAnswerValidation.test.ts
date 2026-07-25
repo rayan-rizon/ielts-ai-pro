@@ -39,6 +39,11 @@ describe('IELTS Answer Validation', () => {
       expect(variations).toContain('dog');
     });
 
+    it('should handle legacy admin alternatives separated by whitespace-wrapped commas', () => {
+      const variations = parseIeltsAnswerVariations('fermentation , fermentation process');
+      expect(variations).toEqual(['fermentation', 'fermentation process']);
+    });
+
     it('should handle inline alternatives like "a/one"', () => {
       const variations = parseIeltsAnswerVariations('a/one hundred');
       expect(variations).toContain('a hundred');
@@ -83,6 +88,12 @@ describe('IELTS Answer Validation', () => {
       expect(isAnswerCorrect('cat', 'cat / dog')).toBe(true);
       expect(isAnswerCorrect('dog', 'cat / dog')).toBe(true);
       expect(isAnswerCorrect('bird', 'cat / dog')).toBe(false);
+    });
+
+    it('should accept either answer from legacy comma-separated admin data', () => {
+      const correctAnswer = 'fermentation , fermentation process';
+      expect(isAnswerCorrect('fermentation', correctAnswer)).toBe(true);
+      expect(isAnswerCorrect('fermentation process', correctAnswer)).toBe(true);
     });
 
     it('should accept answers matching inline alternatives', () => {

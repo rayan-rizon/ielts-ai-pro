@@ -100,10 +100,13 @@ const FlowchartBuilder = ({ initialData, onChange, theme }) => {
     return String.fromCharCode(65 + index); // default ABC
   };
 
-  // Calculate total gaps to render answer key
-  const totalGaps = data.steps.reduce((acc, step) => {
-    return acc + (step.text.match(/\[gap\]/g) || []).length;
-  }, 0);
+  // Preserve the learner-facing question numbers in the answer key so admins
+  // do not have to translate "Gap 1" back to Question 8, 9, etc.
+  const gapNumbers = data.steps.flatMap((step) => {
+    const gapCount = (step.text.match(/\[gap\]/g) || []).length;
+    return Array.from({ length: gapCount }, (_, index) => step.gap_numbers?.[index] ?? null);
+  });
+  const totalGaps = gapNumbers.length;
 
   return (
     <div className="space-y-6" data-oid="48-f0qe">
@@ -307,7 +310,7 @@ const FlowchartBuilder = ({ initialData, onChange, theme }) => {
                     data-oid="yyxbm7z"
                   >
                     <span className="text-muted-foreground" data-oid="o_9hx3o">
-                      Gap {i + 1}
+                      {gapNumbers[i] == null ? `Gap ${i + 1}` : `Question ${gapNumbers[i]}`}
                     </span>
                     {data.answer_mode === 'dropdown' ? (
                       <Select
@@ -346,6 +349,12 @@ const FlowchartBuilder = ({ initialData, onChange, theme }) => {
                   </div>
                 ))}
               </div>
+            )}
+            {data.answer_mode === 'input' && totalGaps > 0 && (
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                Separate accepted alternatives with / (for example: fermentation / fermentation
+                process).
+              </p>
             )}
           </div>
         </div>

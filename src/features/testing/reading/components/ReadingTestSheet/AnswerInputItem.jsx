@@ -1,0 +1,121 @@
+import React from 'react';
+import { Input } from '@/components/ui/input';
+import { checkAnswer, resolveCorrectAnswer, formatAnswerValue } from './answerSheetUtils';
+
+function getItemContainerStyle(isFinished, isCorrect, value) {
+  if (!isFinished) return 'border-border/60 hover:border-primary/40 hover:shadow-sm';
+  if (isCorrect) return 'answer-correct shadow-sm';
+  if (value) return 'answer-incorrect shadow-sm';
+  return 'answer-unanswered';
+}
+
+function getBadgeStyle(isFinished, isCorrect, value) {
+  if (!isFinished) {
+    return 'bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground group-hover:ring-2 group-hover:ring-primary/20';
+  }
+  if (isCorrect) return 'bg-emerald-500 text-white shadow-sm';
+  if (value) return 'bg-rose-500 text-white shadow-sm';
+  return 'bg-amber-400 text-amber-900 shadow-sm';
+}
+
+function getValueTextStyle(isCorrect, value) {
+  if (isCorrect) return 'text-emerald-700 dark:text-emerald-300';
+  if (value) return 'text-rose-700 dark:text-rose-300';
+  return 'text-amber-700 dark:text-amber-400';
+}
+
+export default function AnswerInputItem({
+  question: q,
+  globalNum,
+  subId = null,
+  correctAnswer = null,
+  answers,
+  handleAnswerChange,
+  isFinished,
+  onQuestionClick,
+}) {
+  const questionId = q.id;
+  const answerKey = subId !== null && subId !== undefined ? `${questionId}_${subId}` : questionId;
+  const value = answers[answerKey] || '';
+
+  const cAnswer = resolveCorrectAnswer(q, subId, correctAnswer);
+  const isCorrect = isFinished ? checkAnswer(value, cAnswer) : false;
+
+  const formattedUserValue = formatAnswerValue(value);
+  const formattedCorrectValue = formatAnswerValue(cAnswer);
+
+  return (
+    <div
+      key={answerKey}
+      className={`flex items-center gap-2 p-2 bg-card/70 rounded-lg border transition-all group ${getItemContainerStyle(
+        isFinished,
+        isCorrect,
+        value
+      )}`}
+      data-oid="0ldq_fa"
+    >
+      <div className="flex items-center justify-center flex-none" data-oid="-3h9e27">
+        <span
+          onClick={() => onQuestionClick && onQuestionClick(questionId)}
+          className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-all cursor-pointer hover:scale-110 active:scale-95 ${getBadgeStyle(
+            isFinished,
+            isCorrect,
+            value
+          )}`}
+          data-oid="94z:f23"
+        >
+          {globalNum}
+        </span>
+      </div>
+
+      {isFinished ? (
+        <div className="flex-1 min-w-0 flex flex-col justify-center" data-oid="lo1i2ox">
+          <div
+            className={`font-semibold text-sm ${getValueTextStyle(isCorrect, value)}`}
+            data-oid="n6az2ld"
+          >
+            {formattedUserValue || (
+              <span
+                className="text-amber-600/80 dark:text-amber-500/80 italic font-medium text-xs"
+                data-oid="laugwkv"
+              >
+                Not Answered
+              </span>
+            )}
+          </div>
+          {!isCorrect && (
+            <div
+              className={`text-[10px] text-muted-foreground truncate mt-1 pt-1 border-t flex items-center gap-1 ${
+                value
+                  ? 'border-rose-500/25 dark:border-rose-500/25'
+                  : 'border-amber-500/25 dark:border-amber-500/25'
+              }`}
+              data-oid="rcns9sy"
+            >
+              <span
+                className="text-muted-foreground/70 text-[9px] uppercase tracking-wider font-medium"
+                data-oid="2iphazs"
+              >
+                Correct:
+              </span>
+              <span
+                className="font-semibold text-emerald-700 dark:text-emerald-300"
+                data-oid="7sx9m2:"
+              >
+                {formattedCorrectValue || '-'}
+              </span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <Input
+          value={value}
+          onChange={(e) => handleAnswerChange(answerKey, e.target.value)}
+          placeholder=""
+          className="flex-1 h-8 min-w-0 px-2 text-sm bg-background/60 border-border/70 focus:ring-1 focus:ring-primary rounded-md font-medium text-center"
+          data-oid="7.8qgbt"
+        />
+      )}
+    </div>
+  );
+}

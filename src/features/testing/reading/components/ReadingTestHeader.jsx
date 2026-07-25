@@ -106,28 +106,60 @@ const ReadingTestHeader = ({
             type === 'table_completion' ||
             type === 'summary_completion' ||
             type === 'note_completion' ||
-            type === 'notes_completion' || // Added plural
+            type === 'notes_completion' ||
             type === 'gap_fill' ||
             type === 'sentence_completion' ||
             type === 'short_answer' ||
+            type === 'flowchart' ||
             type === 'flow_chart_completion' ||
-            type === 'diagram_completion'
+            type === 'diagram_completion' ||
+            type === 'diagram_label_completion' ||
+            type === 'map_labeling'
           ) {
-            // Comprehensive check for all completion types:
-            // 1. Check for exact ID match (Single-blank QuestionInput)
-            if (answers[q.id]?.toString().trim()) {
-              answeredValue++;
+            let countForQ = 0;
+            const prefix = `${q.id}_`;
+
+            // 1. Prefixed matches (e.g. q.id_gap_15, q.id_0, q.id_r0_c1)
+            const prefixedKeys = Object.keys(answers).filter(
+              (k) => (k === q.id || k.startsWith(prefix)) && answers[k]?.toString().trim()
+            );
+            countForQ = prefixedKeys.length;
+
+            // 2. Exact ID match if no prefixed keys found
+            if (countForQ === 0 && answers[q.id]?.toString().trim()) {
+              countForQ = 1;
             }
 
-            // 2. Check for prefixed matches (Multi-blank, Table, NotesRenderer)
-            const prefix = `${q.id}_`;
-            const prefixedAnswers = Object.keys(answers).filter(
-              (k) => k.startsWith(prefix) && answers[k]?.toString().trim()
-            );
-            answeredValue += prefixedAnswers.length;
+            // 3. Flowchart specific step gap numbers
+            if (q.flowchart?.steps) {
+              let fGapIndex = 0;
+              let gapCount = 0;
+              q.flowchart.steps.forEach((step) => {
+                const parts = (step.text || '').split('[gap]');
+                const gCount = Math.max(parts.length - 1, 0);
+                for (let i = 0; i < gCount; i++) {
+                  const gNum = step.gap_numbers?.[i] ?? Number(q.question_number || 1) + fGapIndex;
+                  const keys = [
+                    `${q.id}_gap_${gNum}`,
+                    `gap_${gNum}`,
+                    `${q.id}_${gNum}`,
+                    String(gNum),
+                    `${q.id}_${fGapIndex}`,
+                  ];
+                  if (keys.some((k) => answers[k]?.toString().trim())) {
+                    gapCount++;
+                  }
+                  fGapIndex++;
+                }
+              });
+              countForQ = Math.max(countForQ, gapCount);
+            }
+
+            const totalQs = getQuestionCount(q);
+            answeredValue += Math.min(countForQ, totalQs || 1);
           } else {
             // Default for single answer questions (Standard MCQ, etc.)
-            if (answers[q.id]) answeredValue++;
+            if (answers[q.id]?.toString().trim()) answeredValue++;
           }
         });
         return answeredValue;
