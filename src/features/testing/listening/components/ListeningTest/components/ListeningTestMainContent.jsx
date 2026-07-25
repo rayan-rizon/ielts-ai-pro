@@ -24,7 +24,11 @@ export default function ListeningTestMainContent({
   correctAnswersMap,
   dispatch,
   ACTIONS,
+  testMode = 'practice',
+  examReview = false,
+  onExamAudioEnded,
 }) {
+  const isExamMode = testMode === 'exam';
   const {
     leftPanelWidth,
     setLeftPanelWidth,
@@ -64,7 +68,11 @@ export default function ListeningTestMainContent({
             currentSection={currentSection}
             sectionQuestions={sectionQuestions}
             isMobile={isMobile}
+            examMode={isExamMode}
+            examReview={examReview}
+            onAudioEnded={onExamAudioEnded}
             onAudioDurationChange={(d) => {
+              if (isExamMode) return;
               const state = useListeningTestStore.getState();
               const isTimerUnset = state.timeRemaining === 0;
               const hasValidDuration = d > 0;
@@ -120,7 +128,7 @@ export default function ListeningTestMainContent({
                 className="w-full justify-start gap-2 h-9 text-xs font-bold border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-xl"
               >
                 <Lightbulb className="w-4 h-4 text-blue-500" />
-                Show Transcript & Audio
+                {isExamMode ? 'Show Audio' : 'Show Transcript & Audio'}
               </Button>
             </div>
           )}
@@ -132,6 +140,7 @@ export default function ListeningTestMainContent({
             stats={stats}
             dispatch={dispatch}
             ACTIONS={ACTIONS}
+            locked={isExamMode && !examReview}
           />
 
           {/* Questions Scroll Area */}
@@ -189,6 +198,7 @@ export default function ListeningTestMainContent({
               ref={audioPlayerRef}
               src={currentSection.audio_url}
               onDurationChange={(d) => {
+                if (isExamMode) return;
                 const state = useListeningTestStore.getState();
                 const isTimerUnset = state.timeRemaining === 0;
                 const hasValidDuration = d > 0;
@@ -201,6 +211,9 @@ export default function ListeningTestMainContent({
                 }
               }}
               onTimeUpdate={(t) => dispatch({ type: ACTIONS.UPDATE_AUDIO_TIME, payload: t })}
+              examMode={isExamMode}
+              examReview={examReview}
+              onEnded={onExamAudioEnded}
               data-oid="floating-mob-audio"
             />
           </div>

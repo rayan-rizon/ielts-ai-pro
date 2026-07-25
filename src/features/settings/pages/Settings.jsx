@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { useUserProfile, useUpdateProfile } from '@/features/auth/hooks/useUserProfile';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryClient';
+import { mergeDefaultTestMode } from '@/features/testing/shared/testMode';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -121,6 +122,7 @@ export default function Settings() {
     study_hours_goal: 10,
     study_availability: null,
     test_date: '',
+    default_test_mode: 'practice',
   });
 
   useEffect(() => {
@@ -134,6 +136,7 @@ export default function Settings() {
         study_hours_goal: user.study_hours_goal || 1,
         study_availability: user.study_availability || null,
         test_date: user.test_date ? user.test_date.split('T')[0] : '',
+        default_test_mode: user.settings?.default_test_mode === 'exam' ? 'exam' : 'practice',
       });
     }
   }, [user]);
@@ -154,6 +157,7 @@ export default function Settings() {
         study_hours_goal: legacyWeeklyHours,
         study_availability: studyAvailability,
         test_date: formData.test_date || null,
+        settings: mergeDefaultTestMode(user?.settings, formData.default_test_mode),
       });
       if (['pro', 'premium'].includes(String(user?.subscription_tier).toLowerCase())) {
         await generateAdaptiveLearningPath({ trigger: 'goal_changed' });

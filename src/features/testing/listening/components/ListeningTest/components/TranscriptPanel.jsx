@@ -10,7 +10,15 @@ import {
   useListeningAudioTime,
 } from '../context/ListeningTestContext';
 
-const TranscriptPanel = ({ audioPlayerRef, currentSection, onAudioDurationChange, isMobile }) => {
+const TranscriptPanel = ({
+  audioPlayerRef,
+  currentSection,
+  onAudioDurationChange,
+  isMobile,
+  examMode = false,
+  examReview = false,
+  onAudioEnded,
+}) => {
   const { showTranscript } = useListeningTestState();
   // Use the dedicated audio-time hook (audioCurrentTime is intentionally excluded
   // from useListeningTestState to prevent render loops on every timeupdate).
@@ -32,6 +40,9 @@ const TranscriptPanel = ({ audioPlayerRef, currentSection, onAudioDurationChange
               src={currentSection.audio_url}
               onDurationChange={onAudioDurationChange}
               onTimeUpdate={setAudioTimeRef}
+              examMode={examMode}
+              examReview={examReview}
+              onEnded={onAudioEnded}
               data-oid="83knhtk"
             />
           ) : (
@@ -46,91 +57,108 @@ const TranscriptPanel = ({ audioPlayerRef, currentSection, onAudioDurationChange
       )}
 
       {/* Synchronized Transcript Section - Integrated Panel */}
-      <div
-        className="flex-1 flex flex-col min-h-0 bg-white/70 dark:bg-slate-900/50 rounded-xl border border-slate-200/70 dark:border-slate-800/80 overflow-hidden shadow-2xs"
-        data-oid="qpvv9b:"
-      >
-        {/* Header */}
+      {!examMode ? (
         <div
-          className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-200/60 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-800/40 shrink-0"
-          data-oid="u.w7c68"
+          className="flex-1 flex flex-col min-h-0 bg-white/70 dark:bg-slate-900/50 rounded-xl border border-slate-200/70 dark:border-slate-800/80 overflow-hidden shadow-2xs"
+          data-oid="qpvv9b:"
         >
-          <div className="flex items-center gap-2.5" data-oid="35buee3">
-            <div
-              className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-200/50 dark:border-blue-500/20"
-              data-oid="xxf0fo6"
-            >
-              <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" data-oid="z6f5zjp" />
-            </div>
-            <div data-oid="u_ye_06">
-              <h3
-                className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm leading-tight"
-                data-oid="6.0lfsc"
-              >
-                Audioscript
-              </h3>
-              <p
-                className="text-[10px] text-slate-500 dark:text-slate-400 font-medium"
-                data-oid="3:e_l1s"
-              >
-                Click sentences to jump to audio
-              </p>
-            </div>
-          </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => dispatch({ type: ACTIONS.TOGGLE_TRANSCRIPT })}
-            className="text-blue-600 dark:text-blue-400 h-7 px-3 rounded-lg font-bold text-[11px] bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 shadow-2xs"
-            data-oid="wvgykuk"
+          {/* Header */}
+          <div
+            className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-200/60 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-800/40 shrink-0"
+            data-oid="u.w7c68"
           >
-            {showTranscript ? 'Hide' : 'Show'}
-          </Button>
-        </div>
-
-        {showTranscript && (
-          <div className="flex-1 flex flex-col min-h-0 overflow-hidden" data-oid="r:.vey5">
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-2" data-oid="e.ho-eb">
-              {currentSection.srt_content ? (
-                <SyncedTranscript
-                  srtContent={currentSection.srt_content}
-                  currentTime={audioCurrentTime}
-                  onSegmentClick={(time) => {
-                    if (audioPlayerRef.current) {
-                      audioPlayerRef.current.seek(time);
-                      audioPlayerRef.current.play();
-                    }
-                  }}
-                  data-oid="tr-83sc"
-                />
-              ) : currentSection.transcript ? (
-                <div className="p-4" data-oid="unnwl9n">
-                  <div
-                    className="prose prose-sm dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 leading-relaxed font-normal"
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(currentSection.transcript) }}
-                    data-oid="2o8:mg3"
-                  />
-                </div>
-              ) : (
-                <div
-                  className="flex flex-col items-center justify-center h-40 text-center p-6"
-                  data-oid="-_fjv0o"
+            <div className="flex items-center gap-2.5" data-oid="35buee3">
+              <div
+                className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-200/50 dark:border-blue-500/20"
+                data-oid="xxf0fo6"
+              >
+                <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" data-oid="z6f5zjp" />
+              </div>
+              <div data-oid="u_ye_06">
+                <h3
+                  className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm leading-tight"
+                  data-oid="6.0lfsc"
                 >
-                  <div
-                    className="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 mb-2"
-                    data-oid="qrhww.y"
-                  >
-                    <AlertCircle className="w-5 h-5 text-slate-400" data-oid="e2sncoc" />
-                  </div>
-                  <p className="italic text-slate-500 text-xs max-w-[200px]" data-oid="m7--yya">
-                    Transcript hidden for realistic practice.
-                  </p>
-                </div>
-              )}
+                  Audioscript
+                </h3>
+                <p
+                  className="text-[10px] text-slate-500 dark:text-slate-400 font-medium"
+                  data-oid="3:e_l1s"
+                >
+                  Click sentences to jump to audio
+                </p>
+              </div>
             </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => dispatch({ type: ACTIONS.TOGGLE_TRANSCRIPT })}
+              className="text-blue-600 dark:text-blue-400 h-7 px-3 rounded-lg font-bold text-[11px] bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 shadow-2xs"
+              data-oid="wvgykuk"
+            >
+              {showTranscript ? 'Hide' : 'Show'}
+            </Button>
           </div>
-        )}
-      </div>
+
+          {showTranscript && (
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden" data-oid="r:.vey5">
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-2" data-oid="e.ho-eb">
+                {currentSection.srt_content ? (
+                  <SyncedTranscript
+                    srtContent={currentSection.srt_content}
+                    currentTime={audioCurrentTime}
+                    onSegmentClick={(time) => {
+                      if (audioPlayerRef.current) {
+                        audioPlayerRef.current.seek(time);
+                        audioPlayerRef.current.play();
+                      }
+                    }}
+                    data-oid="tr-83sc"
+                  />
+                ) : currentSection.transcript ? (
+                  <div className="p-4" data-oid="unnwl9n">
+                    <div
+                      className="prose prose-sm dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 leading-relaxed font-normal"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(currentSection.transcript) }}
+                      data-oid="2o8:mg3"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className="flex flex-col items-center justify-center h-40 text-center p-6"
+                    data-oid="-_fjv0o"
+                  >
+                    <div
+                      className="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 mb-2"
+                      data-oid="qrhww.y"
+                    >
+                      <AlertCircle className="w-5 h-5 text-slate-400" data-oid="e2sncoc" />
+                    </div>
+                    <p className="italic text-slate-500 text-xs max-w-[200px]" data-oid="m7--yya">
+                      Transcript hidden for realistic practice.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : examReview ? (
+        <div className="grid flex-1 place-items-center rounded-xl border border-indigo-200 bg-indigo-50 p-5 text-center dark:border-indigo-500/20 dark:bg-indigo-500/10">
+          <div>
+            <p className="font-black text-indigo-900 dark:text-indigo-200">Final review</p>
+            <p className="mt-1 text-xs leading-5 text-indigo-700 dark:text-indigo-300">
+              Audio is complete. Review your answers before automatic submission.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid flex-1 place-items-center rounded-xl border border-slate-200 bg-slate-50 p-5 text-center dark:border-white/10 dark:bg-white/5">
+          <p className="text-xs font-semibold text-slate-500">
+            Audioscripts are unavailable in Exam Mode.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

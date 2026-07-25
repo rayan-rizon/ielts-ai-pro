@@ -35,6 +35,47 @@ export default function ProfileSection({ formData, setFormData, avatars }) {
       </div>
 
       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 shadow-sm border border-slate-200 dark:border-white/5">
+        <h3 className="text-xl font-black mb-1">Default Test Mode</h3>
+        <p className="text-sm text-slate-500 mb-6 font-medium">
+          Choose how new Reading, Listening, and Writing attempts start. You can still override this
+          in the test header.
+        </p>
+        <div
+          className="inline-flex rounded-2xl border border-slate-200 bg-slate-100 p-1 dark:border-white/10 dark:bg-slate-950"
+          role="radiogroup"
+          aria-label="Default test mode"
+        >
+          {[
+            ['practice', 'Practice'],
+            ['exam', 'Exam'],
+          ].map(([value, label]) => {
+            const selected = formData.default_test_mode === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => setFormData({ ...formData, default_test_mode: value })}
+                className={cn(
+                  'rounded-xl px-5 py-2.5 text-sm font-black transition',
+                  selected
+                    ? 'bg-white text-indigo-700 shadow-sm dark:bg-indigo-600 dark:text-white'
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                )}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-3 max-w-2xl text-xs leading-5 text-slate-500">
+          Exam Mode only applies to complete tests. Incomplete tests automatically use Practice Mode
+          without changing this preference.
+        </p>
+      </div>
+
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 shadow-sm border border-slate-200 dark:border-white/5">
         <h3 className="text-xl font-black mb-1">Basic Info</h3>
         <p className="text-sm text-slate-500 mb-6 font-medium">Update your name and email.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

@@ -9,6 +9,7 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,6 +47,8 @@ const ListeningTestHeader = ({
   isSubmitting,
   onViewResults,
   onNextPart,
+  testMode = 'practice',
+  examReview = false,
 }) => {
   const maxQuestions = (stats && (stats.totalQuestions || stats.totalQ)) || totalQuestions || 40;
   const solvedCount = (stats && (stats.totalAnswered ?? stats.totalAns)) ?? 0;
@@ -148,6 +151,12 @@ const ListeningTestHeader = ({
                     <ShieldCheck className="w-2.5 h-2.5 sm:w-3 h-3" data-oid="f3411fp" /> Official
                   </span>
                 )}
+                <Badge
+                  variant="outline"
+                  className="h-4 rounded-full px-1.5 text-[8px] font-black uppercase tracking-wide"
+                >
+                  {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
+                </Badge>
               </div>
             </div>
           </div>
@@ -264,7 +273,17 @@ const ListeningTestHeader = ({
 
           {/* Action Button: Next, Finish or View Results */}
           <div className="flex items-center gap-2" data-oid="header-actions">
-            {!isFinished ? (
+            {!isFinished && testMode === 'exam' && !examReview ? null : !isFinished &&
+              testMode === 'exam' &&
+              examReview ? (
+              <Button
+                onClick={onSubmit}
+                disabled={isSubmitting}
+                className="h-9 rounded-xl bg-indigo-600 px-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+              >
+                {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Finish review'}
+              </Button>
+            ) : !isFinished ? (
               !isLastPart ? (
                 <Button
                   onClick={onNextPart}

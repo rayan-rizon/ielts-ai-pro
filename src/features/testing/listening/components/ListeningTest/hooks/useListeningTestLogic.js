@@ -9,6 +9,36 @@ import { calculateEnhancedMetrics } from '@/services/testMetricsService';
 import { useGamification } from '@/hooks/useGamification';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useListeningTestStore } from '../../../store/useListeningTestStore';
+import {
+  LISTENING_REVIEW_SECONDS,
+  getListeningExamEligibility,
+  getListeningParts,
+  getExamRemainingSeconds,
+  getSessionTestMode,
+  resolveNewAttemptMode,
+  toPersistedTestMode,
+} from '@/features/testing/shared/testMode';
+import { useExamDeadline } from '@/features/testing/shared/hooks/useExamDeadline';
+
+function loadAudioDuration(src) {
+  return new Promise((resolve, reject) => {
+    const audio = new Audio();
+    const timeout = window.setTimeout(() => {
+      audio.src = '';
+      reject(new Error(`Audio metadata timed out: ${src}`));
+    }, 15_000);
+    audio.preload = 'metadata';
+    audio.onloadedmetadata = () => {
+      window.clearTimeout(timeout);
+      resolve(Math.ceil(audio.duration));
+    };
+    audio.onerror = () => {
+      window.clearTimeout(timeout);
+      reject(new Error(`Unable to load audio metadata: ${src}`));
+    };
+    audio.src = src;
+  });
+}
 
 export const useListeningTestLogic = () => {
   const { id } = useParams();
@@ -20,6 +50,10 @@ export const useListeningTestLogic = () => {
 
   const { userProfile: currentUser, loading: authLoading } = useAuth();
   const [pendingAudioSeek, setPendingAudioSeek] = useState(null);
+  const [selectedMode, setSelectedMode] = useState('practice');
+  const [examEligibility, setExamEligibility] = useState({ eligible: false, reason: '' });
+  const [isStarting, setIsStarting] = useState(false);
+  const [examReview, setExamReview] = useState(false);
   const audioPlayerRef = useRef(null);
 
   // Gamification
@@ -76,6 +110,8 @@ export const useListeningTestLogic = () => {
           type: ACTIONS.SET_TEST_DATA,
           payload: { passage: testData, questions: questions },
         });
+        const eligibility = getListeningExamEligibility(testData, questions);
+        setExamEligibility(eligibility);
 
         // 3. HANDLE USER SESSION
         if (currentUser) {
@@ -83,6 +119,32 @@ export const useListeningTestLogic = () => {
 
           if (existingSession) {
             dispatch({ type: ACTIONS.SET_SESSION, payload: existingSession });
+            setSelectedMode(getSessionTestMode(existingSession));
+            if (getSessionTestMode(existingSession) === 'exam' && !existingSession.is_completed) {
+              const durations = existingSession.content_data?.audio_durations || [];
+              const durationSeconds =
+                Number(existingSession.content_data?.duration_seconds) ||
+                existingSession.duration_minutes * 60;
+              const remaining = getExamRemainingSeconds(existingSession, durationSeconds);
+              const elapsed = Math.max(0, durationSeconds - remaining);
+              const audioTotal = durations.reduce((total, value) => total + Number(value || 0), 0);
+              if (elapsed >= audioTotal) {
+                setExamReview(true);
+                dispatch({
+                  type: ACTIONS.SET_ACTIVE_PART,
+                  payload: Math.max(0, durations.length - 1),
+                });
+              } else {
+                let offset = elapsed;
+                let partIndex = 0;
+                while (partIndex < durations.length - 1 && offset >= durations[partIndex]) {
+                  offset -= durations[partIndex];
+                  partIndex += 1;
+                }
+                dispatch({ type: ACTIONS.SET_ACTIVE_PART, payload: partIndex });
+                setPendingAudioSeek(offset);
+              }
+            }
 
             if (existingSession.user_responses) {
               dispatch({ type: ACTIONS.SET_ANSWERS_BULK, payload: existingSession.user_responses });
@@ -123,12 +185,17 @@ export const useListeningTestLogic = () => {
             }
 
             // Restore Audio
-            if (existingSession.content_data?.audio_current_time && !existingSession.is_completed) {
+            if (
+              getSessionTestMode(existingSession) !== 'exam' &&
+              existingSession.content_data?.audio_current_time &&
+              !existingSession.is_completed
+            ) {
               setPendingAudioSeek(existingSession.content_data.audio_current_time);
             }
 
             // Restore Time
             if (
+              getSessionTestMode(existingSession) !== 'exam' &&
               existingSession.content_data?.time_remaining !== undefined &&
               !existingSession.is_completed
             ) {
@@ -143,23 +210,14 @@ export const useListeningTestLogic = () => {
               navigate(`/listening-test/${existingSession.id}`, { replace: true });
             }
           } else {
-            // New Session
-            const newSession = await TestSession.create({
-              user_id: user.id,
-              test_type: 'listening',
-              is_completed: false,
-              passage_id: testData.id,
-              content_data: {
-                passage_id: testData.id,
-                title: testData.title,
-              },
+            dispatch({ type: ACTIONS.SET_SESSION, payload: null });
+            const preferredMode = resolveNewAttemptMode({
+              search: window.location.search,
+              settings: user.settings,
             });
-
-            const { removeFromCache } = await import('@/lib/apiCache');
-            removeFromCache('listening-tests-list');
-
-            dispatch({ type: ACTIONS.SET_SESSION, payload: newSession });
-            navigate(`/listening-test/${newSession.id}`, { replace: true });
+            setSelectedMode(
+              preferredMode === 'exam' && !eligibility.eligible ? 'practice' : preferredMode
+            );
           }
         }
       } catch (error) {
@@ -195,7 +253,7 @@ export const useListeningTestLogic = () => {
   useEffect(() => {
     // Only trigger once per test load
     if (hasAutoPlayedRef.current) return;
-    if (!testData || isFinished) return;
+    if (!testData || !session || isFinished) return;
 
     const params = new URLSearchParams(window.location.search);
     const isViewResults =
@@ -212,7 +270,7 @@ export const useListeningTestLogic = () => {
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [testData, isFinished]);
+  }, [testData, session, isFinished]);
 
   // Handle Auto-Play on Part/Tab Change
   const prevActivePartRef = useRef(activePart);
@@ -224,7 +282,7 @@ export const useListeningTestLogic = () => {
     prevActivePartRef.current = activePart;
 
     // Don't auto-play if test is finished or we're viewing results
-    if (isFinished) return;
+    if (!session || isFinished || examReview) return;
 
     const params = new URLSearchParams(window.location.search);
     const isViewResults =
@@ -239,7 +297,7 @@ export const useListeningTestLogic = () => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [activePart, isFinished]);
+  }, [activePart, session, isFinished, examReview]);
 
   // Reset auto-play flag on retake (when session changes to a new one)
   useEffect(() => {
@@ -403,8 +461,7 @@ export const useListeningTestLogic = () => {
           },
         });
 
-        await TestSession.update(session.id, {
-          is_completed: true,
+        const didComplete = await TestSession.complete(session.id, {
           score: results.bandScore,
           completed_at: new Date().toISOString(),
           duration_minutes: actualTimeSpentMinutes,
@@ -435,10 +492,12 @@ export const useListeningTestLogic = () => {
         const { removeFromCache } = await import('@/lib/apiCache');
         removeFromCache('listening-tests-list');
 
-        try {
-          await awardXP(results.correctAnswers, questions.length, { updateStreak: false });
-        } catch (e) {
-          console.error('XP Error', e);
+        if (didComplete) {
+          try {
+            await awardXP(results.correctAnswers, questions.length, { updateStreak: false });
+          } catch (e) {
+            console.error('XP Error', e);
+          }
         }
       }
 
@@ -452,14 +511,113 @@ export const useListeningTestLogic = () => {
     }
   };
 
+  const handleStartTest = useCallback(
+    async (requestedMode) => {
+      if (!testData || !currentUser || session || isStarting) return;
+      const testMode = requestedMode === 'exam' && examEligibility.eligible ? 'exam' : 'practice';
+      setIsStarting(true);
+      try {
+        const parts = getListeningParts(testData);
+        const audioDurations =
+          testMode === 'exam'
+            ? await Promise.all(parts.map((part) => loadAudioDuration(part.audio_url)))
+            : [];
+        const durationSeconds =
+          testMode === 'exam'
+            ? audioDurations.reduce((total, value) => total + value, 0) + LISTENING_REVIEW_SECONDS
+            : 40 * 60;
+        const newSession = await TestSession.create({
+          user_id: currentUser.id,
+          test_type: 'listening',
+          test_mode: toPersistedTestMode(testMode),
+          is_completed: false,
+          duration_minutes: Math.ceil(durationSeconds / 60),
+          passage_id: testData.id,
+          content_data: {
+            passage_id: testData.id,
+            title: testData.title,
+            test_mode: testMode,
+            duration_seconds: durationSeconds,
+            audio_durations: audioDurations,
+            review_seconds: testMode === 'exam' ? LISTENING_REVIEW_SECONDS : 0,
+          },
+        });
+        dispatch({ type: ACTIONS.RESET_TEST });
+        dispatch({ type: ACTIONS.SET_SESSION, payload: newSession });
+        if (testMode === 'exam') {
+          dispatch({ type: ACTIONS.SET_TIME, payload: durationSeconds });
+        }
+        setSelectedMode(testMode);
+        setExamReview(false);
+        const { removeFromCache } = await import('@/lib/apiCache');
+        removeFromCache('listening-tests-list');
+        navigate(`/listening-test/${newSession.id}`, { replace: true });
+      } catch (startError) {
+        console.error('Failed to start listening test:', startError);
+        dispatch({
+          type: ACTIONS.SET_ERROR,
+          payload: 'Failed to start the test or load its audio. Please try again.',
+        });
+      } finally {
+        setIsStarting(false);
+      }
+    },
+    [
+      testData,
+      currentUser,
+      session,
+      isStarting,
+      examEligibility.eligible,
+      dispatch,
+      ACTIONS,
+      navigate,
+    ]
+  );
+
+  const examDurationSeconds =
+    Number(session?.content_data?.duration_seconds) || session?.duration_minutes * 60 || 40 * 60;
+  useExamDeadline({
+    session,
+    isFinished,
+    durationSeconds: examDurationSeconds,
+    onTick: useCallback(
+      (remaining) => {
+        dispatch({ type: ACTIONS.SET_TIME, payload: remaining });
+        const reviewSeconds =
+          Number(session?.content_data?.review_seconds) || LISTENING_REVIEW_SECONDS;
+        setExamReview(remaining <= reviewSeconds);
+      },
+      [dispatch, ACTIONS.SET_TIME, session?.content_data?.review_seconds]
+    ),
+    onExpire: handleSubmit,
+  });
+
+  const handleExamAudioEnded = useCallback(() => {
+    if (getSessionTestMode(session) !== 'exam') return;
+    if (activePart < getListeningParts(testData).length - 1) {
+      dispatch({ type: ACTIONS.SET_ACTIVE_PART, payload: activePart + 1 });
+    } else {
+      setExamReview(true);
+    }
+  }, [session, activePart, testData, dispatch, ACTIONS.SET_ACTIVE_PART]);
+
   return {
     // State
     audioPlayerRef,
     currentUser,
+    testMode: session ? getSessionTestMode(session) : selectedMode,
+    selectedMode,
+    setSelectedMode,
+    examEligibility,
+    isAwaitingStart: Boolean(testData && currentUser && !session),
+    isStarting,
+    examReview,
     // Handlers
     toggleFlag,
     handleAnswerChange,
     handleMultiSelectChange,
     handleSubmit,
+    handleStartTest,
+    handleExamAudioEnded,
   };
 };

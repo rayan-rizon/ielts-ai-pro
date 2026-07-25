@@ -5,6 +5,15 @@ import { useWritingTestStore } from '@/features/testing/writing/store/useWriting
 import { useWritingTestDispatch } from '../context/WritingTestContext';
 import { removeFromCache } from '@/hooks/useDataQuery';
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
+import { TestSession } from '@/features/testing/shared/services/TestSession';
+import {
+  EXAM_DURATION_SECONDS,
+  getSessionTestMode,
+  getWritingExamEligibility,
+  resolveNewAttemptMode,
+  toPersistedTestMode,
+} from '@/features/testing/shared/testMode';
+import { useExamDeadline } from '@/features/testing/shared/hooks/useExamDeadline';
 
 // Modular Hooks
 import { useWritingInitialization } from './useWritingInitialization';
@@ -52,6 +61,10 @@ export function useWritingTaskLogic(passedUser = null) {
   const setShowUpgradeDialog = useWritingTestStore((state) => state.setShowUpgradeDialog);
 
   const [showSample, setShowSample] = useState(false);
+  const [selectedMode, setSelectedMode] = useState('practice');
+  const [examEligibility, setExamEligibility] = useState({ eligible: false, reason: '' });
+  const [isStarting, setIsStarting] = useState(false);
+  const modeInitializationKeyRef = useRef(null);
   const { saveNow } = useWritingTestDispatch();
 
   // 2. Initialize Sub-Hooks
@@ -67,6 +80,24 @@ export function useWritingTaskLogic(passedUser = null) {
 
   const { handleGetFeedback } = useWritingFeedback(awardXP);
   const { loadingMessage } = useWritingStatus();
+
+  useEffect(() => {
+    if (!task || !currentUser) return;
+    const key = session?.id || task.id;
+    if (modeInitializationKeyRef.current === key) return;
+    modeInitializationKeyRef.current = key;
+    const eligibility = getWritingExamEligibility(compositeTasks);
+    setExamEligibility(eligibility);
+    if (session) {
+      setSelectedMode(getSessionTestMode(session));
+      return;
+    }
+    const preferredMode = resolveNewAttemptMode({
+      search: window.location.search,
+      settings: currentUser.settings,
+    });
+    setSelectedMode(preferredMode === 'exam' && !eligibility.eligible ? 'practice' : preferredMode);
+  }, [task, compositeTasks, currentUser, session]);
 
   // 3. Navigation Blocker (Legacy Logic kept here for now as it bridges Router + Store)
   const blocker = useBlocker(({ currentLocation, nextLocation }) => {
@@ -114,21 +145,24 @@ export function useWritingTaskLogic(passedUser = null) {
         },
       ];
 
-      const { error: submitError } = await supabase
+      const { data: completedSession, error: submitError } = await supabase
         .from('test_sessions')
         .update({
           user_responses: currentResponse,
           is_completed: true,
           completed_at: new Date().toISOString(),
         })
-        .eq('id', store.session.id);
+        .eq('id', store.session.id)
+        .eq('is_completed', false)
+        .select('id')
+        .maybeSingle();
 
       if (submitError) throw submitError;
 
       removeFromCache('writing-tests-list');
 
       // Trigger adaptive learning path refresh in background (Pro/Premium only)
-      if (store.session?.user_id) {
+      if (completedSession && store.session?.user_id) {
         refreshLearningPathAfterTest(store.session.user_id, 'writing', 0).catch((err) => {
           if (err?.status !== 403)
             console.warn('Writing: learning path refresh failed:', err?.message);
@@ -149,6 +183,51 @@ export function useWritingTaskLogic(passedUser = null) {
     }
   };
 
+  const handleStartTest = useCallback(
+    async (requestedMode) => {
+      const store = useWritingTestStore.getState();
+      if (!store.task || !store.currentUser || store.session || isStarting) return;
+      const testMode = requestedMode === 'exam' && examEligibility.eligible ? 'exam' : 'practice';
+      setIsStarting(true);
+      store.setError(null);
+      try {
+        const newSession = await TestSession.create({
+          user_id: store.currentUser.id,
+          test_type: 'writing',
+          test_mode: toPersistedTestMode(testMode),
+          duration_minutes: 60,
+          passage_id: store.task.id,
+          content_data: {
+            ...store.task,
+            test_mode: testMode,
+            duration_seconds: EXAM_DURATION_SECONDS,
+          },
+        });
+        store.resetTest();
+        store.setTask(store.task, store.compositeTasks);
+        store.setSession(newSession);
+        store.setTime(EXAM_DURATION_SECONDS);
+        setSelectedMode(testMode);
+        const params = new URLSearchParams();
+        params.set('sessionId', newSession.id);
+        navigate(`?${params.toString()}`, { replace: true });
+      } catch (startError) {
+        console.error('Failed to start writing test:', startError);
+        store.setError('Failed to start the test. Please try again.');
+      } finally {
+        setIsStarting(false);
+      }
+    },
+    [isStarting, examEligibility.eligible, navigate]
+  );
+
+  useExamDeadline({
+    session,
+    isFinished: isCompleted,
+    onTick: useCallback((remaining) => useWritingTestStore.getState().setTime(remaining), []),
+    onExpire: handleSubmit,
+  });
+
   // 5. Task Switching (atomic — single store update)
   const handleSwitchTask = useCallback((type) => {
     useWritingTestStore.getState().switchTaskFull(type);
@@ -168,6 +247,12 @@ export function useWritingTaskLogic(passedUser = null) {
     error,
     feedbackError,
     currentUser,
+    testMode: session ? getSessionTestMode(session) : selectedMode,
+    selectedMode,
+    setSelectedMode,
+    examEligibility,
+    isAwaitingStart: Boolean(task && currentUser && !session),
+    isStarting,
 
     // UI State
     showExitDialog,
@@ -191,6 +276,7 @@ export function useWritingTaskLogic(passedUser = null) {
     initialize: useCallback(() => initialize(passedUser), [initialize, passedUser]),
     handleGetFeedback,
     handleSubmit,
+    handleStartTest,
     handleSwitchTask,
 
     // Gamification

@@ -152,6 +152,9 @@ export default function RecentPerformance({ recentTests }) {
                             data-oid="mcmd-50"
                           >
                             {session.test_type} Test
+                            <span className="rounded-full border border-slate-200 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-slate-500 dark:border-white/10 dark:text-slate-400">
+                              {session.test_mode === 'mock' ? 'Exam' : 'Practice'}
+                            </span>
                             {/* Optional: Add 'New' badge if very recent */}
                           </div>
                           <div className="flex items-center gap-3 mt-1" data-oid="jceh4rt">

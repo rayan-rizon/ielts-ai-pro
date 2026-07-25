@@ -106,7 +106,13 @@ function ImageDisplay({ imageUrl: rawImageUrl }) {
   );
 }
 
-export function TaskPanel({ task, showSample, setShowSample, isInset = false }) {
+export function TaskPanel({
+  task,
+  showSample,
+  setShowSample,
+  isInset = false,
+  allowSample = true,
+}) {
   const activeType = useWritingTestStore((state) => state.activeType) || 'Task 1';
 
   if (!task) return null;
@@ -217,7 +223,7 @@ export function TaskPanel({ task, showSample, setShowSample, isInset = false }) 
         {task.image_url && <ImageDisplay imageUrl={task.image_url} data-oid="d5.uiql" />}
 
         {/* Sample Answer Toggle */}
-        {task.sample_answer && (
+        {allowSample && task.sample_answer && (
           <div className="pt-1" data-oid="b7qzctz">
             <Button
               variant="ghost"

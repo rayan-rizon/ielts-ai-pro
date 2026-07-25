@@ -82,19 +82,24 @@ const ModalFooter = ({ isPremium, handleUpgrade, onReviewAnswers, onClose }) => 
   </div>
 );
 
-const ModalHeader = ({ testType, children }) => (
+const ModalHeader = ({ testType, testMode, children }) => (
   <header className="px-4 sm:px-5 pr-14 py-2.5 min-h-[62px] flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center gap-2.5 shrink-0 z-10 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
     <div className="flex items-center gap-2.5 min-w-0">
       <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 dark:bg-blue-950/50 dark:border-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
         <BookOpen className="w-4 h-4" />
       </div>
-      <motion.h2
-        initial={{ opacity: 0, y: -4 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-base sm:text-lg font-black text-slate-950 dark:text-white tracking-tight truncate"
-      >
-        IELTS {testType.charAt(0).toUpperCase() + testType.slice(1)} Test Result
-      </motion.h2>
+      <div className="min-w-0">
+        <motion.h2
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="truncate text-base font-black tracking-tight text-slate-950 dark:text-white sm:text-lg"
+        >
+          IELTS {testType.charAt(0).toUpperCase() + testType.slice(1)} Test Result
+        </motion.h2>
+        <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">
+          {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
+        </p>
+      </div>
     </div>
     {children}
     <div className="hidden md:block" aria-hidden="true" />
@@ -158,6 +163,7 @@ const ModalContent = React.memo(
     targetBand,
     isPremium,
     testType,
+    testMode,
     activeTab,
     setActiveTab,
     handleUpgrade,
@@ -188,7 +194,7 @@ const ModalContent = React.memo(
           onValueChange={setActiveTab}
           className="flex-1 flex flex-col overflow-hidden"
         >
-          <ModalHeader testType={testType}>
+          <ModalHeader testType={testType} testMode={testMode}>
             <TabsNav />
           </ModalHeader>
 
@@ -250,6 +256,7 @@ export default function TestResultsModal({
   onReviewAnswers,
   onNavigateToQuestion,
   testType = 'reading', // 'reading' or 'listening'
+  testMode = 'practice',
   celebrate = true,
   _dashboardUrl = '/dashboard',
 }) {
@@ -310,6 +317,7 @@ export default function TestResultsModal({
           targetBand={user?.target_band_score}
           isPremium={isPremium}
           testType={testType}
+          testMode={testMode}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           handleUpgrade={handleUpgrade}

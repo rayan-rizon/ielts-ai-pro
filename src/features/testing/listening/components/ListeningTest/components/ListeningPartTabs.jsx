@@ -9,6 +9,7 @@ export default function ListeningPartTabs({
   stats,
   dispatch,
   ACTIONS,
+  locked = false,
 }) {
   return (
     <div
@@ -33,12 +34,15 @@ export default function ListeningPartTabs({
             return (
               <button
                 key={idx}
+                disabled={locked && !isActive}
                 onClick={() => dispatch({ type: ACTIONS.SET_ACTIVE_PART, payload: idx })}
                 className={cn(
                   'relative px-3 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl transition-colors duration-200 ease-out flex items-center justify-center gap-1.5 sm:gap-2.5 z-10 select-none whitespace-nowrap',
                   isActive
                     ? 'text-white'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    : locked
+                      ? 'cursor-not-allowed text-slate-300 dark:text-slate-700'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                 )}
                 data-oid="hag248p"
               >

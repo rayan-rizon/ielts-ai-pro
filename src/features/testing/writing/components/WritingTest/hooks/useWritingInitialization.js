@@ -4,7 +4,6 @@ import { supabase } from '@/lib/supabase';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import { User } from '@/features/auth/services/User';
 import { Passage } from '@/features/testing/shared/services/Passage';
-import { TestSession } from '@/features/testing/shared/services/TestSession';
 
 function parseWritingUrlParams() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -52,7 +51,7 @@ async function searchFallbackSession(userId, taskId, isResume, isView) {
   let query = supabase
     .from('test_sessions')
     .select(
-      'id, user_id, passage_id, test_type, is_completed, answers, band_score, score, content_data, created_at, completed_at, time_remaining, time_spent, feedback'
+      'id, user_id, passage_id, test_type, test_mode, is_completed, answers, band_score, score, content_data, created_at, started_at, completed_at, time_remaining, time_spent, feedback, duration_minutes, user_responses'
     )
     .eq('user_id', userId)
     .eq('test_type', 'writing')
@@ -238,20 +237,6 @@ function restoreWritingSessionState(store, existingSession, initialActiveType) {
   restoreFeedbacks(store, feedbacks, initialActiveType);
 }
 
-async function setupNewSession(store, selectedTask, userId) {
-  store.resetTest();
-  const newSession = await TestSession.create({
-    user_id: userId,
-    test_type: 'writing',
-    test_mode: 'practice',
-    duration_minutes: 60,
-    content_data: selectedTask,
-    passage_id: selectedTask.id,
-  });
-  store.setSession(newSession);
-  store.setTime(60 * 60);
-}
-
 function updateUrlWithSession(navigate, isNewAttempt, sessionId) {
   const currentSession = useWritingTestStore.getState().session;
   const shouldUpdateUrl = currentSession && (isNewAttempt || !sessionId);
@@ -295,12 +280,13 @@ async function loadUserAndData(store, params, passedUser) {
   return { ...sessionAndTask, userData };
 }
 
-async function applySessionOrCreate({ store, selectedTask, existingSession, params, userId }) {
+async function applySessionOrCreate({ store, selectedTask, existingSession, params }) {
   const initialActiveType = applyTaskToStore(store, selectedTask, params);
   if (existingSession) {
     restoreWritingSessionState(store, existingSession, initialActiveType);
   } else {
-    await setupNewSession(store, selectedTask, userId);
+    store.resetTest();
+    store.setSession(null);
   }
 }
 
@@ -312,11 +298,7 @@ async function runInitialize(store, navigate, passedUser) {
   }
 
   try {
-    const { existingSession, selectedTask, userData } = await loadUserAndData(
-      store,
-      params,
-      passedUser
-    );
+    const { existingSession, selectedTask } = await loadUserAndData(store, params, passedUser);
     if (!selectedTask) {
       store.setError('Task not found. Please choose a different task.');
       return;
@@ -326,7 +308,6 @@ async function runInitialize(store, navigate, passedUser) {
       selectedTask,
       existingSession,
       params,
-      userId: userData.id,
     });
   } catch (err) {
     console.error('Initialization error:', err);

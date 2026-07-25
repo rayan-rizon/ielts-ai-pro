@@ -15,6 +15,8 @@ import { useWritingTaskLogic } from '../components/WritingTest/hooks/useWritingT
 import { useWritingTestStore } from '../store/useWritingTestStore';
 import AnnotatedText from '@/components/writing/AnnotatedText';
 import { useAuth } from '@/features/auth/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import TestModeStartGate from '@/features/testing/shared/components/TestModeStartGate';
 
 const MemoizedWritingHeader = React.memo(WritingHeader);
 const MemoizedTaskPanel = React.memo(TaskPanel);
@@ -110,7 +112,7 @@ function WritingTaskContent() {
   const currentFeedback = useWritingTestStore((state) => state.currentFeedback);
   const isAnalyzing = useWritingTestStore((state) => state.isAnalyzing);
   const feedbackError = useWritingTestStore((state) => state.feedbackError);
-  const hasFeedbackPane = Boolean(currentFeedback || isAnalyzing || feedbackError);
+  const navigate = useNavigate();
 
   const {
     task,
@@ -127,7 +129,19 @@ function WritingTaskContent() {
     earnedXP,
     setShowConfetti,
     setShowXPNotification,
+    testMode,
+    selectedMode,
+    setSelectedMode,
+    examEligibility,
+    isAwaitingStart,
+    isStarting,
+    handleStartTest,
+    isCompleted,
+    setShowSubmitDialog,
   } = logic;
+  const hasFeedbackPane =
+    Boolean(currentFeedback || isAnalyzing || feedbackError) &&
+    (testMode !== 'exam' || isCompleted);
 
   const [showTask, setShowTask] = useWritingInitialTaskPanelState(hasFeedbackPane);
   const showTaskPanel = showTask && !hasFeedbackPane;
@@ -144,6 +158,21 @@ function WritingTaskContent() {
     return <PremiumLoading message="Loading writing task..." />;
   }
 
+  if (isAwaitingStart) {
+    return (
+      <TestModeStartGate
+        title={task.title || 'Writing Test'}
+        skill="Writing"
+        selectedMode={selectedMode}
+        onModeChange={setSelectedMode}
+        examEligibility={examEligibility}
+        onStart={handleStartTest}
+        isStarting={isStarting}
+        onExit={() => navigate('/writing')}
+      />
+    );
+  }
+
   return (
     <div
       className="flex min-h-0 h-full w-full flex-col overflow-hidden bg-slate-50 relative dark:bg-[#05060B]"
@@ -153,6 +182,8 @@ function WritingTaskContent() {
         task={task}
         handleGetFeedback={handleGetFeedback}
         handleSwitchTask={handleSwitchTask}
+        testMode={testMode}
+        onSubmit={() => setShowSubmitDialog(true)}
         data-oid=".3a0f71"
       />
 
@@ -166,6 +197,7 @@ function WritingTaskContent() {
               task={task}
               showSample={showSample}
               setShowSample={setShowSample}
+              allowSample={testMode !== 'exam' || isCompleted}
               data-oid="oxbs3rj"
             />
           )}

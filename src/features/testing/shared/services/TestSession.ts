@@ -164,6 +164,22 @@ export const TestSession = {
     return updatedSession;
   },
 
+  /**
+   * Completes an attempt exactly once. A concurrent refresh/tab receives false
+   * and must not repeat side effects such as XP or learning-path updates.
+   */
+  async complete(id: string, data: Partial<TestSession>): Promise<boolean> {
+    const { data: updatedSession, error } = await supabase
+      .from('test_sessions')
+      .update({ ...data, is_completed: true })
+      .eq('id', id)
+      .eq('is_completed', false)
+      .select('id')
+      .maybeSingle();
+    if (error) throw error;
+    return Boolean(updatedSession);
+  },
+
   async delete(id: string): Promise<boolean> {
     const { error } = await supabase.from('test_sessions').delete().eq('id', id);
     if (error) throw error;

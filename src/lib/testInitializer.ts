@@ -60,7 +60,8 @@ interface CreateSessionParams {
   userId: string;
   passageId: string;
   type: 'reading' | 'listening';
-  durationMinutes?: number;
+  testMode?: 'practice' | 'exam';
+  durationSeconds?: number;
 }
 
 /**
@@ -196,7 +197,7 @@ export async function initializeTest({
     const { data: userSessions } = await supabase
       .from('test_sessions')
       .select(
-        'id, user_id, passage_id, test_type, is_completed, answers, band_score, score, content_data, created_at, completed_at, time_remaining, time_spent'
+        'id, user_id, passage_id, test_type, test_mode, is_completed, answers, band_score, score, content_data, created_at, started_at, completed_at, time_remaining, time_spent, duration_minutes, user_responses'
       )
       .eq('user_id', userData.id)
       .eq('test_type', type)
@@ -211,7 +212,7 @@ export async function initializeTest({
         resolvedSession = sessions.find((s) => s.is_completed);
       } else {
         // Find latest IN-PROGRESS session
-        resolvedSession = sessions.find((s) => (type === 'listening' ? true : !s.is_completed));
+        resolvedSession = sessions.find((s) => !s.is_completed);
       }
     }
   }
@@ -270,18 +271,23 @@ export async function createTestSession({
   userId,
   passageId,
   type,
-  durationMinutes = 60,
+  testMode = 'practice',
+  durationSeconds = 60 * 60,
 }: CreateSessionParams): Promise<TestSession> {
+  const durationMinutes = Math.ceil(durationSeconds / 60);
   const { data, error } = await supabase
     .from('test_sessions')
     .insert({
       user_id: userId,
       test_type: type,
+      test_mode: testMode === 'exam' ? 'mock' : 'practice',
       is_completed: false,
       duration_minutes: durationMinutes,
       passage_id: passageId,
       content_data: {
         passage_id: passageId,
+        test_mode: testMode,
+        duration_seconds: durationSeconds,
       },
     })
     .select()

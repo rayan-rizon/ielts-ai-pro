@@ -110,6 +110,7 @@ import { useHighlighter } from '../components/ReadingTest/hooks/useHighlighter';
 import { useTestNotes } from '../components/ReadingTest/hooks/useTestNotes';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useReadingTestStore } from '../store/useReadingTestStore';
+import TestModeStartGate from '@/features/testing/shared/components/TestModeStartGate';
 
 // HighlightMenu component moved to ./ReadingTest/components/HighlightMenu.jsx
 
@@ -147,6 +148,12 @@ function ReadingTestContent() {
     error,
     session,
     user: logicUser,
+    testMode,
+    selectedMode,
+    setSelectedMode,
+    examEligibility,
+    isAwaitingStart,
+    isStarting,
     isFinished,
     showResults,
     setShowResults,
@@ -159,6 +166,7 @@ function ReadingTestContent() {
     loadTest,
     loadUser, // Added back
     handleSubmit, // Added back
+    handleStartTest,
     blocker,
     showExitDialog,
     setShowExitDialog,
@@ -592,8 +600,9 @@ function ReadingTestContent() {
       const selection = window.getSelection();
       const selectedText = selection.toString().trim();
 
-      // 1. Handle multi-word selections (Highlight Menu)
-      if (selectedText && selectedText.includes(' ')) {
+      // 1. Handle highlight selections. In Exam Mode, definitions are disabled,
+      // so single-word selections should open the highlight menu too.
+      if (selectedText && (testMode === 'exam' || selectedText.includes(' '))) {
         event.stopPropagation(); // Handled here, don't bubble
 
         // Clear definition if open
@@ -615,6 +624,9 @@ function ReadingTestContent() {
         setShowHighlightMenu(true);
         return;
       }
+
+      // Exam Mode keeps highlighting but does not allow dictionary definitions.
+      if (testMode === 'exam') return;
 
       // 2. Handle single word clicks/selections (Definition or Gap)
       // If no text is selected (click), OR partial selection, check cursor.
@@ -687,7 +699,7 @@ function ReadingTestContent() {
         await fetchWordDefinition(selectedText);
       }
     },
-    [expandRangeToWord, fetchWordDefinition, getRangeFromPoint]
+    [expandRangeToWord, fetchWordDefinition, getRangeFromPoint, testMode]
   ); // Add fetchWordDefinition to dependencies
 
   // addToVocabulary logic moved to useWordDefinition hook
@@ -826,6 +838,21 @@ function ReadingTestContent() {
     );
   }
 
+  if (isAwaitingStart) {
+    return (
+      <TestModeStartGate
+        title={testData.title || 'Reading Test'}
+        skill="Reading"
+        selectedMode={selectedMode}
+        onModeChange={setSelectedMode}
+        examEligibility={examEligibility}
+        onStart={handleStartTest}
+        isStarting={isStarting}
+        onExit={() => navigate('/reading')}
+      />
+    );
+  }
+
   // Removed the previous 'isFinished' block that displayed AI Analysis results.
   // Keyboard support for resize handle
   const handleResizeKeyDown = (e) => {
@@ -903,6 +930,7 @@ function ReadingTestContent() {
           onContinue={resetBlocker}
           formatTime={formatTime}
           isFinished={isFinished}
+          testMode={testMode}
         />
 
         {/* Main Layout Container */}
@@ -928,7 +956,7 @@ function ReadingTestContent() {
                 paperTheme={paperTheme}
                 textSize={textSize}
                 onTextSelection={handleTextSelection}
-                onMouseMove={handlePassageMouseMove}
+                onMouseMove={testMode === 'exam' ? undefined : handlePassageMouseMove}
                 onMouseLeave={() => setHoveredWordRect(null)}
                 hoveredWordRect={hoveredWordRect}
                 highlightedAnswerQs={highlightedAnswerQs}
@@ -1030,7 +1058,12 @@ function ReadingTestContent() {
         )}
 
         {/* Word Definition Popover Call */}
-        <WordDefinitionPopover wordDefinition={wordDefinition} addToVocabulary={addToVocabulary} />
+        {testMode !== 'exam' ? (
+          <WordDefinitionPopover
+            wordDefinition={wordDefinition}
+            addToVocabulary={addToVocabulary}
+          />
+        ) : null}
 
         {/* Premium Results Modal */}
         <TestResultsModal
@@ -1047,10 +1080,14 @@ function ReadingTestContent() {
           }}
           onNavigateToQuestion={handleNavigateToQuestion}
           testType="reading"
+          testMode={testMode}
         />
 
         {/* Time's Up Dialog */}
-        <AlertDialog open={showTimeUpDialog} onOpenChange={setShowTimeUpDialog}>
+        <AlertDialog
+          open={testMode !== 'exam' && showTimeUpDialog}
+          onOpenChange={setShowTimeUpDialog}
+        >
           <AlertDialogContent className="max-w-md">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-2xl font-bold">Time&apos;s Up</AlertDialogTitle>

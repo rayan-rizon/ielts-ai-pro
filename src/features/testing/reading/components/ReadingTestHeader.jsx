@@ -54,6 +54,7 @@ const ReadingTestHeader = ({
   // Pacing Assistant props
   passageTimes = {},
   totalDurationSeconds = 3600,
+  testMode = 'practice',
 }) => {
   // Calculate progress and stats per section
   const stats = React.useMemo(() => {
@@ -277,6 +278,12 @@ const ReadingTestHeader = ({
                     <span className="hidden sm:inline">Official</span>
                   </span>
                 )}
+                <Badge
+                  variant="outline"
+                  className="h-4 rounded-full px-1.5 text-[8px] font-black uppercase tracking-wide"
+                >
+                  {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
+                </Badge>
               </div>
             </div>
           </div>
@@ -349,15 +356,17 @@ const ReadingTestHeader = ({
           </div>
 
           {/* Pacing Assistant */}
-          {!isFinished && (testData?.sections || testData?.passages || []).length > 0 && (
-            <PacingIndicator
-              sections={testData?.sections || testData?.passages || []}
-              passageTimes={passageTimes}
-              currentPassageIndex={currentPassageIndex}
-              totalDurationSeconds={totalDurationSeconds}
-              isFinished={isFinished}
-            />
-          )}
+          {testMode !== 'exam' &&
+            !isFinished &&
+            (testData?.sections || testData?.passages || []).length > 0 && (
+              <PacingIndicator
+                sections={testData?.sections || testData?.passages || []}
+                passageTimes={passageTimes}
+                currentPassageIndex={currentPassageIndex}
+                totalDurationSeconds={totalDurationSeconds}
+                isFinished={isFinished}
+              />
+            )}
         </div>
 
         {/* Right - Tools & Timer */}
@@ -387,37 +396,39 @@ const ReadingTestHeader = ({
             data-oid="zjhsbll"
           >
             {/* Answer Toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                if (highlightedAnswerQs === 'all') {
-                  setHighlightedAnswerQs(null);
-                } else {
-                  setHighlightedAnswerQs('all');
-                }
-              }}
-              className={cn(
-                'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 h-7.5 rounded-full transition-all duration-200 font-bold text-[9.5px] sm:text-[10px] uppercase tracking-wider select-none hover:scale-105 active:scale-95',
-                highlightedAnswerQs === 'all'
-                  ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-300'
-              )}
-              title="Toggle Correct Answers"
-              data-oid="k97.pn1"
-            >
-              {highlightedAnswerQs === 'all' ? (
-                <Eye className="w-3.5 h-3.5 text-white" data-oid="ypy0d4u" />
-              ) : (
-                <EyeOff
-                  className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400"
-                  data-oid="d5k8phi"
-                />
-              )}
-              <span className="hidden sm:inline" data-oid="7k2l_no">
-                Answers
-              </span>
-            </Button>
+            {testMode !== 'exam' ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (highlightedAnswerQs === 'all') {
+                    setHighlightedAnswerQs(null);
+                  } else {
+                    setHighlightedAnswerQs('all');
+                  }
+                }}
+                className={cn(
+                  'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 h-7.5 rounded-full transition-all duration-200 font-bold text-[9.5px] sm:text-[10px] uppercase tracking-wider select-none hover:scale-105 active:scale-95',
+                  highlightedAnswerQs === 'all'
+                    ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-300'
+                )}
+                title="Toggle Correct Answers"
+                data-oid="k97.pn1"
+              >
+                {highlightedAnswerQs === 'all' ? (
+                  <Eye className="w-3.5 h-3.5 text-white" data-oid="ypy0d4u" />
+                ) : (
+                  <EyeOff
+                    className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400"
+                    data-oid="d5k8phi"
+                  />
+                )}
+                <span className="hidden sm:inline" data-oid="7k2l_no">
+                  Answers
+                </span>
+              </Button>
+            ) : null}
 
             {/* Notes Toggle */}
             <Button

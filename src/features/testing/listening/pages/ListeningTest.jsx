@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PremiumLoading from '@/components/ui/PremiumLoading';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 
@@ -16,6 +17,7 @@ import { useListeningTestLayout } from '../components/ListeningTest/hooks/useLis
 import { useListeningTestNavigation } from '../components/ListeningTest/hooks/useListeningTestNavigation';
 import ListeningTestMainContent from '../components/ListeningTest/components/ListeningTestMainContent';
 import ListeningTestOverlays from '../components/ListeningTest/components/ListeningTestOverlays';
+import TestModeStartGate from '@/features/testing/shared/components/TestModeStartGate';
 
 function ListeningTestInner() {
   const {
@@ -25,7 +27,17 @@ function ListeningTestInner() {
     handleAnswerChange,
     handleMultiSelectChange,
     handleSubmit,
+    handleStartTest,
+    handleExamAudioEnded,
+    testMode,
+    selectedMode,
+    setSelectedMode,
+    examEligibility,
+    isAwaitingStart,
+    isStarting,
+    examReview,
   } = useListeningTestLogic();
+  const navigate = useNavigate();
 
   const state = useListeningTestState();
   const { dispatch, ACTIONS } = useListeningTestDispatch();
@@ -65,6 +77,21 @@ function ListeningTestInner() {
     return <PremiumLoading message="Initializing listening test..." />;
   }
 
+  if (isAwaitingStart) {
+    return (
+      <TestModeStartGate
+        title={state.testData?.title || 'Listening Test'}
+        skill="Listening"
+        selectedMode={selectedMode}
+        onModeChange={setSelectedMode}
+        examEligibility={examEligibility}
+        onStart={handleStartTest}
+        isStarting={isStarting}
+        onExit={() => navigate('/listening')}
+      />
+    );
+  }
+
   return (
     <div
       className="h-full w-full flex flex-col flex-1 min-h-0 bg-background overflow-hidden font-sans antialiased text-foreground relative"
@@ -97,6 +124,8 @@ function ListeningTestInner() {
         onNextPart={() =>
           dispatch({ type: ACTIONS.SET_ACTIVE_PART, payload: state.activePart + 1 })
         }
+        testMode={testMode}
+        examReview={examReview}
         data-oid="3bx8kdc"
       />
 
@@ -114,6 +143,9 @@ function ListeningTestInner() {
         correctAnswersMap={state.correctAnswersMap}
         dispatch={dispatch}
         ACTIONS={ACTIONS}
+        testMode={testMode}
+        examReview={examReview}
+        onExamAudioEnded={handleExamAudioEnded}
       />
 
       <ListeningTestOverlays

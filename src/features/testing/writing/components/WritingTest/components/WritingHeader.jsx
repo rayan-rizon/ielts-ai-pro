@@ -12,13 +12,20 @@ import {
 import { Button } from '@/components/ui/button';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import WritingTestClock from './WritingTestClock';
+import { Badge } from '@/components/ui/badge';
 
 /**
  * WritingHeader
  *
  * Floating header containing navigation, task switcher, timer, and primary action buttons.
  */
-export function WritingHeader({ task, handleGetFeedback, handleSwitchTask }) {
+export function WritingHeader({
+  task,
+  handleGetFeedback,
+  handleSwitchTask,
+  testMode = 'practice',
+  onSubmit,
+}) {
   const activeType = useWritingTestStore((state) => state.activeType);
   const compositeTasks = useWritingTestStore((state) => state.compositeTasks);
   const isAnalyzing = useWritingTestStore((state) => state.isAnalyzing);
@@ -80,6 +87,12 @@ export function WritingHeader({ task, handleGetFeedback, handleSwitchTask }) {
                   <span className="hidden xs:inline">Official</span>
                 </span>
               )}
+              <Badge
+                variant="outline"
+                className="h-4 rounded-full px-1.5 text-[8px] font-black uppercase tracking-wide"
+              >
+                {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
+              </Badge>
             </div>
           </div>
         </div>
@@ -183,6 +196,8 @@ export function WritingHeader({ task, handleGetFeedback, handleSwitchTask }) {
                 if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
               } else if (activeType === 'Task 1' && compositeTasks && compositeTasks['Task 2']) {
                 handleSwitchTask('Task 2');
+              } else if (testMode === 'exam' && !isCompleted) {
+                onSubmit();
               } else {
                 handleGetFeedback();
               }
@@ -224,6 +239,12 @@ export function WritingHeader({ task, handleGetFeedback, handleSwitchTask }) {
                   NEXT
                 </span>
                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="_w3w20d" />
+              </>
+            ) : testMode === 'exam' && !isCompleted ? (
+              <>
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">SUBMIT TEST</span>
+                <span className="sm:hidden">SUBMIT</span>
               </>
             ) : (
               <>

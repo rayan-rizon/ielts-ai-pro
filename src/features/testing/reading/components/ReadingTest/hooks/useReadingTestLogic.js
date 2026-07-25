@@ -1,13 +1,20 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useReadingTestDispatch, useReadingTestState } from '../context/ReadingTestContext';
-import { initializeTest } from '@/lib/testInitializer';
+import { createTestSession, initializeTest } from '@/lib/testInitializer';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { calculateTestResults } from '../utils'; // Fixed import path
 import { removeFromCache } from '@/lib/apiCache';
 import { useTestNavigation } from '@/hooks/useTestNavigation';
 import { calculateEnhancedMetrics } from '@/services/testMetricsService';
 import { supabase } from '@/lib/supabase';
+import {
+  EXAM_DURATION_SECONDS,
+  getReadingExamEligibility,
+  getSessionTestMode,
+  resolveNewAttemptMode,
+} from '@/features/testing/shared/testMode';
+import { useExamDeadline } from '@/features/testing/shared/hooks/useExamDeadline';
 
 export function useReadingTestLogic(initialId, { awardXP, user: contextUser = null }) {
   const { dispatch } = useReadingTestDispatch();
@@ -25,6 +32,9 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
   const [error, setError] = useState(null);
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(contextUser); // Initialize with context user
+  const [selectedMode, setSelectedMode] = useState('practice');
+  const [examEligibility, setExamEligibility] = useState({ eligible: false, reason: '' });
+  const [isStarting, setIsStarting] = useState(false);
 
   // Results & Status State
   const [isFinished, setIsFinished] = useState(false);
@@ -77,6 +87,9 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
 
         setTestData(passage);
         setAllQuestions(questions);
+        setUser(userData || contextUser);
+        const eligibility = getReadingExamEligibility(passage, questions);
+        setExamEligibility(eligibility);
 
         // === EXPLANATION HYDRATION ===
         // Questions may come from stale cache (admin imported explanations in a different browser tab).
@@ -124,6 +137,7 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
             dispatch({ type: 'VALIDATE_SESSION', payload: existingSession.id });
 
             setSession(existingSession);
+            setSelectedMode(getSessionTestMode(existingSession));
             dispatch({ type: 'SET_SESSION', payload: existingSession });
 
             if (
@@ -308,29 +322,15 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
               );
             }
           } else {
-            // No existing session - Create a new one
-            console.log('Creating new session for passage:', passage.id);
-
-            // Import dynamically to avoid circular deps (or use supabase directly)
-            const { createTestSession } = await import('@/lib/testInitializer');
-
-            const newSession = await createTestSession({
-              userId: userData.id,
-              passageId: passage.id,
-              type: 'reading',
-              durationMinutes: 60,
+            const preferredMode = resolveNewAttemptMode({
+              search: location.search,
+              settings: userData.settings,
             });
-
-            console.log('New session created:', newSession.id);
-            setSession(newSession);
-            dispatch({ type: 'SET_SESSION', payload: newSession });
-
-            // Reset timer and state for fresh start
-            dispatch({ type: 'SET_TIME', payload: 3600 }); // 60 minutes
+            setSelectedMode(
+              preferredMode === 'exam' && !eligibility.eligible ? 'practice' : preferredMode
+            );
             dispatch({ type: 'RESET_TEST' });
-
-            // Navigate to session URL
-            navigate(`/reading-test/${newSession.id}`, { replace: true });
+            dispatch({ type: 'SET_SESSION', payload: null });
           }
         }
       } catch (err) {
@@ -342,6 +342,36 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
       }
     },
     [dispatch, location.pathname, navigate]
+  );
+
+  const handleStartTest = useCallback(
+    async (requestedMode) => {
+      if (!testData || !user || session || isStarting) return;
+      const testMode = requestedMode === 'exam' && examEligibility.eligible ? 'exam' : 'practice';
+      setIsStarting(true);
+      setError(null);
+      try {
+        const newSession = await createTestSession({
+          userId: user.id,
+          passageId: testData.id,
+          type: 'reading',
+          testMode,
+          durationSeconds: EXAM_DURATION_SECONDS,
+        });
+        dispatch({ type: 'RESET_TEST' });
+        dispatch({ type: 'SET_TIME', payload: EXAM_DURATION_SECONDS });
+        dispatch({ type: 'SET_SESSION', payload: newSession });
+        setSession(newSession);
+        setSelectedMode(testMode);
+        navigate(`/reading-test/${newSession.id}`, { replace: true });
+      } catch (startError) {
+        console.error('Failed to start reading test:', startError);
+        setError('Failed to start the test. Please try again.');
+      } finally {
+        setIsStarting(false);
+      }
+    },
+    [testData, user, session, isStarting, examEligibility.eligible, dispatch, navigate]
   );
 
   const handleSubmit = useCallback(
@@ -488,7 +518,7 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
           },
         };
 
-        await TestSession.update(session.id, updateData);
+        const didComplete = await TestSession.complete(session.id, updateData);
         removeFromCache('reading-tests-list');
 
         setSession((prev) => (prev ? { ...prev, is_completed: true } : prev));
@@ -496,7 +526,9 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
         setShowResults(true);
         dispatch({ type: 'FINISH_TEST' });
 
-        await awardXP(results.correctAnswers, results.totalQuestions);
+        if (didComplete) {
+          await awardXP(results.correctAnswers, results.totalQuestions);
+        }
       } catch (error) {
         console.error('Error submitting test:', error);
         setError('Failed to submit test. Please try again.');
@@ -507,6 +539,16 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
     },
     [testData, session, allQuestions, answers, getLatestState, dispatch, awardXP]
   );
+
+  useExamDeadline({
+    session,
+    isFinished,
+    onTick: useCallback(
+      (remaining) => dispatch({ type: 'SET_TIME', payload: remaining }),
+      [dispatch]
+    ),
+    onExpire: handleSubmit,
+  });
 
   // Timer sync for auto-submit is complex to move entirely, but we can expose handleSubmit
   // The component usually handles the "Time's Up" dialog trigger via context or check
@@ -519,6 +561,12 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
     error,
     session,
     user,
+    testMode: session ? getSessionTestMode(session) : selectedMode,
+    selectedMode,
+    setSelectedMode,
+    examEligibility,
+    isAwaitingStart: Boolean(testData && user && !session),
+    isStarting,
     isFinished,
     showResults,
     setShowResults, // Needed for closing modal
@@ -534,6 +582,7 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
     // PERFORMANCE: loadUser is now a no-op as it comes from context
     loadUser: () => {},
     handleSubmit,
+    handleStartTest,
 
     // Navigation
     blocker,

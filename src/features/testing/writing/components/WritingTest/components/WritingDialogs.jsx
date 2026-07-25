@@ -36,7 +36,9 @@ export function WritingDialogs({ logic }) {
     isSubmitting,
     isAnalyzing,
     isExiting,
+    testMode,
   } = logic;
+  const isExamMode = testMode === 'exam';
 
   return (
     <>
@@ -103,7 +105,9 @@ export function WritingDialogs({ logic }) {
               className="text-center text-slate-500 dark:text-slate-400"
               data-oid="s1l5a:a"
             >
-              Get AI feedback for your band score, or submit without feedback.
+              {isExamMode
+                ? 'Submitting ends this Exam Mode attempt. AI analysis is available afterward.'
+                : 'Get AI feedback for your band score, or submit without feedback.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-4" data-oid="-cev:db">
@@ -114,17 +118,19 @@ export function WritingDialogs({ logic }) {
             >
               Review More
             </AlertDialogCancel>
-            <Button
-              onClick={() => {
-                setShowSubmitDialog(false);
-                handleGetFeedback();
-              }}
-              disabled={isSubmitting || isAnalyzing}
-              className="flex-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 hover:from-amber-500 hover:via-yellow-500 hover:to-amber-500 dark:from-amber-500 dark:via-yellow-500 dark:to-amber-500 text-amber-900 dark:text-amber-100 border border-amber-400/30 dark:border-amber-500/30 rounded-xl h-12 font-bold shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all active:scale-[0.98]"
-              data-oid="yujj_ul"
-            >
-              {isAnalyzing ? 'Analyzing...' : 'Get AI Feedback'}
-            </Button>
+            {!isExamMode ? (
+              <Button
+                onClick={() => {
+                  setShowSubmitDialog(false);
+                  handleGetFeedback();
+                }}
+                disabled={isSubmitting || isAnalyzing}
+                className="flex-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 hover:from-amber-500 hover:via-yellow-500 hover:to-amber-500 dark:from-amber-500 dark:via-yellow-500 dark:to-amber-500 text-amber-900 dark:text-amber-100 border border-amber-400/30 dark:border-amber-500/30 rounded-xl h-12 font-bold shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all active:scale-[0.98]"
+                data-oid="yujj_ul"
+              >
+                {isAnalyzing ? 'Analyzing...' : 'Get AI Feedback'}
+              </Button>
+            ) : null}
             <AlertDialogAction
               onClick={handleSubmit}
               disabled={isSubmitting}
@@ -138,7 +144,11 @@ export function WritingDialogs({ logic }) {
       </AlertDialog>
 
       {/* Time Up Dialog */}
-      <AlertDialog open={showTimeUpDialog} onOpenChange={setShowTimeUpDialog} data-oid="yxae3w-">
+      <AlertDialog
+        open={!isExamMode && showTimeUpDialog}
+        onOpenChange={setShowTimeUpDialog}
+        data-oid="yxae3w-"
+      >
         <AlertDialogContent
           className="max-w-md bg-white dark:bg-slate-900 border-none shadow-2xl"
           data-oid="ijws.ud"
