@@ -32,6 +32,16 @@ const COVER_ALT_BY_SLUG = {
     'IELTS learner planning a Task 2 paragraph from an idea through explanation to an example',
   'ai-ielts-speaking-score-accuracy':
     'IELTS learner recording a speaking answer while reviewing four AI feedback indicators',
+  'ielts-writing-task-1-process-diagram':
+    'IELTS learner tracing a process diagram on paper beside a matching stage flow on a laptop',
+  'ielts-reading-sentence-completion':
+    'IELTS learner comparing a highlighted reading passage with sentence-completion gaps on a laptop',
+  'ielts-listening-part-4-note-completion':
+    'IELTS learner using headphones to complete lecture notes beside an audio waveform',
+  'ielts-speaking-pronunciation-accent':
+    'IELTS learner speaking into a microphone beside a pronunciation waveform display',
+  'ielts-speaking-part-1-answer-length':
+    'IELTS learner practising a short Part 1 answer with prompt cards, a timer, and speech bubbles',
 };
 
 export function getBlogCoverAlt(article) {

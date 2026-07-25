@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title description">
+  <title id="title">Plan an IELTS process diagram in four moves</title>
+  <desc id="description">A four-step flow for mapping a process, finding its boundaries, grouping stages, and writing an overview.</desc>
+  <defs>
+    <filter id="paper-noise" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="2" seed="18"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="675" fill="#ffffff"/>
+  <rect width="1200" height="675" rx="28" fill="#fbfbff"/>
+  <rect width="1200" height="675" rx="28" filter="url(#paper-noise)" opacity=".06"/>
+  <circle cx="110" cy="95" r="52" fill="#d8f8ea"/>
+  <circle cx="1090" cy="580" r="70" fill="#e8e4ff"/>
+
+  <text x="600" y="92" text-anchor="middle" fill="#29235f" font-family="Arial, Helvetica, sans-serif" font-size="43" font-weight="700">Plan a Process Diagram in Four Moves</text>
+  <text x="600" y="135" text-anchor="middle" fill="#62657a" font-family="Arial, Helvetica, sans-serif" font-size="22">See the whole sequence before you write individual stages.</text>
+
+  <path d="M305 320H344M581 320H620M856 320H895" stroke="#6759df" stroke-width="5"/>
+
+  <g font-family="Arial, Helvetica, sans-serif">
+    <rect x="69" y="214" width="236" height="212" rx="24" fill="#fff" stroke="#c6b8f7" stroke-width="3"/>
+    <circle cx="187" cy="270" r="31" fill="#ece8ff"/>
+    <text x="187" y="279" text-anchor="middle" fill="#5646d8" font-size="28" font-weight="700">1</text>
+    <text x="187" y="326" text-anchor="middle" fill="#29235f" font-size="23" font-weight="700">Map the flow</text>
+    <text x="187" y="363" text-anchor="middle" fill="#62657a" font-size="18">Linear or cyclical?</text>
+    <text x="187" y="390" text-anchor="middle" fill="#62657a" font-size="18">Count the stages.</text>
+
+    <rect x="344" y="214" width="237" height="212" rx="24" fill="#fff" stroke="#a9efd3" stroke-width="3"/>
+    <circle cx="463" cy="270" r="31" fill="#d0fae8"/>
+    <text x="463" y="279" text-anchor="middle" fill="#08745d" font-size="28" font-weight="700">2</text>
+    <text x="463" y="326" text-anchor="middle" fill="#29235f" font-size="22" font-weight="700">Find the boundaries</text>
+    <text x="463" y="363" text-anchor="middle" fill="#62657a" font-size="18">Mark the start</text>
+    <text x="463" y="390" text-anchor="middle" fill="#62657a" font-size="18">and the final result.</text>
+
+    <rect x="620" y="214" width="236" height="212" rx="24" fill="#fff" stroke="#c6b8f7" stroke-width="3"/>
+    <circle cx="738" cy="270" r="31" fill="#ece8ff"/>
+    <text x="738" y="279" text-anchor="middle" fill="#5646d8" font-size="28" font-weight="700">3</text>
+    <text x="738" y="326" text-anchor="middle" fill="#29235f" font-size="22" font-weight="700">Group the stages</text>
+    <text x="738" y="363" text-anchor="middle" fill="#62657a" font-size="18">Split at a clear</text>
+    <text x="738" y="390" text-anchor="middle" fill="#62657a" font-size="18">change of phase.</text>
+
+    <rect x="895" y="214" width="236" height="212" rx="24" fill="#fff" stroke="#a9efd3" stroke-width="3"/>
+    <circle cx="1013" cy="270" r="31" fill="#d0fae8"/>
+    <text x="1013" y="279" text-anchor="middle" fill="#08745d" font-size="28" font-weight="700">4</text>
+    <text x="1013" y="326" text-anchor="middle" fill="#29235f" font-size="22" font-weight="700">Write the overview</text>
+    <text x="1013" y="363" text-anchor="middle" fill="#62657a" font-size="18">State the shape,</text>
+    <text x="1013" y="390" text-anchor="middle" fill="#62657a" font-size="18">start, and finish.</text>
+
+    <rect x="159" y="505" width="191" height="67" rx="20" fill="#eeeaff"/>
+    <text x="255" y="546" text-anchor="middle" fill="#5143ca" font-size="21" font-weight="700">START</text>
+    <path d="M350 538H455" stroke="#6759df" stroke-width="5"/>
+    <rect x="465" y="505" width="270" height="67" rx="20" fill="#ccf7e3"/>
+    <text x="600" y="546" text-anchor="middle" fill="#08745d" font-size="20" font-weight="700">MAIN TRANSFORMATION</text>
+    <path d="M735 538H840" stroke="#6759df" stroke-width="5"/>
+    <rect x="850" y="505" width="191" height="67" rx="20" fill="#eeeaff"/>
+    <text x="946" y="546" text-anchor="middle" fill="#5143ca" font-size="21" font-weight="700">END RESULT</text>
+    <text x="600" y="625" text-anchor="middle" fill="#62657a" font-size="18">Use stage details in the body paragraphs; keep the overview general.</text>
+  </g>
+
+  <g aria-label="Brand watermark">
+    <rect x="1020" y="631" width="180" height="44" fill="#3730a3" fill-opacity=".72"/>
+    <text x="1110" y="659" text-anchor="middle" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">IELTS Ai Pro</text>
+  </g>
+</svg>

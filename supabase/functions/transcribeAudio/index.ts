@@ -28,6 +28,21 @@ const ALLOWED_AUDIO_MIME_TYPES = new Set([
   'audio/webm',
   'audio/ogg',
 ]);
+const TIMESTAMP_TOKEN = String.raw`\d{1,2}:\d{1,2}(?::\d{1,3})?(?:[,.]\d{1,3})?`;
+const SPLIT_END_TIMESTAMP_PATTERN = new RegExp(
+  String.raw`^([ \t]*${TIMESTAMP_TOKEN}[ \t]*-->)[ \t]*\d+[ \t]*\n[ \t]*(${TIMESTAMP_TOKEN})[ \t]*$`,
+  'gm'
+);
+
+function normalizeGeneratedSrt(transcript: string): string {
+  return transcript
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/^\s*```(?:srt)?[ \t]*\n?/i, '')
+    .replace(/\n?[ \t]*```[ \t]*$/i, '')
+    .replace(SPLIT_END_TIMESTAMP_PATTERN, '$1 $2')
+    .trim();
+}
 
 function isTrustedAudioUrl(rawUrl: string): boolean {
   try {
@@ -299,7 +314,7 @@ serve(async (req: Request) => {
       throw new Error(`No transcript received from Gemini API. Finish reason: ${finishReason}`);
     }
 
-    const cleanTranscript = transcript.trim().replace(/^```srt\n?|```$/g, '');
+    const cleanTranscript = normalizeGeneratedSrt(transcript);
 
     console.log('Transcription successful, length:', cleanTranscript.length);
 

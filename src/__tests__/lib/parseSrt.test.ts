@@ -1,8 +1,46 @@
 import { describe, expect, it } from 'vitest';
 
-import { findActiveSegment, parseSrt } from '@/utils/parseSrt';
+import { findActiveSegment, normalizeSrtContent, parseSrt } from '@/utils/parseSrt';
 
 describe('parseSrt', () => {
+  it('repairs split end timestamps without displaying them as transcript text', () => {
+    const malformedSrt = [
+      '4',
+      '00:58:300 --> 1',
+      '00:58:900',
+      'Good morning.',
+      '',
+      '5',
+      '00:59:100 --> 1',
+      '01:01:900',
+      "I'm doing a survey of shoppers in Broad Beach.",
+    ].join('\n');
+
+    expect(normalizeSrtContent(malformedSrt)).toContain('00:58:300 --> 00:58:900');
+
+    const segments = parseSrt(malformedSrt);
+
+    expect(segments).toEqual([
+      { id: 4, start: 58.3, end: 58.9, speaker: null, text: 'Good morning.' },
+      {
+        id: 5,
+        start: 59.1,
+        end: 61.9,
+        speaker: null,
+        text: "I'm doing a survey of shoppers in Broad Beach.",
+      },
+    ]);
+    expect(segments.map((segment) => segment.text).join(' ')).not.toMatch(/\d{2}:\d{2}:\d{3}/);
+  });
+
+  it('leaves valid SRT and plain transcript text unchanged during normalization', () => {
+    const validSrt = ['1', '00:00:01,000 --> 00:00:03,000', 'First sentence.'].join('\n');
+    const plainTranscript = 'Part 1. Listen carefully and answer questions 1 to 6.';
+
+    expect(normalizeSrtContent(validSrt)).toBe(validSrt);
+    expect(normalizeSrtContent(plainTranscript)).toBe(plainTranscript);
+  });
+
   it('clamps malformed overlapping cue windows to the next segment start', () => {
     const srt = [
       '1',

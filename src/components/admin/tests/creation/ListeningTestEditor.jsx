@@ -48,6 +48,7 @@ import {
 } from 'lucide-react';
 import { uploadFile, supabase } from '@/lib/supabase';
 import { uploadToR2 } from '@/lib/r2';
+import { normalizeSrtContent } from '@/utils/parseSrt';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import MatchingFeaturesBuilder from '../builders/MatchingFeaturesBuilder';
 import MapLabelingBuilder from '../builders/MapLabelingBuilder';
@@ -937,7 +938,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         throw new Error(data.error || 'Transcription failed');
       }
 
-      updateSection(Number(activeTab), 'srt_content', data.transcript);
+      updateSection(Number(activeTab), 'srt_content', normalizeSrtContent(data.transcript));
       toast.success('Transcript generated successfully!', { id: toastId });
     } catch (err) {
       console.error('Transcription error details:', err);

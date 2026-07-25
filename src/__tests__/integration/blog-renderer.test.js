@@ -10,7 +10,7 @@ const article = {
   meta_description: 'A practical IELTS Reading strategy guide.',
   slug: 'ielts-reading-paraphrase-traps',
   content:
-    '<h2>Use evidence</h2><p>Read carefully. <a href="/reading">Practise</a>.</p><table><thead><tr><th scope="col">Time</th></tr></thead><tbody><tr><td>20 minutes</td></tr></tbody></table><script>alert(1)</script>',
+    '<h2>Use evidence</h2><p>Read carefully. <a href="/reading">Practise</a>.</p><img src="/blog-images/ielts-reading-sentence-completion-four-checks.webp" alt="Four checks for IELTS Reading sentence completion" width="1200" height="675" loading="lazy"><table><thead><tr><th scope="col">Time</th></tr></thead><tbody><tr><td>20 minutes</td></tr></tbody></table><script>alert(1)</script>',
   seo_tags: ['IELTS Reading'],
   category: 'Reading',
   reading_minutes: 6,
@@ -76,6 +76,11 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('Use evidence');
     expect(response.body).not.toContain('<script>alert(1)</script>');
     expect(response.body).toContain('href="/reading"');
+    expect(response.body).toContain(
+      'src="/blog-images/ielts-reading-sentence-completion-four-checks.webp"'
+    );
+    expect(response.body).toContain('alt="Four checks for IELTS Reading sentence completion"');
+    expect(response.body).toContain('width="1200" height="675" loading="lazy"');
     expect(response.body).toContain('<table>');
     expect(response.body).toContain(
       'property="og:image" content="https://www.ieltsai.pro/blog-images/ielts-reading-paraphrase-traps.webp"'
@@ -116,6 +121,21 @@ describe('server-rendered IELTS blog', () => {
     );
     expect(getBlogCoverAlt({ slug: 'ai-ielts-speaking-score-accuracy' })).toBe(
       'IELTS learner recording a speaking answer while reviewing four AI feedback indicators'
+    );
+    expect(getBlogCoverAlt({ slug: 'ielts-writing-task-1-process-diagram' })).toBe(
+      'IELTS learner tracing a process diagram on paper beside a matching stage flow on a laptop'
+    );
+    expect(getBlogCoverAlt({ slug: 'ielts-reading-sentence-completion' })).toBe(
+      'IELTS learner comparing a highlighted reading passage with sentence-completion gaps on a laptop'
+    );
+    expect(getBlogCoverAlt({ slug: 'ielts-listening-part-4-note-completion' })).toBe(
+      'IELTS learner using headphones to complete lecture notes beside an audio waveform'
+    );
+    expect(getBlogCoverAlt({ slug: 'ielts-speaking-pronunciation-accent' })).toBe(
+      'IELTS learner speaking into a microphone beside a pronunciation waveform display'
+    );
+    expect(getBlogCoverAlt({ slug: 'ielts-speaking-part-1-answer-length' })).toBe(
+      'IELTS learner practising a short Part 1 answer with prompt cards, a timer, and speech bubbles'
     );
   });
 

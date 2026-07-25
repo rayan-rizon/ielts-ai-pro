@@ -8,6 +8,32 @@ const MAX_PLAUSIBLE_SEGMENT_DURATION = 45;
 const START_ORDER_TOLERANCE = 0.25;
 const OVERLAP_TOLERANCE = 0.75;
 const GAP_PENALTY_THRESHOLD = 45;
+const TIMESTAMP_TOKEN = String.raw`\d{1,2}:\d{1,2}(?::\d{1,3})?(?:[,.]\d{1,3})?`;
+const SPLIT_END_TIMESTAMP_PATTERN = new RegExp(
+  String.raw`^([ \t]*${TIMESTAMP_TOKEN}[ \t]*-->)[ \t]*\d+[ \t]*\n[ \t]*(${TIMESTAMP_TOKEN})[ \t]*$`,
+  'gm'
+);
+
+/**
+ * Repairs a narrowly defined malformed SRT shape produced by some AI responses:
+ *
+ *   00:58:300 --> 1
+ *   00:58:900
+ *
+ * The standalone digit is not a timestamp; the following line is the intended
+ * cue end. Valid SRT and plain transcript text are left unchanged.
+ */
+export function normalizeSrtContent(srtContent) {
+  if (!srtContent || typeof srtContent !== 'string') return '';
+
+  return srtContent
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/^\s*```(?:srt)?[ \t]*\n?/i, '')
+    .replace(/\n?[ \t]*```[ \t]*$/i, '')
+    .replace(SPLIT_END_TIMESTAMP_PATTERN, '$1 $2')
+    .trim();
+}
 
 /**
  * Parses SRT timestamp into seconds.
@@ -261,8 +287,7 @@ export function extractSpeaker(text) {
 export function parseSrt(srtContent) {
   if (!srtContent || typeof srtContent !== 'string') return [];
 
-  // Normalize newlines
-  const content = srtContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const content = normalizeSrtContent(srtContent);
 
   // Split by double newlines first (standard SRT)
   let chunks = content.split(/\n\n+/);
