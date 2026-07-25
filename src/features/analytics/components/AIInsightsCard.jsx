@@ -272,16 +272,16 @@ export default function AIInsightsCard({
           )}
 
           <div
-            className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3"
+            className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-2"
             data-oid="8i64fmx"
           >
             <CardTitle
-              className="text-lg font-black text-foreground flex items-center gap-2"
+              className="text-base font-black text-foreground flex items-center gap-2"
               data-oid="h7i.tnz"
             >
               <div
                 className={cn(
-                  'p-2 rounded-xl shadow-md transition-all duration-300',
+                  'p-1.5 rounded-lg shadow-sm transition-all duration-300',
                   isPremium
                     ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white'
                     : 'bg-gradient-to-br from-primary to-indigo-600 text-white'
@@ -300,10 +300,10 @@ export default function AIInsightsCard({
                 AI Analytics
               </span>
             </CardTitle>
-            <div className="flex items-center gap-2" data-oid="xsaj8ol">
+            <div className="flex items-center gap-1.5" data-oid="xsaj8ol">
               {!isPremium && (
                 <Badge
-                  className="rounded-full bg-orange-500 text-white border-0 font-black text-[10px] tracking-wider uppercase px-2 py-0.5 shadow-sm"
+                  className="rounded-full bg-orange-500 text-white border-0 font-black text-[9px] tracking-wider uppercase px-1.5 py-0.5 shadow-xs"
                   data-oid="9ug6b0s"
                 >
                   PRO
@@ -312,7 +312,7 @@ export default function AIInsightsCard({
               <Badge
                 variant="secondary"
                 className={cn(
-                  'rounded-full border-0 font-black text-[10px] tracking-wider uppercase px-2.5 py-0.5',
+                  'rounded-full border-0 font-black text-[9px] tracking-wider uppercase px-2 py-0.5',
                   isPremium
                     ? 'bg-primary/10 text-primary dark:text-blue-400'
                     : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
@@ -325,7 +325,7 @@ export default function AIInsightsCard({
           </div>
           <CardDescription
             className={cn(
-              'font-medium text-sm leading-tight max-w-sm relative z-10 mt-1.5 opacity-80',
+              'font-medium text-xs leading-tight max-w-sm relative z-10 mt-0.5 opacity-80',
               !isPremium && 'text-muted-foreground'
             )}
             data-oid="iqubwod"
@@ -334,7 +334,7 @@ export default function AIInsightsCard({
           </CardDescription>
         </CardHeader>
         <CardContent
-          className="pt-0 overflow-y-auto scrollbar-none flex-1 relative"
+          className="pt-0 overflow-y-auto scrollbar-none flex-1 relative p-4"
           data-oid="4bw-hw:"
         >
           {/* Subtle Background Pattern */}
@@ -352,7 +352,7 @@ export default function AIInsightsCard({
             />
           )}
           <LockedFeature isLocked={!isPremium} data-oid="996nby3">
-            <div className="space-y-2" data-oid="sq_34xw">
+            <div className="space-y-2.5" data-oid="sq_34xw">
               {aiLoading ? (
                 <InsightsLoadingSkeleton data-oid="xf-mj53" />
               ) : stats?.insights?.aiSuggestions ? (
@@ -362,17 +362,17 @@ export default function AIInsightsCard({
                     data-oid="9vk.rgv"
                   >
                     <div className="relative z-10" data-oid="mgcr6:b">
-                      <div className="flex items-center gap-2 mb-1" data-oid="ix.5k0k">
+                      <div className="flex items-center gap-1.5 mb-1" data-oid="ix.5k0k">
                         <Rocket className="w-3.5 h-3.5 text-primary" data-oid="deniutw" />
                         <div
-                          className="text-xs font-black text-primary dark:text-primary/90 tracking-tighter"
+                          className="text-xs font-black text-primary dark:text-primary/90 tracking-tight"
                           data-oid="h6e2dsd"
                         >
                           Growth Path
                         </div>
                       </div>
                       <div
-                        className="text-sm font-bold text-foreground leading-snug pl-0.5"
+                        className="text-xs font-bold text-foreground leading-snug pl-0.5"
                         data-oid="vxd8cqz"
                       >
                         {stats.insights.aiSuggestions.learning_path_overview ||
@@ -433,13 +433,13 @@ export default function AIInsightsCard({
               )}
 
               {stats?.insights?.recommendations?.length > 0 && (
-                <div className="space-y-2 mt-3 pt-2 border-t border-border/40" data-oid="5s:lwz7">
+                <div className="space-y-2 mt-2.5 pt-2 border-t border-border/40" data-oid="5s:lwz7">
                   <div
-                    className="text-sm font-black text-muted-foreground tracking-[0.25em] px-2 flex items-center gap-2"
+                    className="text-[11px] font-black text-muted-foreground tracking-[0.2em] px-1 flex items-center gap-1.5"
                     data-oid="4q5myjb"
                   >
                     <div
-                      className="w-3 h-3 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 animate-pulse"
+                      className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 animate-pulse"
                       data-oid="fv:1y1d"
                     />
                     Strategic Boosters
@@ -451,13 +451,13 @@ export default function AIInsightsCard({
                         <Link
                           key={`${rec.type}-${idx}`}
                           to={meta?.href || createPageUrl('Dashboard')}
-                          className="block rounded-2xl bg-gradient-to-br from-card/80 to-card/60 border border-border/50 hover:from-card/90 hover:to-card/70 transition-all duration-300 p-3 group hover:shadow-lg hover:-translate-y-0.5"
+                          className="block rounded-xl bg-gradient-to-br from-card/80 to-card/60 border border-border/50 hover:from-card/90 hover:to-card/70 transition-all duration-200 p-3 group hover:shadow-md hover:-translate-y-0.5"
                           data-oid="02rvrq."
                         >
                           <div className="flex items-center gap-3" data-oid="rai:nh1">
                             <div
                               className={cn(
-                                'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border transition-all duration-300 group-hover:scale-110 shadow-sm relative overflow-hidden',
+                                'w-8.5 h-8.5 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-105 shadow-xs relative overflow-hidden',
                                 rec.type === 'reading'
                                   ? 'bg-blue-500/10 border-blue-500/20'
                                   : rec.type === 'listening'
@@ -473,7 +473,7 @@ export default function AIInsightsCard({
                               {meta ? (
                                 <meta.icon
                                   className={cn(
-                                    'w-5 h-5',
+                                    'w-4 h-4',
                                     rec.type === 'reading'
                                       ? 'text-blue-600 dark:text-blue-400'
                                       : rec.type === 'listening'
@@ -486,24 +486,24 @@ export default function AIInsightsCard({
                                   )}
                                 />
                               ) : (
-                                <ChevronRight className="w-5 h-5 text-primary" />
+                                <ChevronRight className="w-4 h-4 text-primary" />
                               )}
                             </div>
                             <div className="flex-1 min-w-0" data-oid="8yy7h1n">
                               {meta?.title && (
-                                <div className="text-xs font-black text-primary/80 dark:text-blue-400/80 tracking-widest mb-0.5">
+                                <div className="text-[10px] font-black text-primary/80 dark:text-blue-400/80 tracking-wider mb-0.5">
                                   {meta.title} Booster
                                 </div>
                               )}
                               <div
-                                className="text-sm font-bold text-foreground leading-snug"
+                                className="text-xs font-bold text-foreground leading-snug line-clamp-1"
                                 data-oid="vqp-mrs"
                               >
                                 {rec.text}
                               </div>
                             </div>
                             <ArrowRight
-                              className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-all duration-300 translate-x-0 group-hover:translate-x-1"
+                              className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-all duration-200 translate-x-0 group-hover:translate-x-0.5 shrink-0"
                               data-oid="e3szq8z"
                             />
                           </div>

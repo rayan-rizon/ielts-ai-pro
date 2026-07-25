@@ -35,6 +35,7 @@ import { Badge } from '@/components/ui/badge';
 import { ITEM_VARIANTS } from '../constants';
 import { formatBand } from '../utils';
 import EmptyAnalyticsState from './EmptyAnalyticsState';
+import RecentPracticeHistory from './RecentPracticeHistory';
 
 // --- SUB-COMPONENTS ---
 
@@ -217,17 +218,19 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
   const summary = getQuestionSuccessSummary(data);
 
   return (
-    <div className="space-y-3 pt-1" data-oid="t9.c66m">
-      <div className="flex items-center justify-between rounded-2xl border border-primary/15 bg-primary/[0.045] px-3 py-2.5 dark:bg-primary/[0.08]">
+    <div className="space-y-2 pt-1" data-oid="t9.c66m">
+      <div className="flex items-center justify-between rounded-xl border border-violet-100 bg-violet-50/50 p-2.5 dark:border-violet-500/15 dark:bg-violet-500/5">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-muted-foreground">
+          <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
             Weighted accuracy
           </p>
-          <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
+          <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
             {summary.correct} correct from {summary.total} graded questions
           </p>
         </div>
-        <p className="text-2xl font-black tracking-tight text-primary">{summary.accuracy}%</p>
+        <p className="text-xl font-black text-violet-600 dark:text-violet-400">
+          {summary.accuracy}%
+        </p>
       </div>
       {data.map((item, idx) => (
         <motion.article
@@ -235,25 +238,21 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: idx * 0.05 }}
-          className="group relative rounded-2xl border border-border/70 bg-card p-3 transition-all hover:border-primary/25 hover:shadow-md"
+          className="group relative rounded-xl border border-slate-100 bg-slate-50/50 p-2.5 transition-all hover:border-violet-200/80 hover:shadow-xs dark:border-white/5 dark:bg-white/[0.03]"
           data-oid="qpfmnea"
         >
           {(() => {
             const tone = questionSuccessTone(item.accuracy);
             return (
               <>
-                <div className="flex items-start justify-between gap-3" data-oid="d:oa..r">
+                <div className="flex items-center justify-between gap-2" data-oid="d:oa..r">
                   <div className="flex items-center gap-2 min-w-0" data-oid="::ydhmk">
-                    <div
-                      className={cn(
-                        'h-2 w-2 shrink-0 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.35)]',
-                        tone.accent
-                      )}
+                    <span
+                      className={cn('h-2 w-2 shrink-0 rounded-full', tone.accent)}
                       data-oid="ozi547e"
                     />
-
                     <span
-                      className="text-sm font-bold text-foreground dark:text-foreground tracking-tight"
+                      className="text-xs font-black text-slate-900 dark:text-white truncate"
                       data-oid="32-hpvy"
                     >
                       {item.type
@@ -262,16 +261,11 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
                         .join(' ')}
                     </span>
                   </div>
-                  <div className="shrink-0 text-right">
-                    <p
-                      className={cn('text-lg font-black leading-none', tone.text)}
-                      data-oid="2-:-ndm"
-                    >
-                      {item.accuracy}%
-                    </p>
+                  <div className="flex items-center gap-1.5 shrink-0" data-oid="2-:-ndm">
+                    <span className={cn('text-xs font-black', tone.text)}>{item.accuracy}%</span>
                     <span
                       className={cn(
-                        'mt-1 inline-flex rounded-full px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide',
+                        'rounded-full px-1.5 py-0.5 text-[8.5px] font-extrabold uppercase',
                         tone.badge
                       )}
                     >
@@ -281,7 +275,7 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
                 </div>
 
                 <div
-                  className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted/60 dark:bg-muted/30"
+                  className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
                   data-oid="pwl9tjb"
                 >
                   <motion.div
@@ -293,14 +287,14 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
                 </div>
 
                 <div
-                  className="mt-2 flex items-center justify-between text-[11px] font-semibold text-muted-foreground"
+                  className="mt-1.5 flex items-center justify-between text-[10px] font-semibold text-slate-400"
                   data-oid="f7d3yd2"
                 >
                   <span>Correct answers</span>
                   <span data-oid="u5q:igr">
-                    <span className="font-black text-foreground" data-oid="67cswiw">
+                    <strong className="text-slate-800 dark:text-slate-200" data-oid="67cswiw">
                       {item.correct}
-                    </span>{' '}
+                    </strong>{' '}
                     of {item.total}
                   </span>
                 </div>
@@ -427,327 +421,350 @@ export default function PerformanceTrends({
   tabs,
   onTabKeyDown,
   tabsRef,
+  user,
 }) {
   if (!stats || !chartData) return null;
   const questionSuccessSummary = getQuestionSuccessSummary(stats.typeAccuracy);
 
   return (
     <div className="space-y-6 lg:space-y-8" data-oid="ez4903f">
-      {/* Performance Trends Chart */}
-      <motion.div variants={ITEM_VARIANTS} data-oid="7-3vqly">
-        <Card
-          className="rounded-2xl border-primary/20 bg-card/95 backdrop-blur shadow-md overflow-hidden hover:shadow-2xl transition-all h-full"
-          data-oid="qr-cduw"
-        >
-          <CardHeader className="pb-3" data-oid="-j_:j6k">
-            <div
-              className="flex flex-col md:flex-row md:items-center justify-between gap-4"
-              data-oid="snpr6cr"
+      {/* Side-by-side Progress Trend & Recent Practice History */}
+      <div className="grid grid-cols-12 gap-4 lg:gap-6">
+        <div className="col-span-12 xl:col-span-6">
+          <motion.div variants={ITEM_VARIANTS} className="h-full" data-oid="7-3vqly">
+            <Card
+              className="flex h-full flex-col justify-between overflow-hidden rounded-[22px] border-slate-200/80 bg-white shadow-xs dark:border-white/10 dark:bg-slate-950"
+              data-oid="qr-cduw"
             >
-              <div className="space-y-1" data-oid="lg4-e5-">
-                <CardTitle
-                  className="text-xl font-black text-foreground flex items-center gap-2"
-                  data-oid="vjxe3b3"
+              <CardHeader className="px-4 pb-1 pt-3.5 sm:px-4.5" data-oid="-j_:j6k">
+                <div
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  data-oid="snpr6cr"
                 >
-                  <Activity className="w-5 h-5 text-primary" data-oid="b3s4yyp" />
-                  Your Progress Trend
-                </CardTitle>
-                <CardDescription className="font-medium" data-oid="950965g">
-                  Watch your scores go up over time!
-                </CardDescription>
-              </div>
-
-              <div
-                ref={tabsRef}
-                role="tablist"
-                aria-label="Trend tabs"
-                onKeyDown={onTabKeyDown}
-                className="inline-flex gap-1 rounded-2xl border border-border/50 bg-muted/40 p-1 backdrop-blur"
-                data-oid="sn.ize2"
-              >
-                {tabs.map((tab) => {
-                  const isSelected = activeTab === tab;
-                  const label =
-                    tab === 'overview' ? 'All' : tab.charAt(0).toUpperCase() + tab.slice(1);
-                  return (
-                    <button
-                      key={tab}
-                      type="button"
-                      role="tab"
-                      data-tab={tab}
-                      aria-selected={isSelected}
-                      tabIndex={isSelected ? 0 : -1}
-                      onClick={() => setActiveTab(tab)}
-                      className={cn(
-                        'px-4 py-1.5 text-sm font-black rounded-xl transition-all relative overflow-hidden',
-                        isSelected
-                          ? 'bg-background shadow-md text-primary'
-                          : 'text-muted-foreground hover:text-foreground'
-                      )}
-                      data-oid="18x.yt_"
-                    >
-                      {isSelected && (
-                        <motion.div
-                          layoutId="activeTrendTab"
-                          className="absolute inset-0 bg-background"
-                          data-oid="hmf2brx"
-                        />
-                      )}
-                      <span className="relative z-10" data-oid="8dcv0pi">
-                        {label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0" data-oid="gqgf00s">
-            <LockedFeature
-              isLocked={activeTab !== 'overview' && !isPremium}
-              compact
-              data-oid="31-iuua"
-            >
-              <div className="h-[280px] sm:h-[340px] w-full relative" data-oid="k0v7.3h">
-                {activeTab === 'overview' && !chartData.history?.length && (
-                  <div
-                    className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
-                    data-oid="p4cm953"
-                  >
-                    <div
-                      className="flex flex-col items-center animate-in fade-in zoom-in duration-700"
-                      data-oid="4.4gnw2"
-                    >
-                      <div
-                        className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-3"
-                        data-oid="bb_mzuy"
+                  <div className="flex items-center gap-2.5 min-w-0" data-oid="lg4-e5-">
+                    <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+                      <Activity className="h-3.5 w-3.5" data-oid="b3s4yyp" />
+                    </div>
+                    <div className="min-w-0">
+                      <CardTitle
+                        className="text-base font-black tracking-tight text-slate-950 dark:text-white"
+                        data-oid="vjxe3b3"
                       >
-                        <TrendingUp className="w-7 h-7 text-primary/40" data-oid="31ulcz3" />
-                      </div>
-                      <p
-                        className="text-xs font-black text-muted-foreground tracking-widest text-center max-w-[150px]"
-                        data-oid="o4dgu4p"
+                        Your Progress Trend
+                      </CardTitle>
+                      <CardDescription
+                        className="text-[11px] font-medium text-slate-500 truncate"
+                        data-oid="950965g"
                       >
-                        Analyzing First Session...
-                      </p>
+                        Watch your scores go up over time!
+                      </CardDescription>
                     </div>
                   </div>
-                )}
 
-                {activeTab !== 'overview' &&
-                  (!chartData.moduleHistory[activeTab] ||
-                    chartData.moduleHistory[activeTab].length === 0) && (
-                    <div
-                      className="absolute inset-0 flex items-center justify-center z-10"
-                      data-oid="pnpy6cs"
-                    >
-                      <EmptyAnalyticsState
-                        icon={Activity}
-                        title={`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Analytics`}
-                        description={`Complete more ${activeTab} tests to unlock detailed performance trends.`}
-                        compact
-                        data-oid="8-pio3_"
-                      />
-                    </div>
-                  )}
-
-                <ResponsiveContainer width="100%" height="100%" data-oid="io4vrd6">
-                  {activeTab === 'overview' ? (
-                    <AreaChart
-                      data={chartData.history?.length ? chartData.history : []}
-                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                      className={cn(
-                        'transition-all duration-1000',
-                        !chartData.history?.length && 'opacity-[0.08] grayscale blur-[3px]'
-                      )}
-                      data-oid="73pywcp"
-                    >
-                      <defs data-oid="rw4l3px">
-                        <linearGradient
-                          id="analyticsv2"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                          data-oid="pvr5gwa"
+                  <div
+                    ref={tabsRef}
+                    role="tablist"
+                    aria-label="Trend tabs"
+                    onKeyDown={onTabKeyDown}
+                    className="inline-flex gap-1 rounded-xl border border-slate-100 bg-slate-50/70 p-1 dark:border-white/5 dark:bg-white/[0.03]"
+                    data-oid="sn.ize2"
+                  >
+                    {tabs.map((tab) => {
+                      const isSelected = activeTab === tab;
+                      const label =
+                        tab === 'overview' ? 'All' : tab.charAt(0).toUpperCase() + tab.slice(1);
+                      return (
+                        <button
+                          key={tab}
+                          type="button"
+                          role="tab"
+                          data-tab={tab}
+                          aria-selected={isSelected}
+                          tabIndex={isSelected ? 0 : -1}
+                          onClick={() => setActiveTab(tab)}
+                          className={cn(
+                            'px-2.5 py-1 text-xs font-black rounded-lg transition-all relative overflow-hidden',
+                            isSelected
+                              ? 'bg-white shadow-2xs text-indigo-600 dark:bg-slate-900 dark:text-indigo-400'
+                              : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                          )}
+                          data-oid="18x.yt_"
                         >
-                          <stop
-                            offset="0%"
-                            stopColor="hsl(var(--primary))"
-                            stopOpacity={0.25}
-                            data-oid="thhzj5x"
+                          <span className="relative z-10" data-oid="8dcv0pi">
+                            {label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent
+                className="flex flex-1 flex-col justify-between px-3.5 pb-3.5 pt-1 sm:px-4.5"
+                data-oid="gqgf00s"
+              >
+                <LockedFeature
+                  isLocked={activeTab !== 'overview' && !isPremium}
+                  compact
+                  data-oid="31-iuua"
+                >
+                  <div className="h-[210px] sm:h-[225px] w-full relative" data-oid="k0v7.3h">
+                    {activeTab === 'overview' && !chartData.history?.length && (
+                      <div
+                        className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
+                        data-oid="p4cm953"
+                      >
+                        <div
+                          className="flex flex-col items-center animate-in fade-in zoom-in duration-700"
+                          data-oid="4.4gnw2"
+                        >
+                          <div
+                            className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-2"
+                            data-oid="bb_mzuy"
+                          >
+                            <TrendingUp className="w-5 h-5 text-primary/40" data-oid="31ulcz3" />
+                          </div>
+                          <p
+                            className="text-[11px] font-black text-muted-foreground tracking-widest text-center max-w-[150px]"
+                            data-oid="o4dgu4p"
+                          >
+                            Analyzing First Session...
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {activeTab !== 'overview' &&
+                      (!chartData.moduleHistory[activeTab] ||
+                        chartData.moduleHistory[activeTab].length === 0) && (
+                        <div
+                          className="absolute inset-0 flex items-center justify-center z-10"
+                          data-oid="pnpy6cs"
+                        >
+                          <EmptyAnalyticsState
+                            icon={Activity}
+                            title={`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Analytics`}
+                            description={`Complete more ${activeTab} tests to unlock detailed performance trends.`}
+                            compact
+                            data-oid="8-pio3_"
                           />
-
-                          <stop
-                            offset="100%"
-                            stopColor="hsl(var(--primary))"
-                            stopOpacity={0.02}
-                            data-oid="q.qa.ya"
-                          />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="hsl(var(--border))"
-                        opacity={0.8}
-                        data-oid="d5.t..y"
-                      />
-
-                      <XAxis
-                        dataKey="date"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{
-                          fill: 'hsl(var(--foreground))',
-                          fontSize: 10,
-                          fontWeight: 800,
-                          opacity: 0.8,
-                        }}
-                        dy={5}
-                        minTickGap={30}
-                        interval="preserveStartEnd"
-                        data-oid="7xykue7"
-                      />
-
-                      <YAxis
-                        domain={[0, 9]}
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{
-                          fill: 'hsl(var(--foreground))',
-                          fontSize: 12,
-                          fontWeight: 800,
-                          opacity: 0.8,
-                        }}
-                        width={28}
-                        data-oid="-d2.ni0"
-                      />
-
-                      <Tooltip content={<CustomTooltip data-oid="1x7fb:j" />} data-oid="zatj-1d" />
-                      <Area
-                        type="monotone"
-                        dataKey="score"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth={3}
-                        fill="url(#analyticsv2)"
-                        dot={{ r: 3, strokeWidth: 2, fill: 'hsl(var(--background))' }}
-                        activeDot={{
-                          r: 5,
-                          fill: 'hsl(var(--primary))',
-                          strokeWidth: 2,
-                          stroke: '#fff',
-                        }}
-                        data-oid=":9lhx66"
-                      />
-                    </AreaChart>
-                  ) : (
-                    <LineChart
-                      data={
-                        chartData.moduleHistory[activeTab] &&
-                        chartData.moduleHistory[activeTab].length > 0
-                          ? chartData.moduleHistory[activeTab]
-                          : []
-                      }
-                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                      className={cn(
-                        'transition-all duration-1000',
-                        (!chartData.moduleHistory[activeTab] ||
-                          chartData.moduleHistory[activeTab].length === 0) &&
-                          'opacity-[0.05] grayscale blur-[2px]'
+                        </div>
                       )}
-                      data-oid="o8hfc4s"
-                    >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="hsl(var(--border))"
-                        opacity={0.8}
-                        data-oid="me3hq_5"
-                      />
 
-                      <XAxis
-                        dataKey="date"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{
-                          fill: 'hsl(var(--foreground))',
-                          fontSize: 10,
-                          fontWeight: 800,
-                          opacity: 0.8,
-                        }}
-                        dy={5}
-                        minTickGap={30}
-                        interval="preserveStartEnd"
-                        data-oid="pr.5hz6"
-                      />
+                    <ResponsiveContainer width="100%" height="100%" data-oid="io4vrd6">
+                      {activeTab === 'overview' ? (
+                        <AreaChart
+                          data={chartData.history?.length ? chartData.history : []}
+                          margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                          className={cn(
+                            'transition-all duration-1000',
+                            !chartData.history?.length && 'opacity-[0.08] grayscale blur-[3px]'
+                          )}
+                          data-oid="73pywcp"
+                        >
+                          <defs data-oid="rw4l3px">
+                            <linearGradient
+                              id="analyticsv2"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                              data-oid="pvr5gwa"
+                            >
+                              <stop
+                                offset="0%"
+                                stopColor="#7157f5"
+                                stopOpacity={0.25}
+                                data-oid="thhzj5x"
+                              />
 
-                      <YAxis
-                        domain={[0, 9]}
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{
-                          fill: 'hsl(var(--foreground))',
-                          fontSize: 12,
-                          fontWeight: 800,
-                          opacity: 0.8,
-                        }}
-                        width={28}
-                        data-oid="8t2-drm"
-                      />
+                              <stop
+                                offset="100%"
+                                stopColor="#7157f5"
+                                stopOpacity={0.02}
+                                data-oid="q.qa.ya"
+                              />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            vertical={false}
+                            stroke="hsl(var(--border))"
+                            opacity={0.5}
+                            data-oid="d5.t..y"
+                          />
 
-                      <Tooltip content={<CustomTooltip data-oid="u4nxpar" />} data-oid="4s-p1tw" />
-                      <Line
-                        type="monotone"
-                        dataKey="score"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth={3}
-                        dot={{ r: 4, strokeWidth: 2, fill: 'hsl(var(--background))' }}
-                        activeDot={{ r: 6, fill: 'hsl(var(--primary))' }}
-                        data-oid="n942r-g"
-                      />
-                    </LineChart>
-                  )}
-                </ResponsiveContainer>
-              </div>
-            </LockedFeature>
-          </CardContent>
-        </Card>
-      </motion.div>
+                          <XAxis
+                            dataKey="date"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{
+                              fill: 'hsl(var(--muted-foreground))',
+                              fontSize: 10,
+                              fontWeight: 700,
+                            }}
+                            dy={5}
+                            minTickGap={30}
+                            interval="preserveStartEnd"
+                            data-oid="7xykue7"
+                          />
+
+                          <YAxis
+                            domain={[0, 9]}
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{
+                              fill: 'hsl(var(--muted-foreground))',
+                              fontSize: 10,
+                              fontWeight: 700,
+                            }}
+                            width={24}
+                            data-oid="-d2.ni0"
+                          />
+
+                          <Tooltip
+                            content={<CustomTooltip data-oid="1x7fb:j" />}
+                            data-oid="zatj-1d"
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="score"
+                            stroke="#7157f5"
+                            strokeWidth={3}
+                            fill="url(#analyticsv2)"
+                            dot={{ r: 3, strokeWidth: 2, fill: '#7157f5' }}
+                            activeDot={{
+                              r: 5,
+                              fill: '#7157f5',
+                              strokeWidth: 2,
+                              stroke: '#fff',
+                            }}
+                            data-oid=":9lhx66"
+                          />
+                        </AreaChart>
+                      ) : (
+                        <LineChart
+                          data={
+                            chartData.moduleHistory[activeTab] &&
+                            chartData.moduleHistory[activeTab].length > 0
+                              ? chartData.moduleHistory[activeTab]
+                              : []
+                          }
+                          margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                          className={cn(
+                            'transition-all duration-1000',
+                            (!chartData.moduleHistory[activeTab] ||
+                              chartData.moduleHistory[activeTab].length === 0) &&
+                              'opacity-[0.05] grayscale blur-[2px]'
+                          )}
+                          data-oid="o8hfc4s"
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            vertical={false}
+                            stroke="hsl(var(--border))"
+                            opacity={0.5}
+                            data-oid="me3hq_5"
+                          />
+
+                          <XAxis
+                            dataKey="date"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{
+                              fill: 'hsl(var(--muted-foreground))',
+                              fontSize: 10,
+                              fontWeight: 700,
+                            }}
+                            dy={5}
+                            minTickGap={30}
+                            interval="preserveStartEnd"
+                            data-oid="pr.5hz6"
+                          />
+
+                          <YAxis
+                            domain={[0, 9]}
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{
+                              fill: 'hsl(var(--muted-foreground))',
+                              fontSize: 10,
+                              fontWeight: 700,
+                            }}
+                            width={24}
+                            data-oid="8t2-drm"
+                          />
+
+                          <Tooltip
+                            content={<CustomTooltip data-oid="u4nxpar" />}
+                            data-oid="4s-p1tw"
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="score"
+                            stroke="#7157f5"
+                            strokeWidth={3}
+                            dot={{ r: 3, strokeWidth: 2, fill: '#7157f5' }}
+                            activeDot={{ r: 5, fill: '#7157f5' }}
+                            data-oid="n942r-g"
+                          />
+                        </LineChart>
+                      )}
+                    </ResponsiveContainer>
+                  </div>
+                </LockedFeature>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        <div className="col-span-12 xl:col-span-6">
+          <RecentPracticeHistory sessions={chartData.recentPractice || []} user={user} />
+        </div>
+      </div>
 
       <motion.div variants={ITEM_VARIANTS} data-oid="1atf515">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6" data-oid="pj.2q8p">
           {/* Module Mastery Radar */}
           <Card
-            className="rounded-2xl border-primary/20 bg-card/95 backdrop-blur shadow-md overflow-hidden hover:shadow-2xl transition-all h-[360px] flex flex-col"
+            className="flex h-[360px] flex-col overflow-hidden rounded-[22px] border-slate-200/80 bg-white shadow-xs dark:border-white/10 dark:bg-slate-950"
             data-oid="obrjoof"
           >
-            <CardHeader className="pb-2" data-oid="hc-wu6j">
+            <CardHeader className="px-4 pb-1 pt-3.5 sm:px-4.5" data-oid="hc-wu6j">
               <div className="flex items-center justify-between gap-3" data-oid="k2m.wh0">
-                <CardTitle
-                  className="text-xl font-black text-foreground flex items-center gap-2"
-                  data-oid="kihiso_"
-                >
-                  <TrendingUp className="w-5 h-5 text-primary" data-oid="y6qo3w4" />
-                  Module Mastery
-                </CardTitle>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+                    <TrendingUp className="h-3.5 w-3.5" data-oid="y6qo3w4" />
+                  </div>
+                  <div className="min-w-0">
+                    <CardTitle
+                      className="text-base font-black tracking-tight text-slate-950 dark:text-white"
+                      data-oid="kihiso_"
+                    >
+                      Module Mastery
+                    </CardTitle>
+                    <CardDescription
+                      className="text-[11px] font-medium text-slate-500 truncate"
+                      data-oid="1-4yxra"
+                    >
+                      Your performance envelope across IELTS modules.
+                    </CardDescription>
+                  </div>
+                </div>
                 <Badge
                   variant="outline"
-                  className="rounded-full border-primary/20 bg-muted/40 text-[10px] font-black uppercase tracking-wider px-2 py-0.5"
+                  className="rounded-full border-slate-200 bg-slate-50 px-2 py-0.5 text-[9.5px] font-extrabold uppercase text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400"
                   data-oid="fb9l6zn"
                 >
                   Balance
                 </Badge>
               </div>
-              <CardDescription className="text-sm font-medium" data-oid="1-4yxra">
-                Your performance envelope across IELTS modules.
-              </CardDescription>
             </CardHeader>
             <CardContent
-              className="flex-1 pb-6 pt-0 flex flex-col sm:flex-row items-center gap-4"
+              className="flex flex-1 flex-col justify-between px-3.5 pb-3.5 pt-1 sm:px-4.5 sm:flex-row items-center gap-3"
               data-oid="pu2nhj."
             >
-              <div className="w-full sm:w-[60%] h-[200px] sm:h-full" data-oid="kbauega">
+              <div className="w-full sm:w-[55%] h-[180px] sm:h-full" data-oid="kbauega">
                 <UniversalRadar
                   data={radarData}
                   name="Band Performance"
@@ -755,64 +772,86 @@ export default function PerformanceTrends({
                   data-oid="xo.ihj_"
                 />
               </div>
-              <div className="w-full sm:w-[40%] space-y-3.5 pr-2" data-oid="cti0:18">
-                {radarData.map((item, idx) => (
-                  <motion.div
-                    key={item.subject}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="space-y-1.5"
-                    data-oid="tu7:jja"
-                  >
-                    <div className="flex items-center justify-between px-1" data-oid="wz._gze">
-                      <span
-                        className="text-sm font-black text-foreground/80 dark:text-foreground/70 tracking-widest"
-                        data-oid="ra-rsiz"
-                      >
-                        {item.subject}
-                      </span>
-                      <span className="text-sm font-black text-foreground" data-oid="udpv-nu">
-                        {formatBand(item.A)}
-                      </span>
-                    </div>
-                    <div
-                      className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden p-0.5 border border-border/10"
-                      data-oid="1s61xdz"
+              <div className="w-full sm:w-[45%] space-y-2.5 pr-1" data-oid="cti0:18">
+                {radarData.map((item, idx) => {
+                  const moduleColorMap = {
+                    Reading: '#22a866',
+                    Writing: '#4f7df3',
+                    Listening: '#f5a742',
+                    Speaking: '#b85ed1',
+                  };
+                  const color = moduleColorMap[item.subject] || '#7157f5';
+                  return (
+                    <motion.div
+                      key={item.subject}
+                      initial={{ opacity: 0, x: 15 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.08 }}
+                      className="space-y-1"
+                      data-oid="tu7:jja"
                     >
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(item.A / 9) * 100}%` }}
-                        className="h-full bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.3)] transition-all duration-1000"
-                        style={{
-                          backgroundColor: 'hsl(var(--primary))',
-                        }}
-                        data-oid="gta556f"
-                      />
-                    </div>
-                  </motion.div>
-                ))}
+                      <div className="flex items-center justify-between px-0.5" data-oid="wz._gze">
+                        <span
+                          className="text-xs font-black text-slate-800 dark:text-slate-200 tracking-tight"
+                          data-oid="ra-rsiz"
+                        >
+                          {item.subject}
+                        </span>
+                        <span
+                          className="text-xs font-black text-slate-950 dark:text-white"
+                          data-oid="udpv-nu"
+                        >
+                          {formatBand(item.A)}
+                        </span>
+                      </div>
+                      <div
+                        className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden dark:bg-slate-800"
+                        data-oid="1s61xdz"
+                      >
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${(item.A / 9) * 100}%` }}
+                          className="h-full rounded-full transition-all duration-1000"
+                          style={{ backgroundColor: color }}
+                          data-oid="gta556f"
+                        />
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
 
           {/* Question Types */}
           <Card
-            className="flex h-[380px] flex-col overflow-hidden rounded-2xl border-primary/20 bg-card/95 shadow-md backdrop-blur transition-all hover:shadow-2xl"
+            className="flex h-[360px] flex-col overflow-hidden rounded-[22px] border-slate-200/80 bg-white shadow-xs dark:border-white/10 dark:bg-slate-950"
             data-oid="3bnrh6g"
           >
-            <CardHeader className="pb-3" data-oid="n9word6">
+            <CardHeader className="px-4 pb-1 pt-3.5 sm:px-4.5" data-oid="n9word6">
               <div className="flex items-center justify-between gap-3" data-oid="7nzhlcl">
-                <CardTitle
-                  className="text-xl font-black text-foreground flex items-center gap-2"
-                  data-oid="::shik2"
-                >
-                  <Target className="w-5 h-5 text-primary" data-oid="uxibci1" />
-                  Question Success Rate
-                </CardTitle>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+                    <Target className="h-3.5 w-3.5" data-oid="uxibci1" />
+                  </div>
+                  <div className="min-w-0">
+                    <CardTitle
+                      className="text-base font-black tracking-tight text-slate-950 dark:text-white"
+                      data-oid="::shik2"
+                    >
+                      Question Success Rate
+                    </CardTitle>
+                    <CardDescription
+                      className="text-[11px] font-medium text-slate-500 truncate"
+                      data-oid="c2x3g-r"
+                    >
+                      Weighted accuracy across completed questions.
+                    </CardDescription>
+                  </div>
+                </div>
                 <Badge
                   variant="outline"
-                  className="rounded-full border-emerald-500/30 bg-emerald-500/10 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 text-emerald-600 dark:text-emerald-400"
+                  className="rounded-full border-emerald-200/60 bg-emerald-50 px-2 py-0.5 text-[9.5px] font-extrabold uppercase text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300"
                   data-oid="9:3a._o"
                 >
                   {questionSuccessSummary.total
@@ -820,12 +859,9 @@ export default function PerformanceTrends({
                     : 'No data'}
                 </Badge>
               </div>
-              <CardDescription data-oid="c2x3g-r">
-                Weighted accuracy across completed, graded questions.
-              </CardDescription>
             </CardHeader>
             <CardContent
-              className="flex-1 overflow-y-auto px-5 pb-5 pt-0 scrollbar-thin scrollbar-thumb-muted"
+              className="flex-1 overflow-y-auto px-3.5 pb-3.5 pt-1 sm:px-4.5 scrollbar-thin scrollbar-thumb-muted"
               data-oid="huwghdg"
             >
               <QuestionTypeTable data={stats.typeAccuracy} data-oid="uv1t-vc" />
@@ -834,24 +870,27 @@ export default function PerformanceTrends({
 
           {/* Deep Insights (Pro) */}
           <Card
-            className="rounded-2xl border-primary/20 bg-card/95 backdrop-blur shadow-md overflow-hidden hover:shadow-2xl transition-all h-[360px] flex flex-col"
+            className="flex h-[360px] flex-col overflow-hidden rounded-[22px] border-slate-200/80 bg-white shadow-xs dark:border-white/10 dark:bg-slate-950"
             data-oid="u_amfu5"
           >
-            <CardHeader className="pb-4" data-oid="-4_zzio">
-              <div className="flex items-center justify-between" data-oid="qub627-">
-                <div className="flex items-center gap-3" data-oid="8y3-bj0">
+            <CardHeader className="px-4 pb-1 pt-3.5 sm:px-4.5" data-oid="-4_zzio">
+              <div className="flex items-center justify-between gap-3" data-oid="qub627-">
+                <div className="flex items-center gap-2.5 min-w-0" data-oid="8y3-bj0">
                   <div
-                    className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center"
+                    className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-300"
                     data-oid="w5:00go"
                   >
-                    <Zap className="w-6 h-6 text-amber-500 fill-amber-500/20" data-oid="gjwp5w4" />
+                    <Zap className="h-3.5 w-3.5" data-oid="gjwp5w4" />
                   </div>
-                  <div data-oid="7tzifoi">
-                    <CardTitle className="text-xl font-black text-foreground" data-oid="e2-32..">
+                  <div className="min-w-0" data-oid="7tzifoi">
+                    <CardTitle
+                      className="text-base font-black tracking-tight text-slate-950 dark:text-white"
+                      data-oid="e2-32.."
+                    >
                       Smart Feedback
                     </CardTitle>
                     <CardDescription
-                      className="font-medium text-xs text-muted-foreground"
+                      className="text-[11px] font-medium text-slate-500 truncate"
                       data-oid="m_l7ys7"
                     >
                       Personalized tips for you
@@ -860,7 +899,7 @@ export default function PerformanceTrends({
                 </div>
                 {!isPremium && (
                   <Badge
-                    className="rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none px-2.5 py-0.5 font-black text-[10px] uppercase tracking-wider"
+                    className="rounded-full border border-amber-200/60 bg-amber-50 px-2 py-0.5 text-[9.5px] font-extrabold uppercase text-amber-600 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300"
                     data-oid="r6a_lzr"
                   >
                     Pro Feature
@@ -870,10 +909,13 @@ export default function PerformanceTrends({
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden p-0 relative" data-oid="8twiya3">
               <LockedFeature isLocked={!isPremium} compact className="h-full" data-oid="4u8r4z1">
-                <div className="p-6 pt-0 space-y-6 overflow-y-auto h-full" data-oid="inner-content">
+                <div
+                  className="px-3.5 pb-3 pt-1 sm:px-4.5 space-y-2.5 overflow-y-auto h-full scrollbar-thin"
+                  data-oid="inner-content"
+                >
                   {stats.enhancedMetrics.hasData ? (
                     <>
-                      <div className="grid grid-cols-3 gap-3" data-oid="-lufzwo">
+                      <div className="grid grid-cols-3 gap-1.5" data-oid="-lufzwo">
                         <StatMiniCard
                           icon={Timer}
                           label="Avg Time"
@@ -901,7 +943,7 @@ export default function PerformanceTrends({
                       </div>
 
                       {stats.enhancedMetrics.skillGaps.length > 0 && (
-                        <div className="space-y-3" data-oid="ms_lc-0">
+                        <div className="space-y-1.5" data-oid="ms_lc-0">
                           <SectionHeading
                             icon={Target}
                             label="Skills to Work On"
@@ -909,7 +951,7 @@ export default function PerformanceTrends({
                             data-oid="5gk2v.7"
                           />
 
-                          <div className="space-y-2.5" data-oid="amgi65c">
+                          <div className="space-y-1.5" data-oid="amgi65c">
                             {stats.enhancedMetrics.skillGaps.slice(0, 3).map((sg) => (
                               <SkillGapItem
                                 key={sg.skill}
@@ -923,11 +965,11 @@ export default function PerformanceTrends({
                       )}
 
                       {stats.enhancedMetrics.topTroubleTypes.length > 0 && (
-                        <div className="space-y-2 pt-1" data-oid="kwphww6">
+                        <div className="space-y-1.5 pt-0.5" data-oid="kwphww6">
                           <SectionHeading
                             icon={Sparkles}
                             label="Focus Areas"
-                            color="text-primary"
+                            color="text-indigo-600 dark:text-indigo-400"
                             data-oid="syzg9fg"
                           />
 
@@ -961,47 +1003,48 @@ export default function PerformanceTrends({
 // --- SHARED UI HELPERS ---
 
 function StatMiniCard({ icon: Icon, label, value, alert, alertColor }) {
+  const colorStyles = alert
+    ? alertColor === 'rose'
+      ? 'bg-rose-50/70 border-rose-200/80 text-rose-700 dark:bg-rose-500/10 dark:border-rose-500/20 dark:text-rose-300'
+      : 'bg-amber-50/70 border-amber-200/80 text-amber-700 dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-300'
+    : 'bg-slate-50/70 border-slate-200/70 text-slate-700 dark:bg-white/[0.03] dark:border-white/5 dark:text-slate-300';
+
+  const iconColor = alert
+    ? alertColor === 'rose'
+      ? 'text-rose-500 dark:text-rose-400'
+      : 'text-amber-500 dark:text-amber-400'
+    : 'text-indigo-500 dark:text-indigo-400';
+
+  const labelColor = alert
+    ? alertColor === 'rose'
+      ? 'text-rose-600/80 dark:text-rose-400/80'
+      : 'text-amber-600/80 dark:text-amber-400/80'
+    : 'text-slate-400 dark:text-slate-400';
+
+  const valueColor = alert
+    ? alertColor === 'rose'
+      ? 'text-rose-600 dark:text-rose-400'
+      : 'text-amber-600 dark:text-amber-400'
+    : 'text-slate-950 dark:text-white';
+
   return (
     <div
       className={cn(
-        'p-2 rounded-2xl border flex flex-col items-center justify-center text-center group transition-all h-[68px]',
-        alert
-          ? alertColor === 'rose'
-            ? 'bg-rose-500/5 border-rose-500/20 hover:bg-rose-500/10'
-            : 'bg-amber-500/5 border-amber-500/20 hover:bg-amber-500/10'
-          : 'bg-card border-primary/20 group-hover:bg-primary/5 hover:border-primary/40'
+        'p-1.5 rounded-xl border flex flex-col items-center justify-center text-center transition-all h-[56px]',
+        colorStyles
       )}
       data-oid="iykydqu"
     >
-      <Icon
-        className={cn(
-          'w-3.5 h-3.5 mb-1 group-hover:scale-110 transition-transform',
-          alert
-            ? alertColor === 'rose'
-              ? 'text-rose-500'
-              : 'text-amber-500'
-            : 'text-foreground/80'
-        )}
-        data-oid="qvxcv1p"
-      />
-
-      <span
-        className="text-xs font-black text-foreground/80 dark:text-foreground/70 tracking-tight mb-0.5"
-        data-oid="m2xsq81"
-      >
-        {label}
-      </span>
-      <span
-        className={cn(
-          'text-sm font-black',
-          alert
-            ? alertColor === 'rose'
-              ? 'text-rose-600 dark:text-rose-400'
-              : 'text-amber-600 dark:text-amber-400'
-            : 'text-slate-900 dark:text-white'
-        )}
-        data-oid="v8i5nvv"
-      >
+      <div className="flex items-center gap-1" data-oid="qvxcv1p-wrap">
+        <Icon className={cn('w-3 h-3', iconColor)} data-oid="qvxcv1p" />
+        <span
+          className={cn('text-[9px] font-extrabold uppercase tracking-wider truncate', labelColor)}
+          data-oid="m2xsq81"
+        >
+          {label}
+        </span>
+      </div>
+      <span className={cn('text-xs font-black truncate mt-0.5', valueColor)} data-oid="v8i5nvv">
         {value}
       </span>
     </div>
@@ -1010,19 +1053,19 @@ function StatMiniCard({ icon: Icon, label, value, alert, alertColor }) {
 
 function SectionHeading({ icon: Icon, label, subLabel, color }) {
   return (
-    <div className="flex items-center justify-between px-1" data-oid="4-fb8tb">
+    <div className="flex items-center justify-between px-0.5" data-oid="4-fb8tb">
       <span
         className={cn(
-          'text-sm font-black text-foreground/90 tracking-widest flex items-center gap-2',
+          'text-xs font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5',
           color
         )}
         data-oid="xp9yc9d"
       >
-        <Icon className="w-3.5 h-3.5 text-primary" data-oid="qrnu9el" /> {label}
+        <Icon className="w-3.5 h-3.5 text-indigo-500" data-oid="qrnu9el" /> {label}
       </span>
       {subLabel && (
         <span
-          className="text-sm font-bold text-muted-foreground dark:text-muted-foreground/80"
+          className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400"
           data-oid="c070qju"
         >
           {subLabel}
@@ -1033,20 +1076,28 @@ function SectionHeading({ icon: Icon, label, subLabel, color }) {
 }
 
 function SkillGapItem({ skill, avg }) {
+  const isHighRisk = avg < 40;
+  const isMediumRisk = avg >= 40 && avg < 70;
   return (
-    <div className="space-y-1.5" data-oid="bmdkccl">
-      <div className="flex justify-between items-center text-sm font-bold px-1" data-oid="2aleqd_">
-        <span className="text-foreground font-black tracking-tight" data-oid="9xf0ipf">
+    <div
+      className="space-y-1 rounded-xl border border-slate-100 bg-slate-50/40 p-2 dark:border-white/5 dark:bg-white/[0.02]"
+      data-oid="bmdkccl"
+    >
+      <div className="flex justify-between items-center text-xs" data-oid="2aleqd_">
+        <span
+          className="text-xs font-extrabold text-slate-800 dark:text-slate-200 truncate"
+          data-oid="9xf0ipf"
+        >
           {skill}
         </span>
         <span
           className={cn(
-            'font-black px-1.5 py-0.5 rounded-md',
-            avg < 30
-              ? 'bg-rose-500/10 text-rose-600 dark:text-rose-300'
-              : avg < 60
-                ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300'
-                : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300'
+            'font-black text-[9.5px] uppercase px-1.5 py-0.5 rounded-full border',
+            isHighRisk
+              ? 'bg-rose-50 text-rose-600 border-rose-200/60 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/20'
+              : isMediumRisk
+                ? 'bg-amber-50 text-amber-600 border-amber-200/60 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20'
+                : 'bg-emerald-50 text-emerald-600 border-emerald-200/60 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20'
           )}
           data-oid="my7m1nk"
         >
@@ -1054,19 +1105,15 @@ function SkillGapItem({ skill, avg }) {
         </span>
       </div>
       <div
-        className="h-2.5 bg-muted/30 dark:bg-muted/20 rounded-full overflow-hidden p-0.5 border border-border/50 dark:border-border/40 shadow-inner"
+        className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"
         data-oid="emij1sn"
       >
         <motion.div
           initial={{ width: 0 }}
-          animate={{ width: `${avg}%` }}
+          animate={{ width: `${Math.max(avg, 4)}%` }}
           className={cn(
-            'h-full rounded-full transition-all shadow-sm',
-            avg < 30
-              ? 'bg-gradient-to-r from-rose-500 to-rose-400 shadow-rose-500/20'
-              : avg < 60
-                ? 'bg-gradient-to-r from-amber-500 to-amber-400 shadow-amber-500/20'
-                : 'bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-emerald-500/20'
+            'h-full rounded-full transition-all duration-1000',
+            isHighRisk ? 'bg-rose-500' : isMediumRisk ? 'bg-amber-500' : 'bg-emerald-500'
           )}
           data-oid="5t6bmjl"
         />
@@ -1078,16 +1125,12 @@ function SkillGapItem({ skill, avg }) {
 function TroubleTag({ type }) {
   return (
     <div
-      className="px-3 py-1.5 rounded-2xl bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/20 dark:border-rose-500/30 backdrop-blur-sm flex items-center gap-2 group hover:border-rose-500/50 transition-all cursor-default"
+      className="px-2.5 py-1 rounded-lg bg-rose-50/70 dark:bg-rose-500/10 border border-rose-200/60 dark:border-rose-500/20 flex items-center gap-1.5 transition-all cursor-default"
       data-oid="5ng.5bc"
     >
-      <div
-        className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]"
-        data-oid="nwl26h4"
-      />
-
+      <span className="h-1.5 w-1.5 rounded-full bg-rose-500" data-oid="nwl26h4" />
       <span
-        className="text-xs font-black text-foreground dark:text-white capitalize tracking-tight"
+        className="text-[10.5px] font-extrabold text-rose-700 dark:text-rose-300 capitalize tracking-tight"
         data-oid="gr0rke."
       >
         {type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}

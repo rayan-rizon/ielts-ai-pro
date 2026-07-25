@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, BookOpen, Eye, Headphones, History, Mic2, PenLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -126,47 +126,39 @@ function MobileRows({ sessions, onViewResult }) {
 
 function DesktopTable({ sessions, onViewResult, testId = 'recent-practice-table' }) {
   return (
-    <div className="hidden overflow-x-auto rounded-2xl border border-slate-100 dark:border-white/5 md:block">
-      <table className="w-full min-w-[760px] border-collapse text-left" data-testid={testId}>
+    <div className="hidden overflow-x-auto rounded-xl border border-slate-100 dark:border-white/5 md:block">
+      <table className="w-full border-collapse text-left" data-testid={testId}>
         <thead className="bg-slate-50/80 dark:bg-white/[0.03]">
-          <tr className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">
-            <th className="px-3 py-3">Module</th>
-            <th className="px-3 py-3">Practice</th>
-            <th className="px-3 py-3 text-center">Band</th>
-            <th className="px-3 py-3 text-center">Accuracy</th>
-            <th className="px-3 py-3 text-center">Time</th>
-            <th className="px-3 py-3 text-center">Date</th>
-            <th className="px-3 py-3 text-right">Result</th>
+          <tr className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+            <th className="px-2.5 py-2.5">Module</th>
+            <th className="px-2.5 py-2.5">Practice</th>
+            <th className="px-2 py-2.5 text-center">Band</th>
+            <th className="px-2 py-2.5 text-center">Date</th>
+            <th className="px-2.5 py-2.5 text-right">Result</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
           {sessions.map((session) => (
             <tr
               key={session.id}
-              className="border-t border-slate-100 text-xs transition-colors hover:bg-indigo-50/30 dark:border-white/5 dark:hover:bg-indigo-500/[0.04]"
+              className="text-xs transition-colors hover:bg-indigo-50/30 dark:hover:bg-indigo-500/[0.04]"
             >
-              <td className="px-3 py-3">
+              <td className="px-2.5 py-2">
                 <PracticeType type={session.type} />
               </td>
               <td
-                className="max-w-[320px] truncate px-3 py-3 font-bold text-slate-800 dark:text-slate-200"
+                className="max-w-[180px] truncate px-2.5 py-2 font-bold text-slate-800 dark:text-slate-200"
                 title={session.title}
               >
                 {session.title}
               </td>
-              <td className="px-3 py-3 text-center font-black text-slate-900 dark:text-white">
+              <td className="px-2 py-2 text-center font-black text-slate-950 dark:text-white">
                 {session.score == null ? '—' : formatBand(session.score)}
               </td>
-              <td className="px-3 py-3 text-center font-extrabold text-slate-600 dark:text-slate-300">
-                {session.accuracy == null ? '—' : `${session.accuracy}%`}
-              </td>
-              <td className="px-3 py-3 text-center font-semibold text-slate-500">
-                {session.durationMinutes == null ? '—' : `${session.durationMinutes}m`}
-              </td>
-              <td className="px-3 py-3 text-center font-semibold text-slate-500">
+              <td className="px-2 py-2 text-center text-[11px] font-semibold text-slate-500">
                 {formatPracticeDate(session.date)}
               </td>
-              <td className="px-3 py-2 text-right">
+              <td className="px-2.5 py-1.5 text-right">
                 <ResultButton session={session} onViewResult={onViewResult} compact />
               </td>
             </tr>
@@ -180,7 +172,7 @@ function DesktopTable({ sessions, onViewResult, testId = 'recent-practice-table'
 export default function RecentPracticeHistory({ sessions = [], user }) {
   const [showAll, setShowAll] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
-  const recentSessions = sessions.slice(0, 6);
+  const recentSessions = sessions.slice(0, 5);
 
   const viewResult = (session) => {
     setShowAll(false);
@@ -190,20 +182,20 @@ export default function RecentPracticeHistory({ sessions = [], user }) {
   return (
     <>
       <motion.div variants={ITEM_VARIANTS} className="h-full">
-        <Card className="h-full overflow-hidden rounded-[22px] border-slate-200/80 bg-white shadow-[0_16px_45px_-34px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-950">
-          <CardHeader className="px-5 pb-2 pt-4 sm:px-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex min-w-0 items-start gap-3">
-                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
-                  <History className="h-4 w-4" />
+        <Card className="flex h-full flex-col justify-between overflow-hidden rounded-[22px] border-slate-200/80 bg-white shadow-xs dark:border-white/10 dark:bg-slate-950">
+          <CardHeader className="px-4 pb-1 pt-3.5 sm:px-4.5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+                  <History className="h-3.5 w-3.5" />
                 </div>
-                <div>
-                  <CardTitle className="text-base font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-lg">
+                <div className="min-w-0">
+                  <CardTitle className="text-base font-black tracking-tight text-slate-950 dark:text-white">
                     Recent practice history
                   </CardTitle>
-                  <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                  <CardDescription className="text-[11px] font-medium text-slate-500 truncate">
                     Latest completed sessions in this period
-                  </p>
+                  </CardDescription>
                 </div>
               </div>
               {sessions.length ? (
@@ -217,19 +209,19 @@ export default function RecentPracticeHistory({ sessions = [], user }) {
               ) : null}
             </div>
           </CardHeader>
-          <CardContent className="px-3 pb-4 pt-2 sm:px-5">
+          <CardContent className="flex flex-1 flex-col justify-between px-3.5 pb-3.5 pt-1 sm:px-4.5">
             {recentSessions.length ? (
               <>
                 <MobileRows sessions={recentSessions} onViewResult={viewResult} />
                 <DesktopTable sessions={recentSessions} onViewResult={viewResult} />
               </>
             ) : (
-              <div className="flex h-[245px] flex-col items-center justify-center text-center">
-                <History className="mb-3 h-8 w-8 text-indigo-200" />
-                <p className="font-bold text-slate-900 dark:text-white">
+              <div className="flex h-[220px] flex-col items-center justify-center text-center">
+                <History className="mb-2 h-7 w-7 text-indigo-200" />
+                <p className="font-bold text-slate-900 dark:text-white text-sm">
                   No completed practice here yet
                 </p>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-0.5 text-xs text-slate-500">
                   Try a wider timeframe or complete another module.
                 </p>
               </div>

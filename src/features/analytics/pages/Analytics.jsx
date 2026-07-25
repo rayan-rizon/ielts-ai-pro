@@ -320,6 +320,7 @@ export default function Analytics() {
             tabs={tabs}
             onTabKeyDown={onTabKeyDown}
             tabsRef={tabsRef}
+            user={user}
             data-oid="3tacdky"
           />
         </Suspense>
