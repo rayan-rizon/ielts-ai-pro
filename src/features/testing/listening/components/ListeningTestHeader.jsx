@@ -24,6 +24,7 @@ import { motion } from 'framer-motion';
 
 // Isolated Clock Component imported
 import ListeningTestClock from './ListeningTest/components/ListeningTestClock';
+import TestModeHeaderControl from '@/features/testing/shared/components/TestModeHeaderControl';
 
 const ListeningTestHeader = ({
   testData,
@@ -49,6 +50,12 @@ const ListeningTestHeader = ({
   onNextPart,
   testMode = 'practice',
   examReview = false,
+  isAwaitingStart = false,
+  selectedMode = 'practice',
+  onModeChange,
+  examEligibility = { eligible: true, reason: '' },
+  onStart,
+  isStarting = false,
 }) => {
   const maxQuestions = (stats && (stats.totalQuestions || stats.totalQ)) || totalQuestions || 40;
   const solvedCount = (stats && (stats.totalAnswered ?? stats.totalAns)) ?? 0;
@@ -151,12 +158,14 @@ const ListeningTestHeader = ({
                     <ShieldCheck className="w-2.5 h-2.5 sm:w-3 h-3" data-oid="f3411fp" /> Official
                   </span>
                 )}
-                <Badge
-                  variant="outline"
-                  className="h-4 rounded-full px-1.5 text-[8px] font-black uppercase tracking-wide"
-                >
-                  {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
-                </Badge>
+                {!isAwaitingStart ? (
+                  <Badge
+                    variant="outline"
+                    className="h-4 rounded-full px-1.5 text-[8px] font-black uppercase tracking-wide"
+                  >
+                    {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
+                  </Badge>
+                ) : null}
               </div>
             </div>
           </div>
@@ -220,105 +229,120 @@ const ListeningTestHeader = ({
 
         {/* Right - Tools & Timer */}
         <div className="flex items-center gap-4 shrink-0" data-oid="z8e.ssh">
-          {/* Autosave Indicator */}
-          {/* Auto-save Status */}
-          <div
-            className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5"
-            data-oid="via037s"
-          >
-            {isSaving ? (
-              <Loader2 className="w-3 h-3 text-indigo-500 animate-spin" data-oid="vjxneul" />
-            ) : (
+          {isAwaitingStart ? (
+            <TestModeHeaderControl
+              selectedMode={selectedMode}
+              onModeChange={onModeChange}
+              examEligibility={examEligibility}
+              onStart={onStart}
+              isStarting={isStarting}
+            />
+          ) : (
+            <>
+              {/* Autosave Indicator */}
+              {/* Auto-save Status */}
               <div
-                className={`w-1.5 h-1.5 rounded-full transition-colors ${lastSaved ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300 dark:bg-slate-600'}`}
-                data-oid="4e:-yhv"
-              />
-            )}
-            <span
-              className="text-[9px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap"
-              data-oid="0z8bsbi"
-            >
-              {isSaving ? 'Saving' : lastSaved ? 'Saved' : 'Ready'}
-            </span>
-          </div>
-
-          <div
-            className="flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/80 backdrop-blur-md p-1 rounded-full border border-slate-200/80 dark:border-white/10 shadow-xs"
-            data-oid="hu9uhtj"
-          >
-            <Button
-              id="answer-sheet-toggle"
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowAnswerSheet(!showAnswerSheet)}
-              className={cn(
-                'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 h-7.5 rounded-full transition-all duration-200 font-bold text-[9.5px] sm:text-[10px] uppercase tracking-wider select-none hover:scale-105 active:scale-95',
-                showAnswerSheet
-                  ? 'bg-indigo-600 text-white hover:bg-indigo-700 hover:text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:bg-indigo-500/20 dark:hover:text-indigo-300'
-              )}
-              data-oid="6kj0gdx"
-            >
-              <ClipboardList className="w-3.5 h-3.5" data-oid="--en1qn" />
-              <span className="hidden sm:inline" data-oid="6iz6l-i">
-                Sheet
-              </span>
-            </Button>
-          </div>
-
-          <div className="hidden sm:block" data-oid="header-timer">
-            {/* Timer Component - Isolated */}
-            <ListeningTestClock data-oid="0gu6fwl" />
-          </div>
-
-          {/* Action Button: Next, Finish or View Results */}
-          <div className="flex items-center gap-2" data-oid="header-actions">
-            {!isFinished && testMode === 'exam' && !examReview ? null : !isFinished &&
-              testMode === 'exam' &&
-              examReview ? (
-              <Button
-                onClick={onSubmit}
-                disabled={isSubmitting}
-                className="h-9 rounded-xl bg-indigo-600 px-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+                className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5"
+                data-oid="via037s"
               >
-                {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Finish review'}
-              </Button>
-            ) : !isFinished ? (
-              !isLastPart ? (
-                <Button
-                  onClick={onNextPart}
-                  className="bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 shadow-slate-900/25 dark:shadow-indigo-500/20 font-black rounded-xl px-4 sm:px-6 h-9 sm:h-10 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap text-[10px] sm:text-xs uppercase tracking-widest"
-                  data-oid="y5kko0z"
+                {isSaving ? (
+                  <Loader2 className="w-3 h-3 text-indigo-500 animate-spin" data-oid="vjxneul" />
+                ) : (
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full transition-colors ${lastSaved ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300 dark:bg-slate-600'}`}
+                    data-oid="4e:-yhv"
+                  />
+                )}
+                <span
+                  className="text-[9px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap"
+                  data-oid="0z8bsbi"
                 >
-                  Next
-                </Button>
-              ) : (
-                <Button
-                  onClick={onSubmit}
-                  disabled={isSubmitting}
-                  className="bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 shadow-slate-900/25 dark:shadow-indigo-500/20 font-black rounded-xl px-4 sm:px-6 h-9 sm:h-10 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap text-[10px] sm:text-xs uppercase tracking-widest"
-                  data-oid="848h706"
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="w-3 h-3 animate-spin" data-oid="w-1hd1o" />
-                  ) : (
-                    'Finish'
-                  )}
-                </Button>
-              )
-            ) : (
-              <Button
-                onClick={onViewResults}
-                className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 text-white font-bold px-3 sm:px-4 h-9 sm:h-10 rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 border-none transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5 sm:gap-2"
-                data-oid="5snr9gv"
-              >
-                <CheckCircle className="w-3.5 h-3.5 sm:w-4 h-4" data-oid="rmlelv3" />
-                <span className="uppercase tracking-wide text-[10px] sm:text-xs" data-oid="h0ii41y">
-                  Results
+                  {isSaving ? 'Saving' : lastSaved ? 'Saved' : 'Ready'}
                 </span>
-              </Button>
-            )}
-          </div>
+              </div>
+
+              <div
+                className="flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/80 backdrop-blur-md p-1 rounded-full border border-slate-200/80 dark:border-white/10 shadow-xs"
+                data-oid="hu9uhtj"
+              >
+                <Button
+                  id="answer-sheet-toggle"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAnswerSheet(!showAnswerSheet)}
+                  className={cn(
+                    'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 h-7.5 rounded-full transition-all duration-200 font-bold text-[9.5px] sm:text-[10px] uppercase tracking-wider select-none hover:scale-105 active:scale-95',
+                    showAnswerSheet
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-700 hover:text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:bg-indigo-500/20 dark:hover:text-indigo-300'
+                  )}
+                  data-oid="6kj0gdx"
+                >
+                  <ClipboardList className="w-3.5 h-3.5" data-oid="--en1qn" />
+                  <span className="hidden sm:inline" data-oid="6iz6l-i">
+                    Sheet
+                  </span>
+                </Button>
+              </div>
+
+              <div className="hidden sm:block" data-oid="header-timer">
+                {/* Timer Component - Isolated */}
+                <ListeningTestClock data-oid="0gu6fwl" />
+              </div>
+
+              {/* Action Button: Next, Finish or View Results */}
+              <div className="flex items-center gap-2" data-oid="header-actions">
+                {!isFinished && testMode === 'exam' && !examReview ? null : !isFinished &&
+                  testMode === 'exam' &&
+                  examReview ? (
+                  <Button
+                    onClick={onSubmit}
+                    disabled={isSubmitting}
+                    className="h-9 rounded-xl bg-indigo-600 px-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+                  >
+                    {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Finish review'}
+                  </Button>
+                ) : !isFinished ? (
+                  !isLastPart ? (
+                    <Button
+                      onClick={onNextPart}
+                      className="bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 shadow-slate-900/25 dark:shadow-indigo-500/20 font-black rounded-xl px-4 sm:px-6 h-9 sm:h-10 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap text-[10px] sm:text-xs uppercase tracking-widest"
+                      data-oid="y5kko0z"
+                    >
+                      Next
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={onSubmit}
+                      disabled={isSubmitting}
+                      className="bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 shadow-slate-900/25 dark:shadow-indigo-500/20 font-black rounded-xl px-4 sm:px-6 h-9 sm:h-10 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap text-[10px] sm:text-xs uppercase tracking-widest"
+                      data-oid="848h706"
+                    >
+                      {isSubmitting ? (
+                        <Loader2 className="w-3 h-3 animate-spin" data-oid="w-1hd1o" />
+                      ) : (
+                        'Finish'
+                      )}
+                    </Button>
+                  )
+                ) : (
+                  <Button
+                    onClick={onViewResults}
+                    className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 text-white font-bold px-3 sm:px-4 h-9 sm:h-10 rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 border-none transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5 sm:gap-2"
+                    data-oid="5snr9gv"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 h-4" data-oid="rmlelv3" />
+                    <span
+                      className="uppercase tracking-wide text-[10px] sm:text-xs"
+                      data-oid="h0ii41y"
+                    >
+                      Results
+                    </span>
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </motion.div>

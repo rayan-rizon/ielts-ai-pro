@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react';
-import { useNavigate, useLocation, useParams, Link, useBlocker } from 'react-router-dom'; // Added Link, useParams
+import { useLocation, useParams, Link, useBlocker } from 'react-router-dom'; // Added Link, useParams
 import { createPageUrl } from '@/utils';
 import { cn, getQuestionCount, formatInstructionHTML } from '@/lib/utils';
 import { sanitizeHtml } from '@/lib/security';
@@ -110,7 +110,7 @@ import { useHighlighter } from '../components/ReadingTest/hooks/useHighlighter';
 import { useTestNotes } from '../components/ReadingTest/hooks/useTestNotes';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useReadingTestStore } from '../store/useReadingTestStore';
-import TestModeStartGate from '@/features/testing/shared/components/TestModeStartGate';
+import { TestStartPreviewNotice } from '@/features/testing/shared/components/TestModeHeaderControl';
 
 // HighlightMenu component moved to ./ReadingTest/components/HighlightMenu.jsx
 
@@ -175,7 +175,6 @@ function ReadingTestContent() {
     isExiting,
   } = useReadingTestLogic(null, { awardXP, user });
 
-  const navigate = useNavigate();
   const location = useLocation();
   const [currentPassageIndex, setCurrentPassageIndex] = useState(0);
 
@@ -838,21 +837,6 @@ function ReadingTestContent() {
     );
   }
 
-  if (isAwaitingStart) {
-    return (
-      <TestModeStartGate
-        title={testData.title || 'Reading Test'}
-        skill="Reading"
-        selectedMode={selectedMode}
-        onModeChange={setSelectedMode}
-        examEligibility={examEligibility}
-        onStart={handleStartTest}
-        isStarting={isStarting}
-        onExit={() => navigate('/reading')}
-      />
-    );
-  }
-
   // Removed the previous 'isFinished' block that displayed AI Analysis results.
   // Keyboard support for resize handle
   const handleResizeKeyDown = (e) => {
@@ -931,10 +915,24 @@ function ReadingTestContent() {
           formatTime={formatTime}
           isFinished={isFinished}
           testMode={testMode}
+          isAwaitingStart={isAwaitingStart}
+          selectedMode={selectedMode}
+          onModeChange={setSelectedMode}
+          examEligibility={examEligibility}
+          onStart={handleStartTest}
+          isStarting={isStarting}
         />
 
         {/* Main Layout Container */}
-        <div className="flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 relative">
+        <div
+          className={cn(
+            'flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 relative',
+            isAwaitingStart && 'pointer-events-none select-none'
+          )}
+          aria-disabled={isAwaitingStart || undefined}
+          inert={isAwaitingStart ? '' : undefined}
+        >
+          {isAwaitingStart ? <TestStartPreviewNotice examEligibility={examEligibility} /> : null}
           {/* Main Content Area with Resizable Layout */}
           <div
             ref={containerRef}

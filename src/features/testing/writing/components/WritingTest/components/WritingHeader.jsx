@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import WritingTestClock from './WritingTestClock';
 import { Badge } from '@/components/ui/badge';
+import TestModeHeaderControl from '@/features/testing/shared/components/TestModeHeaderControl';
 
 /**
  * WritingHeader
@@ -25,6 +26,12 @@ export function WritingHeader({
   handleSwitchTask,
   testMode = 'practice',
   onSubmit,
+  isAwaitingStart = false,
+  selectedMode = 'practice',
+  onModeChange,
+  examEligibility = { eligible: true, reason: '' },
+  onStart,
+  isStarting = false,
 }) {
   const activeType = useWritingTestStore((state) => state.activeType);
   const compositeTasks = useWritingTestStore((state) => state.compositeTasks);
@@ -87,12 +94,14 @@ export function WritingHeader({
                   <span className="hidden xs:inline">Official</span>
                 </span>
               )}
-              <Badge
-                variant="outline"
-                className="h-4 rounded-full px-1.5 text-[8px] font-black uppercase tracking-wide"
-              >
-                {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
-              </Badge>
+              {!isAwaitingStart ? (
+                <Badge
+                  variant="outline"
+                  className="h-4 rounded-full px-1.5 text-[8px] font-black uppercase tracking-wide"
+                >
+                  {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
+                </Badge>
+              ) : null}
             </div>
           </div>
         </div>
@@ -161,110 +170,129 @@ export function WritingHeader({
 
         {/* Right: Timer & Actions */}
         <div className="flex items-center gap-1.5 sm:gap-4 shrink-0" data-oid="b:e6vdz">
-          {/* Auto-save Status (Hidden on very small screens) */}
-          <div
-            className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5"
-            data-oid="2y1asde"
-          >
-            {isSaving ? (
-              <Loader2 className="w-3 h-3 text-indigo-500 animate-spin" data-oid="grs.ci3" />
-            ) : (
+          {isAwaitingStart ? (
+            <TestModeHeaderControl
+              selectedMode={selectedMode}
+              onModeChange={onModeChange}
+              examEligibility={examEligibility}
+              onStart={onStart}
+              isStarting={isStarting}
+            />
+          ) : (
+            <>
+              {/* Auto-save Status (Hidden on very small screens) */}
               <div
-                className={`w-1.5 h-1.5 rounded-full transition-colors ${lastSaved ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300 dark:bg-slate-600'}`}
-                data-oid="tsk037e"
-              />
-            )}
-            <span
-              className="text-[9px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap"
-              data-oid="koxcd6s"
-            >
-              {isSaving ? 'Saving' : lastSaved ? 'Saved' : 'Ready'}
-            </span>
-          </div>
-
-          <div
-            className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"
-            data-oid="15qptnk"
-          ></div>
-
-          <WritingTestClock data-oid="rbk722v" />
-
-          <Button
-            onClick={() => {
-              if (currentFeedback && isCompleted) {
-                const element = document.getElementById('feedback-section');
-                if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              } else if (activeType === 'Task 1' && compositeTasks && compositeTasks['Task 2']) {
-                handleSwitchTask('Task 2');
-              } else if (testMode === 'exam' && !isCompleted) {
-                onSubmit();
-              } else {
-                handleGetFeedback();
-              }
-            }}
-            disabled={isAnalyzing}
-            className={`flex items-center gap-1.5 sm:gap-2 font-black px-3 sm:px-5 h-8 sm:h-9.5 rounded-lg sm:rounded-xl shadow-md transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-80 disabled:hover:translate-y-0 text-[10px] sm:text-xs uppercase tracking-widest ${
-              currentFeedback && isCompleted
-                ? 'bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 text-white shadow-blue-500/30 hover:shadow-blue-500/50 border-none'
-                : 'bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 shadow-slate-900/25 dark:shadow-indigo-500/20'
-            }`}
-            data-oid="ua-kwyv"
-          >
-            {isAnalyzing ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" data-oid="m0-obo4" />
-                <span className="hidden sm:inline" data-oid="p5ycut7">
-                  Analyzing...
-                </span>
-                <span className="sm:hidden" data-oid="p5ycut7-mob">
-                  ...
-                </span>
-              </>
-            ) : currentFeedback && isCompleted ? (
-              <>
-                <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="49as5pg" />
-                <span className="hidden md:inline" data-oid="xdavx2-">
-                  VIEW RESULTS
-                </span>
-                <span className="md:hidden" data-oid="xdavx2-mob">
-                  RESULTS
-                </span>
-              </>
-            ) : activeType === 'Task 1' && compositeTasks && compositeTasks['Task 2'] ? (
-              <>
-                <span className="hidden md:inline" data-oid="x._jh2f">
-                  NEXT TASK
-                </span>
-                <span className="md:hidden" data-oid="x._jh2f-mob">
-                  NEXT
-                </span>
-                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="_w3w20d" />
-              </>
-            ) : testMode === 'exam' && !isCompleted ? (
-              <>
-                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">SUBMIT TEST</span>
-                <span className="sm:hidden">SUBMIT</span>
-              </>
-            ) : (
-              <>
-                {currentFeedback ? (
-                  <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="gzq5nvq" />
+                className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5"
+                data-oid="2y1asde"
+              >
+                {isSaving ? (
+                  <Loader2 className="w-3 h-3 text-indigo-500 animate-spin" data-oid="grs.ci3" />
                 ) : (
-                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="_k24264" />
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full transition-colors ${lastSaved ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300 dark:bg-slate-600'}`}
+                    data-oid="tsk037e"
+                  />
                 )}
-                <span className="hidden lg:inline" data-oid="d-j6l5n">
-                  {currentFeedback ? 'REDO ANALYSIS' : 'GET AI FEEDBACK'}
+                <span
+                  className="text-[9px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap"
+                  data-oid="koxcd6s"
+                >
+                  {isSaving ? 'Saving' : lastSaved ? 'Saved' : 'Ready'}
                 </span>
-                <span className="hidden sm:inline lg:hidden" data-oid="d-j6l5n-md">
-                  {currentFeedback ? 'Redo' : 'AI Feedback'}
-                </span>
-                <span className="sm:hidden" data-oid="d-j6l5n-sm">
-                  {currentFeedback ? 'Redo' : 'AI'}
-                </span>
-              </>
-            )}
-          </Button>
+              </div>
+
+              <div
+                className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"
+                data-oid="15qptnk"
+              ></div>
+
+              <WritingTestClock data-oid="rbk722v" />
+
+              <Button
+                onClick={() => {
+                  if (currentFeedback && isCompleted) {
+                    const element = document.getElementById('feedback-section');
+                    if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  } else if (
+                    activeType === 'Task 1' &&
+                    compositeTasks &&
+                    compositeTasks['Task 2']
+                  ) {
+                    handleSwitchTask('Task 2');
+                  } else if (testMode === 'exam' && !isCompleted) {
+                    onSubmit();
+                  } else {
+                    handleGetFeedback();
+                  }
+                }}
+                disabled={isAnalyzing}
+                className={`flex items-center gap-1.5 sm:gap-2 font-black px-3 sm:px-5 h-8 sm:h-9.5 rounded-lg sm:rounded-xl shadow-md transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-80 disabled:hover:translate-y-0 text-[10px] sm:text-xs uppercase tracking-widest ${
+                  currentFeedback && isCompleted
+                    ? 'bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 text-white shadow-blue-500/30 hover:shadow-blue-500/50 border-none'
+                    : 'bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 shadow-slate-900/25 dark:shadow-indigo-500/20'
+                }`}
+                data-oid="ua-kwyv"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin"
+                      data-oid="m0-obo4"
+                    />
+                    <span className="hidden sm:inline" data-oid="p5ycut7">
+                      Analyzing...
+                    </span>
+                    <span className="sm:hidden" data-oid="p5ycut7-mob">
+                      ...
+                    </span>
+                  </>
+                ) : currentFeedback && isCompleted ? (
+                  <>
+                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="49as5pg" />
+                    <span className="hidden md:inline" data-oid="xdavx2-">
+                      VIEW RESULTS
+                    </span>
+                    <span className="md:hidden" data-oid="xdavx2-mob">
+                      RESULTS
+                    </span>
+                  </>
+                ) : activeType === 'Task 1' && compositeTasks && compositeTasks['Task 2'] ? (
+                  <>
+                    <span className="hidden md:inline" data-oid="x._jh2f">
+                      NEXT TASK
+                    </span>
+                    <span className="md:hidden" data-oid="x._jh2f-mob">
+                      NEXT
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="_w3w20d" />
+                  </>
+                ) : testMode === 'exam' && !isCompleted ? (
+                  <>
+                    <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">SUBMIT TEST</span>
+                    <span className="sm:hidden">SUBMIT</span>
+                  </>
+                ) : (
+                  <>
+                    {currentFeedback ? (
+                      <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="gzq5nvq" />
+                    ) : (
+                      <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="_k24264" />
+                    )}
+                    <span className="hidden lg:inline" data-oid="d-j6l5n">
+                      {currentFeedback ? 'REDO ANALYSIS' : 'GET AI FEEDBACK'}
+                    </span>
+                    <span className="hidden sm:inline lg:hidden" data-oid="d-j6l5n-md">
+                      {currentFeedback ? 'Redo' : 'AI Feedback'}
+                    </span>
+                    <span className="sm:hidden" data-oid="d-j6l5n-sm">
+                      {currentFeedback ? 'Redo' : 'AI'}
+                    </span>
+                  </>
+                )}
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>

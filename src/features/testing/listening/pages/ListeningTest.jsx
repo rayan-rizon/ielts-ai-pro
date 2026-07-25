@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import PremiumLoading from '@/components/ui/PremiumLoading';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import { cn } from '@/lib/cn';
 
 import {
   ListeningTestProvider,
@@ -17,7 +17,7 @@ import { useListeningTestLayout } from '../components/ListeningTest/hooks/useLis
 import { useListeningTestNavigation } from '../components/ListeningTest/hooks/useListeningTestNavigation';
 import ListeningTestMainContent from '../components/ListeningTest/components/ListeningTestMainContent';
 import ListeningTestOverlays from '../components/ListeningTest/components/ListeningTestOverlays';
-import TestModeStartGate from '@/features/testing/shared/components/TestModeStartGate';
+import { TestStartPreviewNotice } from '@/features/testing/shared/components/TestModeHeaderControl';
 
 function ListeningTestInner() {
   const {
@@ -37,7 +37,6 @@ function ListeningTestInner() {
     isStarting,
     examReview,
   } = useListeningTestLogic();
-  const navigate = useNavigate();
 
   const state = useListeningTestState();
   const { dispatch, ACTIONS } = useListeningTestDispatch();
@@ -77,21 +76,6 @@ function ListeningTestInner() {
     return <PremiumLoading message="Initializing listening test..." />;
   }
 
-  if (isAwaitingStart) {
-    return (
-      <TestModeStartGate
-        title={state.testData?.title || 'Listening Test'}
-        skill="Listening"
-        selectedMode={selectedMode}
-        onModeChange={setSelectedMode}
-        examEligibility={examEligibility}
-        onStart={handleStartTest}
-        isStarting={isStarting}
-        onExit={() => navigate('/listening')}
-      />
-    );
-  }
-
   return (
     <div
       className="h-full w-full flex flex-col flex-1 min-h-0 bg-background overflow-hidden font-sans antialiased text-foreground relative"
@@ -126,27 +110,45 @@ function ListeningTestInner() {
         }
         testMode={testMode}
         examReview={examReview}
+        isAwaitingStart={isAwaitingStart}
+        selectedMode={selectedMode}
+        onModeChange={setSelectedMode}
+        examEligibility={examEligibility}
+        onStart={handleStartTest}
+        isStarting={isStarting}
         data-oid="3bx8kdc"
       />
 
-      <ListeningTestMainContent
-        layout={layout}
-        nav={nav}
-        audioPlayerRef={audioPlayerRef}
-        activePart={state.activePart}
-        answers={state.answers}
-        handleAnswerChange={handleAnswerChange}
-        handleMultiSelectChange={handleMultiSelectChange}
-        toggleFlag={toggleFlag}
-        flaggedQuestions={state.flaggedQuestions}
-        isFinished={state.isFinished}
-        correctAnswersMap={state.correctAnswersMap}
-        dispatch={dispatch}
-        ACTIONS={ACTIONS}
-        testMode={testMode}
-        examReview={examReview}
-        onExamAudioEnded={handleExamAudioEnded}
-      />
+      <div className="relative flex min-h-0 flex-1 overflow-hidden">
+        <div
+          className={cn(
+            'flex min-h-0 flex-1 overflow-hidden',
+            isAwaitingStart && 'pointer-events-none select-none'
+          )}
+          aria-disabled={isAwaitingStart || undefined}
+          inert={isAwaitingStart ? '' : undefined}
+        >
+          <ListeningTestMainContent
+            layout={layout}
+            nav={nav}
+            audioPlayerRef={audioPlayerRef}
+            activePart={state.activePart}
+            answers={state.answers}
+            handleAnswerChange={handleAnswerChange}
+            handleMultiSelectChange={handleMultiSelectChange}
+            toggleFlag={toggleFlag}
+            flaggedQuestions={state.flaggedQuestions}
+            isFinished={state.isFinished}
+            correctAnswersMap={state.correctAnswersMap}
+            dispatch={dispatch}
+            ACTIONS={ACTIONS}
+            testMode={testMode}
+            examReview={examReview}
+            onExamAudioEnded={handleExamAudioEnded}
+          />
+        </div>
+        {isAwaitingStart ? <TestStartPreviewNotice examEligibility={examEligibility} /> : null}
+      </div>
 
       <ListeningTestOverlays
         showConfetti={showConfetti}

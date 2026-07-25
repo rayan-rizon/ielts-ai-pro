@@ -15,8 +15,7 @@ import { useWritingTaskLogic } from '../components/WritingTest/hooks/useWritingT
 import { useWritingTestStore } from '../store/useWritingTestStore';
 import AnnotatedText from '@/components/writing/AnnotatedText';
 import { useAuth } from '@/features/auth/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import TestModeStartGate from '@/features/testing/shared/components/TestModeStartGate';
+import { TestStartPreviewNotice } from '@/features/testing/shared/components/TestModeHeaderControl';
 
 const MemoizedWritingHeader = React.memo(WritingHeader);
 const MemoizedTaskPanel = React.memo(TaskPanel);
@@ -112,7 +111,6 @@ function WritingTaskContent() {
   const currentFeedback = useWritingTestStore((state) => state.currentFeedback);
   const isAnalyzing = useWritingTestStore((state) => state.isAnalyzing);
   const feedbackError = useWritingTestStore((state) => state.feedbackError);
-  const navigate = useNavigate();
 
   const {
     task,
@@ -158,21 +156,6 @@ function WritingTaskContent() {
     return <PremiumLoading message="Loading writing task..." />;
   }
 
-  if (isAwaitingStart) {
-    return (
-      <TestModeStartGate
-        title={task.title || 'Writing Test'}
-        skill="Writing"
-        selectedMode={selectedMode}
-        onModeChange={setSelectedMode}
-        examEligibility={examEligibility}
-        onStart={handleStartTest}
-        isStarting={isStarting}
-        onExit={() => navigate('/writing')}
-      />
-    );
-  }
-
   return (
     <div
       className="flex min-h-0 h-full w-full flex-col overflow-hidden bg-slate-50 relative dark:bg-[#05060B]"
@@ -184,13 +167,24 @@ function WritingTaskContent() {
         handleSwitchTask={handleSwitchTask}
         testMode={testMode}
         onSubmit={() => setShowSubmitDialog(true)}
+        isAwaitingStart={isAwaitingStart}
+        selectedMode={selectedMode}
+        onModeChange={setSelectedMode}
+        examEligibility={examEligibility}
+        onStart={handleStartTest}
+        isStarting={isStarting}
         data-oid=".3a0f71"
       />
 
       <div
-        className="relative mx-auto flex min-h-0 w-full max-w-[1920px] flex-1 flex-col overflow-hidden md:flex-row"
+        className={`relative mx-auto flex min-h-0 w-full max-w-[1920px] flex-1 flex-col overflow-hidden md:flex-row ${
+          isAwaitingStart ? 'pointer-events-none select-none' : ''
+        }`}
+        aria-disabled={isAwaitingStart || undefined}
+        inert={isAwaitingStart ? '' : undefined}
         data-oid="50emge."
       >
+        {isAwaitingStart ? <TestStartPreviewNotice examEligibility={examEligibility} /> : null}
         <AnimatePresence mode="wait" initial={false} data-oid=".rp02r7">
           {showTaskPanel && (
             <MemoizedTaskPanel
