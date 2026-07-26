@@ -136,7 +136,7 @@ function CTABannerActionCard({ handlePrimaryCta, reduceMotion }) {
         </span>
 
         <span className="flex items-center gap-3 bg-slate-50/90 dark:bg-[#080c14] px-5 sm:px-6 py-3 border-t border-slate-200/60 dark:border-white/10">
-          <SkillBadgeStack size="sm" />
+          <SkillBadgeStack size="sm" variant="avatars" />
           <span className="text-xs font-bold leading-tight text-[#1b2841] dark:text-white">
             Reading, Listening, Writing, and Speaking practice
           </span>

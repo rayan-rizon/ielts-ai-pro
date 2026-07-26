@@ -7,6 +7,7 @@ import viteCompression from 'vite-plugin-compression';
 function deferLandingStyles() {
   return {
     name: 'defer-landing-styles',
+    apply: 'build',
     transformIndexHtml: {
       order: 'post',
       handler(html, context) {
@@ -23,21 +24,22 @@ function deferLandingStyles() {
         }
 
         const stylesheetHref = match[1];
+        const encodedStylesheetHref = Buffer.from(stylesheetHref).toString('base64');
         const deferredMarkup = [
           `<style data-landing-critical>${criticalCss}</style>`,
-          `<link id="deferred-app-styles" data-href="${stylesheetHref}" crossorigin>`,
+          '<link id="deferred-app-styles" crossorigin>',
           '<script>',
           '(()=>{const l=document.getElementById("deferred-app-styles");',
-          'const a=()=>{if(!l||l.rel==="stylesheet")return;l.href=l.dataset.href;l.rel="stylesheet"};',
+          `const h=atob("${encodedStylesheetHref}");const a=()=>{if(!l||l.rel==="stylesheet")return;l.href=h;l.rel="stylesheet"};`,
           'const t=localStorage.getItem("vite-ui-theme");',
           'const dark=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme:dark)").matches);',
           'if(location.pathname!=="/"||innerWidth>=768||dark)a();',
-          'else{const s=()=>{a();removeEventListener("pointerdown",s);removeEventListener("keydown",s);removeEventListener("scroll",s);removeEventListener("touchstart",s)};',
+          'else{const s=()=>{a();removeEventListener("pointerdown",s);removeEventListener("keydown",s);removeEventListener("wheel",s);removeEventListener("touchstart",s)};',
           'addEventListener("pointerdown",s,{once:true,passive:true});addEventListener("keydown",s,{once:true});',
-          'addEventListener("scroll",s,{once:true,passive:true});addEventListener("touchstart",s,{once:true,passive:true});',
+          'addEventListener("wheel",s,{once:true,passive:true});addEventListener("touchstart",s,{once:true,passive:true});',
           'setTimeout(a,15000)}})();',
           '</script>',
-          `<noscript><link rel="stylesheet" crossorigin href="${stylesheetHref}"></noscript>`,
+          '<noscript><style>#root{display:none}.no-js-message{max-width:42rem;margin:4rem auto;padding:1.5rem;font:600 1rem/1.6 system-ui,sans-serif;color:#17223d}</style><p class="no-js-message">IELTS Ai Pro requires JavaScript for interactive practice tests and feedback.</p></noscript>',
         ].join('');
 
         const landingChunk = Object.keys(context.bundle || {}).find((fileName) =>

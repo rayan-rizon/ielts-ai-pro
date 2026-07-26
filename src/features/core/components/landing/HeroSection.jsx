@@ -10,13 +10,15 @@ import Sparkles from 'lucide-react/icons/sparkles';
 import TrendingUp from 'lucide-react/icons/trending-up';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
-import SkillBadgeStack from './SkillBadgeStack';
+
+const HeroMotionEffects = React.lazy(() => import('./HeroMotionEffects'));
 
 function FloatingCard({ className, delay = 0, children, label }) {
   return (
     <div
       aria-label={label}
       style={{ '--hero-float-delay': `${delay}s` }}
+      data-hero-motion="float"
       className={cn(
         'hero-floating-card absolute z-30 rounded-2xl border border-white/40 bg-white/75 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.12),0_0_0_1px_rgba(15,23,42,0.04)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/80 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.05)] transition-shadow duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 scale-[0.68] min-[400px]:scale-[0.78] sm:scale-100 transform-gpu',
         className
@@ -319,13 +321,30 @@ function StudentVisual() {
 }
 
 function LearnerProof() {
+  const learnerAvatars = [33, 47, 12, 32, 5];
+
   return (
     <div className="mt-8 max-w-[620px] space-y-4">
       <div className="flex flex-wrap items-center gap-5">
-        <SkillBadgeStack />
+        <div className="flex items-center" role="img" aria-label="IELTS learners">
+          <div className="flex -space-x-2" aria-hidden="true">
+            {learnerAvatars.map((avatar) => (
+              <img
+                key={avatar}
+                src={`/hero-learners/avatar-${avatar}.webp`}
+                alt=""
+                width="40"
+                height="40"
+                className="h-10 w-10 rounded-full border-2 border-white bg-slate-100 object-cover shadow-sm dark:border-slate-900"
+                loading="eager"
+                decoding="async"
+              />
+            ))}
+          </div>
+        </div>
         <div>
           <p className="text-xs font-bold text-[#536078] dark:text-slate-300">
-            Practice all four IELTS skills in one place
+            Built for focused IELTS learners worldwide
           </p>
         </div>
       </div>
@@ -343,11 +362,41 @@ function LearnerProof() {
 }
 
 export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedIn }) {
+  const [motionReady, setMotionReady] = React.useState(false);
+
+  React.useEffect(() => {
+    const enableMotion = () => setMotionReady(true);
+    let timer;
+
+    const scheduleMotion = () => {
+      timer = window.setTimeout(enableMotion, 8000);
+    };
+
+    if (document.readyState === 'complete') scheduleMotion();
+    else window.addEventListener('load', scheduleMotion, { once: true });
+
+    window.addEventListener('pointerdown', enableMotion, { once: true, passive: true });
+    window.addEventListener('keydown', enableMotion, { once: true });
+
+    return () => {
+      if (timer) window.clearTimeout(timer);
+      window.removeEventListener('load', scheduleMotion);
+      window.removeEventListener('pointerdown', enableMotion);
+      window.removeEventListener('keydown', enableMotion);
+    };
+  }, []);
+
   return (
     <section
       className="relative bg-[#fcfdff] pb-16 pt-28 dark:bg-[#070912] lg:pb-20 lg:pt-32 overflow-hidden"
       aria-label="Hero"
+      data-hero-root
     >
+      {motionReady ? (
+        <React.Suspense fallback={null}>
+          <HeroMotionEffects />
+        </React.Suspense>
+      ) : null}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-40 top-12 h-[34rem] w-[34rem] rounded-full bg-blue-200/20 blur-[130px] dark:bg-blue-600/10 transform-gpu" />
         <div className="absolute -right-40 top-8 h-[38rem] w-[38rem] rounded-full bg-violet-200/20 blur-[140px] dark:bg-violet-600/10 transform-gpu" />
@@ -366,7 +415,7 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
           <h1 className="mt-6 text-[clamp(2.4rem,11vw,3.1rem)] font-extrabold leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white sm:text-[3.5rem] lg:text-[3.15rem] xl:text-[3.6rem] 2xl:text-[3.9rem]">
             <span className="block">AI-Powered </span>
             <span className="block">IELTS Practice </span>
-            <span className="relative mt-2 block w-fit max-w-full pr-4 text-[0.92em] font-extrabold italic leading-[1.05] tracking-[-0.035em] text-[#5262ef] sm:pr-7 sm:text-[1.02em] sm:whitespace-nowrap">
+            <span className="font-handwritten relative mt-2 block w-fit max-w-full pr-4 text-[0.92em] leading-[1.05] tracking-[-0.035em] text-[#5262ef] sm:pr-7 sm:text-[1.02em] sm:whitespace-nowrap">
               for a higher band score.
               <svg
                 className="absolute -bottom-3 left-[35%] h-3 w-[38%] text-[#8dc9f2]"

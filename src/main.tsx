@@ -1,7 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from '@/App.jsx';
-import '@/index.css';
 import { RootProviders } from './components/RootProviders';
 
 const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);

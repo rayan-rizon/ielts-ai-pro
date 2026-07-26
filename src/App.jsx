@@ -10,6 +10,7 @@ import { trackAppEvent, trackPageView } from '@/lib/tracking';
 
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import PremiumLoading from '@/components/ui/PremiumLoading';
+import LandingPage from '@/features/core/pages/LandingPage.jsx';
 
 const LazySonnerToaster = lazy(() =>
   import('@/components/ui/sonner').then((module) => ({ default: module.Toaster }))
@@ -120,7 +121,6 @@ const Login = lazyWithRetry(() => import('@/features/auth/pages/Login.jsx'));
 const ForgotPassword = lazyWithRetry(() => import('@/features/auth/pages/ForgotPassword.jsx'));
 const UpdatePassword = lazyWithRetry(() => import('@/features/auth/pages/UpdatePassword.jsx'));
 const Dashboard = lazyWithRetry(() => import('@/features/dashboard/pages/Dashboard.jsx'));
-const LandingPage = lazyWithRetry(() => import('@/features/core/pages/LandingPage.jsx'));
 const Listening = lazyWithRetry(() => import('@/features/testing/shared/pages/Listening.jsx'));
 const Reading = lazyWithRetry(() => import('@/features/testing/shared/pages/Reading.jsx'));
 const Speaking = lazyWithRetry(() => import('@/features/testing/shared/pages/Speaking.jsx'));

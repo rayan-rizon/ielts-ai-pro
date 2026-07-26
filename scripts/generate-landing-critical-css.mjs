@@ -24,6 +24,10 @@ try {
     await page.locator('h1').waitFor({ state: 'visible' });
     await page.getByRole('button', { name: 'Open menu' }).click();
     await page.getByRole('link', { name: 'Blog', exact: true }).waitFor({ state: 'visible' });
+    await page.getByRole('button', { name: 'Accept All', exact: true }).waitFor({
+      state: 'visible',
+      timeout: 5000,
+    });
 
     const coverage = await page.coverage.stopCSSCoverage();
     for (const entry of coverage) {
