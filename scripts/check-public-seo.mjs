@@ -1,5 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { renderFeed } from '../api/feed.js';
+import { renderLlmsTxt } from '../api/llms.js';
 import { renderSitemap } from '../api/sitemap.js';
 
 const root = process.cwd();
@@ -45,15 +47,27 @@ const staticSitemapPath = path.join(root, 'public/sitemap.xml');
 if (existsSync(staticSitemapPath)) {
   fail('public/sitemap.xml shadows the dynamic /api/sitemap rewrite');
 }
+const staticLlmsPath = path.join(root, 'public/llms.txt');
+if (existsSync(staticLlmsPath)) {
+  fail('public/llms.txt shadows the dynamic /api/llms rewrite');
+}
+if (existsSync(path.join(root, 'public/blog/feed.xml'))) {
+  fail('public/blog/feed.xml shadows the dynamic /api/feed rewrite');
+}
 
-const sitemap = renderSitemap([
-  {
-    slug: 'seo-validation-article',
-    updated_at: '2026-07-27T00:00:00Z',
-  },
-]);
+const validationArticle = {
+  title: 'SEO Validation Article',
+  description: 'A validation article for public discovery routes.',
+  slug: 'seo-validation-article',
+  category: 'IELTS guide',
+  reading_minutes: 5,
+  published_at: '2026-07-27T00:00:00Z',
+  updated_at: '2026-07-27T00:00:00Z',
+};
+const sitemap = renderSitemap([validationArticle]);
+const llms = renderLlmsTxt([validationArticle]);
+const feed = renderFeed([validationArticle]);
 const robots = readFileSync(path.join(root, 'public/robots.txt'), 'utf8');
-const llms = readFileSync(path.join(root, 'public/llms.txt'), 'utf8');
 const vercel = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8'));
 const appSource = readFileSync(path.join(root, 'src/App.jsx'), 'utf8');
 const indexHtml = readFileSync(path.join(root, 'index.html'), 'utf8');
@@ -83,6 +97,18 @@ if (!robots.includes(`Sitemap: ${siteUrl}/sitemap.xml`)) {
 if (!llms.startsWith('# IELTS Ai Pro')) fail('llms.txt must start with an H1');
 for (const route of publicRoutes.filter((route) => !['/privacy', '/terms'].includes(route))) {
   if (!llms.includes(`${siteUrl}${route}`)) fail(`llms.txt is missing ${route}`);
+}
+if (!llms.includes(`${siteUrl}/blog/seo-validation-article`)) {
+  fail('dynamic llms.txt does not include published article routes');
+}
+if (
+  !feed.includes('<rss version="2.0"') ||
+  !feed.includes(`${siteUrl}/blog/seo-validation-article`)
+) {
+  fail('dynamic RSS feed does not include published article routes');
+}
+for (const crawler of ['OAI-SearchBot', 'Claude-SearchBot', 'PerplexityBot']) {
+  if (!robots.includes(crawler)) fail(`robots.txt does not document access for ${crawler}`);
 }
 
 const title = indexHtml.match(/<title>([^<]+)<\/title>/)?.[1]?.trim();
@@ -134,6 +160,8 @@ const rewrites = new Map(
 );
 const requiredRewrites = {
   '/sitemap.xml': '/api/sitemap',
+  '/llms.txt': '/api/llms',
+  '/blog/feed.xml': '/api/feed',
   '/blog': '/api/blog',
   '/blog/:slug': '/api/blog?slug=:slug',
 };
@@ -154,6 +182,13 @@ for (const rewrite of vercel.rewrites || []) {
   }
 }
 
+if (!indexHtml.includes('type="application/rss+xml"')) {
+  fail('homepage does not advertise the published article feed');
+}
+if (!indexHtml.includes(`${siteUrl}/llms.txt`)) {
+  fail('homepage does not advertise the dynamic llms.txt file');
+}
+
 console.log(
-  `SEO check passed: ${publicRoutes.length} public routes, server-rendered blog and sitemap routes, valid homepage metadata/schema, ${Object.keys(retiredRoutes).length} retired routes redirected.`
+  `SEO check passed: ${publicRoutes.length} public routes, server-rendered blog, sitemap, llms.txt and RSS routes, valid homepage metadata/schema, ${Object.keys(retiredRoutes).length} retired routes redirected.`
 );

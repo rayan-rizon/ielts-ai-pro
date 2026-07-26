@@ -220,6 +220,14 @@
       "destination": "/api/sitemap"
     },
     {
+      "source": "/llms.txt",
+      "destination": "/api/llms"
+    },
+    {
+      "source": "/blog/feed.xml",
+      "destination": "/api/feed"
+    },
+    {
       "source": "/blog",
       "destination": "/api/blog"
     },

@@ -17,7 +17,10 @@ function getRobotsContent(robots, noIndex, noFollow) {
   if (robots) return robots;
   const indexDirective = noIndex ? 'noindex' : 'index';
   const followDirective = noFollow ? 'nofollow' : 'follow';
-  return `${indexDirective}, ${followDirective}`;
+  const baseDirectives = `${indexDirective}, ${followDirective}`;
+  return noIndex
+    ? baseDirectives
+    : `${baseDirectives}, max-snippet:-1, max-image-preview:large, max-video-preview:-1`;
 }
 
 /** Derive the OG image MIME type from the file extension. */

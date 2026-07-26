@@ -34,6 +34,31 @@ function safeJson(value) {
   return JSON.stringify(value).replaceAll('<', '\\u003c');
 }
 
+function plainText(value = '') {
+  return sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} })
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function externalCitationUrls(value = '') {
+  const citations = [];
+  for (const match of value.matchAll(/<a\b[^>]*\bhref=(["'])(.*?)\1/gi)) {
+    try {
+      const url = new URL(match[2], SITE_URL);
+      if (
+        ['http:', 'https:'].includes(url.protocol) &&
+        url.hostname !== 'ieltsai.pro' &&
+        url.hostname !== 'www.ieltsai.pro'
+      ) {
+        citations.push(url.toString());
+      }
+    } catch {
+      // Ignore malformed links; sanitized article HTML remains the source of truth.
+    }
+  }
+  return [...new Set(citations)];
+}
+
 function formatDate(value) {
   if (!value) return '';
   return new Intl.DateTimeFormat('en', {
@@ -238,7 +263,7 @@ function layout({
   description,
   canonical,
   type = 'website',
-  robots = 'index, follow, max-image-preview:large',
+  robots = 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
   body,
   structuredData,
   image = DEFAULT_IMAGE,
@@ -250,9 +275,12 @@ function layout({
   <title>${escapeHtml(fullTitle)}</title>
   <meta name="description" content="${escapeHtml(description)}">
   <meta name="robots" content="${escapeHtml(robots)}">
+  <meta http-equiv="content-language" content="en">
   <link rel="canonical" href="${escapeHtml(canonical)}"><link rel="icon" href="/favicon.webp" type="image/webp">
+  <link rel="alternate" type="application/rss+xml" title="IELTS Ai Pro Preparation Guides" href="${SITE_URL}/blog/feed.xml">
+  <link rel="alternate" type="text/plain" title="IELTS Ai Pro for language models" href="${SITE_URL}/llms.txt">
   <meta property="og:title" content="${escapeHtml(fullTitle)}"><meta property="og:description" content="${escapeHtml(description)}">
-  <meta property="og:type" content="${type}"><meta property="og:url" content="${escapeHtml(canonical)}"><meta property="og:site_name" content="IELTS Ai Pro"><meta property="og:image" content="${escapeHtml(image)}">
+  <meta property="og:type" content="${type}"><meta property="og:url" content="${escapeHtml(canonical)}"><meta property="og:site_name" content="IELTS Ai Pro"><meta property="og:locale" content="en_GB"><meta property="og:image" content="${escapeHtml(image)}">
   <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${escapeHtml(fullTitle)}"><meta name="twitter:description" content="${escapeHtml(description)}"><meta name="twitter:image" content="${escapeHtml(image)}">
   ${structuredData.map((item) => `<script type="application/ld+json">${safeJson(item)}</script>`).join('')}
   <style>${CSS}</style>
@@ -350,9 +378,23 @@ function renderIndex(posts) {
       {
         '@context': 'https://schema.org',
         '@type': 'CollectionPage',
+        '@id': `${SITE_URL}/blog#collection`,
         name: 'IELTS Preparation Blog',
         url: `${SITE_URL}/blog`,
         description,
+        inLanguage: 'en',
+        isPartOf: { '@id': `${SITE_URL}/#website` },
+        publisher: { '@id': `${SITE_URL}/#organization` },
+        mainEntity: {
+          '@type': 'ItemList',
+          numberOfItems: posts.length,
+          itemListElement: posts.map((post, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: post.title,
+            url: `${SITE_URL}/blog/${encodeURIComponent(post.slug)}`,
+          })),
+        },
       },
     ],
     body: `<main id="main">
@@ -373,6 +415,9 @@ function renderArticle(post, allPosts = []) {
     .join('');
   const imageUrl = post.thumbnail_url || '/ielts-hero-student.webp';
   const socialImageUrl = absoluteImageUrl(post.thumbnail_url);
+  const articleText = plainText(prepared.html);
+  const citations = externalCitationUrls(prepared.html);
+  const keywords = Array.isArray(post.seo_tags) ? post.seo_tags.filter(Boolean) : [];
   const toc = prepared.toc
     .map(
       (item) =>
@@ -394,10 +439,31 @@ function renderArticle(post, allPosts = []) {
     description,
     datePublished: publishedAt,
     dateModified: post.updated_at || publishedAt,
-    author: { '@type': 'Organization', name: 'IELTS Ai Pro' },
-    publisher: { '@type': 'Organization', name: 'IELTS Ai Pro', url: SITE_URL },
-    mainEntityOfPage: canonical,
-    image: socialImageUrl,
+    author: {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: 'IELTS Ai Pro',
+      url: `${SITE_URL}/about`,
+    },
+    publisher: {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: 'IELTS Ai Pro',
+      url: `${SITE_URL}/`,
+      logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
+    },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+    image: { '@type': 'ImageObject', url: socialImageUrl, width: 1200, height: 675 },
+    inLanguage: 'en',
+    isAccessibleForFree: true,
+    articleSection: post.category || 'IELTS guide',
+    wordCount: articleText ? articleText.split(/\s+/).length : 0,
+    keywords,
+    about: [post.category, ...keywords].filter(Boolean).map((name) => ({
+      '@type': 'DefinedTerm',
+      name,
+    })),
+    ...(citations.length ? { citation: citations } : {}),
   };
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -416,7 +482,7 @@ function renderArticle(post, allPosts = []) {
     structuredData: [articleSchema, breadcrumbSchema],
     image: socialImageUrl,
     body: `<main id="main">
-      <section class="article-hero"><div class="shell"><div class="meta" style="margin-bottom:24px"><a href="/blog">Blog library</a><span>/</span><span>${escapeHtml(post.category || 'Guide')}</span><span>/</span><span>${escapeHtml(post.title)}</span></div><div class="article-hero-grid"><div><span class="category">✎ ${escapeHtml(post.category || 'IELTS guide')}</span><h1>${escapeHtml(post.title)}</h1><p class="intro">${escapeHtml(post.description)}</p><div class="meta" style="margin-top:24px"><strong>IELTS Ai Pro team</strong><span>${escapeHtml(formatDate(publishedAt))}</span><span>${Number(post.reading_minutes) || 6} min read</span><span>${formatReadCount(post.view_count)}</span></div></div><div class="article-photo"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" decoding="async" fetchpriority="high"></div></div></div></section>
+      <section class="article-hero"><div class="shell"><div class="meta" style="margin-bottom:24px"><a href="/blog">Blog library</a><span>/</span><span>${escapeHtml(post.category || 'Guide')}</span><span>/</span><span>${escapeHtml(post.title)}</span></div><div class="article-hero-grid"><div><span class="category">✎ ${escapeHtml(post.category || 'IELTS guide')}</span><h1>${escapeHtml(post.title)}</h1><p class="intro">${escapeHtml(post.description)}</p><div class="meta" style="margin-top:24px"><a href="/about"><strong>IELTS Ai Pro team</strong></a><time datetime="${escapeHtml(publishedAt)}">${escapeHtml(formatDate(publishedAt))}</time><span>${Number(post.reading_minutes) || 6} min read</span><span>${formatReadCount(post.view_count)}</span></div></div><div class="article-photo"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" decoding="async" fetchpriority="high"></div></div></div></section>
       <div class="shell article-layout"><div><article class="article-card article">${prepared.html}<div class="tags">${tags}</div><aside class="cta"><div><span class="eyebrow">Turn the strategy into a score</span><h2>Put this guide into practice</h2><p>Apply the steps while they are fresh, then review your feedback before your next attempt.</p></div><a class="button" href="${practicePath(post.category)}">${escapeHtml(practiceLabel(post.category))}</a></aside></article>${related ? `<h2 class="section-title" style="margin-top:26px">Related articles</h2><div class="cards">${related}</div>` : ''}</div><aside class="sidebar">${toc ? `<div class="toc-card"><h2>☷ On this page</h2>${toc}</div>` : ''}<div class="side-card"><h2>Share this article</h2><a class="button" style="width:100%" href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}">Share on LinkedIn</a></div><div class="practice-card"><span>◎</span><h2>Put this strategy into practice</h2><p>Apply the steps while they are fresh and review your feedback.</p><a class="button" href="${practicePath(post.category)}">Practise now →</a></div><a class="login" style="display:block;text-align:center" href="/blog">← All IELTS articles</a></aside></div>
     </main>`,
   });
@@ -475,7 +541,12 @@ function sendError(response) {
 
 export default async function handler(request, response) {
   response.setHeader('Content-Type', 'text/html; charset=utf-8');
+  response.setHeader('Content-Language', 'en');
   response.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=86400');
+  response.setHeader(
+    'Link',
+    `<${SITE_URL}/blog/feed.xml>; rel="alternate"; type="application/rss+xml"`
+  );
   response.setHeader('X-Content-Type-Options', 'nosniff');
 
   const slug = Array.isArray(request.query.slug) ? request.query.slug[0] : request.query.slug;

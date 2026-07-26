@@ -1,5 +1,10 @@
 # IELTS Ai Pro - robots.txt
-# Last updated: 2026-07-26
+# Last updated: 2026-07-27
+
+# This policy applies to search and AI discovery crawlers, including:
+# Googlebot, Bingbot, OAI-SearchBot, GPTBot, ChatGPT-User,
+# ClaudeBot, Claude-SearchBot, Claude-User, PerplexityBot, and Perplexity-User.
+# Public marketing pages, tools, articles, discovery files, and article feeds are crawlable.
 
 User-agent: *
 Allow: /
@@ -37,3 +42,4 @@ Sitemap: https://www.ieltsai.pro/sitemap.xml
 
 # AI answer engines can cite the public marketing and calculator pages.
 # LLM-friendly site summary: https://www.ieltsai.pro/llms.txt
+# Published article feed: https://www.ieltsai.pro/blog/feed.xml

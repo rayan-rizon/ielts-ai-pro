@@ -10,7 +10,7 @@ const article = {
   meta_description: 'A practical IELTS Reading strategy guide.',
   slug: 'ielts-reading-paraphrase-traps',
   content:
-    '<h2>Use evidence</h2><p>Read carefully. <a href="/reading">Practise</a>.</p><img src="/blog-images/ielts-reading-sentence-completion-four-checks.webp" alt="Four checks for IELTS Reading sentence completion" width="1200" height="675" loading="lazy"><table><thead><tr><th scope="col">Time</th></tr></thead><tbody><tr><td>20 minutes</td></tr></tbody></table><script>alert(1)</script>',
+    '<h2>Use evidence</h2><p>Read carefully. <a href="/reading">Practise</a>. Check the <a href="https://ielts.org/take-a-test/test-types/ielts-academic-test">official IELTS test format</a>.</p><img src="/blog-images/ielts-reading-sentence-completion-four-checks.webp" alt="Four checks for IELTS Reading sentence completion" width="1200" height="675" loading="lazy"><table><thead><tr><th scope="col">Time</th></tr></thead><tbody><tr><td>20 minutes</td></tr></tbody></table><script>alert(1)</script>',
   seo_tags: ['IELTS Reading'],
   category: 'Reading',
   reading_minutes: 6,
@@ -62,6 +62,8 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('<title>IELTS Preparation Blog');
     expect(response.body).toContain('/blog/ielts-reading-paraphrase-traps');
     expect(response.body).toContain('CollectionPage');
+    expect(response.body).toContain('"@type":"ItemList"');
+    expect(response.body).toContain('type="application/rss+xml"');
     expect(response.body).toContain('1.2K reads');
   });
 
@@ -73,6 +75,14 @@ describe('server-rendered IELTS blog', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toContain('"@type":"Article"');
+    expect(response.body).toContain('"isAccessibleForFree":true');
+    expect(response.body).toContain('"inLanguage":"en"');
+    expect(response.body).toContain('"articleSection":"Reading"');
+    expect(response.body).toContain('"keywords":["IELTS Reading"]');
+    expect(response.body).toContain(
+      '"citation":["https://ielts.org/take-a-test/test-types/ielts-academic-test"]'
+    );
+    expect(response.body).toContain('"url":"https://www.ieltsai.pro/about"');
     expect(response.body).toContain('Use evidence');
     expect(response.body).not.toContain('<script>alert(1)</script>');
     expect(response.body).toContain('href="/reading"');
@@ -89,6 +99,7 @@ describe('server-rendered IELTS blog', () => {
       'alt="IELTS learner matching highlighted paraphrases between a reading passage and a laptop"'
     );
     expect(response.body).toContain('1.2K reads');
+    expect(response.body).toContain('<time datetime="2026-07-18T08:00:00Z">');
     expect(response.body).toContain(
       'width="1200" height="675" decoding="async" fetchpriority="high"'
     );
