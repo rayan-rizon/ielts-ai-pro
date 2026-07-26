@@ -1,5 +1,4 @@
 import React from 'react';
-import { m, useReducedMotion } from 'framer-motion';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import CalendarDays from 'lucide-react/icons/calendar-days';
 import Check from 'lucide-react/icons/check';
@@ -8,55 +7,23 @@ import Mic from 'lucide-react/icons/mic';
 import PenLine from 'lucide-react/icons/pen-line';
 import Quote from 'lucide-react/icons/quote';
 import Sparkles from 'lucide-react/icons/sparkles';
-import Star from 'lucide-react/icons/star';
 import TrendingUp from 'lucide-react/icons/trending-up';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
-
-const reveal = {
-  hidden: { opacity: 0, y: 18, filter: 'blur(5px)' },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: 'blur(0px)',
-    transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
-  },
-};
+import SkillBadgeStack from './SkillBadgeStack';
 
 function FloatingCard({ className, delay = 0, children, label }) {
-  const reducedMotion = useReducedMotion();
-
   return (
-    <m.div
+    <div
       aria-label={label}
-      initial={{ opacity: 0, scale: 0.92, y: 18 }}
-      animate={
-        reducedMotion
-          ? { opacity: 1, scale: 1, y: 0 }
-          : { opacity: 1, scale: 1, y: [0, -7, 0], rotate: [0, -0.45, 0] }
-      }
-      transition={
-        reducedMotion
-          ? { delay, duration: 0.4 }
-          : {
-              opacity: { delay, duration: 0.5 },
-              scale: { delay, duration: 0.5 },
-              y: { delay: delay + 0.45, duration: 4.6, repeat: Infinity, ease: 'easeInOut' },
-              rotate: {
-                delay: delay + 0.45,
-                duration: 4.6,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              },
-            }
-      }
+      style={{ '--hero-float-delay': `${delay}s` }}
       className={cn(
-        'absolute z-30 rounded-2xl border border-white/40 bg-white/75 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.12),0_0_0_1px_rgba(15,23,42,0.04)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/80 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.05)] transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover:shadow-indigo-500/10 scale-[0.68] min-[400px]:scale-[0.78] sm:scale-100 transform-gpu will-change-transform',
+        'hero-floating-card absolute z-30 rounded-2xl border border-white/40 bg-white/75 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.12),0_0_0_1px_rgba(15,23,42,0.04)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/80 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.05)] transition-shadow duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 scale-[0.68] min-[400px]:scale-[0.78] sm:scale-100 transform-gpu',
         className
       )}
     >
       {children}
-    </m.div>
+    </div>
   );
 }
 
@@ -204,7 +171,7 @@ function StudyPlanCard() {
               </span>
               {task.status === 'done' && <Check className="h-3.5 w-3.5 text-[#58c98a]" />}
               {task.status === 'in-progress' && (
-                <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[8px] font-extrabold text-[#7153dc] dark:bg-violet-950/30 dark:text-violet-300">
+                <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[8px] font-extrabold text-[#6643cb] dark:bg-violet-950/30 dark:text-violet-300">
                   {task.progress}
                 </span>
               )}
@@ -314,32 +281,19 @@ function AiTutorCard() {
 }
 
 function StudentVisual() {
-  const reducedMotion = useReducedMotion();
-
   return (
     <div
       className="relative mx-auto min-h-[500px] w-full max-w-[760px] overflow-visible sm:min-h-[590px] lg:min-h-[650px] transform-gpu"
       aria-label="IELTS AI Pro learning experience preview"
     >
-      <m.div
-        initial={{ opacity: 0, scale: 0.96, y: 24 }}
-        animate={
-          reducedMotion ? { opacity: 1, scale: 1, y: 0 } : { opacity: 1, scale: 1, y: [0, -4, 0] }
-        }
-        transition={
-          reducedMotion
-            ? { duration: 0.45 }
-            : {
-                opacity: { duration: 0.75, delay: 0.18 },
-                scale: { duration: 0.75, delay: 0.18 },
-                y: { duration: 6.4, delay: 1, repeat: Infinity, ease: 'easeInOut' },
-              }
-        }
-        className="absolute bottom-12 left-6 right-6 top-14 overflow-hidden rounded-[2rem] border-2 border-white bg-[#eef2ff] shadow-[0_34px_80px_-30px_rgba(54,75,140,0.45)] dark:border-slate-800 dark:bg-slate-900 sm:bottom-8 sm:left-12 sm:right-10 sm:top-8 lg:left-14 transform-gpu"
-      >
+      <div className="absolute bottom-12 left-6 right-6 top-14 overflow-hidden rounded-[2rem] border-2 border-white bg-[#eef2ff] shadow-[0_34px_80px_-30px_rgba(54,75,140,0.45)] dark:border-slate-800 dark:bg-slate-900 sm:bottom-8 sm:left-12 sm:right-10 sm:top-8 lg:left-14 transform-gpu">
         <picture className="block h-full w-full">
           <source media="(max-width: 767px)" srcSet="/ielts-hero-student-640.webp" />
-          <source media="(max-width: 1599px)" srcSet="/ielts-hero-student-960.webp" />
+          <source
+            media="(max-width: 1599px)"
+            srcSet="/ielts-hero-student-640.webp 640w, /ielts-hero-student-960.webp 960w"
+            sizes="45vw"
+          />
           <img
             src="/ielts-hero-student.webp"
             alt="IELTS learner studying with a laptop"
@@ -353,7 +307,7 @@ function StudentVisual() {
           />
         </picture>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-[#6c79ef]/10 via-transparent to-white/15" />
-      </m.div>
+      </div>
 
       <SpeakingCard />
       <ProgressCard />
@@ -368,36 +322,10 @@ function LearnerProof() {
   return (
     <div className="mt-8 max-w-[620px] space-y-4">
       <div className="flex flex-wrap items-center gap-5">
-        <div className="flex items-center">
-          <div className="flex -space-x-2">
-            {[
-              'https://i.pravatar.cc/100?img=33',
-              'https://i.pravatar.cc/100?img=47',
-              'https://i.pravatar.cc/100?img=12',
-              'https://i.pravatar.cc/100?img=32',
-            ].map((avatar, index) => (
-              <img
-                key={index}
-                src={avatar}
-                alt={`Student ${index + 1}`}
-                className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-slate-100 object-cover shadow-sm dark:border-slate-900"
-                loading="lazy"
-                decoding="async"
-              />
-            ))}
-          </div>
-          <span className="-ml-1 flex h-11 w-11 items-center justify-center rounded-full border-2 border-white bg-[#edf2ff] text-[10px] font-black text-[#5262ef] shadow-sm dark:border-slate-900 dark:bg-blue-500/15 dark:text-blue-300">
-            10K+
-          </span>
-        </div>
+        <SkillBadgeStack />
         <div>
-          <div className="flex gap-0.5 text-amber-400">
-            {[1, 2, 3, 4, 5].map((item) => (
-              <Star key={item} className="h-4 w-4 fill-current" />
-            ))}
-          </div>
-          <p className="mt-1 text-xs font-bold text-[#536078] dark:text-slate-300">
-            Loved by 10,000+ IELTS learners
+          <p className="text-xs font-bold text-[#536078] dark:text-slate-300">
+            Practice all four IELTS skills in one place
           </p>
         </div>
       </div>
@@ -406,10 +334,7 @@ function LearnerProof() {
         <Quote className="mt-0.5 h-5 w-5 shrink-0 fill-violet-200 text-violet-300" />
         <div>
           <p className="text-[11px] font-medium leading-5 text-[#526079] dark:text-slate-300">
-            “The feedback helped me see exactly what to fix between practice sessions.”
-          </p>
-          <p className="mt-1 text-[10px] font-extrabold text-[#26344e] dark:text-white">
-            Ananya, India · Band 7.5 overall
+            Review focused feedback between practice sessions and choose a clear next step.
           </p>
         </div>
       </div>
@@ -430,29 +355,18 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
       </div>
 
       <div className="relative mx-auto grid max-w-[1540px] items-center gap-12 px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-8 xl:px-12 2xl:px-16">
-        <m.div
-          initial="hidden"
-          animate="visible"
-          variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
-          className="relative z-10 min-w-0 lg:py-5"
-        >
-          <m.div
-            variants={reveal}
-            className="inline-flex items-center gap-2 rounded-2xl sm:rounded-full border border-[#bfe9df] bg-[#f2fbf8] px-3 py-1.5 sm:px-3.5 sm:py-2 text-[9px] sm:text-[11px] font-extrabold uppercase tracking-[0.04em] sm:tracking-[0.09em] text-[#218b75] dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300 shadow-sm"
-          >
-            <span className="flex h-4.5 w-4.5 sm:h-5 sm:w-5 shrink-0 items-center justify-center rounded-full border border-[#9bd9cb] text-[#218b75] dark:text-emerald-300">
+        <div className="relative z-10 min-w-0 lg:py-5">
+          <div className="inline-flex items-center gap-2 rounded-2xl sm:rounded-full border border-[#bfe9df] bg-[#f2fbf8] px-3 py-1.5 sm:px-3.5 sm:py-2 text-[9px] sm:text-[11px] font-extrabold uppercase tracking-[0.04em] sm:tracking-[0.09em] text-[#176d5d] dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300 shadow-sm">
+            <span className="flex h-4.5 w-4.5 sm:h-5 sm:w-5 shrink-0 items-center justify-center rounded-full border border-[#9bd9cb] text-[#176d5d] dark:text-emerald-300">
               <Sparkles className="h-2.5 w-2.5" />
             </span>
             Focused IELTS practice with clear feedback
-          </m.div>
+          </div>
 
-          <m.h1
-            variants={reveal}
-            className="mt-6 text-[clamp(2.4rem,11vw,3.1rem)] font-extrabold leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white sm:text-[3.5rem] lg:text-[3.15rem] xl:text-[3.6rem] 2xl:text-[3.9rem]"
-          >
+          <h1 className="mt-6 text-[clamp(2.4rem,11vw,3.1rem)] font-extrabold leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white sm:text-[3.5rem] lg:text-[3.15rem] xl:text-[3.6rem] 2xl:text-[3.9rem]">
             <span className="block">AI-Powered </span>
             <span className="block">IELTS Practice </span>
-            <span className="font-handwritten relative mt-2 block w-fit max-w-full pr-4 text-[0.92em] leading-[1.05] tracking-[-0.035em] text-[#5262ef] sm:pr-7 sm:text-[1.02em] sm:whitespace-nowrap">
+            <span className="relative mt-2 block w-fit max-w-full pr-4 text-[0.92em] font-extrabold italic leading-[1.05] tracking-[-0.035em] text-[#5262ef] sm:pr-7 sm:text-[1.02em] sm:whitespace-nowrap">
               for a higher band score.
               <svg
                 className="absolute -bottom-3 left-[35%] h-3 w-[38%] text-[#8dc9f2]"
@@ -481,18 +395,15 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
                 <path d="M4 18l12 5" />
               </svg>
             </span>
-          </m.h1>
+          </h1>
 
-          <m.p
-            variants={reveal}
-            className="mt-9 max-w-[560px] text-base font-medium leading-7 text-[#515d74] dark:text-slate-300 sm:text-[17px]"
-          >
+          <p className="mt-9 max-w-[560px] text-base font-medium leading-7 text-[#515d74] dark:text-slate-300 sm:text-[17px]">
             Practice Reading, Listening, Writing, and Speaking in one workspace. Review estimated
             band feedback, track recurring weaknesses, and follow a study plan based on the work you
             actually complete.
-          </m.p>
+          </p>
 
-          <m.div variants={reveal} className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button
               onClick={handlePrimaryCta}
               size="lg"
@@ -509,31 +420,23 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
             >
               Compare Plans <CirclePlay className="ml-3 h-5 w-5 text-[#5262ef]" />
             </Button>
-          </m.div>
+          </div>
 
           {!isSignedIn && (
-            <m.p
-              variants={reveal}
-              className="mt-4 flex items-center gap-2 text-[13px] font-semibold text-[#66738c] dark:text-slate-400"
-            >
+            <p className="mt-4 flex items-center gap-2 text-[13px] font-semibold text-[#66738c] dark:text-slate-400">
               <Check className="h-4 w-4 text-[#2cc2a0]" aria-hidden="true" />
               Free plan available — no credit card required
-            </m.p>
+            </p>
           )}
 
-          <m.div variants={reveal}>
+          <div>
             <LearnerProof />
-          </m.div>
-        </m.div>
+          </div>
+        </div>
 
-        <m.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.7, delay: 0.18 }}
-          className="relative z-10 min-w-0 overflow-visible transform-gpu"
-        >
+        <div className="relative z-10 min-w-0 overflow-visible transform-gpu">
           <StudentVisual />
-        </m.div>
+        </div>
       </div>
     </section>
   );

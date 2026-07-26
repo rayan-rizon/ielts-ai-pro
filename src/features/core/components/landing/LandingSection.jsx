@@ -37,7 +37,7 @@ export function SectionHeading({
       className={cn('mx-auto max-w-4xl text-center', className)}
     >
       <m.div variants={landingReveal}>
-        <span className="inline-flex items-center gap-2 rounded-full border border-[#bfe9df] bg-[#f2fbf8]/90 px-5 py-2 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#218b75] shadow-[0_8px_28px_-18px_rgba(33,139,117,0.45)] dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300">
+        <span className="inline-flex items-center gap-2 rounded-full border border-[#bfe9df] bg-[#f2fbf8]/90 px-5 py-2 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#176d5d] shadow-[0_8px_28px_-18px_rgba(33,139,117,0.45)] dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300">
           <Sparkles className="h-4 w-4" aria-hidden="true" />
           {eyebrow}
         </span>

@@ -1,5 +1,4 @@
 import React from 'react';
-import { m } from 'framer-motion';
 
 /** Desktop navigation pill bar with hover-following highlight. */
 export default function DesktopNavLinks({ links, hoveredLink, onHover }) {
@@ -18,10 +17,8 @@ export default function DesktopNavLinks({ links, hoveredLink, onHover }) {
           data-oid="b41jq1v"
         >
           {hoveredLink === link.label && (
-            <m.span
-              layoutId="nav-hover-pill"
+            <span
               className="absolute inset-0 bg-primary/[0.06] dark:bg-white/[0.08] rounded-full border border-primary/10 dark:border-white/5 shadow-sm"
-              transition={{ type: 'spring', stiffness: 350, damping: 28 }}
               data-oid="hover-pill-bg"
             />
           )}

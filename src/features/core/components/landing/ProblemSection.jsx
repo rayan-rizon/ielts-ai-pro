@@ -1,6 +1,6 @@
 import React from 'react';
 import { m } from 'framer-motion';
-import { XCircle, BadgeAlert, Clock, Target, AlertTriangle, Sparkles } from 'lucide-react';
+import { Clock, Target, AlertTriangle, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
 
@@ -21,7 +21,7 @@ export default function ProblemSection({ viewport }) {
   const problems = [
     {
       title: 'Slow & Generic Feedback',
-      desc: 'Avoid vague coaching. Get instant, examiner-grade feedback on Writing and Speaking.',
+      desc: 'Avoid vague coaching. Get focused, criterion-based feedback on Writing and Speaking.',
       icon: Clock,
       color: 'text-rose-500',
       hoverColor: 'group-hover:text-rose-500',
@@ -29,7 +29,7 @@ export default function ProblemSection({ viewport }) {
     },
     {
       title: 'The Scoring Lottery',
-      desc: 'Skip subjective marking. Our AI uses official IELTS rubrics for consistent scoring.',
+      desc: 'Use feedback organized around the published IELTS assessment criteria.',
       icon: Target,
       color: 'text-orange-500',
       hoverColor: 'group-hover:text-orange-500',

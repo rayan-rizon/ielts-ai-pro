@@ -45,6 +45,7 @@ const robots = readFileSync(path.join(root, 'public/robots.txt'), 'utf8');
 const llms = readFileSync(path.join(root, 'public/llms.txt'), 'utf8');
 const vercel = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8'));
 const appSource = readFileSync(path.join(root, 'src/App.jsx'), 'utf8');
+const indexHtml = readFileSync(path.join(root, 'index.html'), 'utf8');
 
 if (!appSource.includes("path: '/ielts-writing-checker'")) {
   fail('the public writing checker React route is missing');
@@ -54,6 +55,41 @@ for (const route of publicRoutes) {
   if (!sitemap.includes(`<loc>${siteUrl}${route}</loc>`)) {
     fail(`sitemap is missing ${route}`);
   }
+}
+
+const sitemapLocations = Array.from(sitemap.matchAll(/<loc>([^<]+)<\/loc>/g), (match) => match[1]);
+if (new Set(sitemapLocations).size !== sitemapLocations.length) {
+  fail('sitemap contains duplicate canonical URLs');
+}
+
+if (!robots.includes(`Sitemap: ${siteUrl}/sitemap.xml`)) {
+  fail('robots.txt does not reference the canonical sitemap');
+}
+
+if (!llms.startsWith('# IELTS Ai Pro')) fail('llms.txt must start with an H1');
+for (const route of publicRoutes.filter((route) => !['/privacy', '/terms'].includes(route))) {
+  if (!llms.includes(`${siteUrl}${route}`)) fail(`llms.txt is missing ${route}`);
+}
+
+const title = indexHtml.match(/<title>([^<]+)<\/title>/)?.[1]?.trim();
+const description = indexHtml.match(/<meta\s+name="description"\s+content="([^"]+)"/)?.[1]?.trim();
+const canonical = indexHtml.match(/<link\s+rel="canonical"\s+href="([^"]+)"/)?.[1];
+if (!title || title.length < 30 || title.length > 65) {
+  fail('homepage title must be between 30 and 65 characters');
+}
+if (!description || description.length < 120 || description.length > 170) {
+  fail('homepage description must be between 120 and 170 characters');
+}
+if (canonical !== `${siteUrl}/`) fail('homepage canonical is missing or incorrect');
+
+const staticJsonLd = indexHtml.match(
+  /<script[^>]*data-static-seo[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/
+)?.[1];
+if (!staticJsonLd) fail('homepage static structured data is missing');
+try {
+  JSON.parse(staticJsonLd);
+} catch {
+  fail('homepage static structured data is not valid JSON');
 }
 
 for (const route of Object.keys(retiredRoutes)) {
@@ -68,21 +104,42 @@ for (const route of removedStaticPagePaths) {
   }
 }
 
-const redirects = new Map((vercel.redirects || []).map(({ source, destination }) => [source, destination]));
+const redirects = new Map(
+  (vercel.redirects || []).map(({ source, destination }) => [source, destination])
+);
 for (const [source, destination] of Object.entries(retiredRoutes)) {
-  if (redirects.get(source) !== destination) fail(`missing redirect from ${source} to ${destination}`);
+  if (redirects.get(source) !== destination)
+    fail(`missing redirect from ${source} to ${destination}`);
   if (redirects.get(`${source}/`) !== destination) {
     fail(`missing trailing-slash redirect from ${source}/ to ${destination}`);
   }
 }
 
+const rewrites = new Map(
+  (vercel.rewrites || []).map(({ source, destination }) => [source, destination])
+);
+const requiredRewrites = {
+  '/sitemap.xml': '/api/sitemap',
+  '/blog': '/api/blog',
+  '/blog/:slug': '/api/blog?slug=:slug',
+};
+for (const [source, destination] of Object.entries(requiredRewrites)) {
+  if (rewrites.get(source) !== destination) {
+    fail(`missing server-rendered rewrite from ${source} to ${destination}`);
+  }
+}
+
 for (const rewrite of vercel.rewrites || []) {
-  if (Object.hasOwn(retiredRoutes, rewrite.source)) fail(`retired route ${rewrite.source} still rewrites`);
-  if (rewrite.destination.includes('/index.html') && !['/:path*', '/(.*)', '/:path(.*)'].includes(rewrite.source)) {
+  if (Object.hasOwn(retiredRoutes, rewrite.source))
+    fail(`retired route ${rewrite.source} still rewrites`);
+  if (
+    rewrite.destination.includes('/index.html') &&
+    !['/:path*', '/(.*)', '/:path(.*)'].includes(rewrite.source)
+  ) {
     fail(`standalone static rewrite remains for ${rewrite.source}`);
   }
 }
 
 console.log(
-  `SEO check passed: ${publicRoutes.length} public routes, ${Object.keys(retiredRoutes).length} retired routes redirected, ${removedStaticPagePaths.length} static pages removed.`
+  `SEO check passed: ${publicRoutes.length} public routes, server-rendered blog and sitemap routes, valid homepage metadata/schema, ${Object.keys(retiredRoutes).length} retired routes redirected.`
 );

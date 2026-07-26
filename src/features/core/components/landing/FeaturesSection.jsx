@@ -278,7 +278,11 @@ function SpeakingFeedbackCard() {
         {/* Audio controller & Waveform */}
         <div className="mt-4 flex items-center justify-between bg-slate-50/80 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/60 rounded-2xl p-2.5">
           <div className="flex items-center gap-2.5">
-            <button className="flex h-8 w-8 items-center justify-center rounded-full bg-[#5262ef] hover:bg-[#4150dc] transition text-white shadow-sm shrink-0">
+            <button
+              type="button"
+              aria-label="Play speaking feedback preview"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#5262ef] hover:bg-[#4150dc] transition text-white shadow-sm shrink-0"
+            >
               <Play className="h-4 w-4 fill-current ml-0.5" />
             </button>
             <div className="flex items-center gap-0.5 h-5">

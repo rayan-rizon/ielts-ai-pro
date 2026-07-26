@@ -23,6 +23,7 @@ const CTABanner = lazy(() => import('@/features/core/components/landing/CTABanne
 const ComparisonSection = lazy(
   () => import('@/features/core/components/landing/ComparisonSection')
 );
+const MotionProvider = lazy(() => import('@/components/shared/MotionProvider'));
 const viewport = { once: true, amount: 0.12 };
 
 const faqs = [
@@ -87,7 +88,7 @@ function LazySection({
   minHeight = 'auto',
   id = '',
   className = '',
-  rootMargin = '500px 0px',
+  rootMargin = '0px',
 }) {
   const sectionRef = React.useRef(null);
   const [shouldRender, setShouldRender] = React.useState(false);
@@ -125,7 +126,7 @@ function LazySection({
     >
       {shouldRender ? (
         <Suspense fallback={<SectionSkeleton data-oid="kp:glno" />} data-oid="siy5l8e">
-          {children}
+          <MotionProvider>{children}</MotionProvider>
         </Suspense>
       ) : (
         <div aria-hidden="true" data-oid="deferred-section-placeholder" />
@@ -136,34 +137,55 @@ function LazySection({
 
 const getStructuredData = () => ({
   '@context': 'https://schema.org',
-  '@type': 'WebApplication',
-  name: 'IELTS Ai Pro',
-  url: 'https://www.ieltsai.pro/',
-  applicationCategory: 'EducationalApplication',
-  operatingSystem: 'Web',
-  description:
-    'Web-based IELTS practice platform with Reading and Listening tests, AI-assisted Writing and Speaking feedback, progress analytics, vocabulary review, and adaptive study planning.',
-  datePublished: '2025-10-15',
-  dateModified: new Date().toISOString().split('T')[0],
-  offers: {
-    '@type': 'AggregateOffer',
-    priceCurrency: 'USD',
-    lowPrice: '0',
-    highPrice: '15.99',
-    offerCount: '3',
-  },
-  featureList: [
-    'Instant AI Writing Evaluation with Band Score',
-    'AI Speaking Practice with Pronunciation Analysis',
-    'Realistic IELTS Mock Tests',
-    'Personalized AI Study Planner',
-    'Band Score Analytics Dashboard',
-    'Cambridge-style Practice Materials',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': 'https://www.ieltsai.pro/#organization',
+      name: 'IELTS Ai Pro',
+      url: 'https://www.ieltsai.pro/',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://www.ieltsai.pro/logo.png',
+        width: 640,
+        height: 640,
+      },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://www.ieltsai.pro/#website',
+      url: 'https://www.ieltsai.pro/',
+      name: 'IELTS Ai Pro',
+      publisher: { '@id': 'https://www.ieltsai.pro/#organization' },
+      inLanguage: 'en',
+    },
+    {
+      '@type': 'SoftwareApplication',
+      '@id': 'https://www.ieltsai.pro/#application',
+      name: 'IELTS Ai Pro',
+      url: 'https://www.ieltsai.pro/',
+      applicationCategory: 'EducationalApplication',
+      operatingSystem: 'Web',
+      description:
+        'Web-based IELTS practice platform with Reading and Listening tests, AI-assisted Writing and Speaking feedback, progress analytics, vocabulary review, and adaptive study planning.',
+      datePublished: '2025-10-15',
+      dateModified: '2026-07-26',
+      offers: {
+        '@type': 'AggregateOffer',
+        priceCurrency: 'USD',
+        lowPrice: '0',
+        highPrice: '15.99',
+        offerCount: '3',
+      },
+      featureList: [
+        'AI-assisted Writing feedback with estimated practice bands',
+        'AI-assisted Speaking practice feedback',
+        'IELTS Reading and Listening practice tests',
+        'Personalized study planning',
+        'Band score analytics',
+      ],
+      author: { '@id': 'https://www.ieltsai.pro/#organization' },
+    },
   ],
-  author: {
-    '@type': 'Organization',
-    name: 'IELTS Ai Pro',
-  },
 });
 
 export default function LandingPage() {

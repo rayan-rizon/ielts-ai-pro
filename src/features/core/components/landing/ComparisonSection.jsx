@@ -22,7 +22,7 @@ const categories = [
     feature: 'Feedback Delivery Time',
     traditional: '2 to 5 business days per essay/mock test',
     genericAi: 'Instant but generic text outputs',
-    aiPro: 'Instant, examiner-grade corrections & band estimates',
+    aiPro: 'Criterion-based corrections and practice band estimates',
     status: 'pro-win',
   },
   {
@@ -115,7 +115,7 @@ export default function ComparisonSection({ viewport, handlePrimaryCta }) {
           eyebrow="The IELTS Ai Pro Advantage"
           title="See how we stack up"
           script="against other options."
-          description="Traditional classrooms are slow and expensive. Generic AI lacks official test rubrics. IELTS Ai Pro gives you the best of both worlds."
+          description="Compare classroom feedback, generic AI tools, and criterion-based IELTS practice feedback."
           viewport={viewport}
         />
 

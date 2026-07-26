@@ -139,7 +139,11 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let isMounted = true;
     let authListener;
-    const dependenciesPromise = loadAuthDependencies();
+    let dependenciesPromise;
+    const getDependencies = () => {
+      dependenciesPromise ||= loadAuthDependencies();
+      return dependenciesPromise;
+    };
 
     // PERFORMANCE: Immediate check for cached session/profile to skip "Verifying access..."
     // We look for the Supabase session token in localStorage to see if a user WAS logged in
@@ -158,15 +162,17 @@ export const AuthProvider = ({ children }) => {
           setAuthCheckComplete(true);
           setLoading(false); // PERFORMANCE: Unblock UI immediately on cache hit
         }
+        return hasLocalSession;
       } catch (err) {
         console.warn('Eager auth check failed:', err);
+        return false;
       }
     };
-    eagerCheck();
+    const hasLocalSession = eagerCheck();
 
     const getUser = async () => {
       try {
-        const { supabase, User } = await dependenciesPromise;
+        const { supabase, User } = await getDependencies();
         const {
           data: { session },
           error,
@@ -276,17 +282,8 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    // Defer the initial check slightly to prioritize First Meaningful Paint
-    // and Largest Contentful Paint of the landing page
-    const checkTimer = setTimeout(
-      () => {
-        getUser();
-      },
-      typeof window !== 'undefined' && window.location.pathname === '/' ? 100 : 0
-    );
-
     const setupAuthListener = async () => {
-      const { supabase, User } = await dependenciesPromise;
+      const { supabase, User } = await getDependencies();
       if (!isMounted) return;
 
       const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -387,10 +384,6 @@ export const AuthProvider = ({ children }) => {
       authListener = data;
     };
 
-    setupAuthListener().catch((error) => {
-      console.warn('Auth listener setup failed:', error);
-    });
-
     const loadGlobalSettings = async () => {
       try {
         const SystemSetting = await loadSystemSettingService();
@@ -403,12 +396,30 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    // Load global settings
-    loadGlobalSettings();
+    const initializeAuth = () => {
+      getUser();
+      setupAuthListener().catch((error) => {
+        console.warn('Auth listener setup failed:', error);
+      });
+      loadGlobalSettings();
+    };
+
+    const isAnonymousLanding =
+      typeof window !== 'undefined' && window.location.pathname === '/' && !hasLocalSession;
+
+    if (isAnonymousLanding) {
+      // Anonymous visitors do not need Supabase to render or use the public
+      // landing page. Keep the auth bundle off the critical path, while still
+      // initializing it after the first viewport has settled.
+      setLoading(false);
+      setAuthCheckComplete(true);
+      setSettingsLoading(false);
+    } else {
+      initializeAuth();
+    }
 
     return () => {
       isMounted = false;
-      clearTimeout(checkTimer);
       authListener?.subscription?.unsubscribe();
     };
   }, []);

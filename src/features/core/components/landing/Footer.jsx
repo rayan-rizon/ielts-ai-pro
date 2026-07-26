@@ -134,7 +134,7 @@ function FooterBrandSection({ handleCopyEmail }) {
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3">
-        <Link to="/" className="block w-fit" aria-label="IELTS Ai Pro home" viewTransition>
+        <Link to="/" className="block w-fit" viewTransition>
           <Logo size="lg" className="text-white" />
         </Link>
         <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-0.5 rounded-full backdrop-blur-md">
@@ -145,7 +145,7 @@ function FooterBrandSection({ handleCopyEmail }) {
 
       <p className="max-w-md text-sm leading-relaxed text-slate-400 font-medium">
         Web-based IELTS practice platform for Reading, Listening, Writing, and Speaking with instant
-        examiner-grade AI feedback, score analytics, and Cambridge rubric alignment.
+        criterion-based AI practice feedback, score analytics, and target-band guidance.
       </p>
 
       <div className="pt-1 flex flex-wrap items-center gap-3">
@@ -186,9 +186,9 @@ function FooterNavigationGrid() {
           <div key={title} className="space-y-4">
             <div className="flex items-center gap-1.5 text-indigo-400">
               <Icon className="w-3.5 h-3.5" />
-              <h3 className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-300">
                 {title}
-              </h3>
+              </p>
             </div>
 
             <ul className="space-y-2.5">
@@ -209,7 +209,7 @@ function FooterBottomBar({ currentYear }) {
   return (
     <div className="flex flex-col gap-5 pt-8 text-xs text-slate-400 md:flex-row md:items-center md:justify-between">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-medium">
-        <span className="text-slate-500">© {currentYear} IELTS Ai Pro</span>
+        <span className="text-slate-400">© {currentYear} IELTS Ai Pro</span>
         <Link
           to="/privacy"
           className="hover:text-white transition-colors"

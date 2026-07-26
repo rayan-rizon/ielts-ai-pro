@@ -4,7 +4,8 @@ import App from '@/App.jsx';
 import '@/index.css';
 import { RootProviders } from './components/RootProviders';
 
-const isProduction = !['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
+const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
+const isLiveProduction = import.meta.env.PROD && !isLocalHost;
 
 const scheduleIdle = (callback: () => void, timeout = 3000) => {
   if ('requestIdleCallback' in window) {
@@ -14,6 +15,29 @@ const scheduleIdle = (callback: () => void, timeout = 3000) => {
 
   const id = (window as any).setTimeout(callback, Math.min(timeout, 2000));
   return () => (window as any).clearTimeout(id);
+};
+
+const scheduleDeferredTelemetry = (callback: () => void, delay = 8000) => {
+  let started = false;
+  let timer: number | undefined;
+
+  const start = () => {
+    if (started) return;
+    started = true;
+    if (timer) window.clearTimeout(timer);
+    window.removeEventListener('pointerdown', start);
+    window.removeEventListener('keydown', start);
+    scheduleIdle(callback, 4000);
+  };
+
+  const schedule = () => {
+    timer = window.setTimeout(start, delay);
+    window.addEventListener('pointerdown', start, { once: true, passive: true });
+    window.addEventListener('keydown', start, { once: true });
+  };
+
+  if (document.readyState === 'complete') schedule();
+  else window.addEventListener('load', schedule, { once: true });
 };
 
 // New Relic Initialization
@@ -60,8 +84,8 @@ const initNewRelic = () => {
     });
 };
 
-if (isProduction && typeof window !== 'undefined') {
-  scheduleIdle(initNewRelic, 2500);
+if (isLiveProduction && typeof window !== 'undefined') {
+  scheduleDeferredTelemetry(initNewRelic);
 }
 
 // PERFORMANCE: Defer Sentry initialization to idle time.
@@ -69,24 +93,22 @@ if (isProduction && typeof window !== 'undefined') {
 // Using requestIdleCallback ensures they load after First Contentful Paint.
 const initSentry = () => {
   import('@sentry/react').then((Sentry) => {
-    const isProduction = !['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
-
     Sentry.init({
       dsn:
         import.meta.env.VITE_SENTRY_DSN ||
         'https://03ed8b4e6214256395735d17f027f8f4@o4511451727331328.ingest.us.sentry.io/4511452061040640',
-      environment: isProduction ? 'production' : 'development',
+      environment: isLiveProduction ? 'production' : 'development',
       integrations: [
         Sentry.browserTracingIntegration(),
         Sentry.browserProfilingIntegration(),
         Sentry.replayIntegration(),
       ],
-      tracesSampleRate: isProduction ? 0.15 : 0,
+      tracesSampleRate: isLiveProduction ? 0.15 : 0,
       // The browser-profile decision is made once per session. Keep production
       // sampling below tracing to control profiling volume and overhead.
-      profileSessionSampleRate: isProduction ? 0.1 : 0,
-      replaysSessionSampleRate: isProduction ? 0.1 : 0,
-      replaysOnErrorSampleRate: isProduction ? 1.0 : 0,
+      profileSessionSampleRate: isLiveProduction ? 0.1 : 0,
+      replaysSessionSampleRate: isLiveProduction ? 0.1 : 0,
+      replaysOnErrorSampleRate: isLiveProduction ? 1.0 : 0,
       sendDefaultPii: true,
       beforeSend(event, hint) {
         // Temporarily commented out to allow testing and verification in local development
@@ -119,12 +141,11 @@ const initSentry = () => {
   });
 };
 
-if (!isProduction) {
-  // In development, initialize Sentry immediately so testing/verification works instantly
+if (import.meta.env.DEV) {
+  // In development, initialize Sentry immediately so testing works instantly.
   initSentry();
-} else {
-  // In production, defer to idle time to optimize First Contentful Paint
-  scheduleIdle(initSentry, 3000);
+} else if (isLiveProduction) {
+  scheduleDeferredTelemetry(initSentry);
 }
 
 // Lazy-load telemetry to keep it off the critical path
@@ -139,7 +160,11 @@ const Analytics = lazy(() =>
 const IdleTelemetry = () => {
   const [ready, setReady] = React.useState(false);
 
-  React.useEffect(() => scheduleIdle(() => setReady(true), 2500), []);
+  React.useEffect(() => {
+    if (!isLiveProduction) return undefined;
+    scheduleDeferredTelemetry(() => setReady(true));
+    return undefined;
+  }, []);
 
   if (!ready) return null;
 

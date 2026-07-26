@@ -2,6 +2,7 @@ import React from 'react';
 import { m, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Sparkles, Target, LineChart, Star, Check } from 'lucide-react';
 import { GlassPanel, SoftSection } from './LandingSection';
+import SkillBadgeStack from './SkillBadgeStack';
 
 const benefits = [
   {
@@ -25,13 +26,6 @@ const benefits = [
     colorClass:
       'text-blue-600 bg-blue-500/5 border-blue-500/15 dark:text-blue-300 dark:bg-blue-500/10 dark:border-blue-500/20',
   },
-];
-
-const learners = [
-  'https://i.pravatar.cc/100?img=33',
-  'https://i.pravatar.cc/100?img=47',
-  'https://i.pravatar.cc/100?img=12',
-  'https://i.pravatar.cc/100?img=32',
 ];
 
 function CTABannerHeader() {
@@ -123,7 +117,7 @@ function CTABannerActionCard({ handlePrimaryCta, reduceMotion }) {
                 Start Your Free Test
               </b>
               <span className="mt-1 block text-xs leading-relaxed text-white/90 font-medium">
-                Get instant examiner-grade Writing & Speaking feedback in minutes.
+                Get fast, criterion-based Writing and Speaking practice feedback.
               </span>
             </div>
             <div className="pt-1 flex flex-wrap gap-1.5 text-[10px] font-bold text-white/90">
@@ -142,18 +136,9 @@ function CTABannerActionCard({ handlePrimaryCta, reduceMotion }) {
         </span>
 
         <span className="flex items-center gap-3 bg-slate-50/90 dark:bg-[#080c14] px-5 sm:px-6 py-3 border-t border-slate-200/60 dark:border-white/10">
-          <span className="flex shrink-0 -space-x-2" aria-hidden="true">
-            {learners.map((avatar, index) => (
-              <img
-                key={index}
-                src={avatar}
-                alt={`Student ${index + 1}`}
-                className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-100 object-cover shadow-sm dark:border-[#1a1c31]"
-              />
-            ))}
-          </span>
+          <SkillBadgeStack size="sm" />
           <span className="text-xs font-bold leading-tight text-[#1b2841] dark:text-white">
-            Join 10,000+ successful learners
+            Reading, Listening, Writing, and Speaking practice
           </span>
         </span>
       </button>

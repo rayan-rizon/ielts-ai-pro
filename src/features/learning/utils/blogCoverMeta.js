@@ -42,6 +42,20 @@ const COVER_ALT_BY_SLUG = {
     'IELTS learner speaking into a microphone beside a pronunciation waveform display',
   'ielts-speaking-part-1-answer-length':
     'IELTS learner practising a short Part 1 answer with prompt cards, a timer, and speech bubbles',
+  'ielts-reading-multiple-choice-tips':
+    'Adult IELTS learner comparing multiple-choice options with a reading passage beside her laptop',
+  'ielts-writing-task-2-two-part-question':
+    'Adult IELTS learner planning a two-part essay in two columns beside his laptop',
+  'ielts-listening-form-completion-tips':
+    'Two adult IELTS learners completing a listening form together with headphones and a laptop',
+  'ielts-writing-task-1-maps':
+    'Adult IELTS learner comparing before-and-after maps at a bright study desk',
+  'ielts-reading-short-answer-questions':
+    'Adult IELTS learner locating a short answer in a reading passage beside his laptop',
+  'ielts-listening-matching-questions':
+    'Two adult IELTS learners matching visual options while listening with headphones',
+  'ielts-speaking-dont-know-answer':
+    'Adult IELTS learner pausing at a microphone before answering an unfamiliar Speaking question',
 };
 
 export function getBlogCoverAlt(article) {

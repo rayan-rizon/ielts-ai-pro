@@ -1,12 +1,65 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { readFileSync } from 'node:fs';
 import viteCompression from 'vite-plugin-compression';
+
+function deferLandingStyles() {
+  return {
+    name: 'defer-landing-styles',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, context) {
+        const criticalCss = readFileSync(
+          path.resolve(__dirname, 'src/styles/landing-critical.generated.css'),
+          'utf8'
+        ).replaceAll('</style', '<\\/style');
+
+        const stylesheetPattern =
+          /<link rel="stylesheet" crossorigin href="(\/assets\/index-[^"]+\.css)">/;
+        const match = html.match(stylesheetPattern);
+        if (!match) {
+          throw new Error('Unable to locate the generated application stylesheet.');
+        }
+
+        const stylesheetHref = match[1];
+        const deferredMarkup = [
+          `<style data-landing-critical>${criticalCss}</style>`,
+          `<link id="deferred-app-styles" data-href="${stylesheetHref}" crossorigin>`,
+          '<script>',
+          '(()=>{const l=document.getElementById("deferred-app-styles");',
+          'const a=()=>{if(!l||l.rel==="stylesheet")return;l.href=l.dataset.href;l.rel="stylesheet"};',
+          'const t=localStorage.getItem("vite-ui-theme");',
+          'const dark=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme:dark)").matches);',
+          'if(location.pathname!=="/"||innerWidth>=768||dark)a();',
+          'else{const s=()=>{a();removeEventListener("pointerdown",s);removeEventListener("keydown",s);removeEventListener("scroll",s);removeEventListener("touchstart",s)};',
+          'addEventListener("pointerdown",s,{once:true,passive:true});addEventListener("keydown",s,{once:true});',
+          'addEventListener("scroll",s,{once:true,passive:true});addEventListener("touchstart",s,{once:true,passive:true});',
+          'setTimeout(a,15000)}})();',
+          '</script>',
+          `<noscript><link rel="stylesheet" crossorigin href="${stylesheetHref}"></noscript>`,
+        ].join('');
+
+        const landingChunk = Object.keys(context.bundle || {}).find((fileName) =>
+          /^assets\/LandingPage-[^/]+\.js$/.test(fileName)
+        );
+        const landingPreload = landingChunk
+          ? `<link rel="modulepreload" crossorigin href="/${landingChunk}">`
+          : '';
+
+        return html
+          .replace(stylesheetPattern, deferredMarkup)
+          .replace('<script type="module"', `${landingPreload}<script type="module"`);
+      },
+    },
+  };
+}
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    deferLandingStyles(),
     viteCompression({
       algorithm: 'gzip',
       ext: '.gz',
@@ -93,6 +146,9 @@ export default defineConfig({
             if (id.includes('/node_modules/prop-types/')) {
               return 'prop-types-vendor';
             }
+            if (id.includes('/node_modules/@babel/runtime/')) {
+              return 'babel-runtime-vendor';
+            }
             // Must be checked before the generic React rule because the package path
             // contains "react/" as part of "lucide-react/".
             if (id.includes('/node_modules/lucide-react/')) {
@@ -110,9 +166,6 @@ export default defineConfig({
             // PDF.js - heavy library, only needed in specific pages
             if (id.includes('pdfjs-dist')) {
               return 'pdf-vendor';
-            }
-            if (id.includes('/node_modules/jspdf/')) {
-              return 'pdf-export-vendor';
             }
             // TanStack Query - data fetching
             if (id.includes('@tanstack/react-query')) {

@@ -159,7 +159,7 @@ function GoalPreview() {
             Band 7.5
           </strong>
         </div>
-        <span className="flex h-7 items-center gap-1 rounded-full bg-[#eaf9f4] px-2.5 text-[9px] font-bold text-[#218b75]">
+        <span className="flex h-7 items-center gap-1 rounded-full bg-[#eaf9f4] px-2.5 text-[9px] font-bold text-[#176d5d]">
           <Check className="h-2.5 w-2.5" />
           Saved
         </span>

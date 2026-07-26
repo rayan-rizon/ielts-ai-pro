@@ -9,7 +9,6 @@ import {
   Plus,
   Send,
   Sparkles,
-  Star,
 } from 'lucide-react';
 import {
   Accordion,
@@ -18,13 +17,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { GlassPanel, SoftSection } from './LandingSection';
-
-const learners = [
-  'https://i.pravatar.cc/100?img=33',
-  'https://i.pravatar.cc/100?img=47',
-  'https://i.pravatar.cc/100?img=12',
-  'https://i.pravatar.cc/100?img=32',
-];
+import SkillBadgeStack from './SkillBadgeStack';
 
 const reveal = {
   hidden: { opacity: 0, y: 18 },
@@ -39,49 +32,32 @@ function TrustedLearnersCard() {
         <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e6fcf5] text-[#0ca678] dark:bg-emerald-400/15 dark:text-emerald-400">
           <Globe className="h-5 w-5" />
         </span>
-        Trusted by IELTS Learners Worldwide
+        IELTS Practice Across Four Skills
       </div>
 
       <div className="relative z-10 mt-6 grid grid-cols-2 divide-x divide-[#dfe4ef] dark:divide-white/10">
         <div className="pr-5">
           <b className="block text-3xl font-black tracking-[-.04em] text-[#0f172a] dark:text-white">
-            10,000+
+            Four
           </b>
           <span className="mt-1 block text-xs font-bold text-[#64748b] dark:text-slate-400">
-            Active Learners
+            IELTS Skills
           </span>
         </div>
         <div className="pl-6">
           <b className="block text-3xl font-black tracking-[-.04em] text-[#0f172a] dark:text-white">
-            4.9/5
+            0–9
           </b>
-          <div className="mt-1 flex gap-0.5 text-[#f5b82e]" aria-label="4.9 out of 5">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <Star key={index} className="h-3.5 w-3.5 fill-current" />
-            ))}
-          </div>
           <span className="mt-1 block text-xs font-bold text-[#64748b] dark:text-slate-400">
-            Average Rating
+            Estimated Band Scale
           </span>
         </div>
       </div>
 
       <div className="relative z-10 mt-7 flex items-center gap-4">
-        <span className="flex shrink-0 -space-x-2.5" aria-hidden="true">
-          {learners.map((avatar, index) => (
-            <img
-              key={index}
-              src={avatar}
-              alt={`Student ${index + 1}`}
-              className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-slate-100 object-cover shadow-sm dark:border-[#15182a]"
-            />
-          ))}
-          <span className="flex h-10 min-w-10 items-center justify-center rounded-full border-2 border-white bg-[#f0edff] px-2 text-[11px] font-black text-[#5140db] dark:border-[#15182a]">
-            10K+
-          </span>
-        </span>
+        <SkillBadgeStack />
         <span className="text-xs font-bold leading-5 text-[#556277] dark:text-slate-300">
-          Learners achieving their dream band scores
+          Build a routine around your target band and completed practice
         </span>
       </div>
     </GlassPanel>

@@ -8,14 +8,13 @@ import { test, expect } from '@playwright/test';
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 
 const footerAppDestinations = {
-  'Free IELTS practice tests': '/cambridge-tests',
-  'IELTS Writing checker': '/writing',
-  'IELTS Speaking practice': '/speaking',
-  'IELTS mock tests online': '/cambridge-tests',
-  'IELTS band score calculator': '/ielts-band-score-calculator',
-  'Cambridge IELTS practice': '/cambridge-tests',
-  'IELTS band score feedback': '/analytics',
-  'AI IELTS preparation': '/signup',
+  'Band Score Calculator': '/ielts-band-score-calculator',
+  'Writing Task Evaluator': '/ielts-writing-checker',
+  'Speaking Test Simulator': '/speaking',
+  'Listening Practice Hub': '/listening',
+  'Reading Comprehension': '/reading',
+  'IELTS Prep Blog & Guides': '/blog',
+  'Cambridge Practice Material': '/resources',
 };
 
 test.describe('SEO - Title Tags', () => {
@@ -87,18 +86,16 @@ test.describe('SEO - Meta Descriptions', () => {
 test.describe('SEO - Heading Structure', () => {
   test('landing page should have single h1', async ({ page }) => {
     await page.goto(BASE_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
-    const h1Count = await page.locator('h1').count();
-    expect(h1Count).toBeGreaterThanOrEqual(1);
+    await expect(page.locator('h1')).toHaveCount(1);
   });
 
   test('pricing page should have single h1', async ({ page }) => {
     await page.goto(`${BASE_URL}/pricing`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
-    const h1Count = await page.locator('h1').count();
-    expect(h1Count).toBeGreaterThanOrEqual(1);
+    await expect(page.locator('h1')).toHaveCount(1);
   });
 });
 
@@ -126,7 +123,7 @@ test.describe('SEO - Open Graph Tags', () => {
 test.describe('SEO - Semantic HTML', () => {
   test('should use semantic elements', async ({ page }) => {
     await page.goto(BASE_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check for nav, main, footer
     const nav = await page.locator('nav').count();
@@ -139,7 +136,7 @@ test.describe('SEO - Semantic HTML', () => {
 
   test('should have accessible links', async ({ page }) => {
     await page.goto(BASE_URL);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check that links have text or aria-labels
     const links = await page.locator('a').all();
@@ -168,49 +165,33 @@ test.describe('SEO - Semantic HTML', () => {
 test.describe('Error Pages', () => {
   test('404 page should exist for unknown routes', async ({ page }) => {
     await page.goto(`${BASE_URL}/this-page-does-not-exist-12345`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Should either show 404 content or redirect
-    const pageContent = await page.content();
-    expect(
-      pageContent.includes('404') ||
-        pageContent.includes('not found') ||
-        pageContent.includes('Not Found') ||
-        page.url().includes('/login')
-    ).toBeTruthy();
+    await expect(page.locator('body')).toContainText(/404|not found/i);
   });
 
   test('500 error page should be accessible', async ({ page }) => {
     await page.goto(`${BASE_URL}/500`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // 500 page should load
-    expect(page.url()).toContain('localhost');
+    expect(new URL(page.url()).pathname).toBe('/500');
   });
 });
 
 test.describe('Legal Pages', () => {
   test('terms of service page should load', async ({ page }) => {
     await page.goto(`${BASE_URL}/terms`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
-    const content = await page.content();
-    expect(
-      content.toLowerCase().includes('terms') ||
-        content.toLowerCase().includes('service') ||
-        content.toLowerCase().includes('agreement')
-    ).toBeTruthy();
+    await expect(page.locator('body')).toContainText(/terms|service|agreement/i);
   });
 
   test('privacy policy page should load', async ({ page }) => {
     await page.goto(`${BASE_URL}/privacy`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
-    const content = await page.content();
-    expect(
-      content.toLowerCase().includes('privacy') ||
-        content.toLowerCase().includes('data') ||
-        content.toLowerCase().includes('policy')
-    ).toBeTruthy();
+    await expect(page.locator('body')).toContainText(/privacy|data|policy/i);
   });
 });

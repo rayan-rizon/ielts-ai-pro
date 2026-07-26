@@ -137,6 +137,27 @@ describe('server-rendered IELTS blog', () => {
     expect(getBlogCoverAlt({ slug: 'ielts-speaking-part-1-answer-length' })).toBe(
       'IELTS learner practising a short Part 1 answer with prompt cards, a timer, and speech bubbles'
     );
+    expect(getBlogCoverAlt({ slug: 'ielts-reading-multiple-choice-tips' })).toBe(
+      'Adult IELTS learner comparing multiple-choice options with a reading passage beside her laptop'
+    );
+    expect(getBlogCoverAlt({ slug: 'ielts-writing-task-2-two-part-question' })).toBe(
+      'Adult IELTS learner planning a two-part essay in two columns beside his laptop'
+    );
+    expect(getBlogCoverAlt({ slug: 'ielts-listening-form-completion-tips' })).toBe(
+      'Two adult IELTS learners completing a listening form together with headphones and a laptop'
+    );
+    expect(getBlogCoverAlt({ slug: 'ielts-writing-task-1-maps' })).toBe(
+      'Adult IELTS learner comparing before-and-after maps at a bright study desk'
+    );
+    expect(getBlogCoverAlt({ slug: 'ielts-reading-short-answer-questions' })).toBe(
+      'Adult IELTS learner locating a short answer in a reading passage beside his laptop'
+    );
+    expect(getBlogCoverAlt({ slug: 'ielts-listening-matching-questions' })).toBe(
+      'Two adult IELTS learners matching visual options while listening with headphones'
+    );
+    expect(getBlogCoverAlt({ slug: 'ielts-speaking-dont-know-answer' })).toBe(
+      'Adult IELTS learner pausing at a microphone before answering an unfamiliar Speaking question'
+    );
   });
 
   it('returns an indexable-safe 404 when a published article is absent', async () => {

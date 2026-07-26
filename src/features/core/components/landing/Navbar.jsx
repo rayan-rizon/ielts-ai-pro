@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { m, AnimatePresence } from 'framer-motion';
 
 import Sun from 'lucide-react/icons/sun';
 import Moon from 'lucide-react/icons/moon';
@@ -87,11 +86,9 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
               className="absolute bottom-0 left-8 right-8 h-[2px] bg-border/20 overflow-hidden rounded-full"
               data-oid=":fpku4w"
             >
-              <m.div
+              <div
                 className="h-full bg-gradient-to-r from-primary to-violet-500 shadow-[0_0_8px_rgba(var(--primary),0.5)]"
-                initial={{ width: 0 }}
-                animate={{ width: `${scrollProgress}%` }}
-                transition={{ type: 'spring', bounce: 0, duration: 0.1 }}
+                style={{ width: `${scrollProgress}%` }}
                 data-oid="yu2y4lq"
               />
             </div>
@@ -104,12 +101,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
               isScrolled ? 'max-w-full' : 'max-w-7xl mx-auto px-6 md:px-8'
             )}
           >
-            <Link
-              to={createPageUrl('Index')}
-              className="relative z-[101]"
-              aria-label="IELTS Ai Pro - Home"
-              data-oid="6et:210"
-            >
+            <Link to={createPageUrl('Index')} className="relative z-[101]" data-oid="6et:210">
               <Logo size="md" />
             </Link>
 
@@ -124,22 +116,13 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
                 aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
                 data-oid="6m:a:wq"
               >
-                <AnimatePresence mode="wait" data-oid="_k2b_9p">
-                  <m.div
-                    key={isDark ? 'dark' : 'light'}
-                    initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
-                    animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                    exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
-                    transition={{ duration: 0.2 }}
-                    data-oid="wdgwl66"
-                  >
-                    {isDark ? (
-                      <Sun className="h-4.5 w-4.5" data-oid="ybmc88k" />
-                    ) : (
-                      <Moon className="h-4.5 w-4.5" data-oid="ph2qf0-" />
-                    )}
-                  </m.div>
-                </AnimatePresence>
+                <span className="transition-transform duration-200" data-oid="wdgwl66">
+                  {isDark ? (
+                    <Sun className="h-4.5 w-4.5" data-oid="ybmc88k" />
+                  ) : (
+                    <Moon className="h-4.5 w-4.5" data-oid="ph2qf0-" />
+                  )}
+                </span>
               </Button>
 
               <Button

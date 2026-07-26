@@ -9,6 +9,7 @@ const STALE_META_SELECTORS = [
   'link[rel="canonical"]',
   'meta[property^="og:"]',
   'meta[name^="twitter:"]',
+  'script[data-static-seo]',
 ];
 
 /** Build the robots meta content string from explicit value or boolean flags. */

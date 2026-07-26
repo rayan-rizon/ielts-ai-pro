@@ -263,7 +263,7 @@ function FeatureShowcase({ viewport }) {
               >
                 <FeedbackMockup tab={activeTab} reduceMotion={reduceMotion} />
                 <div className="px-2 py-4 lg:px-8">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-[#bfe9df] bg-[#f2fbf8] px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wide text-[#218b75]">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-[#bfe9df] bg-[#f2fbf8] px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wide text-[#176d5d]">
                     <activeTab.icon className="h-3.5 w-3.5" />
                     {activeTab.eyebrow}
                   </span>

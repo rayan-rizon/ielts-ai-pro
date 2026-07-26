@@ -1,5 +1,5 @@
 # IELTS Ai Pro - robots.txt
-# Last updated: 2026-07-19
+# Last updated: 2026-07-26
 
 User-agent: *
 Allow: /

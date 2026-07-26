@@ -1,5 +1,4 @@
 import React, { lazy, Suspense } from 'react';
-import { LazyMotion, m } from 'framer-motion';
 import {
   createBrowserRouter,
   RouterProvider,
@@ -11,8 +10,6 @@ import { trackAppEvent, trackPageView } from '@/lib/tracking';
 
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import PremiumLoading from '@/components/ui/PremiumLoading';
-
-const loadFeatures = () => import('framer-motion').then((res) => res.domMax);
 
 const LazySonnerToaster = lazy(() =>
   import('@/components/ui/sonner').then((module) => ({ default: module.Toaster }))
@@ -168,6 +165,8 @@ const IeltsWritingChecker = lazyWithRetry(
 const SubscriptionSuccess = lazyWithRetry(
   () => import('@/features/subscription/pages/SubscriptionSuccess.jsx')
 );
+const MotionProvider = lazyWithRetry(() => import('@/components/shared/MotionProvider.jsx'));
+const RouteProviders = lazyWithRetry(() => import('@/components/shared/RouteProviders.jsx'));
 
 const LazyPage = ({ children, className }) => {
   const { pathname } = useLocation();
@@ -180,24 +179,24 @@ const LazyPage = ({ children, className }) => {
     }
   }, [pathname]);
 
-  return (
+  const page = (
     <Suspense
       fallback={<RouteLoading message="Loading..." fullScreen data-oid="n1xqtod" />}
       data-oid="fnq31q0"
     >
-      <m.div
-        className={className}
-        key={pathname}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{
-          opacity: 1,
-          y: 0,
-          transitionEnd: { transform: 'none' },
-        }}
-        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      >
+      <div className={className} key={pathname}>
         {children}
-      </m.div>
+      </div>
+    </Suspense>
+  );
+
+  if (pathname === '/') return page;
+
+  return (
+    <Suspense fallback={<RouteLoading message="Loading..." fullScreen />}>
+      <RouteProviders>
+        <MotionProvider>{page}</MotionProvider>
+      </RouteProviders>
     </Suspense>
   );
 };
@@ -782,13 +781,11 @@ function App() {
 
   return (
     <ErrorBoundary data-oid="wz-jyt7">
-      <LazyMotion features={loadFeatures} strict data-oid="2epz-jc">
-        <Suspense
-          fallback={<RouteLoading message="Starting up..." fullScreen data-oid="router-fallback" />}
-        >
-          <RouterProvider router={router} data-oid="m-t-6xh" />
-        </Suspense>
-      </LazyMotion>
+      <Suspense
+        fallback={<RouteLoading message="Starting up..." fullScreen data-oid="router-fallback" />}
+      >
+        <RouterProvider router={router} data-oid="m-t-6xh" />
+      </Suspense>
       <IdleToaster />
     </ErrorBoundary>
   );

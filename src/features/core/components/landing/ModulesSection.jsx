@@ -85,7 +85,7 @@ function AnalysisBody() {
         <span className="text-xs font-bold text-[#38594e]">Overall Band Estimate</span>
         <div className="mt-1 flex items-center justify-between">
           <strong className="text-4xl font-black text-[#199174]">6.5</strong>
-          <span className="text-xs font-bold text-[#218b75]">Good</span>
+          <span className="text-xs font-bold text-[#176d5d]">Good</span>
         </div>
       </div>
       {[
@@ -135,7 +135,7 @@ function ProgressBody({ reduceMotion }) {
         <div>
           <span className="text-xs font-bold text-[#30405d]">Your Progress</span>
           <strong className="mt-1 block text-4xl font-black text-[#5262ef]">7.5</strong>
-          <span className="text-xs font-bold text-[#218b75]">Target 7.5</span>
+          <span className="text-xs font-bold text-[#176d5d]">Target 7.5</span>
         </div>
         <m.div
           initial={{ rotate: -90 }}
