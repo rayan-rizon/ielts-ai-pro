@@ -9,6 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { format, parseISO, isValid } from 'date-fns';
+import { cn } from '@/lib/cn';
 import StudyAvailabilityEditor from '../StudyAvailabilityEditor';
 
 export default function CustomizeGoalsModal({
@@ -20,6 +25,12 @@ export default function CustomizeGoalsModal({
   onSaveGoals,
   user,
 }) {
+  const selectedDate = React.useMemo(() => {
+    if (!goalDraft.test_date) return undefined;
+    const parsed = parseISO(goalDraft.test_date);
+    return isValid(parsed) ? parsed : undefined;
+  }, [goalDraft.test_date]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl border-slate-200/80 bg-white sm:max-w-2xl dark:border-white/15 dark:bg-[#111324]">
@@ -34,8 +45,8 @@ export default function CustomizeGoalsModal({
         </DialogHeader>
 
         <div className="grid gap-4 py-2 sm:grid-cols-2">
-          <label className="space-y-2 text-xs font-black text-slate-700 dark:text-slate-200">
-            Target band score
+          <label className="space-y-1 text-xs font-black text-slate-700 dark:text-slate-200">
+            <span>Target band score</span>
             <Input
               type="number"
               min="4"
@@ -51,17 +62,47 @@ export default function CustomizeGoalsModal({
               }
             />
           </label>
-          <label className="space-y-2 text-xs font-black text-slate-700 dark:text-slate-200">
-            Target exam date
-            <Input
-              type="date"
-              className="mt-1 h-10 rounded-xl font-bold"
-              value={goalDraft.test_date}
-              onChange={(event) =>
-                setGoalDraft((draft) => ({ ...draft, test_date: event.target.value }))
-              }
-            />
-          </label>
+          <div className="space-y-1 text-xs font-black text-slate-700 dark:text-slate-200">
+            <span>Target exam date</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    'mt-1 w-full h-10 justify-start text-left font-bold text-xs rounded-xl px-3 bg-slate-50/50 dark:bg-slate-950/40 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-slate-900/60 transition-all outline-none',
+                    !goalDraft.test_date && 'text-slate-400'
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4 text-indigo-500 shrink-0" />
+                  {selectedDate ? (
+                    <span className="text-slate-900 dark:text-white font-extrabold text-xs">
+                      {format(selectedDate, 'MMM dd, yyyy')}
+                    </span>
+                  ) : (
+                    <span>Pick target date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-auto p-0 rounded-2xl border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden"
+                align="start"
+              >
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setGoalDraft((draft) => ({
+                        ...draft,
+                        test_date: format(date, 'yyyy-MM-dd'),
+                      }));
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
         <StudyAvailabilityEditor

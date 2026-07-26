@@ -1,127 +1,158 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Flame } from 'lucide-react';
+import { Flame, Crown, Medal } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 
 const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
+  hidden: { y: 10, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
-    transition: { type: 'spring', stiffness: 100 },
+    transition: { type: 'spring', stiffness: 120, damping: 15 },
   },
 };
 
 const LeaderboardRow = React.memo(({ user, isCurrentUser, rank, isSticky = false }) => {
+  const userRank = user.rank || rank;
+
+  // Custom Rank Indicator
+  const renderRankBadge = () => {
+    if (userRank === 1) {
+      return (
+        <div className="w-7 h-7 mx-auto rounded-full bg-amber-400/20 text-amber-500 flex items-center justify-center border border-amber-400/40 shadow-sm">
+          <Crown className="w-4 h-4 fill-amber-400" />
+        </div>
+      );
+    }
+    if (userRank === 2) {
+      return (
+        <div className="w-7 h-7 mx-auto rounded-full bg-slate-300/30 text-slate-500 dark:text-slate-300 flex items-center justify-center border border-slate-300/40">
+          <Medal className="w-4 h-4 fill-slate-400" />
+        </div>
+      );
+    }
+    if (userRank === 3) {
+      return (
+        <div className="w-7 h-7 mx-auto rounded-full bg-amber-700/20 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-600/40">
+          <Medal className="w-4 h-4 fill-amber-600" />
+        </div>
+      );
+    }
+    return (
+      <span
+        className={`font-black text-xs sm:text-sm ${
+          isSticky || isCurrentUser
+            ? 'text-indigo-600 dark:text-indigo-400'
+            : 'text-slate-500 dark:text-slate-400'
+        }`}
+      >
+        {userRank}
+      </span>
+    );
+  };
+
   return (
     <motion.div
       variants={isSticky ? {} : itemVariants}
-      className={`grid grid-cols-12 gap-4 px-8 py-5 items-center transition-all group cursor-pointer border-b border-slate-100 dark:border-white/[0.05] ${
+      className={`grid grid-cols-12 gap-2 sm:gap-4 px-3 sm:px-6 py-2.5 sm:py-3 items-center transition-all group border-b border-slate-100 dark:border-white/[0.05] ${
         isSticky
-          ? 'bg-indigo-50/80 dark:bg-indigo-500/10 border-l-4 border-indigo-500 relative shadow-lg z-10'
-          : 'hover:bg-slate-50/80 dark:hover:bg-white/[0.02] hover:border-l-4 hover:border-indigo-500/50 transition-all border-l-4 border-transparent'
+          ? 'bg-indigo-50/90 dark:bg-indigo-500/15 border-l-4 border-indigo-500 relative shadow-md z-10'
+          : isCurrentUser
+            ? 'bg-indigo-50/40 dark:bg-indigo-500/10 border-l-4 border-indigo-500/80'
+            : 'hover:bg-slate-50/80 dark:hover:bg-white/[0.02] border-l-4 border-transparent hover:border-indigo-500/40'
       }`}
-      data-oid="a0e-vv0"
     >
-      <div
-        className={`col-span-1 text-center font-bold transition-colors ${
-          isSticky ? 'text-primary text-lg' : 'text-muted-foreground group-hover:text-primary'
-        }`}
-        data-oid="mqdwgsn"
-      >
-        {user.rank}
-      </div>
-      <div className="col-span-6 md:col-span-5 flex items-center gap-3" data-oid="4uex4wj">
+      {/* Rank */}
+      <div className="col-span-1 text-center shrink-0">{renderRankBadge()}</div>
+
+      {/* User Info */}
+      <div className="col-span-6 sm:col-span-5 flex items-center gap-2.5 min-w-0">
         <Avatar
-          className={`h-10 w-10 border transition-colors ${
-            isSticky
-              ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-              : 'border-border group-hover:border-primary/50'
+          className={`h-8 w-8 sm:h-9 sm:w-9 border shrink-0 transition-colors ${
+            userRank === 1
+              ? 'ring-2 ring-amber-400 border-amber-400'
+              : isSticky || isCurrentUser
+                ? 'ring-2 ring-indigo-500 border-indigo-500'
+                : 'border-slate-200 dark:border-slate-700 group-hover:border-indigo-400'
           }`}
-          data-oid="rfyd8up"
         >
-          <AvatarImage src={user.avatar} data-oid="5zolwl8" />
+          <AvatarImage src={user.avatar} alt={user.name} />
           <AvatarFallback
-            className={`${isSticky ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'} font-semibold`}
-            data-oid="_74ax8r"
+            className={`font-semibold text-xs ${
+              isSticky || isCurrentUser
+                ? 'bg-indigo-600 text-white'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+            }`}
           >
-            {user.name[0]}
+            {user.name?.[0] || 'U'}
           </AvatarFallback>
         </Avatar>
-        <div className="min-w-0" data-oid="q4uhfr7">
-          <div
-            className={`font-bold text-sm truncate flex items-center gap-2 transition-colors ${
-              isSticky ? 'text-primary' : 'text-foreground group-hover:text-primary'
-            }`}
-            data-oid="l4j-rxh"
-          >
-            {user.name}
-            {isCurrentUser && !isSticky && (
-              <span
-                className="ml-2 text-[9px] font-black uppercase tracking-wider bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/20"
-                data-oid="4r38-9u"
-              >
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span
+              className={`font-bold text-xs sm:text-sm truncate transition-colors ${
+                isSticky || isCurrentUser
+                  ? 'text-indigo-600 dark:text-indigo-400 font-extrabold'
+                  : 'text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
+              }`}
+            >
+              {user.name}
+            </span>
+
+            {isCurrentUser && (
+              <Badge className="px-1.5 py-0 text-[9px] font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 rounded-md shrink-0">
                 YOU
-              </span>
-            )}
-            {isSticky && (
-              <span
-                className="hidden md:flex h-2 w-2 rounded-full bg-green-500 animate-pulse"
-                data-oid="xu98dek"
-              ></span>
+              </Badge>
             )}
           </div>
-          <div
-            className="text-[10px] text-muted-foreground truncate flex items-center gap-1"
-            data-oid="r_9si4x"
-          >
-            {user.country}
+
+          <div className="text-[10px] text-slate-400 dark:text-slate-500 truncate font-medium">
+            {user.country || 'Global'}
           </div>
         </div>
       </div>
-      <div className="col-span-3 md:col-span-2 text-center hidden md:block" data-oid="l.1woaa">
+
+      {/* Band Score */}
+      <div className="col-span-3 sm:col-span-2 text-center hidden sm:block">
         <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            isSticky
-              ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300'
-              : Number(user.bandScore) >= 7.5
-                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                : Number(user.bandScore) >= 6.5
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                  : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+          className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold ${
+            Number(user.bandScore) >= 7.5
+              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+              : Number(user.bandScore) >= 6.5
+                ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                : Number(user.bandScore) > 0
+                  ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
           }`}
-          data-oid="7o0tpu6"
         >
-          {user.bandScore}
+          {Number(user.bandScore) > 0 ? `Band ${user.bandScore}` : '-'}
         </span>
       </div>
-      <div
-        className="col-span-2 md:col-span-2 text-center flex justify-center items-center gap-1 text-muted-foreground font-medium text-sm"
-        data-oid="5jnzyc9"
-      >
+
+      {/* Streak */}
+      <div className="col-span-2 sm:col-span-2 text-center flex items-center justify-center gap-1 text-xs">
         {user.streak > 0 ? (
-          <>
-            <Flame className="w-4 h-4 text-orange-500 fill-orange-500" data-oid="6536.kx" />
-            <span
-              className={`font-medium ${isSticky ? 'text-orange-600 dark:text-orange-400 font-bold' : 'text-orange-600 dark:text-orange-400'}`}
-              data-oid="r.tk20f"
-            >
-              {user.streak}
-            </span>
-          </>
-        ) : (
-          <span className="opacity-50" data-oid="ns3ffs4">
-            -
+          <span className="inline-flex items-center gap-1 font-bold text-amber-600 dark:text-amber-400">
+            <Flame className="w-3.5 h-3.5 fill-amber-500 text-amber-500 group-hover:scale-110 transition-transform" />
+            <span>{user.streak}</span>
           </span>
+        ) : (
+          <span className="text-slate-300 dark:text-slate-600 text-xs">-</span>
         )}
       </div>
+
+      {/* Total XP */}
       <div
-        className={`col-span-3 md:col-span-2 text-right font-bold transition-colors ${
-          isSticky ? 'text-primary text-lg' : 'text-foreground group-hover:text-primary'
+        className={`col-span-3 sm:col-span-2 text-right font-black text-xs sm:text-sm ${
+          isSticky || isCurrentUser
+            ? 'text-indigo-600 dark:text-indigo-400'
+            : 'text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
         }`}
-        data-oid="tdezao."
       >
-        {user.points.toLocaleString()}
+        {user.points.toLocaleString()}{' '}
+        <span className="text-[9px] font-bold text-slate-400 uppercase">XP</span>
       </div>
     </motion.div>
   );

@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { renderSitemap } from '../api/sitemap.js';
 
 const root = process.cwd();
 const siteUrl = 'https://www.ieltsai.pro';
@@ -40,7 +41,17 @@ const fail = (message) => {
   throw new Error(`SEO check failed: ${message}`);
 };
 
-const sitemap = readFileSync(path.join(root, 'public/sitemap.xml'), 'utf8');
+const staticSitemapPath = path.join(root, 'public/sitemap.xml');
+if (existsSync(staticSitemapPath)) {
+  fail('public/sitemap.xml shadows the dynamic /api/sitemap rewrite');
+}
+
+const sitemap = renderSitemap([
+  {
+    slug: 'seo-validation-article',
+    updated_at: '2026-07-27T00:00:00Z',
+  },
+]);
 const robots = readFileSync(path.join(root, 'public/robots.txt'), 'utf8');
 const llms = readFileSync(path.join(root, 'public/llms.txt'), 'utf8');
 const vercel = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8'));
@@ -60,6 +71,9 @@ for (const route of publicRoutes) {
 const sitemapLocations = Array.from(sitemap.matchAll(/<loc>([^<]+)<\/loc>/g), (match) => match[1]);
 if (new Set(sitemapLocations).size !== sitemapLocations.length) {
   fail('sitemap contains duplicate canonical URLs');
+}
+if (!sitemap.includes(`<loc>${siteUrl}/blog/seo-validation-article</loc>`)) {
+  fail('dynamic sitemap does not include published article routes');
 }
 
 if (!robots.includes(`Sitemap: ${siteUrl}/sitemap.xml`)) {

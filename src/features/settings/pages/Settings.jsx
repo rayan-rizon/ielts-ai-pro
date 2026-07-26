@@ -3,7 +3,7 @@ import { useUserProfile, useUpdateProfile } from '@/features/auth/hooks/useUserP
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryClient';
 import { mergeDefaultTestMode } from '@/features/testing/shared/testMode';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,12 +28,12 @@ import {
   Crown,
   Gift,
   BarChart3,
+  Check,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
 import { Badge } from '@/components/ui/badge';
-import { useSearchParams } from 'react-router-dom';
 import { generateAdaptiveLearningPath } from '@/utils/api';
 import {
   getWeeklyCapacity,
@@ -55,10 +55,10 @@ const loadSupabaseClient = () => import('@/lib/supabase').then((module) => modul
 
 function SettingsTabFallback() {
   return (
-    <div className="rounded-3xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 p-6 space-y-4">
-      <Skeleton className="h-8 w-48 rounded-xl" />
-      <Skeleton className="h-24 w-full rounded-2xl" />
-      <Skeleton className="h-24 w-full rounded-2xl" />
+    <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 p-5 space-y-3">
+      <Skeleton className="h-6 w-36 rounded-lg" />
+      <Skeleton className="h-20 w-full rounded-xl" />
+      <Skeleton className="h-20 w-full rounded-xl" />
     </div>
   );
 }
@@ -163,8 +163,8 @@ export default function Settings() {
         await generateAdaptiveLearningPath({ trigger: 'goal_changed' });
         queryClient.invalidateQueries({ queryKey: ['learningPath'] });
       }
+      toast.success('Settings saved successfully!');
     } catch (error) {
-      // The profile mutation and plan generator provide their own user-facing errors.
       console.warn('Study goal save did not fully complete:', error?.message);
     }
   };
@@ -178,7 +178,6 @@ export default function Settings() {
       toast.error('Error', { description: 'Password must be at least 8 characters.' });
       return;
     }
-    // Simple checks for upper, lower, number
     if (
       !/[A-Z]/.test(passwordData.newPassword) ||
       !/[a-z]/.test(passwordData.newPassword) ||
@@ -284,7 +283,7 @@ export default function Settings() {
   if (isUserLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-[#020617]">
-        <Clock className="w-10 h-10 animate-spin text-indigo-600" />
+        <Clock className="w-8 h-8 animate-spin text-indigo-600" />
       </div>
     );
   }
@@ -302,53 +301,65 @@ export default function Settings() {
   };
 
   return (
-    <div className="relative min-h-screen pb-20 bg-slate-50 dark:bg-[#020617] transition-colors duration-500 overflow-hidden font-sans">
-      {/* Background blobs / grid */}
+    <div className="relative min-h-screen pb-16 bg-slate-50 dark:bg-[#020617] transition-colors duration-300 font-sans">
+      {/* Background Subtle Gradient & Grid */}
       <div aria-hidden="true" className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[70rem] h-[70rem] rounded-full bg-slate-200/30 dark:bg-indigo-950/20 blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[60rem] h-[60rem] rounded-full bg-indigo-100/20 dark:bg-slate-900/10 blur-[120px]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808005_1px,transparent_1px),linear-gradient(to_bottom,#80808005_1px,transparent_1px)] bg-[size:48px_48px]" />
+        <div className="absolute top-[-5%] left-[-5%] w-[45rem] h-[45rem] rounded-full bg-indigo-500/10 blur-[100px]" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[40rem] h-[40rem] rounded-full bg-violet-500/10 blur-[100px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808005_1px,transparent_1px),linear-gradient(to_bottom,#80808005_1px,transparent_1px)] bg-[size:32px_32px]" />
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="p-4 sm:p-6 md:p-8 lg:p-10 max-w-[1600px] mx-auto space-y-6 sm:space-y-8 relative z-10"
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className="p-3 sm:p-5 md:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-4 sm:space-y-6 relative z-10"
       >
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200 dark:border-white/10 pb-10">
-          <div className="space-y-1">
-            <Badge className="px-3 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 rounded-full font-bold uppercase tracking-widest text-[10px]">
-              Settings
-            </Badge>
-            <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-tight">
-              Manage Your{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">
-                Profile
-              </span>
-            </h1>
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-600/10 dark:bg-indigo-400/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+              <UserIcon className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                  Account Settings
+                </h1>
+                <Badge className="px-2.5 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 rounded-md font-semibold uppercase text-xs">
+                  {user?.subscription_tier || 'Free'}
+                </Badge>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                Manage your preferences, study goals, and account security.
+              </p>
+            </div>
           </div>
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            size="lg"
-            className="rounded-2xl px-8 h-12 font-black bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-500/25 active:scale-95 transition-all text-white border-0"
-          >
-            {isSaving ? (
-              <Clock className="mr-2 h-5 w-5 animate-spin" />
-            ) : (
-              <Save className="mr-2 h-5 w-5" />
-            )}
-            Save Changes
-          </Button>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              onClick={handleSave}
+              disabled={isSaving}
+              size="sm"
+              className="rounded-xl px-5 h-10 font-semibold bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20 active:scale-95 transition-all text-white text-sm border-0"
+            >
+              {isSaving ? (
+                <Clock className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-1.5 h-4 w-4" />
+              )}
+              Save Changes
+            </Button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Sidebar Nav */}
-          <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-10">
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 dark:border-white/5 overflow-hidden p-1 sm:p-2">
-              <nav className="flex lg:flex-col gap-1 sm:gap-2 overflow-x-auto no-scrollbar">
+        {/* Main Layout Grid (3:9 split) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          {/* Left Sidebar Column (3 cols) */}
+          <div className="lg:col-span-3 space-y-4 lg:sticky lg:top-6">
+            {/* Navigation Tabs */}
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 p-1.5">
+              <nav className="flex lg:flex-col gap-1 overflow-x-auto no-scrollbar">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
@@ -357,29 +368,29 @@ export default function Settings() {
                       key={item.id}
                       onClick={() => handleTabChange(item.id)}
                       className={cn(
-                        'flex shrink-0 items-center gap-2 sm:gap-4 px-4 sm:px-5 py-2.5 sm:py-3.5 text-xs sm:text-sm font-black rounded-xl sm:rounded-2xl transition-all duration-300 relative overflow-hidden whitespace-nowrap',
+                        'flex shrink-0 items-center gap-2.5 px-3.5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 relative overflow-hidden whitespace-nowrap',
                         isActive
-                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                          : 'text-slate-500 hover:text-slate-900 dark:hover:text-white dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20 font-bold'
+                          : 'text-slate-600 hover:text-slate-900 dark:hover:text-white dark:text-slate-400 hover:bg-slate-100/70 dark:hover:bg-white/5'
                       )}
                     >
                       <Icon
                         className={cn(
-                          'w-4 shrink-0 h-4',
+                          'w-4 h-4 shrink-0',
                           isActive ? 'text-white' : 'text-slate-400'
                         )}
                       />
-                      {item.label}
+                      <span>{item.label}</span>
                     </button>
                   );
                 })}
               </nav>
             </div>
 
-            {/* Profile Preview Card */}
-            <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl p-6 text-white shadow-2xl shadow-indigo-500/20 relative overflow-hidden group">
-              <div className="relative z-10 flex flex-col items-center text-center">
-                <div className="w-24 h-24 rounded-[2rem] overflow-hidden border-4 border-white/20 mb-6 shadow-2xl">
+            {/* Compact Profile Summary Widget */}
+            <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-2xl p-4 text-white shadow-md shadow-indigo-500/15 relative overflow-hidden hidden lg:block">
+              <div className="relative z-10 flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white/30 shrink-0 shadow-sm">
                   <img
                     src={
                       formData.avatar_url ||
@@ -389,24 +400,24 @@ export default function Settings() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <h4 className="text-2xl font-black">{formData.full_name || 'Your Name'}</h4>
-                <p className="text-indigo-100/70 text-sm font-medium">{formData.email}</p>
-                <div className="mt-8 pt-8 border-t border-white/10 w-full flex justify-between items-center px-2">
-                  <div className="text-left">
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                      Target Band
-                    </p>
-                    <p className="text-3xl font-black">{formData.target_band_score}</p>
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-sm font-bold truncate">
+                    {formData.full_name || 'User Profile'}
+                  </h4>
+                  <p className="text-xs text-indigo-100/90 truncate font-medium">
+                    {formData.email}
+                  </p>
+                  <div className="mt-1 flex items-center gap-2 text-xs font-semibold opacity-90">
+                    <Trophy className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Target Band {formData.target_band_score}</span>
                   </div>
-                  <Trophy className="w-10 h-10 text-white/20" />
                 </div>
               </div>
-              <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 text-white/10 rotate-12 group-hover:scale-110 transition-transform duration-700" />
             </div>
           </div>
 
-          {/* Tab Content */}
-          <div className="lg:col-span-8 space-y-6">
+          {/* Right Content Column (9 cols) */}
+          <div className="lg:col-span-9 space-y-4">
             <AnimatePresence mode="wait">
               {activeTab === 'profile' && (
                 <ProfileSection
@@ -414,6 +425,8 @@ export default function Settings() {
                   formData={formData}
                   setFormData={setFormData}
                   avatars={AVATARS}
+                  theme={theme}
+                  setTheme={setTheme}
                 />
               )}
               {activeTab !== 'profile' && (
@@ -465,29 +478,29 @@ export default function Settings() {
             }
           }}
         >
-          <DialogContent className="sm:max-w-[400px] rounded-3xl border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl p-6 md:p-8 shadow-2xl">
-            <DialogHeader className="space-y-3">
-              <DialogTitle className="flex items-center gap-3 text-2xl font-black text-rose-600">
-                <Trash2 className="h-6 w-6" />
+          <DialogContent className="sm:max-w-[380px] rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-5 shadow-xl">
+            <DialogHeader className="space-y-2">
+              <DialogTitle className="flex items-center gap-2 text-xl font-black text-rose-600">
+                <Trash2 className="h-5 w-5" />
                 Delete Account
               </DialogTitle>
-              <DialogDescription className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+              <DialogDescription className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
                 This action is permanent and will wipe all your IELTS progress.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-6">
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">
+            <div className="space-y-3 py-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
                 Type <span className="text-rose-600 font-bold px-1">DELETE</span> below
               </p>
               <Input
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="delete"
-                className="h-14 rounded-xl border-rose-500/20 focus:ring-rose-500 bg-transparent font-black text-center text-xl tracking-tight transition-all placeholder:opacity-30 outline-none"
+                className="h-11 rounded-xl border-rose-500/20 focus:ring-rose-500 bg-transparent font-black text-center text-lg tracking-tight transition-all placeholder:opacity-30 outline-none"
                 autoComplete="off"
               />
             </div>
-            <DialogFooter className="flex-row gap-3">
+            <DialogFooter className="flex-row gap-2">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -495,7 +508,7 @@ export default function Settings() {
                   setDeleteConfirmText('');
                 }}
                 disabled={isDeletingAccount}
-                className="rounded-xl h-12 font-bold flex-1 border-slate-200 dark:border-white/10 text-sm hover:bg-white/5 transition-all"
+                className="rounded-xl h-10 font-bold flex-1 border-slate-200 dark:border-white/10 text-xs hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
               >
                 Cancel
               </Button>
@@ -515,9 +528,9 @@ export default function Settings() {
                   }
                 }}
                 disabled={deleteConfirmText.toUpperCase() !== 'DELETE' || isDeletingAccount}
-                className="rounded-xl h-12 font-black flex-1 shadow-lg shadow-rose-500/20 text-sm border-0"
+                className="rounded-xl h-10 font-black flex-1 shadow-md shadow-rose-500/20 text-xs border-0"
               >
-                {isDeletingAccount ? <Clock className="animate-spin" /> : 'Confirm Wipe'}
+                {isDeletingAccount ? <Clock className="animate-spin w-4 h-4" /> : 'Confirm Wipe'}
               </Button>
             </DialogFooter>
           </DialogContent>

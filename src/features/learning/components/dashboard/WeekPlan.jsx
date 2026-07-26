@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { CalendarClock, CalendarDays, Check, ChevronDown, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format, parseISO, isValid } from 'date-fns';
 import { cn } from '@/lib/cn';
 import {
   DAY_FORMAT,
@@ -13,6 +17,12 @@ import {
 } from './dashboardUtils';
 
 function TaskDetails({ task, canReschedule, onReschedule }) {
+  const selectedDate = React.useMemo(() => {
+    if (!task.scheduled_date) return undefined;
+    const parsed = parseISO(task.scheduled_date);
+    return isValid(parsed) ? parsed : undefined;
+  }, [task.scheduled_date]);
+
   return (
     <div className="mt-3 rounded-xl bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-600 dark:bg-white/5 dark:text-slate-300 sm:ml-10">
       <p>
@@ -26,17 +36,36 @@ function TaskDetails({ task, canReschedule, onReschedule }) {
         {getFriendlyPlanText(task.success_criterion || 'Complete the task and review the outcome.')}
       </p>
       {task.id && canReschedule && (
-        <label className="mt-3 flex items-center gap-2 text-[10px] font-bold text-slate-600 dark:text-slate-400">
-          <CalendarClock className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" /> Move to
-          date
-          <input
-            type="date"
-            min={dateKey(new Date())}
-            value={task.scheduled_date || ''}
-            onChange={(event) => onReschedule(task, event.target.value)}
-            className="h-8 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-2.5 text-[10px] font-bold dark:border-white/10 dark:bg-slate-900"
-          />
-        </label>
+        <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-slate-600 dark:text-slate-400">
+          <CalendarClock className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />{' '}
+          Move to date
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="h-8 min-w-0 flex-1 justify-start rounded-xl border border-slate-200 bg-white px-2.5 text-[10px] font-bold dark:border-white/10 dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all outline-none"
+              >
+                {selectedDate ? format(selectedDate, 'MMM dd, yyyy') : 'Select date'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-auto p-0 rounded-2xl border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden"
+              align="start"
+            >
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  if (date) {
+                    onReschedule(task, format(date, 'yyyy-MM-dd'));
+                  }
+                }}
+                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       )}
     </div>
   );
