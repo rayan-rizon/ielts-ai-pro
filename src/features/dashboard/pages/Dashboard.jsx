@@ -163,31 +163,22 @@ export default function Dashboard() {
 
   return (
     <div
-      className="relative min-h-screen pb-20 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-blue-950/30 dark:to-indigo-950/40 transition-colors duration-500 overflow-hidden isolate"
+      className="relative min-h-screen pb-14 bg-gradient-to-b from-[#f8f5fe]/80 via-[#fcfaff] to-white dark:from-[#0d091e] dark:via-[#090716] dark:to-[#070914] transition-colors duration-300 overflow-hidden isolate"
       data-oid="ht.2yi4"
     >
-      {/* Enhanced Premium Background */}
+      {/* Performance-Optimized Ambient Background Glows */}
       <div
         aria-hidden="true"
-        className="fixed inset-0 -z-10 pointer-events-none overflow-hidden"
+        className="fixed inset-0 -z-10 pointer-events-none overflow-hidden contain-strict"
         data-oid="hskxaal"
       >
-        {/* Multi-layered gradient mesh */}
-        <div
-          className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops)),rgba(99,102,241,0.12)_0%,transparent_40%),radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops)),rgba(168,85,247,0.08)_0%,transparent_40%),radial-gradient(ellipse_at_center,_var(--tw-gradient-stops)),rgba(59,130,246,0.06)_0%,transparent_50%)] dark:bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops)),rgba(99,102,241,0.2)_0%,transparent_40%),radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops)),rgba(168,85,247,0.15)_0%,transparent_40%),radial-gradient(ellipse_at_center,_var(--tw-gradient-stops)),rgba(59,130,246,0.1)_0%,transparent_50%)]"
-          data-oid="45bv.q-"
-        />
+        <div className="absolute -left-32 top-10 h-[32rem] w-[32rem] rounded-full bg-violet-200/20 blur-[120px] dark:bg-violet-600/10 transform-gpu" />
+        <div className="absolute -right-32 top-1/4 h-[36rem] w-[36rem] rounded-full bg-purple-200/15 blur-[130px] dark:bg-purple-600/10 transform-gpu" />
 
-        {/* Enhanced grid pattern with top-fading radial mask */}
+        {/* Subtle grid pattern */}
         <div
-          className="absolute inset-0 bg-[linear-gradient(to_right,rgba(99,102,241,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(99,102,241,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)]"
+          className="absolute inset-0 bg-[linear-gradient(to_right,rgba(109,85,238,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(109,85,238,0.03)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)]"
           data-oid="e1fr11u"
-        />
-
-        {/* Subtle animated gradient overlay */}
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/5 dark:to-black/10 animate-pulse"
-          data-oid="7rth-uv"
         />
       </div>
 
@@ -195,7 +186,7 @@ export default function Dashboard() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="p-4 md:p-8 lg:p-10 max-w-[1600px] mx-auto space-y-8 relative z-10"
+        className="p-3.5 sm:p-5 md:p-6 lg:p-7 max-w-[1540px] mx-auto space-y-5 lg:space-y-6 relative z-10"
         data-oid="sa9heal"
       >
         {/* Header */}

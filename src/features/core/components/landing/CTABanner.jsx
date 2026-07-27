@@ -31,16 +31,16 @@ const benefits = [
 function CTABannerHeader() {
   return (
     <div>
-      <span className="inline-flex items-center gap-2 rounded-full border border-[#ddd8ff] bg-gradient-to-r from-[#f1edff]/90 to-white/75 px-3.5 py-1 text-[11px] font-extrabold text-[#4f35d8] shadow-sm backdrop-blur-xl dark:border-violet-400/20 dark:from-violet-400/10 dark:to-white/5 dark:text-violet-200">
-        <Sparkles className="h-3.5 w-3.5" /> Take the Next Step
+      <span className="inline-flex items-center gap-2 rounded-full border border-violet-200/80 bg-gradient-to-r from-violet-100/90 to-indigo-50/80 px-3.5 py-1 text-[11px] font-extrabold text-violet-700 shadow-xs backdrop-blur-xl dark:border-violet-400/30 dark:from-violet-500/20 dark:to-indigo-500/15 dark:text-violet-200 dark:shadow-[0_0_15px_rgba(167,139,250,0.15)]">
+        <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-300" /> Take the Next Step
       </span>
 
-      <h2 className="mt-3 text-balance text-[clamp(1.85rem,3vw,3rem)] font-black leading-[1.05] tracking-tight text-[#07142f] dark:text-white">
+      <h2 className="mt-3.5 text-balance text-[clamp(1.85rem,3vw,3rem)] font-black leading-[1.05] tracking-tight text-slate-900 dark:text-white">
         <span>Your Best IELTS Score is </span>
-        <span className="relative inline-block font-handwritten bg-gradient-to-r from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text text-[1.02em] leading-[1.08] tracking-[-0.025em] text-transparent">
+        <span className="relative inline-block font-handwritten bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 dark:from-violet-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-[1.02em] leading-[1.08] tracking-[-0.025em] text-transparent">
           One Click Away!
           <svg
-            className="absolute bottom-0 left-0 w-full h-2.5 text-[#7384f8]"
+            className="absolute bottom-0 left-0 w-full h-2.5 text-violet-500 dark:text-violet-300"
             viewBox="0 0 200 10"
             fill="none"
             preserveAspectRatio="none"
@@ -55,7 +55,7 @@ function CTABannerHeader() {
         </span>
       </h2>
 
-      <p className="mt-2.5 max-w-xl text-sm sm:text-[15px] font-semibold leading-relaxed text-[#26344f] dark:text-slate-200">
+      <p className="mt-2.5 max-w-xl text-sm sm:text-[15px] font-semibold leading-relaxed text-slate-600 dark:text-slate-300">
         Join thousands of learners improving every day with AI-powered practice and expert feedback.
       </p>
     </div>
@@ -64,7 +64,7 @@ function CTABannerHeader() {
 
 function CTABannerBenefits({ reduceMotion, viewport }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200/50 dark:border-white/5">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3.5 border-t border-slate-200/60 dark:border-white/10">
       {benefits.map(({ icon: Icon, label, detail, colorClass }, index) => (
         <m.div
           key={label}
@@ -75,15 +75,15 @@ function CTABannerBenefits({ reduceMotion, viewport }) {
           className="flex items-start gap-2.5 text-left"
         >
           <span
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border shadow-sm mt-0.5 ${colorClass}`}
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border shadow-xs mt-0.5 ${colorClass}`}
           >
             <Icon className="h-4 w-4" />
           </span>
           <div>
-            <h4 className="text-xs font-bold text-[#15213a] dark:text-white leading-tight">
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
               {label}
             </h4>
-            <p className="mt-0.5 text-[11px] text-[#667287] dark:text-slate-400 font-medium leading-tight">
+            <p className="mt-0.5 text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-tight">
               {detail}
             </p>
           </div>
@@ -103,9 +103,9 @@ function CTABannerActionCard({ handlePrimaryCta, reduceMotion }) {
       <button
         type="button"
         onClick={handlePrimaryCta}
-        className="group relative block w-full max-w-full sm:max-w-[350px] lg:max-w-[365px] overflow-hidden rounded-[24px] border border-slate-200/90 bg-white text-left shadow-[0_20px_45px_-10px_rgba(82,98,239,0.22)] dark:shadow-[0_25px_50px_-15px_rgba(0,0,0,0.6)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_25px_50px_-8px_rgba(82,98,239,0.32)] hover:border-slate-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#7664f2]/30 dark:border-white/15 dark:bg-[#0b0f19] transform-gpu"
+        className="group relative block w-full max-w-full sm:max-w-[350px] lg:max-w-[365px] overflow-hidden rounded-[24px] border border-slate-200/90 dark:border-violet-400/30 bg-white dark:bg-[#0c1020] text-left shadow-[0_20px_45px_-10px_rgba(82,98,239,0.22)] dark:shadow-[0_25px_50px_-10px_rgba(0,0,0,0.8)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_25px_50px_-8px_rgba(82,98,239,0.35)] dark:hover:shadow-[0_25px_50px_-5px_rgba(109,85,232,0.4)] hover:border-slate-300 dark:hover:border-violet-400/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#7664f2]/30 transform-gpu"
       >
-        <span className="relative flex items-center justify-between overflow-hidden bg-gradient-to-br from-[#7638ea] via-[#6244ee] to-[#216ff0] px-5 sm:px-6 py-5 text-white">
+        <span className="relative flex items-center justify-between overflow-hidden bg-gradient-to-br from-[#7638ea] via-[#6244ee] to-[#2563eb] px-5 sm:px-6 py-5 text-white">
           <span className="pointer-events-none absolute -right-14 -top-20 h-52 w-52 rounded-full bg-white/15 blur-2xl" />
 
           <span className="relative z-10 pr-2 flex-1 space-y-2">
@@ -135,15 +135,15 @@ function CTABannerActionCard({ handlePrimaryCta, reduceMotion }) {
           </span>
         </span>
 
-        <span className="flex items-center gap-3 bg-slate-50/90 dark:bg-[#080c14] px-5 sm:px-6 py-3 border-t border-slate-200/60 dark:border-white/10">
+        <span className="flex items-center gap-3 bg-slate-50 dark:bg-[#080b16] px-5 sm:px-6 py-3 border-t border-slate-200/60 dark:border-white/10">
           <SkillBadgeStack size="sm" variant="avatars" />
-          <span className="text-xs font-bold leading-tight text-[#1b2841] dark:text-white">
+          <span className="text-xs font-bold leading-tight text-slate-800 dark:text-white">
             Reading, Listening, Writing, and Speaking practice
           </span>
         </span>
       </button>
 
-      <Sparkles className="pointer-events-none absolute -right-2 -top-5 h-6 w-6 text-[#9c84ee] sm:-right-4 animate-pulse" />
+      <Sparkles className="pointer-events-none absolute -right-2 -top-5 h-6 w-6 text-purple-400 sm:-right-4 animate-pulse" />
     </m.div>
   );
 }
@@ -152,7 +152,7 @@ export default function CTABanner({ handlePrimaryCta, viewport }) {
   const reduceMotion = useReducedMotion();
 
   return (
-    <SoftSection className="bg-gradient-to-b from-[#f4f7fc] to-[#eef2f8] dark:from-[#090d1f] dark:to-[#050711] py-8 md:py-12 lg:py-14">
+    <SoftSection className="bg-gradient-to-b from-[#f4f7fc] to-[#eef2f8] dark:from-[#080c1b] dark:to-[#04060e] py-8 md:py-12 lg:py-14">
       <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-5 md:px-8">
         <m.div
           initial={{ opacity: 0, y: reduceMotion ? 0 : 20 }}
@@ -160,10 +160,10 @@ export default function CTABanner({ handlePrimaryCta, viewport }) {
           viewport={viewport}
           transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
         >
-          <GlassPanel className="relative overflow-hidden rounded-[24px] border-slate-200/90 dark:border-white/10 px-5 py-6 text-left sm:px-7 sm:py-7 md:rounded-[32px] md:px-8 lg:px-10 lg:py-8">
-            <div className="pointer-events-none absolute -left-24 -top-32 h-80 w-80 rounded-full bg-[#c9f6ea]/45 blur-[90px]" />
-            <div className="pointer-events-none absolute -bottom-36 right-[8%] h-[28rem] w-[28rem] rounded-full bg-[#ced4ff]/55 blur-[100px]" />
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,.3),transparent_48%,rgba(130,112,255,.05))]" />
+          <div className="relative overflow-hidden rounded-[24px] border border-slate-200/90 dark:border-violet-500/25 bg-white/90 dark:bg-gradient-to-b dark:from-[#11162b]/95 dark:via-[#0e1224]/95 dark:to-[#0a0d1a]/95 px-5 py-6 text-left sm:px-7 sm:py-7 md:rounded-[32px] md:px-8 lg:px-10 lg:py-8 shadow-2xl dark:shadow-[0_30px_70px_-15px_rgba(109,85,232,0.3)] backdrop-blur-2xl">
+            <div className="pointer-events-none absolute -left-24 -top-32 h-80 w-80 rounded-full bg-indigo-400/20 dark:bg-violet-600/25 blur-[90px]" />
+            <div className="pointer-events-none absolute -bottom-36 right-[8%] h-[28rem] w-[28rem] rounded-full bg-purple-400/20 dark:bg-indigo-600/25 blur-[100px]" />
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,.3),transparent_48%,rgba(130,112,255,.05))] dark:bg-[linear-gradient(115deg,rgba(255,255,255,.03),transparent_48%,rgba(130,112,255,.08))]" />
 
             <div className="relative z-10 grid items-center gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 xl:gap-10">
               <div className="space-y-4">
@@ -175,7 +175,7 @@ export default function CTABanner({ handlePrimaryCta, viewport }) {
                 reduceMotion={reduceMotion}
               />
             </div>
-          </GlassPanel>
+          </div>
         </m.div>
       </div>
     </SoftSection>

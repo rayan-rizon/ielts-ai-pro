@@ -44,7 +44,7 @@ export function AuthLeftPanel() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Logo size="lg" iconOnly={false} className="text-white" />
+          <Logo size="lg" iconOnly={false} variant="dark" />
         </motion.div>
 
         {/* Hero Title */}

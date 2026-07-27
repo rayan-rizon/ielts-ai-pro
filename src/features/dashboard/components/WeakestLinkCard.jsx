@@ -70,11 +70,11 @@ const WeakestLinkCard = React.memo(({ weakestSkill }) => {
   return (
     <Card
       className={cn(
-        'relative rounded-2xl transition-all duration-400 overflow-hidden group h-full flex flex-col isolate transform-gpu',
-        'bg-white dark:bg-slate-900',
-        'border border-slate-200 dark:border-slate-800',
-        'shadow-sm',
-        'hover:border-indigo-500/40 dark:hover:border-indigo-500/40 hover:shadow-md transition-all duration-300'
+        'relative rounded-2xl transition-all duration-300 overflow-hidden group h-full flex flex-col isolate transform-gpu',
+        'bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl',
+        'border border-rose-200/80 dark:border-rose-500/25',
+        'shadow-[0_10px_30px_-10px_rgba(244,63,94,0.1)]',
+        'hover:shadow-[0_15px_35px_-10px_rgba(244,63,94,0.16)] hover:border-rose-300 dark:hover:border-rose-400/40 transition-all duration-300'
       )}
     >
       <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/15 dark:bg-rose-500/10 rounded-full blur-[80px] -mr-10 -mt-10 pointer-events-none" />
@@ -130,9 +130,9 @@ const WeakestLinkCard = React.memo(({ weakestSkill }) => {
           <Button
             asChild
             className={cn(
-              'w-full rounded-xl h-11 transition-all duration-300 group/btn relative overflow-hidden',
-              'bg-slate-900 dark:bg-rose-500 text-white shadow-lg shadow-rose-500/10 hover:shadow-rose-500/20',
-              'hover:bg-rose-700 dark:hover:bg-rose-600 hover:scale-[1.02] active:scale-[0.98]'
+              'w-full rounded-xl h-11 font-extrabold transition-all duration-300 group/btn relative overflow-hidden',
+              'bg-gradient-to-r from-rose-500 via-rose-600 to-pink-600 text-white shadow-[0_10px_25px_-6px_rgba(244,63,94,0.4)] hover:shadow-[0_14px_30px_-6px_rgba(244,63,94,0.55)]',
+              'hover:scale-[1.02] active:scale-[0.98] border-0'
             )}
           >
             <Link

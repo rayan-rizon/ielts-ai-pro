@@ -67,10 +67,10 @@ function getNavClasses(isScrolled) {
     nav: isScrolled ? 'py-2 px-4 sm:px-6 translate-y-0' : 'py-0 px-0 translate-y-0',
     wrapper: isScrolled ? 'max-w-7xl' : 'max-w-full',
     bar: isScrolled
-      ? 'h-12 md:h-14 px-4 md:px-5 rounded-full bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border border-black/[0.08] dark:border-white/10 shadow-lg ring-1 ring-black/5 dark:ring-white/10'
-      : 'h-14 md:h-16 px-4 md:px-6 rounded-none bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-black/5 dark:border-white/5 border-t-0 border-x-0',
+      ? 'h-12 md:h-14 px-4 md:px-5 rounded-full bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl border border-indigo-100/60 dark:border-slate-800/80 shadow-[0_10px_35px_-10px_rgba(79,70,229,0.18)] dark:shadow-[0_10px_35px_-10px_rgba(0,0,0,0.7)] ring-1 ring-black/5 dark:ring-white/10'
+      : 'h-14 md:h-16 px-4 md:px-6 rounded-none bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 border-t-0 border-x-0',
     glass: isScrolled ? 'rounded-full' : 'rounded-none',
-    glassOpacity: isScrolled ? 'opacity-40' : 'opacity-20',
+    glassOpacity: isScrolled ? 'opacity-50' : 'opacity-25',
     content: isScrolled ? 'max-w-full' : 'max-w-7xl mx-auto px-2 md:px-8',
   };
 }
@@ -149,7 +149,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
             <div className="flex items-center gap-2 md:gap-3 relative z-[101]" data-oid="z.sf-4g">
               <Button
                 variant="ghost"
-                className="h-8 w-8 md:h-9 md:w-9 rounded-full flex items-center justify-center p-0 bg-slate-100/80 dark:bg-white/10 hover:bg-indigo-50 dark:hover:bg-white/20 text-slate-700 dark:text-amber-300 transition-all duration-300 hover:scale-110 active:scale-95 border border-slate-200/60 dark:border-white/10 shadow-xs"
+                className="h-8 w-8 md:h-9 md:w-9 rounded-full flex items-center justify-center p-0 bg-slate-100/90 dark:bg-slate-900/90 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-slate-700 dark:text-amber-300 transition-all duration-300 hover:scale-105 active:scale-95 border border-slate-200/80 dark:border-slate-800/80 shadow-xs hover:border-indigo-300/60 dark:hover:border-indigo-500/40"
                 onClick={() => setTheme(isDark ? 'light' : 'dark')}
                 aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
                 data-oid="6m:a:wq"
@@ -178,7 +178,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
               </Button>
 
               <Button
-                className="hidden sm:inline-flex rounded-full px-5 md:px-6 h-8 md:h-9 text-xs md:text-sm font-extrabold shadow-md shadow-indigo-600/20 hover:shadow-lg hover:shadow-indigo-600/35 hover:-translate-y-[1px] hover:scale-[1.02] active:scale-98 transition-all duration-200 bg-indigo-600 hover:bg-indigo-500 text-white border-none"
+                className="hidden sm:inline-flex rounded-full px-5 md:px-6 h-8 md:h-9 text-xs md:text-sm font-extrabold shadow-md shadow-indigo-600/25 hover:shadow-lg hover:shadow-indigo-600/40 hover:-translate-y-[1px] hover:scale-[1.02] active:scale-98 transition-all duration-200 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white border border-indigo-400/30"
                 onClick={handlePrimaryCta}
                 data-oid="g5n7eo4"
               >
@@ -188,7 +188,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
 
               {/* Mobile Menu Toggle */}
               <button
-                className="lg:hidden h-8 w-8 flex items-center justify-center p-0 rounded-full bg-black/5 dark:bg-white/5 text-foreground hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                className="lg:hidden h-8 w-8 flex items-center justify-center p-0 rounded-full bg-slate-100/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800/80 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors shadow-xs"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
                 data-oid="bqhg9k2"

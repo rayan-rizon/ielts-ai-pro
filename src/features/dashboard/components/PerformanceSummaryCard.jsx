@@ -190,11 +190,11 @@ const PerformanceSummaryCard = React.memo(({ recentTests = [], stats }) => {
     <Card
       className={cn(
         'relative rounded-2xl transition-all duration-300 overflow-hidden group h-full flex flex-col',
-        'bg-white dark:bg-slate-900',
-        'border border-slate-200 dark:border-slate-800',
-        'shadow-sm',
-        'hover:shadow-md transition-shadow duration-300',
-        'hover:border-indigo-500/40 dark:hover:border-indigo-500/40'
+        'bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl',
+        'border border-violet-200/80 dark:border-violet-500/20',
+        'shadow-[0_10px_30px_-10px_rgba(109,85,238,0.08)]',
+        'hover:shadow-[0_15px_35px_-10px_rgba(109,85,238,0.14)] transition-all duration-300',
+        'hover:border-violet-300 dark:hover:border-violet-400/40'
       )}
     >
       {/* Decorative pattern */}

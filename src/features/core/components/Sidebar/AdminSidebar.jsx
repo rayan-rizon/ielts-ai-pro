@@ -1,6 +1,7 @@
 import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { m } from 'framer-motion';
+import { Logo } from '@/components/shared/Logo';
 import { ShieldCheck, Sparkles, Plus, Crown, LogOut } from 'lucide-react';
 import {
   SidebarHeader,
@@ -100,37 +101,28 @@ const AdminSidebarHeader = memo(() => (
       className="flex items-center justify-between group-data-[collapsible=icon]:justify-center"
       data-oid="ja5oba."
     >
-      <div className="flex items-center gap-3" data-oid="_sq00kt">
-        <div
-          className="w-10 h-10 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 rounded-xl flex items-center justify-center shadow-md relative overflow-hidden bg-background border border-border/60 shrink-0"
-          data-oid="nggp_nh"
-        >
+      <Link to="/admin" className="flex items-center gap-3 w-full" data-oid="_sq00kt">
+        {/* Collapsed Icon: logo-icon.svg */}
+        <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center shrink-0 w-8 h-8">
           <img
-            src="/favicon.webp"
-            alt="IELTS Ai Pro Logo"
-            className="w-full h-full object-cover rounded-xl"
-            data-oid="admin-sidebar-logo-img"
+            src="/logo-icon.svg"
+            alt="IELTS AI Pro Admin"
+            className="w-8 h-8 object-contain"
+            data-oid="admin-sidebar-logo-img-collapsed"
           />
         </div>
-        <div className="min-w-0 group-data-[collapsible=icon]:hidden" data-oid="21p78tx">
-          <h2
-            className="font-bold text-foreground text-sm truncate uppercase tracking-tight"
-            data-oid="iffv6e5"
-          >
-            Admin Console
-          </h2>
-          <div
-            className="text-[10px] text-muted-foreground/70 font-semibold flex items-center gap-1.5"
-            data-oid="rl3xc:a"
-          >
-            <Sparkles
-              className="w-2.5 h-2.5 text-rose-500 animate-pulse-subtle"
-              data-oid="7jlhww."
-            />
-            SYSTEM ACCESS
-          </div>
+
+        {/* Expanded Logo */}
+        <div
+          className="group-data-[collapsible=icon]:hidden flex items-center gap-2"
+          data-oid="21p78tx"
+        >
+          <Logo size="sm" />
+          <span className="text-[9px] font-black uppercase tracking-wider text-amber-600 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-1.5 py-0.5 rounded-full shrink-0">
+            Admin
+          </span>
         </div>
-      </div>
+      </Link>
     </div>
   </SidebarHeader>
 ));

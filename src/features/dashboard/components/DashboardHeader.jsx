@@ -14,9 +14,9 @@ const itemVariants = {
 const DashboardHeader = React.memo(
   ({ dateLabel, greeting, user, progressToTarget, stats, recommended }) => {
     return (
-      <m.header variants={itemVariants} className="space-y-6" data-oid="-l:v0.c">
+      <m.header variants={itemVariants} className="space-y-4" data-oid="-l:v0.c">
         <div
-          className="flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+          className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5"
           data-oid="qqtbbbx"
         >
           <div className="flex-1" data-oid="1y.i40n">
@@ -55,7 +55,7 @@ const DashboardHeader = React.memo(
               ) : null}
             </div>
             <h1
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white mt-3 leading-tight"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mt-3 leading-tight"
               data-oid="yxy9dml"
             >
               {greeting},{' '}
@@ -91,8 +91,8 @@ const DashboardHeader = React.memo(
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               className={cn(
-                'grid grid-cols-2 md:flex md:flex-row items-center xl:items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-0 md:p-1 shadow-sm w-full xl:w-auto overflow-hidden',
-                'hover:border-indigo-500/30 dark:hover:border-indigo-500/40 transition-all duration-300'
+                'grid grid-cols-2 md:flex md:flex-row items-center xl:items-center bg-white/90 dark:bg-slate-900/90 border border-violet-200/80 dark:border-violet-500/25 rounded-2xl p-1 md:p-1.5 shadow-[0_10px_30px_-10px_rgba(109,85,238,0.14)] backdrop-blur-xl w-full xl:w-auto overflow-hidden',
+                'hover:border-violet-300 dark:hover:border-violet-400/40 transition-all duration-300'
               )}
               data-oid="_y7fk07"
             >

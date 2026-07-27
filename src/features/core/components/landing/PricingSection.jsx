@@ -294,31 +294,45 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
           className="text-center mb-12"
         >
           <m.div variants={itemVariants} className="flex justify-center">
-            <div className="inline-flex items-center rounded-full border border-slate-200/80 bg-slate-100/80 p-1.5 shadow-2xs backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/80">
+            <div className="relative inline-flex items-center rounded-full border border-slate-200/90 bg-slate-100/90 p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-xl dark:border-white/15 dark:bg-slate-900/90">
               <button
                 type="button"
                 onClick={() => setBillingCycle('monthly')}
                 className={cn(
-                  'px-6 py-2 rounded-full text-xs font-extrabold tracking-wide transition-all duration-200',
+                  'relative z-10 px-6 sm:px-7 py-2.5 rounded-full text-xs sm:text-[13px] font-extrabold tracking-tight transition-colors duration-200',
                   billingCycle === 'monthly'
-                    ? 'bg-white text-slate-950 shadow-sm dark:bg-slate-800 dark:text-white'
+                    ? 'text-slate-950 dark:text-white'
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 )}
               >
+                {billingCycle === 'monthly' && (
+                  <m.span
+                    layoutId="activeBillingTab"
+                    className="absolute inset-0 z-[-1] rounded-full bg-white shadow-[0_2px_10px_-2px_rgba(15,23,42,0.12)] dark:bg-slate-800"
+                    transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                  />
+                )}
                 Monthly
               </button>
               <button
                 type="button"
                 onClick={() => setBillingCycle('quarterly')}
                 className={cn(
-                  'px-6 py-2 rounded-full text-xs font-extrabold tracking-wide transition-all duration-200 relative flex items-center gap-2',
+                  'relative z-10 px-5 sm:px-6 py-2.5 rounded-full text-xs sm:text-[13px] font-extrabold tracking-tight transition-colors duration-200 flex items-center gap-2',
                   billingCycle === 'quarterly'
-                    ? 'bg-white text-slate-950 shadow-sm dark:bg-slate-800 dark:text-white'
+                    ? 'text-slate-950 dark:text-white'
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 )}
               >
+                {billingCycle === 'quarterly' && (
+                  <m.span
+                    layoutId="activeBillingTab"
+                    className="absolute inset-0 z-[-1] rounded-full bg-white shadow-[0_2px_10px_-2px_rgba(15,23,42,0.12)] dark:bg-slate-800"
+                    transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                  />
+                )}
                 <span>Quarterly</span>
-                <span className="bg-indigo-600 text-[10px] font-black uppercase text-white px-2 py-0.5 rounded-full shadow-2xs">
+                <span className="bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] text-[10px] font-black uppercase tracking-wider text-white px-2.5 py-0.5 rounded-full shadow-2xs">
                   Save 15%
                 </span>
               </button>

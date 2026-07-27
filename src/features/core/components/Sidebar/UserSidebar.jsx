@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { m } from 'framer-motion';
+import { Logo } from '@/components/shared/Logo';
 import {
   Brain,
   Sparkles,
@@ -202,36 +203,25 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
           className="flex items-center justify-between group-data-[collapsible=icon]:justify-center"
           data-oid=".evd_wm"
         >
-          <div className="flex items-center gap-3" data-oid="d589.-y">
-            <m.div
-              whileHover={{ scale: 1.05, rotate: 5 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-              className="w-10 h-10 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 rounded-xl flex items-center justify-center shadow-md relative overflow-hidden bg-background border border-border/60 shrink-0"
-              data-oid="5jo1y60"
-            >
+          <Link to="/dashboard" className="flex items-center gap-3 w-full" data-oid="d589.-y">
+            {/* Collapsed Icon: logo-icon.svg */}
+            <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center shrink-0 w-8 h-8">
               <img
-                src="/favicon.webp"
-                alt="IELTS Ai Pro Logo"
-                className="w-full h-full object-cover rounded-xl"
-                data-oid="sidebar-logo-img"
+                src="/logo-icon.svg"
+                alt="IELTS AI Pro Icon"
+                className="w-8 h-8 object-contain"
+                data-oid="sidebar-logo-img-collapsed"
               />
-            </m.div>
-            <div className="min-w-0 group-data-[collapsible=icon]:hidden" data-oid="03:p4g9">
-              <h2 className="font-bold text-base truncate text-foreground" data-oid="zpyd:z.">
-                IELTS <span className="text-primary italic font-black">Ai</span> Pro
-              </h2>
-              <div
-                className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5"
-                data-oid="70s5cti"
-              >
-                <Sparkles
-                  className="w-2.5 h-2.5 text-amber-500 animate-spin-slow"
-                  data-oid=".59199j"
-                />
-                AI-Powered Platform
-              </div>
             </div>
-          </div>
+
+            {/* Expanded Full Logo */}
+            <div
+              className="group-data-[collapsible=icon]:hidden flex items-center"
+              data-oid="03:p4g9"
+            >
+              <Logo size="md" />
+            </div>
+          </Link>
         </div>
       </SidebarHeader>
 

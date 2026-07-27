@@ -61,7 +61,11 @@ const mergedRanges = ranges
     return merged;
   }, []);
 
-const criticalCss = mergedRanges.map(({ start, end }) => text.slice(start, end)).join('');
+const fontFaceRules = text.match(/@font-face\s*\{[^}]+\}/g) || [];
+const fontFaceBlock = fontFaceRules.join('\n');
+const bodyCss = mergedRanges.map(({ start, end }) => text.slice(start, end)).join('');
+const criticalCss = fontFaceBlock ? `${fontFaceBlock}\n${bodyCss}` : bodyCss;
+
 await mkdir(path.dirname(outputPath), { recursive: true });
 await writeFile(
   outputPath,

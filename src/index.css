@@ -4,7 +4,12 @@
 
 @layer utilities {
   .font-handwritten {
-    font-family: 'Kalam', 'Segoe Print', cursive;
+    font-family:
+      'Kalam',
+      'Segoe Print',
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif;
     font-weight: 700;
   }
 }
@@ -518,4 +523,21 @@
     grid-template-columns: repeat(12, 1fr);
     gap: 1.25rem;
   }
+}
+
+/* Sonner Toast Readability Overrides */
+[data-sonner-toast] [data-title] {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+.dark [data-sonner-toast] [data-title] {
+  color: #ffffff !important;
+}
+[data-sonner-toast] [data-description] {
+  color: #475569 !important;
+  font-weight: 500 !important;
+  opacity: 1 !important;
+}
+.dark [data-sonner-toast] [data-description] {
+  color: #cbd5e1 !important;
 }

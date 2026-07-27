@@ -137,7 +137,7 @@ function FooterBrandSection({ handleCopyEmail }) {
       {/* Logo & AI Badge Header */}
       <div className="flex items-center justify-center sm:justify-start gap-2.5">
         <Link to="/" className="block w-fit" viewTransition>
-          <Logo size="lg" className="text-white" />
+          <Logo size="lg" variant="footer" />
         </Link>
         <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-0.5 rounded-full backdrop-blur-md shrink-0">
           <Sparkles className="w-3 h-3 text-indigo-400 animate-pulse" />

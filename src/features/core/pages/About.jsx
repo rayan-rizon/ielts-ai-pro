@@ -50,7 +50,7 @@ export default function About() {
           publisher: {
             '@type': 'Organization',
             name: 'IELTS Ai Pro',
-            logo: 'https://www.ieltsai.pro/favicon.webp',
+            logo: 'https://www.ieltsai.pro/logo.svg',
           },
         }}
       />

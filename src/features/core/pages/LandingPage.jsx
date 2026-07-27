@@ -145,9 +145,9 @@ const getStructuredData = () => ({
       url: 'https://www.ieltsai.pro/',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://www.ieltsai.pro/logo.png',
-        width: 640,
-        height: 640,
+        url: 'https://www.ieltsai.pro/logo.svg',
+        width: 300,
+        height: 72,
       },
     },
     {

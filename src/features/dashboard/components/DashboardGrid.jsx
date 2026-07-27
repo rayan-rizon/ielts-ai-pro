@@ -42,7 +42,7 @@ export default function DashboardGrid({
   moduleCards,
 }) {
   return (
-    <div className="grid grid-cols-12 gap-5 lg:gap-6 auto-rows-max" data-oid=":xn8rdp">
+    <div className="grid grid-cols-12 gap-4 sm:gap-4.5 lg:gap-5 auto-rows-max" data-oid=":xn8rdp">
       {/* Row 1: Hero & Focus */}
       <div className="col-span-12 lg:col-span-8" data-oid="0rq3.ic">
         <m.div variants={itemVariants} data-oid="rcbo.47">

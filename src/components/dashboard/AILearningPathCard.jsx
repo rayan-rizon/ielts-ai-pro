@@ -177,10 +177,7 @@ const AILearningPathCard = React.memo(
                   data-oid="das10fk"
                 >
                   Your Daily{' '}
-                  <span
-                    className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-500 dark:from-blue-400 dark:via-purple-400 dark:to-purple-400"
-                    data-oid="p4o19w6"
-                  >
+                  <span className="text-[#6d55e8] dark:text-violet-400" data-oid="p4o19w6">
                     AI Learning Path
                   </span>
                 </h3>

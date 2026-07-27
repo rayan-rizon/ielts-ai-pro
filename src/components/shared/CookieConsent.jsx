@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cookie, Shield, BarChart3, Megaphone } from 'lucide-react';
+import { Cookie, Shield, BarChart3, Megaphone, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import {
@@ -23,22 +23,18 @@ export default function CookieConsent() {
     try {
       const storedConsent = localStorage.getItem(CONSENT_STORAGE_KEY);
       if (!storedConsent) {
-        // Only show if no consent is stored.
         // Small delay for better UX (don't slam the user immediately)
         const timer = setTimeout(() => setIsVisible(true), 1500);
         return () => clearTimeout(timer);
       }
     } catch (e) {
-      // Logic for when localStorage is blocked (e.g. strict security settings)
       console.warn('LocalStorage access denied:', e);
     }
   }, []);
 
   const saveConsent = (consentData) => {
-    // 1. Optimistic UI Update - Dismiss immediately
     setIsVisible(false);
 
-    // 2. Persist to LocalStorage
     try {
       const payload = {
         ...consentData,
@@ -47,7 +43,6 @@ export default function CookieConsent() {
       };
       localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(payload));
 
-      // Notify other tabs/components if needed
       window.dispatchEvent(new Event('storage'));
       refreshTrackingBootstrap();
       trackPageView(window.location.pathname);
@@ -55,8 +50,6 @@ export default function CookieConsent() {
       console.error('Failed to save consent locally:', error);
     }
 
-    // 3. Sync to Backend (Fire and forget)
-    // We don't await this to avoid blocking the UI
     syncConsentToDatabase(consentData);
   };
 
@@ -75,7 +68,6 @@ export default function CookieConsent() {
         });
       }
     } catch (error) {
-      // Silent fail for analytics sync
       console.warn('Background consent sync failed:', error);
     }
   };
@@ -84,177 +76,146 @@ export default function CookieConsent() {
 
   return (
     <div
-      className="fixed bottom-4 right-4 left-4 md:left-auto md:max-w-[320px] z-[200]"
+      className="fixed bottom-4 right-4 left-4 sm:left-auto sm:max-w-[310px] z-[200]"
       data-oid="h_5l9:v"
     >
-      <div className="relative group overflow-hidden" data-oid="rd7nz0m">
-        {/* Ambient Background Glow */}
-        <div
-          className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
-          data-oid="nr0c.h4"
-        />
-
-        <div
-          className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl rounded-2xl border border-zinc-200 dark:border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)] p-3.5"
-          data-oid="h54q63k"
-        >
-          <div className="flex items-start gap-2.5 mb-3" data-oid="tj:plw1">
-            <div className="relative" data-oid="glpra6z">
-              <div
-                className="relative w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shadow-md shadow-primary/20"
-                data-oid=".t1n1cq"
-              >
-                <Cookie className="w-4 h-4" data-oid="wv7xoxb" />
-              </div>
-            </div>
-            <div className="pt-0.5 flex-1" data-oid="jvidzpt">
-              <div
-                className="text-sm font-black tracking-tight text-zinc-900 dark:text-white mb-0.5"
-                data-oid="e9k95kq"
-              >
-                Privacy & Cookies
-              </div>
-              <p
-                className="text-xs font-medium text-zinc-500 dark:text-zinc-400 leading-tight"
-                data-oid="48-pi98"
-              >
-                We use essential cookies to power your IELTS prep experience.
-              </p>
-            </div>
-            <button
-              onClick={() => saveConsent({ functional: true, analytics: false, marketing: false })}
-              className="flex-shrink-0 w-6 h-6 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center transition-colors group"
-              data-oid="585tjgt"
-            >
-              <span
-                className="text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 text-xs font-black"
-                data-oid="b32h4b6"
-              >
-                ×
-              </span>
-            </button>
+      <div
+        className="rounded-[18px] border border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl p-3.5 shadow-lg shadow-slate-900/5 dark:shadow-slate-950/40"
+        data-oid="h54q63k"
+      >
+        <div className="flex items-start gap-2.5 mb-3" data-oid="tj:plw1">
+          <div className="shrink-0 w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-950/60 text-[#6d55e8] dark:text-violet-300 flex items-center justify-center">
+            <Cookie className="w-4 h-4" />
           </div>
-
-          {showDetails && (
-            <div className="overflow-hidden" data-oid="kozxe_4">
-              <div className="pt-1 pb-4 space-y-2" data-oid="sh2g0:u">
-                {[
-                  {
-                    id: 'functional',
-                    label: 'Essential',
-                    desc: 'Secure login & basics.',
-                    icon: Shield,
-                    locked: true,
-                  },
-                  {
-                    id: 'analytics',
-                    label: 'Analytics',
-                    desc: 'Improving score tools.',
-                    icon: BarChart3,
-                    locked: false,
-                  },
-                  {
-                    id: 'marketing',
-                    label: 'Personalization',
-                    desc: 'Relevant tips.',
-                    icon: Megaphone,
-                    locked: false,
-                  },
-                ].map((opt) => (
-                  <div
-                    key={opt.id}
-                    className={cn(
-                      'flex items-center justify-between p-3 rounded-xl border transition-all duration-300',
-                      preferences[opt.id]
-                        ? 'bg-primary/5 border-primary/20'
-                        : 'bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-white/5'
-                    )}
-                    data-oid="eebmwu7"
-                  >
-                    <div className="flex items-center gap-2.5" data-oid="_02s665">
-                      <opt.icon
-                        className={cn(
-                          'w-4 h-4',
-                          preferences[opt.id] ? 'text-primary' : 'text-zinc-400'
-                        )}
-                        data-oid="k3mbted"
-                      />
-
-                      <div data-oid="28c1ko0">
-                        <p
-                          className="text-xs font-black text-zinc-900 dark:text-zinc-100"
-                          data-oid="djb3wlf"
-                        >
-                          {opt.label}
-                        </p>
-                        <p className="text-[11px] font-medium text-zinc-500" data-oid="nfo8194">
-                          {opt.desc}
-                        </p>
-                      </div>
-                    </div>
-                    {opt.locked ? (
-                      <span
-                        className="text-[11px] font-black uppercase tracking-widest text-primary/60"
-                        data-oid="2ownkh-"
-                      >
-                        Req.
-                      </span>
-                    ) : (
-                      <button
-                        onClick={() => setPreferences((p) => ({ ...p, [opt.id]: !p[opt.id] }))}
-                        className={cn(
-                          'relative w-8 h-4 rounded-full transition-colors duration-300',
-                          preferences[opt.id] ? 'bg-primary' : 'bg-zinc-300 dark:bg-zinc-700'
-                        )}
-                        data-oid="9k1nbyy"
-                      >
-                        <span
-                          style={{
-                            transform: `translateX(${preferences[opt.id] ? 16 : 2}px)`,
-                          }}
-                          className="absolute top-0.5 left-0 w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-300"
-                          data-oid="5-v9814"
-                        />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="flex gap-2" data-oid="81sqc.p">
-            <Button
-              variant="outline"
-              onClick={() => setShowDetails(!showDetails)}
-              className="flex-1 rounded-lg h-9 text-[11px] font-medium border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:hover:bg-zinc-800"
-              data-oid="q:e5e8h"
-            >
-              {showDetails ? 'Hide' : 'Customize'}
-            </Button>
-            <Button
-              onClick={() =>
-                saveConsent(
-                  showDetails ? preferences : { functional: true, analytics: true, marketing: true }
-                )
-              }
-              className="flex-1 rounded-lg h-9 text-[11px] font-black bg-primary hover:bg-primary/90 text-white"
-              data-oid="80dss-w"
-            >
-              {showDetails ? 'Save choices' : 'Accept All'}
-            </Button>
+          <div className="pt-0.5 flex-1 min-w-0">
+            <h4 className="text-xs font-bold tracking-tight text-slate-900 dark:text-white mb-0.5">
+              Privacy & Cookies
+            </h4>
+            <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">
+              We use essential cookies to power your IELTS prep experience.
+            </p>
           </div>
-
-          {!showDetails && (
-            <button
-              onClick={() => saveConsent({ functional: true, analytics: false, marketing: false })}
-              className="w-full text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors py-2"
-              data-oid="m_18h5m"
-            >
-              Reject All
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => saveConsent({ functional: true, analytics: false, marketing: false })}
+            className="shrink-0 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+            aria-label="Close cookie banner"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
+
+        {showDetails && (
+          <div className="overflow-hidden mb-3">
+            <div className="space-y-1.5 pt-0.5">
+              {[
+                {
+                  id: 'functional',
+                  label: 'Essential',
+                  desc: 'Secure login & basics.',
+                  icon: Shield,
+                  locked: true,
+                },
+                {
+                  id: 'analytics',
+                  label: 'Analytics',
+                  desc: 'Improving score tools.',
+                  icon: BarChart3,
+                  locked: false,
+                },
+                {
+                  id: 'marketing',
+                  label: 'Personalization',
+                  desc: 'Relevant tips.',
+                  icon: Megaphone,
+                  locked: false,
+                },
+              ].map((opt) => (
+                <div
+                  key={opt.id}
+                  className={cn(
+                    'flex items-center justify-between p-2 rounded-lg border transition-colors',
+                    preferences[opt.id]
+                      ? 'bg-violet-50/60 border-violet-200/80 dark:bg-violet-950/30 dark:border-violet-900/50'
+                      : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200/70 dark:border-white/5'
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <opt.icon
+                      className={cn(
+                        'w-3.5 h-3.5',
+                        preferences[opt.id]
+                          ? 'text-[#6d55e8] dark:text-violet-300'
+                          : 'text-slate-400'
+                      )}
+                    />
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-900 dark:text-slate-200">
+                        {opt.label}
+                      </p>
+                      <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                        {opt.desc}
+                      </p>
+                    </div>
+                  </div>
+                  {opt.locked ? (
+                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#6d55e8] dark:text-violet-300 bg-violet-100 dark:bg-violet-900/50 px-1.5 py-0.5 rounded">
+                      Req.
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setPreferences((p) => ({ ...p, [opt.id]: !p[opt.id] }))}
+                      className={cn(
+                        'relative w-7 h-4 rounded-full transition-colors focus:outline-hidden',
+                        preferences[opt.id] ? 'bg-[#6d55e8]' : 'bg-slate-300 dark:bg-slate-700'
+                      )}
+                    >
+                      <span
+                        style={{
+                          transform: `translateX(${preferences[opt.id] ? 13 : 2}px)`,
+                        }}
+                        className="absolute top-0.5 left-0 w-3 h-3 rounded-full bg-white shadow-xs transition-transform"
+                      />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowDetails(!showDetails)}
+            className="flex-1 rounded-lg h-8 text-[11px] font-bold border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50"
+          >
+            {showDetails ? 'Hide' : 'Customize'}
+          </Button>
+          <Button
+            type="button"
+            onClick={() =>
+              saveConsent(
+                showDetails ? preferences : { functional: true, analytics: true, marketing: true }
+              )
+            }
+            className="flex-1 rounded-lg h-8 text-[11px] font-bold bg-[#6d55e8] hover:bg-[#5b43d6] text-white shadow-xs"
+          >
+            {showDetails ? 'Save Choices' : 'Accept All'}
+          </Button>
+        </div>
+
+        {!showDetails && (
+          <button
+            type="button"
+            onClick={() => saveConsent({ functional: true, analytics: false, marketing: false })}
+            className="w-full text-[10.5px] font-medium text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors pt-2 pb-0.5 text-center block"
+          >
+            Reject All
+          </button>
+        )}
       </div>
     </div>
   );

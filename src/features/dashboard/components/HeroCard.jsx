@@ -141,8 +141,8 @@ const HeroMissionDetails = React.memo(({ recommended }) => {
           <Button
             asChild
             className={cn(
-              'rounded-2xl border-0 shadow-2xl dark:shadow-indigo-500/20 px-5 sm:px-6 h-10 sm:h-12',
-              'bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500',
+              'rounded-2xl border-0 shadow-[0_12px_28px_-8px_rgba(99,85,238,0.45)] hover:shadow-[0_16px_34px_-8px_rgba(99,85,238,0.58)] px-5 sm:px-6 h-10 sm:h-12',
+              'bg-gradient-to-r from-[#4f46e5] via-[#6366f1] to-[#7c3aed] text-white',
               'transition-all duration-300 relative overflow-hidden group/btn'
             )}
             data-oid="w2392.z"

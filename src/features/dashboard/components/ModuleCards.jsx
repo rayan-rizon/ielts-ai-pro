@@ -90,37 +90,45 @@ const ModuleCardItem = React.memo(({ module, stats }) => {
             className="pt-2 flex items-center justify-between border-t border-slate-200/60 dark:border-white/5"
             data-oid="vz388j:"
           >
-            <div className="flex flex-col" data-oid="i2w8bvv">
-              <span
-                className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-0.5"
-                data-oid=":82nmfj"
-              >
-                Success Rate
-              </span>
-              <div className="flex items-center gap-1.5" data-oid="ft9qb7:">
-                <div
-                  className="text-base font-black text-slate-900 dark:text-white tabular-nums leading-none"
+            <div className="flex flex-col w-full" data-oid="i2w8bvv">
+              <div className="flex items-center justify-between mb-1" data-oid=":82nmfj-wrapper">
+                <span
+                  className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest"
+                  data-oid=":82nmfj"
+                >
+                  Avg Band
+                </span>
+                <span
+                  className="text-xs font-black text-slate-900 dark:text-white tabular-nums leading-none"
                   data-oid="o_eted9"
                 >
-                  {formatBand(stats.moduleAverages[module.key] || 0)}
-                </div>
-                <div
-                  className="h-1.5 w-12 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"
-                  data-oid="eu_8afk"
-                >
-                  <m.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(stats.moduleAverages[module.key] || 0) * 10}%` }}
-                    className={cn(
-                      'h-full rounded-full transition-all duration-500',
-                      module.key === 'reading' && 'bg-blue-500 dark:bg-blue-400',
-                      module.key === 'writing' && 'bg-orange-500 dark:bg-orange-400',
-                      module.key === 'listening' && 'bg-purple-500 dark:bg-purple-400',
-                      module.key === 'speaking' && 'bg-rose-500 dark:bg-rose-400'
-                    )}
-                    data-oid="wj2ilpk"
-                  />
-                </div>
+                  {formatBand(stats.moduleAverages?.[module.key] || 0)}{' '}
+                  <span className="text-[9px] text-slate-400 font-bold">/ 9.0</span>
+                </span>
+              </div>
+              <div
+                className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"
+                data-oid="eu_8afk"
+              >
+                <m.div
+                  initial={{ width: 0 }}
+                  animate={{
+                    width: `${Math.min(100, Math.max(0, ((stats.moduleAverages?.[module.key] || 0) / 9) * 100))}%`,
+                  }}
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                  className={cn(
+                    'h-full rounded-full transition-all duration-500',
+                    module.key === 'reading' &&
+                      'bg-gradient-to-r from-blue-500 to-cyan-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]',
+                    module.key === 'writing' &&
+                      'bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]',
+                    module.key === 'listening' &&
+                      'bg-gradient-to-r from-violet-500 to-purple-500 shadow-[0_0_8px_rgba(139,92,246,0.5)]',
+                    module.key === 'speaking' &&
+                      'bg-gradient-to-r from-rose-500 to-pink-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'
+                  )}
+                  data-oid="wj2ilpk"
+                />
               </div>
             </div>
           </div>
@@ -137,11 +145,11 @@ const ModuleCards = React.memo(({ moduleCards, stats, quickLaunchRef, onboarding
       ref={quickLaunchRef}
       className={cn(
         'relative h-full flex flex-col rounded-2xl transition-all duration-300 overflow-hidden group/section',
-        'bg-white dark:bg-slate-900',
-        'border border-slate-200 dark:border-slate-800',
-        'shadow-sm',
-        'hover:shadow-md transition-shadow duration-300',
-        'hover:border-indigo-500/40 dark:hover:border-indigo-500/40',
+        'bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl',
+        'border border-violet-200/80 dark:border-violet-500/20',
+        'shadow-[0_10px_30px_-10px_rgba(109,85,238,0.08)]',
+        'hover:shadow-[0_15px_35px_-10px_rgba(109,85,238,0.14)] transition-all duration-300',
+        'hover:border-violet-300 dark:hover:border-violet-400/40',
         onboardingHighlight === 'quick' && 'ring-2 ring-primary ring-offset-4'
       )}
       data-oid="vfovvt7"

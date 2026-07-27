@@ -18,11 +18,11 @@ function Metric({ icon: Icon, label, value, hint, badgeColor = 'indigo', onClick
 
   const badgeStyles = {
     indigo:
-      'bg-indigo-50/90 text-indigo-600 border border-indigo-100 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/20',
-    sky: 'bg-sky-50/90 text-sky-600 border border-sky-100 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/20',
+      'bg-indigo-50 text-indigo-600 border border-indigo-200/60 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30',
+    sky: 'bg-sky-50 text-sky-600 border border-sky-200/60 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30',
     amber:
-      'bg-amber-50/90 text-amber-600 border border-amber-100 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/20',
-    rose: 'bg-rose-50/90 text-rose-600 border border-rose-100 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/20',
+      'bg-amber-50 text-amber-600 border border-amber-200/60 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30',
+    rose: 'bg-rose-50 text-rose-600 border border-rose-200/60 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30',
   };
 
   return (
@@ -30,29 +30,29 @@ function Metric({ icon: Icon, label, value, hint, badgeColor = 'indigo', onClick
       type={onClick ? 'button' : undefined}
       onClick={onClick}
       className={cn(
-        'group min-w-0 px-4 py-2.5 text-left transition-all duration-200 sm:px-6 sm:py-3',
+        'group relative min-w-0 w-full px-3.5 py-2 text-left transition-all duration-200 sm:px-5 sm:py-2.5 bg-transparent border-r border-violet-100/60 dark:border-white/5 last:border-r-0',
         onClick &&
-          'hover:bg-indigo-50/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 dark:hover:bg-indigo-500/10'
+          'hover:bg-violet-100/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 dark:hover:bg-violet-500/10 cursor-pointer'
       )}
     >
       <div className="flex items-center gap-2">
         <span
           className={cn(
-            'flex h-6 w-6 shrink-0 items-center justify-center rounded-full shadow-sm transition-transform duration-200 group-hover:scale-110',
+            'flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-xl shadow-xs transition-transform duration-200 group-hover:scale-110',
             badgeStyles[badgeColor]
           )}
         >
           <Icon className="h-3.5 w-3.5" aria-hidden="true" />
         </span>
-        <span className="truncate text-[9px] font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+        <span className="truncate text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">
           {label}
         </span>
       </div>
-      <div className="mt-1 truncate text-sm font-black tracking-tight text-slate-950 sm:text-base dark:text-white">
+      <div className="mt-1 truncate text-base sm:text-lg md:text-xl font-bold tracking-tight text-slate-900 leading-tight dark:text-white">
         {value}
       </div>
       {hint && (
-        <div className="mt-0.5 truncate text-[10px] font-bold text-indigo-600/80 dark:text-indigo-400/80">
+        <div className="mt-0.5 truncate text-[11px] sm:text-xs font-semibold text-violet-600 dark:text-violet-400">
           {hint}
         </div>
       )}
@@ -137,11 +137,9 @@ function HeroBanner({
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white/90 to-transparent dark:from-[#0d1120]/90" />
 
         <div className="relative z-10 flex min-h-[360px] max-w-[680px] flex-col justify-center p-6 sm:min-h-[350px] sm:p-7 lg:min-h-[340px] lg:w-[58%] lg:p-9">
-          <h1 className="max-w-2xl text-3xl font-black leading-[1.08] tracking-[-0.04em] text-slate-950 sm:text-4xl lg:text-[42px] dark:text-white">
+          <h1 className="max-w-2xl text-3xl font-extrabold leading-[1.08] tracking-[-0.04em] text-slate-950 sm:text-4xl lg:text-[42px] dark:text-white">
             Your personalized{' '}
-            <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent dark:from-indigo-400 dark:via-purple-300 dark:to-indigo-400">
-              IELTS path
-            </span>
+            <span className="text-[#6d55e8] dark:text-violet-400">IELTS path</span>
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-600 sm:text-[15px] dark:text-slate-300">
             A clear study plan for your goals, recent results, exam date, and available time.
@@ -158,10 +156,10 @@ function HeroBanner({
               <TimerReset className="h-5 w-5" aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1 text-left">
-              <span className="block text-[9px] font-black uppercase tracking-[0.16em] text-indigo-600 dark:text-indigo-400">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.16em] text-indigo-600 dark:text-indigo-400">
                 Today’s next step
               </span>
-              <span className="mt-0.5 block truncate text-sm font-black text-slate-950 dark:text-white">
+              <span className="mt-0.5 block truncate text-sm font-bold text-slate-950 dark:text-white">
                 {titleText}
               </span>
               <span className="mt-0.5 block truncate text-[11px] font-medium text-slate-500 dark:text-slate-400">
@@ -169,7 +167,7 @@ function HeroBanner({
               </span>
             </span>
             {taskDuration && (
-              <span className="shrink-0 text-xs font-black tabular-nums text-slate-500 dark:text-slate-400">
+              <span className="shrink-0 text-xs font-bold tabular-nums text-slate-500 dark:text-slate-400">
                 {taskDuration}
               </span>
             )}
@@ -180,7 +178,7 @@ function HeroBanner({
             <Button
               onClick={() => primaryTask && startTask(primaryTask)}
               disabled={!primaryTask}
-              className="h-10.5 rounded-full bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 px-6 text-sm font-black text-white shadow-[0_8px_20px_-6px_rgba(79,70,229,0.5)] transition-all hover:scale-[1.02] hover:shadow-[0_12px_24px_-6px_rgba(79,70,229,0.65)] active:scale-[0.98]"
+              className="h-10.5 rounded-full bg-[#6d55e8] hover:bg-[#5b43d6] px-6 text-sm font-bold text-white shadow-md shadow-[#6d55e8]/25 transition-all hover:scale-[1.02] active:scale-[0.98] border-0"
             >
               Continue learning <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -215,8 +213,8 @@ function HeroBanner({
         </div>
       </div>
 
-      {/* Upgraded Lower Stat Bar with soft pastel corner gradient */}
-      <div className="grid grid-cols-2 border-t border-purple-100/90 bg-gradient-to-r from-purple-50/80 via-indigo-50/50 to-pink-50/70 sm:grid-cols-4 sm:[&>*+*]:border-l sm:[&>*+*]:border-purple-100/80 dark:border-white/10 dark:from-[#0d1120] dark:via-[#111428] dark:to-[#16132e] dark:sm:[&>*+*]:border-white/10">
+      {/* Upgraded Lower Stat Bar with clean glassmorphic background */}
+      <div className="grid grid-cols-2 border-t border-purple-100/90 bg-[#fcfaff]/90 dark:bg-[#0f1426]/90 backdrop-blur-md overflow-hidden rounded-b-[28px] sm:grid-cols-4 dark:border-white/10">
         <Metric
           icon={Target}
           label="Target band"
