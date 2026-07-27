@@ -97,6 +97,39 @@ const normalizeValue = (value) => {
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 
+const hasInvalidPurchaseValue = (value) => value === undefined || value < 0;
+const hasInvalidCurrency = (currency) => !/^[A-Z]{3}$/.test(currency);
+const isCommercePixelEvent = (pixelEvent) =>
+  pixelEvent === 'Purchase' || pixelEvent === 'InitiateCheckout';
+const purchasePayloadIsInvalid = (value, currency) =>
+  hasInvalidPurchaseValue(value) || hasInvalidCurrency(currency);
+
+const buildEnrichedPayload = ({ eventName, pixelEvent, payload, value, currency, eventId }) => {
+  const commerceData = isCommercePixelEvent(pixelEvent) ? { currency } : {};
+
+  return {
+    ...payload,
+    ...(value !== undefined ? { value } : {}),
+    ...commerceData,
+    ...(eventId ? { event_id: String(eventId) } : {}),
+    event_name: eventName,
+    event_time: new Date().toISOString(),
+  };
+};
+
+const trackPurchase = (payload, value, currency, eventId) => {
+  const parameters = {
+    value,
+    currency,
+    content_name: payload.plan_tier || payload.plan_name || 'subscription',
+    transaction_id: payload.transaction_id || eventId,
+    fbc: getFbc(),
+    fbp: getFbp(),
+  };
+  const options = eventId ? { eventID: String(eventId) } : undefined;
+  window.fbq('track', 'Purchase', parameters, options);
+};
+
 export const refreshTrackingBootstrap = () => {
   if (!isBrowser()) return;
 
@@ -126,11 +159,26 @@ export const trackPageView = (pathname = '/') => {
 export const trackAppEvent = (eventName, payload = {}) => {
   if (!isBrowser() || !eventName) return;
 
-  const enrichedPayload = {
-    ...payload,
-    event_name: eventName,
-    event_time: new Date().toISOString(),
-  };
+  const pixelEvent = PIXEL_EVENT_MAP[eventName];
+  const normalizedValue = normalizeValue(payload.value);
+  const normalizedCurrency = normalizeCurrency(payload.currency);
+  const eventId = payload.event_id || payload.transaction_id;
+
+  // Never send a Purchase with a fabricated zero or malformed currency.
+  // Meta uses these fields for ROAS and flags missing/invalid price data.
+  if (pixelEvent === 'Purchase' && purchasePayloadIsInvalid(normalizedValue, normalizedCurrency)) {
+    console.warn('[Tracking] Suppressed Purchase with invalid value or currency');
+    return;
+  }
+
+  const enrichedPayload = buildEnrichedPayload({
+    eventName,
+    pixelEvent,
+    payload,
+    value: normalizedValue,
+    currency: normalizedCurrency,
+    eventId,
+  });
 
   pushDataLayer({ event: eventName, ...enrichedPayload });
 
@@ -139,15 +187,8 @@ export const trackAppEvent = (eventName, payload = {}) => {
 
   if (typeof window.fbq !== 'function') return;
 
-  const pixelEvent = PIXEL_EVENT_MAP[eventName];
   if (pixelEvent === 'Purchase') {
-    window.fbq('track', pixelEvent, {
-      value: normalizeValue(payload.value) || 0,
-      currency: normalizeCurrency(payload.currency),
-      content_name: payload.plan_tier || payload.plan_name || 'subscription',
-      fbc: getFbc(),
-      fbp: getFbp(),
-    });
+    trackPurchase(payload, normalizedValue, normalizedCurrency, eventId);
     return;
   }
 

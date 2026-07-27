@@ -123,6 +123,8 @@ export default function SubscriptionSuccess() {
           billing_interval: existingData.interval,
           value: existingData.amount,
           currency: existingData.currency,
+          transaction_id: sessionId,
+          event_id: sessionId,
           source: 'stripe_checkout',
         });
         return;
@@ -156,6 +158,8 @@ export default function SubscriptionSuccess() {
               billing_interval: subData.interval,
               value: subData.amount,
               currency: subData.currency,
+              transaction_id: sessionId,
+              event_id: sessionId,
               source: 'stripe_checkout',
             });
             setSubscriptionData(subData);

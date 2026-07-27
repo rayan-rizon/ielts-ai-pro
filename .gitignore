@@ -72,3 +72,8 @@ graphify-out/
 # --- Codex ---
 .codex/
 
+# --- Agent Customizations & Skills ---
+.agent/
+.agents/
+
+

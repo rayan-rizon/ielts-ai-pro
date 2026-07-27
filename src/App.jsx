@@ -254,6 +254,50 @@ const router = createBrowserRouter(
       ),
     },
     {
+      path: '/cambridge-ielts-practice-tests',
+      element: <Navigate to="/cambridge-tests" replace />,
+    },
+    {
+      path: '/ielts-speaking-practice-ai',
+      element: (
+        <LazyPage data-oid="seo-speaking-page">
+          <LandingPage data-oid="seo-speaking-comp" />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/ielts-mock-test-online',
+      element: (
+        <LazyPage data-oid="seo-mock-page">
+          <LandingPage data-oid="seo-mock-comp" />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/free-ielts-practice-tests',
+      element: (
+        <LazyPage data-oid="seo-free-page">
+          <LandingPage data-oid="seo-free-comp" />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/ai-ielts-preparation',
+      element: (
+        <LazyPage data-oid="seo-prep-page">
+          <LandingPage data-oid="seo-prep-comp" />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/ielts-band-score-feedback',
+      element: (
+        <LazyPage data-oid="seo-feedback-page">
+          <LandingPage data-oid="seo-feedback-comp" />
+        </LazyPage>
+      ),
+    },
+    {
       path: '/login',
       element: (
         <Layout currentPageName="Login" data-oid="_midz-.">
