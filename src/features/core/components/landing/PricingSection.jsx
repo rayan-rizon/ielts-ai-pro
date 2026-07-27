@@ -205,7 +205,7 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
     <SoftSection
       ref={sectionRef}
       id="pricing"
-      className="scroll-mt-24 border-t border-[#e9eef8]/70"
+      className="scroll-mt-24 bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9]/70 to-[#f8fafc] dark:from-[#080d1e] dark:via-[#0a0f24] dark:to-[#080d1e] border-t border-[#e9eef8]/70 py-16 lg:py-24"
     >
       {/* Background Decorations */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -z-10" />

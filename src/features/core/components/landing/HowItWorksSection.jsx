@@ -210,7 +210,10 @@ const cardVariants = {
 
 export default function HowItWorksSection({ viewport }) {
   return (
-    <SoftSection id="how-it-works" className="scroll-mt-24 bg-white dark:bg-[#020617] py-16">
+    <SoftSection
+      id="how-it-works"
+      className="scroll-mt-24 bg-[#f5f7fc] dark:bg-[#080d1e] py-16 lg:py-24"
+    >
       <div className="relative z-10 mx-auto max-w-[1450px] px-5 md:px-8 space-y-10">
         <SectionHeading
           eyebrow="HOW IELTS AI PRO WORKS"

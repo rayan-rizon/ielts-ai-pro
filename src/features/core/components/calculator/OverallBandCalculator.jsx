@@ -15,17 +15,17 @@ const TARGET_OPTIONS = ['6.0', '6.5', '7.0', '7.5', '8.0', '8.5', '9.0'];
 
 function BandSliderRow({ name, value, set, icon: Icon, color, description }) {
   return (
-    <div className="group flex h-full flex-col justify-between rounded-[24px] border border-slate-200/80 bg-white/80 p-6 shadow-[0_8px_30px_rgba(15,23,42,0.03)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500/30 hover:shadow-xl dark:border-slate-800 dark:bg-slate-950/80 dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.4)] relative overflow-hidden">
-      <div className="space-y-4 relative z-10">
+    <div className="group flex h-full flex-col justify-between rounded-[22px] border border-slate-200/90 bg-white/90 p-5 shadow-[0_10px_35px_-12px_rgba(15,23,42,0.04)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400/40 hover:shadow-xl dark:border-white/10 dark:bg-slate-950/85 dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] relative overflow-hidden">
+      <div className="space-y-3.5 relative z-10">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3">
             <span
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 shadow-sm ${color}`}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-105 shadow-2xs ${color}`}
             >
-              <Icon className="h-5.5 w-5.5" />
+              <Icon className="h-5 w-5" />
             </span>
             <div>
-              <span className="block text-[15px] font-extrabold text-slate-950 dark:text-white leading-tight">
+              <span className="block text-[14.5px] font-extrabold text-slate-950 dark:text-white leading-tight">
                 {name}
               </span>
               <span className="mt-0.5 block text-xs font-semibold text-slate-500 dark:text-slate-400 leading-snug">
@@ -38,7 +38,7 @@ function BandSliderRow({ name, value, set, icon: Icon, color, description }) {
           </strong>
         </div>
 
-        <div className="pt-2">
+        <div className="pt-1.5">
           <input
             type="range"
             min="4.0"
@@ -47,7 +47,7 @@ function BandSliderRow({ name, value, set, icon: Icon, color, description }) {
             value={value}
             aria-label={`${name} band score`}
             onChange={(e) => set(parseFloat(e.target.value))}
-            className="h-2.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-100 accent-indigo-600 dark:bg-slate-800"
+            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-100 accent-indigo-600 dark:bg-slate-800"
             style={{
               background: `linear-gradient(to right, #5262ef 0%, #5262ef ${((value - 4) / 5) * 100}%, #e2e8f0 ${((value - 4) / 5) * 100}%)`,
             }}
@@ -55,7 +55,7 @@ function BandSliderRow({ name, value, set, icon: Icon, color, description }) {
         </div>
       </div>
 
-      <div className="mt-4 flex justify-between px-1 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 relative z-10">
+      <div className="mt-3 flex justify-between px-1 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 relative z-10">
         <span>4.0</span>
         <span>6.5</span>
         <span>9.0</span>
@@ -122,14 +122,14 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
         ))}
 
         {/* Target band tracker */}
-        <div className="flex h-full flex-col justify-between rounded-[24px] border border-slate-200/80 bg-white/80 p-6 shadow-[0_8px_30px_rgba(15,23,42,0.03)] backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/30 dark:border-slate-800 dark:bg-slate-950/80 dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.4)] sm:col-span-2 relative overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0 shadow-sm">
-                <Target className="h-5.5 w-5.5" />
+        <div className="flex h-full flex-col justify-between rounded-[22px] border border-slate-200/90 bg-white/90 p-5 shadow-[0_10px_35px_-12px_rgba(15,23,42,0.04)] backdrop-blur-xl transition-all duration-300 hover:border-indigo-400/40 dark:border-white/10 dark:bg-slate-950/85 dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] sm:col-span-2 relative overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3.5">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0 shadow-2xs">
+                <Target className="h-5 w-5" />
               </span>
               <div>
-                <span className="block text-[15px] font-extrabold text-slate-950 dark:text-white leading-tight">
+                <span className="block text-[14.5px] font-extrabold text-slate-950 dark:text-white leading-tight">
                   Your target band
                 </span>
                 <span className="mt-0.5 block text-xs font-semibold text-slate-500 dark:text-slate-400">

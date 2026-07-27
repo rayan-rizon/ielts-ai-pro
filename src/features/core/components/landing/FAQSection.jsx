@@ -26,37 +26,40 @@ const reveal = {
 
 function TrustedLearnersCard() {
   return (
-    <GlassPanel className="relative overflow-hidden rounded-[28px] p-6 sm:p-7">
-      <div className="pointer-events-none absolute -right-14 -top-16 h-40 w-40 rounded-full bg-[#d7d2ff]/55 blur-3xl" />
-      <div className="relative z-10 flex items-center gap-3 text-sm font-extrabold text-[#0f172a] dark:text-violet-200">
-        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e6fcf5] text-[#0ca678] dark:bg-emerald-400/15 dark:text-emerald-400">
-          <Globe className="h-5 w-5" />
+    <GlassPanel className="relative overflow-hidden rounded-[22px] p-4.5 sm:p-5 border border-slate-200/80 dark:border-white/10 bg-white/85 dark:bg-slate-900/85 shadow-[0_12px_35px_-12px_rgba(15,23,42,0.05)] dark:shadow-[0_15px_35px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-300 hover:border-violet-300/50 dark:hover:border-violet-500/30">
+      <div className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-violet-500/10 blur-2xl dark:bg-violet-600/15" />
+
+      <div className="relative z-10 flex items-center gap-2.5">
+        <span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/12 to-purple-500/10 border border-violet-500/20 text-violet-600 dark:text-violet-300 shadow-2xs">
+          <Globe className="h-4.5 w-4.5" />
         </span>
-        IELTS Practice Across Four Skills
+        <h4 className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
+          IELTS Practice Across Four Skills
+        </h4>
       </div>
 
-      <div className="relative z-10 mt-6 grid grid-cols-2 divide-x divide-[#dfe4ef] dark:divide-white/10">
-        <div className="pr-5">
-          <b className="block text-3xl font-black tracking-[-.04em] text-[#0f172a] dark:text-white">
+      <div className="relative z-10 mt-3.5 grid grid-cols-2 gap-3 rounded-xl bg-slate-50/90 dark:bg-slate-950/60 p-3 py-2.5 border border-slate-200/60 dark:border-white/5">
+        <div className="pr-2">
+          <b className="block text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
             Four
           </b>
-          <span className="mt-1 block text-xs font-bold text-[#64748b] dark:text-slate-400">
+          <span className="mt-0.5 block text-[11px] font-semibold text-slate-500 dark:text-slate-400">
             IELTS Skills
           </span>
         </div>
-        <div className="pl-6">
-          <b className="block text-3xl font-black tracking-[-.04em] text-[#0f172a] dark:text-white">
+        <div className="pl-3.5 border-l border-slate-200/60 dark:border-white/10">
+          <b className="block text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
             0–9
           </b>
-          <span className="mt-1 block text-xs font-bold text-[#64748b] dark:text-slate-400">
+          <span className="mt-0.5 block text-[11px] font-semibold text-slate-500 dark:text-slate-400">
             Estimated Band Scale
           </span>
         </div>
       </div>
 
-      <div className="relative z-10 mt-7 flex items-center gap-4">
-        <SkillBadgeStack />
-        <span className="text-xs font-bold leading-5 text-[#556277] dark:text-slate-300">
+      <div className="relative z-10 mt-3.5 flex items-center gap-3">
+        <SkillBadgeStack size="sm" />
+        <span className="text-[11px] font-semibold leading-snug text-slate-600 dark:text-slate-300">
           Build a routine around your target band and completed practice
         </span>
       </div>
@@ -142,7 +145,11 @@ function FAQSection({ faqs, viewport, handlePrimaryCta }) {
   const reduceMotion = useReducedMotion();
 
   return (
-    <SoftSection id="faq" className="scroll-mt-24 py-16 md:py-24" data-oid="_3z_paz">
+    <SoftSection
+      id="faq"
+      className="scroll-mt-24 bg-white dark:bg-[#070a16] py-16 md:py-24"
+      data-oid="_3z_paz"
+    >
       <div className="relative z-10 mx-auto max-w-[1380px] px-5 md:px-8">
         <m.div
           initial={{ opacity: 0, y: reduceMotion ? 0 : 14 }}

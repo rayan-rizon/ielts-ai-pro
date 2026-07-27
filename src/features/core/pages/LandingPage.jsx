@@ -119,7 +119,7 @@ function LazySection({
     <div
       ref={sectionRef}
       id={id}
-      style={{ minHeight }}
+      style={{ minHeight: shouldRender ? 'auto' : minHeight }}
       className={`w-full ${className}`}
       aria-busy={!shouldRender}
       data-oid="vy4_.1x"
@@ -284,7 +284,7 @@ export default function LandingPage() {
               <FAQSection faqs={faqs} viewport={viewport} data-oid="cw9om1r" />
             </LazySection>
 
-            <LazySection minHeight="550px" data-oid="8sg2b2h">
+            <LazySection id="cta" minHeight="auto" data-oid="8sg2b2h">
               <CTABanner
                 handlePricing={handlePricing}
                 handlePrimaryCta={handlePrimaryCta}

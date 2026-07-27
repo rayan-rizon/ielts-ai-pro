@@ -105,7 +105,7 @@ export default function ComparisonSection({ viewport, handlePrimaryCta }) {
   return (
     <SoftSection
       id="comparison"
-      className="scroll-mt-24 py-16 md:py-24 bg-background relative overflow-hidden"
+      className="scroll-mt-24 py-16 md:py-24 bg-white dark:bg-[#070a16] relative overflow-hidden"
     >
       {/* Decorative Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[70%] bg-gradient-to-tr from-indigo-500/10 via-violet-500/5 to-teal-500/10 rounded-full blur-[120px] pointer-events-none -z-10" />

@@ -63,8 +63,8 @@ export default function Contact() {
         isSignedIn={Boolean(user && !authLoading)}
       />
 
-      <main className="pt-24 pb-12 relative z-10">
-        <section className="py-12 md:py-20 px-6">
+      <main className="pt-20 sm:pt-24 pb-12 relative z-10">
+        <section className="py-6 md:py-12 px-6">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-12 lg:gap-20 items-stretch">
               <ContactInfo />

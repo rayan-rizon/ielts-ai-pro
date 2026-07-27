@@ -110,7 +110,7 @@ function BandScoreCalculatorHead({ faqs }) {
 
 function BandScoreCalculatorTools({ handlePrimaryCta }) {
   return (
-    <main className="pt-24 pb-16 relative z-10">
+    <main className="pt-20 sm:pt-24 pb-16 relative z-10">
       <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -125,7 +125,7 @@ function BandScoreCalculatorTools({ handlePrimaryCta }) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.1 }}
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-        className="mx-auto max-w-[1240px] px-6 pt-16 md:px-8"
+        className="mx-auto max-w-[1240px] px-6 pt-10 md:px-8"
       >
         <SectionLabel
           icon={Calculator}
@@ -142,7 +142,7 @@ function BandScoreCalculatorTools({ handlePrimaryCta }) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.1 }}
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-        className="mx-auto max-w-[1240px] px-6 pt-20 md:px-8"
+        className="mx-auto max-w-[1240px] px-6 pt-14 md:px-8"
       >
         <SectionLabel
           icon={Repeat}
@@ -203,7 +203,7 @@ export default function BandScoreCalculator() {
 
 function BandScoreCalculatorHero() {
   return (
-    <section className="mx-auto max-w-[920px] px-6 text-center md:px-8 pt-6">
+    <section className="mx-auto max-w-[920px] px-6 text-center md:px-8 pt-4 sm:pt-6">
       <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-gradient-to-r from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-widest text-indigo-600 dark:border-indigo-500/30 dark:from-indigo-950/80 dark:via-purple-950/60 dark:to-slate-900/90 dark:text-indigo-300 shadow-sm backdrop-blur-xl">
         <Sparkles className="h-3.5 w-3.5 text-indigo-500 animate-pulse" /> Free IELTS Tool
       </span>

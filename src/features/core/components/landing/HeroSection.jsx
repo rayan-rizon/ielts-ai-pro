@@ -57,7 +57,7 @@ function SpeakingCard() {
     <FloatingCard
       label="Speaking feedback preview"
       delay={0.55}
-      className="left-0 sm:left-4 top-4 sm:top-[64px] w-[165px] sm:w-[205px] p-3 sm:p-4 origin-top-left"
+      className="hidden sm:block left-0 sm:left-4 top-4 sm:top-[64px] w-[165px] sm:w-[205px] p-3 sm:p-4 origin-top-left"
     >
       <CardHeading icon={Mic} title="Speaking Feedback" tone="green" />
       <div className="mt-3 rounded-xl bg-[#fbfdfd]/60 p-3 dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
@@ -83,7 +83,7 @@ function ProgressCard() {
     <FloatingCard
       label="Overall progress preview"
       delay={0.72}
-      className="hidden sm:block right-[-16px] sm:right-4 top-4 w-[176px] p-3 sm:top-8 sm:w-[222px] sm:p-4 origin-top-right"
+      className="-top-6 right-[-8px] sm:right-4 sm:top-8 w-[165px] p-3 sm:w-[222px] sm:p-4 origin-top-right"
     >
       <CardHeading icon={TrendingUp} title="Overall Progress" tone="blue" />
       <div className="mt-3 flex items-center justify-between">
@@ -388,7 +388,7 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
 
   return (
     <section
-      className="relative bg-[#fcfdff] pb-16 pt-28 dark:bg-[#070912] lg:pb-20 lg:pt-32 overflow-hidden"
+      className="relative bg-gradient-to-b from-[#f3f6fc] via-[#f8fafc] to-[#ffffff] pb-16 pt-28 dark:from-[#060813] dark:via-[#070914] dark:to-[#070a16] lg:pb-20 lg:pt-32 overflow-hidden"
       aria-label="Hero"
       data-hero-root
     >
@@ -405,11 +405,13 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
 
       <div className="relative mx-auto grid max-w-[1540px] items-center gap-12 px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-8 xl:px-12 2xl:px-16">
         <div className="relative z-10 min-w-0 lg:py-5">
-          <div className="inline-flex items-center gap-2 rounded-2xl sm:rounded-full border border-[#bfe9df] bg-[#f2fbf8] px-3 py-1.5 sm:px-3.5 sm:py-2 text-[9px] sm:text-[11px] font-extrabold uppercase tracking-[0.04em] sm:tracking-[0.09em] text-[#176d5d] dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300 shadow-sm">
-            <span className="flex h-4.5 w-4.5 sm:h-5 sm:w-5 shrink-0 items-center justify-center rounded-full border border-[#9bd9cb] text-[#176d5d] dark:text-emerald-300">
-              <Sparkles className="h-2.5 w-2.5" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 dark:border-emerald-500/30 dark:bg-emerald-500/10 px-3 py-1 text-[11px] sm:text-xs font-semibold text-emerald-800 dark:text-emerald-300 shadow-sm backdrop-blur-md transition-all duration-200 hover:scale-[1.01] hover:border-emerald-500/30 hover:bg-emerald-500/10">
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 dark:bg-emerald-400/20 dark:text-emerald-300">
+              <Sparkles className="h-2.5 w-2.5 animate-pulse" />
             </span>
-            Focused IELTS practice with clear feedback
+            <span className="tracking-tight font-semibold">
+              Focused IELTS practice with clear feedback
+            </span>
           </div>
 
           <h1 className="mt-6 text-[clamp(2.4rem,11vw,3.1rem)] font-extrabold leading-[1.02] tracking-[-0.055em] text-[#07142f] dark:text-white sm:text-[3.5rem] lg:text-[3.15rem] xl:text-[3.6rem] 2xl:text-[3.9rem]">

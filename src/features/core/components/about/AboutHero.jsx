@@ -4,14 +4,7 @@ import { Sparkles, FileText, Mic, BookOpen, Calculator } from 'lucide-react';
 
 export default function AboutHero() {
   return (
-    <section className="relative pt-6 pb-12 md:pt-10 md:pb-16 px-6">
-      {/* Background ambient lighting */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-8 h-[36rem] w-[36rem] rounded-full bg-gradient-to-tr from-blue-400/20 to-indigo-500/20 blur-[130px] dark:from-blue-600/15 dark:to-indigo-600/15" />
-        <div className="absolute -right-32 top-0 h-[40rem] w-[40rem] rounded-full bg-gradient-to-br from-violet-400/20 to-fuchsia-400/20 blur-[140px] dark:from-violet-600/15 dark:to-purple-600/15" />
-        <div className="absolute left-1/2 top-1/3 -translate-x-1/2 h-[28rem] w-[28rem] rounded-full bg-cyan-300/10 blur-[120px] dark:bg-cyan-600/10" />
-      </div>
-
+    <section className="relative pt-4 sm:pt-6 pb-12 md:pb-16 px-6">
       <div className="max-w-5xl mx-auto text-center relative z-10">
         <m.div
           initial={{ opacity: 0, y: 20 }}

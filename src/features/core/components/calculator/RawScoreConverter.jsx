@@ -16,7 +16,7 @@ export default function RawScoreConverter() {
   return (
     <div className="grid items-stretch gap-6 lg:grid-cols-12">
       <div className="lg:col-span-7">
-        <div className="h-full rounded-[28px] border border-slate-200/80 bg-white/80 p-6 sm:p-8 shadow-[0_8px_30px_rgba(15,23,42,0.03)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80">
+        <div className="h-full rounded-[24px] border border-slate-200/90 bg-white/90 p-5 sm:p-6 shadow-[0_12px_35px_-12px_rgba(15,23,42,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/85 dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]">
           {/* Test selector */}
           <div
             className="flex flex-wrap gap-2.5"
@@ -99,7 +99,7 @@ export default function RawScoreConverter() {
 
       {/* Reference table */}
       <div className="lg:col-span-5">
-        <div className="h-full rounded-[28px] border border-slate-200/80 bg-white/80 p-6 sm:p-8 shadow-[0_8px_30px_rgba(15,23,42,0.03)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80">
+        <div className="h-full rounded-[24px] border border-slate-200/90 bg-white/90 p-5 sm:p-6 shadow-[0_12px_35px_-12px_rgba(15,23,42,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/85 dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]">
           <h3 className="text-[15px] font-extrabold text-slate-950 dark:text-white">
             {active.label}: score to band
           </h3>

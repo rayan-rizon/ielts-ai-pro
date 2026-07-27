@@ -637,7 +637,7 @@ function StudyResourcesCard() {
 /* ─── Main Section Component ─────────────────────────────────── */
 export default function FeaturesSection({ viewport }) {
   return (
-    <SoftSection id="features" className="scroll-mt-24 bg-slate-100/60 dark:bg-slate-950/60 py-16">
+    <SoftSection id="features" className="scroll-mt-24 bg-white dark:bg-[#070a16] py-16 lg:py-24">
       <div className="relative z-10 mx-auto max-w-[1450px] px-5 md:px-8">
         <SectionHeading
           eyebrow="BUILT TO HELP YOU SCORE"
