@@ -64,54 +64,60 @@ const UserAnalytics = ({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8 pb-10"
+      className="space-y-4 pb-6"
       data-oid="6o_vgjg"
     >
       {/* Header Section */}
       <div
-        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-1"
         data-oid="x.6bi2i"
       >
-        <motion.div variants={itemVariants} className="space-y-1.5" data-oid="fpvh1xc">
-          <div className="flex items-center gap-3 mb-1" data-oid="h-icn">
+        <motion.div variants={itemVariants} className="space-y-0.5" data-oid="fpvh1xc">
+          <h2
+            className="text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
+            data-oid="s-nvif-"
+          >
             <div
-              className="p-2.5 bg-primary/10 rounded-2xl text-primary shadow-inner"
+              className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shadow-2xs"
               data-oid="j_zqisa"
             >
-              <BarChart3 className="w-6 h-6" data-oid="1mxkow0" />
+              <BarChart3 className="w-5 h-5" data-oid="1mxkow0" />
             </div>
-            <div>
-              <h2 className="text-3xl font-black tracking-tight text-foreground" data-oid="s-nvif-">
-                User Analytics
-              </h2>
-              <p className="text-muted-foreground font-medium" data-oid="w-_12:7">
-                Monitor registration trends and learner engagement metrics
-              </p>
-            </div>
-          </div>
+            User Analytics
+          </h2>
+          <p
+            className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 ml-1"
+            data-oid="w-_12:7"
+          >
+            Monitor registration trends, user growth, and learner engagement metrics
+          </p>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="flex items-center gap-3" data-oid="46ygl42">
+        <motion.div
+          variants={itemVariants}
+          className="flex items-center gap-2.5"
+          data-oid="46ygl42"
+        >
           <Button
             variant="outline"
-            className="h-11 px-5 rounded-2xl font-bold border-border/50 bg-card/50 backdrop-blur-sm hover:bg-muted/50 transition-all"
+            className="h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="w-4 h-4 mr-1.5 text-slate-500" />
             Export Report
           </Button>
           <div
-            className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl px-5 py-2.5 flex items-center gap-3 shadow-sm group transition-all"
+            className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900 rounded-xl px-3 py-1.5 flex items-center gap-2 shadow-2xs"
             data-oid="wt4_e28"
           >
             <div className="relative" data-oid="lm:9cb5">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" data-oid="010s21v" />
+              <div className="w-2 h-2 rounded-full bg-emerald-500" data-oid="010s21v" />
               <div
-                className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-75"
+                className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-500 animate-ping opacity-75"
                 data-oid="ug5fzkn"
               />
             </div>
             <span
-              className="text-[10px] font-black tracking-widest text-emerald-600 dark:text-emerald-400"
+              className="text-[10px] font-extrabold uppercase tracking-wider"
               data-oid="y8l83wc"
             >
               LIVE BROADCAST
@@ -121,7 +127,7 @@ const UserAnalytics = ({
       </div>
 
       {/* Compact KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" data-oid="2ki0x24">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5" data-oid="2ki0x24">
         {[
           {
             title: 'Total Community',
@@ -129,7 +135,7 @@ const UserAnalytics = ({
             trend: '+12.5%',
             positive: true,
             icon: Users,
-            color: 'blue',
+            color: 'indigo',
             description: 'Registered learners',
           },
           {
@@ -155,30 +161,27 @@ const UserAnalytics = ({
             value: stats.completedTests || 0,
             trend: stats.avgScore || 0,
             icon: Target,
-            color: 'indigo',
+            color: 'blue',
             description: 'Completed sessions',
           },
         ].map((item, index) => (
           <motion.div key={index} variants={itemVariants} data-oid="muj-bk:">
             <Card
-              className="group bg-card/40 backdrop-blur-md border-border/50 hover:border-primary/30 transition-all duration-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-primary/5"
+              className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
               data-oid="3sdk21e"
             >
-              <CardContent className="p-4" data-oid=":i0afil">
-                <div className="flex items-center gap-3.5" data-oid="mia:.wn">
-                  <div
-                    className={cn(
-                      'w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-inner shrink-0',
-                      `bg-${item.color}-500/10 text-${item.color}-500`
-                    )}
-                    data-oid="mx5t8e0"
-                  >
-                    <item.icon className="w-5.5 h-5.5" data-oid="vf9e6gd" />
-                  </div>
-                  <div className="flex flex-col min-w-0" data-oid=".f-p_kr">
+              <CardContent className="p-3.5 px-4" data-oid=":i0afil">
+                <div className="flex items-center justify-between" data-oid="mia:.wn">
+                  <div className="space-y-0.5" data-oid=".f-p_kr">
+                    <p
+                      className="text-[10px] font-black uppercase tracking-wider text-slate-400"
+                      data-oid="h9yk:nc"
+                    >
+                      {item.title}
+                    </p>
                     <div className="flex items-baseline gap-2" data-oid="val-row">
                       <h3
-                        className="text-2xl font-black text-foreground tracking-tight leading-none"
+                        className="text-xl font-black text-slate-950 dark:text-white leading-none"
                         data-oid="ofoy91v"
                       >
                         {item.value.toLocaleString()}
@@ -186,12 +189,12 @@ const UserAnalytics = ({
                       {item.trend && (
                         <span
                           className={cn(
-                            'text-[10px] font-black flex items-center',
+                            'text-[10px] font-extrabold flex items-center',
                             item.positive === true
-                              ? 'text-emerald-500'
+                              ? 'text-emerald-600 dark:text-emerald-400'
                               : item.positive === false
-                                ? 'text-rose-500'
-                                : 'text-muted-foreground'
+                                ? 'text-rose-600 dark:text-rose-400'
+                                : 'text-slate-500'
                           )}
                           data-oid="q54atgw"
                         >
@@ -204,12 +207,22 @@ const UserAnalytics = ({
                         </span>
                       )}
                     </div>
-                    <p
-                      className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 truncate mt-1"
-                      data-oid="h9yk:nc"
-                    >
-                      {item.title}
-                    </p>
+                  </div>
+                  <div
+                    className={cn(
+                      'p-2.5 rounded-xl border shrink-0',
+                      item.color === 'indigo' &&
+                        'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-200/80 dark:border-indigo-900',
+                      item.color === 'emerald' &&
+                        'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-900',
+                      item.color === 'rose' &&
+                        'bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400 border border-rose-200/80 dark:border-rose-900',
+                      item.color === 'blue' &&
+                        'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 border border-blue-200/80 dark:border-blue-900'
+                    )}
+                    data-oid="mx5t8e0"
+                  >
+                    <item.icon className="w-4 h-4" data-oid="vf9e6gd" />
                   </div>
                 </div>
               </CardContent>
@@ -219,68 +232,70 @@ const UserAnalytics = ({
       </div>
 
       {/* Main Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" data-oid="igh71.8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" data-oid="igh71.8">
         {/* Growth Chart */}
         <motion.div variants={itemVariants} className="lg:col-span-2" data-oid="v:bl04s">
           <Card
-            className="group bg-card/40 backdrop-blur-md border-border/50 hover:border-primary/30 transition-all duration-300 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl hover:shadow-primary/5"
+            className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
             data-oid="vvw3:h5"
           >
-            <CardHeader className="pb-4" data-oid="nuwrbeb">
-              <div className="flex items-center justify-between" data-oid="00sgnel">
-                <div data-oid="ro4d04p">
-                  <CardTitle
-                    className="text-xl font-black tracking-tight flex items-center gap-2.5"
-                    data-oid="nenkpkm"
-                  >
-                    <div
-                      className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center"
-                      data-oid="tr-icon"
-                    >
-                      <TrendingUp className="w-4.5 h-4.5 text-primary" data-oid="xgkk9-9" />
-                    </div>
-                    Growth Trajectory
-                  </CardTitle>
+            <CardHeader
+              className="pb-2 p-4 flex flex-row items-center justify-between"
+              data-oid="nuwrbeb"
+            >
+              <CardTitle
+                className="text-base font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2"
+                data-oid="nenkpkm"
+              >
+                <div
+                  className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shrink-0"
+                  data-oid="tr-icon"
+                >
+                  <TrendingUp
+                    className="w-4 h-4 text-indigo-600 dark:text-indigo-400"
+                    data-oid="xgkk9-9"
+                  />
                 </div>
-                <div className="flex items-center gap-2" data-oid="controls">
-                  <div
-                    className="bg-muted/30 backdrop-blur-sm rounded-xl p-1 flex border border-border/50"
-                    data-oid="fum8s9f"
-                  >
-                    {['30D', '90D', '1Y'].map((range) => (
-                      <button
-                        key={range}
-                        onClick={() => onRangeChange?.(range)}
-                        disabled={isDataLoading}
-                        className={cn(
-                          'px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all',
-                          range === selectedRange
-                            ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
-                          isDataLoading && 'opacity-50 cursor-not-allowed'
-                        )}
-                        data-oid="jeq9s6d"
-                      >
-                        {range}
-                      </button>
-                    ))}
-                  </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl">
-                    <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                  </Button>
+                Growth Trajectory
+              </CardTitle>
+              <div className="flex items-center gap-2" data-oid="controls">
+                <div
+                  className="bg-slate-100 dark:bg-slate-800/60 p-0.5 rounded-xl border border-slate-200/80 dark:border-white/5 flex gap-1"
+                  data-oid="fum8s9f"
+                >
+                  {['30D', '90D', '1Y'].map((range) => (
+                    <button
+                      key={range}
+                      onClick={() => onRangeChange?.(range)}
+                      disabled={isDataLoading}
+                      className={cn(
+                        'px-2.5 py-1 text-[10px] font-extrabold uppercase rounded-lg transition-all',
+                        range === selectedRange
+                          ? 'bg-indigo-600 text-white shadow-2xs'
+                          : 'text-slate-500 hover:text-slate-900 dark:hover:text-white',
+                        isDataLoading && 'opacity-50 cursor-not-allowed'
+                      )}
+                      data-oid="jeq9s6d"
+                    >
+                      {range}
+                    </button>
+                  ))}
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="pt-0 relative min-h-[320px]" data-oid="opoldrj">
+            <CardContent className="p-4 pt-0 relative min-h-[280px]" data-oid="opoldrj">
               {isDataLoading && (
                 <div
-                  className="absolute inset-0 z-10 bg-card/40 backdrop-blur-[2px] flex items-center justify-center rounded-[2rem]"
+                  className="absolute inset-0 z-10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-[2px] flex items-center justify-center rounded-2xl"
                   data-oid="load-over"
                 >
-                  <Activity className="w-8 h-8 text-primary animate-pulse" data-oid="pulse-act" />
+                  <Activity
+                    className="w-6 h-6 text-indigo-600 animate-pulse"
+                    data-oid="pulse-act"
+                  />
                 </div>
               )}
-              <div className="h-[320px] w-full mt-6" data-oid="2nk.nrq">
+              <div className="h-[280px] w-full mt-2" data-oid="2nk.nrq">
                 <ResponsiveContainer width="100%" height="100%" data-oid="4adlh-a">
                   <AreaChart
                     data={userGrowthData}
@@ -289,44 +304,41 @@ const UserAnalytics = ({
                   >
                     <defs data-oid="bfpgtmu">
                       <linearGradient id="colorUsersV2" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
                         <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
                       strokeDasharray="3 3"
                       vertical={false}
-                      stroke="hsl(var(--border))"
-                      opacity={0.3}
+                      stroke="rgba(148, 163, 184, 0.2)"
                     />
                     <XAxis
                       dataKey="date"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700 }}
-                      tickMargin={15}
+                      tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                      tickMargin={10}
                     />
                     <YAxis
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700 }}
+                      tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
                     />
                     <Tooltip
                       content={({ active, payload, label }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-card/95 backdrop-blur-xl border border-border/50 p-4 rounded-2xl shadow-2xl">
-                              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">
+                            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-xl shadow-xl">
+                              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-0.5">
                                 {label}
                               </p>
                               <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-primary" />
-                                <span className="text-lg font-black text-foreground">
+                                <div className="w-2 h-2 rounded-full bg-indigo-600" />
+                                <span className="text-base font-black text-slate-950 dark:text-white">
                                   {payload[0].value.toLocaleString()}
                                 </span>
-                                <span className="text-xs font-bold text-muted-foreground">
-                                  Learners
-                                </span>
+                                <span className="text-xs font-bold text-slate-500">Learners</span>
                               </div>
                             </div>
                           );
@@ -338,10 +350,10 @@ const UserAnalytics = ({
                       type="monotone"
                       dataKey="users"
                       stroke="#6366f1"
-                      strokeWidth={4}
+                      strokeWidth={3}
                       fillOpacity={1}
                       fill="url(#colorUsersV2)"
-                      animationDuration={2000}
+                      animationDuration={1500}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -353,22 +365,22 @@ const UserAnalytics = ({
         {/* Score Distribution */}
         <motion.div variants={itemVariants} data-oid="laq2fq2">
           <Card
-            className="group bg-card/40 backdrop-blur-md border-border/50 hover:border-primary/30 transition-all duration-300 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl hover:shadow-primary/5"
+            className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
             data-oid="qex7i6h"
           >
-            <CardHeader className="pb-4" data-oid="9v-co2a">
+            <CardHeader className="pb-2 p-4" data-oid="9v-co2a">
               <CardTitle
-                className="text-xl font-black tracking-tight flex items-center gap-2.5"
+                className="text-base font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2"
                 data-oid="jo4c9eb"
               >
-                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <BarChart3 className="w-4.5 h-4.5 text-primary" data-oid="03yr_iy" />
+                <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shrink-0">
+                  <BarChart3 className="w-4 h-4" data-oid="03yr_iy" />
                 </div>
                 Score Spectrum
               </CardTitle>
             </CardHeader>
-            <CardContent data-oid=".wvbgdk">
-              <div className="h-[320px] w-full mt-2" data-oid="9rfv65d">
+            <CardContent className="p-4 pt-0" data-oid=".wvbgdk">
+              <div className="h-[280px] w-full mt-2" data-oid="9rfv65d">
                 <ResponsiveContainer width="100%" height="100%" data-oid="mk5obe1">
                   <BarChart
                     data={scoreDistribution}
@@ -380,8 +392,7 @@ const UserAnalytics = ({
                       strokeDasharray="3 3"
                       horizontal={true}
                       vertical={false}
-                      stroke="hsl(var(--border))"
-                      opacity={0.3}
+                      stroke="rgba(148, 163, 184, 0.2)"
                     />
                     <XAxis type="number" hide />
                     <YAxis
@@ -390,24 +401,23 @@ const UserAnalytics = ({
                       axisLine={false}
                       tickLine={false}
                       width={90}
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700 }}
+                      tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
                     />
                     <Tooltip
-                      cursor={{ fill: 'hsl(var(--muted))', opacity: 0.2 }}
+                      cursor={{ fill: 'rgba(148, 163, 184, 0.1)' }}
                       contentStyle={{
-                        borderRadius: '1.5rem',
-                        border: '1px solid hsl(var(--border))',
-                        background: 'hsl(var(--card)/0.95)',
-                        backdropFilter: 'blur(10px)',
-                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+                        borderRadius: '0.75rem',
+                        border: '1px solid rgba(148, 163, 184, 0.2)',
+                        background: 'rgba(15, 23, 42, 0.9)',
+                        color: '#fff',
                       }}
                     />
-                    <Bar dataKey="count" radius={[0, 10, 10, 0]} barSize={24} data-oid="llhwxhi">
+                    <Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={20} data-oid="llhwxhi">
                       {scoreDistribution.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={COLORS[index % COLORS.length]}
-                          opacity={0.8}
+                          opacity={0.9}
                           className="hover:opacity-100 transition-opacity duration-300"
                         />
                       ))}
@@ -421,29 +431,32 @@ const UserAnalytics = ({
       </div>
 
       {/* Bottom Section: Recent Registrations & Session Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" data-oid="6tyx8k-">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" data-oid="6tyx8k-">
         {/* Recent Registrations Table */}
         <motion.div variants={itemVariants} className="lg:col-span-2" data-oid="2ur.p_v">
           <Card
-            className="group bg-card/40 backdrop-blur-md border-border/50 hover:border-primary/30 transition-all duration-300 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl hover:shadow-primary/5"
+            className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
             data-oid="sx:ofyv"
           >
             <CardHeader
-              className="flex flex-row items-center justify-between pb-6"
+              className="flex flex-row items-center justify-between p-4 pb-2"
               data-oid="yvxb11s"
             >
               <div data-oid="z6cebiy">
                 <CardTitle
-                  className="text-xl font-black tracking-tight flex items-center gap-2.5 text-foreground"
+                  className="text-base font-black tracking-tight flex items-center gap-2 text-slate-950 dark:text-white"
                   data-oid="5xk8eza"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <UserCheck className="w-4.5 h-4.5 text-primary" data-oid="fzltvl-" />
+                  <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shrink-0">
+                    <UserCheck
+                      className="w-4 h-4 text-indigo-600 dark:text-indigo-400"
+                      data-oid="fzltvl-"
+                    />
                   </div>
                   Recent Signups
                 </CardTitle>
                 <CardDescription
-                  className="font-bold text-xs uppercase tracking-widest text-muted-foreground/60 mt-1"
+                  className="font-semibold text-xs text-slate-500 dark:text-slate-400 ml-1 mt-0.5"
                   data-oid="amy5u24"
                 >
                   Latest learning community arrivals
@@ -451,60 +464,57 @@ const UserAnalytics = ({
               </div>
               <Badge
                 variant="outline"
-                className="h-8 px-4 rounded-xl border-emerald-500/20 bg-emerald-500/5 text-emerald-600 font-black tracking-widest text-[9px]"
+                className="h-7 px-2.5 rounded-lg border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900 font-extrabold text-[10px]"
               >
                 LIVE UPDATES
               </Badge>
             </CardHeader>
-            <CardContent data-oid="wlhb9u6">
-              <div className="space-y-1.5" data-oid="wsyb62s">
+            <CardContent className="p-4 pt-1" data-oid="wlhb9u6">
+              <div className="space-y-1" data-oid="wsyb62s">
                 {recentSignups.length > 0 ? (
                   recentSignups.map((user) => (
                     <div
                       key={user.id}
-                      className="flex items-center justify-between p-3.5 rounded-2xl hover:bg-muted/40 transition-all border border-transparent hover:border-border/50 group/row"
+                      className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-all border border-transparent hover:border-slate-200/60 dark:hover:border-white/5 group/row"
                       data-oid="56ccbci"
                     >
-                      <div className="flex items-center gap-4" data-oid="n:is3ee">
+                      <div className="flex items-center gap-3" data-oid="n:is3ee">
                         <div
-                          className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent flex items-center justify-center text-base font-black text-primary border border-primary/20 shadow-inner group-hover/row:scale-105 transition-transform"
+                          className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 flex items-center justify-center text-xs font-black text-indigo-600 dark:text-indigo-400 shrink-0 shadow-2xs"
                           data-oid="wes-4wo"
                         >
                           {user.full_name?.charAt(0) || user.email?.charAt(0)}
                         </div>
                         <div data-oid="shxiivr">
                           <p
-                            className="font-black text-sm text-foreground leading-none mb-1.5"
+                            className="font-black text-xs text-slate-950 dark:text-white leading-tight"
                             data-oid="i6k38iz"
                           >
                             {user.full_name || 'learner_' + user.id.slice(0, 4)}
                           </p>
-                          <p
-                            className="text-xs text-muted-foreground/80 font-bold"
-                            data-oid="-vrgfkb"
-                          >
+                          <p className="text-[11px] text-slate-400 font-medium" data-oid="-vrgfkb">
                             {user.email}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-8" data-oid="4eyz4ma">
+                      <div className="flex items-center gap-4" data-oid="4eyz4ma">
                         <Badge
                           variant="outline"
                           className={cn(
-                            'rounded-full px-2.5 py-1 text-[10px] font-black uppercase border backdrop-blur-md shadow-sm transition-all duration-300',
+                            'rounded-lg px-2 py-0.5 text-[10px] font-extrabold border shadow-2xs transition-all',
                             user.subscription_tier === 'premium'
-                              ? 'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400 shadow-purple-500/5 hover:bg-purple-500/20 hover:text-purple-700 dark:hover:text-purple-300'
+                              ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900'
                               : user.subscription_tier === 'pro'
-                                ? 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400 shadow-blue-500/5 hover:bg-blue-500/20 hover:text-blue-700 dark:hover:text-blue-300'
-                                : 'bg-slate-500/10 text-slate-500 border-border/50 dark:text-slate-400'
+                                ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-900'
+                                : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
                           )}
                           data-oid=".0ab3b4"
                         >
                           {user.subscription_tier || 'Free'}
                         </Badge>
-                        <div className="flex flex-col items-end min-w-[80px]">
+                        <div className="flex flex-col items-end min-w-[70px]">
                           <span
-                            className="text-foreground font-black text-[11px]"
+                            className="text-slate-950 dark:text-white font-extrabold text-[11px]"
                             data-oid="53tp1h8"
                           >
                             {new Date(user.created_at).toLocaleDateString(undefined, {
@@ -512,23 +522,23 @@ const UserAnalytics = ({
                               day: 'numeric',
                             })}
                           </span>
-                          <span className="text-[9px] font-bold text-muted-foreground/60 uppercase">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase">
                             JOINED
                           </span>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-xl opacity-0 group-hover/row:opacity-100 transition-opacity"
+                          className="h-7 w-7 rounded-lg opacity-0 group-hover/row:opacity-100 transition-opacity"
                         >
-                          <ChevronRight className="w-4 h-4" />
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
                         </Button>
                       </div>
                     </div>
                   ))
                 ) : (
                   <div
-                    className="text-center py-20 text-muted-foreground text-sm font-medium italic opacity-50"
+                    className="text-center py-16 text-slate-400 text-xs font-semibold italic"
                     data-oid="lcf_rs."
                   >
                     No recent registrants found.
@@ -542,31 +552,31 @@ const UserAnalytics = ({
         {/* Session Activity */}
         <motion.div variants={itemVariants} data-oid="rx3rvfm">
           <Card
-            className="group bg-card/40 backdrop-blur-md border-border/50 hover:border-primary/30 transition-all duration-300 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl hover:shadow-primary/5"
+            className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
             data-oid="irinw0e"
           >
-            <CardHeader className="pb-0" data-oid="mlo85r2">
+            <CardHeader className="p-4 pb-0" data-oid="mlo85r2">
               <CardTitle
-                className="text-xl font-black tracking-tight flex items-center gap-2.5"
+                className="text-base font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2"
                 data-oid="nxuibii"
               >
-                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Clock className="w-4.5 h-4.5 text-primary" data-oid="o-fqvl8" />
+                <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shrink-0">
+                  <Clock className="w-4 h-4" data-oid="o-fqvl8" />
                 </div>
                 Session Integrity
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 pt-0" data-oid="5yqs5xc">
-              <div className="h-[280px] w-full relative" data-oid="mg35w67">
+            <CardContent className="p-4 pt-0" data-oid="5yqs5xc">
+              <div className="h-[220px] w-full relative" data-oid="mg35w67">
                 <ResponsiveContainer width="100%" height="100%" data-oid="4.9-.ql">
                   <PieChart>
                     <Pie
                       data={sessionActivity}
                       cx="50%"
                       cy="50%"
-                      innerRadius={75}
-                      outerRadius={105}
-                      paddingAngle={8}
+                      innerRadius={65}
+                      outerRadius={90}
+                      paddingAngle={6}
                       dataKey="value"
                       stroke="none"
                     >
@@ -574,17 +584,17 @@ const UserAnalytics = ({
                         <Cell
                           key={`cell-${entry.name}`}
                           fill={entry.color}
-                          opacity={0.8}
+                          opacity={0.9}
                           className="hover:opacity-100 transition-opacity duration-300"
                         />
                       ))}
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                        borderRadius: '1.5rem',
-                        border: '1px solid hsl(var(--border))',
-                        background: 'hsl(var(--card)/0.95)',
-                        backdropFilter: 'blur(10px)',
+                        borderRadius: '0.75rem',
+                        border: '1px solid rgba(148, 163, 184, 0.2)',
+                        background: 'rgba(15, 23, 42, 0.9)',
+                        color: '#fff',
                       }}
                     />
                   </PieChart>
@@ -594,38 +604,44 @@ const UserAnalytics = ({
                   className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
                   data-oid="t7o-u9j"
                 >
-                  <span className="text-3xl font-black mb-1" data-oid="nz.mjg8">
-                    {stats.completedTests}
+                  <span
+                    className="text-2xl font-black text-slate-950 dark:text-white leading-none mb-0.5"
+                    data-oid="nz.mjg8"
+                  >
+                    {stats.completedTests || 0}
                   </span>
                   <span
-                    className="text-[10px] items-center uppercase font-black tracking-widest text-muted-foreground/60"
+                    className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400"
                     data-oid="7f1al:u"
                   >
                     Total Tests
                   </span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 w-full" data-oid="k9a0s5:">
+              <div className="grid grid-cols-2 gap-2 w-full mt-1" data-oid="k9a0s5:">
                 {sessionActivity.map((item, index) => (
                   <div
                     key={index}
-                    className="flex flex-col items-center p-3.5 rounded-2xl bg-muted/20 border border-border/50 group-hover:bg-muted/40 transition-colors"
+                    className="flex flex-col items-center p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-white/5"
                     data-oid="s6fyrxe"
                   >
-                    <div className="flex items-center gap-2 mb-1.5" data-oid=".2fp:ov">
+                    <div className="flex items-center gap-1.5 mb-0.5" data-oid=".2fp:ov">
                       <div
-                        className="w-2 h-2 rounded-full"
+                        className="w-2 h-2 rounded-full shrink-0"
                         style={{ backgroundColor: item.color }}
                         data-oid="jl689a2"
                       />
                       <span
-                        className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60"
+                        className="text-[9px] font-black uppercase tracking-wider text-slate-400 truncate"
                         data-oid="7flwyr3"
                       >
                         {item.name}
                       </span>
                     </div>
-                    <span className="text-lg font-black text-foreground" data-oid="ryj_s:n">
+                    <span
+                      className="text-sm font-black text-slate-950 dark:text-white"
+                      data-oid="ryj_s:n"
+                    >
                       {item.value}
                     </span>
                   </div>

@@ -172,76 +172,108 @@ export default function ReferralManagement() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="space-y-6 pb-10"
       data-oid="18ug8xl"
     >
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-1">
+        <motion.div variants={itemVariants} className="space-y-0.5">
+          <h2 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5">
+            <div className="p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xs">
+              <Gift className="w-5 h-5" />
+            </div>
+            <span>Referral Program</span>
+          </h2>
+          <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
+            Configure referral milestone rewards, bonus evaluation credits, and track top advocates
+          </p>
+        </motion.div>
+
+        <Button
+          onClick={openAddModal}
+          className="h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-2xs transition-all flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Reward Tier</span>
+        </Button>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4" data-oid="mgs:u5n">
         <motion.div
           variants={itemVariants}
-          className="p-5 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 border border-indigo-500/20"
+          className="p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs"
           data-oid="amsy.af"
         >
-          <div className="flex items-center gap-4" data-oid="_h72-9d">
-            <div
-              className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center"
-              data-oid="hwecfhe"
-            >
-              <Users className="w-6 h-6 text-indigo-500" data-oid="_u881n_" />
-            </div>
-            <div data-oid="1n0vi9t">
-              <p className="text-3xl font-black" data-oid="vtqun1k">
-                {stats?.totalReferrals || 0}
-              </p>
-              <p className="text-sm text-muted-foreground font-bold" data-oid="w3y-cts">
+          <div className="flex items-center justify-between" data-oid="_h72-9d">
+            <div className="space-y-0.5" data-oid="1n0vi9t">
+              <p
+                className="text-[10px] font-black uppercase tracking-wider text-slate-400"
+                data-oid="w3y-cts"
+              >
                 Total Referrals
               </p>
+              <p className="text-2xl font-black text-slate-950 dark:text-white" data-oid="vtqun1k">
+                {stats?.totalReferrals || 0}
+              </p>
+            </div>
+            <div
+              className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/40"
+              data-oid="hwecfhe"
+            >
+              <Users className="w-4 h-4" data-oid="_u881n_" />
             </div>
           </div>
         </motion.div>
 
         <motion.div
           variants={itemVariants}
-          className="p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20"
+          className="p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs"
           data-oid="19oec09"
         >
-          <div className="flex items-center gap-4" data-oid="ibn8.2b">
-            <div
-              className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center"
-              data-oid="-:63:qe"
-            >
-              <Gift className="w-6 h-6 text-emerald-500" data-oid="b.076g:" />
-            </div>
-            <div data-oid="ju54xe8">
-              <p className="text-3xl font-black" data-oid="k3bzimg">
-                {tiers.filter((t) => t.is_active).length}
-              </p>
-              <p className="text-sm text-muted-foreground font-bold" data-oid="4brs74h">
+          <div className="flex items-center justify-between" data-oid="ibn8.2b">
+            <div className="space-y-0.5" data-oid="ju54xe8">
+              <p
+                className="text-[10px] font-black uppercase tracking-wider text-slate-400"
+                data-oid="4brs74h"
+              >
                 Active Reward Tiers
               </p>
+              <p className="text-2xl font-black text-slate-950 dark:text-white" data-oid="k3bzimg">
+                {tiers.filter((t) => t.is_active).length}
+              </p>
+            </div>
+            <div
+              className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40"
+              data-oid="-:63:qe"
+            >
+              <Gift className="w-4 h-4" data-oid="b.076g:" />
             </div>
           </div>
         </motion.div>
 
         <motion.div
           variants={itemVariants}
-          className="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20"
+          className="p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs"
           data-oid="lb_on44"
         >
-          <div className="flex items-center gap-4" data-oid="xi7pj4d">
-            <div
-              className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center"
-              data-oid="afizo-4"
-            >
-              <Trophy className="w-6 h-6 text-amber-500" data-oid="u2gba3y" />
-            </div>
-            <div data-oid="yhhxr40">
-              <p className="text-3xl font-black" data-oid="uf9u:_y">
-                {stats?.topReferrers?.[0]?.count || 0}
-              </p>
-              <p className="text-sm text-muted-foreground font-bold" data-oid="iz.tx43">
+          <div className="flex items-center justify-between" data-oid="xi7pj4d">
+            <div className="space-y-0.5" data-oid="yhhxr40">
+              <p
+                className="text-[10px] font-black uppercase tracking-wider text-slate-400"
+                data-oid="iz.tx43"
+              >
                 Top Referrer Count
               </p>
+              <p className="text-2xl font-black text-slate-950 dark:text-white" data-oid="uf9u:_y">
+                {stats?.topReferrers?.[0]?.count || 0}
+              </p>
+            </div>
+            <div
+              className="p-2.5 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40"
+              data-oid="afizo-4"
+            >
+              <Trophy className="w-4 h-4" data-oid="u2gba3y" />
             </div>
           </div>
         </motion.div>
@@ -250,29 +282,24 @@ export default function ReferralManagement() {
       {/* Reward Tiers Section */}
       <motion.div
         variants={itemVariants}
-        className="p-6 rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-white/10"
+        className="p-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs space-y-5"
         data-oid="2jfdadv"
       >
-        <div className="flex items-center justify-between mb-6" data-oid="p_wx:y9">
-          <div data-oid="e7cohqm">
-            <h3 className="text-xl font-black" data-oid="f4p4l1z">
-              Reward Tiers
+        <div className="flex items-center justify-between" data-oid="p_wx:y9">
+          <div data-oid="e7cohqm" className="space-y-0.5">
+            <h3 className="text-base font-black text-slate-950 dark:text-white" data-oid="f4p4l1z">
+              Milestone Reward Rules
             </h3>
-            <p className="text-sm text-muted-foreground font-medium" data-oid="l9up2zp">
-              Configure rewards for each referral milestone
+            <p
+              className="text-xs font-medium text-slate-500 dark:text-slate-400"
+              data-oid="l9up2zp"
+            >
+              Automatic user rewards unlocked when candidates hit referral targets
             </p>
           </div>
-          <Button
-            onClick={openAddModal}
-            className="rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700"
-            data-oid="d6ipd.y"
-          >
-            <Plus className="w-4 h-4 mr-2" data-oid="mfkxbee" />
-            Add Tier
-          </Button>
         </div>
 
-        <div className="space-y-3" data-oid="lls6vpo">
+        <div className="space-y-2.5" data-oid="lls6vpo">
           <AnimatePresence mode="popLayout" data-oid="yu.2e3d">
             {tiers.map((tier) => (
               <motion.div
@@ -282,101 +309,101 @@ export default function ReferralManagement() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 className={cn(
-                  'p-4 rounded-2xl border transition-all',
+                  'p-3.5 rounded-xl border transition-all flex items-center justify-between gap-4 shadow-2xs',
                   tier.is_active
-                    ? 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10'
-                    : 'bg-slate-100/50 dark:bg-slate-800/50 border-slate-200/50 dark:border-white/5 opacity-60'
+                    ? 'bg-slate-50/70 dark:bg-slate-900/60 border-slate-200/80 dark:border-white/10'
+                    : 'bg-slate-100/40 dark:bg-slate-800/40 border-slate-200/40 opacity-60'
                 )}
                 data-oid="_vj.xl2"
               >
-                <div className="flex items-center justify-between gap-4" data-oid="b4dwrpc">
-                  <div className="flex items-center gap-4" data-oid="-j:-jpl">
-                    <div
-                      className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white"
-                      data-oid="clnadpz"
+                <div className="flex items-center gap-3.5" data-oid="-j:-jpl">
+                  <div
+                    className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/50 flex items-center justify-center font-black text-base shrink-0"
+                    data-oid="clnadpz"
+                  >
+                    <span>{tier.referrals_required}</span>
+                  </div>
+                  <div data-oid="n6y-sh6" className="space-y-1">
+                    <p
+                      className="font-extrabold text-sm text-slate-950 dark:text-white"
+                      data-oid="oczhbd."
                     >
-                      <span className="text-xl font-black" data-oid="j-o7_yo">
-                        {tier.referrals_required}
-                      </span>
-                    </div>
-                    <div data-oid="n6y-sh6">
-                      <p className="font-black text-lg" data-oid="oczhbd.">
-                        {tier.referrals_required} Referral{tier.referrals_required > 1 ? 's' : ''}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-2 mt-1" data-oid="o07jhy-">
-                        {tier.extra_days > 0 && (
-                          <Badge
-                            variant="secondary"
-                            className="rounded-lg font-bold text-xs"
-                            data-oid=".24xkt4"
-                          >
-                            <Calendar className="w-3 h-3 mr-1" data-oid="s518lpj" />+
-                            {tier.extra_days} days
-                          </Badge>
-                        )}
-                        {tier.writing_credits > 0 && (
-                          <Badge
-                            variant="secondary"
-                            className="rounded-lg font-bold text-xs bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400"
-                            data-oid="-wl2llk"
-                          >
-                            <PenLine className="w-3 h-3 mr-1" data-oid="yu715uq" />+
-                            {tier.writing_credits} writing
-                          </Badge>
-                        )}
-                        {tier.speaking_credits > 0 && (
-                          <Badge
-                            variant="secondary"
-                            className="rounded-lg font-bold text-xs bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
-                            data-oid="yjwma2i"
-                          >
-                            <Mic className="w-3 h-3 mr-1" data-oid="fslv1wp" />+
-                            {tier.speaking_credits} speaking
-                          </Badge>
-                        )}
-                      </div>
+                      {tier.referrals_required} Referral{tier.referrals_required > 1 ? 's' : ''}{' '}
+                      Target
+                    </p>
+                    <div className="flex flex-wrap items-center gap-1.5" data-oid="o07jhy-">
+                      {tier.extra_days > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="rounded-lg font-bold text-[10px] bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                          data-oid=".24xkt4"
+                        >
+                          <Calendar className="w-3 h-3 mr-1 text-indigo-500" data-oid="s518lpj" />+
+                          {tier.extra_days} extra days
+                        </Badge>
+                      )}
+                      {tier.writing_credits > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="rounded-lg font-bold text-[10px] bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border-indigo-200 dark:border-indigo-900"
+                          data-oid="-wl2llk"
+                        >
+                          <PenLine className="w-3 h-3 mr-1" data-oid="yu715uq" />+
+                          {tier.writing_credits} writing evaluations
+                        </Badge>
+                      )}
+                      {tier.speaking_credits > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="rounded-lg font-bold text-[10px] bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border-purple-200 dark:border-purple-900"
+                          data-oid="yjwma2i"
+                        >
+                          <Mic className="w-3 h-3 mr-1" data-oid="fslv1wp" />+
+                          {tier.speaking_credits} speaking evaluations
+                        </Badge>
+                      )}
                     </div>
                   </div>
+                </div>
 
-                  <div className="flex items-center gap-2" data-oid="t7ncv_3">
-                    <Switch
-                      checked={tier.is_active}
-                      onCheckedChange={() => handleToggleActive(tier)}
-                      data-oid="7s5r:ej"
-                    />
+                <div className="flex items-center gap-2" data-oid="t7ncv_3">
+                  <Switch
+                    checked={tier.is_active}
+                    onCheckedChange={() => handleToggleActive(tier)}
+                    data-oid="7s5r:ej"
+                  />
 
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openEditModal(tier)}
-                      className="rounded-xl"
-                      data-oid="tcn8.4m"
-                    >
-                      <Edit3 className="w-4 h-4" data-oid="oudjt7g" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(tier)}
-                      className="rounded-xl text-rose-500 hover:text-rose-600 hover:bg-rose-500/10"
-                      data-oid="w.ek0e3"
-                    >
-                      <Trash2 className="w-4 h-4" data-oid="2.pab_i" />
-                    </Button>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => openEditModal(tier)}
+                    className="h-8 w-8 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    data-oid="tcn8.4m"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" data-oid="oudjt7g" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(tier)}
+                    className="h-8 w-8 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                    data-oid="w.ek0e3"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" data-oid="2.pab_i" />
+                  </Button>
                 </div>
               </motion.div>
             ))}
           </AnimatePresence>
 
           {tiers.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground" data-oid="_5-0-m0">
-              <Gift className="w-12 h-12 mx-auto mb-4 opacity-30" data-oid="yift19m" />
-              <p className="font-bold" data-oid="98cvgqc">
-                No reward tiers configured
+            <div className="text-center py-10 text-slate-400" data-oid="_5-0-m0">
+              <Gift className="w-10 h-10 mx-auto mb-3 opacity-30" data-oid="yift19m" />
+              <p className="font-bold text-xs" data-oid="98cvgqc">
+                No reward tiers configured yet
               </p>
-              <p className="text-sm" data-oid="nq0jg6h">
-                Click "Add Tier" to create your first referral reward
+              <p className="text-[11px] text-slate-500" data-oid="nq0jg6h">
+                Click "Add Reward Tier" to create your first milestone
               </p>
             </div>
           )}
@@ -387,13 +414,16 @@ export default function ReferralManagement() {
       {stats?.topReferrers?.length > 0 && (
         <motion.div
           variants={itemVariants}
-          className="p-6 rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-white/10"
+          className="p-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs space-y-4"
           data-oid="f9sy9cw"
         >
-          <div className="flex items-center gap-3 mb-4" data-oid="t4a_n9u">
-            <TrendingUp className="w-5 h-5 text-indigo-500" data-oid="544gwti" />
-            <h3 className="text-lg font-black" data-oid="h9p7_xm">
-              Top Referrers
+          <div className="flex items-center gap-2" data-oid="t4a_n9u">
+            <TrendingUp
+              className="w-4 h-4 text-indigo-600 dark:text-indigo-400"
+              data-oid="544gwti"
+            />
+            <h3 className="text-base font-black text-slate-950 dark:text-white" data-oid="h9p7_xm">
+              Top Referral Advocates
             </h3>
           </div>
 
@@ -401,35 +431,41 @@ export default function ReferralManagement() {
             {stats.topReferrers.slice(0, 5).map((referrer, idx) => (
               <div
                 key={referrer.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5"
+                className="flex items-center justify-between p-3 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/5"
                 data-oid="db_xfjg"
               >
                 <div className="flex items-center gap-3" data-oid="yjtnef8">
                   <span
                     className={cn(
-                      'w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm',
+                      'w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs',
                       idx === 0
-                        ? 'bg-amber-500 text-white'
+                        ? 'bg-amber-500 text-white shadow-2xs'
                         : idx === 1
-                          ? 'bg-slate-400 text-white'
+                          ? 'bg-slate-400 text-white shadow-2xs'
                           : idx === 2
-                            ? 'bg-amber-700 text-white'
-                            : 'bg-slate-200 dark:bg-slate-700'
+                            ? 'bg-amber-700 text-white shadow-2xs'
+                            : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                     )}
                     data-oid="sik88w3"
                   >
                     {idx + 1}
                   </span>
                   <div data-oid="1k60npi">
-                    <p className="font-bold" data-oid="w2g--ar">
+                    <p
+                      className="font-extrabold text-xs text-slate-950 dark:text-white"
+                      data-oid="w2g--ar"
+                    >
                       {referrer.name}
                     </p>
-                    <p className="text-xs text-muted-foreground" data-oid="ah5g48r">
+                    <p className="text-[10px] text-slate-400 font-mono" data-oid="ah5g48r">
                       {referrer.email}
                     </p>
                   </div>
                 </div>
-                <Badge className="rounded-lg font-black" data-oid="dwahhs8">
+                <Badge
+                  className="rounded-lg font-mono font-bold text-xs bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border-indigo-200 dark:border-indigo-900"
+                  data-oid="dwahhs8"
+                >
                   {referrer.count} referrals
                 </Badge>
               </div>

@@ -82,19 +82,34 @@ export default function AnnouncementsSettingsTab({
   onChangeAnnouncement,
 }) {
   return (
-    <motion.div variants={itemVariants} className="max-w-3xl" data-oid="uac6lhm">
+    <motion.div variants={itemVariants} className="max-w-3xl space-y-6" data-oid="uac6lhm">
       <Card
-        className="border border-border/50 shadow-sm overflow-hidden bg-card/50 backdrop-blur-sm"
+        className="border border-slate-200/90 dark:border-white/10 shadow-2xs rounded-2xl overflow-hidden bg-white dark:bg-slate-900/90"
         data-oid="inzo-eu"
       >
-        <CardHeader className="border-b border-border/40 bg-muted/20" data-oid="vqhmug2">
-          <div className="flex items-center gap-2" data-oid="ms21nis">
-            <Bell className="h-5 w-5 text-primary" data-oid="x-ix.j:" />
-            <CardTitle data-oid="h.:69mu">Public Announcements</CardTitle>
+        <CardHeader
+          className="border-b border-slate-100 dark:border-white/5 bg-slate-50/80 dark:bg-slate-900/80 p-5"
+          data-oid="vqhmug2"
+        >
+          <div className="flex items-center gap-2.5" data-oid="ms21nis">
+            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+              <Bell className="h-4 w-4" data-oid="x-ix.j:" />
+            </div>
+            <div>
+              <CardTitle
+                className="text-base font-black text-slate-950 dark:text-white"
+                data-oid="h.:69mu"
+              >
+                Public Announcements
+              </CardTitle>
+              <CardDescription
+                className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5"
+                data-oid="0egbc:5"
+              >
+                Display a persistent message banner across the platform to all users
+              </CardDescription>
+            </div>
           </div>
-          <CardDescription data-oid="0egbc:5">
-            Display a persistent message banner to all users
-          </CardDescription>
         </CardHeader>
         <CardContent className="p-6 space-y-6" data-oid="bx4fxoj">
           <div className="flex items-center justify-between" data-oid="mr-n0yy">

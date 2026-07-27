@@ -32,22 +32,25 @@ const premiumTheme = {
 
 const PricingSettingsHeader = () => (
   <div
-    className="p-6 border-b border-border/40 bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/20 dark:to-purple-900/20"
+    className="p-5 border-b border-slate-100 dark:border-white/5 bg-slate-50/80 dark:bg-slate-900/80"
     data-oid="f8sa9t:"
   >
     <div className="flex items-center gap-3" data-oid="z49kav8">
       <div
-        className="p-2.5 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl text-blue-600 dark:text-blue-400 border border-blue-500/30"
+        className="p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xs"
         data-oid="h6ax7g5"
       >
-        <DollarSign className="w-6 h-6" data-oid="t493xto" />
+        <DollarSign className="w-5 h-5" data-oid="t493xto" />
       </div>
-      <div className="space-y-1" data-oid="tcj0xox">
-        <h3 className="text-xl font-bold tracking-tight text-foreground" data-oid="q_mbpg0">
+      <div className="space-y-0.5" data-oid="tcj0xox">
+        <h3
+          className="text-lg font-black tracking-tight text-slate-950 dark:text-white"
+          data-oid="q_mbpg0"
+        >
           Pricing Configuration
         </h3>
-        <p className="text-sm text-muted-foreground" data-oid=".ky0t.m">
-          Manage global subscription costs and economic tiers
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-400" data-oid=".ky0t.m">
+          Manage global subscription rates, discount formulas, and localized regional pricing
         </p>
       </div>
     </div>
@@ -56,25 +59,28 @@ const PricingSettingsHeader = () => (
 
 const PricingSettingsFooter = ({ onSave, pricingTiers, saving }) => (
   <div
-    className="flex items-center justify-between pt-6 border-t border-border/30"
+    className="flex items-center justify-between pt-5 border-t border-slate-100 dark:border-white/5"
     data-oid="b25u3fj"
   >
-    <div className="flex items-center gap-3 text-sm text-muted-foreground" data-oid="qih51.2">
+    <div
+      className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400"
+      data-oid="qih51.2"
+    >
       <div className="w-2 h-2 rounded-full bg-emerald-500" data-oid="4n.-03f"></div>
-      <span data-oid="8vwkl:7">Pricing changes take effect immediately</span>
+      <span data-oid="8vwkl:7">Pricing updates apply across all billing flows immediately</span>
     </div>
     <Button
       onClick={() => onSave('pricing_tiers', pricingTiers)}
       disabled={saving}
-      className="h-12 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 transform hover:scale-105"
+      className="h-9 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-2xs transition-all"
       data-oid=":i.ehgz"
     >
       {saving ? (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" data-oid="c8.w.wa" />
+        <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" data-oid="c8.w.wa" />
       ) : (
-        <Save className="mr-2 h-4 w-4" data-oid="9yq1h4h" />
+        <Save className="mr-2 h-3.5 w-3.5" data-oid="9yq1h4h" />
       )}
-      Update Pricing
+      <span>Update Pricing</span>
     </Button>
   </div>
 );
@@ -91,21 +97,21 @@ export default function PricingSettingsTab({
   const premium = tiers.premium || {};
 
   return (
-    <motion.div variants={itemVariants} className="max-w-5xl" data-oid="duxl5bf">
+    <motion.div variants={itemVariants} className="max-w-5xl space-y-6" data-oid="duxl5bf">
       <div
-        className="rounded-xl border text-card-foreground bg-card/50 backdrop-blur-sm border-border/50 shadow-sm overflow-hidden"
+        className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 shadow-2xs overflow-hidden"
         data-oid="_v9cdza"
       >
         <PricingSettingsHeader />
 
-        <div className="p-8 space-y-8" data-oid="bws3833">
-          <div className="grid md:grid-cols-2 gap-8" data-oid="piynevn">
+        <div className="p-6 space-y-6" data-oid="bws3833">
+          <div className="grid md:grid-cols-2 gap-6" data-oid="piynevn">
             {/* Pro Plan */}
             <PricingTierCard
               tierId="pro"
               tierName="Pro Plan"
-              tierDescription="Professional features"
-              activeText="Active plan for professional users"
+              tierDescription="Professional features for dedicated learners"
+              activeText="Active tier for standard subscribers"
               icon={Zap}
               price={pro.price}
               originalPrice={pro.originalPrice}
@@ -136,8 +142,8 @@ export default function PricingSettingsTab({
             <PricingTierCard
               tierId="premium"
               tierName="Premium Tier"
-              tierDescription="Advanced capabilities"
-              activeText="Premium features for power users"
+              tierDescription="Advanced AI features & unlimited evaluations"
+              activeText="Premium tier for intensive preparation"
               icon={ShieldCheck}
               price={premium.price}
               originalPrice={premium.originalPrice}
@@ -162,7 +168,6 @@ export default function PricingSettingsTab({
                 })
               }
               onRegionalUpdate={onRegionalUpdate}
-              theme={premiumTheme}
             />
           </div>
 

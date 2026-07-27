@@ -121,19 +121,20 @@ const AIUsageManagement = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8 pb-10"
+      className="space-y-6 pb-10"
     >
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-        <motion.div variants={itemVariants} className="space-y-1">
-          <h2 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-            <div className="p-2 bg-violet-500/10 rounded-lg text-violet-500 shadow-sm border border-violet-500/20">
-              <Cpu className="w-6 h-6" />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-1">
+        <motion.div variants={itemVariants} className="space-y-0.5">
+          <h2 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5">
+            <div className="p-2.5 bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-400 rounded-xl border border-violet-200/50 dark:border-violet-800/50 shadow-2xs">
+              <Cpu className="w-5 h-5" />
             </div>
-            AI Usage Analytics
+            <span>AI Usage Analytics</span>
           </h2>
-          <p className="text-muted-foreground text-lg ml-1">
-            Monitor AI API consumption and costs per user
+          <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
+            Monitor real-time AI API consumption, token quotas, cache efficiency, and costs per
+            candidate
           </p>
         </motion.div>
 
@@ -144,10 +145,10 @@ const AIUsageManagement = () => {
               fetchChartStats();
             }}
             variant="outline"
-            className="h-10 gap-2"
+            className="h-9 px-3.5 font-extrabold text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 shadow-2xs rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-2"
           >
-            <RefreshCw className="w-4 h-4" />
-            Refresh
+            <RefreshCw className="w-3.5 h-3.5 text-violet-500" />
+            <span>Refresh Data</span>
           </Button>
         </motion.div>
       </div>

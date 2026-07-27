@@ -35,6 +35,9 @@ import {
   Search,
   Sparkles,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
   Mail,
   Calendar,
   Shield,
@@ -56,6 +59,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth/context/AuthContext';
+import { cn } from '@/lib/cn';
 
 const UserManagement = () => {
   const { isAdmin } = useAuth();
@@ -113,6 +117,18 @@ const UserManagement = () => {
     setSelectAll(false);
   }, [debouncedSearch, userFilters.subscription, userFilters.role, userFilters.inactiveDays]);
 
+  const [sortField, setSortField] = useState('created_at');
+  const [sortDirection, setSortDirection] = useState('desc');
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
@@ -123,8 +139,10 @@ const UserManagement = () => {
         inactiveDays: userFilters.inactiveDays,
       };
 
+      const orderBy = sortDirection === 'desc' ? `-${sortField}` : sortField;
+
       const { data, count } = await User.list({
-        orderBy: '-created_at',
+        orderBy,
         page: currentPage,
         pageSize: pageSize,
         filters: apiFilters,
@@ -146,6 +164,8 @@ const UserManagement = () => {
     userFilters.subscription,
     userFilters.role,
     userFilters.inactiveDays,
+    sortField,
+    sortDirection,
   ]);
 
   useEffect(() => {
@@ -435,50 +455,51 @@ const UserManagement = () => {
 
       {/* Header Section */}
       <div
-        className="flex flex-col md:flex-row md:items-center justify-between gap-6"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1"
         data-oid="7zo3538"
       >
-        <motion.div variants={itemVariants} className="space-y-1" data-oid="85swrl-">
+        <motion.div variants={itemVariants} className="space-y-0.5" data-oid="85swrl-">
           <h2
-            className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3"
+            className="text-2xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
             data-oid="9t49n:l"
           >
             <div
-              className="p-2 bg-primary/10 rounded-lg text-primary shadow-sm border border-primary/20"
+              className="p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xs"
               data-oid="_::hin1"
             >
-              <Users className="w-6 h-6" data-oid="9w0m6vz" />
+              <Users className="w-5 h-5" data-oid="9w0m6vz" />
             </div>
-            User Directory
+            <span>User Directory</span>
           </h2>
-          <p className="text-muted-foreground text-lg ml-1" data-oid="olwcxub">
-            Manage platform accounts and permissions
+          <p
+            className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400"
+            data-oid="olwcxub"
+          >
+            Manage candidate platform accounts, access roles, subscription tiers, and inactivity
+            warnings
           </p>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="flex items-center gap-3" data-oid="lb2009i">
+        <motion.div variants={itemVariants} className="flex items-center gap-2" data-oid="lb2009i">
           <Button
             variant="outline"
             onClick={fetchUsers}
-            className="rounded-xl border-border/50 bg-card/50 h-11 px-4 hover:bg-muted/50"
+            className="h-9 px-3.5 font-extrabold text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 shadow-2xs rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-2"
             data-oid="iiog8.p"
           >
             <RefreshCcw
-              className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`}
+              className={`w-3.5 h-3.5 text-indigo-500 ${loading ? 'animate-spin' : ''}`}
               data-oid="dcmurjz"
             />
-            REFRESH
+            <span>Refresh</span>
           </Button>
           <Button
             onClick={() => setIsCreatingUser(true)}
-            className="h-9 px-4 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 rounded-lg transition-all duration-300 font-bold group"
+            className="h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-2xs transition-all flex items-center gap-2"
             data-oid="5yf.zvf"
           >
-            <UserPlus
-              className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform"
-              data-oid="izku-.9"
-            />
-            NEW ACCOUNT
+            <UserPlus className="w-4 h-4" data-oid="izku-.9" />
+            <span>New Account</span>
           </Button>
         </motion.div>
       </div>
@@ -486,41 +507,44 @@ const UserManagement = () => {
       {/* Modern Filter Toolbar */}
       <motion.div
         variants={itemVariants}
-        className="flex flex-col gap-4 bg-card/30 backdrop-blur-md border border-border/50 p-4 rounded-lg shadow-sm"
+        className="flex flex-col gap-3 bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 p-3.5 rounded-2xl shadow-2xs"
         data-oid="6l6kxmo"
       >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center" data-oid="we320wu">
           <div className="lg:col-span-4 relative group" data-oid="8bpgm8k">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-muted-foreground group-focus-within:text-primary transition-colors"
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors"
               data-oid=":agny.j"
             />
 
             <Input
-              placeholder="Search identity or email metadata..."
+              placeholder="Search candidate name or email address..."
               value={userFilters.search}
               onChange={(e) => setUserFilters({ ...userFilters, search: e.target.value })}
-              className="h-10 pl-10 bg-muted/20 border-border/40 focus-visible:ring-primary/20 rounded-lg font-medium placeholder:opacity-40"
+              className="h-9 pl-9 bg-slate-50/70 dark:bg-slate-900/50 border-slate-200/80 dark:border-white/10 rounded-xl font-medium text-xs text-slate-900 dark:text-white placeholder:text-slate-400"
               data-oid="n0fsc29"
             />
           </div>
 
-          <div className="lg:col-span-2 space-y-1" data-oid="t.er117">
+          <div className="lg:col-span-2" data-oid="t.er117">
             <Select
               value={userFilters.subscription}
               onValueChange={(value) => setUserFilters({ ...userFilters, subscription: value })}
               data-oid="cr47ek3"
             >
               <SelectTrigger
-                className="h-10 bg-muted/20 border-border/40 rounded-lg px-4"
+                className="h-9 bg-slate-50/70 dark:bg-slate-900/50 border-slate-200/80 dark:border-white/10 rounded-xl px-3 text-xs"
                 data-oid="sv33jb2"
               >
                 <div className="flex items-center gap-2" data-oid="9pc6ua1">
-                  <CreditCard className="w-4 h-4 text-primary/60" data-oid=".eowcjc" />
+                  <CreditCard className="w-3.5 h-3.5 text-indigo-500" data-oid=".eowcjc" />
                   <SelectValue placeholder="Plan" data-oid="l5wxgke" />
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-2xl border-border/50" data-oid="gff7zdk">
+              <SelectContent
+                className="rounded-xl border-slate-200 dark:border-white/10"
+                data-oid="gff7zdk"
+              >
                 <SelectItem value="all" data-oid="6o6_t-r">
                   All Subscriptions
                 </SelectItem>
@@ -537,14 +561,14 @@ const UserManagement = () => {
             </Select>
           </div>
 
-          <div className="lg:col-span-2 space-y-1" data-oid="828ulek">
+          <div className="lg:col-span-2" data-oid="828ulek">
             <Select
               value={userFilters.role}
               onValueChange={(value) => setUserFilters({ ...userFilters, role: value })}
               data-oid="pxuzgl5"
             >
               <SelectTrigger
-                className="h-10 bg-muted/20 border-border/40 rounded-lg px-4"
+                className="h-9 bg-slate-50/70 dark:bg-slate-900/50 border-slate-200/80 dark:border-white/10 rounded-xl px-3 text-xs"
                 data-oid="le5yfh_"
               >
                 <div className="flex items-center gap-2" data-oid="m8uoj4x">
@@ -660,53 +684,57 @@ const UserManagement = () => {
       {/* User Table Card */}
       <motion.div variants={itemVariants} data-oid="g2h1f:8">
         <Card
-          className="bg-card/30 backdrop-blur-sm border-border/50 shadow-lg rounded-lg overflow-hidden border"
+          className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs rounded-2xl overflow-hidden"
           data-oid="n7uwuzb"
         >
           <div className="overflow-x-auto" data-oid="_h_qjay">
             <Table data-oid="hu_q:cf">
-              <TableHeader className="bg-muted/30 border-b border-border/50" data-oid="86l2vgq">
+              <TableHeader
+                className="bg-slate-50/80 dark:bg-slate-900/40 border-b border-slate-100 dark:border-white/5"
+                data-oid="86l2vgq"
+              >
                 <TableRow className="hover:bg-transparent" data-oid="l-3o7fy">
-                  <TableHead className="py-3 px-4 w-12" data-oid="t_vyh-u">
+                  <TableHead className="py-3 px-4 w-10" data-oid="t_vyh-u">
                     <Checkbox
                       checked={selectAll}
                       onCheckedChange={toggleSelectAll}
-                      className="border-border/50"
+                      className="border-slate-300 dark:border-slate-700"
                       data-oid="gh2wvpr"
                     />
                   </TableHead>
+
+                  {[
+                    { field: 'full_name', label: 'Candidate Identity' },
+                    { field: 'email', label: 'Email Address' },
+                    { field: 'subscription_tier', label: 'Plan Tier' },
+                    { field: 'role', label: 'Access Role' },
+                    { field: 'last_active', label: 'Last Active' },
+                  ].map(({ field, label }) => (
+                    <TableHead
+                      key={field}
+                      onClick={() => handleSort(field)}
+                      className={cn(
+                        'py-3 px-4 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 cursor-pointer select-none hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group/head',
+                        sortField === field && 'text-indigo-600 dark:text-indigo-400'
+                      )}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span>{label}</span>
+                        {sortField === field ? (
+                          sortDirection === 'asc' ? (
+                            <ChevronUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                          ) : (
+                            <ChevronDown className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                          )
+                        ) : (
+                          <ChevronsUpDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 opacity-0 group-hover/head:opacity-100 transition-opacity shrink-0" />
+                        )}
+                      </div>
+                    </TableHead>
+                  ))}
+
                   <TableHead
-                    className="py-3 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                    data-oid="oldt0ks"
-                  >
-                    Identity
-                  </TableHead>
-                  <TableHead
-                    className="py-3 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                    data-oid="yu4kfbg"
-                  >
-                    Contact
-                  </TableHead>
-                  <TableHead
-                    className="py-3 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                    data-oid="kglu:pw"
-                  >
-                    Tier
-                  </TableHead>
-                  <TableHead
-                    className="py-3 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                    data-oid="js97nv."
-                  >
-                    Access
-                  </TableHead>
-                  <TableHead
-                    className="py-3 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                    data-oid="6jis87o"
-                  >
-                    Last Active
-                  </TableHead>
-                  <TableHead
-                    className="py-3 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right"
+                    className="py-3 px-4 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 text-right"
                     data-oid="6.f:lub"
                   >
                     Actions
@@ -719,24 +747,24 @@ const UserManagement = () => {
                     ? [...Array(5)].map((_, i) => (
                         <TableRow
                           key={`skeleton-${i}`}
-                          className="border-b border-border/30"
+                          className="border-b border-slate-100 dark:border-white/5"
                           data-oid="23-s5ji"
                         >
-                          <TableCell colSpan={7} className="py-4 px-4" data-oid="1ur8xdw">
-                            <div className="flex items-center gap-4" data-oid="d8b3ext">
+                          <TableCell colSpan={7} className="py-3 px-4" data-oid="1ur8xdw">
+                            <div className="flex items-center gap-3" data-oid="d8b3ext">
                               <div
-                                className="w-8 h-8 bg-muted/40 animate-pulse rounded-lg"
+                                className="w-8 h-8 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg"
                                 data-oid="2cag4p5"
                               />
 
-                              <div className="space-y-2" data-oid="i.h29fm">
+                              <div className="space-y-1.5" data-oid="i.h29fm">
                                 <div
-                                  className="w-28 h-3 bg-muted/40 animate-pulse rounded-md"
+                                  className="w-28 h-3 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md"
                                   data-oid="88atqaf"
                                 />
 
                                 <div
-                                  className="w-40 h-2 bg-muted/40 animate-pulse rounded-md opacity-50"
+                                  className="w-40 h-2 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md opacity-50"
                                   data-oid="-ix3bfa"
                                 />
                               </div>
@@ -751,26 +779,26 @@ const UserManagement = () => {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
-                          className={`border-b border-border/30 hover:bg-muted/20 transition-colors group ${selectedUsers.has(user.id) ? 'bg-primary/5' : ''}`}
+                          className={`border-b border-slate-100 dark:border-white/5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group ${selectedUsers.has(user.id) ? 'bg-indigo-50/40 dark:bg-indigo-950/20' : ''}`}
                           data-oid="0to3y3p"
                         >
                           <TableCell className="py-3 px-4" data-oid="q._hlld">
                             <Checkbox
                               checked={selectedUsers.has(user.id)}
                               onCheckedChange={() => toggleUserSelection(user.id)}
-                              className="border-border/50"
+                              className="border-slate-300 dark:border-slate-700"
                               data-oid="hqgp7a3"
                             />
                           </TableCell>
                           <TableCell className="py-3 px-4" data-oid="u9jbf8p">
-                            <div className="flex items-center gap-4" data-oid="y41cfp5">
+                            <div className="flex items-center gap-3" data-oid="y41cfp5">
                               <div
-                                className={`w-10 h-10 rounded-full shadow-sm flex items-center justify-center text-white text-sm font-semibold border-2 border-background ring-1 ring-border/20 ${
+                                className={`w-8 h-8 rounded-xl shadow-2xs flex items-center justify-center text-white text-xs font-black shrink-0 ${
                                   user.subscription_tier === 'premium'
-                                    ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-rose-500'
+                                    ? 'bg-gradient-to-br from-indigo-500 to-purple-600'
                                     : user.subscription_tier === 'pro'
-                                      ? 'bg-gradient-to-br from-blue-500 to-cyan-500'
-                                      : 'bg-gradient-to-br from-slate-400 to-slate-600'
+                                      ? 'bg-gradient-to-br from-blue-500 to-cyan-600'
+                                      : 'bg-slate-400 dark:bg-slate-700 text-slate-100'
                                 }`}
                                 data-oid="a8yf-:e"
                               >
@@ -778,38 +806,38 @@ const UserManagement = () => {
                               </div>
                               <div className="flex flex-col" data-oid="iqlvq4j">
                                 <span
-                                  className="font-semibold text-foreground text-sm leading-none mb-1"
+                                  className="font-extrabold text-xs text-slate-950 dark:text-white leading-tight"
                                   data-oid="r4nbvxn"
                                 >
                                   {user.full_name || 'Anonymous User'}
                                 </span>
                                 <span
-                                  className="text-xs font-medium text-muted-foreground uppercase opacity-60 tracking-wide"
+                                  className="text-[10px] font-mono text-slate-400"
                                   data-oid="31gfg8q"
                                 >
-                                  UID: {user.id.slice(0, 8)}
+                                  ID: {user.id.slice(0, 8)}
                                 </span>
                               </div>
                             </div>
                           </TableCell>
                           <TableCell className="py-3 px-4" data-oid="68g61oq">
                             <div
-                              className="flex items-center gap-1.5 text-muted-foreground group-hover:text-foreground transition-colors text-sm"
+                              className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 font-mono"
                               data-oid="qq.5l2."
                             >
-                              <Mail className="w-3 h-3 opacity-50" data-oid="seea_kw" />
+                              <Mail className="w-3 h-3 text-slate-400" data-oid="seea_kw" />
                               {user.email}
                             </div>
                           </TableCell>
                           <TableCell className="py-3 px-4" data-oid="w8-dgll">
                             <Badge
                               variant="outline"
-                              className={`capitalize font-semibold text-xs tracking-wide px-2 py-1 border-0 shadow-sm ${
+                              className={`capitalize font-bold text-[10px] px-2 py-0.5 rounded-lg border ${
                                 user.subscription_tier === 'premium'
-                                  ? 'bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/20'
+                                  ? 'bg-purple-50 text-purple-700 border-purple-200/80 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900'
                                   : user.subscription_tier === 'pro'
-                                    ? 'bg-indigo-500/10 text-indigo-600 ring-1 ring-indigo-500/20'
-                                    : 'bg-slate-300 dark:bg-slate-800 text-slate-600 dark:text-slate-400 ring-1 ring-slate-500/20'
+                                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200/80 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-900'
+                                    : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                               }`}
                               data-oid="bb47k.f"
                             >
@@ -821,8 +849,12 @@ const UserManagement = () => {
                           </TableCell>
                           <TableCell className="py-3 px-4" data-oid="6cvejgz">
                             <Badge
-                              variant={user.role === 'admin' ? 'default' : 'secondary'}
-                              className={`capitalize font-semibold text-xs px-2 py-1 ${user.role === 'admin' ? 'bg-rose-500 text-white shadow-rose-500/20' : ''}`}
+                              variant="outline"
+                              className={`capitalize font-bold text-[10px] px-2 py-0.5 rounded-lg border ${
+                                user.role === 'admin'
+                                  ? 'bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900'
+                                  : 'bg-slate-50 text-slate-600 border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                              }`}
                               data-oid="j5:s9fp"
                             >
                               {user.role || 'user'}
@@ -830,10 +862,10 @@ const UserManagement = () => {
                           </TableCell>
                           <TableCell className="py-3 px-4" data-oid="t88r-iu">
                             <div
-                              className="flex items-center gap-1 text-xs font-medium text-muted-foreground"
+                              className="flex items-center gap-1 text-[11px] font-mono text-slate-500"
                               data-oid="4vhilry"
                             >
-                              <Clock className="w-3 h-3 opacity-50" data-oid="wzi.gsg" />
+                              <Clock className="w-3 h-3 text-slate-400" data-oid="wzi.gsg" />
                               {user.last_active ? (
                                 (() => {
                                   const now = new Date();
@@ -849,17 +881,14 @@ const UserManagement = () => {
                                   return `${Math.floor(diffDays / 365)} years ago`;
                                 })()
                               ) : (
-                                <span className="text-amber-500" data-oid="4.g:jl_">
+                                <span className="text-amber-500 font-bold" data-oid="4.g:jl_">
                                   Never
                                 </span>
                               )}
                             </div>
                           </TableCell>
                           <TableCell className="py-3 px-4 text-right" data-oid="mif35_-">
-                            <div
-                              className="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-all"
-                              data-oid="m63j8uo"
-                            >
+                            <div className="flex justify-end items-center gap-1" data-oid="m63j8uo">
                               <Button
                                 size="icon"
                                 variant="ghost"

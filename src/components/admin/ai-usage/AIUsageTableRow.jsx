@@ -13,45 +13,55 @@ import {
 } from './utils';
 
 const UserCell = ({ user }) => (
-  <TableCell>
+  <TableCell className="py-3">
     <div className="flex items-center gap-3">
-      <Avatar className="h-9 w-9 border-2 border-violet-200 dark:border-violet-800">
+      <Avatar className="h-8 w-8 border border-violet-200/80 dark:border-violet-800/80">
         <AvatarImage src={user?.avatar_url} />
-        <AvatarFallback className="bg-gradient-to-br from-violet-400 to-purple-600 text-white text-xs font-bold">
+        <AvatarFallback className="bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300 text-xs font-bold">
           {getInitials(user?.full_name)}
         </AvatarFallback>
       </Avatar>
       <div className="flex flex-col">
-        <span className="font-medium text-sm">{user?.full_name || 'Unknown'}</span>
-        <span className="text-xs text-muted-foreground">{user?.email}</span>
+        <span className="font-extrabold text-xs text-slate-950 dark:text-white">
+          {user?.full_name || 'Unknown Candidate'}
+        </span>
+        <span className="text-[10px] text-slate-400 font-mono">{user?.email}</span>
       </div>
     </div>
   </TableCell>
 );
 
 const CallsCell = ({ totalCalls, maxCalls }) => (
-  <TableCell>
+  <TableCell className="py-3">
     <div className="flex flex-col gap-1">
-      <span className="font-bold text-lg text-foreground">{totalCalls?.toLocaleString() || 0}</span>
-      <Progress value={((totalCalls || 0) / maxCalls) * 100} className="h-1.5 w-24" />
+      <span className="font-extrabold text-xs text-slate-950 dark:text-white">
+        {totalCalls?.toLocaleString() || 0}
+      </span>
+      <Progress
+        value={((totalCalls || 0) / maxCalls) * 100}
+        className="h-1.5 w-20 bg-slate-100 dark:bg-slate-800"
+      />
     </div>
   </TableCell>
 );
 
 const CachedCell = ({ cachedCalls, totalCalls }) => (
-  <TableCell>
+  <TableCell className="py-3">
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger>
-          <Badge className="bg-emerald-500/10 text-emerald-600 gap-1">
-            <Sparkles className="w-3 h-3" />
+          <Badge
+            variant="outline"
+            className="bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900 text-[10px] font-mono gap-1 rounded-lg"
+          >
+            <Sparkles className="w-3 h-3 text-emerald-500" />
             {cachedCalls?.toLocaleString() || 0}
           </Badge>
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent className="bg-slate-900 text-white text-xs border border-white/10 rounded-xl p-2">
           <p>
             {totalCalls > 0
-              ? `${((cachedCalls / totalCalls) * 100).toFixed(1)}% cache hit rate`
+              ? `${((cachedCalls / totalCalls) * 100).toFixed(1)}% cache hit efficiency`
               : 'No calls yet'}
           </p>
         </TooltipContent>
@@ -61,9 +71,9 @@ const CachedCell = ({ cachedCalls, totalCalls }) => (
 );
 
 const CostCell = ({ cost }) => (
-  <TableCell>
+  <TableCell className="py-3">
     <span
-      className={`font-bold text-lg ${cost >= 1 ? 'text-red-500' : cost >= 0.1 ? 'text-amber-500' : 'text-emerald-500'}`}
+      className={`font-mono text-xs font-extrabold ${cost >= 1 ? 'text-rose-600 dark:text-rose-400' : cost >= 0.1 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}
     >
       {formatCost(cost)}
     </span>
@@ -71,28 +81,27 @@ const CostCell = ({ cost }) => (
 );
 
 const EndpointsCell = ({ endpoints }) => (
-  <TableCell>
-    <div className="flex flex-col gap-1.5 max-w-[200px]">
+  <TableCell className="py-3">
+    <div className="flex flex-col gap-1 max-w-[200px]">
       {Object.entries(endpoints || {})
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 3)
+        .slice(0, 2)
         .map(([endpoint, count]) => (
           <div key={endpoint} className="flex flex-col gap-0.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1">
               <Badge
                 variant="outline"
-                className="font-mono text-[10px] px-1.5 py-0"
+                className="font-mono text-[9px] px-1.5 py-0.5 rounded-md border"
                 style={{
-                  borderColor: (endpointColors[endpoint] || '#8b5cf6') + '40',
-                  color: endpointColors[endpoint] || '#8b5cf6',
+                  borderColor: (endpointColors[endpoint] || '#6366f1') + '50',
+                  color: endpointColors[endpoint] || '#6366f1',
                 }}
               >
-                {endpoint?.replace('generate', '').replace('process', '')}
-                <span className="ml-1 opacity-60">({count})</span>
+                {endpoint?.replace('generate', '').replace('process', '')} ({count})
               </Badge>
             </div>
-            <span className="text-[9px] text-muted-foreground ml-1">
-              using {getModelForEndpoint(endpoint)}
+            <span className="text-[9px] text-slate-400 font-mono">
+              {getModelForEndpoint(endpoint)}
             </span>
           </div>
         ))}
@@ -101,9 +110,9 @@ const EndpointsCell = ({ endpoints }) => (
 );
 
 const ActivityCell = ({ lastActivity }) => (
-  <TableCell>
-    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      <Clock className="w-3 h-3" />
+  <TableCell className="py-3">
+    <div className="flex items-center gap-1 text-[11px] text-slate-400 font-mono">
+      <Clock className="w-3 h-3 text-slate-400" />
       {lastActivity
         ? new Date(lastActivity).toLocaleDateString(undefined, {
             month: 'short',
@@ -120,13 +129,13 @@ const AIUsageTableRow = ({ row, idx, maxCalls }) => {
   return (
     <TableRow
       key={row.user?.id || idx}
-      className="hover:bg-violet-50/40 dark:hover:bg-violet-900/20"
+      className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors"
     >
       <UserCell user={row.user} />
       <CallsCell totalCalls={row.totalCalls} maxCalls={maxCalls} />
       <CachedCell cachedCalls={row.cachedCalls} totalCalls={row.totalCalls} />
-      <TableCell>
-        <span className="font-mono text-sm text-muted-foreground">
+      <TableCell className="py-3">
+        <span className="font-mono text-xs text-slate-600 dark:text-slate-300">
           {formatNumber(row.totalTokens)}
         </span>
       </TableCell>

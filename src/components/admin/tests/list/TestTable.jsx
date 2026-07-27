@@ -242,19 +242,22 @@ const TestTable = ({
     >
       <div className="p-0" data-oid="c34-.7r">
         <div className="overflow-x-auto no-scrollbar" data-oid="g0ztq55">
-          <Table className="min-w-[800px]" data-oid="n69c8:_">
-            <TableHeader className="bg-muted/30 border-b border-border/50" data-oid="vv4fbb7">
-              <TableRow className="border-b border-white/5 hover:bg-transparent" data-oid="0efhhvx">
-                <TableHead className="w-[50px] px-6" data-oid="nbzy:g7">
+          <Table className="min-w-[800px]" data-oid="6eox74_">
+            <TableHeader
+              className="bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-100 dark:border-white/5"
+              data-oid="5y40m9t"
+            >
+              <TableRow className="hover:bg-transparent" data-oid="8g6g231">
+                <TableHead className="w-12 px-4" data-oid="e1u7y_x">
                   <Checkbox
                     checked={tests.length > 0 && selectedIds.length === tests.length}
                     onCheckedChange={toggleAll}
-                    className="border-primary/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                    className="border-slate-300 dark:border-slate-700 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
                     data-oid="22eo_c_"
                   />
                 </TableHead>
                 <TableHead
-                  className="w-[400px] px-2 text-[10px] font-black uppercase text-muted-foreground tracking-widest cursor-pointer hover:text-foreground transition-colors"
+                  className="w-[400px] px-2 text-[10px] font-black uppercase text-slate-400 tracking-wider cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors"
                   onClick={() => onSort('title')}
                   data-oid=".a9-1ze"
                 >
@@ -263,7 +266,7 @@ const TestTable = ({
                   </div>
                 </TableHead>
                 <TableHead
-                  className="px-2 text-[10px] font-black uppercase text-muted-foreground tracking-widest cursor-pointer hover:text-foreground transition-colors text-center"
+                  className="px-2 text-[10px] font-black uppercase text-slate-400 tracking-wider cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors text-center"
                   onClick={() => onSort('is_active')}
                   data-oid="u8w76na"
                 >
@@ -272,7 +275,7 @@ const TestTable = ({
                   </div>
                 </TableHead>
                 <TableHead
-                  className="px-2 text-[10px] font-black uppercase text-muted-foreground tracking-widest cursor-pointer hover:text-foreground transition-colors text-center"
+                  className="px-2 text-[10px] font-black uppercase text-slate-400 tracking-wider cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors text-center"
                   onClick={() => onSort('access_tier')}
                   data-oid="qqi5z4-"
                 >
@@ -281,13 +284,13 @@ const TestTable = ({
                   </div>
                 </TableHead>
                 <TableHead
-                  className="px-2 text-[10px] font-black uppercase text-muted-foreground tracking-widest text-center"
+                  className="px-2 text-[10px] font-black uppercase text-slate-400 tracking-wider text-center"
                   data-oid=".sy6bcv"
                 >
                   Metadata
                 </TableHead>
                 <TableHead
-                  className="px-2 text-[10px] font-black uppercase text-muted-foreground tracking-widest text-right pr-6"
+                  className="px-2 text-[10px] font-black uppercase text-slate-400 tracking-wider text-right pr-6"
                   data-oid="dkp_e-t"
                 >
                   Actions
@@ -300,37 +303,37 @@ const TestTable = ({
                   <TableRow
                     key={test.id}
                     className={cn(
-                      'group transition-all hover:bg-muted/30 border-b border-border/10 bg-transparent',
-                      selectedIds.includes(test.id) && 'bg-primary/5'
+                      'group transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/30 border-b border-slate-100 dark:border-white/5 bg-transparent',
+                      selectedIds.includes(test.id) && 'bg-indigo-50/50 dark:bg-indigo-950/30'
                     )}
                     data-oid="1ej9nun"
                   >
-                    <TableCell className="px-6 py-2" data-oid=":o.6pw8">
+                    <TableCell className="px-4 py-2.5" data-oid=":o.6pw8">
                       <Checkbox
                         checked={selectedIds.includes(test.id)}
                         onCheckedChange={() => toggleOne(test.id)}
-                        className="border-blue-300 dark:border-blue-600"
+                        className="border-slate-300 dark:border-slate-700 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
                         data-oid="xtfflw."
                       />
                     </TableCell>
-                    <TableCell className="px-2 py-2" data-oid="zxo3j0k">
-                      <div className="flex items-center gap-4" data-oid="1g9xxx2">
+                    <TableCell className="px-2 py-2.5" data-oid="zxo3j0k">
+                      <div className="flex items-center gap-3" data-oid="1g9xxx2">
                         <div
                           className={cn(
-                            'p-2.5 rounded-2xl border transition-all duration-300 shadow-inner',
+                            'p-2 rounded-xl border shrink-0',
                             test.is_active
-                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                              : 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400'
+                              ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-900'
+                              : 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400 border-amber-200/80 dark:border-amber-900'
                           )}
                           data-oid="5ae.om-"
                         >
-                          <FileText className="w-5 h-5" data-oid="bp4u0gk" />
+                          <FileText className="w-4 h-4" data-oid="bp4u0gk" />
                         </div>
-                        <div className="flex flex-col" data-oid="acv-zv3">
-                          <div className="flex items-center gap-2" data-oid="cx87:xq">
+                        <div className="flex flex-col min-w-0" data-oid="acv-zv3">
+                          <div className="flex items-center gap-1.5" data-oid="cx87:xq">
                             <button
                               onClick={() => onEdit(test)}
-                              className="text-sm font-semibold text-foreground hover:text-primary transition-colors line-clamp-1 text-left cursor-pointer whitespace-nowrap"
+                              className="text-xs font-black text-slate-950 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors line-clamp-1 text-left cursor-pointer"
                               data-oid="i4ais83"
                             >
                               {formatTestTitle(test)}
@@ -338,15 +341,16 @@ const TestTable = ({
                             {test.is_official_cambridge && (
                               <Badge
                                 variant="outline"
-                                className="h-5 px-1.5 text-[10px] bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400 flex items-center gap-1"
+                                className="h-4.5 px-1.5 text-[9px] font-extrabold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-900 flex items-center gap-1 shrink-0"
                                 data-oid="soi7iec"
                               >
-                                <GraduationCap className="w-3 h-3" data-oid="h6p:ykn" />
+                                <GraduationCap className="w-2.5 h-2.5" data-oid="h6p:ykn" />
+                                Cambridge
                               </Badge>
                             )}
                           </div>
                           <span
-                            className="text-[11px] text-muted-foreground font-medium flex items-center gap-1 mt-0.5"
+                            className="text-[10px] text-slate-400 font-medium flex items-center gap-1 mt-0.5"
                             data-oid="jxswbbh"
                           >
                             ID: {test.id.substring(0, 8)}... • Created{' '}
@@ -355,58 +359,58 @@ const TestTable = ({
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="px-2 py-4 text-center" data-oid="qxrm2ja">
+                    <TableCell className="px-2 py-2.5 text-center" data-oid="qxrm2ja">
                       <Badge
                         variant="outline"
                         className={cn(
-                          'rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border shadow-sm',
+                          'rounded-lg px-2.5 py-0.5 text-[10px] font-extrabold uppercase border shadow-2xs',
                           test.is_active
-                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                            : 'bg-muted text-muted-foreground border-border/50'
+                            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-900'
+                            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                         )}
                         data-oid="k8a2lf-"
                       >
                         {test.is_active ? 'Active' : 'Draft'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="px-2 py-4 text-center" data-oid="lskig6k">
+                    <TableCell className="px-2 py-2.5 text-center" data-oid="lskig6k">
                       <Badge
                         variant="outline"
                         className={cn(
-                          'rounded-full px-2.5 py-1 text-[10px] font-black uppercase border backdrop-blur-md shadow-sm',
+                          'rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase border shadow-2xs',
                           test.access_tier === 'premium'
-                            ? 'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400 shadow-purple-500/5'
+                            ? 'bg-purple-50 text-purple-600 dark:bg-purple-950/50 dark:text-purple-400 border-purple-200/80 dark:border-purple-900'
                             : test.access_tier === 'pro'
-                              ? 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400 shadow-blue-500/5'
-                              : 'bg-slate-500/10 text-slate-500 border-border/50 dark:text-slate-400'
+                              ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 border-blue-200/80 dark:border-blue-900'
+                              : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                         )}
                         data-oid=".0ab3b4"
                       >
                         {test.access_tier || 'Free'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="px-2 py-4 text-center" data-oid="ay4946w">
+                    <TableCell className="px-2 py-2.5 text-center" data-oid="ay4946w">
                       {(() => {
                         const answerCount = getAnswerCount(test.id);
                         const totalQuestions = calculateTotalQuestions(test.id);
                         const testHasExplanations = hasExplanations(test.id);
                         return (
-                          <div className="flex flex-col items-center gap-1" data-oid="weztnp.">
-                            <span className="text-[10px] font-black text-foreground/70 flex items-center gap-1">
+                          <div className="flex flex-col items-center gap-0.5" data-oid="weztnp.">
+                            <span className="text-[10px] font-black text-slate-700 dark:text-slate-300 flex items-center gap-1">
                               <CheckCircle2 className="w-3 h-3 text-emerald-500" />
                               {totalQuestions} Qs
                             </span>
                             {answerCount > 0 ? (
-                              <span className="text-[9px] font-black text-emerald-600 uppercase tracking-tighter">
+                              <span className="text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">
                                 {answerCount} Confirmed
                               </span>
                             ) : (
-                              <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter">
+                              <span className="text-[9px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-tight">
                                 No Answers
                               </span>
                             )}
                             {testHasExplanations && (
-                              <span className="text-[9px] font-black text-blue-600 dark:text-blue-400 bg-blue-500/10 dark:bg-blue-500/20 px-1.5 py-0.5 rounded-md uppercase tracking-tighter flex items-center gap-1 mt-0.5">
+                              <span className="text-[9px] font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 border border-blue-200/80 dark:border-blue-900 px-1.5 py-0.5 rounded-md uppercase flex items-center gap-1 mt-0.5">
                                 <Sparkles className="w-2.5 h-2.5" /> Explained
                               </span>
                             )}
@@ -414,50 +418,50 @@ const TestTable = ({
                         );
                       })()}
                     </TableCell>
-                    <TableCell className="px-2 py-4 text-right pr-6" data-oid="r2naswm">
+                    <TableCell className="px-2 py-2.5 text-right pr-6" data-oid="r2naswm">
                       <div
-                        className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 group-hover:translate-x-0"
+                        className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         data-oid="skkwb63"
                       >
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => onEdit(test)}
-                          className="h-9 w-9 rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
+                          className="h-8 w-8 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/50 dark:hover:text-indigo-400"
                           title="Edit"
                           data-oid="u..p6e-"
                         >
-                          <Edit className="w-4 h-4" data-oid="7lq6vy5" />
+                          <Edit className="w-3.5 h-3.5" data-oid="7lq6vy5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => onDuplicate(test.id)}
-                          className="h-9 w-9 rounded-xl hover:bg-indigo-500/10 hover:text-indigo-600 transition-all"
+                          className="h-8 w-8 rounded-lg hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950/50 dark:hover:text-blue-400"
                           title="Duplicate"
                           data-oid="n2bg13v"
                         >
-                          <Copy className="w-4 h-4" data-oid="zjd8nvg" />
+                          <Copy className="w-3.5 h-3.5" data-oid="zjd8nvg" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => onExport && onExport(test.id)}
-                          className="h-9 w-9 rounded-xl hover:bg-emerald-500/10 hover:text-emerald-600 transition-all"
+                          className="h-8 w-8 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/50 dark:hover:text-emerald-400"
                           title="Export JSON"
                           data-oid="3-b2vd6"
                         >
-                          <ArrowDownCircle className="w-4 h-4" data-oid="wyct.5r" />
+                          <ArrowDownCircle className="w-3.5 h-3.5" data-oid="wyct.5r" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => onDelete(test)}
-                          className="h-9 w-9 rounded-xl text-destructive hover:bg-destructive/10 transition-all"
+                          className="h-8 w-8 rounded-lg text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/50"
                           title="Delete"
                           data-oid=".h6:-yf"
                         >
-                          <Trash2 className="w-4 h-4" data-oid="49586ex" />
+                          <Trash2 className="w-3.5 h-3.5" data-oid="49586ex" />
                         </Button>
                       </div>
                     </TableCell>

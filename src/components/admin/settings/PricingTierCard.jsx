@@ -26,75 +26,54 @@ export default function PricingTierCard({
   onChangePrice,
   onChangeOriginalPrice,
   onRegionalUpdate,
-  theme = {
-    gradientFrom: 'from-blue-500/5',
-    border: 'border-blue-200/60 dark:border-blue-800/40',
-    bgGradient: 'from-blue-50/30 to-background dark:from-blue-900/10 dark:to-slate-900/50',
-    iconGradient: 'from-blue-500 to-blue-600',
-    iconShadow: 'shadow-blue-500/25',
-    badgeBg: 'bg-blue-100 dark:bg-blue-900/30',
-    badgeText: 'text-blue-700 dark:text-blue-300',
-    badgeBorder: 'border-blue-200/50 dark:border-blue-800/50',
-    textColor: 'text-blue-700 dark:text-blue-300',
-    inputRing: 'focus-visible:ring-blue-500/20 focus-visible:border-blue-500',
-    discountBg: 'bg-emerald-50 dark:bg-emerald-900/20',
-    discountBorder: 'border-emerald-200/50 dark:border-emerald-800/30',
-    discountText: 'text-emerald-700 dark:text-emerald-300',
-    discountTextMuted: 'text-emerald-600/70 dark:text-emerald-400/70',
-    regionalText: 'text-blue-700 dark:text-blue-300',
-    regionalHover: 'hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400',
-    bulletColor: 'bg-emerald-500',
-  },
 }) {
   return (
     <motion.div variants={itemVariants} className="group relative" data-oid=".zn-4cw">
       <div
-        className={`absolute inset-0 bg-gradient-to-br ${theme.gradientFrom} to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-        data-oid="0y7b3tg"
-      ></div>
-      <div
-        className={`relative p-8 rounded-2xl border ${theme.border} bg-gradient-to-br ${theme.bgGradient} flex flex-col gap-6 shadow-sm hover:shadow-md transition-all duration-300`}
+        className="relative p-6 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 flex flex-col gap-5 shadow-2xs transition-all duration-200"
         data-oid="my7yzx-"
       >
         <div className="flex items-center justify-between" data-oid="r3k0k3l">
           <div className="flex items-center gap-3" data-oid="fc:m5y.">
             <div
-              className={`p-3 bg-gradient-to-br ${theme.iconGradient} rounded-xl text-white shadow-lg ${theme.iconShadow}`}
+              className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-slate-200/80 dark:border-white/10 shadow-2xs"
               data-oid="jkak7gt"
             >
-              <Icon className="w-6 h-6" data-oid=".0_6_7c" />
+              <Icon className="w-5 h-5" data-oid=".0_6_7c" />
             </div>
             <div data-oid="r2twdt:">
-              <h4 className="font-bold text-xl text-foreground" data-oid="e4rdac8">
+              <h4 className="font-black text-lg text-slate-950 dark:text-white" data-oid="e4rdac8">
                 {tierName}
               </h4>
-              <p className="text-sm text-muted-foreground" data-oid="n_kw0le">
+              <p
+                className="text-xs font-medium text-slate-500 dark:text-slate-400"
+                data-oid="n_kw0le"
+              >
                 {tierDescription}
               </p>
             </div>
           </div>
-          <div
-            className={`px-3 py-1.5 rounded-full ${theme.badgeBg} ${theme.badgeText} border ${theme.badgeBorder}`}
+          <Badge
+            variant="outline"
+            className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase"
             data-oid="caj7v.9"
           >
-            <span className="text-xs font-semibold" data-oid="d5ficww">
-              Monthly
-            </span>
-          </div>
+            Monthly Plan
+          </Badge>
         </div>
 
         <div className="space-y-4" data-oid="vlo1u13">
-          <div className="grid grid-cols-2 gap-4" data-oid="xjddd2z">
-            <div className="space-y-2" data-oid="wg94n7i">
+          <div className="grid grid-cols-2 gap-3" data-oid="xjddd2z">
+            <div className="space-y-1.5" data-oid="wg94n7i">
               <Label
-                className={`text-xs font-bold ${theme.textColor} uppercase tracking-wider opacity-80`}
+                className="text-[10px] font-black text-slate-500 uppercase tracking-wider"
                 data-oid="v066p1w"
               >
                 Current Price (USD)
               </Label>
               <div className="relative group/input" data-oid="dfhx2:w">
                 <span
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold text-lg ${theme.textColor} z-10`}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 font-black text-base text-indigo-600 dark:text-indigo-400 z-10 select-none"
                   data-oid="lgdpi-2"
                 >
                   $
@@ -105,22 +84,22 @@ export default function PricingTierCard({
                   min="0"
                   value={price || ''}
                   onChange={(e) => onChangePrice(parseFloat(e.target.value))}
-                  className={`h-12 pl-10 bg-background font-bold text-xl rounded-xl shadow-sm ${theme.inputRing}`}
+                  className="h-10 pl-8 font-black text-base bg-slate-50/70 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl text-slate-950 dark:text-white shadow-2xs"
                   placeholder="9.99"
                   data-oid="o1jccs."
                 />
               </div>
             </div>
-            <div className="space-y-2" data-oid="w743wq5">
+            <div className="space-y-1.5" data-oid="w743wq5">
               <Label
-                className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider opacity-80"
+                className="text-[10px] font-black text-slate-400 uppercase tracking-wider"
                 data-oid="6ynrxtx"
               >
                 Original Price (Was)
               </Label>
               <div className="relative group/input" data-oid="_vk32vs">
                 <span
-                  className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-lg text-slate-400 z-10"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-base text-slate-400 z-10 select-none"
                   data-oid="9s1g8sh"
                 >
                   $
@@ -131,7 +110,7 @@ export default function PricingTierCard({
                   min="0"
                   value={originalPrice || ''}
                   onChange={(e) => onChangeOriginalPrice(parseFloat(e.target.value))}
-                  className="h-12 pl-10 bg-muted/30 border-slate-200/60 dark:border-slate-800/40 font-bold text-xl text-slate-500 focus-visible:ring-slate-500/20 rounded-xl"
+                  className="h-10 pl-8 font-bold text-base bg-slate-50/40 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 rounded-xl shadow-2xs"
                   placeholder="15"
                   data-oid="-d_vp:r"
                 />
@@ -140,51 +119,63 @@ export default function PricingTierCard({
           </div>
 
           {/* Auto-calculated discount preview */}
-          {price && originalPrice && (
+          {price && originalPrice && price < originalPrice && (
             <div
-              className={`flex items-center gap-3 p-3 rounded-xl ${theme.discountBg} border ${theme.discountBorder}`}
+              className="flex items-center gap-2.5 p-2.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-400 text-xs font-bold"
               data-oid="f1tv8_i"
             >
               <div
-                className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center"
+                className="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center shrink-0"
                 data-oid="s4rzjmg"
               >
-                <Icon className={`w-4 h-4 ${theme.discountText}`} data-oid="tpdcbul" />
+                <Icon
+                  className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"
+                  data-oid="tpdcbul"
+                />
               </div>
-              <div data-oid="h6o4dhd">
-                <p className={`text-xs font-bold ${theme.discountText}`} data-oid="cy-rzr9">
-                  Auto-calculated discount: {Math.round((1 - price / originalPrice) * 100)}% OFF
+              <div data-oid="h6o4dhd" className="space-y-0.5">
+                <p
+                  className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300"
+                  data-oid="cy-rzr9"
+                >
+                  Auto Discount: {Math.round((1 - price / originalPrice) * 100)}% OFF
                 </p>
-                <p className={`text-[10px] ${theme.discountTextMuted}`} data-oid="b389l9o">
-                  Quarterly will show additional 15% off (total:{' '}
-                  {Math.round((1 - (price * 0.85) / originalPrice) * 100)}%)
+                <p
+                  className="text-[10px] font-medium text-emerald-600/80 dark:text-emerald-400/80"
+                  data-oid="b389l9o"
+                >
+                  Quarterly rate: {Math.round((1 - (price * 0.85) / originalPrice) * 100)}% off
+                  total
                 </p>
               </div>
             </div>
           )}
 
-          <div className="flex items-center gap-2 text-xs text-muted-foreground" data-oid="fyi01cr">
+          <div
+            className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400"
+            data-oid="fyi01cr"
+          >
             <div
-              className={`w-2 h-2 rounded-full ${theme.bulletColor} animate-pulse`}
+              className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"
               data-oid="p93ijbu"
             ></div>
             <span data-oid="r6ikakq">{activeText}</span>
           </div>
 
           {/* Regional Pricing Section */}
-          <div className="pt-4 border-t border-border/40" data-oid="n5xbdyj">
-            <div className="flex items-center justify-between mb-3" data-oid=":0nen-s">
+          <div className="pt-4 border-t border-slate-100 dark:border-white/5" data-oid="n5xbdyj">
+            <div className="flex items-center justify-between mb-2.5" data-oid=":0nen-s">
               <Label
-                className={`text-xs font-bold ${theme.regionalText} uppercase tracking-wider opacity-80 flex items-center gap-1`}
+                className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5"
                 data-oid="6-gg:1h"
               >
-                <Globe className="w-3 h-3" data-oid="ms_eoo1" /> Regional Pricing
+                <Globe className="w-3 h-3 text-indigo-500" data-oid="ms_eoo1" /> Regional Pricing
               </Label>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => onRegionalUpdate({ tier: tierId, action: 'add' })}
-                className={`h-6 px-2 text-xs ${theme.regionalHover}`}
+                className="h-7 px-2.5 text-xs font-extrabold text-indigo-600 dark:text-indigo-400 border-slate-200 dark:border-slate-800 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
                 data-oid="6jf6l5p"
               >
                 <Plus className="w-3 h-3 mr-1" data-oid="x-1o879" /> Add Region
@@ -195,7 +186,7 @@ export default function PricingTierCard({
               {regional?.map((region, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-2 bg-muted/30 p-1.5 rounded-xl border border-border/40 group/item hover:bg-muted/50 transition-colors"
+                  className="flex items-center gap-2 bg-slate-50/80 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200/80 dark:border-white/5 group/item hover:border-slate-300 transition-colors shadow-2xs"
                   data-oid="qb:ds67"
                 >
                   <CountryAutocomplete
@@ -216,9 +207,9 @@ export default function PricingTierCard({
                     data-oid="nrc_jqw"
                   />
 
-                  <div className="relative flex-1 min-w-[120px]" data-oid="z.ef:47">
+                  <div className="relative flex-1 min-w-[110px]" data-oid="z.ef:47">
                     <span
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground select-none"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-500 select-none"
                       data-oid="d2qvo55"
                     >
                       {region.symbol || '$'}
@@ -236,17 +227,17 @@ export default function PricingTierCard({
                           value: parseFloat(e.target.value),
                         })
                       }
-                      className="h-9 pl-8 pr-12 text-sm font-semibold bg-background border-border/40 focus-visible:ring-blue-500/20"
+                      className="h-8 pl-7 pr-10 text-xs font-mono font-bold bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg"
                       data-oid="ndqqo:3"
                     />
 
                     <div
-                      className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
                       data-oid="um7tkts"
                     >
                       <Badge
                         variant="secondary"
-                        className="h-5 px-1.5 text-[10px] font-mono tracking-wider opacity-70"
+                        className="h-4 px-1 text-[9px] font-black tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                         data-oid="esj9iw2"
                       >
                         {region.currency || 'USD'}

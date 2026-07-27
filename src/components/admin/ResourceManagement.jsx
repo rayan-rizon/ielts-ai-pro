@@ -62,6 +62,9 @@ import {
   MoreVertical,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
   LayoutGrid,
   Sparkles,
   Search as SearchIcon,
@@ -91,8 +94,20 @@ const ResourceManagement = () => {
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [sortField, setSortField] = useState('created_at');
+  const [sortDirection, setSortDirection] = useState('desc');
   const [pagination, setPagination] = useState({ page: 1, limit: 10, count: 0 });
   const [selectedIds, setSelectedIds] = useState([]);
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+    setPagination((p) => ({ ...p, page: 1 }));
+  };
 
   const [formData, setFormData] = useState({
     title: '',
@@ -122,7 +137,8 @@ const ResourceManagement = () => {
       if (filterType !== 'all') filters.content_type = filterType;
       if (searchQuery.trim()) filters.searchQuery = searchQuery.trim();
 
-      const result = await Resource.list(filters, '-created_at', pagination.limit, pagination.page);
+      const orderBy = sortDirection === 'desc' ? `-${sortField}` : sortField;
+      const result = await Resource.list(filters, orderBy, pagination.limit, pagination.page);
       setResources(result.data);
       setPagination((prev) => ({ ...prev, count: result.count }));
     } catch (error) {
@@ -131,7 +147,7 @@ const ResourceManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [filterType, searchQuery, pagination.page, pagination.limit]);
+  }, [filterType, searchQuery, sortField, sortDirection, pagination.page, pagination.limit]);
 
   useEffect(() => {
     fetchResources();
@@ -242,11 +258,24 @@ const ResourceManagement = () => {
     }
   };
 
+  const generateAndUploadPdfThumbnail = async (file, fallbackUrl) => {
+    try {
+      const thumbBlob = await generatePdfThumbnail(file, 2.0);
+      const thumbFile = new File([thumbBlob], `thumb_${file.name.replace('.pdf', '.jpg')}`, {
+        type: 'image/jpeg',
+      });
+      const { file_url } = await uploadFile(thumbFile);
+      return file_url;
+    } catch (thumbErr) {
+      console.error('Failed to generate thumbnail:', thumbErr);
+      return fallbackUrl;
+    }
+  };
+
   const handlePdfUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate PDF
     if (file.type !== 'application/pdf') {
       toast.error('Please upload a valid PDF file');
       return;
@@ -261,20 +290,7 @@ const ResourceManagement = () => {
       setUploadingPdf(true);
       const toastId = toast.loading('Uploading PDF and generating thumbnail...');
 
-      // Generate thumbnail from first page
-      let thumbUrl = formData.thumbnail_url;
-      try {
-        const thumbBlob = await generatePdfThumbnail(file, 2.0); // 2.0 scale for high quality
-        const thumbFile = new File([thumbBlob], `thumb_${file.name.replace('.pdf', '.jpg')}`, {
-          type: 'image/jpeg',
-        });
-        const { file_url } = await uploadFile(thumbFile);
-        thumbUrl = file_url;
-      } catch (thumbErr) {
-        console.error('Failed to generate thumbnail:', thumbErr);
-        // Don't fail the whole upload if just the thumbnail fails
-      }
-
+      const thumbUrl = await generateAndUploadPdfThumbnail(file, formData.thumbnail_url);
       const { file_url } = await uploadToR2(file);
 
       setFormData((prev) => ({
@@ -291,7 +307,6 @@ const ResourceManagement = () => {
       toast.error(error.message || 'Failed to upload PDF');
     } finally {
       setUploadingPdf(false);
-      // Reset input value to allow re-uploading same file if needed
       e.target.value = '';
     }
   };
@@ -576,41 +591,45 @@ const ResourceManagement = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8 pb-10"
+      className="space-y-4 pb-6"
       data-oid="7ze--xz"
     >
-      {/* Header Section */}
-      <div
-        className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6"
+      {/* Top Header Section */}
+      <motion.div
+        variants={itemVariants}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1"
         data-oid="o56ihpo"
       >
-        <motion.div variants={itemVariants} className="space-y-1" data-oid="8o9gofp">
+        <div className="space-y-0.5" data-oid="8o9gofp">
           <h2
-            className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3"
+            className="text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
             data-oid="3fimod-"
           >
             <div
-              className="p-2 bg-primary/10 rounded-lg text-primary shadow-sm border border-primary/20"
+              className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shadow-2xs"
               data-oid="fm45sc-"
             >
-              <Library className="w-6 h-6" data-oid="i1.ai0g" />
+              <Library className="w-5 h-5" data-oid="i1.ai0g" />
             </div>
             Resource Management
           </h2>
-          <p className="text-muted-foreground text-lg ml-1" data-oid="r5:4ldd">
-            Manage videos, PDFs, and blog post links for users
+          <p
+            className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 ml-1"
+            data-oid="r5:4ldd"
+          >
+            Manage educational video guides, PDFs, blogs, and vocabulary banks for candidates
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants} className="flex items-center gap-3" data-oid="42vher3">
+        <div className="flex items-center gap-2" data-oid="42vher3">
           <DropdownMenu data-oid="actions-dropdown">
             <DropdownMenuTrigger asChild data-oid="actions-trigger">
               <Button
                 variant="outline"
-                className="h-12 px-4 rounded-xl border-border/50 hover:bg-muted/50 font-bold"
+                className="h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
                 data-oid="btn-more-actions"
               >
-                <MoreVertical className="w-5 h-5 mr-2 text-muted-foreground" data-oid="icon-more" />
+                <MoreVertical className="w-4 h-4 mr-1.5 text-slate-500" data-oid="icon-more" />
                 Actions
               </Button>
             </DropdownMenuTrigger>
@@ -679,26 +698,29 @@ const ResourceManagement = () => {
           >
             <DialogTrigger asChild data-oid="6_pg2-m">
               <Button
-                className="h-12 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 rounded-xl transition-all duration-300 font-bold group"
+                className="h-8 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold shadow-2xs rounded-xl text-xs gap-1 transition-all"
                 data-oid="pow-z6t"
               >
-                <Plus
-                  className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300"
-                  data-oid="_lhw9j3"
-                />
+                <Plus className="w-3.5 h-3.5" data-oid="_lhw9j3" />
                 Add Resource
               </Button>
             </DialogTrigger>
             <DialogContent
-              className="bg-card border-border/50 backdrop-blur-xl max-w-lg rounded-3xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 max-w-lg rounded-2xl overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto"
               data-oid="dtsedp6"
             >
               <DialogHeader className="space-y-1" data-oid="9ymdqci">
-                <DialogTitle className="text-2xl font-bold tracking-tight" data-oid="q4ff11i">
+                <DialogTitle
+                  className="text-lg font-black tracking-tight text-slate-950 dark:text-white"
+                  data-oid="q4ff11i"
+                >
                   {editingResource ? 'Edit Resource' : 'New Resource'}
                 </DialogTitle>
-                <DialogDescription className="text-muted-foreground font-medium" data-oid="koc8ozk">
-                  {editingResource ? 'Update resource details' : 'Add a new educational resource'}
+                <DialogDescription
+                  className="text-slate-500 dark:text-slate-400 font-medium text-xs"
+                  data-oid="koc8ozk"
+                >
+                  Enter details to publish or update educational content
                 </DialogDescription>
               </DialogHeader>
 
@@ -1008,11 +1030,11 @@ const ResourceManagement = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5" data-oid="ju0dnr8">
+      {/* 3 Compact KPI Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5" data-oid="ju0dnr8">
         {[
           { label: 'Total Resources', value: stats.total, icon: Library, color: 'indigo' },
           { label: 'Published', value: stats.published, icon: Sparkles, color: 'emerald' },
@@ -1020,35 +1042,38 @@ const ResourceManagement = () => {
         ].map((item, idx) => (
           <motion.div key={idx} variants={itemVariants} data-oid="11um8uk">
             <Card
-              className="border border-border/50 bg-card/40 backdrop-blur-sm overflow-hidden rounded-2xl group transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20"
+              className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
               data-oid="eqw6up2"
             >
-              <CardContent className="p-5 flex items-center justify-between" data-oid="vrw0:b8">
+              <CardContent
+                className="p-3.5 px-4 flex items-center justify-between"
+                data-oid="vrw0:b8"
+              >
                 <div data-oid="9_afd1:">
                   <p
-                    className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mb-1"
+                    className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-0.5"
                     data-oid="7.kttsj"
                   >
                     {item.label}
                   </p>
                   <h4
-                    className="text-2xl font-black text-foreground leading-none"
+                    className="text-xl font-black text-slate-950 dark:text-white leading-none"
                     data-oid="odze9k4"
                   >
                     {item.value || 0}
                   </h4>
                 </div>
                 <div
-                  className={`p-3 rounded-xl transition-transform duration-500 group-hover:scale-110 ${
+                  className={`p-2 rounded-xl ${
                     item.color === 'emerald'
-                      ? 'bg-emerald-500/10 text-emerald-500'
+                      ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-900'
                       : item.color === 'indigo'
-                        ? 'bg-indigo-500/10 text-indigo-500'
-                        : 'bg-rose-500/10 text-rose-500'
+                        ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-900'
+                        : 'bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400 border border-rose-200/80 dark:border-rose-900'
                   }`}
                   data-oid="5d3m6tk"
                 >
-                  <item.icon className="w-5 h-5" data-oid="zq:k7jh" />
+                  <item.icon className="w-4 h-4" data-oid="zq:k7jh" />
                 </div>
               </CardContent>
             </Card>
@@ -1056,17 +1081,17 @@ const ResourceManagement = () => {
         ))}
       </div>
 
+      {/* Search & Filter Toolbar */}
       <motion.div
         variants={itemVariants}
-        className="flex flex-col md:flex-row items-center gap-4 bg-card/40 backdrop-blur-md p-2 rounded-[1.5rem] border border-border/50 shadow-sm"
+        className="flex flex-col sm:flex-row items-center gap-3 bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 p-2 rounded-2xl shadow-2xs"
         data-oid="a_eoz4w"
       >
         <div className="relative flex-1 w-full" data-oid="u9h2esc">
           <SearchIcon
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-50"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
             data-oid="aehg331"
           />
-
           <Input
             value={searchQuery}
             onChange={(e) => {
@@ -1074,17 +1099,21 @@ const ResourceManagement = () => {
               setPagination((p) => ({ ...p, page: 1 }));
             }}
             placeholder="Search by title, description, or URL..."
-            className="h-12 pl-11 bg-transparent border-none focus-visible:ring-0 text-base font-medium placeholder:text-muted-foreground/50 shadow-none"
+            className="h-9 pl-9 border-none bg-transparent focus-visible:ring-0 text-xs font-semibold placeholder:text-slate-400 shadow-none"
             data-oid="-7jwxl2"
           />
         </div>
-        <div className="h-8 w-px bg-border/50 hidden md:block" data-oid="spacer-line" />
         <div
-          className="flex items-center gap-1.5 p-1 bg-muted/20 rounded-xl w-full md:w-auto overflow-x-auto no-scrollbar"
+          className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"
+          data-oid="spacer-line"
+        />
+        <div
+          className="flex items-center gap-1 p-0.5 w-full sm:w-auto overflow-x-auto no-scrollbar shrink-0"
           data-oid="r-36p1t"
         >
           {[{ id: 'all', label: 'All', icon: LayoutGrid }, ...CONTENT_TYPES].map((type) => {
             const Icon = type.icon;
+            const isActive = filterType === type.id;
             return (
               <Button
                 key={type.id}
@@ -1095,15 +1124,15 @@ const ResourceManagement = () => {
                   setPagination((p) => ({ ...p, page: 1 }));
                 }}
                 className={cn(
-                  'h-10 px-4 rounded-lg font-bold transition-all duration-300 flex items-center gap-2 whitespace-nowrap',
-                  filterType === type.id
-                    ? 'bg-card text-primary shadow-sm scale-[1.02]'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
+                  'h-8 px-3 rounded-xl font-extrabold text-xs transition-all flex items-center gap-1.5 whitespace-nowrap border',
+                  isActive
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200/80 dark:border-white/10 hover:border-slate-300'
                 )}
                 data-oid="2092.e1"
               >
                 <Icon
-                  className={cn('w-4 h-4', filterType === type.id ? 'text-primary' : 'opacity-50')}
+                  className={cn('w-3.5 h-3.5', isActive ? 'text-white' : 'text-slate-400')}
                   data-oid={`icon-${type.id}`}
                 />
                 {type.label}
@@ -1170,51 +1199,99 @@ const ResourceManagement = () => {
       </AnimatePresence>
 
       <motion.div variants={itemVariants} data-oid="k:o:4tl">
-        <div
-          className="rounded-xl border text-card-foreground bg-card/50 backdrop-blur-sm border-border/50 shadow-sm overflow-hidden"
+        <Card
+          className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs rounded-2xl overflow-hidden"
           data-oid="p8t1fgh"
         >
-          <div className="overflow-x-auto no-scrollbar" data-oid="u-.q60o">
+          <div className="overflow-x-auto" data-oid="u-.q60o">
             <Table className="min-w-[900px]" data-oid="lh7lr::">
-              <TableHeader className="bg-muted/30 border-b border-border/50" data-oid="8ym8_ow">
-                <TableRow
-                  className="border-b border-white/5 hover:bg-transparent"
-                  data-oid="1oauzid"
-                >
-                  <TableHead className="w-[50px] px-6" data-oid="osgwj6q">
+              <TableHeader
+                className="bg-slate-50/80 dark:bg-slate-900/40 border-b border-slate-100 dark:border-white/5"
+                data-oid="8ym8_ow"
+              >
+                <TableRow className="hover:bg-transparent" data-oid="1oauzid">
+                  <TableHead className="w-10 py-3 px-4" data-oid="osgwj6q">
                     <Checkbox
                       checked={resources.length > 0 && selectedIds.length === resources.length}
                       onCheckedChange={handleSelectAll}
-                      className="border-primary/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                      className="border-slate-300 dark:border-slate-700"
                       data-oid="s.8umtk"
                     />
                   </TableHead>
                   <TableHead
-                    className="px-6 text-[10px] font-black uppercase text-muted-foreground tracking-widest w-[400px]"
+                    className="py-3 px-4 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 w-[380px] cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors select-none"
+                    onClick={() => handleSort('title')}
                     data-oid="4fc45ak"
                   >
-                    Resource
+                    <div className="flex items-center gap-1.5">
+                      Resource Title & URL
+                      {sortField === 'title' ? (
+                        sortDirection === 'asc' ? (
+                          <ChevronUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        )
+                      ) : (
+                        <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0" />
+                      )}
+                    </div>
                   </TableHead>
                   <TableHead
-                    className="px-6 text-[10px] font-black uppercase text-muted-foreground tracking-widest text-center"
+                    className="py-3 px-4 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors select-none"
+                    onClick={() => handleSort('content_type')}
                     data-oid="b9952cs"
                   >
-                    Type
+                    <div className="flex items-center justify-center gap-1.5">
+                      Type
+                      {sortField === 'content_type' ? (
+                        sortDirection === 'asc' ? (
+                          <ChevronUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        )
+                      ) : (
+                        <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0" />
+                      )}
+                    </div>
                   </TableHead>
                   <TableHead
-                    className="px-6 text-[10px] font-black uppercase text-muted-foreground tracking-widest text-center"
+                    className="py-3 px-4 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors select-none"
+                    onClick={() => handleSort('is_published')}
                     data-oid="56ad8mw"
                   >
-                    Status
+                    <div className="flex items-center justify-center gap-1.5">
+                      Status
+                      {sortField === 'is_published' ? (
+                        sortDirection === 'asc' ? (
+                          <ChevronUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        )
+                      ) : (
+                        <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0" />
+                      )}
+                    </div>
                   </TableHead>
                   <TableHead
-                    className="px-6 text-[10px] font-black uppercase text-muted-foreground tracking-widest text-center"
+                    className="py-3 px-4 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors select-none"
+                    onClick={() => handleSort('view_count')}
                     data-oid=".yt65mt"
                   >
-                    Views
+                    <div className="flex items-center justify-center gap-1.5">
+                      Views
+                      {sortField === 'view_count' ? (
+                        sortDirection === 'asc' ? (
+                          <ChevronUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        )
+                      ) : (
+                        <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0" />
+                      )}
+                    </div>
                   </TableHead>
                   <TableHead
-                    className="px-6 text-[10px] font-black uppercase text-muted-foreground tracking-widest text-right"
+                    className="py-3 px-4 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 text-right"
                     data-oid=":ifq2i:"
                   >
                     Actions
@@ -1227,62 +1304,61 @@ const ResourceManagement = () => {
                     [...Array(5)].map((_, i) => (
                       <TableRow
                         key={`skeleton-${i}`}
-                        className="border-b border-border/10"
+                        className="border-b border-slate-100 dark:border-white/5"
                         data-oid="-85f5s-"
                       >
-                        <TableCell className="px-6" data-oid="skel-1">
-                          <div className="w-5 h-5 bg-muted/20 animate-pulse rounded" />
+                        <TableCell className="py-3 px-4" data-oid="skel-1">
+                          <div className="w-4 h-4 bg-slate-100 dark:bg-slate-800 animate-pulse rounded" />
                         </TableCell>
-                        <TableCell className="px-6" data-oid="skel-2">
+                        <TableCell className="py-3 px-4" data-oid="skel-2">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-muted/20 animate-pulse rounded-lg" />
-                            <div className="space-y-2">
-                              <div className="w-32 h-4 bg-muted/20 animate-pulse rounded" />
-                              <div className="w-24 h-3 bg-muted/20 animate-pulse rounded" />
+                            <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" />
+                            <div className="space-y-1.5">
+                              <div className="w-32 h-3 bg-slate-100 dark:bg-slate-800 animate-pulse rounded" />
+                              <div className="w-24 h-2 bg-slate-100 dark:bg-slate-800 animate-pulse rounded opacity-50" />
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="px-6" data-oid="skel-3">
-                          <div className="w-16 h-6 bg-muted/20 animate-pulse rounded-full mx-auto" />
+                        <TableCell className="py-3 px-4" data-oid="skel-3">
+                          <div className="w-16 h-5 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg mx-auto" />
                         </TableCell>
-                        <TableCell className="px-6" data-oid="skel-4">
-                          <div className="w-16 h-6 bg-muted/20 animate-pulse rounded-full mx-auto" />
+                        <TableCell className="py-3 px-4" data-oid="skel-4">
+                          <div className="w-16 h-5 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg mx-auto" />
                         </TableCell>
-                        <TableCell className="px-6" data-oid="skel-5">
-                          <div className="w-10 h-4 bg-muted/20 animate-pulse rounded mx-auto" />
+                        <TableCell className="py-3 px-4" data-oid="skel-5">
+                          <div className="w-10 h-3 bg-slate-100 dark:bg-slate-800 animate-pulse rounded mx-auto" />
                         </TableCell>
-                        <TableCell className="px-6" data-oid="skel-6">
-                          <div className="w-20 h-8 bg-muted/20 animate-pulse rounded-lg ml-auto" />
+                        <TableCell className="py-3 px-4" data-oid="skel-6">
+                          <div className="w-20 h-7 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg ml-auto" />
                         </TableCell>
                       </TableRow>
                     ))
                   ) : resources.length === 0 ? (
                     <TableRow data-oid="a83z4o9">
-                      <TableCell colSpan={6} className="py-24 text-center" data-oid="iur8kmj">
+                      <TableCell colSpan={6} className="py-16 text-center" data-oid="iur8kmj">
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.9 }}
+                          initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           className="flex flex-col items-center max-w-[280px] mx-auto"
                           data-oid="42-by7e"
                         >
                           <div
-                            className="p-6 bg-primary/5 rounded-full border border-primary/10 shadow-inner relative"
+                            className="p-4 bg-indigo-50 dark:bg-indigo-950/40 rounded-2xl border border-indigo-100 dark:border-indigo-900 shadow-2xs"
                             data-oid="m8d5s9j"
                           >
                             <Library
-                              className="w-12 h-12 text-primary opacity-20"
+                              className="w-8 h-8 text-indigo-600 dark:text-indigo-400"
                               data-oid="hpqrxop"
                             />
-                            <div className="absolute inset-0 bg-primary/5 blur-2xl rounded-full" />
                           </div>
                           <h3
-                            className="font-black text-2xl text-foreground tracking-tight mt-8"
+                            className="font-black text-base text-slate-950 dark:text-white tracking-tight mt-4"
                             data-oid="13wu0c5"
                           >
                             No resources found
                           </h3>
                           <p
-                            className="text-muted-foreground font-medium mt-2 leading-relaxed"
+                            className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1 leading-relaxed"
                             data-oid="6ops55x"
                           >
                             Your library is currently empty. Start by adding your first educational
@@ -1290,10 +1366,10 @@ const ResourceManagement = () => {
                           </p>
                           <Button
                             onClick={() => setIsDialogOpen(true)}
-                            className="mt-8 bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-8 rounded-2xl font-black shadow-lg shadow-primary/20"
+                            className="mt-5 bg-indigo-600 hover:bg-indigo-700 text-white h-9 px-6 rounded-xl font-extrabold text-xs shadow-2xs"
                             data-oid="vvpkk1m"
                           >
-                            Initialize Library
+                            Add Resource
                           </Button>
                         </motion.div>
                       </TableCell>
@@ -1301,52 +1377,53 @@ const ResourceManagement = () => {
                   ) : (
                     resources.map((resource) => {
                       const typeInfo = getContentTypeInfo(resource.content_type);
+                      const Icon = typeInfo.icon;
                       return (
                         <motion.tr
                           key={resource.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          transition={{ duration: 0.2 }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.15 }}
                           onClick={() => openEditDialog(resource)}
-                          className="group transition-all hover:bg-muted/30 border-b border-border/10 bg-transparent cursor-pointer"
+                          className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer"
                           data-oid="9wxwesr"
                         >
                           <TableCell
-                            className="px-6 py-4"
+                            className="py-3 px-4"
                             data-oid="bmit8uj"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <Checkbox
                               checked={selectedIds.includes(resource.id)}
                               onCheckedChange={(checked) => handleSelectOne(resource.id, checked)}
-                              className="border-muted-foreground/30 data-[state=checked]:bg-primary"
+                              className="border-slate-300 dark:border-slate-700"
                               data-oid="7p1.zr2"
                             />
                           </TableCell>
-                          <TableCell className="px-6 py-4" data-oid="k30.m6_">
-                            <div className="flex items-center gap-4" data-oid="_73kb:6">
+                          <TableCell className="py-3 px-4" data-oid="k30.m6_">
+                            <div className="flex items-center gap-3" data-oid="_73kb:6">
                               {resource.thumbnail_url ? (
                                 <img
                                   src={resource.thumbnail_url}
                                   alt=""
-                                  className="w-12 h-12 rounded-lg object-cover border border-border/50"
+                                  className="w-9 h-9 rounded-xl object-cover border border-slate-200/80 dark:border-white/10 shrink-0"
                                   data-oid="s:vpfd_"
                                 />
                               ) : (
                                 <div
-                                  className={`w-12 h-12 rounded-lg bg-${typeInfo.color}-500/10 flex items-center justify-center border border-${typeInfo.color}-500/20`}
+                                  className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300 shrink-0 shadow-2xs"
                                   data-oid="mji9x8k"
                                 >
-                                  <typeInfo.icon
-                                    className={`w-5 h-5 text-${typeInfo.color}-500`}
+                                  <Icon
+                                    className="w-4 h-4 text-indigo-600 dark:text-indigo-400"
                                     data-oid="xw9ksuj"
                                   />
                                 </div>
                               )}
                               <div className="min-w-0" data-oid="hu9g-26">
                                 <p
-                                  className="font-semibold text-foreground truncate max-w-[200px]"
+                                  className="font-extrabold text-xs text-slate-950 dark:text-white truncate max-w-[220px]"
                                   data-oid="eg-a6ai"
                                 >
                                   {resource.title}
@@ -1356,7 +1433,7 @@ const ResourceManagement = () => {
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   onClick={(e) => e.stopPropagation()}
-                                  className="text-xs text-muted-foreground hover:text-primary truncate block max-w-[200px]"
+                                  className="text-[10px] font-mono text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 truncate block max-w-[220px]"
                                   data-oid="r78phhx"
                                 >
                                   {resource.url}
@@ -1364,46 +1441,53 @@ const ResourceManagement = () => {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="px-6 py-4 text-center" data-oid="sxceztj">
+                          <TableCell className="py-3 px-4 text-center" data-oid="sxceztj">
                             <Badge
                               variant="outline"
                               className={cn(
-                                'rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider',
-                                `bg-${typeInfo.color}-500/10 text-${typeInfo.color}-600 dark:text-${typeInfo.color}-400 border-${typeInfo.color}-500/20 shadow-sm`
+                                'capitalize font-bold text-[10px] px-2 py-0.5 rounded-lg border',
+                                resource.content_type === 'video' &&
+                                  'bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900',
+                                resource.content_type === 'pdf' &&
+                                  'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900',
+                                resource.content_type === 'blog' &&
+                                  'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900',
+                                resource.content_type === 'vocabulary' &&
+                                  'bg-indigo-50 text-indigo-700 border-indigo-200/80 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-900'
                               )}
                               data-oid=":i36tj8"
                             >
                               {resource.content_type}
                             </Badge>
                           </TableCell>
-                          <TableCell className="px-6 py-4 text-center" data-oid="-1064ur">
+                          <TableCell className="py-3 px-4 text-center" data-oid="-1064ur">
                             <Badge
                               variant="outline"
                               className={cn(
-                                'rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm',
+                                'capitalize font-bold text-[10px] px-2 py-0.5 rounded-lg border',
                                 resource.is_published
-                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                                  : 'bg-muted text-muted-foreground border-border/50'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900'
+                                  : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                               )}
                               data-oid="w:xo_on"
                             >
                               {resource.is_published ? 'Published' : 'Draft'}
                             </Badge>
                           </TableCell>
-                          <TableCell className="px-6 py-4 text-center" data-oid="tg35wai">
-                            <span className="font-bold text-foreground/80" data-oid=".1g.ywp">
+                          <TableCell className="py-3 px-4 text-center" data-oid="tg35wai">
+                            <span
+                              className="font-mono text-xs font-bold text-slate-600 dark:text-slate-300"
+                              data-oid=".1g.ywp"
+                            >
                               {resource.view_count || 0}
                             </span>
                           </TableCell>
                           <TableCell
-                            className="px-6 py-4 text-right"
+                            className="py-3 px-4 text-right"
                             data-oid="z.8z-y:"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <div
-                              className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 group-hover:translate-x-0"
-                              data-oid="enq8n_h"
-                            >
+                            <div className="flex justify-end items-center gap-1" data-oid="enq8n_h">
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -1411,11 +1495,11 @@ const ResourceManagement = () => {
                                   e.stopPropagation();
                                   openEditDialog(resource);
                                 }}
-                                className="h-9 w-9 rounded-xl hover:bg-primary/10 hover:text-primary transition-colors"
+                                className="h-7 w-7 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 title="Edit"
                                 data-oid="btn-edit"
                               >
-                                <Edit className="w-4 h-4" data-oid="icon-edit" />
+                                <Edit className="w-3.5 h-3.5" data-oid="icon-edit" />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -1425,18 +1509,18 @@ const ResourceManagement = () => {
                                   togglePublishStatus(resource);
                                 }}
                                 className={cn(
-                                  'h-9 w-9 rounded-xl transition-colors',
+                                  'h-7 w-7 rounded-lg transition-colors',
                                   resource.is_published
-                                    ? 'text-amber-500 hover:bg-amber-500/10'
-                                    : 'text-emerald-500 hover:bg-emerald-500/10'
+                                    ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40'
+                                    : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
                                 )}
                                 title={resource.is_published ? 'Unpublish' : 'Publish'}
                                 data-oid="btn-pub"
                               >
                                 {resource.is_published ? (
-                                  <EyeOff className="w-4 h-4" data-oid="off" />
+                                  <EyeOff className="w-3.5 h-3.5" data-oid="off" />
                                 ) : (
-                                  <Eye className="w-4 h-4" data-oid="on" />
+                                  <Eye className="w-3.5 h-3.5" data-oid="on" />
                                 )}
                               </Button>
                               <Button
@@ -1446,11 +1530,11 @@ const ResourceManagement = () => {
                                   e.stopPropagation();
                                   handleDelete(resource);
                                 }}
-                                className="h-9 w-9 rounded-xl text-destructive hover:bg-destructive/10 transition-colors"
+                                className="h-7 w-7 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                                 title="Delete"
                                 data-oid="btn-del"
                               >
-                                <Trash2 className="w-4 h-4" data-oid="del" />
+                                <Trash2 className="w-3.5 h-3.5" data-oid="del" />
                               </Button>
                             </div>
                           </TableCell>
@@ -1502,7 +1586,7 @@ const ResourceManagement = () => {
               </div>
             </div>
           )}
-        </div>
+        </Card>
       </motion.div>
 
       {/* Delete Confirmation Dialog */}

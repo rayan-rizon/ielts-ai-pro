@@ -246,8 +246,8 @@ const TestManagement = () => {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="space-y-6 pb-10"
+      transition={{ duration: 0.3 }}
+      className="space-y-4 pb-6"
       data-oid="hw-n65o"
     >
       <DeleteTestModal
@@ -268,67 +268,73 @@ const TestManagement = () => {
 
       {/* Header Section */}
       <div
-        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1"
         data-oid="3n6l.-c"
       >
-        <div data-oid="7nmjad-">
-          <div className="flex items-center gap-3 mb-1" data-oid="t75rj18">
+        <div className="space-y-0.5" data-oid="7nmjad-">
+          <h2
+            className="text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
+            data-oid="title-tm"
+          >
             <div
-              className="p-2.5 bg-primary/10 rounded-2xl text-primary shadow-inner"
+              className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shadow-2xs"
               data-oid="_sx8x6c"
             >
-              <ClipboardList className="w-6 h-6" data-oid="4sa8au3" />
+              <ClipboardList className="w-5 h-5" data-oid="4sa8au3" />
             </div>
-            <div>
-              <h2
-                className="text-3xl font-black tracking-tight text-foreground"
-                data-oid="title-tm"
-              >
-                Test Management
-              </h2>
-              <p className="text-muted-foreground font-medium" data-oid="tomx5z0">
-                Create and manage your IELTS test content library
-              </p>
-            </div>
-          </div>
+            Test Management
+          </h2>
+          <p
+            className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 ml-1"
+            data-oid="tomx5z0"
+          >
+            Create, filter, and manage your IELTS test content library
+          </p>
         </div>
-        <div className="flex items-center gap-3" data-oid="snzlq7m">
+
+        <div className="flex items-center gap-2" data-oid="snzlq7m">
           <DropdownMenu data-oid="dd-actions">
             <DropdownMenuTrigger asChild data-oid="dd-trig">
               <Button
                 variant="outline"
-                className="h-11 px-5 rounded-2xl font-bold border-border/50 bg-card/50 backdrop-blur-sm hover:bg-muted/50 transition-all"
+                className="h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
               >
-                <MoreVertical className="w-4 h-4 mr-2" data-oid="mv" />
+                <MoreVertical className="w-4 h-4 mr-1.5 text-slate-500" data-oid="mv" />
                 Actions
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-56 p-2 rounded-2xl bg-card/95 backdrop-blur-xl border-border/50 shadow-2xl"
+              className="w-56 p-2 rounded-xl bg-popover/95 backdrop-blur-xl border-border/50 shadow-xl"
               data-oid="dd-cont"
             >
               <DropdownMenuItem
                 onClick={handleImportClick}
-                className="rounded-xl h-10 font-medium cursor-pointer"
+                className="rounded-lg h-9 font-medium cursor-pointer"
                 data-oid="dd-imp"
               >
-                <ArrowDownCircle className="w-4 h-4 mr-2 text-primary" data-oid="akzevdt" />
+                <ArrowDownCircle
+                  className="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-400"
+                  data-oid="akzevdt"
+                />
                 Import Data
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={handleBulkExport}
                 disabled={selectedIds.length === 0}
-                className="rounded-xl h-10 font-medium cursor-pointer"
+                className="rounded-lg h-9 font-medium cursor-pointer"
                 data-oid="dd-exp"
               >
-                <Download className="w-4 h-4 mr-2 text-primary" data-oid="dw" />
+                <Download
+                  className="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-400"
+                  data-oid="dw"
+                />
                 Export Selected ({selectedIds.length})
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border/50" data-oid="sep" />
               <DropdownMenuItem
                 onClick={() => setIsCreatingTest(true)}
-                className="rounded-xl h-10 font-medium cursor-pointer text-primary focus:text-primary"
+                className="rounded-lg h-9 font-medium cursor-pointer text-indigo-600 dark:text-indigo-400"
                 data-oid="dd-new"
               >
                 <Plus className="w-4 h-4 mr-2" data-oid="pl" />
@@ -339,17 +345,17 @@ const TestManagement = () => {
 
           <Button
             onClick={() => setIsCreatingTest(true)}
-            className="h-11 px-6 rounded-2xl font-black bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-95"
+            className="h-9 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold shadow-2xs rounded-xl text-xs gap-1 transition-all"
             data-oid="j.xyy95"
           >
-            <Plus className="w-4 h-4 mr-2" data-oid="tp5._-7" />
+            <Plus className="w-3.5 h-3.5" data-oid="tp5._-7" />
             Create Test
           </Button>
         </div>
       </div>
 
       {/* Stats Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" data-oid="jqkuwoz">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5" data-oid="jqkuwoz">
         {[
           { label: 'Total Tests', value: stats.total, icon: ClipboardList, color: 'blue' },
           { label: 'Active', value: stats.active, icon: BookOpen, color: 'emerald' },
@@ -360,38 +366,46 @@ const TestManagement = () => {
             key={i}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.05 }}
+            transition={{ delay: i * 0.03 }}
             data-oid="stat-card"
           >
             <Card
-              className="bg-card/40 backdrop-blur-md border-border/50 hover:border-primary/30 transition-all duration-300 rounded-2xl overflow-hidden shadow-sm"
+              className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
               data-oid="2-ihrbw"
             >
-              <CardContent className="p-3.5" data-oid="dbd3hf6">
-                <div className="flex items-center gap-3" data-oid="v5g1353">
-                  <div
-                    className={cn(
-                      'w-10 h-10 rounded-xl flex items-center justify-center shrink-0',
-                      `bg-${stat.color}-500/10 text-${stat.color}-500 shadow-inner`
-                    )}
-                    data-oid="xg-_85f"
+              <CardContent
+                className="p-3.5 px-4 flex items-center justify-between"
+                data-oid="dbd3hf6"
+              >
+                <div className="space-y-0.5" data-oid="fg5pwx8">
+                  <p
+                    className="text-[10px] font-black uppercase tracking-wider text-slate-400"
+                    data-oid="whr6bg-"
                   >
-                    <stat.icon className="w-5 h-5" data-oid="b7zev4c" />
-                  </div>
-                  <div className="flex flex-col min-w-0" data-oid="fg5pwx8">
-                    <h3
-                      className="text-xl font-black text-foreground tracking-tight truncate leading-none mb-0.5"
-                      data-oid="vt0ds:5"
-                    >
-                      {stat.value || 0}
-                    </h3>
-                    <p
-                      className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 truncate"
-                      data-oid="whr6bg-"
-                    >
-                      {stat.label}
-                    </p>
-                  </div>
+                    {stat.label}
+                  </p>
+                  <h3
+                    className="text-xl font-black text-slate-950 dark:text-white leading-none"
+                    data-oid="vt0ds:5"
+                  >
+                    {(stat.value || 0).toLocaleString()}
+                  </h3>
+                </div>
+                <div
+                  className={cn(
+                    'p-2.5 rounded-xl border shrink-0',
+                    stat.color === 'blue' &&
+                      'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 border-blue-200/80 dark:border-blue-900',
+                    stat.color === 'emerald' &&
+                      'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-900',
+                    stat.color === 'amber' &&
+                      'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400 border-amber-200/80 dark:border-amber-900',
+                    stat.color === 'indigo' &&
+                      'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400 border-indigo-200/80 dark:border-indigo-900'
+                  )}
+                  data-oid="xg-_85f"
+                >
+                  <stat.icon className="w-4 h-4" data-oid="b7zev4c" />
                 </div>
               </CardContent>
             </Card>
@@ -401,55 +415,50 @@ const TestManagement = () => {
 
       {/* Test Type Tabs */}
       <div
-        className="flex items-center gap-1.5 p-1.5 bg-muted/20 backdrop-blur-md rounded-[1.5rem] border border-border/40 w-fit"
+        className="flex items-center gap-1.5 p-1.5 bg-slate-100 dark:bg-slate-900/90 rounded-2xl border border-slate-200/90 dark:border-white/10 shadow-2xs w-full sm:w-fit overflow-x-auto no-scrollbar"
         data-oid="rckw:of"
       >
-        {testStructures.map((typeInfo) => (
-          <button
-            key={typeInfo.key}
-            onClick={() => handleTestTypeChange(typeInfo.key)}
-            className={cn(
-              'group relative flex items-center gap-2.5 px-6 py-3 rounded-2xl text-sm font-black transition-all duration-300 whitespace-nowrap overflow-hidden',
-              selectedTestType === typeInfo.key
-                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.05]'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent'
-            )}
-            data-oid="4k-gfze"
-          >
-            <typeInfo.icon
+        {testStructures.map((typeInfo) => {
+          const isActive = selectedTestType === typeInfo.key;
+          const Icon = typeInfo.icon;
+          return (
+            <button
+              key={typeInfo.key}
+              onClick={() => handleTestTypeChange(typeInfo.key)}
               className={cn(
-                'w-4 h-4 transition-all duration-300',
-                selectedTestType === typeInfo.key
-                  ? 'text-primary-foreground'
-                  : 'text-muted-foreground group-hover:text-foreground'
+                'h-10 px-5 rounded-xl font-extrabold text-sm transition-all flex items-center gap-2 whitespace-nowrap border cursor-pointer select-none',
+                isActive
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  : 'bg-transparent text-slate-600 dark:text-slate-300 border-transparent hover:bg-white dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-white hover:shadow-2xs'
               )}
-              data-oid="3495u3y"
-            />
-            <span>{typeInfo.name}</span>
-            {selectedTestType === typeInfo.key && (
-              <motion.div
-                layoutId="activeTab"
-                className="absolute inset-0 bg-primary -z-10"
-                transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+              data-oid="4k-gfze"
+            >
+              <Icon
+                className={cn(
+                  'w-4 h-4 transition-colors',
+                  isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-600'
+                )}
+                data-oid="3495u3y"
               />
-            )}
-          </button>
-        ))}
+              <span>{typeInfo.name}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Main Content Card (Table with attached toolbar) */}
       <Card
-        className="bg-card/50 backdrop-blur-sm border-border/50 shadow-sm overflow-hidden"
+        className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 shadow-2xs rounded-2xl overflow-hidden"
         data-oid="x86e9hr"
       >
         {/* Attached Toolbar */}
         <div
-          className="flex flex-col xl:flex-row gap-4 items-center bg-card/30 backdrop-blur-sm border-b border-border/30 p-4"
+          className="flex flex-col xl:flex-row gap-3 items-center bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-white/5 p-3"
           data-oid="04-c5ik"
         >
           <div className="relative flex-1 w-full" data-oid="4hyep9u">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400"
               data-oid="rvylfoc"
             />
 
@@ -457,16 +466,16 @@ const TestManagement = () => {
               placeholder={`Search ${selectedTestType} tests...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-background/50 border-muted focus-visible:ring-primary/20"
+              className="h-8 pl-8 border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-800/60 rounded-xl text-xs font-semibold placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-indigo-500 shadow-none"
               aria-label={`Search ${selectedTestType} tests`}
               data-oid="ejc3byb"
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto" data-oid="_2nne1m">
+          <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto" data-oid="_2nne1m">
             <Select value={statusFilter} onValueChange={setStatusFilter} data-oid="ahw9b1h">
               <SelectTrigger
-                className="w-[130px] bg-background/50 border-muted text-xs"
+                className="h-8 w-[120px] bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-white/10 text-xs font-bold rounded-xl"
                 data-oid=".2ea2e-"
               >
                 <SelectValue placeholder="Status" data-oid="ukc:-p5" />
@@ -486,7 +495,7 @@ const TestManagement = () => {
 
             <Select value={tierFilter} onValueChange={setTierFilter} data-oid="rhja8d7">
               <SelectTrigger
-                className="w-[130px] bg-background/50 border-muted text-xs"
+                className="h-8 w-[120px] bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-white/10 text-xs font-bold rounded-xl"
                 data-oid="_6:5qz7"
               >
                 <SelectValue placeholder="Tier" data-oid="rvj283:" />
@@ -509,11 +518,11 @@ const TestManagement = () => {
 
             <Select value={cambridgeFilter} onValueChange={setCambridgeFilter} data-oid="i6y535a">
               <SelectTrigger
-                className="w-[150px] bg-background/50 border-muted text-xs"
+                className="h-8 w-[140px] bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-white/10 text-xs font-bold rounded-xl"
                 data-oid="57ec_tz"
               >
-                <div className="flex items-center gap-2 truncate" data-oid="ozwnqz.">
-                  <GraduationCap className="w-3.5 h-3.5" data-oid="hs3y90x" />
+                <div className="flex items-center gap-1.5 truncate" data-oid="ozwnqz.">
+                  <GraduationCap className="w-3.5 h-3.5 text-slate-400" data-oid="hs3y90x" />
                   <span className="truncate" data-oid="05149ms">
                     {cambridgeFilter === 'all'
                       ? 'All Sources'
@@ -549,7 +558,7 @@ const TestManagement = () => {
                   setTierFilter('all');
                   setCambridgeFilter('all');
                 }}
-                className="h-9 px-3 text-xs text-muted-foreground hover:text-foreground"
+                className="h-8 px-2.5 text-xs text-slate-500 hover:text-slate-900 font-bold"
                 data-oid="_7wcg2d"
               >
                 Reset
@@ -561,36 +570,37 @@ const TestManagement = () => {
           <AnimatePresence data-oid="o:62xkz">
             {selectedIds.length > 0 && (
               <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                initial={{ opacity: 0, y: 5, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="flex items-center gap-2 p-1.5 pl-4 bg-primary/10 backdrop-blur-md border border-primary/20 rounded-2xl md:ml-4 shadow-xl shadow-primary/5"
+                exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                className="flex items-center gap-2 p-1 px-3 bg-indigo-50/90 dark:bg-indigo-950/80 border border-indigo-200/80 dark:border-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-xl shadow-2xs"
                 data-oid="kmq3.p4"
               >
-                <div className="flex flex-col" data-oid="count-info">
-                  <span
-                    className="text-[10px] font-black uppercase tracking-widest text-primary/60"
-                    data-oid="c64hlwe"
-                  >
-                    {selectedIds.length} Selection
-                  </span>
-                </div>
-                <div className="w-px h-6 bg-primary/20 mx-2" data-oid="sep-bulk" />
+                <span
+                  className="text-[10px] font-black uppercase tracking-wider shrink-0"
+                  data-oid="c64hlwe"
+                >
+                  {selectedIds.length} Selected
+                </span>
+                <div
+                  className="w-px h-4 bg-indigo-200 dark:bg-indigo-800 mx-1"
+                  data-oid="sep-bulk"
+                />
                 <div className="flex items-center gap-1" data-oid="bulk-btns">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 text-primary transition-all"
+                    className="h-7 px-2 rounded-lg text-[10px] font-extrabold uppercase hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300"
                     onClick={handleBulkExport}
                     data-oid="m0-:1w2"
                   >
-                    <Download className="w-3.5 h-3.5 mr-2" data-oid="e_zh17a" />
+                    <Download className="w-3 h-3 mr-1" data-oid="e_zh17a" />
                     Export
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 text-emerald-600 transition-all"
+                    className="h-7 px-2 rounded-lg text-[10px] font-extrabold uppercase hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300"
                     onClick={async () => {
                       await bulkUpdateStatus(selectedIds, true, getApiFilters());
                       setSelectedIds([]);
@@ -602,7 +612,7 @@ const TestManagement = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-500/20 text-amber-600 transition-all"
+                    className="h-7 px-2 rounded-lg text-[10px] font-extrabold uppercase hover:bg-amber-100 dark:hover:bg-amber-900 text-amber-700 dark:text-amber-300"
                     onClick={async () => {
                       await bulkUpdateStatus(selectedIds, false, getApiFilters());
                       setSelectedIds([]);
@@ -614,11 +624,11 @@ const TestManagement = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-destructive/10 text-destructive transition-all"
+                    className="h-7 px-2 rounded-lg text-[10px] font-extrabold uppercase hover:bg-rose-100 dark:hover:bg-rose-900 text-rose-700 dark:text-rose-300"
                     onClick={() => setShowBulkDeleteModal(true)}
                     data-oid="k7kgtwb"
                   >
-                    <Trash2 className="w-3.5 h-3.5 mr-2" data-oid="del-icon" />
+                    <Trash2 className="w-3 h-3 mr-1" data-oid="del-icon" />
                     Delete
                   </Button>
                 </div>
@@ -642,7 +652,7 @@ const TestManagement = () => {
             data-oid="2ozrkqr"
           />
 
-          <div className="p-4 border-t border-border/40" data-oid="-w8wnm5">
+          <div className="p-3 border-t border-slate-100 dark:border-white/5" data-oid="-w8wnm5">
             <PaginationControls
               currentPage={pagination.page}
               totalPages={pagination.totalPages}

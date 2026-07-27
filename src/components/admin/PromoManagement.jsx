@@ -199,29 +199,32 @@ const PromoManagement = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8 pb-10"
+      className="space-y-6 pb-10"
       data-oid="xefa5fm"
     >
       {/* Header Section */}
       <div
-        className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6"
+        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-2"
         data-oid="t09iq41"
       >
-        <motion.div variants={itemVariants} className="space-y-1" data-oid="hmt29g7">
+        <motion.div variants={itemVariants} className="space-y-0.5" data-oid="hmt29g7">
           <h2
-            className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3"
+            className="text-2xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
             data-oid="p_m5rx-"
           >
             <div
-              className="p-2 bg-primary/10 rounded-lg text-primary shadow-sm border border-primary/20"
+              className="p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xs"
               data-oid="3a1l_ft"
             >
-              <Crown className="w-6 h-6" data-oid="gttwt3-" />
+              <Crown className="w-5 h-5" data-oid="gttwt3-" />
             </div>
-            Promo Management
+            <span>Promo Management</span>
           </h2>
-          <p className="text-muted-foreground text-lg ml-1" data-oid=".4etj32">
-            Manage promotional codes and discount campaigns
+          <p
+            className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400"
+            data-oid=".4etj32"
+          >
+            Create, manage, and monitor promotional discount codes and subscription access keys
           </p>
         </motion.div>
 
@@ -229,26 +232,29 @@ const PromoManagement = () => {
           <Dialog open={isAddingPromo} onOpenChange={setIsAddingPromo} data-oid="1h:ezv_">
             <DialogTrigger asChild data-oid="tg9ov7q">
               <Button
-                className="h-12 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 rounded-xl transition-all duration-300 font-bold group"
+                className="h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-2xs transition-all duration-200 flex items-center gap-2"
                 data-oid="inebb0n"
               >
-                <Plus
-                  className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300"
-                  data-oid="sqgy9wi"
-                />
-                Add Promo Code
+                <Plus className="w-4 h-4" data-oid="sqgy9wi" />
+                <span>Add Promo Code</span>
               </Button>
             </DialogTrigger>
             <DialogContent
-              className="bg-card border-border/50 backdrop-blur-xl max-w-md rounded-3xl overflow-hidden shadow-2xl"
+              className="bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 max-w-md rounded-2xl p-6 shadow-2xl"
               data-oid="6etczsj"
             >
               <DialogHeader className="space-y-1" data-oid="gki-6n1">
-                <DialogTitle className="text-2xl font-bold tracking-tight" data-oid="5b3idyz">
-                  New Promo Code
+                <DialogTitle
+                  className="text-xl font-black tracking-tight text-slate-950 dark:text-white"
+                  data-oid="5b3idyz"
+                >
+                  Create Promo Code
                 </DialogTitle>
-                <DialogDescription className="text-muted-foreground font-medium" data-oid="1brzt1:">
-                  Create a new promotional code
+                <DialogDescription
+                  className="text-xs font-medium text-slate-500 dark:text-slate-400"
+                  data-oid="1brzt1:"
+                >
+                  Generate discount rules or direct tier access codes for users
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4" data-oid="iep-4g7">
@@ -574,7 +580,7 @@ const PromoManagement = () => {
       </div>
 
       {/* Stats Quick Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5" data-oid="ht6hdc1">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" data-oid="ht6hdc1">
         {[
           { label: 'Active Promos', value: stats.active, icon: Sparkles, color: 'rose' },
           { label: 'Total Uses', value: stats.totalUses, icon: Activity, color: 'indigo' },
@@ -582,35 +588,35 @@ const PromoManagement = () => {
         ].map((item, idx) => (
           <motion.div key={idx} variants={itemVariants} data-oid="fsogbvg">
             <Card
-              className="border border-border/50 bg-card/40 backdrop-blur-sm overflow-hidden rounded-2xl group"
+              className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
               data-oid="fo7lk0x"
             >
-              <CardContent className="p-5 flex items-center justify-between" data-oid="txz9-xr">
+              <CardContent className="p-4 flex items-center justify-between" data-oid="txz9-xr">
                 <div data-oid="qza69_b">
                   <p
-                    className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mb-1"
+                    className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-0.5"
                     data-oid="sl4pda0"
                   >
                     {item.label}
                   </p>
                   <h4
-                    className="text-2xl font-black text-foreground leading-none"
+                    className="text-2xl font-black text-slate-950 dark:text-white leading-none"
                     data-oid="w7i27i:"
                   >
                     {item.value}
                   </h4>
                 </div>
                 <div
-                  className={`p-3 rounded-xl transition-transform duration-500 group-hover:scale-110 ${
+                  className={`p-2.5 rounded-xl border ${
                     item.color === 'rose'
-                      ? 'bg-rose-500/10 text-rose-500'
+                      ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border-rose-200/60 dark:border-rose-800/40'
                       : item.color === 'indigo'
-                        ? 'bg-indigo-500/10 text-indigo-500'
-                        : 'bg-emerald-500/10 text-emerald-500'
+                        ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 border-indigo-200/60 dark:border-indigo-800/40'
+                        : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-800/40'
                   }`}
                   data-oid="go7cflq"
                 >
-                  <item.icon className="w-5 h-5" data-oid="yj8k6pd" />
+                  <item.icon className="w-4 h-4" data-oid="yj8k6pd" />
                 </div>
               </CardContent>
             </Card>
@@ -680,32 +686,28 @@ const PromoManagement = () => {
                         data-oid="tb3qs9z"
                       >
                         <Card
-                          className={`relative overflow-hidden rounded-[2.5rem] border-border/40 bg-card/40 backdrop-blur-xl transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 ${!promo.is_active || isExpired ? 'opacity-70 contrast-75' : ''}`}
+                          className={`relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 shadow-2xs transition-all duration-200 hover:border-slate-300 ${!promo.is_active || isExpired ? 'opacity-65' : ''}`}
                           data-oid="bz44b1w"
                         >
-                          {/* Background Decor */}
-                          <div
-                            className={`absolute -right-4 -top-4 w-24 h-24 rounded-full blur-3xl opacity-10 transition-colors duration-500 group-hover:opacity-20 ${promo.grants_subscription ? 'bg-purple-500' : 'bg-primary'}`}
-                            data-oid="pacfzu:"
-                          />
-
-                          <CardContent className="p-6 space-y-5" data-oid="pc_4hrp">
+                          <CardContent className="p-5 space-y-4" data-oid="pc_4hrp">
                             {/* Top Row: Code & Status */}
                             <div className="flex justify-between items-start" data-oid="q2a02es">
-                              <div className="space-y-1" data-oid="mf9qt:3">
+                              <div className="space-y-0.5" data-oid="mf9qt:3">
                                 <div className="flex items-center gap-2" data-oid="551a25a">
                                   <span
-                                    className="font-mono text-xl font-black text-foreground tracking-tighter group-hover:text-primary transition-colors"
+                                    className="font-mono text-lg font-black text-slate-950 dark:text-white tracking-tight"
                                     data-oid="lakyau4"
                                   >
                                     {promo.code}
                                   </span>
                                   <Badge
                                     variant="outline"
-                                    className={`rounded-full px-2 text-[10px] uppercase font-black tracking-widest border shadow-sm ${
-                                      promo.is_active && !isExpired
-                                        ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                                        : 'bg-red-500/10 text-red-600 border-red-500/20'
+                                    className={`rounded-full px-2 py-0.5 text-[9px] uppercase font-black tracking-wider border ${
+                                      isExpired
+                                        ? 'bg-rose-50 text-rose-600 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900'
+                                        : promo.is_active
+                                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900'
+                                          : 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900'
                                     }`}
                                     data-oid="y_04_jw"
                                   >
@@ -713,59 +715,56 @@ const PromoManagement = () => {
                                   </Badge>
                                 </div>
                                 <p
-                                  className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60"
+                                  className="text-[10px] text-slate-400 font-bold uppercase tracking-wider"
                                   data-oid="4.u6ng4"
                                 >
                                   Redemption Code
                                 </p>
                               </div>
 
-                              <div
-                                className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0"
-                                data-oid="97oe6q_"
-                              >
+                              <div className="flex gap-1" data-oid="97oe6q_">
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => togglePromoStatus(promo.id, promo.is_active)}
-                                  className={`h-8 w-8 rounded-full ${promo.is_active ? 'text-amber-500 hover:bg-amber-500/10' : 'text-emerald-500 hover:bg-emerald-500/10'}`}
+                                  className={`h-7 w-7 rounded-lg ${promo.is_active ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40' : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'}`}
                                   data-oid="-e4n69n"
                                 >
-                                  <Power className="w-4 h-4" data-oid="ti3md76" />
+                                  <Power className="w-3.5 h-3.5" data-oid="ti3md76" />
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleDeletePromo(promo)}
-                                  className="h-8 w-8 text-red-500 hover:bg-red-500/10 rounded-full"
+                                  className="h-7 w-7 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg"
                                   data-oid="s:e4kc9"
                                 >
-                                  <Trash2 className="w-4 h-4" data-oid="d820kin" />
+                                  <Trash2 className="w-3.5 h-3.5" data-oid="d820kin" />
                                 </Button>
                               </div>
                             </div>
 
                             {/* Middle Section: Value/Grant */}
                             <div
-                              className={`p-4 rounded-3xl border transition-colors duration-300 ${promo.grants_subscription ? 'bg-purple-500/5 border-purple-500/10 group-hover:border-purple-500/30' : 'bg-primary/5 border-primary/10 group-hover:border-primary/30'}`}
+                              className="p-3 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/70 dark:bg-slate-900/40"
                               data-oid="lvjua9_"
                             >
-                              <div className="flex items-center gap-4" data-oid="j2sy6hp">
+                              <div className="flex items-center gap-3" data-oid="j2sy6hp">
                                 <div
-                                  className={`p-3 rounded-2xl shadow-inner ${promo.grants_subscription ? 'bg-purple-500/10 text-purple-600' : 'bg-primary/10 text-primary'}`}
+                                  className={`p-2 rounded-lg border ${promo.grants_subscription ? 'bg-purple-50 text-purple-600 border-purple-200/60 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-800' : 'bg-indigo-50 text-indigo-600 border-indigo-200/60 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-800'}`}
                                   data-oid="c.w7qxf"
                                 >
                                   {promo.grants_subscription ? (
-                                    <Crown className="w-6 h-6" data-oid="emkorr3" />
+                                    <Crown className="w-4 h-4" data-oid="emkorr3" />
                                   ) : promo.discount_type === 'percentage' ? (
-                                    <Percent className="w-6 h-6" data-oid="vryv52a" />
+                                    <Percent className="w-4 h-4" data-oid="vryv52a" />
                                   ) : (
-                                    <Tag className="w-6 h-6" data-oid="a6oiygw" />
+                                    <Tag className="w-4 h-4" data-oid="a6oiygw" />
                                   )}
                                 </div>
                                 <div data-oid="w6gwrad">
                                   <h3
-                                    className="font-black text-lg leading-tight text-foreground"
+                                    className="font-black text-sm leading-tight text-slate-950 dark:text-white"
                                     data-oid="kf37n66"
                                   >
                                     {promo.grants_subscription ? (
@@ -776,34 +775,34 @@ const PromoManagement = () => {
                                       <span data-oid="97pxef4">
                                         {promo.discount_value}
                                         {promo.discount_type === 'percentage'
-                                          ? '% Off'
-                                          : '$ Discount'}
+                                          ? '% Off Discount'
+                                          : '$ Fixed Discount'}
                                       </span>
                                     )}
                                   </h3>
                                   <p
-                                    className="text-xs text-muted-foreground font-medium"
+                                    className="text-[11px] text-slate-500 font-medium"
                                     data-oid="yxqs:g8"
                                   >
                                     {promo.grants_subscription
-                                      ? `Full tier unlock for ${promo.subscription_duration_days} days`
-                                      : `Applicable to selected test modules`}
+                                      ? `Full tier access for ${promo.subscription_duration_days} days`
+                                      : `Applicable to checkout plans`}
                                   </p>
                                 </div>
                               </div>
                             </div>
 
                             {/* Bottom Section: Stats & Expiry */}
-                            <div className="space-y-3 pt-1" data-oid="4ufas4f">
+                            <div className="space-y-2 pt-0.5" data-oid="4ufas4f">
                               <div
-                                className="flex items-center justify-between text-[11px] font-bold"
+                                className="flex items-center justify-between text-[10px] font-bold text-slate-500"
                                 data-oid="h97cakb"
                               >
                                 <div
-                                  className="flex items-center gap-1.5 text-muted-foreground"
+                                  className="flex items-center gap-1 text-slate-400"
                                   data-oid="e798t3h"
                                 >
-                                  <Calendar className="w-3.5 h-3.5 opacity-50" data-oid="olf.xea" />
+                                  <Calendar className="w-3 h-3" data-oid="olf.xea" />
                                   <span data-oid="6oxki71">
                                     Expires{' '}
                                     {new Date(promo.valid_until).toLocaleDateString(undefined, {
@@ -813,25 +812,28 @@ const PromoManagement = () => {
                                     })}
                                   </span>
                                 </div>
-                                <div className="text-foreground" data-oid="..rwin9">
+                                <div
+                                  className="text-slate-700 dark:text-slate-300 font-mono"
+                                  data-oid="..rwin9"
+                                >
                                   {promo.current_uses || 0} / {promo.max_uses} uses
                                 </div>
                               </div>
 
                               <div
-                                className="relative h-2 bg-muted/20 rounded-full overflow-hidden border border-border/10"
+                                className="relative h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"
                                 data-oid="342k:uk"
                               >
                                 <motion.div
                                   initial={{ width: 0 }}
                                   animate={{ width: `${usagePercentage}%` }}
-                                  transition={{ duration: 1, ease: 'circOut' }}
-                                  className={`h-full rounded-full transition-colors ${
+                                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                                  className={`h-full rounded-full ${
                                     usagePercentage > 90
-                                      ? 'bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.4)]'
+                                      ? 'bg-rose-500'
                                       : promo.grants_subscription
-                                        ? 'bg-purple-500 shadow-[0_0_12px_rgba(168,85,247,0.4)]'
-                                        : 'bg-primary shadow-[0_0_12px_rgba(99,102,241,0.4)]'
+                                        ? 'bg-purple-600'
+                                        : 'bg-indigo-600'
                                   }`}
                                   data-oid="ct45w:1"
                                 />

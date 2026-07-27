@@ -192,39 +192,52 @@ export default function GlobalSettings() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6 pb-10"
+      className="space-y-6 pb-12 max-w-7xl mx-auto px-1 sm:px-2"
       data-oid="_8_3dg3"
     >
       {/* Header Section */}
       <div
-        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2"
         data-oid="kdpj5_b"
       >
         <motion.div variants={itemVariants} data-oid="kha4q:o">
-          <h2
-            className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3"
-            data-oid="rpads70"
-          >
+          <div className="flex items-center gap-3">
             <div
-              className="p-2 bg-primary/10 rounded-lg text-primary border border-primary/20"
+              className="p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-2xl border border-indigo-200/60 dark:border-indigo-800/60 shadow-2xs"
               data-oid="7q-v0g0"
             >
-              <Settings className="w-6 h-6" data-oid="9.znbfp" />
+              <Settings className="w-5 h-5" data-oid="9.znbfp" />
             </div>
-            Global Settings
-          </h2>
-          <p className="text-muted-foreground mt-1 text-lg" data-oid="ln-p8lk">
-            Manage system configurations and environment parameters
-          </p>
+            <div>
+              <h2
+                className="text-2xl sm:text-3xl font-black tracking-tight text-slate-950 dark:text-white"
+                data-oid="rpads70"
+              >
+                Global Settings
+              </h2>
+              <p
+                className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium mt-0.5"
+                data-oid="ln-p8lk"
+              >
+                Manage system configurations, environment parameters, and platform controls
+              </p>
+            </div>
+          </div>
         </motion.div>
 
         {saving && (
           <div
-            className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg border border-border/50 transition-all"
+            className="flex items-center gap-2 px-3.5 py-1.5 bg-indigo-50 dark:bg-indigo-950/50 rounded-full border border-indigo-200/80 dark:border-indigo-800/60 shadow-2xs"
             data-oid="7n88hnp"
           >
-            <Activity className="w-3.5 h-3.5 text-primary animate-pulse" data-oid="yytghqi" />
-            <span className="text-xs font-bold text-primary" data-oid="57qqa9r">
+            <Activity
+              className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 animate-pulse"
+              data-oid="yytghqi"
+            />
+            <span
+              className="text-xs font-bold text-indigo-700 dark:text-indigo-300"
+              data-oid="57qqa9r"
+            >
               Saving changes...
             </span>
           </div>
@@ -234,114 +247,65 @@ export default function GlobalSettings() {
       <Tabs
         value={activeSection}
         onValueChange={handleSectionChange}
-        className="w-full"
+        className="w-full space-y-6"
         data-oid="bufrpat"
       >
-        {/* Enhanced Tab Navigation */}
-        <TabsList
-          className="relative h-auto bg-gradient-to-r from-slate-50/80 to-blue-50/80 dark:from-slate-900/50 dark:to-blue-900/20 p-1 rounded-2xl border border-blue-200/60 dark:border-blue-800/50 shadow-lg backdrop-blur-sm w-full mb-8"
-          data-oid="ybobvet"
-        >
-          <div
-            className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-2xl opacity-50"
-            data-oid="81ocwci"
-          ></div>
-          <div className="flex flex-wrap justify-center gap-2 w-full" data-oid="pkyqdj.">
+        {/* Compact Segmented Tab Navigation */}
+        <div className="flex overflow-x-auto no-scrollbar pb-1">
+          <TabsList
+            className="inline-flex h-auto items-center justify-start gap-1 p-1.5 bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xs backdrop-blur-md"
+            data-oid="ybobvet"
+          >
             <TabsTrigger
               value="general"
-              className="relative rounded-xl px-6 py-3 font-semibold text-sm data-[state=active]:bg-background dark:data-[state=active]:bg-slate-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/20 dark:data-[state=active]:shadow-blue-400/20 transition-all duration-300 flex items-center gap-2.5 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-background/50 dark:hover:bg-slate-800/50 group"
-              data-oid="_05swy6"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all"
+              data-oid="tbs-gen"
             >
-              <Globe
-                className="w-4 h-4 group-data-[state=active]:text-blue-600 dark:group-data-[state=active]:text-blue-400 transition-colors"
-                data-oid="_gxy6zv"
-              />
-              <span className="relative z-10" data-oid="nbmelfe">
-                General
-              </span>
-              <div
-                className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-xl opacity-0 group-data-[state=active]:opacity-100 transition-opacity duration-300"
-                data-oid="_ojd-m0"
-              ></div>
+              <Globe className="w-3.5 h-3.5" />
+              <span>General</span>
             </TabsTrigger>
             <TabsTrigger
               value="announcements"
-              className="relative rounded-xl px-6 py-3 font-semibold text-sm data-[state=active]:bg-background dark:data-[state=active]:bg-slate-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/20 dark:data-[state=active]:shadow-blue-400/20 transition-all duration-300 flex items-center gap-2.5 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-background/50 dark:hover:bg-slate-800/50 group"
-              data-oid="d72m1pl"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all"
+              data-oid="tbs-ann"
             >
-              <Bell
-                className="w-4 h-4 group-data-[state=active]:text-blue-600 dark:group-data-[state=active]:text-blue-400 transition-colors"
-                data-oid="p_w9_:x"
-              />
-              <span className="relative z-10" data-oid="ma_xe0v">
-                Announcements
-              </span>
-              <div
-                className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-xl opacity-0 group-data-[state=active]:opacity-100 transition-opacity duration-300"
-                data-oid=".7zepok"
-              ></div>
+              <Bell className="w-3.5 h-3.5" />
+              <span>Announcements</span>
             </TabsTrigger>
             <TabsTrigger
               value="pricing"
-              className="relative rounded-xl px-6 py-3 font-semibold text-sm data-[state=active]:bg-background dark:data-[state=active]:bg-slate-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/20 dark:data-[state=active]:shadow-blue-400/20 transition-all duration-300 flex items-center gap-2.5 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-background/50 dark:hover:bg-slate-800/50 group"
-              data-oid="gxn8r6_"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all"
+              data-oid="tbs-prc"
             >
-              <CreditCard
-                className="w-4 h-4 group-data-[state=active]:text-blue-600 dark:group-data-[state=active]:text-blue-400 transition-colors"
-                data-oid="z7nhl0c"
-              />
-              <span className="relative z-10" data-oid="4rs2x65">
-                Pricing
-              </span>
-              <div
-                className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-xl opacity-0 group-data-[state=active]:opacity-100 transition-opacity duration-300"
-                data-oid="az3g53a"
-              ></div>
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>Pricing</span>
             </TabsTrigger>
             <TabsTrigger
               value="security"
-              className="relative rounded-xl px-6 py-3 font-semibold text-sm data-[state=active]:bg-background dark:data-[state=active]:bg-slate-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/20 dark:data-[state=active]:shadow-blue-400/20 transition-all duration-300 flex items-center gap-2.5 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-background/50 dark:hover:bg-slate-800/50 group"
-              data-oid="v6mfxzt"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all"
+              data-oid="tbs-sec"
             >
-              <Lock
-                className="w-4 h-4 group-data-[state=active]:text-blue-600 dark:group-data-[state=active]:text-blue-400 transition-colors"
-                data-oid="6zgvg9s"
-              />
-              <span className="relative z-10" data-oid="ccxt:0z">
-                Security
-              </span>
-              <div
-                className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-xl opacity-0 group-data-[state=active]:opacity-100 transition-opacity duration-300"
-                data-oid="281p7e_"
-              ></div>
+              <Lock className="w-3.5 h-3.5" />
+              <span>Security</span>
             </TabsTrigger>
             <TabsTrigger
               value="rate-limits"
-              className="relative rounded-xl px-6 py-3 font-semibold text-sm data-[state=active]:bg-background dark:data-[state=active]:bg-slate-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/20 dark:data-[state=active]:shadow-blue-400/20 transition-all duration-300 flex items-center gap-2.5 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-background/50 dark:hover:bg-slate-800/50 group"
-              data-oid="ctidv-l"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all"
+              data-oid="tbs-rat"
             >
-              <Gauge
-                className="w-4 h-4 group-data-[state=active]:text-blue-600 dark:group-data-[state=active]:text-blue-400 transition-colors"
-                data-oid="yx1s72x"
-              />
-              <span className="relative z-10" data-oid="1fpbjni">
-                Rate Limits
-              </span>
-              <div
-                className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-xl opacity-0 group-data-[state=active]:opacity-100 transition-opacity duration-300"
-                data-oid="3:4jms:"
-              ></div>
+              <Gauge className="w-3.5 h-3.5" />
+              <span>Rate Limits</span>
             </TabsTrigger>
             <TabsTrigger
               value="emails"
-              className="relative rounded-xl px-6 py-3 font-semibold text-sm data-[state=active]:bg-background dark:data-[state=active]:bg-slate-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/20 dark:data-[state=active]:shadow-blue-400/20 transition-all duration-300 flex items-center gap-2.5 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-background/50 dark:hover:bg-slate-800/50 group"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all"
+              data-oid="tbs-eml"
             >
-              <Mail className="w-4 h-4 group-data-[state=active]:text-blue-600 dark:group-data-[state=active]:text-blue-400 transition-colors" />
-              <span className="relative z-10">Emails</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-xl opacity-0 group-data-[state=active]:opacity-100 transition-opacity duration-300"></div>
+              <Mail className="w-3.5 h-3.5" />
+              <span>Emails</span>
             </TabsTrigger>
-          </div>
-        </TabsList>
+          </TabsList>
+        </div>
 
         <TabsContent value="general" className="space-y-6" data-oid="ziz8z.b">
           <motion.div variants={itemVariants} className="max-w-4xl" data-oid="21cboft">

@@ -14,45 +14,53 @@ import {
 const DailyUsageChart = ({ dailyStats, itemVariants }) => {
   return (
     <motion.div variants={itemVariants}>
-      <Card className="border border-border/50 bg-card/40 backdrop-blur-sm rounded-2xl">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-bold flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-violet-500" />
-            Daily API Usage (Last 30 Days)
+      <Card className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden">
+        <CardHeader className="pb-2 pt-5 px-6">
+          <CardTitle className="text-sm font-black text-slate-950 dark:text-white flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400 border border-violet-200/60 dark:border-violet-800/40">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+            <span>Daily API Consumption (Last 30 Days)</span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="px-6 pb-6 pt-2">
           <div className="h-64">
             {dailyStats && dailyStats.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={dailyStats}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-slate-200/60 dark:stroke-slate-800/60"
+                  />
                   <XAxis
                     dataKey="date"
-                    tick={{ fontSize: 11 }}
+                    tick={{ fontSize: 10, fill: '#94a3b8' }}
                     tickFormatter={(val) =>
                       new Date(val).toLocaleDateString(undefined, {
                         month: 'short',
                         day: 'numeric',
                       })
                     }
-                    className="text-muted-foreground"
                   />
-                  <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" />
+                  <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} />
                   <RechartsTooltip
                     contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
+                      backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '12px',
+                      color: '#ffffff',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
                     }}
                   />
                   <Line
                     type="monotone"
                     dataKey="total"
-                    stroke="#8b5cf6"
-                    strokeWidth={2}
+                    stroke="#6366f1"
+                    strokeWidth={2.5}
                     dot={false}
-                    name="Total"
+                    name="Total Calls"
                   />
                   <Line
                     type="monotone"
@@ -60,15 +68,15 @@ const DailyUsageChart = ({ dailyStats, itemVariants }) => {
                     stroke="#10b981"
                     strokeWidth={2}
                     dot={false}
-                    name="Cached"
+                    name="Cached Hits"
                   />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-muted-foreground">
+              <div className="h-full flex items-center justify-center text-slate-400">
                 <div className="text-center">
-                  <Activity className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                  <p>No usage data available</p>
+                  <Activity className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                  <p className="text-xs font-bold">No API usage recorded yet</p>
                 </div>
               </div>
             )}
