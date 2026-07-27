@@ -78,6 +78,17 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('Ready to put your knowledge into action?');
     expect(response.body).toContain("classList.toggle('is-scrolled',scrollY>20)");
     expect(response.body).toContain("carousel.querySelector('.carousel-next')");
+    expect(response.body).toContain('data-theme-toggle');
+    expect(response.body).toContain("localStorage.setItem('vite-ui-theme'");
+    expect(response.body).toContain('data-practice-card');
+    expect(response.body).toContain('side-card-title-icon');
+    expect(response.body).toContain('featured,.featured-copy,.featured-image{min-width:0}');
+    expect(response.body).toContain('html.dark .category-tabs');
+    expect(response.body).toContain('html.dark .category-tabs a.active');
+    expect(response.body).toContain('html.dark .library-search input');
+    expect(response.body).toContain('card:hover h2{color:#4f46e5}');
+    expect(response.body).toContain('card-read-icon');
+    expect(response.body).toContain('html.dark .card:hover h2');
   });
 
   it('filters the server-rendered library with production query parameters', async () => {
@@ -144,7 +155,9 @@ describe('server-rendered IELTS blog', () => {
       'alt="IELTS learner matching highlighted paraphrases between a reading passage and a laptop"'
     );
     expect(response.body).toContain('1.2K reads');
-    expect(response.body).toContain('<time datetime="2026-07-18T08:00:00Z">');
+    expect(response.body).toContain(
+      '<time class="article-meta-item" datetime="2026-07-18T08:00:00Z">'
+    );
     expect(response.body).toContain(
       'width="1200" height="675" decoding="async" fetchpriority="high"'
     );
@@ -158,6 +171,13 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('Core Features');
     expect(response.body).toContain('Independent prep platform. Not affiliated with IELTS');
     expect(response.body).toContain("classList.toggle('is-scrolled',scrollY>20)");
+    expect(response.body).toContain('class="article-meta"');
+    expect(response.body).toContain('article-author-icon');
+    expect(response.body).toContain('data-toc-card');
+    expect(response.body).toContain('data-toc-link');
+    expect(response.body).toContain('IntersectionObserver');
+    expect(response.body).toContain('aria-expanded');
+    expect(response.body).toContain('html.dark .article table');
     expect(response.body).not.toContain('Turn the strategy into a score');
   });
 
