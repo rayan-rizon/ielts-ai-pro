@@ -5,6 +5,9 @@ import { RootProviders } from './components/RootProviders';
 
 const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
 const isLiveProduction = import.meta.env.PROD && !isLocalHost;
+const SENTRY_INITIALIZED_KEY = '__ieltsAiProSentryInitialized__';
+const isSentryEnabled =
+  isLiveProduction || import.meta.env.VITE_SENTRY_ENABLE_DEVELOPMENT === 'true';
 
 const scheduleIdle = (callback: () => void, timeout = 3000) => {
   if ('requestIdleCallback' in window) {
@@ -92,6 +95,20 @@ if (isLiveProduction && typeof window !== 'undefined') {
 // Using requestIdleCallback ensures they load after First Contentful Paint.
 const initSentry = () => {
   import('@sentry/react').then((Sentry) => {
+    // Vite HMR can re-evaluate this entry module without recreating `window`.
+    // Keep this marker on the page so Replay is never registered twice.
+    if ((window as any)[SENTRY_INITIALIZED_KEY]) return;
+
+    // A hot reload may introduce this guard after an earlier version of this
+    // module has already initialized Sentry. Reusing that client is safer than
+    // registering Replay a second time.
+    if (Sentry.getClient()) {
+      (window as any)[SENTRY_INITIALIZED_KEY] = true;
+      return;
+    }
+
+    (window as any)[SENTRY_INITIALIZED_KEY] = true;
+
     Sentry.init({
       dsn:
         import.meta.env.VITE_SENTRY_DSN ||
@@ -140,10 +157,10 @@ const initSentry = () => {
   });
 };
 
-if (import.meta.env.DEV) {
-  // In development, initialize Sentry immediately so testing works instantly.
+if (import.meta.env.DEV && isSentryEnabled) {
+  // Development reporting is opt-in to keep local HMR errors out of production triage.
   initSentry();
-} else if (isLiveProduction) {
+} else if (isSentryEnabled) {
   scheduleDeferredTelemetry(initSentry);
 }
 

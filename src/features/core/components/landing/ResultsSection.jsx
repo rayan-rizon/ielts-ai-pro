@@ -3,7 +3,10 @@ import { m, useReducedMotion } from 'framer-motion';
 import { Star } from 'lucide-react';
 import { SectionHeading, SoftSection } from './LandingSection';
 
-function QuoteCard({ name, meta, quote, metric, icon: Icon }) {
+function QuoteCard({ name, meta, quote, metric, icon: Icon = Star }) {
+  const CardIcon =
+    typeof Icon === 'function' || (typeof Icon === 'object' && Icon !== null) ? Icon : Star;
+
   return (
     <div
       className="relative mx-3 w-[330px] shrink-0 overflow-hidden rounded-[24px] border border-white/90 bg-white/[0.74] p-7 shadow-[0_24px_60px_-36px_rgba(31,52,106,.42)] backdrop-blur-2xl transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_30px_70px_-34px_rgba(63,81,181,.45)] dark:border-white/10 dark:bg-white/[.055] md:w-[390px]"
@@ -28,7 +31,7 @@ function QuoteCard({ name, meta, quote, metric, icon: Icon }) {
             className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-black text-primary shadow-sm transition-all group-hover:border-primary/40 group-hover:bg-primary/10"
             data-oid="er9jl3k"
           >
-            <Icon className="h-4 w-4" data-oid="n98nlkd" />
+            <CardIcon className="h-4 w-4" data-oid="n98nlkd" />
             {metric}
           </div>
         </div>
