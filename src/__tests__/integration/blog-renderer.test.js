@@ -65,6 +65,42 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('"@type":"ItemList"');
     expect(response.body).toContain('type="application/rss+xml"');
     expect(response.body).toContain('1.2K reads');
+    expect(response.body).toContain('class="site-footer"');
+    expect(response.body).toContain('class="category-tabs"');
+    expect(response.body).toContain('The study desk');
+    expect(response.body).toContain('Search skills, questions, or goals');
+    expect(response.body).toContain('Ready to put your knowledge into action?');
+    expect(response.body).toContain("classList.toggle('is-scrolled',scrollY>20)");
+  });
+
+  it('filters the server-rendered library with production query parameters', async () => {
+    const writingArticle = {
+      ...article,
+      id: 'post-2',
+      slug: 'ielts-writing-guide',
+      title: 'IELTS Writing Guide',
+      category: 'Writing',
+      seo_tags: ['task response'],
+      featured: false,
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: async () => [article, writingArticle] })
+    );
+    const response = createResponse();
+
+    await blogHandler({ query: { category: 'Writing', q: 'task response' } }, response);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toContain('/blog/ielts-writing-guide');
+    expect(response.body).not.toContain(
+      '<a class="card" href="/blog/ielts-reading-paraphrase-traps">'
+    );
+    expect(response.body).toContain(
+      'class="active" aria-current="page" href="/blog?category=Writing"'
+    );
+    expect(response.body).toContain('value="task response"');
+    expect(response.body).toContain('Search the library');
   });
 
   it('renders Article schema and strips executable HTML', async () => {
@@ -107,6 +143,10 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('.article-photo img{height:auto;border-radius:22px}');
     expect(response.body).toContain('Plan · Practise · Review · Succeed');
     expect(response.body).toContain('Reviewed by the IELTS Ai Pro editorial team');
+    expect(response.body).toContain('class="site-footer"');
+    expect(response.body).toContain('Core Features');
+    expect(response.body).toContain('Independent prep platform. Not affiliated with IELTS');
+    expect(response.body).toContain("classList.toggle('is-scrolled',scrollY>20)");
     expect(response.body).not.toContain('Turn the strategy into a score');
   });
 

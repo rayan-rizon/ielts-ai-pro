@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import Sun from 'lucide-react/icons/sun';
-import Moon from 'lucide-react/icons/moon';
+import SunMedium from 'lucide-react/icons/sun-medium';
+import MoonStar from 'lucide-react/icons/moon-star';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import Menu from 'lucide-react/icons/menu';
 import X from 'lucide-react/icons/x';
@@ -14,26 +14,64 @@ import { useScrollProgress } from './useScrollProgress';
 import DesktopNavLinks from './DesktopNavLinks';
 import MobileNavMenu from './MobileNavMenu';
 
+import Layers from 'lucide-react/icons/layers';
+import PenLine from 'lucide-react/icons/pen-line';
+import HelpCircle from 'lucide-react/icons/help-circle';
+import BookOpen from 'lucide-react/icons/book-open';
+import Calculator from 'lucide-react/icons/calculator';
+import Tag from 'lucide-react/icons/tag';
+
 const NAV_LINKS = [
-  { label: 'Platform', href: '/#features' },
-  { label: 'Writing checker', href: '/ielts-writing-checker' },
-  { label: 'How it works', href: '/#how-it-works' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Calculator', href: '/ielts-band-score-calculator' },
-  { label: 'Pricing', href: '/#pricing' },
+  {
+    label: 'Platform',
+    href: '/#features',
+    icon: Layers,
+    description: 'Core IELTS AI tools & practice suite',
+  },
+  {
+    label: 'Writing checker',
+    href: '/ielts-writing-checker',
+    icon: PenLine,
+    description: 'Instant Band 9 criteria feedback',
+    badge: 'Popular',
+  },
+  {
+    label: 'How it works',
+    href: '/#how-it-works',
+    icon: HelpCircle,
+    description: 'Learn about our AI evaluation engine',
+  },
+  {
+    label: 'Blog',
+    href: '/blog',
+    icon: BookOpen,
+    description: 'Study guides, strategies & exam tips',
+  },
+  {
+    label: 'Calculator',
+    href: '/ielts-band-score-calculator',
+    icon: Calculator,
+    description: 'Calculate target overall band score',
+  },
+  {
+    label: 'Pricing',
+    href: '/#pricing',
+    icon: Tag,
+    description: 'Flexible access & membership plans',
+  },
 ];
 
 /** Compute Tailwind classes based on scroll state. */
 function getNavClasses(isScrolled) {
   return {
-    nav: isScrolled ? 'py-2 px-6 translate-y-0' : 'py-0 px-0 translate-y-0',
+    nav: isScrolled ? 'py-2 px-4 sm:px-6 translate-y-0' : 'py-0 px-0 translate-y-0',
     wrapper: isScrolled ? 'max-w-7xl' : 'max-w-full',
     bar: isScrolled
-      ? 'h-12 md:h-14 px-3 md:px-5 rounded-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border border-black/[0.06] dark:border-white/10 shadow-lg shadow-black/[0.03] ring-1 ring-black/5 dark:ring-white/10'
-      : 'h-14 md:h-16 px-0 rounded-none bg-white/40 dark:bg-zinc-950/40 backdrop-blur-md border-b border-black/5 dark:border-white/5 border-t-0 border-x-0',
+      ? 'h-12 md:h-14 px-4 md:px-5 rounded-full bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border border-black/[0.08] dark:border-white/10 shadow-lg ring-1 ring-black/5 dark:ring-white/10'
+      : 'h-14 md:h-16 px-4 md:px-6 rounded-none bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-black/5 dark:border-white/5 border-t-0 border-x-0',
     glass: isScrolled ? 'rounded-full' : 'rounded-none',
     glassOpacity: isScrolled ? 'opacity-40' : 'opacity-20',
-    content: isScrolled ? 'max-w-full' : 'max-w-7xl mx-auto px-6 md:px-8',
+    content: isScrolled ? 'max-w-full' : 'max-w-7xl mx-auto px-2 md:px-8',
   };
 }
 
@@ -111,22 +149,36 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
             <div className="flex items-center gap-2 md:gap-3 relative z-[101]" data-oid="z.sf-4g">
               <Button
                 variant="ghost"
-                className="h-8 w-8 md:h-9 md:w-9 rounded-full flex items-center justify-center p-0 hover:bg-primary/5 dark:hover:bg-white/10 transition-all duration-300 hover:scale-105 active:scale-95 text-muted-foreground hover:text-primary dark:hover:text-white"
+                className="h-8 w-8 md:h-9 md:w-9 rounded-full flex items-center justify-center p-0 bg-slate-100/80 dark:bg-white/10 hover:bg-indigo-50 dark:hover:bg-white/20 text-slate-700 dark:text-amber-300 transition-all duration-300 hover:scale-110 active:scale-95 border border-slate-200/60 dark:border-white/10 shadow-xs"
                 onClick={() => setTheme(isDark ? 'light' : 'dark')}
                 aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
                 data-oid="6m:a:wq"
               >
-                <span className="transition-transform duration-200" data-oid="wdgwl66">
-                  {isDark ? (
-                    <Sun className="h-4.5 w-4.5" data-oid="ybmc88k" />
-                  ) : (
-                    <Moon className="h-4.5 w-4.5" data-oid="ph2qf0-" />
-                  )}
-                </span>
+                <div
+                  className="relative flex items-center justify-center w-4.5 h-4.5"
+                  data-oid="wdgwl66"
+                >
+                  <SunMedium
+                    className={`h-4.5 w-4.5 text-amber-500 transition-all duration-300 transform ${
+                      isDark
+                        ? 'rotate-0 scale-100 opacity-100'
+                        : '-rotate-90 scale-0 opacity-0 absolute'
+                    }`}
+                    data-oid="ybmc88k"
+                  />
+                  <MoonStar
+                    className={`h-4.5 w-4.5 text-indigo-500 dark:text-indigo-300 transition-all duration-300 transform ${
+                      !isDark
+                        ? 'rotate-0 scale-100 opacity-100'
+                        : 'rotate-90 scale-0 opacity-0 absolute'
+                    }`}
+                    data-oid="ph2qf0-"
+                  />
+                </div>
               </Button>
 
               <Button
-                className="hidden sm:inline-flex rounded-full px-5 md:px-6 h-8 md:h-9 text-xs md:text-sm font-semibold shadow-md shadow-primary/10 hover:shadow-primary/25 hover:shadow-[0_4px_15px_rgba(99,102,241,0.3)] hover:-translate-y-[1px] hover:scale-[1.02] active:scale-98 transition-all duration-300 bg-gradient-to-r from-violet-600 via-primary to-indigo-600 text-white border-none"
+                className="hidden sm:inline-flex rounded-full px-5 md:px-6 h-8 md:h-9 text-xs md:text-sm font-extrabold shadow-md shadow-indigo-600/20 hover:shadow-lg hover:shadow-indigo-600/35 hover:-translate-y-[1px] hover:scale-[1.02] active:scale-98 transition-all duration-200 bg-indigo-600 hover:bg-indigo-500 text-white border-none"
                 onClick={handlePrimaryCta}
                 data-oid="g5n7eo4"
               >

@@ -249,13 +249,13 @@ const CSS = `
   header{position:sticky;top:0;z-index:100;border-bottom:1px solid var(--line);background:rgba(255,255,255,.96);backdrop-filter:blur(16px)}.site-nav{max-width:1240px;height:72px;margin:auto;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:22px}.brand{display:flex;align-items:center;gap:9px;font-weight:800;text-decoration:none;font-size:19px;white-space:nowrap}.brand img{width:32px;height:32px}.nav-center,.nav-actions{display:flex;align-items:center;gap:3px}.nav-center>a,.nav-center summary{display:flex;align-items:center;gap:4px;padding:9px 11px;border-radius:9px;text-decoration:none;color:#536078;font-size:13px;font-weight:700;cursor:pointer;list-style:none}.nav-center summary::-webkit-details-marker{display:none}.nav-center>a:hover,.nav-center summary:hover{background:#f5f7fb;color:var(--indigo)}.nav-center details{position:relative}.nav-center details[open] summary{background:var(--soft);color:var(--indigo)}.dropdown{position:absolute;left:50%;top:42px;min-width:215px;transform:translateX(-50%);padding:8px;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:0 24px 60px -28px rgba(30,41,59,.45)}.dropdown a{display:block;padding:9px 10px;border-radius:8px;text-decoration:none;color:#536078;font-size:12px;font-weight:650}.dropdown a:hover{background:var(--soft);color:var(--indigo)}.login{padding:8px 14px;border:1px solid var(--line);border-radius:9px;text-decoration:none;font-size:13px;font-weight:700}.button{display:inline-flex;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(135deg,var(--indigo),var(--violet));color:#fff;padding:9px 16px;text-decoration:none;font-size:13px;font-weight:750;white-space:nowrap}.mobile-menu{display:none;position:relative}.mobile-menu summary{display:flex;width:36px;height:36px;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:9px;cursor:pointer;list-style:none;font-weight:800}.mobile-menu summary::-webkit-details-marker{display:none}.mobile-menu .dropdown{left:auto;right:0;top:43px;transform:none;min-width:220px}
   main{min-height:70vh}.shell{max-width:1240px;margin:auto;padding-left:22px;padding-right:22px}.eyebrow,.category{display:inline-flex;width:max-content;align-items:center;border:1px solid #dfe3ff;border-radius:999px;background:#f5f6ff;color:var(--indigo);padding:5px 10px;font-size:11px;font-weight:750}.meta{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px}.hand{margin:5px 0 12px;color:#635bff;font-family:"Segoe Print","Bradley Hand",cursive;font-size:32px;font-weight:700;line-height:1.25}h1,h2,h3{letter-spacing:-.035em}h1{font-size:52px;line-height:1.09;margin:16px 0}h2{font-size:27px;line-height:1.25}h3{font-size:21px;line-height:1.35}.intro{max-width:670px;color:var(--muted);font-size:17px}
   .index-hero{position:relative;overflow:hidden;border-bottom:1px solid #e2e6ff;background:#fff;padding:50px 0}.index-hero:before{position:absolute;inset:0;content:"";background:radial-gradient(circle at 15% 20%,rgba(99,102,241,.09),transparent 28%),radial-gradient(circle at 90% 10%,rgba(45,212,191,.08),transparent 25%)}.hero-grid{position:relative;display:grid;grid-template-columns:.95fr 1.05fr;gap:46px;align-items:center}.hero-photo{position:relative;border:1px solid #dfe3ff;border-radius:28px;background:#f0f2ff;padding:7px;box-shadow:0 30px 70px -42px rgba(79,70,229,.55)}.hero-photo img{display:block;width:100%;aspect-ratio:16/10;border-radius:22px;object-fit:cover}.note{position:absolute;z-index:2;padding:10px 13px;border-radius:7px;background:#e9ddff;color:#5b21b6;font-size:11px;font-weight:700;box-shadow:0 12px 30px -14px rgba(76,29,149,.5)}.note.one{left:-14px;top:48px;transform:rotate(-5deg)}.note.two{right:-8px;bottom:42px;transform:rotate(5deg);background:#dff7e9;color:#047857}
-  .category-rail{position:sticky;top:72px;z-index:30;border-bottom:1px solid var(--line);background:rgba(255,255,255,.96);box-shadow:0 8px 22px -20px #64748b}.category-rail .shell{display:flex;gap:7px;overflow:auto;padding-top:11px;padding-bottom:11px}.category-rail a,.category-rail span{white-space:nowrap;border:1px solid transparent;border-radius:10px;padding:7px 13px;color:#59667e;font-size:12px;font-weight:700;text-decoration:none}.category-rail a:first-child,.category-rail span:first-child{border-color:#a5b4fc;background:#eef2ff;color:var(--indigo)}
-  .index-content{padding:40px 0 80px}.section-title{margin:0 0 18px;font-size:23px}.content-grid{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:22px;align-items:start}.featured{display:grid;grid-template-columns:.9fr 1.1fr;overflow:hidden;margin-bottom:30px;border:1px solid var(--line);border-radius:18px;background:#fff;text-decoration:none;box-shadow:0 18px 55px -42px rgba(15,23,42,.4)}.featured-image{position:relative;min-height:280px;overflow:hidden}.featured-image img{width:100%;height:100%;object-fit:cover;transition:transform .6s}.featured:hover .featured-image img{transform:scale(1.04)}.featured-image .category{position:absolute;left:16px;top:16px;background:var(--indigo);color:#fff}.featured-copy{display:flex;flex-direction:column;padding:30px}.featured-copy h2{margin:16px 0 10px;font-size:29px}.featured-copy p{margin:0;color:var(--muted);font-size:14px}.featured-copy .meta{margin-top:auto;padding-top:22px}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}.card{overflow:hidden;border:1px solid var(--line);border-radius:17px;background:#fff;text-decoration:none;transition:.25s}.card:hover{transform:translateY(-3px);border-color:#c7d2fe;box-shadow:0 18px 45px -36px rgba(79,70,229,.5)}.card-visual{height:138px;overflow:hidden;background:var(--soft)}.card-visual img{width:100%;height:100%;object-fit:cover;opacity:.88;transition:transform .5s}.card:hover img{transform:scale(1.05)}.card-copy{padding:17px}.card h2{font-size:17px;line-height:1.35;margin:12px 0 8px}.card p{display:-webkit-box;overflow:hidden;margin:0;color:var(--muted);font-size:12px;-webkit-line-clamp:3;-webkit-box-orient:vertical}.card .meta{margin-top:15px}.sidebar{position:sticky;top:135px;display:grid;gap:17px}.side-card{border:1px solid var(--line);border-radius:17px;background:#fff;padding:18px}.side-card h2{margin:0 0 13px;font-size:16px}.trend{display:flex;gap:10px;padding:9px 0;border-top:1px solid #f0f2f7;text-decoration:none}.trend:first-of-type{border-top:0}.trend b{display:flex;width:29px;height:29px;flex:0 0 auto;align-items:center;justify-content:center;border-radius:50%;background:#eef2ff;color:var(--indigo);font-size:10px}.trend span{font-size:11px;font-weight:700;line-height:1.45}.practice-card{overflow:hidden;border-radius:17px;padding:22px;background:linear-gradient(145deg,#4f46e5,#8b5cf6);color:#fff}.practice-card h2{margin:10px 0 8px;font-size:20px}.practice-card p{margin:0 0 18px;color:#e7e7ff;font-size:13px}.practice-card .button{background:#fff;color:var(--indigo)}
+  .category-rail{border-bottom:1px solid #f1f5f9;background:#fff;padding:24px 0}.category-rail .shell{display:flex;justify-content:center}.category-tabs{display:flex;max-width:100%;align-items:center;gap:4px;overflow-x:auto;border:1px solid rgba(203,213,225,.35);border-radius:16px;background:rgba(241,245,249,.75);padding:4px;scrollbar-width:none}.category-tabs::-webkit-scrollbar{display:none}.category-tabs a{position:relative;display:inline-flex;flex:0 0 auto;align-items:center;gap:7px;border-radius:12px;padding:9px 14px;color:#64748b;font-size:12px;font-weight:800;text-decoration:none;white-space:nowrap}.category-tabs a:hover{background:rgba(226,232,240,.55);color:#334155}.category-tabs a.active{border:1px solid rgba(226,232,240,.65);background:#fff;color:var(--indigo);box-shadow:0 3px 10px rgba(15,23,42,.06)}
+  .index-content{padding:28px 0 80px}.library-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:22px;margin-bottom:20px}.library-kicker{margin:0;color:var(--indigo);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}.library-heading h2{margin:4px 0 0;font-size:29px}.library-search{position:relative;width:100%;max-width:360px}.library-search span{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#94a3b8}.library-search input{width:100%;height:44px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;padding:0 14px 0 38px;color:var(--ink);font:inherit;font-size:13px;box-shadow:0 2px 8px rgba(15,23,42,.04)}.library-search input:focus{outline:2px solid rgba(99,102,241,.22);border-color:#a5b4fc}.section-title{margin:0 0 18px;font-size:23px}.content-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}.featured{display:grid;grid-template-columns:1.05fr 1.25fr;gap:24px;overflow:hidden;margin-bottom:26px;border:1px solid rgba(226,232,240,.8);border-radius:18px;background:#fff;padding:18px;text-decoration:none;box-shadow:0 16px 48px -36px rgba(15,23,42,.32)}.featured-image{position:relative;min-height:280px;overflow:hidden;border-radius:13px}.featured-image img{width:100%;height:100%;object-fit:cover;transition:transform .6s}.featured:hover .featured-image img{transform:scale(1.04)}.featured-image .category{position:absolute;left:16px;top:16px;border-color:rgba(255,255,255,.35);background:rgba(79,70,229,.92);color:#fff;text-transform:uppercase;letter-spacing:.12em}.featured-copy{display:flex;flex-direction:column;padding:12px 14px 12px 2px}.featured-copy h2{margin:18px 0 12px;font-size:30px}.featured-copy p{margin:0;color:var(--muted);font-size:14px}.featured-copy .meta{margin-top:auto;padding-top:22px}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.card{display:flex;min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:17px;background:#fff;text-decoration:none;transition:.25s;flex-direction:column}.card:hover{transform:translateY(-4px);border-color:#a5b4fc;box-shadow:0 20px 48px -34px rgba(79,70,229,.48)}.card-visual{height:160px;overflow:hidden;background:var(--soft)}.card-visual img{width:100%;height:100%;object-fit:cover;transition:transform .5s}.card:hover img{transform:scale(1.05)}.card-copy{display:flex;flex:1;flex-direction:column;padding:19px}.card h2{font-size:17px;line-height:1.4;margin:12px 0 8px}.card p{display:-webkit-box;overflow:hidden;margin:0;color:var(--muted);font-size:12px;-webkit-line-clamp:3;-webkit-box-orient:vertical}.card .meta{margin-top:auto;padding-top:17px;border-top:1px solid #f1f5f9}.pagination{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:28px}.pagination a,.pagination span{display:flex;min-width:36px;height:36px;align-items:center;justify-content:center;border:1px solid #e2e8f0;border-radius:11px;background:#fff;color:#475569;padding:0 10px;text-decoration:none;font-size:12px;font-weight:800}.pagination a:hover,.pagination .active{border-color:#a5b4fc;background:#eef2ff;color:var(--indigo)}.sidebar{position:sticky;top:96px;display:grid;gap:18px}.side-card{border:1px solid var(--line);border-radius:17px;background:#fff;padding:18px}.side-card h2{margin:0 0 13px;font-size:16px}.trend{display:flex;gap:10px;padding:9px 0;border-top:1px solid #f0f2f7;text-decoration:none}.trend:first-of-type{border-top:0}.trend b{display:flex;width:30px;height:30px;flex:0 0 auto;align-items:center;justify-content:center;border-radius:50%;background:#eef2ff;color:var(--indigo);font-size:10px}.trend span{font-size:11px;font-weight:700;line-height:1.45}.topic-list{display:flex;flex-wrap:wrap;gap:7px}.topic-list a{border:1px solid #e0e7ff;border-radius:999px;background:#eef2ff;color:#4338ca;padding:5px 9px;text-decoration:none;font-size:10px;font-weight:700}.practice-card{overflow:hidden;border-radius:17px;padding:22px;background:linear-gradient(145deg,#4f46e5,#8b5cf6);color:#fff}.practice-card h2{margin:10px 0 8px;font-size:20px}.practice-card p{margin:0 0 18px;color:#e7e7ff;font-size:13px}.practice-card .button{background:#fff;color:var(--indigo)}.library-empty{border:1px dashed #cbd5e1;border-radius:18px;background:#fff;padding:48px;text-align:center}.library-empty h2{margin:0 0 8px}.library-empty p{margin:0;color:var(--muted)}
   .article-hero{position:relative;overflow:hidden;border-bottom:1px solid #e2e6ff;background:#fff;padding:44px 0}.article-hero:before{position:absolute;inset:0;content:"";background:radial-gradient(circle at 12% 25%,rgba(99,102,241,.08),transparent 26%),radial-gradient(circle at 90% 10%,rgba(45,212,191,.08),transparent 24%)}.article-hero-grid{position:relative;display:grid;grid-template-columns:.95fr 1.05fr;gap:38px;align-items:center}.article-photo{border:1px solid #dfe3ff;border-radius:25px;background:#f0f2ff;padding:7px;box-shadow:0 28px 70px -42px rgba(79,70,229,.5)}.article-photo img{display:block;width:100%;aspect-ratio:16/9;border-radius:19px;object-fit:cover}.article-layout{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:22px;align-items:start;max-width:1120px;padding-top:30px;padding-bottom:70px}.article-layout>div,.article-card,.article{min-width:0}.article-card{border:1px solid var(--line);border-radius:18px;background:#fff;padding:34px 38px;box-shadow:0 18px 55px -45px rgba(15,23,42,.4)}.article{font-size:16.5px;line-height:1.78}.article h2,.article h3{scroll-margin-top:105px}.article h2{margin:1.8em 0 .6em;font-size:26px}.article h3{margin:1.6em 0 .5em;font-size:20px}.article p{margin:0 0 1.25em;color:#334155}.article li{margin:.4em 0}.article blockquote{margin:2em 0;padding:18px 22px;border-left:4px solid var(--indigo);background:linear-gradient(90deg,#eef2ff,#f7f3ff);border-radius:0 10px 10px 0;color:#4f46e5;font-size:17px;font-weight:650}.article a{color:var(--indigo);font-weight:700;text-underline-offset:4px}.article img{max-width:100%;height:auto;border-radius:14px}.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:38px;padding-top:20px;border-top:1px solid var(--line)}.tag{border-radius:999px;background:#eef2ff;color:var(--indigo);padding:5px 9px;font-size:11px;font-weight:650}.toc-card{border:1px solid var(--line);border-radius:17px;background:#fff;padding:18px}.toc-card h2{margin:0 0 12px;font-size:15px}.toc-card a{display:block;padding:7px 8px;border-radius:7px;text-decoration:none;color:#5c6981;font-size:11px;font-weight:600}.toc-card a:hover{background:#eef2ff;color:var(--indigo)}.cta{margin-top:30px;border:1px solid #dfe3ff;border-radius:15px;padding:24px;background:linear-gradient(120deg,#eef2ff,#f6f0ff);display:flex;align-items:center;justify-content:space-between;gap:20px}.cta h2{margin:4px 0 5px;font-size:21px}.cta p{margin:0;color:var(--muted);font-size:12px}
   .article table{display:block;width:100%;overflow-x:auto;margin:1.8em 0;border-spacing:0;border-collapse:separate;border:1px solid var(--line);border-radius:12px;font-size:13px}.article th,.article td{min-width:125px;padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.article th{background:#eef2ff;color:#3730a3;font-weight:750}.article tr:last-child td{border-bottom:0}.article aside{margin:1.6em 0;padding:17px 19px;border:1px solid #c7d2fe;border-radius:12px;background:linear-gradient(120deg,#eef2ff,#f5f3ff)}.article aside p{margin:0;color:#3730a3}
   footer{border-top:1px solid var(--line);padding:32px 22px;background:#fff;color:var(--muted);font-size:12px}footer div{max-width:1240px;margin:auto;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
   @media(max-width:1000px){.nav-center{display:none}.mobile-menu{display:block}.hero-grid,.article-hero-grid{grid-template-columns:1fr 1fr}.content-grid,.article-layout{grid-template-columns:minmax(0,1fr) 250px}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:43px}}
-  @media(max-width:760px){.site-nav{height:64px}.category-rail{top:64px}.login{display:none}.hero-grid,.article-hero-grid,.content-grid,.article-layout,.featured{grid-template-columns:1fr}.index-hero,.article-hero{padding:38px 0}.hero-photo,.article-photo{margin-top:5px}.note{display:none}.sidebar{position:static}.cards{grid-template-columns:1fr}.featured-image{min-height:220px}.featured-copy{padding:23px}.article-card{padding:26px 20px}.article-layout{padding-top:22px}.hand{font-size:25px}h1{font-size:34px}.index-hero h1{font-size:38px}.cta{align-items:flex-start;flex-direction:column}}
+  @media(max-width:760px){.site-nav{height:64px}.login{display:none}.hero-grid,.article-hero-grid,.content-grid,.article-layout,.featured{grid-template-columns:1fr}.index-hero,.article-hero{padding:38px 0}.hero-photo,.article-photo{margin-top:5px}.note{display:none}.category-rail{padding:18px 0}.category-rail .shell{justify-content:flex-start}.library-heading{align-items:stretch;flex-direction:column}.library-search{max-width:none}.sidebar{position:static}.cards{grid-template-columns:1fr}.featured{gap:16px;padding:14px}.featured-image{min-height:220px}.featured-copy{padding:8px}.article-card{padding:26px 20px}.article-layout{padding-top:22px}.hand{font-size:25px}h1{font-size:34px}.index-hero h1{font-size:38px}.cta{align-items:flex-start;flex-direction:column}}
 `;
 
 function layout({
@@ -285,9 +285,11 @@ function layout({
   ${structuredData.map((item) => `<script type="application/ld+json">${safeJson(item)}</script>`).join('')}
   <style>${CSS}</style>
   <style>
-    header{position:fixed;left:0;right:0;top:0;height:64px;border-bottom:1px solid rgba(15,23,42,.06);background:rgba(255,255,255,.86);backdrop-filter:blur(16px)}
-    .site-nav{max-width:1280px;height:64px;padding:0 32px}
-    .brand{font-size:18px}.brand img{width:30px;height:30px}
+    header{position:fixed;left:0;right:0;top:0;height:auto;border:0;background:transparent;padding:0;transition:padding .35s ease}
+    .site-nav{width:100%;max-width:none;height:64px;padding:0 max(32px,calc((100vw - 1280px)/2 + 32px));border-bottom:1px solid rgba(15,23,42,.06);background:rgba(255,255,255,.72);backdrop-filter:blur(14px);transition:height .35s ease,max-width .35s ease,padding .35s ease,border-radius .35s ease,box-shadow .35s ease}
+    header.is-scrolled{padding:8px 24px}
+    header.is-scrolled .site-nav{max-width:1280px;height:56px;padding:0 20px;border:1px solid rgba(15,23,42,.08);border-radius:999px;background:rgba(255,255,255,.86);box-shadow:0 14px 34px -22px rgba(15,23,42,.42)}
+    .brand{font-size:18px;font-weight:900;letter-spacing:-.025em}.brand img{width:32px;height:32px;border-radius:50%;box-shadow:0 1px 4px rgba(15,23,42,.15)}.brand-ai{color:var(--indigo);font-style:italic}
     .nav-center{gap:2px}.nav-center>a{padding:8px 10px;font-size:12px}
     .nav-actions{gap:9px}.nav-actions .button{border-radius:999px;padding:9px 20px}
     .theme-indicator{display:flex;width:36px;height:36px;align-items:center;justify-content:center;border:0;border-radius:50%;background:#f6f7fb;color:#64748b;font-size:16px}
@@ -306,13 +308,25 @@ function layout({
     .editorial-copy{flex:1}.editorial-copy .eyebrow{border:0;background:transparent;padding:0;text-transform:uppercase;letter-spacing:.12em}
     .editorial-copy h2{margin:4px 0 3px;font-size:18px}.editorial-copy p{margin:0;font-size:14px;line-height:1.5}
     .article .editorial-card .button{color:#fff;text-decoration:none;border-radius:12px}
+    .site-footer{position:relative;overflow:hidden;border-top:1px solid rgba(255,255,255,.1);background:#050711;color:#cbd5e1;padding:64px 0 40px;font-size:14px}
+    .site-footer:before{position:absolute;left:0;right:0;top:0;height:2px;content:"";background:linear-gradient(90deg,transparent,rgba(99,102,241,.65),transparent)}
+    .footer-glow{position:absolute;width:480px;height:480px;border-radius:50%;filter:blur(130px);pointer-events:none}.footer-glow-one{left:15%;top:-300px;background:rgba(79,70,229,.14)}.footer-glow-two{right:15%;bottom:-330px;background:rgba(147,51,234,.12)}
+    .footer-shell{position:relative;z-index:1;max-width:1280px;margin:auto;padding:0 24px}
+    .footer-main{display:grid;grid-template-columns:1fr 2fr;gap:48px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:48px}
+    .footer-brand-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.footer-brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-size:22px;font-weight:900;letter-spacing:-.025em}.footer-brand img{width:44px;height:44px;border-radius:50%}.footer-brand .brand-ai{color:#818cf8}.ai-badge{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(99,102,241,.3);border-radius:999px;background:rgba(99,102,241,.15);color:#a5b4fc;padding:5px 11px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .footer-description{max-width:440px;margin:20px 0;color:#94a3b8;font-size:14px;font-weight:500;line-height:1.7}
+    .footer-contact-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.footer-email{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(255,255,255,.04);color:#e2e8f0;padding:10px 14px;text-decoration:none;font-size:12px;font-weight:700}
+    .footer-socials{display:flex;gap:10px}.footer-socials a{display:flex;width:36px;height:36px;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(255,255,255,.04);color:#cbd5e1;text-decoration:none;font-size:12px;font-weight:800}.footer-socials a:hover,.footer-email:hover{border-color:rgba(129,140,248,.5);background:rgba(99,102,241,.15);color:#fff}
+    .footer-navigation{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}.footer-group{min-width:0}.footer-group summary{display:flex;align-items:center;gap:8px;color:#cbd5e1;cursor:default;list-style:none;font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.footer-group summary::-webkit-details-marker{display:none}.footer-group-icon{color:#818cf8;font-size:14px}.footer-group ul{display:grid;gap:10px;margin:18px 0 0;padding:0;list-style:none}.footer-group a{color:#94a3b8;text-decoration:none;font-size:14px;font-weight:500}.footer-group a:hover{color:#fff}
+    .footer-bottom{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-top:32px;color:#94a3b8;font-size:12px}.footer-legal{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.footer-legal a{color:#94a3b8;text-decoration:none}.footer-legal a:hover{color:#fff}.footer-trust{display:flex;align-items:center;gap:12px}.independence-badge{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(255,255,255,.03);padding:7px 13px;font-size:11px;font-weight:600;text-align:center}.back-to-top{display:flex;width:36px;height:36px;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(255,255,255,.04);color:#cbd5e1;cursor:pointer}.back-to-top:hover{border-color:rgba(129,140,248,.55);background:rgba(99,102,241,.2);color:#fff}
     @media(max-width:1000px){.site-nav{padding:0 24px}.article-hero-grid{grid-template-columns:1fr 1fr}.article-layout{grid-template-columns:minmax(0,1fr) 270px}}
-    @media(max-width:760px){header,.site-nav{height:64px}.site-nav{padding:0 20px}.nav-actions>.button{display:none}main{padding-top:64px}.article-hero{padding:34px 0 44px}.article-hero-grid,.article-layout{grid-template-columns:1fr}.article-photo-note{display:none}.article-layout{padding-top:24px}.article-card{padding:28px 20px}.editorial-card{align-items:flex-start;flex-direction:column}.editorial-copy{width:100%}}
+    @media(max-width:1000px){.footer-main{grid-template-columns:1fr;gap:40px}.footer-navigation{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:760px){header .site-nav{height:64px;padding:0 20px}header.is-scrolled{padding:8px 12px}header.is-scrolled .site-nav{height:52px;padding:0 14px}.nav-actions>.button{display:none}main{padding-top:64px}.article-hero{padding:34px 0 44px}.article-hero-grid,.article-layout{grid-template-columns:1fr}.article-photo-note{display:none}.article-layout{padding-top:24px}.article-card{padding:28px 20px}.editorial-card{align-items:flex-start;flex-direction:column}.editorial-copy{width:100%}.site-footer{padding:48px 0 32px}.footer-shell{padding:0 20px}.footer-main{gap:32px;padding-bottom:34px}.footer-navigation{grid-template-columns:1fr;gap:10px}.footer-group{border:1px solid rgba(255,255,255,.06);border-radius:12px;background:rgba(255,255,255,.02);padding:14px}.footer-group summary{cursor:pointer}.footer-group:not([open]) ul{display:none}.footer-bottom{align-items:stretch;flex-direction:column;text-align:center}.footer-legal,.footer-trust{justify-content:center}.footer-trust{flex-direction:column}.footer-contact-row{align-items:stretch;flex-direction:column}.footer-socials{justify-content:center}.footer-email{justify-content:center}}
   </style>
 </head><body>
   <a class="skip" href="#main">Skip to content</a>
-  <header><nav class="site-nav" aria-label="Primary">
-    <a class="brand" href="/"><img src="/favicon.webp" alt="">IELTS Ai Pro</a>
+  <header id="public-header"><nav class="site-nav" aria-label="Primary">
+    <a class="brand" href="/"><img src="/favicon-64.webp" alt="IELTS Ai Pro Logo">IELTS <span class="brand-ai">Ai</span> Pro</a>
     <div class="nav-center">
       <a href="/#features">Platform</a>
       <a href="/ielts-writing-checker">Writing checker</a>
@@ -324,44 +338,58 @@ function layout({
     <div class="nav-actions"><span class="theme-indicator" aria-hidden="true">◐</span><a class="button" href="/signup">Start Free →</a><details class="mobile-menu"><summary aria-label="Open navigation">☰</summary><div class="dropdown"><a href="/#features">Platform</a><a href="/ielts-writing-checker">Writing checker</a><a href="/#how-it-works">How it works</a><a href="/blog">Blog</a><a href="/ielts-band-score-calculator">Calculator</a><a href="/#pricing">Pricing</a><a href="/login">Log in</a></div></details></div>
   </nav></header>
   ${body}
-  <footer>
-    <div style="max-width:1240px;margin:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;padding-bottom:24px">
-      <div>
-        <strong style="color:#101936;font-size:15px">IELTS Ai Pro</strong>
-        <p style="margin:8px 0 0;font-size:12px;color:#62708a">A web-based IELTS practice platform with AI feedback, progress analytics, and target band guidance.</p>
+  <footer class="site-footer">
+    <span class="footer-glow footer-glow-one" aria-hidden="true"></span><span class="footer-glow footer-glow-two" aria-hidden="true"></span>
+    <div class="footer-shell">
+      <div class="footer-main">
+        <div>
+          <div class="footer-brand-row"><a class="footer-brand" href="/"><img src="/favicon-64.webp" alt="IELTS Ai Pro Logo">IELTS <span class="brand-ai">Ai</span> Pro</a><span class="ai-badge">✦ AI Powered</span></div>
+          <p class="footer-description">Web-based IELTS practice platform for Reading, Listening, Writing, and Speaking with instant criterion-based AI practice feedback, score analytics, and target-band guidance.</p>
+          <div class="footer-contact-row"><a class="footer-email" href="mailto:mail@ieltsai.pro">✉ mail@ieltsai.pro</a><div class="footer-socials"><a href="https://facebook.com" aria-label="Follow us on Facebook">f</a><a href="https://instagram.com" aria-label="Follow us on Instagram">◎</a><a href="https://x.com" aria-label="Follow us on X (Twitter)">X</a><a href="https://youtube.com" aria-label="Follow us on YouTube">▶</a><a href="https://linkedin.com" aria-label="Follow us on LinkedIn">in</a></div></div>
+        </div>
+        <nav class="footer-navigation" aria-label="Footer">
+          <details class="footer-group" open><summary><span class="footer-group-icon">▦</span>Core Features</summary><ul><li><a href="/ielts-band-score-calculator">Band Score Calculator</a></li><li><a href="/ielts-writing-checker">Writing Task Evaluator</a></li><li><a href="/speaking">Speaking Test Simulator</a></li><li><a href="/listening">Listening Practice Hub</a></li><li><a href="/reading">Reading Comprehension</a></li></ul></details>
+          <details class="footer-group" open><summary><span class="footer-group-icon">▤</span>Test Prep</summary><ul><li><a href="/writing">Writing Band Score Criteria</a></li><li><a href="/speaking">Speaking Criteria Breakdown</a></li><li><a href="/vocabulary">Vocabulary Builder</a></li><li><a href="/analytics">Mock Test Analytics</a></li></ul></details>
+          <details class="footer-group" open><summary><span class="footer-group-icon">✦</span>Resources</summary><ul><li><a href="/blog">IELTS Prep Blog &amp; Guides</a></li><li><a href="/resources">Cambridge Practice Material</a></li><li><a href="/pricing">Pricing Plans &amp; Access</a></li></ul></details>
+          <details class="footer-group" open><summary><span class="footer-group-icon">▣</span>Company</summary><ul><li><a href="/about">About Platform</a></li><li><a href="/contact">Contact Support</a></li><li><a href="/privacy">Privacy Policy</a></li><li><a href="/terms">Terms of Service</a></li></ul></details>
+        </nav>
       </div>
-      <div>
-        <strong style="color:#101936;font-size:13px;display:block;margin-bottom:8px">Platform</strong>
-        <a href="/#features" style="display:block;margin:4px 0;text-decoration:none;color:#62708a">Features</a>
-        <a href="/#how-it-works" style="display:block;margin:4px 0;text-decoration:none;color:#62708a">How it works</a>
-        <a href="/#pricing" style="display:block;margin:4px 0;text-decoration:none;color:#62708a">Pricing</a>
-      </div>
-      <div>
-        <strong style="color:#101936;font-size:13px;display:block;margin-bottom:8px">Practice</strong>
-        <a href="/ielts-writing-checker" style="display:block;margin:4px 0;text-decoration:none;color:#62708a">Writing Checker</a>
-        <a href="/speaking" style="display:block;margin:4px 0;text-decoration:none;color:#62708a">Speaking Practice</a>
-        <a href="/cambridge-tests" style="display:block;margin:4px 0;text-decoration:none;color:#62708a">Mock Tests</a>
-      </div>
-      <div>
-        <strong style="color:#101936;font-size:13px;display:block;margin-bottom:8px">Resources</strong>
-        <a href="/blog" style="display:block;margin:4px 0;text-decoration:none;color:#62708a">Blog</a>
-        <a href="/ielts-band-score-calculator" style="display:block;margin:4px 0;text-decoration:none;color:#62708a">Score Calculator</a>
-        <a href="/contact" style="display:block;margin:4px 0;text-decoration:none;color:#62708a">Contact Support</a>
-      </div>
-    </div>
-    <div style="border-top:1px solid var(--line);padding-top:16px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted)">
-      <span>© 2026 IELTS Ai Pro</span>
-      <span>Independent preparation platform. AI feedback and bands are practice estimates, not official IELTS results.</span>
+      <div class="footer-bottom"><div class="footer-legal"><span>© ${new Date().getFullYear()} IELTS Ai Pro</span><span>•</span><a href="/privacy">Privacy Policy</a><span>•</span><a href="/terms">Terms of Service</a><span>•</span><a href="/about">About Platform</a></div><div class="footer-trust"><span class="independence-badge">✓ Independent prep platform. Not affiliated with IELTS, IDP, or British Council.</span><button class="back-to-top" type="button" aria-label="Scroll back to top" title="Back to top">↑</button></div></div>
     </div>
   </footer>
+  <script>
+    (()=>{const h=document.getElementById('public-header');const groups=[...document.querySelectorAll('.footer-group')];const sync=()=>h?.classList.toggle('is-scrolled',scrollY>20);const syncFooter=()=>groups.forEach((group,index)=>{group.open=innerWidth>=640||index===0});addEventListener('scroll',sync,{passive:true});addEventListener('resize',syncFooter,{passive:true});sync();syncFooter();document.querySelector('.back-to-top')?.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'}));})();
+  </script>
 </body></html>`;
 }
 
-function renderIndex(posts) {
+function renderIndex(posts, requestQuery = {}) {
   const description =
     'Practical IELTS Writing, Speaking, Reading, and Listening guides with clear strategies, study plans, and direct links to online practice.';
-  const featured = posts.find((post) => post.featured) || posts[0];
-  const remainingPosts = featured ? posts.filter((post) => post.id !== featured.id) : posts;
+  const category = Array.isArray(requestQuery.category)
+    ? requestQuery.category[0]
+    : requestQuery.category || 'All';
+  const query = (Array.isArray(requestQuery.q) ? requestQuery.q[0] : requestQuery.q || '').trim();
+  const normalizedQuery = query.toLowerCase();
+  const requestedPage = Math.max(
+    1,
+    Number(Array.isArray(requestQuery.page) ? requestQuery.page[0] : requestQuery.page) || 1
+  );
+  const filteredPosts = posts.filter((post) => {
+    const matchesCategory = category === 'All' || post.category === category;
+    const searchable =
+      `${post.title} ${post.description || ''} ${(post.seo_tags || []).join(' ')}`.toLowerCase();
+    return matchesCategory && (!normalizedQuery || searchable.includes(normalizedQuery));
+  });
+  const isEditorialView = category === 'All' && !query;
+  const primaryFeatured = isEditorialView ? posts.find((post) => post.featured) || posts[0] : null;
+  const remainingPosts = primaryFeatured
+    ? filteredPosts.filter((post) => post.id !== primaryFeatured.id)
+    : filteredPosts;
+  const totalPages = Math.max(1, Math.ceil(remainingPosts.length / 9));
+  const currentPage = Math.min(requestedPage, totalPages);
+  const featured = currentPage === 1 ? primaryFeatured : null;
+  const paginatedPosts = remainingPosts.slice((currentPage - 1) * 9, currentPage * 9);
   const featuredCard = featured
     ? `<a class="featured" href="/blog/${escapeHtml(featured.slug)}">
         <div class="featured-image"><img src="${escapeHtml(featured.thumbnail_url || '/ielts-hero-student.webp')}" alt="${escapeHtml(coverAlt(featured))}" width="1200" height="675" decoding="async" fetchpriority="high"><span class="category">Featured story</span></div>
@@ -371,7 +399,7 @@ function renderIndex(posts) {
         </div>
       </a>`
     : '';
-  const cards = remainingPosts
+  const cards = paginatedPosts
     .map(
       (post) => `<a class="card" href="/blog/${escapeHtml(post.slug)}">
         <div class="card-visual"><img src="${escapeHtml(post.thumbnail_url || '/ielts-hero-student.webp')}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" loading="lazy" decoding="async"></div>
@@ -382,6 +410,29 @@ function renderIndex(posts) {
       </a>`
     )
     .join('');
+  const pageHref = (pageNumber) => {
+    const params = new URLSearchParams();
+    if (category !== 'All') params.set('category', category);
+    if (query) params.set('q', query);
+    if (pageNumber > 1) params.set('page', String(pageNumber));
+    const search = params.toString();
+    return search ? `/blog?${search}` : '/blog';
+  };
+  const pagination =
+    totalPages > 1
+      ? `<nav class="pagination" aria-label="Article pages">${currentPage > 1 ? `<a href="${pageHref(currentPage - 1)}" aria-label="Previous page">←</a>` : ''}${Array.from(
+          { length: totalPages },
+          (_, index) => index + 1
+        )
+          .map((pageNumber) =>
+            pageNumber === currentPage
+              ? `<span class="active" aria-current="page">${pageNumber}</span>`
+              : `<a href="${pageHref(pageNumber)}">${pageNumber}</a>`
+          )
+          .join(
+            ''
+          )}${currentPage < totalPages ? `<a href="${pageHref(currentPage + 1)}" aria-label="Next page">→</a>` : ''}</nav>`
+      : '';
   const trending = [...posts]
     .sort(
       (first, second) =>
@@ -395,6 +446,27 @@ function renderIndex(posts) {
         `<a class="trend" href="/blog/${escapeHtml(post.slug)}"><b>${String(index + 1).padStart(2, '0')}</b><span>${escapeHtml(post.title)}<small style="display:block;color:#8a94a8;font-weight:500">${formatReadCount(post.view_count)} · ${Number(post.reading_minutes) || 6} min read</small></span></a>`
     )
     .join('');
+  const popularTags = [...new Set(posts.flatMap((post) => post.seo_tags || []))]
+    .slice(0, 10)
+    .map((tag) => `<a href="/blog?q=${encodeURIComponent(tag)}">${escapeHtml(tag)}</a>`)
+    .join('');
+  const categories = [
+    ['All', '▦', 'All articles'],
+    ['Writing', '✎', 'Writing'],
+    ['Speaking', '◉', 'Speaking'],
+    ['Reading', '▤', 'Reading'],
+    ['Listening', '◖', 'Listening'],
+    ['Study Planning', '☆', 'Study planning'],
+    ['Exam Updates', '↻', 'Exam updates'],
+  ]
+    .map(([value, icon, label]) => {
+      const href = value === 'All' ? '/blog' : `/blog?category=${encodeURIComponent(value)}`;
+      return `<a${category === value ? ' class="active" aria-current="page"' : ''} href="${href}">${icon} ${label}</a>`;
+    })
+    .join('');
+  const libraryBody = filteredPosts.length
+    ? `<div class="content-grid"><div>${featuredCard}<h2 class="section-title" style="font-size:19px">Latest articles</h2><div class="cards" aria-label="IELTS articles">${cards}</div>${pagination}</div><aside class="sidebar"><div class="side-card"><h2>↗ Trending now</h2>${trending}</div>${popularTags ? `<div class="side-card"><h2>☆ Popular topics</h2><div class="topic-list">${popularTags}</div></div>` : ''}<div class="practice-card"><span>◎</span><h2>Ready to put your knowledge into action?</h2><p>Take a practice test and see where you stand.</p><a class="button" href="/signup">Start Free Test →</a></div></aside></div>`
+    : `<div class="library-empty"><h2>No article matches that search</h2><p><a href="/blog">Show every article</a></p></div>`;
   return layout({
     title: 'IELTS Preparation Blog: Practical Band Score Guides',
     description,
@@ -424,8 +496,8 @@ function renderIndex(posts) {
     ],
     body: `<main id="main">
       <section class="index-hero"><div class="shell hero-grid"><div><span class="eyebrow">▣ IELTS blog library</span><h1>Insights and strategies for IELTS success</h1><p class="hand">Learn smarter. Score higher.</p><p class="intro">Expert guidance, focused study plans, and practical drills to help you prepare with confidence and improve the skills behind your target band.</p></div><div class="hero-photo"><span class="note one">Consistency builds excellence</span><img src="/ielts-hero-student.webp" alt="IELTS learner studying with a laptop and notebook"><span class="note two">Plan · Practise · Progress</span></div></div></section>
-      <div class="category-rail"><div class="shell"><a href="/blog">▦ All articles</a><a href="/blog?category=Writing">✎ Writing</a><a href="/blog?category=Speaking">◉ Speaking</a><a href="/blog?category=Reading">▤ Reading</a><a href="/blog?category=Listening">◖ Listening</a><a href="/blog?category=Study+Planning">☆ Study planning</a><a href="/blog?category=Exam+Updates">↻ Exam updates</a></div></div>
-      <section class="index-content"><div class="shell"><h2 class="section-title">Fresh guidance for your next practice</h2><div class="content-grid"><div><h2 class="section-title" style="font-size:16px">Featured story</h2>${featuredCard}<h2 class="section-title" style="font-size:19px">Latest articles</h2><div class="cards" aria-label="IELTS articles">${cards}</div></div><aside class="sidebar"><div class="side-card"><h2>↗ Trending now</h2>${trending}</div><div class="practice-card"><span>◎</span><h2>Ready to turn insight into progress?</h2><p>Take a focused practice test and find the skill that needs your attention next.</p><a class="button" href="/signup">Start free practice →</a></div></aside></div></div></section>
+      <section class="category-rail" aria-label="Article categories"><div class="shell"><nav class="category-tabs">${categories}</nav></div></section>
+      <section class="index-content"><div class="shell"><div class="library-heading"><div><p class="library-kicker">The study desk</p><h2>${isEditorialView ? 'Fresh guidance for your next practice' : 'Search the library'}</h2></div><form class="library-search" action="/blog" method="get"><span aria-hidden="true">⌕</span>${category !== 'All' ? `<input type="hidden" name="category" value="${escapeHtml(category)}">` : ''}<input type="search" name="q" value="${escapeHtml(query)}" placeholder="Search skills, questions, or goals" aria-label="Search IELTS articles"></form></div>${libraryBody}</div></section>
     </main>`,
   });
 }
@@ -579,7 +651,9 @@ export default async function handler(request, response) {
     const posts = await fetchPosts(slug);
     if (slug && posts.length === 0) return sendNotFound(response);
     const allPosts = slug ? await fetchPosts() : posts;
-    response.status(200).send(slug ? renderArticle(posts[0], allPosts) : renderIndex(posts));
+    response
+      .status(200)
+      .send(slug ? renderArticle(posts[0], allPosts) : renderIndex(posts, request.query));
   } catch (error) {
     console.error('[blog-render]', error);
     sendError(response);

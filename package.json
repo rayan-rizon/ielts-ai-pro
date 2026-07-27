@@ -12,6 +12,7 @@
     "seo:check": "node scripts/check-public-seo.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
+    "preview:production": "npm run build && node scripts/preview-production-routes.mjs",
     "test": "playwright test",
     "test:unit": "vitest",
     "test:unit:ui": "vitest --ui",
