@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { m } from 'framer-motion';
-import { Logo } from '@/components/shared/Logo';
+import { Logo, LogoIcon } from '@/components/shared/Logo';
 import { ShieldCheck, Sparkles, Plus, Crown, LogOut } from 'lucide-react';
 import {
   SidebarHeader,
@@ -102,14 +102,9 @@ const AdminSidebarHeader = memo(() => (
       data-oid="ja5oba."
     >
       <Link to="/admin" className="flex items-center gap-3 w-full" data-oid="_sq00kt">
-        {/* Collapsed Icon: logo-icon.svg */}
+        {/* Collapsed Icon: animated logo-icon.svg */}
         <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center shrink-0 w-8 h-8">
-          <img
-            src="/logo-icon.svg"
-            alt="IELTS AI Pro Admin"
-            className="w-8 h-8 object-contain"
-            data-oid="admin-sidebar-logo-img-collapsed"
-          />
+          <LogoIcon className="w-8 h-8" />
         </div>
 
         {/* Expanded Logo */}

@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { m } from 'framer-motion';
-import { Logo } from '@/components/shared/Logo';
+import { Logo, LogoIcon } from '@/components/shared/Logo';
 import {
   Brain,
   Sparkles,
@@ -204,14 +204,9 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
           data-oid=".evd_wm"
         >
           <Link to="/dashboard" className="flex items-center gap-3 w-full" data-oid="d589.-y">
-            {/* Collapsed Icon: logo-icon.svg */}
+            {/* Collapsed Icon: animated logo-icon.svg */}
             <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center shrink-0 w-8 h-8">
-              <img
-                src="/logo-icon.svg"
-                alt="IELTS AI Pro Icon"
-                className="w-8 h-8 object-contain"
-                data-oid="sidebar-logo-img-collapsed"
-              />
+              <LogoIcon className="w-8 h-8" />
             </div>
 
             {/* Expanded Full Logo */}
