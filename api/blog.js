@@ -306,6 +306,16 @@ const COVER_ALT_BY_SLUG = {
     'Two adult IELTS learners matching visual options while listening with headphones',
   'ielts-speaking-dont-know-answer':
     'Adult IELTS learner pausing at a microphone before answering an unfamiliar Speaking question',
+  'ielts-writing-feedback-rewrite-method':
+    'Adult IELTS learner comparing an original essay paragraph with a focused handwritten rewrite',
+  'ielts-reading-matching-features':
+    'Adult IELTS learner mapping people to paraphrased statements in a Reading passage',
+  'ielts-speaking-without-memorising-answers':
+    'Two adult IELTS learners practising spontaneous Speaking answers with random prompt cards',
+  'ielts-reading-summary-completion-strategy':
+    'Adult IELTS learner locating a summary answer zone in a highlighted Reading passage',
+  'ielts-listening-table-completion-strategy':
+    'Adult IELTS learner tracking rows and columns in a Listening table with headphones',
 };
 
 function coverAlt(post) {
