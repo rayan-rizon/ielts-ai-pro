@@ -30,53 +30,33 @@ import {
   BLOG_COVER_WIDTH,
   getBlogCoverAlt,
 } from '@/features/learning/utils/blogCoverMeta';
+import {
+  BLOG_LIBRARY_COPY,
+  getBlogCategories,
+  getBlogCategoryPresentation,
+  getBlogLibraryHeading,
+} from '@/features/learning/utils/blogPresentation';
 import { cn } from '@/lib/cn';
 import { SidebarPracticeCard } from '@/features/learning/components/SidebarPracticeCard';
 
 const EMPTY_ARTICLES = [];
 const ARTICLES_PER_PAGE = 9;
 
-const CATEGORY_CONFIG = {
-  Writing: {
-    icon: PenLine,
-    label: 'Writing',
-    chip: 'bg-rose-50/90 text-rose-700 border-rose-200/80 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30',
-    visual: 'from-rose-50 via-orange-50 to-amber-100 text-rose-600',
-  },
-  Speaking: {
-    icon: Mic2,
-    label: 'Speaking',
-    chip: 'bg-amber-50/90 text-amber-800 border-amber-200/80 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30',
-    visual: 'from-amber-50 via-yellow-50 to-orange-100 text-amber-600',
-  },
-  Reading: {
-    icon: BookOpen,
-    label: 'Reading',
-    chip: 'bg-emerald-50/90 text-emerald-800 border-emerald-200/80 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30',
-    visual: 'from-emerald-50 via-teal-50 to-cyan-100 text-emerald-600',
-  },
-  Listening: {
-    icon: Headphones,
-    label: 'Listening',
-    chip: 'bg-sky-50/90 text-sky-800 border-sky-200/80 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30',
-    visual: 'from-sky-50 via-blue-50 to-indigo-100 text-sky-600',
-  },
-  'Study Planning': {
-    icon: GraduationCap,
-    label: 'Study Planning',
-    chip: 'bg-violet-50/90 text-violet-800 border-violet-200/80 dark:bg-violet-500/15 dark:text-violet-300 dark:border-violet-500/30',
-    visual: 'from-violet-50 via-indigo-50 to-purple-100 text-violet-600',
-  },
-  'Exam Updates': {
-    icon: Sparkles,
-    label: 'Exam Updates',
-    chip: 'bg-indigo-50/90 text-indigo-800 border-indigo-200/80 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30',
-    visual: 'from-indigo-50 via-blue-50 to-purple-100 text-indigo-600',
-  },
+const CATEGORY_ICONS = {
+  'pen-line': PenLine,
+  'mic-2': Mic2,
+  'book-open': BookOpen,
+  headphones: Headphones,
+  'graduation-cap': GraduationCap,
+  sparkles: Sparkles,
 };
 
 function getCategoryConfig(category) {
-  return CATEGORY_CONFIG[category] || CATEGORY_CONFIG['Study Planning'];
+  const presentation = getBlogCategoryPresentation(category);
+  return {
+    ...presentation,
+    icon: CATEGORY_ICONS[presentation.icon] || GraduationCap,
+  };
 }
 
 function formatDate(value) {
@@ -102,9 +82,7 @@ function CategoryChip({ category, size = 'default' }) {
     <span
       className={cn(
         'inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border font-bold transition-all duration-200',
-        size === 'sm'
-          ? 'px-2.5 py-0.5 text-[11px]'
-          : 'px-3 py-1 text-xs tracking-tight',
+        size === 'sm' ? 'px-2.5 py-0.5 text-[11px]' : 'px-3 py-1 text-xs tracking-tight',
         config.chip
       )}
     >
@@ -316,17 +294,16 @@ function BlogHeroSection() {
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-12 sm:px-6 lg:grid-cols-[.95fr_1.05fr] lg:py-16">
         <motion.div initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }}>
           <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300">
-            <BookOpen className="h-3.5 w-3.5" /> IELTS blog library
+            <BookOpen className="h-3.5 w-3.5" /> {BLOG_LIBRARY_COPY.heroEyebrow}
           </span>
           <h1 className="mt-5 max-w-2xl text-4xl font-extrabold leading-[1.08] tracking-[-0.045em] sm:text-5xl lg:text-[3.45rem] dark:text-white">
-            Insights and strategies for IELTS success
+            {BLOG_LIBRARY_COPY.heroTitle}
           </h1>
           <p className="font-handwritten mt-3 text-3xl leading-tight text-indigo-600 sm:text-4xl dark:text-indigo-300">
-            Learn smarter. Score higher.
+            {BLOG_LIBRARY_COPY.heroScript}
           </p>
           <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            Expert guidance, focused study plans, and practical drills to help you prepare with
-            confidence and improve the skills behind your target band.
+            {BLOG_LIBRARY_COPY.heroDescription}
           </p>
         </motion.div>
 
@@ -781,7 +758,9 @@ function BlogArticleListContent({
             tabIndex={-1}
             className="scroll-mt-24 text-xl font-extrabold tracking-[-0.025em] outline-none"
           >
-            {isEditorialView ? 'Latest articles' : `${visibleArticles.length} articles found`}
+            {isEditorialView
+              ? BLOG_LIBRARY_COPY.latestTitle
+              : `${visibleArticles.length} articles found`}
           </h2>
         </div>
         <AnimatePresence mode="wait">
@@ -816,19 +795,8 @@ function BlogArticleListContent({
   );
 }
 
-const DEFAULT_CATEGORIES = [
-  'All',
-  'Writing',
-  'Speaking',
-  'Reading',
-  'Listening',
-  'Study Planning',
-  'Exam Updates',
-];
-
 function extractBlogCategories(articles) {
-  const articleCats = articles.map((a) => a.category).filter(Boolean);
-  return [...new Set([...DEFAULT_CATEGORIES, ...articleCats])];
+  return getBlogCategories(articles);
 }
 
 function extractBlogPopularTags(articles) {
@@ -1038,8 +1006,8 @@ export default function BlogIndex() {
   return (
     <>
       <DocumentHead
-        title="IELTS Preparation Blog: Practical Band Score Guides"
-        description="Practical IELTS Writing, Speaking, Reading, and Listening guides with clear strategies, study plans, and direct links to online practice."
+        title={BLOG_LIBRARY_COPY.metaTitle}
+        description={BLOG_LIBRARY_COPY.metaDescription}
         canonicalUrl="https://www.ieltsai.pro/blog"
         keywords="IELTS blog, IELTS preparation tips, IELTS Band 7, IELTS study plan"
         structuredData={{
@@ -1066,10 +1034,10 @@ export default function BlogIndex() {
             <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[.16em] text-indigo-600">
-                  The study desk
+                  {BLOG_LIBRARY_COPY.sectionEyebrow}
                 </p>
                 <h2 className="mt-1 text-2xl font-extrabold tracking-[-0.03em] sm:text-3xl">
-                  {isEditorialView ? 'Fresh guidance for your next practice' : 'Search the library'}
+                  {getBlogLibraryHeading({ category, query })}
                 </h2>
               </div>
               <div className="relative w-full sm:max-w-sm">
@@ -1077,7 +1045,7 @@ export default function BlogIndex() {
                 <Input
                   value={query}
                   onChange={(event) => updateQuery(event.target.value)}
-                  placeholder="Search skills, questions, or goals"
+                  placeholder={BLOG_LIBRARY_COPY.searchPlaceholder}
                   aria-label="Search IELTS articles"
                   className="h-11 rounded-xl border-slate-200 bg-white pl-10 shadow-sm dark:border-white/10 dark:bg-white/[.04]"
                 />

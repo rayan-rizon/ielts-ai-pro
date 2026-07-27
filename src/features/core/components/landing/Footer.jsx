@@ -133,43 +133,46 @@ function FooterLink({ href, children }) {
 
 function FooterBrandSection({ handleCopyEmail }) {
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-start">
+    <div className="flex flex-col items-center text-center sm:items-start sm:text-left space-y-4">
+      {/* Logo & AI Badge Header */}
+      <div className="flex items-center justify-center sm:justify-start gap-2.5">
         <Link to="/" className="block w-fit" viewTransition>
           <Logo size="lg" className="text-white" />
         </Link>
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-3 py-1 rounded-full backdrop-blur-md">
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-0.5 rounded-full backdrop-blur-md shrink-0">
           <Sparkles className="w-3 h-3 text-indigo-400 animate-pulse" />
           AI Powered
         </span>
       </div>
 
-      <p className="max-w-md text-sm leading-relaxed text-slate-400 font-medium">
+      {/* Description */}
+      <p className="max-w-md text-xs sm:text-sm leading-relaxed text-slate-400 font-medium">
         Web-based IELTS practice platform for Reading, Listening, Writing, and Speaking with instant
         criterion-based AI practice feedback, score analytics, and target-band guidance.
       </p>
 
-      <div className="pt-1 flex flex-col sm:flex-row sm:items-center gap-3">
+      {/* Email & Social Links */}
+      <div className="pt-1 flex flex-col items-center sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
         <button
           onClick={handleCopyEmail}
-          className="group inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] px-4 py-2.5 text-xs font-bold text-slate-200 transition-all duration-200 hover:border-indigo-400/40 hover:shadow-lg hover:shadow-indigo-500/10"
+          className="group inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] px-3.5 py-2 text-xs font-bold text-slate-200 transition-all duration-200 hover:border-indigo-400/40 hover:shadow-lg hover:shadow-indigo-500/10 w-fit"
           title="Click to copy email address"
         >
-          <Mail className="h-4 w-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+          <Mail className="h-3.5 w-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
           <span>mail@ieltsai.pro</span>
         </button>
 
-        <div className="flex items-center justify-center sm:justify-start gap-2.5">
+        <div className="flex items-center justify-center gap-2">
           {socialLinks.map((social, i) => (
             <a
               key={i}
               href={social.href}
               target="_blank"
               rel="noopener noreferrer"
-              className={`h-10 w-10 sm:h-9 sm:w-9 rounded-xl bg-white/[0.04] border border-white/15 flex items-center justify-center text-slate-300 transition-all duration-300 active:scale-95 ${social.hoverClass}`}
+              className={`h-9 w-9 rounded-xl bg-white/[0.04] border border-white/15 flex items-center justify-center text-slate-300 transition-all duration-300 active:scale-95 ${social.hoverClass}`}
               aria-label={`Follow us on ${social.label}`}
             >
-              <social.icon size={18} />
+              <social.icon size={16} />
             </a>
           ))}
         </div>
@@ -245,8 +248,8 @@ function FooterNavigationGrid() {
 
 function FooterBottomBar({ currentYear }) {
   return (
-    <div className="flex flex-col gap-6 pt-8 text-xs text-slate-400 md:flex-row md:items-center md:justify-between">
-      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2.5 font-medium">
+    <div className="flex flex-col gap-5 pt-8 text-xs text-slate-400 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 font-medium text-center sm:text-left">
         <span className="text-slate-400">© {currentYear} IELTS Ai Pro</span>
         <span className="hidden sm:inline text-slate-700">•</span>
         <Link
@@ -277,8 +280,8 @@ function FooterBottomBar({ currentYear }) {
         </Link>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between sm:justify-end gap-3.5 sm:gap-4">
-        <div className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-2 sm:py-1.5 text-[11px] font-semibold text-slate-400 backdrop-blur-md text-center">
+      <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-3.5 sm:gap-4">
+        <div className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-[11px] font-semibold text-slate-400 backdrop-blur-md text-center max-w-md sm:max-w-none">
           <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-indigo-400" />
           <span>
             Independent prep platform. Not affiliated with IELTS, IDP, or British Council.
@@ -287,7 +290,7 @@ function FooterBottomBar({ currentYear }) {
 
         <button
           onClick={() => scrollToPageTopImmediately()}
-          className="h-10 w-10 sm:h-9 sm:w-9 rounded-xl bg-white/[0.04] border border-white/15 hover:border-indigo-400/50 hover:bg-indigo-500/20 text-slate-300 hover:text-white flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-sm shrink-0"
+          className="h-9 w-9 rounded-xl bg-white/[0.04] border border-white/15 hover:border-indigo-400/50 hover:bg-indigo-500/20 text-slate-300 hover:text-white flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-sm shrink-0"
           title="Back to top"
           aria-label="Scroll back to top"
         >
@@ -308,7 +311,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="dark relative overflow-hidden border-t border-white/10 bg-[#050711] text-slate-300 pb-10 pt-16 transition-colors duration-300">
+    <footer className="dark relative overflow-hidden border-t border-white/10 bg-[#050711] text-slate-300 pb-10 pt-14 transition-colors duration-300">
       {/* Top ambient glowing divider bar */}
       <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent" />
 
@@ -318,8 +321,8 @@ export default function Footer() {
         <div className="absolute -bottom-40 right-1/4 h-[32rem] w-[32rem] rounded-full bg-purple-600/10 blur-[140px]" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6">
-        <div className="grid gap-12 border-b border-white/10 pb-12 lg:grid-cols-[1fr_2fr]">
+      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-6">
+        <div className="grid gap-10 border-b border-white/10 pb-10 lg:grid-cols-[1fr_2fr] items-start">
           <FooterBrandSection handleCopyEmail={handleCopyEmail} />
           <FooterNavigationGrid />
         </div>

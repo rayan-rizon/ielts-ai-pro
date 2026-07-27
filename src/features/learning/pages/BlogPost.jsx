@@ -45,11 +45,13 @@ const PRACTICE_LINKS = {
   Listening: '/listening',
   'Study Planning': '/cambridge-tests',
   'Exam Updates': '/cambridge-tests',
+  'Mock Tests': '/cambridge-tests',
 };
 
 const PRACTICE_LABELS = {
   'Study Planning': 'Start a mock test',
   'Exam Updates': 'Start a mock test',
+  'Mock Tests': 'Start a mock test',
 };
 
 function absoluteImageUrl(path) {
@@ -702,7 +704,8 @@ function PenLineIcon({ category }) {
   if (category === 'Reading') return <BookOpen className="h-3.5 w-3.5" />;
   if (category === 'Listening') return <Headphones className="h-3.5 w-3.5" />;
   if (category === 'Speaking') return <Mic2 className="h-3.5 w-3.5" />;
-  if (category === 'Study Planning') return <GraduationCap className="h-3.5 w-3.5" />;
+  if (category === 'Study Planning' || category === 'Mock Tests')
+    return <GraduationCap className="h-3.5 w-3.5" />;
   if (category === 'Writing') return <PenLine className="h-3.5 w-3.5" />;
   return <Sparkles className="h-3.5 w-3.5" />;
 }

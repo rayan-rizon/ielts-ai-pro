@@ -59,7 +59,7 @@ describe('server-rendered IELTS blog', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.headers['Content-Type']).toContain('text/html');
-    expect(response.body).toContain('<title>IELTS Preparation Blog');
+    expect(response.body).toContain('<title>IELTS Preparation Tips &amp; Expert Guides');
     expect(response.body).toContain('/blog/ielts-reading-paraphrase-traps');
     expect(response.body).toContain('CollectionPage');
     expect(response.body).toContain('"@type":"ItemList"');
@@ -67,10 +67,17 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('1.2K reads');
     expect(response.body).toContain('class="site-footer"');
     expect(response.body).toContain('class="category-tabs"');
-    expect(response.body).toContain('The study desk');
-    expect(response.body).toContain('Search skills, questions, or goals');
+    expect(response.body).toContain('IELTS tips for higher band scores');
+    expect(response.body).toContain('Latest IELTS guidance');
+    expect(response.body).toContain('Practical strategies you can use today');
+    expect(response.body).toContain('Search IELTS skills, questions, or goals');
+    expect(response.body).toContain('href="/blog?category=Mock%20Tests"');
+    expect(response.body).toContain('data-featured-carousel');
+    expect(response.body).toContain('data-featured-slide');
+    expect(response.body).toContain('class="category-chip category-chip-default"');
     expect(response.body).toContain('Ready to put your knowledge into action?');
     expect(response.body).toContain("classList.toggle('is-scrolled',scrollY>20)");
+    expect(response.body).toContain("carousel.querySelector('.carousel-next')");
   });
 
   it('filters the server-rendered library with production query parameters', async () => {
@@ -93,6 +100,7 @@ describe('server-rendered IELTS blog', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toContain('/blog/ielts-writing-guide');
+    expect(response.body).toContain('class="card-visual-icon"');
     expect(response.body).not.toContain(
       '<a class="card" href="/blog/ielts-reading-paraphrase-traps">'
     );
@@ -100,7 +108,8 @@ describe('server-rendered IELTS blog', () => {
       'class="active" aria-current="page" href="/blog?category=Writing"'
     );
     expect(response.body).toContain('value="task response"');
-    expect(response.body).toContain('Search the library');
+    expect(response.body).toContain('Results for “task response”');
+    expect(response.body).toContain('data-tone="writing"');
   });
 
   it('renders Article schema and strips executable HTML', async () => {
@@ -143,6 +152,8 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('.article-photo img{height:auto;border-radius:22px}');
     expect(response.body).toContain('Plan · Practise · Review · Succeed');
     expect(response.body).toContain('Reviewed by the IELTS Ai Pro editorial team');
+    expect(response.body).toContain('class="category article-category"');
+    expect(response.body).toContain('Reading</span><h1>');
     expect(response.body).toContain('class="site-footer"');
     expect(response.body).toContain('Core Features');
     expect(response.body).toContain('Independent prep platform. Not affiliated with IELTS');

@@ -1,5 +1,11 @@
 import sanitizeHtml from 'sanitize-html';
 import process from 'node:process';
+import {
+  BLOG_LIBRARY_COPY,
+  getBlogCategories,
+  getBlogCategoryPresentation,
+  getBlogLibraryHeading,
+} from '../src/features/learning/utils/blogPresentation.js';
 
 const SITE_URL = 'https://www.ieltsai.pro';
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.webp`;
@@ -69,6 +75,16 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
+function formatShortDate(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('en', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(value));
+}
+
 function formatReadCount(value) {
   const count = Math.max(0, Number(value) || 0);
   return `${new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(
@@ -85,13 +101,48 @@ function practicePath(category) {
       Listening: '/listening',
       'Study Planning': '/cambridge-tests',
       'Exam Updates': '/cambridge-tests',
+      'Mock Tests': '/cambridge-tests',
     }[category] || '/signup'
   );
 }
 
 function practiceLabel(category) {
-  if (category === 'Study Planning' || category === 'Exam Updates') return 'Start a mock test';
+  if (['Study Planning', 'Exam Updates', 'Mock Tests'].includes(category)) {
+    return 'Start a mock test';
+  }
   return `Start ${category || 'IELTS'} practice`;
+}
+
+const ICON_CONTENT = {
+  'arrow-right': '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  'book-open':
+    '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  'chevron-left': '<path d="m15 18-6-6 6-6"/>',
+  'chevron-right': '<path d="m9 18 6-6-6-6"/>',
+  eye: '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>',
+  'file-text':
+    '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+  'graduation-cap':
+    '<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+  headphones:
+    '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>',
+  moon: '<path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/>',
+  'mic-2':
+    '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
+  'pen-line':
+    '<path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/>',
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  sparkles:
+    '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/>',
+};
+
+function iconSvg(name, className = 'icon') {
+  return `<svg class="${escapeHtml(className)}" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON_CONTENT[name] || ICON_CONTENT['file-text']}</svg>`;
+}
+
+function categoryChip(category, size = 'default') {
+  const presentation = getBlogCategoryPresentation(category);
+  return `<span class="category-chip category-chip-${size}" data-tone="${escapeHtml(presentation.tone)}">${iconSvg(presentation.icon)}<span>${escapeHtml(category || 'IELTS Guide')}</span></span>`;
 }
 
 function slugifyHeading(value) {
@@ -245,7 +296,7 @@ function coverAlt(post) {
 const CSS = `
   @font-face{font-family:"Plus Jakarta Sans";src:url('/fonts/plus-jakarta-sans-latin-normal.woff2') format('woff2');font-style:normal;font-display:swap;font-weight:200 800}
   :root{color-scheme:light;--page:#f7f9ff;--surface:#fff;--ink:#101936;--muted:#62708a;--indigo:#4f46e5;--violet:#7c3aed;--line:#e5e9f4;--soft:#eef2ff}
-  *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--page);color:var(--ink);font-family:"Plus Jakarta Sans",ui-sans-serif,system-ui,sans-serif;line-height:1.7}a{color:inherit}.skip{position:absolute;left:-999px;top:10px;background:#fff;padding:10px 14px;z-index:999}.skip:focus{left:10px}
+  *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--page);color:var(--ink);font-family:"Plus Jakarta Sans",ui-sans-serif,system-ui,sans-serif;line-height:1.7}a{color:inherit}.icon{width:1em;height:1em;flex:0 0 auto}.skip{position:absolute;left:-999px;top:10px;background:#fff;padding:10px 14px;z-index:999}.skip:focus{left:10px}
   header{position:sticky;top:0;z-index:100;border-bottom:1px solid var(--line);background:rgba(255,255,255,.96);backdrop-filter:blur(16px)}.site-nav{max-width:1240px;height:72px;margin:auto;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:22px}.brand{display:flex;align-items:center;gap:9px;font-weight:800;text-decoration:none;font-size:19px;white-space:nowrap}.brand img{width:32px;height:32px}.nav-center,.nav-actions{display:flex;align-items:center;gap:3px}.nav-center>a,.nav-center summary{display:flex;align-items:center;gap:4px;padding:9px 11px;border-radius:9px;text-decoration:none;color:#536078;font-size:13px;font-weight:700;cursor:pointer;list-style:none}.nav-center summary::-webkit-details-marker{display:none}.nav-center>a:hover,.nav-center summary:hover{background:#f5f7fb;color:var(--indigo)}.nav-center details{position:relative}.nav-center details[open] summary{background:var(--soft);color:var(--indigo)}.dropdown{position:absolute;left:50%;top:42px;min-width:215px;transform:translateX(-50%);padding:8px;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:0 24px 60px -28px rgba(30,41,59,.45)}.dropdown a{display:block;padding:9px 10px;border-radius:8px;text-decoration:none;color:#536078;font-size:12px;font-weight:650}.dropdown a:hover{background:var(--soft);color:var(--indigo)}.login{padding:8px 14px;border:1px solid var(--line);border-radius:9px;text-decoration:none;font-size:13px;font-weight:700}.button{display:inline-flex;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(135deg,var(--indigo),var(--violet));color:#fff;padding:9px 16px;text-decoration:none;font-size:13px;font-weight:750;white-space:nowrap}.mobile-menu{display:none;position:relative}.mobile-menu summary{display:flex;width:36px;height:36px;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:9px;cursor:pointer;list-style:none;font-weight:800}.mobile-menu summary::-webkit-details-marker{display:none}.mobile-menu .dropdown{left:auto;right:0;top:43px;transform:none;min-width:220px}
   main{min-height:70vh}.shell{max-width:1240px;margin:auto;padding-left:22px;padding-right:22px}.eyebrow,.category{display:inline-flex;width:max-content;align-items:center;border:1px solid #dfe3ff;border-radius:999px;background:#f5f6ff;color:var(--indigo);padding:5px 10px;font-size:11px;font-weight:750}.meta{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px}.hand{margin:5px 0 12px;color:#635bff;font-family:"Segoe Print","Bradley Hand",cursive;font-size:32px;font-weight:700;line-height:1.25}h1,h2,h3{letter-spacing:-.035em}h1{font-size:52px;line-height:1.09;margin:16px 0}h2{font-size:27px;line-height:1.25}h3{font-size:21px;line-height:1.35}.intro{max-width:670px;color:var(--muted);font-size:17px}
   .index-hero{position:relative;overflow:hidden;border-bottom:1px solid #e2e6ff;background:#fff;padding:50px 0}.index-hero:before{position:absolute;inset:0;content:"";background:radial-gradient(circle at 15% 20%,rgba(99,102,241,.09),transparent 28%),radial-gradient(circle at 90% 10%,rgba(45,212,191,.08),transparent 25%)}.hero-grid{position:relative;display:grid;grid-template-columns:.95fr 1.05fr;gap:46px;align-items:center}.hero-photo{position:relative;border:1px solid #dfe3ff;border-radius:28px;background:#f0f2ff;padding:7px;box-shadow:0 30px 70px -42px rgba(79,70,229,.55)}.hero-photo img{display:block;width:100%;aspect-ratio:16/10;border-radius:22px;object-fit:cover}.note{position:absolute;z-index:2;padding:10px 13px;border-radius:7px;background:#e9ddff;color:#5b21b6;font-size:11px;font-weight:700;box-shadow:0 12px 30px -14px rgba(76,29,149,.5)}.note.one{left:-14px;top:48px;transform:rotate(-5deg)}.note.two{right:-8px;bottom:42px;transform:rotate(5deg);background:#dff7e9;color:#047857}
@@ -290,17 +341,24 @@ function layout({
     header.is-scrolled{padding:8px 24px}
     header.is-scrolled .site-nav{max-width:1280px;height:56px;padding:0 20px;border:1px solid rgba(15,23,42,.08);border-radius:999px;background:rgba(255,255,255,.86);box-shadow:0 14px 34px -22px rgba(15,23,42,.42)}
     .brand{font-size:18px;font-weight:900;letter-spacing:-.025em}.brand img{width:32px;height:32px;border-radius:50%;box-shadow:0 1px 4px rgba(15,23,42,.15)}.brand-ai{color:var(--indigo);font-style:italic}
-    .nav-center{gap:2px}.nav-center>a{padding:8px 10px;font-size:12px}
+    .nav-center{gap:4px;border:1px solid rgba(15,23,42,.05);border-radius:999px;background:rgba(241,245,249,.52);padding:4px;box-shadow:inset 0 1px 2px rgba(15,23,42,.04)}.nav-center>a{border-radius:999px;padding:6px 16px;color:#64748b;font-size:13px;font-weight:700;letter-spacing:.025em}.nav-center>a:hover{background:rgba(79,70,229,.06);color:var(--indigo);box-shadow:inset 0 0 0 1px rgba(79,70,229,.1)}
     .nav-actions{gap:9px}.nav-actions .button{border-radius:999px;padding:9px 20px}
-    .theme-indicator{display:flex;width:36px;height:36px;align-items:center;justify-content:center;border:0;border-radius:50%;background:#f6f7fb;color:#64748b;font-size:16px}
+    .theme-indicator{display:flex;width:36px;height:36px;align-items:center;justify-content:center;border:1px solid #e2e8f0;border-radius:50%;background:rgba(241,245,249,.8);color:#6366f1;font-size:16px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
     main{padding-top:64px}
+    .index-hero{padding:64px 0}.index-hero .shell,.category-rail .shell,.index-content .shell{max-width:1280px;padding-left:24px;padding-right:24px}.index-hero h1{max-width:670px;font-size:55px}.index-hero .intro{max-width:576px}.hero-grid{gap:40px}.hero-photo{max-width:672px;margin-left:auto;border-radius:32px;padding:8px}.hero-photo img{border-radius:25px}.hero-sparkle{position:absolute;right:32px;top:-15px;width:32px;height:32px;color:#818cf8;transform:rotate(12deg)}
+    .category-rail{padding:24px 0}.category-tabs{gap:4px;border-color:rgba(203,213,225,.3);background:rgba(241,245,249,.7);padding:4px}.category-tabs a{gap:8px;padding:10px 16px;font-size:12px;font-weight:900}.category-tabs .icon{width:14px;height:14px}.category-tabs a.active{border-color:rgba(226,232,240,.55);box-shadow:0 3px 10px rgba(15,23,42,.06)}
+    .category-chip{display:inline-flex;width:max-content;align-items:center;gap:6px;border:1px solid;border-radius:999px;font-weight:700;white-space:nowrap}.category-chip .icon{width:14px;height:14px}.category-chip-default{padding:4px 12px;font-size:12px}.category-chip-sm{padding:2px 10px;font-size:11px}.category-chip-sm .icon{width:12px;height:12px}.category-chip[data-tone="writing"]{border-color:rgba(254,205,211,.8);background:rgba(255,241,242,.9);color:#be123c}.category-chip[data-tone="speaking"]{border-color:rgba(253,230,138,.8);background:rgba(255,251,235,.9);color:#92400e}.category-chip[data-tone="reading"]{border-color:rgba(167,243,208,.8);background:rgba(236,253,245,.9);color:#065f46}.category-chip[data-tone="listening"]{border-color:rgba(186,230,253,.8);background:rgba(240,249,255,.9);color:#075985}.category-chip[data-tone="planning"]{border-color:rgba(221,214,254,.8);background:rgba(245,243,255,.9);color:#5b21b6}.category-chip[data-tone="updates"]{border-color:rgba(199,210,254,.8);background:rgba(238,242,255,.9);color:#3730a3}.category-chip[data-tone="mock"]{border-color:rgba(245,208,254,.8);background:rgba(253,244,255,.9);color:#86198f}
+    .library-kicker{font-size:12px}.library-heading h2{font-size:30px}.library-search span{display:flex}.library-search .icon{width:16px;height:16px}.section-title.latest-title{font-size:20px}
+    .featured-carousel{position:relative;margin-bottom:20px}.featured-slide{display:none}.featured-slide.active{display:grid}.featured{grid-template-columns:1.05fr 1.25fr;gap:24px;margin:0;border-color:rgba(226,232,240,.65);border-radius:16px;padding:20px;box-shadow:0 16px 48px -38px rgba(15,23,42,.3)}.featured-image{display:block;min-height:280px;aspect-ratio:16/10;border-radius:12px}.featured-image .featured-badge{position:absolute;left:16px;top:16px;display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.3);border-radius:999px;background:rgba(79,70,229,.92);color:#fff;padding:5px 12px;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 5px 12px rgba(79,70,229,.25);backdrop-filter:blur(8px)}.featured-badge .icon{width:12px;height:12px;color:#fde047;fill:#fde047}.featured-copy{padding:8px 16px 8px 8px}.featured-topline{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.featured-topline .meta{display:inline-flex;align-items:center;gap:5px;color:#94a3b8;font-weight:700}.featured-topline .meta .icon{width:14px;height:14px}.featured-copy h2{margin:18px 0 12px;font-size:32px;font-weight:900;line-height:1.12}.featured-copy h2 a{text-decoration:none}.featured-copy p{font-size:15px;font-weight:500;line-height:1.65}.featured-editorial{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:auto;padding-top:20px;border-top:1px solid #f1f5f9;color:#64748b;font-size:12px;font-weight:650}.carousel-arrow{position:absolute;top:50%;z-index:3;display:flex;width:44px;height:44px;align-items:center;justify-content:center;transform:translateY(-65%);border:1px solid #e2e8f0;border-radius:50%;background:#fff;color:#334155;box-shadow:0 8px 20px -10px rgba(15,23,42,.38);cursor:pointer}.carousel-arrow:hover{transform:translateY(-65%) scale(1.08);background:#f8fafc}.carousel-arrow .icon{width:20px;height:20px}.carousel-prev{left:-22px}.carousel-next{right:-22px}.carousel-status{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:10px;color:#94a3b8;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.carousel-dots{display:flex;align-items:center;gap:6px}.carousel-dot{width:8px;height:8px;border:0;border-radius:999px;background:#e2e8f0;padding:0;cursor:pointer}.carousel-dot.active{width:20px;background:#5262ef}
+    .card-visual{position:relative;height:160px}.card-visual:after{position:absolute;inset:0;content:"";background:linear-gradient(to top,rgba(15,23,42,.2),transparent 55%)}.card-visual-icon{position:absolute;left:16px;bottom:16px;z-index:1;display:flex;width:40px;height:40px;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.7);border-radius:12px;background:rgba(255,255,255,.9);color:#4338ca;box-shadow:0 8px 20px -10px rgba(15,23,42,.35);backdrop-filter:blur(8px)}.card-visual-icon .icon{width:20px;height:20px}.card-copy{padding:20px}.card h2{font-size:18px;line-height:1.4}.card p{font-size:14px;line-height:1.7}.card .meta{align-items:center;justify-content:space-between;gap:10px}.card-meta-group{display:flex;align-items:center;gap:8px;white-space:nowrap}.card-read-link{margin-left:auto;color:#4338ca;font-weight:800;white-space:nowrap}
     .article-hero{padding:40px 0 56px}.article-hero .shell{max-width:1280px}
     .article-breadcrumbs{margin-bottom:32px}
     .article-hero-grid{grid-template-columns:.95fr 1.05fr;gap:36px}
-    .article-category{border-color:#d1fae5;background:#ecfdf5;color:#047857;text-transform:uppercase;letter-spacing:.1em}
+    .article-category{display:inline-flex;align-items:center;gap:8px;border-color:#d1fae5;background:#ecfdf5;color:#047857;text-transform:uppercase;letter-spacing:.1em}.article-category .icon{width:14px;height:14px}
     .article-photo{position:relative;border-radius:28px;padding:8px}
     .article-photo img{height:auto;border-radius:22px}
     .article-photo-note{position:absolute;left:32px;bottom:-16px;display:block;transform:rotate(-3deg);border-radius:8px;background:#ede9fe;color:#5b21b6;padding:10px 16px;font-size:12px;font-weight:700;box-shadow:0 10px 24px -14px rgba(76,29,149,.55)}
+    .mobile-toc{display:none}
     .article-layout{grid-template-columns:minmax(0,1fr) 300px;gap:24px;max-width:1152px;padding-top:40px}
     .article-card{border-radius:16px;padding:36px 40px}
     .editorial-card{margin-top:40px;display:flex;align-items:center;gap:20px;border:1px solid #e0e7ff;border-radius:16px;background:linear-gradient(90deg,#eef2ff,#f5f3ff);padding:24px}
@@ -319,9 +377,9 @@ function layout({
     .footer-socials{display:flex;gap:10px}.footer-socials a{display:flex;width:36px;height:36px;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(255,255,255,.04);color:#cbd5e1;text-decoration:none;font-size:12px;font-weight:800}.footer-socials a:hover,.footer-email:hover{border-color:rgba(129,140,248,.5);background:rgba(99,102,241,.15);color:#fff}
     .footer-navigation{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}.footer-group{min-width:0}.footer-group summary{display:flex;align-items:center;gap:8px;color:#cbd5e1;cursor:default;list-style:none;font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.footer-group summary::-webkit-details-marker{display:none}.footer-group-icon{color:#818cf8;font-size:14px}.footer-group ul{display:grid;gap:10px;margin:18px 0 0;padding:0;list-style:none}.footer-group a{color:#94a3b8;text-decoration:none;font-size:14px;font-weight:500}.footer-group a:hover{color:#fff}
     .footer-bottom{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-top:32px;color:#94a3b8;font-size:12px}.footer-legal{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.footer-legal a{color:#94a3b8;text-decoration:none}.footer-legal a:hover{color:#fff}.footer-trust{display:flex;align-items:center;gap:12px}.independence-badge{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(255,255,255,.03);padding:7px 13px;font-size:11px;font-weight:600;text-align:center}.back-to-top{display:flex;width:36px;height:36px;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(255,255,255,.04);color:#cbd5e1;cursor:pointer}.back-to-top:hover{border-color:rgba(129,140,248,.55);background:rgba(99,102,241,.2);color:#fff}
-    @media(max-width:1000px){.site-nav{padding:0 24px}.article-hero-grid{grid-template-columns:1fr 1fr}.article-layout{grid-template-columns:minmax(0,1fr) 270px}}
+    @media(max-width:1000px){.site-nav{padding:0 24px}.article-hero-grid{grid-template-columns:1fr 1fr}.article-layout{grid-template-columns:minmax(0,1fr) 270px}.carousel-prev{left:-12px}.carousel-next{right:-12px}}
     @media(max-width:1000px){.footer-main{grid-template-columns:1fr;gap:40px}.footer-navigation{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media(max-width:760px){header .site-nav{height:64px;padding:0 20px}header.is-scrolled{padding:8px 12px}header.is-scrolled .site-nav{height:52px;padding:0 14px}.nav-actions>.button{display:none}main{padding-top:64px}.article-hero{padding:34px 0 44px}.article-hero-grid,.article-layout{grid-template-columns:1fr}.article-photo-note{display:none}.article-layout{padding-top:24px}.article-card{padding:28px 20px}.editorial-card{align-items:flex-start;flex-direction:column}.editorial-copy{width:100%}.site-footer{padding:48px 0 32px}.footer-shell{padding:0 20px}.footer-main{gap:32px;padding-bottom:34px}.footer-navigation{grid-template-columns:1fr;gap:10px}.footer-group{border:1px solid rgba(255,255,255,.06);border-radius:12px;background:rgba(255,255,255,.02);padding:14px}.footer-group summary{cursor:pointer}.footer-group:not([open]) ul{display:none}.footer-bottom{align-items:stretch;flex-direction:column;text-align:center}.footer-legal,.footer-trust{justify-content:center}.footer-trust{flex-direction:column}.footer-contact-row{align-items:stretch;flex-direction:column}.footer-socials{justify-content:center}.footer-email{justify-content:center}}
+    @media(max-width:760px){header .site-nav{height:64px;padding:0 20px}header.is-scrolled{padding:8px 12px}header.is-scrolled .site-nav{height:52px;padding:0 14px}.nav-actions>.button{display:none}main{padding-top:64px}.index-hero{padding:48px 0}.index-hero h1{font-size:36px}.index-hero .shell,.category-rail .shell,.index-content .shell,.article-hero .shell,.article-layout{padding-left:20px;padding-right:20px}.article-hero{padding:34px 0 44px}.article-hero h1{font-size:36px}.article-hero-grid,.article-layout{grid-template-columns:1fr}.article-photo-note{display:none}.article-layout{padding-top:24px}.mobile-toc{display:block;margin-bottom:24px}.sidebar .toc-card{display:none}.article-card{padding:28px 20px}.featured{grid-template-columns:1fr;padding:16px}.featured-image{min-height:0;aspect-ratio:16/10}.featured-copy{padding:8px 0}.featured-topline{flex-wrap:nowrap}.featured-copy h2{margin:16px 0 0;font-size:20px}.featured-copy p{display:-webkit-box;overflow:hidden;margin:16px 0 0;font-size:14px;line-height:1.625;-webkit-box-orient:vertical;-webkit-line-clamp:3}.carousel-arrow{width:40px;height:40px}.carousel-prev{left:-12px}.carousel-next{right:-12px}.editorial-card{align-items:flex-start;flex-direction:column}.editorial-copy{width:100%}.site-footer{padding:48px 0 32px}.footer-shell{padding:0 20px}.footer-main{gap:32px;padding-bottom:34px}.footer-navigation{grid-template-columns:1fr;gap:10px}.footer-group{border:1px solid rgba(255,255,255,.06);border-radius:12px;background:rgba(255,255,255,.02);padding:14px}.footer-group summary{cursor:pointer}.footer-group:not([open]) ul{display:none}.footer-bottom{align-items:stretch;flex-direction:column;text-align:center}.footer-legal,.footer-trust{justify-content:center}.footer-trust{flex-direction:column}.footer-contact-row{align-items:stretch;flex-direction:column}.footer-socials{justify-content:center}.footer-email{justify-content:center}}
   </style>
 </head><body>
   <a class="skip" href="#main">Skip to content</a>
@@ -335,7 +393,7 @@ function layout({
       <a href="/ielts-band-score-calculator">Calculator</a>
       <a href="/#pricing">Pricing</a>
     </div>
-    <div class="nav-actions"><span class="theme-indicator" aria-hidden="true">◐</span><a class="button" href="/signup">Start Free →</a><details class="mobile-menu"><summary aria-label="Open navigation">☰</summary><div class="dropdown"><a href="/#features">Platform</a><a href="/ielts-writing-checker">Writing checker</a><a href="/#how-it-works">How it works</a><a href="/blog">Blog</a><a href="/ielts-band-score-calculator">Calculator</a><a href="/#pricing">Pricing</a><a href="/login">Log in</a></div></details></div>
+    <div class="nav-actions"><span class="theme-indicator" aria-hidden="true">${iconSvg('moon')}</span><a class="button" href="/signup">Start Free ${iconSvg('arrow-right')}</a><details class="mobile-menu"><summary aria-label="Open navigation">☰</summary><div class="dropdown"><a href="/#features">Platform</a><a href="/ielts-writing-checker">Writing checker</a><a href="/#how-it-works">How it works</a><a href="/blog">Blog</a><a href="/ielts-band-score-calculator">Calculator</a><a href="/#pricing">Pricing</a><a href="/login">Log in</a></div></details></div>
   </nav></header>
   ${body}
   <footer class="site-footer">
@@ -358,14 +416,13 @@ function layout({
     </div>
   </footer>
   <script>
-    (()=>{const h=document.getElementById('public-header');const groups=[...document.querySelectorAll('.footer-group')];const sync=()=>h?.classList.toggle('is-scrolled',scrollY>20);const syncFooter=()=>groups.forEach((group,index)=>{group.open=innerWidth>=640||index===0});addEventListener('scroll',sync,{passive:true});addEventListener('resize',syncFooter,{passive:true});sync();syncFooter();document.querySelector('.back-to-top')?.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'}));})();
+    (()=>{const h=document.getElementById('public-header');const groups=[...document.querySelectorAll('.footer-group')];const sync=()=>h?.classList.toggle('is-scrolled',scrollY>20);const syncFooter=()=>groups.forEach((group,index)=>{group.open=innerWidth>=640||index===0});addEventListener('scroll',sync,{passive:true});addEventListener('resize',syncFooter,{passive:true});sync();syncFooter();document.querySelector('.back-to-top')?.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'}));document.querySelectorAll('[data-featured-carousel]').forEach(carousel=>{const slides=[...carousel.querySelectorAll('[data-featured-slide]')];const dots=[...carousel.querySelectorAll('[data-carousel-dot]')];const count=carousel.querySelector('[data-carousel-count]');let active=0;let timer;const show=index=>{active=(index+slides.length)%slides.length;slides.forEach((slide,i)=>slide.classList.toggle('active',i===active));dots.forEach((dot,i)=>{dot.classList.toggle('active',i===active);i===active?dot.setAttribute('aria-current','true'):dot.removeAttribute('aria-current')});if(count)count.textContent=(active+1)+' of '+slides.length};const start=()=>{clearInterval(timer);if(slides.length>1)timer=setInterval(()=>show(active+1),6000)};carousel.querySelector('.carousel-prev')?.addEventListener('click',()=>{show(active-1);start()});carousel.querySelector('.carousel-next')?.addEventListener('click',()=>{show(active+1);start()});dots.forEach((dot,i)=>dot.addEventListener('click',()=>{show(i);start()}));carousel.addEventListener('mouseenter',()=>clearInterval(timer));carousel.addEventListener('mouseleave',start);show(0);start()})})();
   </script>
 </body></html>`;
 }
 
 function renderIndex(posts, requestQuery = {}) {
-  const description =
-    'Practical IELTS Writing, Speaking, Reading, and Listening guides with clear strategies, study plans, and direct links to online practice.';
+  const description = BLOG_LIBRARY_COPY.metaDescription;
   const category = Array.isArray(requestQuery.category)
     ? requestQuery.category[0]
     : requestQuery.category || 'All';
@@ -388,27 +445,55 @@ function renderIndex(posts, requestQuery = {}) {
     : filteredPosts;
   const totalPages = Math.max(1, Math.ceil(remainingPosts.length / 9));
   const currentPage = Math.min(requestedPage, totalPages);
-  const featured = currentPage === 1 ? primaryFeatured : null;
+  const featuredArticles =
+    isEditorialView && currentPage === 1
+      ? posts.filter((post) => post.featured).length >= 2
+        ? posts.filter((post) => post.featured)
+        : posts.slice(0, 3)
+      : [];
   const paginatedPosts = remainingPosts.slice((currentPage - 1) * 9, currentPage * 9);
-  const featuredCard = featured
-    ? `<a class="featured" href="/blog/${escapeHtml(featured.slug)}">
-        <div class="featured-image"><img src="${escapeHtml(featured.thumbnail_url || '/ielts-hero-student.webp')}" alt="${escapeHtml(coverAlt(featured))}" width="1200" height="675" decoding="async" fetchpriority="high"><span class="category">Featured story</span></div>
-        <div class="featured-copy"><span class="category">Featured · ${escapeHtml(featured.category || 'IELTS guide')}</span>
-          <h2>${escapeHtml(featured.title)}</h2><p>${escapeHtml(featured.description)}</p>
-          <span class="meta"><span>${escapeHtml(formatDate(featured.published_at || featured.created_at))}</span><span>${Number(featured.reading_minutes) || 6} min read</span><span>${formatReadCount(featured.view_count)}</span><span>Read featured article →</span></span>
-        </div>
-      </a>`
+  const featuredCarousel = featuredArticles.length
+    ? `<div class="featured-carousel" role="region" aria-roledescription="carousel" aria-label="Featured IELTS articles" data-featured-carousel>
+        <button class="carousel-arrow carousel-prev" type="button" aria-label="Previous featured article">${iconSvg('chevron-left')}</button>
+        <button class="carousel-arrow carousel-next" type="button" aria-label="Next featured article">${iconSvg('chevron-right')}</button>
+        ${featuredArticles
+          .map(
+            (
+              featured,
+              index
+            ) => `<article class="featured featured-slide${index === 0 ? ' active' : ''}" data-featured-slide>
+              <a class="featured-image" href="/blog/${escapeHtml(featured.slug)}">
+                <img src="${escapeHtml(featured.thumbnail_url || '/ielts-hero-student.webp')}" alt="${escapeHtml(coverAlt(featured))}" width="1200" height="675" decoding="async"${index === 0 ? ' fetchpriority="high"' : ' loading="lazy"'}>
+                <span class="featured-badge">${iconSvg('sparkles')} Featured</span>
+              </a>
+              <div class="featured-copy">
+                <div><div class="featured-topline">${categoryChip(featured.category)}<span class="meta">${Number(featured.reading_minutes) || 6} min read</span><span class="meta">${iconSvg('eye')} ${formatReadCount(featured.view_count)}</span></div>
+                <h2><a href="/blog/${escapeHtml(featured.slug)}">${escapeHtml(featured.title)}</a></h2>
+                <p>${escapeHtml(featured.description)}</p></div>
+                <div class="featured-editorial"><span>IELTS Ai Pro editorial team</span><span>${escapeHtml(formatShortDate(featured.published_at || featured.created_at))}</span></div>
+              </div>
+            </article>`
+          )
+          .join('')}
+        <div class="carousel-status"><span data-carousel-count>1 of ${featuredArticles.length}</span><span class="carousel-dots">${featuredArticles
+          .map(
+            (_, index) =>
+              `<button class="carousel-dot${index === 0 ? ' active' : ''}" type="button" aria-label="Go to slide ${index + 1}"${index === 0 ? ' aria-current="true"' : ''} data-carousel-dot="${index}"></button>`
+          )
+          .join('')}</span></div>
+      </div>`
     : '';
   const cards = paginatedPosts
-    .map(
-      (post) => `<a class="card" href="/blog/${escapeHtml(post.slug)}">
-        <div class="card-visual"><img src="${escapeHtml(post.thumbnail_url || '/ielts-hero-student.webp')}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" loading="lazy" decoding="async"></div>
-        <div class="card-copy"><span class="category">${escapeHtml(post.category || 'IELTS guide')}</span>
+    .map((post) => {
+      const presentation = getBlogCategoryPresentation(post.category);
+      return `<a class="card" href="/blog/${escapeHtml(post.slug)}">
+        <div class="card-visual"><img src="${escapeHtml(post.thumbnail_url || '/ielts-hero-student.webp')}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" loading="lazy" decoding="async"><span class="card-visual-icon">${iconSvg(presentation.icon)}</span></div>
+        <div class="card-copy">${categoryChip(post.category, 'sm')}
           <h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p>
-          <span class="meta"><span>${Number(post.reading_minutes) || 6} min read</span><span>${formatReadCount(post.view_count)}</span><span>Read guide →</span></span>
+          <span class="meta"><span class="card-meta-group"><span>${Number(post.reading_minutes) || 6} min read</span><span>${formatReadCount(post.view_count)}</span></span><span class="card-read-link">Read guide →</span></span>
         </div>
-      </a>`
-    )
+      </a>`;
+    })
     .join('');
   const pageHref = (pageNumber) => {
     const params = new URLSearchParams();
@@ -450,25 +535,21 @@ function renderIndex(posts, requestQuery = {}) {
     .slice(0, 10)
     .map((tag) => `<a href="/blog?q=${encodeURIComponent(tag)}">${escapeHtml(tag)}</a>`)
     .join('');
-  const categories = [
-    ['All', '▦', 'All articles'],
-    ['Writing', '✎', 'Writing'],
-    ['Speaking', '◉', 'Speaking'],
-    ['Reading', '▤', 'Reading'],
-    ['Listening', '◖', 'Listening'],
-    ['Study Planning', '☆', 'Study planning'],
-    ['Exam Updates', '↻', 'Exam updates'],
-  ]
-    .map(([value, icon, label]) => {
+  const categories = getBlogCategories(posts)
+    .map((value) => {
+      const presentation =
+        value === 'All'
+          ? { icon: 'file-text', label: 'All articles' }
+          : getBlogCategoryPresentation(value);
       const href = value === 'All' ? '/blog' : `/blog?category=${encodeURIComponent(value)}`;
-      return `<a${category === value ? ' class="active" aria-current="page"' : ''} href="${href}">${icon} ${label}</a>`;
+      return `<a${category === value ? ' class="active" aria-current="page"' : ''} href="${href}">${iconSvg(presentation.icon)}<span>${escapeHtml(presentation.label)}</span></a>`;
     })
     .join('');
   const libraryBody = filteredPosts.length
-    ? `<div class="content-grid"><div>${featuredCard}<h2 class="section-title" style="font-size:19px">Latest articles</h2><div class="cards" aria-label="IELTS articles">${cards}</div>${pagination}</div><aside class="sidebar"><div class="side-card"><h2>↗ Trending now</h2>${trending}</div>${popularTags ? `<div class="side-card"><h2>☆ Popular topics</h2><div class="topic-list">${popularTags}</div></div>` : ''}<div class="practice-card"><span>◎</span><h2>Ready to put your knowledge into action?</h2><p>Take a practice test and see where you stand.</p><a class="button" href="/signup">Start Free Test →</a></div></aside></div>`
+    ? `<div class="content-grid"><div>${featuredCarousel}<h2 class="section-title latest-title">${escapeHtml(BLOG_LIBRARY_COPY.latestTitle)}</h2><div class="cards" aria-label="IELTS articles">${cards}</div>${pagination}</div><aside class="sidebar"><div class="side-card"><h2>↗ Trending now</h2>${trending}</div>${popularTags ? `<div class="side-card"><h2>☆ Popular topics</h2><div class="topic-list">${popularTags}</div></div>` : ''}<div class="practice-card"><span>◎</span><h2>Ready to put your knowledge into action?</h2><p>Take a practice test and see where you stand.</p><a class="button" href="/signup">Start Free Test →</a></div></aside></div>`
     : `<div class="library-empty"><h2>No article matches that search</h2><p><a href="/blog">Show every article</a></p></div>`;
   return layout({
-    title: 'IELTS Preparation Blog: Practical Band Score Guides',
+    title: BLOG_LIBRARY_COPY.metaTitle,
     description,
     canonical: `${SITE_URL}/blog`,
     structuredData: [
@@ -495,9 +576,9 @@ function renderIndex(posts, requestQuery = {}) {
       },
     ],
     body: `<main id="main">
-      <section class="index-hero"><div class="shell hero-grid"><div><span class="eyebrow">▣ IELTS blog library</span><h1>Insights and strategies for IELTS success</h1><p class="hand">Learn smarter. Score higher.</p><p class="intro">Expert guidance, focused study plans, and practical drills to help you prepare with confidence and improve the skills behind your target band.</p></div><div class="hero-photo"><span class="note one">Consistency builds excellence</span><img src="/ielts-hero-student.webp" alt="IELTS learner studying with a laptop and notebook"><span class="note two">Plan · Practise · Progress</span></div></div></section>
+      <section class="index-hero"><div class="shell hero-grid"><div><span class="eyebrow">${iconSvg('book-open')} ${escapeHtml(BLOG_LIBRARY_COPY.heroEyebrow)}</span><h1>${escapeHtml(BLOG_LIBRARY_COPY.heroTitle)}</h1><p class="hand">${escapeHtml(BLOG_LIBRARY_COPY.heroScript)}</p><p class="intro">${escapeHtml(BLOG_LIBRARY_COPY.heroDescription)}</p></div><div class="hero-photo"><span class="note one">Consistency builds excellence</span><img src="/ielts-hero-student.webp" alt="IELTS learner studying with a laptop and notebook"><span class="note two">Plan · Practise · Progress</span><span class="hero-sparkle">${iconSvg('sparkles')}</span></div></div></section>
       <section class="category-rail" aria-label="Article categories"><div class="shell"><nav class="category-tabs">${categories}</nav></div></section>
-      <section class="index-content"><div class="shell"><div class="library-heading"><div><p class="library-kicker">The study desk</p><h2>${isEditorialView ? 'Fresh guidance for your next practice' : 'Search the library'}</h2></div><form class="library-search" action="/blog" method="get"><span aria-hidden="true">⌕</span>${category !== 'All' ? `<input type="hidden" name="category" value="${escapeHtml(category)}">` : ''}<input type="search" name="q" value="${escapeHtml(query)}" placeholder="Search skills, questions, or goals" aria-label="Search IELTS articles"></form></div>${libraryBody}</div></section>
+      <section class="index-content"><div class="shell"><div class="library-heading"><div><p class="library-kicker">${escapeHtml(BLOG_LIBRARY_COPY.sectionEyebrow)}</p><h2>${escapeHtml(getBlogLibraryHeading({ category, query }))}</h2></div><form class="library-search" action="/blog" method="get"><span aria-hidden="true">${iconSvg('search')}</span>${category !== 'All' ? `<input type="hidden" name="category" value="${escapeHtml(category)}">` : ''}<input type="search" name="q" value="${escapeHtml(query)}" placeholder="${escapeHtml(BLOG_LIBRARY_COPY.searchPlaceholder)}" aria-label="Search IELTS articles"></form></div>${libraryBody}</div></section>
     </main>`,
   });
 }
@@ -529,6 +610,7 @@ function renderArticle(post, allPosts = []) {
         `<a class="card" href="/blog/${escapeHtml(article.slug)}"><div class="card-visual"><img src="${escapeHtml(article.thumbnail_url || '/ielts-hero-student.webp')}" alt="${escapeHtml(coverAlt(article))}" width="1200" height="675" loading="lazy" decoding="async"></div><div class="card-copy"><span class="category">${escapeHtml(article.category || 'IELTS guide')}</span><h2>${escapeHtml(article.title)}</h2><span class="meta">${Number(article.reading_minutes) || 6} min read · Read guide →</span></div></a>`
     )
     .join('');
+  const articleCategory = getBlogCategoryPresentation(post.category);
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -579,8 +661,8 @@ function renderArticle(post, allPosts = []) {
     structuredData: [articleSchema, breadcrumbSchema],
     image: socialImageUrl,
     body: `<main id="main">
-      <section class="article-hero"><div class="shell"><div class="meta article-breadcrumbs"><a href="/blog">Blog library</a><span>/</span><span>${escapeHtml(post.category || 'Guide')}</span><span>/</span><span>${escapeHtml(post.title)}</span></div><div class="article-hero-grid"><div><span class="category article-category">✎ ${escapeHtml(post.category || 'IELTS guide')}</span><h1>${escapeHtml(post.title)}</h1><p class="intro">${escapeHtml(post.description)}</p><div class="meta" style="margin-top:28px"><a href="/about"><strong>◉ IELTS Ai Pro team</strong></a><time datetime="${escapeHtml(publishedAt)}">${escapeHtml(formatDate(publishedAt))}</time><span>${Number(post.reading_minutes) || 6} min read</span><span>${formatReadCount(post.view_count)}</span></div></div><div class="article-photo"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" decoding="async" fetchpriority="high"><span class="article-photo-note">Plan · Practise · Review · Succeed</span></div></div></div></section>
-      <div class="shell article-layout"><div><article class="article-card article">${prepared.html}<div class="tags">${tags}</div><aside class="editorial-card"><div class="editorial-icon">✦</div><div class="editorial-copy"><span class="eyebrow">About this guide</span><h2>Reviewed by the IELTS Ai Pro editorial team</h2><p>Built around practical IELTS preparation and linked to focused activities inside the application.</p></div><a class="button" href="${practicePath(post.category)}">Practise now →</a></aside></article>${related ? `<h2 class="section-title" style="margin-top:26px">Related articles</h2><div class="cards">${related}</div>` : ''}</div><aside class="sidebar">${toc ? `<div class="toc-card"><h2>☷ On this page</h2>${toc}</div>` : ''}<div class="side-card"><h2>Share this article</h2><a class="button" style="width:100%" href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}">Share on LinkedIn</a></div><div class="practice-card"><span>◎</span><h2>Ready to put your knowledge into action?</h2><p>Take a practice test and see where you stand.</p><a class="button" href="${practicePath(post.category)}">${escapeHtml(practiceLabel(post.category))} →</a></div><a class="login" style="display:block;text-align:center" href="/blog">← All IELTS articles</a></aside></div>
+      <section class="article-hero"><div class="shell"><div class="meta article-breadcrumbs"><a href="/blog">Blog library</a><span>/</span><span>${escapeHtml(post.category || 'Guide')}</span><span>/</span><span>${escapeHtml(post.title)}</span></div><div class="article-hero-grid"><div><span class="category article-category">${iconSvg(articleCategory.icon)} ${escapeHtml(post.category || 'IELTS guide')}</span><h1>${escapeHtml(post.title)}</h1><p class="intro">${escapeHtml(post.description)}</p><div class="meta" style="margin-top:28px"><a href="/about"><strong>◉ IELTS Ai Pro team</strong></a><time datetime="${escapeHtml(publishedAt)}">${escapeHtml(formatDate(publishedAt))}</time><span>${Number(post.reading_minutes) || 6} min read</span><span>${formatReadCount(post.view_count)}</span></div></div><div class="article-photo"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" decoding="async" fetchpriority="high"><span class="article-photo-note">Plan · Practise · Review · Succeed</span></div></div></div></section>
+      <div class="shell article-layout"><div>${toc ? `<div class="mobile-toc toc-card"><h2>☷ On this page</h2>${toc}</div>` : ''}<article class="article-card article">${prepared.html}<div class="tags">${tags}</div><aside class="editorial-card"><div class="editorial-icon">✦</div><div class="editorial-copy"><span class="eyebrow">About this guide</span><h2>Reviewed by the IELTS Ai Pro editorial team</h2><p>Built around practical IELTS preparation and linked to focused activities inside the application.</p></div><a class="button" href="${practicePath(post.category)}">Practise now →</a></aside></article>${related ? `<h2 class="section-title" style="margin-top:26px">Related articles</h2><div class="cards">${related}</div>` : ''}</div><aside class="sidebar">${toc ? `<div class="toc-card"><h2>☷ On this page</h2>${toc}</div>` : ''}<div class="side-card"><h2>Share this article</h2><a class="button" style="width:100%" href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}">Share on LinkedIn</a></div><div class="practice-card"><span>◎</span><h2>Ready to put your knowledge into action?</h2><p>Take a practice test and see where you stand.</p><a class="button" href="${practicePath(post.category)}">${escapeHtml(practiceLabel(post.category))} →</a></div><a class="login" style="display:block;text-align:center" href="/blog">← All IELTS articles</a></aside></div>
     </main>`,
   });
 }
