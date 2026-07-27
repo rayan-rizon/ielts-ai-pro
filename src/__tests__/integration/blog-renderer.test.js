@@ -103,6 +103,11 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain(
       'width="1200" height="675" decoding="async" fetchpriority="high"'
     );
+    expect(response.body).toContain('href="/ielts-writing-checker">Writing checker</a>');
+    expect(response.body).toContain('.article-photo img{height:auto;border-radius:22px}');
+    expect(response.body).toContain('Plan · Practise · Review · Succeed');
+    expect(response.body).toContain('Reviewed by the IELTS Ai Pro editorial team');
+    expect(response.body).not.toContain('Turn the strategy into a score');
   });
 
   it('provides descriptive cover alt text for each new daily guide', () => {

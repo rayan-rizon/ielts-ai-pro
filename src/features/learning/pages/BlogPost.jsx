@@ -7,6 +7,7 @@ import {
   BookOpen,
   CalendarDays,
   Check,
+  ChevronDown,
   Clock3,
   Copy,
   Eye,
@@ -307,21 +308,13 @@ function BlogPostRelatedPosts({ relatedPosts }) {
   );
 }
 
-function BlogPostSidebar({
-  preparedContent,
-  canonicalUrl,
-  shareArticle,
-  copyArticleLink,
-  copied,
-  practicePath,
-  practiceLabel,
-}) {
+function useTocActiveId(toc) {
   const [activeId, setActiveId] = useState('');
 
   useEffect(() => {
-    const headingElements = preparedContent.toc
-      .map((item) => document.getElementById(item.id))
-      .filter(Boolean);
+    if (!toc || toc.length === 0) return;
+
+    const headingElements = toc.map((item) => document.getElementById(item.id)).filter(Boolean);
 
     if (headingElements.length === 0) return;
 
@@ -352,58 +345,105 @@ function BlogPostSidebar({
       observer.disconnect();
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [preparedContent.toc]);
+  }, [toc]);
 
+  return activeId;
+}
+
+function TableOfContents({ toc, activeId, className = '' }) {
+  const [isOpenMobile, setIsOpenMobile] = useState(true);
+
+  if (!toc || toc.length === 0) return null;
+
+  return (
+    <div
+      className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_15px_40px_-32px_rgba(15,23,42,.3)] dark:border-white/10 dark:bg-slate-900 ${className}`}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+            <List className="h-4 w-4" />
+          </span>
+          <h2 className="text-sm font-extrabold">On this page</h2>
+          <span className="ml-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700 lg:hidden dark:bg-indigo-500/10 dark:text-indigo-300">
+            {toc.length}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsOpenMobile((prev) => !prev)}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 lg:hidden dark:hover:bg-white/10"
+          aria-label={isOpenMobile ? 'Collapse table of contents' : 'Expand table of contents'}
+        >
+          <ChevronDown
+            className={`h-4 w-4 transition-transform duration-200 ${
+              isOpenMobile ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+      </div>
+
+      <nav
+        className={`mt-4 space-y-1 overflow-y-auto pr-1 transition-all duration-200 ${
+          isOpenMobile ? 'block max-h-[55vh]' : 'hidden lg:block lg:max-h-[55vh]'
+        }`}
+        aria-label="Article sections"
+      >
+        {toc.map((item) => {
+          const isActive = activeId === item.id;
+          return (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              className={`relative flex items-center rounded-xl py-2 px-3 text-xs transition-all duration-200 group ${
+                isActive
+                  ? 'bg-indigo-50/70 text-indigo-700 font-bold dark:bg-indigo-500/10 dark:text-indigo-300'
+                  : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-white/[0.03]'
+              }`}
+            >
+              {isActive && (
+                <span
+                  className={`absolute w-0.5 rounded-full bg-indigo-600 dark:bg-indigo-400 ${
+                    item.level === 3 ? 'left-[16px] h-2.5' : 'left-[6px] h-4'
+                  }`}
+                />
+              )}
+
+              <span
+                className={`${
+                  item.level === 3
+                    ? 'pl-5 text-[11px] text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-300'
+                    : 'pl-2'
+                }`}
+              >
+                {item.text}
+              </span>
+            </a>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
+
+function BlogPostSidebar({
+  preparedContent,
+  activeId,
+  canonicalUrl,
+  shareArticle,
+  copyArticleLink,
+  copied,
+  practicePath,
+  practiceLabel,
+}) {
   return (
     <aside className="space-y-5 self-start lg:sticky lg:top-24">
       {preparedContent.toc.length > 0 && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_15px_40px_-32px_rgba(15,23,42,.3)] dark:border-white/10 dark:bg-slate-900">
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
-              <List className="h-4 w-4" />
-            </span>
-            <h2 className="text-sm font-extrabold">On this page</h2>
-          </div>
-          <nav
-            className="mt-4 max-h-[55vh] space-y-1 overflow-y-auto pr-1"
-            aria-label="Article sections"
-          >
-            {preparedContent.toc.map((item) => {
-              const isActive = activeId === item.id;
-              return (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  className={`relative flex items-center rounded-xl py-2 px-3 text-xs transition-all duration-200 group ${
-                    isActive
-                      ? 'bg-indigo-50/70 text-indigo-700 font-bold dark:bg-indigo-500/10 dark:text-indigo-300'
-                      : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-white/[0.03]'
-                  }`}
-                >
-                  {/* Active Indicator Accent Bar */}
-                  {isActive && (
-                    <span
-                      className={`absolute w-0.5 rounded-full bg-indigo-600 dark:bg-indigo-400 ${
-                        item.level === 3 ? 'left-[16px] h-2.5' : 'left-[6px] h-4'
-                      }`}
-                    />
-                  )}
-
-                  {/* Text label */}
-                  <span
-                    className={`${
-                      item.level === 3
-                        ? 'pl-5 text-[11px] text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-300'
-                        : 'pl-2'
-                    }`}
-                  >
-                    {item.text}
-                  </span>
-                </a>
-              );
-            })}
-          </nav>
-        </div>
+        <TableOfContents
+          toc={preparedContent.toc}
+          activeId={activeId}
+          className="hidden lg:block"
+        />
       )}
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-slate-900">
@@ -555,6 +595,7 @@ const BlogPost = () => {
   }, []);
 
   const preparedContent = prepareArticleContent(post?.content);
+  const activeId = useTocActiveId(preparedContent.toc);
   const description = post?.meta_description || post?.description || getExcerpt(post?.content);
   const practicePath = PRACTICE_LINKS[post?.category] || '/signup';
   const practiceLabel =
@@ -625,6 +666,11 @@ const BlogPost = () => {
 
           <section className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-6 px-5 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:py-10">
             <div className="min-w-0">
+              {preparedContent.toc.length > 0 && (
+                <div className="mb-6 lg:hidden">
+                  <TableOfContents toc={preparedContent.toc} activeId={activeId} />
+                </div>
+              )}
               <BlogPostArticleBody
                 post={post}
                 preparedContent={preparedContent}
@@ -635,6 +681,7 @@ const BlogPost = () => {
 
             <BlogPostSidebar
               preparedContent={preparedContent}
+              activeId={activeId}
               canonicalUrl={canonicalUrl}
               shareArticle={shareArticle}
               copyArticleLink={copyArticleLink}

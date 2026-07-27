@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Logo } from '@/components/shared/Logo';
 import ChevronRight from 'lucide-react/icons/chevron-right';
+import ChevronDown from 'lucide-react/icons/chevron-down';
 import Sparkles from 'lucide-react/icons/sparkles';
 import Mail from 'lucide-react/icons/mail';
 import ShieldCheck from 'lucide-react/icons/shield-check';
@@ -111,7 +112,7 @@ function scrollToPageTopImmediately(event) {
 
 function FooterLink({ href, children }) {
   const className =
-    'group flex items-center gap-1.5 text-sm font-medium text-slate-400 transition-all duration-200 hover:text-white hover:translate-x-1';
+    'group flex items-center gap-1.5 py-1 sm:py-0 text-sm font-medium text-slate-400 transition-all duration-200 hover:text-white hover:translate-x-1 active:text-indigo-300';
 
   if (href.startsWith('/#')) {
     return (
@@ -133,11 +134,11 @@ function FooterLink({ href, children }) {
 function FooterBrandSection({ handleCopyEmail }) {
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-start">
         <Link to="/" className="block w-fit" viewTransition>
           <Logo size="lg" className="text-white" />
         </Link>
-        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-0.5 rounded-full backdrop-blur-md">
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-3 py-1 rounded-full backdrop-blur-md">
           <Sparkles className="w-3 h-3 text-indigo-400 animate-pulse" />
           AI Powered
         </span>
@@ -148,27 +149,27 @@ function FooterBrandSection({ handleCopyEmail }) {
         criterion-based AI practice feedback, score analytics, and target-band guidance.
       </p>
 
-      <div className="pt-1 flex flex-wrap items-center gap-3">
+      <div className="pt-1 flex flex-col sm:flex-row sm:items-center gap-3">
         <button
           onClick={handleCopyEmail}
-          className="group inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] px-3.5 py-2 text-xs font-bold text-slate-200 transition-all duration-200 hover:border-indigo-400/40 hover:shadow-lg hover:shadow-indigo-500/10"
+          className="group inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] px-4 py-2.5 text-xs font-bold text-slate-200 transition-all duration-200 hover:border-indigo-400/40 hover:shadow-lg hover:shadow-indigo-500/10"
           title="Click to copy email address"
         >
-          <Mail className="h-3.5 w-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
+          <Mail className="h-4 w-4 text-indigo-400 group-hover:scale-110 transition-transform" />
           <span>mail@ieltsai.pro</span>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center sm:justify-start gap-2.5">
           {socialLinks.map((social, i) => (
             <a
               key={i}
               href={social.href}
               target="_blank"
               rel="noopener noreferrer"
-              className={`h-9 w-9 rounded-xl bg-white/[0.03] border border-white/15 flex items-center justify-center text-slate-400 transition-all duration-300 ${social.hoverClass}`}
+              className={`h-10 w-10 sm:h-9 sm:w-9 rounded-xl bg-white/[0.04] border border-white/15 flex items-center justify-center text-slate-300 transition-all duration-300 active:scale-95 ${social.hoverClass}`}
               aria-label={`Follow us on ${social.label}`}
             >
-              <social.icon size={16} />
+              <social.icon size={18} />
             </a>
           ))}
         </div>
@@ -178,20 +179,57 @@ function FooterBrandSection({ handleCopyEmail }) {
 }
 
 function FooterNavigationGrid() {
+  const [openCategories, setOpenCategories] = React.useState({
+    'Core Features': true,
+  });
+
+  const toggleCategory = (title) => {
+    setOpenCategories((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }));
+  };
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-3 sm:gap-x-6 sm:gap-y-8">
       {Object.entries(footerLinks).map(([title, category]) => {
         const Icon = category.icon;
-        return (
-          <div key={title} className="space-y-4">
-            <div className="flex items-center gap-1.5 text-indigo-400">
-              <Icon className="w-3.5 h-3.5" />
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-300">
-                {title}
-              </p>
-            </div>
+        const isOpen = !!openCategories[title];
 
-            <ul className="space-y-2.5">
+        return (
+          <div
+            key={title}
+            className="rounded-xl border border-white/5 bg-white/[0.015] p-3.5 sm:border-0 sm:bg-transparent sm:p-0 space-y-3 sm:space-y-4 transition-colors"
+          >
+            <button
+              type="button"
+              onClick={() => toggleCategory(title)}
+              className="w-full flex items-center justify-between text-left sm:cursor-default"
+              aria-expanded={isOpen}
+            >
+              <div className="flex items-center gap-2 text-indigo-400">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 sm:h-auto sm:w-auto sm:bg-transparent sm:border-0 sm:p-0">
+                  <Icon className="w-3.5 h-3.5" />
+                </span>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-200 sm:text-slate-300">
+                  {title}
+                </p>
+              </div>
+
+              <span className="sm:hidden text-slate-400 p-1">
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-300 ${
+                    isOpen ? 'rotate-180 text-indigo-400' : ''
+                  }`}
+                />
+              </span>
+            </button>
+
+            <ul
+              className={`space-y-2.5 pt-1 sm:pt-0 sm:block ${
+                isOpen ? 'block' : 'hidden sm:block'
+              }`}
+            >
               {category.links.map((link) => (
                 <li key={link.label}>
                   <FooterLink href={link.href}>{link.label}</FooterLink>
@@ -207,12 +245,13 @@ function FooterNavigationGrid() {
 
 function FooterBottomBar({ currentYear }) {
   return (
-    <div className="flex flex-col gap-5 pt-8 text-xs text-slate-400 md:flex-row md:items-center md:justify-between">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-medium">
+    <div className="flex flex-col gap-6 pt-8 text-xs text-slate-400 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2.5 font-medium">
         <span className="text-slate-400">© {currentYear} IELTS Ai Pro</span>
+        <span className="hidden sm:inline text-slate-700">•</span>
         <Link
           to="/privacy"
-          className="hover:text-white transition-colors"
+          className="hover:text-white transition-colors py-1 px-1.5 sm:p-0"
           onClick={scrollToPageTopImmediately}
           viewTransition
         >
@@ -221,7 +260,7 @@ function FooterBottomBar({ currentYear }) {
         <span className="text-slate-700">•</span>
         <Link
           to="/terms"
-          className="hover:text-white transition-colors"
+          className="hover:text-white transition-colors py-1 px-1.5 sm:p-0"
           onClick={scrollToPageTopImmediately}
           viewTransition
         >
@@ -230,7 +269,7 @@ function FooterBottomBar({ currentYear }) {
         <span className="text-slate-700">•</span>
         <Link
           to="/about"
-          className="hover:text-white transition-colors"
+          className="hover:text-white transition-colors py-1 px-1.5 sm:p-0"
           onClick={scrollToPageTopImmediately}
           viewTransition
         >
@@ -238,8 +277,8 @@ function FooterBottomBar({ currentYear }) {
         </Link>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold text-slate-400 backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row items-center justify-between sm:justify-end gap-3.5 sm:gap-4">
+        <div className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-2 sm:py-1.5 text-[11px] font-semibold text-slate-400 backdrop-blur-md text-center">
           <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-indigo-400" />
           <span>
             Independent prep platform. Not affiliated with IELTS, IDP, or British Council.
@@ -248,8 +287,9 @@ function FooterBottomBar({ currentYear }) {
 
         <button
           onClick={() => scrollToPageTopImmediately()}
-          className="h-9 w-9 rounded-xl bg-white/[0.04] border border-white/15 hover:border-indigo-400/50 hover:bg-indigo-500/20 text-slate-300 hover:text-white flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 shadow-sm shrink-0"
+          className="h-10 w-10 sm:h-9 sm:w-9 rounded-xl bg-white/[0.04] border border-white/15 hover:border-indigo-400/50 hover:bg-indigo-500/20 text-slate-300 hover:text-white flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-sm shrink-0"
           title="Back to top"
+          aria-label="Scroll back to top"
         >
           <ArrowUp className="w-4 h-4" />
         </button>

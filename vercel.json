@@ -236,6 +236,10 @@
       "destination": "/api/blog?slug=:slug"
     },
     {
+      "source": "/ielts-writing-checker",
+      "destination": "/ielts-writing-checker/index.html"
+    },
+    {
       "source": "/:path*",
       "destination": "/index.html"
     }

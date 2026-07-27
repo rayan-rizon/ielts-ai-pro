@@ -71,6 +71,7 @@ const robots = readFileSync(path.join(root, 'public/robots.txt'), 'utf8');
 const vercel = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8'));
 const appSource = readFileSync(path.join(root, 'src/App.jsx'), 'utf8');
 const indexHtml = readFileSync(path.join(root, 'index.html'), 'utf8');
+const generatedWritingCheckerPath = path.join(root, 'dist/ielts-writing-checker/index.html');
 
 if (!appSource.includes("path: '/ielts-writing-checker'")) {
   fail('the public writing checker React route is missing');
@@ -139,6 +140,7 @@ for (const route of Object.keys(retiredRoutes)) {
 }
 
 for (const route of removedStaticPagePaths) {
+  if (route === '/ielts-writing-checker') continue;
   if (existsSync(path.join(root, 'public', route.slice(1), 'index.html'))) {
     fail(`removed static page still exists for ${route}`);
   }
@@ -164,6 +166,7 @@ const requiredRewrites = {
   '/blog/feed.xml': '/api/feed',
   '/blog': '/api/blog',
   '/blog/:slug': '/api/blog?slug=:slug',
+  '/ielts-writing-checker': '/ielts-writing-checker/index.html',
 };
 for (const [source, destination] of Object.entries(requiredRewrites)) {
   if (rewrites.get(source) !== destination) {
@@ -176,9 +179,19 @@ for (const rewrite of vercel.rewrites || []) {
     fail(`retired route ${rewrite.source} still rewrites`);
   if (
     rewrite.destination.includes('/index.html') &&
-    !['/:path*', '/(.*)', '/:path(.*)'].includes(rewrite.source)
+    !['/:path*', '/(.*)', '/:path(.*)', '/ielts-writing-checker'].includes(rewrite.source)
   ) {
     fail(`standalone static rewrite remains for ${rewrite.source}`);
+  }
+}
+
+if (existsSync(generatedWritingCheckerPath)) {
+  const writingCheckerHtml = readFileSync(generatedWritingCheckerPath, 'utf8');
+  if (!writingCheckerHtml.includes('<title>Free IELTS Writing Checker – Task 1 & 2 Band Score & Feedback | IELTS Ai Pro</title>')) {
+    fail('generated writing checker page is missing its page-specific title');
+  }
+  if (!writingCheckerHtml.includes('href="https://www.ieltsai.pro/ielts-writing-checker"')) {
+    fail('generated writing checker page is missing its canonical URL');
   }
 }
 

@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/generate-public-seo-pages.mjs",
     "seo:check": "node scripts/check-public-seo.mjs",
     "lint": "eslint .",
     "preview": "vite preview",

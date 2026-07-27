@@ -284,19 +284,44 @@ function layout({
   <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${escapeHtml(fullTitle)}"><meta name="twitter:description" content="${escapeHtml(description)}"><meta name="twitter:image" content="${escapeHtml(image)}">
   ${structuredData.map((item) => `<script type="application/ld+json">${safeJson(item)}</script>`).join('')}
   <style>${CSS}</style>
+  <style>
+    header{position:fixed;left:0;right:0;top:0;height:64px;border-bottom:1px solid rgba(15,23,42,.06);background:rgba(255,255,255,.86);backdrop-filter:blur(16px)}
+    .site-nav{max-width:1280px;height:64px;padding:0 32px}
+    .brand{font-size:18px}.brand img{width:30px;height:30px}
+    .nav-center{gap:2px}.nav-center>a{padding:8px 10px;font-size:12px}
+    .nav-actions{gap:9px}.nav-actions .button{border-radius:999px;padding:9px 20px}
+    .theme-indicator{display:flex;width:36px;height:36px;align-items:center;justify-content:center;border:0;border-radius:50%;background:#f6f7fb;color:#64748b;font-size:16px}
+    main{padding-top:64px}
+    .article-hero{padding:40px 0 56px}.article-hero .shell{max-width:1280px}
+    .article-breadcrumbs{margin-bottom:32px}
+    .article-hero-grid{grid-template-columns:.95fr 1.05fr;gap:36px}
+    .article-category{border-color:#d1fae5;background:#ecfdf5;color:#047857;text-transform:uppercase;letter-spacing:.1em}
+    .article-photo{position:relative;border-radius:28px;padding:8px}
+    .article-photo img{height:auto;border-radius:22px}
+    .article-photo-note{position:absolute;left:32px;bottom:-16px;display:block;transform:rotate(-3deg);border-radius:8px;background:#ede9fe;color:#5b21b6;padding:10px 16px;font-size:12px;font-weight:700;box-shadow:0 10px 24px -14px rgba(76,29,149,.55)}
+    .article-layout{grid-template-columns:minmax(0,1fr) 300px;gap:24px;max-width:1152px;padding-top:40px}
+    .article-card{border-radius:16px;padding:36px 40px}
+    .editorial-card{margin-top:40px;display:flex;align-items:center;gap:20px;border:1px solid #e0e7ff;border-radius:16px;background:linear-gradient(90deg,#eef2ff,#f5f3ff);padding:24px}
+    .editorial-icon{display:flex;width:48px;height:48px;flex:0 0 auto;align-items:center;justify-content:center;border-radius:12px;background:#fff;color:var(--indigo);font-size:22px;box-shadow:0 4px 14px -10px #334155}
+    .editorial-copy{flex:1}.editorial-copy .eyebrow{border:0;background:transparent;padding:0;text-transform:uppercase;letter-spacing:.12em}
+    .editorial-copy h2{margin:4px 0 3px;font-size:18px}.editorial-copy p{margin:0;font-size:14px;line-height:1.5}
+    .article .editorial-card .button{color:#fff;text-decoration:none;border-radius:12px}
+    @media(max-width:1000px){.site-nav{padding:0 24px}.article-hero-grid{grid-template-columns:1fr 1fr}.article-layout{grid-template-columns:minmax(0,1fr) 270px}}
+    @media(max-width:760px){header,.site-nav{height:64px}.site-nav{padding:0 20px}.nav-actions>.button{display:none}main{padding-top:64px}.article-hero{padding:34px 0 44px}.article-hero-grid,.article-layout{grid-template-columns:1fr}.article-photo-note{display:none}.article-layout{padding-top:24px}.article-card{padding:28px 20px}.editorial-card{align-items:flex-start;flex-direction:column}.editorial-copy{width:100%}}
+  </style>
 </head><body>
   <a class="skip" href="#main">Skip to content</a>
   <header><nav class="site-nav" aria-label="Primary">
     <a class="brand" href="/"><img src="/favicon.webp" alt="">IELTS Ai Pro</a>
     <div class="nav-center">
       <a href="/#features">Platform</a>
+      <a href="/ielts-writing-checker">Writing checker</a>
       <a href="/#how-it-works">How it works</a>
       <a href="/blog">Blog</a>
       <a href="/ielts-band-score-calculator">Calculator</a>
       <a href="/#pricing">Pricing</a>
-      <a href="/#faq">FAQ</a>
     </div>
-    <div class="nav-actions"><a class="login" href="/login">Log in</a><a class="button" href="/signup">Start Free</a><details class="mobile-menu"><summary aria-label="Open navigation">☰</summary><div class="dropdown"><a href="/#features">Platform</a><a href="/#how-it-works">How it works</a><a href="/blog">Blog</a><a href="/ielts-band-score-calculator">Calculator</a><a href="/#pricing">Pricing</a><a href="/#faq">FAQ</a><a href="/login">Log in</a></div></details></div>
+    <div class="nav-actions"><span class="theme-indicator" aria-hidden="true">◐</span><a class="button" href="/signup">Start Free →</a><details class="mobile-menu"><summary aria-label="Open navigation">☰</summary><div class="dropdown"><a href="/#features">Platform</a><a href="/ielts-writing-checker">Writing checker</a><a href="/#how-it-works">How it works</a><a href="/blog">Blog</a><a href="/ielts-band-score-calculator">Calculator</a><a href="/#pricing">Pricing</a><a href="/login">Log in</a></div></details></div>
   </nav></header>
   ${body}
   <footer>
@@ -482,8 +507,8 @@ function renderArticle(post, allPosts = []) {
     structuredData: [articleSchema, breadcrumbSchema],
     image: socialImageUrl,
     body: `<main id="main">
-      <section class="article-hero"><div class="shell"><div class="meta" style="margin-bottom:24px"><a href="/blog">Blog library</a><span>/</span><span>${escapeHtml(post.category || 'Guide')}</span><span>/</span><span>${escapeHtml(post.title)}</span></div><div class="article-hero-grid"><div><span class="category">✎ ${escapeHtml(post.category || 'IELTS guide')}</span><h1>${escapeHtml(post.title)}</h1><p class="intro">${escapeHtml(post.description)}</p><div class="meta" style="margin-top:24px"><a href="/about"><strong>IELTS Ai Pro team</strong></a><time datetime="${escapeHtml(publishedAt)}">${escapeHtml(formatDate(publishedAt))}</time><span>${Number(post.reading_minutes) || 6} min read</span><span>${formatReadCount(post.view_count)}</span></div></div><div class="article-photo"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" decoding="async" fetchpriority="high"></div></div></div></section>
-      <div class="shell article-layout"><div><article class="article-card article">${prepared.html}<div class="tags">${tags}</div><aside class="cta"><div><span class="eyebrow">Turn the strategy into a score</span><h2>Put this guide into practice</h2><p>Apply the steps while they are fresh, then review your feedback before your next attempt.</p></div><a class="button" href="${practicePath(post.category)}">${escapeHtml(practiceLabel(post.category))}</a></aside></article>${related ? `<h2 class="section-title" style="margin-top:26px">Related articles</h2><div class="cards">${related}</div>` : ''}</div><aside class="sidebar">${toc ? `<div class="toc-card"><h2>☷ On this page</h2>${toc}</div>` : ''}<div class="side-card"><h2>Share this article</h2><a class="button" style="width:100%" href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}">Share on LinkedIn</a></div><div class="practice-card"><span>◎</span><h2>Put this strategy into practice</h2><p>Apply the steps while they are fresh and review your feedback.</p><a class="button" href="${practicePath(post.category)}">Practise now →</a></div><a class="login" style="display:block;text-align:center" href="/blog">← All IELTS articles</a></aside></div>
+      <section class="article-hero"><div class="shell"><div class="meta article-breadcrumbs"><a href="/blog">Blog library</a><span>/</span><span>${escapeHtml(post.category || 'Guide')}</span><span>/</span><span>${escapeHtml(post.title)}</span></div><div class="article-hero-grid"><div><span class="category article-category">✎ ${escapeHtml(post.category || 'IELTS guide')}</span><h1>${escapeHtml(post.title)}</h1><p class="intro">${escapeHtml(post.description)}</p><div class="meta" style="margin-top:28px"><a href="/about"><strong>◉ IELTS Ai Pro team</strong></a><time datetime="${escapeHtml(publishedAt)}">${escapeHtml(formatDate(publishedAt))}</time><span>${Number(post.reading_minutes) || 6} min read</span><span>${formatReadCount(post.view_count)}</span></div></div><div class="article-photo"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" decoding="async" fetchpriority="high"><span class="article-photo-note">Plan · Practise · Review · Succeed</span></div></div></div></section>
+      <div class="shell article-layout"><div><article class="article-card article">${prepared.html}<div class="tags">${tags}</div><aside class="editorial-card"><div class="editorial-icon">✦</div><div class="editorial-copy"><span class="eyebrow">About this guide</span><h2>Reviewed by the IELTS Ai Pro editorial team</h2><p>Built around practical IELTS preparation and linked to focused activities inside the application.</p></div><a class="button" href="${practicePath(post.category)}">Practise now →</a></aside></article>${related ? `<h2 class="section-title" style="margin-top:26px">Related articles</h2><div class="cards">${related}</div>` : ''}</div><aside class="sidebar">${toc ? `<div class="toc-card"><h2>☷ On this page</h2>${toc}</div>` : ''}<div class="side-card"><h2>Share this article</h2><a class="button" style="width:100%" href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}">Share on LinkedIn</a></div><div class="practice-card"><span>◎</span><h2>Ready to put your knowledge into action?</h2><p>Take a practice test and see where you stand.</p><a class="button" href="${practicePath(post.category)}">${escapeHtml(practiceLabel(post.category))} →</a></div><a class="login" style="display:block;text-align:center" href="/blog">← All IELTS articles</a></aside></div>
     </main>`,
   });
 }
