@@ -94,16 +94,20 @@ AdminNavItem.displayName = 'AdminNavItem';
 
 const AdminSidebarHeader = memo(() => (
   <SidebarHeader
-    className="border-b border-border/50 p-4 group-data-[collapsible=icon]:p-2"
+    className="border-b border-border/50 p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center"
     data-oid="s169erg"
   >
     <div
-      className="flex items-center justify-between group-data-[collapsible=icon]:justify-center"
+      className="flex items-center justify-between w-full group-data-[collapsible=icon]:justify-center"
       data-oid="ja5oba."
     >
-      <Link to="/admin" className="flex items-center gap-3 w-full" data-oid="_sq00kt">
+      <Link
+        to="/admin"
+        className="flex items-center gap-3 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-auto"
+        data-oid="_sq00kt"
+      >
         {/* Collapsed Icon: animated logo-icon.svg */}
-        <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center shrink-0 w-8 h-8">
+        <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center shrink-0 w-8 h-8 mx-auto">
           <LogoIcon className="w-8 h-8" />
         </div>
 

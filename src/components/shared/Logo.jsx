@@ -96,7 +96,7 @@ export function LogoIcon({ className = 'w-8 h-8', variant = 'auto' }) {
         }
       `}</style>
 
-      <g transform="translate(5 5) scale(0.24137931) translate(-55 -21)">
+      <g transform="translate(4.5 5) scale(0.24137931) translate(-55 -21)">
         <g className="logo-motion">
           <path
             d="M211 21 L160 22 L55 252 L125 252 L207 173 L195 146 L151 173 L145 174 L185 82 L205 127 L249 103 Z"
