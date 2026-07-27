@@ -18,6 +18,7 @@ import {
   Sparkles,
   Star,
   TrendingUp,
+  X,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -333,10 +334,27 @@ function BlogHeroSection() {
 }
 
 function BlogCategoryBar({ categories, category, setCategory, setCurrentPage }) {
+  const scrollRef = useRef(null);
+
+  const handleSelectCategory = (item, event) => {
+    setCategory(item);
+    setCurrentPage(1);
+    if (event?.currentTarget) {
+      event.currentTarget.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
+  };
+
   return (
-    <section className="py-6 border-b border-slate-100 dark:border-white/5 bg-white dark:bg-[#0b0f18]">
-      <div className="mx-auto max-w-7xl px-5 sm:px-6 flex justify-center">
-        <div className="relative flex gap-1 items-center bg-slate-100/70 border border-slate-200/30 p-1 rounded-2xl overflow-x-auto no-scrollbar max-w-full dark:bg-slate-900/50 dark:border-white/5">
+    <section className="py-3 sm:py-5 border-b border-slate-200/60 dark:border-white/5 bg-white/90 dark:bg-[#0b0f18]/90 backdrop-blur-md sticky top-16 z-20">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 relative">
+        <div
+          ref={scrollRef}
+          className="relative flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-1 px-1 rounded-2xl bg-slate-100/80 border border-slate-200/60 dark:bg-slate-900/60 dark:border-white/5 w-full md:w-max md:mx-auto shadow-2xs transition-all"
+        >
           {categories.map((item) => {
             const config = item === 'All' ? null : getCategoryConfig(item);
             const Icon = config?.icon || FileText;
@@ -344,32 +362,30 @@ function BlogCategoryBar({ categories, category, setCategory, setCurrentPage }) 
             return (
               <button
                 key={item}
-                onClick={() => {
-                  setCategory(item);
-                  setCurrentPage(1);
-                }}
+                onClick={(e) => handleSelectCategory(item, e)}
                 className={cn(
-                  'relative inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black transition-all duration-200 outline-none',
-                  !isActive && 'hover:bg-slate-200/50 dark:hover:bg-slate-800/40'
+                  'relative inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 sm:px-4 sm:py-2 text-xs transition-all duration-200 outline-none whitespace-nowrap active:scale-95',
+                  !isActive &&
+                    'hover:bg-slate-200/50 dark:hover:bg-slate-800/40 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                 )}
               >
                 {isActive && (
                   <motion.div
                     layoutId="activeBlogCategoryTab"
-                    className="absolute inset-0 bg-white rounded-xl shadow-[0_3px_10px_rgba(15,23,42,0.06)] border border-slate-200/10 dark:bg-slate-800 dark:border-white/5"
+                    className="absolute inset-0 bg-white rounded-xl shadow-xs border border-slate-200/50 dark:bg-slate-800 dark:border-white/10"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
                 <span
                   className={cn(
-                    'relative z-10 inline-flex items-center gap-2 transition-colors duration-200',
+                    'relative z-10 inline-flex items-center gap-1.5 transition-colors duration-200',
                     isActive
-                      ? 'text-indigo-600 dark:text-indigo-300'
-                      : 'text-slate-500 hover:text-slate-800 dark:text-slate-450 dark:hover:text-slate-100'
+                      ? 'text-indigo-600 dark:text-indigo-300 font-extrabold'
+                      : 'font-semibold'
                   )}
                 >
-                  <Icon className="h-3.5 w-3.5" />
-                  {item === 'All' ? 'All articles' : item}
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
+                  <span>{item === 'All' ? 'All articles' : item}</span>
                 </span>
               </button>
             );
@@ -1031,24 +1047,37 @@ export default function BlogIndex() {
           />
 
           <section className="mx-auto max-w-7xl px-5 py-6 sm:px-6 lg:py-8">
-            <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center border-b border-slate-200/60 pb-5 dark:border-white/5">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[.16em] text-indigo-600">
+                <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-indigo-600 dark:text-indigo-400">
                   {BLOG_LIBRARY_COPY.sectionEyebrow}
                 </p>
-                <h2 className="mt-1 text-2xl font-extrabold tracking-[-0.03em] sm:text-3xl">
+                <h2 className="mt-1 text-2xl font-black tracking-[-0.03em] sm:text-3xl dark:text-white">
                   {getBlogLibraryHeading({ category, query })}
                 </h2>
               </div>
               <div className="relative w-full sm:max-w-sm">
-                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  value={query}
-                  onChange={(event) => updateQuery(event.target.value)}
-                  placeholder={BLOG_LIBRARY_COPY.searchPlaceholder}
-                  aria-label="Search IELTS articles"
-                  className="h-11 rounded-xl border-slate-200 bg-white pl-10 shadow-sm dark:border-white/10 dark:bg-white/[.04]"
-                />
+                <div className="group relative flex items-center rounded-2xl border border-slate-200/80 bg-white/90 p-1 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] backdrop-blur-xl transition-all duration-300 hover:border-indigo-400/50 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10 dark:border-white/10 dark:bg-slate-900/90 dark:hover:border-indigo-500/30">
+                  <Search className="ml-3.5 h-4.5 w-4.5 shrink-0 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(event) => updateQuery(event.target.value)}
+                    placeholder={BLOG_LIBRARY_COPY.searchPlaceholder}
+                    aria-label="Search IELTS articles"
+                    className="w-full bg-transparent px-3 py-2 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-medium focus:outline-none dark:text-white"
+                  />
+                  {query && (
+                    <button
+                      type="button"
+                      onClick={() => updateQuery('')}
+                      className="mr-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200 transition-colors"
+                      aria-label="Clear search query"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 

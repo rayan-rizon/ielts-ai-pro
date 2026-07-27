@@ -6,6 +6,7 @@ import { cn } from '@/lib/cn';
 import DocumentHead from '@/components/shared/DocumentHead';
 import { calculatePrice } from '@/lib/pricingUtils';
 import { usePricing } from '@/features/subscription/hooks/usePricing';
+import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import PromoCodeRedemption from '@/components/PromoCodeRedemption';
 import ManualPayment from '../components/ManualPayment';
 import { trackAppEvent } from '@/lib/tracking';
@@ -13,67 +14,6 @@ import { trackAppEvent } from '@/lib/tracking';
 // Extracted Components
 import PricingCard from '../components/PricingCard';
 import FAQSection from '../components/FAQSection';
-
-const defaultPlans = [
-  {
-    name: 'Free',
-    basePrice: 0,
-    description: 'Perfect for getting started with Reading & Listening.',
-    features: [
-      'Unlimited Reading Tests',
-      'Unlimited Listening Tests',
-      'All Cambridge Reading & Listening',
-      '0 AI Speaking Sessions/month',
-      '1 AI Writing Evaluations/month',
-      '100 Vocabulary Words',
-      'Basic Analytics',
-    ],
-    limitations: ['Adaptive Learning Path', 'Premium AI Features'],
-    buttonText: 'Current Plan',
-    tier: 'free',
-    color: 'slate',
-  },
-  {
-    name: 'Pro',
-    basePrice: 9.99,
-    description: 'The preferred choice for serious IELTS candidates.',
-    features: [
-      'Everything in Free',
-      '100 AI Writing Evaluations/month',
-      '50 AI Speaking Sessions/month',
-      '300 Vocabulary Words',
-      'Advanced Performance Analytics',
-      'AI Study Recommendations',
-      'All Cambridge Tests',
-    ],
-    limitations: [],
-    buttonText: 'Upgrade to Pro',
-    popular: true,
-    tier: 'pro',
-    color: 'indigo',
-    oldPrice: 15,
-  },
-  {
-    name: 'Premium',
-    basePrice: 15.99,
-    oldPrice: 25,
-    description: 'Ultimate power with adaptive AI and deep insights.',
-    features: [
-      'Everything in Pro',
-      '200 AI Writing Evaluations/month',
-      '100 AI Speaking Sessions/month',
-      'Unlimited Vocabulary',
-      'Adaptive AI Learning Path',
-      'Deep Predictive AI Insights',
-      'Downloadable Study Packs',
-      'Exclusive Community Access',
-    ],
-    limitations: [],
-    buttonText: 'Get Premium',
-    tier: 'premium',
-    color: 'violet',
-  },
-];
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -100,7 +40,7 @@ export default function Pricing() {
     detectedCountry,
     isLoading: isPricingLoading,
     refetchUser,
-  } = usePricing(defaultPlans, {
+  } = usePricing(DEFAULT_PRICING_PLANS, {
     disableBangladeshLocalization: !MANUAL_BD_PAYMENT_ENABLED,
   });
 
@@ -333,70 +273,69 @@ export default function Pricing() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="px-4 md:px-8 pt-8 md:pt-12 pb-16 md:pb-24 max-w-[1360px] mx-auto space-y-12 relative z-10"
+          className="px-4 md:px-8 pt-3 sm:pt-4 md:pt-6 pb-12 max-w-[1360px] mx-auto space-y-8 relative z-10"
         >
           {/* Hero Section */}
           <m.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-14 space-y-4"
+            transition={{ duration: 0.5 }}
+            className="text-center mb-8 space-y-3"
           >
             <div className="flex flex-col items-center gap-2">
               <Badge
                 variant="outline"
-                className="px-4 py-1.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 rounded-full text-xs font-black tracking-wider"
+                className="px-3.5 py-1 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800/60 rounded-full text-[10px] sm:text-xs font-black tracking-wider uppercase"
               >
                 FLEXIBLE PLANS FOR EVERY CANDIDATE
               </Badge>
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-slate-950 dark:text-white">
-              Invest in Your{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400">
-                Target Band Score
-              </span>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight text-slate-950 dark:text-white">
+              Invest in Your Target Band Score
             </h1>
-            <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto font-medium px-2 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-xl mx-auto font-medium px-2 leading-relaxed">
               Choose the ideal preparation plan to accelerate your IELTS learning path with
               unlimited practice, instant AI scoring, and personalized diagnostics.
             </p>
 
             {/* Billing Toggle & Promo Code */}
-            <div className="mt-8 flex flex-col items-center gap-5">
-              <div className="flex items-center justify-center gap-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-1.5 rounded-full border border-slate-200/90 dark:border-white/10 w-fit shadow-md">
+            <div className="mt-5 flex flex-col items-center gap-4">
+              <div className="flex items-center justify-center gap-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-1.5 rounded-full border border-slate-200/90 dark:border-white/10 w-fit shadow-xs">
                 <button
+                  type="button"
                   onClick={() => setBillingInterval('monthly')}
                   className={cn(
-                    'px-5 sm:px-6 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200',
+                    'px-5 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200',
                     billingInterval === 'monthly'
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
                       : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
                   )}
                 >
                   Monthly
                 </button>
                 <button
+                  type="button"
                   onClick={() => setBillingInterval('quarterly')}
                   className={cn(
-                    'px-5 sm:px-6 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200 relative',
+                    'px-5 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200 relative',
                     billingInterval === 'quarterly'
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
                       : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
                   )}
                 >
                   Quarterly
                   {billingInterval !== 'quarterly' && (
-                    <span className="absolute -top-3 -right-2 bg-emerald-600 text-[10px] text-white px-2 py-0.5 rounded-full font-black shadow-md">
+                    <span className="absolute -top-2.5 -right-2 bg-indigo-600 text-[9px] text-white px-2 py-0.5 rounded-full font-black shadow-xs uppercase">
                       15% OFF
                     </span>
                   )}
                 </button>
               </div>
 
-              <div className="flex flex-col items-center gap-2 pt-1">
+              <div className="flex flex-col items-center gap-1.5 pt-0.5">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-px bg-slate-200 dark:bg-slate-800" />
-                  <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     Promo Code?
                   </span>
                   <div className="w-8 h-px bg-slate-200 dark:bg-slate-800" />

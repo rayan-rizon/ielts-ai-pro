@@ -28,99 +28,78 @@ export default function PricingCard({
     >
       <Card
         className={cn(
-          'relative h-full transition-all duration-300 rounded-[28px] border backdrop-blur-xl group overflow-hidden flex flex-col',
+          'relative h-full transition-all duration-300 rounded-[24px] border backdrop-blur-xl group overflow-hidden flex flex-col',
           isPro
-            ? 'bg-white dark:bg-slate-900 border-indigo-500 shadow-[0_25px_60px_-15px_rgba(79,70,229,0.22)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] md:-translate-y-4 z-20 md:scale-105 ring-2 ring-indigo-500/30'
-            : isPremium
-              ? 'bg-white dark:bg-slate-900 border-purple-300 dark:border-purple-500/40 shadow-xl hover:border-purple-400 hover:shadow-2xl'
-              : 'bg-white/90 dark:bg-slate-900/80 border-slate-200/90 dark:border-white/10 shadow-md hover:border-slate-300 hover:shadow-xl'
+            ? 'bg-white dark:bg-slate-900 border-2 border-indigo-600 shadow-xl shadow-indigo-500/10 md:-translate-y-3 z-20'
+            : 'bg-white/90 dark:bg-slate-900/70 border-slate-200/90 dark:border-white/10 shadow-sm hover:border-slate-300 dark:hover:border-white/20'
         )}
       >
-        {isPro && (
-          <div className="pointer-events-none absolute top-0 right-0 p-8 overflow-hidden">
-            <div className="absolute top-[-20%] right-[-20%] w-[130%] h-[130%] bg-indigo-500/12 blur-[60px] rounded-full" />
-          </div>
-        )}
-
-        <CardContent className="p-7 sm:p-8 flex flex-col h-full relative z-10">
+        <CardContent className="p-7 flex flex-col h-full relative z-10">
           {/* Card Header */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <h3
-                className={cn(
-                  'text-2xl font-black tracking-tight',
-                  isPro
-                    ? 'text-indigo-600 dark:text-indigo-400'
-                    : isPremium
-                      ? 'text-purple-600 dark:text-purple-400'
-                      : 'text-slate-950 dark:text-white'
-                )}
-              >
-                {plan.name}
-              </h3>
+              <h3 className="text-xl font-black text-slate-950 dark:text-white">{plan.name}</h3>
               {isPro && (
-                <Badge className="bg-indigo-600 text-white border-0 font-extrabold px-3 py-1 text-xs tracking-wider rounded-full shadow-sm">
-                  <Sparkles className="w-3.5 h-3.5 mr-1" />
-                  MOST POPULAR
+                <Badge className="bg-indigo-600 text-white border-0 font-black px-3 py-1 text-[10px] tracking-wider rounded-full shadow-xs uppercase">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  Best Choice
                 </Badge>
               )}
               {isPremium && (
-                <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-black">
-                  <Crown className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                  ULTIMATE
+                <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-extrabold border border-slate-200/80 dark:border-white/10 uppercase">
+                  <Crown className="w-3 h-3 text-indigo-500" />
+                  Ultimate
                 </div>
               )}
             </div>
-            <p className="text-slate-600 dark:text-slate-300 text-sm font-medium leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-medium leading-relaxed min-h-[38px]">
               {plan.description}
             </p>
           </div>
 
           {/* Pricing Section */}
-          <div className="mb-7">
+          <div className="mb-6 pb-6 border-b border-slate-100 dark:border-white/5">
             <div className="flex flex-col gap-1">
               {plan.oldPrice && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
                     Was
                   </span>
                   {isPricingLoading ? (
-                    <Skeleton className="h-5 w-16" />
+                    <Skeleton className="h-4 w-12" />
                   ) : (
                     <>
-                      <span className="text-lg font-bold text-slate-400 dark:text-slate-500 line-through decoration-indigo-500/40">
+                      <span className="text-sm font-bold text-slate-400 line-through">
                         {plan.currencySymbol || '$'}
                         {plan.oldPrice}
                       </span>
-                      <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 text-xs py-0.5 px-2 font-black">
+                      <span className="bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
                         SAVE {Math.round((1 - Number(displayPrice) / plan.oldPrice) * 100)}%
-                      </Badge>
+                      </span>
                     </>
                   )}
                 </div>
               )}
-              <div className="flex items-baseline gap-1 mt-1 overflow-hidden h-14">
+              <div className="flex items-baseline gap-1 mt-1 overflow-hidden h-12">
                 {isPricingLoading ? (
                   <Skeleton className="h-10 w-32 mt-1" />
                 ) : (
                   <>
-                    <span className="text-5xl sm:text-6xl font-black text-slate-950 dark:text-white tracking-tight flex items-baseline">
-                      <span className="mr-1 text-3xl sm:text-4xl font-bold">
-                        {plan.currencySymbol || '$'}
-                      </span>
+                    <span className="text-4xl sm:text-[42px] font-black text-slate-950 dark:text-white tracking-tight flex items-baseline">
+                      <span className="mr-1 text-2xl font-bold">{plan.currencySymbol || '$'}</span>
                       <AnimatePresence mode="wait">
                         <m.span
                           key={displayPrice}
-                          initial={{ y: 20, opacity: 0 }}
+                          initial={{ y: 15, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
-                          exit={{ y: -20, opacity: 0 }}
-                          transition={{ duration: 0.25, ease: 'easeOut' }}
+                          exit={{ y: -15, opacity: 0 }}
+                          transition={{ duration: 0.18, ease: 'easeOut' }}
                         >
                           {displayPrice}
                         </m.span>
                       </AnimatePresence>
                     </span>
-                    <span className="text-slate-500 dark:text-slate-400 font-bold text-sm">
+                    <span className="text-slate-500 dark:text-slate-400 font-bold text-xs">
                       / month
                     </span>
                   </>
@@ -134,63 +113,63 @@ export default function PricingCard({
             onClick={() => onUpgrade(plan.tier)}
             disabled={isLoading || isPricingLoading || isActive}
             className={cn(
-              'w-full h-12 rounded-full font-black text-base transition-all duration-200 mb-8 shadow-md group/btn active:scale-95 border-0',
+              'w-full h-11 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 mb-8 flex items-center justify-center gap-2',
               isPro
-                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/30 hover:shadow-indigo-500/45 hover:scale-[1.01]'
-                : isPremium
-                  ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-500/30 hover:shadow-purple-500/45 hover:scale-[1.01]'
-                  : 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 shadow-sm'
+                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white'
             )}
           >
             {isActive ? (
               'Current Plan'
             ) : (
               <>
-                {plan.tier !== 'free' && isSubscribed ? 'Switch to this Plan' : plan.buttonText}
-                <ArrowRight className="w-4.5 h-4.5 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                <span>
+                  {plan.tier !== 'free' && isSubscribed ? 'Switch to this Plan' : plan.buttonText}
+                </span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </>
             )}
           </Button>
 
           {/* Features Checklist */}
-          <div className="flex-1 space-y-3 pt-2 border-t border-slate-100 dark:border-white/5">
-            <div className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
+          <div className="flex-1 space-y-3.5">
+            <div className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2">
               What's Included
             </div>
             {isPricingLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <Skeleton className="w-5 h-5 rounded-full shrink-0" />
+                  <Skeleton className="w-4.5 h-4.5 rounded-full shrink-0" />
                   <Skeleton className={cn('h-4', i % 2 === 0 ? 'w-3/4' : 'w-1/2')} />
                 </div>
               ))
             ) : (
               <>
                 {plan.features.map((feature, i) => (
-                  <div key={i} className="flex items-start gap-3 group/item">
+                  <div key={i} className="flex items-center gap-3">
                     <div
                       className={cn(
-                        'mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-transform duration-200 group-hover/item:scale-110',
+                        'w-4.5 h-4.5 rounded-full flex items-center justify-center shrink-0 transition-colors',
                         isPro
-                          ? 'bg-indigo-600 text-white shadow-xs'
-                          : isPremium
-                            ? 'bg-purple-600 text-white shadow-xs'
-                            : 'bg-emerald-500 text-white shadow-xs'
+                          ? 'bg-indigo-600 text-white shadow-2xs'
+                          : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
                       )}
                     >
-                      <Check className="w-3.5 h-3.5 stroke-[2.5px]" />
+                      <Check className="w-3 h-3 stroke-[2.5px]" />
                     </div>
-                    <span className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
                       {feature}
                     </span>
                   </div>
                 ))}
                 {plan.limitations?.map((lim, i) => (
-                  <div key={i} className="flex items-start gap-3 opacity-45">
-                    <div className="mt-0.5 w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                      <Minus className="w-3 h-3 text-slate-400" />
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-4.5 h-4.5 rounded-full bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center shrink-0">
+                      <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
                     </div>
-                    <span className="text-xs font-medium text-slate-500 line-through">{lim}</span>
+                    <span className="text-xs sm:text-sm font-medium text-slate-400 dark:text-slate-500 line-through">
+                      {lim}
+                    </span>
                   </div>
                 ))}
               </>

@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Star, Sparkles, Zap, Crown, ArrowRight } from 'lucide-react';
+import { Check, Star, Sparkles, Zap, Crown, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/cn';
-import { SystemSetting } from '@/features/admin/services/SystemSetting';
-import { detectLocation, getPriceData, calculatePrice } from '@/lib/pricingUtils';
-import { fetchAllTierLimits, generateFeatureStrings } from '@/lib/tierLimitsUtils';
+import { calculatePrice } from '@/lib/pricingUtils';
+import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
+import {
+  configurePricingPlans,
+  loadPricingConfiguration,
+} from '@/features/subscription/hooks/usePricing';
 import { SectionHeading, SoftSection } from './LandingSection';
 
 const containerVariants = {
@@ -20,88 +22,31 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
 };
 
-const defaultPlans = [
-  {
-    name: 'Free',
-    pricing: {
-      monthly: { price: '$0', period: '/mo', oldPrice: null },
-      quarterly: { price: '$0', period: '/mo', oldPrice: null },
-    },
-    desc: 'Start with Reading and Listening practice, then try one Writing evaluation.',
-    features: [
-      'Unlimited Reading & Listening',
-      'All Cambridge Test Papers',
-      '0 AI Speaking Sessions / month',
-      '1 AI Writing Evaluation / month',
-      '100 Vocabulary Words',
-      'Basic Performance Analytics',
-    ],
-    buttonText: 'Start Practice Free',
-    popular: false,
-    icon: Zap,
-    tier: 'free',
-    defaultPrice: 0,
-    defaultOldPrice: null,
-  },
-  {
-    name: 'Pro',
-    pricing: {
-      monthly: { price: '$9.99', period: '/mo', oldPrice: '$15' },
-      quarterly: { price: '$8.49', period: '/mo', oldPrice: '$15', savings: 'SAVE 43%' },
-    },
-    desc: 'More AI feedback and advanced analytics for regular IELTS practice.',
-    features: [
-      'Everything in Free',
-      '100 AI Writing Evaluations',
-      '50 AI Speaking Sessions',
-      '300 Vocabulary Words',
-      'AI Study Recommendations',
-      'Advanced Performance Analytics',
-    ],
-    buttonText: 'Upgrade to Pro',
-    popular: true,
-    icon: Star,
-    tier: 'pro',
-    defaultPrice: 9.99,
-    defaultOldPrice: 15,
-  },
-  {
-    name: 'Premium',
-    pricing: {
-      monthly: { price: '$15.99', period: '/mo', oldPrice: '$25' },
-      quarterly: { price: '$13.59', period: '/mo', oldPrice: '$25', savings: 'SAVE 46%' },
-    },
-    desc: 'Higher AI limits, adaptive planning, and deeper progress insights.',
-    features: [
-      'Everything in Pro Included',
-      '200 AI Writing Evaluations',
-      '100 AI Speaking Sessions',
-      'Unlimited Vocabulary Words',
-      'Adaptive AI Learning Path',
-      'Downloadable Practice Packs',
-    ],
-    buttonText: 'Get Premium',
-    popular: false,
-    icon: Crown,
-    tier: 'premium',
-    defaultPrice: 15.99,
-    defaultOldPrice: 25,
-  },
-];
+const PLAN_ICONS = {
+  free: Zap,
+  pro: Star,
+  premium: Crown,
+};
+
+const LANDING_BUTTON_TEXT = {
+  free: 'Start Practice Free',
+  pro: 'Upgrade to Pro',
+  premium: 'Get Premium',
+};
 
 const PricingSkeleton = () => (
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto w-full">
     {[1, 2, 3].map((i) => (
       <div
         key={i}
-        className="glass-card-premium rounded-2xl p-8 border border-border/50 h-[600px] flex flex-col"
+        className="rounded-[24px] p-8 border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 h-[580px] flex flex-col"
       >
-        <Skeleton className="h-12 w-12 rounded-2xl mb-6" />
-        <Skeleton className="h-8 w-1/2 mb-4" />
-        <Skeleton className="h-16 w-full mb-8" />
+        <Skeleton className="h-10 w-10 rounded-xl mb-6" />
+        <Skeleton className="h-7 w-1/3 mb-3" />
+        <Skeleton className="h-12 w-full mb-8" />
         <div className="space-y-4 flex-grow">
           {[1, 2, 3, 4, 5].map((s) => (
             <div key={s} className="flex gap-3 items-center">
@@ -110,108 +55,227 @@ const PricingSkeleton = () => (
             </div>
           ))}
         </div>
-        <Skeleton className="h-12 w-full mt-auto rounded-xl" />
+        <Skeleton className="h-11 w-full mt-auto rounded-xl" />
       </div>
     ))}
   </div>
 );
 
+function buildLandingPlans(plans) {
+  return plans.map((plan) => {
+    const symbol = plan.currencySymbol || '$';
+    const monthlyPrice = calculatePrice(plan.basePrice, 'monthly');
+    const monthlyOldPrice = calculatePrice(plan.oldPrice, 'monthly');
+    const quarterlyPerMonth = calculatePrice(plan.basePrice, 'quarterly');
+    const calculateSavings = (price) =>
+      monthlyOldPrice ? Math.round((1 - Number(price) / Number(monthlyOldPrice)) * 100) : 0;
+    const formatSavings = (price) => {
+      const savings = calculateSavings(price);
+      return savings > 0 ? `SAVE ${savings}%` : null;
+    };
+
+    return {
+      ...plan,
+      desc: plan.description,
+      icon: PLAN_ICONS[plan.tier],
+      buttonText: LANDING_BUTTON_TEXT[plan.tier],
+      displayFeatures: [
+        ...plan.features.map((label) => ({ label, unavailable: false })),
+        ...plan.limitations.map((label) => ({ label, unavailable: true })),
+      ],
+      pricing: {
+        monthly: {
+          price: `${symbol}${monthlyPrice}`,
+          period: '/mo',
+          oldPrice: monthlyOldPrice ? `${symbol}${monthlyOldPrice}` : null,
+          savings: formatSavings(monthlyPrice),
+        },
+        quarterly: {
+          price: `${symbol}${quarterlyPerMonth}`,
+          period: '/mo',
+          oldPrice: monthlyOldPrice ? `${symbol}${monthlyOldPrice}` : null,
+          savings: formatSavings(quarterlyPerMonth),
+        },
+      },
+    };
+  });
+}
+
+function PricingFeature({ label, unavailable, isPopular }) {
+  const isUnavailable = unavailable || label.startsWith('0 ');
+
+  return (
+    <div className="group/item flex items-center gap-3 text-xs sm:text-sm font-medium">
+      <span
+        className={cn(
+          'flex h-5 w-5 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover/item:scale-110',
+          isUnavailable
+            ? 'bg-slate-100/60 text-slate-400 dark:bg-slate-800/40 dark:text-slate-500'
+            : isPopular
+              ? 'bg-indigo-600 text-white shadow-2xs'
+              : 'bg-slate-100 border border-slate-200/60 text-slate-700 dark:bg-slate-800 dark:border-white/10 dark:text-slate-200'
+        )}
+      >
+        {isUnavailable ? (
+          <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+        ) : (
+          <Check className="h-3 w-3 stroke-[2.5]" />
+        )}
+      </span>
+      <span
+        className={cn(
+          'transition-transform duration-200 group-hover/item:translate-x-0.5',
+          isUnavailable
+            ? 'text-slate-400 line-through dark:text-slate-500'
+            : 'text-slate-800 dark:text-slate-200 font-bold'
+        )}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index }) {
+  const currentPrice = plan.pricing[billingCycle];
+  const Icon = plan.icon;
+
+  return (
+    <m.div
+      initial="hidden"
+      whileInView="show"
+      viewport={viewport}
+      variants={itemVariants}
+      transition={{ delay: index * 0.08 }}
+      className={cn(
+        'relative flex flex-col h-full rounded-[28px] p-7 sm:p-8 backdrop-blur-xl transition-all duration-300',
+        plan.popular
+          ? 'border-2 border-indigo-600/90 bg-white dark:bg-slate-900 shadow-[0_22px_60px_-15px_rgba(79,70,229,0.22)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] md:-translate-y-4 z-20 hover:-translate-y-5 hover:shadow-indigo-500/30'
+          : 'border border-slate-200/90 bg-white/95 dark:border-white/10 dark:bg-slate-900/70 shadow-[0_12px_40px_-15px_rgba(15,23,42,0.06)] dark:shadow-[0_15px_40px_-15px_rgba(0,0,0,0.4)] hover:border-slate-300 dark:hover:border-white/20 hover:-translate-y-1 hover:shadow-xl'
+      )}
+    >
+      {plan.popular && (
+        <>
+          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-600/15 overflow-hidden rounded-[28px]" />
+          <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 text-[10px] font-black uppercase tracking-widest rounded-full text-white shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-1.5 whitespace-nowrap leading-none z-30">
+            <Sparkles className="h-3 w-3" />
+            <span>Best Choice</span>
+          </div>
+        </>
+      )}
+
+      <div className="mb-6 relative z-10">
+        <div
+          className={cn(
+            'h-11 w-11 rounded-2xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105',
+            plan.name === 'Pro'
+              ? 'bg-gradient-to-br from-indigo-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25'
+              : plan.name === 'Premium'
+                ? 'bg-gradient-to-br from-purple-500/15 to-violet-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-300 shadow-2xs'
+                : 'bg-gradient-to-br from-blue-500/15 to-indigo-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 shadow-2xs'
+          )}
+        >
+          <Icon className="h-5.5 w-5.5" />
+        </div>
+        <h3 className="text-xl font-black text-slate-950 dark:text-white">{plan.name}</h3>
+        <p className="mt-1.5 text-xs sm:text-sm font-medium leading-relaxed text-slate-600 dark:text-slate-300 min-h-[40px]">
+          {plan.desc}
+        </p>
+      </div>
+
+      <div className="mb-6 pb-6 border-b border-slate-100 dark:border-white/5 relative z-10">
+        {currentPrice.oldPrice && (
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              Was
+            </span>
+            <span className="text-sm font-bold text-slate-400 line-through">
+              {currentPrice.oldPrice}
+            </span>
+            {currentPrice.savings && (
+              <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-2xs">
+                {currentPrice.savings}
+              </span>
+            )}
+          </div>
+        )}
+        <div className="flex items-baseline gap-1">
+          <AnimatePresence mode="wait">
+            <m.span
+              key={currentPrice.price}
+              initial={{ y: 8, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -8, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="text-4xl sm:text-[46px] font-black tracking-tight text-slate-950 dark:text-white"
+            >
+              {currentPrice.price}
+            </m.span>
+          </AnimatePresence>
+          {currentPrice.period && (
+            <span className="text-xs font-extrabold text-slate-400">{currentPrice.period}</span>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-3.5 mb-8 flex-grow relative z-10">
+        {plan.displayFeatures.map((feature) => (
+          <PricingFeature key={feature.label} {...feature} isPopular={plan.popular} />
+        ))}
+      </div>
+
+      <Button
+        onClick={handlePrimaryCta}
+        className={cn(
+          'w-full h-12 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 relative z-10',
+          plan.popular
+            ? 'bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/40 hover:scale-[1.01] active:scale-[0.98]'
+            : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-950 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]'
+        )}
+      >
+        <span>{plan.buttonText}</span>
+        <ArrowRight className="h-4 w-4" />
+      </Button>
+    </m.div>
+  );
+}
+
 export default function PricingSection({ handlePrimaryCta, viewport }) {
-  const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'quarterly'
-  const [plans, setPlans] = useState(defaultPlans);
-  const [pricesLoaded, setPricesLoaded] = useState(false);
+  const [billingCycle, setBillingCycle] = useState('monthly');
+  const [configuredPlans, setConfiguredPlans] = useState(DEFAULT_PRICING_PLANS);
+  const [isPricingLoading, setIsPricingLoading] = useState(true);
   const sectionRef = useRef(null);
 
   useEffect(() => {
-    // Eagerly load pricing data on mount to avoid flicker when user scrolls there
-    loadPricing();
-  }, []);
+    let isActive = true;
 
-  const loadPricing = async () => {
-    try {
-      const [settings, userCountry] = await Promise.all([SystemSetting.getAll(), detectLocation()]);
-
-      const { countryCurrencyMap } = await import('@/lib/pricingUtils');
-      const currency = countryCurrencyMap[userCountry]?.currency || 'USD';
-      const tierLimits = await fetchAllTierLimits(currency);
-
-      const updatedPlans = defaultPlans.map((plan) => {
-        // Get dynamic feature strings for all tiers
-        const limits = tierLimits[plan.tier];
-        const featureStrings = generateFeatureStrings(plan.tier, limits);
-
-        // Update features with dynamic limits
-        const updatedFeatures = plan.features
-          .map((feature) => {
-            if (feature.includes('AI Evaluations') || feature.includes('AI Writing')) {
-              return featureStrings.writingFeature;
-            }
-            if (feature.includes('AI Speaking')) {
-              return featureStrings.speakingFeature;
-            }
-            return feature;
-          })
-          .filter(Boolean);
-
-        const priceData = getPriceData(
-          plan.tier,
-          plan.defaultPrice || 0,
-          plan.defaultOldPrice,
-          settings,
-          userCountry
-        );
-        const symbol = priceData.symbol || '$';
-        const monthlyPrice = calculatePrice(priceData.price, 'monthly');
-        const monthlyOldPrice = calculatePrice(priceData.oldPrice, 'monthly');
-        const quarterlyPerMonth = calculatePrice(priceData.price, 'quarterly');
-
-        const savingsPercentQuarterly = monthlyOldPrice
-          ? Math.round((1 - Number(quarterlyPerMonth) / Number(monthlyOldPrice)) * 100)
-          : 43;
-
-        const savingsPercentMonthly = monthlyOldPrice
-          ? Math.round((1 - Number(monthlyPrice) / Number(monthlyOldPrice)) * 100)
-          : 0;
-
-        return {
-          ...plan,
-          features: updatedFeatures,
-          pricing: {
-            monthly: {
-              price: `${symbol}${monthlyPrice}`,
-              period: '/mo',
-              oldPrice: monthlyOldPrice ? `${symbol}${monthlyOldPrice}` : null,
-              savings: savingsPercentMonthly > 0 ? `SAVE ${savingsPercentMonthly}%` : null,
-            },
-            quarterly: {
-              price: `${symbol}${quarterlyPerMonth}`,
-              period: '/mo',
-              oldPrice: monthlyOldPrice ? `${symbol}${monthlyOldPrice}` : null,
-              savings: `SAVE ${savingsPercentQuarterly}%`,
-            },
-          },
-        };
+    loadPricingConfiguration()
+      .then((pricingConfig) => {
+        if (isActive) {
+          setConfiguredPlans(configurePricingPlans(DEFAULT_PRICING_PLANS, pricingConfig));
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load landing pricing:', error);
+      })
+      .finally(() => {
+        if (isActive) setIsPricingLoading(false);
       });
 
-      setPlans(updatedPlans);
-      setPricesLoaded(true);
-    } catch (error) {
-      console.error('Failed to load pricing:', error);
-      setPricesLoaded(true); // Show defaults on error
-    }
-  };
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const plans = useMemo(() => buildLandingPlans(configuredPlans), [configuredPlans]);
 
   return (
     <SoftSection
       ref={sectionRef}
       id="pricing"
-      className="scroll-mt-24 bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9]/70 to-[#f8fafc] dark:from-[#080d1e] dark:via-[#0a0f24] dark:to-[#080d1e] border-t border-[#e9eef8]/70 py-16 lg:py-24"
+      className="scroll-mt-24 bg-white dark:bg-[#070912] border-t border-slate-200/60 dark:border-white/5 py-16 lg:py-24"
     >
-      {/* Background Decorations */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -z-10" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[100px] -z-10" />
-
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 relative z-10">
         <div className="mb-10">
           <SectionHeading
             eyebrow="Pricing plans"
@@ -221,166 +285,64 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
             viewport={viewport}
           />
         </div>
+
         <m.div
           initial="hidden"
           whileInView="show"
           viewport={viewport}
           variants={containerVariants}
-          className="text-center mb-10"
+          className="text-center mb-12"
         >
-          <m.div variants={itemVariants} className="flex flex-col items-center gap-4">
-            <div className="flex items-center rounded-full border border-white/90 bg-white/[.72] p-1.5 shadow-[0_14px_35px_-24px_rgba(31,52,106,.5)] backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
+          <m.div variants={itemVariants} className="flex justify-center">
+            <div className="inline-flex items-center rounded-full border border-slate-200/80 bg-slate-100/80 p-1.5 shadow-2xs backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/80">
               <button
+                type="button"
                 onClick={() => setBillingCycle('monthly')}
                 className={cn(
-                  'px-8 py-2.5 rounded-full text-[11px] font-black uppercase tracking-[0.1em] transition-all duration-300',
+                  'px-6 py-2 rounded-full text-xs font-extrabold tracking-wide transition-all duration-200',
                   billingCycle === 'monthly'
-                    ? 'bg-primary text-white shadow-lg shadow-primary/25'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-white text-slate-950 shadow-sm dark:bg-slate-800 dark:text-white'
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 )}
               >
                 Monthly
               </button>
               <button
+                type="button"
                 onClick={() => setBillingCycle('quarterly')}
                 className={cn(
-                  'px-8 py-2.5 rounded-full text-[11px] font-black uppercase tracking-[0.1em] transition-all duration-300 relative',
+                  'px-6 py-2 rounded-full text-xs font-extrabold tracking-wide transition-all duration-200 relative flex items-center gap-2',
                   billingCycle === 'quarterly'
-                    ? 'bg-primary text-white shadow-lg shadow-primary/25'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-white text-slate-950 shadow-sm dark:bg-slate-800 dark:text-white'
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 )}
               >
-                Quarterly
-                <span className="absolute -top-3 -right-4 bg-emerald-600 text-[9px] text-white px-2 py-0.5 rounded-full font-black shadow-lg border-2 border-white dark:border-zinc-900">
-                  SAVE 15%
+                <span>Quarterly</span>
+                <span className="bg-indigo-600 text-[10px] font-black uppercase text-white px-2 py-0.5 rounded-full shadow-2xs">
+                  Save 15%
                 </span>
               </button>
             </div>
           </m.div>
         </m.div>
 
-        <div className="relative min-h-[600px]">
-          {!pricesLoaded ? (
+        <div className="relative min-h-[580px]">
+          {isPricingLoading ? (
             <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <PricingSkeleton />
             </m.div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {plans.map((plan, i) => {
-                const currentPrice = plan.pricing[billingCycle];
-                return (
-                  <m.div
-                    key={plan.name}
-                    initial="hidden"
-                    whileInView="show"
-                    viewport={viewport}
-                    variants={itemVariants}
-                    transition={{ delay: i * 0.1 }}
-                    className={`relative group flex flex-col h-full rounded-[28px] p-8 border backdrop-blur-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl ${
-                      plan.popular
-                        ? 'bg-white dark:bg-slate-900 border-[#5262ef]/60 ring-2 ring-[#5262ef]/25 shadow-[0_20px_50px_-12px_rgba(82,98,239,0.25)] dark:shadow-[0_20px_50px_-12px_rgba(82,98,239,0.35)] md:-translate-y-4 z-20 hover:shadow-primary/40'
-                        : 'border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950/40 hover:border-[#5262ef]/30 shadow-[0_8px_30px_rgb(0,0,0,0.02)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:shadow-[#5262ef]/10'
-                    }`}
-                  >
-                    {/* Background animated glow for popular plan */}
-                    {plan.popular && (
-                      <div className="absolute inset-0 -z-10 bg-primary/5 rounded-2xl blur-xl opacity-50 group-hover:opacity-100 transition-opacity duration-700 animate-pulse" />
-                    )}
-                    {plan.popular && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-[10px] font-black uppercase tracking-widest rounded-full text-white shadow-[0_8px_16px_rgba(59,130,246,0.4)] flex items-center justify-center gap-1.5 whitespace-nowrap leading-none">
-                        <Sparkles className="h-3 w-3" />
-                        <span>Best for regular practice</span>
-                      </div>
-                    )}
-
-                    <div className="mb-8">
-                      <div
-                        className={`h-12 w-12 rounded-xl flex items-center justify-center mb-6 shadow-lg ${plan.popular ? 'bg-primary text-white shadow-primary/20' : 'bg-primary/10 text-primary'}`}
-                      >
-                        <plan.icon className="h-6 w-6" />
-                      </div>
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xl font-black text-foreground">{plan.name}</h3>
-                      </div>
-                      <p className="text-sm font-medium leading-relaxed text-muted-foreground">
-                        {plan.desc}
-                      </p>
-                    </div>
-
-                    <div className="mb-8 h-20 flex flex-col justify-end">
-                      {currentPrice.oldPrice && (
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none">
-                            Was
-                          </span>
-                          <span className="text-lg font-bold text-muted-foreground line-through decoration-primary/40">
-                            {currentPrice.oldPrice}
-                          </span>
-                          {currentPrice.savings && (
-                            <Badge
-                              variant="outline"
-                              className="bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border-emerald-500/20 text-[9px] font-black py-0 px-2 rounded-lg"
-                            >
-                              {currentPrice.savings}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-                      <div className="flex items-baseline gap-1">
-                        <AnimatePresence mode="wait">
-                          <m.span
-                            key={currentPrice.price}
-                            initial={{ y: 10, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: -10, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="text-5xl font-black tracking-tight text-foreground"
-                          >
-                            {currentPrice.price}
-                          </m.span>
-                        </AnimatePresence>
-                        {currentPrice.period && (
-                          <span className="text-sm font-bold text-muted-foreground">
-                            {currentPrice.period}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4 mb-10 flex-grow">
-                      {plan.features.map((feature, idx) => (
-                        <div
-                          key={idx}
-                          className="flex gap-3 items-center group/item text-sm cursor-default"
-                        >
-                          <div
-                            className={`flex-shrink-0 h-5 w-5 rounded-full flex items-center justify-center transition-all duration-300 group-hover/item:scale-110 ${plan.popular ? 'bg-emerald-500/20 group-hover/item:bg-emerald-500/40' : 'bg-primary/10 group-hover/item:bg-primary/30'}`}
-                          >
-                            <CheckCircle2
-                              className={`h-3 w-3 ${plan.popular ? 'text-emerald-500 dark:text-emerald-400' : 'text-primary'}`}
-                            />
-                          </div>
-                          <span className="font-semibold tracking-tight text-muted-foreground group-hover/item:text-foreground transition-all duration-300 group-hover/item:translate-x-1">
-                            {feature}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <Button
-                      className={`w-11/12 mx-auto h-12 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
-                        plan.popular
-                          ? 'shiny-button bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 border-t border-white/20'
-                          : 'bg-background hover:bg-muted border border-border/60 text-foreground'
-                      }`}
-                      onClick={handlePrimaryCta}
-                    >
-                      {plan.buttonText}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </m.div>
-                );
-              })}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch pt-5">
+              {plans.map((plan, index) => (
+                <PricingPlanCard
+                  key={plan.name}
+                  plan={plan}
+                  billingCycle={billingCycle}
+                  handlePrimaryCta={handlePrimaryCta}
+                  viewport={viewport}
+                  index={index}
+                />
+              ))}
             </div>
           )}
         </div>
