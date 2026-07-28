@@ -90,7 +90,7 @@ export default function GrammarTransfer({
           </h1>
           <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
             Repair work becomes useful only when it transfers into Writing or Speaking. Transfer
-            evidence is stored separately and does not directly change deterministic mastery.
+            evidence is stored separately and does not directly change Grammar skill progress.
           </p>
         </div>
 

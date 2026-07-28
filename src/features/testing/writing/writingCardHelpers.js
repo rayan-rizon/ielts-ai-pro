@@ -1,6 +1,7 @@
 import { GraduationCap, PenTool } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { withLearningActivity } from '@/features/testing/shared/activityContext';
 
 // ---------------------------------------------------------------------------
 // Access lock
@@ -43,6 +44,6 @@ export function resolveWritingLinkConfig(isLocked, test) {
   }
   return {
     ContainerLink: Link,
-    linkProps: { to: `/writing-task?taskId=${test.id}` },
+    linkProps: { to: withLearningActivity(`/writing-task?taskId=${test.id}`) },
   };
 }

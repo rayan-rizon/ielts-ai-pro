@@ -484,7 +484,7 @@ export function calculatePassageProficiency(sectionStats: SectionStats[]): Passa
 
 /**
  * Main function to calculate all enhanced metrics.
- * This is the primary function to call from useTestSubmission.
+ * This is the primary function for building persisted test evidence.
  */
 export function calculateEnhancedMetrics(
   results: {

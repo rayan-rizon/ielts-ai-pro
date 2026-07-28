@@ -62,6 +62,7 @@ interface CreateSessionParams {
   type: 'reading' | 'listening';
   testMode?: 'practice' | 'exam';
   durationSeconds?: number;
+  learningPathActivityId?: string | null;
 }
 
 /**
@@ -273,6 +274,7 @@ export async function createTestSession({
   type,
   testMode = 'practice',
   durationSeconds = 60 * 60,
+  learningPathActivityId = null,
 }: CreateSessionParams): Promise<TestSession> {
   const durationMinutes = Math.ceil(durationSeconds / 60);
   const { data, error } = await supabase
@@ -284,6 +286,7 @@ export async function createTestSession({
       is_completed: false,
       duration_minutes: durationMinutes,
       passage_id: passageId,
+      learning_path_activity_id: learningPathActivityId,
       content_data: {
         passage_id: passageId,
         test_mode: testMode,

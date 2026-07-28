@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useListeningTestDispatch, useListeningTestState } from '../context/ListeningTestContext';
 import { initializeTest } from '@/lib/testInitializer';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
+import { getLearningActivityId } from '@/features/testing/shared/activityContext';
 import { computeQuestionNumbers } from '../utils/questionProcessing';
 import { calculateListeningTestResults } from '../utils/scoreCalculator';
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
@@ -388,6 +389,7 @@ export const useListeningTestLogic = () => {
           score: results.bandScore,
           completed_at: new Date().toISOString(),
           duration_minutes: actualTimeSpentMinutes,
+          actual_duration_seconds: actualTimeSpentSeconds,
           user_responses: answers || {},
           content_data: {
             ...session.content_data,
@@ -463,6 +465,7 @@ export const useListeningTestLogic = () => {
           is_completed: false,
           duration_minutes: Math.ceil(durationSeconds / 60),
           passage_id: testData.id,
+          learning_path_activity_id: getLearningActivityId(),
           content_data: {
             passage_id: testData.id,
             title: testData.title,

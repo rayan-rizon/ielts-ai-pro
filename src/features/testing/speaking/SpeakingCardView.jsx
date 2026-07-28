@@ -19,6 +19,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { getSpeakingColorVariants } from './speakingColorConfig';
 import { createPageUrl } from '@/utils';
+import { withLearningActivity } from '@/features/testing/shared/activityContext';
 
 // ---------------------------------------------------------------------------
 // Sub-components (extracted to lower CC)
@@ -225,7 +226,11 @@ function CardActions({
   }
   if (isResuming) {
     return (
-      <Link to={`/speaking-test/${test.id}`} className="block mt-3" data-oid=":zh0p1.">
+      <Link
+        to={withLearningActivity(`/speaking-test/${test.id}`)}
+        className="block mt-3"
+        data-oid=":zh0p1."
+      >
         <Button
           className={cn(
             'w-full bg-white/90 dark:bg-transparent backdrop-blur-md border font-bold rounded-lg sm:rounded-xl h-10 text-xs sm:text-sm shadow-2xs hover:shadow-xs transition-all active:scale-[0.98]',
@@ -256,7 +261,10 @@ function CardActions({
             View Feedback <ArrowRight className="w-4 h-4 ml-1.5" data-oid="kqmoi6:" />
           </Button>
         </Link>
-        <Link to={`/speaking-test?test-id=${test.id}&retake=true`} data-oid="uyc57.d">
+        <Link
+          to={withLearningActivity(`/speaking-test?test-id=${test.id}&retake=true`)}
+          data-oid="uyc57.d"
+        >
           <Button
             variant="outline"
             className="h-10 px-3.5 rounded-lg sm:rounded-xl border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 backdrop-blur-md active:scale-[0.98]"
@@ -269,7 +277,11 @@ function CardActions({
     );
   }
   return (
-    <Link to={`/speaking-test?test-id=${test.id}`} className="block mt-3" data-oid="telg.3f">
+    <Link
+      to={withLearningActivity(`/speaking-test?test-id=${test.id}`)}
+      className="block mt-3"
+      data-oid="telg.3f"
+    >
       <Button
         className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-bold rounded-lg sm:rounded-xl h-10 text-xs sm:text-sm shadow-md shadow-slate-900/10 dark:shadow-rose-900/30 transition-all hover:scale-[1.01] active:scale-[0.98] border-0"
         data-oid="7ks8n2n"

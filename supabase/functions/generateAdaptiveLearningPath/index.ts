@@ -6,9 +6,11 @@ import {
   aggregateReadiness,
   buildRoadmap,
   buildSevenDaySchedule,
+  findRecurringObjectiveMistakes,
   fingerprintLearningPathInputs,
   LEARNING_PATH_GENERATOR_VERSION,
   normalizeStudyAvailability,
+  scheduleRecurringRepair,
   summarizeEvidence,
 } from '../_shared/learningPathV2.ts';
 import {
@@ -51,7 +53,7 @@ const triggerMessage = (trigger: string, module?: string) => {
     return 'A result-specific recovery request was fitted into the broader exam roadmap.';
   }
   if (trigger === 'first_plan') {
-    return 'This is your first evidence-aware plan. Diagnostic tasks are used where measured evidence is still missing.';
+    return 'This is your first results-based plan. Level checks are used where more results are needed.';
   }
   return 'Your evidence or goals changed since the previous revision.';
 };
@@ -67,13 +69,22 @@ const localIsoDate = (timezone: string) => {
   return `${value.year}-${value.month}-${value.day}`;
 };
 
+function isCurrentSkillEvidence(skill: any) {
+  const module = String(skill.module || '').toLowerCase();
+  const isGeneratedCriterion =
+    module === 'writing' ||
+    module === 'speaking' ||
+    /_(writing|speaking)$/i.test(String(skill.skill_code || ''));
+  return !isGeneratedCriterion || skill.evidence_version === '2026-07-29-v5';
+}
+
 const checkpointFor = (readiness: any, roadmap: any[]) => {
   if (readiness.missing_diagnostics.length) {
     const module = readiness.missing_diagnostics[0];
     return {
       type: 'diagnostic',
       module,
-      title: `${module.charAt(0).toUpperCase() + module.slice(1)} scored diagnostic`,
+      title: `${module.charAt(0).toUpperCase() + module.slice(1)} scored level check`,
       progress_definition:
         'Complete a scored attempt; two recent attempts are required before a module range is treated as sufficient.',
     };
@@ -161,7 +172,7 @@ async function buildCoachSummary({
   const fallback = {
     headline:
       evidence.measured_priorities.length > 0
-        ? 'Start with the strongest measured priority, then protect review time.'
+        ? 'Start with the clearest confirmed focus, then protect review time.'
         : 'Measure first, then personalize from trustworthy results.',
     explanation: readiness.overall.available
       ? `Your current practice evidence spans Band ${readiness.overall.range[0]}–${readiness.overall.range[1]}. This is an observed range, not a prediction.`
@@ -196,7 +207,7 @@ async function buildCoachSummary({
 
   try {
     const prompt = `You are an IELTS coach. Write a concise, conservative plan explanation from aggregate evidence only.
-Never predict improvement, promise a score, or call diagnostic/early-signal skills weaknesses.
+Never predict improvement, promise a score, or call level-check/needs-more-results skills weaknesses.
 Return JSON only: {"headline":"max 18 words","explanation":"max 65 words"}.
 
 <aggregate_evidence>
@@ -330,7 +341,9 @@ serve(async (req: Request) => {
       await Promise.all([
         supabase
           .from('test_sessions')
-          .select('id, test_type, score, completed_at, created_at, is_completed')
+          .select(
+            'id, test_type, score, completed_at, created_at, is_completed, content_data, evaluation_status, evaluation_version'
+          )
           .eq('user_id', profile.id)
           .eq('is_completed', true)
           .gte('completed_at', cutoff)
@@ -339,7 +352,7 @@ serve(async (req: Request) => {
         supabase
           .from('skill_proficiency')
           .select(
-            'skill_code, module, mastery_probability, confidence_level, practice_count, correct_count, last_practiced_at, next_review_at'
+            'skill_code, module, mastery_probability, confidence_level, practice_count, correct_count, last_practiced_at, next_review_at, evidence_version'
           )
           .eq('user_id', profile.id)
           .limit(120),
@@ -366,6 +379,7 @@ serve(async (req: Request) => {
       Number(profile.study_hours_goal || 10),
       timezone
     );
+    const currentSkills = (skills || []).filter(isCurrentSkillEvidence);
     const fingerprintInput = {
       generator_version: LEARNING_PATH_GENERATOR_VERSION,
       goal: {
@@ -379,21 +393,16 @@ serve(async (req: Request) => {
         module: session.test_type,
         score: session.score,
         completed_at: session.completed_at,
+        type_stats: session.content_data?.typeStats || null,
       })),
-      skills: (skills || [])
-        .filter(
-          (skill: any) =>
-            !['grammar_writing', 'grammar_speaking'].includes(
-              String(skill.skill_code || '').toLowerCase()
-            )
-        )
-        .map((skill: any) => ({
-          code: skill.skill_code,
-          mastery: skill.mastery_probability,
-          confidence: skill.confidence_level,
-          observations: skill.practice_count,
-          review: skill.next_review_at,
-        })),
+      skills: currentSkills.map((skill: any) => ({
+        code: skill.skill_code,
+        mastery: skill.mastery_probability,
+        confidence: skill.confidence_level,
+        observations: skill.practice_count,
+        review: skill.next_review_at,
+        evidence_version: skill.evidence_version || null,
+      })),
       grammar_attempts: (grammarAttempts || []).map((attempt: any) => ({
         id: attempt.id,
         mode: attempt.mode,
@@ -424,8 +433,9 @@ serve(async (req: Request) => {
       );
     }
 
-    const evidence = summarizeEvidence(skills || []);
+    const evidence = summarizeEvidence(currentSkills);
     const readiness = aggregateReadiness(sessions || []);
+    const recurringMistakes = findRecurringObjectiveMistakes(sessions || []);
     const localToday = localIsoDate(availability.timezone);
     const planningTestDate =
       profile.test_date && new Date(profile.test_date).getTime() >= new Date(localToday).getTime()
@@ -443,6 +453,10 @@ serve(async (req: Request) => {
       scheduleData.schedule,
       latest?.path_data,
       availability
+    );
+    scheduleData.schedule = scheduleRecurringRepair(
+      scheduleData.schedule,
+      recurringMistakes[0] || null
     );
     const checkpoint = checkpointFor(readiness, roadmap);
     const goalSnapshot = {
@@ -499,6 +513,7 @@ serve(async (req: Request) => {
         due_reviews: evidence.due_reviews.filter((signal: any) => signal.module === 'grammar'),
         criterion_signals: evidence.criterion_signals,
       },
+      recurring_mistakes: recurringMistakes,
       coach_summary: coach.summary,
       why_plan_changed: triggerMessage(effectiveTrigger, body?.module),
       next_checkpoint: checkpoint,

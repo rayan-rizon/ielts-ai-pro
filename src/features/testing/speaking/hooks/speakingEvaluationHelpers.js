@@ -2,6 +2,8 @@ import { toast } from 'sonner';
 
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
 import { trackAppEvent } from '@/lib/tracking';
+import { supabase } from '@/lib/supabase';
+import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
 
 // ─── Data helpers ─────────────────────────────────────────────────────────────
 
@@ -68,17 +70,58 @@ export async function persistSuccessfulEvaluation({
   conversationsToEvaluate,
   saveSessionProgress,
 }) {
-  await saveSessionProgress({
-    is_completed: true,
-    score: evaluation.overallBand ?? null,
-    completed_at: new Date().toISOString(),
-    content_data: {
-      ...session?.content_data,
-      finalEvaluation: evaluation,
-      allPartsConversation: conversationsToEvaluate,
-      criteriaScores: buildCriteriaScores(evaluation),
-    },
-  });
+  const evaluatedAt = new Date().toISOString();
+  const startedAt = session?.started_at || session?.created_at;
+  const elapsed = startedAt
+    ? Math.round((Date.now() - new Date(startedAt).getTime()) / 1000)
+    : null;
+  const actualDurationSeconds =
+    Number.isFinite(elapsed) && elapsed > 0 && elapsed <= 14400 ? elapsed : null;
+  const { data, error } = await supabase
+    .from('test_sessions')
+    .update({
+      is_completed: true,
+      score: evaluation.overallBand ?? null,
+      completed_at: evaluatedAt,
+      evaluation_status: 'complete',
+      evaluation_version: CURRENT_EVALUATION_VERSION,
+      evaluated_at: evaluatedAt,
+      actual_duration_seconds: actualDurationSeconds,
+      content_data: {
+        ...session?.content_data,
+        finalEvaluation: {
+          ...evaluation,
+          evaluationVersion: CURRENT_EVALUATION_VERSION,
+          speakingSessionId: session?.id,
+        },
+        allPartsConversation: conversationsToEvaluate,
+        criteriaScores: buildCriteriaScores(evaluation),
+        evaluationVersion: CURRENT_EVALUATION_VERSION,
+        evaluatedAt,
+        timeMetrics: {
+          ...session?.content_data?.timeMetrics,
+          ...(actualDurationSeconds ? { totalTimeSpent: actualDurationSeconds } : {}),
+        },
+      },
+    })
+    .eq('id', session.id)
+    .eq('evaluation_status', 'pending')
+    .select('id')
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data);
+}
+
+export async function claimSpeakingEvaluation(session) {
+  const { data, error } = await supabase
+    .from('test_sessions')
+    .update({ evaluation_status: 'pending' })
+    .eq('id', session.id)
+    .in('evaluation_status', ['not_requested', 'failed'])
+    .select('id')
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data);
 }
 
 export async function persistPendingEvaluation({
@@ -87,6 +130,7 @@ export async function persistPendingEvaluation({
   saveSessionProgress,
 }) {
   await saveSessionProgress({
+    evaluation_status: 'pending',
     content_data: {
       ...session?.content_data,
       allPartsConversation: conversationsToEvaluate,
@@ -136,16 +180,23 @@ export async function handleEvaluationSuccess({
   setEvaluationError,
   awardXP,
 }) {
-  setFinalEvaluation(response.evaluation);
-  setEvaluationError(null);
-  await awardXP(response.evaluation);
-  trackEvaluationSubmitted(session, response.evaluation);
-  await persistSuccessfulEvaluation({
+  if (
+    response.evaluation?.evaluationVersion !== CURRENT_EVALUATION_VERSION ||
+    response.evaluation?.speakingSessionId !== session?.id
+  ) {
+    throw new Error('The speaking feedback did not match this session. Please retry.');
+  }
+  const didPersist = await persistSuccessfulEvaluation({
     session,
     evaluation: response.evaluation,
     conversationsToEvaluate,
     saveSessionProgress,
   });
+  if (!didPersist) return;
+  setFinalEvaluation(response.evaluation);
+  setEvaluationError(null);
+  await awardXP(response.evaluation);
+  trackEvaluationSubmitted(session, response.evaluation);
   await removeSpeakingTestsCache();
   refreshLearningPath(session, response.evaluation);
 }
@@ -184,5 +235,12 @@ export async function handleGenericEvaluationError({
     description: resolvedError.description,
     duration: 8000,
   });
-  await persistPendingEvaluation({ session, conversationsToEvaluate, saveSessionProgress });
+  await saveSessionProgress({
+    evaluation_status: 'failed',
+    content_data: {
+      ...session?.content_data,
+      allPartsConversation: conversationsToEvaluate,
+      evaluationPending: false,
+    },
+  });
 }

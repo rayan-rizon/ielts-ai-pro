@@ -41,7 +41,7 @@ function HeaderMetric({ icon: Icon, value, label, tone, href, onClick, disabled 
     </>
   );
   const className =
-    'flex min-w-[104px] items-center gap-2.5 rounded-2xl px-3 py-2.5 transition hover:bg-[#f8f8fd] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6972e8] disabled:cursor-not-allowed disabled:opacity-45 dark:hover:bg-white/5';
+    'flex min-w-[102px] items-center gap-2 rounded-2xl border border-[#e2e5f2] bg-white px-2.5 py-2 shadow-[0_14px_30px_-26px_rgba(43,53,128,0.9)] transition hover:-translate-y-0.5 hover:border-[#cfd4f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6972e8] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0 dark:border-white/10 dark:bg-[#10131f] dark:hover:bg-white/5';
 
   return href ? (
     <a href={href} className={className}>
@@ -68,7 +68,7 @@ function GrammarHeaderStats({ dashboard, isStarting, onReview }) {
   return (
     <div
       aria-label="Grammar practice summary"
-      className="flex flex-wrap items-center divide-x divide-[#e8e9f2] rounded-2xl border border-[#e2e5f2] bg-white p-1 shadow-[0_15px_35px_-30px_rgba(43,53,128,0.75)] dark:divide-white/10 dark:border-white/10 dark:bg-[#10131f]"
+      className="flex flex-wrap items-center justify-end gap-2"
     >
       <HeaderMetric
         icon={Target}
@@ -161,16 +161,16 @@ export default function GrammarLab() {
         title="IELTS Grammar Lab | IELTS Ai Pro"
         description="Practice grammar through Academic IELTS Writing and Speaking contexts, then connect measured evidence to your Learning Path."
       />
-      <main className="min-h-full bg-[#f5f7fc] px-3 py-5 pt-16 text-slate-950 dark:bg-[#070913] dark:text-white sm:px-5 sm:pt-5 md:px-7 md:py-7">
+      <main className="min-h-full bg-[radial-gradient(circle_at_78%_0%,rgba(226,222,255,0.36),transparent_32%),#f8f9fc] px-3 py-4 pt-16 text-slate-950 dark:bg-[#070913] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5">
         <div className="mx-auto max-w-[1440px]">
           {screen === 'dashboard' && (
-            <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
+            <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.15em] text-[#5963d9]">
                   <BookOpenCheck className="h-4 w-4" />
                   Learning tool
                 </div>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-none sm:leading-tight">
+                <h1 className="text-3xl font-black leading-none tracking-tight text-slate-900 dark:text-white sm:text-4xl sm:leading-tight">
                   Grammar Lab
                 </h1>
                 <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-300">

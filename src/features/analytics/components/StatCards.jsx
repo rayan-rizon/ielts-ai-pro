@@ -13,14 +13,12 @@ export default function StatCards({ stats, _progressToTarget }) {
   const hasScoreData = (stats.scoredTests ?? stats.totalTests ?? 0) > 0;
 
   const modulesWithData = stats.modulesWithData || 0;
-  const hasOverallEstimate = stats.predictedOverallBand != null && modulesWithData === 4;
+  const hasOverallEstimate = stats.overallEstimate != null && modulesWithData === 4;
   const displayScore = !hasScoreData
     ? '--'
     : hasOverallEstimate
       ? String(
-          stats.predictedOverallBand % 1 === 0
-            ? stats.predictedOverallBand.toFixed(1)
-            : stats.predictedOverallBand
+          stats.overallEstimate % 1 === 0 ? stats.overallEstimate.toFixed(1) : stats.overallEstimate
         )
       : stats.avgScore;
 
@@ -35,7 +33,7 @@ export default function StatCards({ stats, _progressToTarget }) {
       )
     : null;
 
-  // 1. Predicted Band Subtitle
+  // 1. Current score subtitle
   const scoredText = hasOverallEstimate
     ? 'Latest score from all 4 modules'
     : 'Completed-practice average';
@@ -44,31 +42,32 @@ export default function StatCards({ stats, _progressToTarget }) {
     hasScoreData && improvementVal !== 0
       ? ` • ${improvementVal > 0 ? '▲' : '▼'} ${Math.abs(improvementVal)} bands`
       : '';
-  const predictedBandSubtitle = `${scoredText}${trendText}`;
+  const scoreSubtitle = `${scoredText}${trendText}`;
 
   // 2. Your Goal Subtitle
-  const gap = Number(stats.targetScore) - Number(stats.avgScore);
+  const scoreForGoal = hasOverallEstimate ? Number(stats.overallEstimate) : Number(stats.avgScore);
+  const gap = Number(stats.targetScore) - scoreForGoal;
   const goalSubtitle = !hasScoreData
     ? 'Awaiting test scores'
     : gap <= 0
       ? 'Target achieved!'
-      : `Gap: -${formatBand(gap)} band score`;
+      : `${formatBand(gap)} ${gap === 1 ? 'band' : 'bands'} to target`;
 
   // 3. Study Effort Subtitle
   const studySubtitle = averageMinutes ? `${averageMinutes} min/test average` : 'No timing data';
 
-  // 4. Words Learned Subtitle
+  // 4. Saved Vocabulary Subtitle
   const vocabSubtitle = 'Active vocabulary entries';
 
   const cards = [
     {
-      title: hasOverallEstimate ? 'Overall Estimate' : 'Practice Average',
+      title: hasOverallEstimate ? 'Overall estimate' : 'Practice average',
       value: displayScore,
       badge: currentLabel,
       icon: Target,
       tone: 'bg-[#6d55e8]/10 text-[#6d55e8] dark:bg-[#6d55e8]/20 dark:text-[#8875f0] border-[#6d55e8]/20',
       badgeTone: 'bg-[#6d55e8]/15 text-[#6d55e8] dark:bg-[#6d55e8]/25 dark:text-[#a090f5]',
-      subtitle: predictedBandSubtitle,
+      subtitle: scoreSubtitle,
     },
     {
       title: 'Your Goal',
@@ -81,7 +80,10 @@ export default function StatCards({ stats, _progressToTarget }) {
     },
     {
       title: 'Study Effort',
-      value: `${stats.studyHours}h`,
+      value:
+        Number(stats.studyMinutes) > 0 && Number(stats.studyMinutes) < 60
+          ? `${stats.studyMinutes}m`
+          : `${Number(stats.studyHours || 0).toFixed(1)}h`,
       icon: Clock,
       tone: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border-emerald-500/20',
       subtitle: studySubtitle,
@@ -94,7 +96,7 @@ export default function StatCards({ stats, _progressToTarget }) {
           : null,
     },
     {
-      title: 'Words Learned',
+      title: 'Saved Vocabulary',
       value: stats.vocabCount,
       icon: BookOpen,
       tone: 'bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 border-sky-500/20',

@@ -318,6 +318,12 @@ serve(async (req: Request) => {
         transcriptEvidence.partStats,
         pronunciationEvidence
       );
+      evaluation = {
+        ...evaluation,
+        model: 'gemini-2.5-flash',
+        generatedAt: new Date().toISOString(),
+        speakingSessionId,
+      };
     } catch (parseError) {
       console.error('Failed to parse evaluation:', parseError);
       console.error('Speaking evaluation response could not be parsed', {

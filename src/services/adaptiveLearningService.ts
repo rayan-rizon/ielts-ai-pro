@@ -39,6 +39,9 @@ export interface LearningPathActivity {
   is_completed: boolean;
   completed_at: string | null;
   outcome_score: number | null;
+  outcome_band?: number | null;
+  outcome_accuracy?: number | null;
+  completion_source?: 'manual' | 'test_session' | 'grammar_attempt' | 'transfer' | null;
   outcome_data: Record<string, unknown> | null;
 }
 
@@ -169,6 +172,7 @@ export async function completeActivity(
   const updateData: Partial<LearningPathActivity> = {
     is_completed: true,
     completed_at: new Date().toISOString(),
+    completion_source: 'manual',
   };
 
   if (outcomeData?.score !== undefined) {
@@ -240,7 +244,7 @@ export async function createTodaysFocus(userId: string): Promise<DailyFocus | nu
   } else if (weakSkills.length > 0) {
     focusData.primary_skill = weakSkills[0].skill_code;
     focusData.primary_module = weakSkills[0].module;
-    focusData.ai_reason = `Your ${formatSkillCode(weakSkills[0].skill_code)} needs practice (${Math.round(weakSkills[0].mastery_probability * 100)}% mastery)`;
+    focusData.ai_reason = `Your ${formatSkillCode(weakSkills[0].skill_code)} needs practice (${Math.round(weakSkills[0].mastery_probability * 100)}% skill progress)`;
   }
 
   // Atomic upsert — leverages UNIQUE(user_id, focus_date) constraint
@@ -348,7 +352,7 @@ export function getStudyIntensity(daysUntilExam: number | null): {
 
   return {
     level: 'relaxed',
-    message: 'Build strong foundations with varied practice',
+    message: 'Build core skills with varied practice',
     hoursPerDay: 1.5,
   };
 }

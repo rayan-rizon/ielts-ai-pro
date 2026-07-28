@@ -40,7 +40,7 @@ export function ReadingInsightsCard({ totalPassages }) {
                 className="text-base font-black text-slate-900 dark:text-white"
                 data-oid="rhi41c1"
               >
-                Mastery Progress
+                Reading skill progress
               </h4>
             </div>
 

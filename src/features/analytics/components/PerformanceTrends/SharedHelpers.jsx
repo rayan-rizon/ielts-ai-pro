@@ -187,7 +187,7 @@ export function EvidencePriorityItem({ item, 'data-oid': dataOid }) {
           </p>
           <p className="mt-0.5 text-[9.5px] font-semibold text-slate-400">
             {item?.observations || 0} graded answers
-            {mastery == null ? '' : ` · ${mastery}% mastery`}
+            {mastery == null ? '' : ` · ${mastery}% skill progress`}
           </p>
         </div>
         <span
@@ -198,7 +198,7 @@ export function EvidencePriorityItem({ item, 'data-oid': dataOid }) {
               : 'border-indigo-200/60 bg-indigo-50 text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300'
           )}
         >
-          {isMeasured ? 'Measured' : 'Early'}
+          {isMeasured ? 'Confirmed focus' : 'Needs more results'}
         </span>
       </div>
     </div>

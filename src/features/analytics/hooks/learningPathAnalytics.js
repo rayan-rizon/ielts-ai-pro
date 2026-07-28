@@ -58,7 +58,14 @@ export function buildLearningPathAnalytics(path) {
 
   return {
     fingerprint: path.input_fingerprint || null,
-    confidenceLabel: evidence.confidence_label || 'diagnostic',
+    confidenceLabel:
+      {
+        high: 'Reliable scores',
+        moderate: 'Some scores',
+        developing: 'Some scores',
+        diagnostic: 'Needs more results',
+        low: 'Needs more results',
+      }[evidence.confidence_label] || 'Needs more results',
     counts: {
       measured: Number(evidence.counts?.measured) || 0,
       early: Number(evidence.counts?.early) || earlySignals.length,
@@ -81,7 +88,7 @@ export function buildLearningPathAnalytics(path) {
     aiSuggestions: {
       learning_path_overview:
         coachOverview(path.coach_summary) ||
-        'Complete scored practice so your plan can distinguish measured priorities from early signals.',
+        'Complete scored practice so your plan can confirm which skills need attention.',
       recommended_focus_areas: recommendedFocusAreas,
     },
   };

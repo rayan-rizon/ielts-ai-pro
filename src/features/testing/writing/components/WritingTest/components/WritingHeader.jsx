@@ -213,6 +213,8 @@ export function WritingHeader({
                   if (currentFeedback && isCompleted) {
                     const element = document.getElementById('feedback-section');
                     if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  } else if (isCompleted) {
+                    handleGetFeedback();
                   } else if (
                     activeType === 'Task 1' &&
                     compositeTasks &&
@@ -255,6 +257,12 @@ export function WritingHeader({
                     <span className="md:hidden" data-oid="xdavx2-mob">
                       RESULTS
                     </span>
+                  </>
+                ) : isCompleted ? (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">ANALYZE RESPONSE</span>
+                    <span className="sm:hidden">ANALYZE</span>
                   </>
                 ) : activeType === 'Task 1' && compositeTasks && compositeTasks['Task 2'] ? (
                   <>

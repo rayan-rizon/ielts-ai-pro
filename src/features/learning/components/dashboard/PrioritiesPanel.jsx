@@ -49,8 +49,8 @@ function PriorityRow({ skill, index }) {
         : 'Needs more answers';
   const kindLabel =
     {
-      Measured: 'Confirmed priority',
-      'Early signal': 'Watch this skill',
+      'Confirmed focus': 'Confirmed focus',
+      'Needs more results': 'Watch this skill',
       'Review due': 'Review now',
     }[skill.kind] || skill.kind;
 

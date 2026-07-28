@@ -177,11 +177,13 @@ const PersonalWordBank = ({
   handleDeleteWord,
   handleLoadMore,
 }) => (
-  <div className="bg-gradient-to-b from-white via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900/80 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05)] border border-slate-200/80 dark:border-slate-800 p-5 space-y-4">
+  <div className="rounded-[22px] border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] p-5 sm:p-6 space-y-4">
     <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
       <div className="space-y-0.5">
-        <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-          <BookOpen className="w-4 h-4 text-indigo-500" />
+        <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[#efedff] text-[#5862df] dark:bg-indigo-500/20 dark:text-indigo-300 flex items-center justify-center ring-1 ring-[#5862df]/15">
+            <BookOpen className="w-4 h-4" />
+          </div>
           My Saved Words
         </h3>
         <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">

@@ -1,11 +1,13 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { callEdgeFunction } from '@/utils/api';
+import { supabase } from '@/lib/supabase';
 
 import { buildPartContexts } from '../utils/speakingTestUtils';
+import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
 
-function canFireDeepDive(testId, conversations, isAlreadyGenerating) {
-  return Boolean(testId && conversations && !isAlreadyGenerating);
+function canFireDeepDive(testId, sessionId, conversations, isAlreadyGenerating) {
+  return Boolean(testId && sessionId && conversations && !isAlreadyGenerating);
 }
 
 function extractDeepDiveError(error) {
@@ -20,11 +22,51 @@ async function fetchDeepDiveAnalysis({ testId, session, conversationsToEvaluate,
     partContexts: buildPartContexts(allParts),
   });
 
-  if (!response.success || !response.detailedAnalysis) {
+  if (
+    !response.success ||
+    !response.detailedAnalysis ||
+    response.detailedAnalysis.evaluationVersion !== CURRENT_EVALUATION_VERSION ||
+    response.detailedAnalysis.speakingSessionId !== session?.id
+  ) {
     throw new Error('Invalid deep dive response format');
   }
 
   return response.detailedAnalysis;
+}
+
+export async function persistDeepDiveAnalysis(session, analysis) {
+  const { data: currentSession, error: readError } = await supabase
+    .from('test_sessions')
+    .select('content_data, evaluation_status, evaluation_version')
+    .eq('id', session.id)
+    .single();
+  if (readError) throw readError;
+  if (
+    currentSession?.evaluation_status !== 'complete' ||
+    currentSession?.evaluation_version !== CURRENT_EVALUATION_VERSION
+  ) {
+    throw new Error('The current speaking evaluation is not ready for a deep dive.');
+  }
+
+  const { data: updatedSession, error: updateError } = await supabase
+    .from('test_sessions')
+    .update({
+      content_data: {
+        ...currentSession.content_data,
+        detailedFeedback: {
+          ...analysis,
+          evaluationVersion: CURRENT_EVALUATION_VERSION,
+          speakingSessionId: session.id,
+        },
+      },
+    })
+    .eq('id', session.id)
+    .eq('evaluation_status', 'complete')
+    .eq('evaluation_version', CURRENT_EVALUATION_VERSION)
+    .select('id')
+    .maybeSingle();
+  if (updateError) throw updateError;
+  if (!updatedSession) throw new Error('The speaking session changed before the deep dive saved.');
 }
 
 async function executeDeepDive({
@@ -36,7 +78,6 @@ async function executeDeepDive({
   setDetailedFeedback,
   setDeepDiveError,
   setIsGeneratingDetailed,
-  saveSessionProgress,
 }) {
   setIsGeneratingDetailed(true);
   setDeepDiveError(null);
@@ -48,10 +89,8 @@ async function executeDeepDive({
       allParts,
     });
     if (isMountedRef.current) {
+      await persistDeepDiveAnalysis(session, analysis);
       setDetailedFeedback(analysis);
-      saveSessionProgress({
-        content_data: { ...session?.content_data, detailedFeedback: analysis },
-      });
     }
   } catch (error) {
     if (isMountedRef.current) {
@@ -63,22 +102,24 @@ async function executeDeepDive({
   }
 }
 
-export default function useDeepDive({
-  testId,
-  session,
-  allParts,
-  saveSessionProgress,
-  isMountedRef,
-}) {
+export default function useDeepDive({ testId, session, allParts, isMountedRef }) {
   const [detailedFeedback, setDetailedFeedback] = useState(
     session?.content_data?.detailedFeedback ?? null
   );
   const [isGeneratingDetailed, setIsGeneratingDetailed] = useState(false);
   const [deepDiveError, setDeepDiveError] = useState(null);
 
+  useEffect(() => {
+    setDetailedFeedback(session?.content_data?.detailedFeedback ?? null);
+    setDeepDiveError(null);
+    setIsGeneratingDetailed(false);
+  }, [session?.id, session?.content_data?.detailedFeedback]);
+
   const fireDeepDive = useCallback(
     (conversationsToEvaluate) => {
-      if (!canFireDeepDive(testId, conversationsToEvaluate, isGeneratingDetailed)) return;
+      if (!canFireDeepDive(testId, session?.id, conversationsToEvaluate, isGeneratingDetailed)) {
+        return;
+      }
       executeDeepDive({
         testId,
         session,
@@ -88,10 +129,9 @@ export default function useDeepDive({
         setDetailedFeedback,
         setDeepDiveError,
         setIsGeneratingDetailed,
-        saveSessionProgress,
       });
     },
-    [testId, isGeneratingDetailed, session, saveSessionProgress, allParts, isMountedRef]
+    [testId, isGeneratingDetailed, session, allParts, isMountedRef]
   );
 
   return {

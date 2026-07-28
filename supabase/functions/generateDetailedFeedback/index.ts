@@ -607,7 +607,12 @@ Register and tone:
       parsedFeedback = parseStructuredJson(aiContent);
     }
 
-    const feedbackData = normalizeWritingEvaluation(parsedFeedback, taskType, writingText);
+    const feedbackData = {
+      ...normalizeWritingEvaluation(parsedFeedback, taskType, writingText),
+      sourceFingerprint: inputHash,
+      model,
+      generatedAt: new Date().toISOString(),
+    };
 
     await finalizeApiUsage(supabase, quotaReservation.reservationId, tokensUsed, false, {
       taskType,

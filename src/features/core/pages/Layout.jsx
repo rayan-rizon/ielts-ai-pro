@@ -184,7 +184,7 @@ export default function Layout({ children, currentPageName }) {
   return (
     <SidebarStyles data-oid="ffg2pb2">
       <div
-        className="flex flex-col h-screen w-full bg-background text-foreground overflow-hidden"
+        className="flex flex-col h-screen w-full bg-slate-50 dark:bg-[#070913] text-foreground overflow-hidden"
         data-oid="69ossux"
       >
         <OfflineBanner data-oid="-4d:8tg" />
@@ -260,7 +260,13 @@ export default function Layout({ children, currentPageName }) {
                 </div>
               </div>
 
-              <div className={cn('flex-1', isTestPage ? 'flex flex-col h-full min-h-0 overflow-hidden' : 'overflow-auto')} data-oid="at8d7y7">
+              <div
+                className={cn(
+                  'flex-1 bg-slate-50 dark:bg-[#070913]',
+                  isTestPage ? 'flex flex-col h-full min-h-0 overflow-hidden' : 'overflow-auto'
+                )}
+                data-oid="at8d7y7"
+              >
                 {children}
               </div>
             </main>
@@ -271,8 +277,7 @@ export default function Layout({ children, currentPageName }) {
   );
 }
 
-const useIsomorphicLayoutEffect =
-  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 /**
  * SidebarController

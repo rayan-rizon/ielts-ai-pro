@@ -12,7 +12,7 @@ const MODULE_CONFIG = {
     gradientFrom: 'from-violet-500',
     bg: 'bg-violet-500/10',
     border: 'border-violet-500/20',
-    label: 'Writing Criteria',
+    label: 'Writing score areas',
   },
   speaking: {
     icon: Mic2,
@@ -20,8 +20,18 @@ const MODULE_CONFIG = {
     gradientFrom: 'from-rose-500',
     bg: 'bg-rose-500/10',
     border: 'border-rose-500/20',
-    label: 'Speaking Criteria',
+    label: 'Speaking score areas',
   },
+};
+
+const CRITERION_EXPLANATIONS = {
+  'Task Achievement': 'How fully and accurately you answer Task 1',
+  'Task Response': 'How fully and clearly you develop your Task 2 answer',
+  'Coherence & Cohesion': 'How clearly your ideas connect and flow',
+  'Lexical Resource': 'Your range and accuracy of vocabulary',
+  'Grammatical Range & Accuracy': 'Your range and accuracy of sentence structures',
+  'Fluency & Coherence': 'How smoothly and clearly you speak',
+  Pronunciation: 'How easy your speech is to understand',
 };
 
 function CriteriaBar({ label, score, sampleCount, color, index }) {
@@ -35,7 +45,14 @@ function CriteriaBar({ label, score, sampleCount, color, index }) {
       className="space-y-1"
     >
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-foreground/80">{label}</span>
+        <div className="min-w-0">
+          <span className="text-sm font-semibold text-foreground/80">{label}</span>
+          {CRITERION_EXPLANATIONS[label] ? (
+            <p className="text-[10px] font-medium text-muted-foreground">
+              {CRITERION_EXPLANATIONS[label]}
+            </p>
+          ) : null}
+        </div>
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] font-bold text-muted-foreground">
             {sampleCount > 0
@@ -118,7 +135,7 @@ export default function CriteriaBreakdownCard({ module, criteria, labels }) {
                 <Info className={cn('w-4 h-4', config.color)} />
               </div>
               <p className="text-sm font-semibold text-muted-foreground/60 max-w-[180px] leading-relaxed">
-                Complete a {module} test with AI evaluation to see your criteria breakdown
+                Complete a {module} test with AI feedback to see these score areas.
               </p>
             </div>
           ) : (

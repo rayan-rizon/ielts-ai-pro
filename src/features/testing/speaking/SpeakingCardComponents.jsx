@@ -4,6 +4,7 @@ import { Lock, Play, ArrowRight, RotateCcw, ChevronRight, Crown, CheckCircle2 } 
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/button';
 import { getSpeakingColorVariants } from './speakingColorConfig';
+import { withLearningActivity } from '@/features/testing/shared/activityContext';
 
 export function BookProgressBadge({ tests, sessions }) {
   let completed = 0;
@@ -89,7 +90,7 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
   if (isResuming) {
     return (
       <>
-        <Link to={`/speaking-test/${test.id}`}>
+        <Link to={withLearningActivity(`/speaking-test/${test.id}`)}>
           <Button
             size="sm"
             className={cn(
@@ -118,7 +119,7 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
             Results <ArrowRight className="w-2 h-2" />
           </Button>
         </Link>
-        <Link to={`/speaking-test?test-id=${test.id}&retake=true`}>
+        <Link to={withLearningActivity(`/speaking-test?test-id=${test.id}&retake=true`)}>
           <Button
             size="sm"
             variant="outline"
@@ -132,7 +133,7 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
   }
   return (
     <>
-      <Link to={`/speaking-test?test-id=${test.id}`}>
+      <Link to={withLearningActivity(`/speaking-test?test-id=${test.id}`)}>
         <Button
           size="sm"
           className="h-6.5 w-[76px] justify-center rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-500 hover:scale-105 active:scale-95 text-white font-bold text-[10px] shadow-sm flex items-center justify-center gap-1 border-0 transition-all duration-200"

@@ -131,24 +131,25 @@ export default function QuickAddCard({
   };
 
   return (
-    <Card className="w-full overflow-visible border border-slate-200/80 dark:border-slate-800 bg-gradient-to-br from-white via-slate-50/50 to-indigo-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950/20 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05)] rounded-2xl relative z-30">
-      <CardHeader className="p-4 pb-2.5 border-b border-slate-100 dark:border-slate-800/60 flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
-          <div className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-800">
-            <Plus className="w-3.5 h-3.5" />
+    <Card className="w-full overflow-visible border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f3f0ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] rounded-[22px] relative z-30">
+      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#505bdd]/10 blur-xl" />
+      <CardHeader className="p-4 pb-3 border-b border-slate-200/80 dark:border-white/10 flex flex-row items-center justify-between relative">
+        <CardTitle className="flex items-center gap-2.5 text-sm font-black text-slate-900 dark:text-white">
+          <div className="w-8 h-8 rounded-xl bg-[#efedff] text-[#5862df] dark:bg-indigo-500/20 dark:text-indigo-300 flex items-center justify-center ring-1 ring-[#5862df]/15 dark:ring-indigo-500/30 shadow-xs">
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
           </div>
           <span>Quick Add Word</span>
         </CardTitle>
-        <span className="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">
-          Auto Lookup
+        <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#505bdd] dark:text-indigo-300 bg-white/90 dark:bg-white/10 px-2.5 py-0.5 rounded-full border border-[#d8dcfa] dark:border-white/10 shadow-xs">
+          AUTO LOOKUP
         </span>
       </CardHeader>
 
-      <CardContent className="p-4 space-y-3.5 overflow-visible">
+      <CardContent className="p-4 space-y-4 overflow-visible relative">
         {/* Category Pills */}
         <div className="space-y-1.5">
-          <label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-            Category
+          <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest">
+            CATEGORY
           </label>
           <div className="flex flex-wrap gap-1.5">
             {CATEGORIES.map((cat) => (
@@ -157,10 +158,10 @@ export default function QuickAddCard({
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
                 className={cn(
-                  'px-3 py-1 rounded-xl text-xs font-black transition-all duration-200',
+                  'px-3.5 py-1.5 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer',
                   selectedCategory === cat
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                    : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    ? 'bg-[#5661e9] text-white shadow-md shadow-indigo-500/20'
+                    : 'bg-white dark:bg-white/5 border border-[#d8dcfa] dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-[#6570ee]/40'
                 )}
               >
                 {cat}
@@ -171,13 +172,13 @@ export default function QuickAddCard({
 
         {/* Input & Suggestions */}
         <div className="space-y-1.5 relative">
-          <label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-            Word or Expression
+          <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest">
+            WORD OR EXPRESSION
           </label>
           <div className="relative group">
             <Input
               placeholder="Type a word (e.g. ubiquitous)..."
-              className="bg-white dark:bg-slate-950 border-slate-200/80 dark:border-slate-800 focus:ring-indigo-500/20 h-10 pl-3 pr-16 rounded-xl font-semibold text-xs shadow-inner"
+              className="bg-white dark:bg-slate-900 border-[#d8dcfa] dark:border-white/10 focus:border-[#5661e9] h-11 pl-3.5 pr-16 rounded-xl font-semibold text-xs shadow-xs text-slate-900 dark:text-white"
               value={newWord}
               onChange={(e) => {
                 setNewWord(e.target.value);
@@ -191,24 +192,24 @@ export default function QuickAddCard({
               autoComplete="off"
             />
 
-            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
               {newWord.trim() && (
                 <button
                   type="button"
                   onClick={handleAudio}
                   className={cn(
-                    'p-1 rounded text-slate-400 hover:text-indigo-600 transition-colors',
-                    isPlayingAudio && 'text-indigo-600 animate-pulse'
+                    'p-1.5 rounded-lg text-slate-400 hover:text-[#5661e9] transition-colors',
+                    isPlayingAudio && 'text-[#5661e9] animate-pulse bg-[#efedff]'
                   )}
                   title="Test audio"
                 >
-                  <Volume2 className="w-3.5 h-3.5" />
+                  <Volume2 className="w-4 h-4" />
                 </button>
               )}
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-7 w-7 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-indigo-600"
+                className="h-8 w-8 rounded-lg hover:bg-[#efedff] dark:hover:bg-indigo-950/40 text-[#505bdd]"
                 onClick={handleAddWord}
                 disabled={isFetchingDef || !newWord.trim()}
               >
@@ -224,19 +225,19 @@ export default function QuickAddCard({
                 initial={{ opacity: 0, y: -6, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                className="absolute z-50 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg mt-1 overflow-hidden py-1"
+                className="absolute z-50 w-full bg-white dark:bg-slate-900 border border-[#d8dcfa] dark:border-white/10 rounded-xl shadow-lg mt-1 overflow-hidden py-1"
               >
                 {suggestions.map((sug, index) => (
                   <div
                     key={index}
-                    className="px-3 py-2 hover:bg-indigo-50 dark:hover:bg-slate-800 cursor-pointer text-xs font-semibold text-slate-900 dark:text-slate-200 transition-colors flex justify-between items-center group/item"
+                    className="px-3.5 py-2 hover:bg-[#efedff] dark:hover:bg-slate-800 cursor-pointer text-xs font-bold text-slate-900 dark:text-slate-200 transition-colors flex justify-between items-center group/item"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       handleSelectSuggestion(sug.word);
                     }}
                   >
                     <div className="flex items-center gap-2">
-                      <Search className="w-3.5 h-3.5 text-indigo-500" />
+                      <Search className="w-3.5 h-3.5 text-[#505bdd]" />
                       <span>{sug.word}</span>
                     </div>
                     <ChevronRight className="w-3.5 h-3.5 text-slate-400 opacity-0 group-hover/item:opacity-100 transition-opacity" />
@@ -248,16 +249,17 @@ export default function QuickAddCard({
         </div>
 
         {newDefinition && (
-          <div className="bg-indigo-50/80 dark:bg-indigo-950/40 p-3 rounded-xl border border-indigo-200/60 dark:border-indigo-800/40 text-xs font-semibold text-indigo-950 dark:text-indigo-200 italic leading-relaxed">
+          <div className="bg-[#efedff]/80 dark:bg-indigo-950/40 p-3 rounded-xl border border-[#d8dcfa] dark:border-indigo-800/40 text-xs font-semibold text-[#505bdd] dark:text-indigo-200 italic leading-relaxed">
             "{newDefinition}"
           </div>
         )}
 
         <Button
-          className="w-full bg-[#635BFF] hover:bg-[#5249E6] text-white h-10.5 rounded-xl font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]"
+          className="w-full bg-[#5661e9] hover:bg-[#4853da] text-white h-11 rounded-xl font-extrabold text-xs shadow-md shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleAddWord}
           disabled={isAdding || !newWord.trim()}
         >
+          <Plus className="w-4 h-4" strokeWidth={2.5} />
           {isAdding ? 'Adding Word...' : 'Save Word'}
         </Button>
       </CardContent>

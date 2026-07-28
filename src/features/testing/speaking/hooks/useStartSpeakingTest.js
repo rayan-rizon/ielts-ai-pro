@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 
 import { TestSession } from '@/features/testing/shared/services/TestSession';
+import { getLearningActivityId } from '@/features/testing/shared/activityContext';
 
 import { buildInitialSpeakingConversation } from '../utils/speakingTestUtils';
 
@@ -92,6 +93,8 @@ async function createSpeakingSession({
       test_type: 'speaking',
       passage_id: resolvedPassageId,
       is_completed: false,
+      learning_path_activity_id: getLearningActivityId(),
+      evaluation_status: 'not_requested',
       content_data: { passage_id: resolvedPassageId, currentPart: partNumber },
       answers: { conversation: initialConversation, currentQuestionIndex: 0 },
     });

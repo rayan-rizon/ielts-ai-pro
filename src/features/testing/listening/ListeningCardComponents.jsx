@@ -4,6 +4,7 @@ import { Lock, Play, ArrowRight, RotateCcw, ChevronRight, Crown, CheckCircle2 } 
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/button';
 import { colorVariants } from './colorConfig';
+import { withLearningActivity } from '@/features/testing/shared/activityContext';
 
 export function BookProgressBadge({ tests, sessions }) {
   let completed = 0;
@@ -116,7 +117,7 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
             Results <ArrowRight className="w-2 h-2" />
           </Button>
         </Link>
-        <Link to={`/listening-test?test-id=${test.id}&retake=true`}>
+        <Link to={withLearningActivity(`/listening-test?test-id=${test.id}&retake=true`)}>
           <Button
             size="sm"
             variant="outline"
@@ -130,7 +131,7 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
   }
   return (
     <>
-      <Link to={`/listening-test?test-id=${test.id}`}>
+      <Link to={withLearningActivity(`/listening-test?test-id=${test.id}`)}>
         <Button
           size="sm"
           className="h-6.5 w-[76px] justify-center rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-500 hover:scale-105 active:scale-95 text-white font-bold text-[10px] shadow-sm flex items-center justify-center gap-1 border-0 transition-all duration-200"

@@ -7,6 +7,7 @@ import {
   computeSevenDays,
   dateKey,
   getDaySummaryMeta,
+  getFriendlyPlanText,
   getFriendlyTaskTitle,
   getPlanRefreshTrigger,
 } from '@/features/learning/components/dashboard/dashboardUtils';
@@ -118,6 +119,16 @@ describe('Learning Path main page composition', () => {
         activity_type: 'diagnostic',
       })
     ).toBe('Writing level check');
+  });
+
+  it('translates older saved plan wording into learner-friendly terms', () => {
+    expect(
+      getFriendlyPlanText(
+        '1% mastery across 374 observations makes this a measured priority. Evidence quality is an early signal.'
+      )
+    ).toBe(
+      '1% skill progress across 374 observations makes this a confirmed focus. How sure we are: needs more results.'
+    );
   });
 
   it('summarizes each study day without exceeding its saved availability', () => {

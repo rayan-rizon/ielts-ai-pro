@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { createPageUrl } from '@/utils';
 import { colorVariants } from './writingColorConfig';
+import { withLearningActivity } from '@/features/testing/shared/activityContext';
 
 export function WritingStatusBadge({ isLocked, isResuming, isCompleted, color }) {
   if (isLocked) {
@@ -177,6 +178,7 @@ export function WritingActions({
   test,
   session,
   completedSessionId,
+  feedbackReady,
   color,
 }) {
   if (isLocked) {
@@ -212,10 +214,11 @@ export function WritingActions({
               colorVariants[color].button
             )}
           >
-            View Feedback <ArrowRight className="w-4 h-4 ml-1.5" />
+            {feedbackReady ? 'View Feedback' : 'Analyze Response'}{' '}
+            <ArrowRight className="w-4 h-4 ml-1.5" />
           </Button>
         </Link>
-        <Link to={`/writing-task?taskId=${test.id}&new_attempt=true`}>
+        <Link to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}>
           <Button
             variant="outline"
             className="h-10 px-3.5 rounded-lg sm:rounded-xl border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 backdrop-blur-md active:scale-[0.98]"
@@ -227,7 +230,10 @@ export function WritingActions({
     );
   }
   return (
-    <Link to={`/writing-task?taskId=${test.id}&new_attempt=true`} className="block mt-3">
+    <Link
+      to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}
+      className="block mt-3"
+    >
       <Button className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-orange-600 dark:hover:bg-orange-500 text-white font-bold rounded-lg sm:rounded-xl h-10 text-xs sm:text-sm shadow-md shadow-slate-900/10 dark:shadow-orange-900/30 transition-all hover:scale-[1.01] active:scale-[0.98] border-0">
         Start Writing <ChevronRight className="w-4 h-4 ml-1" />
       </Button>
@@ -277,14 +283,16 @@ export function BookProgressBadge({ tests, sessions }) {
   );
 }
 
-export function TestRowBadge({ isLocked, isCompleted, isResuming, score }) {
+export function TestRowBadge({ isLocked, isCompleted, isResuming, score, feedbackReady = true }) {
   if (isLocked) {
     return <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />;
   }
   if (isCompleted) {
     return (
       <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 shrink-0">
-        Band {typeof score === 'number' ? score.toFixed(1) : score}
+        {feedbackReady && score != null
+          ? `Band ${typeof score === 'number' ? score.toFixed(1) : score}`
+          : 'Submitted'}
       </span>
     );
   }
@@ -302,7 +310,15 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, score }) {
   );
 }
 
-export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, test, color }) {
+export function TestRowAction({
+  isLocked,
+  isResuming,
+  isCompleted,
+  testSession,
+  test,
+  color,
+  feedbackReady = true,
+}) {
   if (isLocked) {
     return (
       <>
@@ -347,10 +363,10 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
               colorVariants[color].button
             )}
           >
-            Results <ArrowRight className="w-2 h-2" />
+            {feedbackReady ? 'Results' : 'Analyze'} <ArrowRight className="w-2 h-2" />
           </Button>
         </Link>
-        <Link to={`/writing-task?taskId=${test.id}&new_attempt=true`}>
+        <Link to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}>
           <Button
             size="sm"
             variant="outline"
@@ -364,7 +380,7 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
   }
   return (
     <>
-      <Link to={`/writing-task?taskId=${test.id}&new_attempt=true`}>
+      <Link to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}>
         <Button
           size="sm"
           className="h-6.5 w-[76px] justify-center rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-orange-600 dark:hover:bg-orange-500 hover:scale-105 active:scale-95 text-white font-bold text-[10px] shadow-sm flex items-center justify-center gap-1 border-0 transition-all duration-200"

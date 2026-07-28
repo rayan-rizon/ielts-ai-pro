@@ -7,8 +7,13 @@ import { generateDetailedFeedback } from '@/utils/api';
 import { removeFromCache } from '@/hooks/useDataQuery';
 import { trackAppEvent } from '@/lib/tracking';
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
-
-const CURRENT_FEEDBACK_EVALUATOR_VERSION = '2026-07-28-v4';
+import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
+import {
+  aggregateWritingCriteria,
+  calculateWeightedWritingBand,
+  isCurrentWritingFeedbackCache,
+  normalizeWritingSource,
+} from '@/features/testing/writing/utils/evaluationEvidence';
 
 /**
  * useWritingFeedback
@@ -28,24 +33,23 @@ export function useWritingFeedback(awardXP) {
   const { saveNow } = useWritingTestDispatch();
   const queryClient = useQueryClient();
 
-  // Helper validation function
-  const isValidFeedback = (fb) => {
-    if (!fb) return false;
-    return (
-      fb.overallBand !== undefined ||
-      fb.overall_band !== undefined ||
-      fb.band_score !== undefined ||
-      fb.score !== undefined
-    );
-  };
-
   const analyzingRef = useRef(false);
 
   const handleGetFeedback = useCallback(async () => {
     if (analyzingRef.current) return;
     const store = useWritingTestStore.getState();
-    // Idempotency: prevent duplicate XP awards if already completed
-    if (store.completed || store.session?.is_completed) return;
+    if (store.session?.evaluation_status === 'legacy') {
+      store.setFeedbackError(
+        'This older report is saved as it was. Start a new response to use the latest feedback.'
+      );
+      return;
+    }
+    if (
+      store.session?.evaluation_status === 'complete' &&
+      store.session?.evaluation_version === CURRENT_EVALUATION_VERSION
+    ) {
+      return;
+    }
 
     // Access Control: The backend edge function (generateDetailedFeedback)
     // enforces quota via checkDatabaseQuota() which respects admin-configured
@@ -139,12 +143,24 @@ export function useWritingFeedback(awardXP) {
       const newFeedbacks = { ...store.feedbacks };
       let overallScore = null;
 
+      if (store.session) {
+        const { data: claimed, error: claimError } = await supabase
+          .from('test_sessions')
+          .update({ evaluation_status: 'pending' })
+          .eq('id', store.session.id)
+          .in('evaluation_status', ['not_requested', 'failed'])
+          .select('id')
+          .maybeSingle();
+        if (claimError) throw claimError;
+        if (!claimed) {
+          store.setFeedbackError('This response is already being analyzed or has feedback.');
+          return;
+        }
+      }
+
       // Prepare analysis plan: check cache first for all tasks
       const analysisPlan = tasksToAnalyze.map((type) => {
-        const currentTextRaw = store.drafts[type]
-          .replace(/<[^>]*>/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
+        const currentTextRaw = normalizeWritingSource(store.drafts[type]);
 
         const wordCount = type === 'Task 1' ? task1Words : task2Words;
         const isBelowMinimum = type === 'Task 1' ? wordCount < 150 : wordCount < 250;
@@ -154,27 +170,18 @@ export function useWritingFeedback(awardXP) {
 
         const savedFeedback = store.feedbacks[type];
         if (
-          savedFeedback &&
-          savedFeedback.evaluationVersion === CURRENT_FEEDBACK_EVALUATOR_VERSION &&
-          isValidFeedback(savedFeedback) &&
-          savedFeedback.originalSource
+          isCurrentWritingFeedbackCache({
+            feedback: savedFeedback,
+            response: currentTextRaw,
+            prompt,
+            imageUrl,
+          })
         ) {
-          const savedSourceRaw = savedFeedback.originalSource
-            .replace(/<[^>]*>/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-
-          if (
-            currentTextRaw === savedSourceRaw &&
-            savedFeedback.taskPrompt === prompt &&
-            (savedFeedback.imageUrl || null) === imageUrl
-          ) {
-            return {
-              type,
-              cached: true,
-              feedback: { ...savedFeedback, isBelowMinimumWordCount: isBelowMinimum },
-            };
-          }
+          return {
+            type,
+            cached: true,
+            feedback: { ...savedFeedback, isBelowMinimumWordCount: isBelowMinimum },
+          };
         }
         return {
           type,
@@ -206,6 +213,10 @@ export function useWritingFeedback(awardXP) {
         if (responseData && Object.keys(responseData).length > 0) {
           const raw = responseData;
           const feedbackData = raw.feedback || raw;
+          const responseVersion = feedbackData.evaluationVersion || raw.evaluationVersion;
+          if (responseVersion !== CURRENT_EVALUATION_VERSION) {
+            throw new Error('The feedback service is out of date. Please retry in a moment.');
+          }
 
           const normalized = {
             ...feedbackData,
@@ -246,6 +257,10 @@ export function useWritingFeedback(awardXP) {
             imageUrl: item.imageUrl,
             originalSource: store.drafts[item.type],
             isBelowMinimumWordCount: item.isBelowMinimum,
+            evaluationVersion: responseVersion,
+            sourceFingerprint: feedbackData.sourceFingerprint || null,
+            model: feedbackData.model || null,
+            generatedAt: feedbackData.generatedAt || new Date().toISOString(),
           };
 
           if (item.type === 'Task 2' && !normalized.overallBand && raw.band_score) {
@@ -266,11 +281,7 @@ export function useWritingFeedback(awardXP) {
 
       const scoredTask1Band = newFeedbacks['Task 1']?.overallBand;
       const scoredTask2Band = newFeedbacks['Task 2']?.overallBand;
-      if (scoredTask1Band != null && scoredTask2Band != null) {
-        overallScore = Math.round(((scoredTask1Band + scoredTask2Band * 2) / 3) * 2) / 2;
-      } else {
-        overallScore = scoredTask2Band ?? scoredTask1Band ?? null;
-      }
+      overallScore = calculateWeightedWritingBand(scoredTask1Band, scoredTask2Band);
 
       store.setFeedbacksBulk(newFeedbacks);
       store.setCurrentFeedback(newFeedbacks[store.activeType] || newFeedbacks[tasksToAnalyze[0]]);
@@ -283,63 +294,20 @@ export function useWritingFeedback(awardXP) {
         const task1Feedback = newFeedbacks['Task 1'];
         const task2Feedback = newFeedbacks['Task 2'];
 
-        // Build criteria scores — average Task 1 and Task 2 if both exist
-        // IELTS Writing: Task Achievement, Coherence & Cohesion, Lexical Resource, Grammatical Range
-        const extractCriteria = (fb) => {
-          if (!fb?.criteriaScores) return null;
-          const cs = fb.criteriaScores;
-          return {
-            taskAchievement:
-              Number(
-                cs.TaskAchievement ??
-                  cs.TaskResponse ??
-                  cs.task_achievement ??
-                  cs.task_response ??
-                  cs.TA ??
-                  cs.TR ??
-                  0
-              ) || 0,
-            coherence:
-              Number(cs['Coherence & Cohesion'] ?? cs.CoherenceAndCohesion ?? cs.CC ?? 0) || 0,
-            lexicalResource:
-              Number(cs['Lexical Resource'] ?? cs.LexicalResource ?? cs.LR ?? 0) || 0,
-            grammar:
-              Number(
-                cs.GrammaticalRangeAndAccuracy ??
-                  cs['Grammatical Range & Accuracy'] ??
-                  cs.GrammaticalRange ??
-                  cs.GRA ??
-                  0
-              ) || 0,
-          };
-        };
-
-        const t1Criteria = task1Feedback ? extractCriteria(task1Feedback) : null;
-        const t2Criteria = task2Feedback ? extractCriteria(task2Feedback) : null;
-
-        // Weighted average: Task 2 is worth 2/3, Task 1 is 1/3 in real IELTS
-        let aggregatedCriteria = null;
-        if (t1Criteria && t2Criteria) {
-          aggregatedCriteria = {
-            taskAchievement:
-              Math.round(((t1Criteria.taskAchievement + t2Criteria.taskAchievement * 2) / 3) * 2) /
-              2,
-            coherence: Math.round(((t1Criteria.coherence + t2Criteria.coherence * 2) / 3) * 2) / 2,
-            lexicalResource:
-              Math.round(((t1Criteria.lexicalResource + t2Criteria.lexicalResource * 2) / 3) * 2) /
-              2,
-            grammar: Math.round(((t1Criteria.grammar + t2Criteria.grammar * 2) / 3) * 2) / 2,
-          };
-        } else if (t2Criteria) {
-          aggregatedCriteria = t2Criteria;
-        } else if (t1Criteria) {
-          aggregatedCriteria = t1Criteria;
-        }
+        const t1Criteria = aggregateWritingCriteria(task1Feedback, null);
+        const t2Criteria = aggregateWritingCriteria(null, task2Feedback);
+        const aggregatedCriteria = aggregateWritingCriteria(task1Feedback, task2Feedback);
 
         const updatePayload = {
           is_completed: true,
-          completed_at: completedAt,
+          completed_at: store.session.completed_at || completedAt,
           score: overallScore,
+          evaluation_status: 'complete',
+          evaluation_version: CURRENT_EVALUATION_VERSION,
+          evaluated_at: completedAt,
+          actual_duration_seconds:
+            store.session.actual_duration_seconds ||
+            Math.max(1, 60 * 60 - Number(store.timeRemaining || 0)),
           user_responses: [
             {
               response: JSON.stringify(store.drafts),
@@ -358,17 +326,34 @@ export function useWritingFeedback(awardXP) {
             task2CriteriaScores: t2Criteria,
             task1Band: task1Feedback?.overallBand ?? null,
             task2Band: task2Feedback?.overallBand ?? null,
+            evaluationVersion: CURRENT_EVALUATION_VERSION,
+            evaluatedAt: completedAt,
+            evaluationModel: task2Feedback?.model || task1Feedback?.model || null,
+            sourceFingerprints: {
+              task1: task1Feedback?.sourceFingerprint || null,
+              task2: task2Feedback?.sourceFingerprint || null,
+            },
+            timeMetrics: {
+              ...store.session.content_data?.timeMetrics,
+              totalTimeSpent:
+                store.session.actual_duration_seconds ||
+                Math.max(1, 60 * 60 - Number(store.timeRemaining || 0)),
+            },
           },
         };
 
-        const { error: updateError } = await supabase
+        const { data: completedEvaluation, error: updateError } = await supabase
           .from('test_sessions')
           .update(updatePayload)
-          .eq('id', store.session.id);
+          .eq('id', store.session.id)
+          .eq('evaluation_status', 'pending')
+          .select('id')
+          .maybeSingle();
 
         if (updateError) {
           throw new Error(`Failed to save feedback: ${updateError.message}`);
         }
+        if (!completedEvaluation) throw new Error('Feedback was already saved for this response.');
 
         store.setSession({
           ...store.session,
@@ -419,6 +404,14 @@ export function useWritingFeedback(awardXP) {
       }
     } catch (err) {
       console.error('Feedback error:', err);
+      const failedSessionId = useWritingTestStore.getState().session?.id;
+      if (failedSessionId) {
+        void supabase
+          .from('test_sessions')
+          .update({ evaluation_status: 'failed' })
+          .eq('id', failedSessionId)
+          .eq('evaluation_status', 'pending');
+      }
 
       // If backend returned 429 (quota exceeded), show upgrade dialog
       if (err.status === 429 || err.name === 'RateLimitError') {

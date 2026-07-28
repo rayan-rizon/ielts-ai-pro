@@ -19,7 +19,7 @@ export default function useSpeakingEvaluation({
 }) {
   const xpRewards = useXPRewards(pendingTimersRef);
 
-  const deepDive = useDeepDive({ testId, session, allParts, saveSessionProgress, isMountedRef });
+  const deepDive = useDeepDive({ testId, session, allParts, isMountedRef });
 
   const evaluation = useFinalEvaluation({
     testId,

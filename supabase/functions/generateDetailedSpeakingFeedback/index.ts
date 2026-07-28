@@ -14,6 +14,7 @@ import {
 } from '../_shared/security.ts';
 import {
   buildSpeakingTranscript,
+  FEEDBACK_EVALUATOR_VERSION,
   normalizeDetailedSpeakingEvaluation,
 } from '../_shared/evaluationUtils.ts';
 
@@ -294,6 +295,13 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
         JSON.parse(cleanText.trim()),
         transcriptEvidence.candidateSource
       );
+      detailedAnalysis = {
+        ...detailedAnalysis,
+        evaluationVersion: FEEDBACK_EVALUATOR_VERSION,
+        generatedAt: new Date().toISOString(),
+        model: 'gemini-2.5-flash',
+        speakingSessionId,
+      };
     } catch (parseError) {
       console.error('Failed to parse detailed analysis from Gemini:', parseError);
       console.error('Detailed speaking response could not be parsed', {

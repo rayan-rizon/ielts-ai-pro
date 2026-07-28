@@ -23,7 +23,7 @@ export default function ModuleMasteryCard({ radarData }) {
                 className="text-base font-black tracking-tight text-slate-950 dark:text-white"
                 data-oid="kihiso_"
               >
-                Module Mastery
+                Skill progress
               </CardTitle>
               <CardDescription
                 className="text-[11px] font-medium text-slate-500 truncate"

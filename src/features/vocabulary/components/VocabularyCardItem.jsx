@@ -50,11 +50,11 @@ const CardHeaderActions = ({ item, onToggleMastery, onDeleteWord }) => {
 };
 
 const CardMemoryFooter = ({ source, memory }) => (
-  <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800/80 space-y-1.5 mt-1">
+  <div className="pt-2.5 border-t border-slate-200/80 dark:border-white/10 space-y-1.5 mt-1">
     <div className="flex items-center justify-between text-[10px] font-bold">
       <Badge
         variant="outline"
-        className="text-[9px] font-bold text-slate-500 dark:text-slate-400 border-slate-200/90 dark:border-slate-800 px-2 py-0.5 rounded-md"
+        className="text-[9px] font-bold text-slate-500 dark:text-slate-400 border-slate-200/90 dark:border-white/10 px-2 py-0.5 rounded-md"
       >
         {source || 'Academic'}
       </Badge>
@@ -68,9 +68,9 @@ const CardMemoryFooter = ({ source, memory }) => (
       </div>
     </div>
 
-    <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+    <div className="w-full h-1.5 bg-[#eceef8] dark:bg-slate-800 rounded-full overflow-hidden">
       <div
-        className="h-full rounded-full bg-[#635BFF] transition-all duration-500"
+        className="h-full rounded-full bg-[#5661e9] transition-all duration-500"
         style={{ width: `${memory.percent}%` }}
       />
     </div>
@@ -91,22 +91,23 @@ export const VocabularyCardItem = memo(({ item, onViewWord, onToggleMastery, onD
 
   return (
     <motion.div
-      whileHover={{ y: -2 }}
-      className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs hover:shadow-sm hover:border-[#635BFF] dark:hover:border-indigo-700 transition-all duration-200 flex flex-col justify-between space-y-3 group relative overflow-hidden cursor-pointer"
+      whileHover={{ y: -3, scale: 1.01 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      className="p-4 sm:p-4.5 rounded-[20px] bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] border border-[#e0e4f1] dark:border-white/10 shadow-xs hover:shadow-[0_16px_32px_-24px_rgba(59,70,150,0.65)] hover:border-[#6570ee]/40 transition-all duration-200 flex flex-col justify-between space-y-3.5 group relative overflow-hidden cursor-pointer"
       onClick={() => onViewWord(item)}
     >
       <div className="space-y-2.5">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
-              <h4 className="font-black text-slate-900 dark:text-white text-base group-hover:text-[#635BFF] dark:group-hover:text-indigo-400 transition-colors tracking-tight">
+              <h4 className="font-black text-slate-900 dark:text-white text-base group-hover:text-[#5661e9] dark:group-hover:text-indigo-400 transition-colors tracking-tight">
                 {item.word}
               </h4>
               <button
                 onClick={handleSpeak}
                 className={cn(
-                  'p-1 rounded-lg text-slate-400 hover:text-[#635BFF] dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer',
-                  isPlayingAudio && 'text-[#635BFF] animate-pulse bg-indigo-50'
+                  'p-1.5 rounded-xl text-slate-400 hover:text-[#5661e9] dark:hover:text-indigo-300 hover:bg-[#efedff] dark:hover:bg-indigo-500/20 transition-colors shrink-0 cursor-pointer',
+                  isPlayingAudio && 'text-[#5661e9] animate-pulse bg-[#efedff]'
                 )}
                 title="Listen audio pronunciation"
               >
@@ -115,12 +116,12 @@ export const VocabularyCardItem = memo(({ item, onViewWord, onToggleMastery, onD
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-400">
+              <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">
                 {item.ipa || `/${item.word}/`}
               </span>
               <Badge
                 variant="outline"
-                className="bg-indigo-50/80 dark:bg-indigo-950/60 text-[#635BFF] dark:text-indigo-300 border-none rounded-md px-2 py-0 text-[10px] font-black uppercase tracking-wider"
+                className="bg-[#efedff] dark:bg-indigo-500/20 text-[#505bdd] dark:text-indigo-300 border-none rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-wider"
               >
                 {pos}
               </Badge>

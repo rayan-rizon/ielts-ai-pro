@@ -139,6 +139,6 @@ describe('GrammarAttempt', () => {
     expect(screen.getByText('1 / 1')).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: /However/ })).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Save answer' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Complete diagnostic' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Complete level check' })).toBeEnabled();
   });
 });

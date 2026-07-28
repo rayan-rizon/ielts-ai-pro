@@ -10,17 +10,16 @@ const ACTIVITY_ROUTES = {
 export function buildActivityUrl(activity = {}) {
   const routeKey = String(activity?.routing?.route || activity?.module || '').toLowerCase();
   const base = ACTIVITY_ROUTES[routeKey] || '/dashboard';
-  if (routeKey !== 'grammar') return base;
 
   const params = new URLSearchParams();
   const mode = activity?.routing?.mode;
   const skill = activity?.skill_targets?.[0] || activity?.routing?.skill;
   const activityId = activity?.id || activity?.activity_id;
   const transferTarget = activity?.routing?.transferTarget;
-  if (mode) params.set('mode', mode);
-  if (skill) params.set('skill', skill);
+  if (routeKey === 'grammar' && mode) params.set('mode', mode);
+  if (routeKey === 'grammar' && skill) params.set('skill', skill);
   if (activityId) params.set('activityId', activityId);
-  if (transferTarget) params.set('transfer', transferTarget);
+  if (routeKey === 'grammar' && transferTarget) params.set('transfer', transferTarget);
   const query = params.toString();
   return query ? `${base}?${query}` : base;
 }

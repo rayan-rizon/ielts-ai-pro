@@ -266,7 +266,7 @@ export function aggregateReadiness(sessions: any[], now: Date | string = new Dat
           range: null,
           module_median: null,
           confidence: 'insufficient',
-          disclaimer: `Complete recent scored diagnostics for: ${missing_diagnostics.join(', ')}.`,
+          disclaimer: `Complete recent scored level checks for: ${missing_diagnostics.join(', ')}.`,
         };
 
   return { window_days: 90, modules, overall, missing_diagnostics };
@@ -281,14 +281,14 @@ export function buildRoadmap(testDate: string | null | undefined, now: Date | st
   const templates = [
     {
       key: 'foundation',
-      name: 'Foundation & diagnosis',
-      objective: 'Establish trustworthy baselines and close essential knowledge gaps.',
+      name: 'Get clear results',
+      objective: 'Establish trustworthy starting scores and close essential knowledge gaps.',
       checkpoint: 'Two recent scored attempts in every IELTS module.',
     },
     {
       key: 'repair',
-      name: 'Targeted repair',
-      objective: 'Repair measured priority skills with focused practice and spaced review.',
+      name: 'Focused practice',
+      objective: 'Work on confirmed focus skills with targeted practice and spaced review.',
       checkpoint: 'Priority skills reach 70%+ accuracy across at least 20 new observations.',
     },
     {
@@ -358,7 +358,28 @@ const labelSkill = (code: string) =>
     .join(' ')
     .replace(/\b\w/g, (letter) => letter.toUpperCase()) || 'Core skills';
 
-function activityForCategory(category: string, evidence: any, readiness: any, index: number) {
+type GeneratedActivity = {
+  title: string;
+  module: string;
+  activity_type: string;
+  priority: string;
+  skill_targets: string[];
+  reason: string;
+  success_criterion: string;
+  evidence: Record<string, unknown>;
+  routing: {
+    route: string;
+    mode: string;
+    transferTarget?: string;
+  };
+};
+
+function activityForCategory(
+  category: string,
+  evidence: any,
+  readiness: any,
+  index: number
+): GeneratedActivity {
   const measured =
     evidence.measured_priorities[index % Math.max(1, evidence.measured_priorities.length)];
   const due = evidence.due_reviews[index % Math.max(1, evidence.due_reviews.length)];
@@ -375,7 +396,7 @@ function activityForCategory(category: string, evidence: any, readiness: any, in
       activity_type: 'targeted_drill',
       priority: 'high',
       skill_targets: [measured.skill_code],
-      reason: `${currentAccuracy}% mastery across ${measured.observations} observations makes this a measured priority.`,
+      reason: `${currentAccuracy}% skill progress across ${measured.observations} results makes this a confirmed focus.`,
       success_criterion: `Reach at least ${Math.min(90, currentAccuracy + 10)}% on a 10-question check.`,
       evidence: {
         class: 'measured_priority',
@@ -410,8 +431,8 @@ function activityForCategory(category: string, evidence: any, readiness: any, in
           : 'reading');
     return {
       title: shouldDiagnoseGrammar
-        ? 'Grammar diagnostic'
-        : `${module.charAt(0).toUpperCase() + module.slice(1)} ${missingModule ? 'diagnostic' : 'timed check'}`,
+        ? 'Grammar level check'
+        : `${module.charAt(0).toUpperCase() + module.slice(1)} ${missingModule ? 'level check' : 'timed check'}`,
       module,
       activity_type: shouldDiagnoseGrammar
         ? 'grammar_diagnostic'
@@ -421,9 +442,9 @@ function activityForCategory(category: string, evidence: any, readiness: any, in
       priority: 'high',
       skill_targets: shouldDiagnoseGrammar ? [] : early ? [early.skill_code] : [],
       reason: shouldDiagnoseGrammar
-        ? 'Writing or Speaking criterion evidence is general. A diagnostic is needed before naming a specific grammar repair.'
+        ? 'Writing or Speaking score evidence is general. A level check is needed before naming a specific grammar focus.'
         : missingModule
-          ? `A recent scored ${module} diagnostic is still missing, so the plan will measure before labelling a weakness.`
+          ? `A recent scored ${module} level check is still missing, so the plan will measure before labelling a weakness.`
           : 'A timed check keeps the readiness evidence current and tests transfer under pressure.',
       success_criterion: shouldDiagnoseGrammar
         ? 'Complete all 24 questions so the six grammar families can be measured separately.'
@@ -640,6 +661,58 @@ export async function fingerprintLearningPathInputs(value: unknown) {
   return Array.from(new Uint8Array(digest))
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('');
+}
+
+export function findRecurringObjectiveMistakes(sessions: any[]) {
+  const occurrences = new Map<string, Set<string>>();
+  (sessions || []).forEach((session: any) => {
+    const module = String(session.test_type || '').toLowerCase();
+    if (!['reading', 'listening'].includes(module) || !session.is_completed) return;
+    Object.entries(session.content_data?.typeStats || {}).forEach(
+      ([type, stats]: [string, any]) => {
+        const total = Number(stats?.total || 0);
+        const correct = Number(stats?.correct || 0);
+        if (total <= correct) return;
+        const key = `${module}:${type}`;
+        if (!occurrences.has(key)) occurrences.set(key, new Set());
+        occurrences.get(key)?.add(session.id);
+      }
+    );
+  });
+  return [...occurrences.entries()]
+    .filter(([, ids]) => ids.size >= 2)
+    .map(([key, ids]) => {
+      const [module, type] = key.split(':');
+      return { module, type, sessionCount: ids.size };
+    })
+    .sort(
+      (a, b) =>
+        b.sessionCount - a.sessionCount ||
+        `${a.module}:${a.type}`.localeCompare(`${b.module}:${b.type}`)
+    );
+}
+
+export function scheduleRecurringRepair(schedule: Record<string, any[]>, mistake: any) {
+  if (!mistake) return schedule;
+  const day = Object.keys(schedule).find((key) => (schedule[key] || []).length > 0);
+  if (!day) return schedule;
+  const index = Math.max(0, (schedule[day] || []).length - 1);
+  const existing = schedule[day][index];
+  schedule[day][index] = {
+    ...existing,
+    title: `${mistake.module === 'reading' ? 'Reading' : 'Listening'} ${String(
+      mistake.type
+    ).replace(/_/g, ' ')} repair`,
+    module: mistake.module,
+    activity_type: 'targeted_repair',
+    priority: 'high',
+    skill_targets: [`${mistake.module}_${mistake.type}`],
+    reason: `This mistake type appeared in ${mistake.sessionCount} completed sessions, so it is ready for focused repair.`,
+    success_criterion: 'Complete a focused set and review every missed answer.',
+    evidence: { class: 'measured_priority', observations: mistake.sessionCount },
+    routing: { route: mistake.module, mode: 'practice' },
+  };
+  return schedule;
 }
 
 export function adaptLearningPathV1(path: any) {

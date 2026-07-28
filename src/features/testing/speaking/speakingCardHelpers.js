@@ -1,5 +1,6 @@
 import { GraduationCap, Mic } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { withLearningActivity } from '@/features/testing/shared/activityContext';
 
 // ---------------------------------------------------------------------------
 // Pure helper functions for the Speaking Card
@@ -40,7 +41,7 @@ export function resolveSpeakingLinkConfig(isLocked, test, activeSession, complet
   }
 
   // NOTE: Assuming Link from react-router-dom is used externally.
-  let to = `/speaking-test?test-id=${test.id}`;
+  let to = withLearningActivity(`/speaking-test?test-id=${test.id}`);
   if (isResuming) {
     to = `/speaking-test/${test.id}`;
   } else if (isCompleted) {

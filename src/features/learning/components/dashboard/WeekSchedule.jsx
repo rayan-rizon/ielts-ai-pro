@@ -198,7 +198,18 @@ const WeekSchedule = ({
             const activityKey = task.activity_key || `${dayNames[selectedDayIndex]}_${idx}`;
             const record = activityByKey[activityKey];
             const isDone = !!record?.is_completed;
-            const outcomeScore = record?.outcome_score;
+            const outcomeBand = Number(record?.outcome_band);
+            const outcomeAccuracy = Number(record?.outcome_accuracy);
+            const completionLabel =
+              record?.completion_source === 'manual'
+                ? 'Done manually'
+                : Number.isFinite(outcomeBand) && outcomeBand >= 0
+                  ? `Band ${outcomeBand.toFixed(1)}`
+                  : Number.isFinite(outcomeAccuracy) && outcomeAccuracy >= 0
+                    ? `${Math.round(outcomeAccuracy)}%`
+                    : record?.completion_source
+                      ? 'Verified result'
+                      : null;
             const skillTargets =
               Array.isArray(task.skill_targets) && task.skill_targets.length
                 ? task.skill_targets
@@ -269,12 +280,12 @@ const WeekSchedule = ({
                       <Clock className="w-3.5 h-3.5" data-oid="rlnxr1h" />
                       {task.estimated_time} MINS
                     </span>
-                    {isDone && outcomeScore && (
+                    {isDone && completionLabel && (
                       <Badge
                         className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-0 text-[10px] font-black h-5 px-2 rounded-full"
                         data-oid="9.f-r-o"
                       >
-                        {Math.round(outcomeScore)}%
+                        {completionLabel}
                       </Badge>
                     )}
                   </div>

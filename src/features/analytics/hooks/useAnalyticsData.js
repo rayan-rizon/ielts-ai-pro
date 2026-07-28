@@ -26,7 +26,7 @@ export default function useAnalyticsData(selectedTimeframe) {
         { user_id: userId },
         '-completed_at',
         1000,
-        'id, passage_id, created_at, completed_at, score, duration_minutes, test_type, test_mode, is_completed, content_data, passage:passages(title, cambridge_title, test_format)'
+        'id, passage_id, created_at, completed_at, score, duration_minutes, actual_duration_seconds, test_type, test_mode, is_completed, evaluation_status, evaluation_version, evaluated_at, content_data, passage:passages(title, cambridge_title, test_format)'
       ),
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
@@ -56,7 +56,24 @@ export default function useAnalyticsData(selectedTimeframe) {
     staleTime: 5 * 60 * 1000,
   });
 
-  const isLoading = authLoading || (!!userId && (sessionsLoading || vocabLoading));
+  const { data: grammarAttempts = [], isLoading: grammarLoading } = useQuery({
+    queryKey: ['analytics', 'grammarAttempts', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('grammar_attempts')
+        .select('id, mode, correct_count, total_questions, completed_at')
+        .eq('user_id', userId)
+        .eq('completion_state', 'completed')
+        .order('completed_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const isLoading =
+    authLoading || (!!userId && (sessionsLoading || vocabLoading || grammarLoading));
 
   const filteredSessions = useMemo(
     () => filterSessionsByTimeframe(rawSessions, selectedTimeframe),
@@ -86,9 +103,32 @@ export default function useAnalyticsData(selectedTimeframe) {
   );
 
   const chartData = useMemo(
-    () => computeChartData(filteredSessions, moduleStats, stats.avgScore, stats.targetScore),
-    [filteredSessions, moduleStats, stats.avgScore, stats.targetScore]
+    () => computeChartData(filteredSessions, moduleStats),
+    [filteredSessions, moduleStats]
   );
+
+  const grammarEvidence = useMemo(() => {
+    const days =
+      selectedTimeframe === '7d'
+        ? 7
+        : selectedTimeframe === '90d'
+          ? 90
+          : selectedTimeframe === 'all'
+            ? null
+            : 30;
+    const cutoff = days == null ? null : Date.now() - days * 24 * 60 * 60 * 1000;
+    const completed = grammarAttempts.filter((attempt) => {
+      const timestamp = new Date(attempt.completed_at).getTime();
+      return cutoff == null || timestamp >= cutoff;
+    });
+    const correct = completed.reduce((sum, attempt) => sum + Number(attempt.correct_count || 0), 0);
+    const total = completed.reduce((sum, attempt) => sum + Number(attempt.total_questions || 0), 0);
+    return {
+      completedAttempts: completed.length,
+      accuracy: total > 0 ? Math.round((correct / total) * 100) : null,
+      transferAttempts: completed.filter((attempt) => attempt.mode === 'transfer').length,
+    };
+  }, [grammarAttempts, selectedTimeframe]);
 
   return {
     user: authUser,
@@ -98,6 +138,7 @@ export default function useAnalyticsData(selectedTimeframe) {
       ...stats,
       moduleStats,
       ...advancedMetrics,
+      grammarEvidence,
       evidenceSummary: learningPathEvidence,
       insights: {
         ...insights,

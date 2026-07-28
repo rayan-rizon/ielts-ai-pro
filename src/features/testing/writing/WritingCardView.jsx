@@ -85,6 +85,7 @@ export default function WritingCardView(props) {
     wordLimit,
     session,
     completedSessionId,
+    feedbackReady,
   } = props;
 
   return (
@@ -145,6 +146,7 @@ export default function WritingCardView(props) {
           test={test}
           session={session}
           completedSessionId={completedSessionId}
+          feedbackReady={feedbackReady}
           color={color}
         />
       </div>

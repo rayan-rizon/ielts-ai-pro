@@ -1,9 +1,14 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { callEdgeFunction } from '@/utils/api';
 
-import { buildPartContexts } from '../utils/speakingTestUtils';
 import {
+  buildAverageSpeakingEvaluation,
+  buildLegacySpeakingEvaluation,
+  buildPartContexts,
+} from '../utils/speakingTestUtils';
+import {
+  claimSpeakingEvaluation,
   getConversationsToEvaluate,
   handleEvaluationSuccess,
   handleQuotaOrRateLimit,
@@ -28,7 +33,7 @@ async function fetchEvaluation({
   });
 }
 
-function handleFailedResponse({
+async function handleFailedResponse({
   response,
   session,
   conversationsToEvaluate,
@@ -37,10 +42,11 @@ function handleFailedResponse({
 }) {
   console.warn('Evaluation returned success:false:', response);
   setEvaluationError(response.message || 'AI evaluation could not be processed. Please retry.');
-  return persistPendingEvaluation({ session, conversationsToEvaluate, saveSessionProgress });
+  await persistPendingEvaluation({ session, conversationsToEvaluate, saveSessionProgress });
+  await saveSessionProgress({ evaluation_status: 'failed' });
 }
 
-function handleEvaluationCatchError({ evalError, ctx }) {
+async function handleEvaluationCatchError({ evalError, ctx }) {
   console.error('Error getting final evaluation:', evalError);
 
   if (isQuotaOrRateLimitError(evalError)) {
@@ -50,6 +56,7 @@ function handleEvaluationCatchError({ evalError, ctx }) {
       setShowUpgradeDialog: ctx.setShowUpgradeDialog,
       setIsTestComplete: ctx.setIsTestComplete,
     });
+    await ctx.saveSessionProgress({ evaluation_status: 'failed' });
     return;
   }
 
@@ -81,6 +88,20 @@ export default function useFinalEvaluation({
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evaluationError, setEvaluationError] = useState(null);
 
+  useEffect(() => {
+    const saved = session?.content_data?.finalEvaluation;
+    const averaged = session?.content_data?.allEvaluations
+      ? buildAverageSpeakingEvaluation(session.content_data.allEvaluations)
+      : null;
+    const legacy =
+      !saved && !averaged && session?.score != null
+        ? buildLegacySpeakingEvaluation(session.score)
+        : null;
+    setFinalEvaluation(saved || averaged || legacy || null);
+    setEvaluationError(null);
+    setIsEvaluating(false);
+  }, [session?.id]);
+
   const requestFinalEvaluation = useCallback(
     async (allConversationsData) => {
       setIsEvaluating(true);
@@ -97,6 +118,11 @@ export default function useFinalEvaluation({
       });
 
       try {
+        const claimed = await claimSpeakingEvaluation(session);
+        if (!claimed) {
+          setEvaluationError('This response is already being analyzed or has feedback.');
+          return;
+        }
         const response = await fetchEvaluation({
           testId,
           session,

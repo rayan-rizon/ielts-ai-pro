@@ -51,7 +51,7 @@ async function searchFallbackSession(userId, taskId, isResume, isView) {
   let query = supabase
     .from('test_sessions')
     .select(
-      'id, user_id, passage_id, test_type, test_mode, is_completed, answers, band_score, score, content_data, created_at, started_at, completed_at, time_remaining, time_spent, feedback, duration_minutes, user_responses'
+      'id, user_id, passage_id, test_type, test_mode, is_completed, answers, band_score, score, content_data, created_at, started_at, completed_at, duration_minutes, user_responses, learning_path_activity_id, evaluation_status, evaluation_version, evaluated_at, actual_duration_seconds'
     )
     .eq('user_id', userId)
     .eq('test_type', 'writing')

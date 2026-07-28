@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import { calculateScoreForecast, calculateTargetLikelihood } from '@/features/analytics/utils';
 import { calculateErrorPatterns } from '@/services/testMetricsService';
 import {
   buildPacingSummary,
@@ -9,8 +8,9 @@ import {
   computeStats,
   getSessionAccuracy,
   getRecordedDurationSeconds,
+  roundIeltsOverall,
 } from '@/features/analytics/hooks/analyticsCalculations';
-import { buildJourneyMilestones } from '@/features/analytics/components/bandJourneyUtils';
+import { buildBandProgressView } from '@/features/analytics/components/bandJourneyUtils';
 
 /**
  * Analytics Unit Tests
@@ -216,48 +216,10 @@ describe('Analytics - Data Quality Guards', () => {
     expect(stats.avgScore).toBe('0.0');
   });
 
-  it('should include a real zero band score in score forecasts', () => {
-    const sessions = [
-      { score: 0, completed_at: '2026-01-01T00:00:00Z' },
-      { score: 3, completed_at: '2026-01-02T00:00:00Z' },
-      { score: 6, completed_at: '2026-01-03T00:00:00Z' },
-    ];
-
-    const forecast = calculateScoreForecast(sessions, 3, 7);
-
-    expect(forecast).toHaveLength(3);
-    expect(forecast[0]).toMatchObject({ date: 'Now', score: 3, isForecast: false });
-  });
-
-  it('keeps sparse 30-day score forecasts within one IELTS band of the current average', () => {
-    const sessions = [
-      { score: 4.5, completed_at: '2026-07-02T00:00:00Z' },
-      { score: 4, completed_at: '2026-07-02T02:00:00Z' },
-      { score: 2.5, completed_at: '2026-07-19T00:00:00Z' },
-    ];
-
-    const forecast = calculateScoreForecast(sessions, 3.7, 7);
-
-    expect(forecast[1]).toMatchObject({ date: '+30 Days', score: 2.5, confidence: 'low' });
-    expect(forecast[1].targetLikelihood).toBeLessThan(10);
-  });
-
-  it('uses a conservative target likelihood instead of a fixed marketing percentage', () => {
-    const wellSupported = calculateTargetLikelihood({
-      projectedScore: 6.5,
-      targetScore: 6.5,
-      standardDeviation: 0.15,
-      sampleSize: 8,
-    });
-    const sparseBelowTarget = calculateTargetLikelihood({
-      projectedScore: 4.5,
-      targetScore: 7,
-      standardDeviation: 0.8,
-      sampleSize: 3,
-    });
-
-    expect(wellSupported).toBeGreaterThan(50);
-    expect(sparseBelowTarget).toBeLessThan(10);
+  it('uses IELTS half-band rounding for a qualified Overall result', () => {
+    expect(roundIeltsOverall([6.5, 6.5, 6, 6])).toBe(6.5);
+    expect(roundIeltsOverall([7, 7, 6.5, 6.5])).toBe(7);
+    expect(roundIeltsOverall([7, 7, 7])).toBeNull();
   });
 
   it('should never return a negative unanswered count', () => {
@@ -302,6 +264,14 @@ describe('Analytics - Data Quality Guards', () => {
       getRecordedDurationSeconds({
         test_type: 'writing',
         duration_minutes: 60,
+        content_data: {},
+      })
+    ).toBeNull();
+
+    expect(
+      getRecordedDurationSeconds({
+        test_type: 'writing',
+        duration_minutes: 60,
         content_data: { time_remaining: 2100 },
       })
     ).toBe(1500);
@@ -314,6 +284,7 @@ describe('Analytics - Data Quality Guards', () => {
         test_type: 'Reading',
         score: 6.5,
         duration_minutes: 18,
+        actual_duration_seconds: 1080,
         completed_at: '2026-07-18T10:00:00Z',
         content_data: { correctAnswers: 30, totalQuestions: 40 },
         passage: { title: 'Academic Reading Test 4' },
@@ -328,7 +299,7 @@ describe('Analytics - Data Quality Guards', () => {
       },
     ];
     const moduleStats = computeModuleStats(sessions);
-    const chartData = computeChartData(sessions, moduleStats, '6.3', 7);
+    const chartData = computeChartData(sessions, moduleStats);
 
     expect(chartData.recentPractice[0]).toMatchObject({
       title: 'Academic Reading Test 4',
@@ -361,11 +332,52 @@ describe('Analytics - Data Quality Guards', () => {
     expect(computeRecentPractice(sessions)).toHaveLength(8);
   });
 
-  it('builds an accurate half-band journey matching baseline, current, and target', () => {
-    const milestones = buildJourneyMilestones({ baseline: 5, current: 6.5, target: 7.5 });
+  it('compares only the latest two results in the same module', () => {
+    const view = buildBandProgressView({
+      tab: 'reading',
+      moduleHistory: {
+        reading: [
+          { date: 'Jul 1', score: 5 },
+          { date: 'Jul 8', score: 5.5 },
+          { date: 'Jul 15', score: 6.5 },
+        ],
+      },
+    });
 
-    expect(milestones.map((step) => step.value)).toEqual([5, 5.5, 6, 6.5, 7, 7.5]);
-    expect(milestones.find((step) => step.keys.includes('current'))?.value).toBe(6.5);
-    expect(milestones.find((step) => step.keys.includes('target'))?.value).toBe(7.5);
+    expect(view.current).toBe(6.5);
+    expect(view.change).toBe(1);
+    expect(view.hasTrend).toBe(true);
+  });
+
+  it('unlocks Overall only with all four modules and requires two each for a trend', () => {
+    const oneSet = ['reading', 'writing', 'listening', 'speaking'].map((test_type, index) => ({
+      id: `${test_type}-1`,
+      test_type,
+      score: 6 + index * 0.5,
+      completed_at: `2026-07-${10 + index}T10:00:00Z`,
+    }));
+    const current = computeChartData(oneSet, computeModuleStats(oneSet)).overallProgress;
+    expect(current).toMatchObject({ qualified: true, current: 7, hasTrend: false });
+
+    const partial = oneSet.filter((session) => session.test_type !== 'speaking');
+    expect(computeChartData(partial, computeModuleStats(partial)).overallProgress).toMatchObject({
+      qualified: false,
+      current: null,
+      hasTrend: false,
+    });
+
+    const twoSets = [
+      ...oneSet,
+      ...oneSet.map((session) => ({
+        ...session,
+        id: `${session.test_type}-2`,
+        score: Number(session.score) + 0.5,
+        completed_at: '2026-07-20T10:00:00Z',
+      })),
+    ].sort((a, b) => b.completed_at.localeCompare(a.completed_at));
+    const trend = computeChartData(twoSets, computeModuleStats(twoSets)).overallProgress;
+    expect(trend.qualified).toBe(true);
+    expect(trend.hasTrend).toBe(true);
+    expect(trend.history).toHaveLength(2);
   });
 });

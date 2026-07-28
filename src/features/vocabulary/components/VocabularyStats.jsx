@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { BookOpen, Target, Clock, Trophy, Flame } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
@@ -19,18 +20,16 @@ export default function VocabularyStats({ stats, wordLimit, dueCount = 0, classN
       value: displayLimit,
       label: 'Saved Words',
       sub: `${masteredPercent}% mastered`,
-      iconBg:
-        'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 border-indigo-200/80 dark:border-indigo-800/60',
-      cardBg: 'bg-white/95 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-800',
+      iconStyle:
+        'bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200/70 dark:bg-indigo-500/15 dark:text-indigo-300',
     },
     {
       icon: Target,
       value: stats.masteredWords,
       label: 'Mastered',
       sub: 'Band 8.0+',
-      iconBg:
-        'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-800/60',
-      cardBg: 'bg-white/95 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-800',
+      iconStyle:
+        'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200/70 dark:bg-emerald-500/15 dark:text-emerald-300',
     },
     {
       icon: Clock,
@@ -38,32 +37,26 @@ export default function VocabularyStats({ stats, wordLimit, dueCount = 0, classN
       label: 'Due Today',
       sub: dueCount > 0 ? 'Review ready' : 'Up to date',
       urgent: dueCount > 0,
-      iconBg:
+      iconStyle:
         dueCount > 0
-          ? 'bg-rose-100 text-rose-600 dark:bg-rose-950/70 dark:text-rose-400 border-rose-300 dark:border-rose-800'
-          : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700',
-      cardBg:
-        dueCount > 0
-          ? 'bg-rose-50/60 border-rose-200/90 dark:bg-rose-950/30 dark:border-rose-900/50'
-          : 'bg-white/95 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-800',
+          ? 'bg-rose-50 text-rose-600 ring-1 ring-rose-200/70 dark:bg-rose-500/15 dark:text-rose-300'
+          : 'bg-slate-100 text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-400',
     },
     {
       icon: Flame,
       value: `${stats.streak} Days`,
       label: 'Streak',
       sub: 'Active',
-      iconBg:
-        'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 border-amber-200/80 dark:border-amber-800/60',
-      cardBg: 'bg-white/95 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-800',
+      iconStyle:
+        'bg-amber-50 text-amber-600 ring-1 ring-amber-200/70 dark:bg-amber-500/15 dark:text-amber-300',
     },
     {
       icon: Trophy,
       value: 'Band 8.0+',
       label: 'Goal',
       sub: 'Target Score',
-      iconBg:
-        'bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400 border-purple-200/80 dark:border-purple-800/60',
-      cardBg: 'bg-white/95 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-800',
+      iconStyle:
+        'bg-violet-50 text-violet-600 ring-1 ring-violet-200/70 dark:bg-violet-500/15 dark:text-violet-300',
     },
   ];
 
@@ -72,33 +65,30 @@ export default function VocabularyStats({ stats, wordLimit, dueCount = 0, classN
       className={cn('flex flex-wrap items-center justify-start xl:justify-end gap-2.5', className)}
     >
       {statItems.map((stat, i) => (
-        <div
+        <motion.div
           key={i}
-          className={cn(
-            'flex items-center gap-3 px-3.5 py-2.5 rounded-2xl border shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md cursor-default',
-            stat.cardBg
-          )}
+          whileHover={{ y: -2, scale: 1.02 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          className="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl border border-[#e0e4f1] bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] shadow-xs transition-all duration-200 hover:border-[#6570ee]/40 hover:shadow-md cursor-default dark:border-white/10 dark:from-[#10131f] dark:to-[#10131f]"
         >
           <div
             className={cn(
-              'w-8 h-8 rounded-xl flex items-center justify-center border shrink-0 transition-transform group-hover:scale-105',
-              stat.iconBg
+              'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs',
+              stat.iconStyle
             )}
           >
-            <stat.icon className={cn('w-4 h-4', stat.urgent && 'animate-pulse')} />
+            <stat.icon className={cn('w-4.5 h-4.5', stat.urgent && 'animate-pulse')} />
           </div>
 
           <div className="flex flex-col min-w-0">
-            <div className="flex items-baseline gap-1">
-              <span className="text-sm font-black tracking-tight text-slate-900 dark:text-white leading-none">
-                {stat.value}
-              </span>
-            </div>
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1 leading-none">
+            <span className="text-sm font-black tracking-tight text-slate-900 dark:text-white leading-none">
+              {stat.value}
+            </span>
+            <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 mt-1 leading-none">
               {stat.label}
             </span>
           </div>
-        </div>
+        </motion.div>
       ))}
     </div>
   );

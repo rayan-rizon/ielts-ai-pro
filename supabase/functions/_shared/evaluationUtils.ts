@@ -1,4 +1,4 @@
-export const FEEDBACK_EVALUATOR_VERSION = '2026-07-28-v4';
+export const FEEDBACK_EVALUATOR_VERSION = '2026-07-29-v5';
 
 const VALID_ANNOTATION_TYPES = new Set([
   'grammar',

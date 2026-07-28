@@ -1,4 +1,5 @@
-import { formatBand, calculateImprovement, calculateScoreForecast } from '../utils';
+import { formatBand, calculateImprovement } from '../utils';
+import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
 
 export const MODULES = ['reading', 'writing', 'listening', 'speaking'];
 export const MAX_REASONABLE_TEST_SECONDS = 4 * 60 * 60;
@@ -28,11 +29,6 @@ export function isValidDuration(seconds) {
   return Number.isFinite(seconds) && seconds > 0 && seconds <= MAX_REASONABLE_TEST_SECONDS;
 }
 
-function extractDurationFromMinutes(session) {
-  const m = Number(session.duration_minutes) * 60;
-  return isValidDuration(m) ? m : null;
-}
-
 function extractDurationFromMetrics(session) {
   const content = session.content_data || {};
   const tm = content.timeMetrics || {};
@@ -40,24 +36,19 @@ function extractDurationFromMetrics(session) {
   return isValidDuration(es) ? es : null;
 }
 
-function extractDurationFromDates(session) {
-  if (!session.created_at || !session.completed_at) return null;
-  const diff =
-    (new Date(session.completed_at).getTime() - new Date(session.created_at).getTime()) / 1000;
-  return isValidDuration(diff) ? diff : null;
-}
-
 export function getKnownDurationSeconds(session) {
   if (!session) return null;
-  const minDur = extractDurationFromMinutes(session);
-  if (minDur !== null) return minDur;
+  const actual = Number(session.actual_duration_seconds);
+  if (isValidDuration(actual)) return actual;
   const metDur = extractDurationFromMetrics(session);
   if (metDur !== null) return metDur;
-  return extractDurationFromDates(session);
+  return getRecordedDurationSeconds(session);
 }
 
 export function getRecordedDurationSeconds(session) {
   if (!session) return null;
+  const actual = Number(session.actual_duration_seconds);
+  if (isValidDuration(actual)) return actual;
   const metricDuration = extractDurationFromMetrics(session);
   if (metricDuration !== null) return metricDuration;
 
@@ -69,10 +60,9 @@ export function getRecordedDurationSeconds(session) {
     if (isValidDuration(elapsed)) return elapsed;
   }
 
-  // Pace needs an explicit test duration. A created-to-completed timestamp span can
-  // include pauses or background time, so it is suitable for study totals but not
-  // for comparing a learner with the test clock.
-  return extractDurationFromMinutes(session);
+  // duration_minutes is also set when a session starts, so it may be the time
+  // allowance rather than time the learner actually used.
+  return null;
 }
 
 export function filterSessionsByTimeframe(rawSessions, selectedTimeframe) {
@@ -113,12 +103,15 @@ export function getPreviousSessions(rawSessions, selectedTimeframe) {
   });
 }
 
-function calculateHoursFromSessions(sessions) {
+function calculateStudyTime(sessions) {
   const totalSeconds = (sessions || []).reduce((sum, s) => {
     const duration = getKnownDurationSeconds(s);
     return duration === null ? sum : sum + duration;
   }, 0);
-  return Math.round(totalSeconds / 3600);
+  return {
+    minutes: Math.round(totalSeconds / 60),
+    hours: Math.round((totalSeconds / 3600) * 10) / 10,
+  };
 }
 
 function getLatestModuleScores(scoredSessions) {
@@ -139,8 +132,10 @@ export function computeStats(filteredSessions, previousSessions, authUser, vocab
       ? scoredSessions.reduce((sum, s) => sum + Number(s.score), 0) / scoredSessions.length
       : 0;
 
-  const studyHours = calculateHoursFromSessions(filteredSessions);
-  const prevStudyHours = calculateHoursFromSessions(previousSessions);
+  const studyTime = calculateStudyTime(filteredSessions);
+  const previousStudyTime = calculateStudyTime(previousSessions);
+  const studyHours = studyTime.hours;
+  const prevStudyHours = previousStudyTime.hours;
 
   let studyHoursTrend = 0;
   if (prevStudyHours > 0) {
@@ -152,8 +147,8 @@ export function computeStats(filteredSessions, previousSessions, authUser, vocab
   const improvement = calculateImprovement(scoredSessions);
   const moduleLatestScores = getLatestModuleScores(scoredSessions);
 
-  const predictedOverallBand =
-    moduleLatestScores.length > 0
+  const overallEstimate =
+    moduleLatestScores.length === MODULES.length
       ? Math.round(
           (moduleLatestScores.reduce((sum, s) => sum + s, 0) / moduleLatestScores.length) * 2
         ) / 2
@@ -165,10 +160,11 @@ export function computeStats(filteredSessions, previousSessions, authUser, vocab
     totalTests,
     scoredTests: scoredSessions.length,
     studyHours,
+    studyMinutes: studyTime.minutes,
     studyHoursTrend,
     vocabCount,
     improvement: improvement > 0 ? `+${formatBand(improvement)}` : formatBand(improvement),
-    predictedOverallBand,
+    overallEstimate,
     modulesWithData: moduleLatestScores.length,
   };
 }
@@ -391,6 +387,8 @@ function processCriteriaScores(s, aggState) {
   if (!s) return;
   const content = s.content_data || {};
   const type = String(s.test_type || '').toLowerCase();
+  const version = s.evaluation_version || content.evaluationVersion;
+  if (version !== CURRENT_EVALUATION_VERSION || s.evaluation_status !== 'complete') return;
 
   if (type === 'writing') {
     processWritingCriteria(content, aggState);
@@ -588,8 +586,7 @@ function addImprovementInsight(insightsObj, m) {
     });
     insightsObj.recommendations.push({
       type: m.type,
-      text: `Try 15 mins of daily ${m.type} practice to boost your score.`,
-      gain: 0.3,
+      text: `Choose a focused ${m.type} task from your learning plan.`,
     });
   }
 }
@@ -622,18 +619,7 @@ function generateModuleInsights(moduleStats, insightsObj) {
   });
 }
 
-function calculatePredictedScore(avgScoreStr, improvementStr) {
-  let predictedScore = parseFloat(avgScoreStr);
-  if (!isNaN(predictedScore)) {
-    const improvementVal = parseFloat(improvementStr.replace('+', ''));
-    if (improvementVal > 0) predictedScore += 0.5;
-    if (improvementVal < 0) predictedScore -= 0.2;
-    return Math.max(0, Math.min(9, predictedScore));
-  }
-  return 0;
-}
-
-export function computeInsights(moduleStats, advancedMetrics, avgScoreStr, improvementStr) {
+export function computeInsights(moduleStats) {
   const insightsObj = {
     strengths: [],
     improvements: [],
@@ -644,36 +630,10 @@ export function computeInsights(moduleStats, advancedMetrics, avgScoreStr, impro
 
   generateModuleInsights(moduleStats, insightsObj);
 
-  const predictedScore = calculatePredictedScore(avgScoreStr, improvementStr);
-
   return {
     ...insightsObj,
-    predictedScore: formatBand(predictedScore),
     aiSuggestions: null,
   };
-}
-
-function computeAggregatedHistory(scoredSessions) {
-  return scoredSessions
-    .slice()
-    .reverse()
-    .reduce((acc, s) => {
-      const dateStr = new Date(s.completed_at || s.created_at).toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-      });
-      const existing = acc.find((item) => item.date === dateStr);
-      if (existing) {
-        const newCount = existing.count + 1;
-        existing.score = Number(
-          ((existing.score * existing.count + Number(s.score)) / newCount).toFixed(1)
-        );
-        existing.count = newCount;
-      } else {
-        acc.push({ date: dateStr, score: Number(s.score), type: s.test_type, count: 1 });
-      }
-      return acc;
-    }, []);
 }
 
 function computeModuleHistory(scoredSessions) {
@@ -683,25 +643,52 @@ function computeModuleHistory(scoredSessions) {
       .filter((s) => String(s.test_type || '').toLowerCase() === mType)
       .slice()
       .reverse()
-      .reduce((acc, s) => {
+      .map((s) => {
+        const timestamp = new Date(s.completed_at || s.created_at).getTime();
         const dateStr = new Date(s.completed_at || s.created_at).toLocaleDateString(undefined, {
           month: 'short',
           day: 'numeric',
         });
-        const existing = acc.find((item) => item.date === dateStr);
-        if (existing) {
-          const newCount = existing.count + 1;
-          existing.score = Number(
-            ((existing.score * existing.count + Number(s.score)) / newCount).toFixed(1)
-          );
-          existing.count = newCount;
-        } else {
-          acc.push({ date: dateStr, score: Number(s.score), count: 1 });
-        }
-        return acc;
-      }, []);
+        return { id: s.id, date: dateStr, timestamp, score: Number(s.score), type: mType };
+      });
   });
   return moduleHistory;
+}
+
+export function roundIeltsOverall(scores) {
+  if (!Array.isArray(scores) || scores.length !== MODULES.length) return null;
+  if (scores.some((score) => !isValidBandScore(score))) return null;
+  const average = scores.reduce((sum, score) => sum + Number(score), 0) / MODULES.length;
+  return Math.round(average * 2) / 2;
+}
+
+function computeOverallProgress(moduleHistory) {
+  const latest = MODULES.map((type) => moduleHistory[type]?.at(-1)?.score ?? null);
+  const current = roundIeltsOverall(latest);
+  if (current === null) return { qualified: false, current: null, history: [], hasTrend: false };
+
+  const hasTrend = MODULES.every((type) => (moduleHistory[type]?.length || 0) >= 2);
+  if (!hasTrend) {
+    return {
+      qualified: true,
+      current,
+      history: [{ date: 'Current', score: current }],
+      hasTrend: false,
+    };
+  }
+
+  const previous = roundIeltsOverall(
+    MODULES.map((type) => moduleHistory[type][moduleHistory[type].length - 2].score)
+  );
+  return {
+    qualified: true,
+    current,
+    history: [
+      { date: 'Previous set', score: previous },
+      { date: 'Current', score: current },
+    ],
+    hasTrend: true,
+  };
 }
 
 function getPracticeTitle(session) {
@@ -751,14 +738,13 @@ function computeDistribution(moduleStats) {
     .filter((d) => d.value > 0);
 }
 
-export function computeChartData(filteredSessions, moduleStats, avgScoreStr, targetScore) {
+export function computeChartData(filteredSessions, moduleStats) {
   const scoredSessions = filteredSessions.filter((s) => isValidBandScore(s.score));
 
-  const history = computeAggregatedHistory(scoredSessions);
   const pie = computeDistribution(moduleStats);
   const moduleHistory = computeModuleHistory(scoredSessions);
-  const forecast = calculateScoreForecast(scoredSessions, avgScoreStr, targetScore);
+  const overallProgress = computeOverallProgress(moduleHistory);
   const recentPractice = computeRecentPractice(filteredSessions);
 
-  return { history, pie, moduleHistory, forecast, recentPractice };
+  return { pie, moduleHistory, overallProgress, recentPractice };
 }

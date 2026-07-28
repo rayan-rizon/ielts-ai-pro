@@ -22,7 +22,7 @@ const ErrorDrilldownModal = React.lazy(() => import('../components/ErrorDrilldow
 
 // Constants & Utils
 import { CONTAINER_VARIANTS } from '../constants';
-import { getLearningPhase, getNextMilestone, clamp01 } from '../utils';
+import { clamp01 } from '../utils';
 
 const AnalyticsSkeleton = React.memo(function AnalyticsSkeleton() {
   return (
@@ -91,8 +91,6 @@ export default function Analytics() {
   // headline's latest-module overall estimate so learners never see two values
   // presented as the same IELTS band.
   const practiceAverage = useMemo(() => parseFloat(stats?.avgScore), [stats?.avgScore]);
-  const learningPhase = useMemo(() => getLearningPhase(practiceAverage), [practiceAverage]);
-  const nextMilestone = useMemo(() => getNextMilestone(practiceAverage), [practiceAverage]);
 
   const radarData = useMemo(() => {
     if (!stats?.moduleStats) return [];
@@ -142,7 +140,7 @@ export default function Analytics() {
       >
         <DocumentHead
           title="Analytics Dashboard"
-          description="Review your IELTS band progress, section performance, pacing, score prediction, and completed practice results."
+          description="Review your IELTS band progress, section performance, pacing, and completed practice results."
           noIndex
         />
         <AnalyticsHeader
@@ -186,7 +184,7 @@ export default function Analytics() {
     >
       <DocumentHead
         title="Analytics Dashboard"
-        description="Review your IELTS band progress, section performance, pacing, score prediction, and completed practice results."
+        description="Review your IELTS band progress, section performance, pacing, and completed practice results."
         noIndex
       />
       <AnalyticsHeader
@@ -215,11 +213,9 @@ export default function Analytics() {
               data-oid=":n4io18"
             >
               <BandScoreJourney
-                currentScore={practiceAverage}
                 targetScore={stats?.targetScore}
-                testHistory={chartData?.history || []}
-                testDate={user?.test_date}
-                moduleStats={stats?.moduleStats || []}
+                moduleHistory={chartData?.moduleHistory || {}}
+                overallProgress={chartData?.overallProgress || {}}
                 data-oid="2pu74s7"
               />
             </Suspense>
@@ -233,8 +229,6 @@ export default function Analytics() {
                 stats={stats}
                 aiLoading={aiLoading}
                 isPremium={isPremium}
-                learningPhase={learningPhase}
-                nextMilestone={nextMilestone}
                 compact
                 data-oid="vi_s3k9"
               />
@@ -254,10 +248,10 @@ export default function Analytics() {
         <div className="flex items-end justify-between gap-4 px-1 pt-2">
           <div>
             <h2 className="text-xl font-extrabold tracking-tight text-slate-950 dark:text-white">
-              Advanced Analysis
+              Detailed results
             </h2>
             <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
-              Explore module trends, question-format evidence, sections, and scoring criteria.
+              See module trends, question types, sections, and Writing or Speaking score areas.
             </p>
           </div>
         </div>

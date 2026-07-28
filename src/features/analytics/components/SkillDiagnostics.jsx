@@ -17,7 +17,7 @@ const DiagnosticCard = React.memo(function DiagnosticCard({
 }) {
   const Icon = module.icon;
   const progressPercent = Math.round((module.avg / 9) * 100);
-  const status = module.avg >= 7 ? 'Advanced' : module.avg >= 5 ? 'Intermediate' : 'Learning';
+  const status = module.avg >= 7 ? 'Strong result' : module.avg >= 5 ? 'Building' : 'Starting';
   const statusColor =
     module.avg >= 7 ? 'text-emerald-500' : module.avg >= 5 ? 'text-amber-500' : 'text-blue-500';
 

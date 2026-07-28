@@ -72,7 +72,7 @@ export const MODULE_STYLE = {
 export const ROADMAP_PRESENTATION = [
   {
     key: 'foundation',
-    name: 'Foundation & diagnosis',
+    name: 'Starting point',
     shortName: 'Build foundations',
     icon: Sprout,
     objective: 'Check your starting level and close essential knowledge gaps.',
@@ -113,7 +113,7 @@ export const ROADMAP_PRESENTATION = [
       'bg-amber-100/90 border-2 border-amber-300 text-amber-600 dark:bg-amber-950 dark:border-amber-700 dark:text-amber-300 shadow-[0_4px_14px_rgba(245,158,11,0.2)]',
     bar: 'bg-gradient-to-r from-amber-500 to-orange-500',
     phaseBadge: 'bg-amber-100/90 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
-    bullets: ['Advanced strategies', 'Strengthen weak areas', 'Increase speed & accuracy'],
+    bullets: ['Higher-level strategies', 'Strengthen weak areas', 'Increase speed & accuracy'],
   },
   {
     key: 'readiness',
@@ -264,12 +264,12 @@ export function getPrioritiesList(evidence) {
   if (!evidence) return [];
   const measured = (evidence.measured_priorities || []).map((item) => ({
     ...item,
-    kind: 'Measured',
+    kind: 'Confirmed focus',
   }));
   const earlySignals = (evidence.early_signals || evidence.unmeasured_priorities || []).map(
     (item) => ({
       ...item,
-      kind: 'Early signal',
+      kind: 'Needs more results',
     })
   );
   const reviews = (evidence.due_reviews || []).map((item) => ({
@@ -280,10 +280,74 @@ export function getPrioritiesList(evidence) {
   return [...measured, ...earlySignals, ...reviews].slice(0, 4);
 }
 
+export function rankBestNextTask(days = [], context = {}) {
+  const targetBand = Number(context.targetBand || 0);
+  const daysLeft = Number(context.daysLeft);
+  const readiness = context.readiness?.modules || context.readiness || {};
+  const evidence = context.evidence || {};
+  const confirmed = new Set(
+    (evidence.measured_priorities || []).flatMap((item) => [
+      String(item.module || '').toLowerCase(),
+      String(item.skill_code || '').toLowerCase(),
+    ])
+  );
+  const due = new Set(
+    (evidence.due_reviews || []).map((item) => String(item.skill_code || '').toLowerCase())
+  );
+  const nowKey = new Date().toISOString().slice(0, 10);
+
+  return (
+    days
+      .flatMap((day, dayIndex) =>
+        (day.tasks || []).map((task, taskIndex) => ({ ...task, day, dayIndex, taskIndex }))
+      )
+      .filter((task) => !task.is_completed)
+      .map((task) => {
+        const module = String(task.module || '').toLowerCase();
+        const skills = (task.skill_targets || []).map((skill) => String(skill).toLowerCase());
+        const moduleBand = Number(readiness?.[module]?.latest ?? readiness?.[module]?.band);
+        const targetGap =
+          targetBand > 0 && Number.isFinite(moduleBand) ? Math.max(0, targetBand - moduleBand) : 0;
+        const estimated = Number(task.estimated_time || task.estimated_minutes || 30);
+        const capacity = Number(task.day?.capacity || 0);
+        const score =
+          (task.priority === 'high' ? 50 : task.priority === 'medium' ? 25 : 5) +
+          targetGap * 10 +
+          (skills.some((skill) => due.has(skill)) ? 35 : 0) +
+          (confirmed.has(module) || skills.some((skill) => confirmed.has(skill)) ? 20 : 0) +
+          (task.scheduled_date && task.scheduled_date < nowKey ? 30 : 0) +
+          (capacity > 0 && estimated <= capacity ? 10 : 0) +
+          (Number.isFinite(daysLeft) &&
+          daysLeft <= 30 &&
+          /timed|mock|exam/i.test(task.activity_type || task.title)
+            ? 15
+            : 0);
+        return { task, score };
+      })
+      .sort(
+        (a, b) =>
+          b.score - a.score ||
+          String(a.task.scheduled_date || '').localeCompare(String(b.task.scheduled_date || '')) ||
+          String(a.task.activity_key || '').localeCompare(String(b.task.activity_key || ''))
+      )[0]?.task || null
+  );
+}
+
 export function getFriendlyPlanText(text = '') {
   if (!text) return '';
 
   return String(text)
+    .replace(/\bevidence quality is an early signal\b/gi, 'How sure we are: needs more results')
+    .replace(/\bmeasured priorit(?:y|ies)\b/gi, (match) =>
+      /ies$/i.test(match) ? 'confirmed focus areas' : 'confirmed focus'
+    )
+    .replace(/\ban early signal\b/gi, 'needs more results')
+    .replace(/\bearly signals?\b/gi, 'needs more results')
+    .replace(/\bevidence quality\b/gi, 'how sure we are')
+    .replace(/\bcriteria breakdown\b/gi, 'Writing/Speaking score areas')
+    .replace(/\blearning path signals\b/gi, 'your next study focus')
+    .replace(/\bwords learned\b/gi, 'saved vocabulary')
+    .replace(/\bmastery\b/gi, 'skill progress')
     .replace(/\bdiagnostics?\b/gi, 'level check')
     .replace(/\bdiagnostic check\b/gi, 'level check')
     .replace(/\bdiagnostic test\b/gi, 'level check')

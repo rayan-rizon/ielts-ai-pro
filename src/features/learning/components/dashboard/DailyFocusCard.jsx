@@ -31,7 +31,7 @@ const DailyFocusCard = ({
     return `${mm}:${ss}`;
   };
 
-  // --- Empty State: Diagnostic Test ---
+  // --- Empty State: Level Check ---
   if (!loading && !hasHistory) {
     return (
       <GlassCard className={cn('p-4 sm:p-5 md:p-8 relative overflow-hidden', className)}>
@@ -45,10 +45,10 @@ const DailyFocusCard = ({
               </div>
               <div>
                 <h2 className="text-lg font-black tracking-tight dark:text-white">
-                  First Step: Diagnostic
+                  First step: level check
                 </h2>
                 <div className="text-[11px] font-semibold text-muted-foreground">
-                  Baseline Assessment
+                  Starting score
                 </div>
               </div>
             </div>
@@ -56,7 +56,7 @@ const DailyFocusCard = ({
             <div className="p-5 rounded-2xl border border-indigo-100 dark:border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-500/5">
               <div className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
                 <span className="font-bold text-indigo-600 dark:text-indigo-400">Welcome!</span> To
-                build your personalized AI study plan and forecast your score, we need a baseline.
+                build your personalized study plan, we need a real starting result.
                 <br className="mb-2" />
                 Start with a quick <strong>Reading Test</strong> to calibrate the system.
               </div>
@@ -73,7 +73,7 @@ const DailyFocusCard = ({
                 )
               }
             >
-              Start Diagnostic Test
+              Start level check
               <ArrowUpRight className="w-4 h-4 ml-2" />
             </Button>
           </div>

@@ -1,46 +1,95 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import BandScoreJourney from '@/features/analytics/components/BandScoreJourney';
 
-const journeyProps = {
-  currentScore: 6.5,
-  targetScore: 7.5,
-  testHistory: [
-    { date: 'Jul 1', score: 5 },
-    { date: 'Jul 8', score: 5.5 },
-    { date: 'Jul 15', score: 6.5 },
-  ],
-  moduleStats: [{ type: 'reading', avg: 6, count: 3 }],
+vi.mock('recharts', () => ({
+  ResponsiveContainer: ({ children }) => <div>{children}</div>,
+  LineChart: ({ children }) => <div data-testid="line-chart">{children}</div>,
+  CartesianGrid: () => null,
+  Line: () => null,
+  ReferenceLine: () => null,
+  Tooltip: () => null,
+  XAxis: () => null,
+  YAxis: () => null,
+}));
+
+const props = {
+  targetScore: 7,
+  moduleHistory: {
+    reading: [
+      { date: 'Jul 1', score: 5 },
+      { date: 'Jul 8', score: 5.5 },
+      { date: 'Jul 15', score: 6.5 },
+    ],
+    writing: [{ date: 'Jul 4', score: 6 }],
+    listening: [],
+    speaking: [{ date: 'Jul 6', score: 6.5 }],
+  },
+  overallProgress: {
+    qualified: false,
+    current: null,
+    history: [],
+    hasTrend: false,
+  },
 };
 
-function renderJourney() {
+function renderProgress(nextProps = props) {
   return render(
     <MemoryRouter>
-      <BandScoreJourney {...journeyProps} />
+      <BandScoreJourney {...nextProps} />
     </MemoryRouter>
   );
 }
 
-describe('Band score journey interactions', () => {
-  it('draws one continuous path after mounting', async () => {
-    const { container } = renderJourney();
-    const animatedPath = container.querySelector('path[stroke-dasharray="1"]');
+describe('Band Progress interactions', () => {
+  it('shows the real Reading history and latest same-module change', () => {
+    renderProgress();
 
-    expect(animatedPath).toBeTruthy();
-    await waitFor(() => expect(animatedPath).toHaveAttribute('stroke-dashoffset', '0'));
+    expect(screen.getByRole('heading', { name: 'Band Progress' })).toBeInTheDocument();
+    expect(screen.getByText('Change +1.0')).toBeInTheDocument();
+    expect(screen.getByText('6.5')).toBeInTheDocument();
+    expect(screen.getByTestId('line-chart')).toBeInTheDocument();
   });
 
-  it('shows and toggles milestone details when a node is clicked', () => {
-    renderJourney();
-    const milestone = screen.getByRole('button', { name: /Band 5.5: Foundation/ });
+  it('switches modules and reports when one result cannot form a trend', () => {
+    renderProgress();
 
-    fireEvent.click(milestone);
-    expect(screen.getByRole('tooltip')).toHaveTextContent('Band 5.5');
-    expect(screen.getByRole('tooltip')).toHaveTextContent('Milestone completed');
+    fireEvent.click(screen.getByRole('tab', { name: 'Writing' }));
+    expect(screen.getByText('More results needed for a trend')).toBeInTheDocument();
+    expect(screen.getByText('6.0')).toBeInTheDocument();
+  });
 
-    fireEvent.click(milestone);
-    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  it('locks Overall until every module has a scored result', () => {
+    renderProgress();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Overall' }));
+    expect(screen.getByText('Overall needs all four modules')).toBeInTheDocument();
+  });
+
+  it('supports keyboard tab navigation', () => {
+    renderProgress();
+
+    const reading = screen.getByRole('tab', { name: 'Reading' });
+    reading.focus();
+    fireEvent.keyDown(reading, { key: 'ArrowRight' });
+    expect(screen.getByRole('tab', { name: 'Writing' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('shows a qualified Overall estimate without inventing a trend', () => {
+    renderProgress({
+      ...props,
+      overallProgress: {
+        qualified: true,
+        current: 6.5,
+        history: [{ date: 'Current', score: 6.5 }],
+        hasTrend: false,
+      },
+    });
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Overall' }));
+    expect(screen.getByText('6.5')).toBeInTheDocument();
+    expect(screen.getByText('More results needed for a trend')).toBeInTheDocument();
   });
 });

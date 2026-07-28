@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { GraduationCap, Headphones } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { withLearningActivity } from '@/features/testing/shared/activityContext';
 
 // ---------------------------------------------------------------------------
 // Pure derived-value helpers used by the TestCard component
@@ -42,7 +43,7 @@ export function resolveIcon(test) {
 export function buildLinkTarget({ isResuming, isCompleted, session, completedSession, test }) {
   if (isResuming) return `/listening-test/${session.id}`;
   if (isCompleted) return `/listening-test/${completedSession.id}`;
-  return `/listening-test?test-id=${test.id}`;
+  return withLearningActivity(`/listening-test?test-id=${test.id}`);
 }
 
 /**

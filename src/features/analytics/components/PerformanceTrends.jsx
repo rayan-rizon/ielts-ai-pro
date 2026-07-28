@@ -46,7 +46,7 @@ export default function PerformanceTrends({
 
       <motion.div variants={ITEM_VARIANTS} data-oid="1atf515">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6" data-oid="pj.2q8p">
-          {/* Module Mastery Radar */}
+          {/* Module skill progress radar */}
           <ModuleMasteryCard radarData={radarData} />
 
           {/* Question Types */}

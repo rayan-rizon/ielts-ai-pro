@@ -160,7 +160,7 @@ async function fetchLearningPathData(userId) {
   let { data: activities, error: activitiesError } = await supabase
     .from('learning_path_activities')
     .select(
-      'id, activity_key, scheduled_day, scheduled_date, is_completed, completed_at, outcome_score, outcome_data, title, description, module, estimated_minutes, priority, activity_type, skill_targets'
+      'id, activity_key, scheduled_day, scheduled_date, is_completed, completed_at, outcome_score, outcome_band, outcome_accuracy, completion_source, outcome_data, title, description, module, estimated_minutes, priority, activity_type, skill_targets'
     )
     .eq('learning_path_id', pathRecord.id);
 
@@ -170,7 +170,7 @@ async function fetchLearningPathData(userId) {
     const legacyResult = await supabase
       .from('learning_path_activities')
       .select(
-        'id, activity_key, scheduled_day, is_completed, completed_at, outcome_score, outcome_data, title, description, module, estimated_minutes, priority, activity_type, skill_targets'
+        'id, activity_key, scheduled_day, is_completed, completed_at, outcome_score, outcome_band, outcome_accuracy, completion_source, outcome_data, title, description, module, estimated_minutes, priority, activity_type, skill_targets'
       )
       .eq('learning_path_id', pathRecord.id);
     activities = (legacyResult.data || []).map((activity) => ({
@@ -230,8 +230,16 @@ async function fetchAllLearningPathData(userId) {
       pathData = null;
     }
 
+    const { data: currentActivities } = lp?.id
+      ? await supabase
+          .from('learning_path_activities')
+          .select(
+            'id, activity_key, scheduled_day, scheduled_date, is_completed, completed_at, outcome_score, outcome_band, outcome_accuracy, completion_source, outcome_data, title, description, module, estimated_minutes, priority, activity_type, skill_targets'
+          )
+          .eq('learning_path_id', lp.id)
+      : { data: [] };
     const activityByKey = {};
-    (data?.activities || []).forEach((a) => {
+    (currentActivities || data?.activities || []).forEach((a) => {
       if (a?.activity_key) activityByKey[a.activity_key] = a;
     });
 
@@ -244,7 +252,15 @@ async function fetchAllLearningPathData(userId) {
     };
 
     // Build skill map from proficiencies
-    const proficiencies = data?.skillProficiencies || [];
+    const { data: currentProficiencies } = await supabase
+      .from('skill_proficiency')
+      .select(
+        'skill_code, module, mastery_probability, confidence_level, practice_count, correct_count, last_practiced_at, next_review_at, evidence_version'
+      )
+      .eq('user_id', userId)
+      .order('mastery_probability', { ascending: true })
+      .limit(100);
+    const proficiencies = currentProficiencies || [];
     const trendBySkill = buildSkillTrendMap(statsData.sessions);
     const now = Date.now();
     const byModule = {};
@@ -252,6 +268,11 @@ async function fetchAllLearningPathData(userId) {
 
     proficiencies.forEach((p) => {
       const module = p?.module || 'reading';
+      const isGeneratedCriterion =
+        module === 'writing' ||
+        module === 'speaking' ||
+        /_(writing|speaking)$/i.test(String(p?.skill_code || ''));
+      if (isGeneratedCriterion && p?.evidence_version !== '2026-07-29-v5') return;
       if (!byModule[module]) byModule[module] = [];
       const nextReviewAt = p?.next_review_at ? new Date(p.next_review_at).getTime() : null;
       const isDue = nextReviewAt !== null && Number.isFinite(nextReviewAt) && nextReviewAt <= now;
@@ -263,7 +284,7 @@ async function fetchAllLearningPathData(userId) {
       const correctCount = Number(p?.correct_count ?? 0);
       const trend = trendBySkill[p.skill_code] || 'stable';
       const trendLabel = trend === 'up' ? 'improving' : trend === 'down' ? 'declining' : 'stable';
-      const why = `${Math.round(mastery * 100)}% mastery over ${practiceCount} Qs, ${trendLabel}${isDue ? ', due now' : ''}`;
+      const why = `${Math.round(mastery * 100)}% skill progress over ${practiceCount} answers, ${trendLabel}${isDue ? ', due now' : ''}`;
 
       byModule[module].push({
         skill_code: p.skill_code,
@@ -296,7 +317,10 @@ async function fetchAllLearningPathData(userId) {
       statsData,
       skillMap: {
         byModule,
-        totals: { skills: proficiencies.length, due: dueCount },
+        totals: {
+          skills: Object.values(byModule).reduce((sum, items) => sum + items.length, 0),
+          due: dueCount,
+        },
       },
     };
 
@@ -323,7 +347,13 @@ async function fetchLearningStats(userId) {
   const mTrends = {};
 
   ['reading', 'writing', 'listening', 'speaking'].forEach((type) => {
-    const typeSessions = sessions.filter((s) => s.test_type === type);
+    const typeSessions = sessions.filter(
+      (s) =>
+        s.test_type === type &&
+        Number.isFinite(Number(s.score)) &&
+        Number(s.score) >= 0 &&
+        Number(s.score) <= 9
+    );
     if (typeSessions.length > 0) {
       mAvgs[type] =
         typeSessions.reduce((sum, s) => sum + (Number(s.score) || 0), 0) / typeSessions.length;
@@ -349,7 +379,7 @@ async function fetchSkillProficiencies(userId, sessions = []) {
   const { data: proficiencies } = await supabase
     .from('skill_proficiency')
     .select(
-      'skill_code, module, mastery_probability, confidence_level, practice_count, correct_count, last_practiced_at, next_review_at'
+      'skill_code, module, mastery_probability, confidence_level, practice_count, correct_count, last_practiced_at, next_review_at, evidence_version'
     )
     .eq('user_id', userId)
     .order('mastery_probability', { ascending: true })
@@ -362,6 +392,11 @@ async function fetchSkillProficiencies(userId, sessions = []) {
 
   (proficiencies || []).forEach((p) => {
     const module = p?.module || 'reading';
+    const isGeneratedCriterion =
+      module === 'writing' ||
+      module === 'speaking' ||
+      /_(writing|speaking)$/i.test(String(p?.skill_code || ''));
+    if (isGeneratedCriterion && p?.evidence_version !== '2026-07-29-v5') return;
     if (!byModule[module]) byModule[module] = [];
     const nextReviewAt = p?.next_review_at ? new Date(p.next_review_at).getTime() : null;
     const isDue = nextReviewAt !== null && Number.isFinite(nextReviewAt) && nextReviewAt <= now;
@@ -373,7 +408,7 @@ async function fetchSkillProficiencies(userId, sessions = []) {
     const correctCount = Number(p?.correct_count ?? 0);
     const trend = trendBySkill[p.skill_code] || 'stable';
     const trendLabel = trend === 'up' ? 'improving' : trend === 'down' ? 'declining' : 'stable';
-    const why = `${Math.round(mastery * 100)}% mastery over ${practiceCount} Qs, ${trendLabel}${isDue ? ', due now' : ''}`;
+    const why = `${Math.round(mastery * 100)}% skill progress over ${practiceCount} answers, ${trendLabel}${isDue ? ', due now' : ''}`;
 
     byModule[module].push({
       skill_code: p.skill_code,
@@ -398,7 +433,10 @@ async function fetchSkillProficiencies(userId, sessions = []) {
 
   return {
     byModule,
-    totals: { skills: (proficiencies || []).length, due: dueCount },
+    totals: {
+      skills: Object.values(byModule).reduce((sum, items) => sum + items.length, 0),
+      due: dueCount,
+    },
   };
 }
 
@@ -479,6 +517,9 @@ export function useLearningPathData(isPremium = true) {
         is_completed: isCompleted,
         completed_at: isCompleted ? new Date().toISOString() : null,
         outcome_score: outcomeScore ?? null,
+        outcome_band: null,
+        outcome_accuracy: null,
+        completion_source: isCompleted ? 'manual' : null,
         title: taskObj.title || `Task ${taskIdx + 1}`,
         module: taskObj.module || 'general',
         estimated_minutes: taskObj.estimated_time || 30,

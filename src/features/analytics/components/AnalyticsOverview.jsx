@@ -26,7 +26,6 @@ import { cn } from '@/lib/cn';
 import { ITEM_VARIANTS } from '../constants';
 import { buildPacingSummary } from '../hooks/analyticsCalculations';
 import { formatBand } from '../utils';
-import ScoreForecast from './ScoreForecast';
 
 const MODULE_UI = {
   reading: {
@@ -467,14 +466,11 @@ export default function AnalyticsOverview({ stats, chartData }) {
   return (
     <section className="space-y-4" aria-label="Analytics overview">
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12 xl:col-span-4">
+        <div className="col-span-12 xl:col-span-6">
           <SectionPerformance moduleStats={stats.moduleStats || []} />
         </div>
-        <div className="col-span-12 xl:col-span-4">
+        <div className="col-span-12 xl:col-span-6">
           <PacingChart efficiency={stats.efficiency || {}} />
-        </div>
-        <div className="col-span-12 xl:col-span-4">
-          <ScoreForecast forecastData={chartData.forecast || []} targetScore={stats.targetScore} />
         </div>
       </div>
     </section>

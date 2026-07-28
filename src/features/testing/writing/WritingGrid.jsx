@@ -9,7 +9,11 @@ import {
   resolveWritingLinkConfig,
   computeWritingAccessLock,
 } from './writingCardHelpers';
-import { resolveWritingSessionState, getScoreFromFeedback } from './writingFeedbackHelpers';
+import {
+  resolveWritingSessionState,
+  getScoreFromFeedback,
+  hasValidAiFeedback,
+} from './writingFeedbackHelpers';
 import { pickLatestSessionForTest } from './writingSessionHelpers';
 import { computeWritingProgressFull } from './writingProgressHelpers';
 import WritingCardListView from './WritingCardListView';
@@ -40,6 +44,11 @@ function buildWritingCardProps({
   const displayScore =
     (completedSession || activeSession)?.score ??
     getScoreFromFeedback((completedSession || activeSession)?.content_data);
+  const completedRecord = completedSession || activeSession;
+  const feedbackReady =
+    completedRecord?.evaluation_status === 'legacy' ||
+    completedRecord?.evaluation_status === 'complete' ||
+    hasValidAiFeedback(completedRecord?.content_data);
 
   const isLocked = computeWritingAccessLock(test, user, isAdmin);
   const progress = computeWritingProgressFull(activeSession, test);
@@ -66,6 +75,7 @@ function buildWritingCardProps({
     wordLimit,
     session: activeSession,
     completedSessionId,
+    feedbackReady,
   };
 }
 
@@ -98,6 +108,10 @@ function arePropsEqual(prev, next) {
   return (
     prev.test.id === next.test.id &&
     prev.latestSession?.id === next.latestSession?.id &&
+    prev.latestSession?.evaluation_status === next.latestSession?.evaluation_status &&
+    prev.latestSession?.evaluation_version === next.latestSession?.evaluation_version &&
+    prev.latestSession?.score === next.latestSession?.score &&
+    prev.latestSession?.is_completed === next.latestSession?.is_completed &&
     prev.user?.subscription_tier === next.user?.subscription_tier
   );
 }

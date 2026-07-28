@@ -14,6 +14,7 @@ import {
   computeEvidence,
   computeSevenDays,
   getPlanRefreshTrigger,
+  rankBestNextTask,
 } from './dashboardUtils';
 
 export { computeSevenDays };
@@ -96,7 +97,16 @@ export function useLearningPathDashboard({
   const planUpdateAvailable = !previewMode && Boolean(refreshTrigger);
 
   const today = sevenDays[0];
-  const primaryTask = today?.tasks.find((task) => !task.is_optional) || today?.tasks[0] || null;
+  const primaryTask = useMemo(
+    () =>
+      rankBestNextTask(sevenDays, {
+        targetBand: snapshot.targetBand,
+        daysLeft: snapshot.daysLeft,
+        readiness: snapshot.readiness,
+        evidence,
+      }),
+    [sevenDays, snapshot.targetBand, snapshot.daysLeft, snapshot.readiness, evidence]
+  );
   const nextTasks = useMemo(
     () =>
       sevenDays

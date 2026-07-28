@@ -304,10 +304,7 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter
-        className="border-t border-border p-2.5 group-data-[collapsible=icon]:p-2"
-        data-oid="760._cj"
-      >
+      <SidebarFooter className="p-2.5 group-data-[collapsible=icon]:p-2" data-oid="760._cj">
         <div className="space-y-1 group-data-[collapsible=icon]:space-y-1" data-oid="8-xxa.v">
           {/* Toggle Button in Footer */}
           <div className="flex justify-center mb-1" data-oid="yttznw5">
@@ -384,7 +381,7 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
             <m.div
               whileHover={{ scale: 1.02, y: -1 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-white/5 dark:bg-white/5 hover:bg-white/10 p-2 rounded-2xl flex items-center gap-3 cursor-pointer transition-all duration-300 border border-white/5 hover:border-primary/30 group-data-[collapsible=icon]:justify-center shadow-sm"
+              className="bg-slate-100/80 dark:bg-white/5 hover:bg-slate-200/60 dark:hover:bg-white/10 p-2 rounded-2xl flex items-center gap-3 cursor-pointer transition-all duration-300 border border-slate-200/70 dark:border-white/5 hover:border-primary/30 group-data-[collapsible=icon]:justify-center shadow-xs"
               data-oid="q9eqepq"
             >
               {/* Enhanced User Avatar */}

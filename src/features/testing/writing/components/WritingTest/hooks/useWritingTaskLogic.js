@@ -13,6 +13,7 @@ import {
   toPersistedTestMode,
 } from '@/features/testing/shared/testMode';
 import { useExamDeadline } from '@/features/testing/shared/hooks/useExamDeadline';
+import { getLearningActivityId } from '@/features/testing/shared/activityContext';
 
 // Modular Hooks
 import { useWritingInitialization } from './useWritingInitialization';
@@ -143,6 +144,7 @@ export function useWritingTaskLogic(passedUser = null) {
           task2_response: store.drafts['Task 2'],
         },
       ];
+      const actualDurationSeconds = Math.max(1, 60 * 60 - Number(store.timeRemaining || 0));
 
       const { error: submitError } = await supabase
         .from('test_sessions')
@@ -150,6 +152,16 @@ export function useWritingTaskLogic(passedUser = null) {
           user_responses: currentResponse,
           is_completed: true,
           completed_at: new Date().toISOString(),
+          evaluation_status: 'not_requested',
+          actual_duration_seconds: actualDurationSeconds,
+          content_data: {
+            ...store.session.content_data,
+            time_remaining: store.timeRemaining,
+            timeMetrics: {
+              ...store.session.content_data?.timeMetrics,
+              totalTimeSpent: actualDurationSeconds,
+            },
+          },
         })
         .eq('id', store.session.id)
         .eq('is_completed', false)
@@ -182,12 +194,15 @@ export function useWritingTaskLogic(passedUser = null) {
       setIsStarting(true);
       store.setError(null);
       try {
+        const activityId = getLearningActivityId();
         const newSession = await TestSession.create({
           user_id: store.currentUser.id,
           test_type: 'writing',
           test_mode: toPersistedTestMode(testMode),
           duration_minutes: 60,
           passage_id: store.task.id,
+          learning_path_activity_id: activityId || null,
+          evaluation_status: 'not_requested',
           content_data: {
             ...store.task,
             test_mode: testMode,

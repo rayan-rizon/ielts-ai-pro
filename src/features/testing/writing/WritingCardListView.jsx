@@ -5,6 +5,7 @@ import { Award } from 'lucide-react';
 import { colorVariants } from './writingColorConfig';
 import { computeWritingAccessLock, resolveWritingLinkConfig } from './writingCardHelpers';
 import { BookProgressBadge, TestRowBadge, TestRowAction } from './WritingCardComponents';
+import { hasValidAiFeedback } from './writingFeedbackHelpers';
 
 function getTestName(test) {
   const num = test.cambridge_test_number || test.title.match(/Test\s*(\d+)/i)?.[1] || '1';
@@ -16,11 +17,15 @@ function resolveTestState(test, sessions, userData, isAdmin) {
   const isLocked = computeWritingAccessLock(test, userData, isAdmin);
   const isCompleted = !!testSession?.is_completed;
   const isResuming = !!testSession && !isCompleted;
-  return { testSession, isLocked, isCompleted, isResuming };
+  const feedbackReady =
+    testSession?.evaluation_status === 'legacy' ||
+    testSession?.evaluation_status === 'complete' ||
+    hasValidAiFeedback(testSession?.content_data);
+  return { testSession, isLocked, isCompleted, isResuming, feedbackReady };
 }
 
 function BookTestRow({ test, sessions, userData, isAdmin, color }) {
-  const { testSession, isLocked, isCompleted, isResuming } = resolveTestState(
+  const { testSession, isLocked, isCompleted, isResuming, feedbackReady } = resolveTestState(
     test,
     sessions,
     userData,
@@ -44,6 +49,7 @@ function BookTestRow({ test, sessions, userData, isAdmin, color }) {
           isCompleted={isCompleted}
           isResuming={isResuming}
           score={testSession?.score}
+          feedbackReady={feedbackReady}
         />
       </div>
 
@@ -55,6 +61,7 @@ function BookTestRow({ test, sessions, userData, isAdmin, color }) {
           testSession={testSession}
           test={test}
           color={color}
+          feedbackReady={feedbackReady}
         />
       </div>
     </div>

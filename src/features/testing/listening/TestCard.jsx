@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { withLearningActivity } from '@/features/testing/shared/activityContext';
 import { colorVariants, getColor } from './colorConfig';
 import {
   computeAccessLock,
@@ -224,7 +225,7 @@ function TestCardActions({
             View Results <ArrowRight className="w-4 h-4 ml-1.5" />
           </Button>
         </Link>
-        <Link to={`/listening-test?test-id=${test.id}&retake=true`}>
+        <Link to={withLearningActivity(`/listening-test?test-id=${test.id}&retake=true`)}>
           <Button
             variant="outline"
             className="h-9.5 px-3.5 rounded-lg sm:rounded-xl border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 backdrop-blur-md active:scale-[0.98]"
@@ -237,7 +238,7 @@ function TestCardActions({
   }
 
   return (
-    <Link to={`/listening-test?test-id=${test.id}`} className="block">
+    <Link to={withLearningActivity(`/listening-test?test-id=${test.id}`)} className="block">
       <Button className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-bold rounded-lg sm:rounded-xl h-9.5 text-xs sm:text-sm shadow-md shadow-slate-900/10 dark:shadow-purple-900/30 transition-all hover:scale-[1.01] active:scale-[0.98] border-0">
         Start Practice <ChevronRight className="w-4 h-4 ml-1" />
       </Button>

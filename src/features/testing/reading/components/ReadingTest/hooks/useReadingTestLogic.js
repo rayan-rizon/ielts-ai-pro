@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useReadingTestDispatch, useReadingTestState } from '../context/ReadingTestContext';
 import { createTestSession, initializeTest } from '@/lib/testInitializer';
+import { getLearningActivityId } from '@/features/testing/shared/activityContext';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { calculateTestResults } from '../utils'; // Fixed import path
 import { removeFromCache } from '@/lib/apiCache';
@@ -362,6 +363,7 @@ export function useReadingTestLogic(
           type: 'reading',
           testMode,
           durationSeconds: EXAM_DURATION_SECONDS,
+          learningPathActivityId: getLearningActivityId(location.search),
         });
         dispatch({ type: 'RESET_TEST' });
         dispatch({ type: 'SET_TIME', payload: EXAM_DURATION_SECONDS });
@@ -473,6 +475,7 @@ export function useReadingTestLogic(
           is_completed: true,
           completed_at: new Date().toISOString(),
           duration_minutes: actualTimeSpentMinutes,
+          actual_duration_seconds: actualTimeSpentSeconds,
           content_data: {
             ...session.content_data,
             analysisSchemaVersion: ANALYSIS_SCHEMA_VERSION,

@@ -53,7 +53,7 @@ export function WritingInsightsCard({ totalPassages }) {
                 className="text-base font-black text-slate-900 dark:text-white"
                 data-oid="1gevuh8"
               >
-                Writing Mastery
+                Writing skill progress
               </h4>
             </div>
             <div className="space-y-1.5" data-oid="jx_vzhm">

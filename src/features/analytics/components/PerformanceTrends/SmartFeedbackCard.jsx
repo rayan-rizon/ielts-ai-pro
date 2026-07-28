@@ -62,21 +62,21 @@ export default function SmartFeedbackCard({ stats, isPremium }) {
                 <div className="grid grid-cols-3 gap-1.5" data-oid="-lufzwo">
                   <StatMiniCard
                     icon={Target}
-                    label="Confidence"
+                    label="How sure we are"
                     value={evidence.confidenceLabel}
                     data-oid="dgo-bc1"
                   />
 
                   <StatMiniCard
                     icon={CheckCircle2}
-                    label="Measured"
+                    label="Confirmed"
                     value={evidence.counts?.measured || 0}
                     data-oid="3iltfcq"
                   />
 
                   <StatMiniCard
                     icon={Search}
-                    label="Early"
+                    label="Need results"
                     value={evidence.counts?.early || 0}
                     data-oid="rry8.95"
                   />
@@ -86,7 +86,7 @@ export default function SmartFeedbackCard({ stats, isPremium }) {
                   <div className="space-y-1.5" data-oid="ms_lc-0">
                     <SectionHeading
                       icon={Target}
-                      label="Measured Priorities"
+                      label="Confirmed focus"
                       subLabel="Recurring"
                       data-oid="5gk2v.7"
                     />
@@ -103,7 +103,7 @@ export default function SmartFeedbackCard({ stats, isPremium }) {
                   <div className="space-y-1.5 pt-0.5" data-oid="kwphww6">
                     <SectionHeading
                       icon={Search}
-                      label="Keep Measuring"
+                      label="Needs more results"
                       color="text-indigo-600 dark:text-indigo-400"
                       data-oid="syzg9fg"
                     />
@@ -119,8 +119,8 @@ export default function SmartFeedbackCard({ stats, isPremium }) {
             ) : (
               <EmptyAnalyticsState
                 icon={Gauge}
-                title="Evidence Pending"
-                description="Refresh your Learning Path after a scored test to classify measured priorities and early signals."
+                title="More results needed"
+                description="Complete a scored test, then refresh your Learning Path to see confirmed focus areas."
                 compact
                 data-oid="0e1mw:5"
               />

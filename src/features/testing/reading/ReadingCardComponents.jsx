@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { createPageUrl } from '@/utils';
 import { colorVariants, PROGRESS_GRADIENTS } from './readingColorConfig';
+import { withLearningActivity } from '@/features/testing/shared/activityContext';
 
 // ---------------------------------------------------------------------------
 // Grid Sub-components
@@ -188,7 +189,7 @@ export function GridActions({
             Resume Test <Play className="w-3.5 h-3.5 ml-1.5 fill-current" />
           </Button>
         </Link>
-        <Link to={`/reading-test?test-id=${test.id}&retake=true`}>
+        <Link to={withLearningActivity(`/reading-test?test-id=${test.id}&retake=true`)}>
           <Button
             variant="outline"
             aria-label="Restart test"
@@ -214,7 +215,7 @@ export function GridActions({
             View Results <ArrowRight className="w-4 h-4 ml-1.5" />
           </Button>
         </Link>
-        <Link to={`/reading-test?test-id=${test.id}&retake=true`}>
+        <Link to={withLearningActivity(`/reading-test?test-id=${test.id}&retake=true`)}>
           <Button
             variant="outline"
             className="h-9.5 px-3.5 rounded-lg sm:rounded-xl border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 backdrop-blur-md active:scale-[0.98]"
@@ -226,7 +227,7 @@ export function GridActions({
     );
   }
   return (
-    <Link to={`/reading-test?test-id=${test.id}`} className="block">
+    <Link to={withLearningActivity(`/reading-test?test-id=${test.id}`)} className="block">
       <Button className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold rounded-lg sm:rounded-xl h-9.5 text-xs sm:text-sm shadow-md shadow-slate-900/10 dark:shadow-blue-900/30 transition-all hover:scale-[1.01] active:scale-[0.98] border-0">
         Start Practice <ChevronRight className="w-4 h-4 ml-1" />
       </Button>
@@ -331,7 +332,7 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
             Resume <Play className="w-2 h-2 fill-current" />
           </Button>
         </Link>
-        <Link to={`/reading-test?test-id=${test.id}&retake=true`}>
+        <Link to={withLearningActivity(`/reading-test?test-id=${test.id}&retake=true`)}>
           <Button
             size="sm"
             variant="outline"
@@ -359,7 +360,7 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
             Results <ArrowRight className="w-2 h-2" />
           </Button>
         </Link>
-        <Link to={`/reading-test?test-id=${test.id}&retake=true`}>
+        <Link to={withLearningActivity(`/reading-test?test-id=${test.id}&retake=true`)}>
           <Button
             size="sm"
             variant="outline"
@@ -373,7 +374,7 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
   }
   return (
     <>
-      <Link to={`/reading-test?test-id=${test.id}`}>
+      <Link to={withLearningActivity(`/reading-test?test-id=${test.id}`)}>
         <Button
           size="sm"
           className="h-6.5 w-[76px] justify-center rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500 hover:scale-105 active:scale-95 text-white font-bold text-[10px] shadow-sm flex items-center justify-center gap-1 border-0 transition-all duration-200"

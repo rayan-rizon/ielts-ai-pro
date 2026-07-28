@@ -3,6 +3,7 @@ import {
   buildPacingSummary,
   computeAdvancedMetrics,
 } from '@/features/analytics/hooks/analyticsCalculations';
+import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
 
 describe('evidence-grounded Analytics calculations', () => {
   it('does not surface historical per-question pace or inferred cognitive skill claims', () => {
@@ -84,6 +85,8 @@ describe('evidence-grounded Analytics calculations', () => {
     const result = computeAdvancedMetrics([
       {
         test_type: 'writing',
+        evaluation_status: 'complete',
+        evaluation_version: CURRENT_EVALUATION_VERSION,
         content_data: {
           criteriaScores: {
             taskAchievement: 6,
@@ -95,6 +98,8 @@ describe('evidence-grounded Analytics calculations', () => {
       },
       {
         test_type: 'speaking',
+        evaluation_status: 'complete',
+        evaluation_version: CURRENT_EVALUATION_VERSION,
         content_data: {
           criteriaScores: {
             fluency: 6,
@@ -124,6 +129,8 @@ describe('evidence-grounded Analytics calculations', () => {
     const result = computeAdvancedMetrics([
       {
         test_type: 'writing',
+        evaluation_status: 'complete',
+        evaluation_version: CURRENT_EVALUATION_VERSION,
         content_data: {
           criteriaScores: {
             taskAchievement: 0,
@@ -136,5 +143,20 @@ describe('evidence-grounded Analytics calculations', () => {
     expect(result.writingCriteria.sampleCounts.taskAchievement).toBe(1);
     expect(result.writingCriteria.coherence).toBeNull();
     expect(result.writingCriteria.sampleCounts.coherence).toBe(0);
+  });
+
+  it('keeps a legacy overall band but excludes its old criterion details', () => {
+    const legacy = {
+      test_type: 'writing',
+      is_completed: true,
+      score: 6.5,
+      evaluation_status: 'legacy',
+      content_data: { criteriaScores: { taskAchievement: 9 } },
+    };
+
+    const result = computeAdvancedMetrics([legacy]);
+
+    expect(result.writingCriteria.hasData).toBe(false);
+    expect(result.writingCriteria.taskAchievement).toBeNull();
   });
 });

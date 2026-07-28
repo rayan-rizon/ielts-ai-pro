@@ -157,7 +157,7 @@ function HeroBanner({
             </span>
             <span className="min-w-0 flex-1 text-left">
               <span className="block text-[9px] font-bold uppercase tracking-[0.16em] text-indigo-600 dark:text-indigo-400">
-                Today’s next step
+                Best next task
               </span>
               <span className="mt-0.5 block truncate text-sm font-bold text-slate-950 dark:text-white">
                 {titleText}

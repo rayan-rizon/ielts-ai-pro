@@ -36,7 +36,7 @@ describe('evaluationUtils', () => {
 
   it('recomputes writing overall band and removes unsupported source references', () => {
     const source =
-      'Public transport reduces congestion, but governments must also improve service reliability.';
+      'Public transport reduces congestion, but governments must also improve service reliability. Reliable buses and trains can persuade more commuters to leave private cars at home each day.';
     const result = normalizeWritingEvaluation(
       {
         overallBand: 9,
@@ -84,6 +84,7 @@ describe('evaluationUtils', () => {
       GrammaticalRangeAndAccuracy: 6.5,
     });
     expect(result.overallBand).toBe(6.5);
+    expect(result.evaluationVersion).toBe('2026-07-29-v5');
     expect(result.annotations).toHaveLength(1);
     expect(result.corrections).toEqual([]);
     expect(result.weaknesses[0]).toContain('below the 250-word minimum');
@@ -91,7 +92,7 @@ describe('evaluationUtils', () => {
 
   it('normalizes the compact writing contract and derives corrections from grounded annotations', () => {
     const source =
-      'Public transport reduce congestion, and reliable services encourage commuters to leave their cars at home.';
+      'Public transport reduce congestion, and reliable services encourage commuters to leave their cars at home. Governments should improve routes, lower ticket prices, and provide dependable services across the city.';
     const result = normalizeWritingEvaluation(
       {
         criteriaScores: {
@@ -136,6 +137,7 @@ describe('evaluationUtils', () => {
     );
 
     expect(result.overallBand).toBe(6);
+    expect(result.evaluationVersion).toBe('2026-07-29-v5');
     expect(result.summary).toBe(
       'The position is clear, but recurring agreement errors reduce grammatical accuracy.'
     );
@@ -203,6 +205,7 @@ describe('evaluationUtils', () => {
     expect(result.overallBand).toBe(6.5);
     expect(result.provisionalOverallBand).toBe(6.5);
     expect(result.assessmentStatus).toBe('transcript');
+    expect(result.evaluationVersion).toBe('2026-07-29-v5');
     expect(result.scoreBasis).toBe('transcript');
     expect(result.criterionNotes.pronunciation).toBe('');
     expect(result.partScores.part2.band).toBeNull();
@@ -240,6 +243,7 @@ describe('evaluationUtils', () => {
     expect(result.pronunciation).toBe(6.5);
     expect(result.overallBand).toBe(6.5);
     expect(result.assessmentStatus).toBe('complete');
+    expect(result.evaluationVersion).toBe('2026-07-29-v5');
   });
 
   it('filters procedural messages and includes task context in speaking evidence', () => {

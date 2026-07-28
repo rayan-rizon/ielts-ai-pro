@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { GraduationCap, BookOpen } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { withLearningActivity } from '@/features/testing/shared/activityContext';
 
 // ---------------------------------------------------------------------------
 // Pure derived-value helpers used by the Reading TestCard components
@@ -48,7 +49,7 @@ export function buildReadingLinkTarget({
 }) {
   if (isResuming) return `/reading-test/${session.id}`;
   if (isCompleted) return `/reading-test/${completedSession.id}`;
-  return `/reading-test?test-id=${test.id}`;
+  return withLearningActivity(`/reading-test?test-id=${test.id}`);
 }
 
 export function resolveReadingLinkConfig(isLocked, linkTo) {

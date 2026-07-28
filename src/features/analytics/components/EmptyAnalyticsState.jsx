@@ -227,7 +227,7 @@ export default function EmptyAnalyticsState({
     },
     {
       icon: Brain,
-      title: 'Advanced AI-Driven Coaching',
+      title: 'Personal study coaching',
       desc: 'Instant focus area insights and study suggestions tailored to your weak points.',
       color: 'from-amber-500/20 to-orange-500/20 text-amber-500 dark:text-amber-400',
     },
@@ -283,8 +283,7 @@ export default function EmptyAnalyticsState({
               {title}
             </h3>
             <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-              Unlock a comprehensive, diagnostic view of your IELTS performance. Your dashboard will
-              feature:
+              Unlock a clear view of your IELTS performance. Your dashboard will feature:
             </p>
           </div>
 

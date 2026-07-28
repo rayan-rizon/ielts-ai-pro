@@ -331,6 +331,9 @@ export type Database = {
           is_completed: boolean | null;
           learning_path_id: string | null;
           module: string | null;
+          completion_source: string | null;
+          outcome_accuracy: number | null;
+          outcome_band: number | null;
           outcome_data: Json | null;
           outcome_score: number | null;
           priority: string | null;
@@ -352,6 +355,9 @@ export type Database = {
           is_completed?: boolean | null;
           learning_path_id?: string | null;
           module?: string | null;
+          completion_source?: string | null;
+          outcome_accuracy?: number | null;
+          outcome_band?: number | null;
           outcome_data?: Json | null;
           outcome_score?: number | null;
           priority?: string | null;
@@ -373,6 +379,9 @@ export type Database = {
           is_completed?: boolean | null;
           learning_path_id?: string | null;
           module?: string | null;
+          completion_source?: string | null;
+          outcome_accuracy?: number | null;
+          outcome_band?: number | null;
           outcome_data?: Json | null;
           outcome_score?: number | null;
           priority?: string | null;
@@ -875,6 +884,7 @@ export type Database = {
           confidence_level: number | null;
           correct_count: number | null;
           created_at: string | null;
+          evidence_version: string | null;
           id: string;
           last_practiced_at: string | null;
           mastery_probability: number | null;
@@ -890,6 +900,7 @@ export type Database = {
           confidence_level?: number | null;
           correct_count?: number | null;
           created_at?: string | null;
+          evidence_version?: string | null;
           id?: string;
           last_practiced_at?: string | null;
           mastery_probability?: number | null;
@@ -905,6 +916,7 @@ export type Database = {
           confidence_level?: number | null;
           correct_count?: number | null;
           created_at?: string | null;
+          evidence_version?: string | null;
           id?: string;
           last_practiced_at?: string | null;
           mastery_probability?: number | null;
@@ -1010,13 +1022,18 @@ export type Database = {
       test_sessions: {
         Row: {
           answers: Json | null;
+          actual_duration_seconds: number | null;
           band_score: number | null;
           completed_at: string | null;
           content_data: Json | null;
           created_at: string | null;
           duration_minutes: number | null;
+          evaluated_at: string | null;
+          evaluation_status: string | null;
+          evaluation_version: string | null;
           id: string;
           is_completed: boolean | null;
+          learning_path_activity_id: string | null;
           module: string | null;
           passage_id: string | null;
           score: number | null;
@@ -1029,13 +1046,18 @@ export type Database = {
         };
         Insert: {
           answers?: Json | null;
+          actual_duration_seconds?: number | null;
           band_score?: number | null;
           completed_at?: string | null;
           content_data?: Json | null;
           created_at?: string | null;
           duration_minutes?: number | null;
+          evaluated_at?: string | null;
+          evaluation_status?: string | null;
+          evaluation_version?: string | null;
           id?: string;
           is_completed?: boolean | null;
+          learning_path_activity_id?: string | null;
           module?: string | null;
           passage_id?: string | null;
           score?: number | null;
@@ -1048,13 +1070,18 @@ export type Database = {
         };
         Update: {
           answers?: Json | null;
+          actual_duration_seconds?: number | null;
           band_score?: number | null;
           completed_at?: string | null;
           content_data?: Json | null;
           created_at?: string | null;
           duration_minutes?: number | null;
+          evaluated_at?: string | null;
+          evaluation_status?: string | null;
+          evaluation_version?: string | null;
           id?: string;
           is_completed?: boolean | null;
+          learning_path_activity_id?: string | null;
           module?: string | null;
           passage_id?: string | null;
           score?: number | null;
@@ -1066,6 +1093,13 @@ export type Database = {
           user_responses?: Json | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'test_sessions_learning_path_activity_id_fkey';
+            columns: ['learning_path_activity_id'];
+            isOneToOne: false;
+            referencedRelation: 'learning_path_activities';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'test_sessions_passage_id_fkey';
             columns: ['passage_id'];

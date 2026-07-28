@@ -115,7 +115,7 @@ export default function ListeningHeader({
                     Weekly Target
                   </span>
                   <h4 className="text-base font-black text-slate-900 dark:text-white">
-                    Listening Mastery
+                    Listening skill progress
                   </h4>
                 </div>
 
