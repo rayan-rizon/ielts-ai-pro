@@ -33,49 +33,53 @@ export default function AnalyticsHeader({
 
   return (
     <div
-      className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-1"
+      className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2"
       data-oid="z2vs7oa"
     >
-      <div className="space-y-1" data-oid="0w7p:d7">
+      <div className="space-y-1.5" data-oid="0w7p:d7">
         <div className="flex items-center gap-3" data-oid="tzkuqnv">
-          <IconWrapper icon={TrendingUp} color="bg-primary" className="p-2.5" data-oid="rz.k-jx" />
-          <div data-oid="k-3c2x3">
-            <h1
-              className="text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-3xl"
-              data-oid="biobx9:"
-            >
-              Analytics Dashboard
-            </h1>
-            <div
-              className="mt-1.5 flex flex-wrap items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400"
-              data-oid=".f902yv"
-            >
-              {greeting}
-              {firstName ? `, ${firstName}` : ''}
-              {stats?.totalTests
-                ? ` · ${stats.totalTests} completed session${stats.totalTests === 1 ? '' : 's'} in this period · target band ${stats.targetScore}`
-                : ' · Your performance, pace, and next practice focus.'}
-              {tier === 'premium' ? (
-                <Badge
-                  variant="outline"
-                  className="bg-purple-500/10 backdrop-blur-md border border-purple-500/20 text-purple-600 dark:text-purple-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all hover:bg-purple-500/20 hover:text-purple-700 dark:hover:text-purple-300"
-                  data-oid="vq-_94z"
-                >
-                  <Crown className="w-3 h-3 fill-purple-600/20 dark:fill-purple-400/20" />
-                  PREMIUM
-                </Badge>
-              ) : tier === 'pro' || isPremium ? (
-                <Badge
-                  variant="outline"
-                  className="bg-blue-500/10 backdrop-blur-md border border-blue-500/20 text-blue-600 dark:text-blue-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all hover:bg-blue-500/20 hover:text-blue-700 dark:hover:text-blue-300"
-                  data-oid="vq-_94z"
-                >
-                  <Zap className="w-3 h-3 fill-blue-600/20 dark:fill-blue-400/20" />
-                  PRO
-                </Badge>
-              ) : null}
-            </div>
+          <div
+            className="flex items-center justify-center rounded-xl p-2.5 bg-[#6d55e8]/10 text-[#6d55e8] dark:bg-[#6d55e8]/20 dark:text-[#8875f0] border border-[#6d55e8]/20 shrink-0 shadow-2xs"
+            data-oid="rz.k-jx"
+          >
+            <TrendingUp className="w-5.5 h-5.5 stroke-[2.5]" />
           </div>
+          <h1
+            className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 dark:text-white leading-tight"
+            data-oid="biobx9:"
+          >
+            Analytics Dashboard
+          </h1>
+        </div>
+
+        <div
+          className="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400"
+          data-oid=".f902yv"
+        >
+          {greeting}
+          {firstName ? `, ${firstName}` : ''}
+          {stats?.totalTests
+            ? ` · ${stats.totalTests} completed session${stats.totalTests === 1 ? '' : 's'} in this period · target band ${stats.targetScore}`
+            : ' · Your performance, pace, and next practice focus.'}
+          {tier === 'premium' ? (
+            <Badge
+              variant="outline"
+              className="bg-purple-500/10 backdrop-blur-md border border-purple-500/20 text-purple-600 dark:text-purple-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-2xs flex items-center gap-1.5 transition-all hover:bg-purple-500/20 hover:text-purple-700 dark:hover:text-purple-300"
+              data-oid="vq-_94z"
+            >
+              <Crown className="w-3 h-3 fill-purple-600/20 dark:fill-purple-400/20" />
+              PREMIUM
+            </Badge>
+          ) : tier === 'pro' || isPremium ? (
+            <Badge
+              variant="outline"
+              className="bg-blue-500/10 backdrop-blur-md border border-blue-500/20 text-blue-600 dark:text-blue-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-2xs flex items-center gap-1.5 transition-all hover:bg-blue-500/20 hover:text-blue-700 dark:hover:text-blue-300"
+              data-oid="vq-_94z"
+            >
+              <Zap className="w-3 h-3 fill-blue-600/20 dark:fill-blue-400/20" />
+              PRO
+            </Badge>
+          ) : null}
         </div>
       </div>
 

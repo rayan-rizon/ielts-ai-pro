@@ -238,14 +238,16 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
       <Button
         onClick={handlePrimaryCta}
         className={cn(
-          'w-full h-12 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2',
+          'group/btn w-full h-12 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2',
           isPro
-            ? 'bg-[#6d55e8] hover:bg-[#5b43d6] text-white shadow-md shadow-[#6d55e8]/20'
-            : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700'
+            ? 'bg-[#6d55e8] hover:bg-[#5b43d6] text-white shadow-md shadow-[#6d55e8]/25 hover:shadow-xl hover:shadow-[#6d55e8]/35'
+            : isPremium
+              ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-600/25 hover:shadow-xl hover:shadow-purple-600/35'
+              : 'bg-slate-950 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 shadow-xs hover:shadow-md'
         )}
       >
         <span>{plan.buttonText}</span>
-        <ArrowRight className="h-4 w-4" />
+        <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1" />
       </Button>
     </m.div>
   );

@@ -300,17 +300,24 @@ export default function Pricing() {
 
             {/* Billing Toggle & Promo Code */}
             <div className="mt-5 flex flex-col items-center gap-4">
-              <div className="flex items-center justify-center gap-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-1.5 rounded-full border border-slate-200/90 dark:border-white/10 w-fit shadow-xs">
+              <div className="relative inline-flex items-center gap-1 bg-slate-100/90 dark:bg-slate-900/90 backdrop-blur-md p-1.5 rounded-full border border-slate-200/90 dark:border-white/10 w-fit shadow-xs">
                 <button
                   type="button"
                   onClick={() => setBillingInterval('monthly')}
                   className={cn(
-                    'px-6 sm:px-7 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200',
+                    'relative z-10 px-6 sm:px-7 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-200',
                     billingInterval === 'monthly'
-                      ? 'bg-[#6d55e8] text-white shadow-md shadow-[#6d55e8]/25'
+                      ? 'text-white'
                       : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
                   )}
                 >
+                  {billingInterval === 'monthly' && (
+                    <m.span
+                      layoutId="activeBillingTabPricing"
+                      className="absolute inset-0 z-[-1] rounded-full bg-[#6d55e8] shadow-md shadow-[#6d55e8]/25"
+                      transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                    />
+                  )}
                   Monthly
                 </button>
                 <div className="relative">
@@ -318,12 +325,19 @@ export default function Pricing() {
                     type="button"
                     onClick={() => setBillingInterval('quarterly')}
                     className={cn(
-                      'px-6 sm:px-7 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200',
+                      'relative z-10 px-6 sm:px-7 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-200',
                       billingInterval === 'quarterly'
-                        ? 'bg-[#6d55e8] text-white shadow-md shadow-[#6d55e8]/25'
+                        ? 'text-white'
                         : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
                     )}
                   >
+                    {billingInterval === 'quarterly' && (
+                      <m.span
+                        layoutId="activeBillingTabPricing"
+                        className="absolute inset-0 z-[-1] rounded-full bg-[#6d55e8] shadow-md shadow-[#6d55e8]/25"
+                        transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                      />
+                    )}
                     Quarterly
                   </button>
                   <span

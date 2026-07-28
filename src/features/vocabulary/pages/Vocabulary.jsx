@@ -83,7 +83,7 @@ const PageHeader = ({ stats, user }) => (
         </Badge>
       </div>
 
-      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 dark:text-white leading-tight">
         Vocabulary Mastery
       </h1>
       <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base font-semibold leading-relaxed">
