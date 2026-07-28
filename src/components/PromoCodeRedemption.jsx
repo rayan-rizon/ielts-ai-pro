@@ -14,6 +14,8 @@ import {
   ArrowRight,
   ShieldCheck,
   PartyPopper,
+  AlertCircle,
+  X,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
@@ -29,14 +31,6 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
   const [isSuccess, setIsSuccess] = useState(false);
 
   const inputRef = useRef(null);
-
-  // Clear feedback only when user starts typing something DIFFERENT
-  // (Prevents immediate clearing when handleRedeemCode clears the input)
-  useEffect(() => {
-    if (feedback.type === 'error' && promoCode !== '') {
-      setFeedback({ type: 'idle', message: '', details: '' });
-    }
-  }, [promoCode, feedback.type]);
 
   useEffect(() => {
     if (isOpen) {
@@ -99,7 +93,6 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
       }
 
       setFeedback({ type: 'error', message: errorMessage, details: error.message || errorDetails });
-      toast.error(error.message || 'Invalid promotion code');
     } finally {
       setIsRedeeming(false);
     }
@@ -182,46 +175,29 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
 
       <DialogContent
         hideClose
-        className="p-4 border-0 bg-transparent shadow-none w-full sm:max-w-[420px] overflow-hidden focus-visible:outline-none"
+        className="p-4 border-0 bg-transparent shadow-none w-full sm:max-w-[400px] overflow-hidden focus-visible:outline-none"
         data-oid="d.jj_fd"
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="relative bg-white dark:bg-slate-950 p-6 sm:p-8 rounded-[28px] border border-slate-200/90 dark:border-white/10 shadow-2xl overflow-hidden"
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          className="relative bg-white dark:bg-slate-950 p-6 sm:p-7 rounded-2xl border border-slate-200/90 dark:border-white/10 shadow-2xl overflow-hidden"
           data-oid="dnm.-.7"
         >
           {/* Close Button */}
           <button
             onClick={handleClose}
-            className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 z-30"
+            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center z-30 shadow-2xs"
+            aria-label="Close"
             data-oid="-3l2dpx"
           >
-            <span className="sr-only" data-oid="wtavvb5">
-              Close
-            </span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-4 h-4"
-              data-oid="ofgdfe9"
-            >
-              <path d="M18 6 6 18" data-oid="7a9y2t9" />
-              <path d="m6 6 12 12" data-oid="n:n9r-h" />
-            </svg>
+            <X className="w-4 h-4 stroke-[2.5]" data-oid="ofgdfe9" />
           </button>
 
           {/* Ambient Lighting */}
           <div
-            className="absolute -top-24 -right-24 w-60 h-60 bg-indigo-500/10 blur-3xl rounded-full pointer-events-none"
+            className="absolute -top-20 -right-20 w-52 h-52 bg-[#6d55e8]/10 blur-2xl rounded-full pointer-events-none"
             data-oid="k7d-qjd"
           />
 
@@ -230,32 +206,32 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
               {isSuccess ? (
                 <motion.div
                   key="success-view"
-                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                  initial={{ opacity: 0, scale: 0.9, y: 8 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: -10 }}
-                  className="flex flex-col items-center text-center py-2"
+                  exit={{ opacity: 0, scale: 0.9, y: -8 }}
+                  className="flex flex-col items-center text-center py-1"
                   data-oid="041ri:8"
                 >
-                  <div className="relative mb-6" data-oid="rrrcyol">
+                  <div className="relative mb-5" data-oid="rrrcyol">
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: 'spring', damping: 14, stiffness: 200, delay: 0.1 }}
-                      className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-md shadow-emerald-500/25 flex items-center justify-center text-white relative z-10"
+                      className="w-14 h-14 rounded-2xl bg-emerald-500 text-white shadow-md shadow-emerald-500/25 flex items-center justify-center relative z-10"
                       data-oid="gad-pb."
                     >
-                      <Check className="w-8 h-8 stroke-[3px]" data-oid="4depepg" />
+                      <Check className="w-7 h-7 stroke-[3px]" data-oid="4depepg" />
                     </motion.div>
                   </div>
 
                   <h2
-                    className="text-2xl font-black text-slate-950 dark:text-white mb-2 tracking-tight"
+                    className="text-2xl font-extrabold text-slate-950 dark:text-white mb-2 tracking-tight"
                     data-oid="at5nzb7"
                   >
                     Congratulations!
                   </h2>
                   <p
-                    className="text-slate-600 dark:text-slate-300 text-sm font-medium leading-relaxed mb-6 max-w-[280px]"
+                    className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm font-medium leading-relaxed mb-6 max-w-[280px]"
                     data-oid="ja5cu15"
                   >
                     {feedback.message}
@@ -285,19 +261,19 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
                 >
                   <div className="flex flex-col items-center mb-6 text-center" data-oid="_6.3v0k">
                     <div
-                      className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-purple-600 shadow-md shadow-indigo-500/25 flex items-center justify-center text-white mb-4"
+                      className="w-12 h-12 rounded-2xl bg-[#6d55e8]/10 text-[#6d55e8] dark:bg-[#6d55e8]/20 dark:text-[#8875f0] flex items-center justify-center mb-3.5 shadow-2xs"
                       data-oid="2a-3up2"
                     >
-                      <Gift className="w-7 h-7" data-oid="0ox.klh" />
+                      <Gift className="w-6 h-6" data-oid="0ox.klh" />
                     </div>
                     <h2
-                      className="text-2xl font-black text-slate-950 dark:text-white mb-1.5 tracking-tight"
+                      className="text-2xl font-bold text-slate-950 dark:text-white mb-1.5 tracking-tight"
                       data-oid="psasrtn"
                     >
                       {existingDiscount && !showNewCodeInput ? 'Promotion Active' : 'Special Offer'}
                     </h2>
                     <p
-                      className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-medium max-w-[280px] leading-relaxed"
+                      className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium max-w-[280px] leading-relaxed"
                       data-oid="a8rjaze"
                     >
                       {existingDiscount && !showNewCodeInput
@@ -310,31 +286,31 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
                     {existingDiscount && !showNewCodeInput ? (
                       <motion.div
                         key="active-state"
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
+                        exit={{ opacity: 0, y: -8 }}
                         className="space-y-4"
                         data-oid="05mjv0c"
                       >
                         <div
-                          className="p-5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 flex flex-col items-center gap-2 text-center"
+                          className="p-4.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 flex flex-col items-center gap-1.5 text-center"
                           data-oid="ngf0koc"
                         >
                           <span
-                            className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest"
+                            className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest"
                             data-oid="t2ljl63"
                           >
                             Active Coupon
                           </span>
                           <span
-                            className="text-xl font-mono font-black text-slate-950 dark:text-white tracking-widest"
+                            className="text-xl font-mono font-bold text-slate-950 dark:text-white tracking-widest"
                             data-oid="r.bewj:"
                           >
                             {existingDiscount.code}
                           </span>
                           <Badge
                             variant="secondary"
-                            className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 py-0.5 px-3 text-[10px] font-black rounded-full border border-emerald-500/20 uppercase"
+                            className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 py-0.5 px-3 text-[10px] font-extrabold rounded-full border border-emerald-500/20 uppercase"
                             data-oid="fapc5jy"
                           >
                             {existingDiscount.discount_value}
@@ -369,9 +345,9 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
                     ) : (
                       <motion.div
                         key="input-state"
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
+                        exit={{ opacity: 0, y: -8 }}
                         className="space-y-4"
                         data-oid="t9y6feo"
                       >
@@ -380,8 +356,13 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
                             ref={inputRef}
                             placeholder="Enter Promo Code"
                             value={promoCode}
-                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                            className="h-13 sm:h-14 text-center font-mono text-base sm:text-lg font-black tracking-widest uppercase rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-600 transition-all placeholder:font-sans placeholder:tracking-normal placeholder:font-medium placeholder:text-slate-400 placeholder:text-xs sm:placeholder:text-sm"
+                            onChange={(e) => {
+                              setPromoCode(e.target.value.toUpperCase());
+                              if (feedback.type !== 'idle') {
+                                setFeedback({ type: 'idle', message: '', details: '' });
+                              }
+                            }}
+                            className="h-12 sm:h-13 text-center font-mono text-base font-extrabold tracking-widest uppercase rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 focus-visible:ring-2 focus-visible:ring-[#6d55e8]/20 focus-visible:border-[#6d55e8] transition-all placeholder:font-sans placeholder:tracking-normal placeholder:font-medium placeholder:text-slate-400 placeholder:text-xs sm:placeholder:text-sm"
                             onKeyDown={(e) => e.key === 'Enter' && handleRedeemCode()}
                             data-oid="vgjrmku"
                           />
@@ -390,33 +371,38 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
                         <AnimatePresence data-oid="rx:wgw8">
                           {feedback.type === 'error' && (
                             <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="text-center p-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200/80 dark:border-rose-500/20"
+                              initial={{ opacity: 0, scale: 0.96, y: -4 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                              className="p-3.5 rounded-xl bg-rose-50/90 dark:bg-rose-950/50 border border-rose-200/90 dark:border-rose-800/60 flex items-center gap-3 text-left shadow-2xs"
                               data-oid="x6oux5_"
                             >
-                              <div
-                                className="text-rose-600 dark:text-rose-400 font-bold text-xs uppercase tracking-wider mb-0.5"
-                                data-oid="4wzwf93"
-                              >
-                                {feedback.message}
+                              <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center shrink-0">
+                                <AlertCircle className="w-4.5 h-4.5 text-rose-600 dark:text-rose-400 stroke-[2.5]" />
                               </div>
-                              <div
-                                className="text-slate-500 dark:text-slate-400 text-[11px] font-medium leading-tight"
-                                data-oid="t7qq33z"
-                              >
-                                {feedback.details}
+                              <div className="space-y-0.5">
+                                <div
+                                  className="text-rose-700 dark:text-rose-300 font-extrabold text-[11px] uppercase tracking-wider"
+                                  data-oid="4wzwf93"
+                                >
+                                  {feedback.message}
+                                </div>
+                                <div
+                                  className="text-rose-600/90 dark:text-rose-400/90 text-xs font-semibold leading-tight"
+                                  data-oid="t7qq33z"
+                                >
+                                  {feedback.details}
+                                </div>
                               </div>
                             </motion.div>
                           )}
                         </AnimatePresence>
 
-                        <div className="space-y-3 pt-1" data-oid="hp0f9op">
+                        <div className="space-y-3 pt-0.5" data-oid="hp0f9op">
                           <Button
                             onClick={handleRedeemCode}
                             disabled={isRedeeming || !promoCode.trim()}
-                            className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs uppercase tracking-wider shadow-md shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 disabled:bg-slate-100 disabled:text-slate-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:shadow-none disabled:cursor-not-allowed"
+                            className="w-full h-12 rounded-xl bg-[#6d55e8] hover:bg-[#5b43d6] text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-[#6d55e8]/20 transition-all flex items-center justify-center gap-2 disabled:bg-slate-100 disabled:text-slate-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:shadow-none disabled:cursor-not-allowed"
                             data-oid="yzl01m3"
                           >
                             {isRedeeming ? (
@@ -435,7 +421,7 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
                           {existingDiscount && (
                             <button
                               onClick={() => setShowNewCodeInput(false)}
-                              className="w-full text-xs font-black text-slate-400 hover:text-indigo-500 transition-colors py-2 uppercase tracking-widest"
+                              className="w-full text-xs font-bold text-slate-400 hover:text-indigo-500 transition-colors py-1.5 uppercase tracking-wider"
                               data-oid="6t9k5mn"
                             >
                               Go Back
@@ -450,7 +436,7 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
             </AnimatePresence>
 
             <div
-              className="mt-10 pt-6 border-t border-slate-100 dark:border-slate-800/50 flex items-center justify-center text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] gap-2.5"
+              className="mt-7 pt-4.5 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-center text-[10px] font-bold text-slate-400 uppercase tracking-widest gap-2"
               data-oid="691cwg-"
             >
               <ShieldCheck className="w-4 h-4 text-emerald-500" data-oid="jnd2cj." />

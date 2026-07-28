@@ -305,31 +305,38 @@ export default function Pricing() {
                   type="button"
                   onClick={() => setBillingInterval('monthly')}
                   className={cn(
-                    'px-5 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200',
+                    'px-6 sm:px-7 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200',
                     billingInterval === 'monthly'
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
+                      ? 'bg-[#6d55e8] text-white shadow-md shadow-[#6d55e8]/25'
                       : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
                   )}
                 >
                   Monthly
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setBillingInterval('quarterly')}
-                  className={cn(
-                    'px-5 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200 relative',
-                    billingInterval === 'quarterly'
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
-                      : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
-                  )}
-                >
-                  Quarterly
-                  {billingInterval !== 'quarterly' && (
-                    <span className="absolute -top-2.5 -right-2 bg-indigo-600 text-[9px] text-white px-2 py-0.5 rounded-full font-black shadow-xs uppercase">
-                      15% OFF
-                    </span>
-                  )}
-                </button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setBillingInterval('quarterly')}
+                    className={cn(
+                      'px-6 sm:px-7 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-200',
+                      billingInterval === 'quarterly'
+                        ? 'bg-[#6d55e8] text-white shadow-md shadow-[#6d55e8]/25'
+                        : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
+                    )}
+                  >
+                    Quarterly
+                  </button>
+                  <span
+                    className={cn(
+                      'absolute -top-3 -right-2.5 text-[9.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs pointer-events-none transition-all duration-200 z-20 whitespace-nowrap border',
+                      billingInterval === 'quarterly'
+                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/90 dark:text-purple-300 border-purple-200/90 dark:border-purple-800/60'
+                        : 'bg-[#6d55e8] text-white border-transparent'
+                    )}
+                  >
+                    15% OFF
+                  </span>
+                </div>
               </div>
 
               <div className="flex flex-col items-center gap-1.5 pt-0.5">
@@ -356,7 +363,7 @@ export default function Pricing() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10 mb-20 items-stretch"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10 pt-2 sm:pt-4 mb-20 items-stretch"
           >
             {plans.map((plan) => {
               const displayPrice = calculatePrice(plan.basePrice, billingInterval, promoDiscount);

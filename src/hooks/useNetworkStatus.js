@@ -20,7 +20,7 @@ export function useNetworkStatus() {
   const checkConnection = useCallback(async () => {
     try {
       // Try to fetch a tiny resource to verify actual connectivity
-      const response = await fetch('/favicon.ico', {
+      const response = await fetch('/favicon.svg', {
         method: 'HEAD',
         cache: 'no-store',
       });

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="slashGradient" x1="198" y1="154" x2="316" y2="74" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="var(--slash-start, #818CF8)"/>
+      <stop offset="1" stop-color="var(--slash-end, #C084FC)"/>
+    </linearGradient>
+    <linearGradient id="legGradient" x1="235" y1="155" x2="305" y2="253" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="var(--leg-end, #C084FC)"/>
+      <stop offset="0.55" stop-color="var(--leg-mid, #A855F7)"/>
+      <stop offset="1" stop-color="var(--leg-start, #818CF8)"/>
+    </linearGradient>
+  </defs>
+
+  <style>
+    :root {
+      --monogram-color: #1E1B4B;
+      --leg-start: #6D55E8;
+      --leg-mid: #8B5CF6;
+      --leg-end: #A855F7;
+      --slash-start: #818CF8;
+      --slash-end: #C084FC;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --monogram-color: #FFFFFF;
+        --leg-start: #A855F7;
+        --leg-mid: #C084FC;
+        --leg-end: #F472B6;
+        --slash-start: #C084FC;
+        --slash-end: #38BDF8;
+      }
+      .icon-container {
+        filter: drop-shadow(0 0 2.5px rgba(192, 132, 252, 0.5));
+      }
+    }
+    .main-monogram {
+      fill: var(--monogram-color);
+      transition: fill 0.2s ease;
+    }
+  </style>
+
+  <g class="icon-container" transform="translate(1.5 1.5) scale(0.2346) translate(-55 -21)">
+    <path class="main-monogram" d="M211 21 L160 22 L55 252 L125 252 L207 173 L195 146 L151 173 L145 174 L185 82 L205 127 L249 103 Z"/>
+    <path d="M265 139 L223 179 L257 253 L316 253 L311 238 Z" fill="url(#legGradient)"/>
+    <path d="M316 74 L198 144 L198 149 L208 172 Z" fill="url(#slashGradient)"/>
+  </g>
+</svg>

@@ -86,7 +86,7 @@ describe('useNetworkStatus', () => {
     });
 
     expect(mockFetch).toHaveBeenCalledWith(
-      '/favicon.ico',
+      '/favicon.svg',
       expect.objectContaining({
         method: 'HEAD',
       })

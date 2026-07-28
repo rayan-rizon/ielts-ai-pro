@@ -105,10 +105,10 @@ function PricingFeature({ label, unavailable, isPopular }) {
   const isUnavailable = unavailable || label.startsWith('0 ');
 
   return (
-    <div className="flex items-center gap-2.5 text-xs sm:text-[13px]">
+    <div className="flex items-center gap-3 text-sm font-semibold">
       <span
         className={cn(
-          'flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full transition-colors',
+          'flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors',
           isUnavailable
             ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
             : isPopular
@@ -119,14 +119,14 @@ function PricingFeature({ label, unavailable, isPopular }) {
         {isUnavailable ? (
           <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
         ) : (
-          <Check className="h-3 w-3 stroke-[2.5]" />
+          <Check className="h-3.5 w-3.5 stroke-[2.5]" />
         )}
       </span>
       <span
         className={cn(
           isUnavailable
             ? 'text-slate-400 line-through dark:text-slate-500 font-medium'
-            : 'text-slate-800 dark:text-slate-200 font-semibold'
+            : 'text-slate-800 dark:text-slate-200 font-semibold leading-snug'
         )}
       >
         {label}
@@ -149,25 +149,25 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
       variants={itemVariants}
       transition={{ delay: index * 0.08 }}
       className={cn(
-        'relative flex flex-col h-full rounded-[28px] p-6 sm:p-7 transition-all duration-300',
+        'relative flex flex-col h-full rounded-[28px] p-6 sm:p-8 transition-all duration-300 overflow-visible',
         isPro
           ? 'border-2 border-[#6d55e8] bg-white dark:bg-slate-900 shadow-xl shadow-[#6d55e8]/10 lg:-translate-y-3 z-20'
-          : 'border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm hover:border-slate-300 dark:hover:border-slate-700'
+          : 'border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:border-slate-300 dark:hover:border-slate-700'
       )}
     >
       {isPro && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-[#6d55e8] text-[10px] font-black uppercase tracking-wider rounded-full text-white shadow-md flex items-center justify-center gap-1.5 whitespace-nowrap z-30">
-          <Sparkles className="h-3 w-3" />
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#6d55e8] text-[11px] font-black uppercase tracking-wider rounded-full text-white shadow-md flex items-center justify-center gap-1.5 whitespace-nowrap z-30">
+          <Sparkles className="h-3.5 w-3.5" />
           <span>Best Choice</span>
         </div>
       )}
 
       {/* Card Header with Icon */}
-      <div className="mb-5">
+      <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <div
             className={cn(
-              'h-10 w-10 rounded-xl flex items-center justify-center shrink-0',
+              'h-11 w-11 rounded-xl flex items-center justify-center shrink-0',
               isPro
                 ? 'bg-[#6d55e8] text-white shadow-md shadow-[#6d55e8]/20'
                 : isPremium
@@ -175,7 +175,7 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
                   : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
             )}
           >
-            <Icon className="h-5 w-5" />
+            <Icon className="h-5.5 w-5.5" />
           </div>
           {isPremium && (
             <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700 flex items-center gap-1">
@@ -185,14 +185,14 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
           )}
         </div>
 
-        <h3 className="text-xl font-bold text-slate-900 dark:text-white">{plan.name}</h3>
-        <p className="mt-1 text-xs sm:text-[13px] font-medium leading-relaxed text-slate-500 dark:text-slate-400 min-h-[36px]">
+        <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{plan.name}</h3>
+        <p className="mt-1.5 text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400 min-h-[40px]">
           {plan.desc}
         </p>
       </div>
 
       {/* Pricing display */}
-      <div className="mb-5 pb-5 border-b border-slate-100 dark:border-slate-800">
+      <div className="mb-6 pb-6 border-b border-slate-100 dark:border-slate-800">
         {currentPrice.oldPrice && (
           <div className="flex items-center gap-2 mb-1">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -208,7 +208,7 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
             )}
           </div>
         )}
-        <div className="flex items-baseline gap-1">
+        <div className="flex items-baseline gap-1 mt-0.5">
           <AnimatePresence mode="wait">
             <m.span
               key={currentPrice.price}
@@ -228,7 +228,7 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
       </div>
 
       {/* Features checklist */}
-      <div className="space-y-3 mb-6 flex-grow">
+      <div className="space-y-3.5 mb-7 flex-grow">
         {plan.displayFeatures.map((feature) => (
           <PricingFeature key={feature.label} {...feature} isPopular={isPro} />
         ))}
@@ -238,14 +238,14 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
       <Button
         onClick={handlePrimaryCta}
         className={cn(
-          'w-full h-11 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2',
+          'w-full h-12 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2',
           isPro
             ? 'bg-[#6d55e8] hover:bg-[#5b43d6] text-white shadow-md shadow-[#6d55e8]/20'
             : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700'
         )}
       >
         <span>{plan.buttonText}</span>
-        <ArrowRight className="h-3.5 w-3.5" />
+        <ArrowRight className="h-4 w-4" />
       </Button>
     </m.div>
   );
@@ -343,7 +343,7 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
                   />
                 )}
                 <span>Quarterly</span>
-                <span className="bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] text-[10px] font-black uppercase tracking-wider text-white px-2.5 py-0.5 rounded-full shadow-2xs">
+                <span className="bg-purple-100 text-purple-700 dark:bg-purple-950/90 dark:text-purple-300 border border-purple-200/90 dark:border-purple-800/60 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
                   Save 15%
                 </span>
               </button>

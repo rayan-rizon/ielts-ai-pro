@@ -78,6 +78,24 @@
       50% { opacity: 1; transform: translate(1.2px, -1px) scaleX(1.035); }
     }
 
+    :root {
+      --monogram-color: #1E1B4B;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --monogram-color: #FFFFFF;
+      }
+      .logo-motion {
+        filter: drop-shadow(0 0 3px rgba(192, 132, 252, 0.5));
+      }
+    }
+
+    .main-monogram {
+      fill: var(--monogram-color, #1E1B4B);
+      transition: fill 0.2s ease;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .logo-motion,
       .purple-leg,
@@ -89,8 +107,8 @@
 
   <g transform="translate(5 5) scale(0.24137931) translate(-55 -21)">
     <g class="logo-motion">
-      <path d="M211 21 L160 22 L55 252 L125 252 L207 173 L195 146 L151 173 L145 174 L185 82 L205 127 L249 103 Z"
-        fill="#0B0E2A"/>
+      <path class="main-monogram"
+        d="M211 21 L160 22 L55 252 L125 252 L207 173 L195 146 L151 173 L145 174 L185 82 L205 127 L249 103 Z"/>
       <path class="purple-leg"
         d="M265 139 L223 179 L257 253 L316 253 L311 238 Z"
         fill="url(#legGradient)"/>
