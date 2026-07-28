@@ -277,7 +277,7 @@ SCORING
 - Score ${taskCriterionKey}, CoherenceAndCohesion, LexicalResource, and GrammaticalRangeAndAccuracy independently in whole or half bands only. The server recomputes the overall average.
 - A script must fully fit a band's positive features. Band 8: sufficiently addresses the task, easy logical progression, wide precise vocabulary, and mostly error-free flexible grammar. Band 7: covers the task with a developed response, clear progression, some lexical flexibility, and frequent error-free sentences. Band 6: addresses the main requirements, is generally coherent, uses adequate vocabulary, and mixes simple/complex forms with errors that rarely impede meaning. Band 5: incomplete or limited task coverage, imperfect progression, restricted/repetitive vocabulary, and frequent faulty complex sentences.
 - The response is exactly ${wordCount} words. Underlength limits demonstrated task coverage; it is not an automatic fixed cap on the three language criteria. Responses of 20 words or fewer are Band 1 under the public descriptors.
-- Be conservative where evidence is thin. Never reward a feature the response does not show.
+- Be conservative where evidence is thin. Never reward a feature the response does not show. Equally, never deduct for caution: if the script demonstrates a band's positive features across most of the response, award that band in full.
 
 COMPACT FEEDBACK CONTRACT
 - summary: 1 direct sentence, maximum 18 words, stating the clearest success and main limiter.
@@ -416,11 +416,12 @@ Evaluate TaskResponse based on the expected approach for each type:
 STEP 3 — Prompt scenario fidelity check:
 - Extract the 2–3 key scenario markers from the task prompt. For example, 'living in a country where you have to speak a foreign language' contains: [living abroad] [compelled — not by choice] [using a foreign language daily].
 - Verify the candidate addressed at least 2 of these scenario markers specifically in their essay.
-- If the candidate substituted a related but significantly different scenario (e.g., 'learning a foreign language' in place of 'being compelled to live in one'), make 'Prompt drift' a priority and reflect the loss of relevance in TaskResponse without a fixed deduction.
+- If the candidate substituted a related but significantly different scenario (e.g., 'learning a foreign language' in place of 'being compelled to live in one'), make 'Prompt drift' a priority and reflect the loss of relevance in TaskResponse.
+- OFF-TOPIC ANCHOR: If the essay answers a substantially different question from the one asked (a memorized or off-topic essay), TaskResponse must be 4.0 or below regardless of language quality — the public Band 4 descriptor is 'responds to the task only in a minimal way' / tangential. If the content is almost entirely unrelated to the prompt topic, TaskResponse must be 2.0 or below. Continue to judge CoherenceAndCohesion, LexicalResource, and GrammaticalRangeAndAccuracy independently from the language actually demonstrated.
 
 STEP 4 — Score all four Task 2 criteria with these benchmarks:
 
-Task Achievement:
+Task Response:
 - Full marks require: addressing every part of the prompt; maintaining a clear, consistent position; using well-developed, relevant examples; logical argument structure.
 - Penalize: off-topic content, unclear or shifting position, underdeveloped ideas, irrelevant or invented examples, missing parts of the prompt, prompt drift.
 
@@ -437,6 +438,7 @@ Lexical Resource:
 Grammatical Range and Accuracy:
 - Reward: mix of complex and simple structures, accurate use of relative clauses, conditionals, passive voice, modal verbs.
 - Penalize: repeated sentence structure, article errors, preposition misuse, comma splices, run-on sentences, subject-verb disagreement.
+- ERROR-DENSITY ANCHOR: If basic errors (subject-verb agreement, plural forms, articles, pronoun forms) appear in most sentences, GrammaticalRangeAndAccuracy must be 4.0 or below per the public descriptors.
 
 Register and tone:
 - Academic formal register required throughout. Penalize contractions (it's, don't), slang, and overly emotional or exaggerated language.
@@ -504,10 +506,12 @@ Register and tone:
         generationConfig: {
           temperature,
           topP: 0.9,
-          maxOutputTokens: 3072,
+          // Thinking tokens count toward the output limit, so keep headroom above the
+          // ~1k-token feedback payload. 1024 thinking tokens ≈ +$0.003/eval at Flash rates.
+          maxOutputTokens: 4096,
           responseMimeType: 'application/json',
           responseSchema: writingResponseSchema,
-          thinkingConfig: { thinkingBudget: 0 },
+          thinkingConfig: { thinkingBudget: 1024 },
         },
       });
 
@@ -516,7 +520,7 @@ Register and tone:
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: buildGeminiRequest(0.2),
+        body: buildGeminiRequest(0),
       }
     );
 
@@ -591,7 +595,7 @@ Register and tone:
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: buildGeminiRequest(0),
+          body: buildGeminiRequest(0.3),
         }
       );
       if (!geminiResponse.ok) {

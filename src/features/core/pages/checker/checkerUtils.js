@@ -37,13 +37,26 @@ export const normalizeFeedback = (result) => {
   const feedback = raw.feedback || raw;
   const overallRaw = resolveField(feedback, raw, 'overallBand', 'overall_band') || 0;
 
+  // The v3+ evaluator emits `priorities` ({criterion, issue, action}) instead of
+  // separate weaknesses/suggestions lists, so derive those for the result panel.
+  const priorities = resolveArray(feedback, raw, 'priorities');
+  const weaknesses = resolveArray(feedback, raw, 'weaknesses');
+  const suggestions = resolveArray(feedback, raw, 'suggestions');
+  const priorityWeaknesses = priorities
+    .map((item) =>
+      item?.issue ? `${item.criterion ? `${item.criterion}: ` : ''}${item.issue}` : ''
+    )
+    .filter(Boolean);
+  const priorityActions = priorities.map((item) => item?.action).filter(Boolean);
+
   return {
     ...feedback,
     overallBand: Number.parseFloat(overallRaw) || null,
     criteriaScores: resolveField(feedback, raw, 'criteriaScores', 'criteria_scores') || {},
     strengths: resolveArray(feedback, raw, 'strengths'),
-    weaknesses: resolveArray(feedback, raw, 'weaknesses'),
-    suggestions: resolveArray(feedback, raw, 'suggestions'),
+    priorities,
+    weaknesses: weaknesses.concat(priorityWeaknesses),
+    suggestions: suggestions.length ? suggestions : priorityActions,
     corrections: resolveArray(feedback, raw, 'corrections'),
     vocabularyEnhancements: resolveArray(feedback, raw, 'vocabularyEnhancements'),
   };

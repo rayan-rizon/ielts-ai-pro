@@ -1,4 +1,4 @@
-export const FEEDBACK_EVALUATOR_VERSION = '2026-07-21-v3';
+export const FEEDBACK_EVALUATOR_VERSION = '2026-07-28-v4';
 
 const VALID_ANNOTATION_TYPES = new Set([
   'grammar',
@@ -326,6 +326,17 @@ export function normalizeWritingEvaluation(
     : [];
 
   const wordCount = countWords(sourceText);
+
+  // Official 2023 public descriptors: responses of 20 words or fewer are rated
+  // Band 1 on every criterion. Enforce deterministically — the model sometimes
+  // second-guesses this rule.
+  if (wordCount <= 20 && wordCount > 0) {
+    criteriaScores[taskCriterionKey] = 1;
+    criteriaScores.CoherenceAndCohesion = 1;
+    criteriaScores.LexicalResource = 1;
+    criteriaScores.GrammaticalRangeAndAccuracy = 1;
+  }
+
   const minimumWords = taskType === 'Task 1' ? 150 : 250;
   const weaknesses = compactFeedbackList(raw.weaknesses, 4, 140);
   if (wordCount < minimumWords) {
@@ -336,7 +347,14 @@ export function normalizeWritingEvaluation(
   }
 
   return {
-    overallBand: averageBandScores([taskCriterion, coherence, lexical, grammar]),
+    // Official IELTS rounding: average of the four criteria, .25 → up to half
+    // band, .75 → up to whole band (= round-half-up to nearest 0.5).
+    overallBand: averageBandScores([
+      criteriaScores[taskCriterionKey],
+      criteriaScores.CoherenceAndCohesion,
+      criteriaScores.LexicalResource,
+      criteriaScores.GrammaticalRangeAndAccuracy,
+    ]),
     criteriaScores,
     annotations,
     summary: compactFeedbackText(raw.summary, 1, 140),

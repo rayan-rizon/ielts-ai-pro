@@ -8,7 +8,7 @@ import { removeFromCache } from '@/hooks/useDataQuery';
 import { trackAppEvent } from '@/lib/tracking';
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
 
-const CURRENT_FEEDBACK_EVALUATOR_VERSION = '2026-07-21-v3';
+const CURRENT_FEEDBACK_EVALUATOR_VERSION = '2026-07-28-v4';
 
 /**
  * useWritingFeedback
