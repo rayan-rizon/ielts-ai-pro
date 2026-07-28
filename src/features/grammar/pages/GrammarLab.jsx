@@ -1,30 +1,119 @@
-import { useMemo, useState } from 'react';
-import { AlertTriangle, BookOpenCheck, RefreshCw } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useMemo } from 'react';
+import {
+  AlertTriangle,
+  BookOpenCheck,
+  CheckCircle2,
+  RefreshCw,
+  RotateCcw,
+  Target,
+} from 'lucide-react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import DocumentHead from '@/components/shared/DocumentHead';
 import GrammarAttempt from '../components/GrammarAttempt';
 import GrammarDashboard from '../components/GrammarDashboard';
-import GrammarResourceDialog from '../components/GrammarResourceDialog';
+import GrammarGuidePage from '../components/GrammarGuidePage';
 import GrammarResults from '../components/GrammarResults';
 import GrammarTransfer from '../components/GrammarTransfer';
 import { useGrammarLab } from '../hooks/useGrammarLab';
 
+function HeaderMetric({ icon: Icon, value, label, tone, href, onClick, disabled = false }) {
+  const tones = {
+    indigo: 'bg-[#efedff] text-[#5a63df]',
+    emerald: 'bg-[#eaf9f1] text-[#159669]',
+    orange: 'bg-[#fff1e7] text-[#df7437]',
+  };
+  const content = (
+    <>
+      <span
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}
+      >
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="min-w-0 text-left">
+        <span className="block text-sm font-black leading-none text-slate-950 dark:text-white">
+          {value}
+        </span>
+        <span className="mt-1 block whitespace-nowrap text-[10px] font-bold text-slate-500">
+          {label}
+        </span>
+      </span>
+    </>
+  );
+  const className =
+    'flex min-w-[104px] items-center gap-2.5 rounded-2xl px-3 py-2.5 transition hover:bg-[#f8f8fd] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6972e8] disabled:cursor-not-allowed disabled:opacity-45 dark:hover:bg-white/5';
+
+  return href ? (
+    <a href={href} className={className}>
+      {content}
+    </a>
+  ) : (
+    <button type="button" onClick={onClick} disabled={disabled} className={className}>
+      {content}
+    </button>
+  );
+}
+
+function GrammarHeaderStats({ dashboard, isStarting, onReview }) {
+  const skills = dashboard?.skills || [];
+  const observations = skills.reduce((total, skill) => total + Number(skill.observations || 0), 0);
+  const correct = skills.reduce((total, skill) => total + Number(skill.correctCount || 0), 0);
+  const accuracy = observations ? `${Math.round((correct / observations) * 100)}%` : '—';
+  const reviews = Number(dashboard?.dueReviews || 0);
+  const reviewUnavailable =
+    !reviews ||
+    isStarting ||
+    (!dashboard?.access?.isPaid && Number(dashboard?.access?.dailyRemaining || 0) <= 0);
+
+  return (
+    <div
+      aria-label="Grammar practice summary"
+      className="flex flex-wrap items-center divide-x divide-[#e8e9f2] rounded-2xl border border-[#e2e5f2] bg-white p-1 shadow-[0_15px_35px_-30px_rgba(43,53,128,0.75)] dark:divide-white/10 dark:border-white/10 dark:bg-[#10131f]"
+    >
+      <HeaderMetric
+        icon={Target}
+        value={observations}
+        label="Practised"
+        tone="indigo"
+        href="#grammar-skills"
+      />
+      <HeaderMetric
+        icon={CheckCircle2}
+        value={accuracy}
+        label="Accuracy"
+        tone="emerald"
+        href="#grammar-evidence"
+      />
+      <HeaderMetric
+        icon={RotateCcw}
+        value={reviews}
+        label="Reviews due"
+        tone="orange"
+        onClick={onReview}
+        disabled={reviewUnavailable}
+      />
+    </div>
+  );
+}
+
 export default function GrammarLab() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [resource, setResource] = useState(null);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { guideSlug } = useParams();
   const grammar = useGrammarLab();
   const requestedMode = searchParams.get('mode');
   const requestedSkill = searchParams.get('skill');
   const requestedActivityId = searchParams.get('activityId');
   const requestedTransfer = searchParams.get('transfer');
-  const screen = grammar.result
-    ? 'result'
-    : requestedMode === 'transfer'
-      ? 'transfer'
-      : grammar.activeAttempt
-        ? 'attempt'
-        : 'dashboard';
+  const screen = guideSlug
+    ? 'guide'
+    : grammar.result
+      ? 'result'
+      : requestedMode === 'transfer'
+        ? 'transfer'
+        : grammar.activeAttempt
+          ? 'attempt'
+          : 'dashboard';
 
   const recommendedSkill = useMemo(() => {
     return (
@@ -32,6 +121,10 @@ export default function GrammarLab() {
       grammar.recommendedSkill
     );
   }, [grammar.dashboard?.skills, grammar.recommendedSkill, requestedSkill]);
+  const selectedGuide = useMemo(
+    () => grammar.dashboard?.resources?.find((resource) => resource.slug === guideSlug) || null,
+    [grammar.dashboard?.resources, guideSlug]
+  );
 
   const startAttempt = async (options) => {
     const data = await grammar.startAttempt({
@@ -42,7 +135,7 @@ export default function GrammarLab() {
       const next = new URLSearchParams(searchParams);
       next.set('mode', options.mode);
       if (options.targetSkills?.[0]) next.set('skill', options.targetSkills[0]);
-      setSearchParams(next, { replace: true });
+      navigate(`/grammar?${next.toString()}`, { replace: true });
     }
     return data;
   };
@@ -50,7 +143,7 @@ export default function GrammarLab() {
   const showDashboard = () => {
     grammar.setActiveAttempt(null);
     grammar.setResult(null);
-    setSearchParams({}, { replace: true });
+    navigate('/grammar', { replace: true });
   };
 
   const showTransfer = () => {
@@ -59,7 +152,7 @@ export default function GrammarLab() {
     const next = new URLSearchParams();
     next.set('mode', 'transfer');
     if (recommendedSkill?.skillCode) next.set('skill', recommendedSkill.skillCode);
-    setSearchParams(next);
+    navigate(`/grammar?${next.toString()}`);
   };
 
   return (
@@ -68,27 +161,31 @@ export default function GrammarLab() {
         title="IELTS Grammar Lab | IELTS Ai Pro"
         description="Practice grammar through Academic IELTS Writing and Speaking contexts, then connect measured evidence to your Learning Path."
       />
-      <main className="min-h-full bg-[#f5f7fc] px-3 py-5 text-slate-950 dark:bg-[#070913] dark:text-white sm:px-5 md:px-7 md:py-7">
+      <main className="min-h-full bg-[#f5f7fc] px-3 py-5 pt-16 text-slate-950 dark:bg-[#070913] dark:text-white sm:px-5 sm:pt-5 md:px-7 md:py-7">
         <div className="mx-auto max-w-[1440px]">
-          <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.15em] text-[#5963d9]">
-                <BookOpenCheck className="h-4 w-4" />
-                Learning tool
+          {screen === 'dashboard' && (
+            <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.15em] text-[#5963d9]">
+                  <BookOpenCheck className="h-4 w-4" />
+                  Learning tool
+                </div>
+                <h1 className="mt-1.5 text-3xl font-black tracking-[-0.045em] text-slate-950 dark:text-white">
+                  Grammar Lab
+                </h1>
+                <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-300">
+                  Build accurate grammar for Academic IELTS Writing and Speaking
+                </p>
               </div>
-              <h1 className="mt-1.5 text-3xl font-black tracking-[-0.045em] text-slate-950 dark:text-white">
-                Grammar Lab
-              </h1>
-              <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-300">
-                Academic IELTS Writing & Speaking support · Bands 5–7 practice
-              </p>
-            </div>
-            {!grammar.isLoading && !grammar.error && screen !== 'dashboard' && (
-              <div className="rounded-full border border-[#e1e4f2] bg-white px-3 py-1.5 text-xs font-bold text-slate-500 shadow-sm dark:border-white/10 dark:bg-[#10131f] dark:text-slate-300">
-                No separate Grammar band is calculated
-              </div>
-            )}
-          </header>
+              <GrammarHeaderStats
+                dashboard={grammar.dashboard}
+                isStarting={grammar.isStarting}
+                onReview={() =>
+                  startAttempt({ mode: 'review', targetSkills: null, questionCount: 5 })
+                }
+              />
+            </header>
+          )}
 
           {grammar.isLoading ? (
             <div className="space-y-4" aria-label="Loading Grammar Lab">
@@ -120,6 +217,19 @@ export default function GrammarLab() {
                 </div>
               </div>
             </section>
+          ) : screen === 'guide' ? (
+            <GrammarGuidePage
+              resource={selectedGuide}
+              isStarting={grammar.isStarting}
+              onBack={showDashboard}
+              onPractice={(skillCode) =>
+                startAttempt({
+                  mode: 'practice',
+                  targetSkills: [skillCode],
+                  questionCount: 5,
+                })
+              }
+            />
           ) : screen === 'result' ? (
             <GrammarResults
               result={grammar.result}
@@ -162,18 +272,15 @@ export default function GrammarLab() {
               defaultMode={requestedMode}
               defaultSkill={requestedSkill}
               isStarting={grammar.isStarting}
+              isResuming={grammar.isResuming}
               onStart={(options) =>
                 options.mode === 'transfer' ? showTransfer() : startAttempt(options)
               }
-              onOpenResource={setResource}
+              onResume={grammar.resumeAttempt}
             />
           )}
         </div>
       </main>
-      <GrammarResourceDialog
-        resource={resource}
-        onOpenChange={(open) => !open && setResource(null)}
-      />
     </>
   );
 }

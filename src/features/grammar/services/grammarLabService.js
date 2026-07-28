@@ -21,12 +21,20 @@ export async function getGrammarDashboard() {
         'id, slug, skill_code, title, summary, content_markdown, estimated_minutes, content_version'
       )
       .eq('publication_status', 'published')
-      .order('skill_code'),
+      .order('content_version', { ascending: false }),
   ]);
 
   const dashboard = unwrapRpc(dashboardResult.data, dashboardResult.error) || {};
-  if (resourcesResult.error) throw resourcesResult.error;
-  return { ...dashboard, resources: resourcesResult.data || [] };
+  if (resourcesResult.error) {
+    console.warn('Grammar guides could not be loaded:', resourcesResult.error);
+    return { ...dashboard, resources: [], resourcesUnavailable: true };
+  }
+
+  const latestBySlug = new Map();
+  (resourcesResult.data || []).forEach((resource) => {
+    if (!latestBySlug.has(resource.slug)) latestBySlug.set(resource.slug, resource);
+  });
+  return { ...dashboard, resources: Array.from(latestBySlug.values()) };
 }
 
 export async function startGrammarAttempt({

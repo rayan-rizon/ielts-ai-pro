@@ -17,6 +17,10 @@ const dashboardAliasFix = readFileSync(
   ),
   'utf8'
 ).toLowerCase();
+const contentV2 = readFileSync(
+  resolve(process.cwd(), 'supabase/migrations/20260728150456_grammar_lab_content_v2.sql'),
+  'utf8'
+).toLowerCase();
 
 describe('Grammar Lab database contracts', () => {
   it('creates the five versioned data tables with RLS', () => {
@@ -87,5 +91,34 @@ describe('Grammar Lab database contracts', () => {
     );
     expect(dashboardAliasFix).toContain('jsonb_agg(activity.item)');
     expect(dashboardAliasFix).not.toContain('jsonb_agg(value)');
+  });
+
+  it('publishes concise version-2 items only after integrity checks pass', () => {
+    expect(contentV2).toContain('v_item_count <> 240');
+    expect(contentV2).toContain('v_resource_count <> 6');
+    expect(contentV2).toContain('having count(*) <> 40');
+    expect(contentV2).toContain('having count(*) <> 60');
+    expect(contentV2).toContain("content_version = 2 then 'published' else 'retired'");
+    expect(contentV2).toContain("prompt ilike '%complete this academic ielts%'");
+    expect(contentV2).toContain("'variantgroup'");
+  });
+
+  it('constrains ambiguous completions and stratifies diagnostic evidence', () => {
+    expect(contentV2).toContain("question_format = 'sentence_completion'");
+    expect(contentV2).toContain('then form_item.options');
+    expect(contentV2).toContain("('form_selection'::text, 5::smallint, 1, 1)");
+    expect(contentV2).toContain("('meaning_preserving_transformation'::text, 7::smallint, 1, 4)");
+    expect(contentV2).toContain('where candidate_rank = target_rank');
+    expect(contentV2).toContain("current_item.publication_status = 'published'");
+  });
+
+  it('seeds full-page guides with IELTS examples and learner practice', () => {
+    const guideSeed = contentV2.slice(
+      contentV2.indexOf('insert into public.grammar_resources'),
+      contentV2.indexOf('on conflict (slug, content_version)')
+    );
+    expect(guideSeed.match(/## see it in ielts/g)).toHaveLength(6);
+    expect(guideSeed.match(/## check yourself/g)).toHaveLength(6);
+    expect(guideSeed.match(/## final check/g)).toHaveLength(6);
   });
 });

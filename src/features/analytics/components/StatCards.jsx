@@ -12,18 +12,17 @@ export default function StatCards({ stats, _progressToTarget }) {
 
   const hasScoreData = (stats.scoredTests ?? stats.totalTests ?? 0) > 0;
 
-  // Use predictedOverallBand (official IELTS formula) if available, else fall back to avgScore
+  const modulesWithData = stats.modulesWithData || 0;
+  const hasOverallEstimate = stats.predictedOverallBand != null && modulesWithData === 4;
   const displayScore = !hasScoreData
     ? '--'
-    : stats.predictedOverallBand != null
+    : hasOverallEstimate
       ? String(
           stats.predictedOverallBand % 1 === 0
             ? stats.predictedOverallBand.toFixed(1)
             : stats.predictedOverallBand
         )
       : stats.avgScore;
-  const isOfficialBand = stats.predictedOverallBand != null;
-  const modulesWithData = stats.modulesWithData || 0;
 
   const currentLabel = hasScoreData ? getBandLabel(displayScore) : 'No score yet';
   const targetLabel = getBandLabel(stats.targetScore);
@@ -37,11 +36,9 @@ export default function StatCards({ stats, _progressToTarget }) {
     : null;
 
   // 1. Predicted Band Subtitle
-  const scoredText = isOfficialBand
-    ? modulesWithData < 4
-      ? `${modulesWithData}/4 scored`
-      : 'All modules scored'
-    : 'Score average';
+  const scoredText = hasOverallEstimate
+    ? 'Latest score from all 4 modules'
+    : 'Completed-practice average';
   const improvementVal = parseFloat(stats.improvement);
   const trendText =
     hasScoreData && improvementVal !== 0
@@ -65,7 +62,7 @@ export default function StatCards({ stats, _progressToTarget }) {
 
   const cards = [
     {
-      title: isOfficialBand ? 'Predicted Band' : 'Your Score',
+      title: hasOverallEstimate ? 'Overall Estimate' : 'Practice Average',
       value: displayScore,
       badge: currentLabel,
       icon: Target,

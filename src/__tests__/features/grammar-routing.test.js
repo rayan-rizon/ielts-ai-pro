@@ -31,4 +31,9 @@ describe('explicit Learning Path activity routing', () => {
   it('does not infer an unknown activity as Reading', () => {
     expect(buildActivityUrl({ module: 'unknown' })).toBe('/dashboard');
   });
+
+  it('keeps Grammar guides on a dedicated, bookmarkable route', () => {
+    const slug = 'verb-forms-across-ielts-tasks';
+    expect(`/grammar/guides/${slug}`).toBe('/grammar/guides/verb-forms-across-ielts-tasks');
+  });
 });

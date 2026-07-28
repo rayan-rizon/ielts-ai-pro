@@ -522,6 +522,18 @@ const router = createBrowserRouter(
       ),
     },
     {
+      path: '/grammar/guides/:guideSlug',
+      element: (
+        <ProtectedRoute data-oid="grammar-guide-protected">
+          <Layout currentPageName="GrammarLab" data-oid="grammar-guide-layout">
+            <LazyPage data-oid="grammar-guide-page">
+              <GrammarLab data-oid="grammar-guide" />
+            </LazyPage>
+          </Layout>
+        </ProtectedRoute>
+      ),
+    },
+    {
       path: '/speaking',
       element: (
         <ProtectedRoute data-oid="g-hx0uc">

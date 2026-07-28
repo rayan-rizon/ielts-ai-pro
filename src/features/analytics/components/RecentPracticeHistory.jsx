@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, BookOpen, Eye, Headphones, History, Mic2, PenLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -170,12 +171,22 @@ function DesktopTable({ sessions, onViewResult, testId = 'recent-practice-table'
 }
 
 export default function RecentPracticeHistory({ sessions = [], user }) {
+  const navigate = useNavigate();
   const [showAll, setShowAll] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
   const recentSessions = sessions.slice(0, 5);
 
   const viewResult = (session) => {
     setShowAll(false);
+
+    // Writing has a complete, annotated report on its own route. The generic
+    // summary dialog omits that saved feedback, so open the full result just
+    // like the module's normal result flow.
+    if (session?.type === 'writing' && session?.id) {
+      navigate(`/writing-task?sessionId=${session.id}&view=true`);
+      return;
+    }
+
     setSelectedSession(session);
   };
 
@@ -191,7 +202,7 @@ export default function RecentPracticeHistory({ sessions = [], user }) {
                 </div>
                 <div className="min-w-0">
                   <CardTitle className="text-base font-black tracking-tight text-slate-950 dark:text-white">
-                    Recent practice history
+                    Recent Practice History
                   </CardTitle>
                   <CardDescription className="text-[11px] font-medium text-slate-500 truncate">
                     Latest completed sessions in this period

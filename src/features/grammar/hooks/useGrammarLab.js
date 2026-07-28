@@ -6,6 +6,7 @@ import { generateAdaptiveLearningPath } from '@/utils/api';
 import {
   completeGrammarAttempt,
   evaluateGrammarTransfer,
+  getGrammarAttempt,
   getGrammarDashboard,
   getRecentSpeakingTransfers,
   startGrammarAttempt,
@@ -74,10 +75,31 @@ export function useGrammarLab() {
     mutationFn: submitGrammarResponse,
   });
 
+  const resumeMutation = useMutation({
+    mutationFn: getGrammarAttempt,
+    onSuccess: (data) => {
+      setResult(null);
+      setActiveAttempt(data);
+    },
+    onError: (error) => {
+      toast.error('Could not resume Grammar practice', { description: error.message });
+    },
+  });
+
   const completeMutation = useMutation({
     mutationFn: completeGrammarAttempt,
     onSuccess: async (data) => {
-      setResult({ type: 'deterministic', ...data });
+      const itemsById = new Map(
+        (activeAttempt?.items || []).map((item) => [String(item.id), item])
+      );
+      setResult({
+        type: 'deterministic',
+        ...data,
+        results: (data.results || []).map((item) => ({
+          ...item,
+          ...itemsById.get(String(item.itemId)),
+        })),
+      });
       await refreshConsumers(data.attemptId);
     },
     onError: (error) => {
@@ -136,10 +158,12 @@ export function useGrammarLab() {
     result,
     setResult,
     startAttempt: startMutation.mutateAsync,
+    resumeAttempt: resumeMutation.mutateAsync,
     submitResponse: responseMutation.mutateAsync,
     completeAttempt: completeMutation.mutateAsync,
     evaluateTransfer: transferMutation.mutateAsync,
     isStarting: startMutation.isPending,
+    isResuming: resumeMutation.isPending,
     isSubmitting: responseMutation.isPending,
     isCompleting: completeMutation.isPending,
     isEvaluating: transferMutation.isPending,

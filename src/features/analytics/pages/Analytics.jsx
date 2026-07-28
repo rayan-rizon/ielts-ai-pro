@@ -87,8 +87,12 @@ export default function Analytics() {
     return tier === 'pro' || tier === 'premium' || user?.role === 'admin';
   }, [user?.subscription_tier, user?.role]);
 
-  const learningPhase = useMemo(() => getLearningPhase(stats?.avgScore), [stats?.avgScore]);
-  const nextMilestone = useMemo(() => getNextMilestone(stats?.avgScore), [stats?.avgScore]);
+  // The journey reflects completed-practice averages. Keep it distinct from the
+  // headline's latest-module overall estimate so learners never see two values
+  // presented as the same IELTS band.
+  const practiceAverage = useMemo(() => parseFloat(stats?.avgScore), [stats?.avgScore]);
+  const learningPhase = useMemo(() => getLearningPhase(practiceAverage), [practiceAverage]);
+  const nextMilestone = useMemo(() => getNextMilestone(practiceAverage), [practiceAverage]);
 
   const radarData = useMemo(() => {
     if (!stats?.moduleStats) return [];
@@ -211,7 +215,7 @@ export default function Analytics() {
               data-oid=":n4io18"
             >
               <BandScoreJourney
-                currentScore={parseFloat(stats?.avgScore)}
+                currentScore={practiceAverage}
                 targetScore={stats?.targetScore}
                 testHistory={chartData?.history || []}
                 testDate={user?.test_date}
@@ -250,7 +254,7 @@ export default function Analytics() {
         <div className="flex items-end justify-between gap-4 px-1 pt-2">
           <div>
             <h2 className="text-xl font-extrabold tracking-tight text-slate-950 dark:text-white">
-              Advanced analysis
+              Advanced Analysis
             </h2>
             <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
               Explore module trends, question-format evidence, sections, and scoring criteria.

@@ -1,7 +1,7 @@
 import { ArrowRight, CheckCircle2, RefreshCw, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
-import { skillLabel } from '../constants';
+import { grammarContextPresentation, grammarQuestionPresentation, skillLabel } from '../constants';
 
 export default function GrammarResults({ result, onDashboard, onPracticeAgain, onTransfer }) {
   if (!result) return null;
@@ -51,13 +51,13 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain, o
                     {skillLabel(example.targetSkill)}
                   </div>
                   <blockquote className="mt-2 border-l-2 border-amber-400 pl-3 text-sm font-bold text-slate-800 dark:text-slate-100">
-                    “{example.quote}”
+                    Your wording: “{example.quote}”
                   </blockquote>
                   <p className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-300">
                     {example.issue}
                   </p>
                   <p className="mt-2 text-sm font-extrabold text-emerald-700 dark:text-emerald-300">
-                    {example.correction}
+                    Better version: {example.correction}
                   </p>
                 </div>
               ))}
@@ -123,8 +123,10 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain, o
               {incorrect.length ? 'Review the evidence, then repair' : 'Accurate across this set'}
             </h1>
             <p className="mt-2 text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
-              This accuracy updates only your granular Grammar Lab evidence. It is not an IELTS band
-              and does not change your four-module readiness score.
+              Use the repairs below in your next Writing or Speaking response.
+            </p>
+            <p className="mt-2 text-[11px] font-semibold text-slate-400">
+              Practice accuracy is evidence for your study plan, not an IELTS Grammar band.
             </p>
           </div>
         </div>
@@ -157,25 +159,49 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain, o
             Answers to repair
           </h2>
           <div className="mt-4 space-y-3">
-            {incorrect.map((item) => (
-              <div
-                key={item.itemId}
-                className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 dark:border-amber-400/20 dark:bg-amber-400/10"
-              >
-                <div className="text-xs font-extrabold uppercase tracking-[0.12em] text-amber-700 dark:text-amber-200">
-                  {skillLabel(item.skillCode)}
+            {incorrect.map((item) => {
+              const question = grammarQuestionPresentation(item);
+              const context = grammarContextPresentation(item.academicContext);
+              return (
+                <div
+                  key={item.itemId}
+                  className="rounded-2xl border border-orange-200 bg-orange-50/60 p-4 dark:border-orange-400/20 dark:bg-orange-400/10"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-extrabold uppercase tracking-[0.12em] text-orange-700 dark:text-orange-200">
+                      {skillLabel(item.skillCode)}
+                    </span>
+                    {item.academicContext && (
+                      <span className="rounded-full bg-white/80 px-2 py-1 text-[10px] font-bold text-slate-500">
+                        {context.shortLabel}
+                      </span>
+                    )}
+                  </div>
+                  {item.prompt && (
+                    <div className="mt-3 rounded-xl border border-orange-100 bg-white/80 px-3 py-2.5 text-sm font-bold leading-6 text-slate-800">
+                      {question.sentence}
+                    </div>
+                  )}
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-xl bg-white/65 px-3 py-2 text-xs font-semibold text-slate-600">
+                      <span className="block text-[10px] font-extrabold uppercase tracking-[0.1em] text-slate-400">
+                        Your answer
+                      </span>
+                      {String(item.submittedAnswer)}
+                    </div>
+                    <div className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+                      <span className="block text-[10px] font-extrabold uppercase tracking-[0.1em] text-emerald-600">
+                        Better answer
+                      </span>
+                      {item.correctAnswer}
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs font-medium leading-5 text-slate-600 dark:text-slate-300">
+                    {item.explanation}
+                  </p>
                 </div>
-                <div className="mt-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                  Your answer: {String(item.submittedAnswer)}
-                </div>
-                <div className="mt-1 text-sm font-extrabold text-slate-900 dark:text-white">
-                  Correct answer: {item.correctAnswer}
-                </div>
-                <p className="mt-2 text-xs font-medium leading-5 text-slate-600 dark:text-slate-300">
-                  {item.explanation}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}

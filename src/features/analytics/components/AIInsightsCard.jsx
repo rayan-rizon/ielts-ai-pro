@@ -1,55 +1,78 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, Rocket, Star, Flag, ChevronRight, ArrowRight } from 'lucide-react';
+import {
+  Brain,
+  Target,
+  Star,
+  ChevronRight,
+  ArrowRight,
+  Zap,
+  BookCheck,
+  ShieldCheck,
+  TrendingUp,
+  Sparkles,
+} from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { IconWrapper } from './AnalyticsHeader';
 import { ITEM_VARIANTS, MODULE_META } from '../constants';
 import { createPageUrl } from '@/utils';
 import { formatBand } from '../utils';
 
-const LearningRoadmap = React.memo(function LearningRoadmap({ phase, milestone }) {
-  const Icon = phase.Icon;
+const LearningRoadmap = React.memo(function LearningRoadmap({ phase, milestone, currentScore }) {
+  const Icon = phase.Icon || TrendingUp;
   return (
-    <div className="space-y-1.5 mt-2 pt-2 border-t border-border/20" data-oid="c7hzh8d">
-      <div className="flex items-center justify-between" data-oid="p6n1twc">
-        <div className="flex items-center gap-2" data-oid="96fl6t_">
+    <div
+      className="w-full rounded-xl border border-indigo-200/70 bg-gradient-to-r from-indigo-50/50 via-slate-50/40 to-indigo-50/30 px-3.5 py-3 dark:border-indigo-800/50 dark:from-indigo-950/30 dark:via-slate-900/40 dark:to-indigo-950/20"
+      data-oid="c7hzh8d"
+    >
+      <div className="flex items-center justify-between gap-3" data-oid="p6n1twc">
+        <div className="flex items-baseline gap-1.5 flex-wrap">
+          <span className="text-xl font-black tracking-tight text-slate-950 dark:text-white">
+            {currentScore || '0.0'}
+          </span>
+          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            practice avg
+          </span>
+          <ArrowRight className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+          <span className="text-xl font-black tracking-tight text-indigo-600 dark:text-indigo-300">
+            {formatBand(milestone.target)}
+          </span>
+          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            next step
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0" data-oid="96fl6t_">
           <div
-            className={cn('p-1.5 rounded-lg text-white shadow-sm bg-gradient-to-br', phase.tone)}
+            className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-600 text-white shadow-xs"
             data-oid="85cy27f"
           >
-            <Icon className="w-3 h-3" data-oid="bki5g06" />
+            <Icon className="h-3.5 w-3.5" data-oid="bki5g06" />
           </div>
-          <div data-oid="0n4ztw6">
-            <div className="text-sm font-black text-foreground tracking-tight" data-oid="vs7tywo">
-              {phase.label} Phase
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2" data-oid="gl:ah94">
-          <span className="text-sm font-black text-foreground" data-oid="d8cj6yp">
+          <span
+            className="text-[10px] font-extrabold text-slate-700 dark:text-slate-200"
+            data-oid="vs7tywo"
+          >
+            {phase.label}
+          </span>
+          <span
+            className="text-[10px] font-black text-indigo-600 dark:text-indigo-300"
+            data-oid="d8cj6yp"
+          >
             {Math.round(phase.progress)}%
           </span>
-          <Badge
-            variant="outline"
-            className="rounded-full border-primary/20 bg-primary/5 text-primary text-[10px] font-black px-2.5 py-0.5 uppercase tracking-wider"
-            data-oid="w4fsad_"
-          >
-            Milestone: {milestone.target}
-          </Badge>
         </div>
       </div>
 
-      <div className="h-1 w-full bg-muted/30 rounded-full overflow-hidden" data-oid=":0cmrlp">
+      <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-indigo-100 dark:bg-indigo-900/50">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${phase.progress}%` }}
           transition={{ duration: 1, ease: 'easeOut' }}
-          className={cn('h-full rounded-full shadow-sm bg-gradient-to-r', phase.tone)}
+          className="h-full rounded-full bg-indigo-600 dark:bg-indigo-400"
           data-oid="0_1.12g"
         />
       </div>
@@ -57,133 +80,155 @@ const LearningRoadmap = React.memo(function LearningRoadmap({ phase, milestone }
   );
 });
 
+const EvidenceSummary = React.memo(function EvidenceSummary({ counts }) {
+  const evidence = [
+    { label: 'Measured', value: counts?.measured || 0, tone: 'bg-emerald-500' },
+    { label: 'Early', value: counts?.early || 0, tone: 'bg-indigo-600' },
+    { label: 'To confirm', value: counts?.diagnostic || 0, tone: 'bg-slate-400 dark:bg-slate-500' },
+  ];
+
+  return (
+    <section
+      className="w-full rounded-xl border border-slate-200/70 bg-gradient-to-r from-indigo-50/30 to-slate-50/50 px-3.5 py-2.5 dark:border-white/10 dark:from-indigo-950/20 dark:to-slate-900/40"
+      aria-label="Learning Path evidence quality"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <ShieldCheck className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+          <span className="text-[9.5px] font-black uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">
+            Evidence Quality
+          </span>
+        </div>
+        <span className="text-[9.5px] font-semibold text-slate-400 dark:text-slate-500">
+          From scored practice
+        </span>
+      </div>
+      <div className="mt-2 grid grid-cols-3 gap-2">
+        {evidence.map((item) => (
+          <div key={item.label} className="flex min-w-0 items-center gap-1.5">
+            <span className={cn('h-2 w-2 shrink-0 rounded-full', item.tone)} />
+            <span className="text-xs font-black text-slate-800 dark:text-slate-200">
+              {item.value}
+            </span>
+            <span className="truncate text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+              {item.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+});
+
 const FocusArea = React.memo(function FocusArea({ area, idx }) {
+  const isMeasured = area.evidenceClass === 'measured_priority';
+  const observationLabel = `${Number(area.observations || 0).toLocaleString()} answers`;
+  const mastery = Number.isFinite(area.mastery) ? `${Math.round(area.mastery * 100)}%` : null;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.1 * idx }}
-      className="p-2 rounded-xl bg-muted/20 border border-border/30 hover:bg-muted/30 transition-all duration-300 group relative overflow-hidden"
+      className="w-full rounded-xl border border-slate-200/80 bg-white px-3.5 py-2.5 transition-all duration-200 hover:border-indigo-300 hover:bg-indigo-50/30 dark:border-white/10 dark:bg-slate-900/50"
       data-oid="7qhmpuf"
     >
-      <div className="flex items-center gap-2" data-oid="vhar_y7">
+      <div className="flex items-start gap-3" data-oid="vhar_y7">
         <div
-          className="w-5 h-5 rounded bg-primary/10 text-primary flex items-center justify-center shrink-0"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
           data-oid="rkbonte"
         >
-          <Rocket className="w-3 h-3" data-oid="09542tv" />
+          <Zap className="h-4 w-4" data-oid="09542tv" />
         </div>
-        <div className="min-w-0" data-oid="d_p:vud">
-          <p
-            className="text-sm font-black text-primary dark:text-primary/90 tracking-tight truncate"
-            data-oid="vv.e_x_"
-          >
-            {area.module || 'Focus Area'}
-          </p>
+        <div className="min-w-0 flex-1" data-oid="d_p:vud">
+          <div className="flex items-center justify-between gap-2">
+            <p
+              className="truncate text-xs font-extrabold text-slate-900 dark:text-white"
+              data-oid="vv.e_x_"
+            >
+              {area.module || 'Focus Area'}
+            </p>
+            {mastery && (
+              <span className="shrink-0 text-sm font-black text-indigo-600 dark:text-indigo-300">
+                {mastery}
+              </span>
+            )}
+          </div>
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <span
+              className={cn(
+                'text-[9px] font-black uppercase tracking-wide',
+                isMeasured
+                  ? 'text-emerald-700 dark:text-emerald-300'
+                  : 'text-indigo-700 dark:text-indigo-300'
+              )}
+            >
+              {isMeasured ? 'Measured' : 'Early signal'}
+            </span>
+            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+              {observationLabel}
+            </span>
+          </div>
         </div>
       </div>
-      <p
-        className="text-xs font-medium text-muted-foreground line-clamp-2 mt-1 pl-1"
-        data-oid="bxfh:qi"
-      >
-        {area.strategy || area.description || (typeof area === 'string' ? area : '')}
-      </p>
-      {area.evidenceClass && (
-        <div className="mt-1.5 flex items-center gap-1.5 pl-1">
-          <Badge
-            variant="outline"
-            className={cn(
-              'px-1.5 py-0 text-[9px] font-black uppercase tracking-wide',
-              area.evidenceClass === 'measured_priority'
-                ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                : 'border-indigo-500/20 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
-            )}
-          >
-            {area.evidenceClass === 'measured_priority' ? 'Measured' : 'Early signal'}
-          </Badge>
-          <span className="text-[9px] font-bold text-muted-foreground">
-            {area.observations} graded
-          </span>
-        </div>
-      )}
     </motion.div>
   );
 });
 
-function PredictionCard({ icon, label, value, color }) {
-  return (
-    <div
-      className="rounded-xl bg-background/50 border border-border/30 p-2 group"
-      data-oid="ukvzpsg"
-    >
-      <div className="flex items-center gap-2" data-oid="7jwgrot">
-        <IconWrapper
-          icon={icon}
-          color={color}
-          className="w-6 h-6 p-1 rounded-lg"
-          data-oid="-_gvhzq"
-        />
+function compactRecommendation(text, fallback) {
+  const cleaned = String(text || '')
+    .replace(/^Try\s+/i, '')
+    .replace(/\s+to boost your score\.?$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-        <div className="min-w-0" data-oid="nwkofu7">
-          <div
-            className="text-xs font-black tracking-wider text-muted-foreground"
-            data-oid="3egp:6."
-          >
-            {label}
-          </div>
-          <div className="text-base font-black text-foreground leading-none" data-oid="f6wa9k0">
-            {value}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  if (!cleaned) return fallback;
+  return cleaned.length > 54 ? `${cleaned.slice(0, 51).trim()}…` : cleaned;
 }
 
 const LockedFeature = React.memo(function LockedFeature({ isLocked, children }) {
   if (!isLocked) return children;
 
   return (
-    <div className="relative group/locked min-h-[160px] h-full overflow-hidden" data-oid="mft:nej">
+    <div
+      className="relative group/locked min-h-[160px] h-full w-full overflow-hidden"
+      data-oid="mft:nej"
+    >
       <div
-        className="blur-[12px] select-none pointer-events-none opacity-25 transition-all duration-700 scale-[0.97]"
+        className="blur-[10px] select-none pointer-events-none opacity-20 transition-all duration-500 w-full"
         data-oid="o-uolu:"
       >
         {children}
       </div>
       <div
-        className="absolute inset-0 flex items-center justify-center p-3 sm:p-5"
+        className="absolute inset-0 flex items-center justify-center p-3 sm:p-5 w-full"
         data-oid=".32my93"
       >
         <div
-          className="w-full max-w-[320px] rounded-[2rem] border border-amber-500/20 bg-background/40 backdrop-blur-3xl p-4 sm:p-5 shadow-[0_20px_50px_-12px_rgba(245,158,11,0.2)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] transform group-hover/locked:scale-[1.01] transition-all duration-500 ring-1 ring-white/10"
+          className="w-full max-w-[320px] rounded-2xl border border-amber-300 bg-white/95 dark:bg-slate-900/95 p-4 sm:p-5 shadow-lg shadow-amber-500/10 dark:border-amber-500/30 ring-1 ring-amber-400/20"
           data-oid="bh9z.-d"
         >
-          <div className="flex flex-col items-center text-center gap-4" data-oid="gotmz4_">
+          <div className="flex flex-col items-center text-center gap-3.5" data-oid="gotmz4_">
             <div
-              className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/25 relative overflow-hidden"
+              className="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20"
               data-oid="nd1v8qm"
             >
-              <div className="absolute inset-0 bg-white/10 animate-pulse" />
-              <Star className="w-6 h-6 fill-white/20 relative z-10" data-oid="pjfbfep" />
+              <Star className="w-5 h-5 fill-white" data-oid="pjfbfep" />
             </div>
 
             <div className="space-y-1" data-oid="1-_ungq">
               <div
-                className="text-base sm:text-lg font-black text-foreground tracking-tight leading-none"
+                className="text-base font-black text-slate-900 dark:text-white tracking-tight"
                 data-oid="-rnssvn"
               >
                 Unlock AI Roadmap
               </div>
               <p
-                className="text-sm sm:text-xs font-medium text-muted-foreground/80 leading-relaxed max-w-[220px] mx-auto"
+                className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-[220px] mx-auto"
                 data-oid="qou.wzv"
               >
                 Personalized study paths, band predictions, and specific strategies to hit your{' '}
-                <span
-                  className="text-amber-600 dark:text-amber-500 font-black italic"
-                  data-oid="-f_qc8z"
-                >
+                <span className="text-amber-600 dark:text-amber-400 font-black" data-oid="-f_qc8z">
                   9.0 target
                 </span>{' '}
                 faster.
@@ -193,32 +238,35 @@ const LockedFeature = React.memo(function LockedFeature({ isLocked, children }) 
             <div className="w-full pt-0.5" data-oid="l_am97w">
               <Button
                 asChild
-                className="w-full h-10 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white border-0 font-black text-sm tracking-[0.2em] rounded-2xl shadow-md shadow-amber-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full h-10 bg-amber-500 hover:bg-amber-600 text-white border-0 font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md shadow-amber-500/20 transition-all hover:scale-[1.01] active:scale-[0.99]"
               >
                 <Link to="/settings/subscription">Upgrade Now</Link>
               </Button>
             </div>
 
-            <div className="pt-3 border-t border-border/20 w-full" data-oid="0t-f_wj">
-              <div className="flex flex-col items-center gap-2" data-oid="zonshi8">
-                <div className="flex -space-x-2.5">
+            <div
+              className="pt-2.5 border-t border-slate-100 dark:border-slate-800 w-full"
+              data-oid="0t-f_wj"
+            >
+              <div className="flex flex-col items-center gap-1.5" data-oid="zonshi8">
+                <div className="flex -space-x-2">
                   {[1, 2, 3, 4].map((i) => (
                     <Avatar
                       key={i}
-                      className="w-6 h-6 border-2 border-background shadow-sm ring-1 ring-white/10"
+                      className="w-5 h-5 border-2 border-white dark:border-slate-900 shadow-xs"
                       data-oid={`avatar-${i}`}
                     >
                       <AvatarImage
                         src={`https://i.pravatar.cc/100?u=ielts_student_${i}`}
                         alt="Student"
                       />
-                      <AvatarFallback className="bg-amber-100 text-xs font-black text-amber-600">
+                      <AvatarFallback className="bg-amber-100 text-[9px] font-black text-amber-700">
                         {i}
                       </AvatarFallback>
                     </Avatar>
                   ))}
                 </div>
-                <p className="text-xs font-bold text-muted-foreground/75 tracking-[0.15em]">
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider">
                   Join 2,500+ successful students
                 </p>
               </div>
@@ -233,18 +281,19 @@ const LockedFeature = React.memo(function LockedFeature({ isLocked, children }) 
 function CompactEmptyState({ icon: Icon, title, description }) {
   return (
     <div
-      className="flex flex-col items-center justify-center text-center p-5 space-y-3 my-auto min-h-[240px] relative z-10"
+      className="flex flex-col items-center justify-center text-center p-5 space-y-3 my-auto min-h-[240px] relative z-10 w-full"
       data-oid="compact-empty-state"
     >
-      <div className="w-11 h-11 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/15 flex items-center justify-center relative">
-        <div className="absolute inset-0 bg-indigo-500/20 blur-md rounded-full scale-125 animate-pulse" />
-        <Icon className="w-5.5 h-5.5 text-indigo-600 dark:text-indigo-400 relative z-10" />
+      <div className="w-11 h-11 rounded-2xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+        <Icon className="w-5.5 h-5.5 text-indigo-600 dark:text-indigo-400" />
       </div>
       <div className="space-y-1 max-w-[220px]">
-        <h4 className="text-xs font-black text-slate-850 dark:text-white tracking-tight">
+        <h4 className="text-xs font-black text-slate-900 dark:text-white tracking-tight">
           {title}
         </h4>
-        <p className="text-sm font-medium text-muted-foreground/95 leading-normal">{description}</p>
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-normal">
+          {description}
+        </p>
       </div>
     </div>
   );
@@ -258,82 +307,43 @@ export default function AIInsightsCard({
   nextMilestone,
 }) {
   return (
-    <motion.div variants={ITEM_VARIANTS} className="h-full" data-oid="uwa-quf">
+    <motion.div variants={ITEM_VARIANTS} className="h-full w-full" data-oid="uwa-quf">
       <Card
-        className={cn(
-          'rounded-2xl bg-white/80 dark:bg-slate-950/60 backdrop-blur-md shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col border border-border/30 dark:border-white/5 hover:border-primary/20 hover:-translate-y-0.5',
-          isPremium ? 'ring-2 ring-amber-400/20 ring-offset-2 ring-offset-background' : ''
-        )}
+        className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-white/10 dark:bg-slate-950"
         data-oid="xikm8:d"
       >
-        <CardHeader className="p-4 pb-1 relative" data-oid="6cub8:6">
-          {/* Background Gradient */}
-          <div
-            className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-amber-500/5 pointer-events-none"
-            data-oid="-5m3n04"
-          />
-
-          {/* Animated Glow Effect */}
-          {isPremium && (
-            <div className="absolute inset-0 opacity-20" data-oid=":5fe6ot">
-              <div
-                className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-400 to-orange-600 rounded-full blur-2xl animate-pulse"
-                data-oid="0monv4k"
-              />
-
-              <div
-                className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-primary to-indigo-500 rounded-full blur-xl animate-pulse"
-                style={{ animationDelay: '1s' }}
-                data-oid="warevu:"
-              />
+        <CardHeader
+          className="border-b border-slate-200/80 bg-slate-50/80 px-4 py-3 dark:border-white/10 dark:bg-slate-900/60"
+          data-oid="6cub8:6"
+        >
+          <div className="flex items-center justify-between gap-3" data-oid="8i64fmx">
+            <div>
+              <CardTitle
+                className="flex items-center gap-2 text-base font-black text-slate-900 dark:text-white"
+                data-oid="h7i.tnz"
+              >
+                <div
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs"
+                  data-oid="w-.6ht4"
+                >
+                  <Brain className="h-4 w-4" data-oid=".gsd50e" />
+                </div>
+                Learning Path Signals
+              </CardTitle>
             </div>
-          )}
-
-          <div
-            className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-2"
-            data-oid="8i64fmx"
-          >
-            <CardTitle
-              className="text-base font-black text-foreground flex items-center gap-2"
-              data-oid="h7i.tnz"
-            >
-              <div
-                className={cn(
-                  'p-1.5 rounded-lg shadow-sm transition-all duration-300',
-                  isPremium
-                    ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white'
-                    : 'bg-gradient-to-br from-primary to-indigo-600 text-white'
-                )}
-                data-oid="w-.6ht4"
-              >
-                <Sparkles
-                  className={cn('w-3.5 h-3.5', isPremium && 'animate-pulse')}
-                  data-oid=".gsd50e"
-                />
-              </div>
-              <span
-                className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent"
-                data-oid="n3mnzd5"
-              >
-                Study Plan Evidence
-              </span>
-            </CardTitle>
             <div className="flex items-center gap-1.5" data-oid="xsaj8ol">
               {!isPremium && (
-                <Badge
-                  className="rounded-full bg-orange-500 text-white border-0 font-black text-[9px] tracking-wider uppercase px-1.5 py-0.5 shadow-xs"
-                  data-oid="9ug6b0s"
-                >
-                  PRO
+                <Badge className="rounded-full border-0 bg-amber-500 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white">
+                  Pro
                 </Badge>
               )}
               <Badge
                 variant="secondary"
                 className={cn(
-                  'rounded-full border-0 font-black text-[9px] tracking-wider uppercase px-2 py-0.5',
+                  'rounded-full border-0 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider',
                   isPremium
-                    ? 'bg-primary/10 text-primary dark:text-blue-400'
-                    : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                    : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
                 )}
                 data-oid="iy2ikht"
               >
@@ -341,72 +351,46 @@ export default function AIInsightsCard({
               </Badge>
             </div>
           </div>
-          <CardDescription
-            className={cn(
-              'font-medium text-xs leading-tight max-w-sm relative z-10 mt-0.5 opacity-80',
-              !isPremium && 'text-muted-foreground'
-            )}
-            data-oid="iqubwod"
-          >
-            The same evidence used by your Learning Path.
-          </CardDescription>
         </CardHeader>
-        <CardContent
-          className="pt-0 overflow-y-auto scrollbar-none flex-1 relative p-4"
-          data-oid="4bw-hw:"
-        >
-          {/* Subtle Background Pattern */}
-          <div className="absolute inset-0 opacity-5 pointer-events-none" data-oid="9:-5.q9">
-            <div
-              className="h-full w-full bg-[radial-gradient(circle_at_50%_50%,theme(colors.primary.DEFAULT)_1px,transparent_1px)] [background-size:20px_20px]"
-              data-oid="y-undyh"
-            />
-          </div>
 
-          {!isPremium && (
-            <div
-              className="absolute inset-0 bg-gradient-to-b from-amber-400/5 to-orange-600/5 pointer-events-none"
-              data-oid="7l8b860"
-            />
-          )}
+        <CardContent className="flex flex-col flex-1 p-3.5 w-full" data-oid="4bw-hw:">
           <LockedFeature isLocked={!isPremium} data-oid="996nby3">
-            <div className="space-y-2.5" data-oid="sq_34xw">
+            <div className="flex h-full w-full flex-col" data-oid="sq_34xw">
               {aiLoading ? (
                 <InsightsLoadingSkeleton data-oid="xf-mj53" />
               ) : stats?.insights?.aiSuggestions ? (
-                <>
-                  <div
-                    className="rounded-xl bg-primary/5 p-3 relative overflow-hidden border border-primary/10"
-                    data-oid="9vk.rgv"
-                  >
-                    <div className="relative z-10" data-oid="mgcr6:b">
-                      <div className="flex items-center gap-1.5 mb-1" data-oid="ix.5k0k">
-                        <Rocket className="w-3.5 h-3.5 text-primary" data-oid="deniutw" />
-                        <div
-                          className="text-xs font-black text-primary dark:text-primary/90 tracking-tight"
-                          data-oid="h6e2dsd"
-                        >
-                          Current plan
-                        </div>
-                      </div>
-                      <div
-                        className="text-xs font-bold text-foreground leading-snug pl-0.5"
-                        data-oid="vxd8cqz"
-                      >
-                        {stats.insights.aiSuggestions.learning_path_overview ||
-                          'Focus on consistency.'}
-                      </div>
-                    </div>
-                  </div>
+                <div className="space-y-2.5 w-full">
+                  <LearningRoadmap
+                    phase={learningPhase}
+                    milestone={nextMilestone}
+                    currentScore={stats?.avgScore || '0.0'}
+                    data-oid="zztm6zz"
+                  />
 
                   {stats.insights.aiSuggestions.recommended_focus_areas?.length > 0 && (
-                    <div className="grid grid-cols-2 gap-2" data-oid="j8hpckz">
-                      {stats.insights.aiSuggestions.recommended_focus_areas
-                        .slice(0, 2)
-                        .map((focus, i) => (
-                          <FocusArea key={i} area={focus} idx={i} data-oid="pvb4b-a" />
-                        ))}
-                    </div>
+                    <section aria-labelledby="priority-evidence-heading" className="w-full">
+                      <div className="mb-1.5 flex items-center justify-between">
+                        <h3
+                          id="priority-evidence-heading"
+                          className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400"
+                        >
+                          Focus First
+                        </h3>
+                        <Link
+                          to={createPageUrl('LearningPath')}
+                          className="inline-flex items-center gap-1 text-[10px] font-black text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
+                        >
+                          See all <ChevronRight className="h-3 w-3" />
+                        </Link>
+                      </div>
+                      <div className="space-y-1.5 w-full" data-oid="j8hpckz">
+                        {stats.insights.aiSuggestions.recommended_focus_areas
+                          .slice(0, 1)
+                          .map((focus, i) => (
+                            <FocusArea key={i} area={focus} idx={i} data-oid="pvb4b-a" />
+                          ))}
+                      </div>
+                    </section>
                   )}
 
                   {(stats?.evidenceSummary?.grammar?.measuredPriorities?.length > 0 ||
@@ -414,144 +398,105 @@ export default function AIInsightsCard({
                     stats?.evidenceSummary?.grammar?.criterionSignals?.length > 0) && (
                     <Link
                       to="/grammar"
-                      className="flex items-center justify-between gap-3 rounded-xl border border-indigo-200/70 bg-indigo-50/70 p-3 transition hover:border-indigo-300 hover:bg-indigo-50 dark:border-indigo-400/20 dark:bg-indigo-400/10"
+                      className="w-full flex items-center justify-between gap-3 rounded-xl border border-indigo-200/80 bg-indigo-50/70 px-3.5 py-2.5 transition-all duration-200 hover:border-indigo-300 hover:bg-indigo-50 dark:border-indigo-800/40 dark:bg-indigo-950/40"
                     >
-                      <div className="min-w-0">
-                        <div className="text-xs font-black text-indigo-700 dark:text-indigo-200">
-                          Grammar Lab evidence
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
+                          <BookCheck className="h-4 w-4" />
                         </div>
-                        <div className="mt-0.5 truncate text-[10px] font-semibold text-slate-600 dark:text-slate-300">
-                          {stats.evidenceSummary.grammar.measuredPriorities.length
-                            ? `${stats.evidenceSummary.grammar.measuredPriorities[0].module} · measured`
-                            : stats.evidenceSummary.grammar.earlySignals.length
-                              ? `${stats.evidenceSummary.grammar.earlySignals[0].module} · early`
-                              : 'Writing or Speaking criterion · diagnostic needed'}
-                          {stats.evidenceSummary.grammar.dueReviews
-                            ? ` · ${stats.evidenceSummary.grammar.dueReviews} due`
-                            : ''}
+                        <div className="min-w-0">
+                          <div className="text-xs font-extrabold text-slate-900 dark:text-white">
+                            Grammar
+                          </div>
+                          <div className="truncate text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                            {stats.evidenceSummary.grammar.measuredPriorities.length
+                              ? `${stats.evidenceSummary.grammar.measuredPriorities[0].module} · measured`
+                              : stats.evidenceSummary.grammar.earlySignals.length
+                                ? `${stats.evidenceSummary.grammar.earlySignals[0].module} · early`
+                                : 'Diagnostic recommended'}
+                            {stats.evidenceSummary.grammar.dueReviews
+                              ? ` · ${stats.evidenceSummary.grammar.dueReviews} due`
+                              : ''}
+                          </div>
                         </div>
                       </div>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-indigo-600" />
+                      <ChevronRight className="h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
                     </Link>
                   )}
 
-                  <div className="grid grid-cols-2 gap-2" data-oid="mho_cx6">
-                    <PredictionCard
-                      icon={Rocket}
-                      label="Observed Avg"
-                      value={stats?.avgScore || '0.0'}
-                      color="bg-primary"
-                      data-oid="oeu4uwz"
-                    />
-
-                    <PredictionCard
-                      icon={Flag}
-                      label="Next Goal"
-                      value={formatBand(nextMilestone?.target) || '0.0'}
-                      color="bg-emerald-500"
-                      data-oid=":i6z5te"
-                    />
-                  </div>
-                  <LearningRoadmap
-                    phase={learningPhase}
-                    milestone={nextMilestone}
-                    data-oid="zztm6zz"
-                  />
-                </>
+                  <EvidenceSummary counts={stats?.evidenceSummary?.counts} />
+                </div>
               ) : stats?.avgScore > 0 ? (
                 <CompactEmptyState
                   icon={Sparkles}
-                  title="Plan Refresh Needed"
-                  description="Refresh your Learning Path after a scored test to show evidence-backed priorities here."
+                  title="Refresh Your Plan"
+                  description="Complete a scored test to update these signals."
                 />
               ) : (
                 <CompactEmptyState
-                  icon={Rocket}
-                  title="Start Journey"
-                  description="Take your first practice test to unlock personalized AI growth strategies."
+                  icon={Target}
+                  title="Build Your Baseline"
+                  description="Complete one practice test to see priorities."
                 />
               )}
 
               {stats?.insights?.recommendations?.length > 0 && (
-                <div className="space-y-2 mt-2.5 pt-2 border-t border-border/40" data-oid="5s:lwz7">
-                  <div
-                    className="text-[11px] font-black text-muted-foreground tracking-[0.2em] px-1 flex items-center gap-1.5"
-                    data-oid="4q5myjb"
-                  >
-                    <div
-                      className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 animate-pulse"
-                      data-oid="fv:1y1d"
-                    />
-                    Strategic Boosters
-                  </div>
-                  <div className="space-y-2" data-oid=":r.cwew">
-                    {stats.insights.recommendations.slice(0, 3).map((rec, idx) => {
+                <section
+                  className="mt-2.5 border-t border-slate-200/80 pt-2.5 dark:border-white/10 w-full"
+                  aria-labelledby="next-actions-heading"
+                  data-oid="5s:lwz7"
+                >
+                  <h3 id="next-actions-heading" className="sr-only" data-oid="4q5myjb">
+                    Next Action
+                  </h3>
+                  <div className="w-full" data-oid=":r.cwew">
+                    {stats.insights.recommendations.slice(0, 1).map((rec, idx) => {
                       const meta = MODULE_META.find((m) => m.key === rec.type);
                       return (
                         <Link
                           key={`${rec.type}-${idx}`}
                           to={meta?.href || createPageUrl('Dashboard')}
-                          className="block rounded-xl bg-gradient-to-br from-card/80 to-card/60 border border-border/50 hover:from-card/90 hover:to-card/70 transition-all duration-200 p-3 group hover:shadow-md hover:-translate-y-0.5"
+                          className="w-full group flex items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white px-3.5 py-2.5 transition-all duration-200 hover:border-indigo-300 hover:bg-indigo-50/30 dark:border-white/10 dark:bg-slate-900/50"
                           data-oid="02rvrq."
                         >
-                          <div className="flex items-center gap-3" data-oid="rai:nh1">
-                            <div
-                              className={cn(
-                                'w-8.5 h-8.5 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-200 group-hover:scale-105 shadow-xs relative overflow-hidden',
-                                rec.type === 'reading'
-                                  ? 'bg-blue-500/10 border-blue-500/20'
-                                  : rec.type === 'listening'
-                                    ? 'bg-violet-500/10 border-violet-500/20'
-                                    : rec.type === 'writing'
-                                      ? 'bg-orange-500/10 border-orange-500/20'
-                                      : rec.type === 'speaking'
-                                        ? 'bg-emerald-500/10 border-emerald-500/20'
-                                        : 'bg-primary/10 border-primary/20'
-                              )}
-                              data-oid="pn8rha_"
-                            >
-                              {meta ? (
-                                <meta.icon
-                                  className={cn(
-                                    'w-4 h-4',
-                                    rec.type === 'reading'
-                                      ? 'text-blue-600 dark:text-blue-400'
-                                      : rec.type === 'listening'
-                                        ? 'text-violet-600 dark:text-violet-400'
-                                        : rec.type === 'writing'
-                                          ? 'text-orange-600 dark:text-orange-400'
-                                          : rec.type === 'speaking'
-                                            ? 'text-emerald-600 dark:text-emerald-400'
-                                            : 'text-primary'
-                                  )}
-                                />
-                              ) : (
-                                <ChevronRight className="w-4 h-4 text-primary" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0" data-oid="8yy7h1n">
-                              {meta?.title && (
-                                <div className="text-[10px] font-black text-primary/80 dark:text-blue-400/80 tracking-wider mb-0.5">
-                                  {meta.title} Booster
-                                </div>
-                              )}
-                              <div
-                                className="text-xs font-bold text-foreground leading-snug line-clamp-1"
-                                data-oid="vqp-mrs"
-                              >
-                                {rec.text}
-                              </div>
-                            </div>
-                            <ArrowRight
-                              className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-all duration-200 translate-x-0 group-hover:translate-x-0.5 shrink-0"
-                              data-oid="e3szq8z"
-                            />
+                          <div
+                            className={cn(
+                              'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg font-bold',
+                              rec.type === 'reading'
+                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
+                                : rec.type === 'listening'
+                                  ? 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300'
+                                  : rec.type === 'writing'
+                                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                                    : rec.type === 'speaking'
+                                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                                      : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
+                            )}
+                            data-oid="pn8rha_"
+                          >
+                            {meta ? (
+                              <meta.icon className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
                           </div>
+                          <div className="min-w-0 flex-1" data-oid="8yy7h1n">
+                            <div className="text-xs font-extrabold text-slate-900 dark:text-white">
+                              {meta?.title || 'Practice'}
+                            </div>
+                            <div
+                              className="truncate text-[10px] font-semibold text-slate-500 dark:text-slate-400"
+                              data-oid="vqp-mrs"
+                            >
+                              {compactRecommendation(rec.text, 'Focused practice')}
+                            </div>
+                          </div>
+                          <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-indigo-600" />
                         </Link>
                       );
                     })}
                   </div>
-                </div>
+                </section>
               )}
             </div>
           </LockedFeature>
@@ -563,58 +508,37 @@ export default function AIInsightsCard({
 
 function InsightsLoadingSkeleton() {
   return (
-    <div className="space-y-2.5 animate-pulse" data-oid="jvv0gx6">
+    <div className="space-y-2.5 animate-pulse w-full" data-oid="jvv0gx6">
       {/* Growth Path skeleton */}
-      <div className="rounded-xl border border-primary/10 bg-primary/5 p-3" data-oid="_ig2:a:">
+      <div
+        className="rounded-xl border border-indigo-200/50 bg-indigo-50/50 p-3"
+        data-oid="_ig2:a:"
+      >
         <div className="flex items-center gap-2 mb-2" data-oid=":u-w-d_">
-          <div className="w-4 h-4 rounded bg-primary/20 animate-pulse" data-oid="9tmgva4" />
-          <div className="h-2.5 w-16 rounded bg-primary/20 animate-pulse" data-oid="wzf2a0y" />
+          <div className="w-4 h-4 rounded bg-indigo-200 animate-pulse" data-oid="9tmgva4" />
+          <div className="h-2.5 w-16 rounded bg-indigo-200 animate-pulse" data-oid="wzf2a0y" />
         </div>
         <div className="space-y-1.5" data-oid="ydn4s7m">
-          <div className="h-2 w-full rounded bg-muted/45 animate-pulse" data-oid="18xmvj." />
-          <div className="h-2 w-5/6 rounded bg-muted/45 animate-pulse" data-oid=".6znhha" />
+          <div className="h-2 w-full rounded bg-slate-200 animate-pulse" data-oid="18xmvj." />
+          <div className="h-2 w-5/6 rounded bg-slate-200 animate-pulse" data-oid=".6znhha" />
         </div>
       </div>
 
       {/* Recommended focus areas skeleton (grid) */}
-      <div className="grid grid-cols-2 gap-2" data-oid="zp:t38o">
+      <div className="grid grid-cols-2 gap-2 w-full" data-oid="zp:t38o">
         <div
-          className="p-2.5 rounded-xl bg-muted/20 border border-border/30 h-11 flex flex-col justify-center animate-pulse"
+          className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 h-11 flex flex-col justify-center animate-pulse"
           data-oid="skel-focus-1"
         >
-          <div className="h-2 w-12 rounded bg-muted/40 animate-pulse mb-1" />
-          <div className="h-1.5 w-16 rounded bg-muted/30 animate-pulse" />
+          <div className="h-2 w-12 rounded bg-slate-200 animate-pulse mb-1" />
+          <div className="h-1.5 w-16 rounded bg-slate-200 animate-pulse" />
         </div>
         <div
-          className="p-2.5 rounded-xl bg-muted/20 border border-border/30 h-11 flex flex-col justify-center animate-pulse"
+          className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 h-11 flex flex-col justify-center animate-pulse"
           data-oid="skel-focus-2"
         >
-          <div className="h-2 w-12 rounded bg-muted/40 animate-pulse mb-1" />
-          <div className="h-1.5 w-16 rounded bg-muted/30 animate-pulse" />
-        </div>
-      </div>
-
-      {/* Prediction Cards skeleton */}
-      <div className="grid grid-cols-2 gap-2" data-oid="skel-pred-grid">
-        <div
-          className="rounded-xl bg-background/50 border border-border/30 p-2.5 flex items-center gap-2 h-11 animate-pulse"
-          data-oid="skel-pred-1"
-        >
-          <div className="w-5 h-5 rounded bg-muted/30 animate-pulse shrink-0" />
-          <div className="space-y-1 min-w-0 flex-1">
-            <div className="h-1.5 w-8 rounded bg-muted/30 animate-pulse" />
-            <div className="h-2.5 w-6 rounded bg-muted/40 animate-pulse" />
-          </div>
-        </div>
-        <div
-          className="rounded-xl bg-background/50 border border-border/30 p-2.5 flex items-center gap-2 h-11 animate-pulse"
-          data-oid="skel-pred-2"
-        >
-          <div className="w-5 h-5 rounded bg-muted/30 animate-pulse shrink-0" />
-          <div className="space-y-1 min-w-0 flex-1">
-            <div className="h-1.5 w-8 rounded bg-muted/30 animate-pulse" />
-            <div className="h-2.5 w-6 rounded bg-muted/40 animate-pulse" />
-          </div>
+          <div className="h-2 w-12 rounded bg-slate-200 animate-pulse mb-1" />
+          <div className="h-1.5 w-16 rounded bg-slate-200 animate-pulse" />
         </div>
       </div>
     </div>

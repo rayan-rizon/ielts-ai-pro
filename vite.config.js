@@ -1,67 +1,12 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { readFileSync } from 'node:fs';
 import viteCompression from 'vite-plugin-compression';
-
-function deferLandingStyles() {
-  return {
-    name: 'defer-landing-styles',
-    apply: 'build',
-    transformIndexHtml: {
-      order: 'post',
-      handler(html, context) {
-        const criticalCss = readFileSync(
-          path.resolve(__dirname, 'src/styles/landing-critical.generated.css'),
-          'utf8'
-        ).replaceAll('</style', '<\\/style');
-
-        const stylesheetPattern =
-          /<link rel="stylesheet" crossorigin href="(\/assets\/index-[^"]+\.css)">/;
-        const match = html.match(stylesheetPattern);
-        if (!match) {
-          throw new Error('Unable to locate the generated application stylesheet.');
-        }
-
-        const stylesheetHref = match[1];
-        const encodedStylesheetHref = Buffer.from(stylesheetHref).toString('base64');
-        const deferredMarkup = [
-          `<style data-landing-critical>${criticalCss}</style>`,
-          '<link id="deferred-app-styles" crossorigin>',
-          '<script>',
-          '(()=>{const l=document.getElementById("deferred-app-styles");',
-          `const h=atob("${encodedStylesheetHref}");const a=()=>{if(!l||l.rel==="stylesheet")return;l.href=h;l.rel="stylesheet"};`,
-          'const t=localStorage.getItem("vite-ui-theme");',
-          'const dark=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme:dark)").matches);',
-          'if(location.pathname!=="/"||innerWidth>=768||dark)a();',
-          'else{const s=()=>{a();removeEventListener("pointerdown",s);removeEventListener("keydown",s);removeEventListener("wheel",s);removeEventListener("touchstart",s)};',
-          'addEventListener("pointerdown",s,{once:true,passive:true});addEventListener("keydown",s,{once:true});',
-          'addEventListener("wheel",s,{once:true,passive:true});addEventListener("touchstart",s,{once:true,passive:true});',
-          'setTimeout(a,15000)}})();',
-          '</script>',
-          '<noscript><style>#root{display:none}.no-js-message{max-width:42rem;margin:4rem auto;padding:1.5rem;font:600 1rem/1.6 system-ui,sans-serif;color:#17223d}</style><p class="no-js-message">IELTS Ai Pro requires JavaScript for interactive practice tests and feedback.</p></noscript>',
-        ].join('');
-
-        const landingChunk = Object.keys(context.bundle || {}).find((fileName) =>
-          /^assets\/LandingPage-[^/]+\.js$/.test(fileName)
-        );
-        const landingPreload = landingChunk
-          ? `<link rel="modulepreload" crossorigin href="/${landingChunk}">`
-          : '';
-
-        return html
-          .replace(stylesheetPattern, deferredMarkup)
-          .replace('<script type="module"', `${landingPreload}<script type="module"`);
-      },
-    },
-  };
-}
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    deferLandingStyles(),
     viteCompression({
       algorithm: 'gzip',
       ext: '.gz',
