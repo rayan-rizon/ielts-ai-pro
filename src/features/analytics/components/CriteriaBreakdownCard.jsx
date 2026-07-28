@@ -24,9 +24,8 @@ const MODULE_CONFIG = {
   },
 };
 
-function CriteriaBar({ label, score, color, index }) {
+function CriteriaBar({ label, score, sampleCount, color, index }) {
   const pct = score != null ? Math.round((score / 9) * 100) : 0;
-  const isWeak = score != null && score < 6.0;
 
   return (
     <motion.div
@@ -38,19 +37,15 @@ function CriteriaBar({ label, score, color, index }) {
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-foreground/80">{label}</span>
         <div className="flex items-center gap-1.5">
-          {isWeak && (
-            <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full animate-pulse-subtle uppercase tracking-wider">
-              Focus area
-            </span>
-          )}
+          <span className="text-[10px] font-bold text-muted-foreground">
+            {sampleCount > 0
+              ? `${sampleCount} evaluation${sampleCount === 1 ? '' : 's'}`
+              : 'Unavailable'}
+          </span>
           <span
             className={cn(
               'text-sm font-black tabular-nums',
-              score == null
-                ? 'text-muted-foreground/40'
-                : isWeak
-                  ? 'text-amber-500'
-                  : 'text-foreground'
+              score == null ? 'text-muted-foreground/40' : 'text-foreground'
             )}
           >
             {score != null ? score.toFixed(1) : '—'}
@@ -133,6 +128,7 @@ export default function CriteriaBreakdownCard({ module, criteria, labels }) {
                   key={key}
                   label={label}
                   score={criteria[key]}
+                  sampleCount={criteria.sampleCounts?.[key] || 0}
                   color={
                     module === 'writing'
                       ? 'from-violet-500 to-indigo-500'

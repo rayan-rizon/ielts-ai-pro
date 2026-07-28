@@ -4,7 +4,6 @@ import { supabase } from '@/lib/supabase';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import { useWritingTestDispatch } from '../context/WritingTestContext';
 import { removeFromCache } from '@/hooks/useDataQuery';
-import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 import {
   EXAM_DURATION_SECONDS,
@@ -145,7 +144,7 @@ export function useWritingTaskLogic(passedUser = null) {
         },
       ];
 
-      const { data: completedSession, error: submitError } = await supabase
+      const { error: submitError } = await supabase
         .from('test_sessions')
         .update({
           user_responses: currentResponse,
@@ -160,14 +159,6 @@ export function useWritingTaskLogic(passedUser = null) {
       if (submitError) throw submitError;
 
       removeFromCache('writing-tests-list');
-
-      // Trigger adaptive learning path refresh in background (Pro/Premium only)
-      if (completedSession && store.session?.user_id) {
-        refreshLearningPathAfterTest(store.session.user_id, 'writing', 0).catch((err) => {
-          if (err?.status !== 403)
-            console.warn('Writing: learning path refresh failed:', err?.message);
-        });
-      }
 
       isExiting.current = true;
       store.setShowSubmitDialog(false);

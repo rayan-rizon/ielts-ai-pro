@@ -15,7 +15,8 @@ describe('persistable result response details', () => {
         },
       ],
       { 'reading-q1': 'A' },
-      [{ id: 'passage-1', section_number: 1 }]
+      [{ id: 'passage-1', section_number: 1 }],
+      new Set(['reading-q1'])
     );
 
     expect(result.responseDetails).toEqual([
@@ -23,10 +24,13 @@ describe('persistable result response details', () => {
         questionId: 'reading-q1',
         questionNumber: 1,
         type: 'multiple_choice',
+        questionType: 'multiple_choice',
         sectionIndex: 0,
+        sectionOrPart: 1,
         userAnswer: 'A',
         correctAnswer: 'B',
         isCorrect: false,
+        wasFlagged: true,
       }),
     ]);
   });
@@ -44,7 +48,8 @@ describe('persistable result response details', () => {
         },
       ],
       { 'listening-q1': 'C' },
-      [{ id: 'part-1', section_number: 1 }]
+      [{ id: 'part-1', section_number: 1 }],
+      new Set()
     );
 
     expect(result.responseDetails).toEqual([
@@ -52,11 +57,32 @@ describe('persistable result response details', () => {
         questionId: 'listening-q1',
         questionNumber: '1',
         type: 'multiple_choice',
+        questionType: 'multiple_choice',
         sectionIndex: 0,
+        sectionOrPart: 1,
         userAnswer: 'C',
         correctAnswer: 'C',
         isCorrect: true,
+        wasFlagged: false,
       }),
     ]);
+  });
+
+  it('marks review evidence unavailable for legacy scoring calls without flag state', () => {
+    const result = calculateTestResults(
+      [
+        {
+          id: 'legacy-q1',
+          question_number: 1,
+          type: 'multiple_choice',
+          section: 1,
+          correct_answer: 'A',
+        },
+      ],
+      { 'legacy-q1': 'A' },
+      [{ id: 'passage-1', section_number: 1 }]
+    );
+
+    expect(result.responseDetails[0].wasFlagged).toBeNull();
   });
 });

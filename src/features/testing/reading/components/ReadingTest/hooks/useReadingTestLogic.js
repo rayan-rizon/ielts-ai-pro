@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useReadingTestDispatch, useReadingTestState } from '../context/ReadingTestContext';
 import { createTestSession, initializeTest } from '@/lib/testInitializer';
@@ -6,7 +6,9 @@ import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { calculateTestResults } from '../utils'; // Fixed import path
 import { removeFromCache } from '@/lib/apiCache';
 import { useTestNavigation } from '@/hooks/useTestNavigation';
-import { calculateEnhancedMetrics } from '@/services/testMetricsService';
+import { calculateErrorPatterns, calculatePassageProficiency } from '@/services/testMetricsService';
+import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
+import { ANALYSIS_SCHEMA_VERSION } from '@/features/testing/shared/utils/resultEvidence';
 import { supabase } from '@/lib/supabase';
 import {
   EXAM_DURATION_SECONDS,
@@ -16,7 +18,10 @@ import {
 } from '@/features/testing/shared/testMode';
 import { useExamDeadline } from '@/features/testing/shared/hooks/useExamDeadline';
 
-export function useReadingTestLogic(initialId, { awardXP, user: contextUser = null }) {
+export function useReadingTestLogic(
+  initialId,
+  { awardXP, user: contextUser = null, flaggedQuestions = null }
+) {
   const { dispatch } = useReadingTestDispatch();
   const { getLatestState } = useReadingTestDispatch(); // getLatestState is attached to dispatch object in context
   const ctxState = useReadingTestState();
@@ -384,14 +389,18 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
       setShowTimeUpDialog(false);
 
       try {
-        const results = calculateTestResults(allQuestions, answers, testData.sections || []);
+        const results = calculateTestResults(
+          allQuestions,
+          answers,
+          testData.sections || [],
+          flaggedQuestions
+        );
 
         // Calculate duration
         const durationMins = session && session.duration_minutes ? session.duration_minutes : 60;
         const initialTotalSeconds = durationMins * 60;
         const latestState = getLatestState();
         const finalTimeRemaining = latestState.timeRemaining;
-        const answerTimestamps = latestState.answerTimestamps || {};
         const answerChangeCounts = latestState.answerChangeCounts || {};
         const passageTimes =
           options?.passageTimes && typeof options.passageTimes === 'object'
@@ -404,44 +413,19 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
         );
         const actualTimeSpentMinutes = Math.max(1, Math.floor(actualTimeSpentSeconds / 60));
 
-        const timePerQuestionSeconds = (() => {
-          const entries = Object.entries(answerTimestamps)
-            .map(([k, v]) => [k, Number(v)])
-            .filter(([, v]) => Number.isFinite(v) && v >= 0)
-            .sort((a, b) => a[1] - b[1]);
-
-          const out = {};
-          let prev = 0;
-          entries.forEach(([questionId, ts]) => {
-            const delta = Math.max(0, ts - prev);
-            out[questionId] = Math.round(delta);
-            prev = ts;
-          });
-          return out;
-        })();
-
         const totalAnswerChanges = Object.values(answerChangeCounts).reduce(
           (sum, v) => sum + (Number(v) || 0),
           0
         );
 
-        // Calculate enhanced metrics for Pro/Premium features
-        const enhancedMetrics = calculateEnhancedMetrics(
-          {
-            bandScore: results.bandScore,
-            totalQuestions: results.totalQuestions,
-            correctAnswers: results.correctAnswers,
-            percentage: results.percentage,
-            sectionStats: results.sectionStats || [],
-            typeStats: results.typeStats || {},
-            correctAnswersMap: results.correctAnswersMap,
-          },
+        const errorPatterns = calculateErrorPatterns(
           answers,
-          answerTimestamps, // Now passing actual timestamps
-          actualTimeSpentSeconds,
-          'reading',
+          results.correctAnswersMap,
+          results.totalQuestions,
+          results.typeStats || {},
           answerChangeCounts
         );
+        const passageProficiency = calculatePassageProficiency(results.sectionStats || []);
 
         // Fetch previous band score for trend comparison
         let previousBandScore = null;
@@ -467,14 +451,10 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
         // Include enhanced metrics in results for the UI
         const enhancedResults = {
           ...results,
-          timeMetrics: enhancedMetrics.timeMetrics,
-          errorPatterns: enhancedMetrics.errorPatterns,
-          skillGaps: enhancedMetrics.skillGaps,
-          passageProficiency: enhancedMetrics.passageProficiency,
+          timeMetrics: { totalTimeSpent: actualTimeSpentSeconds },
+          errorPatterns,
+          passageProficiency,
           durationMinutes: actualTimeSpentMinutes,
-          // Include timestamps for AnswerJourneyCard
-          answerTimestamps,
-          timePerQuestionSeconds,
           passageTimes,
           answerChangeCounts,
           // Include previous score for Band Trend badge
@@ -495,6 +475,7 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
           duration_minutes: actualTimeSpentMinutes,
           content_data: {
             ...session.content_data,
+            analysisSchemaVersion: ANALYSIS_SCHEMA_VERSION,
             // Core metrics
             sectionStats: results.sectionStats,
             typeStats: results.typeStats,
@@ -505,16 +486,13 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
             percentage: Math.round(results.percentage),
             savedAnswers: answers,
             passageTimes,
-            answerTimestamps,
-            timePerQuestionSeconds,
             answerChangeCounts,
-            changedAnswersCount: enhancedMetrics.errorPatterns?.changedAnswers || 0,
+            changedAnswersCount: errorPatterns.changedAnswers || 0,
             totalAnswerChanges,
-            // Enhanced metrics (Pro/Premium)
-            timeMetrics: enhancedMetrics.timeMetrics,
-            errorPatterns: enhancedMetrics.errorPatterns,
-            skillGaps: enhancedMetrics.skillGaps,
-            passageProficiency: enhancedMetrics.passageProficiency,
+            // The test clock supports total and passage timing, not per-question dwell time.
+            timeMetrics: { totalTimeSpent: actualTimeSpentSeconds },
+            errorPatterns,
+            passageProficiency,
           },
         };
 
@@ -527,7 +505,23 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
         dispatch({ type: 'FINISH_TEST' });
 
         if (didComplete) {
-          await awardXP(results.correctAnswers, results.totalQuestions);
+          refreshLearningPathAfterTest(
+            session.user_id || user?.id,
+            'reading',
+            results.bandScore
+          ).catch((refreshError) => {
+            if (refreshError?.status !== 403) {
+              console.warn(
+                'Reading: learning path refresh failed:',
+                refreshError?.message || refreshError
+              );
+            }
+          });
+          try {
+            await awardXP(results.correctAnswers, results.totalQuestions);
+          } catch (xpError) {
+            console.error('Reading XP error:', xpError);
+          }
         }
       } catch (error) {
         console.error('Error submitting test:', error);
@@ -537,7 +531,17 @@ export function useReadingTestLogic(initialId, { awardXP, user: contextUser = nu
         submittingRef.current = false;
       }
     },
-    [testData, session, allQuestions, answers, getLatestState, dispatch, awardXP]
+    [
+      testData,
+      session,
+      allQuestions,
+      answers,
+      flaggedQuestions,
+      getLatestState,
+      user,
+      dispatch,
+      awardXP,
+    ]
   );
 
   useExamDeadline({

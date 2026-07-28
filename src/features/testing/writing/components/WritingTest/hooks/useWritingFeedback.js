@@ -6,6 +6,7 @@ import { useWritingTestDispatch } from '../context/WritingTestContext';
 import { generateDetailedFeedback } from '@/utils/api';
 import { removeFromCache } from '@/hooks/useDataQuery';
 import { trackAppEvent } from '@/lib/tracking';
+import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
 
 const CURRENT_FEEDBACK_EVALUATOR_VERSION = '2026-07-21-v3';
 
@@ -391,6 +392,21 @@ export function useWritingFeedback(awardXP) {
 
         // Invalidate usage stats so Settings page updates immediately
         queryClient.invalidateQueries({ queryKey: ['user-usage-counts'] });
+
+        if (overallScore != null && Number.isFinite(Number(overallScore))) {
+          refreshLearningPathAfterTest(
+            store.session.user_id,
+            'writing',
+            Number(overallScore)
+          ).catch((refreshError) => {
+            if (refreshError?.status !== 403) {
+              console.warn(
+                'Writing: learning path refresh failed:',
+                refreshError?.message || refreshError
+              );
+            }
+          });
+        }
 
         const totalTasks = tasksToAnalyze.length;
         if (awardXP) {

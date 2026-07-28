@@ -140,6 +140,7 @@ function ReadingTestContent() {
   // Use the extracted logic hook (Phase 2)
   const { userProfile, user: authUser } = useAuth();
   const user = userProfile || authUser;
+  const [flaggedQuestions, setFlaggedQuestions] = useState(new Set());
 
   const {
     testData,
@@ -173,7 +174,7 @@ function ReadingTestContent() {
     handleExit,
     resetBlocker,
     isExiting,
-  } = useReadingTestLogic(null, { awardXP, user });
+  } = useReadingTestLogic(null, { awardXP, user, flaggedQuestions });
 
   const location = useLocation();
   const [currentPassageIndex, setCurrentPassageIndex] = useState(0);
@@ -215,7 +216,6 @@ function ReadingTestContent() {
 
   // Answer Sheet Sidebar
   const [showAnswerSheet, setShowAnswerSheet] = useState(false);
-  const [flaggedQuestions, setFlaggedQuestions] = useState(new Set());
 
   const toggleFlag = (questionId) => {
     setFlaggedQuestions((prev) => {

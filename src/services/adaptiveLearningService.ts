@@ -267,6 +267,12 @@ export async function refreshLearningPathAfterTest(
   testScore: number
 ): Promise<void> {
   try {
+    if (!userId) return;
+    if (!Number.isFinite(testScore) || testScore < 0 || testScore > 9) return;
+
+    // Analytics is available to every tier and must reflect the completed test immediately.
+    await queryClient.invalidateQueries({ queryKey: ['analytics'] });
+
     const { data: user } = await supabase
       .from('users')
       .select('subscription_tier')
@@ -277,19 +283,13 @@ export async function refreshLearningPathAfterTest(
     if (user.subscription_tier !== 'pro' && user.subscription_tier !== 'premium') {
       return;
     }
-    if (!Number.isFinite(testScore) || testScore <= 0) return;
-
     // Every newly scored test is a meaningful event. The server-side fingerprint is the
     // source of truth and suppresses both AI usage and duplicate path rows when inputs match.
-    generateAdaptiveLearningPath({ trigger: 'test_completed', module: testType })
-      .then(() => queryClient.invalidateQueries({ queryKey: ['learningPath'] }))
-      .catch((err) => {
-        if (err?.status !== 403) {
-          console.warn('Background learning path refresh failed:', err?.message || err);
-        }
-      });
+    await generateAdaptiveLearningPath({ trigger: 'test_completed', module: testType });
+    await queryClient.invalidateQueries({ queryKey: ['learningPath'] });
   } catch (err) {
     console.warn('Error in refreshLearningPathAfterTest:', err);
+    throw err;
   }
 }
 

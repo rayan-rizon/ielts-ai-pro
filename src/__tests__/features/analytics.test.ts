@@ -6,6 +6,7 @@ import {
   computeRecentPractice,
   computeChartData,
   computeModuleStats,
+  computeStats,
   getSessionAccuracy,
   getRecordedDurationSeconds,
 } from '@/features/analytics/hooks/analyticsCalculations';
@@ -200,6 +201,21 @@ describe('Analytics - Time Analysis', () => {
 });
 
 describe('Analytics - Data Quality Guards', () => {
+  it('distinguishes an unscored session from a genuine zero band', () => {
+    const stats = computeStats(
+      [
+        { score: null, is_completed: true },
+        { score: 0, is_completed: true },
+      ],
+      [],
+      {},
+      0
+    );
+
+    expect(stats.scoredTests).toBe(1);
+    expect(stats.avgScore).toBe('0.0');
+  });
+
   it('should include a real zero band score in score forecasts', () => {
     const sessions = [
       { score: 0, completed_at: '2026-01-01T00:00:00Z' },
@@ -262,18 +278,14 @@ describe('Analytics - Data Quality Guards', () => {
     expect(getSessionAccuracy({ correct: 22, total: 20 })).toBe(100);
   });
 
-  it('keeps missing pacing durations unavailable', () => {
+  it('reports only learner-controlled Reading pacing', () => {
     const pacing = buildPacingSummary({ reading: 42, writing: 0, listening: 38 });
 
+    expect(pacing.map((item) => item.type)).toEqual(['reading']);
     expect(pacing.find((item) => item.type === 'reading')).toMatchObject({
       averageMinutes: 42,
       benchmarkMinutes: 60,
       deltaMinutes: -18,
-    });
-    expect(pacing.find((item) => item.type === 'speaking')).toMatchObject({
-      averageMinutes: null,
-      benchmarkMinutes: 15,
-      deltaMinutes: null,
     });
   });
 

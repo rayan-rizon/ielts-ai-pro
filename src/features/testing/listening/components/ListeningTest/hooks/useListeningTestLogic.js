@@ -5,7 +5,8 @@ import { initializeTest } from '@/lib/testInitializer';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { computeQuestionNumbers } from '../utils/questionProcessing';
 import { calculateListeningTestResults } from '../utils/scoreCalculator';
-import { calculateEnhancedMetrics } from '@/services/testMetricsService';
+import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
+import { ANALYSIS_SCHEMA_VERSION } from '@/features/testing/shared/utils/resultEvidence';
 import { useGamification } from '@/hooks/useGamification';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useListeningTestStore } from '../../../store/useListeningTestStore';
@@ -356,10 +357,12 @@ export const useListeningTestLogic = () => {
         audioPlayerRef.current.pause();
       }
 
+      const submissionState = useListeningTestStore.getState();
       const results = calculateListeningTestResults(
         questionsWithNumbers,
         answers,
-        Array.isArray(testData?.content) ? testData.content : testData?.audio_url ? [testData] : []
+        Array.isArray(testData?.content) ? testData.content : testData?.audio_url ? [testData] : [],
+        submissionState.flaggedQuestions
       );
 
       dispatch({ type: ACTIONS.SET_CORRECT_ANSWERS_MAP, payload: results.answersMap });
@@ -368,95 +371,15 @@ export const useListeningTestLogic = () => {
       if (session) {
         // Calculate duration and enhanced metrics for Listening
         const durationMins = session.duration_minutes || 40; // Listening is typically ~40mins
-        const state = useListeningTestStore?.getState() || {};
-        const finalTimeRemaining = state.timeRemaining || 0;
-        const answerTimestamps = state.answerTimestamps || {};
-        const answerChangeCounts = state.answerChangeCounts || {};
+        const finalTimeRemaining = submissionState.timeRemaining || 0;
 
         const actualTimeSpentSeconds = Math.max(1, durationMins * 60 - finalTimeRemaining);
         const actualTimeSpentMinutes = Math.max(1, Math.floor(actualTimeSpentSeconds / 60));
-
-        let timePerQuestionSeconds = {};
-        let totalAnswerChanges = 0;
-        let enhancedMetrics = {};
-
-        try {
-          // Time per question calculation
-          timePerQuestionSeconds = (() => {
-            const entries = Object.entries(answerTimestamps)
-              .map(([k, v]) => [k, Number(v)])
-              .filter(([, v]) => Number.isFinite(v) && v >= 0)
-              .sort((a, b) => a[1] - b[1]);
-
-            const out = {};
-            let prev = 0;
-            entries.forEach(([questionId, ts]) => {
-              const delta = Math.max(0, ts - prev);
-              out[questionId] = Math.round(delta);
-              prev = ts;
-            });
-            return out;
-          })();
-
-          totalAnswerChanges = Object.values(answerChangeCounts).reduce(
-            (sum, v) => sum + (Number(v) || 0),
-            0
-          );
-
-          // Enhanced metrics equivalent to Reading
-          enhancedMetrics = calculateEnhancedMetrics(
-            {
-              bandScore: results.bandScore || 0,
-              totalQuestions: results.totalQuestions || 40,
-              correctAnswers: results.correctAnswers || 0,
-              percentage: results.percentage || 0,
-              sectionStats: results.sectionStats || [],
-              typeStats: results.typeStats || {},
-              correctAnswersMap: results.answersMap || {},
-            },
-            answers || {},
-            answerTimestamps,
-            actualTimeSpentSeconds || 1,
-            'listening',
-            answerChangeCounts
-          );
-        } catch (metricError) {
-          console.error('[ListeningTest] Error calculating enhanced metrics:', metricError);
-          // Fallback to empty blocks to guarantee initialized persistence
-          enhancedMetrics = {
-            timeMetrics: {
-              averageSecondsPerQuestion: 0,
-              timePerQuestionType: {},
-              rushedQuestions: 0,
-              overanalyzedQuestions: 0,
-              totalTimeSpent: actualTimeSpentSeconds || 0,
-              recommendedPace: 60,
-              paceEfficiency: 1,
-            },
-            errorPatterns: {
-              nearMissCount: 0,
-              troubleTypes: [],
-              unansweredCount: results.totalQuestions || 40,
-              changedAnswers: 0,
-              totalAnswerChanges: 0,
-              confidenceIndex: 0,
-              indecisionScore: 0,
-            },
-            skillGaps: {
-              detailRetention: 0,
-              paraphrasingRecognition: 0,
-              logicalReasoning: 0,
-              scanningEfficiency: 0,
-              globalComprehension: 0,
-            },
-          };
-        }
 
         dispatch({
           type: ACTIONS.SET_RESULTS,
           payload: {
             ...results,
-            answerChangeCounts,
             durationMinutes: actualTimeSpentMinutes,
           },
         });
@@ -468,6 +391,7 @@ export const useListeningTestLogic = () => {
           user_responses: answers || {},
           content_data: {
             ...session.content_data,
+            analysisSchemaVersion: ANALYSIS_SCHEMA_VERSION,
             // Core metrics
             correctAnswersMap: results.answersMap || {},
             responseDetails: results.responseDetails || [],
@@ -477,15 +401,9 @@ export const useListeningTestLogic = () => {
             savedAnswers: answers || {},
             sectionStats: results.sectionStats || [],
             typeStats: results.typeStats || {},
-            // Enhanced metrics
-            answerTimestamps,
-            timePerQuestionSeconds,
-            answerChangeCounts,
-            totalAnswerChanges,
-            changedAnswersCount: enhancedMetrics.errorPatterns?.changedAnswers || 0,
-            timeMetrics: enhancedMetrics.timeMetrics || {},
-            errorPatterns: enhancedMetrics.errorPatterns || {},
-            skillGaps: enhancedMetrics.skillGaps || {},
+            // Listening audio controls pace; only total elapsed time is measured.
+            timeMetrics: { totalTimeSpent: actualTimeSpentSeconds },
+            errorPatterns: results.errorPatterns || {},
           },
         });
 
@@ -498,6 +416,18 @@ export const useListeningTestLogic = () => {
           } catch (e) {
             console.error('XP Error', e);
           }
+          refreshLearningPathAfterTest(
+            session.user_id || currentUser?.id,
+            'listening',
+            results.bandScore
+          ).catch((refreshError) => {
+            if (refreshError?.status !== 403) {
+              console.warn(
+                'Listening: learning path refresh failed:',
+                refreshError?.message || refreshError
+              );
+            }
+          });
         }
       }
 

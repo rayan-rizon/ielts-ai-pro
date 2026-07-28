@@ -7,6 +7,7 @@
 
 import { normalizeAnswer, isAnswerCorrect } from '@/lib/ieltsAnswerValidation';
 import { calculateListeningBandScore as calculateListeningBandScoreFromRaw } from '@/lib/ieltsBandScore';
+import { standardizeResponseDetails } from '@/features/testing/shared/utils/resultEvidence';
 
 // Re-export for backward compatibility
 export { normalizeAnswer, isAnswerCorrect };
@@ -215,9 +216,7 @@ function scoreTableCompletion({ q, answers, answersMap, questionNum, size }) {
 function scoreSubQuestionItem(opts) {
   const { subQ, idx, q, answers, answersMap, baseNum, keyPrefix } = opts;
   const qNum = subQ.questionNumber || baseNum + idx;
-  const qId = keyPrefix
-    ? `${keyPrefix}_${q.id}_${qNum}`
-    : (subQ.id || `${q.id}_${idx}`);
+  const qId = keyPrefix ? `${keyPrefix}_${q.id}_${qNum}` : subQ.id || `${q.id}_${idx}`;
   const userAnswer = answers[qId] || '';
   const correctAns = subQ.answer || q.matching_features?.answers?.[qId] || '';
 
@@ -241,7 +240,15 @@ function scoreMatchingFeatures({ q, answers, answersMap, questionNum, size }) {
   if (subQuestions.length > 0) {
     let correctCount = 0;
     subQuestions.forEach((subQ, idx) => {
-      correctCount += scoreSubQuestionItem({ subQ, idx, q, answers, answersMap, baseNum, keyPrefix: '' });
+      correctCount += scoreSubQuestionItem({
+        subQ,
+        idx,
+        q,
+        answers,
+        answersMap,
+        baseNum,
+        keyPrefix: '',
+      });
     });
     return correctCount;
   }
@@ -260,7 +267,15 @@ function scoreMapLabeling({ q, answers, answersMap, questionNum, size }) {
   if (subQuestions.length > 0) {
     let correctCount = 0;
     subQuestions.forEach((subQ, idx) => {
-      correctCount += scoreSubQuestionItem({ subQ, idx, q, answers, answersMap, baseNum, keyPrefix: 'map' });
+      correctCount += scoreSubQuestionItem({
+        subQ,
+        idx,
+        q,
+        answers,
+        answersMap,
+        baseNum,
+        keyPrefix: 'map',
+      });
     });
     return correctCount;
   }
@@ -474,8 +489,8 @@ function calculateErrorPatterns(answersMap, typeStats, totalScoredItems) {
   };
 }
 
-function buildResponseDetails(questions, displaySections, answersMap) {
-  return questions.flatMap((question) => {
+function buildResponseDetails(questions, displaySections, answersMap, flaggedQuestions) {
+  const details = questions.flatMap((question) => {
     const type = question.type || 'unknown';
     const sectionIndex = Math.max(
       0,
@@ -499,6 +514,8 @@ function buildResponseDetails(questions, displaySections, answersMap) {
       isCorrect: answersMap[key].isCorrect,
     }));
   });
+
+  return standardizeResponseDetails(details, flaggedQuestions);
 }
 
 /**
@@ -508,7 +525,12 @@ function buildResponseDetails(questions, displaySections, answersMap) {
  * @param {Array} displaySections - Test sections (for section stats)
  * @returns {Object} Complete test results object
  */
-export const calculateListeningTestResults = (questions, answers, displaySections = []) => {
+export const calculateListeningTestResults = (
+  questions,
+  answers,
+  displaySections = [],
+  flaggedQuestions = null
+) => {
   let correctCount = 0;
   const answersMap = {};
 
@@ -526,7 +548,12 @@ export const calculateListeningTestResults = (questions, answers, displaySection
   const sectionStats = calculateSectionStats(displaySections, questions, answersMap);
   const typeStats = calculateTypeStats(questions, answersMap);
   const errorPatterns = calculateErrorPatterns(answersMap, typeStats, totalScoredItems);
-  const responseDetails = buildResponseDetails(questions, displaySections, answersMap);
+  const responseDetails = buildResponseDetails(
+    questions,
+    displaySections,
+    answersMap,
+    flaggedQuestions
+  );
 
   return {
     correctAnswers: correctCount,

@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
+import { supabase } from '@/lib/supabase';
+import { buildLearningPathAnalytics } from './learningPathAnalytics';
 import {
   filterSessionsByTimeframe,
   getPreviousSessions,
@@ -33,6 +35,23 @@ export default function useAnalyticsData(selectedTimeframe) {
   const { data: vocabCount = 0, isLoading: vocabLoading } = useQuery({
     queryKey: ['vocabulary', 'count', userId],
     queryFn: () => VocabularyItem.count({ user_id: userId }),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: learningPathEvidence = null, isLoading: learningPathLoading } = useQuery({
+    queryKey: ['learningPath', 'analyticsEvidence', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('learning_paths')
+        .select('path_data')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return buildLearningPathAnalytics(data?.path_data);
+    },
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
   });
@@ -79,8 +98,13 @@ export default function useAnalyticsData(selectedTimeframe) {
       ...stats,
       moduleStats,
       ...advancedMetrics,
-      insights,
+      evidenceSummary: learningPathEvidence,
+      insights: {
+        ...insights,
+        aiSuggestions: learningPathEvidence?.aiSuggestions || null,
+      },
     },
     chartData,
+    learningPathLoading,
   };
 }

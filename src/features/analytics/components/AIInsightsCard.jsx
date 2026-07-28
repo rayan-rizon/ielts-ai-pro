@@ -83,11 +83,29 @@ const FocusArea = React.memo(function FocusArea({ area, idx }) {
         </div>
       </div>
       <p
-        className="text-sm font-medium text-muted-foreground truncate italic mt-1 pl-1"
+        className="text-xs font-medium text-muted-foreground line-clamp-2 mt-1 pl-1"
         data-oid="bxfh:qi"
       >
         {area.strategy || area.description || (typeof area === 'string' ? area : '')}
       </p>
+      {area.evidenceClass && (
+        <div className="mt-1.5 flex items-center gap-1.5 pl-1">
+          <Badge
+            variant="outline"
+            className={cn(
+              'px-1.5 py-0 text-[9px] font-black uppercase tracking-wide',
+              area.evidenceClass === 'measured_priority'
+                ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                : 'border-indigo-500/20 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
+            )}
+          >
+            {area.evidenceClass === 'measured_priority' ? 'Measured' : 'Early signal'}
+          </Badge>
+          <span className="text-[9px] font-bold text-muted-foreground">
+            {area.observations} graded
+          </span>
+        </div>
+      )}
     </motion.div>
   );
 });
@@ -297,7 +315,7 @@ export default function AIInsightsCard({
                 className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent"
                 data-oid="n3mnzd5"
               >
-                AI Analytics
+                Study Plan Evidence
               </span>
             </CardTitle>
             <div className="flex items-center gap-1.5" data-oid="xsaj8ol">
@@ -330,7 +348,7 @@ export default function AIInsightsCard({
             )}
             data-oid="iqubwod"
           >
-            Prediction & growth engine.
+            The same evidence used by your Learning Path.
           </CardDescription>
         </CardHeader>
         <CardContent
@@ -368,7 +386,7 @@ export default function AIInsightsCard({
                           className="text-xs font-black text-primary dark:text-primary/90 tracking-tight"
                           data-oid="h6e2dsd"
                         >
-                          Growth Path
+                          Current plan
                         </div>
                       </div>
                       <div
@@ -394,12 +412,8 @@ export default function AIInsightsCard({
                   <div className="grid grid-cols-2 gap-2" data-oid="mho_cx6">
                     <PredictionCard
                       icon={Rocket}
-                      label="Prediction"
-                      value={
-                        stats?.predictedOverallBand != null
-                          ? stats.predictedOverallBand.toFixed(1)
-                          : stats?.insights?.predictedScore || '0.0'
-                      }
+                      label="Observed Avg"
+                      value={stats?.avgScore || '0.0'}
                       color="bg-primary"
                       data-oid="oeu4uwz"
                     />
@@ -421,8 +435,8 @@ export default function AIInsightsCard({
               ) : stats?.avgScore > 0 ? (
                 <CompactEmptyState
                   icon={Sparkles}
-                  title="Generating Path"
-                  description="Our AI is analyzing your performance. Complete one more test for a full roadmap."
+                  title="Plan Refresh Needed"
+                  description="Refresh your Learning Path after a scored test to show evidence-backed priorities here."
                 />
               ) : (
                 <CompactEmptyState

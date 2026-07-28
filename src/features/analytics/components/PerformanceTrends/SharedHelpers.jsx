@@ -17,7 +17,15 @@ export function getQuestionSuccessSummary(data = []) {
   };
 }
 
-export function questionSuccessTone(accuracy) {
+export function questionSuccessTone(accuracy, sampleSize = 0) {
+  if (sampleSize < 5) {
+    return {
+      label: 'Small sample',
+      accent: 'bg-indigo-500',
+      text: 'text-indigo-600 dark:text-indigo-400',
+      badge: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300',
+    };
+  }
   if (accuracy >= 70) {
     return {
       label: 'Strong',
@@ -157,6 +165,41 @@ export function SkillGapItem({ skill, avg, 'data-oid': dataOid }) {
           )}
           data-oid="5t6bmjl"
         />
+      </div>
+    </div>
+  );
+}
+
+export function EvidencePriorityItem({ item, 'data-oid': dataOid }) {
+  const isMeasured = item?.evidenceClass === 'measured_priority';
+  const mastery =
+    item?.mastery == null ? null : Math.round(Math.max(0, Math.min(1, item.mastery)) * 100);
+
+  return (
+    <div
+      className="rounded-xl border border-slate-100 bg-slate-50/40 p-2 dark:border-white/5 dark:bg-white/[0.02]"
+      data-oid={dataOid || 'evidence-priority'}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-xs font-extrabold text-slate-800 dark:text-slate-200">
+            {item?.module || 'IELTS fundamentals'}
+          </p>
+          <p className="mt-0.5 text-[9.5px] font-semibold text-slate-400">
+            {item?.observations || 0} graded answers
+            {mastery == null ? '' : ` · ${mastery}% mastery`}
+          </p>
+        </div>
+        <span
+          className={cn(
+            'shrink-0 rounded-full border px-1.5 py-0.5 text-[8.5px] font-black uppercase',
+            isMeasured
+              ? 'border-emerald-200/60 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300'
+              : 'border-indigo-200/60 bg-indigo-50 text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300'
+          )}
+        >
+          {isMeasured ? 'Measured' : 'Early'}
+        </span>
       </div>
     </div>
   );

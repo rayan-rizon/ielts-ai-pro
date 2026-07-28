@@ -268,7 +268,7 @@ function PacingTooltip({ active, payload, label }) {
         <div className="flex items-center justify-between gap-3 text-slate-600 dark:text-slate-300">
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-[#c9bdfd]" />
-            <span>Ideal</span>
+            <span>Test limit</span>
           </div>
           <span className="font-black text-slate-950 dark:text-white">
             {idealVal != null ? `${idealVal} min` : '—'}
@@ -288,8 +288,8 @@ function PacingChart({ efficiency }) {
       <OverviewCard className="flex h-full flex-col justify-between">
         <PanelHeading
           icon={TimerReset}
-          title="Pacing chart"
-          description="Your recorded time vs ideal test time"
+          title="Reading duration"
+          description="Recorded elapsed time vs the 60-minute test limit"
         />
         <CardContent className="flex flex-1 flex-col justify-between px-3.5 pb-3.5 pt-1 sm:px-4.5">
           {hasTiming ? (
@@ -349,7 +349,7 @@ function PacingChart({ efficiency }) {
                     />
                     <Bar
                       dataKey="benchmarkMinutes"
-                      name="Ideal"
+                      name="Test limit"
                       fill="url(#pacingIdealGrad)"
                       fillOpacity={0.8}
                       radius={[6, 6, 2, 2]}
@@ -404,7 +404,7 @@ function PacingChart({ efficiency }) {
               <Clock3 className="mb-2 h-7 w-7 text-indigo-200" />
               <p className="font-bold text-slate-900 dark:text-white text-sm">No timing data</p>
               <p className="mt-0.5 max-w-xs text-xs text-slate-500">
-                Complete a timed practice to compare pace.
+                Complete a timed Reading practice to compare the recorded duration.
               </p>
             </div>
           )}

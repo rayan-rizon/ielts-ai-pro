@@ -10,6 +10,7 @@ export const PACING_BENCHMARK_MINUTES = {
 };
 
 export function isValidBandScore(score) {
+  if (score === null || score === undefined || score === '') return false;
   const value = Number(score);
   return Number.isFinite(value) && value >= 0 && value <= 9;
 }
@@ -197,19 +198,30 @@ export function computeModuleStats(filteredSessions) {
   });
 }
 
-function processTypeStats(content, aggState) {
+function processTypeStats(content, aggState, module) {
   if (!content.typeStats) return;
   Object.entries(content.typeStats).forEach(([qType, qStats]) => {
-    if (!aggState.allTypeStats[qType]) aggState.allTypeStats[qType] = { correct: 0, total: 0 };
-    aggState.allTypeStats[qType].correct += qStats.correct || 0;
-    aggState.allTypeStats[qType].total += qStats.total || 0;
+    const key = `${module || 'unknown'}:${qType}`;
+    if (!aggState.allTypeStats[key]) {
+      aggState.allTypeStats[key] = {
+        module: module || 'unknown',
+        questionType: qType,
+        correct: 0,
+        total: 0,
+      };
+    }
+    aggState.allTypeStats[key].correct += qStats.correct || 0;
+    aggState.allTypeStats[key].total += qStats.total || 0;
   });
 }
 
-function processSectionStats(content, aggState) {
+function processSectionStats(content, aggState, module) {
   if (!content.sectionStats) return;
   content.sectionStats.forEach((secStats, idx) => {
-    const secKey = `Passage/Part ${idx + 1}`;
+    const moduleLabel = String(module || 'Test').replace(/\b\w/g, (letter) => letter.toUpperCase());
+    const sectionLabel =
+      module === 'reading' ? 'Passage' : module === 'listening' ? 'Part' : 'Section';
+    const secKey = `${moduleLabel} ${sectionLabel} ${idx + 1}`;
     if (!aggState.allSectionStats[secKey])
       aggState.allSectionStats[secKey] = { correct: 0, total: 0 };
     aggState.allSectionStats[secKey].correct += secStats.correct || 0;
@@ -217,28 +229,14 @@ function processSectionStats(content, aggState) {
   });
 }
 
-function processTimeMetrics(content, aggState, sessionBrief) {
+function processTimeMetrics(content, aggState) {
   if (!content.timeMetrics) return;
-  const rushed = nonNegativeCount(content.timeMetrics.rushedQuestions);
-  const overanalyzed = nonNegativeCount(content.timeMetrics.overanalyzedQuestions);
   const trackedSeconds = Number(content.timeMetrics.totalTimeSpent);
 
-  aggState.enhancedMetricsAgg.totalRushedQuestions += rushed;
-  aggState.enhancedMetricsAgg.totalOveranalyzedQuestions += overanalyzed;
   if (isValidDuration(trackedSeconds)) {
     aggState.enhancedMetricsAgg.totalTimeSpent += trackedSeconds;
   }
   aggState.enhancedMetricsAgg.sessionCount += 1;
-
-  if (rushed > 0) {
-    aggState.enhancedMetricsAgg.sessionReferences.rushed.push({ ...sessionBrief, count: rushed });
-  }
-  if (overanalyzed > 0) {
-    aggState.enhancedMetricsAgg.sessionReferences.overanalyzed.push({
-      ...sessionBrief,
-      count: overanalyzed,
-    });
-  }
 }
 
 function processErrorPatterns(content, aggState, sessionBrief) {
@@ -268,24 +266,6 @@ function processErrorPatterns(content, aggState, sessionBrief) {
   });
 }
 
-function processSkillGaps(content, aggState) {
-  if (!content.skillGaps) return;
-  Object.entries(content.skillGaps).forEach(([skill, score]) => {
-    const skillMap = {
-      detailRetention: 'Remembering Details',
-      paraphrasingRecognition: 'Finding Similar Words',
-      logicalReasoning: 'Smart Thinking',
-      scanningEfficiency: 'Reading Speed',
-      globalComprehension: 'Main Idea',
-    };
-    const friendlyName = skillMap[skill] || skill;
-    if (score >= 0 && aggState.enhancedMetricsAgg.skillGapsTotals[friendlyName]) {
-      aggState.enhancedMetricsAgg.skillGapsTotals[friendlyName].sum += score;
-      aggState.enhancedMetricsAgg.skillGapsTotals[friendlyName].count += 1;
-    }
-  });
-}
-
 function processModuleEfficiency(s, type, aggState) {
   const durationSeconds = getRecordedDurationSeconds(s);
   const isValidModule = Boolean(type) && aggState.moduleEfficiency[type] !== undefined;
@@ -310,12 +290,11 @@ function processSessionContent(s, aggState) {
     troubleTypes: ep.troubleTypes || [],
   };
 
-  processTypeStats(content, aggState);
-  processSectionStats(content, aggState);
+  processTypeStats(content, aggState, type);
+  processSectionStats(content, aggState, type);
   processModuleEfficiency(s, type, aggState);
-  processTimeMetrics(content, aggState, sessionBrief);
+  processTimeMetrics(content, aggState);
   processErrorPatterns(content, aggState, sessionBrief);
-  processSkillGaps(content, aggState);
 }
 
 function getFeedbackScores(fbs, taskName) {
@@ -323,10 +302,17 @@ function getFeedbackScores(fbs, taskName) {
   return task.criteriaScores || task.criteria_scores || {};
 }
 
+function firstPresentScore(...values) {
+  for (const value of values) {
+    if (value === null || value === undefined || value === '') continue;
+    const score = Number(value);
+    if (Number.isFinite(score) && score >= 0 && score <= 9) return score;
+  }
+  return null;
+}
+
 function extractTaskScore(t1, t2, key1, key2) {
-  const val2 = t2[key1] || t2[key2];
-  if (val2) return val2;
-  return t1[key1] || t1[key2] || 0;
+  return firstPresentScore(t2[key1], t2[key2], t1[key1], t1[key2]);
 }
 
 function hasAnyKeys(obj1, obj2, obj3) {
@@ -336,10 +322,7 @@ function hasAnyKeys(obj1, obj2, obj3) {
 }
 
 function extractFinalWritingScore(ctx, directKey, fbKey1, fbKey2) {
-  const v1 = ctx.cs[directKey];
-  if (v1) return Number(v1);
-  const fbScore = extractTaskScore(ctx.t1, ctx.t2, fbKey1, fbKey2);
-  return fbScore ? Number(fbScore) : 0;
+  return firstPresentScore(ctx.cs[directKey], extractTaskScore(ctx.t1, ctx.t2, fbKey1, fbKey2));
 }
 
 function processWritingCriteria(content, aggState) {
@@ -353,7 +336,7 @@ function processWritingCriteria(content, aggState) {
   const ctx = { cs, t1, t2 };
 
   const updateAgg = (key, val) => {
-    if (val > 0) {
+    if (val !== null) {
       aggState.writingCriteriaAgg[key].sum += val;
       aggState.writingCriteriaAgg[key].count += 1;
     }
@@ -389,10 +372,10 @@ function processSpeakingCriteria(content, aggState) {
   const hasData = Object.keys(cs).length > 0 || Object.keys(evalCs).length > 0;
   if (!hasData) return;
 
-  const getScore = (key1, key2) => Number(cs[key1] || evalCs[key2]) || 0;
+  const getScore = (key1, key2) => firstPresentScore(cs[key1], evalCs[key2]);
 
   const updateAgg = (key, val) => {
-    if (val > 0) {
+    if (val !== null) {
       aggState.speakingCriteriaAgg[key].sum += val;
       aggState.speakingCriteriaAgg[key].count++;
     }
@@ -423,21 +406,12 @@ function buildInitialAggState() {
     moduleEfficiency: { reading: 0, writing: 0, listening: 0, speaking: 0 },
     moduleEfficiencyCount: { reading: 0, writing: 0, listening: 0, speaking: 0 },
     enhancedMetricsAgg: {
-      totalRushedQuestions: 0,
-      totalOveranalyzedQuestions: 0,
       totalTimeSpent: 0,
       sessionCount: 0,
       troubleTypesFrequency: {},
       totalNearMisses: 0,
       totalUnanswered: 0,
-      sessionReferences: { rushed: [], overanalyzed: [], nearMisses: [], unanswered: [] },
-      skillGapsTotals: {
-        'Remembering Details': { sum: 0, count: 0 },
-        'Finding Similar Words': { sum: 0, count: 0 },
-        'Smart Thinking': { sum: 0, count: 0 },
-        'Reading Speed': { sum: 0, count: 0 },
-        'Main Idea': { sum: 0, count: 0 },
-      },
+      sessionReferences: { nearMisses: [], unanswered: [] },
     },
     writingCriteriaAgg: {
       taskAchievement: { sum: 0, count: 0 },
@@ -456,13 +430,14 @@ function buildInitialAggState() {
 
 function computeTypeAccuracy(aggState) {
   return Object.entries(aggState.allTypeStats)
-    .map(([type, stats]) => ({
-      type: type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+    .map(([, stats]) => ({
+      module: stats.module,
+      type: stats.questionType.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
       accuracy: Math.round((stats.correct / (stats.total || 1)) * 100),
       correct: stats.correct,
       total: stats.total,
     }))
-    .sort((a, b) => b.accuracy - a.accuracy);
+    .sort((a, b) => a.module.localeCompare(b.module) || b.accuracy - a.accuracy);
 }
 
 function computeSectionPerformance(aggState) {
@@ -495,27 +470,10 @@ export function getSessionAccuracy(content) {
   return Math.round((Math.min(correct, total) / total) * 100);
 }
 
-function extractPaceData(s) {
-  const content = s.content_data || {};
-  return {
-    id: s.id,
-    date: s.completed_at || s.created_at,
-    type: s.test_type,
-    rushed: nonNegativeCount(content.timeMetrics?.rushedQuestions),
-    overanalyzed: nonNegativeCount(content.timeMetrics?.overanalyzedQuestions),
-    accuracy: getSessionAccuracy(content),
-    score: toValidBandScore(s.score) || 0,
-  };
-}
-
-function computePaceData(filteredSessions) {
-  return filteredSessions
-    .map(extractPaceData)
-    .filter((d) => d.accuracy !== null && (d.rushed > 0 || d.overanalyzed > 0));
-}
-
 export function buildPacingSummary(efficiency = {}) {
-  return MODULES.map((type) => {
+  // Reading is the only module where the learner controls the full test pace.
+  // Listening is audio-paced, while Writing/Speaking need task-specific timing context.
+  return ['reading'].map((type) => {
     const rawAverage = Number(efficiency[type]);
     const averageMinutes =
       Number.isFinite(rawAverage) && rawAverage > 0 ? Math.round(rawAverage) : null;
@@ -530,15 +488,12 @@ export function buildPacingSummary(efficiency = {}) {
   });
 }
 
-function computeEnhancedMetricsResult(aggState, paceData) {
+function computeEnhancedMetricsResult(aggState) {
   const tNearMisses = aggState.enhancedMetricsAgg.totalNearMisses;
-  const tRushed = aggState.enhancedMetricsAgg.totalRushedQuestions;
-  const tOveranalyzed = aggState.enhancedMetricsAgg.totalOveranalyzedQuestions;
   const tUnanswered = aggState.enhancedMetricsAgg.totalUnanswered;
 
   return {
     hasData: aggState.enhancedMetricsAgg.sessionCount > 0,
-    paceData,
     avgTimePerSession:
       aggState.enhancedMetricsAgg.sessionCount > 0
         ? Math.round(
@@ -547,28 +502,20 @@ function computeEnhancedMetricsResult(aggState, paceData) {
               60
           )
         : 0,
-    totalRushed: tRushed,
-    totalOveranalyzed: tOveranalyzed,
+    totalRushed: 0,
+    totalOveranalyzed: 0,
     totalNearMisses: tNearMisses,
     totalUnanswered: tUnanswered,
     sessionReferences: aggState.enhancedMetricsAgg.sessionReferences,
     errorAuditData: [
       { name: 'Almost Correct', value: tNearMisses, color: 'hsl(var(--primary))' },
-      { name: 'Rushing', value: tRushed, color: 'hsl(var(--rose-500))' },
-      { name: 'Thinking Too Long', value: tOveranalyzed, color: 'hsl(var(--amber-500))' },
       { name: 'Left Blank', value: tUnanswered, color: 'hsl(var(--muted-foreground))' },
     ].filter((d) => d.value > 0),
     topTroubleTypes: Object.entries(aggState.enhancedMetricsAgg.troubleTypesFrequency)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
       .map(([type]) => type),
-    skillGaps: Object.entries(aggState.enhancedMetricsAgg.skillGapsTotals)
-      .map(([skill, data]) => ({
-        skill,
-        avg: data.count > 0 ? Math.round(data.sum / data.count) : -1,
-      }))
-      .filter((s) => s.avg >= 0)
-      .sort((a, b) => a.avg - b.avg),
+    skillGaps: [],
   };
 }
 
@@ -580,6 +527,9 @@ function getCriteriaAverages(aggState) {
     coherence: avgCriteria(aggState.writingCriteriaAgg.coherence),
     lexicalResource: avgCriteria(aggState.writingCriteriaAgg.lexicalResource),
     grammar: avgCriteria(aggState.writingCriteriaAgg.grammar),
+    sampleCounts: Object.fromEntries(
+      Object.entries(aggState.writingCriteriaAgg).map(([key, value]) => [key, value.count])
+    ),
     hasData: Object.values(aggState.writingCriteriaAgg).some((v) => v.count > 0),
   };
 
@@ -588,6 +538,9 @@ function getCriteriaAverages(aggState) {
     lexicalResource: avgCriteria(aggState.speakingCriteriaAgg.lexicalResource),
     grammar: avgCriteria(aggState.speakingCriteriaAgg.grammar),
     pronunciation: avgCriteria(aggState.speakingCriteriaAgg.pronunciation),
+    sampleCounts: Object.fromEntries(
+      Object.entries(aggState.speakingCriteriaAgg).map(([key, value]) => [key, value.count])
+    ),
     hasData: Object.values(aggState.speakingCriteriaAgg).some((v) => v.count > 0),
   };
 
@@ -605,9 +558,7 @@ export function computeAdvancedMetrics(filteredSessions) {
   const typeAccuracy = computeTypeAccuracy(aggState);
   const sectionPerformance = computeSectionPerformance(aggState);
   const efficiency = computeEfficiency(aggState);
-  const paceData = computePaceData(filteredSessions);
-
-  const enhancedMetrics = computeEnhancedMetricsResult(aggState, paceData);
+  const enhancedMetrics = computeEnhancedMetricsResult(aggState);
   const { writingCriteria, speakingCriteria } = getCriteriaAverages(aggState);
 
   return {
@@ -671,31 +622,6 @@ function generateModuleInsights(moduleStats, insightsObj) {
   });
 }
 
-function generateCorrelations(advancedMetrics, correlations) {
-  const { enhancedMetrics } = advancedMetrics;
-  const { errorAuditData, topTroubleTypes } = enhancedMetrics;
-
-  const rushedCount = errorAuditData.find((d) => d.name === 'Rushing')?.value || 0;
-  if (topTroubleTypes.includes('Vocabulary') && rushedCount > 5) {
-    correlations.push({
-      id: 'rushed-vocab',
-      title: 'Speed Impact',
-      text: 'Your rushed pace is causing vocabulary-related slips. Slow down for better precision.',
-      impact: 'High',
-    });
-  }
-
-  const overanalyzedCount = errorAuditData.find((d) => d.name === 'Thinking Too Long')?.value || 0;
-  if (overanalyzedCount > 3) {
-    correlations.push({
-      id: 'overanalysis',
-      title: 'Decision Fatigue',
-      text: 'Frequent overanalysis is costing you precious time in later sections.',
-      impact: 'Medium',
-    });
-  }
-}
-
 function calculatePredictedScore(avgScoreStr, improvementStr) {
   let predictedScore = parseFloat(avgScoreStr);
   if (!isNaN(predictedScore)) {
@@ -717,7 +643,6 @@ export function computeInsights(moduleStats, advancedMetrics, avgScoreStr, impro
   };
 
   generateModuleInsights(moduleStats, insightsObj);
-  generateCorrelations(advancedMetrics, insightsObj.correlations);
 
   const predictedScore = calculatePredictedScore(avgScoreStr, improvementStr);
 

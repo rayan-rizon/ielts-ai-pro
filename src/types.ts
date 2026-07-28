@@ -228,11 +228,28 @@ export interface UserResponse {
   [key: string]: unknown;
 }
 
+export interface TestResponseDetail {
+  questionId: string;
+  questionNumber?: string | number;
+  questionType: string;
+  sectionOrPart: number | null;
+  isCorrect: boolean;
+  wasFlagged: boolean | null;
+  // Legacy aliases remain during the compatibility window.
+  type?: string;
+  sectionIndex?: number;
+  userAnswer?: unknown;
+  correctAnswer?: unknown;
+  [key: string]: unknown;
+}
+
 export interface TestContentData {
   last_saved_at?: string;
+  analysisSchemaVersion?: number;
   sectionStats?: Record<string, unknown>;
   typeStats?: Record<string, unknown>;
   correctAnswersMap?: Record<string, unknown>;
+  responseDetails?: TestResponseDetail[];
   totalQuestions?: number;
   correctAnswers?: number;
   percentage?: number;
@@ -248,6 +265,7 @@ export interface TestResults {
   sectionStats?: Record<string, unknown>;
   typeStats?: Record<string, unknown>;
   correctAnswersMap?: Record<string, unknown>;
+  responseDetails?: TestResponseDetail[];
 }
 
 // ============================================

@@ -44,7 +44,7 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
           data-oid="qpfmnea"
         >
           {(() => {
-            const tone = questionSuccessTone(item.accuracy);
+            const tone = questionSuccessTone(item.accuracy, item.total);
             return (
               <>
                 <div className="flex items-center justify-between gap-2" data-oid="d:oa..r">
@@ -57,6 +57,9 @@ const QuestionTypeTable = React.memo(function QuestionTypeTable({ data }) {
                       className="text-xs font-black text-slate-900 dark:text-white truncate"
                       data-oid="32-hpvy"
                     >
+                      {item.module
+                        ? `${item.module.charAt(0).toUpperCase() + item.module.slice(1)} · `
+                        : ''}
                       {item.type
                         .split(/_|\s+/)
                         .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())

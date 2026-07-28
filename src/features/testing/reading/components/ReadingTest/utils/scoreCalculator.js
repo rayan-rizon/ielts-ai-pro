@@ -5,6 +5,7 @@
 
 import { normalizeAnswer, isAnswerCorrect } from '@/lib/ieltsAnswerValidation';
 import { calculateReadingBandScore } from '@/lib/ieltsBandScore';
+import { standardizeResponseDetails } from '@/features/testing/shared/utils/resultEvidence';
 
 // Re-export for backward compatibility
 export { normalizeAnswer, isAnswerCorrect };
@@ -245,7 +246,12 @@ function scoreMatchingHeadingsQuestion(q, answers, result) {
   q.matching_data.paragraphs.forEach((para) => {
     const answerKey = `${q.id}_${para.label}`;
     scoreNormalizedPair(
-      { answerKey, questionNumber: para.label, rawUserAns: answers[answerKey], correctAnswer: para.correct_heading || '' },
+      {
+        answerKey,
+        questionNumber: para.label,
+        rawUserAns: answers[answerKey],
+        correctAnswer: para.correct_heading || '',
+      },
       result
     );
   });
@@ -258,7 +264,12 @@ function scoreMatchingQuestion(q, answers, result) {
     const answerKey = `${q.id}_${letter}`;
     const questionNumber = `${q.question_number || '•'}${letter.toLowerCase()}`;
     scoreNormalizedPair(
-      { answerKey, questionNumber, rawUserAns: answers[answerKey], correctAnswer: q.correct_answers?.[letter] || '' },
+      {
+        answerKey,
+        questionNumber,
+        rawUserAns: answers[answerKey],
+        correctAnswer: q.correct_answers?.[letter] || '',
+      },
       result
     );
   });
@@ -269,7 +280,12 @@ function scoreMatchingFeaturesParagraphMode(q, answers, result) {
   Object.entries(q.matching_features.answers).forEach(([qNum, correctAns]) => {
     const answerKey = `${q.id}_${qNum}`;
     scoreNormalizedPair(
-      { answerKey, questionNumber: qNum, rawUserAns: answers[answerKey], correctAnswer: correctAns || '' },
+      {
+        answerKey,
+        questionNumber: qNum,
+        rawUserAns: answers[answerKey],
+        correctAnswer: correctAns || '',
+      },
       result
     );
   });
@@ -278,7 +294,8 @@ function scoreMatchingFeaturesParagraphMode(q, answers, result) {
 function scoreMatchingFeaturesQuestionsMode(q, answers, result) {
   q.matching_features.questions.forEach((mfq, idx) => {
     const answerKey = `${q.id}_${mfq.id || idx}`;
-    const qNum = mfq.questionNumber || (q.question_number ? parseInt(q.question_number, 10) + idx : idx + 1);
+    const qNum =
+      mfq.questionNumber || (q.question_number ? parseInt(q.question_number, 10) + idx : idx + 1);
     const correctAnswer = mfq.answer || mfq.correct_answer || '';
     scoreNormalizedPair(
       { answerKey, questionNumber: qNum, rawUserAns: answers[answerKey], correctAnswer },
@@ -362,8 +379,7 @@ function scoreFlowchartStepItem(opts) {
   const gapNumber = step.gap_numbers?.[i] ?? Number(q.question_number || 1) + gapIndex;
   const answerKey = `${q.id}_gap_${gapNumber}`;
   const userAnswer = (answers[answerKey] || '').trim();
-  const correctAnswer =
-    q.flowchart.answers?.[gapIndex] ?? q.flowchart.answers?.[gapNumber] ?? '';
+  const correctAnswer = q.flowchart.answers?.[gapIndex] ?? q.flowchart.answers?.[gapNumber] ?? '';
   const isCorrect = userAnswer === '' ? null : isAnswerCorrect(userAnswer, correctAnswer);
 
   result.total++;
@@ -520,12 +536,28 @@ function scoreMultiSelectMCQQuestion(q, answers, result) {
 
 const CUSTOM_QUESTION_SCORERS = [
   { match: (q) => q.type === 'table_completion' && q.table_data?.rows, score: scoreTableQuestion },
-  { match: (q) => q.type === 'matching_headings' && q.matching_data?.paragraphs, score: scoreMatchingHeadingsQuestion },
+  {
+    match: (q) => q.type === 'matching_headings' && q.matching_data?.paragraphs,
+    score: scoreMatchingHeadingsQuestion,
+  },
   { match: (q) => q.type === 'matching' && q.options, score: scoreMatchingQuestion },
-  { match: (q) => q.type === 'matching_features' && q.matching_features, score: scoreMatchingFeaturesQuestion },
-  { match: (q) => (q.type === 'notes_completion' || q.type === 'note_completion') && q.gap_fill, score: scoreNotesCompletionQuestion },
-  { match: (q) => (q.type === 'flowchart' || q.type === 'flow_chart_completion') && q.flowchart?.steps, score: scoreFlowchartQuestion },
-  { match: (q) => ['sentence_completion', 'summary_completion', 'short_answer'].includes(q.type), score: scoreSentenceCompletionQuestion },
+  {
+    match: (q) => q.type === 'matching_features' && q.matching_features,
+    score: scoreMatchingFeaturesQuestion,
+  },
+  {
+    match: (q) => (q.type === 'notes_completion' || q.type === 'note_completion') && q.gap_fill,
+    score: scoreNotesCompletionQuestion,
+  },
+  {
+    match: (q) =>
+      (q.type === 'flowchart' || q.type === 'flow_chart_completion') && q.flowchart?.steps,
+    score: scoreFlowchartQuestion,
+  },
+  {
+    match: (q) => ['sentence_completion', 'summary_completion', 'short_answer'].includes(q.type),
+    score: scoreSentenceCompletionQuestion,
+  },
   { match: (q) => q.type === 'multiple_choice', score: scoreMultiSelectMCQQuestion },
 ];
 
@@ -624,8 +656,10 @@ function aggregateUserResponses(allDetails) {
   });
 
   return Array.from(questionNumberMap.values()).sort((a, b) => {
-    const numA = typeof a.questionNumber === 'number' ? a.questionNumber : parseInt(a.questionNumber, 10) || 0;
-    const numB = typeof b.questionNumber === 'number' ? b.questionNumber : parseInt(b.questionNumber, 10) || 0;
+    const numA =
+      typeof a.questionNumber === 'number' ? a.questionNumber : parseInt(a.questionNumber, 10) || 0;
+    const numB =
+      typeof b.questionNumber === 'number' ? b.questionNumber : parseInt(b.questionNumber, 10) || 0;
     return numA - numB;
   });
 }
@@ -652,7 +686,12 @@ function buildCorrectAnswersMap(allDetails) {
  * @param {Array} sections - Test sections (for section stats)
  * @returns {Object} Complete test results object
  */
-export const calculateTestResults = (questions, answers, sections = []) => {
+export const calculateTestResults = (
+  questions,
+  answers,
+  sections = [],
+  flaggedQuestions = null
+) => {
   let totalCorrect = 0;
   let totalQuestions = 0;
   const typeStats = {};
@@ -718,14 +757,17 @@ export const calculateTestResults = (questions, answers, sections = []) => {
     sectionStats,
     correctAnswersMap,
     userResponses,
-    responseDetails: userResponses.map((detail) => ({
-      questionId: detail.questionId,
-      questionNumber: detail.questionNumber,
-      type: detail.type,
-      sectionIndex: detail.sectionIndex,
-      userAnswer: detail.userAnswer,
-      correctAnswer: detail.correctAnswer,
-      isCorrect: detail.isCorrect,
-    })),
+    responseDetails: standardizeResponseDetails(
+      userResponses.map((detail) => ({
+        questionId: detail.questionId,
+        questionNumber: detail.questionNumber,
+        type: detail.type,
+        sectionIndex: detail.sectionIndex,
+        userAnswer: detail.userAnswer,
+        correctAnswer: detail.correctAnswer,
+        isCorrect: detail.isCorrect,
+      })),
+      flaggedQuestions
+    ),
   };
 };

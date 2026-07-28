@@ -288,9 +288,16 @@ export const useListeningTestStore = create(
           activePart: state.activePart,
           audioCurrentTime: state.audioCurrentTime,
           sessionId: state.sessionId,
+          flaggedQuestions: Array.from(state.flaggedQuestions || []),
         }),
 
-        version: 1,
+        version: 2,
+        migrate: (persistedState) => ({
+          ...persistedState,
+          flaggedQuestions: Array.isArray(persistedState?.flaggedQuestions)
+            ? persistedState.flaggedQuestions
+            : [],
+        }),
 
         onRehydrateStorage: () => (state) => {
           if (state) {
@@ -302,8 +309,7 @@ export const useListeningTestStore = create(
         merge: (persistedState, currentState) => ({
           ...currentState,
           ...persistedState,
-          // Ensure Set type is preserved (not serialized)
-          flaggedQuestions: currentState.flaggedQuestions || new Set(),
+          flaggedQuestions: new Set(persistedState?.flaggedQuestions || []),
         }),
       }
     )
