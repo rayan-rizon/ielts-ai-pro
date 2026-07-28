@@ -1,11 +1,16 @@
 import React from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Check, Minus, ArrowRight, Crown, Sparkles } from 'lucide-react';
+import { Check, ArrowRight, Crown, Sparkles, Zap, Star } from 'lucide-react';
 import { cn } from '@/lib/cn';
+
+const PLAN_ICONS = {
+  free: Zap,
+  pro: Star,
+  premium: Crown,
+};
 
 export default function PricingCard({
   plan,
@@ -18,6 +23,7 @@ export default function PricingCard({
 }) {
   const isPro = plan.tier === 'pro';
   const isPremium = plan.tier === 'premium';
+  const Icon = PLAN_ICONS[plan.tier] || Zap;
 
   return (
     <m.div
@@ -28,80 +34,92 @@ export default function PricingCard({
     >
       <Card
         className={cn(
-          'relative h-full transition-all duration-300 rounded-[24px] border backdrop-blur-xl group overflow-hidden flex flex-col',
+          'relative h-full transition-all duration-300 rounded-[28px] border backdrop-blur-xl group overflow-hidden flex flex-col',
           isPro
-            ? 'bg-white dark:bg-slate-900 border-2 border-indigo-600 shadow-xl shadow-indigo-500/10 md:-translate-y-3 z-20'
-            : 'bg-white/90 dark:bg-slate-900/70 border-slate-200/90 dark:border-white/10 shadow-sm hover:border-slate-300 dark:hover:border-white/20'
+            ? 'bg-white dark:bg-slate-900 border-2 border-[#6d55e8] shadow-xl shadow-[#6d55e8]/10 md:-translate-y-3 z-20'
+            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm hover:border-slate-300 dark:hover:border-slate-700'
         )}
       >
-        <CardContent className="p-7 flex flex-col h-full relative z-10">
+        <CardContent className="p-6 sm:p-7 flex flex-col h-full relative z-10">
+          {/* Top Badge */}
+          {isPro && (
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-[#6d55e8] text-[10px] font-black uppercase tracking-wider rounded-full text-white shadow-md flex items-center justify-center gap-1 whitespace-nowrap z-30">
+              <Sparkles className="w-3 h-3" />
+              Best Choice
+            </div>
+          )}
+
           {/* Card Header */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xl font-black text-slate-950 dark:text-white">{plan.name}</h3>
-              {isPro && (
-                <Badge className="bg-indigo-600 text-white border-0 font-black px-3 py-1 text-[10px] tracking-wider rounded-full shadow-xs uppercase">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  Best Choice
-                </Badge>
-              )}
+          <div className="mb-5">
+            <div className="flex items-center justify-between mb-3">
+              <div
+                className={cn(
+                  'h-10 w-10 rounded-xl flex items-center justify-center shrink-0',
+                  isPro
+                    ? 'bg-[#6d55e8] text-white shadow-md shadow-[#6d55e8]/20'
+                    : isPremium
+                      ? 'bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/60 dark:border-purple-900/40'
+                      : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                )}
+              >
+                <Icon className="h-5 w-5" />
+              </div>
               {isPremium && (
-                <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-extrabold border border-slate-200/80 dark:border-white/10 uppercase">
-                  <Crown className="w-3 h-3 text-indigo-500" />
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700 flex items-center gap-1">
+                  <Crown className="w-3 h-3 text-purple-500" />
                   Ultimate
-                </div>
+                </span>
               )}
             </div>
-            <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-medium leading-relaxed min-h-[38px]">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">{plan.name}</h3>
+            <p className="mt-1 text-xs sm:text-[13px] font-medium leading-relaxed text-slate-500 dark:text-slate-400 min-h-[36px]">
               {plan.description}
             </p>
           </div>
 
           {/* Pricing Section */}
-          <div className="mb-6 pb-6 border-b border-slate-100 dark:border-white/5">
+          <div className="mb-5 pb-5 border-b border-slate-100 dark:border-slate-800">
             <div className="flex flex-col gap-1">
               {plan.oldPrice && (
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Was
                   </span>
                   {isPricingLoading ? (
                     <Skeleton className="h-4 w-12" />
                   ) : (
                     <>
-                      <span className="text-sm font-bold text-slate-400 line-through">
+                      <span className="text-xs sm:text-sm font-bold text-slate-400 line-through">
                         {plan.currencySymbol || '$'}
                         {plan.oldPrice}
                       </span>
-                      <span className="bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                      <span className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-900/40 text-[10px] font-bold px-2 py-0.5 rounded-full">
                         SAVE {Math.round((1 - Number(displayPrice) / plan.oldPrice) * 100)}%
                       </span>
                     </>
                   )}
                 </div>
               )}
-              <div className="flex items-baseline gap-1 mt-1 overflow-hidden h-12">
+              <div className="flex items-baseline gap-1 mt-0.5 overflow-hidden h-11">
                 {isPricingLoading ? (
                   <Skeleton className="h-10 w-32 mt-1" />
                 ) : (
                   <>
-                    <span className="text-4xl sm:text-[42px] font-black text-slate-950 dark:text-white tracking-tight flex items-baseline">
+                    <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-baseline">
                       <span className="mr-1 text-2xl font-bold">{plan.currencySymbol || '$'}</span>
                       <AnimatePresence mode="wait">
                         <m.span
                           key={displayPrice}
-                          initial={{ y: 15, opacity: 0 }}
+                          initial={{ y: 12, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
-                          exit={{ y: -15, opacity: 0 }}
-                          transition={{ duration: 0.18, ease: 'easeOut' }}
+                          exit={{ y: -12, opacity: 0 }}
+                          transition={{ duration: 0.15 }}
                         >
                           {displayPrice}
                         </m.span>
                       </AnimatePresence>
                     </span>
-                    <span className="text-slate-500 dark:text-slate-400 font-bold text-xs">
-                      / month
-                    </span>
+                    <span className="text-slate-400 font-bold text-xs">/ month</span>
                   </>
                 )}
               </div>
@@ -113,10 +131,10 @@ export default function PricingCard({
             onClick={() => onUpgrade(plan.tier)}
             disabled={isLoading || isPricingLoading || isActive}
             className={cn(
-              'w-full h-11 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 mb-8 flex items-center justify-center gap-2',
+              'w-full h-11 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-150 mb-6 flex items-center justify-center gap-2',
               isPro
-                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white'
+                ? 'bg-[#6d55e8] hover:bg-[#5b43d6] text-white shadow-md shadow-[#6d55e8]/20'
+                : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700'
             )}
           >
             {isActive ? (
@@ -132,13 +150,13 @@ export default function PricingCard({
           </Button>
 
           {/* Features Checklist */}
-          <div className="flex-1 space-y-3.5">
-            <div className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2">
+          <div className="flex-1 space-y-2.5">
+            <div className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider mb-2">
               What's Included
             </div>
             {isPricingLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3">
+                <div key={i} className="flex items-center gap-2.5">
                   <Skeleton className="w-4.5 h-4.5 rounded-full shrink-0" />
                   <Skeleton className={cn('h-4', i % 2 === 0 ? 'w-3/4' : 'w-1/2')} />
                 </div>
@@ -146,28 +164,28 @@ export default function PricingCard({
             ) : (
               <>
                 {plan.features.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                  <div key={i} className="flex items-center gap-2.5">
                     <div
                       className={cn(
-                        'w-4.5 h-4.5 rounded-full flex items-center justify-center shrink-0 transition-colors',
+                        'w-4.5 h-4.5 rounded-full flex items-center justify-center shrink-0',
                         isPro
-                          ? 'bg-indigo-600 text-white shadow-2xs'
+                          ? 'bg-[#6d55e8] text-white'
                           : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
                       )}
                     >
                       <Check className="w-3 h-3 stroke-[2.5px]" />
                     </div>
-                    <span className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    <span className="text-xs sm:text-[13px] font-semibold text-slate-800 dark:text-slate-200">
                       {feature}
                     </span>
                   </div>
                 ))}
                 {plan.limitations?.map((lim, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                  <div key={i} className="flex items-center gap-2.5">
                     <div className="w-4.5 h-4.5 rounded-full bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center shrink-0">
                       <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
                     </div>
-                    <span className="text-xs sm:text-sm font-medium text-slate-400 dark:text-slate-500 line-through">
+                    <span className="text-xs sm:text-[13px] font-medium text-slate-400 dark:text-slate-500 line-through">
                       {lim}
                     </span>
                   </div>

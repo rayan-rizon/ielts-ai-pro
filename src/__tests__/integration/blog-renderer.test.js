@@ -165,7 +165,7 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('.article-photo img{height:auto;border-radius:22px}');
     expect(response.body).toContain('Plan · Practise · Review · Succeed');
     expect(response.body).toContain('Reviewed by the IELTS Ai Pro editorial team');
-    expect(response.body).toContain('class="category article-category"');
+    expect(response.body).toContain('data-tone="reading"');
     expect(response.body).toContain('Reading</span><h1>');
     expect(response.body).toContain('class="site-footer"');
     expect(response.body).toContain('Core Features');

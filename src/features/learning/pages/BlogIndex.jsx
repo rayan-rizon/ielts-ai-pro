@@ -659,7 +659,7 @@ function BlogSidebar({ articles, popularTags, setQuery, setCurrentPage }) {
                 {String(index + 1).padStart(2, '0')}
               </span>
               <span>
-                <span className="line-clamp-2 text-xs font-bold leading-5 text-slate-800 group-hover:text-indigo-700 dark:text-slate-100 dark:group-hover:text-indigo-300">
+                <span className="line-clamp-2 text-xs font-bold leading-5 text-slate-800 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-300">
                   {article.title}
                 </span>
                 <span className="mt-1 block text-[10px] text-slate-500">

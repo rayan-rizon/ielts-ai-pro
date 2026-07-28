@@ -105,15 +105,15 @@ function PricingFeature({ label, unavailable, isPopular }) {
   const isUnavailable = unavailable || label.startsWith('0 ');
 
   return (
-    <div className="group/item flex items-center gap-3 text-xs sm:text-sm font-medium">
+    <div className="flex items-center gap-2.5 text-xs sm:text-[13px]">
       <span
         className={cn(
-          'flex h-5 w-5 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover/item:scale-110',
+          'flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full transition-colors',
           isUnavailable
-            ? 'bg-slate-100/60 text-slate-400 dark:bg-slate-800/40 dark:text-slate-500'
+            ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
             : isPopular
-              ? 'bg-indigo-600 text-white shadow-2xs'
-              : 'bg-slate-100 border border-slate-200/60 text-slate-700 dark:bg-slate-800 dark:border-white/10 dark:text-slate-200'
+              ? 'bg-[#6d55e8] text-white'
+              : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
         )}
       >
         {isUnavailable ? (
@@ -124,10 +124,9 @@ function PricingFeature({ label, unavailable, isPopular }) {
       </span>
       <span
         className={cn(
-          'transition-transform duration-200 group-hover/item:translate-x-0.5',
           isUnavailable
-            ? 'text-slate-400 line-through dark:text-slate-500'
-            : 'text-slate-800 dark:text-slate-200 font-bold'
+            ? 'text-slate-400 line-through dark:text-slate-500 font-medium'
+            : 'text-slate-800 dark:text-slate-200 font-semibold'
         )}
       >
         {label}
@@ -139,6 +138,8 @@ function PricingFeature({ label, unavailable, isPopular }) {
 function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index }) {
   const currentPrice = plan.pricing[billingCycle];
   const Icon = plan.icon;
+  const isPro = plan.name === 'Pro' || plan.popular;
+  const isPremium = plan.name === 'Premium';
 
   return (
     <m.div
@@ -148,52 +149,60 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
       variants={itemVariants}
       transition={{ delay: index * 0.08 }}
       className={cn(
-        'relative flex flex-col h-full rounded-[28px] p-7 sm:p-8 backdrop-blur-xl transition-all duration-300',
-        plan.popular
-          ? 'border-2 border-indigo-600/90 bg-white dark:bg-slate-900 shadow-[0_22px_60px_-15px_rgba(79,70,229,0.22)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] md:-translate-y-4 z-20 hover:-translate-y-5 hover:shadow-indigo-500/30'
-          : 'border border-slate-200/90 bg-white/95 dark:border-white/10 dark:bg-slate-900/70 shadow-[0_12px_40px_-15px_rgba(15,23,42,0.06)] dark:shadow-[0_15px_40px_-15px_rgba(0,0,0,0.4)] hover:border-slate-300 dark:hover:border-white/20 hover:-translate-y-1 hover:shadow-xl'
+        'relative flex flex-col h-full rounded-[28px] p-6 sm:p-7 transition-all duration-300',
+        isPro
+          ? 'border-2 border-[#6d55e8] bg-white dark:bg-slate-900 shadow-xl shadow-[#6d55e8]/10 lg:-translate-y-3 z-20'
+          : 'border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm hover:border-slate-300 dark:hover:border-slate-700'
       )}
     >
-      {plan.popular && (
-        <>
-          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-600/15 overflow-hidden rounded-[28px]" />
-          <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 text-[10px] font-black uppercase tracking-widest rounded-full text-white shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-1.5 whitespace-nowrap leading-none z-30">
-            <Sparkles className="h-3 w-3" />
-            <span>Best Choice</span>
-          </div>
-        </>
+      {isPro && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-[#6d55e8] text-[10px] font-black uppercase tracking-wider rounded-full text-white shadow-md flex items-center justify-center gap-1.5 whitespace-nowrap z-30">
+          <Sparkles className="h-3 w-3" />
+          <span>Best Choice</span>
+        </div>
       )}
 
-      <div className="mb-6 relative z-10">
-        <div
-          className={cn(
-            'h-11 w-11 rounded-2xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105',
-            plan.name === 'Pro'
-              ? 'bg-gradient-to-br from-indigo-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25'
-              : plan.name === 'Premium'
-                ? 'bg-gradient-to-br from-purple-500/15 to-violet-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-300 shadow-2xs'
-                : 'bg-gradient-to-br from-blue-500/15 to-indigo-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 shadow-2xs'
+      {/* Card Header with Icon */}
+      <div className="mb-5">
+        <div className="flex items-center justify-between mb-3">
+          <div
+            className={cn(
+              'h-10 w-10 rounded-xl flex items-center justify-center shrink-0',
+              isPro
+                ? 'bg-[#6d55e8] text-white shadow-md shadow-[#6d55e8]/20'
+                : isPremium
+                  ? 'bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/60 dark:border-purple-900/40'
+                  : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+            )}
+          >
+            <Icon className="h-5 w-5" />
+          </div>
+          {isPremium && (
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700 flex items-center gap-1">
+              <Crown className="w-3 h-3 text-purple-500" />
+              Ultimate
+            </span>
           )}
-        >
-          <Icon className="h-5.5 w-5.5" />
         </div>
-        <h3 className="text-xl font-black text-slate-950 dark:text-white">{plan.name}</h3>
-        <p className="mt-1.5 text-xs sm:text-sm font-medium leading-relaxed text-slate-600 dark:text-slate-300 min-h-[40px]">
+
+        <h3 className="text-xl font-bold text-slate-900 dark:text-white">{plan.name}</h3>
+        <p className="mt-1 text-xs sm:text-[13px] font-medium leading-relaxed text-slate-500 dark:text-slate-400 min-h-[36px]">
           {plan.desc}
         </p>
       </div>
 
-      <div className="mb-6 pb-6 border-b border-slate-100 dark:border-white/5 relative z-10">
+      {/* Pricing display */}
+      <div className="mb-5 pb-5 border-b border-slate-100 dark:border-slate-800">
         {currentPrice.oldPrice && (
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
               Was
             </span>
-            <span className="text-sm font-bold text-slate-400 line-through">
+            <span className="text-xs sm:text-sm font-bold text-slate-400 line-through">
               {currentPrice.oldPrice}
             </span>
             {currentPrice.savings && (
-              <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-2xs">
+              <span className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-900/40 text-[10px] font-bold px-2 py-0.5 rounded-full">
                 {currentPrice.savings}
               </span>
             )}
@@ -203,38 +212,40 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
           <AnimatePresence mode="wait">
             <m.span
               key={currentPrice.price}
-              initial={{ y: 8, opacity: 0 }}
+              initial={{ y: 6, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -8, opacity: 0 }}
-              transition={{ duration: 0.18 }}
-              className="text-4xl sm:text-[46px] font-black tracking-tight text-slate-950 dark:text-white"
+              exit={{ y: -6, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white"
             >
               {currentPrice.price}
             </m.span>
           </AnimatePresence>
           {currentPrice.period && (
-            <span className="text-xs font-extrabold text-slate-400">{currentPrice.period}</span>
+            <span className="text-xs font-bold text-slate-400">{currentPrice.period}</span>
           )}
         </div>
       </div>
 
-      <div className="space-y-3.5 mb-8 flex-grow relative z-10">
+      {/* Features checklist */}
+      <div className="space-y-3 mb-6 flex-grow">
         {plan.displayFeatures.map((feature) => (
-          <PricingFeature key={feature.label} {...feature} isPopular={plan.popular} />
+          <PricingFeature key={feature.label} {...feature} isPopular={isPro} />
         ))}
       </div>
 
+      {/* Action Button */}
       <Button
         onClick={handlePrimaryCta}
         className={cn(
-          'w-full h-12 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 relative z-10',
-          plan.popular
-            ? 'bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/40 hover:scale-[1.01] active:scale-[0.98]'
-            : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-950 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]'
+          'w-full h-11 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2',
+          isPro
+            ? 'bg-[#6d55e8] hover:bg-[#5b43d6] text-white shadow-md shadow-[#6d55e8]/20'
+            : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700'
         )}
       >
         <span>{plan.buttonText}</span>
-        <ArrowRight className="h-4 w-4" />
+        <ArrowRight className="h-3.5 w-3.5" />
       </Button>
     </m.div>
   );
