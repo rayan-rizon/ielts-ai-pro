@@ -106,7 +106,7 @@ const Upgrade = () => {
 
             <h1 className="mb-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl lg:text-4xl dark:text-white">
               Unlock Your{' '}
-              <span className="text-indigo-600 dark:text-indigo-400">AI Learning Path</span>
+              <span className="text-indigo-600 dark:text-indigo-400">Learning Path</span>
             </h1>
             <p className="mx-auto max-w-lg text-xs leading-relaxed text-slate-600 sm:text-sm dark:text-slate-300">
               Get complete access to your personalized IELTS study roadmap, real-time readiness

@@ -3,7 +3,8 @@ function humanizeSkillCode(skillCode) {
     .split('_')
     .filter(Boolean);
   const withoutModule =
-    parts.length > 1 && ['reading', 'writing', 'listening', 'speaking'].includes(parts[0])
+    parts.length > 1 &&
+    ['reading', 'writing', 'listening', 'speaking', 'grammar', 'vocabulary'].includes(parts[0])
       ? parts.slice(1)
       : parts;
 
@@ -50,6 +51,10 @@ export function buildLearningPathAnalytics(path) {
     (item) => normalizeEvidenceItem(item, 'early_signal')
   );
   const recommendedFocusAreas = [...measuredPriorities, ...earlySignals].slice(0, 3);
+  const latestTransfer = (path?.grammar_evidence?.recent_attempts || []).find(
+    (attempt) => attempt?.mode === 'transfer' && attempt?.transfer_outcome
+  );
+  const grammarDueReviews = path?.grammar_evidence?.due_reviews || [];
 
   return {
     fingerprint: path.input_fingerprint || null,
@@ -61,6 +66,18 @@ export function buildLearningPathAnalytics(path) {
     },
     measuredPriorities,
     earlySignals,
+    grammar: {
+      measuredPriorities: measuredPriorities.filter((item) => item.skillModule === 'grammar'),
+      earlySignals: earlySignals.filter((item) => item.skillModule === 'grammar'),
+      criterionSignals: (path?.grammar_evidence?.criterion_signals || []).map((item) => ({
+        source: item?.skill_code === 'speaking_grammar' ? 'Speaking' : 'Writing',
+        observations: Math.max(0, Number(item?.observations) || 0),
+        evidenceClass: item?.evidence_class || 'diagnostic',
+        provenance: item?.provenance || null,
+      })),
+      dueReviews: grammarDueReviews.length,
+      latestTransferOutcome: latestTransfer?.transfer_outcome || null,
+    },
     aiSuggestions: {
       learning_path_overview:
         coachOverview(path.coach_summary) ||

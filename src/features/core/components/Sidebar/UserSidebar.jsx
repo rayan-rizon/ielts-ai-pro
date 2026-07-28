@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import { m } from 'framer-motion';
 import { Logo, LogoIcon } from '@/components/shared/Logo';
 import {
-  Brain,
-  Sparkles,
   Zap,
   Crown,
   ShieldCheck,
@@ -35,7 +33,7 @@ import { cn } from '@/lib/cn';
 // Memoized Navigation Item component for better performance
 const NavItem = memo(({ item, isActive, variant = 'primary' }) => {
   const { isMobile, setOpenMobile } = useSidebar();
-  const isSpecial = item.title === 'Writing Practice' || item.title === 'AI Learning Path';
+  const isSpecial = item.title === 'Writing Practice';
 
   // Choose colors based on variant
   const activeClasses = {
@@ -238,11 +236,11 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
           <SidebarGroupContent data-oid="cir0b64">
             <SidebarMenu data-oid="eqz1bwr">
               {userNavigationItems.map((item) => {
-                // Gate AI Learning Path for free users — redirect to Pricing
+                // Gate Learning Path for free users — redirect to Upgrade
                 const isPro =
                   user?.subscription_tier === 'pro' || user?.subscription_tier === 'premium';
                 const effectiveItem =
-                  item.title === 'AI Learning Path' && !isPro
+                  item.title === 'Learning Path' && !isPro
                     ? { ...item, url: createPageUrl('Upgrade') }
                     : item;
 

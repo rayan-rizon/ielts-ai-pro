@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/cn';
-import { createPageUrl } from '@/utils';
+import { buildActivityUrl } from '@/features/learning/utils/activityRoutes';
 import { GlassCard, SuccessParticles, ModuleBadge } from '../SharedComponents';
 import {
   dayLabels,
@@ -336,9 +336,7 @@ const WeekSchedule = ({
                   aria-label={`Open ${task.module} practice`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(
-                      createPageUrl(task.module.charAt(0).toUpperCase() + task.module.slice(1))
-                    );
+                    navigate(buildActivityUrl(task));
                   }}
                   data-oid="::t83e5"
                 >
@@ -399,7 +397,14 @@ const WeekSchedule = ({
             </div>
             <Button
               variant="outline"
-              onClick={() => navigate(createPageUrl('Listening'))}
+              onClick={() =>
+                navigate(
+                  buildActivityUrl({
+                    module: 'listening',
+                    routing: { route: 'listening', mode: 'practice' },
+                  })
+                )
+              }
               className="rounded-2xl border-primary/20 hover:bg-primary/5 text-primary font-bold text-xs"
               data-oid="6k6mj-0"
             >

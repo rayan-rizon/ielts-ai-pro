@@ -492,7 +492,7 @@ export default function SubscriptionSuccess() {
                   `${subscriptionData?.tier === 'premium' ? '100' : '50'} AI Speaking Sessions/month`,
                   'All Cambridge practice tests unlocked',
                   ...(subscriptionData?.tier === 'premium'
-                    ? ['Adaptive AI Learning Path', 'Deep Predictive AI Insights']
+                    ? ['Adaptive Learning Path', 'Deep Predictive AI Insights']
                     : []),
                 ].map((feat) => (
                   <div key={feat} className="flex items-center gap-3 text-sm">

@@ -19,14 +19,14 @@ import {
   Settings,
   TrendingUp,
   Wallet,
-  GraduationCap,
   Gift,
+  FlaskConical,
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
 export const userNavigationItems = [
   { title: 'Dashboard', url: createPageUrl('Dashboard'), icon: LayoutGrid },
-  { title: 'AI Learning Path', url: createPageUrl('LearningPath'), icon: Sparkles },
+  { title: 'Learning Path', url: createPageUrl('LearningPath'), icon: Sparkles },
   { title: 'Reading Tests', url: createPageUrl('Reading'), icon: BookOpen },
   { title: 'Writing Practice', url: createPageUrl('Writing'), icon: PenTool },
   { title: 'Listening Tests', url: createPageUrl('Listening'), icon: Headphones },
@@ -36,6 +36,7 @@ export const userNavigationItems = [
 ];
 
 export const learningToolsItems = [
+  { title: 'Grammar Lab', url: createPageUrl('Grammar'), icon: FlaskConical },
   { title: 'Resources', url: createPageUrl('Resources'), icon: Library },
   { title: 'Vocabulary', url: createPageUrl('Vocabulary'), icon: Brain },
   { title: 'Leaderboards', url: createPageUrl('Leaderboard'), icon: Trophy },

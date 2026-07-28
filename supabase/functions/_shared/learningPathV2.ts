@@ -1,4 +1,4 @@
-export const LEARNING_PATH_GENERATOR_VERSION = '2.0.0';
+export const LEARNING_PATH_GENERATOR_VERSION = '2.1.0';
 
 export const STUDY_DAYS = [
   'monday',
@@ -11,6 +11,10 @@ export const STUDY_DAYS = [
 ] as const;
 
 export const IELTS_MODULES = ['reading', 'writing', 'listening', 'speaking'] as const;
+export const PRACTICE_DOMAINS = ['grammar', 'vocabulary'] as const;
+
+const CRITERION_GRAMMAR_SIGNALS = ['writing_grammar', 'speaking_grammar'] as const;
+const LEGACY_DUPLICATE_GRAMMAR_SIGNALS = ['grammar_writing', 'grammar_speaking'] as const;
 
 type StudyDay = (typeof STUDY_DAYS)[number];
 
@@ -105,43 +109,74 @@ export function classifyEvidence(skill: SkillSignal) {
 
 export function summarizeEvidence(skills: SkillSignal[], now: Date | string = new Date()) {
   const nowMs = new Date(now).getTime();
-  const normalized = (Array.isArray(skills) ? skills : []).map((skill) => {
-    const observations = Math.max(0, Math.round(numberOr(skill.practice_count, 0)));
-    const confidence = clamp(numberOr(skill.confidence_level, 0), 0, 1);
-    const mastery = clamp(numberOr(skill.mastery_probability, 0.5), 0, 1);
-    const reviewMs = skill.next_review_at ? new Date(skill.next_review_at).getTime() : NaN;
-    return {
-      skill_code: String(skill.skill_code || 'general_fundamentals'),
-      module: IELTS_MODULES.includes(String(skill.module).toLowerCase() as any)
-        ? String(skill.module).toLowerCase()
-        : 'reading',
-      mastery,
-      confidence,
-      observations,
-      correct_count: Math.max(0, Math.round(numberOr(skill.correct_count, 0))),
-      evidence_class: classifyEvidence(skill),
-      is_due: Number.isFinite(reviewMs) && reviewMs <= nowMs && observations > 0,
-      next_review_at: skill.next_review_at || null,
-    };
-  });
+  const normalized = (Array.isArray(skills) ? skills : [])
+    .filter(
+      (skill) =>
+        !LEGACY_DUPLICATE_GRAMMAR_SIGNALS.includes(
+          String(skill?.skill_code || '').toLowerCase() as any
+        )
+    )
+    .map((skill) => {
+      const observations = Math.max(0, Math.round(numberOr(skill.practice_count, 0)));
+      const confidence = clamp(numberOr(skill.confidence_level, 0), 0, 1);
+      const mastery = clamp(numberOr(skill.mastery_probability, 0.5), 0, 1);
+      const reviewMs = skill.next_review_at ? new Date(skill.next_review_at).getTime() : NaN;
+      const rawModule = String(skill.module || '').toLowerCase();
+      const module =
+        IELTS_MODULES.includes(rawModule as any) || PRACTICE_DOMAINS.includes(rawModule as any)
+          ? rawModule
+          : 'unknown';
+      const skillCode = String(skill.skill_code || 'general_fundamentals').toLowerCase();
+      const isCriterionSignal = CRITERION_GRAMMAR_SIGNALS.includes(skillCode as any);
+      return {
+        skill_code: skillCode,
+        module,
+        mastery,
+        confidence,
+        observations,
+        correct_count: Math.max(0, Math.round(numberOr(skill.correct_count, 0))),
+        evidence_class: classifyEvidence(skill),
+        signal_type: isCriterionSignal ? 'criterion' : 'granular',
+        provenance: isCriterionSignal
+          ? skillCode === 'writing_grammar'
+            ? 'Writing grammatical range and accuracy criterion'
+            : 'Speaking grammatical range and accuracy criterion · transcript-based'
+          : module === 'grammar'
+            ? 'Grammar Lab deterministic practice'
+            : `${module} practice`,
+        is_due: Number.isFinite(reviewMs) && reviewMs <= nowMs && observations > 0,
+        next_review_at: skill.next_review_at || null,
+      };
+    });
 
-  const measured_priorities = normalized
+  const criterion_signals = normalized
+    .filter((skill) => skill.signal_type === 'criterion')
+    .sort((a, b) => a.mastery - b.mastery || b.observations - a.observations);
+  const granular = normalized.filter((skill) => skill.signal_type === 'granular');
+
+  const measured_priorities = granular
     .filter((skill) => skill.evidence_class === 'measured_priority' && skill.mastery < 0.75)
     .sort((a, b) => a.mastery - b.mastery || b.observations - a.observations);
-  const early_signals = normalized
+  const early_signals = granular
     .filter((skill) => skill.evidence_class === 'early_signal')
     .sort((a, b) => a.mastery - b.mastery);
-  const diagnostics = normalized.filter((skill) => skill.evidence_class === 'diagnostic');
-  const due_reviews = normalized
+  const diagnostics = granular.filter((skill) => skill.evidence_class === 'diagnostic');
+  const due_reviews = granular
     .filter((skill) => skill.is_due)
     .sort((a, b) => a.mastery - b.mastery);
-  const maintenance = normalized
+  const maintenance = granular
     .filter((skill) => skill.evidence_class === 'measured_priority' && skill.mastery >= 0.75)
     .sort((a, b) => b.mastery - a.mastery);
 
-  const measuredCount = normalized.filter(
+  const measuredCount = granular.filter(
     (skill) => skill.evidence_class === 'measured_priority'
   ).length;
+  const grammarCriterion = criterion_signals.find(
+    (skill) => skill.mastery < 0.75 && skill.observations > 0
+  );
+  const hasGranularGrammarEvidence = granular.some(
+    (skill) => skill.module === 'grammar' && skill.observations > 0
+  );
   const confidence_label =
     measuredCount >= 8
       ? 'high'
@@ -164,6 +199,11 @@ export function summarizeEvidence(skills: SkillSignal[], now: Date | string = ne
     diagnostics,
     due_reviews,
     maintenance,
+    criterion_signals,
+    grammar_diagnostic_requested: Boolean(grammarCriterion && !hasGranularGrammarEvidence),
+    grammar_diagnostic_source: grammarCriterion?.skill_code || null,
+    grammar_transfer_preference:
+      criterion_signals[0]?.skill_code === 'speaking_grammar' ? 'speaking' : 'writing',
   };
 }
 
@@ -175,7 +215,7 @@ export function aggregateReadiness(sessions: any[], now: Date | string = new Dat
     return (
       IELTS_MODULES.includes(String(session?.test_type).toLowerCase() as any) &&
       Number.isFinite(score) &&
-      score >= 1 &&
+      score >= 0 &&
       score <= 9 &&
       completedAt >= cutoff
     );
@@ -359,28 +399,57 @@ function activityForCategory(category: string, evidence: any, readiness: any, in
     };
   }
   if (category === 'assessment') {
-    const module = missingModule || early?.module || measured?.module || 'reading';
+    const shouldDiagnoseGrammar =
+      !missingModule && evidence.grammar_diagnostic_requested && index % 2 === 0;
+    const candidateAssessmentModule = early?.module || measured?.module;
+    const module = shouldDiagnoseGrammar
+      ? 'grammar'
+      : missingModule ||
+        (IELTS_MODULES.includes(candidateAssessmentModule as any)
+          ? candidateAssessmentModule
+          : 'reading');
     return {
-      title: `${module.charAt(0).toUpperCase() + module.slice(1)} ${missingModule ? 'diagnostic' : 'timed check'}`,
+      title: shouldDiagnoseGrammar
+        ? 'Grammar diagnostic'
+        : `${module.charAt(0).toUpperCase() + module.slice(1)} ${missingModule ? 'diagnostic' : 'timed check'}`,
       module,
-      activity_type: missingModule ? 'diagnostic' : 'timed_assessment',
+      activity_type: shouldDiagnoseGrammar
+        ? 'grammar_diagnostic'
+        : missingModule
+          ? 'diagnostic'
+          : 'timed_assessment',
       priority: 'high',
-      skill_targets: early ? [early.skill_code] : [],
-      reason: missingModule
-        ? `A recent scored ${module} diagnostic is still missing, so the plan will measure before labelling a weakness.`
-        : 'A timed check keeps the readiness evidence current and tests transfer under pressure.',
-      success_criterion: missingModule
-        ? 'Complete a scored attempt so the next plan can use measured evidence.'
-        : 'Finish within the official time limit and review every incorrect answer.',
+      skill_targets: shouldDiagnoseGrammar ? [] : early ? [early.skill_code] : [],
+      reason: shouldDiagnoseGrammar
+        ? 'Writing or Speaking criterion evidence is general. A diagnostic is needed before naming a specific grammar repair.'
+        : missingModule
+          ? `A recent scored ${module} diagnostic is still missing, so the plan will measure before labelling a weakness.`
+          : 'A timed check keeps the readiness evidence current and tests transfer under pressure.',
+      success_criterion: shouldDiagnoseGrammar
+        ? 'Complete all 24 questions so the six grammar families can be measured separately.'
+        : missingModule
+          ? 'Complete a scored attempt so the next plan can use measured evidence.'
+          : 'Finish within the official time limit and review every incorrect answer.',
       evidence: {
-        class: missingModule ? 'diagnostic' : 'assessment',
-        observations: early?.observations || 0,
+        class: shouldDiagnoseGrammar || missingModule ? 'diagnostic' : 'assessment',
+        observations: shouldDiagnoseGrammar
+          ? evidence.criterion_signals?.find(
+              (signal: any) => signal.skill_code === evidence.grammar_diagnostic_source
+            )?.observations || 0
+          : early?.observations || 0,
+        source: shouldDiagnoseGrammar ? evidence.grammar_diagnostic_source : null,
       },
-      routing: { route: module, mode: missingModule ? 'diagnostic' : 'timed' },
+      routing: {
+        route: module,
+        mode: shouldDiagnoseGrammar || missingModule ? 'diagnostic' : 'timed',
+      },
     };
   }
 
-  const module = strong?.module || measured?.module || 'listening';
+  const preferredMaintenanceModule = strong?.module || measured?.module;
+  const module = IELTS_MODULES.includes(preferredMaintenanceModule as any)
+    ? preferredMaintenanceModule
+    : 'listening';
   return {
     title: `${module.charAt(0).toUpperCase() + module.slice(1)} maintenance`,
     module,
@@ -416,10 +485,28 @@ export function buildSevenDaySchedule({
     ? Math.ceil((startOfUtcDay(testDate).getTime() - start.getTime()) / 86400000)
     : null;
   const allocation = getAllocation(daysUntilExam);
+  const weeklyCapacity = getWeeklyCapacity(availability);
+  const plannedMinutes = STUDY_DAYS.reduce((total, day) => {
+    const capacity = numberOr(availability.days[day], 0);
+    if (capacity < 20) return total;
+    const blockCount = capacity >= 80 ? 3 : capacity >= 60 ? 2 : 1;
+    const primaryMinutes = clamp(
+      blockCount === 1 ? capacity : Math.round((capacity * 0.55) / 5) * 5,
+      20,
+      60
+    );
+    const remaining = Math.max(0, capacity - primaryMinutes);
+    const optionalMinutes =
+      blockCount > 1 ? clamp(Math.floor(remaining / (blockCount - 1) / 5) * 5, 20, 60) : 0;
+    return total + primaryMinutes + optionalMinutes * (blockCount - 1);
+  }, 0);
+  const grammarBudgetMinutes = Math.floor((plannedMinutes * 0.2) / 5) * 5;
   const allocatedMinutes: Record<string, number> = Object.fromEntries(
     Object.keys(allocation).map((category) => [category, 0])
   );
   let assignedMinutes = 0;
+  let grammarMinutes = 0;
+  let grammarRepairsSinceTransfer = 0;
 
   const schedule: Record<string, any[]> = {};
   let taskCursor = 0;
@@ -452,7 +539,66 @@ export function buildSevenDaySchedule({
           allocatedMinutes[b];
         return deficitB - deficitA;
       })[0];
-      const base = activityForCategory(category, evidence, readiness, taskCursor);
+      let base = activityForCategory(category, evidence, readiness, taskCursor);
+      const grammarRepairsBeforeBlock = grammarRepairsSinceTransfer;
+      if (base.module === 'grammar' && base.activity_type === 'targeted_drill') {
+        if (grammarRepairsSinceTransfer >= 2) {
+          const transferTarget = evidence.grammar_transfer_preference || 'writing';
+          base = {
+            title: `${transferTarget === 'speaking' ? 'Speaking' : 'Writing'} grammar transfer`,
+            module: 'grammar',
+            activity_type: 'grammar_transfer',
+            priority: 'high',
+            skill_targets: base.skill_targets,
+            reason:
+              'Two focused Grammar Lab repairs are complete in the sequence; now apply the target in IELTS production.',
+            success_criterion:
+              transferTarget === 'speaking'
+                ? 'Record a short response and review only transcript-grounded grammar observations.'
+                : 'Write a short Academic IELTS paragraph and review exact text-grounded grammar observations.',
+            evidence: base.evidence,
+            routing: {
+              route: 'grammar',
+              mode: 'transfer',
+              transferTarget,
+            },
+          };
+          grammarRepairsSinceTransfer = 0;
+        } else {
+          grammarRepairsSinceTransfer += 1;
+        }
+      }
+
+      if (base.module === 'grammar' && grammarMinutes + minutes > grammarBudgetMinutes) {
+        grammarRepairsSinceTransfer = grammarRepairsBeforeBlock;
+        const fallbackModule =
+          readiness.missing_diagnostics[0] ||
+          IELTS_MODULES[(taskCursor + block) % IELTS_MODULES.length];
+        base = {
+          title: `${fallbackModule.charAt(0).toUpperCase() + fallbackModule.slice(1)} practice`,
+          module: fallbackModule,
+          activity_type: readiness.missing_diagnostics.includes(fallbackModule)
+            ? 'diagnostic'
+            : 'maintenance',
+          priority: 'medium',
+          skill_targets: [],
+          reason:
+            'Grammar is capped at 20% of weekly study time so the four IELTS modules remain the main preparation focus.',
+          success_criterion: 'Complete the activity and review the evidence it produces.',
+          evidence: {
+            class: readiness.missing_diagnostics.includes(fallbackModule)
+              ? 'diagnostic'
+              : 'maintenance',
+            observations: 0,
+          },
+          routing: {
+            route: fallbackModule,
+            mode: readiness.missing_diagnostics.includes(fallbackModule)
+              ? 'diagnostic'
+              : 'practice',
+          },
+        };
+      }
       schedule[day].push({
         ...base,
         activity_key: `v2:${dateKey}:${block === 0 ? 'primary' : `optional:${block}`}`,
@@ -463,10 +609,18 @@ export function buildSevenDaySchedule({
       });
       allocatedMinutes[category] += minutes;
       assignedMinutes += minutes;
+      if (base.module === 'grammar') grammarMinutes += minutes;
       taskCursor += 1;
     }
   }
-  return { schedule, allocation, weekly_capacity_minutes: getWeeklyCapacity(availability) };
+  return {
+    schedule,
+    allocation,
+    weekly_capacity_minutes: weeklyCapacity,
+    weekly_planned_minutes: assignedMinutes,
+    grammar_minutes: grammarMinutes,
+    grammar_cap_minutes: grammarBudgetMinutes,
+  };
 }
 
 export function stableStringify(value: unknown): string {

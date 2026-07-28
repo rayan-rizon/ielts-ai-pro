@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/cn';
 import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { buildActivityUrl } from '@/features/learning/utils/activityRoutes';
 import { GlassCard } from '@/features/learning/components/SharedComponents';
 import { moduleConfig } from '@/features/learning/utils/moduleConfig';
 
@@ -102,7 +102,12 @@ export default function BandGapBreakdown({ bandGaps, targetBand, className, load
                   key={it.module}
                   type="button"
                   onClick={() =>
-                    navigate(createPageUrl(it.module.charAt(0).toUpperCase() + it.module.slice(1)))
+                    navigate(
+                      buildActivityUrl({
+                        module: it.module,
+                        routing: { route: it.module, mode: 'practice' },
+                      })
+                    )
                   }
                   className="w-full text-left p-3.5 rounded-2xl bg-white/70 dark:bg-slate-950/40 border border-slate-200/80 dark:border-slate-700/70 shadow-sm dark:shadow-slate-950/20 transition-all duration-300 group hover:scale-[1.01] hover:border-violet-300 dark:hover:border-violet-400/40 hover:bg-violet-50/70 dark:hover:bg-violet-500/15 hover:shadow-lg hover:shadow-violet-500/10"
                 >
@@ -150,7 +155,10 @@ export default function BandGapBreakdown({ bandGaps, targetBand, className, load
                       type="button"
                       onClick={() =>
                         navigate(
-                          createPageUrl(l.module.charAt(0).toUpperCase() + l.module.slice(1))
+                          buildActivityUrl({
+                            module: l.module,
+                            routing: { route: l.module, mode: 'practice' },
+                          })
                         )
                       }
                       className="px-3 py-2 rounded-2xl bg-white/80 dark:bg-slate-950/30 border border-violet-500/10 text-[10px] font-black tracking-[0.08em] text-violet-700 dark:text-violet-200 hover:bg-white dark:hover:bg-violet-500/10 transition-colors"
@@ -178,7 +186,12 @@ export default function BandGapBreakdown({ bandGaps, targetBand, className, load
                         key={mod}
                         type="button"
                         onClick={() =>
-                          navigate(createPageUrl(mod.charAt(0).toUpperCase() + mod.slice(1)))
+                          navigate(
+                            buildActivityUrl({
+                              module: mod,
+                              routing: { route: mod, mode: 'diagnostic' },
+                            })
+                          )
                         }
                         className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-white/80 dark:bg-slate-950/30 border border-amber-500/10 text-[10px] font-black tracking-[0.08em] text-amber-700 dark:text-amber-200 hover:bg-white dark:hover:bg-amber-500/10 hover:border-amber-500/30 transition-colors"
                       >

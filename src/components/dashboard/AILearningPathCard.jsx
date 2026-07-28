@@ -142,7 +142,7 @@ const AILearningPathCard = React.memo(
                 </div>
                 <div data-oid="q2o0w:y">
                   <span className="tracking-tight leading-tight" data-oid="es-fm85">
-                    AI Learning Path
+                    Learning Path
                   </span>
                 </div>
               </CardTitle>
@@ -178,7 +178,7 @@ const AILearningPathCard = React.memo(
                 >
                   Your Daily{' '}
                   <span className="text-[#6d55e8] dark:text-violet-400" data-oid="p4o19w6">
-                    AI Learning Path
+                    Learning Path
                   </span>
                 </h3>
 

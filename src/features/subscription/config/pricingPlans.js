@@ -47,7 +47,7 @@ export const DEFAULT_PRICING_PLANS = [
       '200 AI Writing Evaluations/month',
       '100 AI Speaking Sessions/month',
       'Unlimited Vocabulary',
-      'Adaptive AI Learning Path',
+      'Adaptive Learning Path',
       'Deep Predictive AI Insights',
       'Downloadable Study Packs',
       'Exclusive Community Access',

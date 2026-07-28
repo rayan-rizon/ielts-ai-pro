@@ -409,6 +409,32 @@ export default function AIInsightsCard({
                     </div>
                   )}
 
+                  {(stats?.evidenceSummary?.grammar?.measuredPriorities?.length > 0 ||
+                    stats?.evidenceSummary?.grammar?.earlySignals?.length > 0 ||
+                    stats?.evidenceSummary?.grammar?.criterionSignals?.length > 0) && (
+                    <Link
+                      to="/grammar"
+                      className="flex items-center justify-between gap-3 rounded-xl border border-indigo-200/70 bg-indigo-50/70 p-3 transition hover:border-indigo-300 hover:bg-indigo-50 dark:border-indigo-400/20 dark:bg-indigo-400/10"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-xs font-black text-indigo-700 dark:text-indigo-200">
+                          Grammar Lab evidence
+                        </div>
+                        <div className="mt-0.5 truncate text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+                          {stats.evidenceSummary.grammar.measuredPriorities.length
+                            ? `${stats.evidenceSummary.grammar.measuredPriorities[0].module} · measured`
+                            : stats.evidenceSummary.grammar.earlySignals.length
+                              ? `${stats.evidenceSummary.grammar.earlySignals[0].module} · early`
+                              : 'Writing or Speaking criterion · diagnostic needed'}
+                          {stats.evidenceSummary.grammar.dueReviews
+                            ? ` · ${stats.evidenceSummary.grammar.dueReviews} due`
+                            : ''}
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-indigo-600" />
+                    </Link>
+                  )}
+
                   <div className="grid grid-cols-2 gap-2" data-oid="mho_cx6">
                     <PredictionCard
                       icon={Rocket}

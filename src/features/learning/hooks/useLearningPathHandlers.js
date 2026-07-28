@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { generateAdaptiveLearningPath } from '@/utils/api';
-import { createPageUrl } from '@/utils';
+import { buildActivityUrl } from '@/features/learning/utils/activityRoutes';
 import { getTodayIndex, dayNames } from './useLearningPathData';
 
 export function usePathStrategy(queryClient) {
@@ -106,7 +106,7 @@ export function usePathNavigation(navigate, dailyFocus) {
   const handleStartTopTask = useCallback(() => {
     const module = dailyFocus?.primary_module;
     if (module && module !== 'general') {
-      navigate(createPageUrl(module.charAt(0).toUpperCase() + module.slice(1)));
+      navigate(buildActivityUrl({ module, routing: { route: module, mode: 'practice' } }));
       return;
     }
     handleSelectToday();

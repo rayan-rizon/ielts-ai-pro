@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { User } from '@/entities';
-import { createPageUrl } from '@/utils';
+import { buildActivityUrl } from '@/features/learning/utils/activityRoutes';
 import { generateAdaptiveLearningPath } from '@/utils/api';
 import {
   adaptLearningPathV1,
@@ -111,8 +111,7 @@ export function useLearningPathDashboard({
       toast.success(`Preview: opening ${task?.title || 'task'}`);
       return;
     }
-    const route = task?.routing?.route || task?.module;
-    if (route) navigate(createPageUrl(route.charAt(0).toUpperCase() + route.slice(1)));
+    navigate(buildActivityUrl(task));
   };
 
   const toggleTask = async (task) => {

@@ -201,7 +201,7 @@ export default function LearningPathSummary({ userEmail }) {
             </div>
 
             <h3 className="text-xl font-black mb-2 text-foreground" data-oid="b452ejw">
-              Create Your AI Learning Path
+              Create Your Learning Path
             </h3>
             <p className="text-muted-foreground mb-6 text-sm max-w-sm mx-auto" data-oid="zqp_iu.">
               Generate a customized 4-8 week roadmap based on your current band score and target
@@ -246,7 +246,7 @@ export default function LearningPathSummary({ userEmail }) {
               </div>
               <div className="flex flex-col" data-oid="lhu-c9m">
                 <span className="text-sm font-black tracking-tight" data-oid="8xeh3jv">
-                  AI Learning Path
+                  Learning Path
                 </span>
                 <span
                   className="text-[10px] text-primary font-bold uppercase tracking-widest"

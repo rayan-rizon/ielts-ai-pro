@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { buildActivityUrl } from '@/features/learning/utils/activityRoutes';
 import { GlassCard } from '@/features/learning/components/SharedComponents';
 import { getTodayIndex } from '@/features/learning/hooks/useLearningPathData';
 import { cn } from '@/lib/cn';
@@ -91,7 +91,13 @@ export default function ReviewQueue({
                 key={s.skill_code}
                 type="button"
                 onClick={() =>
-                  navigate(createPageUrl(module.charAt(0).toUpperCase() + module.slice(1)))
+                  navigate(
+                    buildActivityUrl({
+                      module,
+                      skill_targets: [s.skill_code],
+                      routing: { route: module, mode: 'review' },
+                    })
+                  )
                 }
                 className="w-full flex items-center justify-between gap-3 p-3 rounded-2xl bg-white/70 dark:bg-slate-950/40 border border-slate-200/80 dark:border-slate-700/70 transition-all group text-left hover:border-indigo-300 dark:hover:border-indigo-400/40 hover:bg-indigo-50/80 dark:hover:bg-indigo-500/15 hover:shadow-md hover:shadow-indigo-500/5"
               >
@@ -123,7 +129,13 @@ export default function ReviewQueue({
               const first = dueReviewSkills[0];
               const module = first?.module || null;
               if (module) {
-                navigate(createPageUrl(module.charAt(0).toUpperCase() + module.slice(1)));
+                navigate(
+                  buildActivityUrl({
+                    module,
+                    skill_targets: first?.skill_code ? [first.skill_code] : [],
+                    routing: { route: module, mode: 'review' },
+                  })
+                );
                 return;
               }
               setSelectedDayIndex(getTodayIndex());

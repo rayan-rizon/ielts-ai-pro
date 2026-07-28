@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { buildActivityUrl } from '@/features/learning/utils/activityRoutes';
 import { GlassCard } from '@/features/learning/components/SharedComponents';
 import { cn } from '@/lib/cn';
 import {
@@ -10,7 +10,7 @@ import {
   RecommendedPracticeLoading,
 } from './RecommendedPracticeComponents';
 
-const SKILLS = ['reading', 'listening', 'writing', 'speaking'];
+const SKILLS = ['reading', 'listening', 'writing', 'speaking', 'grammar', 'vocabulary'];
 
 function getModuleName(a) {
   if (a?.module) return String(a.module);
@@ -37,7 +37,13 @@ const HEADER_CONTENT = {
 const handleItemClick = (a, navigate) => {
   const module = getModuleName(a);
   if (!module) return;
-  navigate(createPageUrl(module.charAt(0).toUpperCase() + module.slice(1)));
+  navigate(
+    buildActivityUrl({
+      ...a,
+      module,
+      routing: a?.routing || { route: module, mode: 'practice' },
+    })
+  );
 };
 
 export default function RecommendedPractice({

@@ -31,6 +31,7 @@ const MODEL = 'gemini-2.5-flash-lite';
 const ALLOWED_TRIGGERS = new Set([
   'first_plan',
   'test_completed',
+  'grammar_completed',
   'goal_changed',
   'result_recovery',
   'manual_refresh',
@@ -42,6 +43,9 @@ const triggerMessage = (trigger: string, module?: string) => {
   }
   if (trigger === 'goal_changed') {
     return 'Your target, exam date, or weekly availability changed, so the roadmap and capacity were recalculated.';
+  }
+  if (trigger === 'grammar_completed') {
+    return 'A completed Grammar Lab activity changed the evidence or transfer outcome used by your plan.';
   }
   if (trigger === 'result_recovery') {
     return 'A result-specific recovery request was fitted into the broader exam roadmap.';
@@ -315,36 +319,46 @@ serve(async (req: Request) => {
     if (profileError || !profile) return errorResponse('Profile not found', 404, corsHeaders);
     if (!['pro', 'premium'].includes(String(profile.subscription_tier).toLowerCase())) {
       return errorResponse(
-        'Pro or Premium subscription required for AI Learning Path',
+        'Pro or Premium subscription required for Learning Path',
         403,
         corsHeaders
       );
     }
 
     const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
-    const [{ data: sessions }, { data: skills }, { data: latestRows }] = await Promise.all([
-      supabase
-        .from('test_sessions')
-        .select('id, test_type, score, completed_at, created_at, is_completed')
-        .eq('user_id', profile.id)
-        .eq('is_completed', true)
-        .gte('completed_at', cutoff)
-        .order('completed_at', { ascending: false })
-        .limit(120),
-      supabase
-        .from('skill_proficiency')
-        .select(
-          'skill_code, module, mastery_probability, confidence_level, practice_count, correct_count, last_practiced_at, next_review_at'
-        )
-        .eq('user_id', profile.id)
-        .limit(120),
-      supabase
-        .from('learning_paths')
-        .select('id, path_data, created_at')
-        .eq('user_id', profile.id)
-        .order('created_at', { ascending: false })
-        .limit(1),
-    ]);
+    const [{ data: sessions }, { data: skills }, { data: grammarAttempts }, { data: latestRows }] =
+      await Promise.all([
+        supabase
+          .from('test_sessions')
+          .select('id, test_type, score, completed_at, created_at, is_completed')
+          .eq('user_id', profile.id)
+          .eq('is_completed', true)
+          .gte('completed_at', cutoff)
+          .order('completed_at', { ascending: false })
+          .limit(120),
+        supabase
+          .from('skill_proficiency')
+          .select(
+            'skill_code, module, mastery_probability, confidence_level, practice_count, correct_count, last_practiced_at, next_review_at'
+          )
+          .eq('user_id', profile.id)
+          .limit(120),
+        supabase
+          .from('grammar_attempts')
+          .select(
+            'id, mode, target_skills, completion_state, total_questions, correct_count, transfer_evaluation, completed_at, updated_at'
+          )
+          .eq('user_id', profile.id)
+          .eq('completion_state', 'completed')
+          .order('completed_at', { ascending: false })
+          .limit(80),
+        supabase
+          .from('learning_paths')
+          .select('id, path_data, created_at')
+          .eq('user_id', profile.id)
+          .order('created_at', { ascending: false })
+          .limit(1),
+      ]);
 
     const timezone = String(profile.study_availability?.timezone || body?.timezone || 'UTC');
     const availability = normalizeStudyAvailability(
@@ -366,12 +380,28 @@ serve(async (req: Request) => {
         score: session.score,
         completed_at: session.completed_at,
       })),
-      skills: (skills || []).map((skill: any) => ({
-        code: skill.skill_code,
-        mastery: skill.mastery_probability,
-        confidence: skill.confidence_level,
-        observations: skill.practice_count,
-        review: skill.next_review_at,
+      skills: (skills || [])
+        .filter(
+          (skill: any) =>
+            !['grammar_writing', 'grammar_speaking'].includes(
+              String(skill.skill_code || '').toLowerCase()
+            )
+        )
+        .map((skill: any) => ({
+          code: skill.skill_code,
+          mastery: skill.mastery_probability,
+          confidence: skill.confidence_level,
+          observations: skill.practice_count,
+          review: skill.next_review_at,
+        })),
+      grammar_attempts: (grammarAttempts || []).map((attempt: any) => ({
+        id: attempt.id,
+        mode: attempt.mode,
+        target_skills: attempt.target_skills,
+        total_questions: attempt.total_questions,
+        correct_count: attempt.correct_count,
+        transfer_outcome: attempt.transfer_evaluation?.outcome || null,
+        completed_at: attempt.completed_at || attempt.updated_at,
       })),
     };
     const fingerprint = await fingerprintLearningPathInputs(fingerprintInput);
@@ -421,6 +451,7 @@ serve(async (req: Request) => {
       exam_type: profile.exam_type || 'academic',
       study_availability: availability,
       weekly_capacity_minutes: scheduleData.weekly_capacity_minutes,
+      weekly_planned_minutes: scheduleData.weekly_planned_minutes,
     };
     const coach = await buildCoachSummary({
       geminiApiKey: Deno.env.get('GEMINI_API_KEY'),
@@ -447,6 +478,27 @@ serve(async (req: Request) => {
       roadmap,
       weekly_schedule: scheduleData.schedule,
       weekly_allocation: scheduleData.allocation,
+      grammar_allocation: {
+        minutes: scheduleData.grammar_minutes,
+        cap_minutes: scheduleData.grammar_cap_minutes,
+        share:
+          scheduleData.weekly_planned_minutes > 0
+            ? scheduleData.grammar_minutes / scheduleData.weekly_planned_minutes
+            : 0,
+      },
+      grammar_evidence: {
+        recent_attempts: (grammarAttempts || []).map((attempt: any) => ({
+          id: attempt.id,
+          mode: attempt.mode,
+          target_skills: attempt.target_skills,
+          correct_count: attempt.correct_count,
+          total_questions: attempt.total_questions,
+          transfer_outcome: attempt.transfer_evaluation?.outcome || null,
+          completed_at: attempt.completed_at || attempt.updated_at,
+        })),
+        due_reviews: evidence.due_reviews.filter((signal: any) => signal.module === 'grammar'),
+        criterion_signals: evidence.criterion_signals,
+      },
       coach_summary: coach.summary,
       why_plan_changed: triggerMessage(effectiveTrigger, body?.module),
       next_checkpoint: checkpoint,

@@ -4,7 +4,7 @@ import { Zap, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { createPageUrl } from '@/utils';
+import { buildActivityUrl } from '@/features/learning/utils/activityRoutes';
 import { GlassCard } from '../SharedComponents';
 import { mistakeAdvice } from '../../utils/learningUtils';
 import { cn } from '@/lib/cn';
@@ -178,9 +178,10 @@ const MistakeAnalysis = ({ mistakePatterns, onSelectToday, className, loading = 
                       onClick={() => {
                         if (targetModule) {
                           navigate(
-                            createPageUrl(
-                              targetModule.charAt(0).toUpperCase() + targetModule.slice(1)
-                            )
+                            buildActivityUrl({
+                              module: targetModule,
+                              routing: { route: targetModule, mode: 'practice' },
+                            })
                           );
                           return;
                         }

@@ -137,6 +137,7 @@ const ListeningTest = lazyWithRetry(
 const ReadingTest = lazyWithRetry(() => import('@/features/testing/reading/pages/ReadingTest.jsx'));
 const Settings = lazyWithRetry(() => import('@/features/settings/pages/Settings.jsx'));
 const Vocabulary = lazyWithRetry(() => import('@/features/vocabulary/pages/Vocabulary.jsx'));
+const GrammarLab = lazyWithRetry(() => import('@/features/grammar/pages/GrammarLab.jsx'));
 const SpeakingTest = lazyWithRetry(
   () => import('@/features/testing/speaking/pages/SpeakingTest.jsx')
 );
@@ -503,6 +504,18 @@ const router = createBrowserRouter(
           <Layout currentPageName="Vocabulary" data-oid="mjllbml">
             <LazyPage data-oid="tyz.03p">
               <Vocabulary data-oid="zvfmptq" />
+            </LazyPage>
+          </Layout>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/grammar',
+      element: (
+        <ProtectedRoute data-oid="grammar-protected">
+          <Layout currentPageName="GrammarLab" data-oid="grammar-layout">
+            <LazyPage data-oid="grammar-page">
+              <GrammarLab data-oid="grammar-lab" />
             </LazyPage>
           </Layout>
         </ProtectedRoute>

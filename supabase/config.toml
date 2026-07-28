@@ -305,6 +305,9 @@ enabled = false
 [functions.stripe-webhook]
 verify_jwt = false
 
+[functions.evaluateGrammarTransfer]
+verify_jwt = true
+
 [edge_runtime]
 enabled = true
 # Configure one of the supported request policies: `oneshot`, `per_worker`.

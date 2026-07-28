@@ -1,5 +1,5 @@
 import { differenceInDays, format } from 'date-fns';
-import { createPageUrl } from '@/utils';
+import { buildActivityUrl } from './activityRoutes';
 
 export const inferModuleFromTitle = (title) => {
   const t = String(title || '').toLowerCase();
@@ -119,7 +119,10 @@ export function formatModuleName(module) {
 export function getModuleRoute(module) {
   const value = String(module || '').toLowerCase();
   if (!value || value === 'general') return null;
-  return createPageUrl(formatModuleName(value));
+  return buildActivityUrl({
+    module: value,
+    routing: { route: value, mode: 'practice' },
+  });
 }
 
 function getModuleBand(module, stats, targetBand) {

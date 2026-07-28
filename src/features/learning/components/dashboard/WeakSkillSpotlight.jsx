@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/cn';
 import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { buildActivityUrl } from '@/features/learning/utils/activityRoutes';
 import { GlassCard } from '@/features/learning/components/SharedComponents';
 
 export default function WeakSkillSpotlight({ spotlightSkills, className, loading = false }) {
@@ -139,7 +139,13 @@ export default function WeakSkillSpotlight({ spotlightSkills, className, loading
                     size="sm"
                     className="rounded-2xl h-8 px-3 text-[10px] font-black uppercase tracking-widest"
                     onClick={() =>
-                      navigate(createPageUrl(module.charAt(0).toUpperCase() + module.slice(1)))
+                      navigate(
+                        buildActivityUrl({
+                          module,
+                          skill_targets: [s.skill_code],
+                          routing: { route: module, mode: s.is_due ? 'review' : 'practice' },
+                        })
+                      )
                     }
                   >
                     Practice now
