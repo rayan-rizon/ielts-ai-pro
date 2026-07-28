@@ -99,42 +99,40 @@ export default function CriteriaBreakdownCard({ module, criteria, labels }) {
   const hasData = criteria?.hasData;
 
   return (
-    <motion.div variants={ITEM_VARIANTS}>
-      <Card
-        className={cn(
-          'rounded-2xl border bg-white/80 dark:bg-slate-950/60 backdrop-blur-md shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 overflow-hidden relative',
-          config.border
-        )}
-      >
-        {/* Decorative Grid Pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.01] dark:opacity-[0.02] pointer-events-none bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:12px_12px]"
-          data-oid="criteria-grid"
-        />
-
-        <CardHeader className="px-4 pt-4 pb-2 relative z-10">
+    <motion.div variants={ITEM_VARIANTS} className="h-full">
+      <Card className="flex h-full flex-col justify-between rounded-[22px] border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] transition-all duration-300 hover:-translate-y-0.5 overflow-hidden relative">
+        <CardHeader className="px-5 pt-4.5 pb-2 relative z-10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className={cn('p-1.5 rounded-lg', config.bg)}>
-                <Icon className={cn('w-3.5 h-3.5', config.color)} />
+            <div className="flex items-center gap-2.5">
+              <div
+                className={cn(
+                  'flex h-8.5 w-8.5 items-center justify-center rounded-xl shadow-xs',
+                  module === 'writing'
+                    ? 'bg-[#efedff] text-[#5862df] ring-1 ring-[#5862df]/15 dark:bg-indigo-500/20 dark:text-indigo-300'
+                    : 'bg-rose-50 text-rose-600 ring-1 ring-rose-200/70 dark:bg-rose-500/20 dark:text-rose-300'
+                )}
+              >
+                <Icon className="w-4.5 h-4.5" strokeWidth={2.2} />
               </div>
-              <CardTitle className="text-sm font-bold text-foreground">{config.label}</CardTitle>
+              <CardTitle className="text-base font-black tracking-tight text-slate-950 dark:text-white">
+                {config.label}
+              </CardTitle>
             </div>
-            <span className="text-xs text-muted-foreground/60 font-semibold tracking-wider uppercase">
+            <span className="text-[10px] text-slate-400 font-extrabold tracking-wider uppercase">
               IELTS avg / 9.0
             </span>
           </div>
         </CardHeader>
 
-        <CardContent className="px-4 pb-4 relative z-10">
+        <CardContent className="flex-1 flex flex-col justify-center px-5 pb-5 relative z-10">
           {!hasData ? (
-            <div className="flex flex-col items-center justify-center py-6 gap-2 text-center">
+            <div className="flex flex-col items-center justify-center py-6 gap-2 text-center my-auto">
               <div
-                className={cn('w-8 h-8 rounded-full flex items-center justify-center', config.bg)}
+                className={cn('w-9 h-9 rounded-2xl flex items-center justify-center', config.bg)}
               >
-                <Info className={cn('w-4 h-4', config.color)} />
+                <Info className={cn('w-4.5 h-4.5', config.color)} />
               </div>
-              <p className="text-sm font-semibold text-muted-foreground/60 max-w-[180px] leading-relaxed">
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 max-w-[200px] leading-relaxed">
                 Complete a {module} test with AI feedback to see these score areas.
               </p>
             </div>
@@ -148,8 +146,8 @@ export default function CriteriaBreakdownCard({ module, criteria, labels }) {
                   sampleCount={criteria.sampleCounts?.[key] || 0}
                   color={
                     module === 'writing'
-                      ? 'from-violet-500 to-indigo-500'
-                      : 'from-rose-500 to-orange-500'
+                      ? 'from-[#5661e9] to-[#818cf8]'
+                      : 'from-rose-500 to-amber-500'
                   }
                   index={idx}
                 />

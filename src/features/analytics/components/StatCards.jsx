@@ -1,8 +1,7 @@
 import React from 'react';
-import { Target, Flag, Clock, BookOpen } from 'lucide-react';
+import { Award, Target, Timer, BookMarked } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/cn';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ITEM_VARIANTS } from '../constants';
 import { getBandLabel, formatBand } from '../utils';
@@ -11,7 +10,6 @@ export default function StatCards({ stats, _progressToTarget }) {
   if (!stats) return null;
 
   const hasScoreData = (stats.scoredTests ?? stats.totalTests ?? 0) > 0;
-
   const modulesWithData = stats.modulesWithData || 0;
   const hasOverallEstimate = stats.overallEstimate != null && modulesWithData === 4;
   const displayScore = !hasScoreData
@@ -33,7 +31,6 @@ export default function StatCards({ stats, _progressToTarget }) {
       )
     : null;
 
-  // 1. Current score subtitle
   const scoredText = hasOverallEstimate
     ? 'Latest score from all 4 modules'
     : 'Completed-practice average';
@@ -44,7 +41,6 @@ export default function StatCards({ stats, _progressToTarget }) {
       : '';
   const scoreSubtitle = `${scoredText}${trendText}`;
 
-  // 2. Your Goal Subtitle
   const scoreForGoal = hasOverallEstimate ? Number(stats.overallEstimate) : Number(stats.avgScore);
   const gap = Number(stats.targetScore) - scoreForGoal;
   const goalSubtitle = !hasScoreData
@@ -53,10 +49,7 @@ export default function StatCards({ stats, _progressToTarget }) {
       ? 'Target achieved!'
       : `${formatBand(gap)} ${gap === 1 ? 'band' : 'bands'} to target`;
 
-  // 3. Study Effort Subtitle
   const studySubtitle = averageMinutes ? `${averageMinutes} min/test average` : 'No timing data';
-
-  // 4. Saved Vocabulary Subtitle
   const vocabSubtitle = 'Active vocabulary entries';
 
   const cards = [
@@ -64,18 +57,22 @@ export default function StatCards({ stats, _progressToTarget }) {
       title: hasOverallEstimate ? 'Overall estimate' : 'Practice average',
       value: displayScore,
       badge: currentLabel,
-      icon: Target,
-      tone: 'bg-[#6d55e8]/10 text-[#6d55e8] dark:bg-[#6d55e8]/20 dark:text-[#8875f0] border-[#6d55e8]/20',
-      badgeTone: 'bg-[#6d55e8]/15 text-[#6d55e8] dark:bg-[#6d55e8]/25 dark:text-[#a090f5]',
+      icon: Award,
+      iconBg:
+        'bg-[#efedff] text-[#5661e9] ring-1 ring-[#5661e9]/20 dark:bg-indigo-500/20 dark:text-indigo-300',
+      badgeTone:
+        'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-[#5661e9]/20',
       subtitle: scoreSubtitle,
     },
     {
       title: 'Your Goal',
       value: formatBand(stats.targetScore),
       badge: targetLabel,
-      icon: Flag,
-      tone: 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border-amber-500/20',
-      badgeTone: 'bg-amber-500/15 text-amber-700 dark:bg-amber-500/25 dark:text-amber-300',
+      icon: Target,
+      iconBg:
+        'bg-[#efedff] text-[#5661e9] ring-1 ring-[#5661e9]/20 dark:bg-indigo-500/20 dark:text-indigo-300',
+      badgeTone:
+        'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-[#5661e9]/20',
       subtitle: goalSubtitle,
     },
     {
@@ -84,8 +81,9 @@ export default function StatCards({ stats, _progressToTarget }) {
         Number(stats.studyMinutes) > 0 && Number(stats.studyMinutes) < 60
           ? `${stats.studyMinutes}m`
           : `${Number(stats.studyHours || 0).toFixed(1)}h`,
-      icon: Clock,
-      tone: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border-emerald-500/20',
+      icon: Timer,
+      iconBg:
+        'bg-[#efedff] text-[#5661e9] ring-1 ring-[#5661e9]/20 dark:bg-indigo-500/20 dark:text-indigo-300',
       subtitle: studySubtitle,
       trendBadge:
         stats.studyHoursTrend != null && stats.studyHoursTrend !== 0
@@ -98,8 +96,9 @@ export default function StatCards({ stats, _progressToTarget }) {
     {
       title: 'Saved Vocabulary',
       value: stats.vocabCount,
-      icon: BookOpen,
-      tone: 'bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 border-sky-500/20',
+      icon: BookMarked,
+      iconBg:
+        'bg-[#efedff] text-[#5661e9] ring-1 ring-[#5661e9]/20 dark:bg-indigo-500/20 dark:text-indigo-300',
       subtitle: vocabSubtitle,
     },
   ];
@@ -108,75 +107,63 @@ export default function StatCards({ stats, _progressToTarget }) {
     <motion.section
       variants={ITEM_VARIANTS}
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
-      data-oid="50fp0ug"
     >
       {cards.map((card, idx) => {
         const Icon = card.icon;
         return (
-          <Card
+          <motion.div
             key={idx}
-            className="group relative flex items-center justify-between rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-slate-900/80 p-2.5 sm:p-3 shadow-2xs backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-xs"
-            data-oid="9zz1f00"
+            whileHover={{ y: -2 }}
+            transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+            className="group relative flex items-center justify-between rounded-[20px] border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] px-3.5 py-3 shadow-[0_15px_35px_-28px_rgba(48,58,128,0.4)] transition-all duration-200"
           >
-            <CardContent
-              className="p-0 flex items-center justify-between w-full gap-2.5"
-              data-oid="ls.-irc"
-            >
-              <div className="min-w-0 space-y-0.5" data-oid="v.erel8">
-                <p
-                  className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 leading-none"
-                  data-oid="4b9v7am"
-                >
-                  {card.title}
-                </p>
-                <div className="flex items-baseline gap-1.5 min-w-0 flex-wrap" data-oid="1ilsr:u">
-                  <h2
-                    className="text-xl sm:text-2xl font-black tracking-tight text-slate-950 dark:text-white leading-none"
-                    data-oid="ockgv13"
+            <div className="min-w-0 space-y-0.5">
+              <p className="text-[9.5px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 leading-none">
+                {card.title}
+              </p>
+              <div className="flex items-baseline gap-1.5 min-w-0 flex-wrap">
+                <h2 className="text-2xl sm:text-[26px] font-black tracking-tight text-slate-950 dark:text-white leading-none">
+                  {card.value}
+                </h2>
+                {card.badge && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      'rounded-full text-[9px] px-2 py-0.5 border-0 font-extrabold uppercase tracking-wider shadow-2xs',
+                      card.badgeTone
+                    )}
                   >
-                    {card.value}
-                  </h2>
-                  {card.badge && (
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        'rounded-full text-[9.5px] px-2 py-0.5 border-0 font-extrabold uppercase tracking-wider shadow-2xs',
-                        card.badgeTone
-                      )}
-                      data-oid="99pvpe:"
-                    >
-                      {card.badge}
-                    </Badge>
-                  )}
-                  {card.trendBadge && (
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        'rounded-full text-[9.5px] px-2 py-0.5 border-0 font-extrabold tracking-wider shadow-2xs',
-                        card.trendBadge.isPositive
-                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
-                          : 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300'
-                      )}
-                    >
-                      {card.trendBadge.text}
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-[10.5px] font-medium text-slate-500 dark:text-slate-400 leading-tight truncate">
-                  {card.subtitle}
-                </p>
-              </div>
-              <div
-                className={cn(
-                  'flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border transition-transform duration-200 group-hover:scale-105 shadow-2xs',
-                  card.tone
+                    {card.badge}
+                  </Badge>
                 )}
-                data-oid="g1z:dm:"
-              >
-                <Icon className="h-4 w-4" />
+                {card.trendBadge && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      'rounded-full text-[9px] px-2 py-0.5 border-0 font-extrabold tracking-wider shadow-2xs',
+                      card.trendBadge.isPositive
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
+                        : 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300'
+                    )}
+                  >
+                    {card.trendBadge.text}
+                  </Badge>
+                )}
               </div>
-            </CardContent>
-          </Card>
+              <p className="text-[10.5px] font-medium text-slate-500 dark:text-slate-400 leading-tight truncate">
+                {card.subtitle}
+              </p>
+            </div>
+
+            <div
+              className={cn(
+                'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-108 shadow-xs ml-2',
+                card.iconBg
+              )}
+            >
+              <Icon className="h-4.5 w-4.5" strokeWidth={2.2} />
+            </div>
+          </motion.div>
         );
       })}
     </motion.section>

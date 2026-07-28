@@ -9,35 +9,25 @@ export default function QuestionSuccessCard({ stats }) {
   const questionSuccessSummary = getQuestionSuccessSummary(stats?.typeAccuracy);
 
   return (
-    <Card
-      className="flex h-[360px] flex-col overflow-hidden rounded-[22px] border-slate-200/80 bg-white shadow-xs dark:border-white/10 dark:bg-slate-950"
-      data-oid="3bnrh6g"
-    >
-      <CardHeader className="px-4 pb-1 pt-3.5 sm:px-4.5" data-oid="n9word6">
-        <div className="flex items-center justify-between gap-3" data-oid="7nzhlcl">
+    <Card className="flex h-[360px] flex-col overflow-hidden rounded-[22px] border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)]">
+      <CardHeader className="px-4 pb-2 pt-4 sm:px-5 border-b border-slate-200/80 dark:border-white/10">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
-              <Target className="h-3.5 w-3.5" data-oid="uxibci1" />
+            <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl bg-[#efedff] text-[#5862df] ring-1 ring-[#5862df]/15 dark:bg-indigo-500/20 dark:text-indigo-300 shadow-xs">
+              <Target className="h-4.5 w-4.5" strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
-              <CardTitle
-                className="text-base font-black tracking-tight text-slate-950 dark:text-white"
-                data-oid="::shik2"
-              >
+              <CardTitle className="text-base font-black tracking-tight text-slate-950 dark:text-white">
                 Question Success Rate
               </CardTitle>
-              <CardDescription
-                className="text-[11px] font-medium text-slate-500 truncate"
-                data-oid="c2x3g-r"
-              >
+              <CardDescription className="text-[11px] font-medium text-slate-500 truncate">
                 Weighted accuracy across completed questions.
               </CardDescription>
             </div>
           </div>
           <Badge
             variant="outline"
-            className="rounded-full border-emerald-200/60 bg-emerald-50 px-2 py-0.5 text-[9.5px] font-extrabold uppercase text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300"
-            data-oid="9:3a._o"
+            className="rounded-full border-0 bg-emerald-50 px-2.5 py-0.5 text-[9.5px] font-black uppercase text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 ring-1 ring-emerald-200/70"
           >
             {questionSuccessSummary.total
               ? `${questionSuccessSummary.accuracy}% overall`
@@ -45,11 +35,8 @@ export default function QuestionSuccessCard({ stats }) {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent
-        className="flex-1 overflow-y-auto px-3.5 pb-3.5 pt-1 sm:px-4.5 scrollbar-thin scrollbar-thumb-muted"
-        data-oid="huwghdg"
-      >
-        <QuestionTypeTable data={stats?.typeAccuracy} data-oid="uv1t-vc" />
+      <CardContent className="flex-1 overflow-y-auto px-3.5 pb-3.5 pt-1 sm:px-4.5 scrollbar-thin scrollbar-thumb-muted">
+        <QuestionTypeTable data={stats?.typeAccuracy} />
       </CardContent>
     </Card>
   );

@@ -506,8 +506,8 @@ function computeEnhancedMetricsResult(aggState) {
     totalUnanswered: tUnanswered,
     sessionReferences: aggState.enhancedMetricsAgg.sessionReferences,
     errorAuditData: [
-      { name: 'Almost Correct', value: tNearMisses, color: 'hsl(var(--primary))' },
-      { name: 'Left Blank', value: tUnanswered, color: 'hsl(var(--muted-foreground))' },
+      { name: 'Almost Correct', value: tNearMisses, color: '#5661e9' },
+      { name: 'Left Blank', value: tUnanswered, color: '#f43f5e' },
     ].filter((d) => d.value > 0),
     topTroubleTypes: Object.entries(aggState.enhancedMetricsAgg.troubleTypesFrequency)
       .sort((a, b) => b[1] - a[1])

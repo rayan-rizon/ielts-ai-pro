@@ -8,7 +8,6 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Clock,
@@ -32,13 +31,13 @@ const TYPE_ICONS = {
 };
 
 const TYPE_COLORS = {
-  reading: 'text-sky-500 bg-sky-500/10 border-sky-500/20 dark:text-sky-400 dark:bg-sky-400/20',
+  reading: 'text-sky-600 bg-sky-50 dark:bg-sky-500/20 dark:text-sky-300 ring-1 ring-sky-200/70',
   listening:
-    'text-indigo-500 bg-indigo-500/10 border-indigo-500/20 dark:text-indigo-400 dark:bg-indigo-400/20',
+    'text-indigo-600 bg-indigo-50 dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-indigo-200/70',
   writing:
-    'text-amber-500 bg-amber-500/10 border-amber-500/20 dark:text-amber-400 dark:bg-amber-400/20',
+    'text-amber-600 bg-amber-50 dark:bg-amber-500/20 dark:text-amber-300 ring-1 ring-amber-200/70',
   speaking:
-    'text-emerald-500 bg-emerald-500/10 border-emerald-500/20 dark:text-emerald-400 dark:bg-emerald-400/20',
+    'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/20 dark:text-emerald-300 ring-1 ring-emerald-200/70',
 };
 
 const CATEGORY_META = {
@@ -46,25 +45,29 @@ const CATEGORY_META = {
     title: 'Moving Too Fast',
     description: 'Sessions where you hurried and missed points.',
     icon: Zap,
-    color: 'text-rose-500',
+    badgeBg:
+      'bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 ring-1 ring-amber-200/70',
   },
   overanalyzed: {
     title: 'Thinking Too Long',
     description: 'Sessions where you spent too much time on each question.',
     icon: Clock,
-    color: 'text-amber-500',
+    badgeBg:
+      'bg-purple-50 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 ring-1 ring-purple-200/70',
   },
   nearMisses: {
     title: 'Almost Got It!',
     description: 'You were so close! One small mistake cost the point.',
     icon: TrendingDown,
-    color: 'text-primary',
+    badgeBg:
+      'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-[#5661e9]/20',
   },
   unanswered: {
     title: 'Left Blank',
     description: 'Missed chances. Always try to pick an answer!',
     icon: Calendar,
-    color: 'text-muted-foreground',
+    badgeBg:
+      'bg-rose-50 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 ring-1 ring-rose-200/70',
   },
 };
 
@@ -73,48 +76,38 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
     title: 'Pattern Deep-Dive',
     description: 'Analyze specific sessions to improve.',
     icon: Zap,
-    color: 'text-primary',
+    badgeBg:
+      'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-[#5661e9]/20',
   };
 
   const Icon = meta.icon;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose} data-oid="g5.y52i">
-      <DialogContent
-        className="sm:max-w-[600px] bg-card/95 backdrop-blur-2xl border-border/50 p-0 overflow-hidden shadow-2xl"
-        data-oid="ge0j9ye"
-      >
-        <DialogHeader className="p-6 pb-2" data-oid="easys69">
-          <div className="flex items-center gap-4 mb-2" data-oid="3s593r0">
-            <div
-              className={cn('p-3 rounded-2xl bg-muted/50 border border-border/10', meta.color)}
-              data-oid="1jx1t46"
-            >
-              <Icon className="w-6 h-6" data-oid="21gjf-z" />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px] w-[calc(100%-1.5rem)] rounded-[22px] border border-[#e0e4f1] dark:border-white/10 bg-white dark:bg-slate-950 p-0 overflow-hidden shadow-2xl">
+        <DialogHeader className="px-4 py-3.5 sm:px-5 border-b border-slate-100 dark:border-white/10 text-left">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-[#5661e9]/20 shadow-xs">
+              <Icon className="w-4.5 h-4.5" strokeWidth={2.2} />
             </div>
-            <div data-oid="a0tg5bd">
-              <DialogTitle
-                className="text-2xl font-black tracking-tight text-foreground"
-                data-oid="2.5pxub"
-              >
+            <div className="min-w-0">
+              <DialogTitle className="text-base font-black tracking-tight text-slate-950 dark:text-white">
                 {meta.title}
               </DialogTitle>
-              <DialogDescription
-                className="text-sm font-medium text-muted-foreground/80 mt-1"
-                data-oid="w8_0pzw"
-              >
+              <DialogDescription className="text-[11px] font-medium text-slate-400 truncate">
                 {meta.description}
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[70vh] px-6 pb-6" data-oid="vfovcl:">
-          <div className="space-y-4 py-4" data-oid="ty.zi1e">
+        <ScrollArea className="max-h-[55vh] p-3.5 sm:p-4">
+          <div className="space-y-2">
             {data.length > 0 ? (
               data.map((session, index) => {
-                const TypeIcon = TYPE_ICONS[session.type.toLowerCase()] || BookOpen;
-                const typeStyle = TYPE_COLORS[session.type.toLowerCase()] || '';
+                const typeKey = (session.type || 'reading').toLowerCase();
+                const TypeIcon = TYPE_ICONS[typeKey] || BookOpen;
+                const typeStyle = TYPE_COLORS[typeKey] || TYPE_COLORS.reading;
                 const getReviewUrl = (s) => {
                   const typeMap = {
                     reading: 'reading-test',
@@ -122,113 +115,87 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
                     speaking: 'speaking-test',
                     writing: 'writing-task',
                   };
-                  const path = typeMap[s.type.toLowerCase()] || 'reading-test';
+                  const path = typeMap[typeKey] || 'reading-test';
                   return `/${path}/${s.id}?view-results=true`;
                 };
+
+                const dateStr = session.date
+                  ? new Date(session.date).toLocaleDateString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                    })
+                  : '—';
 
                 return (
                   <motion.div
                     key={`${session.id}-${index}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="group relative p-4 rounded-2xl bg-muted/30 border border-border/40 hover:bg-muted/50 hover:border-border transition-all"
-                    data-oid="f7zwf_z"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.04 }}
+                    className="group flex items-center justify-between gap-3 p-2.5 rounded-xl border border-indigo-100/80 bg-[#faf9ff] dark:bg-slate-900/80 dark:border-white/10 hover:bg-white hover:border-[#5661e9]/50 hover:shadow-2xs transition-all"
                   >
-                    <div className="flex items-start justify-between gap-4" data-oid="r:d_s.6">
-                      <div className="flex gap-4" data-oid="s04o_z6">
-                        <div
-                          className={cn('p-2.5 rounded-xl border shrink-0', typeStyle)}
-                          data-oid="luohsv3"
-                        >
-                          <TypeIcon className="w-5 h-5" data-oid="r9xxcu7" />
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div
+                        className={cn(
+                          'flex h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-2xs',
+                          typeStyle
+                        )}
+                      >
+                        <TypeIcon className="w-4 h-4" strokeWidth={2.2} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-xs font-black text-slate-950 dark:text-white capitalize truncate">
+                            {session.type}
+                          </span>
+                          <span className="text-[10px] font-semibold text-slate-400 shrink-0">
+                            • {dateStr}
+                          </span>
                         </div>
-                        <div data-oid="k05xl4w">
-                          <div className="flex items-center gap-2 mb-1" data-oid="h10pd-y">
-                            <span
-                              className="text-sm font-black text-foreground capitalize"
-                              data-oid="gxws2y9"
-                            >
-                              {session.type}
-                            </span>
-                            <span
-                              className="text-sm font-bold text-muted-foreground/60"
-                              data-oid="prinag3"
-                            >
-                              •{' '}
-                              {new Date(session.date).toLocaleDateString(undefined, {
-                                month: 'short',
-                                day: 'numeric',
-                                year: '2-digit',
-                              })}
-                            </span>
-                          </div>
-
-                          <div className="flex flex-wrap gap-1.5 mt-2" data-oid="sn-e-4-">
-                            <Badge
-                              variant="outline"
-                              className="text-xs font-black h-5 border-rose-500/20 text-rose-500 bg-rose-500/5 dark:bg-rose-500/10 dark:text-rose-300"
-                              data-oid="rw50hrh"
-                            >
-                              {session.count}{' '}
-                              {category === 'rushed'
-                                ? 'Too Fast'
-                                : category === 'overanalyzed'
-                                  ? 'Too Slow'
-                                  : category === 'nearMisses'
-                                    ? 'Almost Got It'
-                                    : category === 'unanswered'
-                                      ? 'Left Blank'
-                                      : 'Issues'}
-                            </Badge>
-                            {(session.troubles || []).slice(0, 3).map((tt) => (
-                              <Badge
-                                key={tt}
-                                variant="secondary"
-                                className="text-xs font-bold h-5 bg-foreground/5 text-foreground/70 border-none"
-                                data-oid="6467m8x"
-                              >
-                                {tt}
-                              </Badge>
-                            ))}
-                          </div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <Badge
+                            variant="outline"
+                            className={cn('text-[9px] font-black border-0 px-2 py-0', meta.badgeBg)}
+                          >
+                            {session.count}{' '}
+                            {category === 'rushed'
+                              ? 'rushed'
+                              : category === 'overanalyzed'
+                                ? 'overanalyzed'
+                                : category === 'nearMisses'
+                                  ? 'near misses'
+                                  : category === 'unanswered'
+                                    ? 'left blank'
+                                    : 'issues'}
+                          </Badge>
                         </div>
                       </div>
+                    </div>
 
-                      <div className="text-right flex flex-col items-end" data-oid="0455na6">
-                        <div className="text-lg font-black text-foreground" data-oid="glrrto2">
-                          {session.score || '—'}
-                        </div>
-                        <div
-                          className="text-xs font-black text-muted-foreground leading-none mt-1 uppercase tracking-tight"
-                          data-oid="o_m7tfo"
-                        >
-                          Score
-                        </div>
-
-                        <Button
-                          asChild
-                          variant="ghost"
-                          size="sm"
-                          className="mt-4 h-8 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm font-bold group"
-                          data-oid="-b:ae28"
-                        >
-                          <Link to={getReviewUrl(session)} data-oid="m2w7x2u">
-                            Review
-                            <ChevronRight
-                              className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform"
-                              data-oid="zk146je"
-                            />
-                          </Link>
-                        </Button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="text-right">
+                        <span className="text-xs font-black text-slate-950 dark:text-white block leading-none">
+                          {session.score != null ? session.score : '—'}
+                        </span>
+                        <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">
+                          Band
+                        </span>
                       </div>
+
+                      <Link
+                        to={getReviewUrl(session)}
+                        onClick={onClose}
+                        className="inline-flex items-center gap-0.5 rounded-lg border border-transparent bg-white px-2.5 py-1 text-xs font-black text-[#5661e9] shadow-2xs transition-all hover:border-indigo-200 hover:bg-indigo-50 dark:bg-indigo-500/20 dark:text-indigo-300 dark:hover:bg-indigo-500/30 cursor-pointer"
+                      >
+                        Review <ChevronRight className="h-3 w-3" />
+                      </Link>
                     </div>
                   </motion.div>
                 );
               })
             ) : (
-              <div className="py-12 text-center" data-oid="a0qaywv">
-                <p className="text-muted-foreground text-sm font-medium" data-oid="2yyg_2m">
+              <div className="py-8 text-center">
+                <p className="text-xs font-semibold text-slate-400">
                   No sessions found for this category.
                 </p>
               </div>

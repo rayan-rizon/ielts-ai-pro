@@ -3,13 +3,12 @@ import { motion } from 'framer-motion';
 import { ITEM_VARIANTS } from '../constants';
 import RecentPracticeHistory from './RecentPracticeHistory';
 import ProgressTrendCard from './PerformanceTrends/ProgressTrendCard';
-import ModuleMasteryCard from './PerformanceTrends/ModuleMasteryCard';
 import QuestionSuccessCard from './PerformanceTrends/QuestionSuccessCard';
 import SmartFeedbackCard from './PerformanceTrends/SmartFeedbackCard';
+import ErrorAudit from './ErrorAudit';
 
 export default function PerformanceTrends({
   stats,
-  radarData,
   chartData,
   isPremium,
   activeTab,
@@ -18,15 +17,16 @@ export default function PerformanceTrends({
   onTabKeyDown,
   tabsRef,
   user,
+  onDrilldown,
 }) {
   if (!stats || !chartData) return null;
 
   return (
-    <div className="space-y-6 lg:space-y-8" data-oid="ez4903f">
+    <div className="space-y-6 lg:space-y-8">
       {/* Side-by-side Progress Trend & Recent Practice History */}
       <div className="grid grid-cols-12 gap-4 lg:gap-6">
         <div className="col-span-12 xl:col-span-6">
-          <motion.div variants={ITEM_VARIANTS} className="h-full" data-oid="7-3vqly">
+          <motion.div variants={ITEM_VARIANTS} className="h-full">
             <ProgressTrendCard
               chartData={chartData}
               isPremium={isPremium}
@@ -44,16 +44,21 @@ export default function PerformanceTrends({
         </div>
       </div>
 
-      <motion.div variants={ITEM_VARIANTS} data-oid="1atf515">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6" data-oid="pj.2q8p">
-          {/* Module skill progress radar */}
-          <ModuleMasteryCard radarData={radarData} />
-
+      {/* 3 Cards in a Row: Question Success Rate, Smart Feedback, Answer Analysis */}
+      <motion.div variants={ITEM_VARIANTS}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Question Types */}
           <QuestionSuccessCard stats={stats} />
 
-          {/* Deep Insights (Pro) */}
+          {/* Smart Feedback */}
           <SmartFeedbackCard stats={stats} isPremium={isPremium} />
+
+          {/* Answer Analysis */}
+          <ErrorAudit
+            data={stats?.enhancedMetrics?.errorAuditData}
+            sessionReferences={stats?.enhancedMetrics?.sessionReferences}
+            onDrilldown={onDrilldown}
+          />
         </div>
       </motion.div>
     </div>

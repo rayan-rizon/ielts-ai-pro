@@ -26,6 +26,7 @@ import { cn } from '@/lib/cn';
 import { ITEM_VARIANTS } from '../constants';
 import { buildPacingSummary } from '../hooks/analyticsCalculations';
 import { formatBand } from '../utils';
+import ModuleMasteryCard from './PerformanceTrends/ModuleMasteryCard';
 
 const MODULE_UI = {
   reading: {
@@ -58,7 +59,7 @@ function OverviewCard({ children, className }) {
   return (
     <Card
       className={cn(
-        'overflow-hidden rounded-[22px] border-slate-200/80 bg-white shadow-[0_16px_45px_-34px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-slate-950',
+        'overflow-hidden rounded-[22px] border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)]',
         className
       )}
     >
@@ -69,14 +70,14 @@ function OverviewCard({ children, className }) {
 
 function PanelHeading({ icon: Icon, title, description, action }) {
   return (
-    <CardHeader className="px-4 pb-1.5 pt-3.5 sm:px-4.5">
+    <CardHeader className="px-4 pb-2 pt-4 sm:px-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
-            <Icon className="h-4 w-4" />
+          <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl bg-[#efedff] text-[#5862df] ring-1 ring-[#5862df]/15 dark:bg-indigo-500/20 dark:text-indigo-300 shadow-xs">
+            <Icon className="h-4.5 w-4.5" strokeWidth={2.2} />
           </div>
           <div className="min-w-0">
-            <CardTitle className="text-base font-bold tracking-tight text-slate-950 dark:text-white">
+            <CardTitle className="text-base font-black tracking-tight text-slate-950 dark:text-white">
               {title}
             </CardTitle>
             {description ? (
@@ -461,17 +462,14 @@ function PacingChart({ efficiency }) {
   );
 }
 
-export default function AnalyticsOverview({ stats, chartData }) {
+export default function AnalyticsOverview({ stats, chartData, radarData }) {
   if (!stats || !chartData) return null;
   return (
     <section className="space-y-4" aria-label="Analytics overview">
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12 xl:col-span-6">
-          <SectionPerformance moduleStats={stats.moduleStats || []} />
-        </div>
-        <div className="col-span-12 xl:col-span-6">
-          <PacingChart efficiency={stats.efficiency || {}} />
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <SectionPerformance moduleStats={stats.moduleStats || []} />
+        <ModuleMasteryCard radarData={radarData || []} />
+        <PacingChart efficiency={stats.efficiency || {}} />
       </div>
     </section>
   );

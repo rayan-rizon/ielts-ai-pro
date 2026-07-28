@@ -384,11 +384,9 @@ const HeroCard = React.memo(({ recommended, progressToTarget, stats }) => {
 
       <Card
         className={cn(
-          'relative rounded-3xl transition-all duration-500 overflow-hidden',
-          'bg-white dark:bg-slate-900',
-          'border border-slate-200 dark:border-slate-800',
-          'shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] dark:shadow-[0_45px_100px_rgba(0,0,0,0.5)]',
-          'hover:shadow-[0_40px_80px_-15px_rgba(99,102,241,0.2)] dark:hover:shadow-[0_50px_100px_rgba(99,102,241,0.15)]'
+          'relative rounded-[22px] transition-all duration-500 overflow-hidden',
+          'border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f]',
+          'shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)]'
         )}
         data-oid="m4cfznh"
       >

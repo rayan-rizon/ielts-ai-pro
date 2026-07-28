@@ -17,29 +17,28 @@ function CompactState({ icon: Icon, title, description, action, className }) {
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center text-center p-6 h-full min-h-[200px] w-full relative overflow-hidden rounded-2xl bg-slate-50/40 dark:bg-slate-900/10 border border-dashed border-slate-200/50 dark:border-white/[0.05]',
+        'flex flex-col items-center justify-center text-center p-4 h-full min-h-[160px] w-full relative overflow-hidden rounded-[20px] bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] border border-[#e0e4f1] dark:border-white/10 shadow-xs',
         className
       )}
     >
-      <div className="relative mb-3 flex-shrink-0">
-        <div className="absolute inset-0 bg-indigo-500/10 blur-xl rounded-full scale-125 animate-pulse" />
-        <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/10 to-indigo-500/20 dark:from-indigo-500/20 dark:to-violet-600/20 flex items-center justify-center border border-indigo-500/20 dark:border-indigo-500/30">
-          <Icon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+      <div className="relative mb-2 flex-shrink-0">
+        <div className="w-9 h-9 rounded-2xl bg-[#efedff] text-[#5862df] ring-1 ring-[#5862df]/15 dark:bg-indigo-500/20 dark:text-indigo-300 flex items-center justify-center shadow-xs">
+          <Icon className="w-4.5 h-4.5" strokeWidth={2.2} />
         </div>
       </div>
 
-      <div className="space-y-1 max-w-[280px] select-none">
-        <h4 className="text-sm font-black text-slate-800 dark:text-white tracking-tight">
+      <div className="space-y-0.5 max-w-[280px] select-none">
+        <h4 className="text-xs font-black text-slate-950 dark:text-white tracking-tight">
           {title}
         </h4>
         {description && (
-          <p className="text-sm font-medium text-slate-400 dark:text-slate-500 leading-normal">
+          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-snug">
             {description}
           </p>
         )}
       </div>
 
-      {action && <div className="mt-3 w-full max-w-[185px] flex-shrink-0">{action}</div>}
+      {action && <div className="mt-2 w-full max-w-[185px] flex-shrink-0">{action}</div>}
     </div>
   );
 }

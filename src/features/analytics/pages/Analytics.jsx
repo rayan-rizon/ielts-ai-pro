@@ -14,10 +14,8 @@ import CriteriaBreakdownCard from '../components/CriteriaBreakdownCard';
 // Lazy load heavy chart components for better initial load
 const PerformanceTrends = React.lazy(() => import('../components/PerformanceTrends'));
 const AIInsightsCard = React.lazy(() => import('../components/AIInsightsCard'));
-const DeepDiveAccordion = React.lazy(() => import('../components/DeepDiveAccordion'));
 const BandScoreJourney = React.lazy(() => import('../components/BandScoreJourney'));
 const AnalyticsOverview = React.lazy(() => import('../components/AnalyticsOverview'));
-const ErrorAudit = React.lazy(() => import('../components/ErrorAudit'));
 const ErrorDrilldownModal = React.lazy(() => import('../components/ErrorDrilldownModal'));
 
 // Constants & Utils
@@ -90,7 +88,7 @@ export default function Analytics() {
   // The journey reflects completed-practice averages. Keep it distinct from the
   // headline's latest-module overall estimate so learners never see two values
   // presented as the same IELTS band.
-  const practiceAverage = useMemo(() => parseFloat(stats?.avgScore), [stats?.avgScore]);
+  const _practiceAverage = useMemo(() => parseFloat(stats?.avgScore), [stats?.avgScore]);
 
   const radarData = useMemo(() => {
     if (!stats?.moduleStats) return [];
@@ -238,7 +236,7 @@ export default function Analytics() {
       </section>
 
       <Suspense fallback={<ChartSkeleton height="h-[620px]" />}>
-        <AnalyticsOverview stats={stats} chartData={chartData} user={user} />
+        <AnalyticsOverview stats={stats} chartData={chartData} user={user} radarData={radarData} />
       </Suspense>
 
       {/* ─────────────────────────────────────────────────────────────────
@@ -267,54 +265,34 @@ export default function Analytics() {
             onTabKeyDown={onTabKeyDown}
             tabsRef={tabsRef}
             user={user}
-            data-oid="3tacdky"
+            onDrilldown={(cat, data) => setDrilldown({ isOpen: true, category: cat, data })}
           />
         </Suspense>
 
-        <Suspense fallback={<ChartSkeleton height="h-64" data-oid="_tvih-2" />} data-oid="m5cdktw">
-          <DeepDiveAccordion isPremium={isPremium} data-oid="1..yqpp">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6" data-oid="vp.v4bv">
-              <div className="flex flex-col gap-4 lg:gap-6" data-oid="deep-dive-col-1">
-                {/* Writing Criteria Breakdown */}
-                <CriteriaBreakdownCard
-                  module="writing"
-                  criteria={stats?.writingCriteria}
-                  labels={{
-                    taskAchievement: 'Task Achievement',
-                    coherence: 'Coherence & Cohesion',
-                    lexicalResource: 'Lexical Resource',
-                    grammar: 'Grammatical Range',
-                  }}
-                />
-              </div>
-
-              <div className="flex flex-col gap-4 lg:gap-6" data-oid="deep-dive-col-2">
-                <Suspense
-                  fallback={<ChartSkeleton height="h-48" data-oid="b-k18m7" />}
-                  data-oid="b0qcfii"
-                >
-                  <ErrorAudit
-                    data={stats.enhancedMetrics?.errorAuditData}
-                    sessionReferences={stats.enhancedMetrics?.sessionReferences}
-                    onDrilldown={(cat, data) => setDrilldown({ isOpen: true, category: cat, data })}
-                    data-oid="uf2j79."
-                  />
-                </Suspense>
-                {/* Speaking Criteria Breakdown */}
-                <CriteriaBreakdownCard
-                  module="speaking"
-                  criteria={stats?.speakingCriteria}
-                  labels={{
-                    fluency: 'Fluency & Coherence',
-                    lexicalResource: 'Lexical Resource',
-                    grammar: 'Grammatical Range',
-                    pronunciation: 'Pronunciation',
-                  }}
-                />
-              </div>
-            </div>
-          </DeepDiveAccordion>
-        </Suspense>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          {/* Writing Criteria Breakdown */}
+          <CriteriaBreakdownCard
+            module="writing"
+            criteria={stats?.writingCriteria}
+            labels={{
+              taskAchievement: 'Task Achievement',
+              coherence: 'Coherence & Cohesion',
+              lexicalResource: 'Lexical Resource',
+              grammar: 'Grammatical Range',
+            }}
+          />
+          {/* Speaking Criteria Breakdown */}
+          <CriteriaBreakdownCard
+            module="speaking"
+            criteria={stats?.speakingCriteria}
+            labels={{
+              fluency: 'Fluency & Coherence',
+              lexicalResource: 'Lexical Resource',
+              grammar: 'Grammatical Range',
+              pronunciation: 'Pronunciation',
+            }}
+          />
+        </div>
       </section>
 
       {/* Global Drilldown Modal */}

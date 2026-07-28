@@ -163,7 +163,7 @@ export default function Dashboard() {
 
   return (
     <div
-      className="relative min-h-screen pb-14 bg-gradient-to-b from-[#f8f5fe]/80 via-[#fcfaff] to-white dark:from-[#0d091e] dark:via-[#090716] dark:to-[#070914] transition-colors duration-300 overflow-hidden isolate"
+      className="relative min-h-screen pb-14 bg-[#f4f3f8] dark:bg-[#080a10] transition-colors duration-300 overflow-hidden isolate"
       data-oid="ht.2yi4"
     >
       {/* Performance-Optimized Ambient Background Glows */}

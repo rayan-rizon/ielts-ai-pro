@@ -262,7 +262,7 @@ export default function Pricing() {
         keywords="IELTS pricing, IELTS courses cost, affordable IELTS prep, IELTS plans"
       />
 
-      <div className="relative min-h-screen pb-16 bg-slate-50 dark:bg-background transition-colors duration-500 overflow-hidden font-sans">
+      <div className="relative min-h-screen pb-16 bg-[#f4f3f8] dark:bg-[#080a10] transition-colors duration-500 overflow-hidden font-sans">
         {/* Background Radial Lights */}
         <div aria-hidden="true" className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
           <div className="absolute top-[-10%] left-[-10%] w-[70rem] h-[70rem] rounded-full bg-indigo-500/10 dark:bg-primary/10 blur-[120px]" />
@@ -285,7 +285,7 @@ export default function Pricing() {
             <div className="flex flex-col items-center gap-2">
               <Badge
                 variant="outline"
-                className="px-3.5 py-1 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800/60 rounded-full text-[10px] sm:text-xs font-black tracking-wider uppercase"
+                className="px-3.5 py-1 bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 border-[#5661e9]/20 rounded-full text-[10px] sm:text-xs font-black tracking-wider uppercase"
               >
                 FLEXIBLE PLANS FOR EVERY CANDIDATE
               </Badge>
@@ -300,12 +300,12 @@ export default function Pricing() {
 
             {/* Billing Toggle & Promo Code */}
             <div className="mt-5 flex flex-col items-center gap-4">
-              <div className="relative inline-flex items-center gap-1 bg-slate-100/90 dark:bg-slate-900/90 backdrop-blur-md p-1.5 rounded-full border border-slate-200/90 dark:border-white/10 w-fit shadow-xs">
+              <div className="relative inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-900 backdrop-blur-md p-1.5 rounded-full border border-slate-200/80 dark:border-white/10 w-fit shadow-xs">
                 <button
                   type="button"
                   onClick={() => setBillingInterval('monthly')}
                   className={cn(
-                    'relative z-10 px-6 sm:px-7 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-200',
+                    'relative z-10 px-6 sm:px-7 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-200 cursor-pointer',
                     billingInterval === 'monthly'
                       ? 'text-white'
                       : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
@@ -314,7 +314,7 @@ export default function Pricing() {
                   {billingInterval === 'monthly' && (
                     <m.span
                       layoutId="activeBillingTabPricing"
-                      className="absolute inset-0 z-[-1] rounded-full bg-[#6d55e8] shadow-md shadow-[#6d55e8]/25"
+                      className="absolute inset-0 z-[-1] rounded-full bg-[#5661e9] shadow-md shadow-indigo-500/20"
                       transition={{ type: 'spring', stiffness: 420, damping: 30 }}
                     />
                   )}
@@ -325,7 +325,7 @@ export default function Pricing() {
                     type="button"
                     onClick={() => setBillingInterval('quarterly')}
                     className={cn(
-                      'relative z-10 px-6 sm:px-7 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-200',
+                      'relative z-10 px-6 sm:px-7 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-200 cursor-pointer',
                       billingInterval === 'quarterly'
                         ? 'text-white'
                         : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
@@ -334,7 +334,7 @@ export default function Pricing() {
                     {billingInterval === 'quarterly' && (
                       <m.span
                         layoutId="activeBillingTabPricing"
-                        className="absolute inset-0 z-[-1] rounded-full bg-[#6d55e8] shadow-md shadow-[#6d55e8]/25"
+                        className="absolute inset-0 z-[-1] rounded-full bg-[#5661e9] shadow-md shadow-indigo-500/20"
                         transition={{ type: 'spring', stiffness: 420, damping: 30 }}
                       />
                     )}
@@ -345,7 +345,7 @@ export default function Pricing() {
                       'absolute -top-3 -right-2.5 text-[9.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs pointer-events-none transition-all duration-200 z-20 whitespace-nowrap border',
                       billingInterval === 'quarterly'
                         ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/90 dark:text-purple-300 border-purple-200/90 dark:border-purple-800/60'
-                        : 'bg-[#6d55e8] text-white border-transparent'
+                        : 'bg-[#5661e9] text-white border-transparent'
                     )}
                   >
                     15% OFF

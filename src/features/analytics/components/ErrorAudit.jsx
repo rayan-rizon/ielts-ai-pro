@@ -3,27 +3,32 @@ import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, PieChart as PieIcon, ExternalLink } from 'lucide-react';
+import { AlertCircle, PieChart as PieIcon, Sparkles } from 'lucide-react';
 import { ITEM_VARIANTS } from '../constants';
 import EmptyAnalyticsState from './EmptyAnalyticsState';
+import { cn } from '@/lib/cn';
+
+const MISTAKE_COLORS = {
+  'Almost Correct': '#5661e9',
+  'Left Blank': '#f43f5e',
+  Rushing: '#f59e0b',
+  'Thinking Too Long': '#a855f7',
+};
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    const color = MISTAKE_COLORS[data.name] || data.color || '#5661e9';
     return (
-      <div
-        className="rounded-xl border border-border/50 bg-card/95 backdrop-blur-xl p-3 shadow-2xl"
-        data-oid="nq4uozw"
-      >
-        <div className="text-sm font-black text-muted-foreground mb-1" data-oid="w8grf5t">
-          {data.name}
-        </div>
-        <div className="text-lg font-black text-foreground" data-oid="bdu7d4e">
-          {data.value} Cases
-        </div>
-        <div className="text-xs font-bold text-primary mt-1 animate-pulse" data-oid="r6i3_eg">
-          Click to analyze patterns →
-        </div>
+      <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/95 px-3 py-1.5 shadow-2xl backdrop-blur-md">
+        <span
+          className="h-2 w-2 rounded-full shrink-0 shadow-2xs"
+          style={{ backgroundColor: color }}
+        />
+        <span className="text-xs font-extrabold text-slate-300">{data.name}:</span>
+        <span className="text-xs font-black text-white">
+          {data.value} {data.value === 1 ? 'mistake' : 'mistakes'}
+        </span>
       </div>
     );
   }
@@ -55,159 +60,141 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown }
     const unanswered = data.find((d) => d.name === 'Left Blank')?.value || 0;
 
     if (unanswered > totalPointsLost * 0.3) {
-      return "You're leaving too many questions blank. Always pick an answer! There are no negative marks in IELTS.";
+      return 'Always pick an answer! No negative marks in IELTS.';
     }
     if (rushed > overanalyzed * 2) {
-      return 'You are rushing too much. Slowing down just a little could boost your band score immediately.';
+      return 'Slowing down a little will boost your band score.';
     }
     if (overanalyzed > rushed * 2) {
-      return 'You are thinking too long on each question. Trust your first choice more to save time.';
+      return 'Trust your first choice to save precious time.';
     }
-    return 'Your performance is balanced. Focus on your most frequent mistake types to improve your score.';
+    return 'Focus on your most frequent mistake types.';
   };
 
   return (
-    <motion.div variants={ITEM_VARIANTS} className="h-full" data-oid="lb6yrrv">
-      <Card
-        className="rounded-2xl border-border/50 bg-card/75 backdrop-blur shadow-sm overflow-hidden hover:shadow-xl transition-all min-h-[450px] flex flex-col"
-        data-oid="l6h7:_6"
-      >
-        <CardHeader className="pb-2" data-oid="w1sznbb">
-          <div className="flex items-center justify-between gap-3" data-oid="0p._.rw">
-            <CardTitle
-              className="text-xl font-black text-foreground flex items-center gap-2"
-              data-oid=":1-v0nr"
-            >
-              <AlertCircle className="w-5 h-5 text-primary" data-oid="_3fwp::" />
-              Answer Analysis
-            </CardTitle>
+    <motion.div variants={ITEM_VARIANTS} className="h-full w-full">
+      <Card className="flex h-[360px] flex-col overflow-hidden rounded-[22px] border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)]">
+        <CardHeader className="px-4 pb-2 pt-4 sm:px-5 border-b border-slate-200/80 dark:border-white/10">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl bg-[#efedff] text-[#5862df] ring-1 ring-[#5862df]/15 dark:bg-indigo-500/20 dark:text-indigo-300 shadow-xs">
+                <AlertCircle className="h-4.5 w-4.5" strokeWidth={2.2} />
+              </div>
+              <div className="min-w-0">
+                <CardTitle className="text-base font-black tracking-tight text-slate-950 dark:text-white">
+                  Answer Analysis
+                </CardTitle>
+                <CardDescription className="text-[11px] font-medium text-slate-400 truncate">
+                  See why you missed marks
+                </CardDescription>
+              </div>
+            </div>
             <Badge
               variant="outline"
-              className="rounded-xl border-border/60 bg-muted/40 text-xs font-black"
-              data-oid="od1xci2"
+              className="rounded-full border-0 bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-[#5661e9]/20 px-2.5 py-0.5 text-[9.5px] font-black uppercase tracking-wider"
             >
-              Click Any Part
+              Interactive
             </Badge>
           </div>
-          <CardDescription
-            className="text-sm font-medium text-muted-foreground/80"
-            data-oid="jncrkaz"
-          >
-            See why you missed marks and get tips to improve.
-          </CardDescription>
         </CardHeader>
-        <CardContent className="pt-0 flex-1 flex flex-col min-h-0" data-oid="-s_kl9j">
+        <CardContent className="flex-1 flex flex-col justify-between px-3.5 pb-3.5 pt-2 sm:px-4.5 overflow-y-auto scrollbar-thin space-y-2.5">
           {hasData ? (
             <>
-              <div className="flex-1 min-h-0 relative" data-oid="h.zh80a">
-                <div
-                  className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center pointer-events-none"
-                  data-oid="fg4w.d."
-                >
-                  <div
-                    className="text-2xl md:text-3xl font-black text-foreground"
-                    data-oid="n4.-qub"
-                  >
+              <div className="h-[120px] relative shrink-0">
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-2xl font-black text-slate-950 dark:text-white leading-none">
                     {totalPointsLost}
-                  </div>
-                  <div
-                    className="text-xs md:text-sm font-black text-muted-foreground tracking-widest leading-none"
-                    data-oid="z0du9py"
-                  >
-                    Total Mistakes
-                  </div>
+                  </span>
+                  <span className="mt-0.5 text-[9px] font-black uppercase text-[#5661e9] dark:text-indigo-300 tracking-wider">
+                    Mistakes
+                  </span>
                 </div>
-                <ResponsiveContainer width="100%" height="100%" data-oid="mrt:xbh">
-                  <PieChart data-oid="q540rn-">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
                     <Pie
                       data={data}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
+                      innerRadius={44}
+                      outerRadius={60}
+                      paddingAngle={4}
                       dataKey="value"
                       stroke="none"
                       onClick={handleCellClick}
                       className="cursor-pointer"
-                      data-oid="lb_8a-o"
                     >
-                      {data.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.color}
-                          className="hover:opacity-80 transition-opacity outline-none"
-                          data-oid="4xo4qv2"
-                        />
-                      ))}
+                      {data.map((entry, index) => {
+                        const cellColor = MISTAKE_COLORS[entry.name] || entry.color || '#5661e9';
+                        return (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={cellColor}
+                            className="hover:opacity-80 transition-opacity outline-none"
+                          />
+                        );
+                      })}
                     </Pie>
-                    <Tooltip content={<CustomTooltip data-oid="r1oqcfz" />} data-oid="jmj34td" />
+                    <Tooltip
+                      content={<CustomTooltip />}
+                      wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+                      offset={12}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
 
-              <div
-                className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10 mt-2 mb-4"
-                data-oid="l.yh1v8"
-              >
-                <div className="flex gap-2 justify-center" data-oid="insight-wrapper">
-                  <AlertCircle
-                    className="w-3 h-3 text-rose-500 shrink-0 mt-0.5"
-                    data-oid="insight-icon"
-                  />
-                  <p
-                    className="text-sm font-semibold text-foreground/80 leading-relaxed italic text-center"
-                    data-oid="_2yp0gn"
-                  >
-                    "{getSmartDescription()}"
+              {getSmartDescription() && (
+                <div className="flex items-center gap-2 rounded-xl border border-indigo-100 bg-[#f5f4ff] p-2.5 dark:border-indigo-900/40 dark:bg-indigo-950/40 shrink-0">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300">
+                    <Sparkles className="h-3.5 w-3.5" />
+                  </div>
+                  <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 leading-tight">
+                    {getSmartDescription()}
                   </p>
                 </div>
-              </div>
+              )}
 
-              <div className="grid grid-cols-2 gap-2 mt-auto" data-oid="6xu9:ya">
-                {data.map((item) => (
-                  <button
-                    key={item.name}
-                    onClick={() => handleCellClick(item)}
-                    className="p-2 md:p-2.5 rounded-xl bg-muted/30 border border-border/10 flex items-center gap-2 md:gap-3 hover:bg-muted/50 transition-colors text-left group min-h-[50px]"
-                    data-oid="1v-y445"
-                  >
-                    <div
-                      className="w-1.5 h-1.5 rounded-full shrink-0"
-                      style={{ backgroundColor: item.color }}
-                      data-oid="9v29jg:"
-                    />
-
-                    <div className="flex-1 min-w-0" data-oid="dc_qyf7">
-                      <div
-                        className="text-xs md:text-sm font-black text-muted-foreground leading-none truncate"
-                        data-oid="fow57u7"
-                      >
-                        {item.name}
+              <div className="grid grid-cols-2 gap-2 shrink-0">
+                {data.map((item) => {
+                  const itemColor = MISTAKE_COLORS[item.name] || item.color || '#5661e9';
+                  const isLeftBlank = item.name === 'Left Blank';
+                  return (
+                    <button
+                      key={item.name}
+                      type="button"
+                      onClick={() => handleCellClick(item)}
+                      className="group flex h-10 items-center justify-between gap-2 rounded-xl border border-indigo-100/80 bg-[#faf9ff] px-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5661e9]/50 hover:bg-white hover:shadow-2xs dark:border-white/10 dark:bg-slate-900/80 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full shrink-0 shadow-2xs"
+                          style={{ backgroundColor: itemColor }}
+                        />
+                        <span className="truncate text-xs font-black text-slate-950 dark:text-white">
+                          {item.name}
+                        </span>
                       </div>
-                      <div
-                        className="text-xs md:text-sm font-black text-foreground mt-1"
-                        data-oid="ztnoqyh"
+                      <span
+                        className={cn(
+                          'shrink-0 rounded-full px-2.5 py-0.5 text-xs font-black',
+                          isLeftBlank
+                            ? 'bg-rose-100/80 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 ring-1 ring-rose-200/70'
+                            : 'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-[#5661e9]/20'
+                        )}
                       >
                         {item.value}
-                      </div>
-                    </div>
-                    <ExternalLink
-                      className="w-3 h-3 text-muted-foreground/0 group-hover:text-muted-foreground/40 transition-all shrink-0"
-                      data-oid="fh.3g7n"
-                    />
-                  </button>
-                ))}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </>
           ) : (
-            // Empty State
             <EmptyAnalyticsState
               icon={PieIcon}
               title="Mistake Tracking"
-              description="Keep practicing to see a breakdown of your mistakes and get tips to fix them."
+              description="Keep practicing to see a breakdown of your mistakes."
               compact
-              data-oid="nklq56g"
             />
           )}
         </CardContent>

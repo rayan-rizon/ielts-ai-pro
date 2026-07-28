@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Activity, TrendingUp } from 'lucide-react';
 import {
   Area,
@@ -28,30 +27,18 @@ export default function ProgressTrendCard({
   tabsRef,
 }) {
   return (
-    <Card
-      className="flex h-full flex-col justify-between overflow-hidden rounded-[22px] border-slate-200/80 bg-white shadow-xs dark:border-white/10 dark:bg-slate-950"
-      data-oid="qr-cduw"
-    >
-      <CardHeader className="px-4 pb-1 pt-3.5 sm:px-4.5" data-oid="-j_:j6k">
-        <div
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-          data-oid="snpr6cr"
-        >
-          <div className="flex items-center gap-2.5 min-w-0" data-oid="lg4-e5-">
-            <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
-              <Activity className="h-3.5 w-3.5" data-oid="b3s4yyp" />
+    <Card className="flex h-full flex-col justify-between overflow-hidden rounded-[22px] border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)]">
+      <CardHeader className="px-4 pb-1 pt-4 sm:px-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl bg-[#efedff] text-[#5862df] ring-1 ring-[#5862df]/15 dark:bg-indigo-500/20 dark:text-indigo-300 shadow-xs">
+              <Activity className="h-4.5 w-4.5" strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
-              <CardTitle
-                className="text-base font-black tracking-tight text-slate-950 dark:text-white"
-                data-oid="vjxe3b3"
-              >
+              <CardTitle className="text-base font-black tracking-tight text-slate-950 dark:text-white">
                 Your Progress Trend
               </CardTitle>
-              <CardDescription
-                className="text-[11px] font-medium text-slate-500 truncate"
-                data-oid="950965g"
-              >
+              <CardDescription className="text-[11px] font-medium text-slate-500 truncate">
                 Watch your scores go up over time!
               </CardDescription>
             </div>
@@ -62,8 +49,7 @@ export default function ProgressTrendCard({
             role="tablist"
             aria-label="Trend tabs"
             onKeyDown={onTabKeyDown}
-            className="inline-flex gap-1 rounded-xl border border-slate-100 bg-slate-50/70 p-1 dark:border-white/5 dark:bg-white/[0.03]"
-            data-oid="sn.ize2"
+            className="inline-flex gap-1 rounded-[14px] border border-[#d8dcfa] dark:border-white/10 bg-white/80 dark:bg-white/5 p-1 shrink-0 overflow-x-auto no-scrollbar"
           >
             {tabs.map((tab) => {
               const isSelected = activeTab === tab;
@@ -78,16 +64,13 @@ export default function ProgressTrendCard({
                   tabIndex={isSelected ? 0 : -1}
                   onClick={() => setActiveTab(tab)}
                   className={cn(
-                    'px-2.5 py-1 text-xs font-black rounded-lg transition-all relative overflow-hidden',
+                    'px-2.5 py-1 text-[11px] font-black uppercase tracking-wider rounded-xl transition-all duration-200 cursor-pointer',
                     isSelected
-                      ? 'bg-white shadow-2xs text-indigo-600 dark:bg-slate-900 dark:text-indigo-400'
-                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-[#5661e9] text-white shadow-md shadow-indigo-500/20'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   )}
-                  data-oid="18x.yt_"
                 >
-                  <span className="relative z-10" data-oid="8dcv0pi">
-                    {label}
-                  </span>
+                  <span>{label}</span>
                 </button>
               );
             })}

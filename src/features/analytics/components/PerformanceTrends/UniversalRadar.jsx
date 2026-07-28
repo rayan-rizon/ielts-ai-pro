@@ -12,7 +12,11 @@ import { cn } from '@/lib/cn';
 import { Badge } from '@/components/ui/badge';
 import CustomTooltip from './CustomTooltip';
 
-const UniversalRadar = React.memo(function UniversalRadar({ data, name, color = 'primary' }) {
+const UniversalRadar = React.memo(function UniversalRadar({
+  data,
+  name,
+  color: _color = 'primary',
+}) {
   const hasData = data && data.length > 0;
 
   return (
@@ -31,8 +35,8 @@ const UniversalRadar = React.memo(function UniversalRadar({ data, name, color = 
         <RadarChart
           cx="50%"
           cy="50%"
-          outerRadius="72%"
-          margin={{ top: 10, right: 25, bottom: 10, left: 25 }}
+          outerRadius="68%"
+          margin={{ top: 6, right: 16, bottom: 6, left: 16 }}
           data={
             hasData
               ? data
@@ -47,66 +51,55 @@ const UniversalRadar = React.memo(function UniversalRadar({ data, name, color = 
             'transition-all duration-1000',
             !hasData && 'opacity-20 grayscale blur-[2px]'
           )}
-          data-oid="t_kyv25"
         >
-          <defs data-oid="6-.jt-:">
-            <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1" data-oid="zr1lx3h">
-              <stop
-                offset="5%"
-                stopColor={`hsl(var(--${color}))`}
-                stopOpacity={0.6}
-                data-oid="bfxqww5"
-              />
-
-              <stop
-                offset="95%"
-                stopColor={`hsl(var(--${color}))`}
-                stopOpacity={0.1}
-                data-oid="1qrlf82"
-              />
+          <defs>
+            <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.5} />
+              <stop offset="95%" stopColor="#6366f1" stopOpacity={0.18} />
             </linearGradient>
           </defs>
-          <PolarGrid stroke="hsl(var(--border))" opacity={0.8} data-oid=":ii.j3k" />
+          <PolarGrid
+            stroke="#a5b4fc"
+            strokeWidth={1.2}
+            opacity={0.6}
+            className="dark:stroke-indigo-400/30"
+          />
           <PolarAngleAxis
             dataKey="subject"
             tick={{
-              fill: 'hsl(var(--foreground))',
-              fontSize: 10,
-              fontWeight: 800,
-              opacity: 0.9,
+              fill: 'currentColor',
+              fontSize: 9.5,
+              fontWeight: 700,
             }}
-            data-oid=":3wln1i"
           />
 
-          <PolarRadiusAxis
-            angle={30}
-            domain={[0, 9]}
-            tick={false}
-            axisLine={false}
-            data-oid="misbqjk"
-          />
+          <PolarRadiusAxis angle={30} domain={[0, 9]} tick={false} axisLine={false} />
 
           {hasData && (
             <Radar
               name={name}
               dataKey="A"
-              stroke={`hsl(var(--${color}))`}
+              stroke="#4f46e5"
               fill="url(#radarGradient)"
               fillOpacity={1}
-              strokeWidth={3}
+              strokeWidth={2.2}
               dot={{
-                r: 3,
-                fill: `hsl(var(--${color}))`,
+                r: 4,
+                fill: '#4f46e5',
+                stroke: '#ffffff',
                 strokeWidth: 2,
-                stroke: 'hsl(var(--background))',
               }}
-              className="transition-all duration-500 hover:fill-opacity-80"
+              activeDot={{
+                r: 5.5,
+                fill: '#4f46e5',
+                stroke: '#ffffff',
+                strokeWidth: 2.5,
+              }}
               animationBegin={0}
-              animationDuration={1500}
-              data-oid="m8bcq-0"
+              animationDuration={1200}
             />
           )}
-          {hasData && <Tooltip content={<CustomTooltip data-oid="ctzx0i0" />} data-oid="pl-riae" />}
+          {hasData && <Tooltip content={<CustomTooltip />} />}
         </RadarChart>
       </ResponsiveContainer>
     </div>
