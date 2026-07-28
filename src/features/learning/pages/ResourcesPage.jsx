@@ -64,55 +64,49 @@ const ResourcesPage = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="px-4 md:px-6 lg:px-8 xl:px-10 py-6 max-w-[1800px] mx-auto space-y-6 relative z-10"
+          className="px-4 md:px-6 lg:px-8 py-4 max-w-[1600px] mx-auto space-y-4 relative z-10"
           data-oid="8prm6dg"
         >
           {/* Sleek Compact Header */}
           <div
-            className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 dark:border-white/10 pb-5"
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-white/10 pb-4"
             data-oid="iixbui7"
           >
-            <div className="space-y-1.5" data-oid="k41if6d">
-              <div className="flex items-center gap-3" data-oid="62ibgsb">
+            <div className="space-y-1" data-oid="k41if6d">
+              <div className="flex items-center gap-2" data-oid="62ibgsb">
                 <div
-                  className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-1.5 rounded-xl shadow-lg shadow-indigo-500/10"
+                  className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-1.5 rounded-lg shadow-md shadow-indigo-500/10"
                   data-oid="peh5sfz"
                 >
-                  <Library className="w-4.5 h-4.5 text-white" data-oid="ji33vwg" />
+                  <Library className="w-4 h-4 text-white" data-oid="ji33vwg" />
                 </div>
                 <Badge
-                  className="px-2.5 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 rounded-full font-black uppercase tracking-widest text-[10px]"
+                  className="px-2 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 rounded-full font-bold text-[10px]"
                   data-oid=":vsca_o"
                 >
                   Knowledge Base
                 </Badge>
               </div>
               <h1
-                className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight leading-tight"
+                className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white"
                 data-oid="r2_677b"
               >
-                Study{' '}
-                <span
-                  className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400"
-                  data-oid="v59kc06"
-                >
-                  Resources
-                </span>
+                Study Resources
               </h1>
               <p
-                className="text-slate-600 dark:text-slate-300 text-xs md:text-sm font-medium max-w-2xl"
+                className="text-slate-500 dark:text-slate-400 text-xs font-medium max-w-xl"
                 data-oid="w5462zz"
               >
-                Curated collection of high-quality learning materials to boost your IELTS score.
+                Curated collection of high-quality IELTS learning materials.
               </p>
             </div>
 
-            <div className="flex items-center gap-3" data-oid="uywub_n">
+            <div className="flex items-center gap-2" data-oid="uywub_n">
               <div className="flex -space-x-2" data-oid="lqfnbt-">
-                {[1, 2, 3, 4].map((i) => (
+                {[1, 2, 3].map((i) => (
                   <div
                     key={i}
-                    className="w-8 h-8 rounded-full border-[3px] border-slate-50 dark:border-slate-800 bg-slate-200 dark:bg-slate-800 flex items-center justify-center overflow-hidden shadow-sm"
+                    className="w-7 h-7 rounded-full border-2 border-slate-50 dark:border-slate-800 bg-slate-200 dark:bg-slate-800 overflow-hidden shadow-sm"
                     data-oid="c456i9g"
                   >
                     <img
@@ -124,8 +118,8 @@ const ResourcesPage = () => {
                   </div>
                 ))}
               </div>
-              <div
-                className="text-xs font-bold text-slate-600 dark:text-slate-300 pl-1.5"
+              <span
+                className="text-xs font-semibold text-slate-500 dark:text-slate-400"
                 data-oid="22etpkf"
               >
                 <span
@@ -135,7 +129,7 @@ const ResourcesPage = () => {
                   12k+
                 </span>{' '}
                 learners
-              </div>
+              </span>
             </div>
           </div>
 

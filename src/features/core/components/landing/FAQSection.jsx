@@ -26,19 +26,19 @@ const reveal = {
 
 function TrustedLearnersCard() {
   return (
-    <GlassPanel className="relative overflow-hidden isolate transform-gpu [mask-image:linear-gradient(white,white)] rounded-[20px] p-3.5 sm:p-4 border border-violet-200/80 bg-gradient-to-br from-white via-violet-50/20 to-purple-50/30 dark:border-violet-500/25 dark:bg-slate-900/90 shadow-[0_12px_32px_-15px_rgba(109,85,238,0.08)] dark:shadow-[0_16px_35px_-15px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-300 hover:border-violet-300 hover:shadow-[0_16px_38px_-12px_rgba(109,85,238,0.14)] dark:hover:border-violet-400/40">
-      <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 rounded-full bg-violet-400/10 blur-xl dark:bg-violet-600/15" />
+    <GlassPanel className="relative overflow-hidden isolate transform-gpu [mask-image:linear-gradient(white,white)] rounded-[22px] p-4 sm:p-4.5 border border-violet-200/80 bg-gradient-to-br from-white via-violet-50/30 to-purple-50/40 dark:border-violet-500/30 dark:bg-gradient-to-br dark:from-slate-900/95 dark:via-indigo-950/40 dark:to-slate-900/95 shadow-[0_12px_32px_-15px_rgba(109,85,238,0.12)] dark:shadow-[0_16px_40px_-12px_rgba(109,85,238,0.22)] backdrop-blur-xl transition-all duration-300 hover:border-violet-300 hover:shadow-[0_16px_38px_-12px_rgba(109,85,238,0.18)] dark:hover:border-violet-400/50">
+      <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-full bg-violet-400/10 blur-2xl dark:bg-violet-500/20" />
 
-      <div className="relative z-10 flex items-center gap-2.5">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-tr from-[#6d55e8] to-[#8b5cf6] text-white shadow-sm shadow-violet-500/25">
-          <Globe className="h-4 w-4" />
+      <div className="relative z-10 flex items-center gap-3">
+        <span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#6d55e8] to-[#8b5cf6] text-white shadow-sm shadow-violet-500/30 dark:shadow-violet-500/50">
+          <Globe className="h-4.5 w-4.5" />
         </span>
-        <h4 className="text-xs sm:text-sm font-extrabold tracking-tight text-[#0f172a] dark:text-white">
+        <h4 className="text-xs sm:text-sm font-extrabold tracking-tight text-[#0f172a] dark:text-slate-100">
           IELTS Practice Across Four Skills
         </h4>
       </div>
 
-      <div className="relative z-10 mt-2.5 grid grid-cols-2 gap-3 rounded-xl bg-white/90 dark:bg-slate-950/70 p-2.5 px-3.5 border border-violet-100 dark:border-violet-500/20 shadow-xs">
+      <div className="relative z-10 mt-3 grid grid-cols-2 gap-3 rounded-xl bg-white/90 dark:bg-slate-950/80 p-2.5 px-3.5 border border-violet-100 dark:border-violet-500/30 shadow-xs dark:shadow-inner backdrop-blur-md">
         <div className="pr-2">
           <b className="block text-xl sm:text-2xl font-black tracking-tight text-[#6d55e8] dark:text-violet-300">
             Four
@@ -47,7 +47,7 @@ function TrustedLearnersCard() {
             IELTS Skills
           </span>
         </div>
-        <div className="pl-3.5 border-l border-violet-100 dark:border-violet-500/20">
+        <div className="pl-3.5 border-l border-violet-100 dark:border-violet-500/30">
           <b className="block text-xl sm:text-2xl font-black tracking-tight text-[#0f172a] dark:text-white">
             0–9
           </b>
@@ -57,7 +57,7 @@ function TrustedLearnersCard() {
         </div>
       </div>
 
-      <div className="relative z-10 mt-2.5 flex items-center gap-2.5 pt-0.5">
+      <div className="relative z-10 mt-3 flex items-center gap-2.5 pt-0.5">
         <SkillBadgeStack size="sm" />
         <span className="text-[11px] font-semibold leading-tight text-slate-600 dark:text-slate-300">
           Build a routine around your target band and completed practice
@@ -70,9 +70,9 @@ function TrustedLearnersCard() {
 function StillNeedHelpCard({ handlePrimaryCta }) {
   return (
     <div className="relative pb-2">
-      <GlassPanel className="relative overflow-hidden isolate transform-gpu [mask-image:linear-gradient(white,white)] rounded-[20px] p-4 sm:p-4.5 pr-22 sm:pr-28 border border-violet-200/80 bg-gradient-to-br from-white via-indigo-50/20 to-purple-50/30 dark:border-violet-500/25 dark:bg-slate-900/90 shadow-[0_12px_32px_-15px_rgba(109,85,238,0.08)] dark:shadow-[0_16px_35px_-15px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-300 hover:border-violet-300 hover:shadow-[0_16px_38px_-12px_rgba(109,85,238,0.14)] dark:hover:border-violet-400/40">
+      <GlassPanel className="relative overflow-hidden isolate transform-gpu [mask-image:linear-gradient(white,white)] rounded-[22px] p-4 sm:p-4.5 pr-22 sm:pr-28 border border-violet-200/80 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/40 dark:border-violet-500/30 dark:bg-gradient-to-br dark:from-slate-900/95 dark:via-purple-950/40 dark:to-slate-900/95 shadow-[0_12px_32px_-15px_rgba(109,85,238,0.12)] dark:shadow-[0_16px_40px_-12px_rgba(124,58,237,0.22)] backdrop-blur-xl transition-all duration-300 hover:border-violet-300 hover:shadow-[0_16px_38px_-12px_rgba(109,85,238,0.18)] dark:hover:border-violet-400/50">
         <div className="flex gap-3 items-start">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#6d55e8] to-[#8b5cf6] text-white shadow-md shadow-violet-500/25">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#6d55e8] to-[#8b5cf6] text-white shadow-md shadow-violet-500/30 dark:shadow-violet-500/50">
             <Headphones className="h-4.5 w-4.5" />
           </span>
           <div>
@@ -85,7 +85,7 @@ function StillNeedHelpCard({ handlePrimaryCta }) {
             <button
               type="button"
               onClick={handlePrimaryCta}
-              className="mt-2.5 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] px-4 text-xs font-bold text-white shadow-[0_8px_20px_-6px_rgba(109,85,238,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_-4px_rgba(109,85,238,0.58)] active:scale-[0.98]"
+              className="mt-2.5 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] hover:from-[#5b52f6] hover:to-[#8b4bfd] px-4 text-xs font-bold text-white shadow-[0_8px_20px_-6px_rgba(109,85,238,0.45)] dark:shadow-[0_8px_25px_-4px_rgba(124,58,237,0.55)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_-4px_rgba(109,85,238,0.58)] active:scale-[0.98] cursor-pointer"
             >
               Contact Support <ArrowRight className="h-3.5 w-3.5" />
             </button>
@@ -95,14 +95,14 @@ function StillNeedHelpCard({ handlePrimaryCta }) {
 
       {/* Floating Tape Sticky Note */}
       <div className="absolute right-2 -bottom-1 sm:right-3 z-20 rotate-3 transition hover:rotate-0 duration-300 select-none">
-        <div className="relative bg-gradient-to-b from-[#f3e8ff] to-[#e9d5ff] dark:bg-violet-950/90 p-2.5 pb-3 rounded-lg shadow-md border border-purple-200 dark:border-violet-500/30 w-[105px] text-center">
+        <div className="relative bg-gradient-to-b from-[#f3e8ff] to-[#e9d5ff] dark:bg-gradient-to-br dark:from-violet-900 dark:to-purple-950 p-2.5 pb-3 rounded-lg shadow-md border border-purple-200 dark:border-violet-400/40 w-[105px] text-center dark:shadow-[0_10px_25px_-5px_rgba(109,85,232,0.4)]">
           <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-7 h-2.5 bg-white/70 dark:bg-white/20 rounded-xs rotate-1 shadow-2xs" />
           <span className="font-handwritten text-[11px] font-extrabold text-[#6d55e8] dark:text-violet-200 block leading-tight">
             We&apos;re here for you! 💜
           </span>
         </div>
         <svg
-          className="absolute -left-9 -bottom-6 w-14 h-10 text-[#6d55e8]/40 hidden sm:block"
+          className="absolute -left-9 -bottom-6 w-14 h-10 text-[#6d55e8]/40 dark:text-violet-400/50 hidden sm:block"
           fill="none"
           viewBox="0 0 50 30"
         >
@@ -123,11 +123,11 @@ function FAQAccordionItem({ faq, index }) {
   return (
     <AccordionItem
       value={`item-${index}`}
-      className="group overflow-hidden rounded-[20px] border border-[#e1e5f1] bg-white/72 px-5 shadow-[0_16px_45px_-34px_rgba(38,50,105,.6)] backdrop-blur-2xl transition-colors data-[state=open]:border-[#bdb7ff] data-[state=open]:bg-white/82 dark:border-white/10 dark:bg-white/[.055] dark:data-[state=open]:border-violet-400/35 sm:px-6"
+      className="group overflow-hidden rounded-[20px] border border-[#e1e5f1] bg-white/72 px-5 shadow-[0_16px_45px_-34px_rgba(38,50,105,.6)] backdrop-blur-2xl transition-all duration-300 data-[state=open]:border-[#bdb7ff] data-[state=open]:bg-white/82 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-violet-500/40 dark:hover:bg-slate-900/80 dark:data-[state=open]:border-violet-500/60 dark:data-[state=open]:bg-slate-900/95 dark:data-[state=open]:shadow-[0_12px_35px_-10px_rgba(109,85,238,0.22)] sm:px-6"
     >
-      <AccordionTrigger className="group py-5 text-left text-[15px] font-extrabold tracking-[-.02em] text-[#14213b] hover:no-underline dark:text-white sm:text-base [&>svg]:text-[#938fe3]">
+      <AccordionTrigger className="group py-5 text-left text-[15px] font-extrabold tracking-[-.02em] text-[#14213b] hover:no-underline dark:text-slate-100 sm:text-base [&>svg]:text-[#938fe3] dark:[&>svg]:text-violet-400">
         <span className="flex items-center gap-4 pr-4">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f0edff] text-[#5d4fe5] dark:bg-violet-400/15 dark:text-violet-200">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f0edff] text-[#5d4fe5] dark:bg-violet-500/20 dark:text-violet-300 dark:border dark:border-violet-500/30 group-data-[state=open]:bg-[#5d4fe5] group-data-[state=open]:text-white dark:group-data-[state=open]:bg-violet-600 dark:group-data-[state=open]:text-white transition-colors duration-200">
             <Plus className="h-4 w-4 group-data-[state=open]:hidden" />
             <Minus className="hidden h-4 w-4 group-data-[state=open]:block" />
           </span>
@@ -147,9 +147,13 @@ function FAQSection({ faqs, viewport, handlePrimaryCta }) {
   return (
     <SoftSection
       id="faq"
-      className="scroll-mt-24 bg-white dark:bg-[#070a16] py-16 md:py-24"
+      className="scroll-mt-24 bg-white dark:bg-[#070a16] py-16 md:py-24 relative overflow-hidden"
       data-oid="_3z_paz"
     >
+      {/* Dark mode background glow accents */}
+      <div className="pointer-events-none absolute left-1/4 top-1/3 -translate-y-1/2 h-96 w-96 rounded-full bg-violet-600/10 blur-[120px] dark:block hidden" />
+      <div className="pointer-events-none absolute right-1/4 bottom-10 h-80 w-80 rounded-full bg-indigo-600/10 blur-[100px] dark:block hidden" />
+
       <div className="relative z-10 mx-auto max-w-[1380px] px-5 md:px-8">
         <m.div
           initial={{ opacity: 0, y: reduceMotion ? 0 : 14 }}
@@ -157,7 +161,7 @@ function FAQSection({ faqs, viewport, handlePrimaryCta }) {
           viewport={viewport}
           className="mb-12 text-center"
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#ddd8ff] bg-[#f1eeff]/90 px-5 py-2 text-xs font-extrabold uppercase tracking-[.12em] text-[#503be1] shadow-sm dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-200">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#ddd8ff] bg-[#f1eeff]/90 px-5 py-2 text-xs font-extrabold uppercase tracking-[.12em] text-[#503be1] shadow-sm dark:border-violet-500/30 dark:bg-violet-500/15 dark:text-violet-200 dark:shadow-[0_0_20px_rgba(139,92,246,0.15)]">
             <HelpCircle className="h-4 w-4" /> FAQ
           </span>
         </m.div>
@@ -176,10 +180,10 @@ function FAQSection({ faqs, viewport, handlePrimaryCta }) {
             >
               Got Questions? <br />
               We&apos;ve Got <br />
-              <span className="relative inline-block font-handwritten mt-1 bg-gradient-to-r from-[#4b72ee] via-[#5f55ee] to-[#8355e9] bg-clip-text pb-3.5 text-[0.8em] leading-[1.08] tracking-normal text-transparent">
+              <span className="relative inline-block font-handwritten mt-1 bg-gradient-to-r from-[#4b72ee] via-[#5f55ee] to-[#8355e9] dark:from-indigo-400 dark:via-violet-400 dark:to-purple-300 bg-clip-text pb-3.5 text-[0.8em] leading-[1.08] tracking-normal text-transparent">
                 Answers.
                 <svg
-                  className="absolute bottom-0 left-0 w-full h-3 text-[#7790f5] opacity-80"
+                  className="absolute bottom-0 left-0 w-full h-3 text-[#7790f5] dark:text-violet-400 opacity-80"
                   viewBox="0 0 200 10"
                   fill="none"
                   preserveAspectRatio="none"
@@ -192,7 +196,10 @@ function FAQSection({ faqs, viewport, handlePrimaryCta }) {
                   />
                 </svg>
               </span>
-              <span className="inline-block relative -top-5 ml-3 text-[#77d7c8]" aria-hidden="true">
+              <span
+                className="inline-block relative -top-5 ml-3 text-[#77d7c8] dark:text-teal-300"
+                aria-hidden="true"
+              >
                 <svg
                   className="h-6 w-6 stroke-current fill-none"
                   viewBox="0 0 24 24"
@@ -234,11 +241,11 @@ function FAQSection({ faqs, viewport, handlePrimaryCta }) {
                 </m.div>
               ))}
             </Accordion>
-            <Send className="ml-auto mt-5 h-9 w-9 -rotate-12 text-[#7bd6c7] opacity-75" />
+            <Send className="ml-auto mt-5 h-9 w-9 -rotate-12 text-[#7bd6c7] dark:text-teal-300 opacity-85" />
           </m.div>
         </div>
 
-        <Sparkles className="pointer-events-none absolute left-[42%] top-44 hidden h-7 w-7 text-[#77d7c8] opacity-70 lg:block" />
+        <Sparkles className="pointer-events-none absolute left-[42%] top-44 hidden h-7 w-7 text-[#77d7c8] dark:text-teal-300 opacity-80 lg:block" />
       </div>
     </SoftSection>
   );

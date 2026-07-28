@@ -421,31 +421,33 @@
   @keyframes float {
     0%,
     100% {
-      transform: translateY(0px);
+      transform: translate3d(0, 0px, 0);
     }
 
     50% {
-      transform: translateY(-10px);
+      transform: translate3d(0, -6px, 0);
     }
   }
 
   .animate-float-slow {
-    animation: float 4s ease-in-out infinite;
+    animation: float 4.5s ease-in-out infinite;
+    will-change: transform;
   }
 
   @keyframes float-delayed {
     0%,
     100% {
-      transform: translateY(0px);
+      transform: translate3d(0, 0px, 0);
     }
 
     50% {
-      transform: translateY(8px);
+      transform: translate3d(0, 6px, 0);
     }
   }
 
   .animate-float-delayed {
-    animation: float-delayed 5s ease-in-out 1s infinite;
+    animation: float-delayed 5.2s ease-in-out 0.6s infinite;
+    will-change: transform;
   }
 
   @keyframes fade-in {

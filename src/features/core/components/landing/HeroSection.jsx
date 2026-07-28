@@ -8,6 +8,7 @@ import PenLine from 'lucide-react/icons/pen-line';
 import Quote from 'lucide-react/icons/quote';
 import Sparkles from 'lucide-react/icons/sparkles';
 import Star from 'lucide-react/icons/star';
+import Target from 'lucide-react/icons/target';
 import TrendingUp from 'lucide-react/icons/trending-up';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
@@ -40,244 +41,105 @@ function CardHeading({ icon: Icon, title, tone = 'blue' }) {
   };
 
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-2">
       <span
-        className={cn('flex h-8 w-8 items-center justify-center rounded-xl shadow-sm', tones[tone])}
+        className={cn('flex h-7 w-7 items-center justify-center rounded-lg shadow-xs', tones[tone])}
       >
-        <Icon className="h-4 w-4" />
+        <Icon className="h-3.5 w-3.5" />
       </span>
-      <p className="text-[11px] font-extrabold tracking-tight text-[#142344] dark:text-white sm:text-xs">
+      <p className="text-[11px] font-extrabold tracking-tight text-[#142344] dark:text-white">
         {title}
       </p>
     </div>
   );
 }
 
-function SpeakingCard() {
+function PersonalizedAiCard() {
   return (
     <FloatingCard
-      label="Speaking feedback preview"
-      delay={0.55}
-      className="hidden sm:block left-0 sm:left-4 top-4 sm:top-[64px] w-[165px] sm:w-[205px] p-3 sm:p-4 origin-top-left"
+      label="Personalized AI study plan preview"
+      delay={0.72}
+      className="top-4 sm:top-5 right-[-6px] sm:right-2 w-[175px] sm:w-[195px] p-2.5 sm:p-3 origin-top-right border-violet-300/80 dark:border-violet-500/40 shadow-lg shadow-violet-500/10 animate-float-slow motion-reduce:animate-none"
     >
-      <CardHeading icon={Mic} title="Speaking Feedback" tone="green" />
-      <div className="mt-3 rounded-xl bg-[#fbfdfd]/60 p-3 dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl font-black text-slate-800 dark:text-white">7.0</span>
-          <span className="bg-emerald-100/70 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 font-extrabold px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wide">
+      <CardHeading icon={Sparkles} title="Personalized AI Plan" tone="violet" />
+
+      <div className="mt-2 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200">
+            Daily Target
+          </span>
+          <span className="bg-emerald-100/90 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 font-extrabold px-1.5 py-0.5 rounded-full text-[8.5px]">
+            Band 7.5+
+          </span>
+        </div>
+
+        <div className="space-y-0.5">
+          <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 dark:text-slate-400">
+            <span>Adaptive Progress</span>
+            <span className="text-violet-600 dark:text-violet-400 font-extrabold">85%</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+            <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-600 w-[85%]" />
+          </div>
+        </div>
+
+        <div className="pt-0.5 space-y-1 text-[9px] font-semibold text-slate-600 dark:text-slate-300">
+          <div className="flex items-center gap-1">
+            <span className="flex h-3 w-3 items-center justify-center rounded-full bg-emerald-500 text-white shrink-0">
+              <Check className="h-2 w-2" />
+            </span>
+            <span className="truncate">Focus on Weak Gaps</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="flex h-3 w-3 items-center justify-center rounded-full bg-violet-500 text-white shrink-0">
+              <Check className="h-2 w-2" />
+            </span>
+            <span className="truncate">Real-Time Rubric</span>
+          </div>
+        </div>
+      </div>
+    </FloatingCard>
+  );
+}
+
+function AiEvaluationCard() {
+  return (
+    <FloatingCard
+      label="AI Evaluation preview"
+      delay={0.55}
+      className="left-[-6px] sm:left-2 bottom-5 sm:bottom-8 w-[185px] sm:w-[205px] p-2.5 sm:p-3 origin-bottom-left border-indigo-200/80 dark:border-indigo-500/40 shadow-lg shadow-indigo-500/10 animate-float-delayed motion-reduce:animate-none"
+    >
+      <CardHeading icon={Mic} title="Instant AI Evaluation" tone="blue" />
+
+      <div className="mt-2 space-y-2">
+        <div className="flex items-center justify-between rounded-lg bg-slate-50/90 dark:bg-slate-900/60 p-1.5 border border-slate-100 dark:border-white/5">
+          <div>
+            <p className="text-[9px] font-bold text-slate-500 dark:text-slate-400">
+              Estimated Band
+            </p>
+            <p className="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-none mt-0.5">
+              7.5
+            </p>
+          </div>
+          <span className="bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 font-extrabold px-1.5 py-0.5 rounded-md text-[9px] uppercase tracking-wide">
             Good
           </span>
         </div>
-        <p className="mt-2 text-[9px] font-medium leading-relaxed text-[#59657a] dark:text-slate-400 sm:text-[10px]">
-          Great ideas! Work on fluency and pronunciation.
-        </p>
-      </div>
-      <span className="w-full mt-3 justify-center inline-flex items-center gap-1 bg-blue-500/5 hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/10 rounded-lg px-3 py-1.5 text-[10px] font-bold transition-all duration-200 cursor-pointer">
-        View Feedback <ArrowRight className="ml-1 h-3 w-3" />
-      </span>
-    </FloatingCard>
-  );
-}
 
-function ProgressCard() {
-  return (
-    <FloatingCard
-      label="Overall progress preview"
-      delay={0.72}
-      className="-top-6 right-[-8px] sm:right-4 sm:top-8 w-[165px] p-3 sm:w-[222px] sm:p-4 origin-top-right"
-    >
-      <CardHeading icon={TrendingUp} title="Overall Progress" tone="blue" />
-      <div className="mt-3 flex items-center justify-between">
-        <div>
-          <p className="text-3xl font-black tracking-tight text-[#315ee9] dark:text-blue-400">
-            7.0
-          </p>
-          <p className="mt-1 rounded-md bg-emerald-100/50 px-1.5 py-0.5 text-[10px] font-extrabold text-[#238b78] dark:bg-emerald-500/20">
-            Target 7.5
-          </p>
-        </div>
-        <div className="relative flex h-14 w-14 items-center justify-center">
-          <svg className="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 36 36">
-            <circle
-              cx="18"
-              cy="18"
-              r="15.915"
-              fill="none"
-              stroke="rgba(0,0,0,.05)"
-              strokeWidth="3"
-            />
-            <circle
-              cx="18"
-              cy="18"
-              r="15.915"
-              fill="none"
-              stroke="#3b82f6"
-              strokeWidth="3"
-              strokeDasharray="78 22"
-              strokeLinecap="round"
-            />
-          </svg>
-          <span className="text-xs font-black text-[#315ee9] dark:text-blue-400">78%</span>
-        </div>
-      </div>
-      <svg viewBox="0 0 170 42" className="mt-3 h-9 w-full" aria-hidden="true">
-        <path
-          d="M2 34 C18 17,28 31,43 21 S66 31,78 18 S98 25,113 14 S139 17,168 5"
-          fill="none"
-          stroke="#4f6cf0"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <circle cx="168" cy="5" r="4" fill="#4f6cf0" stroke="white" strokeWidth="2" />
-      </svg>
-    </FloatingCard>
-  );
-}
-
-function StudyPlanCard() {
-  const tasks = [
-    { name: 'Listening Practice', status: 'done' },
-    { name: 'Reading Strategy', status: 'done' },
-    { name: 'Writing Task 2', status: 'in-progress', progress: '75%' },
-    { name: 'Speaking Practice', status: 'pending' },
-  ];
-
-  return (
-    <FloatingCard
-      label="Personalized study plan preview"
-      delay={0.88}
-      className="hidden sm:block bottom-[86px] sm:bottom-[116px] right-[-16px] sm:right-4 w-[190px] p-3 sm:w-[238px] sm:p-4 origin-bottom-right"
-    >
-      <CardHeading icon={CalendarDays} title="Personalized Study Plan" tone="violet" />
-      <div className="mt-3 rounded-xl bg-[#fcfbff]/60 p-3 dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
-        <p className="text-[10px] font-bold text-[#35415c] dark:text-slate-200">
-          Study 30 mins daily
-        </p>
-        <div className="mt-2.5 space-y-2">
-          {tasks.map((task) => (
-            <div
-              key={task.name}
-              className="flex items-center justify-between gap-2 text-[9px] font-semibold text-[#526079] dark:text-slate-300 sm:text-[10px]"
-            >
-              <span className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    'flex h-4 w-4 items-center justify-center rounded-full',
-                    task.status === 'done' && 'bg-[#58c98a] text-white',
-                    task.status === 'in-progress' && 'bg-[#58c98a] text-white',
-                    task.status === 'pending' && 'border-2 border-[#7153dc]'
-                  )}
-                >
-                  {task.status !== 'pending' ? <Check className="h-2.5 w-2.5" /> : null}
-                </span>
-                {task.name}
-              </span>
-              {task.status === 'done' && <Check className="h-3.5 w-3.5 text-[#58c98a]" />}
-              {task.status === 'in-progress' && (
-                <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[8px] font-extrabold text-[#6643cb] dark:bg-violet-950/30 dark:text-violet-300">
-                  {task.progress}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-      <span className="w-full mt-3 justify-center inline-flex items-center gap-1 bg-violet-500/5 hover:bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/10 rounded-lg px-3 py-1.5 text-[10px] font-bold transition-all duration-200 cursor-pointer">
-        View Full Plan <ArrowRight className="ml-1 h-3 w-3" />
-      </span>
-    </FloatingCard>
-  );
-}
-
-function WritingCard() {
-  return (
-    <FloatingCard
-      label="Writing evaluation preview"
-      delay={1.02}
-      className="bottom-14 left-0 hidden w-[222px] p-3 sm:block sm:p-3.5"
-    >
-      <CardHeading icon={PenLine} title="Writing Evaluation" tone="blue" />
-      <div className="mt-2.5 space-y-2">
-        {[
-          ['Task Achievement', '6.5'],
-          ['Coherence & Cohesion', '6.5'],
-          ['Lexical Resource', '7.0'],
-          ['Grammatical Range', '6.5'],
-        ].map(([label, score]) => (
-          <div key={label} className="space-y-1">
-            <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-semibold text-[#526079] dark:text-slate-300">
-              <span>{label}</span>
-              <span className="font-extrabold text-blue-600 dark:text-blue-400">{score}</span>
-            </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800/80">
-              <div
-                className="h-full rounded-full bg-blue-500/70"
-                style={{ width: `${(parseFloat(score) / 9) * 100}%` }}
-              />
-            </div>
+        <div className="grid grid-cols-2 gap-1 text-[9px]">
+          <div className="rounded-md bg-violet-50/60 dark:bg-violet-950/30 px-1.5 py-1 border border-violet-100/60 dark:border-violet-900/30 flex items-center justify-between">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Speaking</span>
+            <b className="text-violet-700 dark:text-violet-300 font-extrabold text-[10px]">7.5</b>
           </div>
-        ))}
-      </div>
-      <span className="w-full mt-3 justify-center inline-flex items-center gap-1 bg-blue-500/5 hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/10 rounded-lg px-2.5 py-1.2 text-[10px] font-bold transition-all duration-200 cursor-pointer">
-        View Full Report <ArrowRight className="ml-1 h-3 w-3" />
-      </span>
-    </FloatingCard>
-  );
-}
-
-function AiTutorCard() {
-  return (
-    <FloatingCard
-      label="AI Tutor chat bubble"
-      delay={1.15}
-      className="bottom-0 sm:bottom-3 right-0 sm:right-8 w-[235px] sm:w-[270px] p-2.5 sm:p-3.5 origin-bottom-right"
-    >
-      <div className="flex items-center gap-3">
-        {/* Robot Avatar */}
-        <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-blue-500 to-indigo-650 shadow-md overflow-hidden">
-          {/* Animated glow background inside the avatar */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400/20 to-transparent animate-pulse" />
-          <svg viewBox="0 0 40 40" className="relative z-10 h-7 w-7 text-white" fill="none">
-            {/* Robot Head */}
-            <rect x="10" y="14" width="20" height="13" rx="4" fill="currentColor" />
-            {/* Screen */}
-            <rect x="12" y="16" width="16" height="9" rx="2" fill="#0f172a" />
-            {/* Eyes */}
-            <circle cx="17" cy="20.5" r="1.5" fill="#38bdf8" className="animate-pulse" />
-            <circle cx="23" cy="20.5" r="1.5" fill="#38bdf8" className="animate-pulse" />
-            {/* Mouth */}
-            <path
-              d="M17 23.5 Q20 25 23 23.5"
-              stroke="#38bdf8"
-              strokeWidth="1.2"
-              strokeLinecap="round"
-            />
-            {/* Antenna */}
-            <line
-              x1="20"
-              y1="14"
-              x2="20"
-              y2="9"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-            <circle cx="20" cy="8" r="1.5" fill="#f43f5e" />
-          </svg>
-        </div>
-
-        {/* Text Area */}
-        <div className="text-left min-w-0">
-          <div className="flex items-center gap-1.5">
-            <b className="whitespace-nowrap text-[11px] font-black tracking-tight text-[#0d1932] dark:text-white sm:text-xs">
-              Hi! I'm your AI tutor.
-            </b>
-            <Sparkles className="h-3 w-3 shrink-0 text-amber-500 dark:text-amber-400 animate-pulse" />
+          <div className="rounded-md bg-indigo-50/60 dark:bg-indigo-950/30 px-1.5 py-1 border border-indigo-100/60 dark:border-indigo-900/30 flex items-center justify-between">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Writing</span>
+            <b className="text-indigo-700 dark:text-indigo-300 font-extrabold text-[10px]">7.0</b>
           </div>
-          <p className="mt-0.5 whitespace-nowrap text-[9px] font-semibold text-[#59667b] dark:text-slate-400 sm:text-[10px]">
-            Ask me anything about IELTS!
-          </p>
         </div>
+
+        <p className="text-[8.5px] font-semibold text-slate-500 dark:text-slate-400 leading-tight">
+          ✨ Good fluency & task response
+        </p>
       </div>
     </FloatingCard>
   );
@@ -286,10 +148,10 @@ function AiTutorCard() {
 function StudentVisual() {
   return (
     <div
-      className="relative mx-auto min-h-[500px] w-full max-w-[760px] overflow-visible sm:min-h-[590px] lg:min-h-[650px] transform-gpu"
+      className="relative mx-auto min-h-[480px] w-full max-w-[720px] overflow-visible sm:min-h-[540px] lg:min-h-[580px] transform-gpu"
       aria-label="IELTS AI Pro learning experience preview"
     >
-      <div className="absolute bottom-12 left-6 right-6 top-14 overflow-hidden rounded-[2rem] border border-violet-200/80 bg-[#eef2ff] shadow-[0_30px_75px_-20px_rgba(109,85,238,0.22)] dark:border-violet-500/30 dark:bg-slate-900 sm:bottom-8 sm:left-12 sm:right-10 sm:top-8 lg:left-14 transform-gpu">
+      <div className="absolute bottom-6 left-4 right-4 top-6 overflow-hidden rounded-[2rem] border border-violet-200/80 bg-[#eef2ff] shadow-[0_30px_75px_-20px_rgba(109,85,238,0.22)] dark:border-violet-500/30 dark:bg-slate-900 sm:bottom-6 sm:left-8 sm:right-8 sm:top-6 transform-gpu">
         <picture className="block h-full w-full">
           <source media="(max-width: 767px)" srcSet="/ielts-hero-student-640.webp" />
           <source
@@ -312,11 +174,8 @@ function StudentVisual() {
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-[#6c79ef]/10 via-transparent to-white/15" />
       </div>
 
-      <SpeakingCard />
-      <ProgressCard />
-      <WritingCard />
-      <StudyPlanCard />
-      <AiTutorCard />
+      <AiEvaluationCard />
+      <PersonalizedAiCard />
     </div>
   );
 }

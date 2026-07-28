@@ -45,7 +45,7 @@ export default function AnalyticsHeader({
             <TrendingUp className="w-5.5 h-5.5 stroke-[2.5]" />
           </div>
           <h1
-            className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 dark:text-white leading-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-none sm:leading-tight"
             data-oid="biobx9:"
           >
             Analytics Dashboard

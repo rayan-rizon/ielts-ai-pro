@@ -170,7 +170,7 @@ export default function GrammarLab() {
                   <BookOpenCheck className="h-4 w-4" />
                   Learning tool
                 </div>
-                <h1 className="mt-1.5 text-3xl font-black tracking-[-0.045em] text-slate-950 dark:text-white">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-none sm:leading-tight">
                   Grammar Lab
                 </h1>
                 <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-300">

@@ -76,35 +76,49 @@ export default function DataExport() {
 
   return (
     <div
-      className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 shadow-sm border border-slate-200 dark:border-white/5"
+      className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200 dark:border-white/5 space-y-5"
       data-oid="itixo-l"
     >
-      <div className="flex items-start gap-4 mb-6" data-oid="7wx47o7">
+      <div className="flex items-center gap-3" data-oid="7wx47o7">
         <div
-          className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0"
+          className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-2xs"
           data-oid="d5ol-1u"
         >
-          <Shield className="w-6 h-6 text-white" data-oid="wb4fyik" />
+          <Shield className="w-5 h-5" data-oid="wb4fyik" />
         </div>
         <div data-oid="hht2:p3">
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white" data-oid="61mnn3e">
-            Your Data, Your Rights
-          </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1" data-oid="nn0yb57">
-            GDPR Article 20 - Right to Data Portability
+          <div className="flex items-center gap-2">
+            <h3
+              className="text-base sm:text-lg font-bold text-slate-900 dark:text-white"
+              data-oid="61mnn3e"
+            >
+              Your Data, Your Rights
+            </h3>
+            <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-extrabold uppercase tracking-wider">
+              GDPR Art. 20
+            </span>
+          </div>
+          <p
+            className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium"
+            data-oid="nn0yb57"
+          >
+            Right to Data Portability & Machine-Readable Export
           </p>
         </div>
       </div>
 
-      <div className="space-y-6" data-oid="ju:jc25">
-        <p className="text-slate-600 dark:text-slate-300 leading-relaxed" data-oid="grj:kd:">
-          You have the right to receive a copy of all personal data we hold about you in a commonly
-          used, machine-readable format. This includes your profile information, test history,
-          vocabulary, achievements, and consent records.
+      <div className="space-y-4" data-oid="ju:jc25">
+        <p
+          className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium"
+          data-oid="grj:kd:"
+        >
+          You have the right to receive a copy of all personal data we hold about you in a
+          machine-readable format (profile, test history, vocabulary, achievements, and consent
+          records).
         </p>
 
         {/* Data Categories */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3" data-oid="4yel4ir">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5" data-oid="4yel4ir">
           {[
             { label: 'Profile', icon: '👤' },
             { label: 'Test History', icon: '📊' },
@@ -113,14 +127,14 @@ export default function DataExport() {
           ].map((item) => (
             <div
               key={item.label}
-              className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-center"
+              className="p-2.5 sm:p-3 rounded-xl bg-slate-50/80 dark:bg-slate-950/40 border border-slate-200/80 dark:border-white/5 text-center transition-all hover:border-slate-300 dark:hover:border-white/10"
               data-oid="jls.y3h"
             >
-              <span className="text-2xl mb-2 block" data-oid="u7plml.">
+              <span className="text-lg mb-1 block" data-oid="u7plml.">
                 {item.icon}
               </span>
               <span
-                className="text-sm font-medium text-slate-700 dark:text-slate-300"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
                 data-oid="06bjzw0"
               >
                 {item.label}
@@ -134,45 +148,45 @@ export default function DataExport() {
           initial={false}
           animate={
             exportStatus === 'success'
-              ? { scale: [1, 1.02, 1] }
+              ? { scale: [1, 1.01, 1] }
               : exportStatus === 'error'
-                ? { x: [0, -5, 5, -5, 5, 0] }
+                ? { x: [0, -4, 4, -4, 4, 0] }
                 : {}
           }
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.3 }}
           data-oid="nbttsc2"
         >
           <Button
             onClick={handleExport}
             disabled={isExporting}
             className={cn(
-              'w-full h-14 rounded-2xl font-bold text-base transition-all shadow-lg',
+              'w-full h-11 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md active:scale-95 border-0',
               exportStatus === 'success'
-                ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/25'
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
                 : exportStatus === 'error'
-                  ? 'bg-red-600 hover:bg-red-700 shadow-red-500/25'
-                  : 'bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 shadow-slate-500/25'
+                  ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-500/20'
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20'
             )}
             data-oid="xxb5sk8"
           >
             {isExporting ? (
               <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" data-oid=":5fj5:a" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" data-oid=":5fj5:a" />
                 Preparing Export...
               </>
             ) : exportStatus === 'success' ? (
               <>
-                <CheckCircle2 className="w-5 h-5 mr-2" data-oid="_aef_4m" />
+                <CheckCircle2 className="w-4 h-4 mr-2" data-oid="_aef_4m" />
                 Download Complete!
               </>
             ) : exportStatus === 'error' ? (
               <>
-                <AlertCircle className="w-5 h-5 mr-2" data-oid="vf5fmdj" />
+                <AlertCircle className="w-4 h-4 mr-2" data-oid="vf5fmdj" />
                 Try Again
               </>
             ) : (
               <>
-                <Download className="w-5 h-5 mr-2" data-oid="o5:orgh" />
+                <Download className="w-4 h-4 mr-2" data-oid="o5:orgh" />
                 Download My Data (JSON)
               </>
             )}
@@ -181,23 +195,22 @@ export default function DataExport() {
 
         {/* Info Box */}
         <div
-          className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20"
+          className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-500/10 border border-blue-200/80 dark:border-blue-500/20"
           data-oid="zs3yjgh"
         >
-          <div className="flex items-start gap-3" data-oid="g:6lntr">
+          <div className="flex items-start gap-2.5" data-oid="g:6lntr">
             <FileJson
-              className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0"
+              className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0"
               data-oid="px0taup"
             />
 
-            <div className="text-sm text-blue-700 dark:text-blue-300" data-oid="2gm7i.b">
-              <p className="font-semibold mb-1" data-oid="3ua0vjy">
+            <div className="text-xs text-blue-700 dark:text-blue-300" data-oid="2gm7i.b">
+              <p className="font-bold mb-0.5" data-oid="3ua0vjy">
                 About Your Export
               </p>
-              <p className="opacity-80" data-oid="7dze0bz">
+              <p className="opacity-85 font-medium leading-relaxed" data-oid="7dze0bz">
                 Your data will be exported in JSON format, which can be opened by any text editor or
-                imported into other services. The export includes all data associated with your
-                account.
+                imported into other services.
               </p>
             </div>
           </div>

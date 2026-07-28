@@ -65,6 +65,87 @@ const CONTENT_TYPES = [
   },
 ];
 
+// ─── Base Resource Card (Shared UI Component) ─────────────────
+const BaseResourceCard = ({
+  onOpen,
+  resource,
+  aspectRatio = '16/9',
+  maxHeight,
+  thumbnail,
+  badgeText,
+  badgeBg,
+  icon: FallbackIcon,
+  actionText,
+  actionColor = 'text-slate-500 dark:text-slate-400',
+  hoverBorder = 'hover:border-slate-300 dark:hover:border-slate-700/80 hover:shadow-lg hover:shadow-slate-200/60 dark:hover:shadow-black/40',
+  imageContain = false,
+  children,
+}) => (
+  <motion.div
+    whileHover={{ y: -3 }}
+    whileTap={{ scale: 0.98 }}
+    className={cn(
+      'group relative flex flex-col h-full rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200/80 dark:border-slate-800 overflow-hidden cursor-pointer shadow-2xs transition-all duration-200',
+      hoverBorder
+    )}
+    onClick={() => onOpen(resource)}
+  >
+    {/* Cover Header */}
+    <div
+      className="relative w-full overflow-hidden bg-slate-100 dark:bg-slate-900/90 flex items-center justify-center"
+      style={{ aspectRatio, maxHeight }}
+    >
+      {thumbnail ? (
+        <img
+          src={thumbnail}
+          alt={resource.title}
+          className={cn(
+            'w-full h-full transition-transform duration-500 group-hover:scale-105',
+            imageContain ? 'object-contain p-1 drop-shadow-sm' : 'object-cover'
+          )}
+          loading="lazy"
+        />
+      ) : children ? (
+        children
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+          {FallbackIcon && <FallbackIcon className="w-6 h-6 text-slate-400" />}
+        </div>
+      )}
+
+      {/* Badge */}
+      {badgeText && (
+        <div className="absolute top-1.5 left-1.5">
+          <span
+            className={cn(
+              'px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider text-white shadow-2xs',
+              badgeBg
+            )}
+          >
+            {badgeText}
+          </span>
+        </div>
+      )}
+    </div>
+
+    {/* Content */}
+    <div className="p-2.5 flex flex-col flex-grow">
+      <h3 className="text-xs font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2 transition-colors">
+        {resource.title}
+      </h3>
+      <div className="mt-auto flex items-center justify-between pt-1.5 border-t border-slate-200/60 dark:border-slate-800/80">
+        <div className="flex items-center gap-1 text-slate-400">
+          <Eye className="w-3 h-3" />
+          <span className="text-[10px] font-semibold">{resource.view_count || 0}</span>
+        </div>
+        <div className={cn('flex items-center gap-0.5 text-[10px] font-extrabold', actionColor)}>
+          {actionText} <ArrowRight className="w-2.5 h-2.5" />
+        </div>
+      </div>
+    </div>
+  </motion.div>
+);
+
 // ─── Video Card ────────────────────────────────────────────────
 const VideoResourceCard = ({ resource, onOpen }) => {
   const getThumbnail = () => {
@@ -76,202 +157,48 @@ const VideoResourceCard = ({ resource, onOpen }) => {
     return null;
   };
 
-  const thumbnail = getThumbnail();
-
   return (
-    <motion.div
-      whileHover={{ y: -6, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className="group relative flex flex-col h-full rounded-2xl bg-white/60 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200/60 dark:border-white/[0.06] overflow-hidden cursor-pointer shadow-sm hover:shadow-xl hover:shadow-rose-500/10 hover:border-rose-500/20 dark:hover:border-rose-500/30 transition-all duration-300"
-      onClick={() => onOpen(resource)}
-    >
-      {/* 16:9 Thumbnail - Standard aspect ratio for YouTube video thumbs */}
-      <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-white/5">
-        {thumbnail ? (
-          <img
-            src={thumbnail}
-            alt={resource.title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-rose-500/10 to-orange-500/5">
-            <Video className="w-10 h-10 text-rose-400/40" />
-          </div>
-        )}
-
-        {/* Play overlay - Made more compact */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/15 transition-all duration-300">
-          <div className="w-12 h-12 rounded-full bg-white/90 dark:bg-slate-950/90 backdrop-blur-md flex items-center justify-center shadow-xl scale-0 group-hover:scale-100 transition-transform duration-300 ease-out border border-white/20 dark:border-white/5">
-            <Play className="w-5 h-5 text-rose-600 fill-rose-600 ml-1" />
-          </div>
-        </div>
-
-        {/* Badge - Tighter */}
-        <div className="absolute top-3 left-3">
-          <Badge className="px-2.5 py-0.7 rounded-md border-none text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md bg-rose-500/90 text-white">
-            Video
-          </Badge>
-        </div>
-
-        {/* Watch hint */}
-        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
-          <div className="px-2.5 py-1 rounded-md bg-black/75 backdrop-blur-md text-[10px] font-black tracking-wider text-white flex items-center gap-1.5 shadow-lg border border-white/10">
-            <Play className="w-2.5 h-2.5 fill-white" />
-            Watch Now
-          </div>
-        </div>
-      </div>
-
-      {/* Content area - Gorgeous & Readable */}
-      <div className="p-4 flex flex-col flex-grow">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-snug mb-3 line-clamp-2 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors duration-200">
-          {resource.title}
-        </h3>
-
-        <div className="mt-auto flex items-center justify-between pt-3 border-t border-slate-100 dark:border-white/5">
-          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-semibold">
-            <Eye className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-            <span className="text-xs">{resource.view_count || 0}</span>
-          </div>
-
-          <div className="flex items-center gap-1 text-[11px] font-black uppercase tracking-widest text-rose-500 group-hover:text-rose-600 dark:group-hover:text-rose-400 group-hover:gap-1.5 transition-all duration-200">
-            Watch Now
-            <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform duration-200" />
-          </div>
-        </div>
-      </div>
-    </motion.div>
+    <BaseResourceCard
+      resource={resource}
+      onOpen={onOpen}
+      thumbnail={getThumbnail()}
+      icon={Video}
+      badgeText="Video"
+      badgeBg="bg-slate-700"
+      actionText="Watch"
+      maxHeight="130px"
+    />
   );
 };
 
-// ─── PDF "Book Cover" Card ────────────────────────────────────
-const PDFResourceCard = ({ resource, onOpen }) => {
-  const thumbnail = resource.thumbnail_url;
-
-  return (
-    <motion.div
-      whileHover={{ y: -6, rotateY: 2 }}
-      className="group relative flex flex-col items-center cursor-pointer"
-      onClick={() => onOpen(resource)}
-      style={{ perspective: '800px' }}
-    >
-      {/* Book cover */}
-      <div className="relative w-full aspect-[3/4] rounded-xl overflow-hidden shadow-lg group-hover:shadow-2xl group-hover:shadow-blue-500/20 transition-all duration-500 border border-slate-200/50 dark:border-white/10">
-        {thumbnail ? (
-          <img
-            src={thumbnail}
-            alt={resource.title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 p-6 text-center relative">
-            {/* Decorative elements */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-400" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1),transparent_50%)]" />
-
-            <FileText className="w-10 h-10 text-white/30 mb-4" />
-            <h4 className="text-sm font-black text-white leading-tight line-clamp-4 drop-shadow-lg">
-              {resource.title}
-            </h4>
-            <div className="mt-auto pt-4">
-              <div className="w-10 h-0.5 bg-white/30 rounded-full mx-auto" />
-            </div>
-            <p className="text-[9px] text-white/50 font-bold uppercase tracking-widest mt-2">
-              IELTS Study Guide
-            </p>
-          </div>
-        )}
-
-        {/* Spine effect */}
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-black/20 via-black/10 to-black/20" />
-
-        {/* Badge */}
-        <div className="absolute top-3 right-3">
-          <Badge className="px-2 py-0.5 rounded-md border-none text-[10px] font-black uppercase tracking-wider shadow-lg backdrop-blur-md bg-blue-500/90 text-white">
-            PDF
-          </Badge>
-        </div>
-
-        {/* Bottom overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent flex items-end px-3 pb-2.5">
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/90 uppercase tracking-wider group-hover:gap-2 transition-all">
-            <Download className="w-3 h-3" />
-            Read Guide
-          </div>
-        </div>
-      </div>
-
-      {/* Meta below book */}
-      <div className="w-full pt-4 px-1 text-center flex flex-col flex-grow">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-snug line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 mb-2">
-          {resource.title}
-        </h3>
-        <div className="mt-auto flex items-center justify-center gap-1.5 text-slate-500 dark:text-slate-400 font-semibold">
-          <Eye className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-          <span className="text-xs">{resource.view_count || 0} views</span>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
+// ─── PDF / Book Card ───────────────────────────────────────────
+const PDFResourceCard = ({ resource, onOpen }) => (
+  <BaseResourceCard
+    resource={resource}
+    onOpen={onOpen}
+    thumbnail={resource.thumbnail_url}
+    icon={FileText}
+    aspectRatio="3/4"
+    imageContain
+    badgeText="PDF"
+    badgeBg="bg-slate-700"
+    actionText="Open"
+  />
+);
 
 // ─── Article Card ──────────────────────────────────────────────
-const ArticleResourceCard = ({ resource, onOpen }) => {
-  const thumbnail = resource.thumbnail_url;
-
-  return (
-    <motion.div
-      whileHover={{ y: -3 }}
-      className="group flex gap-4 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200/50 dark:border-white/[0.06] cursor-pointer hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300"
-      onClick={() => onOpen(resource)}
-    >
-      {/* Thumbnail or icon */}
-      <div className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-gradient-to-br from-emerald-500/10 to-teal-500/5 border border-emerald-200/30 dark:border-emerald-500/10 flex items-center justify-center">
-        {thumbnail ? (
-          <img
-            src={thumbnail}
-            alt={resource.title}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <BookOpen className="w-8 h-8 text-emerald-400/50" />
-        )}
-      </div>
-
-      {/* Text content */}
-      <div className="flex-1 min-w-0 flex flex-col justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <Badge className="px-2 py-0.5 rounded-md border-none text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-              Article
-            </Badge>
-          </div>
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-snug line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-            {resource.title}
-          </h3>
-          {resource.description && (
-            <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-1 mt-0.5 font-medium">
-              {resource.description}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-300">
-            <Eye className="w-2.5 h-2.5" />
-            <span className="text-[10px] font-bold">{resource.view_count || 0}</span>
-          </div>
-          <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 group-hover:gap-1.5 transition-all">
-            Read
-            <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
+const ArticleResourceCard = ({ resource, onOpen }) => (
+  <BaseResourceCard
+    resource={resource}
+    onOpen={onOpen}
+    thumbnail={resource.thumbnail_url}
+    icon={BookOpen}
+    badgeText="Article"
+    badgeBg="bg-slate-700"
+    actionText="Read"
+    maxHeight="130px"
+  />
+);
 
 // ─── Vocabulary Card ───────────────────────────────────────────
 const VocabularyResourceCard = ({ resource, onOpen }) => {
@@ -284,42 +211,30 @@ const VocabularyResourceCard = ({ resource, onOpen }) => {
   }
 
   return (
-    <motion.div
-      whileHover={{ y: -3 }}
-      className="group flex flex-col p-4 rounded-2xl bg-white/60 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200/50 dark:border-white/[0.06] cursor-pointer hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-300"
-      onClick={() => onOpen(resource)}
+    <BaseResourceCard
+      resource={resource}
+      onOpen={onOpen}
+      thumbnail={resource.thumbnail_url}
+      badgeText="Vocab"
+      badgeBg="bg-slate-700"
+      actionText="Study Deck"
+      maxHeight="130px"
     >
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/10 flex items-center justify-center flex-shrink-0 border border-indigo-200/30 dark:border-indigo-500/10">
-          <Brain className="w-5 h-5 text-indigo-500" />
+      <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.15),transparent_60%)]" />
+        <div className="w-8 h-8 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mb-1 shadow-2xs">
+          <Brain className="w-4 h-4 text-white" />
         </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-snug line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-            {resource.title}
-          </h3>
-          {resource.description && (
-            <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-1 mt-0.5 font-medium">
-              {resource.description}
-            </p>
-          )}
-        </div>
-      </div>
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 dark:border-white/5">
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] font-bold text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-md">
-            {wordCount} words
+        <span className="text-[10px] font-black uppercase tracking-wider text-white/90">
+          Vocabulary Deck
+        </span>
+        <div className="absolute top-1.5 right-1.5">
+          <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-black/60 backdrop-blur-md text-indigo-200 border border-white/10 shadow-2xs">
+            {wordCount > 0 ? `${wordCount} Words` : 'Word List'}
           </span>
-          <div className="flex items-center gap-1 text-slate-500 dark:text-slate-300">
-            <Eye className="w-2.5 h-2.5" />
-            <span className="text-[10px] font-bold">{resource.view_count || 0}</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 group-hover:gap-1.5 transition-all">
-          Study
-          <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
         </div>
       </div>
-    </motion.div>
+    </BaseResourceCard>
   );
 };
 
@@ -340,50 +255,51 @@ const ResourceCard = ({ resource, onOpen }) => {
 };
 
 // ─── Section Header ────────────────────────────────────────────
-const SectionHeader = ({ icon: Icon, title, count, color, onViewAll }) => (
-  <motion.div
-    initial={{ opacity: 0, x: -10 }}
-    animate={{ opacity: 1, x: 0 }}
-    className="flex items-center justify-between mb-6"
-  >
-    <div className="flex items-center gap-3">
-      <div
-        className={cn(
-          'w-9 h-9 rounded-xl flex items-center justify-center shadow-sm',
-          color === 'rose' && 'bg-rose-500/10 text-rose-500',
-          color === 'blue' && 'bg-blue-500/10 text-blue-500',
-          color === 'emerald' && 'bg-emerald-500/10 text-emerald-500',
-          color === 'indigo' && 'bg-indigo-500/10 text-indigo-500'
-        )}
-      >
-        <Icon className="w-4.5 h-4.5" />
+const COLOR_STYLES = {
+  rose: { bg: 'bg-rose-500/10 text-rose-500', btn: 'text-rose-500' },
+  blue: { bg: 'bg-blue-500/10 text-blue-500', btn: 'text-blue-500' },
+  emerald: { bg: 'bg-emerald-500/10 text-emerald-500', btn: 'text-emerald-500' },
+  indigo: { bg: 'bg-indigo-500/10 text-indigo-500', btn: 'text-indigo-500' },
+};
+
+const SectionHeader = ({ icon: Icon, title, count, color = 'indigo', onViewAll }) => {
+  const style = COLOR_STYLES[color] || COLOR_STYLES.indigo;
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="flex items-center justify-between mb-4"
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className={cn('w-9 h-9 rounded-xl flex items-center justify-center shadow-sm', style.bg)}
+        >
+          <Icon className="w-4.5 h-4.5" />
+        </div>
+        <div>
+          <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+            {title}
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tight">
+            {count} available
+          </p>
+        </div>
       </div>
-      <div>
-        <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
-          {title}
-        </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tight">
-          {count} available
-        </p>
-      </div>
-    </div>
-    {onViewAll && (
-      <button
-        onClick={onViewAll}
-        className={cn(
-          'flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest transition-all hover:gap-2',
-          color === 'rose' && 'text-rose-500',
-          color === 'blue' && 'text-blue-500',
-          color === 'emerald' && 'text-emerald-500',
-          color === 'indigo' && 'text-indigo-500'
-        )}
-      >
-        View All
-        <ChevronRight className="w-3.5 h-3.5" />
-      </button>
-    )}
-  </motion.div>
-);
+      {onViewAll && (
+        <button
+          onClick={onViewAll}
+          className={cn(
+            'flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest transition-all hover:gap-2',
+            style.btn
+          )}
+        >
+          View All
+          <ChevronRight className="w-3.5 h-3.5" />
+        </button>
+      )}
+    </motion.div>
+  );
+};
 
 // ─── Skeleton ──────────────────────────────────────────────────
 const ResourcesSkeleton = () => (
@@ -454,10 +370,10 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll }) => {
   const vocabs = resources.filter((r) => r.content_type === 'vocabulary');
 
   return (
-    <div className="space-y-14">
-      {/* Videos Section */}
+    <div className="space-y-6">
+      {/* Videos Section Card */}
       {videos.length > 0 && (
-        <section>
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 p-4 sm:p-5 shadow-sm space-y-3.5">
           <SectionHeader
             icon={Video}
             title="Video Lessons"
@@ -465,13 +381,14 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll }) => {
             color="rose"
             onViewAll={() => onViewAll('video')}
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {videos.slice(0, 4).map((resource, i) => (
+          {/* 2 rows of videos: 4 columns x 2 rows = 8 videos */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {videos.slice(0, 8).map((resource, i) => (
               <motion.div
                 key={resource.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06 }}
+                transition={{ delay: i * 0.04 }}
               >
                 <VideoResourceCard resource={resource} onOpen={onOpen} />
               </motion.div>
@@ -480,9 +397,9 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll }) => {
         </section>
       )}
 
-      {/* PDFs Section */}
+      {/* PDFs Section Card (1 single row: 5 or 6 items max) */}
       {pdfs.length > 0 && (
-        <section>
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 p-4 sm:p-5 shadow-sm space-y-3.5">
           <SectionHeader
             icon={FileText}
             title="Study Guides & Books"
@@ -490,13 +407,13 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll }) => {
             color="blue"
             onViewAll={() => onViewAll('pdf')}
           />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5">
             {pdfs.slice(0, 6).map((resource, i) => (
               <motion.div
                 key={resource.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06 }}
+                transition={{ delay: i * 0.04 }}
               >
                 <PDFResourceCard resource={resource} onOpen={onOpen} />
               </motion.div>
@@ -505,9 +422,9 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll }) => {
         </section>
       )}
 
-      {/* Articles Section */}
+      {/* Articles Section Card (2 rows: 4 columns x 2 rows = 8 items) */}
       {articles.length > 0 && (
-        <section>
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 p-4 sm:p-5 shadow-sm space-y-3.5">
           <SectionHeader
             icon={BookOpen}
             title="Reading Materials"
@@ -515,13 +432,13 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll }) => {
             color="emerald"
             onViewAll={() => onViewAll('blog')}
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {articles.slice(0, 4).map((resource, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {articles.slice(0, 8).map((resource, i) => (
               <motion.div
                 key={resource.id}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06 }}
+                transition={{ delay: i * 0.04 }}
               >
                 <ArticleResourceCard resource={resource} onOpen={onOpen} />
               </motion.div>
@@ -530,9 +447,9 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll }) => {
         </section>
       )}
 
-      {/* Vocabulary Section */}
+      {/* Vocabulary Section Card (2 rows: 4 columns x 2 rows = 8 items) */}
       {vocabs.length > 0 && (
-        <section>
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 p-4 sm:p-5 shadow-sm space-y-3.5">
           <SectionHeader
             icon={Brain}
             title="Vocabulary Lists"
@@ -540,13 +457,13 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll }) => {
             color="indigo"
             onViewAll={() => onViewAll('vocabulary')}
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {vocabs.slice(0, 3).map((resource, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {vocabs.slice(0, 8).map((resource, i) => (
               <motion.div
                 key={resource.id}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06 }}
+                transition={{ delay: i * 0.04 }}
               >
                 <VocabularyResourceCard resource={resource} onOpen={onOpen} />
               </motion.div>
@@ -564,13 +481,13 @@ const FilteredGridView = ({ resources, filterType, onOpen }) => {
   const gridClass = useMemo(() => {
     switch (filterType) {
       case 'pdf':
-        return 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6';
+        return 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5';
       case 'blog':
-        return 'grid grid-cols-1 md:grid-cols-2 gap-4';
+        return 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3';
       case 'vocabulary':
-        return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4';
+        return 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3';
       default:
-        return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
+        return 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3';
     }
   }, [filterType]);
 
@@ -590,36 +507,163 @@ const FilteredGridView = ({ resources, filterType, onOpen }) => {
   );
 };
 
-// ─── Main Component ────────────────────────────────────────────
-const ResourcesSection = () => {
-  const navigate = useNavigate();
+// ─── Sub-Components for ResourcesSection ─────────────────────
+const ControlsBar = ({ searchQuery, setSearchQuery, filterType, handleTypeChange }) => (
+  <div className="sticky top-4 z-40">
+    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl px-3 py-2 rounded-2xl shadow-lg shadow-slate-900/5 dark:shadow-black/30 border border-slate-200/80 dark:border-white/10 flex flex-wrap lg:flex-nowrap gap-2 items-center justify-between">
+      {/* Search */}
+      <div className="relative w-full lg:max-w-xs group">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <Search className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-500 transition-colors" />
+        </div>
+        <Input
+          placeholder="Search resources..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 bg-slate-50 dark:bg-slate-950 border-slate-200/60 dark:border-white/[0.10] h-9 rounded-full text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-indigo-500/40"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 transition-all"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex items-center gap-0.5 p-0.5 bg-slate-100/80 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/[0.10] overflow-x-auto no-scrollbar flex-1 lg:flex-none">
+        {CONTENT_TYPES.map((type) => (
+          <button
+            key={type.id}
+            onClick={() => handleTypeChange(type.id)}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap',
+              filterType === type.id
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/10'
+            )}
+          >
+            {type.icon && <type.icon className="w-3.5 h-3.5 shrink-0" />}
+            {type.label}
+          </button>
+        ))}
+      </div>
+
+      {/* View toggle */}
+      <div className="hidden lg:flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-white/10">
+        <div className="flex items-center gap-1.5 text-indigo-500 cursor-pointer">
+          <LayoutGrid className="w-4 h-4" />
+          <span className="text-xs font-semibold">Grid</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-slate-300 dark:text-slate-700 cursor-not-allowed">
+          <List className="w-4 h-4" />
+          <span className="text-xs font-semibold">List</span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const EmptyStateView = ({ searchQuery, filterType, onReset }) => (
+  <div className="text-center py-12 px-6 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/10">
+    <div className="w-14 h-14 bg-slate-100 dark:bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+      <Library className="w-7 h-7 text-slate-400 dark:text-slate-600" />
+    </div>
+    <h3 className="text-lg font-black text-slate-900 dark:text-white mb-1 tracking-tight">
+      No resources found
+    </h3>
+    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-5 max-w-sm mx-auto">
+      {searchQuery
+        ? 'Try different keywords or browse categories.'
+        : "We're enriching our collection. Check back soon!"}
+    </p>
+    {(searchQuery || filterType !== 'all') && (
+      <Button
+        onClick={onReset}
+        className="rounded-xl h-9 px-6 font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md active:scale-95 transition-all text-sm border-0"
+      >
+        Show All Resources
+      </Button>
+    )}
+  </div>
+);
+
+const PaginationBar = ({ pagination, totalPages, setPagination }) => {
+  const goTo = (page) => {
+    setPagination((p) => ({ ...p, page }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const isFirst = pagination.page <= 1;
+  const isLast = pagination.page >= totalPages;
+
+  return (
+    <div className="flex items-center justify-center gap-2 pt-6 pb-2">
+      {/* Prev */}
+      <button
+        disabled={isFirst}
+        onClick={() => goTo(pagination.page - 1)}
+        className="h-9 px-4 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
+      >
+        ← Prev
+      </button>
+
+      {/* Page numbers */}
+      <div className="flex items-center gap-1">
+        {[...Array(totalPages)].map((_, i) => (
+          <button
+            key={i}
+            onClick={() => goTo(i + 1)}
+            className={cn(
+              'w-9 h-9 rounded-xl text-xs font-semibold transition-all duration-150',
+              pagination.page === i + 1
+                ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-sm'
+                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-white border border-transparent hover:border-slate-200 dark:hover:border-slate-700'
+            )}
+          >
+            {i + 1}
+          </button>
+        ))}
+      </div>
+
+      {/* Page info */}
+      <span className="text-xs text-slate-400 dark:text-slate-600 font-medium px-1 hidden sm:inline">
+        {pagination.page} / {totalPages}
+      </span>
+
+      {/* Next */}
+      <button
+        disabled={isLast}
+        onClick={() => goTo(pagination.page + 1)}
+        className="h-9 px-4 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
+      >
+        Next →
+      </button>
+    </div>
+  );
+};
+
+// ─── Resource navigation helper (pure, no branches in component) ─
+const navigateToResource = ({ resource, navigate, onVocab }) => {
+  if (resource.content_type === 'blog' && resource.slug) {
+    navigate(`/blog/${resource.slug}`);
+  } else if (resource.content_type === 'vocabulary') {
+    onVocab(resource);
+  } else {
+    window.open(resource.url, '_blank', 'noopener,noreferrer');
+  }
+};
+
+// ─── Hook 1: Filter & URL state ────────────────────────────────
+const useFilterState = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [filterType, setFilterType] = useState(searchParams.get('type') || 'all');
   const [pagination, setPagination] = useState({ page: 1, limit: 24 });
-  const [selectedVocab, setSelectedVocab] = useState(null);
-  const [isVocabDialogOpen, setIsVocabDialogOpen] = useState(false);
 
-  // Prepare query params
-  const queryFilters = {
-    is_published: true,
-    ...(filterType !== 'all' && { content_type: filterType }),
-    ...(debouncedSearchQuery && { searchQuery: debouncedSearchQuery }),
-  };
-
-  const { data, isLoading } = useResources({
-    filters: queryFilters,
-    orderBy: '-created_at',
-    limit: pagination.limit,
-    page: pagination.page,
-    includeContent: true,
-  });
-
-  const resources = data?.data || [];
-  const totalCount = data?.count || 0;
-  const totalPages = Math.ceil(totalCount / pagination.limit);
-
+  // Sync URL type param → filterType
   useEffect(() => {
     const type = searchParams.get('type');
     if (type && type !== filterType) {
@@ -630,21 +674,74 @@ const ResourcesSection = () => {
     }
   }, [searchParams, filterType]);
 
-  // Reset pagination on search change
+  // Reset to page 1 on new search
   useEffect(() => {
     setPagination((p) => ({ ...p, page: 1 }));
   }, [debouncedSearchQuery]);
 
+  return {
+    searchParams,
+    setSearchParams,
+    searchQuery,
+    setSearchQuery,
+    debouncedSearchQuery,
+    filterType,
+    setFilterType,
+    pagination,
+    setPagination,
+  };
+};
+
+// ─── Hook 2: Data query ─────────────────────────────────────────
+const useResourcesQuery = ({ filterType, debouncedSearchQuery, pagination }) => {
+  const queryFilters = useMemo(
+    () => ({
+      is_published: true,
+      ...(filterType !== 'all' && { content_type: filterType }),
+      ...(debouncedSearchQuery && { searchQuery: debouncedSearchQuery }),
+    }),
+    [filterType, debouncedSearchQuery]
+  );
+
+  const isAllUnfiltered = filterType === 'all' && !debouncedSearchQuery;
+  const { data, isLoading } = useResources({
+    filters: queryFilters,
+    orderBy: '-created_at',
+    limit: isAllUnfiltered ? 100 : pagination.limit,
+    page: pagination.page,
+    includeContent: true,
+  });
+
+  return {
+    resources: data?.data || [],
+    totalPages: Math.ceil((data?.count || 0) / pagination.limit),
+    isLoading,
+    isAllUnfiltered,
+  };
+};
+
+// ─── Hook 3: Event handlers ─────────────────────────────────────
+const useResourceHandlers = ({
+  filterType,
+  setFilterType,
+  setPagination,
+  searchParams,
+  setSearchParams,
+  setSearchQuery,
+  navigate,
+  setSelectedVocab,
+  setIsVocabDialogOpen,
+}) => {
   const handleOpenResource = async (resource) => {
     await Resource.incrementViewCount(resource.id);
-    if (resource.content_type === 'blog' && resource.slug) {
-      navigate(`/blog/${resource.slug}`);
-    } else if (resource.content_type === 'vocabulary') {
-      setSelectedVocab(resource);
-      setIsVocabDialogOpen(true);
-    } else {
-      window.open(resource.url, '_blank', 'noopener,noreferrer');
-    }
+    navigateToResource({
+      resource,
+      navigate,
+      onVocab: (r) => {
+        setSelectedVocab(r);
+        setIsVocabDialogOpen(true);
+      },
+    });
   };
 
   const handleViewAllType = (type) => {
@@ -655,207 +752,133 @@ const ResourcesSection = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleTypeChange = (id) => {
+    setFilterType(id);
+    setPagination((p) => ({ ...p, page: 1 }));
+    if (id === 'all') searchParams.delete('type');
+    else searchParams.set('type', id);
+    setSearchParams(searchParams);
+  };
+
+  const handleReset = () => {
+    setSearchQuery('');
+    setFilterType('all');
+    searchParams.delete('type');
+    setSearchParams(searchParams);
+  };
+
+  return { handleOpenResource, handleViewAllType, handleTypeChange, handleReset };
+};
+
+// ─── ResourcesContent — animated content area ───────────────────
+const ResourcesContent = ({
+  isLoading,
+  resources,
+  isAllUnfiltered,
+  filterType,
+  searchQuery,
+  pagination,
+  handleOpenResource,
+  handleViewAllType,
+  handleReset,
+}) => {
+  const getContent = () => {
+    if (isLoading) return <ResourcesSkeleton />;
+    if (!resources.length) {
+      return (
+        <EmptyStateView searchQuery={searchQuery} filterType={filterType} onReset={handleReset} />
+      );
+    }
+    if (isAllUnfiltered) {
+      return (
+        <SegmentedAllView
+          resources={resources}
+          onOpen={handleOpenResource}
+          onViewAll={handleViewAllType}
+        />
+      );
+    }
+    return (
+      <FilteredGridView resources={resources} filterType={filterType} onOpen={handleOpenResource} />
+    );
+  };
+
   return (
-    <div className="space-y-10">
-      {/* Premium Controls */}
-      <div className="sticky top-6 z-40">
-        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl p-2 rounded-[2rem] shadow-2xl shadow-slate-900/5 dark:shadow-black/50 border border-white/50 dark:border-white/10 flex flex-col lg:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full lg:max-w-md group">
-            <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-              <Search className="h-4.5 w-4.5 text-slate-400 dark:text-slate-600 group-focus-within:text-indigo-500 dark:group-focus-within:text-indigo-400 transition-all duration-300 group-focus-within:scale-110" />
-            </div>
-            <Input
-              placeholder="Search resources..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 bg-white dark:bg-slate-950 border-slate-200/60 dark:border-white/[0.12] h-12 rounded-xl focus:ring-indigo-500/20 transition-all font-medium text-slate-900 dark:text-white placeholder:text-slate-400"
-              data-oid="55e9m42"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-5 top-1/2 -translate-y-1/2 p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/10 transition-all"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={filterType + pagination.page}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.98 }}
+        transition={{ duration: 0.4 }}
+      >
+        {getContent()}
+      </motion.div>
+    </AnimatePresence>
+  );
+};
 
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100/50 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-white/[0.12] w-full lg:w-auto overflow-x-auto no-scrollbar">
-            {CONTENT_TYPES.map((type) => (
-              <button
-                key={type.id}
-                onClick={() => {
-                  setFilterType(type.id);
-                  setPagination((p) => ({ ...p, page: 1 }));
-                  if (type.id === 'all') {
-                    searchParams.delete('type');
-                  } else {
-                    searchParams.set('type', type.id);
-                  }
-                  setSearchParams(searchParams);
-                }}
-                className={cn(
-                  'flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-[9px] font-black transition-all duration-300 whitespace-nowrap min-w-0 flex-1 lg:flex-none uppercase tracking-[0.15em]',
-                  filterType === type.id
-                    ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/30 scale-105 active:scale-95'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-white/10'
-                )}
-              >
-                {type.icon && <type.icon className="w-3.5 h-3.5" />}
-                {type.label}
-              </button>
-            ))}
-          </div>
+// ─── Main Component ─────────────────────────────────────────────
+const ResourcesSection = () => {
+  const navigate = useNavigate();
+  const [selectedVocab, setSelectedVocab] = useState(null);
+  const [isVocabDialogOpen, setIsVocabDialogOpen] = useState(false);
 
-          <div className="hidden lg:flex items-center gap-5 px-8 border-l border-slate-200 dark:border-white/10 h-8">
-            <div className="flex items-center gap-2.5 text-indigo-500 cursor-pointer group/view">
-              <LayoutGrid className="w-5 h-5" />
-              <span className="text-[9px] font-black uppercase tracking-widest">Grid</span>
-            </div>
-            <div className="flex items-center gap-2.5 text-slate-300 dark:text-slate-700 cursor-not-allowed">
-              <List className="w-5 h-5" />
-              <span className="text-[9px] font-black uppercase tracking-widest">List</span>
-            </div>
-          </div>
-        </div>
-      </div>
+  const {
+    searchParams,
+    setSearchParams,
+    searchQuery,
+    setSearchQuery,
+    debouncedSearchQuery,
+    filterType,
+    setFilterType,
+    pagination,
+    setPagination,
+  } = useFilterState();
+  const { resources, totalPages, isLoading, isAllUnfiltered } = useResourcesQuery({
+    filterType,
+    debouncedSearchQuery,
+    pagination,
+  });
+  const { handleOpenResource, handleViewAllType, handleTypeChange, handleReset } =
+    useResourceHandlers({
+      filterType,
+      setFilterType,
+      setPagination,
+      searchParams,
+      setSearchParams,
+      setSearchQuery,
+      navigate,
+      setSelectedVocab,
+      setIsVocabDialogOpen,
+    });
 
-      {/* Content */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={filterType + debouncedSearchQuery + pagination.page}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.98 }}
-          transition={{ duration: 0.4 }}
-        >
-          {isLoading ? (
-            <ResourcesSkeleton />
-          ) : resources.length > 0 ? (
-            filterType === 'all' && !debouncedSearchQuery ? (
-              <SegmentedAllView
-                resources={resources}
-                onOpen={handleOpenResource}
-                onViewAll={handleViewAllType}
-              />
-            ) : (
-              <FilteredGridView
-                resources={resources}
-                filterType={filterType}
-                onOpen={handleOpenResource}
-              />
-            )
-          ) : (
-            <div
-              className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-white/60 dark:border-white/[0.12] shadow-2xl relative z-10"
-              data-oid="-w7141x"
-            >
-              <div className="w-32 h-32 bg-slate-100/50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-10 shadow-inner">
-                <Library className="w-14 h-14 text-slate-300 dark:text-slate-600" />
-              </div>
-              <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">
-                Quiet in the Library
-              </h3>
-              <p className="text-lg text-slate-500 dark:text-slate-400 font-medium mb-10 max-w-lg mx-auto leading-relaxed">
-                {searchQuery
-                  ? "We couldn't find any resources matching your search. Try different keywords or browse our main categories."
-                  : "We're currently enriching our collection of specialized IELTS materials. Check back soon for fresh content!"}
-              </p>
-              {(searchQuery || filterType !== 'all') && (
-                <Button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setFilterType('all');
-                    searchParams.delete('type');
-                    setSearchParams(searchParams);
-                  }}
-                  className="rounded-3xl h-16 px-12 font-black uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xl shadow-indigo-600/20 active:scale-95 transition-all text-base border-0"
-                >
-                  Reset Knowledge Base
-                </Button>
-              )}
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
-
-      {/* Pagination */}
+  return (
+    <div className="space-y-4">
+      <ControlsBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        filterType={filterType}
+        handleTypeChange={handleTypeChange}
+      />
+      <ResourcesContent
+        isLoading={isLoading}
+        resources={resources}
+        isAllUnfiltered={isAllUnfiltered}
+        filterType={filterType}
+        searchQuery={searchQuery}
+        pagination={pagination}
+        handleOpenResource={handleOpenResource}
+        handleViewAllType={handleViewAllType}
+        handleReset={handleReset}
+      />
       {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 md:gap-10 pt-16 md:pt-20 pb-10 w-full px-2">
-          {/* Mobile Navigation */}
-          <div className="flex sm:hidden w-full justify-between items-center mb-2 px-2">
-            <Button
-              variant="outline"
-              disabled={pagination.page <= 1}
-              onClick={() => {
-                setPagination((p) => ({ ...p, page: p.page - 1 }));
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="rounded-xl h-10 px-4 font-bold uppercase tracking-widest text-[10px] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800"
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              disabled={pagination.page >= totalPages}
-              onClick={() => {
-                setPagination((p) => ({ ...p, page: p.page + 1 }));
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="rounded-xl h-10 px-4 font-bold uppercase tracking-widest text-[10px] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800"
-            >
-              Next
-            </Button>
-          </div>
-
-          <Button
-            variant="ghost"
-            disabled={pagination.page <= 1}
-            onClick={() => {
-              setPagination((p) => ({ ...p, page: p.page - 1 }));
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="hidden sm:flex rounded-2xl h-12 md:h-14 px-6 md:px-10 font-bold uppercase tracking-widest text-xs text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all hover:bg-indigo-50 dark:hover:bg-indigo-500/10"
-          >
-            Previous
-          </Button>
-
-          <div className="flex items-center justify-center gap-1.5 md:gap-3 flex-wrap max-w-full px-2">
-            {[...Array(totalPages)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  setPagination((p) => ({ ...p, page: i + 1 }));
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className={cn(
-                  'w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl font-black text-xs md:text-sm transition-all relative overflow-hidden',
-                  pagination.page === i + 1
-                    ? 'bg-indigo-600 text-white shadow-xl md:shadow-2xl shadow-indigo-600/30 scale-[1.05] active:scale-95 z-10'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10'
-                )}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
-
-          <Button
-            variant="ghost"
-            disabled={pagination.page >= totalPages}
-            onClick={() => {
-              setPagination((p) => ({ ...p, page: p.page + 1 }));
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="hidden sm:flex rounded-2xl h-12 md:h-14 px-6 md:px-10 font-bold uppercase tracking-widest text-xs text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all hover:bg-indigo-50 dark:hover:bg-indigo-500/10"
-          >
-            Next
-          </Button>
-        </div>
+        <PaginationBar
+          pagination={pagination}
+          totalPages={totalPages}
+          setPagination={setPagination}
+        />
       )}
-
-      {/* Vocabulary Study Dialog */}
       <Dialog open={isVocabDialogOpen} onOpenChange={setIsVocabDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-[3rem] border-none p-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl">
           {selectedVocab && <VocabularyStudyView resource={selectedVocab} />}

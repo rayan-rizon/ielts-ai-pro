@@ -40,7 +40,7 @@ const PageHeader = () => (
       </div>
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-none sm:leading-tight">
             Study Groups
           </h1>
           <Badge className="px-2.5 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 rounded-md font-semibold text-xs uppercase tracking-wider">
@@ -216,72 +216,95 @@ const GroupPreviewCard = ({ name, members, type, difficulty, isFull }) => {
             >
               <Icon className="w-4.5 h-4.5" />
             </div>
-            <Badge
-              variant="outline"
+            {/* Category pill — rich pastel with icon */}
+            <span
               className={cn(
-                'text-[10px] font-extrabold px-2 py-0.5 rounded-lg border',
+                'inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-lg border tracking-wide',
                 theme.badge
               )}
             >
+              <Icon className="w-3 h-3" />
               {type}
-            </Badge>
+            </span>
           </div>
 
-          {/* Participant Avatars */}
+          {/* Participant Avatars + count pill */}
           <div className="flex items-center -space-x-2">
             {[...Array(3)].map((_, i) => (
               <img
                 key={i}
                 src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}-${i}`}
-                className="w-6.5 h-6.5 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 object-cover shadow-2xs"
+                className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 object-cover shadow-sm"
                 alt="Participant"
               />
             ))}
-            <div className="w-6.5 h-6.5 rounded-full border-2 border-white dark:border-slate-900 bg-indigo-600 text-white font-extrabold text-[9px] flex items-center justify-center shadow-2xs">
+            {/* Member count — glowing indigo pill */}
+            <div className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 bg-indigo-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm ring-2 ring-indigo-500/30">
               +{members}
             </div>
           </div>
         </div>
 
         {/* Title & Difficulty */}
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <h4 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex items-center justify-between">
             <span className="truncate">{name}</span>
             <ArrowRight className="w-4 h-4 text-indigo-500 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 shrink-0 ml-1" />
           </h4>
-          <div className="flex items-center gap-2">
-            <Badge
-              variant="outline"
-              className="text-[9px] font-bold text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 rounded-md px-1.5 py-0 uppercase"
+          <div className="flex items-center gap-1.5">
+            {/* Difficulty badge — color-coded, pill style */}
+            <span
+              className={cn(
+                'inline-flex items-center text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider border',
+                difficulty === 'Academic'
+                  ? 'bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-500/30'
+                  : difficulty === 'General'
+                    ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-300/50 dark:border-sky-500/30'
+                    : 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-300/50 dark:border-orange-500/30'
+              )}
             >
               {difficulty}
-            </Badge>
-            <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">
-              • {members} Active Members
+            </span>
+            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+              · {members} members
             </span>
           </div>
         </div>
       </div>
 
       {/* Card Footer: Status Pill & Action */}
-      <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between mt-3 text-xs font-bold">
-        <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider">
+      <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between mt-2.5">
+        {/* Live/Full status pill */}
+        <div
+          className={cn(
+            'inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border',
+            isFull
+              ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+              : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300/60 dark:border-emerald-500/30'
+          )}
+        >
           <span
             className={cn(
-              'w-2 h-2 rounded-full',
+              'w-1.5 h-1.5 rounded-full',
               isFull
-                ? 'bg-slate-300 dark:bg-slate-600'
-                : 'bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]'
+                ? 'bg-slate-400'
+                : 'bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.7)]'
             )}
           />
-          <span className={isFull ? 'text-slate-400' : 'text-emerald-600 dark:text-emerald-400'}>
-            {isFull ? 'Room Full' : 'Live Practice'}
-          </span>
+          {isFull ? 'Room Full' : 'Live Practice'}
         </div>
 
-        <div className="flex items-center gap-1 text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider group-hover:translate-x-0.5 transition-transform">
-          <span>{isFull ? 'View Info' : 'Pro Preview'}</span>
-          <Lock className="w-3 h-3 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+        {/* Pro/Info action — pill with lock icon */}
+        <div
+          className={cn(
+            'inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border transition-all duration-200 group-hover:scale-105',
+            isFull
+              ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
+              : 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-300/50 dark:border-indigo-500/30'
+          )}
+        >
+          <Lock className="w-2.5 h-2.5" />
+          {isFull ? 'View Info' : 'Pro Preview'}
         </div>
       </div>
     </motion.div>
@@ -342,7 +365,7 @@ export default function StudyGroups() {
           {/* Left Main Column (8 cols) */}
           <div className="lg:col-span-8 space-y-5">
             {/* Hero Main Section Card (Reduced Height) */}
-            <div className="relative overflow-hidden rounded-3xl border border-indigo-200/80 dark:border-indigo-500/20 bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-indigo-950/40 dark:via-slate-900 dark:to-purple-950/30 backdrop-blur-2xl p-5 sm:p-6 space-y-4 shadow-md shadow-indigo-500/5">
+            <div className="relative overflow-hidden rounded-3xl border border-indigo-200/80 dark:border-indigo-500/20 bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-indigo-950/40 dark:via-slate-900 dark:to-purple-950/30 backdrop-blur-2xl p-4 sm:p-5 space-y-3 shadow-md shadow-indigo-500/5">
               {/* Subtle Ambient Glow Effect */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 blur-3xl pointer-events-none -z-10" />
 
@@ -351,24 +374,24 @@ export default function StudyGroups() {
                   <Clock className="w-3 h-3" />
                   <span>Launching Next Quarter</span>
                 </Badge>
-                <ShieldCheck className="w-5 h-5 text-indigo-500/50" />
+                <ShieldCheck className="w-4.5 h-4.5 text-indigo-500/50" />
               </div>
 
-              <div className="space-y-1 max-w-xl">
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
+              <div className="space-y-0.5 max-w-xl">
+                <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
                   Connect, Collaborate, and{' '}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-400">
                     Conquer.
                   </span>
                 </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
                   A state-of-the-art virtual simulation environment. Join specialized rooms to
                   practice with peers at your level.
                 </p>
               </div>
 
               {/* 4 Compact Feature Cards */}
-              <div className="grid sm:grid-cols-2 gap-3 pt-1">
+              <div className="grid sm:grid-cols-2 gap-2.5">
                 <FeatureHighlight
                   icon={Video}
                   title="Live Video Practice"
@@ -400,10 +423,10 @@ export default function StudyGroups() {
               </div>
 
               {/* Action Button & Disclaimer */}
-              <div className="pt-3 border-t border-slate-200/80 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="pt-2.5 border-t border-slate-200/80 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <Button
                   disabled
-                  className="rounded-xl px-5 h-9 font-bold text-xs bg-indigo-600 opacity-80 text-white cursor-not-allowed shadow-xs border-0"
+                  className="rounded-xl px-4 h-8 font-bold text-xs bg-indigo-600 opacity-80 text-white cursor-not-allowed shadow-xs border-0"
                 >
                   Coming Soon
                 </Button>
