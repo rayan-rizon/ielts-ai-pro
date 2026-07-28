@@ -8,7 +8,7 @@ import {
 } from '../src/features/learning/utils/blogPresentation.js';
 
 const SITE_URL = 'https://www.ieltsai.pro';
-const DEFAULT_IMAGE = `${SITE_URL}/og-image.webp`;
+const DEFAULT_IMAGE = `${SITE_URL}/og.webp`;
 const ARTICLE_FIELDS = [
   'id',
   'title',

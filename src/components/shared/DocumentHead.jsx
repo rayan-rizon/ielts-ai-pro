@@ -103,7 +103,7 @@ export default function DocumentHead({
   title,
   description,
   canonicalUrl,
-  image = 'https://www.ieltsai.pro/og-image.webp',
+  image = 'https://www.ieltsai.pro/og.webp',
   imageAlt,
   imageWidth = 1200,
   imageHeight = 630,
