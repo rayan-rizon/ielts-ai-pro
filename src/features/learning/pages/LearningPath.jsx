@@ -21,7 +21,7 @@ export default function LearningPath() {
   return (
     <>
       <DocumentHead
-        title="Personalized Learning Path | IELTS Ai Pro"
+        title="Personalized AI Learning Path | IELTS Ai Pro"
         description="An evidence-aware IELTS roadmap and realistic seven-day study schedule based on your exam date and availability."
       />
       <main className="relative min-h-screen bg-[#f8f9fd] px-3 py-5 text-slate-950 dark:bg-[#070913] dark:text-white sm:px-5 md:px-7 md:py-8">

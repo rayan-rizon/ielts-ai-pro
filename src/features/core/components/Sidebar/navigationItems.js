@@ -26,7 +26,7 @@ import { createPageUrl } from '@/utils';
 
 export const userNavigationItems = [
   { title: 'Dashboard', url: createPageUrl('Dashboard'), icon: LayoutGrid },
-  { title: 'Learning Path', url: createPageUrl('LearningPath'), icon: Sparkles },
+  { title: 'AI Learning Path', url: createPageUrl('LearningPath'), icon: Sparkles },
   { title: 'Reading Tests', url: createPageUrl('Reading'), icon: BookOpen },
   { title: 'Writing Practice', url: createPageUrl('Writing'), icon: PenTool },
   { title: 'Listening Tests', url: createPageUrl('Listening'), icon: Headphones },

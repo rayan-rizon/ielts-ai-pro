@@ -166,7 +166,7 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('Plan · Practise · Review · Succeed');
     expect(response.body).toContain('Reviewed by the IELTS Ai Pro editorial team');
     expect(response.body).toContain('data-tone="reading"');
-    expect(response.body).toContain('Reading</span><h1>');
+    expect(response.body).toContain('<span>Reading</span></span><h1>IELTS Reading Strategy</h1>');
     expect(response.body).toContain('class="site-footer"');
     expect(response.body).toContain('Core Features');
     expect(response.body).toContain('Independent prep platform. Not affiliated with IELTS');

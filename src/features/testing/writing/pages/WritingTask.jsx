@@ -59,12 +59,11 @@ function WritingFeedbackDrawer({
 
   return (
     <motion.div
-      layout="position"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      transition={{ type: 'spring', bounce: 0, duration: 0.35 }}
-      className="absolute lg:relative right-0 top-0 bottom-0 w-full lg:w-1/2 bg-white dark:bg-black border-l border-slate-200 dark:border-slate-800 shadow-2xl z-20 flex flex-col h-full"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+      className="absolute md:relative right-0 top-0 bottom-0 w-full md:w-1/2 bg-white dark:bg-black border-l border-slate-200 dark:border-slate-800 shadow-2xl z-20 flex flex-col h-full"
       data-oid="zsyqr7w"
     >
       <div
@@ -185,17 +184,15 @@ function WritingTaskContent() {
         data-oid="50emge."
       >
         {isAwaitingStart ? <TestStartPreviewNotice examEligibility={examEligibility} /> : null}
-        <AnimatePresence mode="wait" initial={false} data-oid=".rp02r7">
-          {showTaskPanel && (
-            <MemoizedTaskPanel
-              task={task}
-              showSample={showSample}
-              setShowSample={setShowSample}
-              allowSample={testMode !== 'exam' || isCompleted}
-              data-oid="oxbs3rj"
-            />
-          )}
-        </AnimatePresence>
+        {showTaskPanel && (
+          <MemoizedTaskPanel
+            task={task}
+            showSample={showSample}
+            setShowSample={setShowSample}
+            allowSample={testMode !== 'exam' || isCompleted}
+            data-oid="oxbs3rj"
+          />
+        )}
 
         <MemoizedWritingEditorPane
           task={task}
@@ -295,7 +292,7 @@ function AnnotatedReviewPane({ feedback, writing, setWriting }) {
   );
 
   return (
-    <div className="flex-1 pt-0 px-1 sm:px-2 pb-6" data-oid="j1tntdm">
+    <div className="pt-0 px-1 sm:px-2 pb-6" data-oid="j1tntdm">
       <div
         className="bg-white dark:bg-[#0D0E1A] rounded-2xl border border-indigo-100/50 dark:border-white/5 shadow-sm p-3 min-h-[500px]"
         data-oid="w9yqk30"
@@ -314,7 +311,7 @@ function AnnotatedReviewPane({ feedback, writing, setWriting }) {
 
 function QuestionViewPane({ task, showSample, setShowSample }) {
   return (
-    <div className="flex-1 overflow-y-auto" data-oid="2zns8ok">
+    <div className="flex-1" data-oid="2zns8ok">
       <MemoizedTaskPanel
         task={task}
         showSample={showSample}
@@ -344,33 +341,63 @@ function WritingPaneBody({
 }) {
   const isReviewMode = hasFeedback && viewMode === 'review' && Boolean(currentFeedback);
   const isQuestionMode = hasFeedback && viewMode === 'question';
+  const contentKey = isReviewMode ? 'review' : isQuestionMode ? 'question' : 'editor';
 
-  if (isReviewMode) {
-    return (
+  const [activeKey, setActiveKey] = useState(contentKey);
+  const [isFading, setIsFading] = useState(false);
+
+  useEffect(() => {
+    if (contentKey !== activeKey) {
+      setIsFading(true);
+      const timer = setTimeout(() => {
+        setActiveKey(contentKey);
+        setIsFading(false);
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [contentKey, activeKey]);
+
+  const showReview = activeKey === 'review' && hasFeedback && Boolean(currentFeedback);
+  const showQuestion = activeKey === 'question' && hasFeedback;
+
+  let content;
+  if (showReview) {
+    content = (
       <AnnotatedReviewPane feedback={currentFeedback} writing={writing} setWriting={setWriting} />
+    );
+  } else if (showQuestion) {
+    content = (
+      <QuestionViewPane task={task} showSample={showSample} setShowSample={setShowSample} />
+    );
+  } else {
+    content = (
+      <WritingEditor
+        key={activeType}
+        writing={writing}
+        setWriting={setWriting}
+        wordCount={wordCount}
+        targetLimit={activeType === 'Task 2' ? 250 : 150}
+        isCompleted={isCompleted}
+        isAnalyzing={isAnalyzing}
+        currentFeedback={currentFeedback}
+        isSidebarClosed={isSidebarClosed}
+        onToggleSidebar={onToggleSidebar}
+        title={`${activeType} Response`}
+        subtitle={`Draft your ${activeType.toLowerCase()} essay`}
+        data-oid="p08gpnf"
+      />
     );
   }
 
-  if (isQuestionMode) {
-    return <QuestionViewPane task={task} showSample={showSample} setShowSample={setShowSample} />;
-  }
-
   return (
-    <WritingEditor
-      key={activeType}
-      writing={writing}
-      setWriting={setWriting}
-      wordCount={wordCount}
-      targetLimit={activeType === 'Task 2' ? 250 : 150}
-      isCompleted={isCompleted}
-      isAnalyzing={isAnalyzing}
-      currentFeedback={currentFeedback}
-      isSidebarClosed={isSidebarClosed}
-      onToggleSidebar={onToggleSidebar}
-      title={`${activeType} Response`}
-      subtitle={`Draft your ${activeType.toLowerCase()} essay`}
-      data-oid="p08gpnf"
-    />
+    <div
+      className={cn(
+        'flex flex-1 min-h-0 flex-col transition-opacity duration-150 ease-in-out',
+        isFading ? 'opacity-0' : 'opacity-100'
+      )}
+    >
+      {content}
+    </div>
   );
 }
 
@@ -402,10 +429,7 @@ function WritingEditorPane({
   );
 
   return (
-    <motion.div
-      layout
-      initial={false}
-      transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
+    <div
       className={cn(
         'relative z-30 flex min-h-0 flex-col overflow-hidden bg-[#fcfcfc] dark:bg-[#050505]',
         hasFeedback
@@ -417,23 +441,28 @@ function WritingEditorPane({
       data-oid="ctlrd56"
     >
       {hasFeedback && <WritingViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />}
-      <WritingPaneBody
-        hasFeedback={hasFeedback}
-        viewMode={viewMode}
-        currentFeedback={currentFeedback}
-        writing={writing}
-        setWriting={setWriting}
-        task={task}
-        showSample={showSample}
-        setShowSample={setShowSample}
-        activeType={activeType}
-        wordCount={wordCount}
-        isCompleted={isCompleted}
-        isAnalyzing={isAnalyzing}
-        isSidebarClosed={isSidebarClosed}
-        onToggleSidebar={onToggleSidebar}
-      />
-    </motion.div>
+      <div
+        className="flex flex-1 min-h-0 flex-col overflow-y-auto"
+        style={{ scrollbarGutter: 'stable' }}
+      >
+        <WritingPaneBody
+          hasFeedback={hasFeedback}
+          viewMode={viewMode}
+          currentFeedback={currentFeedback}
+          writing={writing}
+          setWriting={setWriting}
+          task={task}
+          showSample={showSample}
+          setShowSample={setShowSample}
+          activeType={activeType}
+          wordCount={wordCount}
+          isCompleted={isCompleted}
+          isAnalyzing={isAnalyzing}
+          isSidebarClosed={isSidebarClosed}
+          onToggleSidebar={onToggleSidebar}
+        />
+      </div>
+    </div>
   );
 }
 

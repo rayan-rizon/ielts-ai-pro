@@ -10,6 +10,13 @@ const seed = readFileSync(
   resolve(process.cwd(), 'supabase/migrations/20260728040624_grammar_lab_seed_content.sql'),
   'utf8'
 ).toLowerCase();
+const dashboardAliasFix = readFileSync(
+  resolve(
+    process.cwd(),
+    'supabase/migrations/20260728050739_fix_grammar_dashboard_activity_alias.sql'
+  ),
+  'utf8'
+).toLowerCase();
 
 describe('Grammar Lab database contracts', () => {
   it('creates the five versioned data tables with RLS', () => {
@@ -71,5 +78,14 @@ describe('Grammar Lab database contracts', () => {
     expect(seed).toContain("'writing', 'task_1'");
     expect(seed).toContain("'writing', 'task_2'");
     expect(seed).toContain("'speaking', 'part_3'");
+  });
+
+  it('uses explicit JSON aliases when extracting Grammar Learning Path activities', () => {
+    expect(dashboardAliasFix).toContain('as days(day_name, activities)');
+    expect(dashboardAliasFix).toContain(
+      'cross join lateral jsonb_array_elements(days.activities) as activity(item)'
+    );
+    expect(dashboardAliasFix).toContain('jsonb_agg(activity.item)');
+    expect(dashboardAliasFix).not.toContain('jsonb_agg(value)');
   });
 });
