@@ -11,11 +11,17 @@ import process from 'node:process';
  * recovers those events. Each event carries the `event_id` the Pixel used, so
  * Meta deduplicates the pair into one conversion instead of double-counting.
  *
- * Required env: META_CAPI_ACCESS_TOKEN, META_PIXEL_ID
- * Optional env: META_TEST_EVENT_CODE (set only while validating in Events Manager)
+ * Required env: META_CAPI_ACCESS_TOKEN
+ * Optional env: META_PIXEL_ID (defaults to the site pixel below),
+ *               META_TEST_EVENT_CODE (set only while validating in Events Manager)
  */
 
 const GRAPH_VERSION = 'v21.0';
+
+// The pixel id is public (it ships in every page's HTML), so a hardcoded
+// default is safe and removes one misconfiguration failure mode. Only the
+// access token is a real secret.
+const DEFAULT_PIXEL_ID = '991226963227159';
 
 const ALLOWED_EVENTS = new Set([
   'CompleteRegistration',
@@ -74,13 +80,13 @@ export default async function handler(req, res) {
   }
 
   const accessToken = process.env.META_CAPI_ACCESS_TOKEN;
-  const pixelId = process.env.META_PIXEL_ID;
+  const pixelId = process.env.META_PIXEL_ID || DEFAULT_PIXEL_ID;
 
-  if (!accessToken || !pixelId) {
+  if (!accessToken) {
     // Measurement is not load-bearing for the user's request. Fail quietly with
     // a 204 so a missing token never surfaces as a client-side error, but log
     // loudly enough to be caught in deploy logs.
-    console.warn('[meta-capi] META_CAPI_ACCESS_TOKEN or META_PIXEL_ID is not configured');
+    console.warn('[meta-capi] META_CAPI_ACCESS_TOKEN is not configured');
     return res.status(204).end();
   }
 
