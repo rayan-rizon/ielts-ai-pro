@@ -7,57 +7,46 @@ import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 
 const MODULES = [
-  {
-    id: 'reading',
-    label: 'Reading',
-    icon: BookOpen,
-  },
-  {
-    id: 'listening',
-    label: 'Listening',
-    icon: Headphones,
-  },
-  {
-    id: 'writing',
-    label: 'Writing',
-    icon: PenTool,
-  },
-  {
-    id: 'speaking',
-    label: 'Speaking',
-    icon: Mic,
-  },
+  { id: 'reading', label: 'Reading', icon: BookOpen },
+  { id: 'listening', label: 'Listening', icon: Headphones },
+  { id: 'writing', label: 'Writing', icon: PenTool },
+  { id: 'speaking', label: 'Speaking', icon: Mic },
 ];
+
+const formatOverallAvg = (stats) => {
+  const rawAvg = stats?.avgScore;
+  if (!rawAvg) return '—';
+  const num = Number(rawAvg);
+  return num > 0 ? num.toFixed(1) : '—';
+};
 
 const getProgressDiff = (latestScore, moduleAvg) => {
   if (!latestScore || !moduleAvg) return null;
   const diff = Number(latestScore) - Number(moduleAvg);
-  if (isNaN(diff) || diff === 0) return { val: '0.0', isImprovement: true, neutral: true };
+  if (!diff) return { val: '0.0', isImprovement: true, neutral: true };
   return {
     val: Math.abs(diff).toFixed(1),
-    isImprovement: diff >= 0,
+    isImprovement: diff > 0,
     neutral: false,
   };
 };
 
 const extractLatestByModule = (recentTests) => {
   if (!Array.isArray(recentTests)) return {};
-  const map = {};
-  for (const test of recentTests) {
+  const result = {};
+  for (let i = 0; i < recentTests.length; i += 1) {
+    const test = recentTests[i];
     if (test?.module) {
       const mod = test.module.toLowerCase();
-      if (!map[mod]) {
-        map[mod] = test;
-      }
+      if (!result[mod]) result[mod] = test;
     }
   }
-  return map;
+  return result;
 };
 
 const DiffBadge = ({ diffInfo }) => {
   if (!diffInfo || diffInfo.neutral) return null;
   const { isImprovement, val } = diffInfo;
-  const sign = isImprovement ? '+' : '-';
   const badgeClass = isImprovement
     ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
     : 'bg-rose-50 text-rose-600 dark:bg-rose-500/20 dark:text-rose-300';
@@ -65,7 +54,7 @@ const DiffBadge = ({ diffInfo }) => {
   return (
     <div className="flex items-center gap-1 text-[9.5px] font-bold">
       <span className={cn('rounded-full px-1.5 py-0.2', badgeClass)}>
-        {sign}
+        {isImprovement ? '+' : '-'}
         {val} vs avg
       </span>
     </div>
@@ -95,7 +84,7 @@ const ScoreDisplay = ({ score }) => {
 
 const PerformanceModuleCard = React.memo(({ module, test, avgScore }) => {
   const { label, icon: Icon } = module;
-  const score = test ? Number(test.score) : null;
+  const score = test?.score != null ? Number(test.score) : null;
   const diffInfo = getProgressDiff(score, avgScore);
 
   return (
@@ -124,7 +113,8 @@ PerformanceModuleCard.displayName = 'PerformanceModuleCard';
 
 const PerformanceSummaryCard = React.memo(({ recentTests, stats }) => {
   const latestByModule = useMemo(() => extractLatestByModule(recentTests), [recentTests]);
-  const avg = stats?.avgScore ? Number(stats.avgScore) : 0;
+  const displayAvg = formatOverallAvg(stats);
+  const moduleAverages = stats?.moduleAverages || {};
 
   return (
     <Card className="rounded-[22px] border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] transition-all duration-300 overflow-hidden flex flex-col h-full">
@@ -151,15 +141,15 @@ const PerformanceSummaryCard = React.memo(({ recentTests, stats }) => {
               key={module.id}
               module={module}
               test={latestByModule[module.id]}
-              avgScore={stats?.moduleAverages?.[module.id]}
+              avgScore={moduleAverages[module.id]}
             />
           ))}
         </div>
 
-        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-[#10131f] flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-slate-400">
             <Target className="w-3.5 h-3.5 text-[#5661e9]" />
-            Overall Avg {avg > 0 ? avg.toFixed(1) : '—'}
+            Overall Avg {displayAvg}
           </div>
           <Link
             to={createPageUrl('Analytics')}

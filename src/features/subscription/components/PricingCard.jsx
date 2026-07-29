@@ -40,6 +40,133 @@ function PricingFeature({ label, unavailable, isPro }) {
   );
 }
 
+function CardHeaderBadge({ isPro, isPremium }) {
+  if (isPro) {
+    return (
+      <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wide flex items-center gap-1.5 border border-[#E5D4FF] dark:border-purple-500/30 text-[#8B5CF6] dark:text-purple-400 bg-[#F5F0FF] dark:bg-purple-500/10 shrink-0">
+        <Sparkles className="w-3 h-3 text-[#8B5CF6]" />
+        Most Popular
+      </span>
+    );
+  }
+  if (isPremium) {
+    return (
+      <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wide flex items-center gap-1.5 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 shrink-0">
+        <Crown className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+        Ultimate
+      </span>
+    );
+  }
+  return null;
+}
+
+function PriceDisplay({ plan, displayPrice, isPricingLoading }) {
+  const symbol = plan.currencySymbol || '$';
+  const discountPercent = plan.oldPrice
+    ? Math.round((1 - Number(displayPrice) / plan.oldPrice) * 100)
+    : 0;
+
+  return (
+    <div className="mb-2">
+      <div className="flex items-baseline gap-1.5">
+        {isPricingLoading ? (
+          <Skeleton className="h-10 w-32" />
+        ) : (
+          <>
+            <AnimatePresence mode="wait">
+              <m.span
+                key={displayPrice}
+                initial={{ y: 4, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -4, opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight"
+              >
+                {symbol}
+                {displayPrice}
+              </m.span>
+            </AnimatePresence>
+            <span className="text-[13px] font-medium text-slate-400">/ Per Month</span>
+          </>
+        )}
+      </div>
+
+      {plan.oldPrice && (
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+            WAS
+          </span>
+          <span className="text-xs font-bold text-slate-400 dark:text-slate-500 line-through">
+            {symbol}
+            {plan.oldPrice}
+          </span>
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-black">
+            SAVE {discountPercent}%
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FeatureList({ plan, isPro, isPricingLoading }) {
+  if (isPricingLoading) {
+    return (
+      <div className="space-y-3 mb-6">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-3">
+            <Skeleton className="w-5 h-5 rounded-full shrink-0" />
+            <Skeleton className={cn('h-4', i % 2 === 0 ? 'w-3/4' : 'w-1/2')} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3 mb-6">
+      {plan.features.map((feature, i) => (
+        <PricingFeature key={i} label={feature} unavailable={false} isPro={isPro} />
+      ))}
+      {plan.limitations?.map((lim, i) => (
+        <PricingFeature key={i} label={lim} unavailable={true} isPro={isPro} />
+      ))}
+    </div>
+  );
+}
+
+function ActionButton({ plan, isActive, isSubscribed, isLoading, isPricingLoading, onUpgrade }) {
+  const isPro = plan.tier === 'pro';
+  const buttonLabel =
+    plan.tier !== 'free' && isSubscribed ? 'Switch to this Plan' : plan.buttonText;
+
+  const buttonStyle = isActive
+    ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700'
+    : isPro
+      ? 'bg-slate-950 hover:bg-slate-900 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 shadow-md shadow-slate-950/10 hover:scale-[1.01] active:scale-[0.99]'
+      : 'bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200/90 dark:bg-slate-800/80 dark:border-slate-700 dark:text-white dark:hover:bg-slate-800 hover:border-slate-300/80 shadow-2xs hover:scale-[1.01] active:scale-[0.99]';
+
+  return (
+    <Button
+      onClick={() => onUpgrade(plan.tier)}
+      disabled={isLoading || isPricingLoading || isActive}
+      className={cn(
+        'group/btn w-full h-[52px] rounded-2xl text-[14px] font-bold tracking-tight transition-all duration-200 flex items-center justify-center gap-2 mt-auto cursor-pointer',
+        buttonStyle
+      )}
+    >
+      {isActive ? (
+        <span>Current Plan</span>
+      ) : (
+        <>
+          <span>{buttonLabel}</span>
+          <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1" />
+        </>
+      )}
+    </Button>
+  );
+}
+
 export default function PricingCard({
   plan,
   displayPrice,
@@ -68,123 +195,40 @@ export default function PricingCard({
         )}
       >
         <div>
-          {/* Card Header: Title on Left, Badge on Right */}
           <div className="flex items-center justify-between gap-2 mb-3">
             <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               {plan.name}
             </h3>
-            {isPro && (
-              <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wide flex items-center gap-1.5 border border-[#E5D4FF] dark:border-purple-500/30 text-[#8B5CF6] dark:text-purple-400 bg-[#F5F0FF] dark:bg-purple-500/10 shrink-0">
-                <Sparkles className="w-3 h-3 text-[#8B5CF6]" />
-                Most Popular
-              </span>
-            )}
-            {isPremium && (
-              <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wide flex items-center gap-1.5 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 shrink-0">
-                <Crown className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                Ultimate
-              </span>
-            )}
+            <CardHeaderBadge isPro={isPro} isPremium={isPremium} />
           </div>
 
-          {/* Pricing display */}
-          <div className="mb-2">
-            <div className="flex items-baseline gap-1.5">
-              {isPricingLoading ? (
-                <Skeleton className="h-10 w-32" />
-              ) : (
-                <>
-                  <AnimatePresence mode="wait">
-                    <m.span
-                      key={displayPrice}
-                      initial={{ y: 4, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: -4, opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                      className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight"
-                    >
-                      {plan.currencySymbol || '$'}
-                      {displayPrice}
-                    </m.span>
-                  </AnimatePresence>
-                  <span className="text-[13px] font-medium text-slate-400">/ Per Month</span>
-                </>
-              )}
-            </div>
-
-            {plan.oldPrice && (
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                  WAS
-                </span>
-                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 line-through">
-                  {plan.currencySymbol || '$'}
-                  {plan.oldPrice}
-                </span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-black">
-                  SAVE {Math.round((1 - Number(displayPrice) / plan.oldPrice) * 100)}%
-                </span>
-              </div>
-            )}
-          </div>
+          <PriceDisplay
+            plan={plan}
+            displayPrice={displayPrice}
+            isPricingLoading={isPricingLoading}
+          />
 
           <p className="text-[13px] font-medium leading-relaxed text-slate-500 dark:text-slate-400 mt-2 mb-4">
             {plan.description}
           </p>
 
-          {/* Dot line divider */}
           <div className="flex items-center gap-1.5 my-4">
-            <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
-            <div className="h-px bg-slate-200 dark:bg-slate-800 flex-1"></div>
-            <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+            <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+            <div className="h-px bg-slate-200 dark:bg-slate-800 flex-1" />
+            <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
           </div>
 
-          {/* Features checklist */}
-          <div className="space-y-3 mb-6">
-            {isPricingLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <Skeleton className="w-5 h-5 rounded-full shrink-0" />
-                  <Skeleton className={cn('h-4', i % 2 === 0 ? 'w-3/4' : 'w-1/2')} />
-                </div>
-              ))
-            ) : (
-              <>
-                {plan.features.map((feature, i) => (
-                  <PricingFeature key={i} label={feature} unavailable={false} isPro={isPro} />
-                ))}
-                {plan.limitations?.map((lim, i) => (
-                  <PricingFeature key={i} label={lim} unavailable={true} isPro={isPro} />
-                ))}
-              </>
-            )}
-          </div>
+          <FeatureList plan={plan} isPro={isPro} isPricingLoading={isPricingLoading} />
         </div>
 
-        {/* Action Button */}
-        <Button
-          onClick={() => onUpgrade(plan.tier)}
-          disabled={isLoading || isPricingLoading || isActive}
-          className={cn(
-            'group/btn w-full h-[52px] rounded-2xl text-[14px] font-bold tracking-tight transition-all duration-200 flex items-center justify-center gap-2 mt-auto cursor-pointer',
-            isActive
-              ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700'
-              : isPro
-                ? 'bg-slate-950 hover:bg-slate-900 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 shadow-md shadow-slate-950/10 hover:scale-[1.01] active:scale-[0.99]'
-                : 'bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200/90 dark:bg-slate-800/80 dark:border-slate-700 dark:text-white dark:hover:bg-slate-800 hover:border-slate-300/80 shadow-2xs hover:scale-[1.01] active:scale-[0.99]'
-          )}
-        >
-          {isActive ? (
-            <span>Current Plan</span>
-          ) : (
-            <>
-              <span>
-                {plan.tier !== 'free' && isSubscribed ? 'Switch to this Plan' : plan.buttonText}
-              </span>
-              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1" />
-            </>
-          )}
-        </Button>
+        <ActionButton
+          plan={plan}
+          isActive={isActive}
+          isSubscribed={isSubscribed}
+          isLoading={isLoading}
+          isPricingLoading={isPricingLoading}
+          onUpgrade={onUpgrade}
+        />
       </div>
     </m.div>
   );

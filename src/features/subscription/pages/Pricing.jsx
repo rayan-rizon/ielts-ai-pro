@@ -14,6 +14,8 @@ import { trackAppEvent } from '@/lib/tracking';
 // Extracted Components
 import PricingCard from '../components/PricingCard';
 import FAQSection from '../components/FAQSection';
+import PricingHeaderSection from '../components/PricingHeaderSection';
+import SubscriptionManagementBanner from '../components/SubscriptionManagementBanner';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -26,14 +28,71 @@ const containerVariants = {
 // Temporary kill switch for Bangladesh manual payment flow.
 const MANUAL_BD_PAYMENT_ENABLED = true;
 
+// Module-level helper functions to minimize component complexity
+const requestCustomerPortal = async (sessionToken) => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const response = await fetch(`${supabaseUrl}/functions/v1/create-customer-portal`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionToken}`,
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    if (data.error === 'no_stripe_subscription') return { noSubscription: true };
+    throw new Error(data.error || 'Failed to open billing portal');
+  }
+  return data;
+};
+
+const createStripeCheckout = async (sessionToken, planTier, interval, currency) => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const response = await fetch(`${supabaseUrl}/functions/v1/create-checkout-session`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionToken}`,
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    body: JSON.stringify({
+      tier: planTier,
+      interval,
+      currency: currency.toLowerCase(),
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to create checkout session');
+  }
+  if (!data.url) {
+    throw new Error('No checkout URL returned');
+  }
+  return data.url;
+};
+
+const getCountryIdentifier = (detectedCountry) => {
+  const raw = detectedCountry || localStorage.getItem('user_country') || '';
+  return raw.trim().toUpperCase();
+};
+
+const getPlanPriceAndMeta = ({ plans, planTier, billingInterval, promoDiscount, currentTier }) => {
+  const plan = plans.find((p) => p.tier === planTier);
+  const basePrice = plan ? plan.basePrice : 0;
+  const displayPrice = calculatePrice(basePrice, billingInterval, promoDiscount);
+  const currency = plan?.currency || 'USD';
+  const tier = currentTier || 'free';
+  return { plan, displayPrice, currency, tier };
+};
+
 export default function Pricing() {
   const [selectedPlan, setSelectedPlan] = useState('free');
   const [promoDiscount, setPromoDiscount] = useState(null);
-  const [billingInterval, setBillingInterval] = useState('monthly'); // 'monthly' | 'quarterly'
+  const [billingInterval, setBillingInterval] = useState('monthly');
   const [showManualPayment, setShowManualPayment] = useState(false);
   const [manualPaymentData, setManualPaymentData] = useState(null);
 
-  // Use custom hook for pricing and user data
   const {
     user,
     plans,
@@ -46,15 +105,12 @@ export default function Pricing() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const countryIdentifier = (detectedCountry || localStorage.getItem('user_country') || '')
-    .trim()
-    .toUpperCase();
+  const countryIdentifier = getCountryIdentifier(detectedCountry);
   const isBD =
     (countryIdentifier === 'BD' || countryIdentifier === 'BANGLADESH') &&
     countryIdentifier !== 'TEST';
   const useManualBdPayment = isBD && MANUAL_BD_PAYMENT_ENABLED;
 
-  // Sync selectedPlan and promoDiscount with user data when it loads
   useEffect(() => {
     if (user) {
       setSelectedPlan(user.subscription_tier || 'free');
@@ -62,7 +118,6 @@ export default function Pricing() {
     }
   }, [user]);
 
-  // Handle promo application
   const handlePromoApplied = async (redemptionData) => {
     if (redemptionData) {
       if (redemptionData.type === 'grant') {
@@ -90,31 +145,15 @@ export default function Pricing() {
 
     setIsLoading(true);
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const {
         data: { session },
       } = await import('@/lib/supabase').then((m) => m.supabase.auth.getSession());
       if (!session) return false;
 
-      const response = await fetch(`${supabaseUrl}/functions/v1/create-customer-portal`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-      });
+      const portalData = await requestCustomerPortal(session.access_token);
+      if (portalData.noSubscription) return false;
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (data.error === 'no_stripe_subscription') {
-          return false;
-        }
-        throw new Error(data.error || 'Failed to open billing portal');
-      }
-
-      if (data.url) window.location.href = data.url;
+      if (portalData.url) window.location.href = portalData.url;
       return true;
     } catch (error) {
       console.error('Portal failed:', error);
@@ -126,66 +165,28 @@ export default function Pricing() {
     }
   };
 
-  const handleUpgrade = async (planTier) => {
-    const selectedPlanData = plans.find((p) => p.tier === planTier);
-    const displayPrice = selectedPlanData
-      ? calculatePrice(selectedPlanData.basePrice, billingInterval, promoDiscount)
-      : 0;
-
-    trackAppEvent('plan_selected', {
+  const startManualBdCheckout = (planTier, selectedPlanData, displayPrice) => {
+    trackAppEvent('manual_checkout_started', {
       path: '/pricing',
       plan_tier: planTier,
       billing_interval: billingInterval,
       value: displayPrice,
-      currency: selectedPlanData?.currency || 'USD',
-      current_tier: user?.subscription_tier || 'free',
+      currency: selectedPlanData?.currency || 'BDT',
     });
 
-    if (planTier === 'free') {
-      setSelectedPlan('free');
-      return;
-    }
+    setManualPaymentData({
+      tier: planTier,
+      interval: billingInterval,
+      planName: selectedPlanData.name,
+      price: displayPrice,
+      currencySymbol: selectedPlanData.currencySymbol || '৳',
+    });
+    setShowManualPayment(true);
+  };
 
-    if (!user) {
-      trackAppEvent('checkout_login_redirect', {
-        path: '/pricing',
-        plan_tier: planTier,
-        billing_interval: billingInterval,
-      });
-
-      window.location.href = '/login?redirect=/pricing';
-      return;
-    }
-
-    const hasStripeSubscription = Boolean(user.stripe_subscription_id);
-    if (hasStripeSubscription && !useManualBdPayment) {
-      const portaled = await handleOpenPortal();
-      if (portaled !== false) return;
-    }
-
-    if (useManualBdPayment) {
-      trackAppEvent('manual_checkout_started', {
-        path: '/pricing',
-        plan_tier: planTier,
-        billing_interval: billingInterval,
-        value: displayPrice,
-        currency: selectedPlanData?.currency || 'BDT',
-      });
-
-      setManualPaymentData({
-        tier: planTier,
-        interval: billingInterval,
-        planName: selectedPlanData.name,
-        price: displayPrice,
-        currencySymbol: selectedPlanData.currencySymbol || '৳',
-      });
-      setShowManualPayment(true);
-      return;
-    }
-
+  const startStripeCheckoutSession = async (planTier, selectedPlanData, displayPrice) => {
     setIsLoading(true);
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const {
         data: { session },
       } = await import('@/lib/supabase').then((m) => m.supabase.auth.getSession());
@@ -205,38 +206,21 @@ export default function Pricing() {
         currency: planCurrency,
       });
 
-      const response = await fetch(`${supabaseUrl}/functions/v1/create-checkout-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({
-          tier: planTier,
-          interval: billingInterval,
-          currency: planCurrency.toLowerCase(),
-        }),
+      const checkoutUrl = await createStripeCheckout(
+        session.access_token,
+        planTier,
+        billingInterval,
+        planCurrency
+      );
+
+      trackAppEvent('checkout_redirected', {
+        path: '/pricing',
+        plan_tier: planTier,
+        billing_interval: billingInterval,
+        currency: planCurrency,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
-      }
-
-      if (data.url) {
-        trackAppEvent('checkout_redirected', {
-          path: '/pricing',
-          plan_tier: planTier,
-          billing_interval: billingInterval,
-          currency: planCurrency,
-        });
-
-        window.location.href = data.url;
-      } else {
-        throw new Error('No checkout URL returned');
-      }
+      window.location.href = checkoutUrl;
     } catch (error) {
       trackAppEvent('checkout_failed', {
         path: '/pricing',
@@ -253,6 +237,52 @@ export default function Pricing() {
     }
   };
 
+  const handleUpgrade = async (planTier) => {
+    const meta = getPlanPriceAndMeta(
+      plans,
+      planTier,
+      billingInterval,
+      promoDiscount,
+      user?.subscription_tier
+    );
+
+    trackAppEvent('plan_selected', {
+      path: '/pricing',
+      plan_tier: planTier,
+      billing_interval: billingInterval,
+      value: meta.displayPrice,
+      currency: meta.currency,
+      current_tier: meta.tier,
+    });
+
+    if (planTier === 'free') {
+      setSelectedPlan('free');
+      return;
+    }
+
+    if (!user) {
+      trackAppEvent('checkout_login_redirect', {
+        path: '/pricing',
+        plan_tier: planTier,
+        billing_interval: billingInterval,
+      });
+      window.location.href = '/login?redirect=/pricing';
+      return;
+    }
+
+    if (user.stripe_subscription_id && !useManualBdPayment) {
+      const portaled = await handleOpenPortal();
+      if (portaled !== false) return;
+    }
+
+    if (useManualBdPayment) {
+      startManualBdCheckout(planTier, meta.plan, meta.displayPrice);
+      return;
+    }
+
+    await startStripeCheckoutSession(planTier, meta.plan, meta.displayPrice);
+  };
+
   return (
     <>
       <DocumentHead
@@ -263,8 +293,7 @@ export default function Pricing() {
       />
 
       <div className="relative min-h-screen pb-16 bg-white dark:bg-[#070912] transition-colors duration-500 overflow-hidden font-sans">
-        {/* Background Grid Accent */}
-        <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000_20%,transparent_100%)]"></div>
+        <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000_20%,transparent_100%)]" />
 
         <m.div
           initial={{ opacity: 0, y: 10 }}
@@ -272,94 +301,13 @@ export default function Pricing() {
           transition={{ duration: 0.4, ease: 'easeOut' }}
           className="px-4 md:px-8 pt-6 sm:pt-8 md:pt-10 pb-12 max-w-7xl mx-auto space-y-8 relative z-10"
         >
-          {/* Hero Section */}
-          <m.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-6 space-y-3"
-          >
-            <div className="flex flex-col items-center gap-2">
-              <Badge
-                variant="outline"
-                className="px-3.5 py-1 bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 border-[#5661e9]/20 rounded-full text-[10px] sm:text-xs font-black tracking-wider uppercase"
-              >
-                FLEXIBLE PLANS FOR EVERY CANDIDATE
-              </Badge>
-            </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight text-slate-950 dark:text-white">
-              Invest in Your Target Band Score
-            </h1>
-            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-xl mx-auto font-medium px-2 leading-relaxed">
-              Choose the ideal preparation plan to accelerate your IELTS learning path with
-              unlimited practice, instant AI scoring, and personalized diagnostics.
-            </p>
+          <PricingHeaderSection
+            billingInterval={billingInterval}
+            setBillingInterval={setBillingInterval}
+            promoDiscount={promoDiscount}
+            onPromoApplied={handlePromoApplied}
+          />
 
-            {/* Billing Toggle & Promo Code */}
-            <div className="mt-5 flex flex-col items-center gap-4">
-              <div className="relative inline-flex items-center rounded-full border border-slate-200/90 bg-slate-100/90 p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-xl dark:border-white/15 dark:bg-slate-900/90">
-                <button
-                  type="button"
-                  onClick={() => setBillingInterval('monthly')}
-                  className={cn(
-                    'relative z-10 px-6 sm:px-7 py-2 rounded-full text-xs sm:text-[13px] font-extrabold tracking-tight transition-colors duration-200 cursor-pointer',
-                    billingInterval === 'monthly'
-                      ? 'text-slate-950 dark:text-white'
-                      : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                  )}
-                >
-                  {billingInterval === 'monthly' && (
-                    <m.span
-                      layoutId="activeBillingTabPricing"
-                      className="absolute inset-0 z-[-1] rounded-full bg-white shadow-[0_2px_10px_-2px_rgba(15,23,42,0.12)] dark:bg-slate-800"
-                      transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-                    />
-                  )}
-                  Monthly
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setBillingInterval('quarterly')}
-                  className={cn(
-                    'relative z-10 px-5 sm:px-6 py-2 rounded-full text-xs sm:text-[13px] font-extrabold tracking-tight transition-colors duration-200 flex items-center gap-2 cursor-pointer',
-                    billingInterval === 'quarterly'
-                      ? 'text-slate-950 dark:text-white'
-                      : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                  )}
-                >
-                  {billingInterval === 'quarterly' && (
-                    <m.span
-                      layoutId="activeBillingTabPricing"
-                      className="absolute inset-0 z-[-1] rounded-full bg-white shadow-[0_2px_10px_-2px_rgba(15,23,42,0.12)] dark:bg-slate-800"
-                      transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-                    />
-                  )}
-                  <span>Quarterly</span>
-                  <span className="bg-purple-100 text-purple-700 dark:bg-purple-950/90 dark:text-purple-300 border border-purple-200/90 dark:border-purple-800/60 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
-                    Save 15%
-                  </span>
-                </button>
-              </div>
-
-              <div className="flex flex-col items-center gap-1.5 pt-0.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-px bg-slate-200 dark:bg-slate-800" />
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    Promo Code?
-                  </span>
-                  <div className="w-8 h-px bg-slate-200 dark:bg-slate-800" />
-                </div>
-                <div className="relative z-50">
-                  <PromoCodeRedemption
-                    onPromoApplied={handlePromoApplied}
-                    existingDiscount={promoDiscount}
-                  />
-                </div>
-              </div>
-            </div>
-          </m.div>
-
-          {/* Pricing Cards Grid */}
           <m.div
             variants={containerVariants}
             initial="hidden"
@@ -386,35 +334,12 @@ export default function Pricing() {
             })}
           </m.div>
 
-          {user?.subscription_tier !== 'free' && (
-            <m.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center gap-3 mb-16 -mt-8"
-            >
-              <p className="text-slate-600 dark:text-slate-400 text-xs font-semibold">
-                Want to manage your current subscription or payment methods?
-              </p>
-              {useManualBdPayment || !user?.stripe_subscription_id ? (
-                <Button
-                  variant="outline"
-                  onClick={() => window.open('mailto:support@ieltsai.pro', '_blank')}
-                  className="rounded-full px-8 h-11 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase tracking-widest text-xs shadow-sm"
-                >
-                  Contact Support
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  onClick={handleOpenPortal}
-                  disabled={isLoading}
-                  className="rounded-full px-8 h-11 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase tracking-widest text-xs shadow-sm"
-                >
-                  {isLoading ? 'Opening…' : 'Open Billing Portal'}
-                </Button>
-              )}
-            </m.div>
-          )}
+          <SubscriptionManagementBanner
+            user={user}
+            useManualBdPayment={useManualBdPayment}
+            isLoading={isLoading}
+            handleOpenPortal={handleOpenPortal}
+          />
 
           <FAQSection />
         </m.div>

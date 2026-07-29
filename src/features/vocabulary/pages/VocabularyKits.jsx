@@ -1,10 +1,12 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowUpRight,
   BookOpenText,
   CheckCircle2,
+  ChevronRight,
   Clock3,
   Layers3,
   Search,
@@ -18,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import VocabularyStudyView from '@/features/vocabulary/components/VocabularyStudyView';
-import { KitVisual } from '@/features/vocabulary/components/WordGroupList';
+import Kit3DIcon, { getKitTheme } from '@/features/vocabulary/components/Kit3DIcons';
 import { useVocabularyData, useVocabularyMutations } from '@/features/vocabulary/hooks';
 import {
   VOCABULARY_KITS,
@@ -27,82 +29,88 @@ import {
 } from '@/features/vocabulary/data/vocabularyKits';
 import { cn } from '@/lib/cn';
 
-const CATEGORY_TONES = {
-  'Speaking vocabulary': {
-    panel: 'from-[#fcfffd] to-[#edf9f3]',
-    icon: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300',
-    hover: 'hover:border-emerald-200',
-  },
-  'Reading vocabulary': {
-    panel: 'from-[#fcfeff] to-[#edf5ff]',
-    icon: 'bg-blue-100 text-blue-700 dark:bg-blue-400/10 dark:text-blue-300',
-    hover: 'hover:border-blue-200',
-  },
-  'Writing vocabulary': {
-    panel: 'from-[#fdfcff] to-[#f3efff]',
-    icon: 'bg-violet-100 text-violet-700 dark:bg-violet-400/10 dark:text-violet-300',
-    hover: 'hover:border-violet-200',
-  },
-  'Vocabulary by target band': {
-    panel: 'from-[#fffefd] to-[#fff3e9]',
-    icon: 'bg-amber-100 text-amber-700 dark:bg-amber-400/10 dark:text-amber-300',
-    hover: 'hover:border-amber-200',
-  },
-  'Topic vocabulary': {
-    panel: 'from-[#fffdfd] to-[#fff0f8]',
-    icon: 'bg-pink-100 text-pink-700 dark:bg-pink-400/10 dark:text-pink-300',
-    hover: 'hover:border-pink-200',
-  },
-};
+const KitCard = memo(function KitCard({ kit, index }) {
+  const theme = useMemo(() => getKitTheme(kit), [kit]);
+  const itemCount = kit.word_count || kit.words?.length || 10;
+  const estimatedTime = useMemo(() => Math.max(5, Math.ceil(itemCount * 0.55)), [itemCount]);
+  const formattedIndex = String(index + 1).padStart(2, '0');
 
-function KitCard({ kit, index }) {
-  const tone = CATEGORY_TONES[kit.category] || CATEGORY_TONES['Writing vocabulary'];
+  const cleanTitle = useMemo(() => {
+    return (kit.title || '')
+      .replace(/^IELTS\s+(Speaking|Reading|Writing):\s*/i, '')
+      .replace(/\s+Vocabulary\s+for\s+IELTS$/i, '')
+      .replace(/\s+Vocabulary\s+Builder$/i, ' Builder');
+  }, [kit.title]);
 
   return (
     <motion.article
       initial={{ opacity: 0, scale: 0.985, y: 8 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.985, y: 6 }}
-      transition={{ duration: 0.22, delay: Math.min(index * 0.018, 0.12) }}
-      className="h-full"
+      exit={{ opacity: 0, scale: 0.985, y: 4 }}
+      transition={{ duration: 0.2, delay: Math.min(index * 0.015, 0.12) }}
+      className="h-full transform-gpu"
     >
       <Link
         to={`/vocabulary/kits/${kit.slug}`}
-        aria-label={`Open ${kit.title}, ${kit.category}`}
+        aria-label={`Open ${cleanTitle}, ${kit.category}`}
         className={cn(
-          'group flex h-full min-h-[132px] flex-col justify-between rounded-2xl border border-[#eceafa] bg-gradient-to-br p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-[0_16px_32px_-24px_rgba(59,70,150,0.65)] dark:border-white/10 dark:from-white/[0.035] dark:to-white/[0.015]',
-          tone.panel,
-          tone.hover
+          'group flex h-full min-h-[164px] flex-col justify-between rounded-2xl border bg-gradient-to-br p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 dark:border-white/10 dark:from-white/[0.035] dark:to-white/[0.015]',
+          theme.panel,
+          theme.border,
+          theme.hoverGlow
         )}
       >
         <div>
+          {/* Top Bar: Icon visual (h-13 w-20 sm:w-22) at left + Index badge at right */}
           <div className="flex items-start justify-between gap-2">
-            <div
-              className={cn(
-                'flex h-10 w-11 items-center justify-center rounded-xl shadow-sm',
-                tone.icon
-              )}
-            >
-              <KitVisual id={kit.id} />
-            </div>
-            <span className="rounded-full bg-white/80 px-2 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-slate-500 shadow-sm dark:bg-white/10 dark:text-slate-300">
-              {kit.word_count} items
+            <span className="relative shrink-0 flex items-center justify-center overflow-hidden bg-white/80 p-1 shadow-sm ring-1 ring-black/5 dark:bg-white/5 dark:ring-white/10 h-13 w-20 sm:w-22 rounded-2xl">
+              <div className="flex h-full w-full items-center justify-center p-0.5 scale-105">
+                <Kit3DIcon kit={kit} />
+              </div>
+            </span>
+            <span className="rounded-full bg-white/80 px-2 py-1 text-[9px] font-black text-slate-500 shadow-2xs dark:bg-white/10 dark:text-slate-300">
+              {formattedIndex}
             </span>
           </div>
-          <h2 className="mt-3 line-clamp-2 text-xs font-extrabold leading-4 text-slate-900 transition group-hover:text-[#5661e9] dark:text-white dark:group-hover:text-indigo-300">
-            {kit.title}
-          </h2>
+
+          {/* Category Tag */}
+          <div
+            className={cn('mt-2 text-[9px] font-extrabold uppercase tracking-[0.1em]', theme.tag)}
+          >
+            {kit.category || 'Vocabulary Kit'}
+          </div>
+
+          {/* Cleaned Kit Title */}
+          <h3 className="mt-0.5 text-xs font-extrabold leading-4 text-slate-900 transition-colors group-hover:text-[#505bdd] dark:text-white dark:group-hover:text-indigo-300">
+            {cleanTitle}
+          </h3>
+
+          {/* Description - 1 line */}
+          {(kit.subtitle || kit.description) && (
+            <p className="mt-1 line-clamp-1 text-[10px] font-medium leading-4 text-slate-500 dark:text-slate-400">
+              {kit.subtitle || kit.description}
+            </p>
+          )}
         </div>
-        <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
+
+        {/* Footer Meta: Time & Arrow Right */}
+        <div className="mt-2.5 flex items-center justify-between text-[10px] font-extrabold text-slate-500 dark:text-slate-400">
           <span className="inline-flex items-center gap-1">
-            <Clock3 className="h-3 w-3" /> {Math.max(6, Math.ceil(kit.word_count * 0.55))} min
+            <Clock3 className="h-3 w-3 text-slate-400" /> {estimatedTime} min
           </span>
-          <ArrowRight className="h-4 w-4 text-[#5661e9] transition group-hover:translate-x-0.5" />
+          <span
+            className={cn(
+              'inline-flex items-center gap-0.5 transition-transform duration-200 group-hover:translate-x-0.5',
+              theme.arrow
+            )}
+          >
+            Open <ChevronRight className="h-3 w-3" />
+          </span>
         </div>
       </Link>
     </motion.article>
   );
-}
+});
 
 function scrollVocabularyPageToTop(pageElement) {
   let scrollParent = pageElement?.parentElement;
@@ -184,7 +192,10 @@ function KitsLibrary() {
             </div>
           </section>
 
-          <section className="sticky top-3 z-30 mt-5 rounded-2xl border border-slate-200/80 bg-white/90 p-3 shadow-lg shadow-slate-900/5 backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/90">
+          <section
+            id="vocabulary-kits-catalog"
+            className="mt-5 rounded-3xl border border-[#e4e7fa] bg-gradient-to-br from-white via-[#faf9ff] to-[#f2f0ff] p-4 sm:p-5 shadow-2xs dark:border-white/10 dark:from-[#10131f] dark:to-[#10131f]"
+          >
             <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
               <div className="relative xl:w-80">
                 <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -192,7 +203,7 @@ function KitsLibrary() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search kits and topics..."
-                  className="h-10 rounded-xl border-slate-200 bg-slate-50 pl-10 text-sm font-semibold dark:border-white/10 dark:bg-slate-950"
+                  className="h-10 rounded-xl border-slate-200 bg-white pl-10 text-sm font-semibold dark:border-white/10 dark:bg-slate-950"
                 />
               </div>
               <LayoutGroup id="vocabulary-kit-category-tabs">
@@ -215,7 +226,7 @@ function KitsLibrary() {
                           'relative whitespace-nowrap rounded-xl px-3 py-2 text-[11px] font-extrabold transition-colors',
                           isActive
                             ? 'text-white'
-                            : 'bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-700 dark:bg-white/5 dark:text-slate-400'
+                            : 'bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-700 dark:bg-white/5 dark:text-slate-400'
                         )}
                       >
                         {isActive && (
@@ -232,45 +243,45 @@ function KitsLibrary() {
                 </div>
               </LayoutGroup>
             </div>
+
+            <div className="mt-4 flex items-center justify-between px-1">
+              <div>
+                <h2 className="text-lg font-black tracking-tight text-slate-800 dark:text-white">
+                  {category}
+                </h2>
+                <p className="mt-0.5 text-xs font-semibold text-slate-500">
+                  {visibleKits.length} {visibleKits.length === 1 ? 'kit' : 'kits'} available
+                </p>
+              </div>
+            </div>
+
+            {visibleKits.length ? (
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={category}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -3 }}
+                  transition={{ duration: 0.16, ease: 'easeOut' }}
+                  className="mt-3.5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
+                >
+                  {visibleKits.map((kit, index) => (
+                    <KitCard key={kit.id} kit={kit} index={index} />
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            ) : (
+              <div className="mt-5 rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center dark:border-white/10 dark:bg-slate-900">
+                <Search className="mx-auto h-7 w-7 text-slate-400" />
+                <h2 className="mt-3 text-lg font-black text-slate-900 dark:text-white">
+                  No matching kits
+                </h2>
+                <p className="mt-1 text-sm font-medium text-slate-500">
+                  Try a broader search or choose another learning path.
+                </p>
+              </div>
+            )}
           </section>
-
-          <div className="mt-5 flex items-center justify-between px-1">
-            <div>
-              <h2 className="text-xl font-black tracking-tight text-slate-800 dark:text-white">
-                {category}
-              </h2>
-              <p className="mt-0.5 text-xs font-semibold text-slate-500">
-                {visibleKits.length} {visibleKits.length === 1 ? 'kit' : 'kits'} available
-              </p>
-            </div>
-          </div>
-
-          {visibleKits.length ? (
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={category}
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -3 }}
-                transition={{ duration: 0.16, ease: 'easeOut' }}
-                className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6"
-              >
-                {visibleKits.map((kit, index) => (
-                  <KitCard key={kit.id} kit={kit} index={index} />
-                ))}
-              </motion.div>
-            </AnimatePresence>
-          ) : (
-            <div className="mt-5 rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center dark:border-white/10 dark:bg-slate-900">
-              <Search className="mx-auto h-7 w-7 text-slate-400" />
-              <h2 className="mt-3 text-lg font-black text-slate-900 dark:text-white">
-                No matching kits
-              </h2>
-              <p className="mt-1 text-sm font-medium text-slate-500">
-                Try a broader search or choose another learning path.
-              </p>
-            </div>
-          )}
         </main>
       </div>
     </>

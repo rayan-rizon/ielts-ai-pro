@@ -7,262 +7,10 @@ import {
   VOCABULARY_KITS,
 } from '@/features/vocabulary/data/vocabularyKits';
 
-export const KitVisual = ({ id }) => {
-  const uid = useId();
+import Kit3DIcon from '@/features/vocabulary/components/Kit3DIcons';
 
-  if (id?.includes('writing')) {
-    const penGrad = `penGrad-${uid}`;
-    const paperGrad = `paperGrad-${uid}`;
-    return (
-      <svg className="w-full h-full shrink-0" viewBox="0 0 32 32" fill="none">
-        <defs>
-          <linearGradient id={penGrad} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#818cf8" />
-            <stop offset="100%" stopColor="#4f46e5" />
-          </linearGradient>
-          <linearGradient id={paperGrad} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#EEF2FF" />
-            <stop offset="100%" stopColor="#E0E7FF" />
-          </linearGradient>
-        </defs>
-        <rect
-          x="4"
-          y="6"
-          width="18"
-          height="22"
-          rx="3"
-          fill={`url(#${paperGrad})`}
-          stroke="#c7d2fe"
-          strokeWidth="1.2"
-        />
-        <path
-          d="M8 12h10M8 16h7M8 20h9"
-          stroke="#6366f1"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          opacity="0.6"
-        />
-        <path
-          d="M26 4L16 22l-4 1 1-4L23 2l3 2z"
-          fill={`url(#${penGrad})`}
-          stroke="#3730a3"
-          strokeWidth="1"
-          strokeLinejoin="round"
-        />
-        <circle cx="21" cy="9" r="1" fill="#ffffff" />
-        <path d="M27 18l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2z" fill="#818cf8" />
-      </svg>
-    );
-  }
-
-  if (id?.includes('speaking')) {
-    const micGrad = `micGrad-${uid}`;
-    return (
-      <svg className="w-full h-full shrink-0" viewBox="0 0 32 32" fill="none">
-        <defs>
-          <linearGradient id={micGrad} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#34d399" />
-            <stop offset="100%" stopColor="#059669" />
-          </linearGradient>
-        </defs>
-        <rect
-          x="11"
-          y="5"
-          width="10"
-          height="15"
-          rx="5"
-          fill={`url(#${micGrad})`}
-          stroke="#047857"
-          strokeWidth="1.2"
-        />
-        <path
-          d="M7 14c0 4.97 4.03 9 9 9s9-4.03 9-9"
-          stroke="#10b981"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <path d="M16 23v5M12 28h8" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="16" cy="10" r="1.5" fill="#ffffff" opacity="0.8" />
-        <path
-          d="M4 14c0-3.5 1.5-6 3.5-7.5M28 14c0-3.5-1.5-6-3.5-7.5"
-          stroke="#6ee7b7"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
-      </svg>
-    );
-  }
-
-  if (id?.includes('reading')) {
-    const lensGrad = `lensGrad-${uid}`;
-    const handleGrad = `handleGrad-${uid}`;
-    return (
-      <svg className="w-full h-full shrink-0" viewBox="0 0 32 32" fill="none">
-        <defs>
-          <linearGradient id={lensGrad} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#7dd3fc" />
-            <stop offset="100%" stopColor="#0ea5e9" />
-          </linearGradient>
-          <linearGradient id={handleGrad} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#38bdf8" />
-            <stop offset="100%" stopColor="#0284c7" />
-          </linearGradient>
-        </defs>
-        <rect
-          x="2"
-          y="4"
-          width="20"
-          height="24"
-          rx="2.5"
-          fill="#EFF6FF"
-          stroke="#BFDBFE"
-          strokeWidth="0.8"
-        />
-        <path
-          d="M5 9h14M5 12h10M5 15h14M5 18h8"
-          stroke="#93c5fd"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
-        <circle
-          cx="20"
-          cy="20"
-          r="8"
-          fill={`url(#${lensGrad})`}
-          stroke="#0369a1"
-          strokeWidth="1.2"
-        />
-        <circle cx="20" cy="20" r="5.2" fill="white" opacity="0.35" />
-        <path
-          d="M17.5 17.5c1-1 2.5-1.2 3.5-.5"
-          stroke="#ffffff"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-          opacity="0.9"
-        />
-        <path
-          d="M26.5 26.5l-3.5-3.5"
-          stroke={`url(#${handleGrad})`}
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <path
-          d="M18 20h4M18 22.5h3"
-          stroke="#0369a1"
-          strokeWidth="1"
-          strokeLinecap="round"
-          opacity="0.7"
-        />
-      </svg>
-    );
-  }
-
-  if (id?.includes('band-')) {
-    const targetGrad = `targetGrad-${uid}`;
-    return (
-      <svg className="w-full h-full shrink-0" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <defs>
-          <linearGradient
-            id={targetGrad}
-            x1="7"
-            y1="6"
-            x2="25"
-            y2="26"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#FEF3C7" />
-            <stop offset="1" stopColor="#FDE68A" />
-          </linearGradient>
-        </defs>
-        <rect
-          x="4"
-          y="5"
-          width="24"
-          height="22"
-          rx="7"
-          fill={`url(#${targetGrad})`}
-          stroke="#FCD34D"
-        />
-        <circle cx="16" cy="16" r="6.8" fill="#FFF" stroke="#F59E0B" strokeWidth="1.5" />
-        <circle cx="16" cy="16" r="3.4" fill="#F59E0B" />
-        <circle cx="16" cy="16" r="1.35" fill="#FFF" />
-        <path
-          d="M22.5 9.5l3-3M23.8 6.5h1.8v1.8"
-          stroke="#B45309"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path d="M21.4 10.6l3.1-3.1" stroke="#B45309" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
-  if (id?.includes('vocabulary-for-ielts')) {
-    const globeGrad = `globeGrad-${uid}`;
-    return (
-      <svg className="w-full h-full shrink-0" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <defs>
-          <linearGradient
-            id={globeGrad}
-            x1="7"
-            y1="6"
-            x2="25"
-            y2="27"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#FCE7F3" />
-            <stop offset="1" stopColor="#FBCFE8" />
-          </linearGradient>
-        </defs>
-        <rect
-          x="4"
-          y="5"
-          width="24"
-          height="22"
-          rx="7"
-          fill={`url(#${globeGrad})`}
-          stroke="#F9A8D4"
-        />
-        <circle cx="16" cy="15.5" r="7.2" fill="#FFF" stroke="#DB2777" strokeWidth="1.4" />
-        <path
-          d="M8.8 15.5h14.4M16 8.3c2.2 2 3.3 4.4 3.3 7.2s-1.1 5.2-3.3 7.2c-2.2-2-3.3-4.4-3.3-7.2S13.8 10.3 16 8.3z"
-          stroke="#DB2777"
-          strokeWidth="1.15"
-          strokeLinecap="round"
-        />
-        <path d="M11 23.8h10" stroke="#DB2777" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
-  const capGrad = `capGrad-${uid}`;
-  return (
-    <svg className="w-full h-full shrink-0" viewBox="0 0 32 32" fill="none">
-      <defs>
-        <linearGradient id={capGrad} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#a78bfa" />
-          <stop offset="100%" stopColor="#7c3aed" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M16 4L2 11l14 7 14-7L16 4z"
-        fill={`url(#${capGrad})`}
-        stroke="#5b21b6"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M7 14.5v7.5c0 3 4 5 9 5s9-2 9-5v-7.5"
-        fill="none"
-        stroke="#8b5cf6"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <path d="M26 12v10l2 2" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="26" cy="12" r="1.5" fill="#f59e0b" />
-    </svg>
-  );
+export const KitVisual = ({ id, kit }) => {
+  return <Kit3DIcon kit={kit} id={id} />;
 };
 
 const THEMES = {
@@ -311,6 +59,8 @@ const WordGroupList = memo(({ allVocabulary = [] }) => {
   });
   const scrollingKits = [...displayKits, ...displayKits];
 
+  const scrollTimeoutRef = useRef(null);
+
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport || isPaused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -329,8 +79,33 @@ const WordGroupList = memo(({ allVocabulary = [] }) => {
     return () => window.clearInterval(interval);
   }, [isPaused]);
 
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
+
   const scrollCarousel = (direction) => {
-    viewportRef.current?.scrollBy({ left: direction * 260, behavior: 'smooth' });
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    setIsPaused(true);
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+
+    const step = 230;
+    const loopPoint = viewport.scrollWidth / 2;
+
+    if (direction < 0 && viewport.scrollLeft <= 10) {
+      viewport.scrollLeft = loopPoint;
+    } else if (direction > 0 && viewport.scrollLeft >= loopPoint - 10) {
+      viewport.scrollLeft = 0;
+    }
+
+    viewport.scrollBy({ left: direction * step, behavior: 'smooth' });
+
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsPaused(false);
+    }, 1500);
   };
 
   return (
@@ -353,12 +128,12 @@ const WordGroupList = memo(({ allVocabulary = [] }) => {
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1.5">
           <button
             type="button"
             aria-label="Show previous Vocabulary Kits"
             onClick={() => scrollCarousel(-1)}
-            className="hidden h-8 w-8 items-center justify-center rounded-xl border border-indigo-100 bg-white text-indigo-600 transition hover:bg-indigo-50 sm:inline-flex dark:border-white/10 dark:bg-white/5 dark:text-indigo-300"
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-indigo-100 bg-white text-indigo-600 shadow-2xs transition hover:bg-indigo-50 active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -366,7 +141,7 @@ const WordGroupList = memo(({ allVocabulary = [] }) => {
             type="button"
             aria-label="Show next Vocabulary Kits"
             onClick={() => scrollCarousel(1)}
-            className="hidden h-8 w-8 items-center justify-center rounded-xl border border-indigo-100 bg-white text-indigo-600 transition hover:bg-indigo-50 sm:inline-flex dark:border-white/10 dark:bg-white/5 dark:text-indigo-300"
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-indigo-100 bg-white text-indigo-600 shadow-2xs transition hover:bg-indigo-50 active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -389,7 +164,7 @@ const WordGroupList = memo(({ allVocabulary = [] }) => {
         onBlurCapture={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) setIsPaused(false);
         }}
-        className="-mx-1 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-1 pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="-mx-1 flex gap-2.5 overflow-x-auto scroll-smooth px-1 pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {scrollingKits.map((kit, index) => {
           const theme = kit.theme || FALLBACK_THEMES[0];

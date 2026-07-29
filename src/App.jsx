@@ -173,7 +173,8 @@ const MotionProvider = lazyWithRetry(() => import('@/components/shared/MotionPro
 const RouteProviders = lazyWithRetry(() => import('@/components/shared/RouteProviders.jsx'));
 
 const LazyPage = ({ children, className }) => {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
 
   React.useLayoutEffect(() => {
     if (!window.location.hash) {
@@ -181,7 +182,7 @@ const LazyPage = ({ children, className }) => {
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
     }
-  }, [pathname]);
+  }, [location.pathname, location.search, location.key]);
 
   const page = (
     <Suspense

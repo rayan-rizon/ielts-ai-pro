@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { LayoutGroup, motion } from 'framer-motion';
 import { ArrowRight, BookOpenText, ChevronRight, Clock3, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -88,23 +89,36 @@ export default function GrammarGuidesPanel({ resources, resourcesUnavailable }) 
             className="h-9 rounded-xl border-[#e1e4f0] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#10131f]"
           />
         </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1 xl:pb-0">
-          {GRAMMAR_GUIDE_CATEGORIES.map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setCategory(item)}
-              className={cn(
-                'whitespace-nowrap rounded-xl px-3 py-2 text-[10px] font-extrabold transition',
-                category === item
-                  ? 'bg-[#5661e9] text-white shadow-[0_8px_18px_-12px_rgba(65,76,210,0.85)]'
-                  : 'bg-white text-slate-500 hover:bg-[#f0f2ff] hover:text-[#505bdd] dark:bg-white/5 dark:text-slate-300'
-              )}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
+        <LayoutGroup id="grammar-guide-category-tabs">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 xl:pb-0">
+            {GRAMMAR_GUIDE_CATEGORIES.map((item) => {
+              const isActive = category === item;
+              return (
+                <motion.button
+                  key={item}
+                  type="button"
+                  onClick={() => setCategory(item)}
+                  whileTap={{ scale: 0.97 }}
+                  className={cn(
+                    'relative whitespace-nowrap rounded-xl px-3 py-2 text-[10px] font-extrabold transition-colors',
+                    isActive
+                      ? 'text-white'
+                      : 'bg-white text-slate-500 hover:bg-[#f0f2ff] hover:text-[#505bdd] dark:bg-white/5 dark:text-slate-300'
+                  )}
+                >
+                  {isActive && (
+                    <motion.span
+                      layoutId="grammar-guide-active-category"
+                      className="absolute inset-0 rounded-xl bg-[#5661e9] shadow-[0_8px_18px_-12px_rgba(65,76,210,0.85)]"
+                      transition={{ type: 'spring', stiffness: 500, damping: 34 }}
+                    />
+                  )}
+                  <span className="relative">{item}</span>
+                </motion.button>
+              );
+            })}
+          </div>
+        </LayoutGroup>
       </div>
 
       {resourcesUnavailable && (
@@ -130,7 +144,12 @@ export default function GrammarGuidesPanel({ resources, resourcesUnavailable }) 
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
-                    <SkillVisual skillCode={resource.skill_code} compact />
+                    <SkillVisual
+                      skillCode={resource.skill_code}
+                      unitNumber={resource.unit_number}
+                      slug={resource.slug}
+                      compact
+                    />
                     <span className="rounded-full bg-white/80 px-2 py-1 text-[9px] font-black text-slate-500 shadow-sm dark:bg-white/10 dark:text-slate-300">
                       {String(resource.unit_number).padStart(2, '0')}
                     </span>

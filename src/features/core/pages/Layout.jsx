@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
+import { useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useAuth } from '@/features/auth/context/AuthContext';
@@ -84,9 +84,25 @@ const LayoutSkeleton = () => (
   </div>
 );
 
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const mainContentRef = useRef(null);
+
+  // Scroll to top of main container and window whenever location changes (menu clicks, route transitions)
+  useIsomorphicLayoutEffect(() => {
+    if (!window.location.hash) {
+      if (mainContentRef.current) {
+        mainContentRef.current.scrollTop = 0;
+      }
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, [location.pathname, location.search, location.key]);
+
   const {
     user,
     loading: authLoading,
@@ -261,6 +277,7 @@ export default function Layout({ children, currentPageName }) {
               </div>
 
               <div
+                ref={mainContentRef}
                 className={cn(
                   'flex-1 bg-slate-50 dark:bg-[#070913]',
                   isTestPage ? 'flex flex-col h-full min-h-0 overflow-hidden' : 'overflow-auto'
@@ -276,8 +293,6 @@ export default function Layout({ children, currentPageName }) {
     </SidebarStyles>
   );
 }
-
-const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 /**
  * SidebarController

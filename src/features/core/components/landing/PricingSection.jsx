@@ -256,11 +256,9 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
   );
 }
 
-export default function PricingSection({ handlePrimaryCta, viewport }) {
-  const [billingCycle, setBillingCycle] = useState('monthly');
+function useLandingPricingConfig() {
   const [configuredPlans, setConfiguredPlans] = useState(DEFAULT_PRICING_PLANS);
   const [isPricingLoading, setIsPricingLoading] = useState(true);
-  const sectionRef = useRef(null);
 
   useEffect(() => {
     let isActive = true;
@@ -285,14 +283,79 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
 
   const plans = useMemo(() => buildLandingPlans(configuredPlans), [configuredPlans]);
 
+  return { plans, isPricingLoading };
+}
+
+function BillingCycleToggle({ billingCycle, setBillingCycle, viewport }) {
+  return (
+    <m.div
+      initial="hidden"
+      whileInView="show"
+      viewport={viewport}
+      variants={containerVariants}
+      className="text-center mb-8"
+    >
+      <m.div variants={itemVariants} className="flex justify-center">
+        <div className="relative inline-flex items-center rounded-full border border-slate-200/90 bg-slate-100/90 p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-xl dark:border-white/15 dark:bg-slate-900/90">
+          <button
+            type="button"
+            onClick={() => setBillingCycle('monthly')}
+            className={cn(
+              'relative z-10 px-6 sm:px-7 py-2 rounded-full text-xs sm:text-[13px] font-extrabold tracking-tight transition-colors duration-200',
+              billingCycle === 'monthly'
+                ? 'text-slate-950 dark:text-white'
+                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+            )}
+          >
+            {billingCycle === 'monthly' && (
+              <m.span
+                layoutId="activeBillingTab"
+                className="absolute inset-0 z-[-1] rounded-full bg-white shadow-[0_2px_10px_-2px_rgba(15,23,42,0.12)] dark:bg-slate-800"
+                transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+              />
+            )}
+            Monthly
+          </button>
+          <button
+            type="button"
+            onClick={() => setBillingCycle('quarterly')}
+            className={cn(
+              'relative z-10 px-5 sm:px-6 py-2 rounded-full text-xs sm:text-[13px] font-extrabold tracking-tight transition-colors duration-200 flex items-center gap-2',
+              billingCycle === 'quarterly'
+                ? 'text-slate-950 dark:text-white'
+                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+            )}
+          >
+            {billingCycle === 'quarterly' && (
+              <m.span
+                layoutId="activeBillingTab"
+                className="absolute inset-0 z-[-1] rounded-full bg-[#5661e9] shadow-[0_2px_10px_-2px_rgba(15,23,42,0.12)] dark:bg-slate-800"
+                transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+              />
+            )}
+            <span>Quarterly</span>
+            <span className="bg-purple-100 text-purple-700 dark:bg-purple-950/90 dark:text-purple-300 border border-purple-200/90 dark:border-purple-800/60 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
+              Save 15%
+            </span>
+          </button>
+        </div>
+      </m.div>
+    </m.div>
+  );
+}
+
+export default function PricingSection({ handlePrimaryCta, viewport }) {
+  const [billingCycle, setBillingCycle] = useState('monthly');
+  const { plans, isPricingLoading } = useLandingPricingConfig();
+  const sectionRef = useRef(null);
+
   return (
     <SoftSection
       ref={sectionRef}
       id="pricing"
       className="scroll-mt-24 bg-white dark:bg-[#070912] border-t border-slate-200/60 dark:border-white/5 py-10 lg:py-14"
     >
-      {/* Background Grid Accent */}
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000_20%,transparent_100%)]"></div>
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000_20%,transparent_100%)]" />
 
       <div className="max-w-7xl mx-auto px-5 sm:px-6 relative z-10">
         <div className="mb-6">
@@ -305,60 +368,11 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
           />
         </div>
 
-        {/* Tab Switching */}
-        <m.div
-          initial="hidden"
-          whileInView="show"
+        <BillingCycleToggle
+          billingCycle={billingCycle}
+          setBillingCycle={setBillingCycle}
           viewport={viewport}
-          variants={containerVariants}
-          className="text-center mb-8"
-        >
-          <m.div variants={itemVariants} className="flex justify-center">
-            <div className="relative inline-flex items-center rounded-full border border-slate-200/90 bg-slate-100/90 p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-xl dark:border-white/15 dark:bg-slate-900/90">
-              <button
-                type="button"
-                onClick={() => setBillingCycle('monthly')}
-                className={cn(
-                  'relative z-10 px-6 sm:px-7 py-2 rounded-full text-xs sm:text-[13px] font-extrabold tracking-tight transition-colors duration-200',
-                  billingCycle === 'monthly'
-                    ? 'text-slate-950 dark:text-white'
-                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                )}
-              >
-                {billingCycle === 'monthly' && (
-                  <m.span
-                    layoutId="activeBillingTab"
-                    className="absolute inset-0 z-[-1] rounded-full bg-white shadow-[0_2px_10px_-2px_rgba(15,23,42,0.12)] dark:bg-slate-800"
-                    transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                  />
-                )}
-                Monthly
-              </button>
-              <button
-                type="button"
-                onClick={() => setBillingCycle('quarterly')}
-                className={cn(
-                  'relative z-10 px-5 sm:px-6 py-2 rounded-full text-xs sm:text-[13px] font-extrabold tracking-tight transition-colors duration-200 flex items-center gap-2',
-                  billingCycle === 'quarterly'
-                    ? 'text-slate-950 dark:text-white'
-                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                )}
-              >
-                {billingCycle === 'quarterly' && (
-                  <m.span
-                    layoutId="activeBillingTab"
-                    className="absolute inset-0 z-[-1] rounded-full bg-[#5661e9] shadow-[0_2px_10px_-2px_rgba(15,23,42,0.12)] dark:bg-slate-800"
-                    transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                  />
-                )}
-                <span>Quarterly</span>
-                <span className="bg-purple-100 text-purple-700 dark:bg-purple-950/90 dark:text-purple-300 border border-purple-200/90 dark:border-purple-800/60 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
-                  Save 15%
-                </span>
-              </button>
-            </div>
-          </m.div>
-        </m.div>
+        />
 
         <div className="relative">
           {isPricingLoading ? (
