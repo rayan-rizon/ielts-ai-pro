@@ -1,222 +1,157 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Magic Link Login - IELTS Ai Pro</title>
+    <!--[if mso]>
+    <style type="text/css">
+      body, table, td, a { font-family: Arial, Helvetica, sans-serif !important; }
+    </style>
+    <![endif]-->
     <style>
-      /* Base styles */
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+      
       body {
         margin: 0;
         padding: 0;
-        font-family:
-          'Plus Jakarta Sans',
-          -apple-system,
-          BlinkMacSystemFont,
-          'Segoe UI',
-          Roboto,
-          Helvetica,
-          Arial,
-          sans-serif;
-        background-color: #f8fafc;
-        color: #0f172a;
-        -webkit-font-smoothing: antialiased;
+        width: 100% !important;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        background-color: #f1f5f9;
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       }
-
-      .wrapper {
-        width: 100%;
-        table-layout: fixed;
-        background-color: #f8fafc;
-        padding-bottom: 40px;
-      }
-
-      .container {
-        max-width: 600px;
-        margin: 0 auto;
-        background-color: #ffffff;
-        border-radius: 24px;
-        overflow: hidden;
-        margin-top: 40px;
-        border: 1px solid #e2e8f0;
-        box-shadow:
-          0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      }
-
-      /* Header */
-      .header {
-        background-color: #ffffff;
-        padding: 40px 40px 20px 40px;
-        text-align: center;
-      }
-
-      .logo-container {
-        display: inline-flex;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 32px;
-      }
-
-      .logo-icon {
-        background-color: #2563eb;
-        color: #ffffff;
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-      }
-
-      .logo-icon svg {
-        width: 28px;
-        height: 28px;
-        stroke: currentColor;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        fill: none;
-      }
-
-      .logo-text {
-        font-size: 24px;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-        color: #0f172a;
-      }
-
-      .logo-text span {
-        color: #2563eb;
-        font-style: italic;
-      }
-
-      /* Content */
-      .content {
-        padding: 0 40px 40px 40px;
-        text-align: center;
-      }
-
-      h1 {
-        font-size: 28px;
-        font-weight: 800;
-        letter-spacing: -0.025em;
-        margin-bottom: 16px;
-        color: #1e293b;
-      }
-
-      p {
-        font-size: 16px;
-        line-height: 1.6;
-        color: #475569;
-        margin-bottom: 32px;
-      }
-
-      /* Button */
-      .button-container {
-        margin-bottom: 32px;
-      }
-
-      .button {
-        display: inline-block;
-        background-color: #2563eb;
-        color: #ffffff !important;
-        padding: 16px 32px;
-        border-radius: 16px;
-        font-size: 16px;
-        font-weight: 700;
+      
+      img {
+        border: 0;
+        outline: none;
         text-decoration: none;
-        transition: all 0.3s;
-        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2);
       }
 
-      /* Secondary text */
-      .secondary-text {
-        font-size: 14px;
-        color: #94a3b8;
-        margin-bottom: 0;
+      .button-cta {
+        background-color: #6c4cff;
+        color: #ffffff !important;
+        padding: 15px 36px;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 15px;
+        text-decoration: none;
+        display: inline-block;
+        box-shadow: 0 10px 24px -6px rgba(108, 76, 255, 0.4);
+        transition: all 0.2s ease;
       }
 
-      .link-text {
-        word-break: break-all;
-        color: #64748b;
-        font-size: 12px;
-        margin-top: 8px;
+      .button-cta:hover {
+        background-color: #5b3be8;
+        box-shadow: 0 12px 28px -6px rgba(108, 76, 255, 0.5);
       }
 
-      /* Footer */
-      .footer {
-        padding: 32px 40px;
-        text-align: center;
-      }
-
-      .footer p {
-        font-size: 12px;
-        color: #94a3b8;
-        margin-bottom: 8px;
-      }
-
-      /* Mobile adjustments */
-      @media only screen and (max-width: 480px) {
-        .container {
-          margin-top: 20px;
-          border-radius: 0;
-          border-left: none;
-          border-right: none;
+      @media only screen and (max-width: 600px) {
+        .email-container {
+          width: 100% !important;
+          margin: 0 !important;
+          border-radius: 0 !important;
+          border-left: none !important;
+          border-right: none !important;
         }
-
-        .content {
-          padding: 0 24px 40px 24px;
+        .content-padding {
+          padding: 28px 20px 32px 20px !important;
         }
-
-        h1 {
-          font-size: 24px;
+        .header-padding {
+          padding: 24px 20px 20px 20px !important;
+        }
+        .heading-text {
+          font-size: 22px !important;
         }
       }
     </style>
   </head>
+  <body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+    <!-- Outer Wrapper -->
+    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; table-layout: fixed;">
+      <tr>
+        <td align="center" style="padding: 40px 16px;">
+          <!-- Card Container -->
+          <table role="presentation" class="email-container" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 560px; background-color: #ffffff; border-radius: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.07); margin: 0 auto;">
 
-  <body>
-    <div class="wrapper">
-      <div class="container">
-        <div class="header">
-          <div class="logo-container">
-            <div class="logo-icon">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"
-                />
-                <path
-                  d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"
-                />
-                <path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4" />
-                <path d="M17.599 6.5a3 3 0 0 0 .399-1.375" />
-                <path d="M6.003 5.125A3 3 0 0 0 6.401 6.5" />
-                <path d="M3.477 10.896a4 4 0 0 1 .585-.396" />
-                <path d="M19.938 10.5a4 4 0 0 1 .585.396" />
-                <path d="M6 18a4 4 0 0 1-1.967-.516" />
-                <path d="M19.967 17.484A4 4 0 0 1 18 18" />
-              </svg>
-            </div>
-            <div class="logo-text">IELTS <span>Ai</span> Pro</div>
-          </div>
-          <h1>Welcome Back!</h1>
-        </div>
-        <div class="content">
-          <p>Click the button below to sign in instantly to your IELTS Ai Pro account.</p>
+            <!-- Brand Header Banner with Ultra-Light Purple & Lavender Whisper Gradient -->
+            <tr>
+              <td class="header-padding" style="background: linear-gradient(180deg, #faf8ff 0%, #f5f0ff 100%); padding: 28px 44px 24px 44px; text-align: center; border-bottom: 1px solid #eee8ff;">
+                <a href="https://www.ieltsai.pro" target="_blank" style="text-decoration: none; display: inline-block;">
+                  <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                    <tr>
+                      <td style="vertical-align: middle; padding-right: 12px;">
+                        <svg width="40" height="40" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block;">
+                          <defs>
+                            <linearGradient id="slashGrad" x1="198" y1="154" x2="316" y2="74" gradientUnits="userSpaceOnUse">
+                              <stop offset="0" stop-color="#6C4CFF"/>
+                              <stop offset="1" stop-color="#A977FF"/>
+                            </linearGradient>
+                            <linearGradient id="legGrad" x1="235" y1="155" x2="305" y2="253" gradientUnits="userSpaceOnUse">
+                              <stop offset="0" stop-color="#A977FF"/>
+                              <stop offset="0.55" stop-color="#7D55FF"/>
+                              <stop offset="1" stop-color="#6C4CFF"/>
+                            </linearGradient>
+                          </defs>
+                          <g transform="translate(5 5) scale(0.24137931) translate(-55 -21)">
+                            <path fill="#0B0E2A" d="M211 21 L160 22 L55 252 L125 252 L207 173 L195 146 L151 173 L145 174 L185 82 L205 127 L249 103 Z"/>
+                            <path fill="url(#legGrad)" d="M265 139 L223 179 L257 253 L316 253 L311 238 Z"/>
+                            <path fill="url(#slashGrad)" d="M316 74 L198 144 L198 149 L208 172 Z"/>
+                          </g>
+                        </svg>
+                      </td>
+                      <td style="vertical-align: middle;">
+                        <span style="font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; line-height: 1;">IELTS <span style="color: #6C4CFF;">Ai Pro</span></span>
+                      </td>
+                    </tr>
+                  </table>
+                </a>
+              </td>
+            </tr>
 
-          <div class="button-container">
-            <a href="{{ .ConfirmationURL }}" class="button">Log In to Dashboard</a>
-          </div>
+            <!-- Body Content -->
+            <tr>
+              <td class="content-padding" style="padding: 36px 44px 40px 44px; text-align: center;">
+                
+                <!-- Feature Badge -->
+                <div style="display: inline-block; background-color: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 99px; padding: 6px 16px; font-size: 13px; font-weight: 700; color: #6c4cff; margin-bottom: 20px;">
+                  🔑 Instant Sign In
+                </div>
 
-          <p class="secondary-text">This magic link will expire shortly. Can't click the button?</p>
-          <div class="link-text">{{ .ConfirmationURL }}</div>
-        </div>
-      </div>
-      <div class="footer">
-        <p>&copy; 2026 IELTS Ai Pro. All rights reserved.</p>
-        <p>Your journey to IELTS mastery continues.</p>
-      </div>
-    </div>
+                <h1 class="heading-text" style="font-size: 26px; font-weight: 800; color: #0f172a; margin: 0 0 14px 0; letter-spacing: -0.03em;">Welcome Back!</h1>
+                
+                <p style="font-size: 15px; line-height: 1.65; color: #475569; margin: 0 0 32px 0;">
+                  Click the button below to sign in instantly to your IELTS Ai Pro account. No password required.
+                </p>
+
+                <!-- Button -->
+                <div style="margin-bottom: 36px;">
+                  <a href="{{ .ConfirmationURL }}" class="button-cta" target="_blank">Log In to Dashboard</a>
+                </div>
+
+                <!-- Fallback URL box -->
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; text-align: left;">
+                  <p style="font-size: 12px; font-weight: 600; color: #64748b; margin: 0 0 6px 0;">This magic link will expire shortly. Can't click the button? Copy and paste this link:</p>
+                  <div style="font-size: 12px; font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; color: #6c4cff; word-break: break-all; margin: 0;">{{ .ConfirmationURL }}</div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Footer Section -->
+            <tr>
+              <td style="background-color: #fafafa; border-top: 1px solid #f1f5f9; padding: 24px 44px; text-align: center;">
+                <p style="font-size: 12px; color: #94a3b8; margin: 0 0 6px 0; line-height: 1.5;">
+                  &copy; 2026 IELTS Ai Pro &bull; Your journey to IELTS mastery continues.
+                </p>
+                <p style="font-size: 12px; color: #94a3b8; margin: 0; line-height: 1.5;">
+                  <a href="https://www.ieltsai.pro" target="_blank" style="color: #6c4cff; text-decoration: none; font-weight: 600;">www.ieltsai.pro</a> &bull; Need help? Contact <a href="mailto:support@ieltsai.pro" style="color: #6c4cff; text-decoration: none; font-weight: 600;">support@ieltsai.pro</a>
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>
