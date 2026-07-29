@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Volume2, ChevronLeft, ChevronRight, CheckCircle2, BookmarkPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,49 +49,55 @@ const FEATURED_WORDS = [
   },
 ];
 
-const ReviewEmblemSVG = () => (
-  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#efedff] to-[#e4e7ff] dark:from-indigo-500/20 dark:to-violet-500/10 ring-1 ring-[#5862df]/20 shadow-sm flex items-center justify-center shrink-0">
-    <svg className="w-5.5 h-5.5" viewBox="0 0 32 32" fill="none">
-      <defs>
-        <linearGradient id="calGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#818cf8" />
-          <stop offset="100%" stopColor="#4f46e5" />
-        </linearGradient>
-        <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#6366f1" />
-          <stop offset="100%" stopColor="#4338ca" />
-        </linearGradient>
-      </defs>
-      {/* Calendar body */}
-      <rect
-        x="3"
-        y="7"
-        width="26"
-        height="22"
-        rx="3.5"
-        fill="url(#calGrad)"
-        stroke="#4338ca"
-        strokeWidth="0.8"
-      />
-      {/* Calendar header */}
-      <rect x="3" y="7" width="26" height="8" rx="3.5" fill="url(#headerGrad)" />
-      <rect x="3" y="12" width="26" height="3" fill="url(#headerGrad)" />
-      {/* Binding pins */}
-      <rect x="10" y="4" width="2.5" height="6" rx="1.25" fill="#a5b4fc" />
-      <rect x="19.5" y="4" width="2.5" height="6" rx="1.25" fill="#a5b4fc" />
-      {/* Grid dots */}
-      <rect x="7" y="19" width="3.5" height="3" rx="0.8" fill="#c7d2fe" opacity="0.9" />
-      <rect x="14.25" y="19" width="3.5" height="3" rx="0.8" fill="#c7d2fe" opacity="0.9" />
-      <rect x="21.5" y="19" width="3.5" height="3" rx="0.8" fill="#c7d2fe" opacity="0.6" />
-      {/* Spark accent */}
-      <path
-        d="M22 10l.8 1.8 1.8.8-1.8.8L22 15l-.8-1.8-1.8-.8 1.8-.8L22 10z"
-        fill="#ffffff"
-        opacity="0.95"
-      />
-    </svg>
-  </div>
-);
+const ReviewEmblemSVG = () => {
+  const uid = useId();
+  const calGrad = `calGrad-${uid}`;
+  const headerGrad = `headerGrad-${uid}`;
+
+  return (
+    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#efedff] to-[#e4e7ff] dark:from-indigo-500/20 dark:to-violet-500/10 ring-1 ring-[#5862df]/20 shadow-sm flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
+      <svg className="w-full h-full shrink-0" viewBox="0 0 32 32" fill="none">
+        <defs>
+          <linearGradient id={calGrad} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#818cf8" />
+            <stop offset="100%" stopColor="#4f46e5" />
+          </linearGradient>
+          <linearGradient id={headerGrad} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#6366f1" />
+            <stop offset="100%" stopColor="#4338ca" />
+          </linearGradient>
+        </defs>
+        {/* Calendar body */}
+        <rect
+          x="3"
+          y="7"
+          width="26"
+          height="22"
+          rx="3.5"
+          fill={`url(#${calGrad})`}
+          stroke="#4338ca"
+          strokeWidth="0.8"
+        />
+        {/* Calendar header */}
+        <rect x="3" y="7" width="26" height="8" rx="3.5" fill={`url(#${headerGrad})`} />
+        <rect x="3" y="12" width="26" height="3" fill={`url(#${headerGrad})`} />
+        {/* Binding pins */}
+        <rect x="10" y="4" width="2.5" height="6" rx="1.25" fill="#a5b4fc" />
+        <rect x="19.5" y="4" width="2.5" height="6" rx="1.25" fill="#a5b4fc" />
+        {/* Grid dots */}
+        <rect x="7" y="19" width="3.5" height="3" rx="0.8" fill="#c7d2fe" opacity="0.9" />
+        <rect x="14.25" y="19" width="3.5" height="3" rx="0.8" fill="#c7d2fe" opacity="0.9" />
+        <rect x="21.5" y="19" width="3.5" height="3" rx="0.8" fill="#c7d2fe" opacity="0.6" />
+        {/* Spark accent */}
+        <path
+          d="M22 10l.8 1.8 1.8.8-1.8.8L22 15l-.8-1.8-1.8-.8 1.8-.8L22 10z"
+          fill="#ffffff"
+          opacity="0.95"
+        />
+      </svg>
+    </div>
+  );
+};
 
 export default function ReviewBanner({
   dueForReview = [],

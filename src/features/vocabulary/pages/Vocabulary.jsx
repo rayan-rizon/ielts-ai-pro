@@ -93,7 +93,7 @@ const PageHeader = ({ stats, user }) => (
     </div>
 
     {/* Right Side: Header Stats Cluster */}
-    <div className="w-full xl:w-auto flex justify-start xl:justify-end">
+    <div className="w-full xl:w-auto flex justify-start xl:justify-end min-w-0">
       <VocabularyStats
         stats={stats}
         wordLimit={getWordLimit(user?.subscription_tier)}
@@ -178,10 +178,10 @@ const PersonalWordBank = ({
   handleLoadMore,
 }) => (
   <div className="rounded-[22px] border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] p-5 sm:p-6 space-y-4">
-    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
-      <div className="space-y-0.5">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="space-y-0.5 min-w-0 shrink">
         <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#efedff] text-[#5862df] dark:bg-indigo-500/20 dark:text-indigo-300 flex items-center justify-center ring-1 ring-[#5862df]/15">
+          <div className="w-8 h-8 rounded-xl bg-[#efedff] text-[#5862df] dark:bg-indigo-500/20 dark:text-indigo-300 flex items-center justify-center ring-1 ring-[#5862df]/15 shrink-0">
             <BookOpen className="w-4 h-4" />
           </div>
           My Saved Words
@@ -191,14 +191,14 @@ const PersonalWordBank = ({
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2.5">
-        <div className="relative group w-full sm:w-60">
+      <div className="flex items-center gap-2 flex-nowrap w-full md:w-auto shrink-0">
+        <div className="relative group flex-1 min-w-[120px] md:w-56 md:flex-none">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
           <Input
             placeholder="Search saved words..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 bg-slate-50 dark:bg-slate-950 border-slate-200/80 dark:border-slate-800 h-9 rounded-xl font-semibold text-xs shadow-inner"
+            className="pl-9 bg-slate-50 dark:bg-slate-950 border-slate-200/80 dark:border-slate-800 h-9 rounded-xl font-semibold text-xs shadow-inner w-full"
           />
         </div>
 
@@ -209,8 +209,8 @@ const PersonalWordBank = ({
             saveLanguagePreference(val);
           }}
         >
-          <SelectTrigger className="w-[125px] h-9 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200/80 dark:border-slate-800 text-xs font-bold">
-            <Languages className="w-3.5 h-3.5 mr-1 text-indigo-500" />
+          <SelectTrigger className="w-[115px] md:w-[125px] h-9 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200/80 dark:border-slate-800 text-xs font-bold shrink-0">
+            <Languages className="w-3.5 h-3.5 mr-1 text-indigo-500 shrink-0" />
             <SelectValue placeholder="Language" />
           </SelectTrigger>
           <SelectContent className="rounded-xl">
@@ -222,11 +222,11 @@ const PersonalWordBank = ({
           </SelectContent>
         </Select>
 
-        <div className="relative">
+        <div className="relative shrink-0">
           <Button
             variant="outline"
             size="icon"
-            className="h-9 w-9 rounded-xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm"
+            className="h-9 w-9 rounded-xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm shrink-0 flex items-center justify-center"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             <MoreVertical className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" />

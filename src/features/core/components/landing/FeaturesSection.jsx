@@ -193,6 +193,7 @@ function SpeakingFeedbackCard() {
           <div className="flex items-center gap-3">
             <button
               type="button"
+              aria-label="Play sample speaking prompt"
               className="w-8 h-8 rounded-full bg-[#635BFF] text-white flex items-center justify-center shrink-0 shadow-xs hover:scale-105 transition-transform"
             >
               <Play className="w-4 h-4 fill-current ml-0.5" />

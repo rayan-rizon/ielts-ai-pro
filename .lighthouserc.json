@@ -2,7 +2,7 @@
   "ci": {
     "collect": {
       "numberOfRuns": 3,
-      "url": ["http://localhost:4173/"],
+      "url": ["http://localhost:4173/", "http://localhost:5173/"],
       "settings": {
         "chromeFlags": "--headless=new --no-sandbox --disable-dev-shm-usage",
         "budgets": [

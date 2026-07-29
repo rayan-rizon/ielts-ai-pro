@@ -11,6 +11,13 @@ import {
   LayoutList,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export const VocabularyControlBar = ({
   activeTab,
@@ -33,35 +40,41 @@ export const VocabularyControlBar = ({
   ];
 
   return (
-    <div className="flex items-center justify-between gap-2 bg-gradient-to-r from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] px-1.5 py-1.5 rounded-[18px] border border-[#e0e4f1] dark:border-white/10 shadow-xs overflow-x-auto no-scrollbar">
-      {/* Tabs */}
-      <div className="flex items-center gap-1 shrink-0">
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-gradient-to-r from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] p-2 rounded-[20px] border border-[#e0e4f1] dark:border-white/10 shadow-xs">
+      {/* Tabs: Horizontally Scrollable */}
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth flex-1 min-w-0 max-w-full py-0.5">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
             <motion.button
               key={tab.id}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                'relative px-3 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5 shrink-0 cursor-pointer whitespace-nowrap',
+                'relative px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200 flex items-center gap-2 shrink-0 cursor-pointer whitespace-nowrap z-10',
                 isActive
-                  ? 'bg-[#5661e9] text-white shadow-md shadow-indigo-500/20'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/10'
+                  ? 'text-white'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/10'
               )}
             >
+              {isActive && (
+                <motion.div
+                  layoutId="activeTabIndicator"
+                  className="absolute inset-0 bg-[#5661e9] rounded-xl shadow-md shadow-indigo-500/20 -z-10"
+                  transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                />
+              )}
               <Icon
                 className={cn(
-                  'w-3 h-3',
+                  'w-3.5 h-3.5 relative z-10 transition-colors',
                   isActive ? 'text-white' : 'text-[#5862df] dark:text-indigo-400'
                 )}
               />
-              <span>{tab.label}</span>
+              <span className="relative z-10">{tab.label}</span>
               <span
                 className={cn(
-                  'px-1.5 py-0.5 rounded-full text-[9px] font-black leading-none',
+                  'px-2 py-0.5 rounded-full text-[9.5px] font-black leading-none relative z-10 transition-colors',
                   isActive
                     ? 'bg-white/20 text-white'
                     : 'bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300'
@@ -74,51 +87,92 @@ export const VocabularyControlBar = ({
         })}
       </div>
 
-      {/* Divider */}
-      <div className="w-px h-5 bg-slate-200 dark:bg-white/10 shrink-0" />
-
       {/* Filters + View Switcher */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        <div className="relative flex items-center">
-          <Filter className="w-3 h-3 absolute left-2.5 pointer-events-none text-[#5862df] dark:text-indigo-400" />
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="h-8 pl-7 pr-2 rounded-xl bg-white dark:bg-slate-900 border border-[#d8dcfa] dark:border-white/10 text-slate-800 dark:text-slate-200 text-[11px] font-bold focus:outline-none focus:border-[#5661e9] shadow-xs cursor-pointer appearance-none"
-          >
-            <option value="all">All Categories</option>
-            <option value="academic">Academic</option>
-            <option value="speaking">Speaking</option>
-            <option value="writing">Writing</option>
-            <option value="reading">Reading</option>
-          </select>
+      <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 border-t sm:border-t-0 border-slate-200/60 dark:border-slate-800 pt-2 sm:pt-0">
+        <div className="flex items-center gap-1.5">
+          {/* Category Filter */}
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="h-8.5 px-3 rounded-xl bg-white dark:bg-slate-900 border border-[#d8dcfa] dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs font-bold shadow-xs hover:border-[#5661e9] transition-all flex items-center gap-1.5 cursor-pointer">
+              <Filter className="w-3.5 h-3.5 text-[#5862df] dark:text-indigo-400 shrink-0" />
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 shadow-lg">
+              <SelectItem value="all" className="font-semibold text-xs rounded-lg cursor-pointer">
+                All Categories
+              </SelectItem>
+              <SelectItem
+                value="academic"
+                className="font-semibold text-xs rounded-lg cursor-pointer"
+              >
+                Academic
+              </SelectItem>
+              <SelectItem
+                value="speaking"
+                className="font-semibold text-xs rounded-lg cursor-pointer"
+              >
+                Speaking
+              </SelectItem>
+              <SelectItem
+                value="writing"
+                className="font-semibold text-xs rounded-lg cursor-pointer"
+              >
+                Writing
+              </SelectItem>
+              <SelectItem
+                value="reading"
+                className="font-semibold text-xs rounded-lg cursor-pointer"
+              >
+                Reading
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Sort Filter */}
+          <Select value={sortOption} onValueChange={setSortOption}>
+            <SelectTrigger className="h-8.5 px-3 rounded-xl bg-white dark:bg-slate-900 border border-[#d8dcfa] dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs font-bold shadow-xs hover:border-[#5661e9] transition-all flex items-center gap-1.5 cursor-pointer">
+              <ArrowUpDown className="w-3.5 h-3.5 text-[#5862df] dark:text-indigo-400 shrink-0" />
+              <SelectValue placeholder="Recent" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 shadow-lg">
+              <SelectItem
+                value="recent"
+                className="font-semibold text-xs rounded-lg cursor-pointer"
+              >
+                Recent
+              </SelectItem>
+              <SelectItem
+                value="alphabetical"
+                className="font-semibold text-xs rounded-lg cursor-pointer"
+              >
+                A → Z
+              </SelectItem>
+              <SelectItem
+                value="reverse"
+                className="font-semibold text-xs rounded-lg cursor-pointer"
+              >
+                Z → A
+              </SelectItem>
+              <SelectItem
+                value="mastery"
+                className="font-semibold text-xs rounded-lg cursor-pointer"
+              >
+                Mastery
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          {hasActiveFilters && (
+            <button
+              onClick={resetFilters}
+              className="text-xs font-extrabold text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 px-2 py-1 rounded-lg cursor-pointer transition-colors shrink-0"
+            >
+              Reset
+            </button>
+          )}
         </div>
 
-        <div className="relative flex items-center">
-          <ArrowUpDown className="w-3 h-3 absolute left-2.5 pointer-events-none text-[#5862df] dark:text-indigo-400" />
-          <select
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-            className="h-8 pl-7 pr-2 rounded-xl bg-white dark:bg-slate-900 border border-[#d8dcfa] dark:border-white/10 text-slate-800 dark:text-slate-200 text-[11px] font-bold focus:outline-none focus:border-[#5661e9] shadow-xs cursor-pointer appearance-none"
-          >
-            <option value="recent">Recent</option>
-            <option value="alphabetical">A → Z</option>
-            <option value="reverse">Z → A</option>
-            <option value="mastery">Mastery</option>
-          </select>
-        </div>
-
-        {hasActiveFilters && (
-          <button
-            onClick={resetFilters}
-            className="text-[10px] font-extrabold text-rose-500 hover:text-rose-600 underline px-1 cursor-pointer transition-colors shrink-0"
-          >
-            Reset
-          </button>
-        )}
-
-        {/* View switcher */}
-        <div className="flex items-center gap-0.5 bg-white/80 dark:bg-white/5 p-0.5 rounded-xl border border-[#d8dcfa] dark:border-white/10 shrink-0 ml-0.5">
+        {/* View Switcher */}
+        <div className="flex items-center gap-0.5 bg-white/80 dark:bg-white/5 p-0.5 rounded-xl border border-[#d8dcfa] dark:border-white/10 shrink-0">
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setViewMode('table')}

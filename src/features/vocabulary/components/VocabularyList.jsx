@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
 import { VocabularyTableRow } from './VocabularyTableRow';
@@ -126,10 +127,9 @@ export default function VocabularyList({
 
   const counts = useMemo(() => computeCounts(filteredWords), [filteredWords]);
 
-  const hasActiveFilters = isFilterActive(categoryFilter, posFilter, sortOption, activeTab);
+  const hasActiveFilters = isFilterActive(categoryFilter, posFilter, sortOption);
 
   const resetFilters = () => {
-    setActiveTab('all');
     setCategoryFilter('all');
     setPosFilter('all');
     setSortOption('recent');
@@ -151,22 +151,32 @@ export default function VocabularyList({
         counts={counts}
       />
 
-      {viewMode === 'table' ? (
-        <VocabularyTableView
-          displayedWords={displayedWords}
-          onViewWord={onViewWord}
-          onToggleMastery={onToggleMastery}
-          onDeleteWord={onDeleteWord}
-          targetLanguage={targetLanguage}
-        />
-      ) : (
-        <VocabularyCardGrid
-          displayedWords={displayedWords}
-          onViewWord={onViewWord}
-          onToggleMastery={onToggleMastery}
-          onDeleteWord={onDeleteWord}
-        />
-      )}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`${activeTab}-${categoryFilter}-${sortOption}-${viewMode}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+        >
+          {viewMode === 'table' ? (
+            <VocabularyTableView
+              displayedWords={displayedWords}
+              onViewWord={onViewWord}
+              onToggleMastery={onToggleMastery}
+              onDeleteWord={onDeleteWord}
+              targetLanguage={targetLanguage}
+            />
+          ) : (
+            <VocabularyCardGrid
+              displayedWords={displayedWords}
+              onViewWord={onViewWord}
+              onToggleMastery={onToggleMastery}
+              onDeleteWord={onDeleteWord}
+            />
+          )}
+        </motion.div>
+      </AnimatePresence>
 
       {hasMore && <LoadMoreButton isLoadingMore={isLoadingMore} onLoadMore={onLoadMore} />}
     </div>

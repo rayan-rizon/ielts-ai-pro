@@ -93,11 +93,10 @@ export const sortWordList = (list, sortOption) => {
   return comparator ? [...list].sort(comparator) : list;
 };
 
-export const isFilterActive = (categoryFilter, posFilter, sortOption, activeTab) => {
+export const isFilterActive = (categoryFilter, posFilter, sortOption) => {
   return (
-    categoryFilter !== 'all' ||
-    posFilter !== 'all' ||
-    sortOption !== 'recent' ||
-    activeTab !== 'all'
+    (categoryFilter && categoryFilter !== 'all') ||
+    (posFilter && posFilter !== 'all') ||
+    (sortOption && sortOption !== 'recent')
   );
 };

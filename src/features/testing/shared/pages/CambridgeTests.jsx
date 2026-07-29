@@ -821,26 +821,32 @@ const CambridgeTestsControls = ({ searchQuery, setSearchQuery, activeTab, setAct
         />
       </div>
 
-      {/* Tabs selection buttons */}
-      <div
-        className="flex items-center bg-white/70 dark:bg-white/5 backdrop-blur-xl p-0.5 rounded-full gap-0.5 w-full lg:w-auto overflow-x-auto no-scrollbar border border-slate-200/70 dark:border-white/10 px-1"
-        data-oid="jwdtsc-"
-      >
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              'flex items-center gap-1 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-xs font-black transition-all duration-200 whitespace-nowrap shrink-0 lg:flex-none uppercase tracking-wider hover:scale-105 active:scale-95 cursor-pointer',
-              activeTab === tab.id
-                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10'
-            )}
-            data-oid="0auvr6i"
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Tabs selection buttons with Framer Motion Sliding Pill */}
+      <div className="flex items-center bg-white/80 dark:bg-white/5 backdrop-blur-xl p-1 rounded-full gap-1 w-full lg:w-auto overflow-x-auto no-scrollbar border border-slate-200/80 dark:border-white/10 shadow-xs">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                'relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black transition-colors whitespace-nowrap shrink-0 uppercase tracking-wider cursor-pointer z-10 select-none',
+                isActive
+                  ? 'text-white font-extrabold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              )}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="cambridgeTabIndicator"
+                  className="absolute inset-0 bg-[#5661e9] rounded-full shadow-md shadow-[#5661e9]/25 -z-10"
+                  transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                />
+              )}
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* View indicator */}
