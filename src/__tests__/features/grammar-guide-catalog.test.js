@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  FREE_GRAMMAR_GUIDE_UNIT_COUNT,
   GRAMMAR_GUIDES,
   GRAMMAR_GUIDE_KITS,
   getGrammarGuide,
@@ -32,5 +33,12 @@ describe('source-derived IELTS Grammar guides', () => {
     expect(GRAMMAR_GUIDES[0].next_slug).toBe(GRAMMAR_GUIDES[1].slug);
     expect(GRAMMAR_GUIDES[17].previous_slug).toBe(GRAMMAR_GUIDES[16].slug);
     expect(GRAMMAR_GUIDES[17].next_slug).toBeNull();
+  });
+
+  it('keeps the three grammar foundations free and reserves the rest for paid plans', () => {
+    expect(FREE_GRAMMAR_GUIDE_UNIT_COUNT).toBe(3);
+    expect(GRAMMAR_GUIDES.slice(0, 3).every((guide) => guide.access_tier === 'free')).toBe(true);
+    expect(GRAMMAR_GUIDES.slice(3).every((guide) => guide.access_tier === 'pro')).toBe(true);
+    expect(GRAMMAR_GUIDE_KITS.every((kit) => kit.access_tier === 'pro')).toBe(true);
   });
 });

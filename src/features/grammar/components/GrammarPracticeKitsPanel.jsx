@@ -1,7 +1,16 @@
-import { ArrowRight, BookOpenCheck, CheckCircle2, Clock3, Layers3, RefreshCw } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpenCheck,
+  CheckCircle2,
+  Clock3,
+  Layers3,
+  LockKeyhole,
+  RefreshCw,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/cn';
 import { GRAMMAR_GUIDE_KITS, getGrammarGuide } from '../data/grammarGuideCatalog';
+import { contentTierLabel, hasContentAccess } from '@/features/subscription/config/contentAccess';
 
 const KIT_TONES = {
   violet: {
@@ -22,7 +31,7 @@ const KIT_TONES = {
   },
 };
 
-export default function GrammarPracticeKitsPanel({ access, isStarting, onStart }) {
+export default function GrammarPracticeKitsPanel({ access, isStarting, onStart, user }) {
   const noAllowance = !access?.isPaid && Number(access?.dailyRemaining || 0) <= 0;
 
   return (
@@ -51,6 +60,7 @@ export default function GrammarPracticeKitsPanel({ access, isStarting, onStart }
         {GRAMMAR_GUIDE_KITS.map((kit) => {
           const tone = KIT_TONES[kit.tone] || KIT_TONES.violet;
           const firstGuide = getGrammarGuide(kit.guideSlugs[0]);
+          const isLocked = !hasContentAccess(user, kit.access_tier);
           return (
             <article
               key={kit.slug}
@@ -66,8 +76,9 @@ export default function GrammarPracticeKitsPanel({ access, isStarting, onStart }
                 >
                   <BookOpenCheck className="h-4.5 w-4.5" />
                 </div>
-                <span className="rounded-full bg-white/80 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em] text-slate-500 shadow-2xs dark:bg-white/10 dark:text-slate-300">
-                  {kit.eyebrow}
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em] text-slate-500 shadow-2xs dark:bg-white/10 dark:text-slate-300">
+                  {isLocked && <LockKeyhole className="h-2.5 w-2.5" />}
+                  {contentTierLabel(kit.access_tier)}
                 </span>
               </div>
               <h3 className="relative mt-2.5 text-sm font-black tracking-tight text-slate-950 dark:text-white">
@@ -86,11 +97,11 @@ export default function GrammarPracticeKitsPanel({ access, isStarting, onStart }
               </div>
               <div className="relative mt-3 grid grid-cols-2 gap-2 pt-1">
                 <Link
-                  to={`/grammar/guides/${firstGuide.slug}`}
-                  aria-label={`Start ${kit.title} guide`}
+                  to={isLocked ? '/pricing' : `/grammar/guides/${firstGuide.slug}`}
+                  aria-label={isLocked ? `Unlock ${kit.title}` : `Start ${kit.title} guide`}
                   className="inline-flex h-8 items-center justify-center rounded-xl border border-white/80 bg-white/80 px-2.5 text-[10px] font-extrabold text-slate-700 transition hover:border-[#cdd2f6] hover:text-[#505bdd] dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
                 >
-                  Start guide
+                  {isLocked ? 'Unlock' : 'Start guide'}
                 </Link>
                 <button
                   type="button"
@@ -102,7 +113,7 @@ export default function GrammarPracticeKitsPanel({ access, isStarting, onStart }
                       questionCount: 5,
                     })
                   }
-                  disabled={isStarting || noAllowance}
+                  disabled={isStarting || noAllowance || isLocked}
                   className="inline-flex h-8 items-center justify-center rounded-xl bg-[#5661e9] px-2.5 text-[10px] font-extrabold text-white transition hover:bg-[#4853d6] disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   {isStarting ? (
@@ -110,7 +121,7 @@ export default function GrammarPracticeKitsPanel({ access, isStarting, onStart }
                   ) : (
                     <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
                   )}
-                  Practise
+                  {isLocked ? 'Pro kit' : 'Practise'}
                 </button>
               </div>
             </article>

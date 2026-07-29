@@ -138,8 +138,8 @@ export default function GrammarLab() {
   }, [grammar.dashboard?.skills, grammar.recommendedSkill, requestedSkill]);
   const selectedGuide = useMemo(
     () =>
-      grammar.dashboard?.resources?.find((resource) => resource.slug === guideSlug) ||
-      getGrammarGuide(guideSlug),
+      getGrammarGuide(guideSlug) ||
+      grammar.dashboard?.resources?.find((resource) => resource.slug === guideSlug),
     [grammar.dashboard?.resources, guideSlug]
   );
 
@@ -246,6 +246,7 @@ export default function GrammarLab() {
           ) : screen === 'guide' ? (
             <GrammarGuidePage
               resource={selectedGuide}
+              user={grammar.user}
               isStarting={grammar.isStarting}
               onBack={showDashboard}
               onPractice={(skillCode) =>
@@ -293,6 +294,7 @@ export default function GrammarLab() {
           ) : (
             <GrammarDashboard
               dashboard={grammar.dashboard}
+              user={grammar.user}
               recommendedSkill={recommendedSkill}
               criterionDiagnosticNeeded={grammar.criterionDiagnosticNeeded}
               defaultMode={requestedMode}

@@ -4,6 +4,7 @@ import { Check, ListPlus, LoaderCircle, Lock, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
+import { contentTierLabel, hasContentAccess } from '@/features/subscription/config/contentAccess';
 
 const LockedContent = ({ resource }) => (
   <div className="mx-auto max-w-lg space-y-5 p-8 text-center sm:p-10">
@@ -12,10 +13,10 @@ const LockedContent = ({ resource }) => (
     </div>
     <div className="space-y-2">
       <h2 className="text-xl font-black tracking-tight text-slate-800 dark:text-white">
-        Premium vocabulary kit
+        {contentTierLabel(resource.access_tier)} vocabulary kit
       </h2>
       <p className="mx-auto max-w-sm text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
-        This {resource.access_tier} kit is ready when you upgrade your plan.
+        Upgrade to {contentTierLabel(resource.access_tier)} to study this kit and save its words.
       </p>
     </div>
     <Button
@@ -196,10 +197,7 @@ export default function VocabularyStudyView({
     words = [];
   }
 
-  const tierOrder = { free: 0, pro: 1, premium: 2 };
-  const hasAccess =
-    resource.access_tier === 'free' ||
-    (user && tierOrder[user.subscription_tier || 'free'] >= tierOrder[resource.access_tier]);
+  const hasAccess = hasContentAccess(user, resource.access_tier);
 
   if (!hasAccess) return <LockedContent resource={resource} />;
 

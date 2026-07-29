@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   FEATURED_VOCABULARY_KITS,
+  FREE_VOCABULARY_KIT_SLUGS,
   VOCABULARY_KITS,
   getVocabularyKit,
 } from '@/features/vocabulary/data/vocabularyKits';
@@ -40,5 +41,21 @@ describe('source-derived Vocabulary Kits', () => {
       'Education Vocabulary for IELTS',
       'Environment Vocabulary for IELTS',
     ]);
+  });
+
+  it('keeps five balanced starter kits free and tiers the remaining library', () => {
+    const freeKits = VOCABULARY_KITS.filter((kit) => kit.access_tier === 'free');
+
+    expect(freeKits).toHaveLength(5);
+    expect(new Set(freeKits.map((kit) => kit.slug))).toEqual(FREE_VOCABULARY_KIT_SLUGS);
+    expect(
+      VOCABULARY_KITS.find((kit) => kit.slug === 'band-7-vocabulary-builder')?.access_tier
+    ).toBe('pro');
+    expect(
+      VOCABULARY_KITS.find((kit) => kit.slug === 'band-8-vocabulary-builder')?.access_tier
+    ).toBe('premium');
+    expect(
+      VOCABULARY_KITS.find((kit) => kit.slug === 'technology-vocabulary-for-ielts')?.access_tier
+    ).toBe('premium');
   });
 });

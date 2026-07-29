@@ -3,12 +3,12 @@ import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import {
   ArrowLeft,
   ArrowRight,
-  ArrowUpRight,
   BookOpenText,
   CheckCircle2,
   ChevronRight,
   Clock3,
   Layers3,
+  LockKeyhole,
   Search,
   Sparkles,
   Target,
@@ -28,12 +28,13 @@ import {
   getVocabularyKit,
 } from '@/features/vocabulary/data/vocabularyKits';
 import { cn } from '@/lib/cn';
+import { contentTierLabel } from '@/features/subscription/config/contentAccess';
 
 const KitCard = memo(function KitCard({ kit, index }) {
   const theme = useMemo(() => getKitTheme(kit), [kit]);
   const itemCount = kit.word_count || kit.words?.length || 10;
   const estimatedTime = useMemo(() => Math.max(5, Math.ceil(itemCount * 0.55)), [itemCount]);
-  const formattedIndex = String(index + 1).padStart(2, '0');
+  const isFree = kit.access_tier === 'free';
 
   const cleanTitle = useMemo(() => {
     return (kit.title || '')
@@ -52,7 +53,7 @@ const KitCard = memo(function KitCard({ kit, index }) {
     >
       <Link
         to={`/vocabulary/kits/${kit.slug}`}
-        aria-label={`Open ${cleanTitle}, ${kit.category}`}
+        aria-label={`Open ${cleanTitle}, ${kit.category}, ${contentTierLabel(kit.access_tier)} access`}
         className={cn(
           'group flex h-full min-h-[164px] flex-col justify-between rounded-2xl border bg-gradient-to-br p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 dark:border-white/10 dark:from-white/[0.035] dark:to-white/[0.015]',
           theme.panel,
@@ -61,15 +62,23 @@ const KitCard = memo(function KitCard({ kit, index }) {
         )}
       >
         <div>
-          {/* Top Bar: Icon visual (h-13 w-20 sm:w-22) at left + Index badge at right */}
+          {/* Top Bar: illustration plus the compact access cue */}
           <div className="flex items-start justify-between gap-2">
             <span className="relative shrink-0 flex items-center justify-center overflow-hidden bg-white/80 p-1 shadow-sm ring-1 ring-black/5 dark:bg-white/5 dark:ring-white/10 h-13 w-20 sm:w-22 rounded-2xl">
               <div className="flex h-full w-full items-center justify-center p-0.5 scale-105">
                 <Kit3DIcon kit={kit} />
               </div>
             </span>
-            <span className="rounded-full bg-white/80 px-2 py-1 text-[9px] font-black text-slate-500 shadow-2xs dark:bg-white/10 dark:text-slate-300">
-              {formattedIndex}
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[9px] font-black shadow-2xs dark:bg-white/10',
+                isFree
+                  ? 'text-emerald-700 dark:text-emerald-300'
+                  : 'text-slate-500 dark:text-slate-300'
+              )}
+            >
+              {!isFree && <LockKeyhole className="h-2.5 w-2.5" />}
+              {contentTierLabel(kit.access_tier)}
             </span>
           </div>
 

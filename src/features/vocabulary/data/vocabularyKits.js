@@ -3,6 +3,23 @@ import masterVocabularyMarkdown from '../../../../IELTS Vocabulary Master List .
 
 const CREATED_AT = '2026-07-29T00:00:00.000Z';
 
+export const FREE_VOCABULARY_KIT_SLUGS = new Set([
+  'ielts-speaking-giving-and-developing-opinions',
+  'ielts-reading-argument-and-evidence',
+  'ielts-writing-introducing-and-framing-an-argument',
+  'education-vocabulary-for-ielts',
+  'environment-vocabulary-for-ielts',
+]);
+
+export function getVocabularyKitAccessTier({ slug, category, title }) {
+  if (FREE_VOCABULARY_KIT_SLUGS.has(slug)) return 'free';
+  if (category === 'Vocabulary by target band') {
+    return /Band [89]\b/i.test(title) ? 'premium' : 'pro';
+  }
+  if (category === 'Topic vocabulary') return 'premium';
+  return 'pro';
+}
+
 const cleanCell = (value = '') =>
   value
     .trim()
@@ -136,7 +153,7 @@ function createKit({ title, description, category, source, words, featured = fal
     category,
     source,
     content_type: 'vocabulary',
-    access_tier: 'free',
+    access_tier: getVocabularyKitAccessTier({ slug, category, title }),
     is_published: true,
     is_local: true,
     featured,

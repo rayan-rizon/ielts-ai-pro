@@ -10,6 +10,7 @@ describe('GrammarPracticeKitsPanel', () => {
     render(
       <MemoryRouter>
         <GrammarPracticeKitsPanel
+          user={{ subscription_tier: 'pro' }}
           access={{ isPaid: true, dailyRemaining: 5 }}
           isStarting={false}
           onStart={onStart}
@@ -33,7 +34,7 @@ describe('GrammarPracticeKitsPanel', () => {
     });
   });
 
-  it('disables new practice when a free learner has no daily questions left', () => {
+  it('sends a free learner to plans for a paid practice kit', () => {
     render(
       <MemoryRouter>
         <GrammarPracticeKitsPanel
@@ -45,9 +46,9 @@ describe('GrammarPracticeKitsPanel', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Practise Sentence Foundations' })).toBeDisabled();
-    expect(screen.getByRole('link', { name: 'Start Sentence Foundations guide' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Unlock Sentence Foundations' })).toHaveAttribute(
       'href',
-      '/grammar/guides/complete-sentences-and-clauses'
+      '/pricing'
     );
   });
 });

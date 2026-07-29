@@ -12,6 +12,7 @@ const surface =
 
 export default function GrammarDashboard({
   dashboard,
+  user,
   recommendedSkill,
   criterionDiagnosticNeeded,
   defaultMode,
@@ -78,7 +79,12 @@ export default function GrammarDashboard({
 
       {/* Guided kits */}
       <div className={cn(surface, 'scroll-mt-6')}>
-        <GrammarPracticeKitsPanel access={access} isStarting={isStarting} onStart={onStart} />
+        <GrammarPracticeKitsPanel
+          access={access}
+          user={user}
+          isStarting={isStarting}
+          onStart={onStart}
+        />
       </div>
 
       {/* Skills + Evidence */}
@@ -113,6 +119,7 @@ export default function GrammarDashboard({
         <GrammarGuidesPanel
           resources={dashboard?.resources}
           resourcesUnavailable={dashboard?.resourcesUnavailable}
+          user={user}
         />
       </div>
     </div>

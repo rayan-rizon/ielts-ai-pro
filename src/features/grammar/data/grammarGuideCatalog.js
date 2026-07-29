@@ -167,6 +167,8 @@ const UNIT_META = [
   },
 ];
 
+export const FREE_GRAMMAR_GUIDE_UNIT_COUNT = 3;
+
 const KIT_META = [
   {
     slug: 'sentence-foundations',
@@ -282,6 +284,7 @@ export const GRAMMAR_GUIDES = UNIT_META.map((unit, index, units) => ({
   unit_number: unit.number,
   kit: unit.kit,
   source: 'IELTS Essential Grammar — Complete Guide & Practice',
+  access_tier: unit.number <= FREE_GRAMMAR_GUIDE_UNIT_COUNT ? 'free' : 'pro',
   is_workbook_guide: true,
   previous_slug: units[index - 1]?.slug || null,
   next_slug: units[index + 1]?.slug || null,
@@ -291,6 +294,7 @@ export const GRAMMAR_GUIDE_KITS = KIT_META.map((kit) => {
   const guides = GRAMMAR_GUIDES.filter((guide) => guide.kit === kit.title);
   return {
     ...kit,
+    access_tier: 'pro',
     guideCount: guides.length,
     minutes: guides.reduce((total, guide) => total + guide.estimated_minutes, 0),
     guideSlugs: guides.map((guide) => guide.slug),

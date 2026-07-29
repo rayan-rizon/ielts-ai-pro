@@ -9,6 +9,7 @@ import {
   FilePenLine,
   Eye,
   Lightbulb,
+  LockKeyhole,
   Mic2,
   RotateCcw,
   Route,
@@ -20,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { skillLabel, skillMeta } from '../constants';
 import { getGrammarGuide } from '../data/grammarGuideCatalog';
+import { contentTierLabel, hasContentAccess } from '@/features/subscription/config/contentAccess';
 
 function headingId(value) {
   return String(value || '')
@@ -404,7 +406,7 @@ function GuideSection({ section }) {
   );
 }
 
-export default function GrammarGuidePage({ resource, isStarting, onBack, onPractice }) {
+export default function GrammarGuidePage({ resource, user, isStarting, onBack, onPractice }) {
   if (!resource) {
     return (
       <section className="mx-auto max-w-3xl rounded-3xl border border-[#e3e6f4] bg-white p-8 text-center">
@@ -416,6 +418,34 @@ export default function GrammarGuidePage({ resource, isStarting, onBack, onPract
         <Button onClick={onBack} variant="outline" className="mt-5 rounded-xl font-extrabold">
           Back to Grammar Lab
         </Button>
+      </section>
+    );
+  }
+
+  if (!hasContentAccess(user, resource.access_tier)) {
+    return (
+      <section className="mx-auto max-w-2xl rounded-3xl border border-[#dfe3fa] bg-white p-8 text-center shadow-[0_18px_55px_-44px_rgba(48,58,128,0.7)] dark:border-indigo-400/20 dark:bg-[#10131f] sm:p-10">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-300">
+          <LockKeyhole className="h-6 w-6" />
+        </div>
+        <h1 className="mt-4 text-xl font-black tracking-tight text-slate-950 dark:text-white">
+          {contentTierLabel(resource.access_tier)} grammar guide
+        </h1>
+        <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
+          Upgrade to {contentTierLabel(resource.access_tier)} to continue this workbook unit and its
+          practice.
+        </p>
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <Button onClick={onBack} variant="outline" className="rounded-xl font-extrabold">
+            Back to Grammar Lab
+          </Button>
+          <Button
+            asChild
+            className="rounded-xl bg-[#5661e9] font-extrabold text-white hover:bg-[#4853d6]"
+          >
+            <Link to="/pricing">View plans</Link>
+          </Button>
+        </div>
       </section>
     );
   }

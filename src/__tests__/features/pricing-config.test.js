@@ -13,8 +13,9 @@ describe('pricing plan configuration', () => {
       /Deep Predictive AI Insights|Downloadable Study Packs|Exclusive Community Access/
     );
     expect(catalog).toContain('AI Study Plan Made for You');
-    expect(catalog).toContain('Grammar Practice');
-    expect(catalog).toContain('Vocabulary Review');
+    expect(catalog).toContain('Grammar Units 1–3 + 5 Questions/Day');
+    expect(catalog).toContain('5 Vocabulary Starter Kits');
+    expect(catalog).toContain('All Topic Kits + Band 8 & 9');
   });
 
   it('applies the same admin limits to the shared pricing catalog', () => {

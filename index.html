@@ -46,24 +46,75 @@
           window.__gtmLoaded = true;
         };
 
+        // Meta click attribution must be captured on the very first paint.
+        // The router rewrites the URL (dropping ?fbclid=...) long before the
+        // deferred Pixel tag runs, so by the time fbevents.js can read
+        // location.search the click id is already gone and _fbc is never set.
+        // Without _fbc, Meta cannot tie any later conversion back to the ad.
+        // This costs no network work, so it does not affect LCP.
+        var captureClickId = function () {
+          try {
+            var match = window.location.search.match(/[?&]fbclid=([^&#]+)/);
+            if (!match) return;
+
+            var fbclid = decodeURIComponent(match[1]);
+            var existing = document.cookie.match(/(?:^|;\s*)_fbc=([^;]+)/);
+            if (existing) {
+              window.localStorage.setItem('_fbc_backup', existing[1]);
+              return;
+            }
+
+            // Meta's required format: fb.<subdomainIndex>.<creationTime>.<fbclid>
+            var fbc = 'fb.1.' + Date.now() + '.' + fbclid;
+            var host = window.location.hostname.replace(/^www\./, '');
+            document.cookie =
+              '_fbc=' + fbc + ';path=/;max-age=7776000;domain=.' + host + ';SameSite=Lax';
+            // Cookie writes can be rejected (Safari ITP, odd hosts). Keep a
+            // same-origin copy so the Pixel and the server-side CAPI call can
+            // still recover the click id.
+            window.localStorage.setItem('_fbc_backup', fbc);
+          } catch (e) {
+            /* attribution is best-effort and must never break the page */
+          }
+        };
+
+        captureClickId();
+
         var scheduleGtm = function () {
           if (window.__gtmLoaded || window.__gtmScheduled) return;
           window.__gtmScheduled = true;
+
+          var interactionEvents = ['pointerdown', 'keydown', 'touchstart', 'scroll'];
+
+          var loadNow = function () {
+            interactionEvents.forEach(function (name) {
+              window.removeEventListener(name, loadNow);
+            });
+            loadGtm();
+          };
 
           var startWhenIdle = function () {
             // Give the app time to paint and hydrate before third-party code runs.
             // The fallback also works in browsers without requestIdleCallback.
             var loadWhenIdle = function () {
               if (typeof window.requestIdleCallback === 'function') {
-                window.requestIdleCallback(loadGtm, { timeout: 4000 });
+                window.requestIdleCallback(loadNow, { timeout: 4000 });
                 return;
               }
 
-              loadGtm();
+              loadNow();
             };
 
             window.setTimeout(loadWhenIdle, 3000);
           };
+
+          // Anyone who interacts is a real visitor worth measuring, and by then
+          // the page has already painted. Loading on first interaction keeps the
+          // idle deferral's LCP benefit while cutting the window in which a
+          // converting visitor is invisible to the Pixel.
+          interactionEvents.forEach(function (name) {
+            window.addEventListener(name, loadNow, { once: true, passive: true });
+          });
 
           if (document.readyState === 'complete') {
             startWhenIdle();

@@ -6,34 +6,60 @@ const DEFAULT_IDS = {
   pixelId: '991226963227159',
 };
 
+const FBC_BACKUP_KEY = '_fbc_backup';
+const SIGNUP_TRACKED_KEY = 'signup_tracked_for';
+const CAPI_ENDPOINT = '/api/meta-capi';
+
+/**
+ * Events forwarded to the Meta Pixel.
+ *
+ * Keep this list short and funnel-shaped. Meta optimises against the event a
+ * campaign is configured for, and every extra event dilutes the signal on a
+ * low-volume account. `writing_checker_signup_gate_viewed` is included because
+ * it is the only high-intent action an *unauthenticated* ad visitor can take,
+ * which makes it the one usable upper-funnel event while conversion volume is
+ * too low to optimise for CompleteRegistration directly.
+ */
 const PIXEL_EVENT_MAP = {
   signup_completed: 'CompleteRegistration',
+  onboarding_completed: 'Lead',
   checkout_started: 'InitiateCheckout',
   manual_checkout_started: 'InitiateCheckout',
   subscription_purchase: 'Purchase',
-  test_completed: 'ViewContent',
-  onboarding_completed: 'Lead',
+  writing_checker_signup_gate_viewed: 'ViewContent',
 };
 
-// Keep these events in dataLayer for GTM/GA/product analytics,
-// but suppress them from Meta Pixel to avoid optimization noise.
-const META_SUPPRESSED_EVENTS = new Set([
+/** Meta events also mirrored server-side via the Conversions API. */
+const CAPI_EVENTS = new Set(['CompleteRegistration', 'Lead', 'InitiateCheckout', 'Purchase']);
+
+/**
+ * Events dropped entirely — not sent to the Pixel, GTM, or the dataLayer.
+ *
+ * These are diagnostic or micro-interaction events that produced reporting
+ * noise without ever informing a decision. Failures belong in Sentry, which
+ * already captures them with a stack trace; funnel micro-steps are recoverable
+ * from the events that remain. Dropping them centrally keeps a single audited
+ * list rather than scattering the policy across ~15 call sites.
+ */
+const DROPPED_EVENTS = new Set([
+  // Redundant — the paired success/completion event already covers this step.
   'signin_started',
-  'signin_success',
-  'signup_verification_sent',
-  'auth_failed',
-  'billing_portal_opened',
   'checkout_redirected',
-  'checkout_failed',
+  'checkout_login_redirect',
   'test_started',
-  'test_completed',
-  'writing_submitted',
-  'speaking_submitted',
+  // Error paths — Sentry owns these and reports them with far more context.
+  'auth_failed',
+  'checkout_failed',
   'subscription_activation_error',
+  'manual_subscription_request_failed',
+  // Post-auth micro-interactions with no acquisition or retention decision
+  // attached to them.
   'premium_analysis_viewed',
   'premium_analysis_review_clicked',
-  'premium_plan_saved',
   'premium_analysis_upgrade_clicked',
+  'premium_plan_saved',
+  'writing_checker_demo_loaded',
+  'writing_checker_feedback_preview_requested',
 ]);
 
 const isBrowser = () => typeof window !== 'undefined';
@@ -67,19 +93,55 @@ const getCookie = (name) => {
   return null;
 };
 
+const readStorage = (key) => {
+  if (!isBrowser()) return null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const writeStorage = (key, value) => {
+  if (!isBrowser()) return;
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    /* storage can be unavailable in private mode; never break tracking on it */
+  }
+};
+
 const getFbp = () => getCookie('_fbp');
 
+/**
+ * Resolve the Meta click id.
+ *
+ * The cookie set by index.html is the primary source. The localStorage backup
+ * covers browsers that reject the cookie write (Safari ITP), and the live URL
+ * is checked last as a safety net — by the time most calls reach here the
+ * router has already stripped `?fbclid=`, which is precisely why the value is
+ * captured and persisted during the first paint instead.
+ */
 const getFbc = () => {
   const cookieFbc = getCookie('_fbc');
   if (cookieFbc) return cookieFbc;
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const fbclid = urlParams.get('fbclid');
+  const stored = readStorage(FBC_BACKUP_KEY);
+  if (stored) return stored;
+
+  if (!isBrowser()) return null;
+  const fbclid = new URLSearchParams(window.location.search).get('fbclid');
   if (fbclid) {
-    // Format: fb.1.<timestamp>.<fbclid>
-    return `fb.1.${Date.now()}.${fbclid}`;
+    const fbc = `fb.1.${Date.now()}.${fbclid}`;
+    writeStorage(FBC_BACKUP_KEY, fbc);
+    return fbc;
   }
   return null;
+};
+
+const createEventId = () => {
+  if (isBrowser() && window.crypto?.randomUUID) return window.crypto.randomUUID();
+  return `evt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 };
 
 const pushDataLayer = (payload) => {
@@ -115,6 +177,48 @@ const buildEnrichedPayload = ({ eventName, pixelEvent, payload, value, currency,
     event_name: eventName,
     event_time: new Date().toISOString(),
   };
+};
+
+/**
+ * Mirror a conversion to the Conversions API.
+ *
+ * Browser-only Pixel delivery loses a large share of events to iOS/ITP,
+ * ad blockers, and in-app browsers — which is most of this account's ad
+ * traffic. `eventId` is shared with the Pixel call so Meta deduplicates the
+ * two into a single conversion rather than double-counting.
+ */
+const sendToConversionsApi = (pixelEvent, { eventId, value, currency, payload }) => {
+  if (!isBrowser() || !CAPI_EVENTS.has(pixelEvent)) return;
+
+  const body = JSON.stringify({
+    event_name: pixelEvent,
+    event_id: String(eventId),
+    event_source_url: window.location.href,
+    fbp: getFbp(),
+    fbc: getFbc(),
+    ...(value !== undefined ? { value } : {}),
+    ...(isCommercePixelEvent(pixelEvent) ? { currency } : {}),
+    user: {
+      email: payload.email || null,
+      external_id: payload.user_id || null,
+    },
+  });
+
+  // keepalive lets the request survive the navigation that often follows a
+  // conversion (checkout redirect, post-signup route change).
+  try {
+    window
+      .fetch(CAPI_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        keepalive: true,
+        credentials: 'same-origin',
+      })
+      ?.catch?.(() => {});
+  } catch {
+    /* measurement must never surface an error to the user */
+  }
 };
 
 const trackPurchase = (payload, value, currency, eventId) => {
@@ -158,11 +262,12 @@ export const trackPageView = (pathname = '/') => {
 
 export const trackAppEvent = (eventName, payload = {}) => {
   if (!isBrowser() || !eventName) return;
+  if (DROPPED_EVENTS.has(eventName)) return;
 
   const pixelEvent = PIXEL_EVENT_MAP[eventName];
   const normalizedValue = normalizeValue(payload.value);
   const normalizedCurrency = normalizeCurrency(payload.currency);
-  const eventId = payload.event_id || payload.transaction_id;
+  const eventId = payload.event_id || payload.transaction_id || createEventId();
 
   // Never send a Purchase with a fabricated zero or malformed currency.
   // Meta uses these fields for ROAS and flags missing/invalid price data.
@@ -182,8 +287,18 @@ export const trackAppEvent = (eventName, payload = {}) => {
 
   pushDataLayer({ event: eventName, ...enrichedPayload });
 
-  // Keep analytics events in dataLayer while preventing Meta event overload.
-  if (META_SUPPRESSED_EVENTS.has(eventName)) return;
+  // Everything not in PIXEL_EVENT_MAP stays in the dataLayer for GTM/GA and is
+  // never forwarded to Meta, so the optimisation signal stays clean.
+  if (!pixelEvent) return;
+
+  // Server-side delivery is independent of the Pixel: it must still fire when
+  // fbevents.js is blocked or has not loaded yet.
+  sendToConversionsApi(pixelEvent, {
+    eventId,
+    value: normalizedValue,
+    currency: normalizedCurrency,
+    payload,
+  });
 
   if (typeof window.fbq !== 'function') return;
 
@@ -193,30 +308,63 @@ export const trackAppEvent = (eventName, payload = {}) => {
   }
 
   if (pixelEvent === 'InitiateCheckout') {
-    window.fbq('track', pixelEvent, {
-      value: normalizeValue(payload.value),
-      currency: normalizeCurrency(payload.currency),
-      content_name: payload.plan_tier || payload.plan_name || 'subscription',
-      fbc: getFbc(),
-      fbp: getFbp(),
-    });
+    window.fbq(
+      'track',
+      pixelEvent,
+      {
+        value: normalizedValue,
+        currency: normalizedCurrency,
+        content_name: payload.plan_tier || payload.plan_name || 'subscription',
+        fbc: getFbc(),
+        fbp: getFbp(),
+      },
+      { eventID: String(eventId) }
+    );
     return;
   }
 
-  if (pixelEvent) {
-    window.fbq('track', pixelEvent, {
+  window.fbq(
+    'track',
+    pixelEvent,
+    {
       ...payload,
       fbc: getFbc(),
       fbp: getFbp(),
-    });
-    return;
-  }
+    },
+    { eventID: String(eventId) }
+  );
+};
 
-  window.fbq('trackCustom', eventName, {
-    ...enrichedPayload,
-    fbc: getFbc(),
-    fbp: getFbp(),
+/**
+ * Report a completed registration exactly once per user.
+ *
+ * Called from the single point where a brand-new profile row is created, so it
+ * covers every provider (Google, email, and anything added later) rather than
+ * only the email/password branch. Google accounts for the large majority of
+ * real signups, and none of them previously reached Meta at all.
+ *
+ * For email signups with confirmation enabled, this naturally fires when the
+ * user returns from the verification link and the profile is created — which
+ * is the point a registration is actually real.
+ */
+export const trackSignupCompleted = ({ userId = null, method = 'unknown', email = null } = {}) => {
+  if (!isBrowser()) return false;
+
+  // A profile insert can be retried after a transient failure, and the auth
+  // listener can re-run on token refresh. Deduplicate so Meta never sees the
+  // same registration twice.
+  const marker = userId ? String(userId) : 'anonymous';
+  if (readStorage(SIGNUP_TRACKED_KEY) === marker) return false;
+  writeStorage(SIGNUP_TRACKED_KEY, marker);
+
+  trackAppEvent('signup_completed', {
+    method,
+    user_id: userId || null,
+    email: email || null,
+    path: window.location?.pathname || '/',
   });
+
+  return true;
 };
 
 export const pushUserIdentity = (profile) => {

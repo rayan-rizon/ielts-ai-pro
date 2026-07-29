@@ -239,12 +239,9 @@ export default function Login() {
         const referralCode = localStorage.getItem('referral_code');
         const data = await signUp(email, password, username, referralCode);
         if (data?.session) {
-          trackAppEvent('signup_completed', {
-            method: 'email',
-            path: location.pathname,
-            has_referral: Boolean(referralCode),
-          });
-
+          // The registration itself is reported from User.me(), at the single
+          // point a new profile row is created, so that Google OAuth signups
+          // are counted too. Firing it here as well would double-count.
           clearRequestedDestination();
           navigate(requestedDestination, { replace: true });
         } else {

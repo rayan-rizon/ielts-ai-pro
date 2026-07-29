@@ -71,6 +71,7 @@ describe('GrammarGuidePage', () => {
       <MemoryRouter>
         <GrammarGuidePage
           resource={getGrammarGuide('essential-tense-control')}
+          user={{ subscription_tier: 'pro' }}
           isStarting={false}
           onBack={vi.fn()}
           onPractice={vi.fn()}
@@ -93,5 +94,23 @@ describe('GrammarGuidePage', () => {
     const selfMark = screen.getByRole('button', { name: 'I got this' });
     fireEvent.click(selfMark);
     expect(selfMark).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('shows an upgrade gate instead of a locked workbook unit', () => {
+    render(
+      <MemoryRouter>
+        <GrammarGuidePage
+          resource={getGrammarGuide('essential-tense-control')}
+          user={{ subscription_tier: 'free' }}
+          isStarting={false}
+          onBack={vi.fn()}
+          onPractice={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('heading', { name: 'Pro grammar guide' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'View plans' })).toHaveAttribute('href', '/pricing');
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 });

@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { signUpSchema } from '@/lib/validations';
 import { UserProfile } from '@/types';
 import { getCsrfHeaders } from '@/lib/csrf';
+import { trackSignupCompleted } from '@/lib/tracking';
 
 // Admin list options interface
 interface ListOptions {
@@ -197,6 +198,18 @@ export const User = {
     }
 
     console.log('[User.me] Created new profile');
+
+    // The only point in the app where a brand-new account definitively comes
+    // into existence, regardless of provider. Reporting the registration here
+    // covers Google OAuth and confirmed-email signups alike; previously only
+    // the email/password branch reported, and only when Supabase returned a
+    // session immediately, so the large majority of real signups were invisible
+    // to Meta. trackSignupCompleted deduplicates per user id.
+    trackSignupCompleted({
+      userId: insertedProfile?.id || user.id,
+      method: user.app_metadata?.provider || 'email',
+      email: user.email || null,
+    });
 
     // IF this is a new profile and we have a referral code, process it
     if (referralCode && insertedProfile?.id) {

@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { LayoutGroup, motion } from 'framer-motion';
-import { ArrowRight, BookOpenText, ChevronRight, Clock3, Search } from 'lucide-react';
+import { ArrowRight, BookOpenText, ChevronRight, Clock3, LockKeyhole, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/cn';
 import { GRAMMAR_GUIDES, GRAMMAR_GUIDE_CATEGORIES } from '../data/grammarGuideCatalog';
 import SkillVisual from './SkillVisual';
 import { skillLabel } from '../constants';
+import { contentTierLabel, hasContentAccess } from '@/features/subscription/config/contentAccess';
 
 const SKILL_VISUALS = {
   grammar_sentence_boundaries: {
@@ -35,12 +36,11 @@ const SKILL_VISUALS = {
   },
 };
 
-export default function GrammarGuidesPanel({ resources, resourcesUnavailable }) {
+export default function GrammarGuidesPanel({ resources, resourcesUnavailable, user }) {
   const [category, setCategory] = useState('All guides');
   const [query, setQuery] = useState('');
-  const sourceGuides = GRAMMAR_GUIDES.length ? GRAMMAR_GUIDES : resources || [];
-
   const visibleGuides = useMemo(() => {
+    const sourceGuides = GRAMMAR_GUIDES.length ? GRAMMAR_GUIDES : resources || [];
     const normalizedQuery = query.trim().toLowerCase();
     return sourceGuides.filter((resource) => {
       const categoryMatches = category === 'All guides' || resource.kit === category;
@@ -51,7 +51,7 @@ export default function GrammarGuidesPanel({ resources, resourcesUnavailable }) 
           .includes(normalizedQuery);
       return categoryMatches && queryMatches;
     });
-  }, [category, query, sourceGuides]);
+  }, [category, query, resources]);
 
   return (
     <section id="grammar-guides" className="scroll-mt-6 p-4 sm:p-5">
@@ -132,6 +132,7 @@ export default function GrammarGuidesPanel({ resources, resourcesUnavailable }) 
         <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {visibleGuides.map((resource) => {
             const visual = SKILL_VISUALS[resource.skill_code] || SKILL_VISUALS.grammar_word_forms;
+            const isLocked = !hasContentAccess(user, resource.access_tier);
             return (
               <Link
                 key={resource.id}
@@ -150,8 +151,16 @@ export default function GrammarGuidesPanel({ resources, resourcesUnavailable }) 
                       slug={resource.slug}
                       compact
                     />
-                    <span className="rounded-full bg-white/80 px-2 py-1 text-[9px] font-black text-slate-500 shadow-sm dark:bg-white/10 dark:text-slate-300">
-                      {String(resource.unit_number).padStart(2, '0')}
+                    <span
+                      className={cn(
+                        'inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[9px] font-black shadow-sm dark:bg-white/10',
+                        isLocked
+                          ? 'text-slate-500 dark:text-slate-300'
+                          : 'text-emerald-700 dark:text-emerald-300'
+                      )}
+                    >
+                      {isLocked && <LockKeyhole className="h-2.5 w-2.5" />}
+                      {contentTierLabel(resource.access_tier)}
                     </span>
                   </div>
                   <div className="mt-2.5 text-[9px] font-extrabold uppercase tracking-[0.1em] text-[#5c66dc]">
@@ -169,7 +178,8 @@ export default function GrammarGuidesPanel({ resources, resourcesUnavailable }) 
                     <Clock3 className="h-3 w-3" /> {resource.estimated_minutes} min
                   </span>
                   <span className="inline-flex items-center gap-0.5 text-[#5661e9]">
-                    Open <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                    {isLocked ? 'Preview' : 'Open'}{' '}
+                    <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
                   </span>
                 </div>
               </Link>
