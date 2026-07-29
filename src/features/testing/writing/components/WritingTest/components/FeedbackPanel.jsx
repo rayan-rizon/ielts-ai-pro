@@ -6,8 +6,10 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
+  Download,
   Info,
   Lightbulb,
+  LoaderCircle,
   RefreshCw,
   Sparkles,
   Target,
@@ -16,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
+import { toast } from 'sonner';
 
 const CRITERIA = [
   { keys: ['TaskAchievement', 'TaskResponse'], short: 'TA', taskLabel: true },
@@ -248,6 +251,23 @@ export function FeedbackPanel({
 }) {
   const allFeedbacks = useWritingTestStore((state) => state.feedbacks);
   const [showAllCorrections, setShowAllCorrections] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (isDownloadingPdf) return;
+
+    setIsDownloadingPdf(true);
+    try {
+      const { downloadWritingReportPdf } = await import('../../../utils/writingReportPdf');
+      downloadWritingReportPdf({ feedbacks: allFeedbacks });
+      toast.success('Writing report downloaded');
+    } catch (error) {
+      console.error(error);
+      toast.error('Could not download the PDF', { description: 'Please try again in a moment.' });
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
 
   const task1Band = Number(allFeedbacks['Task 1']?.overallBand);
   const task2Band = Number(allFeedbacks['Task 2']?.overallBand);
@@ -338,16 +358,32 @@ export function FeedbackPanel({
                 <div className="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-indigo-500/20 blur-3xl" />
                 <div className="pointer-events-none absolute -bottom-16 left-8 h-36 w-36 rounded-full bg-blue-500/10 blur-3xl" />
 
-                <div className="relative flex items-center justify-between">
+                <div className="relative flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-sm font-extrabold">
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-amber-300 ring-1 ring-white/10">
                       <Sparkles className="h-4 w-4" />
                     </span>
                     AI feedback summary
                   </div>
-                  <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-300 ring-1 ring-white/10">
-                    {taskType}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-300 ring-1 ring-white/10">
+                      {taskType}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={handleDownloadPdf}
+                      disabled={isDownloadingPdf}
+                      className="h-7 rounded-lg bg-white/10 px-2 text-[10px] font-extrabold text-white hover:bg-white/20 hover:text-white"
+                    >
+                      {isDownloadingPdf ? (
+                        <LoaderCircle className="mr-1 h-3 w-3 animate-spin" />
+                      ) : (
+                        <Download className="mr-1 h-3 w-3" />
+                      )}
+                      PDF
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="relative mt-2 grid items-center gap-3 sm:grid-cols-[136px_1fr]">

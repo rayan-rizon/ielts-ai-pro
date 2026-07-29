@@ -70,6 +70,7 @@ describe('Writing feedback panel', () => {
     render(<FeedbackPanel feedback={feedback} />);
 
     expect(screen.getByText('AI feedback summary')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'PDF' })).toBeInTheDocument();
     expect(screen.getByLabelText('Band 6 out of 9')).toBeInTheDocument();
     expect(screen.getAllByText('Task Response')).toHaveLength(2);
     expect(screen.getByText('Key strengths')).toBeInTheDocument();

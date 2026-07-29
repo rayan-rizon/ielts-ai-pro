@@ -2,9 +2,19 @@ import React from 'react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { X, Brain, Crown, BarChart3, Sparkles, BookOpen } from 'lucide-react';
+import {
+  X,
+  Brain,
+  Crown,
+  BarChart3,
+  Sparkles,
+  BookOpen,
+  Download,
+  LoaderCircle,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 
 import ConfettiCelebration from '@/components/ConfettiCelebration';
 
@@ -30,7 +40,14 @@ function calculateCelebrationParams(score) {
   return { count: 0, theme: 'default' };
 }
 
-const ModalFooter = ({ isPremium, handleUpgrade, onReviewAnswers, onClose }) => (
+const ModalFooter = ({
+  isPremium,
+  handleUpgrade,
+  onReviewAnswers,
+  onClose,
+  onDownloadPdf,
+  isDownloadingPdf,
+}) => (
   <div className="px-4 sm:px-5 py-2.5 bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 z-50">
     <div className="flex items-center gap-3">
       {!isPremium ? (
@@ -65,6 +82,19 @@ const ModalFooter = ({ isPremium, handleUpgrade, onReviewAnswers, onClose }) => 
     </div>
 
     <div className="flex items-center gap-2.5 w-full sm:w-auto">
+      <Button
+        variant="outline"
+        onClick={onDownloadPdf}
+        disabled={isDownloadingPdf}
+        className="flex-1 sm:flex-none h-9 rounded-xl font-bold text-xs border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition-all"
+      >
+        {isDownloadingPdf ? (
+          <LoaderCircle className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Download className="mr-1.5 h-3.5 w-3.5" />
+        )}
+        {isDownloadingPdf ? 'Preparing...' : 'Download PDF'}
+      </Button>
       <Button
         onClick={onReviewAnswers}
         className="flex-1 sm:min-w-[180px] h-9 rounded-xl font-bold text-xs bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm shadow-blue-500/20"
@@ -171,6 +201,8 @@ const ModalContent = React.memo(
     onNavigateToQuestion,
     onReviewQuestion,
     onClose,
+    onDownloadPdf,
+    isDownloadingPdf,
   }) => (
     <motion.div
       initial={{ scale: 0.96, opacity: 0, y: 20 }}
@@ -238,6 +270,8 @@ const ModalContent = React.memo(
         handleUpgrade={handleUpgrade}
         onReviewAnswers={onReviewAnswers}
         onClose={onClose}
+        onDownloadPdf={onDownloadPdf}
+        isDownloadingPdf={isDownloadingPdf}
       />
     </motion.div>
   )
@@ -263,6 +297,7 @@ export default function TestResultsModal({
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [activeTab, setActiveTab] = React.useState('overview');
+  const [isDownloadingPdf, setIsDownloadingPdf] = React.useState(false);
   const normalizedResults = React.useMemo(
     () => normalizeTestResults(testResults, testType),
     [testResults, testType]
@@ -285,6 +320,26 @@ export default function TestResultsModal({
     },
     [onClose, onNavigateToQuestion, onReviewAnswers]
   );
+
+  const handleDownloadPdf = React.useCallback(async () => {
+    if (isDownloadingPdf) return;
+
+    setIsDownloadingPdf(true);
+    try {
+      const { downloadTestResultPdf } = await import('./test-results-modal/testResultPdf');
+      downloadTestResultPdf({
+        testResults: normalizedResults,
+        testType,
+        testTitle: testData?.title || testData?.name,
+      });
+      toast.success('Test result downloaded');
+    } catch (error) {
+      console.error(error);
+      toast.error('Could not download the PDF', { description: 'Please try again in a moment.' });
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  }, [isDownloadingPdf, normalizedResults, testData, testType]);
 
   const { showCelebration, particleCount, celebrationTheme, setShowCelebration } = useCelebration(
     showResults,
@@ -325,6 +380,8 @@ export default function TestResultsModal({
           onNavigateToQuestion={onNavigateToQuestion}
           onReviewQuestion={handleReviewQuestion}
           onClose={onClose}
+          onDownloadPdf={handleDownloadPdf}
+          isDownloadingPdf={isDownloadingPdf}
         />
       </motion.div>
     </AnimatePresence>
