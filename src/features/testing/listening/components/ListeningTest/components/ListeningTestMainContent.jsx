@@ -25,6 +25,7 @@ export default function ListeningTestMainContent({
   dispatch,
   ACTIONS,
   testMode = 'practice',
+  isAwaitingStart = false,
   examReview = false,
   onExamAudioEnded,
 }) {
@@ -69,10 +70,11 @@ export default function ListeningTestMainContent({
             sectionQuestions={sectionQuestions}
             isMobile={isMobile}
             examMode={isExamMode}
+            isAwaitingStart={isAwaitingStart}
             examReview={examReview}
             onAudioEnded={onExamAudioEnded}
             onAudioDurationChange={(d) => {
-              if (isExamMode) return;
+              if (isExamMode || isAwaitingStart) return;
               const state = useListeningTestStore.getState();
               const isTimerUnset = state.timeRemaining === 0;
               const hasValidDuration = d > 0;
@@ -198,7 +200,7 @@ export default function ListeningTestMainContent({
               ref={audioPlayerRef}
               src={currentSection.audio_url}
               onDurationChange={(d) => {
-                if (isExamMode) return;
+                if (isExamMode || isAwaitingStart) return;
                 const state = useListeningTestStore.getState();
                 const isTimerUnset = state.timeRemaining === 0;
                 const hasValidDuration = d > 0;
@@ -212,6 +214,7 @@ export default function ListeningTestMainContent({
               }}
               onTimeUpdate={(t) => dispatch({ type: ACTIONS.UPDATE_AUDIO_TIME, payload: t })}
               examMode={isExamMode}
+              isAwaitingStart={isAwaitingStart}
               examReview={examReview}
               onEnded={onExamAudioEnded}
               data-oid="floating-mob-audio"

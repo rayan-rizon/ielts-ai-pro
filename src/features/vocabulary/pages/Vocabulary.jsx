@@ -280,6 +280,7 @@ export default function Vocabulary() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [viewingWord, setViewingWord] = useState(null);
   const [selectedCuratedList, setSelectedCuratedList] = useState(null);
+  const [retentionRefreshKey, setRetentionRefreshKey] = useState(0);
 
   const [targetLanguage, setTargetLanguage] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -383,7 +384,13 @@ export default function Vocabulary() {
     handleReviewSubmit,
     closeReviewSession,
     flipCard,
-  } = useReviewSession({ dueForReview, setDueForReview, setAllVocabulary, user });
+  } = useReviewSession({
+    dueForReview,
+    setDueForReview,
+    setAllVocabulary,
+    user,
+    onReviewRecorded: () => setRetentionRefreshKey((key) => key + 1),
+  });
 
   const startReviewSession = () => {
     if (dueForReview.length === 0) {
@@ -503,7 +510,7 @@ export default function Vocabulary() {
               onStartSpeedQuiz={startSpeedQuiz}
               onStartMatchPairs={startMatchPairs}
               onStartReview={startReviewSession}
-              stats={stats}
+              retentionRefreshKey={retentionRefreshKey}
               dueForReview={dueForReview}
               allVocabulary={allVocabulary}
             />

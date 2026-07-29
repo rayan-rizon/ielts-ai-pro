@@ -192,16 +192,28 @@ export function WritingActions({
   }
   if (isResuming) {
     return (
-      <Link to={`/writing-task?sessionId=${session.id}`} className="block mt-3">
-        <Button
-          className={cn(
-            'w-full bg-white/90 dark:bg-transparent backdrop-blur-md border font-bold rounded-lg sm:rounded-xl h-10 text-xs sm:text-sm shadow-2xs hover:shadow-xs transition-all active:scale-[0.98]',
-            colorVariants[color].button
-          )}
-        >
-          Resume Task <Play className="w-3.5 h-3.5 ml-1.5 fill-current" />
-        </Button>
-      </Link>
+      <div className="flex gap-2 mt-3">
+        <Link to={`/writing-task?sessionId=${session.id}`} className="flex-1">
+          <Button
+            className={cn(
+              'w-full bg-white/90 dark:bg-transparent backdrop-blur-md border font-bold rounded-lg sm:rounded-xl h-10 text-xs sm:text-sm shadow-2xs hover:shadow-xs transition-all active:scale-[0.98]',
+              colorVariants[color].button
+            )}
+          >
+            Resume Task <Play className="w-3.5 h-3.5 ml-1.5 fill-current" />
+          </Button>
+        </Link>
+        <Link to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}>
+          <Button
+            variant="outline"
+            aria-label="Restart test"
+            title="Restart test"
+            className="h-10 px-3.5 rounded-lg sm:rounded-xl border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 backdrop-blur-md active:scale-[0.98]"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </Button>
+        </Link>
+      </div>
     );
   }
   if (isCompleted) {
@@ -348,7 +360,17 @@ export function TestRowAction({
             Resume <Play className="w-2 h-2 fill-current" />
           </Button>
         </Link>
-        <div className="w-6.5 h-6.5 shrink-0" />
+        <Link to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}>
+          <Button
+            size="sm"
+            variant="outline"
+            aria-label="Restart test"
+            title="Restart test"
+            className="h-6.5 w-6.5 p-0 rounded-lg border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200"
+          >
+            <RotateCcw className="w-2.5 h-2.5" />
+          </Button>
+        </Link>
       </>
     );
   }

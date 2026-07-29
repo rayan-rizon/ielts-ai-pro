@@ -16,6 +16,7 @@ const TranscriptPanel = ({
   onAudioDurationChange,
   isMobile,
   examMode = false,
+  isAwaitingStart = false,
   examReview = false,
   onAudioEnded,
 }) => {
@@ -41,6 +42,7 @@ const TranscriptPanel = ({
               onDurationChange={onAudioDurationChange}
               onTimeUpdate={setAudioTimeRef}
               examMode={examMode}
+              isAwaitingStart={isAwaitingStart}
               examReview={examReview}
               onEnded={onAudioEnded}
               data-oid="83knhtk"

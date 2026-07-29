@@ -110,7 +110,6 @@ import { useHighlighter } from '../components/ReadingTest/hooks/useHighlighter';
 import { useTestNotes } from '../components/ReadingTest/hooks/useTestNotes';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useReadingTestStore } from '../store/useReadingTestStore';
-import { TestStartPreviewNotice } from '@/features/testing/shared/components/TestModeHeaderControl';
 
 // HighlightMenu component moved to ./ReadingTest/components/HighlightMenu.jsx
 
@@ -926,13 +925,12 @@ function ReadingTestContent() {
         {/* Main Layout Container */}
         <div
           className={cn(
-            'flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 relative',
-            isAwaitingStart && 'pointer-events-none select-none'
+            'flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 relative transition-all duration-300',
+            isAwaitingStart && 'pointer-events-none select-none blur-[3px] opacity-75'
           )}
           aria-disabled={isAwaitingStart || undefined}
           inert={isAwaitingStart ? '' : undefined}
         >
-          {isAwaitingStart ? <TestStartPreviewNotice examEligibility={examEligibility} /> : null}
           {/* Main Content Area with Resizable Layout */}
           <div
             ref={containerRef}

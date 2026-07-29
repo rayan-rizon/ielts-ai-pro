@@ -236,6 +236,7 @@ const ListeningTestHeader = ({
               examEligibility={examEligibility}
               onStart={onStart}
               isStarting={isStarting}
+              isAwaitingStart={isAwaitingStart}
             />
           ) : (
             <>

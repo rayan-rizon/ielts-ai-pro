@@ -15,7 +15,6 @@ import { useWritingTaskLogic } from '../components/WritingTest/hooks/useWritingT
 import { useWritingTestStore } from '../store/useWritingTestStore';
 import AnnotatedText from '@/components/writing/AnnotatedText';
 import { useAuth } from '@/features/auth/context/AuthContext';
-import { TestStartPreviewNotice } from '@/features/testing/shared/components/TestModeHeaderControl';
 
 const MemoizedWritingHeader = React.memo(WritingHeader);
 const MemoizedTaskPanel = React.memo(TaskPanel);
@@ -176,14 +175,14 @@ function WritingTaskContent() {
       />
 
       <div
-        className={`relative mx-auto flex min-h-0 w-full max-w-[1920px] flex-1 flex-col overflow-hidden md:flex-row ${
-          isAwaitingStart ? 'pointer-events-none select-none' : ''
-        }`}
+        className={cn(
+          'relative mx-auto flex min-h-0 w-full max-w-[1920px] flex-1 flex-col overflow-hidden md:flex-row transition-all duration-300',
+          isAwaitingStart && 'pointer-events-none select-none blur-[3px] opacity-75'
+        )}
         aria-disabled={isAwaitingStart || undefined}
         inert={isAwaitingStart ? '' : undefined}
         data-oid="50emge."
       >
-        {isAwaitingStart ? <TestStartPreviewNotice examEligibility={examEligibility} /> : null}
         {showTaskPanel && (
           <MemoizedTaskPanel
             task={task}
@@ -239,12 +238,12 @@ function WritingTaskContent() {
 function WritingViewModeToggle({ viewMode, setViewMode }) {
   return (
     <div
-      className="sticky top-0 z-40 bg-white/80 dark:bg-[#05060B]/90 backdrop-blur-xl border-b border-slate-200/40 dark:border-white/5 px-4 py-2"
+      className="sticky top-0 z-40 bg-white/80 dark:bg-[#05060B]/90 backdrop-blur-xl border-b border-slate-200/40 dark:border-white/5 px-3 py-1.5 sm:px-4"
       data-oid="dowvur:"
     >
       <div className="flex items-center justify-center w-full" data-oid="3v:texu">
         <div
-          className="flex p-1 bg-slate-100/80 dark:bg-[#0D0E1A] rounded-full border border-slate-200/50 dark:border-white/10 shadow-inner"
+          className="flex p-0.5 bg-slate-100/80 dark:bg-[#0D0E1A] rounded-full border border-slate-200/50 dark:border-white/10 shadow-inner"
           data-oid=":s9x3zg"
         >
           {['review', 'question', 'edit'].map((mode) => (
@@ -252,7 +251,7 @@ function WritingViewModeToggle({ viewMode, setViewMode }) {
               key={mode}
               onClick={() => setViewMode(mode)}
               className={cn(
-                'relative px-5 py-1.5 text-xs md:text-sm font-bold rounded-full transition-all duration-300 flex-1 sm:flex-none text-center z-10',
+                'relative px-5 py-1 text-xs md:text-sm font-bold rounded-full transition-all duration-300 flex-1 sm:flex-none text-center z-10',
                 viewMode === mode
                   ? 'text-indigo-600 dark:text-white'
                   : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100'
@@ -292,9 +291,9 @@ function AnnotatedReviewPane({ feedback, writing, setWriting }) {
   );
 
   return (
-    <div className="pt-0 px-1 sm:px-2 pb-6" data-oid="j1tntdm">
+    <div className="px-1 sm:px-2 pb-6" data-oid="j1tntdm">
       <div
-        className="bg-white dark:bg-[#0D0E1A] rounded-2xl border border-indigo-100/50 dark:border-white/5 shadow-sm p-3 min-h-[500px]"
+        className="bg-white dark:bg-[#0D0E1A] rounded-2xl border border-indigo-100/50 dark:border-white/5 shadow-sm px-3 pb-3 pt-2 min-h-[500px]"
         data-oid="w9yqk30"
       >
         <AnnotatedText

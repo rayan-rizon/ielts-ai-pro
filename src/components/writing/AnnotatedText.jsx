@@ -290,7 +290,7 @@ const AnnotationSummary = ({ annotations, filters, onFilterToggle }) => {
 
   return (
     <div
-      className="flex flex-wrap items-center gap-2.5 px-3 py-2.5 bg-white dark:bg-[#0D0E1A] rounded-xl border border-slate-100 dark:border-white/5 shadow-sm mb-4"
+      className="flex flex-wrap items-center gap-2.5 px-3 py-2 bg-white dark:bg-[#0D0E1A] rounded-xl border border-slate-100 dark:border-white/5 shadow-sm mb-3"
       data-oid="lv6bt79"
     >
       <span
@@ -628,7 +628,7 @@ export default function AnnotatedText({
   if (!text) return null;
 
   return (
-    <div className={cn('space-y-4', className)} data-oid="2i5_klq">
+    <div className={cn('space-y-3', className)} data-oid="2i5_klq">
       {/* Summary Bar */}
       {annotations.length > 0 && (
         <AnnotationSummary
@@ -642,11 +642,11 @@ export default function AnnotatedText({
       {/* Annotated Text */}
       <div
         ref={containerRef}
-        className="relative p-4 md:p-6 bg-white dark:bg-[#0D0E1A] rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm overflow-visible"
+        className="relative p-4 md:px-6 md:pb-6 md:pt-5 bg-white dark:bg-[#0D0E1A] rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm overflow-visible"
         data-oid="6l:qtga"
       >
         <div
-          className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100/80 dark:border-white/5"
+          className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100/80 dark:border-white/5"
           data-oid="azcluld"
         >
           <div

@@ -53,6 +53,7 @@ function PracticeSessionRow({ session, onViewResult }) {
   return (
     <div
       role="button"
+      aria-label={`View result for ${session.title}`}
       tabIndex={0}
       onClick={() => onViewResult(session)}
       onKeyDown={(e) => {
@@ -150,7 +151,7 @@ export default function RecentPracticeHistory({ sessions = [], user }) {
 
           <CardContent className="flex flex-1 flex-col justify-between px-3.5 pb-3.5 pt-2.5 sm:px-4.5">
             {recentSessions.length ? (
-              <div className="space-y-2">
+              <div className="space-y-2" data-testid="recent-practice-mobile-list">
                 {recentSessions.map((session) => (
                   <PracticeSessionRow
                     key={session.id}

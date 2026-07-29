@@ -18,7 +18,18 @@ import { Slider } from '@/components/ui/slider';
  * @param {Function} props.onTimeUpdate - Callback for time updates (for transcript sync)
  */
 const AudioPlayer = React.forwardRef(
-  ({ src, onDurationChange, onTimeUpdate, onEnded, examMode = false, examReview = false }, ref) => {
+  (
+    {
+      src,
+      onDurationChange,
+      onTimeUpdate,
+      onEnded,
+      examMode = false,
+      isAwaitingStart = false,
+      examReview = false,
+    },
+    ref
+  ) => {
     const audioRef = useRef(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -52,7 +63,7 @@ const AudioPlayer = React.forwardRef(
         }
       },
       play: () => {
-        if (audioRef.current) {
+        if (!isAwaitingStart && audioRef.current) {
           audioRef.current
             .play()
             .then(() => setIsPlaying(true))
@@ -129,8 +140,22 @@ const AudioPlayer = React.forwardRef(
       }
     }, [examReview]);
 
+    useEffect(() => {
+      if (isAwaitingStart && audioRef.current) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+    }, [isAwaitingStart]);
+
+    useEffect(() => {
+      const duration = audioRef.current?.duration;
+      if (!isAwaitingStart && Number.isFinite(duration) && duration > 0) {
+        onDurationChangeRef.current?.(duration);
+      }
+    }, [isAwaitingStart, src]);
+
     const togglePlay = () => {
-      if (!audioRef.current) return;
+      if (isAwaitingStart || !audioRef.current) return;
       if (audioRef.current.paused) {
         audioRef.current.play();
         setIsPlaying(true);
@@ -231,7 +256,9 @@ const AudioPlayer = React.forwardRef(
                   {!examReview && !isPlaying && currentTime === 0 ? (
                     <Button
                       type="button"
+                      disabled={isAwaitingStart}
                       onClick={() => {
+                        if (isAwaitingStart) return;
                         audioRef.current
                           ?.play()
                           .then(() => setIsPlaying(true))

@@ -178,7 +178,7 @@ function TestCardMetaBar({
 }
 
 /** Action buttons at the bottom of the card. */
-function TestCardActions({
+export function TestCardActions({
   isLocked,
   isResuming,
   isCompleted,
@@ -199,16 +199,28 @@ function TestCardActions({
 
   if (isResuming) {
     return (
-      <Link to={`/listening-test/${session.id}`} className="block">
-        <Button
-          className={cn(
-            'w-full bg-white/90 dark:bg-transparent backdrop-blur-md border font-bold rounded-lg sm:rounded-xl h-9.5 text-xs sm:text-sm shadow-2xs hover:shadow-xs transition-all active:scale-[0.98]',
-            colorVariants[color].button
-          )}
-        >
-          Resume Test <Play className="w-3.5 h-3.5 ml-1.5 fill-current" />
-        </Button>
-      </Link>
+      <div className="flex gap-2">
+        <Link to={`/listening-test/${session.id}`} className="flex-1">
+          <Button
+            className={cn(
+              'w-full bg-white/90 dark:bg-transparent backdrop-blur-md border font-bold rounded-lg sm:rounded-xl h-9.5 text-xs sm:text-sm shadow-2xs hover:shadow-xs transition-all active:scale-[0.98]',
+              colorVariants[color].button
+            )}
+          >
+            Resume Test <Play className="w-3.5 h-3.5 ml-1.5 fill-current" />
+          </Button>
+        </Link>
+        <Link to={withLearningActivity(`/listening-test?test-id=${test.id}&retake=true`)}>
+          <Button
+            variant="outline"
+            aria-label="Restart test"
+            title="Restart test"
+            className="h-9.5 px-3.5 rounded-lg sm:rounded-xl border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 backdrop-blur-md active:scale-[0.98]"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </Button>
+        </Link>
+      </div>
     );
   }
 

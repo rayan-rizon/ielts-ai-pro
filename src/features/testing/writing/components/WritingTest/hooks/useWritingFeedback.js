@@ -14,6 +14,11 @@ import {
   isCurrentWritingFeedbackCache,
   normalizeWritingSource,
 } from '@/features/testing/writing/utils/evaluationEvidence';
+import {
+  getWritingFeedbacks,
+  isStalePendingWritingEvaluation,
+  isValidFeedback,
+} from '@/features/testing/writing/writingFeedbackHelpers';
 
 /**
  * useWritingFeedback
@@ -34,6 +39,85 @@ export function useWritingFeedback(awardXP) {
   const queryClient = useQueryClient();
 
   const analyzingRef = useRef(false);
+
+  const restoreSavedFeedback = useCallback((store, session) => {
+    const feedbacks = getWritingFeedbacks(session?.content_data);
+    if (!feedbacks) return false;
+
+    const currentFeedback =
+      feedbacks[store.activeType] || feedbacks['Task 1'] || feedbacks['Task 2'] || null;
+    if (!isValidFeedback(currentFeedback)) return false;
+
+    store.setSession(session);
+    store.setFeedbacksBulk(feedbacks);
+    store.setCurrentFeedback(currentFeedback);
+    store.setCompleted(true);
+    store.setFeedbackError(null);
+    return true;
+  }, []);
+
+  const claimEvaluation = useCallback(
+    async (store) => {
+      if (!store.session) return true;
+
+      const claim = async () => {
+        const requestedAt = new Date().toISOString();
+        const contentData = {
+          ...store.session.content_data,
+          evaluationRequestedAt: requestedAt,
+        };
+        const { data, error } = await supabase
+          .from('test_sessions')
+          .update({
+            evaluation_status: 'pending',
+            updated_at: requestedAt,
+            content_data: contentData,
+          })
+          .eq('id', store.session.id)
+          .in('evaluation_status', ['not_requested', 'failed'])
+          .select('id, evaluation_status, content_data, updated_at')
+          .maybeSingle();
+        if (error) throw error;
+        if (data) {
+          store.setSession({
+            ...store.session,
+            ...data,
+            content_data: contentData,
+          });
+        }
+        return Boolean(data);
+      };
+
+      if (await claim()) return true;
+
+      const { data: latestSession, error } = await supabase
+        .from('test_sessions')
+        .select('id, is_completed, evaluation_status, evaluation_version, content_data, updated_at')
+        .eq('id', store.session.id)
+        .maybeSingle();
+      if (error) throw error;
+
+      if (restoreSavedFeedback(store, latestSession)) return false;
+
+      if (isStalePendingWritingEvaluation(latestSession)) {
+        const { data: recovered, error: recoveryError } = await supabase
+          .from('test_sessions')
+          .update({ evaluation_status: 'failed', updated_at: new Date().toISOString() })
+          .eq('id', store.session.id)
+          .eq('evaluation_status', 'pending')
+          .select('id')
+          .maybeSingle();
+        if (recoveryError) throw recoveryError;
+        if (recovered && (await claim())) return true;
+      }
+
+      store.setFeedbackError(
+        'Your feedback is still being prepared. Check again in a moment; it will appear here when ready.'
+      );
+      return false;
+    },
+    [restoreSavedFeedback]
+  );
 
   const handleGetFeedback = useCallback(async () => {
     if (analyzingRef.current) return;
@@ -121,42 +205,21 @@ export function useWritingFeedback(awardXP) {
       );
     }
 
-    // Ensure content is saved before starting feedback
-    console.info('[WritingTest] Starting AI feedback, saving content first...');
-    await saveNow();
-
-    let timeoutId;
     try {
       analyzingRef.current = true;
+
+      // Ensure content is saved before starting feedback
+      console.info('[WritingTest] Starting AI feedback, saving content first...');
+      await saveNow();
+
       store.setAnalyzing(true);
       store.setFeedbackError(null);
       store.setCurrentFeedback(null);
 
-      // Add timeout protection (2 minutes max)
-      timeoutId = setTimeout(() => {
-        console.warn('[Writing] Feedback analysis timed out');
-        const state = useWritingTestStore.getState();
-        state.setAnalyzing(false);
-        state.setFeedbackError('Analysis timed out. Please try again.');
-      }, 120000);
-
       const newFeedbacks = { ...store.feedbacks };
       let overallScore = null;
 
-      if (store.session) {
-        const { data: claimed, error: claimError } = await supabase
-          .from('test_sessions')
-          .update({ evaluation_status: 'pending' })
-          .eq('id', store.session.id)
-          .in('evaluation_status', ['not_requested', 'failed'])
-          .select('id')
-          .maybeSingle();
-        if (claimError) throw claimError;
-        if (!claimed) {
-          store.setFeedbackError('This response is already being analyzed or has feedback.');
-          return;
-        }
-      }
+      if (!(await claimEvaluation(store))) return;
 
       // Prepare analysis plan: check cache first for all tasks
       const analysisPlan = tasksToAnalyze.map((type) => {
@@ -340,6 +403,7 @@ export function useWritingFeedback(awardXP) {
                 Math.max(1, 60 * 60 - Number(store.timeRemaining || 0)),
             },
           },
+          updated_at: completedAt,
         };
 
         const { data: completedEvaluation, error: updateError } = await supabase
@@ -404,13 +468,19 @@ export function useWritingFeedback(awardXP) {
       }
     } catch (err) {
       console.error('Feedback error:', err);
-      const failedSessionId = useWritingTestStore.getState().session?.id;
-      if (failedSessionId) {
-        void supabase
+      const currentSession = useWritingTestStore.getState().session;
+      if (currentSession?.id && currentSession.evaluation_status === 'pending') {
+        const failedAt = new Date().toISOString();
+        await supabase
           .from('test_sessions')
-          .update({ evaluation_status: 'failed' })
-          .eq('id', failedSessionId)
+          .update({ evaluation_status: 'failed', updated_at: failedAt })
+          .eq('id', currentSession.id)
           .eq('evaluation_status', 'pending');
+        store.setSession({
+          ...currentSession,
+          evaluation_status: 'failed',
+          updated_at: failedAt,
+        });
       }
 
       // If backend returned 429 (quota exceeded), show upgrade dialog
@@ -421,11 +491,10 @@ export function useWritingFeedback(awardXP) {
 
       store.setFeedbackError(err.message || 'Failed to generate AI feedback.');
     } finally {
-      clearTimeout(timeoutId);
       store.setAnalyzing(false);
       analyzingRef.current = false;
     }
-  }, [saveNow, awardXP, queryClient]);
+  }, [saveNow, awardXP, claimEvaluation, queryClient]);
 
   return { handleGetFeedback };
 }

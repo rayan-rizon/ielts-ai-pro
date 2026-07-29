@@ -292,7 +292,27 @@ export function FeedbackPanel({
       })),
     [feedback?.corrections]
   );
-  const visibleCorrections = showAllCorrections ? corrections : corrections.slice(0, 3);
+  const suggestedImprovements = useMemo(
+    () =>
+      (Array.isArray(feedback?.annotations) ? feedback.annotations : [])
+        .filter(
+          (annotation) =>
+            annotation?.severity !== 'positive' &&
+            cleanFeedbackText(annotation?.originalText) &&
+            cleanFeedbackText(annotation?.suggestion)
+        )
+        .map((annotation) => ({
+          original: compactUiText(annotation.originalText, 88),
+          correction: compactUiText(annotation.suggestion, 88),
+          explanation: compactUiText(annotation.explanation, 112, { dropHeading: true }),
+          isDirectCorrection: annotation.severity === 'error',
+        })),
+    [feedback?.annotations]
+  );
+  const improvements = corrections.length
+    ? corrections.map((correction) => ({ ...correction, isDirectCorrection: true }))
+    : suggestedImprovements;
+  const visibleImprovements = showAllCorrections ? improvements : improvements.slice(0, 3);
   if (!feedback && !isAnalyzing && !feedbackError) return null;
 
   return (
@@ -469,19 +489,21 @@ export function FeedbackPanel({
               </section>
             </div>
 
-            {corrections.length > 0 && (
-              <section className="overflow-hidden rounded-[22px] border border-slate-200 bg-white dark:border-white/10 dark:bg-gradient-to-b dark:from-[#0d0f20] dark:to-[#070814] dark:shadow-[0_0_50px_-12px_rgba(99,102,241,0.12)]">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.01]">
-                  <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.1em]">
-                    <Lightbulb className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />{' '}
-                    Corrections & improvements
-                  </div>
-                  <span className="rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-bold text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
-                    {corrections.length} {corrections.length === 1 ? 'fix' : 'fixes'}
-                  </span>
+            <section className="overflow-hidden rounded-[22px] border border-slate-200 bg-white dark:border-white/10 dark:bg-gradient-to-b dark:from-[#0d0f20] dark:to-[#070814] dark:shadow-[0_0_50px_-12px_rgba(99,102,241,0.12)]">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.01]">
+                <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.1em]">
+                  <Lightbulb className="h-4 w-4 text-indigo-600 dark:text-indigo-300" /> Corrections
+                  & improvements
                 </div>
+                <span className="rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-bold text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
+                  {improvements.length > 0
+                    ? `${improvements.length} ${improvements.length === 1 ? 'item' : 'items'}`
+                    : 'All clear'}
+                </span>
+              </div>
+              {improvements.length > 0 ? (
                 <div className="divide-y divide-slate-100 dark:divide-white/5">
-                  {visibleCorrections.map((item, index) => (
+                  {visibleImprovements.map((item, index) => (
                     <div
                       key={`${item.original}-${index}`}
                       className="border-l-2 border-rose-400 px-4 py-3 transition-colors duration-200 hover:bg-slate-50/30 dark:hover:bg-white/[0.01]"
@@ -498,7 +520,7 @@ export function FeedbackPanel({
                         <ArrowRight className="hidden h-4 w-4 text-slate-300 sm:block" />
                         <div>
                           <span className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                            Better
+                            {item.isDirectCorrection ? 'Better' : 'Try this'}
                           </span>
                           <p className="mt-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
                             {item.correction}
@@ -517,25 +539,30 @@ export function FeedbackPanel({
                     </div>
                   ))}
                 </div>
-                {corrections.length > 3 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowAllCorrections((value) => !value)}
-                    className="flex w-full items-center justify-center gap-1 border-t border-slate-100 py-3 text-[11px] font-extrabold text-indigo-600 hover:bg-indigo-50/50 dark:border-white/5 dark:text-indigo-300 dark:hover:bg-indigo-500/5"
-                  >
-                    {showAllCorrections
-                      ? 'Show fewer corrections'
-                      : `View all ${corrections.length} corrections`}
-                    <ChevronDown
-                      className={cn(
-                        'h-3.5 w-3.5 transition-transform',
-                        showAllCorrections && 'rotate-180'
-                      )}
-                    />
-                  </button>
-                )}
-              </section>
-            )}
+              ) : (
+                <p className="px-4 py-4 text-xs leading-5 text-slate-600 dark:text-slate-300">
+                  No sentence-level change was needed in this response. Use the three focus areas
+                  above to make your next draft even stronger.
+                </p>
+              )}
+              {improvements.length > 3 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllCorrections((value) => !value)}
+                  className="flex w-full items-center justify-center gap-1 border-t border-slate-100 py-3 text-[11px] font-extrabold text-indigo-600 hover:bg-indigo-50/50 dark:border-white/5 dark:text-indigo-300 dark:hover:bg-indigo-500/5"
+                >
+                  {showAllCorrections
+                    ? 'Show fewer improvements'
+                    : `View all ${improvements.length} improvements`}
+                  <ChevronDown
+                    className={cn(
+                      'h-3.5 w-3.5 transition-transform',
+                      showAllCorrections && 'rotate-180'
+                    )}
+                  />
+                </button>
+              )}
+            </section>
 
             <div className="flex items-center gap-2 px-1 pb-1 text-[10px] leading-4 text-slate-400 dark:text-slate-500">
               <Info className="h-3 w-3 shrink-0" /> Practice estimate based on public IELTS

@@ -14,7 +14,7 @@ export default function VocabularySidebar({
   onStartSpeedQuiz,
   onStartMatchPairs,
   onStartReview,
-  stats,
+  retentionRefreshKey,
   dueForReview = [],
   allVocabulary = [],
 }) {
@@ -33,7 +33,7 @@ export default function VocabularySidebar({
       </div>
 
       {/* Retention Progress & Weekly Active Days Tracker */}
-      <NeuralProgress stats={stats} />
+      <NeuralProgress user={user} refreshKey={retentionRefreshKey} />
 
       {/* Upcoming Review Timeline */}
       <UpcomingReviewsWidget

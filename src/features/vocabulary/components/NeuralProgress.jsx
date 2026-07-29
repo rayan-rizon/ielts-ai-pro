@@ -1,13 +1,60 @@
-import React, { memo } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { TrendingUp, Info } from 'lucide-react';
-import { cn } from '@/lib/cn';
+import {
+  calculateRetentionProgress,
+  fetchVocabularyReviewEvents,
+  getRetentionMessage,
+  RETENTION_PERIODS,
+} from '@/features/vocabulary/services/vocabularyRetention';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-const NeuralProgress = memo(({ stats }) => {
-  if (!stats) return null;
+const EMPTY_PROGRESS = { reviewed: 0, retained: 0, forgotten: 0, retention: 0 };
 
-  const retention = stats.retention || 78;
+const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
+  const [period, setPeriod] = useState('thisWeek');
+  const [progress, setProgress] = useState(EMPTY_PROGRESS);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadProgress = async () => {
+      if (!user?.id) {
+        if (isCurrent) {
+          setProgress(EMPTY_PROGRESS);
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const events = await fetchVocabularyReviewEvents(user.id, period);
+        if (isCurrent) setProgress(calculateRetentionProgress(events));
+      } catch (error) {
+        console.warn('Failed to load vocabulary retention progress:', error);
+        if (isCurrent) setProgress(EMPTY_PROGRESS);
+      } finally {
+        if (isCurrent) setIsLoading(false);
+      }
+    };
+
+    loadProgress();
+    return () => {
+      isCurrent = false;
+    };
+  }, [user?.id, period, refreshKey]);
+
+  const { reviewed, retained, forgotten, retention } = progress;
+  const message = getRetentionMessage(retention, reviewed);
 
   return (
     <Card className="w-full overflow-hidden border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] rounded-[22px] relative">
@@ -20,12 +67,27 @@ const NeuralProgress = memo(({ stats }) => {
           </div>
           <div className="flex items-center gap-1.5">
             <span>Retention Progress</span>
-            <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+            <Info
+              className="w-3.5 h-3.5 text-slate-400 cursor-help"
+              aria-label="Retention is based on the ratings you give during vocabulary review. Ratings 3 to 5 are retained; ratings 0 to 2 are forgotten."
+            />
           </div>
         </CardTitle>
-        <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300 bg-white/90 dark:bg-white/10 px-3 py-1 rounded-xl border border-[#d8dcfa] dark:border-white/10 shadow-xs cursor-pointer">
-          This week ▾
-        </span>
+        <Select value={period} onValueChange={setPeriod}>
+          <SelectTrigger
+            aria-label="Choose a retention period"
+            className="h-8 w-[118px] text-xs font-extrabold text-slate-700 dark:text-slate-300 bg-white/90 dark:bg-white/10 px-3 rounded-xl border border-[#d8dcfa] dark:border-white/10 shadow-xs"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl">
+            {RETENTION_PERIODS.map((option) => (
+              <SelectItem key={option.value} value={option.value} className="text-xs font-semibold">
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </CardHeader>
 
       <CardContent className="p-4 sm:p-5 space-y-4 relative">
@@ -64,7 +126,7 @@ const NeuralProgress = memo(({ stats }) => {
 
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
-                {retention}%
+                {isLoading ? '–' : `${retention}%`}
               </span>
               <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mt-0.5">
                 Retained
@@ -74,10 +136,10 @@ const NeuralProgress = memo(({ stats }) => {
 
           <div className="space-y-1">
             <h4 className="text-sm font-black text-slate-900 dark:text-white">
-              Effective Retention!
+              {reviewed === 0 ? 'Ready to build recall' : 'Effective Retention!'}
             </h4>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-              You're retaining words effectively. Keep up the daily consistency!
+              {isLoading ? 'Loading your review outcomes…' : message}
             </p>
           </div>
         </div>
@@ -90,7 +152,7 @@ const NeuralProgress = memo(({ stats }) => {
               Reviewed
             </div>
             <span className="text-base font-black text-slate-900 dark:text-white mt-0.5 block">
-              128
+              {isLoading ? '–' : reviewed}
             </span>
           </div>
 
@@ -100,7 +162,7 @@ const NeuralProgress = memo(({ stats }) => {
               Retained
             </div>
             <span className="text-base font-black text-slate-900 dark:text-white mt-0.5 block">
-              100
+              {isLoading ? '–' : retained}
             </span>
           </div>
 
@@ -110,7 +172,7 @@ const NeuralProgress = memo(({ stats }) => {
               Forgotten
             </div>
             <span className="text-base font-black text-slate-900 dark:text-white mt-0.5 block">
-              28
+              {isLoading ? '–' : forgotten}
             </span>
           </div>
         </div>

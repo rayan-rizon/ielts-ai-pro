@@ -177,6 +177,7 @@ export function WritingHeader({
               examEligibility={examEligibility}
               onStart={onStart}
               isStarting={isStarting}
+              isAwaitingStart={isAwaitingStart}
             />
           ) : (
             <>

@@ -86,6 +86,37 @@ describe('Writing feedback panel', () => {
     expect(screen.getByText('A plural subject needs a plural verb.')).toBeInTheDocument();
   });
 
+  it('shows annotation-based improvements when there are no direct corrections', () => {
+    const suggestionOnlyFeedback = {
+      ...feedback,
+      corrections: [],
+      annotations: [
+        {
+          originalText: 'public transport',
+          type: 'vocabulary',
+          suggestion: 'Use a more precise transport term where the context allows.',
+          explanation: 'A more exact word can make your point clearer.',
+          severity: 'suggestion',
+        },
+      ],
+    };
+
+    render(<FeedbackPanel feedback={suggestionOnlyFeedback} />);
+
+    expect(screen.getByText('Corrections & improvements')).toBeInTheDocument();
+    expect(screen.getByText('Try this')).toBeInTheDocument();
+    expect(
+      screen.getByText('Use a more precise transport term where the context allows.')
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the improvements section visible when no sentence-level change is needed', () => {
+    render(<FeedbackPanel feedback={{ ...feedback, corrections: [], annotations: [] }} />);
+
+    expect(screen.getByText('Corrections & improvements')).toBeInTheDocument();
+    expect(screen.getByText(/No sentence-level change was needed/)).toBeInTheDocument();
+  });
+
   it('cleans markdown and compacts verbose legacy feedback', () => {
     const legacyFeedback = {
       ...feedback,

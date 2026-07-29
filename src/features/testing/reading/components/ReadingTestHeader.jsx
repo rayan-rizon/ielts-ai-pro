@@ -387,6 +387,7 @@ const ReadingTestHeader = ({
               examEligibility={examEligibility}
               onStart={onStart}
               isStarting={isStarting}
+              isAwaitingStart={isAwaitingStart}
             />
           ) : (
             <>

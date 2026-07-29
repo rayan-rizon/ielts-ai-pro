@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { UserPoints } from '@/features/gamification/services/UserPoints';
 import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
+import { recordVocabularyReviewEvent } from '@/features/vocabulary/services/vocabularyRetention';
 
 // Simple SRS algorithm
 const calculateNextReview = (item, quality) => {
@@ -39,7 +40,13 @@ const calculateNextReview = (item, quality) => {
  * Custom hook for vocabulary review session
  * Handles the SRS-based review session logic
  */
-export function useReviewSession({ dueForReview, setDueForReview, setAllVocabulary, user }) {
+export function useReviewSession({
+  dueForReview,
+  setDueForReview,
+  setAllVocabulary,
+  user,
+  onReviewRecorded,
+}) {
   const [isReviewSessionOpen, setIsReviewSessionOpen] = useState(false);
   const [currentReviewItem, setCurrentReviewItem] = useState(null);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -67,6 +74,18 @@ export function useReviewSession({ dueForReview, setDueForReview, setAllVocabula
           ...updates,
           mastery_level: newMasteryLevel,
         });
+
+        try {
+          await recordVocabularyReviewEvent({
+            userId: currentReviewItem.user_id || user?.id,
+            vocabularyItemId: currentReviewItem.id,
+            quality,
+          });
+          onReviewRecorded?.();
+        } catch (reviewEventError) {
+          // A review still counts for SRS if analytics persistence is temporarily unavailable.
+          console.warn('Failed to record vocabulary review event:', reviewEventError);
+        }
 
         // Update local state
         setAllVocabulary((prev) =>
@@ -101,7 +120,7 @@ export function useReviewSession({ dueForReview, setDueForReview, setAllVocabula
         console.error('Review submit error:', error);
       }
     },
-    [currentReviewItem, dueForReview, setDueForReview, setAllVocabulary, user]
+    [currentReviewItem, dueForReview, setDueForReview, setAllVocabulary, user, onReviewRecorded]
   );
 
   const closeReviewSession = useCallback(() => {

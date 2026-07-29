@@ -99,7 +99,17 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
             Resume <Play className="w-2 h-2 fill-current" />
           </Button>
         </Link>
-        <div className="w-6.5 h-6.5 shrink-0" />
+        <Link to={withLearningActivity(`/listening-test?test-id=${test.id}&retake=true`)}>
+          <Button
+            size="sm"
+            variant="outline"
+            aria-label="Restart test"
+            title="Restart test"
+            className="h-6.5 w-6.5 p-0 rounded-lg border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200"
+          >
+            <RotateCcw className="w-2.5 h-2.5" />
+          </Button>
+        </Link>
       </>
     );
   }

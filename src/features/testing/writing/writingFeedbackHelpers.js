@@ -13,9 +13,23 @@ export function isValidFeedback(fb) {
 }
 
 export function hasValidAiFeedback(content) {
-  const feedbacks = content?.ai_feedbacks;
+  const feedbacks = getWritingFeedbacks(content);
   if (!feedbacks) return false;
   return isValidFeedback(feedbacks['Task 1']) || isValidFeedback(feedbacks['Task 2']);
+}
+
+export function getWritingFeedbacks(content) {
+  const feedbacks = content?.ai_feedbacks;
+  return feedbacks && typeof feedbacks === 'object' ? feedbacks : null;
+}
+
+export function isStalePendingWritingEvaluation(session, now = Date.now()) {
+  if (session?.evaluation_status !== 'pending') return false;
+
+  const requestedAt =
+    session?.content_data?.evaluationRequestedAt || session?.updated_at || session?.created_at;
+  const requestedAtMs = new Date(requestedAt || 0).getTime();
+  return Number.isFinite(requestedAtMs) && now - requestedAtMs >= 2 * 60 * 1000;
 }
 
 function extractBandFromFeedback(fb) {

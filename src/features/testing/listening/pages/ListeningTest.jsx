@@ -17,7 +17,6 @@ import { useListeningTestLayout } from '../components/ListeningTest/hooks/useLis
 import { useListeningTestNavigation } from '../components/ListeningTest/hooks/useListeningTestNavigation';
 import ListeningTestMainContent from '../components/ListeningTest/components/ListeningTestMainContent';
 import ListeningTestOverlays from '../components/ListeningTest/components/ListeningTestOverlays';
-import { TestStartPreviewNotice } from '@/features/testing/shared/components/TestModeHeaderControl';
 
 function ListeningTestInner() {
   const {
@@ -122,8 +121,8 @@ function ListeningTestInner() {
       <div className="relative flex min-h-0 flex-1 overflow-hidden">
         <div
           className={cn(
-            'flex min-h-0 flex-1 overflow-hidden',
-            isAwaitingStart && 'pointer-events-none select-none'
+            'flex min-h-0 flex-1 overflow-hidden transition-all duration-300',
+            isAwaitingStart && 'pointer-events-none select-none blur-[3px] opacity-75'
           )}
           aria-disabled={isAwaitingStart || undefined}
           inert={isAwaitingStart ? '' : undefined}
@@ -143,11 +142,11 @@ function ListeningTestInner() {
             dispatch={dispatch}
             ACTIONS={ACTIONS}
             testMode={testMode}
+            isAwaitingStart={isAwaitingStart}
             examReview={examReview}
             onExamAudioEnded={handleExamAudioEnded}
           />
         </div>
-        {isAwaitingStart ? <TestStartPreviewNotice examEligibility={examEligibility} /> : null}
       </div>
 
       <ListeningTestOverlays
