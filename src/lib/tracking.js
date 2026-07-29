@@ -245,19 +245,16 @@ export const refreshTrackingBootstrap = () => {
 export const trackPageView = (pathname = '/') => {
   if (!isBrowser()) return;
 
+  // PageView to Meta is owned entirely by GTM's FB-Base-Tag (All Pages
+  // trigger, with its own browser+server pairing). Sending it again here
+  // duplicated every single PageView, since this call shares no event ID
+  // with GTM's tag for Meta to deduplicate against.
   pushDataLayer({
     event: 'pageview',
     page: pathname,
     page_path: pathname,
     page_title: document.title,
   });
-
-  if (typeof window.fbq === 'function') {
-    window.fbq('track', 'PageView', {
-      fbc: getFbc(),
-      fbp: getFbp(),
-    });
-  }
 };
 
 export const trackAppEvent = (eventName, payload = {}) => {
