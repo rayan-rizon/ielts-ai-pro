@@ -1,636 +1,563 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { m, useReducedMotion } from 'framer-motion';
+import { m } from 'framer-motion';
 import {
-  ArrowRight,
-  BookOpen,
-  Brain,
-  Check,
   PenTool,
-  Headphones,
-  Library,
   Mic,
-  Route,
-  Play,
-  TrendingUp,
   FileText,
-  FileDown,
-  GraduationCap,
+  TrendingUp,
+  BookOpen,
   Sparkles,
   Volume2,
+  CheckCircle2,
+  Clock,
+  ArrowUpRight,
 } from 'lucide-react';
 import { SectionHeading, SoftSection, landingReveal, landingStagger } from './LandingSection';
 
-/* ─── Shared Card Base Style ─────────────────────────────────── */
+/* ─── Light Lavender Bento Card Base Style ──────────────────── */
 const CARD_BASE =
-  'h-full rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 select-none relative overflow-hidden group shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_36px_rgba(99,102,241,0.12)] border transform-gpu';
+  'group relative bg-white dark:bg-[#0d0f1d] border border-[#E5E2FA] dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(99,91,255,0.04)] hover:shadow-[0_16px_36px_rgba(99,91,255,0.12)] dark:hover:shadow-[0_16px_36px_rgba(99,91,255,0.2)] transition-all duration-300 flex flex-col justify-between h-full select-none overflow-hidden';
 
-/* Pill Badge */
-function Badge({ icon: Icon, label, color }) {
+/* Lavender Card Header */
+function FeatureCardHeader({ icon: Icon, title, subtitle }) {
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider ${color} border shadow-2xs`}
-    >
-      <Icon className="h-3.5 w-3.5 shrink-0" />
-      {label}
-    </span>
+    <div className="flex items-start gap-3.5 mb-3.5 shrink-0">
+      <div className="w-11 h-11 rounded-2xl bg-[#F0EEFF] dark:bg-indigo-950/80 text-[#635BFF] dark:text-[#A78BFA] border border-[#E0DAFE] dark:border-indigo-900/40 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform duration-300">
+        <Icon className="w-5.5 h-5.5 stroke-[2.2]" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-[#635BFF] dark:group-hover:text-[#A78BFA] transition-colors">
+          {title}
+        </h3>
+        <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+          {subtitle}
+        </p>
+      </div>
+    </div>
   );
 }
 
-/* CTA link at the bottom of a card */
-function FeatureLink({ to, children }) {
+/* ─── 1. Rive-Style Animated AI Writing Feedback Card ───────── */
+function RiveWritingFeedbackCard() {
   return (
-    <Link
-      to={to}
-      className="mt-5 inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-[#635BFF] dark:text-indigo-400 transition-all duration-200 hover:gap-2.5 group/link"
-    >
-      <span>{children}</span>
-      <ArrowRight className="h-4 w-4 transition-transform group-hover/link:translate-x-1" />
-    </Link>
-  );
-}
+    <div className={CARD_BASE}>
+      <FeatureCardHeader
+        icon={PenTool}
+        title="AI Writing Feedback"
+        subtitle="Get expert corrections and improve faster."
+      />
 
-/* ─── 1. Writing Feedback Card ───────────────────────────────── */
-function WritingFeedbackCard() {
-  return (
-    <div
-      className={`${CARD_BASE} bg-gradient-to-br from-white via-white to-indigo-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950/40 border-indigo-150 dark:border-indigo-900/40 hover:border-indigo-300 dark:hover:border-indigo-500/50`}
-    >
-      {/* Decorative Glow */}
-      <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-indigo-500/10 blur-3xl group-hover:bg-indigo-500/20 transition-all duration-500 pointer-events-none" />
-
-      <div className="space-y-4 relative z-10">
-        <div className="flex items-center justify-between">
-          <Badge
-            icon={PenTool}
-            label="AI Writing Feedback"
-            color="bg-indigo-50 text-[#635BFF] dark:bg-indigo-500/10 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-500/30"
-          />
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-black shadow-2xs">
-            <span>Band 7.0</span>
-            <span className="text-[10px] font-extrabold uppercase opacity-80">• Good</span>
+      {/* Rive Canvas Container - Equal Height Flex-1 */}
+      <div className="bg-[#F6F4FE] dark:bg-[#121427] p-4 sm:p-4.5 rounded-2xl border border-[#E2DCFE] dark:border-slate-800 flex-1 flex flex-col justify-between space-y-3 min-h-[220px]">
+        {/* Top Score Banner Bar */}
+        <div className="flex items-center justify-between bg-white dark:bg-[#0d0f1d] px-3.5 py-2 rounded-xl border border-[#E5E2FA] dark:border-slate-800 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#635BFF]" />
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+              AI Essay Score
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-black text-[#635BFF] dark:text-[#A78BFA]">Band 7.0</span>
+            <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 text-[10px] font-black border border-emerald-200/50">
+              ↑ +0.5
+            </span>
           </div>
         </div>
 
-        <div>
-          <h3 className="text-xl sm:text-2xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white">
-            Write it. <span className="text-[#635BFF] dark:text-indigo-400">Score higher.</span>
-          </h3>
-          <p className="mt-1.5 text-xs sm:text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400">
-            Instant AI evaluation across all 4 official grading criteria with dynamic inline
-            correction.
-          </p>
-        </div>
-
-        {/* Live Correction Pill with High Contrast */}
-        <div className="py-3 px-4 rounded-2xl bg-white/90 dark:bg-slate-950/60 border border-indigo-100 dark:border-indigo-900/40 text-xs font-semibold text-slate-800 dark:text-slate-200 leading-relaxed flex items-center gap-2.5 shadow-xs">
-          <Sparkles className="w-4 h-4 text-[#635BFF] shrink-0" />
-          <div>
-            "Although the graph rises,{' '}
-            <span className="line-through text-rose-500 font-bold px-1">but it declines</span>{' '}
-            <span className="text-emerald-600 dark:text-emerald-400 font-extrabold bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/60 dark:border-emerald-900/40 px-1.5 py-0.5 rounded-md">
-              it declines
+        {/* Main Essay Text Canvas */}
+        <div className="bg-white dark:bg-[#0d0f1d] p-3.5 rounded-xl border border-[#E5E2FA] dark:border-slate-800 shadow-2xs space-y-2.5 flex-1 flex flex-col justify-between">
+          <p className="text-xs sm:text-[13px] font-medium text-slate-800 dark:text-slate-200 leading-relaxed">
+            Many people{' '}
+            <span className="relative inline-block text-rose-500 font-bold px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/40 rounded">
+              believes
+              <m.span
+                className="absolute left-0 bottom-0 w-full h-[2px] bg-rose-500 rounded"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: [0, 1, 1] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+              />
             </span>{' '}
-            later."
-          </div>
-        </div>
+            that technology has made{' '}
+            <span className="text-[#635BFF] font-bold px-1.5 py-0.5 bg-[#F0EEFF] dark:bg-indigo-950/60 rounded">
+              our life
+            </span>{' '}
+            easier.
+          </p>
 
-        {/* 4 Criteria Scores Bar Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-          {[
-            { label: 'Task Achievement', score: '6.5', pct: 68, color: 'bg-indigo-500' },
-            { label: 'Coherence', score: '6.5', pct: 68, color: 'bg-purple-500' },
-            { label: 'Lexical Resource', score: '7.0', pct: 78, color: 'bg-[#635BFF]' },
-            { label: 'Grammar Range', score: '6.5', pct: 68, color: 'bg-blue-500' },
-          ].map((c) => (
-            <div
-              key={c.label}
-              className="p-2.5 rounded-xl bg-white/90 dark:bg-slate-950/40 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-2xs"
+          {/* Rive Animated Correction Cards */}
+          <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs font-semibold">
+            <m.div
+              className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-rose-50/70 dark:bg-rose-950/30 text-slate-700 dark:text-slate-300 border border-rose-100 dark:border-rose-900/40"
+              whileHover={{ scale: 1.01 }}
             >
-              <div className="flex items-center justify-between text-[10px] font-bold">
-                <span className="text-slate-400 truncate">{c.label}</span>
-                <span className="text-[#635BFF] dark:text-indigo-400 font-extrabold">
-                  {c.score}
+              <div className="flex items-center gap-2 truncate">
+                <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                <span className="line-through text-rose-500 font-bold">believes</span>
+                <span className="text-slate-400">→</span>
+                <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
+                  believe
                 </span>
               </div>
-              <div className="h-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                <m.div
-                  className={`h-full ${c.color} rounded-full`}
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${c.pct}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+              <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">
+                Subject-verb agreement
+              </span>
+            </m.div>
 
-        {/* Feedback Snapshot Checklist */}
-        <div className="pt-2.5 border-t border-slate-150 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
-          <div className="flex items-center gap-1.5">
-            <span className="text-emerald-500 font-bold">✓</span>
-            <span className="text-[11px]">Clear overview & key feature comparison</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-emerald-500 font-bold">✓</span>
-            <span className="text-[11px]">High lexical variety & academic tone</span>
+            <m.div
+              className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-[#F0EEFF]/70 dark:bg-indigo-950/30 text-slate-700 dark:text-slate-300 border border-[#E0DAFE]/60 dark:border-indigo-900/40"
+              whileHover={{ scale: 1.01 }}
+            >
+              <div className="flex items-center gap-2 truncate">
+                <span className="w-2 h-2 rounded-full bg-[#635BFF] shrink-0" />
+                <span className="text-[#635BFF] font-bold">our life</span>
+                <span className="text-slate-400">→</span>
+                <span className="font-extrabold text-[#635BFF] dark:text-[#A78BFA]">our lives</span>
+              </div>
+              <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">
+                Plural noun form
+              </span>
+            </m.div>
           </div>
         </div>
       </div>
-
-      <FeatureLink to="/writing">Try AI Writing Checker</FeatureLink>
     </div>
   );
 }
 
-/* ─── 2. Speaking Feedback Card ──────────────────────────────── */
-function SpeakingFeedbackCard() {
-  const reduceMotion = useReducedMotion();
+/* ─── 2. Rive-Style Animated Speaking Practice Card ──────────── */
+function RiveSpeakingPracticeCard() {
   return (
-    <div
-      className={`${CARD_BASE} bg-gradient-to-br from-white via-white to-emerald-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/40 border-emerald-150 dark:border-emerald-900/40 hover:border-emerald-300 dark:hover:border-emerald-500/50`}
-    >
-      {/* Decorative Glow */}
-      <div className="absolute -left-16 -bottom-16 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl group-hover:bg-emerald-500/20 transition-all duration-500 pointer-events-none" />
+    <div className={CARD_BASE}>
+      <FeatureCardHeader
+        icon={Mic}
+        title="Speaking Practice"
+        subtitle="Practice fluency and get real-time feedback."
+      />
 
-      <div className="space-y-4 relative z-10">
-        <div className="flex items-center justify-between">
-          <Badge
-            icon={Mic}
-            label="Speaking Practice"
-            color="bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-500/30"
+      {/* Rive Sound Studio Canvas - Equal Height Flex-1 */}
+      <div className="bg-[#F6F4FE] dark:bg-[#121427] p-5 sm:p-6 rounded-2xl border border-[#E2DCFE] dark:border-slate-800 flex-1 flex flex-col items-center justify-between min-h-[220px] relative overflow-hidden text-center">
+        {/* Animated Prompt Tooltip */}
+        <m.div
+          className="px-3.5 py-1 rounded-full bg-white dark:bg-[#0d0f1d] border border-[#E5E2FA] dark:border-slate-800 shadow-2xs text-[11px] font-semibold text-[#635BFF] dark:text-[#A78BFA] flex items-center gap-1.5"
+          animate={{ y: [0, -3, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <Sparkles className="w-3 h-3 text-[#635BFF]" />
+          <span>"Describe a trip you enjoyed taking..."</span>
+        </m.div>
+
+        {/* Rive Concentric Sonar Ring Waves */}
+        <div className="relative flex items-center justify-center my-auto py-2">
+          <m.div
+            className="absolute w-24 h-24 rounded-full border border-[#635BFF]/30 dark:border-[#635BFF]/20"
+            animate={{ scale: [0.8, 1.45, 0.8], opacity: [0.6, 0, 0.6] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
           />
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-black shadow-2xs">
-            <span>Est. Band 7.0</span>
+          <m.div
+            className="absolute w-32 h-32 rounded-full border border-purple-400/20 dark:border-purple-500/10"
+            animate={{ scale: [0.8, 1.55, 0.8], opacity: [0.5, 0, 0.5] }}
+            transition={{ duration: 2.5, repeat: Infinity, delay: 0.6, ease: 'easeInOut' }}
+          />
+
+          {/* Left Sound Wave Equalizer Bars */}
+          <div className="flex items-center gap-1 mr-3 z-10">
+            {[8, 14, 22, 12, 18, 10, 16].map((h, i) => (
+              <m.span
+                key={`left-${i}`}
+                className="w-1 rounded-full bg-[#635BFF]"
+                animate={{ height: [6, h * 1.1, 6] }}
+                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.08 }}
+              />
+            ))}
           </div>
-        </div>
 
-        <div>
-          <h3 className="text-xl sm:text-2xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white">
-            Speak up. <span className="text-emerald-600 dark:text-emerald-400">Sound fluent.</span>
-          </h3>
-          <p className="mt-1.5 text-xs sm:text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400">
-            Practice Parts 1-3 with interactive AI conversational modules and get instant speech
-            analysis.
-          </p>
-        </div>
-
-        {/* AI Chat Prompt Pill */}
-        <div className="p-3 rounded-2xl bg-white/90 dark:bg-slate-950/60 border border-emerald-100 dark:border-emerald-900/40 flex items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-              AI
+          {/* Mic Center Button */}
+          <div className="relative z-10 group/mic cursor-pointer">
+            <div className="absolute -inset-2.5 rounded-full bg-[#635BFF]/25 blur-md animate-pulse" />
+            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#635BFF] via-[#7C3AED] to-purple-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 relative z-10">
+              <Mic className="w-6.5 h-6.5 stroke-[2.2]" />
             </div>
-            <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 italic">
-              "Tell me about your hometown, what is it famous for?"
-            </p>
+          </div>
+
+          {/* Right Sound Wave Equalizer Bars */}
+          <div className="flex items-center gap-1 ml-3 z-10">
+            {[16, 10, 18, 12, 22, 14, 8].map((h, i) => (
+              <m.span
+                key={`right-${i}`}
+                className="w-1 rounded-full bg-[#635BFF]"
+                animate={{ height: [6, h * 1.1, 6] }}
+                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.08 }}
+              />
+            ))}
           </div>
         </div>
 
-        {/* Waveform Player Bar */}
-        <div className="p-3 rounded-2xl bg-white/90 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between shadow-xs">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              aria-label="Play sample speaking prompt"
-              className="w-8 h-8 rounded-full bg-[#635BFF] text-white flex items-center justify-center shrink-0 shadow-xs hover:scale-105 transition-transform"
+        {/* Live Recording Pill */}
+        <div className="z-10 inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white dark:bg-[#0d0f1d] border border-[#E5E2FA] dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs">
+          <span className="w-2 h-2 rounded-full bg-[#635BFF] animate-ping" />
+          <span>Recording Fluency...</span>
+          <span className="font-mono text-slate-400 ml-1">00:38</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── 3. Rive-Style Animated Practice Tests Card ─────────────── */
+function RivePracticeLibraryCard() {
+  return (
+    <div className={CARD_BASE}>
+      <FeatureCardHeader
+        icon={FileText}
+        title="Full Practice Tests"
+        subtitle="Simulate real IELTS tests with timed sections."
+      />
+
+      {/* Rive Practice Tests Canvas - Equal Height Flex-1 */}
+      <div className="bg-[#F6F4FE] dark:bg-[#121427] p-4 sm:p-4.5 rounded-2xl border border-[#E2DCFE] dark:border-slate-800 flex-1 flex flex-col justify-between min-h-[220px]">
+        <div className="bg-white dark:bg-[#0d0f1d] p-3.5 rounded-xl border border-[#E5E2FA] dark:border-slate-800 shadow-2xs space-y-2.5 flex-1 flex flex-col justify-between">
+          {/* Header with Live Exam Status */}
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 text-xs">
+            <span className="font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 text-[#635BFF]" />
+              Cambridge Mock Tests
+            </span>
+            <div className="flex items-center gap-1 text-[10.5px] font-bold text-[#635BFF] dark:text-[#A78BFA] bg-[#F0EEFF] dark:bg-indigo-950/60 px-2 py-0.5 rounded-full border border-[#E0DAFE] dark:border-indigo-900/40">
+              <Clock className="w-3 h-3 text-[#635BFF]" />
+              <span>Timed Exam Mode</span>
+            </div>
+          </div>
+
+          {/* Test Cards List with Rive Vector Progress Arc Rings */}
+          <div className="space-y-2 flex-1 flex flex-col justify-between">
+            {[
+              {
+                title: 'IELTS Academic Test 12',
+                modules: '4/4 Sections',
+                score: '7.5',
+                strokeDash: '0',
+              },
+              {
+                title: 'IELTS Academic Test 11',
+                modules: '4/4 Sections',
+                score: '7.0',
+                strokeDash: '8',
+              },
+              {
+                title: 'IELTS Academic Test 10',
+                modules: '4/4 Sections',
+                score: '6.5',
+                strokeDash: '16',
+              },
+            ].map((t, idx) => (
+              <m.div
+                key={t.title}
+                className="flex items-center justify-between p-2 rounded-lg bg-[#F6F4FE]/70 dark:bg-slate-950/40 border border-[#E2DCFE]/50 dark:border-slate-800/60 group/test hover:border-[#635BFF]/40 transition-colors"
+                whileHover={{ scale: 1.01, x: 2 }}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  {/* Rive SVG Circular Progress Ring */}
+                  <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 36 36" className="w-7 h-7 transform -rotate-90">
+                      <circle
+                        cx="18"
+                        cy="18"
+                        r="15.5"
+                        className="stroke-[#E0DAFE] dark:stroke-indigo-950"
+                        strokeWidth="3.5"
+                        fill="none"
+                      />
+                      <m.circle
+                        cx="18"
+                        cy="18"
+                        r="15.5"
+                        className="stroke-[#635BFF]"
+                        strokeWidth="3.5"
+                        strokeDasharray="97.4"
+                        strokeDashoffset={t.strokeDash}
+                        strokeLinecap="round"
+                        fill="none"
+                        initial={{ strokeDashoffset: 97.4 }}
+                        animate={{ strokeDashoffset: t.strokeDash }}
+                        transition={{ duration: 1.5, delay: idx * 0.2 }}
+                      />
+                    </svg>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#635BFF] absolute inset-0 m-auto" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-900 dark:text-slate-100 truncate text-[12px] group-hover/test:text-[#635BFF] transition-colors">
+                      {t.title}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-medium">{t.modules}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="px-2.5 py-0.5 rounded-lg bg-[#F0EEFF] dark:bg-indigo-950/80 text-[#635BFF] dark:text-[#A78BFA] font-black text-xs border border-[#E0DAFE] dark:border-indigo-900/40">
+                    {t.score}
+                  </span>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover/test:text-[#635BFF] transition-colors" />
+                </div>
+              </m.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── 4. Rive-Style Animated Analytics Card ──────────────────── */
+function RiveAnalyticsCard() {
+  return (
+    <div className={CARD_BASE}>
+      <FeatureCardHeader
+        icon={TrendingUp}
+        title="Progress Analytics"
+        subtitle="Track your band score and see your improvement."
+      />
+
+      {/* Rive Chart & Analytics Canvas - Equal Height Flex-1 */}
+      <div className="bg-[#F6F4FE] dark:bg-[#121427] p-4 sm:p-4.5 rounded-2xl border border-[#E2DCFE] dark:border-slate-800 flex-1 flex flex-col justify-between min-h-[220px]">
+        <div className="flex flex-col sm:flex-row gap-3.5 items-stretch h-full">
+          {/* Left Stat Card with Band Score Gauge Arc */}
+          <div className="bg-white dark:bg-[#0d0f1d] p-4 rounded-xl border border-[#E5E2FA] dark:border-slate-800 shadow-2xs flex flex-col justify-between shrink-0 sm:w-44 relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
+                Overall Band
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 text-[10px] font-black">
+                ↑ +0.5
+              </span>
+            </div>
+
+            <div className="my-1.5 flex items-baseline gap-1">
+              <span className="text-4xl font-black text-[#635BFF] dark:text-[#A78BFA]">7.0</span>
+              <span className="text-xs font-bold text-slate-400">/ 9.0</span>
+            </div>
+
+            {/* Rive Progress Breakdown Bars */}
+            <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+              <div>
+                <div className="flex items-center justify-between mb-0.5">
+                  <span>Writing</span>
+                  <span className="font-extrabold text-slate-900 dark:text-white">7.0</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <m.div
+                    className="h-full rounded-full bg-[#635BFF]"
+                    initial={{ width: 0 }}
+                    animate={{ width: '77%' }}
+                    transition={{ duration: 1.2 }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-0.5">
+                  <span>Speaking</span>
+                  <span className="font-extrabold text-slate-900 dark:text-white">7.5</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <m.div
+                    className="h-full rounded-full bg-purple-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: '83%' }}
+                    transition={{ duration: 1.2, delay: 0.2 }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Rive Animated SVG Chart with Interactive Floating Tooltip */}
+          <div className="flex-1 bg-white dark:bg-[#0d0f1d] p-4 rounded-xl border border-[#E5E2FA] dark:border-slate-800 shadow-2xs relative flex flex-col justify-between min-h-[145px] min-w-0">
+            {/* Floating Rive Score Tooltip */}
+            <m.div
+              className="absolute top-2 right-4 px-2.5 py-1 rounded-lg bg-[#635BFF] text-white text-[10px] font-black shadow-md flex items-center gap-1 z-20"
+              animate={{ y: [0, -3, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <Play className="w-4 h-4 fill-current ml-0.5" />
-            </button>
-            <div className="flex items-center gap-0.5 h-4">
-              {[4, 10, 14, 7, 3, 11, 6, 12, 5, 8, 3, 7, 2, 4].map((h, i) => (
-                <m.span
-                  key={i}
-                  className="w-[2.5px] rounded-full bg-emerald-500 dark:bg-emerald-400"
-                  initial={{ height: 4 }}
-                  animate={reduceMotion ? { height: h * 1.1 } : { height: [4, h * 1.1, 4] }}
+              <Sparkles className="w-3 h-3 text-purple-200" />
+              <span>Target Reached: 7.5</span>
+            </m.div>
+
+            <div className="absolute inset-x-3 top-3 bottom-7 flex flex-col justify-between pointer-events-none opacity-20">
+              <div className="border-b border-dashed border-[#635BFF] w-full" />
+              <div className="border-b border-dashed border-[#635BFF] w-full" />
+              <div className="border-b border-dashed border-[#635BFF] w-full" />
+            </div>
+
+            <div className="relative z-10 w-full mt-2">
+              <svg viewBox="0 0 300 80" className="w-full h-24 overflow-visible">
+                <defs>
+                  <linearGradient id="riveAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#635BFF" stopOpacity="0.35" />
+                    <stop offset="100%" stopColor="#635BFF" stopOpacity="0" />
+                  </linearGradient>
+                  <linearGradient id="riveLineGrad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#635BFF" />
+                    <stop offset="50%" stopColor="#7C3AED" />
+                    <stop offset="100%" stopColor="#A78BFA" />
+                  </linearGradient>
+                </defs>
+
+                <path
+                  d="M 10,60 Q 75,48 140,36 T 290,15 L 290,75 L 10,75 Z"
+                  fill="url(#riveAreaGrad)"
+                />
+                <m.path
+                  d="M 10,60 Q 75,48 140,36 T 290,15"
+                  fill="none"
+                  stroke="url(#riveLineGrad)"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
                   transition={{
-                    duration: 1.2,
+                    duration: 2.2,
+                    ease: 'easeInOut',
                     repeat: Infinity,
-                    repeatType: 'reverse',
-                    delay: i * 0.08,
+                    repeatDelay: 2,
                   }}
                 />
-              ))}
-            </div>
-          </div>
-          <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400">
-            00:45
-          </span>
-        </div>
-      </div>
-
-      <FeatureLink to="/speaking">Start Speaking Practice</FeatureLink>
-    </div>
-  );
-}
-
-/* ─── 3. Practice Tests Card ─────────────────────────────────── */
-function PracticeLibraryCard() {
-  return (
-    <div
-      className={`${CARD_BASE} bg-gradient-to-br from-white via-white to-blue-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/40 border-blue-150 dark:border-blue-900/40 hover:border-blue-300 dark:hover:border-blue-500/50`}
-    >
-      <div className="space-y-4">
-        <Badge
-          icon={BookOpen}
-          label="Test Library"
-          color="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300 border-blue-200/80 dark:border-blue-500/30"
-        />
-
-        <div>
-          <h3 className="text-xl sm:text-2xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white">
-            Practice. <span className="text-blue-600 dark:text-blue-400">Pass with ease.</span>
-          </h3>
-          <p className="mt-1.5 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
-            Complete full-length timed tests or practice by section with real-time explanation
-            reviews.
-          </p>
-        </div>
-
-        {/* Clean Progress Bars */}
-        <div className="space-y-2.5 pt-1">
-          {[
-            { title: 'Academic Reading', sub: '6 / 12 Test Sets', pct: 50, color: 'bg-blue-600' },
-            { title: 'Listening Master', sub: '8 / 12 Test Sets', pct: 66, color: 'bg-indigo-600' },
-          ].map((item) => (
-            <div key={item.title} className="space-y-1">
-              <div className="flex justify-between text-xs font-bold text-slate-800 dark:text-slate-200">
-                <span>{item.title}</span>
-                <span className="text-slate-400 text-[10px] font-semibold">{item.sub}</span>
-              </div>
-              <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                <m.div
-                  className={`h-full ${item.color} rounded-full`}
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${item.pct}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                <path
+                  d="M 10,60 Q 75,48 140,36 T 290,15"
+                  fill="none"
+                  stroke="#635BFF"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
                 />
-              </div>
-            </div>
-          ))}
-        </div>
 
-        {/* Recent Attempts Breakdown */}
-        <div className="pt-2 space-y-1.5 border-t border-slate-150 dark:border-slate-800">
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-            Recent Attempts
-          </span>
-          {[
-            {
-              name: 'Reading Mock Set 4',
-              band: 'Band 7.5 ✓',
-              color:
-                'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
-            },
-            {
-              name: 'Listening Set 2',
-              band: 'Band 7.0 ✓',
-              color: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/30',
-            },
-          ].map((attempt) => (
-            <div
-              key={attempt.name}
-              className="flex items-center justify-between p-2 rounded-xl bg-white/80 dark:bg-slate-950/40 border border-slate-200/70 dark:border-slate-800 text-xs font-bold shadow-2xs"
-            >
-              <span className="text-slate-800 dark:text-slate-200 text-[11px] font-bold truncate">
-                {attempt.name}
-              </span>
-              <span
-                className={`px-2 py-0.5 rounded-md border text-[9px] font-black shrink-0 ${attempt.color}`}
+                {/* Pulsing Node Rings */}
+                <circle cx="10" cy="60" r="4" fill="#635BFF" stroke="#ffffff" strokeWidth="2" />
+                <circle cx="75" cy="48" r="4" fill="#635BFF" stroke="#ffffff" strokeWidth="2" />
+                <circle cx="140" cy="36" r="4" fill="#7C3AED" stroke="#ffffff" strokeWidth="2" />
+                <circle cx="215" cy="24" r="4" fill="#7C3AED" stroke="#ffffff" strokeWidth="2" />
+                <m.circle
+                  cx="290"
+                  cy="15"
+                  r="5.5"
+                  fill="#A78BFA"
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                  animate={{ r: [4.5, 7, 4.5] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                />
+              </svg>
+            </div>
+
+            <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 mt-1 px-1 relative z-10">
+              <span>May 1</span>
+              <span>May 15</span>
+              <span>Jun 1</span>
+              <span>Jun 15</span>
+              <span>Jun 30</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── 5. Rive-Style Animated Vocabulary Builder Card ─────────── */
+function RiveVocabularyBuilderCard() {
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const handleSpeak = () => {
+    setIsPlaying(true);
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance('Pragmatic');
+      utterance.rate = 0.9;
+      utterance.onend = () => setIsPlaying(false);
+      utterance.onerror = () => setIsPlaying(false);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      setTimeout(() => setIsPlaying(false), 1000);
+    }
+  };
+
+  return (
+    <div className={CARD_BASE}>
+      <FeatureCardHeader
+        icon={BookOpen}
+        title="Vocabulary Builder"
+        subtitle="Learn high-frequency words that boost your band."
+      />
+
+      {/* Rive 3D Flashcard Deck Canvas - Equal Height Flex-1 */}
+      <div className="bg-[#F6F4FE] dark:bg-[#121427] p-5 rounded-2xl border border-[#E2DCFE] dark:border-slate-800 flex-1 flex flex-col items-center justify-between min-h-[220px] relative overflow-hidden">
+        <div className="relative w-full max-w-xs sm:max-w-sm my-auto">
+          {/* Rive Card Layer 3 */}
+          <div className="absolute inset-0 bg-[#635BFF]/10 dark:bg-[#635BFF]/20 rounded-xl transform translate-x-4 translate-y-3 rotate-6 border border-[#635BFF]/20 opacity-40" />
+
+          {/* Rive Card Layer 2 */}
+          <div className="absolute inset-0 bg-[#635BFF]/15 dark:bg-[#635BFF]/30 rounded-xl transform translate-x-2 translate-y-1.5 rotate-3 border border-[#635BFF]/30 opacity-70" />
+
+          {/* Main Front Flashcard with Audio Rive Waves */}
+          <div className="relative z-10 bg-white dark:bg-[#0d0f1d] p-4.5 sm:p-5 rounded-xl border border-[#E5E2FA] dark:border-slate-800 shadow-2xs">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#635BFF] dark:text-[#A78BFA]">
+                  WORD OF THE DAY
+                </span>
+                <span className="px-1.5 py-0.2 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 text-[9px] font-extrabold border border-purple-200/50">
+                  Band 8.0+
+                </span>
+              </div>
+
+              {/* Speaker Button with Expanding Rive Waves */}
+              <button
+                type="button"
+                onClick={handleSpeak}
+                aria-label="Pronounce Pragmatic"
+                className={`w-7.5 h-7.5 rounded-full bg-[#F0EEFF] dark:bg-indigo-950/60 text-[#635BFF] dark:text-[#A78BFA] flex items-center justify-center hover:scale-105 transition-transform relative ${
+                  isPlaying ? 'ring-2 ring-purple-400' : ''
+                }`}
               >
-                {attempt.band}
-              </span>
+                <Volume2 className="w-4 h-4" />
+                {isPlaying && (
+                  <>
+                    <m.span
+                      className="absolute inset-0 rounded-full border border-[#635BFF]"
+                      animate={{ scale: [1, 1.8], opacity: [1, 0] }}
+                      transition={{ duration: 0.8, repeat: Infinity }}
+                    />
+                    <m.span
+                      className="absolute inset-0 rounded-full border border-purple-400"
+                      animate={{ scale: [1, 2.3], opacity: [0.8, 0] }}
+                      transition={{ duration: 0.8, delay: 0.2, repeat: Infinity }}
+                    />
+                  </>
+                )}
+              </button>
             </div>
-          ))}
-        </div>
-      </div>
 
-      <FeatureLink to="/cambridge-tests">Explore Test Sets</FeatureLink>
-    </div>
-  );
-}
-
-/* ─── 4. Learning Path Card ─────────────────────────────────── */
-function LearningPathCard() {
-  return (
-    <div
-      className={`${CARD_BASE} bg-gradient-to-br from-white via-white to-purple-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-purple-950/40 border-purple-150 dark:border-purple-900/40 hover:border-purple-300 dark:hover:border-purple-500/50`}
-    >
-      <div className="space-y-4">
-        <Badge
-          icon={Route}
-          label="Adaptive Path"
-          color="bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-300 border-purple-200/80 dark:border-purple-500/30"
-        />
-
-        <div>
-          <h3 className="text-xl sm:text-2xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white">
-            AI-built. <span className="text-purple-600 dark:text-purple-400">Just for you.</span>
-          </h3>
-          <p className="mt-1.5 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
-            AI adjusts daily recommendations according to mock performance strengths and gaps.
-          </p>
-        </div>
-
-        {/* Clean Roadmap Steps */}
-        <div className="space-y-2 pt-1">
-          {[
-            { step: '01', title: 'Diagnostic Test', status: 'Completed · Band 6.0' },
-            { step: '02', title: 'Grammar & Lexicon Focus', status: 'Active Goal' },
-            { step: '03', title: 'Intensive Practice Run', status: 'Upcoming' },
-          ].map((s) => (
-            <div
-              key={s.step}
-              className="flex items-center gap-3 p-2.5 rounded-xl bg-white/80 dark:bg-slate-950/40 border border-slate-200/80 dark:border-slate-800 shadow-2xs"
-            >
-              <span className="w-6 h-6 rounded-lg bg-purple-600 text-white font-extrabold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
-                {s.step}
-              </span>
-              <div className="min-w-0 flex-1">
-                <h4 className="text-xs font-extrabold text-slate-900 dark:text-white truncate">
-                  {s.title}
-                </h4>
-                <p className="text-[10px] font-medium text-slate-400 truncate">{s.status}</p>
-              </div>
+            <div className="flex items-baseline gap-2">
+              <h4 className="text-xl font-black text-slate-900 dark:text-white">Pragmatic</h4>
+              <span className="text-[11px] font-semibold text-slate-400">/pɹæɡˈmæt.ɪk/</span>
             </div>
-          ))}
-        </div>
-      </div>
-
-      <FeatureLink to="/learning-path">View My Path</FeatureLink>
-    </div>
-  );
-}
-
-/* ─── 5. Analytics Card ─────────────────────────────────────── */
-function AnalyticsCard() {
-  return (
-    <div
-      className={`${CARD_BASE} bg-gradient-to-br from-white via-white to-emerald-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/40 border-emerald-150 dark:border-emerald-900/40 hover:border-emerald-300 dark:hover:border-emerald-500/50`}
-    >
-      <div className="space-y-4">
-        <Badge
-          icon={TrendingUp}
-          label="Analytics"
-          color="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-500/30"
-        />
-
-        <div>
-          <h3 className="text-xl sm:text-2xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white">
-            Know your score.{' '}
-            <span className="text-emerald-600 dark:text-emerald-400">Watch it rise.</span>
-          </h3>
-          <p className="mt-1.5 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
-            Track target band progress and performance trends over time.
-          </p>
-        </div>
-
-        {/* Clean Progress Header */}
-        <div className="flex items-center justify-between pt-1">
-          <div>
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-              Target Band Goal
-            </span>
-            <span className="text-2xl font-extrabold text-[#635BFF] dark:text-indigo-400">
-              7.5 Band
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-black text-sm shadow-2xs">
-            <span>78%</span>
-            <span className="text-[10px] font-bold uppercase">Achieved</span>
-          </div>
-        </div>
-
-        {/* Dynamic & Expressive Trend SVG */}
-        <div className="relative pt-2">
-          {/* Subtle Grid Lines */}
-          <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-40">
-            <div className="border-b border-dashed border-slate-200 dark:border-slate-800 w-full h-0" />
-            <div className="border-b border-dashed border-slate-200 dark:border-slate-800 w-full h-0" />
-            <div className="border-b border-dashed border-slate-200 dark:border-slate-800 w-full h-0" />
-          </div>
-
-          <svg viewBox="0 0 280 85" className="w-full overflow-visible relative z-10">
-            <defs>
-              <linearGradient id="ag-fill-dynamic" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#635BFF" stopOpacity=".2" />
-                <stop offset="70%" stopColor="#635BFF" stopOpacity=".03" />
-                <stop offset="100%" stopColor="#635BFF" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-
-            {/* Gradient Area Fill */}
-            <path
-              d="M6 68 C 30 60, 45 48, 60 52 S 85 60, 100 56 S 135 30, 150 36 S 175 44, 190 40 S 220 12, 240 18 S 260 4, 274 8 L 274 85 L 6 85 Z"
-              fill="url(#ag-fill-dynamic)"
-            />
-
-            {/* Main Dynamic Trend Line */}
-            <path
-              d="M6 68 C 30 60, 45 48, 60 52 S 85 60, 100 56 S 135 30, 150 36 S 175 44, 190 40 S 220 12, 240 18 S 260 4, 274 8"
-              fill="none"
-              stroke="#635BFF"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-
-            {/* Data Dots & Band Nodes */}
-            <circle cx="6" cy="68" r="3" fill="#635BFF" />
-            <circle cx="60" cy="52" r="2.5" fill="#635BFF" opacity="0.5" />
-            <circle cx="150" cy="36" r="3.5" fill="#635BFF" stroke="#ffffff" strokeWidth="1.5" />
-            <circle cx="190" cy="40" r="2.5" fill="#635BFF" opacity="0.5" />
-            <circle cx="274" cy="8" r="4" fill="#635BFF" stroke="#ffffff" strokeWidth="1.5" />
-          </svg>
-
-          {/* Floating Score Badges */}
-          <div className="flex items-center justify-between text-[9px] font-black text-slate-400 mt-1">
-            <span>Band 5.5 (Start)</span>
-            <span className="text-[#635BFF] dark:text-indigo-400">Band 6.5</span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-black">
-              Band 7.5 (Peak) ✓
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <FeatureLink to="/user-analytics">View Analytics</FeatureLink>
-    </div>
-  );
-}
-
-/* ─── 6. Vocabulary Card ────────────────────────────────────── */
-function VocabularyBuilderCard() {
-  const tags = ['Analysis', 'Sustainable', 'Therefore', 'In contrast', 'Evidence', 'Viable'];
-
-  return (
-    <div
-      className={`${CARD_BASE} bg-gradient-to-br from-white via-white to-amber-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-amber-950/40 border-amber-150 dark:border-amber-900/40 hover:border-amber-300 dark:hover:border-amber-500/50`}
-    >
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1.2fr_1fr] lg:gap-5">
-        <div className="space-y-3">
-          <Badge
-            icon={Brain}
-            label="Vocabulary"
-            color="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-500/30"
-          />
-          <div>
-            <h3 className="text-xl sm:text-2xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white">
-              Smarter words.{' '}
-              <span className="text-emerald-600 dark:text-emerald-400">Better answers.</span>
-            </h3>
-            <p className="mt-1.5 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
-              Learn academic band booster words using interactive spaced repetition algorithms.
+            <p className="text-[11px] font-bold text-[#635BFF] dark:text-[#A78BFA] mt-0.5">
+              adjective
+            </p>
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed font-medium">
+              Dealing with things sensibly and in a realistic way.
             </p>
           </div>
-
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {tags.map((t) => (
-              <span
-                key={t}
-                className="rounded-lg border border-slate-200/80 bg-white/90 dark:bg-slate-950/40 dark:border-slate-800 px-2 py-1 text-[10px] font-bold text-slate-700 dark:text-slate-300 shadow-2xs"
-              >
-                {t}
-              </span>
-            ))}
-            <span className="rounded-lg border border-indigo-200/80 bg-indigo-50 dark:bg-indigo-950/40 text-[#635BFF] dark:text-indigo-400 px-2 py-1 text-[10px] font-extrabold shadow-2xs">
-              +1,200 more
-            </span>
-          </div>
         </div>
 
-        {/* Word of the Day Compact Banner */}
-        <div className="p-4 rounded-2xl bg-white/90 dark:bg-slate-950/60 border border-amber-200/80 dark:border-amber-900/40 flex flex-col justify-between gap-2 shadow-xs">
-          <div className="flex justify-between items-center">
-            <span className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
-              Word of the Day
-            </span>
-            <span className="text-[9px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/30">
-              ★ Band 8.5
-            </span>
-          </div>
-          <div>
-            <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">Elucidate</h4>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-              verb · To make lucid or clear; throw light upon; explain.
-            </p>
-          </div>
-          <div className="text-[10px] font-extrabold text-[#635BFF] dark:text-indigo-400">
-            85% Mastered • Spaced Repetition Active
-          </div>
+        {/* Rive Card Deck Indicators */}
+        <div className="flex items-center gap-1.5 mt-3.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#635BFF]" />
+          <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700" />
+          <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700" />
+          <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700" />
         </div>
       </div>
-
-      <FeatureLink to="/vocabulary">Build Vocabulary</FeatureLink>
-    </div>
-  );
-}
-
-/* ─── 7. Study Resources Card ────────────────────────────────── */
-function StudyResourcesCard() {
-  const resources = [
-    {
-      Icon: FileText,
-      title: 'Model Answers',
-      count: '120+ PDFs',
-      desc: 'Task 1 & 2 Band 9 Samples',
-      color:
-        'text-amber-600 bg-amber-50 dark:bg-amber-500/10 border-amber-200/60 dark:border-amber-500/20',
-    },
-    {
-      Icon: Play,
-      title: 'Video Lessons',
-      count: '45 Hours',
-      desc: 'Expert Strategy Walkthroughs',
-      color:
-        'text-rose-600 bg-rose-50 dark:bg-rose-500/10 border-rose-200/60 dark:border-rose-500/20',
-    },
-    {
-      Icon: FileDown,
-      title: 'Practice PDFs',
-      count: '80+ Sets',
-      desc: 'Topic-Based Practice Worksheets',
-      color:
-        'text-blue-600 bg-blue-50 dark:bg-blue-500/10 border-blue-200/60 dark:border-blue-500/20',
-    },
-    {
-      Icon: GraduationCap,
-      title: 'Study Guides',
-      count: '30+ Guides',
-      desc: 'Tips, Hacks & Band Descriptors',
-      color:
-        'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200/60 dark:border-emerald-500/20',
-    },
-  ];
-
-  return (
-    <div
-      className={`${CARD_BASE} bg-gradient-to-br from-white via-white to-sky-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-sky-950/40 border-sky-150 dark:border-sky-900/40 hover:border-sky-300 dark:hover:border-sky-500/50`}
-    >
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1.1fr_1.1fr] lg:gap-5">
-        <div className="space-y-3 flex flex-col justify-between">
-          <div className="space-y-3">
-            <Badge
-              icon={Library}
-              label="Study Resources"
-              color="bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-300 border-sky-200/80 dark:border-sky-500/30"
-            />
-            <div>
-              <h3 className="text-xl sm:text-2xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white">
-                Everything you need.{' '}
-                <span className="text-sky-600 dark:text-sky-400">Ready to go.</span>
-              </h3>
-              <p className="mt-1.5 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
-                Unlock premium expert materials, curated guides, and answers to ace the test.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-1.5 pt-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-            <div className="flex items-center gap-1.5">
-              <span className="text-emerald-500 font-bold">✓</span>
-              <span>Instant PDF Downloads</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-emerald-500 font-bold">✓</span>
-              <span>Updated for 2026 Test Format</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 4 Clean Stacked Resource Rows */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-1 gap-2">
-          {resources.map(({ Icon, title, count, desc, color }) => (
-            <div
-              key={title}
-              className="p-2.5 rounded-xl bg-white/90 dark:bg-slate-950/50 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 shadow-2xs hover:border-sky-300 dark:hover:border-sky-800/40 transition"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${color}`}
-                >
-                  <Icon className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="text-xs font-extrabold text-slate-900 dark:text-white truncate">
-                    {title}
-                  </h4>
-                  <p className="text-[10px] font-medium text-slate-400 truncate">{desc}</p>
-                </div>
-              </div>
-
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[9px] font-black text-slate-700 dark:text-slate-300 shrink-0">
-                {count}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <FeatureLink to="/resources">Browse Resources</FeatureLink>
     </div>
   );
 }
@@ -638,43 +565,59 @@ function StudyResourcesCard() {
 /* ─── Main Section Component ─────────────────────────────────── */
 export default function FeaturesSection({ viewport }) {
   return (
-    <SoftSection id="features" className="scroll-mt-24 bg-white dark:bg-[#070a16] py-16 lg:py-24">
-      <div className="relative z-10 mx-auto max-w-[1450px] px-5 md:px-8">
+    <SoftSection
+      id="features"
+      className="scroll-mt-24 bg-[#F7F6FE] dark:bg-[#070914] py-16 lg:py-24"
+    >
+      <div className="relative z-10 mx-auto max-w-[1450px] px-5 md:px-8 space-y-10">
         <SectionHeading
           eyebrow="BUILT TO HELP YOU SCORE"
-          title="IELTS tools that actually"
-          script="move the needle."
-          description="From AI writing feedback to speaking practice and adaptive study plans — everything you need to hit your target band score."
+          title="Everything you need to"
+          script="reach your target band."
+          description="AI tools to practice smarter and achieve your best IELTS score."
           viewport={viewport}
         />
 
+        {/* Bento Grid layout with equal height items-stretch */}
         <m.div
           initial="hidden"
           whileInView="show"
           viewport={viewport}
           variants={landingStagger}
-          className="mt-10 grid gap-4 sm:gap-5 lg:grid-cols-12"
+          className="grid gap-4 sm:gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-12 items-stretch"
         >
-          <m.div variants={landingReveal} className="lg:col-span-7 flex flex-col h-full">
-            <WritingFeedbackCard />
+          {/* Top Row: 3 equal height cards */}
+          <m.div
+            variants={landingReveal}
+            className="md:col-span-1 lg:col-span-4 flex flex-col h-full"
+          >
+            <RiveWritingFeedbackCard />
           </m.div>
-          <m.div variants={landingReveal} className="lg:col-span-5 flex flex-col h-full">
-            <SpeakingFeedbackCard />
+          <m.div
+            variants={landingReveal}
+            className="md:col-span-1 lg:col-span-4 flex flex-col h-full"
+          >
+            <RiveSpeakingPracticeCard />
           </m.div>
-          <m.div variants={landingReveal} className="lg:col-span-4 flex flex-col h-full">
-            <PracticeLibraryCard />
+          <m.div
+            variants={landingReveal}
+            className="md:col-span-2 lg:col-span-4 flex flex-col h-full"
+          >
+            <RivePracticeLibraryCard />
           </m.div>
-          <m.div variants={landingReveal} className="lg:col-span-4 flex flex-col h-full">
-            <LearningPathCard />
+
+          {/* Bottom Row: 2 equal height cards */}
+          <m.div
+            variants={landingReveal}
+            className="md:col-span-1 lg:col-span-6 flex flex-col h-full"
+          >
+            <RiveAnalyticsCard />
           </m.div>
-          <m.div variants={landingReveal} className="lg:col-span-4 flex flex-col h-full">
-            <AnalyticsCard />
-          </m.div>
-          <m.div variants={landingReveal} className="lg:col-span-6 flex flex-col h-full">
-            <VocabularyBuilderCard />
-          </m.div>
-          <m.div variants={landingReveal} className="lg:col-span-6 flex flex-col h-full">
-            <StudyResourcesCard />
+          <m.div
+            variants={landingReveal}
+            className="md:col-span-1 lg:col-span-6 flex flex-col h-full"
+          >
+            <RiveVocabularyBuilderCard />
           </m.div>
         </m.div>
       </div>

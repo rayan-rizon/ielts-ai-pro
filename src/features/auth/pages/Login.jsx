@@ -459,7 +459,7 @@ export default function Login() {
 
               <div className="text-center lg:text-left mb-6" data-oid="30o1_of">
                 <div className="lg:hidden flex justify-center mb-6" data-oid="6j7gtso">
-                  <Logo iconOnly={true} size="lg" />
+                  <Logo iconOnly={false} size="xl" />
                 </div>
                 <h2
                   className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white leading-tight"
@@ -767,7 +767,7 @@ export default function Login() {
                             <Button
                               type="submit"
                               disabled={isLoading}
-                              className="w-full h-12 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-700 hover:via-indigo-700 hover:to-violet-700 text-white font-extrabold uppercase tracking-[0.1em] text-sm rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-indigo-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center group"
+                              className="w-full h-12 bg-[#635BFF] hover:bg-[#524be3] text-white font-extrabold uppercase tracking-[0.1em] text-sm rounded-xl shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center group"
                               data-oid="ezeqau0"
                             >
                               {isLoading ? (

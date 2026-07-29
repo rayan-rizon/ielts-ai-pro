@@ -262,25 +262,22 @@ export default function Pricing() {
         keywords="IELTS pricing, IELTS courses cost, affordable IELTS prep, IELTS plans"
       />
 
-      <div className="relative min-h-screen pb-16 bg-[#f4f3f8] dark:bg-[#080a10] transition-colors duration-500 overflow-hidden font-sans">
-        {/* Background Radial Lights */}
-        <div aria-hidden="true" className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-          <div className="absolute top-[-10%] left-[-10%] w-[70rem] h-[70rem] rounded-full bg-indigo-500/10 dark:bg-primary/10 blur-[120px]" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-[60rem] h-[60rem] rounded-full bg-purple-500/10 dark:bg-purple-500/5 blur-[120px]" />
-        </div>
+      <div className="relative min-h-screen pb-16 bg-white dark:bg-[#070912] transition-colors duration-500 overflow-hidden font-sans">
+        {/* Background Grid Accent */}
+        <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000_20%,transparent_100%)]"></div>
 
         <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="px-4 md:px-8 pt-3 sm:pt-4 md:pt-6 pb-12 max-w-[1360px] mx-auto space-y-8 relative z-10"
+          className="px-4 md:px-8 pt-6 sm:pt-8 md:pt-10 pb-12 max-w-7xl mx-auto space-y-8 relative z-10"
         >
           {/* Hero Section */}
           <m.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-center mb-8 space-y-3"
+            className="text-center mb-6 space-y-3"
           >
             <div className="flex flex-col items-center gap-2">
               <Badge
@@ -300,57 +297,48 @@ export default function Pricing() {
 
             {/* Billing Toggle & Promo Code */}
             <div className="mt-5 flex flex-col items-center gap-4">
-              <div className="relative inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-900 backdrop-blur-md p-1.5 rounded-full border border-slate-200/80 dark:border-white/10 w-fit shadow-xs">
+              <div className="relative inline-flex items-center rounded-full border border-slate-200/90 bg-slate-100/90 p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-xl dark:border-white/15 dark:bg-slate-900/90">
                 <button
                   type="button"
                   onClick={() => setBillingInterval('monthly')}
                   className={cn(
-                    'relative z-10 px-6 sm:px-7 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-200 cursor-pointer',
+                    'relative z-10 px-6 sm:px-7 py-2 rounded-full text-xs sm:text-[13px] font-extrabold tracking-tight transition-colors duration-200 cursor-pointer',
                     billingInterval === 'monthly'
-                      ? 'text-white'
-                      : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
+                      ? 'text-slate-950 dark:text-white'
+                      : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                   )}
                 >
                   {billingInterval === 'monthly' && (
                     <m.span
                       layoutId="activeBillingTabPricing"
-                      className="absolute inset-0 z-[-1] rounded-full bg-[#5661e9] shadow-md shadow-indigo-500/20"
+                      className="absolute inset-0 z-[-1] rounded-full bg-white shadow-[0_2px_10px_-2px_rgba(15,23,42,0.12)] dark:bg-slate-800"
                       transition={{ type: 'spring', stiffness: 420, damping: 30 }}
                     />
                   )}
                   Monthly
                 </button>
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setBillingInterval('quarterly')}
-                    className={cn(
-                      'relative z-10 px-6 sm:px-7 py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-200 cursor-pointer',
-                      billingInterval === 'quarterly'
-                        ? 'text-white'
-                        : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
-                    )}
-                  >
-                    {billingInterval === 'quarterly' && (
-                      <m.span
-                        layoutId="activeBillingTabPricing"
-                        className="absolute inset-0 z-[-1] rounded-full bg-[#5661e9] shadow-md shadow-indigo-500/20"
-                        transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-                      />
-                    )}
-                    Quarterly
-                  </button>
-                  <span
-                    className={cn(
-                      'absolute -top-3 -right-2.5 text-[9.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs pointer-events-none transition-all duration-200 z-20 whitespace-nowrap border',
-                      billingInterval === 'quarterly'
-                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/90 dark:text-purple-300 border-purple-200/90 dark:border-purple-800/60'
-                        : 'bg-[#5661e9] text-white border-transparent'
-                    )}
-                  >
-                    15% OFF
+                <button
+                  type="button"
+                  onClick={() => setBillingInterval('quarterly')}
+                  className={cn(
+                    'relative z-10 px-5 sm:px-6 py-2 rounded-full text-xs sm:text-[13px] font-extrabold tracking-tight transition-colors duration-200 flex items-center gap-2 cursor-pointer',
+                    billingInterval === 'quarterly'
+                      ? 'text-slate-950 dark:text-white'
+                      : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                  )}
+                >
+                  {billingInterval === 'quarterly' && (
+                    <m.span
+                      layoutId="activeBillingTabPricing"
+                      className="absolute inset-0 z-[-1] rounded-full bg-white shadow-[0_2px_10px_-2px_rgba(15,23,42,0.12)] dark:bg-slate-800"
+                      transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                    />
+                  )}
+                  <span>Quarterly</span>
+                  <span className="bg-purple-100 text-purple-700 dark:bg-purple-950/90 dark:text-purple-300 border border-purple-200/90 dark:border-purple-800/60 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
+                    Save 15%
                   </span>
-                </div>
+                </button>
               </div>
 
               <div className="flex flex-col items-center gap-1.5 pt-0.5">
@@ -361,7 +349,6 @@ export default function Pricing() {
                   </span>
                   <div className="w-8 h-px bg-slate-200 dark:bg-slate-800" />
                 </div>
-                {/* Direct PromoCodeRedemption without redundant double-border wrapper */}
                 <div className="relative z-50">
                   <PromoCodeRedemption
                     onPromoApplied={handlePromoApplied}
@@ -372,12 +359,12 @@ export default function Pricing() {
             </div>
           </m.div>
 
-          {/* Spacious Pricing Cards Grid */}
+          {/* Pricing Cards Grid */}
           <m.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10 pt-2 sm:pt-4 mb-20 items-stretch"
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto pt-2 sm:pt-4 mb-16 items-stretch"
           >
             {plans.map((plan) => {
               const displayPrice = calculatePrice(plan.basePrice, billingInterval, promoDiscount);

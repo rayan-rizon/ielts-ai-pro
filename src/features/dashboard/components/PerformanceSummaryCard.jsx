@@ -40,6 +40,59 @@ const getProgressDiff = (latestScore, moduleAvg) => {
   };
 };
 
+const extractLatestByModule = (recentTests) => {
+  if (!Array.isArray(recentTests)) return {};
+  const map = {};
+  for (const test of recentTests) {
+    if (test?.module) {
+      const mod = test.module.toLowerCase();
+      if (!map[mod]) {
+        map[mod] = test;
+      }
+    }
+  }
+  return map;
+};
+
+const DiffBadge = ({ diffInfo }) => {
+  if (!diffInfo || diffInfo.neutral) return null;
+  const { isImprovement, val } = diffInfo;
+  const sign = isImprovement ? '+' : '-';
+  const badgeClass = isImprovement
+    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
+    : 'bg-rose-50 text-rose-600 dark:bg-rose-500/20 dark:text-rose-300';
+
+  return (
+    <div className="flex items-center gap-1 text-[9.5px] font-bold">
+      <span className={cn('rounded-full px-1.5 py-0.2', badgeClass)}>
+        {sign}
+        {val} vs avg
+      </span>
+    </div>
+  );
+};
+
+const ScoreDisplay = ({ score }) => {
+  if (score == null) {
+    return (
+      <div className="py-0.5">
+        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-100 dark:bg-slate-800/90 px-2 py-0.5 rounded-full border border-slate-200/50 dark:border-white/5">
+          Not taken
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-baseline gap-1">
+      <span className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white tracking-tight">
+        {score.toFixed(1)}
+      </span>
+      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Band</span>
+    </div>
+  );
+};
+
 const PerformanceModuleCard = React.memo(({ module, test, avgScore }) => {
   const { label, icon: Icon } = module;
   const score = test ? Number(test.score) : null;
@@ -61,37 +114,8 @@ const PerformanceModuleCard = React.memo(({ module, test, avgScore }) => {
       </div>
 
       <div className="space-y-1">
-        {score != null ? (
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white tracking-tight">
-              {score.toFixed(1)}
-            </span>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-              Band
-            </span>
-          </div>
-        ) : (
-          <div className="py-0.5">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-100 dark:bg-slate-800/90 px-2 py-0.5 rounded-full border border-slate-200/50 dark:border-white/5">
-              Not taken
-            </span>
-          </div>
-        )}
-
-        {diffInfo && !diffInfo.neutral && (
-          <div className="flex items-center gap-1 text-[9.5px] font-bold">
-            <span
-              className={cn(
-                'rounded-full px-1.5 py-0.2',
-                diffInfo.isImprovement
-                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
-                  : 'bg-rose-50 text-rose-600 dark:bg-rose-500/20 dark:text-rose-300'
-              )}
-            >
-              {diffInfo.isImprovement ? `+${diffInfo.val}` : `-${diffInfo.val}`} vs avg
-            </span>
-          </div>
-        )}
+        <ScoreDisplay score={score} />
+        <DiffBadge diffInfo={diffInfo} />
       </div>
     </m.div>
   );
@@ -99,19 +123,7 @@ const PerformanceModuleCard = React.memo(({ module, test, avgScore }) => {
 PerformanceModuleCard.displayName = 'PerformanceModuleCard';
 
 const PerformanceSummaryCard = React.memo(({ recentTests, stats }) => {
-  const latestByModule = useMemo(() => {
-    if (!recentTests || !Array.isArray(recentTests)) return {};
-    const map = {};
-    recentTests.forEach((test) => {
-      if (!test.module) return;
-      const mod = test.module.toLowerCase();
-      if (!map[mod]) {
-        map[mod] = test;
-      }
-    });
-    return map;
-  }, [recentTests]);
-
+  const latestByModule = useMemo(() => extractLatestByModule(recentTests), [recentTests]);
   const avg = stats?.avgScore ? Number(stats.avgScore) : 0;
 
   return (
@@ -160,7 +172,6 @@ const PerformanceSummaryCard = React.memo(({ recentTests, stats }) => {
     </Card>
   );
 });
-
 PerformanceSummaryCard.displayName = 'PerformanceSummaryCard';
 
 export default PerformanceSummaryCard;
