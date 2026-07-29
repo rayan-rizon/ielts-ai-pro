@@ -128,8 +128,12 @@ export default async function handler(req, res) {
     ],
   };
 
-  if (process.env.META_TEST_EVENT_CODE) {
-    payload.test_event_code = process.env.META_TEST_EVENT_CODE;
+  // Query param lets a specific request be routed into Events Manager's Test
+  // Events tab for one-off QA without a redeploy. The env var is the durable
+  // switch for a longer validation window; either can supply the code.
+  const testEventCode = process.env.META_TEST_EVENT_CODE || req.query?.test_event_code;
+  if (testEventCode) {
+    payload.test_event_code = String(testEventCode);
   }
 
   try {
