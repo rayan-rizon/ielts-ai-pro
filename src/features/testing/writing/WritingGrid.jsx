@@ -124,7 +124,7 @@ export const MemoizedWritingCard = memo(WritingTestCard, arePropsEqual);
 
 export function WritingSkeletonGrid() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-6">
       {[...Array(8)].map((_, i) => (
         <div
           key={i}
@@ -249,7 +249,7 @@ function WritingGridOnly({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-6"
         data-oid="5.erghn"
       >
         {filteredTests.map((test) => {

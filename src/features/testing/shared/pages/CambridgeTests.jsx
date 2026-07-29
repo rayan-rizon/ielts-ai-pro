@@ -963,7 +963,7 @@ const CambridgeTestsGrid = ({ loading, filteredGroups, sessions, user, isAdmin }
   if (loading) {
     return (
       <div
-        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 md:gap-8"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-6"
         data-oid="x7a7vjg"
       >
         {[...Array(8)].map((_, i) => (
@@ -990,7 +990,7 @@ const CambridgeTestsGrid = ({ loading, filteredGroups, sessions, user, isAdmin }
 
   return (
     <div
-      className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 md:gap-8"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-6"
       data-oid="dtmn256"
     >
       {filteredGroups.map((group, index) => (

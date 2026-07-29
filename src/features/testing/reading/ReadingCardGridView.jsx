@@ -94,9 +94,11 @@ export default function ReadingCardGridView(props) {
       transition={{ duration: 0.25, ease: 'easeOut' }}
       className={cn(
         'group relative flex flex-col justify-between h-full min-h-[300px] rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all duration-300 ease-out',
-        'bg-white dark:bg-[#10131f] border border-[#e0e4f1] dark:border-white/10 hover:border-[#5661e9]/50 dark:hover:border-indigo-400/50',
-        'shadow-xs hover:shadow-md transition-all duration-200',
-        'hover:-translate-y-1 will-change-transform',
+        'bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/70 dark:border-white/10',
+        `bg-gradient-to-b ${colorVariants[color].gradient}`,
+        'shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06),0_2px_6px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)]',
+        'dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.4)] dark:hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.6)]',
+        'hover:-translate-y-1.5 hover:border-slate-300/80 dark:hover:border-white/20 will-change-transform',
         isLocked && 'opacity-90 grayscale-[0.2]'
       )}
     >

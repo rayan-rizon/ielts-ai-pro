@@ -63,7 +63,7 @@ function groupTestsByVolume(tests) {
 
 export function ListeningSkeletonGrid() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-6">
       {[...Array(8)].map((_, i) => (
         <div
           key={i}
@@ -126,7 +126,7 @@ function ListeningGridOnly({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-6"
       >
         {filteredTests.map((test) => {
           const testSession = sessions.find((s) => s.passage_id === test.id);

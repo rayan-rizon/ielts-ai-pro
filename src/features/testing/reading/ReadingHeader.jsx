@@ -42,7 +42,10 @@ function ReadingHeaderLeft() {
           className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-none sm:leading-tight"
           data-oid="fohbhse"
         >
-          Reading <span className="text-[#5661e9] dark:text-indigo-400">Library</span>
+          Reading{' '}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 dark:from-indigo-400 dark:via-violet-400 dark:to-purple-400">
+            Library
+          </span>
         </h1>
         <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium leading-relaxed max-w-xl">
           Master the IELTS Reading section with authentic, Cambridge-style practice materials.
@@ -83,7 +86,10 @@ export default function ReadingHeader({
   onViewModeChange,
 }) {
   return (
-    <div className="relative group overflow-hidden rounded-2xl md:rounded-3xl px-4 sm:px-6 pt-3.5 pb-2.5 border border-[#e0e4f1] dark:border-white/10 bg-white dark:bg-[#10131f] backdrop-blur-3xl shadow-sm space-y-3">
+    <div className="relative group overflow-hidden rounded-2xl md:rounded-3xl px-4 sm:px-6 pt-3.5 pb-2.5 border border-indigo-200/60 dark:border-indigo-800/40 bg-gradient-to-br from-indigo-50/80 via-white to-violet-50/80 dark:from-indigo-500/5 dark:via-transparent dark:to-violet-500/5 backdrop-blur-3xl shadow-xl shadow-indigo-500/5 dark:shadow-indigo-500/10 space-y-3">
+      <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-indigo-500/5 to-transparent -z-10" />
+      <div className="absolute -top-24 -right-24 w-80 h-80 bg-indigo-400/10 dark:bg-indigo-500/10 rounded-full blur-[80px] -z-10 group-hover:scale-110 transition-transform duration-1000" />
+
       <div
         className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10"
         data-oid="p.3vb3x"
