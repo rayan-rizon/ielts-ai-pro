@@ -105,7 +105,7 @@ function CTABannerActionCard({ handlePrimaryCta, reduceMotion }) {
         onClick={handlePrimaryCta}
         className="group relative block w-full max-w-full sm:max-w-[350px] lg:max-w-[365px] overflow-hidden rounded-[24px] border border-slate-200/90 dark:border-violet-400/30 bg-white dark:bg-[#0c1020] text-left shadow-[0_20px_45px_-10px_rgba(82,98,239,0.22)] dark:shadow-[0_25px_50px_-10px_rgba(0,0,0,0.8)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_25px_50px_-8px_rgba(82,98,239,0.35)] dark:hover:shadow-[0_25px_50px_-5px_rgba(109,85,232,0.4)] hover:border-slate-300 dark:hover:border-violet-400/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#7664f2]/30 transform-gpu"
       >
-        <span className="relative flex items-center justify-between overflow-hidden bg-gradient-to-br from-[#7638ea] via-[#6244ee] to-[#2563eb] px-5 sm:px-6 py-5 text-white">
+        <span className="relative flex items-center justify-between overflow-hidden bg-[#6256ef] px-5 sm:px-6 py-5 text-white">
           <span className="pointer-events-none absolute -right-14 -top-20 h-52 w-52 rounded-full bg-white/15 blur-2xl" />
 
           <span className="relative z-10 pr-2 flex-1 space-y-2">

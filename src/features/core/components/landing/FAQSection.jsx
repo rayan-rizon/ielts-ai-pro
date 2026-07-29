@@ -70,46 +70,47 @@ function TrustedLearnersCard() {
 function StillNeedHelpCard({ handlePrimaryCta }) {
   return (
     <div className="relative pb-2">
-      <GlassPanel className="relative overflow-hidden isolate transform-gpu [mask-image:linear-gradient(white,white)] rounded-[22px] p-4 sm:p-4.5 pr-22 sm:pr-28 border border-violet-200/80 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/40 dark:border-violet-500/30 dark:bg-gradient-to-br dark:from-slate-900/95 dark:via-purple-950/40 dark:to-slate-900/95 shadow-[0_12px_32px_-15px_rgba(109,85,238,0.12)] dark:shadow-[0_16px_40px_-12px_rgba(124,58,237,0.22)] backdrop-blur-xl transition-all duration-300 hover:border-violet-300 hover:shadow-[0_16px_38px_-12px_rgba(109,85,238,0.18)] dark:hover:border-violet-400/50">
-        <div className="flex gap-3 items-start">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#6d55e8] to-[#8b5cf6] text-white shadow-md shadow-violet-500/30 dark:shadow-violet-500/50">
-            <Headphones className="h-4.5 w-4.5" />
+      <GlassPanel className="relative overflow-hidden isolate rounded-[24px] border border-[#e2e5fa] bg-white/95 p-5 sm:p-6 pr-28 sm:pr-36 shadow-[0_18px_45px_-22px_rgba(79,66,220,0.20)] backdrop-blur-md transition-all duration-300 dark:border-white/10 dark:bg-[#0d1020]/95">
+        <div className="flex gap-4 items-start">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#ded9ff] bg-[#f2f0ff] text-[#6256ef] shadow-sm dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300">
+            <Headphones className="h-5.5 w-5.5 stroke-[2.2]" />
           </span>
           <div>
-            <h3 className="text-sm sm:text-base font-black text-[#0f172a] dark:text-white">
+            <h3 className="text-base sm:text-lg font-black text-[#101836] dark:text-white">
               Still need help?
             </h3>
-            <p className="mt-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+            <p className="mt-0.5 text-xs sm:text-[13px] font-medium text-[#56617f] dark:text-slate-400">
               Our support team is just a message away.
             </p>
             <button
               type="button"
               onClick={handlePrimaryCta}
-              className="mt-2.5 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] hover:from-[#5b52f6] hover:to-[#8b4bfd] px-4 text-xs font-bold text-white shadow-[0_8px_20px_-6px_rgba(109,85,238,0.45)] dark:shadow-[0_8px_25px_-4px_rgba(124,58,237,0.55)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_-4px_rgba(109,85,238,0.58)] active:scale-[0.98] cursor-pointer"
+              className="mt-3.5 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#6256ef] hover:bg-[#5246e0] active:scale-[0.97] px-5 text-xs font-black text-white shadow-md shadow-[#6256ef]/25 transition-all duration-200 cursor-pointer"
             >
-              Contact Support <ArrowRight className="h-3.5 w-3.5" />
+              <span>Contact Support</span>
+              <ArrowRight className="h-4 w-4 stroke-[2.5]" />
             </button>
           </div>
         </div>
       </GlassPanel>
 
       {/* Floating Tape Sticky Note */}
-      <div className="absolute right-2 -bottom-1 sm:right-3 z-20 rotate-3 transition hover:rotate-0 duration-300 select-none">
-        <div className="relative bg-gradient-to-b from-[#f3e8ff] to-[#e9d5ff] dark:bg-gradient-to-br dark:from-violet-900 dark:to-purple-950 p-2.5 pb-3 rounded-lg shadow-md border border-purple-200 dark:border-violet-400/40 w-[105px] text-center dark:shadow-[0_10px_25px_-5px_rgba(109,85,232,0.4)]">
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-7 h-2.5 bg-white/70 dark:bg-white/20 rounded-xs rotate-1 shadow-2xs" />
-          <span className="font-handwritten text-[11px] font-extrabold text-[#6d55e8] dark:text-violet-200 block leading-tight">
+      <div className="absolute right-2 -bottom-1 sm:right-4 z-20 rotate-3 transition hover:rotate-0 duration-300 select-none">
+        <div className="relative rounded-2xl border border-[#ded9ff] bg-gradient-to-b from-[#f6f4ff] to-[#eae5ff] p-3 pb-3.5 shadow-lg shadow-[#6256ef]/15 dark:border-violet-500/30 dark:from-violet-950 dark:to-indigo-950 w-[112px] text-center">
+          <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-8 h-3 bg-white/90 dark:bg-white/20 border border-black/5 rounded-xs rotate-1 shadow-2xs" />
+          <span className="font-handwritten text-[12px] font-black text-[#5e50ee] dark:text-violet-200 block leading-tight">
             We&apos;re here for you! 💜
           </span>
         </div>
         <svg
-          className="absolute -left-9 -bottom-6 w-14 h-10 text-[#6d55e8]/40 dark:text-violet-400/50 hidden sm:block"
+          className="absolute -left-9 -bottom-6 w-14 h-10 text-[#6256ef]/40 dark:text-violet-400/50 hidden sm:block"
           fill="none"
           viewBox="0 0 50 30"
         >
           <path
             d="M10 5 C 25 25, 45 25, 45 25"
             stroke="currentColor"
-            strokeWidth="1.5"
+            strokeWidth="1.75"
             strokeDasharray="3 3"
             strokeLinecap="round"
           />
@@ -161,8 +162,8 @@ function FAQSection({ faqs, viewport, handlePrimaryCta }) {
           viewport={viewport}
           className="mb-12 text-center"
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#ddd8ff] bg-[#f1eeff]/90 px-5 py-2 text-xs font-extrabold uppercase tracking-[.12em] text-[#503be1] shadow-sm dark:border-violet-500/30 dark:bg-violet-500/15 dark:text-violet-200 dark:shadow-[0_0_20px_rgba(139,92,246,0.15)]">
-            <HelpCircle className="h-4 w-4" /> FAQ
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#ded9ff] bg-[#f2f0ff]/75 px-5 py-2 text-xs font-black uppercase tracking-[.12em] text-[#5e50ee] shadow-[0_8px_24px_-8px_rgba(98,86,239,0.22)] backdrop-blur-md dark:border-violet-500/30 dark:bg-violet-950/50 dark:text-violet-200">
+            <HelpCircle className="h-4 w-4 text-[#6256ef] dark:text-violet-300" /> FAQ
           </span>
         </m.div>
 

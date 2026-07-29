@@ -32,7 +32,7 @@ const steps = [
     title: 'AI Analysis',
     copy: 'Get instant, AI-powered feedback.',
     icon: Sparkles,
-    color: '#2aae83',
+    color: '#6256ef',
     lift: 'lg:mt-20',
   },
   {

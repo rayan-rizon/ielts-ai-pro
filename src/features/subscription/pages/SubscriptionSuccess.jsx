@@ -492,8 +492,12 @@ export default function SubscriptionSuccess() {
                   `${subscriptionData?.tier === 'premium' ? '100' : '50'} AI Speaking Sessions/month`,
                   'All Cambridge practice tests unlocked',
                   ...(subscriptionData?.tier === 'premium'
-                    ? ['Adaptive Learning Path', 'Deep Predictive AI Insights']
-                    : []),
+                    ? [
+                        'Unlimited Vocabulary Review',
+                        'Study Plan Updates as You Improve',
+                        'Grammar Practice for Writing & Speaking',
+                      ]
+                    : ['Grammar Practice', 'AI Study Plan Made for You']),
                 ].map((feat) => (
                   <div key={feat} className="flex items-center gap-3 text-sm">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
-import PremiumLoading from '@/components/ui/PremiumLoading';
 import { Loader2 } from 'lucide-react';
 import PropTypes from 'prop-types';
+import { getAuthUserId, hasAdminAccess } from '@/features/auth/utils/adminAccess';
 
 /**
  * ProtectedRoute component that handles:
@@ -18,12 +18,20 @@ const ProtectedRoute = ({
   requirePro = false,
   redirectPath = '/login',
 }) => {
-  const { user, loading, isAdmin, authCheckComplete } = useAuth();
+  const { user, loading, isAdmin, authCheckComplete, adminCheckComplete } = useAuth();
   const location = useLocation();
 
   // Wait for auth check to complete — show loading spinner to prevent
   // rendering protected content before Supabase verifies the session
   if (loading || !authCheckComplete) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (adminOnly && user && !adminCheckComplete) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -39,9 +47,11 @@ const ProtectedRoute = ({
   }
 
   // 2. Admin authorization check
-  if (adminOnly && !isAdmin) {
-    // If user is not admin and trying to access admin page, redirect to dashboard
-    return <Navigate to="/dashboard" replace data-oid="h3edd.e" />;
+  if (adminOnly && (!isAdmin || !hasAdminAccess(getAuthUserId(user)))) {
+    // Role authorization comes from the database. Admin UI access also requires
+    // an explicit login through the dedicated admin entry point for this tab.
+    const targetRedirect = isAdmin ? '/admin/login' : '/dashboard';
+    return <Navigate to={targetRedirect} replace data-oid="h3edd.e" />;
   }
 
   // 3. Pro/Premium tier requirement check

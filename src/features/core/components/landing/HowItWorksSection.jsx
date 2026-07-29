@@ -1,7 +1,15 @@
 import React from 'react';
-import { m } from 'framer-motion';
-import { ArrowRight, BookOpen, Headphones, Sparkles } from 'lucide-react';
+import { m, useReducedMotion } from 'framer-motion';
+import { ArrowRight, BookOpen, Check, Headphones, Sparkles, TrendingUp } from 'lucide-react';
 import { SectionHeading, SoftSection } from './LandingSection';
+
+const cardClass =
+  'group relative flex h-full flex-col justify-between rounded-[26px] border border-[#e2e5fa] bg-white/95 p-5 sm:p-6 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-[#6256ef]/40 hover:shadow-[0_30px_65px_-24px_rgba(82,98,239,0.38)] dark:border-white/10 dark:bg-[#0d1020]/95 dark:hover:border-violet-500/35';
+
+const canvasClass =
+  'relative mt-4 flex flex-1 flex-col justify-center overflow-hidden rounded-[18px] border border-[#e7e4fb] bg-gradient-to-b from-[#fcfbff] via-[#faf9ff] to-[#f4f2ff] p-3.5 sm:p-4 dark:border-white/10 dark:from-[#0d1020] dark:via-[#0a0c1a] dark:to-[#070914]';
+
+const smoothLoop = { ease: [0.45, 0, 0.55, 1] };
 
 const steps = [
   {
@@ -26,77 +34,85 @@ const steps = [
   },
 ];
 
-function TestPreview() {
+function TestPreview({ reduceMotion }) {
   return (
     <div className="space-y-2.5">
-      <div className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-950/50 p-2.5 border border-slate-200/70 dark:border-slate-800">
-        <span className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-slate-200">
-          <Headphones className="h-3.5 w-3.5 text-[#635BFF]" />
+      <div className="flex items-center justify-between rounded-xl border border-[#ded9ff] bg-white/80 p-2.5 shadow-xs dark:border-white/10 dark:bg-white/5">
+        <span className="flex items-center gap-2 text-xs font-extrabold text-[#1a1d36] dark:text-slate-200">
+          <Headphones className="h-3.5 w-3.5 text-[#6256ef]" />
           Listening Test
         </span>
-        <span className="text-[10px] font-bold text-slate-400">30 mins</span>
+        <span className="text-[10px] font-bold text-[#737d9b]">30 mins</span>
       </div>
 
-      {/* Dynamic Waveform */}
-      <div className="flex h-10 items-center justify-between gap-1 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 px-3 border border-indigo-100 dark:border-indigo-900/30">
-        {Array.from({ length: 24 }).map((_, i) => (
+      {/* Dynamic Animated Waveform */}
+      <div className="flex h-10 items-center justify-between gap-1 rounded-xl border border-[#ded9ff] bg-[#f2f0ff]/60 px-3 dark:border-violet-500/20 dark:bg-violet-950/30">
+        {Array.from({ length: 22 }).map((_, i) => (
           <m.span
             key={i}
-            className="w-0.5 rounded-full bg-[#635BFF]"
-            animate={{
-              height: [
-                `${6 + ((i * 7) % 20)}px`,
-                `${12 + ((i * 11) % 18)}px`,
-                `${6 + ((i * 7) % 20)}px`,
-              ],
-            }}
+            className="w-0.5 rounded-full bg-[#6256ef]"
+            animate={
+              reduceMotion
+                ? undefined
+                : {
+                    height: [
+                      `${6 + ((i * 7) % 18)}px`,
+                      `${14 + ((i * 11) % 18)}px`,
+                      `${6 + ((i * 7) % 18)}px`,
+                    ],
+                  }
+            }
             transition={{
-              duration: 1.4 + (i % 4) * 0.3,
+              duration: 1.4 + (i % 4) * 0.25,
               repeat: Infinity,
               ease: 'easeInOut',
             }}
-            style={{ opacity: 0.6 + (i % 4) * 0.1 }}
+            style={{ opacity: 0.65 + (i % 4) * 0.1 }}
           />
         ))}
       </div>
 
-      <div className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-950/50 p-2.5 border border-slate-200/70 dark:border-slate-800">
-        <span className="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-slate-200">
-          <BookOpen className="h-3.5 w-3.5 text-blue-500" />
+      <div className="flex items-center justify-between rounded-xl border border-[#e8e5fa] bg-white/60 p-2.5 dark:border-white/10 dark:bg-white/5">
+        <span className="flex items-center gap-2 text-xs font-extrabold text-[#2d334e] dark:text-slate-200">
+          <BookOpen className="h-3.5 w-3.5 text-[#8b7cff]" />
           Reading Test
         </span>
-        <span className="text-[10px] font-bold text-slate-400">60 mins</span>
+        <span className="text-[10px] font-bold text-[#737d9b]">60 mins</span>
       </div>
     </div>
   );
 }
 
-function FeedbackPreview() {
+function FeedbackPreview({ reduceMotion }) {
   return (
     <div className="space-y-2.5 text-left">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
+          <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#737d9b]">
             Writing Evaluation
           </span>
-          <strong className="text-xl font-extrabold text-slate-900 dark:text-white leading-none">
+          <strong className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#6256ef] to-[#8b7cff] dark:to-violet-300">
             Band 7.0
           </strong>
         </div>
-        <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-black">
-          AI Evaluated
+        <span className="rounded-md border border-[#ded9ff] bg-[#f2f0ff] px-2 py-0.5 text-[10px] font-black text-[#5e50ee] dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300">
+          ✨ AI Evaluated
         </span>
       </div>
 
-      {/* Grammar error highlights */}
-      <div className="rounded-xl border border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/40 dark:bg-indigo-950/20 p-2.5 text-xs font-medium leading-relaxed text-slate-700 dark:text-slate-300 space-y-1.5">
+      {/* Grammar Error Correction Highlight */}
+      <div className="rounded-xl border border-[#ded9ff] bg-white/80 p-2.5 text-xs font-medium leading-relaxed text-[#2d334e] dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-200">
         <div>
-          <span className="text-slate-400">Sample: </span>
+          <span className="text-[#737d9b]">Sample: </span>
           &quot;Governments{' '}
           <span className="line-through text-rose-500 font-bold px-0.5">should provides</span>{' '}
-          <span className="text-emerald-600 dark:text-emerald-400 font-extrabold bg-emerald-50 dark:bg-emerald-950/40 px-1 rounded">
+          <m.span
+            animate={reduceMotion ? undefined : { scale: [1, 1.04, 1] }}
+            transition={{ duration: 2.2, repeat: Infinity, ...smoothLoop }}
+            className="inline-block rounded-md border border-[#ded9ff] bg-[#f2f0ff] px-1.5 py-0.5 font-black text-[#5e50ee] dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300"
+          >
             should provide
-          </span>{' '}
+          </m.span>{' '}
           more funding.&quot;
         </div>
       </div>
@@ -104,86 +120,112 @@ function FeedbackPreview() {
   );
 }
 
-function PlanPreview() {
+function PlanPreview({ reduceMotion }) {
   return (
-    <div className="text-left space-y-2.5">
-      <div>
-        <span className="text-[10px] font-extrabold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">
-          Personalized Study Plan
-        </span>
-        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-          Daily Goal: 30 mins
+    <div className="space-y-2.5 text-left">
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#5e50ee] dark:text-violet-400">
+            Personalized Study Plan
+          </span>
+          <span className="text-xs font-bold text-[#737d9b]">Daily Goal: 30 mins</span>
+        </div>
+        <span className="rounded-md border border-[#ded9ff] bg-[#f2f0ff] px-2 py-0.5 text-[9px] font-black text-[#5e50ee] dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300">
+          3/3 Done
         </span>
       </div>
 
-      <div className="space-y-1.5 pt-0.5">
+      <div className="space-y-1.5">
         {[
           { name: 'Listening Practice', done: true },
           { name: 'Reading Strategy', done: true },
           { name: 'Writing Task 2', done: true, pct: '75%' },
-        ].map((item) => (
-          <div
+        ].map((item, idx) => (
+          <m.div
             key={item.name}
-            className="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200 p-2 rounded-xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200/70 dark:border-slate-800"
+            initial={reduceMotion ? undefined : { opacity: 0, x: -8 }}
+            whileInView={reduceMotion ? undefined : { opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: idx * 0.1 }}
+            className="flex items-center justify-between rounded-xl border border-[#ded9ff] bg-white/80 p-2 text-xs font-bold text-[#2d334e] shadow-2xs dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
           >
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-black shrink-0">
-                ✓
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#6256ef] text-[10px] font-black text-white shadow-xs">
+                <Check className="h-2.5 w-2.5 stroke-[3]" />
               </span>
               <span className="truncate">{item.name}</span>
             </div>
             {item.pct && (
-              <span className="text-[10px] font-black text-purple-600 dark:text-purple-400">
+              <span className="text-[10px] font-black text-[#5e50ee] dark:text-violet-300">
                 {item.pct}
               </span>
             )}
-          </div>
+          </m.div>
         ))}
       </div>
     </div>
   );
 }
 
-function GoalPreview() {
+function GoalPreview({ reduceMotion }) {
   return (
-    <div className="text-left space-y-2.5">
-      <div className="flex justify-between items-center">
+    <div className="space-y-2.5 text-left">
+      <div className="flex items-center justify-between">
         <div>
-          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
+          <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#737d9b]">
             Practice History
           </span>
-          <strong className="text-xl font-extrabold text-slate-900 dark:text-white leading-none">
+          <strong className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#6256ef] to-[#8b7cff] dark:to-violet-300">
             Band 7.5
           </strong>
         </div>
-        <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-black">
+        <span className="rounded-md border border-[#ded9ff] bg-[#f2f0ff] px-2 py-0.5 text-[10px] font-black text-[#5e50ee] dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300">
           Saved ✓
         </span>
       </div>
 
-      {/* SVG Path */}
+      {/* SVG Animated Chart Line */}
       <div className="relative pt-1">
-        <svg viewBox="0 0 220 50" className="w-full overflow-visible">
+        <svg viewBox="0 0 220 50" className="w-full overflow-visible" aria-label="Progress graph">
+          <defs>
+            <linearGradient id="goal-area" x1="0" y1="0" x2="0" y2="1">
+              <stop stopColor="#635bff" stopOpacity=".25" />
+              <stop offset="1" stopColor="#635bff" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+
           <path
+            d="M2 42 C30 35, 43 25, 66 28 S98 15, 119 18 S151 8, 176 10 S203 4, 218 2 L218 50 L2 50 Z"
+            fill="url(#goal-area)"
+          />
+          <m.path
             d="M2 42 C30 35, 43 25, 66 28 S98 15, 119 18 S151 8, 176 10 S203 4, 218 2"
             fill="none"
-            stroke="#635BFF"
-            strokeWidth="2.5"
+            stroke="#635bff"
+            strokeWidth="2.8"
             strokeLinecap="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{
+              duration: reduceMotion ? 0 : 2.2,
+              repeat: reduceMotion ? 0 : Infinity,
+              repeatDelay: 2,
+            }}
           />
-          <circle cx="218" cy="2" r="3" fill="#635BFF" />
+          <m.circle
+            cx="218"
+            cy="2"
+            r="4"
+            fill="#635bff"
+            stroke="#ffffff"
+            strokeWidth="1.5"
+            animate={reduceMotion ? undefined : { r: [4, 6, 4] }}
+            transition={{ duration: 1.6, repeat: Infinity }}
+          />
         </svg>
       </div>
     </div>
   );
 }
-
-const previews = [
-  <TestPreview key="test" />,
-  <FeedbackPreview key="feedback" />,
-  <PlanPreview key="plan" />,
-  <GoalPreview key="goal" />,
-];
 
 const containerVariants = {
   hidden: {},
@@ -209,10 +251,19 @@ const cardVariants = {
 };
 
 export default function HowItWorksSection({ viewport }) {
+  const reduceMotion = useReducedMotion();
+
+  const previews = [
+    <TestPreview key="test" reduceMotion={reduceMotion} />,
+    <FeedbackPreview key="feedback" reduceMotion={reduceMotion} />,
+    <PlanPreview key="plan" reduceMotion={reduceMotion} />,
+    <GoalPreview key="goal" reduceMotion={reduceMotion} />,
+  ];
+
   return (
     <SoftSection
       id="how-it-works"
-      className="scroll-mt-24 bg-[#f5f7fc] dark:bg-[#080d1e] py-16 lg:py-24"
+      className="scroll-mt-24 bg-[#faf9ff] dark:bg-[#070914] py-16 lg:py-24"
     >
       <div className="relative z-10 mx-auto max-w-[1450px] px-5 md:px-8 space-y-10">
         <SectionHeading
@@ -234,35 +285,38 @@ export default function HowItWorksSection({ viewport }) {
             <m.article
               key={step.title}
               variants={cardVariants}
-              className="group relative bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xs hover:shadow-xl hover:-translate-y-1.5 hover:border-indigo-500/40 dark:hover:border-indigo-400/40 transition-all duration-300 flex flex-col justify-between"
+              className={cardClass}
+              style={{ zIndex: 40 - index }}
             >
               <div className="space-y-4">
                 {/* Step Header */}
                 <div className="flex items-center gap-3">
-                  <span className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-[#635BFF] dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-500/20 text-xs font-black flex items-center justify-center shrink-0 shadow-2xs">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#ded9ff] bg-[#f2f0ff] text-xs font-black text-[#5e50ee] shadow-2xs dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300">
                     {step.number}
                   </span>
-                  <h3 className="font-extrabold text-sm text-slate-900 dark:text-white group-hover:text-[#635BFF] dark:group-hover:text-indigo-400 transition-colors">
+                  <h3 className="text-sm font-extrabold text-[#101836] transition-colors group-hover:text-[#5e50ee] dark:text-white dark:group-hover:text-violet-300">
                     {step.title}
                   </h3>
                 </div>
 
-                {/* Preview Graphic */}
-                <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800">
-                  {previews[index]}
-                </div>
+                {/* Inner Canvas Preview Container matching FeaturesSection */}
+                <div className={canvasClass}>{previews[index]}</div>
 
-                <p className="text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
+                <p className="text-xs font-medium leading-relaxed text-[#56617f] dark:text-slate-400">
                   {step.copy}
                 </p>
               </div>
 
-              {/* Visible Connector Arrow between cards */}
+              {/* Animated Floating Connector Arrow between cards */}
               {index < steps.length - 1 && (
-                <div className="absolute -right-6 top-1/2 -translate-y-1/2 z-30 hidden lg:flex items-center justify-center pointer-events-none">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#635BFF] bg-white dark:bg-slate-900 text-[#635BFF] dark:text-indigo-400 shadow-md">
+                <div className="absolute -right-[22px] top-1/2 z-40 hidden -translate-y-1/2 items-center justify-center pointer-events-none lg:flex">
+                  <m.span
+                    animate={reduceMotion ? undefined : { x: [0, 4, 0] }}
+                    transition={{ duration: 2.2, repeat: Infinity, ...smoothLoop }}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-[#ded9ff] bg-white text-[#5e50ee] shadow-sm backdrop-blur-md dark:border-violet-500/30 dark:bg-slate-900 dark:text-violet-300"
+                  >
                     <ArrowRight className="h-4 w-4" />
-                  </span>
+                  </m.span>
                 </div>
               )}
             </m.article>

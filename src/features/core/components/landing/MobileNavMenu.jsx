@@ -76,7 +76,7 @@ export default function MobileNavMenu({ isOpen, onClose, links, isSignedIn, hand
             {/* Bottom Call to Action */}
             <div className="mt-2 border-t border-slate-100 pt-2 dark:border-slate-800/80">
               <Button
-                className="w-full h-10 rounded-xl font-extrabold text-xs shadow-md shadow-indigo-600/20 hover:shadow-lg hover:shadow-indigo-600/35 bg-indigo-600 hover:bg-indigo-500 text-white border-none transition-all duration-150 active:scale-[0.98]"
+                className="w-full h-10 rounded-xl font-black text-xs shadow-md shadow-[#6256ef]/20 hover:shadow-lg hover:shadow-[#6256ef]/30 bg-[#6256ef] hover:bg-[#5246e0] text-white border-none transition-all duration-150 active:scale-[0.98] cursor-pointer"
                 onClick={() => {
                   onClose();
                   handlePrimaryCta();

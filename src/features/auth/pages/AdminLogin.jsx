@@ -9,6 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Shield, Loader2, AlertCircle, Eye, EyeOff, Mail, ArrowLeft, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import {
+  clearAdminAccess,
+  getAuthUserId,
+  grantAdminAccess,
+  hasAdminAccess,
+} from '@/features/auth/utils/adminAccess';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -18,23 +24,24 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const navigate = useNavigate();
-  const { user, signIn, isAdmin, loading, checkIsAdmin } = useAuth();
+  const { user, signIn, isAdmin, loading, adminCheckComplete, checkIsAdmin } = useAuth();
+  const hasActiveAdminAccess = isAdmin && hasAdminAccess(getAuthUserId(user));
 
   // No longer hardcoded - relies on DB role via isAdmin from AuthContext
 
   useEffect(() => {
     // Only redirect once loading is finished and we have a definitive auth state
     // AND we are not currently in the process of a manual login (which handles its own redirect)
-    if (!loading && user && !isLoggingIn) {
-      if (isAdmin) {
-        // Validated admin from database - allow access
-        navigate(createPageUrl('AdminPanel'));
-      } else {
-        // User logged in but NOT an admin - redirect to user dashboard
-        navigate(createPageUrl('Dashboard'));
+    if (!loading && adminCheckComplete && user && !isLoggingIn) {
+      if (hasActiveAdminAccess) {
+        // A database-authorized admin already completed this tab's admin login.
+        navigate(createPageUrl('AdminPanel'), { replace: true });
+      } else if (!isAdmin) {
+        clearAdminAccess();
+        navigate(createPageUrl('Dashboard'), { replace: true });
       }
     }
-  }, [user, isAdmin, navigate, loading, isLoggingIn]);
+  }, [user, isAdmin, hasActiveAdminAccess, navigate, loading, adminCheckComplete, isLoggingIn]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -47,30 +54,49 @@ export default function AdminLogin() {
 
     setIsLoading(true);
     setIsLoggingIn(true); // Prevent useEffect redirect
+    clearAdminAccess();
     try {
       const signedInUser = await signIn(email, password);
 
       // Explicitly check admin status for the new user locally
       // This avoids the race condition where the context might lag
-      const isUserAdmin = await checkIsAdmin(signedInUser.id);
+      const isUserAdmin = await checkIsAdmin(getAuthUserId(signedInUser));
 
       if (isUserAdmin) {
-        navigate(createPageUrl('AdminPanel'));
+        grantAdminAccess(getAuthUserId(signedInUser));
+        navigate(createPageUrl('AdminPanel'), { replace: true });
       } else {
+        clearAdminAccess();
         setError('Access denied. You do not have administrator privileges.');
         // Optional: redirect to dashboard or just show error and sign out?
         // Usually safer to just verify here. If they are just a user trying to hack entry, stay here.
         // If legitimate user, maybe redirect.
         // Let's redirect to dashboard if they are a valid user but not admin
-        navigate(createPageUrl('Dashboard'));
+        navigate(createPageUrl('Dashboard'), { replace: true });
       }
     } catch (err) {
+      clearAdminAccess();
       console.error('Admin sign-in failed:', err);
       setError(err.message || 'Authentication failed. Please check your credentials.');
       setIsLoading(false);
       setIsLoggingIn(false); // Re-enable useEffect checks (though we probably failed anyway)
     }
   };
+
+  const isResolvingExistingSession =
+    !isLoggingIn &&
+    (loading || Boolean(user && (!adminCheckComplete || !isAdmin || hasActiveAdminAccess)));
+
+  if (isResolvingExistingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0a0a0a]">
+        <Loader2
+          className="w-8 h-8 animate-spin text-red-600"
+          aria-label="Verifying admin access"
+        />
+      </div>
+    );
+  }
 
   return (
     <div

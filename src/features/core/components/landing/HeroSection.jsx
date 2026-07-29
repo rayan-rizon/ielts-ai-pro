@@ -330,30 +330,29 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
             <Button
               onClick={handlePrimaryCta}
               size="lg"
-              className="group relative overflow-hidden w-full sm:w-auto h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#4f46e5] via-[#6366f1] to-[#7c3aed] px-6 sm:px-7.5 text-sm sm:text-base font-extrabold text-white shadow-[0_12px_28px_-8px_rgba(99,85,238,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_-8px_rgba(99,85,238,0.55)] active:translate-y-0 active:scale-[0.98] justify-center"
+              className="group relative overflow-hidden w-full sm:w-auto h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-[#6256ef] hover:bg-[#5246e0] px-6 sm:px-7.5 text-sm sm:text-base font-black text-white shadow-[0_12px_28px_-8px_rgba(98,86,239,0.4)] transition-all duration-200 active:scale-[0.98] justify-center cursor-pointer"
             >
               <span className="relative z-10 flex items-center gap-2.5">
                 {isSignedIn ? 'Continue Learning' : 'Start Free Test'}
                 <ArrowRight className="h-4.5 w-4.5 sm:h-5 sm:w-5 transition-transform duration-300 ease-out group-hover:translate-x-1.5" />
               </span>
-              <span className="absolute inset-0 z-0 bg-gradient-to-r from-[#4338ca] via-[#4f46e5] to-[#6d28d9] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </Button>
             <Button
               onClick={handlePricing}
               size="lg"
               variant="outline"
-              className="group w-full sm:w-auto h-12 sm:h-14 rounded-xl sm:rounded-2xl border-violet-200/90 bg-white/90 px-6 sm:px-7 text-sm sm:text-base font-extrabold text-[#0f172a] shadow-xs backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-50/40 hover:shadow-[0_10px_24px_-8px_rgba(109,85,238,0.18)] active:translate-y-0 active:scale-[0.98] dark:border-white/15 dark:bg-slate-900/80 dark:text-white dark:hover:bg-violet-950/40 dark:hover:border-violet-400/40 justify-center"
+              className="group w-full sm:w-auto h-12 sm:h-14 rounded-xl sm:rounded-2xl border-violet-200/90 bg-white/90 px-6 sm:px-7 text-sm sm:text-base font-extrabold text-[#0f172a] shadow-xs backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-50/40 hover:shadow-[0_10px_24px_-8px_rgba(109,85,238,0.18)] active:translate-y-0 active:scale-[0.98] dark:border-white/15 dark:bg-slate-900/80 dark:text-white dark:hover:bg-violet-950/40 dark:hover:border-violet-400/40 justify-center cursor-pointer"
             >
               <span className="flex items-center gap-2.5">
                 Compare Plans
-                <CirclePlay className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-[#6d55e8] dark:text-violet-300 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6" />
+                <CirclePlay className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-[#6256ef] dark:text-violet-300 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6" />
               </span>
             </Button>
           </div>
 
           {!isSignedIn && (
             <p className="mt-4 flex items-center justify-center lg:justify-start gap-2 text-[13px] font-semibold text-[#66738c] dark:text-slate-400 text-center lg:text-left">
-              <Check className="h-4 w-4 text-[#2cc2a0]" aria-hidden="true" />
+              <Check className="h-4 w-4 text-[#6256ef]" aria-hidden="true" />
               Free plan available — no credit card required
             </p>
           )}

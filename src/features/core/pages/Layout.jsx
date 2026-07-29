@@ -124,6 +124,7 @@ export default function Layout({ children, currentPageName }) {
 
   const isAdminView = adminPages.includes(currentPageName);
   const isTestPage = testPages.includes(currentPageName);
+  const isAdminLogin = currentPageName === 'AdminLogin';
 
   // 2. Public/Minimal layout for non-authenticated public pages
   const isPublicPage = [
@@ -138,14 +139,10 @@ export default function Layout({ children, currentPageName }) {
 
   // Anti-Flash & auto-redirect for authenticated users on public pages
   useEffect(() => {
-    if (isPublicPage && user && !authLoading && authCheckComplete) {
-      if (isAdmin) {
-        navigate(createPageUrl('AdminPanel'), { replace: true });
-      } else {
-        navigate(createPageUrl('Dashboard'), { replace: true });
-      }
+    if (isPublicPage && !isAdminLogin && user && !authLoading && authCheckComplete) {
+      navigate(createPageUrl('Dashboard'), { replace: true });
     }
-  }, [isPublicPage, user, authLoading, authCheckComplete, isAdmin, navigate]);
+  }, [isPublicPage, isAdminLogin, user, authLoading, authCheckComplete, navigate]);
 
   const handleLogout = async () => {
     await signOut();
@@ -158,7 +155,7 @@ export default function Layout({ children, currentPageName }) {
   }
 
   // If user is authenticated but on a public page, show spinner while redirecting
-  if (isPublicPage && user) {
+  if (isPublicPage && user && !isAdminLogin) {
     return (
       <SidebarStyles data-oid="e.45e4l">
         <div
@@ -176,7 +173,7 @@ export default function Layout({ children, currentPageName }) {
   }
 
   // If not user, show the public content (Form)
-  if (isPublicPage && !user) {
+  if (isPublicPage && (!user || isAdminLogin)) {
     return (
       <SidebarStyles data-oid="166-bqh">
         <div className="min-h-screen bg-background text-foreground" data-oid="bamjetg">

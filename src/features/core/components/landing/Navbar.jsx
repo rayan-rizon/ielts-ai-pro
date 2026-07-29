@@ -178,7 +178,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
               </Button>
 
               <Button
-                className="hidden sm:inline-flex rounded-full px-5 md:px-6 h-8 md:h-9 text-xs md:text-sm font-extrabold shadow-md shadow-indigo-600/25 hover:shadow-lg hover:shadow-indigo-600/40 hover:-translate-y-[1px] hover:scale-[1.02] active:scale-98 transition-all duration-200 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white border border-indigo-400/30"
+                className="hidden sm:inline-flex rounded-full px-5 md:px-6 h-8 md:h-9 text-xs md:text-sm font-extrabold shadow-md shadow-[#6256ef]/20 hover:shadow-lg hover:shadow-[#6256ef]/30 hover:scale-[1.02] active:scale-98 transition-all duration-200 bg-[#6256ef] hover:bg-[#5246e0] text-white border border-[#6256ef]/30 cursor-pointer"
                 onClick={handlePrimaryCta}
                 data-oid="g5n7eo4"
               >

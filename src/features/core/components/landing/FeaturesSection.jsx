@@ -1,575 +1,659 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { m } from 'framer-motion';
-import {
-  PenTool,
-  Mic,
-  FileText,
-  TrendingUp,
-  BookOpen,
-  Sparkles,
-  Volume2,
-  CheckCircle2,
-  Clock,
-  ArrowUpRight,
-} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
+import { ArrowRight, BookOpen, FileText, Mic, PenTool, TrendingUp, Volume2 } from 'lucide-react';
 import { SectionHeading, SoftSection, landingReveal, landingStagger } from './LandingSection';
 
-/* ─── Light Lavender Bento Card Base Style ──────────────────── */
-const CARD_BASE =
-  'group relative bg-white dark:bg-[#0d0f1d] border border-[#E5E2FA] dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(99,91,255,0.04)] hover:shadow-[0_16px_36px_rgba(99,91,255,0.12)] dark:hover:shadow-[0_16px_36px_rgba(99,91,255,0.2)] transition-all duration-300 flex flex-col justify-between h-full select-none overflow-hidden';
+const cardClass =
+  'group relative flex h-full flex-col overflow-hidden rounded-[26px] border border-[#e2e5fa] bg-white/95 p-5 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-[#6256ef]/40 hover:shadow-[0_30px_65px_-24px_rgba(82,98,239,0.38)] dark:border-white/10 dark:bg-[#0d1020]/95 dark:hover:border-violet-500/35';
+const canvasClass =
+  'relative mt-5 min-h-[194px] overflow-hidden rounded-[18px] border border-[#e7e4fb] bg-gradient-to-b from-[#fcfbff] via-[#faf9ff] to-[#f4f2ff] dark:border-white/10 dark:from-[#0d1020] dark:via-[#0a0c1a] dark:to-[#070914]';
+const smoothLoop = { ease: [0.45, 0, 0.55, 1] };
 
-/* Lavender Card Header */
-function FeatureCardHeader({ icon: Icon, title, subtitle }) {
+function FeatureHeader({ icon: Icon, title, description }) {
   return (
-    <div className="flex items-start gap-3.5 mb-3.5 shrink-0">
-      <div className="w-11 h-11 rounded-2xl bg-[#F0EEFF] dark:bg-indigo-950/80 text-[#635BFF] dark:text-[#A78BFA] border border-[#E0DAFE] dark:border-indigo-900/40 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform duration-300">
-        <Icon className="w-5.5 h-5.5 stroke-[2.2]" />
+    <div className="relative z-10 flex items-start gap-3.5">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] border border-[#ded9ff] bg-[#f2f0ff] text-[#6256ef] shadow-[0_8px_20px_-16px_rgba(83,70,225,.85)] dark:border-violet-400/20 dark:bg-violet-500/10 dark:text-violet-300">
+        <Icon className="h-5.5 w-5.5 stroke-[2]" />
       </div>
-      <div className="min-w-0 flex-1">
-        <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-[#635BFF] dark:group-hover:text-[#A78BFA] transition-colors">
+      <div>
+        <h3 className="text-[17px] font-extrabold tracking-[-.035em] text-[#0b1230] dark:text-white sm:text-lg">
           {title}
         </h3>
-        <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-          {subtitle}
+        <p className="mt-1 text-xs font-medium leading-5 text-[#5c6687] dark:text-slate-300">
+          {description}
         </p>
       </div>
     </div>
   );
 }
 
-/* ─── 1. Rive-Style Animated AI Writing Feedback Card ───────── */
-function RiveWritingFeedbackCard() {
+function WritingCard({ reduceMotion }) {
+  const corrections = [
+    ['believes', 'believe', 'rose'],
+    ['our life', 'our lives', 'indigo'],
+    ['easier', 'easier to manage', 'violet'],
+  ];
   return (
-    <div className={CARD_BASE}>
-      <FeatureCardHeader
+    <article className={`${cardClass} min-h-[390px]`}>
+      <FeatureHeader
         icon={PenTool}
         title="AI Writing Feedback"
-        subtitle="Get expert corrections and improve faster."
+        description="Get expert corrections and improve faster."
       />
-
-      {/* Rive Canvas Container - Equal Height Flex-1 */}
-      <div className="bg-[#F6F4FE] dark:bg-[#121427] p-4 sm:p-4.5 rounded-2xl border border-[#E2DCFE] dark:border-slate-800 flex-1 flex flex-col justify-between space-y-3 min-h-[220px]">
-        {/* Top Score Banner Bar */}
-        <div className="flex items-center justify-between bg-white dark:bg-[#0d0f1d] px-3.5 py-2 rounded-xl border border-[#E5E2FA] dark:border-slate-800 shadow-2xs">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#635BFF]" />
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-              AI Essay Score
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-black text-[#635BFF] dark:text-[#A78BFA]">Band 7.0</span>
-            <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 text-[10px] font-black border border-emerald-200/50">
-              ↑ +0.5
-            </span>
-          </div>
-        </div>
-
-        {/* Main Essay Text Canvas */}
-        <div className="bg-white dark:bg-[#0d0f1d] p-3.5 rounded-xl border border-[#E5E2FA] dark:border-slate-800 shadow-2xs space-y-2.5 flex-1 flex flex-col justify-between">
-          <p className="text-xs sm:text-[13px] font-medium text-slate-800 dark:text-slate-200 leading-relaxed">
+      <div className={`${canvasClass} min-h-[242px] flex-1 p-4 sm:p-5`}>
+        <div className="grid grid-cols-[minmax(0,1fr)_92px] items-start gap-3 sm:grid-cols-[minmax(0,1fr)_104px]">
+          <p className="pt-1 text-[13px] font-medium leading-7 text-[#384469] sm:text-sm">
             Many people{' '}
-            <span className="relative inline-block text-rose-500 font-bold px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/40 rounded">
+            <span className="relative font-bold text-[#b8344a]">
               believes
               <m.span
-                className="absolute left-0 bottom-0 w-full h-[2px] bg-rose-500 rounded"
+                className="absolute -bottom-0.5 left-0 h-px w-full bg-[#e14d62]"
                 initial={{ scaleX: 0 }}
-                animate={{ scaleX: [0, 1, 1] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                animate={reduceMotion ? { scaleX: 1 } : { scaleX: [0, 1, 1] }}
+                transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.2, ...smoothLoop }}
               />
             </span>{' '}
             that technology has made{' '}
-            <span className="text-[#635BFF] font-bold px-1.5 py-0.5 bg-[#F0EEFF] dark:bg-indigo-950/60 rounded">
+            <span className="relative font-bold text-[#4d46eb]">
               our life
+              <m.span
+                className="absolute -bottom-0.5 left-0 h-px w-full bg-[#6256ef]"
+                initial={{ scaleX: 0 }}
+                animate={reduceMotion ? { scaleX: 1 } : { scaleX: [0, 1, 1] }}
+                transition={{
+                  duration: 2.5,
+                  delay: 0.35,
+                  repeat: Infinity,
+                  repeatDelay: 1.2,
+                  ...smoothLoop,
+                }}
+              />
             </span>{' '}
             easier.
           </p>
-
-          {/* Rive Animated Correction Cards */}
-          <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs font-semibold">
-            <m.div
-              className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-rose-50/70 dark:bg-rose-950/30 text-slate-700 dark:text-slate-300 border border-rose-100 dark:border-rose-900/40"
-              whileHover={{ scale: 1.01 }}
+          <m.div
+            className="rounded-xl border border-[#e5e2fa] bg-white px-3 py-2.5 shadow-[0_12px_22px_-18px_rgba(73,61,201,.6)] dark:border-white/10 dark:bg-slate-900"
+            animate={
+              reduceMotion
+                ? undefined
+                : {
+                    y: [0, -2, 0],
+                    boxShadow: [
+                      '0 12px 22px -18px rgba(73,61,201,.6)',
+                      '0 17px 25px -18px rgba(73,61,201,.78)',
+                      '0 12px 22px -18px rgba(73,61,201,.6)',
+                    ],
+                  }
+            }
+            transition={{ duration: 3.2, repeat: Infinity, ...smoothLoop }}
+          >
+            <span className="block whitespace-nowrap text-[10px] font-bold text-[#59617b]">
+              Band Score
+            </span>
+            <m.strong
+              className="mt-0.5 block text-[28px] font-black leading-none tracking-[-.06em] text-[#6256ef]"
+              animate={reduceMotion ? undefined : { scale: [1, 1.08, 1] }}
+              transition={{ duration: 2.8, repeat: Infinity, ...smoothLoop }}
             >
-              <div className="flex items-center gap-2 truncate">
-                <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
-                <span className="line-through text-rose-500 font-bold">believes</span>
-                <span className="text-slate-400">→</span>
-                <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
-                  believe
-                </span>
-              </div>
-              <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">
-                Subject-verb agreement
-              </span>
-            </m.div>
-
+              7.0
+            </m.strong>
+            <span className="mt-1 inline-flex rounded bg-[#ecfaf5] px-1.5 py-0.5 text-[10px] font-extrabold text-[#168367]">
+              ↑ 0.5
+            </span>
+          </m.div>
+        </div>
+        <div className="mt-4 overflow-hidden rounded-xl border border-[#e7e8f3] bg-white/95 dark:border-white/10 dark:bg-slate-900/90">
+          {corrections.map(([from, to, color], index) => (
             <m.div
-              className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-[#F0EEFF]/70 dark:bg-indigo-950/30 text-slate-700 dark:text-slate-300 border border-[#E0DAFE]/60 dark:border-indigo-900/40"
-              whileHover={{ scale: 1.01 }}
+              key={from}
+              className="flex items-center gap-3 border-b border-[#ececf5] px-3 py-2 last:border-0 dark:border-white/10"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.55, delay: index * 0.12, ...smoothLoop }}
             >
-              <div className="flex items-center gap-2 truncate">
-                <span className="w-2 h-2 rounded-full bg-[#635BFF] shrink-0" />
-                <span className="text-[#635BFF] font-bold">our life</span>
-                <span className="text-slate-400">→</span>
-                <span className="font-extrabold text-[#635BFF] dark:text-[#A78BFA]">our lives</span>
-              </div>
-              <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">
-                Plural noun form
+              <span
+                className={`h-2 w-2 shrink-0 rounded-full ${color === 'rose' ? 'bg-rose-500' : color === 'indigo' ? 'bg-indigo-500' : 'bg-violet-500'}`}
+              />
+              <span className="min-w-0 flex-1 text-[11px] font-semibold text-[#354063]">
+                <s>{from}</s>
               </span>
+              <ArrowRight className="h-3.5 w-3.5 text-[#8b92ae]" />
+              <span className="min-w-0 flex-[1.4] text-[11px] font-bold text-[#243058]">{to}</span>
             </m.div>
-          </div>
+          ))}
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
-/* ─── 2. Rive-Style Animated Speaking Practice Card ──────────── */
-function RiveSpeakingPracticeCard() {
+const leftWaveform = [6, 12, 22, 14, 32, 20, 10, 26, 38, 18, 8, 24, 15, 9, 18, 12];
+const rightWaveform = [12, 18, 9, 15, 24, 8, 18, 38, 26, 10, 20, 32, 14, 22, 12, 6];
+
+function SpeakingCard({ reduceMotion }) {
   return (
-    <div className={CARD_BASE}>
-      <FeatureCardHeader
+    <article className={`${cardClass} min-h-[390px]`}>
+      <FeatureHeader
         icon={Mic}
         title="Speaking Practice"
-        subtitle="Practice fluency and get real-time feedback."
+        description="Practice fluency and get real-time feedback."
       />
+      <div
+        className={`${canvasClass} relative flex flex-1 flex-col justify-between overflow-hidden p-5`}
+      >
+        {/* Soft center ambient glow */}
+        <div className="pointer-events-none absolute left-1/2 top-[42%] h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#7c5cff]/15 blur-3xl" />
 
-      {/* Rive Sound Studio Canvas - Equal Height Flex-1 */}
-      <div className="bg-[#F6F4FE] dark:bg-[#121427] p-5 sm:p-6 rounded-2xl border border-[#E2DCFE] dark:border-slate-800 flex-1 flex flex-col items-center justify-between min-h-[220px] relative overflow-hidden text-center">
-        {/* Animated Prompt Tooltip */}
-        <m.div
-          className="px-3.5 py-1 rounded-full bg-white dark:bg-[#0d0f1d] border border-[#E5E2FA] dark:border-slate-800 shadow-2xs text-[11px] font-semibold text-[#635BFF] dark:text-[#A78BFA] flex items-center gap-1.5"
-          animate={{ y: [0, -3, 0] }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          <Sparkles className="w-3 h-3 text-[#635BFF]" />
-          <span>"Describe a trip you enjoyed taking..."</span>
-        </m.div>
-
-        {/* Rive Concentric Sonar Ring Waves */}
-        <div className="relative flex items-center justify-center my-auto py-2">
-          <m.div
-            className="absolute w-24 h-24 rounded-full border border-[#635BFF]/30 dark:border-[#635BFF]/20"
-            animate={{ scale: [0.8, 1.45, 0.8], opacity: [0.6, 0, 0.6] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          <m.div
-            className="absolute w-32 h-32 rounded-full border border-purple-400/20 dark:border-purple-500/10"
-            animate={{ scale: [0.8, 1.55, 0.8], opacity: [0.5, 0, 0.5] }}
-            transition={{ duration: 2.5, repeat: Infinity, delay: 0.6, ease: 'easeInOut' }}
-          />
-
-          {/* Left Sound Wave Equalizer Bars */}
-          <div className="flex items-center gap-1 mr-3 z-10">
-            {[8, 14, 22, 12, 18, 10, 16].map((h, i) => (
-              <m.span
-                key={`left-${i}`}
-                className="w-1 rounded-full bg-[#635BFF]"
-                animate={{ height: [6, h * 1.1, 6] }}
-                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.08 }}
-              />
-            ))}
+        {/* Main Audio Visualizer Hub (Single center anchor for everything) */}
+        <div className="relative flex flex-1 items-center justify-center">
+          {/* Concentric subtle aura rings */}
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="h-[220px] w-[220px] rounded-full border border-[#7d6cf4]/12 dark:border-indigo-400/15" />
+            <div className="absolute h-[170px] w-[170px] rounded-full border border-[#7d6cf4]/18 dark:border-indigo-400/20" />
+            <div className="absolute h-[124px] w-[124px] rounded-full border border-[#7d6cf4]/24 dark:border-indigo-400/25" />
           </div>
 
-          {/* Mic Center Button */}
-          <div className="relative z-10 group/mic cursor-pointer">
-            <div className="absolute -inset-2.5 rounded-full bg-[#635BFF]/25 blur-md animate-pulse" />
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#635BFF] via-[#7C3AED] to-purple-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 relative z-10">
-              <Mic className="w-6.5 h-6.5 stroke-[2.2]" />
+          {/* Audio Waveform Bars (Flanking Left & Right of center mic) */}
+          <div className="pointer-events-none absolute inset-x-1 flex items-center justify-between sm:inset-x-3">
+            {/* Left Waveform Group */}
+            <div className="flex flex-1 items-center justify-end gap-[3px] pr-12 sm:gap-[4px] sm:pr-14">
+              {leftWaveform.map((height, index) => {
+                const opacity = 0.35 + (index / leftWaveform.length) * 0.65;
+                return (
+                  <m.span
+                    key={`left-wave-${index}`}
+                    className="w-[3px] rounded-full bg-[#8b7cff] dark:bg-[#a08fff] sm:w-[3.5px]"
+                    style={{ opacity }}
+                    animate={
+                      reduceMotion
+                        ? { height }
+                        : {
+                            height: [
+                              Math.max(4, height * 0.3),
+                              height,
+                              Math.max(5, height * 0.65),
+                              Math.max(4, height * 0.4),
+                            ],
+                          }
+                    }
+                    transition={{
+                      duration: 1.35,
+                      repeat: Infinity,
+                      repeatType: 'mirror',
+                      delay: index * 0.055,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Right Waveform Group */}
+            <div className="flex flex-1 items-center justify-start gap-[3px] pl-12 sm:gap-[4px] sm:pl-14">
+              {rightWaveform.map((height, index) => {
+                const opacity = 1 - (index / rightWaveform.length) * 0.65;
+                return (
+                  <m.span
+                    key={`right-wave-${index}`}
+                    className="w-[3px] rounded-full bg-[#8b7cff] dark:bg-[#a08fff] sm:w-[3.5px]"
+                    style={{ opacity }}
+                    animate={
+                      reduceMotion
+                        ? { height }
+                        : {
+                            height: [
+                              Math.max(4, height * 0.35),
+                              height,
+                              Math.max(5, height * 0.6),
+                              Math.max(4, height * 0.45),
+                            ],
+                          }
+                    }
+                    transition={{
+                      duration: 1.35,
+                      repeat: Infinity,
+                      repeatType: 'mirror',
+                      delay: index * 0.055,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                );
+              })}
             </div>
           </div>
 
-          {/* Right Sound Wave Equalizer Bars */}
-          <div className="flex items-center gap-1 ml-3 z-10">
-            {[16, 10, 18, 12, 22, 14, 8].map((h, i) => (
+          {/* Central Microphone Button with Ripple Waves */}
+          <div className="relative z-10 flex h-[90px] w-[90px] items-center justify-center">
+            {[0, 0.38, 0.76].map((delay) => (
               <m.span
-                key={`right-${i}`}
-                className="w-1 rounded-full bg-[#635BFF]"
-                animate={{ height: [6, h * 1.1, 6] }}
-                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.08 }}
+                key={delay}
+                className="absolute inset-0 rounded-full border border-[#7d6cf4]/35 bg-[#7d6cf4]/5 dark:border-indigo-400/40"
+                animate={reduceMotion ? undefined : { scale: [0.85, 1.75], opacity: [0.7, 0] }}
+                transition={{ duration: 2.8, repeat: Infinity, delay, ease: 'easeOut' }}
               />
             ))}
+            <m.div
+              className="relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-gradient-to-br from-[#7e69ff] via-[#6852ff] to-[#5136f5] text-white shadow-[0_12px_30px_rgba(95,73,255,0.45),0_0_18px_rgba(124,92,255,0.22)] border border-white/20"
+              animate={reduceMotion ? undefined : { y: [0, -3, 0], scale: [1, 1.02, 1] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Mic className="h-7 w-7 stroke-[2.2] drop-shadow-sm" />
+            </m.div>
           </div>
         </div>
 
-        {/* Live Recording Pill */}
-        <div className="z-10 inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white dark:bg-[#0d0f1d] border border-[#E5E2FA] dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs">
-          <span className="w-2 h-2 rounded-full bg-[#635BFF] animate-ping" />
-          <span>Recording Fluency...</span>
-          <span className="font-mono text-slate-400 ml-1">00:38</span>
+        {/* Live Recording Status Badge */}
+        <div className="relative z-10 flex justify-center pt-2">
+          <div className="flex items-center gap-2.5 rounded-full border border-[#e5e1ff] bg-white/90 px-3.5 py-1.5 text-xs font-semibold text-[#30395b] shadow-sm backdrop-blur-md dark:border-white/10 dark:bg-slate-900/90 dark:text-slate-200">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-[#6b55ff] opacity-75 animate-ping" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#6b55ff]" />
+            </span>
+            <span>Recording…</span>
+            <span className="ml-1 font-mono font-medium text-[#737d9c] dark:text-slate-400">
+              00:38
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
-/* ─── 3. Rive-Style Animated Practice Tests Card ─────────────── */
-function RivePracticeLibraryCard() {
+function TestsCard({ reduceMotion }) {
+  const tests = [
+    ['IELTS Academic Test 12', '7.5'],
+    ['IELTS Academic Test 11', '7.0'],
+    ['IELTS Academic Test 10', '6.5'],
+    ['IELTS Academic Test 9', '7.0'],
+  ];
   return (
-    <div className={CARD_BASE}>
-      <FeatureCardHeader
+    <article className={`${cardClass} min-h-[390px]`}>
+      <FeatureHeader
         icon={FileText}
         title="Full Practice Tests"
-        subtitle="Simulate real IELTS tests with timed sections."
+        description="Simulate real IELTS tests with timed sections."
       />
-
-      {/* Rive Practice Tests Canvas - Equal Height Flex-1 */}
-      <div className="bg-[#F6F4FE] dark:bg-[#121427] p-4 sm:p-4.5 rounded-2xl border border-[#E2DCFE] dark:border-slate-800 flex-1 flex flex-col justify-between min-h-[220px]">
-        <div className="bg-white dark:bg-[#0d0f1d] p-3.5 rounded-xl border border-[#E5E2FA] dark:border-slate-800 shadow-2xs space-y-2.5 flex-1 flex flex-col justify-between">
-          {/* Header with Live Exam Status */}
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 text-xs">
-            <span className="font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5 text-[#635BFF]" />
-              Cambridge Mock Tests
-            </span>
-            <div className="flex items-center gap-1 text-[10.5px] font-bold text-[#635BFF] dark:text-[#A78BFA] bg-[#F0EEFF] dark:bg-indigo-950/60 px-2 py-0.5 rounded-full border border-[#E0DAFE] dark:border-indigo-900/40">
-              <Clock className="w-3 h-3 text-[#635BFF]" />
-              <span>Timed Exam Mode</span>
-            </div>
-          </div>
-
-          {/* Test Cards List with Rive Vector Progress Arc Rings */}
-          <div className="space-y-2 flex-1 flex flex-col justify-between">
-            {[
-              {
-                title: 'IELTS Academic Test 12',
-                modules: '4/4 Sections',
-                score: '7.5',
-                strokeDash: '0',
-              },
-              {
-                title: 'IELTS Academic Test 11',
-                modules: '4/4 Sections',
-                score: '7.0',
-                strokeDash: '8',
-              },
-              {
-                title: 'IELTS Academic Test 10',
-                modules: '4/4 Sections',
-                score: '6.5',
-                strokeDash: '16',
-              },
-            ].map((t, idx) => (
-              <m.div
-                key={t.title}
-                className="flex items-center justify-between p-2 rounded-lg bg-[#F6F4FE]/70 dark:bg-slate-950/40 border border-[#E2DCFE]/50 dark:border-slate-800/60 group/test hover:border-[#635BFF]/40 transition-colors"
-                whileHover={{ scale: 1.01, x: 2 }}
+      <div className={`${canvasClass} flex-1 p-3`}>
+        <div className="mb-2 flex items-center justify-between border-b border-[#ededf5] px-1 pb-2 text-xs dark:border-white/10">
+          <span className="font-bold text-[#394260]">Recent Tests</span>
+          <span className="font-bold text-[#5d4df0]">View all</span>
+        </div>
+        <div className="relative h-[164px] overflow-hidden">
+          <m.div
+            className="space-y-1.5"
+            animate={reduceMotion ? { y: 0 } : { y: [0, -194] }}
+            transition={{ duration: 9, repeat: Infinity, repeatType: 'loop', ease: 'linear' }}
+          >
+            {[...tests, ...tests].map(([title, score], index) => (
+              <div
+                key={`${title}-${index}`}
+                aria-hidden={index >= tests.length}
+                className="flex h-[43px] items-center gap-2.5 rounded-lg border border-transparent px-2 py-1.5 transition hover:border-[#e2ddff] hover:bg-[#faf9ff] dark:hover:bg-white/5"
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  {/* Rive SVG Circular Progress Ring */}
-                  <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
-                    <svg viewBox="0 0 36 36" className="w-7 h-7 transform -rotate-90">
-                      <circle
-                        cx="18"
-                        cy="18"
-                        r="15.5"
-                        className="stroke-[#E0DAFE] dark:stroke-indigo-950"
-                        strokeWidth="3.5"
-                        fill="none"
-                      />
-                      <m.circle
-                        cx="18"
-                        cy="18"
-                        r="15.5"
-                        className="stroke-[#635BFF]"
-                        strokeWidth="3.5"
-                        strokeDasharray="97.4"
-                        strokeDashoffset={t.strokeDash}
-                        strokeLinecap="round"
-                        fill="none"
-                        initial={{ strokeDashoffset: 97.4 }}
-                        animate={{ strokeDashoffset: t.strokeDash }}
-                        transition={{ duration: 1.5, delay: idx * 0.2 }}
-                      />
-                    </svg>
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#635BFF] absolute inset-0 m-auto" />
-                  </div>
-
-                  <div className="min-w-0">
-                    <p className="font-bold text-slate-900 dark:text-slate-100 truncate text-[12px] group-hover/test:text-[#635BFF] transition-colors">
-                      {t.title}
-                    </p>
-                    <p className="text-[10px] text-slate-400 font-medium">{t.modules}</p>
-                  </div>
+                <m.div
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#f1efff] text-[#6256ef]"
+                  animate={reduceMotion ? undefined : { rotate: [0, -6, 0] }}
+                  transition={{
+                    duration: 2.6,
+                    delay: (index % tests.length) * 0.2,
+                    repeat: Infinity,
+                    ...smoothLoop,
+                  }}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                </m.div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[11px] font-bold text-[#283252]">{title}</p>
+                  <p className="text-[10px] font-medium text-[#77809d]">Completed just now</p>
                 </div>
-
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="px-2.5 py-0.5 rounded-lg bg-[#F0EEFF] dark:bg-indigo-950/80 text-[#635BFF] dark:text-[#A78BFA] font-black text-xs border border-[#E0DAFE] dark:border-indigo-900/40">
-                    {t.score}
-                  </span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover/test:text-[#635BFF] transition-colors" />
-                </div>
-              </m.div>
+                <m.span
+                  className="rounded-lg bg-[#f3f1ff] px-2.5 py-1 text-xs font-black text-[#5d4df0]"
+                  animate={reduceMotion ? undefined : { scale: [1, 1.05, 1] }}
+                  transition={{
+                    duration: 2.7,
+                    delay: (index % tests.length) * 0.3,
+                    repeat: Infinity,
+                    ...smoothLoop,
+                  }}
+                >
+                  {score}
+                </m.span>
+              </div>
             ))}
-          </div>
+          </m.div>
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-[#fbfbff] to-transparent dark:from-[#080b17]" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#fbfbff] to-transparent dark:from-[#080b17]" />
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
-/* ─── 4. Rive-Style Animated Analytics Card ──────────────────── */
-function RiveAnalyticsCard() {
+function AnalyticsCard({ reduceMotion }) {
   return (
-    <div className={CARD_BASE}>
-      <FeatureCardHeader
+    <article className={`${cardClass} min-h-[390px]`}>
+      <FeatureHeader
         icon={TrendingUp}
         title="Progress Analytics"
-        subtitle="Track your band score and see your improvement."
+        description="Track your band score and see your improvement."
       />
-
-      {/* Rive Chart & Analytics Canvas - Equal Height Flex-1 */}
-      <div className="bg-[#F6F4FE] dark:bg-[#121427] p-4 sm:p-4.5 rounded-2xl border border-[#E2DCFE] dark:border-slate-800 flex-1 flex flex-col justify-between min-h-[220px]">
-        <div className="flex flex-col sm:flex-row gap-3.5 items-stretch h-full">
-          {/* Left Stat Card with Band Score Gauge Arc */}
-          <div className="bg-white dark:bg-[#0d0f1d] p-4 rounded-xl border border-[#E5E2FA] dark:border-slate-800 shadow-2xs flex flex-col justify-between shrink-0 sm:w-44 relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-                Overall Band
+      <div className={`${canvasClass} flex flex-1 items-center gap-3.5 p-4 sm:p-5`}>
+        {/* Left Score Card Container */}
+        <div className="flex flex-col justify-between self-stretch rounded-xl border border-[#e9e7fa] bg-white/80 p-3.5 shadow-sm dark:border-white/10 dark:bg-white/5 sm:p-4">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#737d9b]">
+            Overall Band Score
+          </span>
+          <div>
+            <strong className="block text-[40px] font-black tracking-[-.07em] bg-clip-text text-transparent bg-gradient-to-br from-[#6256ef] via-[#7a6bff] to-[#5136f5] sm:text-[44px]">
+              7.0
+            </strong>
+            <div className="mt-1 flex items-center gap-1.5">
+              <span className="inline-flex items-center rounded-md border border-[#ded9ff] bg-[#f2f0ff] px-2 py-0.5 text-[10px] font-black text-[#5e50ee] dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300">
+                ↑ 0.5
               </span>
-              <span className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 text-[10px] font-black">
-                ↑ +0.5
-              </span>
-            </div>
-
-            <div className="my-1.5 flex items-baseline gap-1">
-              <span className="text-4xl font-black text-[#635BFF] dark:text-[#A78BFA]">7.0</span>
-              <span className="text-xs font-bold text-slate-400">/ 9.0</span>
-            </div>
-
-            {/* Rive Progress Breakdown Bars */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] font-semibold text-slate-600 dark:text-slate-400">
-              <div>
-                <div className="flex items-center justify-between mb-0.5">
-                  <span>Writing</span>
-                  <span className="font-extrabold text-slate-900 dark:text-white">7.0</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <m.div
-                    className="h-full rounded-full bg-[#635BFF]"
-                    initial={{ width: 0 }}
-                    animate={{ width: '77%' }}
-                    transition={{ duration: 1.2 }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-0.5">
-                  <span>Speaking</span>
-                  <span className="font-extrabold text-slate-900 dark:text-white">7.5</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <m.div
-                    className="h-full rounded-full bg-purple-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: '83%' }}
-                    transition={{ duration: 1.2, delay: 0.2 }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Rive Animated SVG Chart with Interactive Floating Tooltip */}
-          <div className="flex-1 bg-white dark:bg-[#0d0f1d] p-4 rounded-xl border border-[#E5E2FA] dark:border-slate-800 shadow-2xs relative flex flex-col justify-between min-h-[145px] min-w-0">
-            {/* Floating Rive Score Tooltip */}
-            <m.div
-              className="absolute top-2 right-4 px-2.5 py-1 rounded-lg bg-[#635BFF] text-white text-[10px] font-black shadow-md flex items-center gap-1 z-20"
-              animate={{ y: [0, -3, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <Sparkles className="w-3 h-3 text-purple-200" />
-              <span>Target Reached: 7.5</span>
-            </m.div>
-
-            <div className="absolute inset-x-3 top-3 bottom-7 flex flex-col justify-between pointer-events-none opacity-20">
-              <div className="border-b border-dashed border-[#635BFF] w-full" />
-              <div className="border-b border-dashed border-[#635BFF] w-full" />
-              <div className="border-b border-dashed border-[#635BFF] w-full" />
-            </div>
-
-            <div className="relative z-10 w-full mt-2">
-              <svg viewBox="0 0 300 80" className="w-full h-24 overflow-visible">
-                <defs>
-                  <linearGradient id="riveAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#635BFF" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="#635BFF" stopOpacity="0" />
-                  </linearGradient>
-                  <linearGradient id="riveLineGrad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#635BFF" />
-                    <stop offset="50%" stopColor="#7C3AED" />
-                    <stop offset="100%" stopColor="#A78BFA" />
-                  </linearGradient>
-                </defs>
-
-                <path
-                  d="M 10,60 Q 75,48 140,36 T 290,15 L 290,75 L 10,75 Z"
-                  fill="url(#riveAreaGrad)"
-                />
-                <m.path
-                  d="M 10,60 Q 75,48 140,36 T 290,15"
-                  fill="none"
-                  stroke="url(#riveLineGrad)"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{
-                    duration: 2.2,
-                    ease: 'easeInOut',
-                    repeat: Infinity,
-                    repeatDelay: 2,
-                  }}
-                />
-                <path
-                  d="M 10,60 Q 75,48 140,36 T 290,15"
-                  fill="none"
-                  stroke="#635BFF"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                />
-
-                {/* Pulsing Node Rings */}
-                <circle cx="10" cy="60" r="4" fill="#635BFF" stroke="#ffffff" strokeWidth="2" />
-                <circle cx="75" cy="48" r="4" fill="#635BFF" stroke="#ffffff" strokeWidth="2" />
-                <circle cx="140" cy="36" r="4" fill="#7C3AED" stroke="#ffffff" strokeWidth="2" />
-                <circle cx="215" cy="24" r="4" fill="#7C3AED" stroke="#ffffff" strokeWidth="2" />
-                <m.circle
-                  cx="290"
-                  cy="15"
-                  r="5.5"
-                  fill="#A78BFA"
-                  stroke="#ffffff"
-                  strokeWidth="2"
-                  animate={{ r: [4.5, 7, 4.5] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                />
-              </svg>
-            </div>
-
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 mt-1 px-1 relative z-10">
-              <span>May 1</span>
-              <span>May 15</span>
-              <span>Jun 1</span>
-              <span>Jun 15</span>
-              <span>Jun 30</span>
+              <span className="text-[10px] font-medium text-[#737d9b]">vs last month</span>
             </div>
           </div>
         </div>
+
+        {/* Right Chart Inner Card Container */}
+        <div className="relative flex flex-1 flex-col justify-between self-stretch rounded-xl border border-[#e9e7fa] bg-white/80 p-3.5 shadow-sm dark:border-white/10 dark:bg-white/5 sm:p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#737d9b]">
+              Band Improvement
+            </span>
+            <span className="rounded-md border border-[#ded9ff] bg-[#f2f0ff] px-2 py-0.5 text-[9px] font-black text-[#5e50ee] dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300">
+              🎯 Band 8.0 Goal
+            </span>
+          </div>
+
+          <svg
+            viewBox="0 0 320 136"
+            className="h-[128px] w-full overflow-visible"
+            aria-label="Band score improvement chart"
+          >
+            <defs>
+              <linearGradient id="feature-area-single" x1="0" y1="0" x2="0" y2="1">
+                <stop stopColor="#635bff" stopOpacity=".32" />
+                <stop offset="1" stopColor="#635bff" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+
+            {/* Horizontal Reference Grid Lines */}
+            <line
+              x1="10"
+              y1="48"
+              x2="307"
+              y2="48"
+              stroke="#e8e5fa"
+              strokeDasharray="3 3"
+              strokeWidth="1"
+            />
+            <line
+              x1="10"
+              y1="88"
+              x2="307"
+              y2="88"
+              stroke="#e8e5fa"
+              strokeDasharray="3 3"
+              strokeWidth="1"
+            />
+
+            {/* Single Clean Band Score Line Path */}
+            <path
+              d="M10 100 L10 108 L307 108 L307 28 L248 48 L184 56 L117 69 L50 88 Z"
+              fill="url(#feature-area-single)"
+            />
+            <m.path
+              d="M10 100 L50 88 L117 69 L184 56 L248 48 L307 28"
+              fill="none"
+              stroke="#635bff"
+              strokeWidth="2.8"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{
+                duration: reduceMotion ? 0 : 1.8,
+                repeat: reduceMotion ? 0 : Infinity,
+                repeatDelay: 2.5,
+              }}
+            />
+
+            {/* Actual Score Data Nodes */}
+            {[
+              [10, 100],
+              [50, 88],
+              [117, 69],
+              [184, 56],
+              [248, 48],
+              [307, 28],
+            ].map(([cx, cy], i) => (
+              <m.circle
+                key={cx}
+                cx={cx}
+                cy={cy}
+                r="4.5"
+                fill="#635bff"
+                stroke="#ffffff"
+                strokeWidth="1.5"
+                animate={reduceMotion ? undefined : { r: i === 5 ? [4.5, 7, 4.5] : 4.5 }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
+              />
+            ))}
+          </svg>
+
+          <div className="flex justify-between text-[9px] font-semibold text-[#737d9b]">
+            <span>May 1</span>
+            <span>May 15</span>
+            <span>Jun 1</span>
+            <span>Jun 15</span>
+            <span>Jun 30</span>
+          </div>
+        </div>
       </div>
-    </div>
+    </article>
   );
 }
 
-/* ─── 5. Rive-Style Animated Vocabulary Builder Card ─────────── */
-function RiveVocabularyBuilderCard() {
+const wordList = [
+  {
+    word: 'Resilient',
+    pos: 'adjective',
+    definition: 'Able to recover quickly and keep improving after setbacks.',
+    level: 'C1',
+    retention: 78,
+  },
+  {
+    word: 'Meticulous',
+    pos: 'adjective',
+    definition: 'Showing great attention to detail; careful and precise.',
+    level: 'C1',
+    retention: 85,
+  },
+  {
+    word: 'Eloquence',
+    pos: 'noun',
+    definition: 'Fluent or persuasive speaking or writing that moves listeners.',
+    level: 'C2',
+    retention: 92,
+  },
+  {
+    word: 'Pragmatic',
+    pos: 'adjective',
+    definition: 'Dealing with things sensibly and realistically based on practical considerations.',
+    level: 'B2',
+    retention: 64,
+  },
+];
+
+function VocabularyCard({ reduceMotion }) {
+  const [activeIndex, setActiveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const handleSpeak = () => {
+  useEffect(() => {
+    if (reduceMotion) return;
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % wordList.length);
+    }, 4200);
+    return () => clearInterval(interval);
+  }, [reduceMotion]);
+
+  const current = wordList[activeIndex];
+  const nextWord1 = wordList[(activeIndex + 1) % wordList.length];
+  const nextWord2 = wordList[(activeIndex + 2) % wordList.length];
+  const nextWord3 = wordList[(activeIndex + 3) % wordList.length];
+
+  const pronounce = () => {
     setIsPlaying(true);
     if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance('Pragmatic');
-      utterance.rate = 0.9;
-      utterance.onend = () => setIsPlaying(false);
-      utterance.onerror = () => setIsPlaying(false);
+      const utterance = new SpeechSynthesisUtterance(current.word);
+      utterance.onend = utterance.onerror = () => setIsPlaying(false);
+      window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
-    } else {
-      setTimeout(() => setIsPlaying(false), 1000);
-    }
+    } else setTimeout(() => setIsPlaying(false), 700);
   };
 
+  const smoothCurve = [0.16, 1, 0.3, 1];
+
   return (
-    <div className={CARD_BASE}>
-      <FeatureCardHeader
+    <article className={`${cardClass} min-h-[390px]`}>
+      <FeatureHeader
         icon={BookOpen}
         title="Vocabulary Builder"
-        subtitle="Learn high-frequency words that boost your band."
+        description="Learn high-frequency words that boost your band."
       />
+      <div
+        className={`${canvasClass} relative flex flex-1 items-center justify-center p-4 sm:p-5 overflow-hidden`}
+      >
+        {/* Layer 4 (Deepest Back - Soft Pastel Pink/Rose Tint peeking furthest right) */}
+        <m.div
+          key={`layer4-${nextWord3.word}`}
+          className="absolute h-[166px] w-[75%] rounded-2xl border border-[#e8c6e5] bg-gradient-to-br from-[#f8e6f6] to-[#f1d4ed] p-3.5 shadow-sm dark:border-white/10 dark:from-pink-950/40 dark:to-purple-950/40 sm:w-[70%]"
+          animate={
+            reduceMotion
+              ? { rotate: 6, x: 44, y: 0, opacity: 0.75 }
+              : { rotate: [6, 7.5, 6], x: [44, 48, 44], y: [0, -2, 0], opacity: 0.75 }
+          }
+          transition={{ duration: 5.8, repeat: Infinity, ease: 'easeInOut' }}
+        />
 
-      {/* Rive 3D Flashcard Deck Canvas - Equal Height Flex-1 */}
-      <div className="bg-[#F6F4FE] dark:bg-[#121427] p-5 rounded-2xl border border-[#E2DCFE] dark:border-slate-800 flex-1 flex flex-col items-center justify-between min-h-[220px] relative overflow-hidden">
-        <div className="relative w-full max-w-xs sm:max-w-sm my-auto">
-          {/* Rive Card Layer 3 */}
-          <div className="absolute inset-0 bg-[#635BFF]/10 dark:bg-[#635BFF]/20 rounded-xl transform translate-x-4 translate-y-3 rotate-6 border border-[#635BFF]/20 opacity-40" />
+        {/* Layer 3 (Second Back - Soft Pastel Lilac/Violet Tint peeking right) */}
+        <m.div
+          key={`layer3-${nextWord2.word}`}
+          className="absolute h-[168px] w-[77%] rounded-2xl border border-[#d5c7ff] bg-gradient-to-br from-[#e4dcfd] to-[#d8cbfe] p-3.5 shadow-sm dark:border-white/10 dark:from-violet-950/50 dark:to-indigo-950/50 sm:w-[72%]"
+          animate={
+            reduceMotion
+              ? { rotate: 4, x: 28, y: -2, opacity: 0.85 }
+              : { rotate: [4, 5.5, 4], x: [28, 32, 28], y: [-2, -4, -2], opacity: 0.85 }
+          }
+          transition={{ duration: 5.0, repeat: Infinity, ease: 'easeInOut' }}
+        />
 
-          {/* Rive Card Layer 2 */}
-          <div className="absolute inset-0 bg-[#635BFF]/15 dark:bg-[#635BFF]/30 rounded-xl transform translate-x-2 translate-y-1.5 rotate-3 border border-[#635BFF]/30 opacity-70" />
+        {/* Layer 2 (First Back - Soft Pastel Light Lavender Tint peeking right) */}
+        <m.div
+          key={`layer2-${nextWord1.word}`}
+          className="absolute h-[170px] w-[79%] rounded-2xl border border-[#ded4fe] bg-gradient-to-br from-[#eeeafe] to-[#e4dcfe] p-4 shadow-md dark:border-white/10 dark:bg-indigo-900/50 sm:w-[74%]"
+          animate={
+            reduceMotion
+              ? { rotate: 2, x: 14, y: -4, opacity: 0.95 }
+              : { rotate: [2, 3.5, 2], x: [14, 18, 14], y: [-4, -6, -4], opacity: 0.95 }
+          }
+          transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
+        />
 
-          {/* Main Front Flashcard with Audio Rive Waves */}
-          <div className="relative z-10 bg-white dark:bg-[#0d0f1d] p-4.5 sm:p-5 rounded-xl border border-[#E5E2FA] dark:border-slate-800 shadow-2xs">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#635BFF] dark:text-[#A78BFA]">
-                  WORD OF THE DAY
-                </span>
-                <span className="px-1.5 py-0.2 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 text-[9px] font-extrabold border border-purple-200/50">
-                  Band 8.0+
-                </span>
-              </div>
+        {/* Floating Skill Badge (Top-left) */}
+        <m.div
+          key={`badge-${current.level}`}
+          className="absolute left-3 top-3 z-30 flex h-8 w-8 items-center justify-center rounded-xl border border-[#ded9ff] bg-white text-xs font-black text-[#6256ef] shadow-sm dark:border-white/10 dark:bg-slate-900 dark:text-violet-300"
+          animate={reduceMotion ? { rotate: -8 } : { y: [0, -4, 0], rotate: [-8, -4, -8] }}
+          transition={{ duration: 3.6, repeat: Infinity, ...smoothLoop }}
+        >
+          {current.level}
+        </m.div>
 
-              {/* Speaker Button with Expanding Rive Waves */}
+        {/* Floating Mastered Pill (Bottom-right) */}
+        <m.div
+          className="absolute bottom-3 right-3 z-30 flex items-center gap-1 rounded-full border border-[#ded9ff] bg-[#f2f0ff] px-2.5 py-1 text-xs font-black text-[#5e50ee] shadow-sm dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300"
+          animate={reduceMotion ? { scale: 1 } : { y: [0, 4, 0], scale: [1, 1.04, 1] }}
+          transition={{ duration: 3.2, delay: 0.35, repeat: Infinity, ...smoothLoop }}
+        >
+          <span>✨</span> +12 words
+        </m.div>
+
+        {/* Layer 1 (Front Active Card - Pure Crisp White on left side) */}
+        <AnimatePresence>
+          <m.div
+            key={current.word}
+            initial={{ opacity: 0, x: 40, y: 10, scale: 0.95, rotate: 3 }}
+            animate={{ opacity: 1, x: -16, y: 0, scale: 1, rotate: 0 }}
+            exit={{ opacity: 0, x: -130, y: -12, rotate: -12, scale: 0.88 }}
+            transition={{ duration: 0.55, ease: smoothCurve }}
+            className="absolute z-20 w-[78%] rounded-2xl border border-[#e4e3f2] bg-white/95 p-4 shadow-[0_20px_45px_-16px_rgba(40,35,125,0.38)] backdrop-blur-md dark:border-white/10 dark:bg-slate-900/95 sm:w-[73%]"
+          >
+            <div className="flex items-start justify-between">
+              <span className="text-[10px] font-extrabold tracking-[.14em] text-[#5e50ee]">
+                WORD OF THE DAY
+              </span>
               <button
                 type="button"
-                onClick={handleSpeak}
-                aria-label="Pronounce Pragmatic"
-                className={`w-7.5 h-7.5 rounded-full bg-[#F0EEFF] dark:bg-indigo-950/60 text-[#635BFF] dark:text-[#A78BFA] flex items-center justify-center hover:scale-105 transition-transform relative ${
-                  isPlaying ? 'ring-2 ring-purple-400' : ''
-                }`}
+                aria-label={`Pronounce ${current.word}`}
+                onClick={pronounce}
+                className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[#f2f0ff] text-[#6256ef] transition hover:bg-[#e4e0ff] dark:bg-violet-500/15 dark:text-violet-300"
               >
-                <Volume2 className="w-4 h-4" />
+                <Volume2 className="h-4 w-4" />
                 {isPlaying && (
-                  <>
-                    <m.span
-                      className="absolute inset-0 rounded-full border border-[#635BFF]"
-                      animate={{ scale: [1, 1.8], opacity: [1, 0] }}
-                      transition={{ duration: 0.8, repeat: Infinity }}
-                    />
-                    <m.span
-                      className="absolute inset-0 rounded-full border border-purple-400"
-                      animate={{ scale: [1, 2.3], opacity: [0.8, 0] }}
-                      transition={{ duration: 0.8, delay: 0.2, repeat: Infinity }}
-                    />
-                  </>
+                  <m.span
+                    className="absolute inset-0 rounded-full border border-[#6256ef]"
+                    animate={{ scale: [1, 1.8], opacity: [1, 0] }}
+                    transition={{ duration: 0.65, repeat: Infinity }}
+                  />
                 )}
               </button>
             </div>
-
-            <div className="flex items-baseline gap-2">
-              <h4 className="text-xl font-black text-slate-900 dark:text-white">Pragmatic</h4>
-              <span className="text-[11px] font-semibold text-slate-400">/pɹæɡˈmæt.ɪk/</span>
+            <h4 className="mt-1 text-[23px] font-black tracking-[-.055em] text-[#101836] dark:text-white">
+              {current.word}
+            </h4>
+            <p className="text-[11px] font-bold text-[#5e50ee]">{current.pos}</p>
+            <p className="mt-1.5 text-xs font-medium leading-5 text-[#56617f] dark:text-slate-300">
+              {current.definition}
+            </p>
+            <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-[#5e50ee] dark:text-violet-300">
+              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#ede9ff] dark:bg-slate-800">
+                <m.span
+                  className="block h-full rounded-full bg-gradient-to-r from-[#6256ef] to-[#8b7cff]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${current.retention}%` }}
+                  transition={{ duration: 0.7, ease: smoothCurve }}
+                />
+              </span>
+              {current.retention}% retained
             </div>
-            <p className="text-[11px] font-bold text-[#635BFF] dark:text-[#A78BFA] mt-0.5">
-              adjective
-            </p>
-            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed font-medium">
-              Dealing with things sensibly and in a realistic way.
-            </p>
-          </div>
-        </div>
+          </m.div>
+        </AnimatePresence>
 
-        {/* Rive Card Deck Indicators */}
-        <div className="flex items-center gap-1.5 mt-3.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#635BFF]" />
-          <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700" />
-          <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700" />
-          <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700" />
+        {/* Stack Dots Indicator */}
+        <div className="absolute bottom-2.5 z-30 flex gap-1.5">
+          {wordList.map((w, i) => (
+            <button
+              key={w.word}
+              type="button"
+              aria-label={`View word ${w.word}`}
+              onClick={() => setActiveIndex(i)}
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === activeIndex ? 'w-4 bg-[#6256ef]' : 'w-1.5 bg-[#dedbf5] hover:bg-[#b0a7ff] dark:bg-white/20'}`}
+            />
+          ))}
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
-/* ─── Main Section Component ─────────────────────────────────── */
 export default function FeaturesSection({ viewport }) {
+  const reduceMotion = useReducedMotion();
   return (
-    <SoftSection
-      id="features"
-      className="scroll-mt-24 bg-[#F7F6FE] dark:bg-[#070914] py-16 lg:py-24"
-    >
-      <div className="relative z-10 mx-auto max-w-[1450px] px-5 md:px-8 space-y-10">
+    <SoftSection className="bg-[#faf9ff] py-16 dark:bg-[#070914] lg:py-24">
+      <div className="relative z-10 mx-auto max-w-[1450px] px-5 md:px-8">
         <SectionHeading
           eyebrow="BUILT TO HELP YOU SCORE"
           title="Everything you need to"
@@ -577,47 +661,27 @@ export default function FeaturesSection({ viewport }) {
           description="AI tools to practice smarter and achieve your best IELTS score."
           viewport={viewport}
         />
-
-        {/* Bento Grid layout with equal height items-stretch */}
         <m.div
           initial="hidden"
           whileInView="show"
           viewport={viewport}
           variants={landingStagger}
-          className="grid gap-4 sm:gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-12 items-stretch"
+          className="mt-10 grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-12"
         >
-          {/* Top Row: 3 equal height cards */}
-          <m.div
-            variants={landingReveal}
-            className="md:col-span-1 lg:col-span-4 flex flex-col h-full"
-          >
-            <RiveWritingFeedbackCard />
+          <m.div variants={landingReveal} className="h-full lg:col-span-4">
+            <WritingCard reduceMotion={reduceMotion} />
           </m.div>
-          <m.div
-            variants={landingReveal}
-            className="md:col-span-1 lg:col-span-4 flex flex-col h-full"
-          >
-            <RiveSpeakingPracticeCard />
+          <m.div variants={landingReveal} className="h-full lg:col-span-4">
+            <SpeakingCard reduceMotion={reduceMotion} />
           </m.div>
-          <m.div
-            variants={landingReveal}
-            className="md:col-span-2 lg:col-span-4 flex flex-col h-full"
-          >
-            <RivePracticeLibraryCard />
+          <m.div variants={landingReveal} className="h-full md:col-span-2 lg:col-span-4">
+            <TestsCard reduceMotion={reduceMotion} />
           </m.div>
-
-          {/* Bottom Row: 2 equal height cards */}
-          <m.div
-            variants={landingReveal}
-            className="md:col-span-1 lg:col-span-6 flex flex-col h-full"
-          >
-            <RiveAnalyticsCard />
+          <m.div variants={landingReveal} className="lg:col-span-6">
+            <AnalyticsCard reduceMotion={reduceMotion} />
           </m.div>
-          <m.div
-            variants={landingReveal}
-            className="md:col-span-1 lg:col-span-6 flex flex-col h-full"
-          >
-            <RiveVocabularyBuilderCard />
+          <m.div variants={landingReveal} className="lg:col-span-6">
+            <VocabularyCard reduceMotion={reduceMotion} />
           </m.div>
         </m.div>
       </div>

@@ -34,12 +34,17 @@ import DocumentHead from '@/components/shared/DocumentHead';
 import { AuthLeftPanel } from '@/features/auth/components/AuthLeftPanel';
 import { VerificationView } from '@/features/auth/components/VerificationView';
 import { trackAppEvent } from '@/lib/tracking';
+import { clearAdminAccess } from '@/features/auth/utils/adminAccess';
 
 const AUTH_DESTINATION_KEY = 'auth_destination';
 
 function isSafeInternalDestination(destination) {
   return (
-    typeof destination === 'string' && destination.startsWith('/') && !destination.startsWith('//')
+    typeof destination === 'string' &&
+    destination.startsWith('/') &&
+    !destination.startsWith('//') &&
+    destination !== '/admin' &&
+    !destination.startsWith('/admin/')
   );
 }
 
@@ -73,7 +78,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { user, loading, signIn, signUp, checkIsAdmin, isAdmin, authCheckComplete } = useAuth();
+  const { user, loading, signIn, signUp, authCheckComplete } = useAuth();
 
   const [authMode, setAuthMode] = useState(location.pathname === '/signup' ? 'signup' : 'signin'); // 'signin' or 'signup'
   const [isResending, setIsResending] = useState(false);
@@ -83,6 +88,12 @@ export default function Login() {
   const [resendTimer, setResendTimer] = useState(0);
   const [fieldErrors, setFieldErrors] = useState({});
   const [touched, setTouched] = useState({});
+
+  useEffect(() => {
+    // The standard learner login must never inherit elevated UI intent from
+    // an earlier admin flow in the same browser tab.
+    clearAdminAccess();
+  }, []);
 
   useEffect(() => {
     const refCode = searchParams.get('ref');
@@ -166,11 +177,11 @@ export default function Login() {
 
   useEffect(() => {
     if (user && authCheckComplete) {
-      const destination = isAdmin ? createPageUrl('AdminPanel') : getRequestedDestination(location);
+      const destination = getRequestedDestination(location);
       clearRequestedDestination();
       navigate(destination, { replace: true });
     }
-  }, [user, authCheckComplete, isAdmin, location, navigate]);
+  }, [user, authCheckComplete, location, navigate]);
 
   useEffect(() => {
     setAuthMode(location.pathname === '/signup' ? 'signup' : 'signin');
@@ -207,6 +218,7 @@ export default function Login() {
     setIsLoading(true);
     try {
       if (authMode === 'signin') {
+        clearAdminAccess();
         const data = await signIn(email, password);
         if (data) {
           trackAppEvent('signin_success', {
@@ -214,10 +226,7 @@ export default function Login() {
             path: location.pathname,
           });
 
-          const isUserAdmin = await checkIsAdmin(data.id);
-          const destination = isUserAdmin
-            ? createPageUrl('AdminPanel')
-            : getRequestedDestination(location);
+          const destination = getRequestedDestination(location);
 
           clearRequestedDestination();
           navigate(destination, { replace: true });

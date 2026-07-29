@@ -131,10 +131,10 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
         <button
           type="button"
           className={cn(
-            'group relative inline-flex items-center gap-2.5 rounded-full px-5 py-2 text-xs font-black transition-all duration-300 shadow-2xs border overflow-hidden active:scale-95',
+            'group relative inline-flex items-center gap-2.5 rounded-full px-5 py-2 text-xs font-black transition-all duration-300 border overflow-hidden active:scale-95 cursor-pointer',
             existingDiscount
-              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40'
-              : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200/90 dark:border-white/10 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:shadow-xs'
+              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40 shadow-[0_4px_14px_-4px_rgba(16,185,129,0.20)]'
+              : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-[#ded9ff] dark:border-white/10 hover:border-[#b8b0ff] hover:text-[#5e50ee] dark:hover:text-indigo-400 shadow-[0_4px_14px_-4px_rgba(98,86,239,0.12)] hover:shadow-[0_6px_18px_-4px_rgba(98,86,239,0.22)]'
           )}
           data-oid="zhja.eo"
         >
@@ -149,7 +149,7 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
               'relative z-10 p-1 rounded-full shrink-0 transition-transform duration-300 group-hover:scale-110',
               existingDiscount
                 ? 'bg-emerald-500/15 text-emerald-600'
-                : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                : 'bg-[#6256ef]/10 text-[#6256ef] dark:text-indigo-400'
             )}
             data-oid="t9nsl7w"
           >

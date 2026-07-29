@@ -3,6 +3,20 @@ import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPla
 import { configurePricingPlans } from '@/features/subscription/hooks/usePricing';
 
 describe('pricing plan configuration', () => {
+  it('only advertises learner features that are available in the product', () => {
+    const catalog = DEFAULT_PRICING_PLANS.flatMap((plan) => [
+      ...plan.features,
+      ...(plan.limitations || []),
+    ]).join(' ');
+
+    expect(catalog).not.toMatch(
+      /Deep Predictive AI Insights|Downloadable Study Packs|Exclusive Community Access/
+    );
+    expect(catalog).toContain('AI Study Plan Made for You');
+    expect(catalog).toContain('Grammar Practice');
+    expect(catalog).toContain('Vocabulary Review');
+  });
+
   it('applies the same admin limits to the shared pricing catalog', () => {
     const plans = configurePricingPlans(DEFAULT_PRICING_PLANS, {
       settings: {

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { pushUserIdentity, trackAppEvent } from '@/lib/tracking';
+import { clearAdminAccess } from '@/features/auth/utils/adminAccess';
 
 const AuthContext = createContext();
 
@@ -36,6 +37,7 @@ const fallbackAuthContext = Object.freeze({
   userProfile: null,
   loading: false,
   authCheckComplete: true,
+  adminCheckComplete: true,
   isAdmin: false,
   signUp: async () => null,
   signIn: async () => null,
@@ -132,6 +134,7 @@ export const AuthProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authCheckComplete, setAuthCheckComplete] = useState(false);
+  const [adminCheckComplete, setAdminCheckComplete] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [globalSettings, setGlobalSettings] = useState(null);
   const [settingsLoading, setSettingsLoading] = useState(true);
@@ -156,7 +159,10 @@ export const AuthProvider = ({ children }) => {
         if (cachedProfile && hasLocalSession) {
           console.info('[Auth] Eager cache hit. Unblocking UI instantly.');
           setUserProfile(cachedProfile);
-          setIsAdmin(cachedProfile?.role === 'admin');
+          // Cached profile data improves learner-page startup, but it is
+          // client-controlled and must never establish administrator status.
+          setIsAdmin(false);
+          setAdminCheckComplete(false);
           // We don't set user object yet (need Supabase session), but setting authCheckComplete
           // allows ProtectedRoute to render children while Supabase validates in background
           setAuthCheckComplete(true);
@@ -191,7 +197,8 @@ export const AuthProvider = ({ children }) => {
           if (cachedProfile && cachedProfile.id === session.user.id) {
             // Instant auth with cached data!
             setUserProfile(cachedProfile);
-            setIsAdmin(cachedProfile?.role === 'admin');
+            setIsAdmin(false);
+            setAdminCheckComplete(false);
             setAuthCheckComplete(true); // Unblock immediately
             setLoading(false);
 
@@ -210,6 +217,7 @@ export const AuthProvider = ({ children }) => {
                   setUserProfile(freshProfile);
                   setCachedProfile(freshProfile);
                   setIsAdmin(freshProfile?.role === 'admin');
+                  setAdminCheckComplete(true);
                   pushUserIdentity(freshProfile);
                   if (freshProfile?.id && refCode) {
                     window.localStorage.removeItem('referral_code');
@@ -217,6 +225,8 @@ export const AuthProvider = ({ children }) => {
                 }
               } catch (err) {
                 console.warn('Background profile refresh failed:', err);
+              } finally {
+                if (isMounted) setAdminCheckComplete(true);
               }
             })();
             return; // Already unblocked, exit early
@@ -240,6 +250,7 @@ export const AuthProvider = ({ children }) => {
 
             const adminStatus = profile?.role === 'admin';
             setIsAdmin(adminStatus);
+            setAdminCheckComplete(true);
             pushUserIdentity(profile);
 
             if (profile?.id && refCode) {
@@ -258,6 +269,7 @@ export const AuthProvider = ({ children }) => {
             if (!isMounted) return;
             setUserProfile(null);
             setIsAdmin(false);
+            setAdminCheckComplete(true);
             setAuthCheckComplete(true);
           } finally {
             isFetchingProfile.current = false;
@@ -268,12 +280,15 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
           setUserProfile(null);
           setIsAdmin(false);
+          setAdminCheckComplete(true);
+          clearAdminAccess();
           setAuthCheckComplete(true);
         }
       } catch (error) {
         console.error('Error getting user session:', error);
         if (!isMounted) return;
         // Always unblock the UI even on catastrophic errors
+        setAdminCheckComplete(true);
         setAuthCheckComplete(true);
       } finally {
         if (isMounted) {
@@ -301,6 +316,8 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
           setUserProfile(null);
           setIsAdmin(false);
+          setAdminCheckComplete(false);
+          clearAdminAccess();
           setAuthCheckComplete(false); // Reset for next login
           clearCachedProfile(); // Clear cached profile on sign out
           if (typeof window !== 'undefined') {
@@ -326,6 +343,7 @@ export const AuthProvider = ({ children }) => {
           // Refresh profile only on sign-in and initial load
           // Refresh profile only on sign-in and initial load
           if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+            setAdminCheckComplete(false);
             // Immediately fetch profile and admin status
             (async () => {
               if (!isMounted || isFetchingProfile.current) return;
@@ -343,6 +361,7 @@ export const AuthProvider = ({ children }) => {
 
                 const adminStatus = profile?.role === 'admin';
                 setIsAdmin(adminStatus);
+                setAdminCheckComplete(true);
                 pushUserIdentity(profile);
 
                 if (profile?.id && refCode) {
@@ -365,6 +384,8 @@ export const AuthProvider = ({ children }) => {
                 setAuthCheckComplete(true);
               } catch (error) {
                 console.error('Error reinforcing user profile:', error);
+                setIsAdmin(false);
+                setAdminCheckComplete(true);
                 setAuthCheckComplete(true); // Still complete even on error
               } finally {
                 isFetchingProfile.current = false;
@@ -413,6 +434,7 @@ export const AuthProvider = ({ children }) => {
       // initializing it after the first viewport has settled.
       setLoading(false);
       setAuthCheckComplete(true);
+      setAdminCheckComplete(true);
       setSettingsLoading(false);
     } else {
       initializeAuth();
@@ -503,6 +525,7 @@ export const AuthProvider = ({ children }) => {
     async (userOverride) => {
       const targetUser = userOverride || user;
       if (targetUser) {
+        setAdminCheckComplete(false);
         try {
           const { User } = await loadAuthDependencies();
           const refCode =
@@ -521,10 +544,13 @@ export const AuthProvider = ({ children }) => {
 
           const adminStatus = profile?.role === 'admin';
           setIsAdmin(adminStatus);
+          setAdminCheckComplete(true);
           pushUserIdentity(profile);
           return profile;
         } catch (error) {
           console.error('Error refreshing profile:', error);
+          setIsAdmin(false);
+          setAdminCheckComplete(true);
           throw error;
         }
       }
@@ -585,9 +611,11 @@ export const AuthProvider = ({ children }) => {
       console.warn('Logout error:', error);
     } finally {
       // Always clear local state
+      clearAdminAccess();
       setUser(null);
       setUserProfile(null);
       setIsAdmin(false);
+      setAdminCheckComplete(false);
       setAuthCheckComplete(false);
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem('onboarding_completed');
@@ -607,12 +635,13 @@ export const AuthProvider = ({ children }) => {
     try {
       const { User } = await loadAuthDependencies();
       const adminStatus = await User.isAdmin(userId);
-      if (adminStatus) {
-        setIsAdmin(true);
-      }
+      setIsAdmin(adminStatus);
+      setAdminCheckComplete(true);
       return adminStatus;
     } catch (error) {
       console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+      setAdminCheckComplete(true);
       return false;
     }
   }, []);
@@ -630,6 +659,7 @@ export const AuthProvider = ({ children }) => {
       userProfile,
       loading,
       authCheckComplete,
+      adminCheckComplete,
       isAdmin,
       signUp,
       signIn,
@@ -645,6 +675,7 @@ export const AuthProvider = ({ children }) => {
     localOnboardingCompleted,
     loading,
     authCheckComplete,
+    adminCheckComplete,
     isAdmin,
     signUp,
     signIn,

@@ -120,14 +120,14 @@ function PricingFeature({ label, unavailable, isPro }) {
           isUnavailable
             ? 'bg-slate-100/80 dark:bg-slate-800/50 text-slate-300 dark:text-slate-600'
             : isPro
-              ? 'bg-[#F5F0FF] dark:bg-purple-500/15 text-[#8B5CF6] dark:text-purple-400 ring-1 ring-[#E5D4FF]/80 dark:ring-purple-500/30'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+              ? 'bg-[#f2f0ff] text-[#5e50ee] border border-[#ded9ff] dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-500/30'
+              : 'bg-[#faf9ff] text-[#56617f] border border-[#e2e5fa] dark:bg-slate-800 dark:text-slate-300'
         )}
       >
         {isUnavailable ? (
           <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
         ) : (
-          <Check className="w-3 h-3 stroke-[2.8]" />
+          <Check className="w-3 h-3 stroke-[2.5]" />
         )}
       </div>
       <span
@@ -135,7 +135,7 @@ function PricingFeature({ label, unavailable, isPro }) {
           'text-[13px] leading-snug transition-colors duration-150',
           isUnavailable
             ? 'text-slate-400/80 dark:text-slate-500 line-through font-medium'
-            : 'text-slate-700 dark:text-slate-200 font-semibold'
+            : 'text-[#101836] dark:text-slate-200 font-extrabold'
         )}
       >
         {label}
@@ -157,27 +157,27 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
       variants={itemVariants}
       transition={{ delay: index * 0.08 }}
       className={cn(
-        'relative flex flex-col h-full rounded-[32px] px-7 pt-5 pb-6 sm:px-8 sm:pt-6 sm:pb-7 transition-all duration-300 bg-white dark:bg-slate-900 z-10 w-full justify-between',
+        'relative flex flex-col h-full rounded-[32px] px-7 pt-5 pb-6 sm:px-8 sm:pt-6 sm:pb-7 transition-all duration-300 backdrop-blur-md z-10 w-full justify-between',
         isPro
-          ? 'border-2 border-[#E5D4FF] dark:border-purple-500/40 shadow-[0_0_50px_rgba(168,85,247,0.12)] scale-100 lg:scale-[1.04] z-20'
-          : 'border border-slate-200/90 dark:border-slate-800 shadow-sm mt-0 lg:mt-2 mb-0 lg:mb-2'
+          ? 'border border-[#ded9ff] bg-gradient-to-b from-white via-white to-[#faf9ff] dark:from-[#0d1020] dark:to-[#070914] dark:border-violet-500/35 shadow-[0_16px_48px_-16px_rgba(98,86,239,0.15),0_0_24px_-4px_rgba(98,86,239,0.08)] scale-100 lg:scale-[1.03] z-20'
+          : 'border border-[#e2e5fa] bg-white dark:bg-slate-900/90 dark:border-slate-800 shadow-[0_12px_32px_-16px_rgba(79,66,220,0.08)] mt-0 lg:mt-2 mb-0 lg:mb-2'
       )}
     >
       <div>
         {/* Card Header: Title on Left, Badge on Right */}
         <div className="flex items-center justify-between gap-2 mb-3">
-          <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-black text-[#101836] dark:text-white tracking-tight">
             {plan.name}
           </h3>
           {isPro && (
-            <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wide flex items-center gap-1.5 border border-[#E5D4FF] dark:border-purple-500/30 text-[#8B5CF6] dark:text-purple-400 bg-[#F5F0FF] dark:bg-purple-500/10 shrink-0">
-              <Sparkles className="w-3 h-3 text-[#8B5CF6]" />
+            <span className="px-3 py-1 rounded-full text-[11px] font-black tracking-wide flex items-center gap-1.5 border border-[#ded9ff] text-[#5e50ee] bg-[#f2f0ff]/90 dark:border-violet-500/30 dark:bg-violet-950/60 dark:text-violet-300 shrink-0 shadow-2xs">
+              <Sparkles className="w-3 h-3 text-[#6256ef] dark:text-violet-300" />
               Most Popular
             </span>
           )}
           {isPremium && (
-            <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wide flex items-center gap-1.5 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 shrink-0">
-              <Crown className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+            <span className="px-3 py-1 rounded-full text-[11px] font-black tracking-wide flex items-center gap-1.5 border border-[#ded9ff] text-[#5e50ee] bg-[#f2f0ff]/90 dark:border-violet-500/30 dark:bg-violet-950/60 dark:text-violet-300 shrink-0 shadow-2xs">
+              <Crown className="w-3 h-3 text-[#6256ef] dark:text-violet-300" />
               Ultimate
             </span>
           )}
@@ -193,26 +193,28 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -4, opacity: 0 }}
                 transition={{ duration: 0.15 }}
-                className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight"
+                className="text-3xl sm:text-4xl font-black text-[#101836] dark:text-white tracking-tight"
               >
                 {currentPrice.price}
               </m.span>
             </AnimatePresence>
             {currentPrice.period && (
-              <span className="text-[13px] font-medium text-slate-400">/ Per Month</span>
+              <span className="text-[13px] font-semibold text-[#56617f] dark:text-slate-400">
+                / Per Month
+              </span>
             )}
           </div>
 
           {currentPrice.oldPrice && (
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              <span className="text-[10px] font-black text-[#737d9b] dark:text-slate-500 uppercase tracking-wider">
                 WAS
               </span>
-              <span className="text-xs font-bold text-slate-400 dark:text-slate-500 line-through">
+              <span className="text-xs font-bold text-[#737d9b] dark:text-slate-500 line-through">
                 {currentPrice.oldPrice}
               </span>
               {currentPrice.savings && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-black">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#f2f0ff] text-[#5e50ee] border border-[#ded9ff] dark:bg-violet-950/80 dark:border-violet-500/30 dark:text-violet-300 text-[10px] font-black uppercase tracking-wider">
                   {currentPrice.savings}
                 </span>
               )}
@@ -220,15 +222,15 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
           )}
         </div>
 
-        <p className="text-[13px] font-medium leading-relaxed text-slate-500 dark:text-slate-400 mt-2 mb-4">
+        <p className="text-[13px] font-medium leading-relaxed text-[#56617f] dark:text-slate-400 mt-2 mb-4">
           {plan.desc}
         </p>
 
-        {/* Dot line divider */}
+        {/* Subtle Line Divider */}
         <div className="flex items-center gap-1.5 my-4">
-          <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
-          <div className="h-px bg-slate-200 dark:bg-slate-800 flex-1"></div>
-          <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+          <div className="w-1 h-1 rounded-full bg-[#ded9ff] dark:bg-slate-700"></div>
+          <div className="h-px bg-[#eeeafd] dark:bg-slate-800 flex-1"></div>
+          <div className="w-1 h-1 rounded-full bg-[#ded9ff] dark:bg-slate-700"></div>
         </div>
 
         {/* Features checklist */}
@@ -243,14 +245,14 @@ function PricingPlanCard({ plan, billingCycle, handlePrimaryCta, viewport, index
       <Button
         onClick={handlePrimaryCta}
         className={cn(
-          'group/btn w-full h-[52px] rounded-2xl text-[14px] font-bold tracking-tight transition-all duration-200 flex items-center justify-center gap-2 mt-auto',
+          'group/btn w-full h-[52px] rounded-2xl text-[14px] font-black tracking-tight transition-all duration-200 flex items-center justify-center gap-2 mt-auto cursor-pointer',
           isPro
-            ? 'bg-slate-950 hover:bg-slate-900 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 shadow-md shadow-slate-950/10 hover:scale-[1.01] active:scale-[0.99]'
-            : 'bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200/90 dark:bg-slate-800/80 dark:border-slate-700 dark:text-white dark:hover:bg-slate-800 hover:border-slate-300/80 shadow-2xs hover:scale-[1.01] active:scale-[0.99]'
+            ? 'bg-[#101836] hover:bg-[#1b264e] text-white shadow-md shadow-[#101836]/15 hover:scale-[1.01] active:scale-[0.99]'
+            : 'bg-[#faf9ff] hover:bg-[#f2f0ff] text-[#101836] border border-[#ded9ff] dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:hover:bg-slate-700 shadow-2xs hover:scale-[1.01] active:scale-[0.99]'
         )}
       >
         <span>{plan.buttonText}</span>
-        <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1" />
+        <ArrowRight className="h-4 w-4 stroke-[2.5] transition-transform duration-200 group-hover/btn:translate-x-1" />
       </Button>
     </m.div>
   );
@@ -296,21 +298,21 @@ function BillingCycleToggle({ billingCycle, setBillingCycle, viewport }) {
       className="text-center mb-8"
     >
       <m.div variants={itemVariants} className="flex justify-center">
-        <div className="relative inline-flex items-center rounded-full border border-slate-200/90 bg-slate-100/90 p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-xl dark:border-white/15 dark:bg-slate-900/90">
+        <div className="relative inline-flex items-center rounded-full border border-[#ded9ff] bg-[#f2f0ff]/80 p-1 shadow-inner backdrop-blur-md dark:border-white/15 dark:bg-slate-900/90">
           <button
             type="button"
             onClick={() => setBillingCycle('monthly')}
             className={cn(
-              'relative z-10 px-6 sm:px-7 py-2 rounded-full text-xs sm:text-[13px] font-extrabold tracking-tight transition-colors duration-200',
+              'relative z-10 px-6 sm:px-7 py-1.5 sm:py-2 rounded-full text-xs sm:text-[13px] font-black tracking-tight transition-colors duration-200 cursor-pointer',
               billingCycle === 'monthly'
-                ? 'text-slate-950 dark:text-white'
-                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                ? 'text-white'
+                : 'text-[#56617f] hover:text-[#101836] dark:text-slate-400 dark:hover:text-white'
             )}
           >
             {billingCycle === 'monthly' && (
               <m.span
                 layoutId="activeBillingTab"
-                className="absolute inset-0 z-[-1] rounded-full bg-white shadow-[0_2px_10px_-2px_rgba(15,23,42,0.12)] dark:bg-slate-800"
+                className="absolute inset-0 z-[-1] rounded-full bg-[#6256ef] shadow-md shadow-[#6256ef]/30"
                 transition={{ type: 'spring', stiffness: 420, damping: 32 }}
               />
             )}
@@ -320,21 +322,28 @@ function BillingCycleToggle({ billingCycle, setBillingCycle, viewport }) {
             type="button"
             onClick={() => setBillingCycle('quarterly')}
             className={cn(
-              'relative z-10 px-5 sm:px-6 py-2 rounded-full text-xs sm:text-[13px] font-extrabold tracking-tight transition-colors duration-200 flex items-center gap-2',
+              'relative z-10 px-5 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-[13px] font-black tracking-tight transition-colors duration-200 flex items-center gap-2 cursor-pointer',
               billingCycle === 'quarterly'
-                ? 'text-slate-950 dark:text-white'
-                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                ? 'text-white'
+                : 'text-[#56617f] hover:text-[#101836] dark:text-slate-400 dark:hover:text-white'
             )}
           >
             {billingCycle === 'quarterly' && (
               <m.span
                 layoutId="activeBillingTab"
-                className="absolute inset-0 z-[-1] rounded-full bg-[#5661e9] shadow-[0_2px_10px_-2px_rgba(15,23,42,0.12)] dark:bg-slate-800"
+                className="absolute inset-0 z-[-1] rounded-full bg-[#6256ef] shadow-md shadow-[#6256ef]/30"
                 transition={{ type: 'spring', stiffness: 420, damping: 32 }}
               />
             )}
             <span>Quarterly</span>
-            <span className="bg-purple-100 text-purple-700 dark:bg-purple-950/90 dark:text-purple-300 border border-purple-200/90 dark:border-purple-800/60 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
+            <span
+              className={cn(
+                'text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full transition-colors duration-200',
+                billingCycle === 'quarterly'
+                  ? 'bg-white/20 text-white border border-white/30 backdrop-blur-xs'
+                  : 'bg-[#f2f0ff] text-[#5e50ee] border border-[#ded9ff] dark:bg-violet-950/80 dark:border-violet-500/30 dark:text-violet-300'
+              )}
+            >
               Save 15%
             </span>
           </button>
