@@ -23,7 +23,6 @@ import VocabularySidebar from '@/features/vocabulary/components/VocabularySideba
 import QuickAddCard from '@/features/vocabulary/components/QuickAddCard';
 import WordGroupList from '@/features/vocabulary/components/WordGroupList';
 import WordDetailDialog from '@/features/vocabulary/components/WordDetailDialog';
-import VocabularyStudyView from '@/features/vocabulary/components/VocabularyStudyView';
 
 import {
   SUPPORTED_LANGUAGES,
@@ -279,7 +278,6 @@ export default function Vocabulary() {
   const [alertConfig, setAlertConfig] = useState({ open: false, title: '', message: '' });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [viewingWord, setViewingWord] = useState(null);
-  const [selectedCuratedList, setSelectedCuratedList] = useState(null);
   const [retentionRefreshKey, setRetentionRefreshKey] = useState(0);
 
   const [targetLanguage, setTargetLanguage] = useState(() => {
@@ -295,7 +293,6 @@ export default function Vocabulary() {
     dueForReview,
     setDueForReview,
     isLoading,
-    curatedLists,
     stats: rawStats,
     hasMoreItems,
     isLoadingMore,
@@ -468,15 +465,7 @@ export default function Vocabulary() {
             </div>
 
             {/* Topic Word Lists */}
-            <WordGroupList
-              curatedLists={curatedLists}
-              user={user}
-              onSelect={(list) => {
-                setViewingWord(null);
-                setSelectedCuratedList(list);
-              }}
-              onViewAll={() => (window.location.href = '/resources?type=vocabulary')}
-            />
+            <WordGroupList allVocabulary={allVocabulary} />
 
             {/* My Saved Words (Table & Cards View) */}
             <PersonalWordBank
@@ -553,23 +542,6 @@ export default function Vocabulary() {
           setTargetLanguage={setTargetLanguage}
           handleDeleteWord={handleDeleteWord}
         />
-
-        <Dialog
-          open={!!selectedCuratedList}
-          onOpenChange={(open) => !open && setSelectedCuratedList(null)}
-        >
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border-none p-0 bg-white dark:bg-slate-950">
-            {selectedCuratedList && (
-              <VocabularyStudyView
-                resource={selectedCuratedList}
-                user={user}
-                onClose={() => setSelectedCuratedList(null)}
-                onAddWord={hookAddWord}
-                allVocabulary={allVocabulary}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
       </motion.div>
     </div>
   );

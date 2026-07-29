@@ -1,10 +1,8 @@
 import { useState, useEffect, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Search,
@@ -12,22 +10,19 @@ import {
   FileText,
   BookOpen,
   Eye,
-  Play,
   ArrowRight,
   X,
   LayoutGrid,
   List,
   Library,
   Brain,
-  Lock,
-  Download,
   ChevronRight,
 } from 'lucide-react';
 import { Resource } from '@/entities';
 import { cn } from '@/lib/cn';
 import { useResources } from '@/features/learning/hooks/useResources';
-import { useAuth } from '@/features/auth/context/AuthContext';
 import { useDebounce } from '@/hooks/useDebounce';
+import { VOCABULARY_KITS } from '@/features/vocabulary/data/vocabularyKits';
 
 const CONTENT_TYPES = [
   { id: 'all', label: 'All', icon: LayoutGrid },
@@ -645,11 +640,11 @@ const PaginationBar = ({ pagination, totalPages, setPagination }) => {
 };
 
 // ─── Resource navigation helper (pure, no branches in component) ─
-const navigateToResource = ({ resource, navigate, onVocab }) => {
+const navigateToResource = ({ resource, navigate }) => {
   if (resource.content_type === 'blog' && resource.slug) {
     navigate(`/blog/${resource.slug}`);
   } else if (resource.content_type === 'vocabulary') {
-    onVocab(resource);
+    navigate(`/vocabulary/kits/${resource.slug || resource.id}`);
   } else {
     window.open(resource.url, '_blank', 'noopener,noreferrer');
   }
@@ -710,11 +705,38 @@ const useResourcesQuery = ({ filterType, debouncedSearchQuery, pagination }) => 
     limit: isAllUnfiltered ? 100 : pagination.limit,
     page: pagination.page,
     includeContent: true,
+    enabled: filterType !== 'vocabulary',
   });
 
+  const matchingLocalKits = useMemo(() => {
+    const query = debouncedSearchQuery.trim().toLowerCase();
+    return VOCABULARY_KITS.filter(
+      (kit) =>
+        !query || `${kit.title} ${kit.description} ${kit.category}`.toLowerCase().includes(query)
+    );
+  }, [debouncedSearchQuery]);
+
+  if (filterType === 'vocabulary') {
+    const start = (pagination.page - 1) * pagination.limit;
+    return {
+      resources: matchingLocalKits.slice(start, start + pagination.limit),
+      totalPages: Math.ceil(matchingLocalKits.length / pagination.limit),
+      isLoading: false,
+      isAllUnfiltered: false,
+    };
+  }
+
+  const remoteResources = (data?.data || []).filter(
+    (resource) => resource.content_type !== 'vocabulary'
+  );
+  const resources =
+    filterType === 'all' ? [...matchingLocalKits, ...remoteResources] : remoteResources;
+  const totalCount =
+    filterType === 'all' ? matchingLocalKits.length + (data?.count || 0) : data?.count || 0;
+
   return {
-    resources: data?.data || [],
-    totalPages: Math.ceil((data?.count || 0) / pagination.limit),
+    resources,
+    totalPages: isAllUnfiltered ? 1 : Math.ceil(totalCount / pagination.limit),
     isLoading,
     isAllUnfiltered,
   };
@@ -722,26 +744,16 @@ const useResourcesQuery = ({ filterType, debouncedSearchQuery, pagination }) => 
 
 // ─── Hook 3: Event handlers ─────────────────────────────────────
 const useResourceHandlers = ({
-  filterType,
   setFilterType,
   setPagination,
   searchParams,
   setSearchParams,
   setSearchQuery,
   navigate,
-  setSelectedVocab,
-  setIsVocabDialogOpen,
 }) => {
   const handleOpenResource = async (resource) => {
-    await Resource.incrementViewCount(resource.id);
-    navigateToResource({
-      resource,
-      navigate,
-      onVocab: (r) => {
-        setSelectedVocab(r);
-        setIsVocabDialogOpen(true);
-      },
-    });
+    if (!resource.is_local) await Resource.incrementViewCount(resource.id);
+    navigateToResource({ resource, navigate });
   };
 
   const handleViewAllType = (type) => {
@@ -821,8 +833,6 @@ const ResourcesContent = ({
 // ─── Main Component ─────────────────────────────────────────────
 const ResourcesSection = () => {
   const navigate = useNavigate();
-  const [selectedVocab, setSelectedVocab] = useState(null);
-  const [isVocabDialogOpen, setIsVocabDialogOpen] = useState(false);
 
   const {
     searchParams,
@@ -842,15 +852,12 @@ const ResourcesSection = () => {
   });
   const { handleOpenResource, handleViewAllType, handleTypeChange, handleReset } =
     useResourceHandlers({
-      filterType,
       setFilterType,
       setPagination,
       searchParams,
       setSearchParams,
       setSearchQuery,
       navigate,
-      setSelectedVocab,
-      setIsVocabDialogOpen,
     });
 
   return (
@@ -879,116 +886,6 @@ const ResourcesSection = () => {
           setPagination={setPagination}
         />
       )}
-      <Dialog open={isVocabDialogOpen} onOpenChange={setIsVocabDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-[3rem] border-none p-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl">
-          {selectedVocab && <VocabularyStudyView resource={selectedVocab} />}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
-
-// Sub-component for structured study view
-const VocabularyStudyView = ({ resource }) => {
-  const [words, setWords] = useState([]);
-  const { user } = useAuth();
-
-  useEffect(() => {
-    if (resource.content) {
-      try {
-        setWords(JSON.parse(resource.content));
-      } catch (e) {
-        console.error('Parse error', e);
-      }
-    }
-  }, [resource]);
-
-  const hasAccess = () => {
-    if (resource.access_tier === 'free') return true;
-    if (!user) return false;
-    const tiers = { free: 0, pro: 1, premium: 2 };
-    return tiers[user.subscription_tier || 'free'] >= tiers[resource.access_tier];
-  };
-
-  if (!hasAccess()) {
-    return (
-      <div className="p-12 text-center space-y-8">
-        <div className="w-24 h-24 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto ring-8 ring-indigo-500/5">
-          <Lock className="w-10 h-10 text-indigo-500" />
-        </div>
-        <div className="space-y-3">
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
-            Premium Content
-          </h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium max-w-sm mx-auto">
-            This {resource.access_tier} vocabulary list is locked. Upgrade your plan to access this
-            and {resource.access_tier === 'pro' ? 'hundreds' : 'thousands'} of other curated
-            materials.
-          </p>
-        </div>
-        <Button
-          onClick={() => (window.location.href = '/pricing')}
-          className="h-16 px-12 rounded-3xl bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest shadow-2xl shadow-indigo-600/20"
-        >
-          View Pricing Plans
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md p-6 border-b border-slate-100 dark:border-white/5">
-        <div className="flex justify-between items-start gap-6">
-          <div className="space-y-1">
-            <Badge className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-none px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest mb-2">
-              IELTS Vocabulary List
-            </Badge>
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white italic">
-              {resource.title}
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-xs">
-              {resource.description}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Word List */}
-      <div className="p-6 md:p-8 space-y-4">
-        {words.map((item, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.03 }}
-            className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-sm group hover:shadow-md transition-all duration-300 relative"
-          >
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 md:gap-8">
-              {/* Word & Definition */}
-              <div className="space-y-1.5 md:w-5/12 flex-shrink-0">
-                <h4 className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-                  {item.word}
-                </h4>
-                <p className="text-[14px] text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
-                  {item.definition}
-                </p>
-              </div>
-
-              {/* Divider */}
-              <div className="md:w-[2px] md:h-12 bg-slate-100 dark:bg-white/10 hidden md:block rounded-full" />
-
-              {/* Example Sentence */}
-              <div className="flex-1 md:w-5/12">
-                <p className="text-[13px] text-slate-500 dark:text-slate-400 italic leading-relaxed">
-                  &quot;{item.example}&quot;
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
     </div>
   );
 };

@@ -3,7 +3,6 @@ import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
 import {
   ITEMS_PER_PAGE,
   VOCABULARY_LIST_FIELDS,
-  fetchCuratedLists,
   fetchVocabularyItems,
   fetchDueItems,
   calculateStats,
@@ -13,7 +12,6 @@ function useVocabularyState() {
   const [allVocabulary, setAllVocabulary] = useState([]);
   const [dueForReview, setDueForReview] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [curatedLists, setCuratedLists] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -25,8 +23,6 @@ function useVocabularyState() {
     setDueForReview,
     isLoading,
     setIsLoading,
-    curatedLists,
-    setCuratedLists,
     currentPage,
     setCurrentPage,
     totalCount,
@@ -37,14 +33,7 @@ function useVocabularyState() {
 }
 
 function useVocabularyLoadItems({ user, state, allVocabularyLength }) {
-  const {
-    setIsLoading,
-    setCuratedLists,
-    setAllVocabulary,
-    setTotalCount,
-    setDueForReview,
-    setCurrentPage,
-  } = state;
+  const { setIsLoading, setAllVocabulary, setTotalCount, setDueForReview, setCurrentPage } = state;
   const allVocabLengthRef = useRef(0);
 
   useEffect(() => {
@@ -56,14 +45,10 @@ function useVocabularyLoadItems({ user, state, allVocabularyLength }) {
     setIsLoading((prev) => prev && allVocabLengthRef.current === 0);
 
     try {
-      const [curated, vocabRes] = await Promise.all([
-        fetchCuratedLists(),
-        fetchVocabularyItems(user.id),
-      ]);
+      const vocabRes = await fetchVocabularyItems(user.id);
 
       const dueItems = await fetchDueItems(vocabRes.items);
 
-      setCuratedLists(curated);
       setAllVocabulary(vocabRes.items);
       setTotalCount(vocabRes.count);
       setDueForReview(dueItems);
@@ -73,15 +58,7 @@ function useVocabularyLoadItems({ user, state, allVocabularyLength }) {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    user?.id,
-    setIsLoading,
-    setCuratedLists,
-    setAllVocabulary,
-    setTotalCount,
-    setDueForReview,
-    setCurrentPage,
-  ]);
+  }, [user?.id, setIsLoading, setAllVocabulary, setTotalCount, setDueForReview, setCurrentPage]);
 }
 
 function useVocabularyLoadMore({ user, state, hasMoreItems }) {
@@ -142,7 +119,6 @@ export function useVocabularyData(user) {
     dueForReview: state.dueForReview,
     setDueForReview: state.setDueForReview,
     isLoading: state.isLoading,
-    curatedLists: state.curatedLists,
     stats,
     hasMoreItems,
     isLoadingMore: state.isLoadingMore,

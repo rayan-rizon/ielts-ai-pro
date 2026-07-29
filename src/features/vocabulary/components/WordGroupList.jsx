@@ -1,21 +1,16 @@
-import React, { memo, useId } from 'react';
+import React, { memo, useEffect, useId, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { ArrowRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
-  Sparkles,
-  ArrowRight,
-  Lock,
-  BookOpen,
-  GraduationCap,
-  MessageSquare,
-  PenTool,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+  FEATURED_VOCABULARY_KITS,
+  VOCABULARY_KITS,
+} from '@/features/vocabulary/data/vocabularyKits';
 
-const KitVisual = ({ id }) => {
+export const KitVisual = ({ id }) => {
   const uid = useId();
 
-  if (id === 'default-kit-1' || id?.includes('writing')) {
+  if (id?.includes('writing')) {
     const penGrad = `penGrad-${uid}`;
     const paperGrad = `paperGrad-${uid}`;
     return (
@@ -60,7 +55,7 @@ const KitVisual = ({ id }) => {
     );
   }
 
-  if (id === 'default-kit-2' || id?.includes('speaking')) {
+  if (id?.includes('speaking')) {
     const micGrad = `micGrad-${uid}`;
     return (
       <svg className="w-full h-full shrink-0" viewBox="0 0 32 32" fill="none">
@@ -98,7 +93,7 @@ const KitVisual = ({ id }) => {
     );
   }
 
-  if (id === 'default-kit-3' || id?.includes('reading')) {
+  if (id?.includes('reading')) {
     const lensGrad = `lensGrad-${uid}`;
     const handleGrad = `handleGrad-${uid}`;
     return (
@@ -162,6 +157,85 @@ const KitVisual = ({ id }) => {
     );
   }
 
+  if (id?.includes('band-')) {
+    const targetGrad = `targetGrad-${uid}`;
+    return (
+      <svg className="w-full h-full shrink-0" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <defs>
+          <linearGradient
+            id={targetGrad}
+            x1="7"
+            y1="6"
+            x2="25"
+            y2="26"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor="#FEF3C7" />
+            <stop offset="1" stopColor="#FDE68A" />
+          </linearGradient>
+        </defs>
+        <rect
+          x="4"
+          y="5"
+          width="24"
+          height="22"
+          rx="7"
+          fill={`url(#${targetGrad})`}
+          stroke="#FCD34D"
+        />
+        <circle cx="16" cy="16" r="6.8" fill="#FFF" stroke="#F59E0B" strokeWidth="1.5" />
+        <circle cx="16" cy="16" r="3.4" fill="#F59E0B" />
+        <circle cx="16" cy="16" r="1.35" fill="#FFF" />
+        <path
+          d="M22.5 9.5l3-3M23.8 6.5h1.8v1.8"
+          stroke="#B45309"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path d="M21.4 10.6l3.1-3.1" stroke="#B45309" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (id?.includes('vocabulary-for-ielts')) {
+    const globeGrad = `globeGrad-${uid}`;
+    return (
+      <svg className="w-full h-full shrink-0" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <defs>
+          <linearGradient
+            id={globeGrad}
+            x1="7"
+            y1="6"
+            x2="25"
+            y2="27"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor="#FCE7F3" />
+            <stop offset="1" stopColor="#FBCFE8" />
+          </linearGradient>
+        </defs>
+        <rect
+          x="4"
+          y="5"
+          width="24"
+          height="22"
+          rx="7"
+          fill={`url(#${globeGrad})`}
+          stroke="#F9A8D4"
+        />
+        <circle cx="16" cy="15.5" r="7.2" fill="#FFF" stroke="#DB2777" strokeWidth="1.4" />
+        <path
+          d="M8.8 15.5h14.4M16 8.3c2.2 2 3.3 4.4 3.3 7.2s-1.1 5.2-3.3 7.2c-2.2-2-3.3-4.4-3.3-7.2S13.8 10.3 16 8.3z"
+          stroke="#DB2777"
+          strokeWidth="1.15"
+          strokeLinecap="round"
+        />
+        <path d="M11 23.8h10" stroke="#DB2777" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
   const capGrad = `capGrad-${uid}`;
   return (
     <svg className="w-full h-full shrink-0" viewBox="0 0 32 32" fill="none">
@@ -214,179 +288,161 @@ const THEMES = {
   },
 };
 
-const DEFAULT_TOPIC_KITS = [
-  {
-    id: 'default-kit-1',
-    title: 'IELTS Writing',
-    description: 'High-impact words & academic phrases for Task 1 & 2',
-    access_tier: 'pro',
-    wordCount: 312,
-    progressPercent: 72,
-    theme: THEMES.indigo,
-  },
-  {
-    id: 'default-kit-2',
-    title: 'IELTS Speaking',
-    description: 'Express complex ideas fluently and naturally in Parts 1-3',
-    access_tier: 'free',
-    wordCount: 258,
-    progressPercent: 68,
-    theme: THEMES.emerald,
-  },
-  {
-    id: 'default-kit-3',
-    title: 'IELTS Reading',
-    description: 'Academic vocabulary & collocations for reading passages',
-    access_tier: 'pro',
-    wordCount: 356,
-    progressPercent: 64,
-    theme: THEMES.sky,
-  },
-  {
-    id: 'default-kit-4',
-    title: 'Academic Word List',
-    description: 'Essential high-frequency vocabulary for Band 7.5+',
-    access_tier: 'premium',
-    wordCount: 570,
-    progressPercent: 58,
-    theme: THEMES.violet,
-  },
-];
-
 const FALLBACK_THEMES = [THEMES.indigo, THEMES.emerald, THEMES.sky, THEMES.violet];
 
-const WordGroupList = memo(({ curatedLists = [], user, onSelect, onViewAll }) => {
-  const displayKits =
-    curatedLists.length >= 4
-      ? curatedLists.map((list, index) => ({
-          id: list.id,
-          title: list.title,
-          description: list.description || 'Curated vocabulary list by IELTS experts.',
-          access_tier: list.access_tier || 'free',
-          wordCount: JSON.parse(list.content || '[]').length || 200,
-          progressPercent: Math.min(
-            100,
-            Math.max(30, ((JSON.parse(list.content || '[]').length || 10) * 13) % 85)
-          ),
-          theme: FALLBACK_THEMES[index % FALLBACK_THEMES.length],
-          rawList: list,
-        }))
-      : DEFAULT_TOPIC_KITS;
+const WordGroupList = memo(({ allVocabulary = [] }) => {
+  const viewportRef = useRef(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const displayKits = [
+    ...FEATURED_VOCABULARY_KITS,
+    ...VOCABULARY_KITS.filter(
+      (kit) => !FEATURED_VOCABULARY_KITS.some((featured) => featured.id === kit.id)
+    ).slice(0, 4),
+  ].map((kit, index) => {
+    const savedWords = kit.words.filter((item) =>
+      allVocabulary.some((saved) => saved?.word?.toLowerCase() === item.word.toLowerCase())
+    ).length;
+    return {
+      ...kit,
+      wordCount: kit.word_count,
+      progressPercent: kit.word_count ? Math.round((savedWords / kit.word_count) * 100) : 0,
+      theme: FALLBACK_THEMES[index % FALLBACK_THEMES.length],
+    };
+  });
+  const scrollingKits = [...displayKits, ...displayKits];
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport || isPaused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return undefined;
+    }
+
+    const interval = window.setInterval(() => {
+      const loopPoint = viewport.scrollWidth / 2;
+      if (viewport.scrollLeft >= loopPoint - 1) {
+        viewport.scrollLeft = 0;
+      } else {
+        viewport.scrollLeft += 0.45;
+      }
+    }, 32);
+
+    return () => window.clearInterval(interval);
+  }, [isPaused]);
+
+  const scrollCarousel = (direction) => {
+    viewportRef.current?.scrollBy({ left: direction * 260, behavior: 'smooth' });
+  };
 
   return (
-    <div className="space-y-3">
-      {/* Section Header */}
-      <div className="flex items-center justify-between px-0.5">
+    <section className="space-y-3" aria-labelledby="smart-vocabulary-kits">
+      <div className="flex items-center justify-between gap-3 px-0.5">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-xl bg-[#efedff] text-[#5862df] dark:bg-indigo-500/20 dark:text-indigo-300 flex items-center justify-center ring-1 ring-[#5862df]/15 shadow-xs">
               <Sparkles className="w-4 h-4 fill-current" />
             </div>
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h3
+              id="smart-vocabulary-kits"
+              className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white"
+            >
               Smart Vocabulary Kits
             </h3>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            Curated word lists to boost your IELTS band score.
+            Explore focused kits while the shelf gently moves.
           </p>
         </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-xs font-bold text-[#5661e9] dark:text-indigo-300 gap-1 hover:bg-[#efedff] dark:hover:bg-indigo-950/50 rounded-xl h-8 px-2.5 transition-colors cursor-pointer"
-          onClick={onViewAll}
-        >
-          View all kits <ArrowRight className="w-3.5 h-3.5" />
-        </Button>
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            aria-label="Show previous Vocabulary Kits"
+            onClick={() => scrollCarousel(-1)}
+            className="hidden h-8 w-8 items-center justify-center rounded-xl border border-indigo-100 bg-white text-indigo-600 transition hover:bg-indigo-50 sm:inline-flex dark:border-white/10 dark:bg-white/5 dark:text-indigo-300"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="Show next Vocabulary Kits"
+            onClick={() => scrollCarousel(1)}
+            className="hidden h-8 w-8 items-center justify-center rounded-xl border border-indigo-100 bg-white text-indigo-600 transition hover:bg-indigo-50 sm:inline-flex dark:border-white/10 dark:bg-white/5 dark:text-indigo-300"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+          <Link
+            to="/vocabulary/kits"
+            className="inline-flex h-8 items-center gap-1 rounded-xl px-2.5 text-xs font-bold text-[#5661e9] transition-colors hover:bg-[#efedff] dark:text-indigo-300 dark:hover:bg-indigo-950/50"
+          >
+            All kits <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
       </div>
 
-      {/* Grid of Compact, High-Style Cards - 2 per row on mobile */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-2.5 sm:gap-3.5">
-        {displayKits.map((kit) => {
-          const hasAccess = () => {
-            if (kit.access_tier === 'free') return true;
-            if (!user) return false;
-            const tiers = { free: 0, pro: 1, premium: 2 };
-            return tiers[user.subscription_tier || 'free'] >= tiers[kit.access_tier];
-          };
-          const locked = !hasAccess();
+      <div
+        ref={viewportRef}
+        role="region"
+        aria-label="Slow-moving Vocabulary Kits carousel"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onFocusCapture={() => setIsPaused(true)}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setIsPaused(false);
+        }}
+        className="-mx-1 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-1 pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {scrollingKits.map((kit, index) => {
           const theme = kit.theme || FALLBACK_THEMES[0];
+          const isClone = index >= displayKits.length;
 
           return (
             <motion.div
-              key={kit.id}
-              whileHover={{ y: -3, scale: 1.01 }}
+              key={`${kit.id}-${index}`}
+              whileHover={{ y: -2 }}
               transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-              onClick={() => onSelect(kit.rawList || kit)}
-              className="group relative rounded-[18px] sm:rounded-[20px] bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] border border-[#e0e4f1] dark:border-white/10 p-3 sm:p-4 shadow-xs hover:shadow-md hover:border-[#6570ee]/50 dark:hover:border-indigo-400/50 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+              aria-hidden={isClone}
+              className="group w-[180px] shrink-0 snap-start rounded-2xl border border-[#eceafa] bg-gradient-to-br from-[#fdfcff] to-[#f3efff] transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-[0_16px_32px_-24px_rgba(59,70,150,0.65)] dark:border-white/10 dark:from-white/[0.035] dark:to-white/[0.015] sm:w-[192px]"
             >
-              <div className="space-y-2 sm:space-y-3">
-                {/* Header Row: Icon, Title & Badge */}
-                <div className="flex items-center justify-between gap-1.5 sm:gap-3">
-                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <Link
+                to={`/vocabulary/kits/${kit.slug}`}
+                tabIndex={isClone ? -1 : undefined}
+                aria-label={`Open ${kit.title}, ${kit.category}`}
+                className="flex h-[132px] flex-col justify-between p-3.5"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2">
                     <div
-                      className={`w-11 h-11 rounded-2xl ${theme.iconBg} flex items-center justify-center p-0.5 shrink-0 transition-transform duration-200 group-hover:scale-105 shadow-xs overflow-hidden`}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl p-0.5 ${theme.iconBg}`}
                     >
                       <KitVisual id={kit.id} />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-[#5661e9] dark:group-hover:text-indigo-400 transition-colors truncate">
-                        {kit.title}
-                      </h4>
-                      <span className="text-[9.5px] sm:text-[11px] font-bold text-slate-400 dark:text-slate-500 block truncate">
-                        {kit.wordCount} words
-                      </span>
-                    </div>
+                    <span className="rounded-full bg-white/80 px-2 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-slate-500 shadow-sm dark:bg-white/10 dark:text-slate-300">
+                      {kit.wordCount} items
+                    </span>
                   </div>
-
-                  {/* Tier / Lock Badge */}
-                  {locked ? (
-                    <Badge className="bg-slate-900 text-amber-400 border border-slate-700 text-[8.5px] sm:text-[9.5px] font-black px-1.5 sm:px-2 py-0.5 rounded-md sm:rounded-lg flex items-center gap-0.5 sm:gap-1 shrink-0 shadow-xs">
-                      <Lock className="w-2.5 h-2.5" />
-                      <span className="uppercase">{kit.access_tier}</span>
-                    </Badge>
-                  ) : kit.access_tier !== 'free' ? (
-                    <Badge className="bg-[#efedff] text-[#505bdd] dark:bg-indigo-950 dark:text-indigo-300 border border-[#d8dcfa] dark:border-indigo-800 text-[8.5px] sm:text-[9.5px] font-black px-1.5 sm:px-2 py-0.5 rounded-md sm:rounded-lg uppercase shrink-0 shadow-xs">
-                      {kit.access_tier}
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[8.5px] sm:text-[9.5px] font-black px-1.5 sm:px-2 py-0.5 rounded-md sm:rounded-lg uppercase shrink-0">
-                      FREE
-                    </Badge>
-                  )}
+                  <h4 className="mt-3 line-clamp-2 text-xs font-extrabold leading-4 text-slate-900 transition-colors group-hover:text-[#5661e9] dark:text-white dark:group-hover:text-indigo-300">
+                    {kit.title}
+                  </h4>
                 </div>
 
-                {/* Description */}
-                <p className="text-[10.5px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed line-clamp-1 sm:line-clamp-2">
-                  {kit.description}
-                </p>
-              </div>
-
-              {/* Progress Footer */}
-              <div className="pt-2 sm:pt-3 border-t border-slate-200/80 dark:border-white/10 space-y-1 sm:space-y-1.5 mt-2 sm:mt-3">
-                <div className="flex items-center justify-between text-[9.5px] sm:text-[10.5px] font-bold">
-                  <span className="text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                    PROGRESS
-                  </span>
-                  <span className="text-slate-900 dark:text-white font-extrabold text-[10.5px] sm:text-xs">
-                    {kit.progressPercent}%
-                  </span>
+                <div className="mt-2">
+                  <div className="flex items-center justify-between text-[10px] font-extrabold">
+                    <span className="text-slate-400">{kit.progressPercent}% saved</span>
+                    <ArrowRight className="h-3.5 w-3.5 text-[#5661e9] transition group-hover:translate-x-0.5" />
+                  </div>
+                  <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[#eceef8] dark:bg-slate-800">
+                    <div
+                      className={`h-full rounded-full ${theme.progressBar}`}
+                      style={{ width: `${kit.progressPercent}%` }}
+                    />
+                  </div>
                 </div>
-
-                {/* Progress Bar */}
-                <div className="w-full h-1.5 bg-[#eceef8] dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${theme.progressBar} transition-all duration-500 ease-out`}
-                    style={{ width: `${kit.progressPercent}%` }}
-                  />
-                </div>
-              </div>
+              </Link>
             </motion.div>
           );
         })}
       </div>
-    </div>
+    </section>
   );
 });
 

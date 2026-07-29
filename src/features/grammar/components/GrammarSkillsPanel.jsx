@@ -52,7 +52,7 @@ export default function GrammarSkillsPanel({
             Six grammar skills
           </h2>
           <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
-            Each result shows how much evidence it is based on.
+            Each result shows how much practice it is based on.
           </p>
         </div>
         <button
@@ -67,7 +67,7 @@ export default function GrammarSkillsPanel({
         </button>
       </div>
 
-      <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
         {skills.map((skill) => {
           const visual = SKILL_VISUALS[skill.skillCode] || SKILL_VISUALS.grammar_word_forms;
           const accuracy =
@@ -88,7 +88,7 @@ export default function GrammarSkillsPanel({
               }
               disabled={isStarting || (!access.isPaid && Number(access.dailyRemaining || 0) <= 0)}
               className={cn(
-                'group flex min-h-[106px] items-center gap-3 rounded-2xl border bg-gradient-to-br p-3 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_32px_-24px_rgba(59,70,150,0.65)] dark:bg-white/[0.025]',
+                'group flex min-h-[108px] items-center gap-3 rounded-2xl border bg-gradient-to-br p-3.5 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_32px_-24px_rgba(59,70,150,0.65)] dark:bg-white/[0.025]',
                 visual.panelClass,
                 visual.cardClass,
                 isRecommended

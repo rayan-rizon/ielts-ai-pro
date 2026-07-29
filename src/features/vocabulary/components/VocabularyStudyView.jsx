@@ -1,200 +1,219 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, Check, Plus } from 'lucide-react';
+import { Check, ListPlus, LoaderCircle, Lock, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
 
 const LockedContent = ({ resource }) => (
-  <div className="p-8 sm:p-10 text-center space-y-6 max-w-lg mx-auto" data-oid="eg00wqs">
-    <div
-      className="w-20 h-20 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto ring-8 ring-indigo-500/5"
-      data-oid="zjcbk-c"
-    >
-      <Lock className="w-8 h-8 text-indigo-500" data-oid="b4ux9gm" />
+  <div className="mx-auto max-w-lg space-y-5 p-8 text-center sm:p-10">
+    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-indigo-50 text-indigo-600 ring-8 ring-indigo-50/70 dark:bg-indigo-500/10 dark:text-indigo-300">
+      <Lock className="h-7 w-7" />
     </div>
-    <div className="space-y-2" data-oid="lv6dcn.">
-      <h2
-        className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight"
-        data-oid="ar26jf."
-      >
-        Premium Content
+    <div className="space-y-2">
+      <h2 className="text-xl font-black tracking-tight text-slate-800 dark:text-white">
+        Premium vocabulary kit
       </h2>
-      <p
-        className="text-slate-500 dark:text-slate-400 font-medium text-sm leading-relaxed max-w-[280px] mx-auto"
-        data-oid="5k46c88"
-      >
-        This {resource.access_tier} vocabulary list is locked. Upgrade your plan to access this and{' '}
-        {resource.access_tier === 'pro' ? 'hundreds' : 'thousands'} of other curated materials.
+      <p className="mx-auto max-w-sm text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
+        This {resource.access_tier} kit is ready when you upgrade your plan.
       </p>
     </div>
     <Button
       onClick={() => (window.location.href = '/pricing')}
-      className="h-14 px-10 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest shadow-xl shadow-indigo-600/20 active:scale-95 transition-all text-xs"
-      data-oid="t8.uvue"
+      className="h-11 rounded-xl bg-indigo-600 px-7 text-xs font-extrabold text-white hover:bg-indigo-700"
     >
-      View Pricing Plans
+      View plans
     </Button>
   </div>
 );
 
-const WordCard = ({ item, index, isAdded, isAdding, onAdd }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: index * 0.03 }}
-    className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 shadow-sm group hover:shadow-md transition-all duration-300 relative"
-    data-oid="ofv2gmw"
-  >
-    <div
-      className="flex flex-col md:flex-row md:items-center justify-between gap-5 md:gap-8"
-      data-oid="_88eofd"
-    >
-      {/* Word & Definition */}
-      <div className="space-y-1.5 md:w-5/12 flex-shrink-0" data-oid="atlde:s">
-        <h4 className="text-xl font-bold text-indigo-600 dark:text-indigo-400" data-oid="4l9ycln">
-          {item.word}
-        </h4>
-        <p
-          className="text-[14px] text-slate-700 dark:text-slate-300 font-medium leading-relaxed"
-          data-oid="yog-thg"
-        >
-          {item.definition}
-        </p>
-      </div>
-
-      {/* Divider */}
-      <div
-        className="md:w-[2px] md:h-12 bg-slate-100 dark:bg-white/10 hidden md:block rounded-full"
-        data-oid="0jx.ygt"
-      />
-
-      {/* Example Sentence */}
-      <div className="flex-1 md:w-5/12" data-oid="blsw1v7">
-        <p
-          className="text-[13px] text-slate-500 dark:text-slate-400 italic leading-relaxed"
-          data-oid="-euq59w"
-        >
-          &quot;{item.example}&quot;
-        </p>
-      </div>
-
-      {/* Action Button */}
-      <div className="md:w-1/12 flex justify-end mt-4 md:mt-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          disabled={isAdded || isAdding}
-          onClick={onAdd}
-          className={cn(
-            'h-10 w-10 shrink-0 rounded-full transition-all duration-300',
-            isAdded
-              ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 opacity-100'
-              : 'hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400 text-slate-400'
-          )}
-          title={isAdded ? 'Already in your library' : 'Add to my library'}
-        >
-          {isAdded ? (
-            <Check className="w-5 h-5" />
-          ) : isAdding ? (
-            <div className="w-5 h-5 rounded-full border-2 border-slate-300 border-t-indigo-600 animate-spin" />
-          ) : (
-            <Plus className="w-5 h-5" />
-          )}
-        </Button>
-      </div>
-    </div>
-  </motion.div>
-);
-
-const StudyHeader = ({ resource }) => (
-  <div
-    className="sticky top-0 z-10 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md p-6 border-b border-slate-100 dark:border-white/5"
-    data-oid="smfe2e:"
-  >
-    <div className="flex justify-between items-start gap-6" data-oid="gn1hpje">
-      <div className="space-y-1" data-oid="s79si9e">
-        <Badge
-          className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-none px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest mb-2"
-          data-oid="bxwb_l4"
-        >
-          IELTS Vocabulary List
-        </Badge>
-        <h2
-          className="text-2xl font-black text-slate-900 dark:text-white italic"
-          data-oid="7ork.gw"
-        >
-          {resource.title}
-        </h2>
-        <p className="text-slate-500 dark:text-slate-400 font-medium text-xs" data-oid="xrt14_x">
-          {resource.description}
-        </p>
-      </div>
-    </div>
-  </div>
-);
-
-const WordList = ({ words, allVocabulary, onAddWord }) => {
-  const [addingWords, setAddingWords] = useState(new Set());
-
+function CompactWordCard({ item, index, isAdded, isAdding, onAdd }) {
   return (
-    <div className="p-6 md:p-8 space-y-4" data-oid="qo992m5">
-      {words.map((item, i) => {
-        const isAdded = allVocabulary?.some(
-          (v) => v?.word?.toLowerCase() === item?.word?.toLowerCase()
-        );
-        const isAdding = addingWords.has(item.word);
+    <motion.article
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: Math.min(index * 0.018, 0.16) }}
+      className="group relative min-h-[132px] rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-[0_10px_26px_-24px_rgba(67,56,202,0.6)] transition hover:border-indigo-200 hover:shadow-sm dark:border-white/10 dark:bg-slate-900"
+    >
+      <div className="flex items-start gap-2 pr-9">
+        <div className="min-w-0">
+          <h3 className="text-[15px] font-black leading-5 tracking-tight text-indigo-600 dark:text-indigo-300">
+            {item.word}
+          </h3>
+          <p className="mt-1 text-xs font-semibold leading-4 text-slate-700 dark:text-slate-200">
+            {item.definition}
+          </p>
+        </div>
+      </div>
 
-        const handleAdd = async (e) => {
-          e.stopPropagation();
-          if (isAdded || isAdding) return;
-          setAddingWords((prev) => new Set(prev).add(item.word));
-          await onAddWord({
-            word: item.word,
-            definition: item.definition,
-            example: item.example,
-          });
-        };
+      <p className="mt-2 line-clamp-2 border-t border-slate-100 pt-2 text-[11px] font-medium italic leading-4 text-slate-500 dark:border-white/10 dark:text-slate-400">
+        “{item.example}”
+      </p>
 
-        return (
-          <WordCard
-            key={i}
-            index={i}
-            item={item}
-            isAdded={isAdded}
-            isAdding={isAdding}
-            onAdd={handleAdd}
-          />
-        );
-      })}
+      <Button
+        variant="ghost"
+        size="icon"
+        disabled={isAdded || isAdding}
+        onClick={onAdd}
+        className={cn(
+          'absolute right-2.5 top-2.5 h-7 w-7 rounded-lg transition',
+          isAdded
+            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300'
+            : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20'
+        )}
+        title={isAdded ? 'Already in your saved words' : 'Add this item to saved words'}
+      >
+        {isAdded ? (
+          <Check className="h-4 w-4" />
+        ) : isAdding ? (
+          <LoaderCircle className="h-4 w-4 animate-spin" />
+        ) : (
+          <Plus className="h-4 w-4" />
+        )}
+      </Button>
+    </motion.article>
+  );
+}
+
+function StudyHeader({ resource }) {
+  return (
+    <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50 via-white to-sky-50 px-5 py-4 dark:border-white/10 dark:from-indigo-500/10 dark:via-slate-950 dark:to-sky-500/10 sm:px-6">
+      <Badge className="border border-indigo-100 bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.13em] text-indigo-600 dark:border-indigo-400/20 dark:bg-white/5 dark:text-indigo-300">
+        Vocabulary kit
+      </Badge>
+      <h2 className="mt-2 text-xl font-black tracking-tight text-slate-800 dark:text-white">
+        {resource.title}
+      </h2>
+      <p className="mt-1 text-xs font-medium leading-5 text-slate-600 dark:text-slate-300">
+        {resource.description}
+      </p>
     </div>
   );
-};
+}
+
+function WordList({ words, allVocabulary = [], onAddWord, onAddAll, isAddingAll, bulkStatus }) {
+  const [addingWords, setAddingWords] = useState(new Set());
+  const unsavedWords = words.filter(
+    (item) =>
+      !allVocabulary.some((saved) => saved?.word?.toLowerCase() === item?.word?.toLowerCase())
+  );
+
+  return (
+    <div className="p-3 sm:p-4">
+      <div className="mb-3 flex flex-col gap-2 rounded-2xl border border-indigo-100 bg-[#f8f8ff] px-3 py-2.5 dark:border-indigo-400/15 dark:bg-indigo-500/10 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-black text-slate-800 dark:text-white">
+            {words.length} items · {unsavedWords.length} ready to save
+          </p>
+          <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            Save a phrase now, then review it from your personal word bank.
+          </p>
+        </div>
+        <Button
+          type="button"
+          onClick={() => onAddAll?.(unsavedWords)}
+          disabled={!unsavedWords.length || isAddingAll || !onAddAll}
+          className="h-9 shrink-0 rounded-xl bg-indigo-600 px-3.5 text-xs font-extrabold text-white hover:bg-indigo-700 disabled:bg-indigo-300"
+        >
+          {isAddingAll ? (
+            <LoaderCircle className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <ListPlus className="mr-1.5 h-3.5 w-3.5" />
+          )}
+          {unsavedWords.length ? `Add all (${unsavedWords.length})` : 'All saved'}
+        </Button>
+      </div>
+
+      {bulkStatus && (
+        <p
+          role="status"
+          className={cn(
+            'mb-3 rounded-xl px-3 py-2 text-xs font-semibold',
+            bulkStatus.type === 'error'
+              ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300'
+              : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
+          )}
+        >
+          {bulkStatus.message}
+        </p>
+      )}
+
+      <div className="grid gap-2.5 md:grid-cols-2">
+        {words.map((item, index) => {
+          const isAdded = allVocabulary.some(
+            (saved) => saved?.word?.toLowerCase() === item?.word?.toLowerCase()
+          );
+          const isAdding = addingWords.has(item.word);
+
+          const handleAdd = async (event) => {
+            event.stopPropagation();
+            if (isAdded || isAdding || !onAddWord) return;
+            setAddingWords((previous) => new Set(previous).add(item.word));
+            await onAddWord({
+              word: item.word,
+              definition: item.definition,
+              example: item.example,
+              source: 'Vocabulary Kit',
+            });
+            setAddingWords((previous) => {
+              const next = new Set(previous);
+              next.delete(item.word);
+              return next;
+            });
+          };
+
+          return (
+            <CompactWordCard
+              key={`${item.word}-${index}`}
+              item={item}
+              index={index}
+              isAdded={isAdded}
+              isAdding={isAdding}
+              onAdd={handleAdd}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function VocabularyStudyView({
   resource,
   user,
-  onClose: _onClose,
   onAddWord,
+  onAddAll,
+  isAddingAll = false,
+  bulkStatus,
   allVocabulary,
+  showHeader = true,
 }) {
-  const words = JSON.parse(resource.content || '[]');
-
-  const hasAccess = () => {
-    if (resource.access_tier === 'free') return true;
-    if (!user) return false;
-    const tiers = { free: 0, pro: 1, premium: 2 };
-    return tiers[user.subscription_tier || 'free'] >= tiers[resource.access_tier];
-  };
-
-  if (!hasAccess()) {
-    return <LockedContent resource={resource} />;
+  let words = [];
+  try {
+    const parsed = JSON.parse(resource.content || '[]');
+    words = Array.isArray(parsed) ? parsed : [];
+  } catch {
+    words = [];
   }
 
+  const tierOrder = { free: 0, pro: 1, premium: 2 };
+  const hasAccess =
+    resource.access_tier === 'free' ||
+    (user && tierOrder[user.subscription_tier || 'free'] >= tierOrder[resource.access_tier]);
+
+  if (!hasAccess) return <LockedContent resource={resource} />;
+
   return (
-    <div className="relative" data-oid="qb8im7q">
-      <StudyHeader resource={resource} />
-      <WordList words={words} allVocabulary={allVocabulary} onAddWord={onAddWord} />
+    <div className="relative">
+      {showHeader && <StudyHeader resource={resource} />}
+      <WordList
+        words={words}
+        allVocabulary={allVocabulary}
+        onAddWord={onAddWord}
+        onAddAll={onAddAll}
+        isAddingAll={isAddingAll}
+        bulkStatus={bulkStatus}
+      />
     </div>
   );
 }

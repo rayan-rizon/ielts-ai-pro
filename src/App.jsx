@@ -137,6 +137,9 @@ const ListeningTest = lazyWithRetry(
 const ReadingTest = lazyWithRetry(() => import('@/features/testing/reading/pages/ReadingTest.jsx'));
 const Settings = lazyWithRetry(() => import('@/features/settings/pages/Settings.jsx'));
 const Vocabulary = lazyWithRetry(() => import('@/features/vocabulary/pages/Vocabulary.jsx'));
+const VocabularyKits = lazyWithRetry(
+  () => import('@/features/vocabulary/pages/VocabularyKits.jsx')
+);
 const GrammarLab = lazyWithRetry(() => import('@/features/grammar/pages/GrammarLab.jsx'));
 const SpeakingTest = lazyWithRetry(
   () => import('@/features/testing/speaking/pages/SpeakingTest.jsx')
@@ -504,6 +507,30 @@ const router = createBrowserRouter(
           <Layout currentPageName="Vocabulary" data-oid="mjllbml">
             <LazyPage data-oid="tyz.03p">
               <Vocabulary data-oid="zvfmptq" />
+            </LazyPage>
+          </Layout>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/vocabulary/kits',
+      element: (
+        <ProtectedRoute data-oid="vocabulary-kits-protected">
+          <Layout currentPageName="Vocabulary" data-oid="vocabulary-kits-layout">
+            <LazyPage data-oid="vocabulary-kits-page">
+              <VocabularyKits data-oid="vocabulary-kits" />
+            </LazyPage>
+          </Layout>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/vocabulary/kits/:kitSlug',
+      element: (
+        <ProtectedRoute data-oid="vocabulary-kit-protected">
+          <Layout currentPageName="Vocabulary" data-oid="vocabulary-kit-layout">
+            <LazyPage data-oid="vocabulary-kit-page">
+              <VocabularyKits data-oid="vocabulary-kit" />
             </LazyPage>
           </Layout>
         </ProtectedRoute>

@@ -1,4 +1,3 @@
-import { Resource } from '@/features/learning/services/Resource';
 import { VocabularyItem } from './VocabularyItem';
 import { supabase } from '@/lib/supabase';
 
@@ -6,22 +5,6 @@ export const VOCABULARY_LIST_FIELDS =
   'id, word, definition, example, example_sentence, source, times_reviewed, last_reviewed, next_review_date, mastery_level, ease_factor, interval_days, created_at, user_id, created_by';
 
 export const ITEMS_PER_PAGE = 50;
-
-export async function fetchCuratedLists() {
-  try {
-    const res = await Resource.list(
-      { content_type: 'vocabulary', is_published: true },
-      '-created_at',
-      20,
-      1,
-      true
-    );
-    return res.data || [];
-  } catch (err) {
-    console.error('Failed to load curated lists:', err);
-    return [];
-  }
-}
 
 export async function fetchVocabularyItems(userId: string) {
   try {

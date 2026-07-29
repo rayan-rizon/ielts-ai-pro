@@ -10,7 +10,7 @@ export function useVocabularyMutations({ user, allVocabulary, setAllVocabulary }
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAddWord = useCallback(
-    async ({ word, definition, example }) => {
+    async ({ word, definition, example, source = 'Manual' }) => {
       if (!word.trim()) return { success: false, error: 'Word is required' };
 
       // Check limit
@@ -35,7 +35,7 @@ export function useVocabularyMutations({ user, allVocabulary, setAllVocabulary }
           created_by: user?.id,
           mastery_level: 0,
           next_review_date: null,
-          source: 'Manual',
+          source,
         });
 
         setAllVocabulary((prev) => [newItem, ...prev]);

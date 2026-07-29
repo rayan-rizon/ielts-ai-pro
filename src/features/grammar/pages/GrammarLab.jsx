@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   AlertTriangle,
   BookOpenCheck,
@@ -15,6 +15,7 @@ import GrammarDashboard from '../components/GrammarDashboard';
 import GrammarGuidePage from '../components/GrammarGuidePage';
 import GrammarResults from '../components/GrammarResults';
 import GrammarTransfer from '../components/GrammarTransfer';
+import { getGrammarGuide } from '../data/grammarGuideCatalog';
 import { useGrammarLab } from '../hooks/useGrammarLab';
 
 function HeaderMetric({ icon: Icon, value, label, tone, href, onClick, disabled = false }) {
@@ -96,7 +97,21 @@ function GrammarHeaderStats({ dashboard, isStarting, onReview }) {
   );
 }
 
+function scrollGrammarPageToTop(pageElement) {
+  let scrollParent = pageElement?.parentElement;
+  while (scrollParent) {
+    const { overflowY } = window.getComputedStyle(scrollParent);
+    if (overflowY === 'auto' || overflowY === 'scroll') {
+      scrollParent.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      return;
+    }
+    scrollParent = scrollParent.parentElement;
+  }
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+}
+
 export default function GrammarLab() {
+  const pageTopRef = useRef(null);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { guideSlug } = useParams();
@@ -122,9 +137,17 @@ export default function GrammarLab() {
     );
   }, [grammar.dashboard?.skills, grammar.recommendedSkill, requestedSkill]);
   const selectedGuide = useMemo(
-    () => grammar.dashboard?.resources?.find((resource) => resource.slug === guideSlug) || null,
+    () =>
+      grammar.dashboard?.resources?.find((resource) => resource.slug === guideSlug) ||
+      getGrammarGuide(guideSlug),
     [grammar.dashboard?.resources, guideSlug]
   );
+
+  useEffect(() => {
+    scrollGrammarPageToTop(pageTopRef.current);
+    const frame = window.requestAnimationFrame(() => scrollGrammarPageToTop(pageTopRef.current));
+    return () => window.cancelAnimationFrame(frame);
+  }, [guideSlug, screen]);
 
   const startAttempt = async (options) => {
     const data = await grammar.startAttempt({
@@ -161,7 +184,10 @@ export default function GrammarLab() {
         title="IELTS Grammar Lab | IELTS Ai Pro"
         description="Practice grammar through Academic IELTS Writing and Speaking contexts, then connect measured evidence to your Learning Path."
       />
-      <main className="min-h-full bg-[radial-gradient(circle_at_78%_0%,rgba(226,222,255,0.36),transparent_32%),#f8f9fc] px-3 py-4 pt-16 text-slate-950 dark:bg-[#070913] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5">
+      <main
+        ref={pageTopRef}
+        className="min-h-full bg-[radial-gradient(circle_at_78%_0%,rgba(226,222,255,0.36),transparent_32%),#f8f9fc] px-3 py-4 pt-16 text-slate-950 dark:bg-[#070913] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5"
+      >
         <div className="mx-auto max-w-[1440px]">
           {screen === 'dashboard' && (
             <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -195,7 +221,7 @@ export default function GrammarLab() {
                 <div className="h-96 animate-pulse rounded-2xl bg-white dark:bg-white/5" />
               </div>
             </div>
-          ) : grammar.error ? (
+          ) : grammar.error && screen !== 'guide' ? (
             <section className="rounded-2xl border border-amber-200 bg-white p-6 shadow-sm dark:border-amber-400/20 dark:bg-[#10131f]">
               <div className="flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-400/10 dark:text-amber-300">
