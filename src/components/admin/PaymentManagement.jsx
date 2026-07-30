@@ -1,39 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
-  CheckCircle2,
-  XCircle,
-  Search,
-  Filter,
-  ExternalLink,
-  Phone,
-  Hash,
-  Clock,
-  User,
-  MoreVertical,
-  Check,
-  X,
-  CreditCard,
   AlertCircle,
+  Check,
+  CheckCircle2,
+  Clock,
+  Hash,
   Loader2,
+  Phone,
+  Search,
+  User,
+  X,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
 import { matchesPaymentSearch, mergePaymentHistory } from './paymentHistory';
+import { NUM, MICRO, PANEL, Kpi, AdminPageHeader } from './ui/primitives';
+
+const STATUS_PILL = {
+  pending:
+    'text-[rgb(var(--signal-warn))] border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.08)]',
+  approved:
+    'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.08)]',
+  rejected:
+    'text-[rgb(var(--signal-fault))] border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.08)]',
+};
+
+const StatusPill = ({ status }) => (
+  <span
+    className={cn(
+      'inline-flex items-center rounded-md border px-1.5 py-0.5 shrink-0',
+      MICRO,
+      STATUS_PILL[status] || STATUS_PILL.pending
+    )}
+  >
+    {status}
+  </span>
+);
+
+const FILTERS = [
+  { value: 'all', label: 'All' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'rejected', label: 'Rejected' },
+];
 
 export default function PaymentManagement() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
+  const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
-  const [isProcessing, setIsProcessing] = useState(null); // ID of request being processed
+  const [isProcessing, setIsProcessing] = useState(null);
 
   useEffect(() => {
     fetchRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   const fetchRequests = async () => {
@@ -88,9 +110,8 @@ export default function PaymentManagement() {
     try {
       setIsProcessing(request.id);
 
-      // Update the payment request status
-      // The DB trigger `handle_payment_approval` automatically upgrades
-      // the user's subscription_tier when status changes to 'approved'
+      // The DB trigger `handle_payment_approval` upgrades the user's
+      // subscription_tier when status changes to 'approved'.
       const { error: requestError } = await supabase
         .from('payment_requests')
         .update({ status: newStatus, updated_at: new Date().toISOString() })
@@ -115,416 +136,269 @@ export default function PaymentManagement() {
 
   const filteredRequests = requests.filter((request) => matchesPaymentSearch(request, search));
 
-  return (
-    <div className="space-y-6 pb-10 pt-12 md:pt-0" data-oid="66djezk">
-      <div
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1"
-        data-oid="hhg.nt6"
-      >
-        <div className="space-y-0.5 min-w-0" data-oid="ktp:fpz">
-          <h2
-            className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5"
-            data-oid="u5k8:w-"
-          >
-            <div
-              className="p-2 sm:p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xs shrink-0"
-              data-oid="3a1l_ft"
-            >
-              <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" data-oid="8k80j1w" />
-            </div>
-            <span className="truncate">Payment Requests</span>
-          </h2>
-          <p
-            className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400"
-            data-oid="60q36qc"
-          >
-            Review and approve manual subscription payments
-          </p>
-        </div>
+  // Counts come from the loaded set, so they reflect whatever filter is active.
+  const stats = useMemo(() => {
+    const pending = requests.filter((r) => r.status === 'pending');
+    const oldest = pending.reduce(
+      (acc, r) => Math.min(acc, new Date(r.created_at).getTime()),
+      Date.now()
+    );
+    return {
+      pending: pending.length,
+      approved: requests.filter((r) => r.status === 'approved').length,
+      rejected: requests.filter((r) => r.status === 'rejected').length,
+      oldestHours: pending.length ? Math.round((Date.now() - oldest) / 3600000) : 0,
+    };
+  }, [requests]);
 
-        <div
-          className="flex items-center gap-2 w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
-          data-oid="ak9jwuz"
+  const ActionButtons = ({ request, full = false }) =>
+    request.status === 'pending' ? (
+      <div className={cn('flex items-center gap-2', full && 'pt-1')}>
+        <button
+          disabled={isProcessing === request.id}
+          onClick={() => handleStatusUpdate(request, 'approved')}
+          className={cn(
+            MICRO,
+            'inline-flex items-center justify-center gap-1.5 rounded-md text-white bg-[rgb(var(--signal-ok))] hover:opacity-90 transition-opacity disabled:opacity-40',
+            full ? 'flex-1 h-9' : 'h-7 w-7'
+          )}
+          aria-label="Approve payment"
         >
-          <div className="relative flex-1 sm:flex-initial w-full sm:w-64" data-oid="7i3m2z0">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
-              data-oid="7kg-h.:"
-            />
+          {isProcessing === request.id ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Check className="w-3.5 h-3.5" />
+          )}
+          {full && <span>Approve</span>}
+        </button>
+        <button
+          disabled={isProcessing === request.id}
+          onClick={() => handleStatusUpdate(request, 'rejected')}
+          className={cn(
+            MICRO,
+            'inline-flex items-center justify-center gap-1.5 rounded-md border border-stone-300 dark:border-white/15 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors disabled:opacity-40',
+            full ? 'flex-1 h-9' : 'h-7 w-7'
+          )}
+          aria-label="Reject payment"
+        >
+          {isProcessing === request.id ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <X className="w-3.5 h-3.5" />
+          )}
+          {full && <span>Reject</span>}
+        </button>
+      </div>
+    ) : (
+      <span className={cn(MICRO, 'inline-flex items-center gap-1 text-stone-400')}>
+        <CheckCircle2 className="w-3 h-3" />
+        Processed
+      </span>
+    );
 
-            <Input
-              placeholder="Search TrxID, Phone, User..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9 w-full bg-white dark:bg-slate-900 border-slate-200/90 dark:border-white/10 rounded-xl text-xs font-medium"
-              data-oid="upereuz"
-            />
-          </div>
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="h-9 px-3 pr-8 rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 shrink-0"
-            data-oid="9sv59ch"
-          >
-            <option value="all" data-oid="xs0kyxv">
-              All Requests
-            </option>
-            <option value="pending" data-oid="wvgrwd8">
-              Pending
-            </option>
-            <option value="approved" data-oid="prm-2l.">
-              Approved
-            </option>
-            <option value="rejected" data-oid="ykz1aqw">
-              Rejected
-            </option>
-          </select>
+  return (
+    <div className="space-y-4 pb-10 pt-12 md:pt-0">
+      <AdminPageHeader
+        title="Payments"
+        description="Review and approve manual subscription payments"
+        tip="Manual bKash/Nagad transfers land here as pending requests. Approving one triggers the database rule that upgrades the learner's plan — until you do, they have paid but are still on the free tier."
+      >
+        <div className="relative w-full sm:w-56">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+          <Input
+            placeholder="Search TrxID, phone, user…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-8 h-8 w-full rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium"
+          />
         </div>
+      </AdminPageHeader>
+
+      {/* Queue state */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Kpi
+          label="Awaiting review"
+          value={stats.pending}
+          sub={stats.pending ? `oldest ${stats.oldestHours}h ago` : 'queue is clear'}
+          tip="Payments a learner has submitted but nobody has approved yet. Every hour here is a paying user stuck on the free tier."
+        />
+        <Kpi label="Approved" value={stats.approved} sub="upgrades applied" />
+        <Kpi label="Rejected" value={stats.rejected} sub="declined transfers" />
+        <Kpi label="Total records" value={requests.length} sub="manual + Stripe" />
       </div>
 
-      <div
-        className="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200/90 dark:border-white/10 overflow-hidden shadow-2xs"
-        data-oid="zki:.j."
-      >
-        {/* Mobile View: Card List */}
-        <div
-          className="md:hidden divide-y divide-slate-100 dark:divide-white/5"
-          data-oid="mobile-payment-list"
-        >
+      {/* Filter row */}
+      <div className="flex items-center gap-1.5">
+        {FILTERS.map((f) => (
+          <button
+            key={f.value}
+            onClick={() => setFilter(f.value)}
+            className={cn(
+              MICRO,
+              'rounded-md px-2.5 py-1.5 border transition-colors',
+              filter === f.value
+                ? 'border-stone-400 dark:border-white/30 text-stone-900 dark:text-stone-50 bg-stone-100 dark:bg-white/[0.06]'
+                : 'border-stone-200 dark:border-white/10 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      <div className={cn(PANEL, 'overflow-hidden')}>
+        {/* Mobile: card list */}
+        <div className="md:hidden divide-y divide-stone-100 dark:divide-white/[0.05]">
           {loading ? (
-            <div className="p-12 text-center text-slate-500" data-oid="mob-loading">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-indigo-500" />
-              <p className="text-xs font-bold">Loading payment requests...</p>
+            <div className="p-12 text-center">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-stone-400" />
+              <p className={cn(MICRO, 'text-stone-400')}>Loading payments</p>
             </div>
           ) : filteredRequests.length === 0 ? (
-            <div className="p-12 text-center text-slate-500" data-oid="mob-empty">
-              <AlertCircle className="w-8 h-8 mx-auto mb-3 opacity-20" />
-              <p className="text-xs font-bold">No payment requests found</p>
+            <div className="p-12 text-center">
+              <AlertCircle className="w-6 h-6 mx-auto mb-3 text-stone-300 dark:text-stone-600" />
+              <p className={cn(MICRO, 'text-stone-400')}>No payment requests found</p>
             </div>
           ) : (
             filteredRequests.map((request) => (
-              <div key={request.id} className="p-4 space-y-3" data-oid={`mob-req-${request.id}`}>
-                {/* Header: User Info & Status */}
+              <div key={request.id} className="p-4 space-y-3 relative">
+                {request.status === 'pending' && (
+                  <span className="absolute left-0 top-0 h-full w-[2px] bg-[rgb(var(--signal-warn))]" />
+                )}
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 shrink-0">
-                      <User className="w-4 h-4" />
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-stone-400 shrink-0">
+                      <User className="w-3.5 h-3.5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-extrabold text-xs text-slate-900 dark:text-white truncate">
-                        {request.user?.full_name || 'Unknown User'}
+                      <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
+                        {request.user?.full_name || 'Unknown user'}
                       </p>
-                      <p className="text-[10px] text-slate-500 truncate">{request.user?.email}</p>
+                      <p className={cn(MICRO, 'text-stone-400 truncate mt-0.5')}>
+                        {request.user?.email}
+                      </p>
                     </div>
                   </div>
-                  <Badge
-                    className={cn(
-                      'rounded-full px-2.5 py-0.5 border-none font-bold uppercase text-[9px] shrink-0',
-                      request.status === 'pending' &&
-                        'bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400',
-                      request.status === 'approved' &&
-                        'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400',
-                      request.status === 'rejected' &&
-                        'bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400'
-                    )}
-                  >
-                    {request.status}
-                  </Badge>
+                  <StatusPill status={request.status} />
                 </div>
 
-                {/* Plan & Transaction details */}
-                <div className="p-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/5 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold">
+                <div className="rounded-lg bg-stone-50 dark:bg-white/[0.03] border border-stone-200/70 dark:border-white/[0.06] p-2.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}
+                    >
+                      {request.currency} {request.amount}
+                    </span>
+                    <span className={cn(MICRO, 'text-stone-400')}>
+                      {request.tier} · {request.interval}
+                    </span>
+                  </div>
+                  <div className="pt-1.5 border-t border-stone-200/60 dark:border-white/[0.05] space-y-1">
                     <div className="flex items-center gap-1.5">
-                      <Badge
+                      <Hash className="w-3 h-3 text-stone-400 shrink-0" />
+                      <span
                         className={cn(
-                          'uppercase text-[9px] px-1.5 py-0.2',
-                          request.tier === 'premium'
-                            ? 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-none'
-                            : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-none'
+                          NUM,
+                          'text-[11px] text-stone-700 dark:text-stone-200 truncate'
                         )}
                       >
-                        {request.tier}
-                      </Badge>
-                      <span className="font-extrabold text-slate-900 dark:text-white">
-                        {request.currency} {request.amount}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-normal uppercase">
-                        ({request.interval})
+                        {request.transaction_id}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-                      <Clock className="w-3 h-3" />
-                      {new Date(request.created_at).toLocaleDateString()}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1 font-mono text-xs pt-1 border-t border-slate-200/40 dark:border-white/5">
-                    <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                      <Hash className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="font-bold uppercase truncate">{request.transaction_id}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                      <Phone className="w-3 h-3 text-slate-400 shrink-0" />
-                      <span className="truncate">
+                    <div className="flex items-center gap-1.5">
+                      <Phone className="w-3 h-3 text-stone-400 shrink-0" />
+                      <span className={cn(NUM, 'text-[11px] text-stone-500 truncate')}>
                         {request.sender_phone} ({request.payment_method})
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Actions Row */}
-                {request.status === 'pending' ? (
-                  <div className="flex items-center gap-2 pt-1">
-                    <Button
-                      size="sm"
-                      disabled={isProcessing === request.id}
-                      onClick={() => handleStatusUpdate(request, 'approved')}
-                      className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white h-9 rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1.5"
-                    >
-                      {isProcessing === request.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Check className="w-4 h-4" />
-                          <span>Approve Payment</span>
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      disabled={isProcessing === request.id}
-                      onClick={() => handleStatusUpdate(request, 'rejected')}
-                      className="flex-1 h-9 rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1.5"
-                    >
-                      {isProcessing === request.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <>
-                          <X className="w-4 h-4" />
-                          <span>Reject</span>
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-end text-xs text-slate-400 font-medium pt-1 gap-1">
-                    <CheckCircle2 className="w-4 h-4 text-slate-400" />
-                    <span>Processed</span>
-                  </div>
-                )}
+                <ActionButtons request={request} full />
               </div>
             ))
           )}
         </div>
 
-        {/* Desktop View: Table */}
-        <div
-          className="hidden md:block overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
-          data-oid="hgd1hrt"
-        >
-          <table className="w-full min-w-[750px] text-left border-collapse" data-oid="he0.xbq">
-            <thead data-oid="qq3nc7e">
-              <tr
-                className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-white/5"
-                data-oid="bjf8igo"
-              >
-                <th
-                  className="px-6 py-4 text-xs font-black uppercase text-slate-400 tracking-widest"
-                  data-oid="k5vso_4"
-                >
-                  User Details
-                </th>
-                <th
-                  className="px-6 py-4 text-xs font-black uppercase text-slate-400 tracking-widest"
-                  data-oid="qhsvn6o"
-                >
-                  Plan & Amount
-                </th>
-                <th
-                  className="px-6 py-4 text-xs font-black uppercase text-slate-400 tracking-widest"
-                  data-oid="mw3xsh-"
-                >
-                  Payment Info
-                </th>
-                <th
-                  className="px-6 py-4 text-xs font-black uppercase text-slate-400 tracking-widest"
-                  data-oid="uupxies"
-                >
-                  Status
-                </th>
-                <th
-                  className="px-6 py-4 text-xs font-black uppercase text-slate-400 tracking-widest"
-                  data-oid="hgd0lkg"
-                >
-                  Action
-                </th>
+        {/* Desktop: table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full min-w-[760px] text-left border-collapse">
+            <thead>
+              <tr className="border-b border-stone-200 dark:border-white/[0.07]">
+                {['Learner', 'Plan', 'Transaction', 'Status', ''].map((h, i) => (
+                  <th key={i} className={cn(MICRO, 'px-4 py-3 text-stone-400 font-bold')}>
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5" data-oid="mmnwpgf">
+            <tbody className="divide-y divide-stone-100 dark:divide-white/[0.05]">
               {loading ? (
-                <tr data-oid="htu4dgm">
-                  <td
-                    colSpan="5"
-                    className="px-6 py-20 text-center text-slate-500"
-                    data-oid="xgh29dh"
-                  >
-                    <Loader2
-                      className="w-10 h-10 animate-spin mx-auto mb-4 text-indigo-500"
-                      data-oid="23.y6tf"
-                    />
-                    Loading requests...
+                <tr>
+                  <td colSpan="5" className="px-4 py-20 text-center">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-stone-400" />
+                    <span className={cn(MICRO, 'text-stone-400')}>Loading payments</span>
                   </td>
                 </tr>
               ) : filteredRequests.length === 0 ? (
-                <tr data-oid="io.:g33">
-                  <td
-                    colSpan="5"
-                    className="px-6 py-20 text-center text-slate-500"
-                    data-oid="2aw:wk-"
-                  >
-                    <AlertCircle className="w-10 h-10 mx-auto mb-4 opacity-20" data-oid=":vudw94" />
-                    No payment requests found
+                <tr>
+                  <td colSpan="5" className="px-4 py-20 text-center">
+                    <AlertCircle className="w-6 h-6 mx-auto mb-3 text-stone-300 dark:text-stone-600" />
+                    <span className={cn(MICRO, 'text-stone-400')}>No payment requests found</span>
                   </td>
                 </tr>
               ) : (
                 filteredRequests.map((request) => (
                   <tr
                     key={request.id}
-                    className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors group"
-                    data-oid="u5_1kuh"
+                    className="hover:bg-stone-50/70 dark:hover:bg-white/[0.02] transition-colors"
                   >
-                    <td className="px-6 py-4" data-oid="1tgvzd6">
-                      <div className="flex items-center gap-3" data-oid="j4rpn6g">
-                        <div
-                          className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400"
-                          data-oid="g.1z0ys"
-                        >
-                          <User className="w-5 h-5" data-oid="o0o0nz8" />
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-stone-400 shrink-0">
+                          <User className="w-3.5 h-3.5" />
                         </div>
-                        <div data-oid="dmixn2l">
-                          <p
-                            className="font-bold text-slate-900 dark:text-white leading-none mb-1"
-                            data-oid="nx:olko"
-                          >
-                            {request.user?.full_name || 'Unknown User'}
+                        <div className="min-w-0">
+                          <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
+                            {request.user?.full_name || 'Unknown user'}
                           </p>
-                          <p className="text-xs text-slate-500" data-oid="q.u5k0j">
+                          <p className={cn(MICRO, 'text-stone-400 truncate mt-0.5')}>
                             {request.user?.email}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4" data-oid="0w8_-ul">
-                      <div className="space-y-1" data-oid="crw5nrl">
-                        <div
-                          className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white"
-                          data-oid="4g75k0s"
-                        >
-                          <Badge
-                            className={cn(
-                              'uppercase text-[10px]',
-                              request.tier === 'premium'
-                                ? 'bg-violet-500/10 text-violet-600 border-none'
-                                : 'bg-indigo-500/10 text-indigo-600 border-none'
-                            )}
-                            data-oid="_uzemtu"
-                          >
-                            {request.tier}
-                          </Badge>
-                          <span data-oid="e.zpko7">
-                            {request.currency} {request.amount}
-                          </span>
-                        </div>
-                        <p
-                          className="text-[10px] text-slate-500 font-bold uppercase tracking-widest"
-                          data-oid="cgmx0pc"
-                        >
-                          {request.interval}
-                        </p>
+                    <td className="px-4 py-3">
+                      <p className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}>
+                        {request.currency} {request.amount}
+                      </p>
+                      <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+                        {request.tier} · {request.interval}
+                      </p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <Hash className="w-3 h-3 text-stone-400 shrink-0" />
+                        <span className={cn(NUM, 'text-[11px] text-stone-700 dark:text-stone-200')}>
+                          {request.transaction_id}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <Phone className="w-3 h-3 text-stone-400 shrink-0" />
+                        <span className={cn(NUM, 'text-[11px] text-stone-500')}>
+                          {request.sender_phone} ({request.payment_method})
+                        </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-mono" data-oid="wuaycwh">
-                      <div className="space-y-1" data-oid="cy_hf60">
-                        <div className="flex items-center gap-2 text-sm" data-oid="l7kyy_1">
-                          <Hash className="w-3.5 h-3.5 text-slate-400" data-oid="3v4n-9z" />
-                          <span
-                            className="font-bold text-slate-700 dark:text-slate-300 uppercase"
-                            data-oid="3a8s-bn"
-                          >
-                            {request.transaction_id}
-                          </span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 text-xs text-slate-500"
-                          data-oid="h3:7tnp"
-                        >
-                          <Phone className="w-3 h-3 text-slate-400" data-oid="h98:cfe" />
-                          <span data-oid="ywj9td1">
-                            {request.sender_phone} ({request.payment_method})
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4" data-oid="ab5-9wo">
-                      <Badge
-                        className={cn(
-                          'rounded-full px-3 py-1 border-none font-bold uppercase text-[9px]',
-                          request.status === 'pending' && 'bg-amber-100 text-amber-600',
-                          request.status === 'approved' && 'bg-emerald-100 text-emerald-600',
-                          request.status === 'rejected' && 'bg-rose-100 text-rose-600'
-                        )}
-                        data-oid="uy18ozy"
-                      >
-                        {request.status}
-                      </Badge>
-                      <div
-                        className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-1 font-bold"
-                        data-oid="acl-39j"
-                      >
-                        <Clock className="w-3 h-3" data-oid=".r8t2wa" />
+                    <td className="px-4 py-3">
+                      <StatusPill status={request.status} />
+                      <div className={cn(MICRO, 'flex items-center gap-1 text-stone-400 mt-1.5')}>
+                        <Clock className="w-2.5 h-2.5" />
                         {new Date(request.created_at).toLocaleDateString()}
                       </div>
                     </td>
-                    <td className="px-6 py-4" data-oid="x_t.cn2">
-                      <div className="flex items-center gap-2" data-oid="4y_nz9g">
-                        {request.status === 'pending' ? (
-                          <>
-                            <Button
-                              size="sm"
-                              disabled={isProcessing === request.id}
-                              onClick={() => handleStatusUpdate(request, 'approved')}
-                              className="bg-emerald-500 hover:bg-emerald-600 text-white h-8 w-8 p-0 rounded-lg shadow-lg shadow-emerald-500/20"
-                              data-oid="7iwchgm"
-                            >
-                              {isProcessing === request.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" data-oid="fi4sq0z" />
-                              ) : (
-                                <Check className="w-4 h-4" data-oid="8fhl.ig" />
-                              )}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              disabled={isProcessing === request.id}
-                              onClick={() => handleStatusUpdate(request, 'rejected')}
-                              className="h-8 w-8 p-0 rounded-lg shadow-lg shadow-rose-500/20"
-                              data-oid="frq_rw."
-                            >
-                              {isProcessing === request.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" data-oid="q93niw_" />
-                              ) : (
-                                <X className="w-4 h-4" data-oid="ff7i0hd" />
-                              )}
-                            </Button>
-                          </>
-                        ) : (
-                          <div className="text-slate-300 dark:text-slate-700" data-oid="u7-meu.">
-                            <CheckCircle2 className="w-5 h-5" data-oid="3g.b:oa" />
-                          </div>
-                        )}
-                      </div>
+                    <td className="px-4 py-3">
+                      <ActionButtons request={request} />
                     </td>
                   </tr>
                 ))

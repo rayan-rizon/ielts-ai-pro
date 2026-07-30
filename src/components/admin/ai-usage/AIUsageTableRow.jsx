@@ -1,10 +1,8 @@
-import { TableCell, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { CheckCircle2, Clock, Sparkles, TriangleAlert, XCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Clock, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import { NUM, MICRO } from '../ui/primitives';
 import {
-  formatCost,
   formatNumber,
   getInitials,
   getModelForEndpoint,
@@ -12,220 +10,175 @@ import {
   endpointColors,
 } from './utils';
 
-const UserCell = ({ user }) => (
-  <TableCell className="py-3.5 px-4">
-    <div className="flex items-center gap-3">
-      <Avatar className="h-9 w-9 border-2 border-slate-100 dark:border-slate-800 shadow-2xs">
-        <AvatarImage src={user?.avatar_url} />
-        <AvatarFallback className="bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300 text-xs font-black">
-          {getInitials(user?.full_name)}
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex flex-col min-w-0">
-        <span className="font-extrabold text-xs text-slate-900 dark:text-white truncate">
-          {user?.full_name || 'Unknown Candidate'}
-        </span>
-        <span className="text-[10.5px] text-slate-400 font-mono truncate">{user?.email}</span>
-      </div>
-    </div>
-  </TableCell>
+const Td = ({ children, className }) => (
+  <td className={cn('py-3 px-4 align-top', className)}>{children}</td>
 );
 
-const CallsCell = ({ totalCalls, maxCalls }) => {
-  const percentage = Math.min(100, Math.max(5, ((totalCalls || 0) / maxCalls) * 100));
+const AIUsageTableRow = ({ row, maxCalls }) => {
+  const share = Math.min(100, Math.max(4, ((row.totalCalls || 0) / maxCalls) * 100));
+  const cost = row.trackedProviderCost || 0;
+  const costTone =
+    cost >= 1
+      ? 'text-[rgb(var(--signal-fault))]'
+      : cost >= 0.1
+        ? 'text-[rgb(var(--signal-warn))]'
+        : 'text-stone-900 dark:text-stone-50';
 
   return (
-    <TableCell className="py-3.5 px-4">
-      <div className="flex flex-col gap-1.5">
-        <span className="font-mono font-black text-xs text-slate-900 dark:text-white">
-          {totalCalls?.toLocaleString() || 0}
+    <tr className="border-b border-stone-100 dark:border-white/[0.05] hover:bg-stone-50/70 dark:hover:bg-white/[0.02] transition-colors last:border-0">
+      <Td>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-[10px] font-black text-stone-500 dark:text-stone-300 shrink-0">
+            {getInitials(row.user?.full_name)}
+          </div>
+          <div className="min-w-0">
+            <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
+              {row.user?.full_name || 'Unknown user'}
+            </p>
+            <p className={cn(NUM, 'text-[10px] text-stone-400 truncate')}>{row.user?.email}</p>
+          </div>
+        </div>
+      </Td>
+
+      <Td>
+        <span className={cn(NUM, 'text-xs font-bold text-stone-900 dark:text-stone-50')}>
+          {(row.totalCalls || 0).toLocaleString()}
         </span>
-        <div className="h-1.5 w-20 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
+        <div className="h-1 w-16 bg-stone-100 dark:bg-white/[0.06] rounded-full overflow-hidden mt-1.5">
           <div
-            className="h-full bg-gradient-to-r from-violet-500 to-indigo-600 rounded-full transition-all duration-500"
-            style={{ width: `${percentage}%` }}
+            className="h-full rounded-full bg-[rgb(var(--signal-ok))]"
+            style={{ width: `${share}%` }}
           />
         </div>
-      </div>
-    </TableCell>
-  );
-};
+      </Td>
 
-const CachedCell = ({ cachedCalls, completedCalls }) => {
-  const hasHits = (cachedCalls || 0) > 0;
-
-  return (
-    <TableCell className="py-3.5 px-4">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger>
-            <Badge
-              variant="outline"
-              className={`text-[10px] font-mono font-bold gap-1 rounded-lg px-2 py-0.5 border ${
-                hasHits
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60 shadow-2xs'
-                  : 'bg-slate-50 text-slate-400 border-slate-200/60 dark:bg-slate-800/40 dark:text-slate-500 dark:border-slate-800'
-              }`}
-            >
-              <Sparkles
-                className={`w-3 h-3 ${hasHits ? 'text-emerald-500' : 'text-slate-400 opacity-60'}`}
-              />
-              {cachedCalls?.toLocaleString() || 0}
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent className="bg-slate-900 text-white text-xs border border-slate-700 rounded-xl p-2.5 shadow-xl">
-            <p>
-              {completedCalls > 0
-                ? `${((cachedCalls / completedCalls) * 100).toFixed(1)}% cache hit efficiency`
-                : 'No delivered calls'}
-            </p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </TableCell>
-  );
-};
-
-const DeliveryCell = ({ completedCalls, pendingCalls, failedCalls, hasLifecycleTelemetry }) => (
-  <TableCell className="py-3.5 px-4">
-    {!hasLifecycleTelemetry ? (
-      <span className="text-[10px] font-semibold text-slate-400">Migration required</span>
-    ) : (
-      <div className="flex flex-col gap-1">
-        <span className="inline-flex items-center gap-1.5 text-xs font-mono font-extrabold text-emerald-700 dark:text-emerald-300">
-          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-          {completedCalls?.toLocaleString() || 0}
-        </span>
-        {(pendingCalls > 0 || failedCalls > 0) && (
-          <div className="flex items-center gap-2 text-[9.5px] font-bold font-mono">
-            {pendingCalls > 0 && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/50">
-                <Clock className="h-3 w-3 text-amber-500" /> {pendingCalls} pending
-              </span>
-            )}
-            {failedCalls > 0 && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/50">
-                <XCircle className="h-3 w-3 text-rose-500" /> {failedCalls} failed
-              </span>
+      <Td>
+        {!row.hasLifecycleTelemetry ? (
+          <span className={cn(MICRO, 'text-stone-400')}>—</span>
+        ) : (
+          <div className="space-y-1">
+            <span className={cn(NUM, 'text-xs font-bold text-[rgb(var(--signal-ok))]')}>
+              {(row.completedCalls || 0).toLocaleString()}
+            </span>
+            {(row.pendingCalls > 0 || row.failedCalls > 0) && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {row.pendingCalls > 0 && (
+                  <span
+                    className={cn(
+                      MICRO,
+                      'text-[rgb(var(--signal-warn))] bg-[rgb(var(--signal-warn)/0.08)] px-1 py-0.5 rounded'
+                    )}
+                  >
+                    {row.pendingCalls} pending
+                  </span>
+                )}
+                {row.failedCalls > 0 && (
+                  <span
+                    className={cn(
+                      MICRO,
+                      'text-[rgb(var(--signal-fault))] bg-[rgb(var(--signal-fault)/0.08)] px-1 py-0.5 rounded'
+                    )}
+                  >
+                    {row.failedCalls} failed
+                  </span>
+                )}
+              </div>
             )}
           </div>
         )}
-      </div>
-    )}
-  </TableCell>
-);
+      </Td>
 
-const CostCell = ({ cost, unpricedCompletedCalls, hasLifecycleTelemetry }) => (
-  <TableCell className="py-3.5 px-4">
-    {!hasLifecycleTelemetry ? (
-      <span className="text-[10px] font-semibold text-slate-400">Not tracked</span>
-    ) : (
-      <div className="flex flex-col gap-1">
-        <span
-          className={`font-mono text-xs font-black ${
-            cost >= 1
-              ? 'text-rose-600 dark:text-rose-400'
-              : cost >= 0.1
-                ? 'text-amber-600 dark:text-amber-400'
-                : 'text-emerald-600 dark:text-emerald-400'
-          }`}
-        >
-          {formatCost(cost)}
-        </span>
-        {unpricedCompletedCalls > 0 && (
-          <span className="inline-flex items-center gap-1 text-[9.5px] font-semibold text-slate-500 dark:text-slate-400">
-            <TriangleAlert className="h-3 w-3 text-amber-500 shrink-0" /> {unpricedCompletedCalls}{' '}
-            unpriced
-          </span>
-        )}
-      </div>
-    )}
-  </TableCell>
-);
+      <Td>
+        <Tooltip delayDuration={150}>
+          <TooltipTrigger asChild>
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 cursor-default',
+                MICRO,
+                (row.cachedCalls || 0) > 0
+                  ? 'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.08)]'
+                  : 'text-stone-400 border-stone-200 dark:border-white/10'
+              )}
+            >
+              <Sparkles className="w-2.5 h-2.5" />
+              {(row.cachedCalls || 0).toLocaleString()}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-[11px]">
+            {row.completedCalls > 0
+              ? `${((row.cachedCalls / row.completedCalls) * 100).toFixed(1)}% cache hit rate`
+              : 'No delivered calls'}
+          </TooltipContent>
+        </Tooltip>
+      </Td>
 
-const EndpointsCell = ({ endpoints }) => (
-  <TableCell className="py-3.5 px-4">
-    <div className="flex flex-col gap-1.5 max-w-[220px]">
-      {Object.entries(endpoints || {})
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 2)
-        .map(([endpoint, count]) => {
-          const color = endpointColors[endpoint] || '#6366f1';
-          const model = getModelForEndpoint(endpoint);
-          const formattedName = formatEndpointName(endpoint);
-
-          return (
-            <div key={endpoint} className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="px-2 py-0.5 rounded-md text-[10px] font-extrabold font-mono border flex items-center gap-1 shadow-2xs"
-                  style={{
-                    backgroundColor: color + '15',
-                    borderColor: color + '40',
-                    color: color,
-                  }}
-                >
-                  <span
-                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                    style={{ backgroundColor: color }}
-                  />
-                  {formattedName} ({count})
-                </span>
-              </div>
-              <span className="text-[9.5px] font-mono font-semibold text-slate-500 dark:text-slate-400 pl-0.5">
-                {model}
-              </span>
-            </div>
-          );
-        })}
-    </div>
-  </TableCell>
-);
-
-const ActivityCell = ({ lastActivity }) => (
-  <TableCell className="py-3.5 px-4">
-    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-mono font-medium">
-      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-      {lastActivity
-        ? new Date(lastActivity).toLocaleDateString(undefined, {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          })
-        : 'Never'}
-    </div>
-  </TableCell>
-);
-
-const AIUsageTableRow = ({ row, idx, maxCalls }) => {
-  return (
-    <TableRow
-      key={row.user?.id || idx}
-      className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50/90 dark:hover:bg-slate-800/60 transition-all duration-150"
-    >
-      <UserCell user={row.user} />
-      <CallsCell totalCalls={row.totalCalls} maxCalls={maxCalls} />
-      <DeliveryCell
-        completedCalls={row.completedCalls}
-        pendingCalls={row.pendingCalls}
-        failedCalls={row.failedCalls}
-        hasLifecycleTelemetry={row.hasLifecycleTelemetry}
-      />
-      <CachedCell cachedCalls={row.cachedCalls} completedCalls={row.completedCalls} />
-      <TableCell className="py-3.5 px-4">
-        <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100/70 dark:bg-slate-800/50 px-2 py-0.5 rounded-md border border-slate-200/50 dark:border-slate-700/50 inline-block">
+      <Td>
+        <span className={cn(NUM, 'text-[11px] font-bold text-stone-700 dark:text-stone-200')}>
           {formatNumber(row.totalTokens)}
         </span>
-      </TableCell>
-      <CostCell
-        cost={row.trackedProviderCost}
-        unpricedCompletedCalls={row.unpricedCompletedCalls}
-        hasLifecycleTelemetry={row.hasLifecycleTelemetry}
-      />
-      <EndpointsCell endpoints={row.endpoints} />
-      <ActivityCell lastActivity={row.lastActivity} />
-    </TableRow>
+      </Td>
+
+      <Td>
+        {!row.hasLifecycleTelemetry ? (
+          <span className={cn(MICRO, 'text-stone-400')}>—</span>
+        ) : (
+          <div>
+            <span className={cn(NUM, 'text-xs font-bold', costTone)}>
+              ${cost < 0.01 && cost > 0 ? cost.toFixed(4) : cost.toFixed(2)}
+            </span>
+            {row.unpricedCompletedCalls > 0 && (
+              <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+                {row.unpricedCompletedCalls} unpriced
+              </p>
+            )}
+          </div>
+        )}
+      </Td>
+
+      <Td>
+        <div className="flex flex-col gap-1 max-w-[200px]">
+          {Object.entries(row.endpoints || {})
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 2)
+            .map(([endpoint, count]) => {
+              const color = endpointColors[endpoint] || '#6366f1';
+              return (
+                <div key={endpoint} className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ backgroundColor: color }}
+                    />
+                    <span className="text-[10px] font-bold text-stone-700 dark:text-stone-200 truncate">
+                      {formatEndpointName(endpoint)}
+                    </span>
+                    <span className={cn(NUM, 'text-[10px] text-stone-400 shrink-0')}>
+                      ({count})
+                    </span>
+                  </div>
+                  <p className={cn(MICRO, 'text-stone-400 pl-3')}>
+                    {getModelForEndpoint(endpoint)}
+                  </p>
+                </div>
+              );
+            })}
+        </div>
+      </Td>
+
+      <Td>
+        <div className={cn(NUM, 'flex items-center gap-1.5 text-[10px] text-stone-500')}>
+          <Clock className="w-3 h-3 text-stone-400 shrink-0" />
+          {row.lastActivity
+            ? new Date(row.lastActivity).toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            : 'Never'}
+        </div>
+      </Td>
+    </tr>
   );
 };
 

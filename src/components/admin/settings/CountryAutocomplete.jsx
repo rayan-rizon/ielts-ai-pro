@@ -25,7 +25,7 @@ export default function CountryAutocomplete({ value, onChange, disabled }) {
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className="h-8 w-[160px] justify-between text-[11px] font-medium bg-background border-border/50 hover:bg-muted/50 transition-colors rounded-lg"
+          className="h-8 w-[150px] justify-between text-[11px] font-medium bg-white dark:bg-[#131315] border-stone-300 dark:border-white/15 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors rounded-md"
           data-oid="jl6r3s0"
         >
           {country ? (

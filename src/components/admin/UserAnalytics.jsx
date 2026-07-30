@@ -7,15 +7,10 @@ import {
   Activity,
   TrendingUp,
   UserCheck,
-  Clock,
   Award,
   BarChart3,
   Target,
-  ArrowUpRight,
-  ArrowDownRight,
   ChevronRight,
-  Download,
-  MoreVertical,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -25,15 +20,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell,
-  PieChart,
-  Pie,
 } from 'recharts';
 import { cn } from '@/lib/cn';
-
-const COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
 
 const UserAnalytics = ({
   stats = {},
@@ -42,12 +30,7 @@ const UserAnalytics = ({
   onRangeChange,
   isDataLoading = false,
 }) => {
-  const {
-    userGrowthData = [],
-    scoreDistribution = [],
-    recentSignups = [],
-    sessionActivity = [],
-  } = analyticsData;
+  const { userGrowthData = [], recentSignups = [] } = analyticsData;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -92,48 +75,14 @@ const UserAnalytics = ({
             Monitor registration trends, user growth, and learner engagement metrics
           </p>
         </motion.div>
-
-        <motion.div
-          variants={itemVariants}
-          className="flex items-center gap-2.5 w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
-          data-oid="46ygl42"
-        >
-          <Button
-            variant="outline"
-            className="flex-1 sm:flex-none justify-center h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
-          >
-            <Download className="w-4 h-4 mr-1.5 text-slate-500" />
-            Export Report
-          </Button>
-          <div
-            className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900 rounded-xl px-3 py-1.5 flex items-center gap-2 shadow-2xs shrink-0"
-            data-oid="wt4_e28"
-          >
-            <div className="relative" data-oid="lm:9cb5">
-              <div className="w-2 h-2 rounded-full bg-emerald-500" data-oid="010s21v" />
-              <div
-                className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-500 animate-ping opacity-75"
-                data-oid="ug5fzkn"
-              />
-            </div>
-            <span
-              className="text-[10px] font-extrabold uppercase tracking-wider"
-              data-oid="y8l83wc"
-            >
-              LIVE BROADCAST
-            </span>
-          </div>
-        </motion.div>
       </div>
 
       {/* Compact KPI Grid (2 Columns on mobile) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5" data-oid="2ki0x24">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3.5" data-oid="2ki0x24">
         {[
           {
             title: 'Total Community',
             value: stats.totalUsers || 0,
-            trend: '+12.5%',
-            positive: true,
             icon: Users,
             color: 'indigo',
             description: 'Registered learners',
@@ -142,27 +91,16 @@ const UserAnalytics = ({
             title: 'Premium Conversion',
             value: stats.premiumUsers || 0,
             trend: `${stats.conversionRate || 0}%`,
-            positive: true,
             icon: Award,
             color: 'emerald',
             description: 'Pro & Premium users',
           },
           {
-            title: 'Weekly Active',
-            value: analyticsData.weeklyActiveUsers || 0,
-            trend: '-2.4%',
-            positive: false,
-            icon: Activity,
-            color: 'rose',
-            description: 'Rolling 7d activity',
-          },
-          {
-            title: 'Session Total',
+            title: 'Completed Sessions',
             value: stats.completedTests || 0,
-            trend: stats.avgScore || 0,
             icon: Target,
             color: 'blue',
-            description: 'Completed sessions',
+            description: 'Finished test sessions',
           },
         ].map((item, index) => (
           <motion.div key={index} variants={itemVariants} data-oid="muj-bk:">
@@ -188,21 +126,9 @@ const UserAnalytics = ({
                       </h3>
                       {item.trend && (
                         <span
-                          className={cn(
-                            'text-[10px] font-extrabold flex items-center',
-                            item.positive === true
-                              ? 'text-emerald-600 dark:text-emerald-400'
-                              : item.positive === false
-                                ? 'text-rose-600 dark:text-rose-400'
-                                : 'text-slate-500'
-                          )}
+                          className="text-[10px] font-extrabold text-slate-500"
                           data-oid="q54atgw"
                         >
-                          {item.positive === true ? (
-                            <ArrowUpRight className="w-3 h-3 mr-0.5" />
-                          ) : item.positive === false ? (
-                            <ArrowDownRight className="w-3 h-3 mr-0.5" />
-                          ) : null}
                           {item.trend}
                         </span>
                       )}
@@ -232,9 +158,9 @@ const UserAnalytics = ({
       </div>
 
       {/* Main Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" data-oid="igh71.8">
+      <div className="grid grid-cols-1 gap-4" data-oid="igh71.8">
         {/* Growth Chart */}
-        <motion.div variants={itemVariants} className="lg:col-span-2" data-oid="v:bl04s">
+        <motion.div variants={itemVariants} data-oid="v:bl04s">
           <Card
             className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
             data-oid="vvw3:h5"
@@ -361,79 +287,12 @@ const UserAnalytics = ({
             </CardContent>
           </Card>
         </motion.div>
-
-        {/* Score Distribution */}
-        <motion.div variants={itemVariants} data-oid="laq2fq2">
-          <Card
-            className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
-            data-oid="qex7i6h"
-          >
-            <CardHeader className="pb-2 p-4" data-oid="9v-co2a">
-              <CardTitle
-                className="text-base font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2"
-                data-oid="jo4c9eb"
-              >
-                <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shrink-0">
-                  <BarChart3 className="w-4 h-4" data-oid="03yr_iy" />
-                </div>
-                Score Spectrum
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0" data-oid=".wvbgdk">
-              <div className="h-[280px] w-full mt-2" data-oid="9rfv65d">
-                <ResponsiveContainer width="100%" height="100%" data-oid="mk5obe1">
-                  <BarChart
-                    data={scoreDistribution}
-                    layout="vertical"
-                    margin={{ left: -10, right: 20 }}
-                    data-oid="qy0_xdi"
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      horizontal={true}
-                      vertical={false}
-                      stroke="rgba(148, 163, 184, 0.2)"
-                    />
-                    <XAxis type="number" hide />
-                    <YAxis
-                      dataKey="range"
-                      type="category"
-                      axisLine={false}
-                      tickLine={false}
-                      width={90}
-                      tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                    />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(148, 163, 184, 0.1)' }}
-                      contentStyle={{
-                        borderRadius: '0.75rem',
-                        border: '1px solid rgba(148, 163, 184, 0.2)',
-                        background: 'rgba(15, 23, 42, 0.9)',
-                        color: '#fff',
-                      }}
-                    />
-                    <Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={20} data-oid="llhwxhi">
-                      {scoreDistribution.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                          opacity={0.9}
-                          className="hover:opacity-100 transition-opacity duration-300"
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
       </div>
 
-      {/* Bottom Section: Recent Registrations & Session Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" data-oid="6tyx8k-">
+      {/* Bottom Section: Recent Registrations */}
+      <div className="grid grid-cols-1 gap-4" data-oid="6tyx8k-">
         {/* Recent Registrations Table */}
-        <motion.div variants={itemVariants} className="lg:col-span-2" data-oid="2ur.p_v">
+        <motion.div variants={itemVariants} data-oid="2ur.p_v">
           <Card
             className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
             data-oid="sx:ofyv"
@@ -462,12 +321,6 @@ const UserAnalytics = ({
                   Latest learning community arrivals
                 </CardDescription>
               </div>
-              <Badge
-                variant="outline"
-                className="h-7 px-2.5 rounded-lg border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900 font-extrabold text-[10px]"
-              >
-                LIVE UPDATES
-              </Badge>
             </CardHeader>
             <CardContent className="p-4 pt-1" data-oid="wlhb9u6">
               <div className="space-y-1" data-oid="wsyb62s">
@@ -544,108 +397,6 @@ const UserAnalytics = ({
                     No recent registrants found.
                   </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Session Activity */}
-        <motion.div variants={itemVariants} data-oid="rx3rvfm">
-          <Card
-            className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
-            data-oid="irinw0e"
-          >
-            <CardHeader className="p-4 pb-0" data-oid="mlo85r2">
-              <CardTitle
-                className="text-base font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2"
-                data-oid="nxuibii"
-              >
-                <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shrink-0">
-                  <Clock className="w-4 h-4" data-oid="o-fqvl8" />
-                </div>
-                Session Integrity
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0" data-oid="5yqs5xc">
-              <div className="h-[220px] w-full relative" data-oid="mg35w67">
-                <ResponsiveContainer width="100%" height="100%" data-oid="4.9-.ql">
-                  <PieChart>
-                    <Pie
-                      data={sessionActivity}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={65}
-                      outerRadius={90}
-                      paddingAngle={6}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {sessionActivity.map((entry) => (
-                        <Cell
-                          key={`cell-${entry.name}`}
-                          fill={entry.color}
-                          opacity={0.9}
-                          className="hover:opacity-100 transition-opacity duration-300"
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: '0.75rem',
-                        border: '1px solid rgba(148, 163, 184, 0.2)',
-                        background: 'rgba(15, 23, 42, 0.9)',
-                        color: '#fff',
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                {/* Center text for Donut */}
-                <div
-                  className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
-                  data-oid="t7o-u9j"
-                >
-                  <span
-                    className="text-2xl font-black text-slate-950 dark:text-white leading-none mb-0.5"
-                    data-oid="nz.mjg8"
-                  >
-                    {stats.completedTests || 0}
-                  </span>
-                  <span
-                    className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400"
-                    data-oid="7f1al:u"
-                  >
-                    Total Tests
-                  </span>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2 w-full mt-1" data-oid="k9a0s5:">
-                {sessionActivity.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col items-center p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-white/5"
-                    data-oid="s6fyrxe"
-                  >
-                    <div className="flex items-center gap-1.5 mb-0.5" data-oid=".2fp:ov">
-                      <div
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ backgroundColor: item.color }}
-                        data-oid="jl689a2"
-                      />
-                      <span
-                        className="text-[9px] font-black uppercase tracking-wider text-slate-400 truncate"
-                        data-oid="7flwyr3"
-                      >
-                        {item.name}
-                      </span>
-                    </div>
-                    <span
-                      className="text-sm font-black text-slate-950 dark:text-white"
-                      data-oid="ryj_s:n"
-                    >
-                      {item.value}
-                    </span>
-                  </div>
-                ))}
               </div>
             </CardContent>
           </Card>

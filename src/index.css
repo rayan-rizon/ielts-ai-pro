@@ -208,9 +208,26 @@
     --surface-tertiary: hsl(var(--muted));
     --border-primary: hsl(var(--border));
     --border-secondary: hsl(var(--input));
+
+    /*
+     * Admin status signals. Deliberately not Tailwind's stock emerald/amber/rose:
+     * jade, ochre and vermilion hold their hue against both the warm stone
+     * surfaces and the graphite dark panels. RGB triplets so opacity modifiers
+     * work: rgb(var(--signal-fault) / 0.25).
+     */
+    --signal-ok: 22 150 108;
+    --signal-warn: 186 124 26;
+    --signal-fault: 201 60 52;
+    --signal-idle: 168 162 158;
   }
 
   .dark {
+    /* Lifted and slightly desaturated so they read on near-black without glare. */
+    --signal-ok: 61 209 155;
+    --signal-warn: 232 178 74;
+    --signal-fault: 255 118 103;
+    --signal-idle: 120 113 108;
+
     --background: 240 10% 2%;
     /* Deeper, true black for premium contrast */
     --foreground: 0 0% 98%;

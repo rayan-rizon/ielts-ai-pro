@@ -4,11 +4,12 @@ import { motion } from 'framer-motion';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SystemSetting } from '@/features/admin/services/SystemSetting';
-import SystemHealthDashboard from './SystemHealthDashboard';
+import PlatformHealthDashboard from './PlatformHealthDashboard';
 import TierRateLimitsSettings from './TierRateLimitsSettings';
 import AdminEmailSettings from './AdminEmailSettings';
 import AnnouncementsSettingsTab from './AnnouncementsSettingsTab';
 import PricingSettingsTab from './PricingSettingsTab';
+import { ADMIN_TABS_LIST, ADMIN_TAB_TRIGGER } from '@/components/admin/ui/primitives';
 import SecuritySettingsTab from './SecuritySettingsTab';
 import {
   validatePricingTiers,
@@ -22,7 +23,7 @@ import {
   Settings,
   CreditCard,
   Bell,
-  Globe,
+  HeartPulse,
   Activity,
   Gauge,
   Mail,
@@ -252,55 +253,28 @@ export default function GlobalSettings() {
       >
         {/* Compact Segmented Tab Navigation */}
         <div className="flex overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 pb-1">
-          <TabsList
-            className="inline-flex h-auto items-center justify-start gap-1 p-1 sm:p-1.5 bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xs backdrop-blur-md shrink-0"
-            data-oid="ybobvet"
-          >
-            <TabsTrigger
-              value="general"
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all shrink-0"
-              data-oid="tbs-gen"
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span>General</span>
+          <TabsList className={ADMIN_TABS_LIST} data-oid="ybobvet">
+            <TabsTrigger value="general" className={ADMIN_TAB_TRIGGER} data-oid="tbs-gen">
+              <HeartPulse className="w-3.5 h-3.5" />
+              <span>Health</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="announcements"
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all shrink-0"
-              data-oid="tbs-ann"
-            >
+            <TabsTrigger value="announcements" className={ADMIN_TAB_TRIGGER} data-oid="tbs-ann">
               <Bell className="w-3.5 h-3.5" />
               <span>Announcements</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="pricing"
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all shrink-0"
-              data-oid="tbs-prc"
-            >
+            <TabsTrigger value="pricing" className={ADMIN_TAB_TRIGGER} data-oid="tbs-prc">
               <CreditCard className="w-3.5 h-3.5" />
               <span>Pricing</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="security"
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all shrink-0"
-              data-oid="tbs-sec"
-            >
+            <TabsTrigger value="security" className={ADMIN_TAB_TRIGGER} data-oid="tbs-sec">
               <Lock className="w-3.5 h-3.5" />
               <span>Security</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="rate-limits"
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all shrink-0"
-              data-oid="tbs-rat"
-            >
+            <TabsTrigger value="rate-limits" className={ADMIN_TAB_TRIGGER} data-oid="tbs-rat">
               <Gauge className="w-3.5 h-3.5" />
               <span>Rate Limits</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="emails"
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all shrink-0"
-              data-oid="tbs-eml"
-            >
+            <TabsTrigger value="emails" className={ADMIN_TAB_TRIGGER} data-oid="tbs-eml">
               <Mail className="w-3.5 h-3.5" />
               <span>Emails</span>
             </TabsTrigger>
@@ -308,8 +282,8 @@ export default function GlobalSettings() {
         </div>
 
         <TabsContent value="general" className="space-y-6" data-oid="ziz8z.b">
-          <motion.div variants={itemVariants} className="max-w-4xl" data-oid="21cboft">
-            <SystemHealthDashboard
+          <motion.div variants={itemVariants} data-oid="21cboft">
+            <PlatformHealthDashboard
               maintenanceMode={settings.maintenance_mode}
               onToggleMaintenance={(enabled) => handleSave('maintenance_mode', enabled)}
               isUpdating={saving}

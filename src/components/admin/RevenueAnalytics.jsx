@@ -1,20 +1,6 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import {
-  DollarSign,
-  Wallet,
-  TrendingUp,
-  Zap,
-  Crown,
-  LineChartIcon,
-  AlertTriangle,
-  Users,
-  Tag,
-  ArrowUpRight,
-  ArrowDownRight,
-  CreditCard,
-} from 'lucide-react';
+import { DollarSign, Wallet, Crown, LineChartIcon, CreditCard } from 'lucide-react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -23,13 +9,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  BarChart,
-  Bar,
-  Cell,
 } from 'recharts';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions = [] }) => {
   const containerVariants = {
@@ -80,26 +60,10 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
             Financial performance and subscription health monitoring
           </p>
         </div>
-        <div
-          className="flex items-center gap-2 w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
-          data-oid="_x5waub"
-        >
-          <Button
-            variant="outline"
-            className="w-full sm:w-auto justify-center h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
-            data-oid="ja3t_jw"
-          >
-            <ArrowDownRight
-              className="w-4 h-4 mr-1.5 text-emerald-600 dark:text-emerald-400"
-              data-oid="2v0flcy"
-            />
-            Export Report
-          </Button>
-        </div>
       </div>
 
       {/* KPI Grid (2 Columns on mobile) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5" data-oid="1k7:55y">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3.5" data-oid="1k7:55y">
         {[
           {
             title: 'Revenue (Local & Global)',
@@ -114,14 +78,6 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
             icon: CreditCard,
             color: 'blue',
             subtext: `LTV: ৳${Number(analyticsData.ltvBdt || 0).toLocaleString()} | $${Number(analyticsData.ltvUsd || 0).toFixed(2)}`,
-          },
-          {
-            title: 'Churn Risk',
-            value: `${analyticsData.churnRate || 0}%`,
-            icon: AlertTriangle,
-            color: 'amber',
-            subtext: `${analyticsData.churnRiskCount || 0} users at risk`,
-            valueColor: 'text-amber-600 dark:text-amber-400',
           },
           {
             title: 'Active Subscribers',
@@ -187,9 +143,9 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" data-oid=".-p_k-p">
+      <div className="grid grid-cols-1 gap-4" data-oid=".-p_k-p">
         {/* Main Chart */}
-        <motion.div variants={itemVariants} className="lg:col-span-2" data-oid="wy:d9sd">
+        <motion.div variants={itemVariants} data-oid="wy:d9sd">
           <Card
             className="h-full border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden flex flex-col"
             data-oid="c1thd_0"
@@ -328,191 +284,67 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
             </CardContent>
           </Card>
         </motion.div>
-
-        {/* At Risk Users */}
-        <motion.div variants={itemVariants} className="lg:col-span-1" data-oid="brhaq:j">
-          <Card
-            className="h-full border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden flex flex-col"
-            data-oid="znnfl8c"
-          >
-            <CardHeader className="p-4 pb-2" data-oid="_sxucxs">
-              <CardTitle
-                className="text-base font-black tracking-tight flex items-center gap-2 text-amber-600 dark:text-amber-400"
-                data-oid="ap6-0qn"
-              >
-                <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-900 text-amber-600 dark:text-amber-400 shrink-0">
-                  <AlertTriangle className="w-4 h-4" data-oid="v_tuc9v" />
-                </div>
-                At-Risk Subscribers
-              </CardTitle>
-              <CardDescription
-                className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1 mt-0.5"
-                data-oid="7:o7k2k"
-              >
-                Paid users inactive for 30+ days
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 pt-1 flex-1 overflow-hidden" data-oid="ofs5z9t">
-              <div className="space-y-2" data-oid="x4ps5w:">
-                {analyticsData.atRiskUsers && analyticsData.atRiskUsers.length > 0 ? (
-                  analyticsData.atRiskUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/30"
-                      data-oid="h5-r:wu"
-                    >
-                      <div className="flex items-center gap-2.5" data-oid="x:f5j-l">
-                        <Avatar
-                          className="w-8 h-8 rounded-lg border border-amber-200/80 dark:border-amber-900"
-                          data-oid="3cp9v8."
-                        >
-                          <AvatarFallback
-                            className="bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 font-black text-xs"
-                            data-oid="3lof81:"
-                          >
-                            {user.full_name?.[0] || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div data-oid="n_78.rz">
-                          <p
-                            className="text-xs font-black text-slate-950 dark:text-white leading-tight"
-                            data-oid="c6bzzq0"
-                          >
-                            {user.full_name}
-                          </p>
-                          <p className="text-[10px] text-slate-400 font-medium" data-oid="2ws7eu_">
-                            Last:{' '}
-                            {new Date(user.last_login || user.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className="h-6 px-2 rounded-md bg-white dark:bg-slate-900 text-[10px] font-extrabold border-amber-200 text-amber-600 shadow-2xs"
-                        data-oid="t3msltj"
-                      >
-                        {user.subscription_tier || 'Pro'}
-                      </Badge>
-                    </div>
-                  ))
-                ) : (
-                  <div
-                    className="h-full min-h-[180px] flex flex-col items-center justify-center text-center p-4 text-slate-400 text-xs font-semibold italic"
-                    data-oid="4mu0zq7"
-                  >
-                    <Users className="w-8 h-8 mb-1.5 opacity-30" data-oid="i0lmu3e" />
-                    <p data-oid="mfp_p30">No at-risk users detected</p>
-                  </div>
-                )}
-                {analyticsData.churnRiskCount > 5 && (
-                  <div className="pt-1 text-center" data-oid="zf-.x3l">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full text-xs font-extrabold text-slate-500 hover:text-slate-900 dark:hover:text-white h-7 rounded-lg"
-                      data-oid="rwee-td"
-                    >
-                      View All {analyticsData.churnRiskCount} At-Risk Users
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
       </div>
 
-      {/* Promo Code Performance */}
-      <motion.div variants={itemVariants} data-oid="_aqkdcu">
-        <Card
-          className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
-          data-oid="jdrpm93"
-        >
-          <CardHeader className="p-4 pb-2" data-oid="lie8zmr">
-            <CardTitle
-              className="text-base font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2"
-              data-oid="3stjd-7"
-            >
-              <div className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200/80 dark:border-purple-900 text-purple-600 dark:text-purple-400 shrink-0">
-                <Tag className="w-4 h-4" data-oid="3bbqshh" />
+      {/* Recent Transactions */}
+      <motion.div variants={itemVariants}>
+        <Card className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-base font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200/80 dark:border-blue-900 text-blue-600 dark:text-blue-400 shrink-0">
+                <CreditCard className="w-4 h-4" />
               </div>
-              Promo Code Performance
+              Recent Transactions
             </CardTitle>
-            <CardDescription
-              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1 mt-0.5"
-              data-oid="y71spqt"
-            >
-              Top performing discount codes by usage redemptions
+            <CardDescription className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1 mt-0.5">
+              Latest recorded payments across Stripe and local methods
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-4 pt-1" data-oid="2hf333:">
-            <div className="h-[220px] w-full" data-oid="i8:tfb8">
-              {analyticsData.promoStats && analyticsData.promoStats.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%" data-oid="ieulj73">
-                  <BarChart
-                    data={analyticsData.promoStats}
-                    layout="vertical"
-                    margin={{ left: 10, right: 20 }}
-                    data-oid="2a74nsx"
+          <CardContent className="p-4 pt-1">
+            {recentTransactions.length > 0 ? (
+              <div className="space-y-1">
+                {recentTransactions.map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="flex items-center justify-between gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors border border-transparent hover:border-slate-200/60 dark:hover:border-white/5"
                   >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      horizontal={true}
-                      vertical={false}
-                      stroke="rgba(148, 163, 184, 0.2)"
-                      data-oid="_es:ic2"
-                    />
-
-                    <XAxis type="number" hide data-oid="isammcd" />
-                    <YAxis
-                      dataKey="code"
-                      type="category"
-                      tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                      width={100}
-                      axisLine={false}
-                      tickLine={false}
-                      data-oid="13rx.jy"
-                    />
-
-                    <Tooltip
-                      cursor={{ fill: 'rgba(148, 163, 184, 0.1)' }}
-                      contentStyle={{
-                        borderRadius: '0.75rem',
-                        border: '1px solid rgba(148, 163, 184, 0.2)',
-                        background: 'rgba(15, 23, 42, 0.95)',
-                        color: '#fff',
-                      }}
-                      data-oid="_.oijkb"
-                    />
-
-                    <Bar
-                      dataKey="usage_count"
-                      name="Redemptions"
-                      radius={[0, 8, 8, 0]}
-                      barSize={18}
-                      data-oid="ts0fo3j"
-                    >
-                      {analyticsData.promoStats.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={['#6366f1', '#ec4899', '#06b6d4', '#10b981', '#f59e0b'][index % 5]}
-                          opacity={0.9}
-                          data-oid="6pjq4re"
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div
-                  className="flex flex-col items-center justify-center h-full text-slate-400 text-xs font-semibold italic"
-                  data-oid="tvbj74i"
-                >
-                  <Tag className="w-8 h-8 mb-1.5 opacity-30" data-oid="5hruyhh" />
-                  <p data-oid="18:z7p5">No promo code data available</p>
-                </div>
-              )}
-            </div>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-xs font-black text-slate-600 dark:text-slate-300 shrink-0">
+                        {(tx.full_name || tx.email || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-black text-xs text-slate-950 dark:text-white leading-tight truncate">
+                          {tx.full_name || tx.email || 'Unknown user'}
+                        </p>
+                        <p className="text-[11px] text-slate-400 font-medium truncate">
+                          {tx.tier || '—'} · {tx.billing_interval || '—'} · {tx.payment_method}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end shrink-0">
+                      <span className="text-sm font-black text-slate-950 dark:text-white tabular-nums">
+                        {String(tx.currency).toUpperCase() === 'BDT' ? '৳' : '$'}
+                        {Number(tx.amount || 0).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400">
+                        {new Date(tx.created_at).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-slate-400 text-xs font-semibold italic">
+                <CreditCard className="w-8 h-8 mb-2 opacity-30" />
+                <p>No recorded payments yet</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>

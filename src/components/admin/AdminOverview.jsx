@@ -1,884 +1,783 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { m } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
-  Users,
-  Zap,
-  Target,
-  TrendingUp,
-  BarChart3,
-  Activity,
-  Clock,
-  UserCheck,
-  BookOpen,
-  PenTool,
-  Headphones,
-  Mic,
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import {
+  ArrowDownRight,
   ArrowUpRight,
+  ChevronRight,
+  Clock,
+  Loader2,
   ShieldCheck,
 } from 'lucide-react';
 import {
-  AreaChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Area,
-  ResponsiveContainer,
-} from 'recharts';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/cn';
+import { createPageUrl } from '@/utils';
+import { AnalyticsService } from '@/features/admin/services/AnalyticsService';
+import ServiceStatusStrip from './ServiceStatusStrip';
+import { NUM, MICRO, PANEL, Kpi, InfoTip } from './ui/primitives';
 
-import { supabase } from '@/lib/supabase';
-
-const ADMIN_ANALYTICS_LIMIT = 10000;
-const USER_ANALYTICS_COLUMNS = 'id,email,full_name,created_at,last_active,subscription_tier';
-const SESSION_ANALYTICS_COLUMNS = 'id,test_type,score,is_completed,completed_at,created_at';
-
-const countRows = async (table, applyFilters = (query) => query) => {
-  const query = applyFilters(supabase.from(table).select('id', { count: 'exact', head: true }));
-  const { count, error } = await query;
-  if (error) throw error;
-  return count || 0;
+const SEVERITY = {
+  high: 'bg-[rgb(var(--signal-fault))]',
+  medium: 'bg-[rgb(var(--signal-warn))]',
+  low: 'bg-[rgb(var(--signal-idle))]',
 };
+
+const WINDOWS = [
+  { label: 'Last 7 days', days: 7 },
+  { label: 'Last 30 days', days: 30 },
+  { label: 'Last 90 days', days: 90 },
+];
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.1,
-    },
-  },
+  visible: { opacity: 1, transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
 };
-
 const itemVariants = {
-  hidden: { opacity: 0, y: 15 },
+  hidden: { opacity: 0, y: 12 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } },
 };
 
+const pctChange = (value, prev) => {
+  if (!prev) return value > 0 ? 100 : null;
+  return Math.round(((value - prev) / prev) * 100);
+};
+
+const Delta = ({ value, prev, invert = false }) => {
+  const change = pctChange(value, prev);
+  if (change === null || change === 0) {
+    return <span className={cn(MICRO, 'text-stone-400')}>flat</span>;
+  }
+  // On cost, up is bad — invert flips which direction reads as good.
+  const good = invert ? change < 0 : change > 0;
+  const Icon = change > 0 ? ArrowUpRight : ArrowDownRight;
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-0.5 text-[10px] font-bold',
+        good ? 'text-[rgb(var(--signal-ok))]' : 'text-[rgb(var(--signal-fault))]'
+      )}
+    >
+      <Icon className="w-3 h-3" />
+      {Math.abs(change)}%
+    </span>
+  );
+};
+
+/* The single most useful visual here: where people fall out of the product. */
+const Funnel = ({ steps }) => {
+  const top = steps[0]?.users || 1;
+  const drops = steps.map((s, i) =>
+    i === 0 ? 0 : (steps[i - 1].users - s.users) / (steps[i - 1].users || 1)
+  );
+  // The final free-to-paid step is always the steepest drop in a freemium
+  // product, so exclude it — the useful signal is where activation leaks.
+  const activationDrops = drops.slice(0, -1);
+  const worst =
+    activationDrops.length > 1
+      ? activationDrops.indexOf(Math.max(...activationDrops.slice(1)))
+      : -1;
+
+  return (
+    <div className="space-y-2.5">
+      {steps.map((step, i) => {
+        const share = (step.users / top) * 100;
+        const dropPct = i === 0 ? null : Math.round(drops[i] * 100);
+        const isWorst = i === worst && dropPct > 0;
+
+        return (
+          <div key={step.key}>
+            {dropPct > 0 && (
+              <div className="flex items-center gap-1.5 pl-1 pb-1">
+                <span className="w-px h-2.5 bg-stone-200 dark:bg-white/10" />
+                <span
+                  className={cn(
+                    MICRO,
+                    isWorst ? 'text-[rgb(var(--signal-fault))]' : 'text-stone-400'
+                  )}
+                >
+                  −{dropPct}% drop{isWorst ? ' · biggest leak' : ''}
+                </span>
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1 h-8 rounded-md bg-stone-100 dark:bg-white/[0.04] overflow-hidden">
+                <div
+                  className={cn(
+                    'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700',
+                    isWorst
+                      ? 'bg-[rgb(var(--signal-fault)/0.22)]'
+                      : 'bg-[rgb(var(--signal-ok)/0.18)]'
+                  )}
+                  style={{ width: `${Math.max(share, 3)}%` }}
+                />
+                <div className="relative h-full flex items-center justify-between px-3">
+                  <span className="text-[11px] font-extrabold text-stone-800 dark:text-stone-100 truncate">
+                    {step.label}
+                  </span>
+                  <span className={cn(NUM, 'text-[11px] font-bold text-stone-500 shrink-0 ml-2')}>
+                    {Math.round(share)}%
+                  </span>
+                </div>
+              </div>
+              <span
+                className={cn(
+                  NUM,
+                  'text-sm font-bold text-stone-900 dark:text-stone-50 w-10 text-right'
+                )}
+              >
+                {step.users}
+              </span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+/* Cohort grid — the clearest way to see whether anyone actually comes back. */
+const RetentionGrid = ({ cohorts }) => {
+  if (!cohorts.length) {
+    return (
+      <p className="text-xs text-stone-400 py-8 text-center font-medium">Not enough history yet.</p>
+    );
+  }
+
+  const weeks = ['w0', 'w1', 'w2', 'w3'];
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-separate border-spacing-y-1">
+        <thead>
+          <tr>
+            <th className={cn(MICRO, 'text-stone-400 text-left font-bold pb-1')}>Cohort</th>
+            <th className={cn(MICRO, 'text-stone-400 text-right font-bold pb-1 pr-2')}>Size</th>
+            {weeks.map((w, i) => (
+              <th key={w} className={cn(MICRO, 'text-stone-400 text-center font-bold pb-1')}>
+                W{i}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {cohorts.map((c) => (
+            <tr key={c.cohort}>
+              <td className="text-[11px] font-extrabold text-stone-800 dark:text-stone-100 pr-3 whitespace-nowrap">
+                {c.cohort}
+              </td>
+              <td className={cn(NUM, 'text-[11px] text-stone-500 text-right pr-2')}>{c.size}</td>
+              {weeks.map((w) => {
+                const pct = c.size ? Math.round((c[w] / c.size) * 100) : 0;
+                return (
+                  <td key={w} className="px-0.5">
+                    <div
+                      title={`${c[w]} of ${c.size}`}
+                      className="h-7 rounded grid place-items-center"
+                      style={{
+                        // Opacity encodes retention so the row reads as a heat strip.
+                        backgroundColor: `rgb(var(--signal-ok) / ${pct === 0 ? 0.05 : 0.12 + (pct / 100) * 0.55})`,
+                      }}
+                    >
+                      <span
+                        className={cn(
+                          NUM,
+                          'text-[10px] font-bold',
+                          pct === 0
+                            ? 'text-stone-300 dark:text-stone-600'
+                            : 'text-stone-800 dark:text-stone-50'
+                        )}
+                      >
+                        {pct}%
+                      </span>
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
 const AdminOverview = () => {
-  const [stats, setStats] = useState({});
-  const [analyticsData, setAnalyticsData] = useState({});
-  const [activityFeed, setActivityFeed] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [days, setDays] = useState(7);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Memoized date and greeting matching user dashboard
-  const { dateLabel, greeting } = useMemo(() => {
-    const now = new Date();
-    const label = now.toLocaleDateString(undefined, {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    });
-    const hour = now.getHours();
-    const greet = hour < 12 ? 'Good Morning' : hour < 18 ? 'Good Afternoon' : 'Good Evening';
-    return { dateLabel: label, greeting: greet };
-  }, []);
-
-  const loadAllData = async () => {
+  const load = useCallback(async () => {
     try {
-      setIsLoading(true);
-      const [
-        usersResponse,
-        sessionsResponse,
-        totalUsers,
-        premiumUsers,
-        totalQuestions,
-        totalPassages,
-        activePromoCodes,
-      ] = await Promise.all([
-        supabase
-          .from('users')
-          .select(USER_ANALYTICS_COLUMNS)
-          .order('created_at', { ascending: false })
-          .limit(ADMIN_ANALYTICS_LIMIT),
-        supabase
-          .from('test_sessions')
-          .select(SESSION_ANALYTICS_COLUMNS)
-          .order('created_at', { ascending: false })
-          .limit(ADMIN_ANALYTICS_LIMIT),
-        countRows('users'),
-        countRows('users', (query) => query.in('subscription_tier', ['pro', 'premium'])),
-        countRows('questions'),
-        countRows('passages', (query) => query.eq('is_active', true)),
-        countRows('promo_codes', (query) => query.eq('is_active', true)),
-      ]);
-
-      if (usersResponse.error) throw usersResponse.error;
-      if (sessionsResponse.error) throw sessionsResponse.error;
-
-      const usersData = usersResponse.data || [];
-      const sessionsData = sessionsResponse.data || [];
-
-      await processAnalyticsData(usersData, sessionsData);
-
-      const completedSessions = sessionsData.filter((s) => s.is_completed).length;
-      const avgScore =
-        completedSessions > 0
-          ? sessionsData
-              .filter((s) => s.score !== null && s.score !== undefined)
-              .reduce((acc, s) => acc + s.score, 0) /
-            sessionsData.filter((s) => s.score !== null && s.score !== undefined).length
-          : 0;
-
-      setStats({
-        totalUsers,
-        premiumUsers,
-        totalQuestions,
-        totalPassages,
-        completedTests: completedSessions,
-        avgScore: avgScore.toFixed(1),
-        conversionRate: totalUsers > 0 ? ((premiumUsers / totalUsers) * 100).toFixed(1) : 0,
-        activePromoCodes,
-        activeTests: sessionsData.filter((s) => !s.is_completed).length,
-      });
-    } catch (error) {
-      console.error('Error loading admin data:', error);
+      setLoading(true);
+      setError(null);
+      setData(await AnalyticsService.getOverview(days));
+    } catch (err) {
+      console.error('Error loading admin overview:', err);
+      setError(err.message || 'Unable to load overview');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  };
-
-  const processAnalyticsData = async (usersData, sessionsData) => {
-    try {
-      const now = new Date();
-      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-      const liveUsers = usersData.filter(
-        (u) => u.last_active && new Date(u.last_active) > twentyFourHoursAgo
-      ).length;
-      const weeklyActiveUsers = usersData.filter(
-        (u) => u.last_active && new Date(u.last_active) > sevenDaysAgo
-      ).length;
-      const monthlyActiveUsers = usersData.filter(
-        (u) => u.last_active && new Date(u.last_active) > thirtyDaysAgo
-      ).length;
-
-      // User acquisition over time
-      const userAcquisition = [];
-      for (let i = 29; i >= 0; i--) {
-        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-        const dateStr = date.toISOString().split('T')[0];
-        const newUsersOnDay = usersData.filter(
-          (u) => u.created_at.split('T')[0] === dateStr
-        ).length;
-        const cumulativeUsers = usersData.filter((u) => new Date(u.created_at) <= date).length;
-
-        userAcquisition.push({
-          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          newUsers: newUsersOnDay,
-          totalUsers: cumulativeUsers,
-        });
-      }
-
-      // User engagement metrics (last 7 days)
-      const engagementMetrics = [];
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-        const dateStr = date.toISOString().split('T')[0];
-        const sessionsOnDay = sessionsData.filter(
-          (s) => s.created_at.split('T')[0] === dateStr
-        ).length;
-        const completedOnDay = sessionsData.filter(
-          (s) => s.completed_at && s.completed_at.split('T')[0] === dateStr
-        ).length;
-        const activeUsersOnDay = usersData.filter(
-          (u) => u.last_active && u.last_active.split('T')[0] === dateStr
-        ).length;
-
-        engagementMetrics.push({
-          date: date.toLocaleDateString('en-US', { weekday: 'short' }),
-          sessions: sessionsOnDay,
-          completed: completedOnDay,
-          activeUsers: activeUsersOnDay,
-        });
-      }
-
-      // Module analytics
-      const moduleAnalytics = ['reading', 'writing', 'listening', 'speaking'].map((module) => {
-        const moduleSessions = sessionsData.filter((s) => s.test_type === module);
-        const completedSessions = moduleSessions.filter((s) => s.is_completed);
-        const avgScore =
-          completedSessions.length > 0
-            ? completedSessions
-                .filter((s) => s.score !== undefined && s.score !== null)
-                .reduce((acc, s) => acc + s.score, 0) /
-              completedSessions.filter((s) => s.score !== undefined && s.score !== null).length
-            : 0;
-
-        return {
-          module: module.charAt(0).toUpperCase() + module.slice(1),
-          totalSessions: moduleSessions.length,
-          completedSessions: completedSessions.length,
-          completionRate:
-            moduleSessions.length > 0
-              ? ((completedSessions.length / moduleSessions.length) * 100).toFixed(1)
-              : 0,
-          avgScore: avgScore.toFixed(1),
-        };
-      });
-
-      setAnalyticsData({
-        liveUsers,
-        weeklyActiveUsers,
-        monthlyActiveUsers,
-        userAcquisition,
-        engagementMetrics,
-        moduleAnalytics,
-      });
-
-      // Activity Feed - Only most recent signups
-      const combinedFeed = usersData.slice(0, 20).map((u) => ({
-        type: 'signup',
-        id: `signup-${u.id}`,
-        user: u.full_name || u.email.split('@')[0],
-        timestamp: new Date(u.created_at),
-      }));
-
-      setActivityFeed(combinedFeed);
-    } catch (error) {
-      console.error('Error processing analytics data:', error);
-      setAnalyticsData({});
-    }
-  };
+  }, [days]);
 
   useEffect(() => {
-    loadAllData();
+    load();
+  }, [load]);
 
-    let channel;
-    if (typeof window !== 'undefined' && window.WebSocket) {
-      try {
-        channel = supabase
-          .channel('admin-updates')
-          .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'users' },
-            (payload) => {
-              const newActivity = {
-                id: `signup-${payload.new.id}`,
-                type: 'signup',
-                user: payload.new.full_name || payload.new.email?.split('@')[0],
-                timestamp: new Date(payload.new.created_at),
-              };
-              setActivityFeed((prev) => [newActivity, ...prev.slice(0, 19)]);
-              setStats((prev) => ({ ...prev, totalUsers: (prev.totalUsers || 0) + 1 }));
-            }
-          )
-          .subscribe((status) => {
-            if (status === 'CHANNEL_ERROR') {
-              console.warn('Real-time subscription error in AdminOverview: Connection failed');
-            }
-          });
-      } catch (err) {
-        console.warn('Real-time subscription failed to initialize in AdminOverview:', err.message);
-      }
-    } else {
-      console.info('WebSockets not available or disabled (AdminOverview)');
-    }
-
-    return () => {
-      if (channel) supabase.removeChannel(channel);
+  const { dateLabel, greeting } = useMemo(() => {
+    const now = new Date();
+    const hour = now.getHours();
+    return {
+      dateLabel: now.toLocaleDateString(undefined, {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      }),
+      greeting: hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening',
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (isLoading) {
+  if (loading && !data) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-4" data-oid="ujl2svy">
-        <div
-          className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"
-          data-oid="2i9ndnt"
-        />
-
-        <p
-          className="text-sm font-black text-slate-500 uppercase tracking-widest animate-pulse"
-          data-oid="82kuusf"
-        >
-          Initializing Dashboard...
-        </p>
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
+        <Loader2 className="w-7 h-7 text-stone-400 animate-spin" />
+        <p className={cn(MICRO, 'text-stone-400')}>Loading overview</p>
       </div>
     );
   }
+
+  if (error) {
+    return (
+      <div className={cn(PANEL, 'p-6 max-w-md')}>
+        <p className="text-sm font-extrabold text-stone-900 dark:text-stone-50">
+          Could not load the overview
+        </p>
+        <p className="text-xs text-stone-500 mt-1">{error}</p>
+        <button
+          onClick={load}
+          className={cn(
+            MICRO,
+            'mt-3 rounded-md border border-stone-300 dark:border-white/15 px-2.5 py-1.5 text-stone-700 dark:text-stone-200'
+          )}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const k = data?.kpis || {};
+  const eng = data?.engagement || {};
+  const econ = data?.economics || {};
+  const actions = data?.actions || [];
+  const modules = data?.modules || [];
+  const trend = data?.trend || [];
+  const hourly = data?.hourly || [];
+  const maxHourly = hourly.reduce((max, h) => Math.max(max, h.sessions), 0);
+  const peakHour = maxHourly ? (hourly.find((h) => h.sessions === maxHourly)?.hour ?? null) : null;
 
   return (
     <m.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-4 pb-6"
-      data-oid="miu6d.p"
+      className="space-y-4 pb-8"
     >
-      {/* Header Section */}
-      <m.header variants={itemVariants} className="pb-1" data-oid="9.fgt2c">
-        <div
-          className="flex flex-col lg:flex-row lg:items-center justify-between gap-4"
-          data-oid="4emss84"
-        >
-          <div className="space-y-1" data-oid="p:7zv.x">
-            <div className="flex items-center gap-2" data-oid="steve5:">
-              <Badge
-                variant="outline"
-                className="px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 border-indigo-200 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 font-extrabold text-[10px] uppercase tracking-wider"
-                data-oid="omcs.7b"
-              >
-                {dateLabel}
-              </Badge>
-              <Badge
-                className="bg-rose-600 text-white font-black text-[10px] tracking-wider px-2.5 py-0.5 rounded-full border-0 shadow-2xs"
-                data-oid="42j46jl"
-              >
-                <ShieldCheck className="w-3 h-3 mr-1 text-white fill-white" data-oid="w78.v5p" />
-                ADMIN SYSTEM
-              </Badge>
-            </div>
-            <h1
-              className="text-xl sm:text-2xl font-black tracking-tight text-slate-950 dark:text-white leading-tight"
-              data-oid="4r:gftq"
-            >
-              {greeting},{' '}
-              <span className="text-indigo-600 dark:text-indigo-400" data-oid="pg358tw">
-                Admin
-              </span>{' '}
-              🛠️
-            </h1>
-            <p
-              className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium"
-              data-oid="x9ms8.6"
-            >
-              Platform status is{' '}
-              <span
-                className="text-emerald-600 dark:text-emerald-400 font-extrabold uppercase tracking-tight"
-                data-oid="-u_uk72"
-              >
-                Optimal
-              </span>
-              . Managing{' '}
-              <span className="text-slate-950 dark:text-white font-extrabold" data-oid="9moo2pj">
-                {stats.totalUsers || 0} learners
-              </span>{' '}
-              globally.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0" data-oid="fhv7q2r">
-            {/* Admin Stats Bar */}
-            <div
-              className="flex items-center bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 rounded-2xl p-1.5 px-3 shadow-2xs divide-x divide-slate-100 dark:divide-slate-800"
-              data-oid="3-r4.xb"
-            >
-              {/* Total Users */}
-              <div className="flex items-center gap-2.5 pr-3.5" data-oid="--wcui8">
-                <div
-                  className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200/80 dark:border-blue-900 flex items-center justify-center shrink-0"
-                  data-oid="57b3kz9"
-                >
-                  <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" data-oid="8z.ni-o" />
-                </div>
-                <div className="flex flex-col" data-oid="oii4-7s">
-                  <span
-                    className="text-[9px] font-black text-slate-400 uppercase tracking-wider leading-none"
-                    data-oid="pv1tbgy"
-                  >
-                    Users
-                  </span>
-                  <span
-                    className="text-xs font-black text-slate-950 dark:text-white mt-0.5 leading-none"
-                    data-oid="9nh6y4f"
-                  >
-                    {stats.totalUsers || 0}
-                  </span>
-                </div>
-              </div>
-
-              {/* Live Users */}
-              <div className="flex items-center gap-2.5 px-3.5" data-oid="wxvrwpd">
-                <div
-                  className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-900 flex items-center justify-center shrink-0 relative"
-                  data-oid="ddmqte."
-                >
-                  <span className="absolute top-0 right-0 flex h-2 w-2" data-oid="kdehk.z">
-                    <span
-                      className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
-                      data-oid="r56c5.y"
-                    ></span>
-                    <span
-                      className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"
-                      data-oid="x:6uowe"
-                    ></span>
-                  </span>
-                  <Zap
-                    className="w-4 h-4 text-emerald-600 dark:text-emerald-400 fill-emerald-500/20"
-                    data-oid="ped52bu"
-                  />
-                </div>
-                <div className="flex flex-col" data-oid="xo5:67r">
-                  <span
-                    className="text-[9px] font-black text-slate-400 uppercase tracking-wider leading-none"
-                    data-oid="z3ql:dr"
-                  >
-                    Live
-                  </span>
-                  <span
-                    className="text-xs font-black text-slate-950 dark:text-white mt-0.5 leading-none"
-                    data-oid="x7oog1o"
-                  >
-                    {analyticsData.liveUsers || 0}
-                  </span>
-                </div>
-              </div>
-
-              {/* Performance */}
-              <div className="flex items-center gap-2.5 px-3.5" data-oid="555i-3t">
-                <div
-                  className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-900 flex items-center justify-center shrink-0"
-                  data-oid=".pi5w5."
-                >
-                  <Target
-                    className="w-4 h-4 text-amber-600 dark:text-amber-400"
-                    data-oid="-4artr6"
-                  />
-                </div>
-                <div className="flex flex-col" data-oid="7virsdv">
-                  <span
-                    className="text-[9px] font-black text-slate-400 uppercase tracking-wider leading-none"
-                    data-oid="zhgyj.f"
-                  >
-                    Avg Band
-                  </span>
-                  <span
-                    className="text-xs font-black text-slate-950 dark:text-white mt-0.5 leading-none"
-                    data-oid="bpiuu-6"
-                  >
-                    {stats.avgScore || 'N/A'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Growth */}
-              <div className="flex items-center gap-2.5 pl-3.5" data-oid="6.6ou11">
-                <div
-                  className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200/80 dark:border-purple-900 flex items-center justify-center shrink-0"
-                  data-oid="583_7f4"
-                >
-                  <TrendingUp
-                    className="w-4 h-4 text-purple-600 dark:text-purple-400"
-                    data-oid="xbxjf4g"
-                  />
-                </div>
-                <div className="flex flex-col" data-oid="59qkjwk">
-                  <span
-                    className="text-[9px] font-black text-slate-400 uppercase tracking-wider leading-none"
-                    data-oid="8dsd4qi"
-                  >
-                    Growth
-                  </span>
-                  <span
-                    className="text-xs font-black text-slate-950 dark:text-white mt-0.5 leading-none"
-                    data-oid="ua3:aci"
-                  >
-                    +{stats.conversionRate || 0}%
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Header */}
+      <m.header
+        variants={itemVariants}
+        className="flex flex-col sm:flex-row sm:items-end justify-between gap-3"
+      >
+        <div>
+          <p className={cn(MICRO, 'text-stone-400')}>{dateLabel}</p>
+          <h1 className="text-2xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50 mt-1">
+            {greeting}, Admin
+          </h1>
+          <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-1">
+            <span className={cn(NUM, 'font-bold text-stone-700 dark:text-stone-200')}>
+              {data?.totals?.users ?? 0}
+            </span>{' '}
+            learners on the platform
+          </p>
         </div>
+        <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
+          <SelectTrigger
+            aria-label="Overview window"
+            className={cn(
+              MICRO,
+              'h-8 w-[140px] rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-700 dark:text-stone-200'
+            )}
+          >
+            <Clock className="mr-1.5 h-3 w-3 text-stone-400" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {WINDOWS.map((w) => (
+              <SelectItem key={w.days} value={String(w.days)}>
+                {w.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </m.header>
 
-      {/* Main Content Layout - Bento Grid */}
-      <div className="grid grid-cols-12 gap-5 lg:gap-6 auto-rows-max" data-oid="7om8dy-">
-        {/* Growth Analytics - Primary Chart */}
-        <div className="col-span-12 lg:col-span-8" data-oid="e0n8sfu">
-          <m.div variants={itemVariants} data-oid="ra69c4r">
-            <Card
-              className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
-              data-oid="_:9ji2:"
-            >
-              <CardHeader
-                className="flex flex-row items-center justify-between p-4 pb-2"
-                data-oid="eknxff-"
-              >
-                <div data-oid="6jjh6xq">
-                  <CardTitle
-                    className="text-base font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2"
-                    data-oid="zvk_0aa"
+      <m.div variants={itemVariants}>
+        <ServiceStatusStrip />
+      </m.div>
+
+      {/* KPI band */}
+      <m.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <Kpi
+          label={`Signups · ${days}d`}
+          value={k.signups?.value ?? 0}
+          delta={<Delta value={k.signups?.value} prev={k.signups?.prev} />}
+          sub={`${k.signups?.prev ?? 0} previous period`}
+          tip={`New accounts created in the last ${days} days. The arrow compares it with the ${days} days before that.`}
+        />
+        <Kpi
+          label="Active users"
+          value={k.active?.wau ?? 0}
+          live
+          delta={<Delta value={k.active?.wau} prev={k.active?.prev} />}
+          sub={`${k.active?.dau ?? 0} today · ${k.active?.mau ?? 0} monthly`}
+          tip="Weekly active users — people who opened the app in the last 7 days. The green light means this number is live."
+        />
+        <Kpi
+          label="Stickiness"
+          value={`${k.active?.stickiness ?? 0}%`}
+          sub="Daily ÷ monthly actives"
+          tip="Of everyone who used the app this month, what share used it today. Above 20% is healthy; it tells you whether people use the app as a habit or only once."
+        />
+        <Kpi
+          label="Paying"
+          value={k.paying?.total ?? 0}
+          sub={`${k.paying?.conversion ?? 0}% of users · ${k.paying?.premium ?? 0} premium`}
+          tip="Users on a Pro or Premium plan, and what share of all signups that represents."
+        />
+        <Kpi
+          label={`AI spend · ${days}d`}
+          value={`$${Number(k.aiCost?.usd ?? 0).toFixed(2)}`}
+          delta={<Delta value={k.aiCost?.usd} prev={k.aiCost?.prevUsd} invert />}
+          sub={`$${Number(k.aiCost?.perActiveUser ?? 0).toFixed(3)} per active · ${k.aiCost?.pricedCalls ?? 0}/${k.aiCost?.totalCalls ?? 0} calls priced`}
+          tip="What the AI providers cost you. Rising cost shows red. Only calls that report a price are counted, so treat this as a floor, not the full bill."
+        />
+      </m.div>
+
+      <div className="grid grid-cols-12 gap-3">
+        {/* Action queue */}
+        <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
+          <div className={cn(PANEL, 'p-4 h-full')}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className={cn(MICRO, 'text-stone-400')}>Needs you</h3>
+              <span className={cn(NUM, 'text-[11px] font-bold text-stone-400')}>
+                {actions.length}
+              </span>
+            </div>
+            {actions.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <ShieldCheck className="w-6 h-6 text-[rgb(var(--signal-ok))] opacity-60" />
+                <p className="text-xs font-medium text-stone-400 mt-2">Nothing waiting on you.</p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {actions.map((action) => (
+                  <Link
+                    key={action.key}
+                    to={`${createPageUrl('AdminPanel')}?tab=${action.tab}`}
+                    className="group flex items-start gap-2.5 p-2.5 -mx-1 rounded-lg hover:bg-stone-50 dark:hover:bg-white/[0.03] transition-colors"
                   >
-                    <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shrink-0">
-                      <TrendingUp
-                        className="w-4 h-4 text-indigo-600 dark:text-indigo-400"
-                        data-oid="e41amff"
-                      />
-                    </div>
-                    User Growth Engine
-                  </CardTitle>
-                  <p
-                    className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1 mt-0.5"
-                    data-oid="_pyqpy7"
-                  >
-                    Last 30 Days Acquisition
-                  </p>
-                </div>
-                <Badge
-                  variant="secondary"
-                  className="bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-900 rounded-lg px-2.5 py-0.5 font-extrabold text-[10px]"
-                  data-oid="08.6vep"
-                >
-                  Real-time Data
-                </Badge>
-              </CardHeader>
-              <CardContent className="p-4 pt-1" data-oid="5--qa9y">
-                <div className="h-[290px] w-full mt-1" data-oid="y8quo7.">
-                  <ResponsiveContainer width="100%" height="100%" data-oid="ey4.9dv">
-                    <AreaChart data={analyticsData.userAcquisition || []} data-oid="x5re60c">
-                      <defs data-oid="f_rpz.a">
-                        <linearGradient
-                          id="colorUsers"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                          data-oid="6uzoobh"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#6366f1"
-                            stopOpacity={0.35}
-                            data-oid="y3yoio9"
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#6366f1"
-                            stopOpacity={0}
-                            data-oid="3rdfz_j"
-                          />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="rgba(148, 163, 184, 0.2)"
-                        data-oid="x6ld_73"
-                      />
-
-                      <XAxis
-                        dataKey="date"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                        tickMargin={8}
-                        data-oid="b.skujk"
-                      />
-
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                        data-oid="tgmc7or"
-                      />
-
-                      <Tooltip
-                        content={({ active, payload, label }) => {
-                          if (active && payload && payload.length) {
-                            return (
-                              <div
-                                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-xl shadow-xl"
-                                data-oid="drmnebr"
-                              >
-                                <p
-                                  className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5"
-                                  data-oid="vvrkgif"
-                                >
-                                  {label}
-                                </p>
-                                <div className="flex items-center gap-2" data-oid="z_hz3l1">
-                                  <div
-                                    className="w-2 h-2 rounded-full bg-indigo-600"
-                                    data-oid="o9m.ns5"
-                                  />
-                                  <p
-                                    className="text-base font-black text-slate-950 dark:text-white"
-                                    data-oid="wdj7ubt"
-                                  >
-                                    {payload[0].value.toLocaleString()}{' '}
-                                    <span
-                                      className="text-xs font-bold text-slate-500"
-                                      data-oid="7qis.pc"
-                                    >
-                                      Users
-                                    </span>
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                        data-oid="01.xo-b"
-                      />
-
-                      <Area
-                        type="monotone"
-                        dataKey="totalUsers"
-                        stroke="#6366f1"
-                        strokeWidth={3}
-                        fillOpacity={1}
-                        fill="url(#colorUsers)"
-                        animationDuration={1500}
-                        data-oid="x7ahgby"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </m.div>
-        </div>
-
-        {/* Live Activity Stream */}
-        <div className="col-span-12 lg:col-span-4" data-oid="8y9n9b7">
-          <m.div variants={itemVariants} className="h-full" data-oid="8kfac76">
-            <Card
-              className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden h-full flex flex-col"
-              data-oid="nmvno70"
-            >
-              <CardHeader
-                className="p-4 pb-2 border-b border-slate-100 dark:border-white/5"
-                data-oid="46_u:bw"
-              >
-                <CardTitle
-                  className="text-base font-black tracking-tight flex items-center gap-2 text-rose-600 dark:text-rose-400"
-                  data-oid="u7x8cj2"
-                >
-                  <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200/80 dark:border-rose-900 text-rose-600 dark:text-rose-400 shrink-0">
-                    <Activity className="w-4 h-4" data-oid="lczw:jk" />
-                  </div>
-                  Live Event Stream
-                </CardTitle>
-                <p
-                  className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider ml-1"
-                  data-oid="bafjpuj"
-                >
-                  System Pulse
-                </p>
-              </CardHeader>
-              <CardContent className="p-2 flex-1" data-oid="v3lgmwu">
-                <div className="overflow-y-auto max-h-[320px] no-scrollbar" data-oid="ort0p1u">
-                  {activityFeed.length > 0 ? (
-                    <div className="space-y-1" data-oid="rw8g.ff">
-                      {activityFeed.map((activity, i) => (
-                        <m.div
-                          key={activity.id}
-                          initial={{ opacity: 0, x: 10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.03 }}
-                          className="p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors border border-transparent hover:border-slate-200/60 dark:hover:border-white/5 group"
-                          data-oid="rjf27x:"
-                        >
-                          <div className="flex items-center gap-3" data-oid="qq8ty0y">
-                            <div
-                              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-900 shadow-2xs"
-                              data-oid="mhxsn6f"
-                            >
-                              <UserCheck className="w-4 h-4" data-oid="5bgrq4r" />
-                            </div>
-                            <div className="min-w-0 flex-1" data-oid="rgdan2u">
-                              <p
-                                className="text-xs font-black text-slate-950 dark:text-white truncate leading-tight"
-                                data-oid="ajody6w"
-                              >
-                                {activity.user}
-                              </p>
-                              <p
-                                className="text-[10px] font-medium text-slate-400"
-                                data-oid="odn02yn"
-                              >
-                                Joined community •{' '}
-                                {activity.timestamp.toLocaleTimeString([], {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                              </p>
-                            </div>
-                            <ArrowUpRight
-                              className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600 transition-colors shrink-0"
-                              data-oid="wi1l2n3"
-                            />
-                          </div>
-                        </m.div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div
-                      className="flex flex-col items-center justify-center h-48 text-slate-400 text-xs font-semibold italic"
-                      data-oid="f4lfown"
-                    >
-                      <Activity
-                        className="w-6 h-6 mb-2 opacity-30 animate-pulse"
-                        data-oid="d.l7-5e"
-                      />
-                      <p data-oid="1f4idtu">Awaiting Pulse...</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </m.div>
-        </div>
-
-        {/* Module Performance Grid - Tertiary Bento Row */}
-        <div className="col-span-12" data-oid="l2ot9c.">
-          <m.div variants={itemVariants} data-oid="x1lr66l">
-            <div className="flex items-center justify-between mb-3 mt-1" data-oid="g-:hy_5">
-              <div data-oid="2ctc0c:">
-                <h3
-                  className="text-base font-black text-slate-950 dark:text-white flex items-center gap-2"
-                  data-oid="q-p3ufx"
-                >
-                  <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-900 text-emerald-600 dark:text-emerald-400 shrink-0">
-                    <BarChart3
-                      className="w-4 h-4 text-emerald-600 dark:text-emerald-400"
-                      data-oid="dswxp8."
+                    <span
+                      className={cn(
+                        'w-1.5 h-1.5 rounded-full mt-1.5 shrink-0',
+                        SEVERITY[action.severity] || SEVERITY.low
+                      )}
                     />
-                  </div>
-                  Module Intelligence
-                </h3>
-                <p
-                  className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1 mt-0.5"
-                  data-oid="5plw86v"
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline gap-1.5">
+                        <span
+                          className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}
+                        >
+                          {action.count}
+                        </span>
+                        <span className="text-[11px] font-extrabold text-stone-800 dark:text-stone-100 leading-tight">
+                          {action.label}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-stone-400 font-medium mt-0.5 leading-snug">
+                        {action.detail}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-stone-300 group-hover:text-stone-600 dark:group-hover:text-stone-300 shrink-0 mt-1" />
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </m.div>
+
+        {/* Activation funnel */}
+        <m.div variants={itemVariants} className="col-span-12 lg:col-span-8">
+          <div className={cn(PANEL, 'p-4 h-full')}>
+            <div className="flex items-baseline justify-between mb-4">
+              <div className="flex items-center gap-1.5">
+                <h3 className={cn(MICRO, 'text-stone-400')}>Activation funnel · all time</h3>
+                <InfoTip>
+                  How far people get through the product. Each bar is the number of users who
+                  reached that step. The red label marks the step losing the most people — the
+                  free-to-paid step is excluded because it is always the biggest drop.
+                </InfoTip>
+              </div>
+              <span className={cn(MICRO, 'text-stone-400')}>share of signups</span>
+            </div>
+            <Funnel steps={data?.funnel || []} />
+          </div>
+        </m.div>
+
+        {/* Trend */}
+        <m.div variants={itemVariants} className="col-span-12 lg:col-span-8">
+          <div className={cn(PANEL, 'p-4')}>
+            <div className="flex items-baseline justify-between mb-3">
+              <h3 className={cn(MICRO, 'text-stone-400')}>Signups vs active users</h3>
+              <div className="flex items-center gap-3">
+                <span className={cn(MICRO, 'text-stone-400 flex items-center gap-1.5')}>
+                  <span className="w-2 h-0.5 rounded-full bg-[rgb(var(--signal-ok))]" />
+                  Signups
+                </span>
+                <span className={cn(MICRO, 'text-stone-400 flex items-center gap-1.5')}>
+                  <span className="w-2 h-0.5 rounded-full bg-stone-400" />
+                  Active
+                </span>
+              </div>
+            </div>
+            <div className="h-[230px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trend} margin={{ top: 5, right: 4, left: -24, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="ovSignups" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="rgb(var(--signal-ok))" stopOpacity={0.28} />
+                      <stop offset="95%" stopColor="rgb(var(--signal-ok))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="rgba(120,113,108,0.18)"
+                  />
+                  <XAxis
+                    dataKey="date"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#a8a29e', fontSize: 9, fontWeight: 700 }}
+                    tickMargin={8}
+                    minTickGap={16}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    allowDecimals={false}
+                    tick={{ fill: '#a8a29e', fontSize: 9, fontWeight: 700 }}
+                  />
+                  <Tooltip
+                    cursor={{ stroke: 'rgba(120,113,108,0.35)' }}
+                    content={({ active, payload, label }) => {
+                      if (!active || !payload?.length) return null;
+                      return (
+                        <div className="rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315] px-3 py-2 shadow-lg">
+                          <p className={cn(MICRO, 'text-stone-400 mb-1')}>{label}</p>
+                          {payload.map((p) => (
+                            <p
+                              key={p.dataKey}
+                              className="text-[11px] font-bold text-stone-800 dark:text-stone-100 capitalize"
+                            >
+                              {p.dataKey}: <span className={NUM}>{p.value}</span>
+                            </p>
+                          ))}
+                        </div>
+                      );
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="signups"
+                    stroke="rgb(var(--signal-ok))"
+                    strokeWidth={2}
+                    fill="url(#ovSignups)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="active"
+                    stroke="#a8a29e"
+                    strokeWidth={1.5}
+                    strokeDasharray="4 3"
+                    fill="none"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </m.div>
+
+        {/* Recent signups */}
+        <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
+          <div className={cn(PANEL, 'p-4 h-full')}>
+            <h3 className={cn(MICRO, 'text-stone-400 mb-3')}>Latest signups</h3>
+            <div className="space-y-px">
+              {(data?.recentSignups || []).map((user) => (
+                <div
+                  key={user.id}
+                  className="flex items-center gap-2.5 py-2 border-b border-stone-100 dark:border-white/[0.05] last:border-0"
                 >
-                  Global Performance Metrics
+                  <div className="w-7 h-7 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-[10px] font-black text-stone-500 dark:text-stone-300 shrink-0">
+                    {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-extrabold text-stone-900 dark:text-stone-50 truncate leading-tight">
+                      {user.full_name || user.email?.split('@')[0]}
+                    </p>
+                    <p className={cn(MICRO, 'text-stone-400 truncate mt-0.5')}>
+                      {user.onboarding_completed ? 'Onboarded' : 'Not onboarded'}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className={cn(NUM, 'text-[10px] font-bold text-stone-500')}>
+                      {new Date(user.created_at).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+                    {user.subscription_tier && user.subscription_tier !== 'free' && (
+                      <p className={cn(MICRO, 'text-[rgb(var(--signal-ok))]')}>
+                        {user.subscription_tier}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {(data?.recentSignups || []).length === 0 && (
+                <p className="text-xs text-stone-400 py-8 text-center font-medium">
+                  No signups yet.
+                </p>
+              )}
+            </div>
+          </div>
+        </m.div>
+
+        {/* Cohort retention */}
+        <m.div variants={itemVariants} className="col-span-12 lg:col-span-7">
+          <div className={cn(PANEL, 'p-4 h-full')}>
+            <div className="flex items-baseline justify-between mb-3">
+              <div className="flex items-center gap-1.5">
+                <h3 className={cn(MICRO, 'text-stone-400')}>Weekly retention by signup cohort</h3>
+                <InfoTip>
+                  Each row is everyone who signed up that week. W0 is the share who took a test in
+                  their signup week, W1 the share who came back the week after, and so on. Darker
+                  means more people returned — empty cells mean nobody came back.
+                </InfoTip>
+              </div>
+              <span className={cn(MICRO, 'text-stone-400')}>% who ran a test</span>
+            </div>
+            <RetentionGrid cohorts={data?.retention || []} />
+          </div>
+        </m.div>
+
+        {/* Engagement depth + unit economics */}
+        <m.div variants={itemVariants} className="col-span-12 lg:col-span-5">
+          <div className={cn(PANEL, 'p-4 h-full flex flex-col gap-4')}>
+            <div>
+              <div className="flex items-baseline justify-between">
+                <h3 className={cn(MICRO, 'text-stone-400')}>Engagement depth</h3>
+                <span className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}>
+                  {eng.repeatRate ?? 0}%
+                  <span className={cn(MICRO, 'text-stone-400 ml-1.5')}>come back</span>
+                </span>
+              </div>
+              <div className="mt-3 space-y-2">
+                {[
+                  { label: 'Tried a test', n: eng.startedUsers ?? 0 },
+                  { label: 'Returned (2+)', n: eng.repeatUsers ?? 0 },
+                  { label: 'Power users (5+)', n: eng.powerUsers ?? 0 },
+                ].map((row) => {
+                  const share = eng.startedUsers ? (row.n / eng.startedUsers) * 100 : 0;
+                  return (
+                    <div key={row.label} className="flex items-center gap-3">
+                      <span className={cn(MICRO, 'text-stone-400 w-28 shrink-0')}>{row.label}</span>
+                      <div className="flex-1 h-1.5 rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[rgb(var(--signal-ok))]"
+                          style={{ width: `${Math.max(share, 1)}%` }}
+                        />
+                      </div>
+                      <span
+                        className={cn(
+                          NUM,
+                          'text-[11px] font-bold text-stone-700 dark:text-stone-200 w-8 text-right'
+                        )}
+                      >
+                        {row.n}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-dashed border-stone-200 dark:border-white/[0.07] grid grid-cols-2 gap-4">
+              <div>
+                <p className={cn(MICRO, 'text-stone-400')}>Cost / completed test</p>
+                <p className={cn(NUM, 'text-lg font-bold text-stone-900 dark:text-stone-50 mt-1')}>
+                  ${Number(econ.costPerCompletedTest ?? 0).toFixed(4)}
+                </p>
+              </div>
+              <div>
+                <p className={cn(MICRO, 'text-stone-400')}>Cost / paying user</p>
+                <p className={cn(NUM, 'text-lg font-bold text-stone-900 dark:text-stone-50 mt-1')}>
+                  ${Number(econ.costPerPayingUser ?? 0).toFixed(4)}
+                </p>
+              </div>
+              <div>
+                <p className={cn(MICRO, 'text-stone-400')}>Mock vs practice</p>
+                <p className={cn(NUM, 'text-lg font-bold text-stone-900 dark:text-stone-50 mt-1')}>
+                  {eng.mockSessions ?? 0}
+                  <span className="text-stone-400"> / {eng.practiceSessions ?? 0}</span>
+                </p>
+              </div>
+              <div>
+                <p className={cn(MICRO, 'text-stone-400')}>Cost data coverage</p>
+                <p
+                  className={cn(
+                    NUM,
+                    'text-lg font-bold mt-1',
+                    (econ.costCoverage ?? 0) < 80
+                      ? 'text-[rgb(var(--signal-warn))]'
+                      : 'text-stone-900 dark:text-stone-50'
+                  )}
+                >
+                  {econ.costCoverage ?? 0}%
                 </p>
               </div>
             </div>
-            <div
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5"
-              data-oid="2cxqlpj"
-            >
-              {(analyticsData.moduleAnalytics || []).map((module, index) => {
-                const colors = [
-                  {
-                    bg: 'bg-blue-600',
-                    text: 'text-blue-600 dark:text-blue-400',
-                    iconBg:
-                      'bg-blue-50 dark:bg-blue-950/50 border-blue-200/80 dark:border-blue-900',
-                    icon: BookOpen,
-                  },
-                  {
-                    bg: 'bg-amber-600',
-                    text: 'text-amber-600 dark:text-amber-400',
-                    iconBg:
-                      'bg-amber-50 dark:bg-amber-950/50 border-amber-200/80 dark:border-amber-900',
-                    icon: PenTool,
-                  },
-                  {
-                    bg: 'bg-purple-600',
-                    text: 'text-purple-600 dark:text-purple-400',
-                    iconBg:
-                      'bg-purple-50 dark:bg-purple-950/50 border-purple-200/80 dark:border-purple-900',
-                    icon: Headphones,
-                  },
-                  {
-                    bg: 'bg-rose-600',
-                    text: 'text-rose-600 dark:text-rose-400',
-                    iconBg:
-                      'bg-rose-50 dark:bg-rose-950/50 border-rose-200/80 dark:border-rose-900',
-                    icon: Mic,
-                  },
-                ];
+          </div>
+        </m.div>
 
-                const theme = colors[index % colors.length];
-                const score = parseFloat(module.avgScore);
-                const percentage = (score / 9) * 100;
-
+        {/* When the platform is actually used */}
+        <m.div variants={itemVariants} className="col-span-12">
+          <div className={cn(PANEL, 'p-4')}>
+            <div className="flex items-baseline justify-between mb-3">
+              <div className="flex items-center gap-1.5">
+                <h3 className={cn(MICRO, 'text-stone-400')}>Activity by hour · last 30 days</h3>
+                <InfoTip>
+                  Test sessions grouped by hour of day (UTC). Use the quiet hours for deploys,
+                  migrations and maintenance mode, and make sure support covers the busy ones.
+                </InfoTip>
+              </div>
+              <span className={cn(MICRO, 'text-stone-400')}>
+                peak{' '}
+                <span className={cn(NUM, 'text-stone-700 dark:text-stone-200')}>
+                  {peakHour === null ? '—' : `${String(peakHour).padStart(2, '0')}:00`}
+                </span>{' '}
+                UTC
+              </span>
+            </div>
+            <div className="flex items-end gap-[3px] h-20">
+              {hourly.map((h) => {
+                const share = maxHourly ? (h.sessions / maxHourly) * 100 : 0;
                 return (
-                  <m.div key={module.module} data-oid="zwgx8zv">
-                    <Card
-                      className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden p-4"
-                      data-oid="j5yxlm-"
-                    >
-                      <div className="flex items-center gap-3 mb-3" data-oid="svbt3nh">
-                        <div
-                          className={cn(
-                            'p-2.5 rounded-xl border shrink-0',
-                            theme.iconBg,
-                            theme.text
-                          )}
-                          data-oid="ea6sr0-"
-                        >
-                          <theme.icon className="w-4 h-4" data-oid="n8n8zmh" />
-                        </div>
-                        <div data-oid="1arv9fj">
-                          <h4
-                            className="font-black text-sm text-slate-950 dark:text-white leading-tight"
-                            data-oid="g7lckfa"
-                          >
-                            {module.module}
-                          </h4>
-                          <p className="text-[10px] font-medium text-slate-400" data-oid="uhwf2yr">
-                            {module.totalSessions} Sessions
-                          </p>
-                        </div>
-                      </div>
-                      <div className="space-y-2.5" data-oid="ai9sa97">
-                        <div className="flex justify-between items-end" data-oid="gv1ash-">
-                          <span
-                            className="text-[10px] font-black uppercase tracking-wider text-slate-400"
-                            data-oid="tl0oogb"
-                          >
-                            Average Score
-                          </span>
-                          <span
-                            className="text-xl font-black text-slate-950 dark:text-white leading-none"
-                            data-oid=".15ua5x"
-                          >
-                            {module.avgScore}{' '}
-                            <span
-                              className="text-[10px] text-slate-400 font-bold"
-                              data-oid="x7_a.5-"
-                            >
-                              / 9
-                            </span>
-                          </span>
-                        </div>
-                        <div
-                          className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"
-                          data-oid="iaq7eiq"
-                        >
-                          <m.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${percentage}%` }}
-                            transition={{ duration: 1.2, ease: 'easeOut' }}
-                            className={cn('h-full rounded-full', theme.bg)}
-                            data-oid="eqzmnef"
-                          />
-                        </div>
-                        <div
-                          className="flex justify-between items-center text-[10px] font-bold"
-                          data-oid="agpkxqp"
-                        >
-                          <span
-                            className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-extrabold"
-                            data-oid="h7qkcxu"
-                          >
-                            <TrendingUp className="w-3 h-3" data-oid="nfiwt.." />{' '}
-                            {module.completionRate}% Done
-                          </span>
-                          <span className="text-slate-400 font-extrabold" data-oid="u5hglvn">
-                            ACTIVE
-                          </span>
-                        </div>
-                      </div>
-                    </Card>
-                  </m.div>
+                  <div key={h.hour} className="flex-1 flex flex-col items-center gap-1 group">
+                    <div className="w-full flex-1 flex items-end">
+                      <div
+                        title={`${String(h.hour).padStart(2, '0')}:00 — ${h.sessions} sessions`}
+                        className={cn(
+                          'w-full rounded-sm transition-colors',
+                          h.hour === peakHour
+                            ? 'bg-[rgb(var(--signal-ok))]'
+                            : 'bg-[rgb(var(--signal-ok)/0.28)] group-hover:bg-[rgb(var(--signal-ok)/0.5)]'
+                        )}
+                        style={{ height: `${Math.max(share, 2)}%` }}
+                      />
+                    </div>
+                    {h.hour % 3 === 0 && (
+                      <span className={cn(NUM, 'text-[8px] text-stone-400')}>{h.hour}</span>
+                    )}
+                  </div>
                 );
               })}
             </div>
-          </m.div>
-        </div>
+          </div>
+        </m.div>
+
+        {/* Module engagement */}
+        <m.div variants={itemVariants} className="col-span-12">
+          <div className={cn(PANEL, 'p-4')}>
+            <div className="flex items-baseline justify-between mb-3">
+              <h3 className={cn(MICRO, 'text-stone-400')}>Module engagement</h3>
+              <span className={cn(MICRO, 'text-stone-400')}>
+                completion = sessions finished, not scores
+              </span>
+            </div>
+            <div className="space-y-1">
+              {modules.map((mod) => {
+                const weak = mod.completion < 50;
+                return (
+                  <div
+                    key={mod.module}
+                    className="grid grid-cols-12 items-center gap-3 py-2.5 border-b border-stone-100 dark:border-white/[0.05] last:border-0"
+                  >
+                    <span className="col-span-3 sm:col-span-2 text-[11px] font-extrabold text-stone-900 dark:text-stone-50">
+                      {mod.module}
+                    </span>
+                    <span
+                      className={cn(NUM, 'col-span-3 sm:col-span-2 text-[11px] text-stone-500')}
+                    >
+                      {mod.users} users
+                    </span>
+                    <span
+                      className={cn(NUM, 'col-span-3 sm:col-span-2 text-[11px] text-stone-500')}
+                    >
+                      {mod.sessions} sessions
+                    </span>
+                    <div className="col-span-12 sm:col-span-5 order-last sm:order-none">
+                      <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
+                        <div
+                          className={cn(
+                            'h-full rounded-full',
+                            weak ? 'bg-[rgb(var(--signal-warn))]' : 'bg-[rgb(var(--signal-ok))]'
+                          )}
+                          style={{ width: `${mod.completion}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span
+                      className={cn(
+                        NUM,
+                        'col-span-3 sm:col-span-1 text-[11px] font-bold text-right',
+                        weak
+                          ? 'text-[rgb(var(--signal-warn))]'
+                          : 'text-stone-900 dark:text-stone-50'
+                      )}
+                    >
+                      {mod.completion}%
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </m.div>
       </div>
     </m.div>
   );

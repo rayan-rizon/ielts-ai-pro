@@ -2,6 +2,20 @@ import { supabase } from '@/lib/supabase';
 
 export const AnalyticsService = {
   /**
+   * Admin landing-page snapshot: KPIs with prior-period deltas, the activation
+   * funnel, the action queue, daily trend and module engagement — one round
+   * trip, aggregated in Postgres rather than by pulling every row to the client.
+   */
+  async getOverview(days = 7) {
+    const { data, error } = await supabase.rpc('get_admin_overview', { p_days: days });
+    if (error) {
+      console.error('Error fetching admin overview:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  /**
    * Get aggregated stats for the admin dashboard.
    * Calls the 'get_admin_dashboard_stats' RPC.
    */

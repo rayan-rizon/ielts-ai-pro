@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
@@ -14,33 +11,41 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
-  Users,
-  Gift,
-  Plus,
-  Trash2,
-  Edit3,
-  Save,
-  X,
-  PenLine,
-  Mic,
   Calendar,
-  Trophy,
-  TrendingUp,
+  Edit3,
+  Gift,
   Loader2,
+  Mic,
+  PenLine,
+  Plus,
+  Save,
+  Trash2,
+  TrendingUp,
+  Users,
 } from 'lucide-react';
 import { ReferralSettings } from '@/features/admin/services/ReferralSettings';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
+import { NUM, MICRO, PANEL, Kpi, AdminButton, AdminPageHeader } from './ui/primitives';
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-};
+const FIELD_LABEL = cn(MICRO, 'text-stone-400 mb-1.5 flex items-center gap-1.5');
+const FIELD_INPUT =
+  'h-9 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
 
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1 },
-};
+const TIER_BADGE = (Icon, tone, label) => (
+  <span
+    className={cn('inline-flex items-center rounded-md border px-1.5 py-0.5 gap-1', MICRO, tone)}
+  >
+    <Icon className="w-2.5 h-2.5" />
+    {label}
+  </span>
+);
+
+const RANK_TONE = [
+  'bg-[rgb(var(--signal-warn))] text-white',
+  'bg-stone-400 text-white',
+  'bg-stone-500 text-white',
+];
 
 export default function ReferralManagement() {
   const [tiers, setTiers] = useState([]);
@@ -109,11 +114,7 @@ export default function ReferralManagement() {
       writing_credits: parseInt(formData.writing_credits) || 0,
       speaking_credits: parseInt(formData.speaking_credits) || 0,
     };
-
-    if (data.referrals_required < 1) {
-      toast.error('Referrals required must be at least 1');
-      return;
-    }
+    if (data.referrals_required < 1) return toast.error('Referrals required must be at least 1');
 
     setSaving(true);
     try {
@@ -136,7 +137,6 @@ export default function ReferralManagement() {
 
   async function handleDelete(tier) {
     if (!confirm(`Delete reward tier for ${tier.referrals_required} referral(s)?`)) return;
-
     try {
       await ReferralSettings.delete(tier.id);
       toast.success('Reward tier deleted');
@@ -160,456 +160,266 @@ export default function ReferralManagement() {
 
   if (loading) {
     return (
-      <div className="space-y-6" data-oid="o2z_-pr">
-        <Skeleton className="h-32 rounded-2xl" data-oid="3pi3:ns" />
-        <Skeleton className="h-64 rounded-2xl" data-oid="w07yq9." />
+      <div className="space-y-3">
+        <div className={cn(PANEL, 'h-24 animate-pulse')} />
+        <div className={cn(PANEL, 'h-64 animate-pulse')} />
       </div>
     );
   }
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6 pb-10 pt-12 md:pt-0"
-      data-oid="18ug8xl"
-    >
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-1">
-        <motion.div variants={itemVariants} className="space-y-0.5 min-w-0">
-          <h2 className="text-lg sm:text-2xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5">
-            <div className="p-2 sm:p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xs shrink-0">
-              <Gift className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <span className="truncate">Referral Program</span>
-          </h2>
-          <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
-            Configure referral milestone rewards, bonus evaluation credits, and track top advocates
-          </p>
-        </motion.div>
-
-        <Button
-          onClick={openAddModal}
-          className="w-full sm:w-auto justify-center h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-2xs transition-all flex items-center gap-2 shrink-0 mt-1 sm:mt-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Reward Tier</span>
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-4" data-oid="mgs:u5n">
-        <motion.div
-          variants={itemVariants}
-          className="p-2.5 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs"
-          data-oid="amsy.af"
-        >
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2" data-oid="_h72-9d">
-            <div className="space-y-0.5 min-w-0" data-oid="1n0vi9t">
-              <p
-                className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 truncate"
-                data-oid="w3y-cts"
-              >
-                Total Referrals
-              </p>
-              <p
-                className="text-base sm:text-2xl font-black text-slate-950 dark:text-white"
-                data-oid="vtqun1k"
-              >
-                {stats?.totalReferrals || 0}
-              </p>
-            </div>
-            <div
-              className="p-1.5 sm:p-2.5 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/40 shrink-0"
-              data-oid="hwecfhe"
-            >
-              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="_u881n_" />
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          variants={itemVariants}
-          className="p-2.5 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs"
-          data-oid="19oec09"
-        >
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2" data-oid="ibn8.2b">
-            <div className="space-y-0.5 min-w-0" data-oid="ju54xe8">
-              <p
-                className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 truncate"
-                data-oid="4brs74h"
-              >
-                Active Reward Tiers
-              </p>
-              <p
-                className="text-base sm:text-2xl font-black text-slate-950 dark:text-white"
-                data-oid="k3bzimg"
-              >
-                {tiers.filter((t) => t.is_active).length}
-              </p>
-            </div>
-            <div
-              className="p-1.5 sm:p-2.5 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40 shrink-0"
-              data-oid="-:63:qe"
-            >
-              <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="b.076g:" />
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          variants={itemVariants}
-          className="p-2.5 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs"
-          data-oid="lb_on44"
-        >
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2" data-oid="xi7pj4d">
-            <div className="space-y-0.5 min-w-0" data-oid="yhhxr40">
-              <p
-                className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 truncate"
-                data-oid="iz.tx43"
-              >
-                Top Referrer Count
-              </p>
-              <p
-                className="text-base sm:text-2xl font-black text-slate-950 dark:text-white"
-                data-oid="uf9u:_y"
-              >
-                {stats?.topReferrers?.[0]?.count || 0}
-              </p>
-            </div>
-            <div
-              className="p-1.5 sm:p-2.5 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40 shrink-0"
-              data-oid="afizo-4"
-            >
-              <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="u2gba3y" />
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Reward Tiers Section */}
-      <motion.div
-        variants={itemVariants}
-        className="p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs space-y-4 sm:space-y-5"
-        data-oid="2jfdadv"
+    <div className="space-y-4 pb-10 pt-12 md:pt-0">
+      <AdminPageHeader
+        title="Referrals"
+        description="Milestone rewards, bonus evaluation credits, and top advocates"
+        tip="Tiers unlock automatically when a user's referral count hits the target. Deactivating a tier keeps existing rewards intact but stops new ones."
       >
-        <div className="flex items-center justify-between" data-oid="p_wx:y9">
-          <div data-oid="e7cohqm" className="space-y-0.5">
-            <h3
-              className="text-sm sm:text-base font-black text-slate-950 dark:text-white"
-              data-oid="f4p4l1z"
-            >
-              Milestone Reward Rules
-            </h3>
-            <p
-              className="text-xs font-medium text-slate-500 dark:text-slate-400"
-              data-oid="l9up2zp"
-            >
-              Automatic user rewards unlocked when candidates hit referral targets
-            </p>
-          </div>
+        <AdminButton onClick={openAddModal}>
+          <Plus className="w-3.5 h-3.5" />
+          Add tier
+        </AdminButton>
+      </AdminPageHeader>
+
+      <div className="grid grid-cols-3 gap-3">
+        <Kpi label="Total referrals" value={(stats?.totalReferrals || 0).toLocaleString()} />
+        <Kpi
+          label="Active tiers"
+          value={tiers.filter((t) => t.is_active).length}
+          sub={`of ${tiers.length} total`}
+        />
+        <Kpi
+          label="Top referrer"
+          value={stats?.topReferrers?.[0]?.count || 0}
+          sub="referrals by #1"
+        />
+      </div>
+
+      {/* Reward tiers */}
+      <div className={cn(PANEL, 'p-4')}>
+        <div className="mb-3">
+          <h3 className={cn(MICRO, 'text-stone-400')}>Milestone reward rules</h3>
         </div>
 
-        <div className="space-y-2.5" data-oid="lls6vpo">
-          <AnimatePresence mode="popLayout" data-oid="yu.2e3d">
-            {tiers.map((tier) => (
-              <motion.div
-                key={tier.id}
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className={cn(
-                  'p-3 sm:p-3.5 rounded-xl border transition-all flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-2xs',
-                  tier.is_active
-                    ? 'bg-slate-50/70 dark:bg-slate-900/60 border-slate-200/80 dark:border-white/10'
-                    : 'bg-slate-100/40 dark:bg-slate-800/40 border-slate-200/40 opacity-60'
-                )}
-                data-oid="_vj.xl2"
-              >
-                <div className="flex items-center gap-3 min-w-0 flex-1" data-oid="-j:-jpl">
-                  <div
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/50 flex items-center justify-center font-black text-sm sm:text-base shrink-0"
-                    data-oid="clnadpz"
-                  >
-                    <span>{tier.referrals_required}</span>
-                  </div>
-                  <div data-oid="n6y-sh6" className="space-y-1 min-w-0 flex-1">
-                    <p
-                      className="font-extrabold text-xs sm:text-sm text-slate-950 dark:text-white truncate"
-                      data-oid="oczhbd."
-                    >
-                      {tier.referrals_required} Referral{tier.referrals_required > 1 ? 's' : ''}{' '}
-                      Target
-                    </p>
-                    <div className="flex flex-wrap items-center gap-1.5" data-oid="o07jhy-">
-                      {tier.extra_days > 0 && (
-                        <Badge
-                          variant="outline"
-                          className="rounded-lg font-bold text-[10px] bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700"
-                          data-oid=".24xkt4"
-                        >
-                          <Calendar className="w-3 h-3 mr-1 text-indigo-500" data-oid="s518lpj" />+
-                          {tier.extra_days} extra days
-                        </Badge>
-                      )}
-                      {tier.writing_credits > 0 && (
-                        <Badge
-                          variant="outline"
-                          className="rounded-lg font-bold text-[10px] bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border-indigo-200 dark:border-indigo-900"
-                          data-oid="-wl2llk"
-                        >
-                          <PenLine className="w-3 h-3 mr-1" data-oid="yu715uq" />+
-                          {tier.writing_credits} writing evaluations
-                        </Badge>
-                      )}
-                      {tier.speaking_credits > 0 && (
-                        <Badge
-                          variant="outline"
-                          className="rounded-lg font-bold text-[10px] bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border-purple-200 dark:border-purple-900"
-                          data-oid="yjwma2i"
-                        >
-                          <Mic className="w-3 h-3 mr-1" data-oid="fslv1wp" />+
-                          {tier.speaking_credits} speaking evaluations
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
+        <div className="space-y-2">
+          {tiers.map((tier) => (
+            <div
+              key={tier.id}
+              className={cn(
+                'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-lg border',
+                tier.is_active
+                  ? 'border-stone-200 dark:border-white/[0.07] bg-stone-50/50 dark:bg-white/[0.02]'
+                  : 'border-stone-100 dark:border-white/[0.04] opacity-50'
+              )}
+            >
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div
-                  className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-white/5"
-                  data-oid="t7ncv_3"
+                  className={cn(
+                    NUM,
+                    'w-9 h-9 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center font-black text-sm text-stone-700 dark:text-stone-200 shrink-0'
+                  )}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-semibold text-slate-400 sm:hidden">
-                      Active
-                    </span>
-                    <Switch
-                      checked={tier.is_active}
-                      onCheckedChange={() => handleToggleActive(tier)}
-                      data-oid="7s5r:ej"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openEditModal(tier)}
-                      className="h-8 w-8 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                      data-oid="tcn8.4m"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" data-oid="oudjt7g" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(tier)}
-                      className="h-8 w-8 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                      data-oid="w.ek0e3"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" data-oid="2.pab_i" />
-                    </Button>
+                  {tier.referrals_required}
+                </div>
+                <div className="min-w-0 flex-1 space-y-1">
+                  <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
+                    {tier.referrals_required} referral{tier.referrals_required > 1 ? 's' : ''}{' '}
+                    target
+                  </p>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {tier.extra_days > 0 &&
+                      TIER_BADGE(
+                        Calendar,
+                        'text-stone-600 dark:text-stone-300 border-stone-200 dark:border-white/10',
+                        `+${tier.extra_days}d`
+                      )}
+                    {tier.writing_credits > 0 &&
+                      TIER_BADGE(
+                        PenLine,
+                        'text-indigo-600 dark:text-indigo-400 border-indigo-300/50 dark:border-indigo-800/60 bg-indigo-500/[0.06]',
+                        `+${tier.writing_credits} writing`
+                      )}
+                    {tier.speaking_credits > 0 &&
+                      TIER_BADGE(
+                        Mic,
+                        'text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-800/60 bg-violet-500/[0.06]',
+                        `+${tier.speaking_credits} speaking`
+                      )}
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+              </div>
+
+              <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100 dark:border-white/[0.05]">
+                <div className="flex items-center gap-2">
+                  <span className={cn(MICRO, 'text-stone-400 sm:hidden')}>Active</span>
+                  <Switch
+                    checked={tier.is_active}
+                    onCheckedChange={() => handleToggleActive(tier)}
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => openEditModal(tier)}
+                    className="h-7 w-7 grid place-items-center rounded-md text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(tier)}
+                    className="h-7 w-7 grid place-items-center rounded-md text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
 
           {tiers.length === 0 && (
-            <div className="text-center py-10 text-slate-400" data-oid="_5-0-m0">
-              <Gift className="w-10 h-10 mx-auto mb-3 opacity-30" data-oid="yift19m" />
-              <p className="font-bold text-xs" data-oid="98cvgqc">
-                No reward tiers configured yet
+            <div className="text-center py-10">
+              <Gift className="w-6 h-6 mx-auto mb-2 text-stone-300 dark:text-stone-600" />
+              <p className="text-xs font-bold text-stone-900 dark:text-stone-50">
+                No reward tiers yet
               </p>
-              <p className="text-[11px] text-slate-500" data-oid="nq0jg6h">
-                Click "Add Reward Tier" to create your first milestone
+              <p className={cn(MICRO, 'text-stone-400 mt-1')}>
+                Add one to create your first milestone
               </p>
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
 
-      {/* Top Referrers Section */}
+      {/* Top referrers */}
       {stats?.topReferrers?.length > 0 && (
-        <motion.div
-          variants={itemVariants}
-          className="p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs space-y-4"
-          data-oid="f9sy9cw"
-        >
-          <div className="flex items-center gap-2" data-oid="t4a_n9u">
-            <TrendingUp
-              className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0"
-              data-oid="544gwti"
-            />
-            <h3
-              className="text-sm sm:text-base font-black text-slate-950 dark:text-white"
-              data-oid="h9p7_xm"
-            >
-              Top Referral Advocates
-            </h3>
+        <div className={cn(PANEL, 'p-4')}>
+          <div className="flex items-center gap-1.5 mb-3">
+            <TrendingUp className="w-3.5 h-3.5 text-stone-400" />
+            <h3 className={cn(MICRO, 'text-stone-400')}>Top advocates</h3>
           </div>
-
-          <div className="space-y-2" data-oid="rzdf5y4">
+          <div className="space-y-1.5">
             {stats.topReferrers.slice(0, 5).map((referrer, idx) => (
               <div
                 key={referrer.id}
-                className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/5 gap-2"
-                data-oid="db_xfjg"
+                className="flex items-center justify-between p-2.5 rounded-lg bg-stone-50/70 dark:bg-white/[0.02] border border-stone-200/60 dark:border-white/[0.05]"
               >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1" data-oid="yjtnef8">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <span
                     className={cn(
-                      'w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center font-black text-xs shrink-0',
-                      idx === 0
-                        ? 'bg-amber-500 text-white shadow-2xs'
-                        : idx === 1
-                          ? 'bg-slate-400 text-white shadow-2xs'
-                          : idx === 2
-                            ? 'bg-amber-700 text-white shadow-2xs'
-                            : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                      NUM,
+                      'w-6 h-6 rounded-md grid place-items-center font-black text-[11px] shrink-0',
+                      RANK_TONE[idx] ||
+                        'bg-stone-200 dark:bg-white/[0.06] text-stone-600 dark:text-stone-300'
                     )}
-                    data-oid="sik88w3"
                   >
                     {idx + 1}
                   </span>
-                  <div className="min-w-0 flex-1" data-oid="1k60npi">
-                    <p
-                      className="font-extrabold text-xs text-slate-950 dark:text-white truncate"
-                      data-oid="w2g--ar"
-                    >
+                  <div className="min-w-0 flex-1">
+                    <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
                       {referrer.name}
                     </p>
-                    <p className="text-[10px] text-slate-400 font-mono truncate" data-oid="ah5g48r">
+                    <p className={cn(NUM, 'text-[10px] text-stone-400 truncate')}>
                       {referrer.email}
                     </p>
                   </div>
                 </div>
-                <Badge
-                  className="rounded-lg font-mono font-bold text-[10px] sm:text-xs bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border-indigo-200 dark:border-indigo-900 shrink-0"
-                  data-oid="dwahhs8"
+                <span
+                  className={cn(
+                    NUM,
+                    'text-[11px] font-bold text-stone-700 dark:text-stone-200 shrink-0'
+                  )}
                 >
                   {referrer.count} referrals
-                </Badge>
+                </span>
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
       )}
 
-      {/* Add/Edit Modal */}
-      <Dialog open={showAddModal} onOpenChange={setShowAddModal} data-oid="1e8k68t">
-        <DialogContent
-          className="w-[95vw] sm:w-full sm:max-w-[425px] rounded-3xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto"
-          data-oid="my9ba0i"
-        >
-          <DialogHeader data-oid="8v.i1d7">
-            <DialogTitle
-              className="flex items-center gap-2 text-lg sm:text-xl font-black"
-              data-oid="74zgsf8"
-            >
-              <Gift className="w-5 h-5 text-indigo-500 shrink-0" data-oid="zs7j__l" />
-              {editingTier ? 'Edit Reward Tier' : 'Add Reward Tier'}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Gift className="w-4 h-4 text-stone-400" />
+              {editingTier ? 'Edit reward tier' : 'Add reward tier'}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-4" data-oid="0b2b8ia">
-            <div className="space-y-2" data-oid="u5b5bb_">
-              <Label className="font-bold text-xs" data-oid="314p4gf">
-                Referrals Required
+          <div className="space-y-3 py-2">
+            <div>
+              <Label className={FIELD_LABEL}>
+                <Users className="w-3 h-3" />
+                Referrals required
               </Label>
               <Input
                 type="number"
                 min="1"
                 value={formData.referrals_required}
                 onChange={(e) => setFormData({ ...formData, referrals_required: e.target.value })}
-                placeholder="e.g., 3"
-                className="rounded-xl h-11 text-xs"
-                data-oid="5416tmh"
+                placeholder="e.g. 3"
+                className={FIELD_INPUT}
               />
             </div>
-
-            <div className="space-y-2" data-oid="-pzol_i">
-              <Label className="font-bold text-xs flex items-center gap-2" data-oid="_7zslv3">
-                <Calendar className="w-4 h-4" data-oid="_d7y59b" />
-                Extra Days
+            <div>
+              <Label className={FIELD_LABEL}>
+                <Calendar className="w-3 h-3" />
+                Extra days
               </Label>
               <Input
                 type="number"
                 min="0"
                 value={formData.extra_days}
                 onChange={(e) => setFormData({ ...formData, extra_days: e.target.value })}
-                placeholder="e.g., 7"
-                className="rounded-xl h-11 text-xs"
-                data-oid="90p._6i"
+                placeholder="e.g. 7"
+                className={FIELD_INPUT}
               />
             </div>
-
-            <div
-              className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3 sm:gap-4"
-              data-oid="y2erf04"
-            >
-              <div className="space-y-2" data-oid="az:zx_q">
-                <Label className="font-bold text-xs flex items-center gap-2" data-oid="al7.ren">
-                  <PenLine className="w-4 h-4" data-oid="8mx-_xe" />
-                  Writing Credits
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className={FIELD_LABEL}>
+                  <PenLine className="w-3 h-3" />
+                  Writing credits
                 </Label>
                 <Input
                   type="number"
                   min="0"
                   value={formData.writing_credits}
                   onChange={(e) => setFormData({ ...formData, writing_credits: e.target.value })}
-                  placeholder="e.g., 5"
-                  className="rounded-xl h-11 text-xs"
-                  data-oid="o6h8bu6"
+                  placeholder="e.g. 5"
+                  className={FIELD_INPUT}
                 />
               </div>
-
-              <div className="space-y-2" data-oid="nqcvft_">
-                <Label className="font-bold text-xs flex items-center gap-2" data-oid="pxwjpg.">
-                  <Mic className="w-4 h-4" data-oid="8clmj38" />
-                  Speaking Credits
+              <div>
+                <Label className={FIELD_LABEL}>
+                  <Mic className="w-3 h-3" />
+                  Speaking credits
                 </Label>
                 <Input
                   type="number"
                   min="0"
                   value={formData.speaking_credits}
                   onChange={(e) => setFormData({ ...formData, speaking_credits: e.target.value })}
-                  placeholder="e.g., 3"
-                  className="rounded-xl h-11 text-xs"
-                  data-oid="inwor-0"
+                  placeholder="e.g. 3"
+                  className={FIELD_INPUT}
                 />
               </div>
             </div>
           </div>
 
-          <DialogFooter className="gap-2" data-oid="_2zt0:_">
-            <Button
-              variant="outline"
-              onClick={() => setShowAddModal(false)}
-              className="rounded-xl font-bold"
-              data-oid="8t.lh:b"
-            >
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddModal(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={handleSave}
-              disabled={saving || !formData.referrals_required}
-              className="rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700"
-              data-oid="x17kp4z"
-            >
+            <Button onClick={handleSave} disabled={saving || !formData.referrals_required}>
               {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin" data-oid="u9g-79a" />
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
               ) : (
-                <Save className="w-4 h-4 mr-2" data-oid="ez5zgg9" />
+                <Save className="w-4 h-4 mr-2" />
               )}
               {editingTier ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </motion.div>
+    </div>
   );
 }

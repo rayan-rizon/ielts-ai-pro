@@ -6,13 +6,11 @@ import {
   LayoutDashboard,
   Users,
   Tag,
-  BarChart3,
   Settings,
   Bell,
   FileText,
   Library,
   Cpu,
-  UserX,
   CreditCard,
   Gift,
 } from 'lucide-react';
@@ -30,7 +28,6 @@ const ResourceManagement = lazy(() => import('@/components/admin/ResourceManagem
 const PassageQuestionManager = lazy(
   () => import('@/components/admin/tests/builders/PassageQuestionManager')
 );
-const AnalyticsDashboard = lazy(() => import('@/components/admin/AnalyticsDashboard'));
 const UserAnalytics = lazy(() => import('@/components/admin/UserAnalytics'));
 const RevenueAnalytics = lazy(() => import('@/components/admin/RevenueAnalytics'));
 const GlobalSettings = lazy(() => import('@/components/admin/settings/GlobalSettings'));
@@ -44,11 +41,9 @@ const ReferralManagement = lazy(() => import('@/components/admin/ReferralManagem
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, component: AdminOverview },
   { id: 'users', label: 'Users', icon: Users, component: UserManagement },
-  { id: 'inactive', label: 'Inactive', icon: UserX, component: null }, // Lazy loaded
   { id: 'tests', label: 'Tests', icon: FileText, component: TestManagement },
   { id: 'resources', label: 'Resources', icon: Library, component: ResourceManagement },
-  { id: 'ai-usage', label: 'AI Usage', icon: Cpu, component: null }, // Lazy loaded
-  { id: 'analytics', label: 'Analytics', icon: BarChart3, component: AnalyticsDashboard },
+  { id: 'ai-usage', label: 'AI Usage', icon: Cpu, component: AIUsageManagement },
   { id: 'promo', label: 'Promos', icon: Tag, component: PromoCodeManagement },
   { id: 'referrals', label: 'Referrals', icon: Gift, component: ReferralManagement },
   { id: 'payments', label: 'Payments', icon: CreditCard, component: PaymentManagement },
@@ -76,29 +71,14 @@ const UserAnalyticsWrapper = () => {
         setStats({
           totalUsers: data.totalUsers,
           premiumUsers: data.premiumUsers,
-          totalQuestions: data.totalQuestions,
-          totalPassages: data.totalPassages,
           completedTests: data.completedTests,
-          avgScore: data.avgScore,
           conversionRate:
             data.totalUsers > 0 ? ((data.premiumUsers / data.totalUsers) * 100).toFixed(1) : 0,
         });
 
         setAnalyticsData({
-          weeklyActiveUsers: 0, // Not currently returned by RPC, can be added later
-          monthlyActiveUsers: 0,
-          liveUsers: 0,
-          totalRevenue: data.totalRevenue,
-          monthlyGrowth: 0,
           userGrowthData: data.userGrowthData,
-          scoreDistribution: data.scoreDistribution,
           recentSignups: data.recentSignups,
-          sessionActivity: [
-            { name: 'Completed', value: data.completedTests, color: '#10B981' },
-            // Note: Abandoned count calculation requires total attempts which RPC doesn't currently return
-            // Falling back to 0 for abandoned to avoid misleading data
-            { name: 'Abandoned', value: 0, color: '#F43F5E' },
-          ],
         });
       } catch (error) {
         console.error('Error loading analytics data:', error);
@@ -155,11 +135,8 @@ const RevenueAnalyticsWrapper = () => {
       const revenueData = await AnalyticsService.getRevenueAnalytics();
 
       setStats({
-        totalUsers: revenueData.activeSubscribers,
-        premiumUsers: revenueData.activeSubscribers,
         proCount: revenueData.proCount,
         premiumCount: revenueData.premiumCount,
-        conversionRate: 0, // Not calculated in revenue view
       });
 
       setAnalyticsData({
@@ -171,10 +148,6 @@ const RevenueAnalyticsWrapper = () => {
         arpuBdt: revenueData.arpuBdt || 0,
         ltvUsd: revenueData.ltvUsd || 0,
         ltvBdt: revenueData.ltvBdt || 0,
-        churnRate: 0,
-        churnRiskCount: 0,
-        atRiskUsers: [],
-        promoStats: [],
       });
 
       setRecentTransactions(revenueData.recentTransactions || []);
@@ -336,8 +309,6 @@ export default function AdminPanel() {
         return <ResourceManagement data-oid="5rqz_bi" />;
       case 'ai-usage':
         return <AIUsageManagement data-oid="_ai6za2" />;
-      case 'analytics':
-        return <AnalyticsDashboard data-oid="o9mkpy:" />;
       case 'referrals':
         return <ReferralManagement data-oid="zxyjtkd" />;
       case 'user-analytics':
@@ -375,37 +346,18 @@ export default function AdminPanel() {
 
   return (
     <div
-      className="relative min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-500 overflow-hidden isolate"
+      className="relative min-h-screen bg-stone-100 dark:bg-[#08080a] transition-colors duration-300 overflow-hidden isolate"
       data-oid="4:.7dcq"
     >
-      {/* Enhanced Premium Background - Matched with User Dashboard */}
+      {/* Quiet instrument-panel backdrop: a faint dot grid, no colour, no external assets. */}
       <div
         aria-hidden="true"
         className="fixed inset-0 -z-10 pointer-events-none overflow-hidden"
         data-oid="wxlqoe8"
       >
-        {/* Multi-layered gradient mesh */}
         <div
-          className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops)),rgba(99,102,241,0.12)_0%,transparent_40%),radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops)),rgba(168,85,247,0.08)_0%,transparent_40%),radial-gradient(ellipse_at_center,_var(--tw-gradient-stops)),rgba(59,130,246,0.06)_0%,transparent_50%)] dark:bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops)),rgba(99,102,241,0.2)_0%,transparent_40%),radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops)),rgba(168,85,247,0.15)_0%,transparent_40%),radial-gradient(ellipse_at_center,_var(--tw-gradient-stops)),rgba(59,130,246,0.1)_0%,transparent_50%)]"
+          className="absolute inset-0 opacity-60 dark:opacity-30 bg-[radial-gradient(circle_at_1px_1px,rgb(168_162_158/0.35)_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.06)_1px,transparent_0)] [background-size:22px_22px]"
           data-oid="n2hnue4"
-        />
-
-        {/* Enhanced grid pattern with perspective */}
-        <div
-          className="absolute inset-0 bg-[linear-gradient(to_right,#6366f104_1px,transparent_1px),linear-gradient(to_bottom,#6366f104_1px,transparent_1px)] bg-[size:60px_60px] dark:bg-[linear-gradient(to_right,#ffffff04_1px,transparent_1px),linear-gradient(to_bottom,#ffffff04_1px,transparent_1px)]"
-          data-oid="ya-wf90"
-        />
-
-        {/* Subtle animated gradient overlay */}
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/5 dark:to-black/10 animate-pulse"
-          data-oid="a5i84sr"
-        />
-
-        {/* Premium texture with better performance */}
-        <div
-          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04] pointer-events-none mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"
-          data-oid="cihn99s"
         />
       </div>
 

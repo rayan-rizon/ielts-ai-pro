@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { m } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Gauge,
   Save,
@@ -21,6 +18,14 @@ import {
 import { TierRateLimit } from '@/features/admin/services/TierRateLimit';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
+import {
+  NUM,
+  MICRO,
+  PANEL,
+  AdminButton,
+  STAGGER_CONTAINER,
+  FADE_UP,
+} from '@/components/admin/ui/primitives';
 
 const TIER_CONFIG = {
   free: { icon: User },
@@ -63,11 +68,9 @@ const getAvailableCurrencies = (tierLimits, tierName) => {
   const currentLimits = tierLimits.filter((t) => t.tier === tierName);
   const currencies = new Set(currentLimits.map((t) => t.currency || 'ALL'));
   currencies.add('ALL');
-  return Array.from(currencies).sort((a, b) => {
-    if (a === 'ALL') return -1;
-    if (b === 'ALL') return 1;
-    return a.localeCompare(b);
-  });
+  return Array.from(currencies).sort((a, b) =>
+    a === 'ALL' ? -1 : b === 'ALL' ? 1 : a.localeCompare(b)
+  );
 };
 
 const getActiveLimitData = (tierLimits, tierName, currency) => {
@@ -79,23 +82,21 @@ const getActiveLimitData = (tierLimits, tierName, currency) => {
   );
 };
 
-// Sub-component: Limit Input Field
-const LimitInput = ({ label, value, onChange, className = '', height = 'h-7' }) => (
+const LimitInput = ({ label, value, onChange }) => (
   <div className="space-y-0.5">
-    <Label className="text-[9px] font-bold text-slate-400">{label}</Label>
+    <Label className={cn(MICRO, 'text-stone-400')}>{label}</Label>
     <Input
       type="number"
       value={value ?? 0}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        `${height} font-mono text-xs font-bold rounded-lg border-slate-200 dark:border-slate-800 px-2`,
-        className
+        NUM,
+        'h-7 text-xs font-bold rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] px-2'
       )}
     />
   </div>
 );
 
-// Sub-component: Card Header for Tier
 const TierHeader = ({
   tierName,
   tierIcon: TierIcon,
@@ -105,30 +106,29 @@ const TierHeader = ({
   onAddOverride,
   hasChanges,
 }) => (
-  <CardHeader className="bg-slate-50/80 dark:bg-slate-900/90 border-b border-slate-100 dark:border-white/5 p-4 sm:p-5">
+  <div className="p-4 border-b border-stone-100 dark:border-white/[0.06]">
     <div className="flex flex-col min-[480px]:flex-row items-start min-[480px]:items-center justify-between gap-3">
-      <div className="flex items-center gap-3">
-        <div className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white shadow-2xs shrink-0">
-          <TierIcon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+      <div className="flex items-center gap-2.5">
+        <div className="p-2 rounded-md bg-stone-100 dark:bg-white/[0.06] text-stone-600 dark:text-stone-300 shrink-0">
+          <TierIcon className="w-3.5 h-3.5" />
         </div>
         <div>
-          <CardTitle className="text-base font-black text-slate-950 dark:text-white capitalize">
-            {tierName} Tier
-          </CardTitle>
-          <CardDescription className="text-slate-500 dark:text-slate-400 text-xs font-medium">
-            API & evaluation quotas
-          </CardDescription>
+          <h4 className="text-sm font-extrabold text-stone-900 dark:text-stone-50 capitalize">
+            {tierName} tier
+          </h4>
+          <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>API & evaluation quotas</p>
         </div>
       </div>
-      <Button
+      <button
         onClick={onAddOverride}
-        size="sm"
-        variant="outline"
-        className="w-full min-[480px]:w-auto justify-center bg-white dark:bg-slate-800 hover:bg-slate-100 border-slate-200 dark:border-white/10 gap-1.5 h-8 px-3 text-xs font-extrabold rounded-xl shadow-2xs shrink-0"
+        className={cn(
+          MICRO,
+          'w-full min-[480px]:w-auto inline-flex items-center justify-center gap-1 rounded-md border border-stone-300 dark:border-white/15 px-2.5 py-1.5 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors shrink-0'
+        )}
       >
-        <Plus className="w-3.5 h-3.5 text-indigo-600" />
-        Add Override
-      </Button>
+        <Plus className="w-3 h-3" />
+        Add override
+      </button>
     </div>
 
     <div className="flex items-center gap-1.5 pt-3 overflow-x-auto no-scrollbar">
@@ -141,23 +141,23 @@ const TierHeader = ({
             type="button"
             onClick={() => onSelectCurrency(cur)}
             className={cn(
-              'px-3 py-1 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 border shrink-0',
+              MICRO,
+              'px-2.5 py-1 rounded-md transition-colors flex items-center gap-1.5 border shrink-0',
               isCurActive
-                ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200/80 dark:border-white/10 hover:border-slate-300'
+                ? 'bg-stone-900 dark:bg-white/10 text-white dark:text-stone-50 border-transparent'
+                : 'bg-white dark:bg-[#131315] text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20'
             )}
           >
-            {cur === 'ALL' && <Globe className="w-3 h-3 opacity-80" />}
-            <span>{cur === 'ALL' ? 'Global Default' : `${cur} Override`}</span>
-            {curChanged && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />}
+            {cur === 'ALL' && <Globe className="w-2.5 h-2.5 opacity-80" />}
+            <span>{cur === 'ALL' ? 'Global' : cur}</span>
+            {curChanged && <span className="w-1 h-1 rounded-full bg-[rgb(var(--signal-warn))]" />}
           </button>
         );
       })}
     </div>
-  </CardHeader>
+  </div>
 );
 
-// Sub-component: Form Controls for Limits
 const TierBody = ({
   selectedCur,
   edited,
@@ -170,119 +170,94 @@ const TierBody = ({
   const getVal = (field) => edited[field] ?? activeLimitData[field] ?? 0;
 
   return (
-    <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+    <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
       <div className="space-y-3">
-        {/* General Limits */}
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
-              General Limits ({selectedCur})
-            </span>
+            <span className={cn(MICRO, 'text-stone-400')}>General ({selectedCur})</span>
             {changed && (
-              <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
-                Modified
-              </span>
+              <span className={cn(MICRO, 'text-[rgb(var(--signal-warn))]')}>Modified</span>
             )}
           </div>
           <div className="grid grid-cols-3 gap-2">
             <LimitInput
               label="Daily"
               value={getVal('daily_limit')}
-              onChange={(val) => onValueChange('daily_limit', val)}
-              className="bg-slate-50/50 dark:bg-slate-900"
+              onChange={(v) => onValueChange('daily_limit', v)}
             />
             <LimitInput
               label="Monthly"
               value={getVal('monthly_limit')}
-              onChange={(val) => onValueChange('monthly_limit', val)}
-              className="bg-slate-50/50 dark:bg-slate-900"
+              onChange={(v) => onValueChange('monthly_limit', v)}
             />
             <LimitInput
-              label="Burst / Min"
+              label="Burst/min"
               value={getVal('burst_limit')}
-              onChange={(val) => onValueChange('burst_limit', val)}
-              className="bg-slate-50/50 dark:bg-slate-900"
+              onChange={(v) => onValueChange('burst_limit', v)}
             />
           </div>
         </div>
 
-        {/* Quota Limits Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {/* Writing Limits */}
-          <div className="space-y-1.5 p-2.5 rounded-xl border border-slate-200/70 dark:border-white/5 bg-slate-50/60 dark:bg-slate-900/40">
-            <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-              <Pen className="w-3 h-3" />
-              <span>Writing Limits</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="space-y-1.5 p-2.5 rounded-md border border-stone-200/70 dark:border-white/[0.06] bg-stone-50/70 dark:bg-white/[0.02]">
+            <div
+              className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1')}
+            >
+              <Pen className="w-2.5 h-2.5" />
+              Writing
             </div>
             <div className="grid grid-cols-2 gap-1.5">
               <LimitInput
                 label="Daily"
                 value={getVal('writing_daily_limit')}
-                onChange={(val) => onValueChange('writing_daily_limit', val)}
-                className="bg-white dark:bg-slate-950"
-                height="h-6.5"
+                onChange={(v) => onValueChange('writing_daily_limit', v)}
               />
               <LimitInput
                 label="Monthly"
                 value={getVal('writing_monthly_limit')}
-                onChange={(val) => onValueChange('writing_monthly_limit', val)}
-                className="bg-white dark:bg-slate-950"
-                height="h-6.5"
+                onChange={(v) => onValueChange('writing_monthly_limit', v)}
               />
             </div>
           </div>
 
-          {/* Speaking Limits */}
-          <div className="space-y-1.5 p-2.5 rounded-xl border border-slate-200/70 dark:border-white/5 bg-slate-50/60 dark:bg-slate-900/40">
-            <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">
-              <Mic className="w-3 h-3" />
-              <span>Speaking Limits</span>
+          <div className="space-y-1.5 p-2.5 rounded-md border border-stone-200/70 dark:border-white/[0.06] bg-stone-50/70 dark:bg-white/[0.02]">
+            <div
+              className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1')}
+            >
+              <Mic className="w-2.5 h-2.5" />
+              Speaking
             </div>
             <div className="grid grid-cols-2 gap-1.5">
               <LimitInput
                 label="Daily"
                 value={getVal('speaking_daily_limit')}
-                onChange={(val) => onValueChange('speaking_daily_limit', val)}
-                className="bg-white dark:bg-slate-950"
-                height="h-6.5"
+                onChange={(v) => onValueChange('speaking_daily_limit', v)}
               />
               <LimitInput
                 label="Monthly"
                 value={getVal('speaking_monthly_limit')}
-                onChange={(val) => onValueChange('speaking_monthly_limit', val)}
-                className="bg-white dark:bg-slate-950"
-                height="h-6.5"
+                onChange={(v) => onValueChange('speaking_monthly_limit', v)}
               />
             </div>
           </div>
         </div>
       </div>
 
-      <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex justify-between items-center mt-2">
-        <span className="text-[10px] font-medium text-slate-400">
+      <div className="pt-3 border-t border-stone-100 dark:border-white/[0.06] flex justify-between items-center mt-2">
+        <span className={cn(MICRO, 'text-stone-400')}>
           {activeLimitData.updated_at
-            ? `Saved: ${new Date(activeLimitData.updated_at).toLocaleDateString()}`
+            ? `Saved ${new Date(activeLimitData.updated_at).toLocaleDateString()}`
             : 'Not saved'}
         </span>
-        <Button
-          onClick={onSave}
-          disabled={!changed || isSaving}
-          size="sm"
-          className="gap-1.5 h-7.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs disabled:bg-slate-100 disabled:text-slate-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-600"
-        >
-          {isSaving ? (
-            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Save className="w-3.5 h-3.5" />
-          )}
-          <span>Save {selectedCur !== 'ALL' ? selectedCur : ''}</span>
-        </Button>
+        <AdminButton onClick={onSave} disabled={!changed} loading={isSaving} size="sm">
+          <Save className="w-3 h-3" />
+          Save {selectedCur !== 'ALL' ? selectedCur : ''}
+        </AdminButton>
       </div>
-    </CardContent>
+    </div>
   );
 };
 
-// Sub-component: Individual Tier Card
 const TierCard = ({
   tierName,
   tierLimits,
@@ -294,7 +269,6 @@ const TierCard = ({
   onValueChange,
   onSave,
   hasChanges,
-  itemVariants,
 }) => {
   const config = TIER_CONFIG[tierName] || TIER_CONFIG.free;
   const TierIcon = config.icon;
@@ -309,32 +283,29 @@ const TierCard = ({
   const isSaving = saving[key] || false;
 
   return (
-    <motion.div variants={itemVariants}>
-      <Card className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl overflow-hidden shadow-2xs flex flex-col h-full">
-        <TierHeader
-          tierName={tierName}
-          tierIcon={TierIcon}
-          selectedCur={selectedCur}
-          availableCurrencies={availableCurrencies}
-          onSelectCurrency={(cur) => onSelectCurrency(tierName, cur)}
-          onAddOverride={() => onAddOverride(tierName)}
-          hasChanges={(cur) => hasChanges(tierName, cur)}
-        />
-        <TierBody
-          selectedCur={selectedCur}
-          edited={edited}
-          activeLimitData={activeLimitData}
-          changed={changed}
-          isSaving={isSaving}
-          onValueChange={(field, val) => onValueChange(tierName, selectedCur, field, val)}
-          onSave={() => onSave(tierName, selectedCur)}
-        />
-      </Card>
-    </motion.div>
+    <m.div variants={FADE_UP} className={cn(PANEL, 'overflow-hidden flex flex-col h-full')}>
+      <TierHeader
+        tierName={tierName}
+        tierIcon={TierIcon}
+        selectedCur={selectedCur}
+        availableCurrencies={availableCurrencies}
+        onSelectCurrency={(cur) => onSelectCurrency(tierName, cur)}
+        onAddOverride={() => onAddOverride(tierName)}
+        hasChanges={(cur) => hasChanges(tierName, cur)}
+      />
+      <TierBody
+        selectedCur={selectedCur}
+        edited={edited}
+        activeLimitData={activeLimitData}
+        changed={changed}
+        isSaving={isSaving}
+        onValueChange={(field, val) => onValueChange(tierName, selectedCur, field, val)}
+        onSave={() => onSave(tierName, selectedCur)}
+      />
+    </m.div>
   );
 };
 
-// Main Component
 const TierRateLimitsSettings = () => {
   const [tierLimits, setTierLimits] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -355,11 +326,9 @@ const TierRateLimitsSettings = () => {
       const uniqueMap = new Map();
       (data || []).forEach((item) => {
         const cur = (item.currency || 'ALL').toUpperCase();
-        const key = `${item.tier}_${cur}`;
-        uniqueMap.set(key, { ...item, currency: cur });
+        uniqueMap.set(`${item.tier}_${cur}`, { ...item, currency: cur });
       });
       const uniqueLimits = Array.from(uniqueMap.values());
-
       setTierLimits(uniqueLimits);
 
       const initial = {};
@@ -388,10 +357,7 @@ const TierRateLimitsSettings = () => {
     const key = limitKey(tier, currency);
     setEditedValues((prev) => ({
       ...prev,
-      [key]: {
-        ...(prev[key] || {}),
-        [field]: parseInt(value) || 0,
-      },
+      [key]: { ...(prev[key] || {}), [field]: parseInt(value) || 0 },
     }));
   };
 
@@ -411,14 +377,11 @@ const TierRateLimitsSettings = () => {
   };
 
   const handleAddOverride = (tierName) => {
-    const currency = window.prompt('Enter Currency Code for the override (e.g., BDT, INR, EUR)');
+    const currency = window.prompt('Enter currency code for the override (e.g., BDT, INR, EUR)');
     if (!currency) return;
 
     const currUpper = currency.toUpperCase().trim();
-    if (currUpper.length < 2) {
-      toast.error('Invalid currency code');
-      return;
-    }
+    if (currUpper.length < 2) return toast.error('Invalid currency code');
 
     if (tierLimits.some((t) => t.tier === tierName && t.currency === currUpper)) {
       toast.error(`Override for ${currUpper} already exists in ${tierName}`);
@@ -428,7 +391,6 @@ const TierRateLimitsSettings = () => {
 
     const baseLimit =
       tierLimits.find((t) => t.tier === tierName && t.currency === 'ALL') || DEFAULT_QUOTAS;
-
     const newLimit = {
       ...baseLimit,
       id: `temp_${Date.now()}`,
@@ -439,80 +401,51 @@ const TierRateLimitsSettings = () => {
 
     setTierLimits((prev) => [...prev, newLimit]);
     const key = limitKey(tierName, currUpper);
-
     const quotaValues = {};
     QUOTA_FIELDS.forEach((f) => {
       quotaValues[f] = newLimit[f];
     });
-
-    setEditedValues((prev) => ({
-      ...prev,
-      [key]: quotaValues,
-    }));
-
+    setEditedValues((prev) => ({ ...prev, [key]: quotaValues }));
     setActiveCurrencies((prev) => ({ ...prev, [tierName]: currUpper }));
   };
 
   const hasChanges = (tier, currency) => {
     const key = limitKey(tier, currency);
     const original = tierLimits.find((t) => t.tier === tier && t.currency === currency);
-    const edited = editedValues[key];
-    return checkHasChanges(original, edited);
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0 },
+    return checkHasChanges(original, editedValues[key]);
   };
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6"
-    >
-      <motion.div
-        variants={itemVariants}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-1"
+    <m.div variants={STAGGER_CONTAINER} initial="hidden" animate="visible" className="space-y-4">
+      <m.div
+        variants={FADE_UP}
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
       >
-        <div className="space-y-0.5 min-w-0">
-          <h3 className="text-lg sm:text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2">
-            <Gauge className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-            <span className="truncate">AI Rate Limits Config</span>
+        <div>
+          <h3 className="text-sm font-extrabold text-stone-900 dark:text-stone-50 flex items-center gap-2">
+            <Gauge className="w-4 h-4 text-stone-400" />
+            AI Rate Limits
           </h3>
-          <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
-            Configure global defaults and currency-specific regional API limits.
+          <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+            Global defaults and currency-specific overrides
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
+        <button
           onClick={fetchTierLimits}
-          className="w-full sm:w-auto justify-center gap-2 h-9 rounded-xl border-slate-200 dark:border-slate-800 font-bold text-xs shrink-0 mt-1 sm:mt-0"
+          className={cn(
+            MICRO,
+            'w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-md border border-stone-300 dark:border-white/15 px-3 py-1.5 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors'
+          )}
         >
-          <RefreshCw className="w-3.5 h-3.5" />
-          Refresh Limits
-        </Button>
-      </motion.div>
+          <RefreshCw className="w-3 h-3" />
+          Refresh
+        </button>
+      </m.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {loading
-          ? [...Array(4)].map((_, i) => (
-              <motion.div key={i} variants={itemVariants}>
-                <Card className="border border-slate-200 dark:border-slate-800 rounded-2xl">
-                  <CardContent className="p-6 space-y-4">
-                    <Skeleton className="h-8 w-24" />
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-32 w-full" />
-                  </CardContent>
-                </Card>
-              </motion.div>
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className={cn(PANEL, 'h-64 animate-pulse')} />
             ))
           : TIERS_LIST.map((tierName) => (
               <TierCard
@@ -529,34 +462,22 @@ const TierRateLimitsSettings = () => {
                 onValueChange={handleValueChange}
                 onSave={handleSave}
                 hasChanges={hasChanges}
-                itemVariants={itemVariants}
               />
             ))}
       </div>
 
-      <motion.div variants={itemVariants}>
-        <Card className="border border-slate-200/80 dark:border-white/10 bg-slate-50/60 dark:bg-slate-900/60 rounded-2xl shadow-2xs overflow-hidden text-xs">
-          <CardContent className="p-5 flex items-start gap-3">
-            <Gauge className="w-4 h-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="font-bold text-slate-900 dark:text-slate-100 text-xs">
-                Rate Limit Enforcement & Regional Overrides
-              </p>
-              <div className="text-slate-500 dark:text-slate-400 text-xs space-y-1 font-medium">
-                <p>
-                  <strong>Global Default:</strong> Applied to all candidates unless matched by a
-                  regional currency override.
-                </p>
-                <p>
-                  <strong>Currency Overrides:</strong> Overrides quotas based on candidate
-                  subscription currency (e.g. BDT, INR).
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </motion.div>
+      <m.div variants={FADE_UP} className={cn(PANEL, 'p-4 flex items-start gap-3')}>
+        <Gauge className="w-3.5 h-3.5 text-stone-400 shrink-0 mt-0.5" />
+        <div className="space-y-1 text-xs">
+          <p className="font-extrabold text-stone-900 dark:text-stone-50">Rate limit enforcement</p>
+          <p className="text-stone-500 dark:text-stone-400">
+            <strong>Global</strong> applies to everyone unless matched by a regional currency
+            override. <strong>Currency overrides</strong> apply based on subscription currency (e.g.
+            BDT, INR).
+          </p>
+        </div>
+      </m.div>
+    </m.div>
   );
 };
 

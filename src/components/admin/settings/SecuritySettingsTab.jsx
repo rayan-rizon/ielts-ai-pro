@@ -1,15 +1,13 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { m } from 'framer-motion';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Lock, Loader2, Save } from 'lucide-react';
+import { Lock, Save } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import { MICRO, PANEL, AdminButton, FADE_UP } from '@/components/admin/ui/primitives';
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0 },
-};
+const FIELD_INPUT =
+  'h-9 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
+const FIELD_LABEL = cn(MICRO, 'text-stone-400 mb-1.5 block');
 
 export default function SecuritySettingsTab({
   passwordData,
@@ -18,105 +16,82 @@ export default function SecuritySettingsTab({
   onPasswordChange,
 }) {
   return (
-    <motion.div variants={itemVariants} className="max-w-3xl" data-oid="yo-z56e">
-      <Card
-        className="border border-border/50 shadow-sm overflow-hidden bg-card/50 backdrop-blur-sm"
-        data-oid="a24fl33"
-      >
-        <CardHeader className="border-b border-border/40 bg-muted/20" data-oid="8k9ymtq">
-          <div className="flex items-center gap-2" data-oid="lpefb_:">
-            <Lock className="h-5 w-5 text-primary" data-oid="8dv0bn:" />
-            <CardTitle data-oid="ebovjjb">Security Settings</CardTitle>
+    <m.div variants={FADE_UP} className="max-w-3xl">
+      <div className={cn(PANEL, 'overflow-hidden')}>
+        <div className="p-4 border-b border-stone-100 dark:border-white/[0.06] flex items-center gap-2.5">
+          <div className="p-1.5 rounded-md bg-stone-100 dark:bg-white/[0.06] text-stone-500 dark:text-stone-300">
+            <Lock className="h-3.5 w-3.5" />
           </div>
-          <CardDescription data-oid="demtlp7">
-            Manage your account security and authentication credentials
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6 space-y-6" data-oid="xy3w520">
-          <div className="space-y-4" data-oid="uup1w.x">
-            <h3
-              className="text-sm font-bold uppercase tracking-wider text-muted-foreground"
-              data-oid="ki0_c5t"
-            >
-              Change Password
-            </h3>
-            <div className="space-y-4" data-oid="yqhhj90">
-              <div className="space-y-2" data-oid="0o.3ztg">
-                <Label htmlFor="current-password" data-oid="d7zo54h">
-                  Current Password
-                </Label>
-                <Input
-                  id="current-password"
-                  type="password"
-                  value={passwordData.currentPassword}
-                  onChange={(e) =>
-                    onChangePasswordData({ ...passwordData, currentPassword: e.target.value })
-                  }
-                  className="bg-muted/10"
-                  placeholder="Enter current password"
-                  data-oid="o9:pk2b"
-                />
-              </div>
-              <div className="grid md:grid-cols-2 gap-4" data-oid="7em9c2z">
-                <div className="space-y-2" data-oid="tcj0097">
-                  <Label htmlFor="new-password" data-oid="x4xox-h">
-                    New Password
-                  </Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={(e) =>
-                      onChangePasswordData({ ...passwordData, newPassword: e.target.value })
-                    }
-                    className="bg-muted/10"
-                    placeholder="Enter new password"
-                    data-oid="_w01w1n"
-                  />
-                </div>
-                <div className="space-y-2" data-oid="oi5qy0_">
-                  <Label htmlFor="confirm-password" data-oid="x:d0joa">
-                    Confirm New Password
-                  </Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) =>
-                      onChangePasswordData({ ...passwordData, confirmPassword: e.target.value })
-                    }
-                    className="bg-muted/10"
-                    placeholder="Confirm new password"
-                    data-oid="-ji1r4t"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="pt-2 flex justify-end" data-oid="xyy0wpq">
-              <Button
-                onClick={onPasswordChange}
-                disabled={
-                  changingPassword || !passwordData.currentPassword || !passwordData.newPassword
+          <div>
+            <h3 className="text-sm font-extrabold text-stone-900 dark:text-stone-50">Security</h3>
+            <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>Your account credentials</p>
+          </div>
+        </div>
+
+        <div className="p-5 space-y-4">
+          <h4 className={cn(MICRO, 'text-stone-400')}>Change password</h4>
+
+          <div>
+            <Label className={FIELD_LABEL} htmlFor="current-password">
+              Current password
+            </Label>
+            <Input
+              id="current-password"
+              type="password"
+              value={passwordData.currentPassword}
+              onChange={(e) =>
+                onChangePasswordData({ ...passwordData, currentPassword: e.target.value })
+              }
+              className={FIELD_INPUT}
+              placeholder="Enter current password"
+            />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-3">
+            <div>
+              <Label className={FIELD_LABEL} htmlFor="new-password">
+                New password
+              </Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={passwordData.newPassword}
+                onChange={(e) =>
+                  onChangePasswordData({ ...passwordData, newPassword: e.target.value })
                 }
-                className="font-bold rounded-xl shadow-sm"
-                data-oid="fr.6_.8"
-              >
-                {changingPassword ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" data-oid="c:gptn5" />
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" data-oid="giyn:qt" />
-                    Update Password
-                  </>
-                )}
-              </Button>
+                className={FIELD_INPUT}
+                placeholder="Enter new password"
+              />
+            </div>
+            <div>
+              <Label className={FIELD_LABEL} htmlFor="confirm-password">
+                Confirm new password
+              </Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={passwordData.confirmPassword}
+                onChange={(e) =>
+                  onChangePasswordData({ ...passwordData, confirmPassword: e.target.value })
+                }
+                className={FIELD_INPUT}
+                placeholder="Confirm new password"
+              />
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+
+          <div className="flex justify-end pt-1">
+            <AdminButton
+              onClick={onPasswordChange}
+              loading={changingPassword}
+              disabled={!passwordData.currentPassword || !passwordData.newPassword}
+            >
+              <Save className="w-3.5 h-3.5" />
+              {changingPassword ? 'Updating…' : 'Update password'}
+            </AdminButton>
+          </div>
+        </div>
+      </div>
+    </m.div>
   );
 }

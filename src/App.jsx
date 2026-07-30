@@ -126,7 +126,6 @@ const Reading = lazyWithRetry(() => import('@/features/testing/shared/pages/Read
 const Speaking = lazyWithRetry(() => import('@/features/testing/shared/pages/Speaking.jsx'));
 const Writing = lazyWithRetry(() => import('@/features/testing/shared/pages/Writing.jsx'));
 const AdminPanel = lazyWithRetry(() => import('@/features/admin/pages/AdminPanel.jsx'));
-const AdminSettings = lazyWithRetry(() => import('@/features/admin/pages/AdminSettings.jsx'));
 const AdminUserDetails = lazyWithRetry(() => import('@/features/admin/pages/AdminUserDetails.jsx'));
 const CambridgeTests = lazyWithRetry(
   () => import('@/features/testing/shared/pages/CambridgeTests.jsx')
@@ -382,16 +381,9 @@ const router = createBrowserRouter(
       ),
     },
     {
+      // Superseded by the Security section of Global Settings.
       path: '/admin/settings',
-      element: (
-        <ProtectedRoute adminOnly data-oid="iecrfib">
-          <Layout currentPageName="AdminSettings" data-oid="ut9mqyz">
-            <LazyPage data-oid="bzuu9fl">
-              <AdminSettings data-oid="8yl5qm4" />
-            </LazyPage>
-          </Layout>
-        </ProtectedRoute>
-      ),
+      element: <Navigate to="/admin/panel?tab=settings&section=security" replace />,
     },
     {
       path: '/admin/user/:id',
