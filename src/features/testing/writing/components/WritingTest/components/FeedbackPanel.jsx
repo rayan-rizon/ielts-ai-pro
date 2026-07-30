@@ -24,6 +24,8 @@ import {
   compactUiText,
 } from '@/features/testing/writing/utils/feedbackFormatting';
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
 const CRITERIA = [
   { keys: ['TaskAchievement', 'TaskResponse'], short: 'TR/TA' },
   { keys: ['CoherenceAndCohesion'], short: 'CC' },
@@ -31,13 +33,28 @@ const CRITERIA = [
   { keys: ['GrammaticalRangeAndAccuracy'], short: 'GRA' },
 ];
 
+const CRITERION_LABELS = {
+  'TR/TA': { task1: 'Task Achievement', task2: 'Task Response' },
+  CC: 'Coherence & Cohesion',
+  LR: 'Lexical Resource',
+  GRA: 'Grammar & Accuracy',
+};
+
+const ASSESSMENT_LABELS = [
+  { min: 8, label: 'Excellent' },
+  { min: 7, label: 'Strong' },
+  { min: 6, label: 'Solid' },
+  { min: 0, label: 'Developing' },
+];
+
+// ─── Pure helpers ─────────────────────────────────────────────────────────────
+
 function getCriterionLabel(item, taskType) {
-  if (item.short === 'TR/TA') {
-    return taskType === 'Task 2' ? 'Task Response' : 'Task Achievement';
+  const entry = CRITERION_LABELS[item.short];
+  if (typeof entry === 'object') {
+    return taskType === 'Task 2' ? entry.task2 : entry.task1;
   }
-  if (item.short === 'CC') return 'Coherence & Cohesion';
-  if (item.short === 'LR') return 'Lexical Resource';
-  return 'Grammar & Accuracy';
+  return entry ?? item.short;
 }
 
 function getCriterionScore(criteriaScores, keys) {
@@ -59,7 +76,6 @@ function inferCriterion(text, taskType) {
 function createLegacyPriorities(feedback) {
   const weaknesses = Array.isArray(feedback?.weaknesses) ? feedback.weaknesses : [];
   const suggestions = Array.isArray(feedback?.suggestions) ? feedback.suggestions : [];
-
   return weaknesses.slice(0, 3).map((issue, index) => ({
     criterion: inferCriterion(issue, feedback.taskType),
     issue,
@@ -68,16 +84,13 @@ function createLegacyPriorities(feedback) {
 }
 
 function getAssessmentLabel(band, taskType) {
-  if (band >= 8) return `Excellent ${taskType} response`;
-  if (band >= 7) return `Strong ${taskType} response`;
-  if (band >= 6) return `Solid ${taskType} response`;
-  return `Developing ${taskType} response`;
+  const entry = ASSESSMENT_LABELS.find((a) => band >= a.min);
+  return `${entry?.label ?? 'Developing'} ${taskType} response`;
 }
 
 function buildTakeaway(feedback, priorities, taskType) {
   const band = Number(feedback?.overallBand || 0);
   const priority = priorities[0];
-
   return {
     assessment: getAssessmentLabel(band, taskType),
     nextFocus: priority?.criterion || null,
@@ -87,10 +100,94 @@ function buildTakeaway(feedback, priorities, taskType) {
 
 function isValidImprovementAnnotation(annotation) {
   if (!annotation || annotation.severity === 'positive') return false;
-  const hasOriginal = Boolean(cleanFeedbackText(annotation.originalText));
-  const hasSuggestion = Boolean(cleanFeedbackText(annotation.suggestion));
-  return hasOriginal && hasSuggestion;
+  return (
+    Boolean(cleanFeedbackText(annotation.originalText)) &&
+    Boolean(cleanFeedbackText(annotation.suggestion))
+  );
 }
+
+function calcCombinedBand(allFeedbacks) {
+  const b1 = Number(allFeedbacks['Task 1']?.overallBand);
+  const b2 = Number(allFeedbacks['Task 2']?.overallBand);
+  if (b1 > 0 && b2 > 0) return Math.round(((b1 + b2 * 2) / 3) * 2) / 2;
+  return null;
+}
+
+// ─── Custom hook ──────────────────────────────────────────────────────────────
+
+function useFeedbackData(feedback, allFeedbacks, showAllCorrections) {
+  const taskType = feedback?.taskType === 'Task 2' ? 'Task 2' : 'Task 1';
+
+  const criteria = useMemo(
+    () =>
+      CRITERIA.map((item) => ({
+        ...item,
+        label: getCriterionLabel(item, taskType),
+        score: getCriterionScore(feedback?.criteriaScores, item.keys),
+      })).filter((item) => item.score != null),
+    [feedback?.criteriaScores, taskType]
+  );
+
+  const priorities = useMemo(() => {
+    const annotations = Array.isArray(feedback?.annotations) ? feedback.annotations : [];
+    const source =
+      Array.isArray(feedback?.priorities) && feedback.priorities.length
+        ? feedback.priorities.slice(0, 3)
+        : createLegacyPriorities(feedback);
+
+    return source.map((p) => ({
+      criterion: cleanFeedbackText(p.criterion),
+      issue: prepareFeedbackText(p.issue, 96, { dropHeading: true }),
+      action: prepareFeedbackText(p.action, 108, { dropHeading: true }),
+      annotation: annotations.find((a) => a?.originalText === p.evidenceText),
+    }));
+  }, [feedback]);
+
+  const takeaway = useMemo(
+    () => buildTakeaway(feedback, priorities, taskType),
+    [feedback, priorities, taskType]
+  );
+
+  const strengths = useMemo(
+    () =>
+      (Array.isArray(feedback?.strengths) ? feedback.strengths : [])
+        .slice(0, 3)
+        .map((s) => prepareFeedbackText(s, 104, { dropHeading: true }))
+        .filter((s) => s.full),
+    [feedback?.strengths]
+  );
+
+  const corrections = useMemo(
+    () =>
+      (Array.isArray(feedback?.corrections) ? feedback.corrections : []).map((item) => ({
+        original: compactUiText(item.original, 88),
+        correction: compactUiText(item.correction, 88),
+        explanation: compactUiText(item.explanation, 112, { dropHeading: true }),
+        isDirectCorrection: true,
+      })),
+    [feedback?.corrections]
+  );
+
+  const suggestedImprovements = useMemo(
+    () =>
+      (Array.isArray(feedback?.annotations) ? feedback.annotations : [])
+        .filter(isValidImprovementAnnotation)
+        .map((a) => ({
+          original: compactUiText(a.originalText, 88),
+          correction: compactUiText(a.suggestion, 88),
+          explanation: compactUiText(a.explanation, 112, { dropHeading: true }),
+          isDirectCorrection: a.severity === 'error',
+        })),
+    [feedback?.annotations]
+  );
+
+  const improvements = corrections.length ? corrections : suggestedImprovements;
+  const visibleImprovements = showAllCorrections ? improvements : improvements.slice(0, 3);
+
+  return { taskType, criteria, priorities, takeaway, strengths, improvements, visibleImprovements };
+}
+
+// ─── Small leaf components ────────────────────────────────────────────────────
 
 function ScoreRing({ score }) {
   const safeScore = Math.max(0, Math.min(9, Number(score) || 0));
@@ -104,7 +201,6 @@ function ScoreRing({ score }) {
       aria-label={`Band ${safeScore} out of 9`}
     >
       <div className="absolute inset-3 rounded-full bg-[#5661e9]/[0.03] blur-md dark:bg-indigo-500/[0.05] pointer-events-none" />
-
       <svg
         viewBox="0 0 120 120"
         className="h-full w-full -rotate-90 overflow-visible relative"
@@ -121,7 +217,6 @@ function ScoreRing({ score }) {
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
         </defs>
-
         <circle
           cx="60"
           cy="60"
@@ -131,7 +226,6 @@ function ScoreRing({ score }) {
           strokeWidth="9"
           className="text-[#e2e5f6] dark:text-white/10"
         />
-
         <motion.circle
           cx="60"
           cy="60"
@@ -147,7 +241,6 @@ function ScoreRing({ score }) {
           filter="url(#writing-ring-glow)"
         />
       </svg>
-
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-[9.5px] font-black uppercase tracking-[0.2em] text-[#5661e9] dark:text-indigo-300">
           Band
@@ -165,7 +258,6 @@ function ScoreRing({ score }) {
 
 function AnalyzingState({ loadingMessage }) {
   const steps = ['Grammar & spelling', 'Vocabulary', 'Coherence', 'Band calibration'];
-
   return (
     <motion.div
       key="analyzing"
@@ -201,9 +293,7 @@ function AnalyzingState({ loadingMessage }) {
               className="flex items-center gap-2 rounded-xl border border-[#e2e5f6] bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-700 dark:border-white/5 dark:bg-white/5 dark:text-slate-300"
             >
               <span
-                className={`h-2 w-2 rounded-full ${
-                  index === 0 ? 'animate-pulse bg-[#5661e9]' : 'bg-slate-300 dark:bg-white/15'
-                }`}
+                className={`h-2 w-2 rounded-full ${index === 0 ? 'animate-pulse bg-[#5661e9]' : 'bg-slate-300 dark:bg-white/15'}`}
               />
               {step}
             </div>
@@ -240,6 +330,42 @@ function ErrorState({ feedbackError, handleGetFeedback }) {
         </Button>
       </div>
     </motion.div>
+  );
+}
+
+function CriteriaGrid({ criteria }) {
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:gap-2.5 border-t border-[#d2d7f8] bg-gradient-to-r from-[#f4f5fe] via-[#ebedfd] to-[#e4e7fc] p-2.5 sm:p-3.5 dark:border-white/10 dark:from-[#0a0d18] dark:via-[#0c0f1c] dark:to-[#0a0d18] lg:grid-cols-2 xl:grid-cols-4">
+      {criteria.map((item) => (
+        <div
+          key={item.short}
+          className="group relative flex flex-col justify-between rounded-xl border border-[#dce0f5] bg-gradient-to-br from-white via-[#fcfbff] to-[#f2f1fe] p-2.5 transition-all duration-200 hover:border-[#5661e9]/70 hover:shadow-xs dark:border-white/10 dark:from-[#161a2e] dark:via-[#111425] dark:to-[#0e111d] dark:hover:border-indigo-400/50 sm:p-3"
+        >
+          <div className="flex items-center justify-between gap-1">
+            <span className="rounded-md bg-[#efedff] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 shadow-2xs">
+              {item.short}
+            </span>
+            <span className="text-lg font-black tracking-tight text-slate-950 transition-colors group-hover:text-[#5661e9] dark:text-white dark:group-hover:text-indigo-300 sm:text-xl">
+              {item.score.toFixed(1)}
+            </span>
+          </div>
+          <div
+            className="mt-2 min-h-[26px] text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-200 text-left leading-tight"
+            title={item.label}
+          >
+            {item.label}
+          </div>
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#efedff] dark:bg-white/10 border border-[#d2d7f8]/60 dark:border-white/10">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${(item.score / 9) * 100}%` }}
+              transition={{ delay: 0.15, duration: 0.6 }}
+              className="h-full rounded-full bg-gradient-to-r from-[#5661e9] to-[#7c86ff]"
+            />
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -309,85 +435,94 @@ function AssessmentBanner({
           </div>
         </div>
       </div>
-
-      <div className="grid grid-cols-2 gap-2 sm:gap-2.5 border-t border-[#d2d7f8] bg-gradient-to-r from-[#f4f5fe] via-[#ebedfd] to-[#e4e7fc] p-2.5 sm:p-3.5 dark:border-white/10 dark:from-[#0a0d18] dark:via-[#0c0f1c] dark:to-[#0a0d18] lg:grid-cols-2 xl:grid-cols-4">
-        {criteria.map((item) => (
-          <div
-            key={item.short}
-            className="group relative flex flex-col justify-between rounded-xl border border-[#dce0f5] bg-gradient-to-br from-white via-[#fcfbff] to-[#f2f1fe] p-2.5 transition-all duration-200 hover:border-[#5661e9]/70 hover:shadow-xs dark:border-white/10 dark:from-[#161a2e] dark:via-[#111425] dark:to-[#0e111d] dark:hover:border-indigo-400/50 sm:p-3"
-          >
-            <div className="flex items-center justify-between gap-1">
-              <span className="rounded-md bg-[#efedff] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 shadow-2xs">
-                {item.short}
-              </span>
-              <span className="text-lg font-black tracking-tight text-slate-950 transition-colors group-hover:text-[#5661e9] dark:text-white dark:group-hover:text-indigo-300 sm:text-xl">
-                {item.score.toFixed(1)}
-              </span>
-            </div>
-
-            <div
-              className="mt-2 min-h-[26px] text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-200 text-left leading-tight"
-              title={item.label}
-            >
-              {item.label}
-            </div>
-
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#efedff] dark:bg-white/10 border border-[#d2d7f8]/60 dark:border-white/10">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${(item.score / 9) * 100}%` }}
-                transition={{ delay: 0.15, duration: 0.6 }}
-                className="h-full rounded-full bg-gradient-to-r from-[#5661e9] to-[#7c86ff]"
-              />
-            </div>
-          </div>
-        ))}
-      </div>
+      <CriteriaGrid criteria={criteria} />
     </section>
+  );
+}
+
+function CombinedBandBanner({ combinedBand }) {
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-[#d2d7f8] bg-gradient-to-r from-[#efedff]/80 via-[#f0f2fe] to-[#e6e9fc] px-3 py-2 dark:border-indigo-500/30 dark:from-indigo-950/40 dark:via-indigo-900/30 dark:to-indigo-950/40 shadow-2xs">
+      <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-indigo-200">
+        <TrendingUp className="h-3.5 w-3.5 text-[#5661e9] dark:text-indigo-400" /> Writing estimate{' '}
+        <span className="hidden text-[10px] font-medium text-slate-500 sm:inline dark:text-indigo-300/70">
+          Task 1 × ⅓ + Task 2 × ⅔
+        </span>
+      </div>
+      <span className="text-xl font-black text-[#5661e9] dark:text-indigo-300">
+        {combinedBand.toFixed(1)}
+      </span>
+    </div>
+  );
+}
+
+function WordCountWarning({ taskType, wordCount }) {
+  const minWords = taskType === 'Task 2' ? '250' : '150';
+  return (
+    <div className="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-500/20 dark:bg-amber-500/10">
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+      <div>
+        <p className="text-xs font-extrabold text-amber-900 dark:text-amber-200">
+          Below the {minWords}-word minimum
+        </p>
+        <p className="mt-0.5 text-[11px] leading-5 text-amber-800/80 dark:text-amber-300/80">
+          With {wordCount ?? 'fewer'} words, there is less evidence of full task coverage. Language
+          criteria are still judged from what you demonstrated.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function StrengthItem({ strength, index, isExpanded, onToggle }) {
+  return (
+    <div className="flex items-start gap-2.5">
+      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/70 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 shadow-2xs">
+        <Check className="h-2.5 w-2.5 stroke-[3]" />
+      </span>
+      <div
+        id={`feedback-strength-${index}`}
+        className="min-w-0 text-xs font-semibold text-slate-800 dark:text-slate-200 leading-relaxed"
+      >
+        <span>{isExpanded ? strength.full : strength.preview}</span>
+        {strength.isTruncated && (
+          <button
+            type="button"
+            aria-controls={`feedback-strength-${index}`}
+            aria-expanded={isExpanded}
+            aria-label={`${isExpanded ? 'Show less' : 'Show full'} strength ${index + 1}`}
+            onClick={onToggle}
+            className="ml-1 inline font-extrabold text-emerald-600 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:text-emerald-400"
+          >
+            {isExpanded ? 'Less' : 'More'}
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 
 function StrengthsCard({ strengths, expandedItems, onToggleExpand }) {
   return (
     <section className="rounded-2xl border border-[#dce0f5] bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] p-3.5 sm:p-4 dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] shadow-2xs">
-      <div className="mb-3 flex items-center justify-between gap-2 border-b border-[#e2e5f6] pb-2 dark:border-white/10">
-        <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
-          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/70 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 shadow-2xs">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-          </span>
+      <div className="mb-3 flex items-center gap-2 border-b border-[#e2e5f6] pb-2 dark:border-white/10">
+        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/70 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 shadow-2xs">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+        </span>
+        <span className="text-xs font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
           Key strengths
-        </div>
+        </span>
       </div>
-
       <div className="space-y-2.5">
-        {strengths.map((strength, index) => {
-          const isExpanded = Boolean(expandedItems[`strength-${index}`]);
-          return (
-            <div key={`${strength.full}-${index}`} className="flex items-start gap-2.5">
-              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/70 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 shadow-2xs">
-                <Check className="h-2.5 w-2.5 stroke-[3]" />
-              </span>
-              <div
-                id={`feedback-strength-${index}`}
-                className="min-w-0 text-xs font-semibold text-slate-800 dark:text-slate-200 leading-relaxed"
-              >
-                <span>{isExpanded ? strength.full : strength.preview}</span>
-                {strength.isTruncated && (
-                  <button
-                    type="button"
-                    aria-controls={`feedback-strength-${index}`}
-                    aria-expanded={isExpanded}
-                    aria-label={`${isExpanded ? 'Show less' : 'Show full'} strength ${index + 1}`}
-                    onClick={() => onToggleExpand(`strength-${index}`)}
-                    className="ml-1 inline font-extrabold text-emerald-600 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:text-emerald-400"
-                  >
-                    {isExpanded ? 'Less' : 'More'}
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
+        {strengths.map((strength, index) => (
+          <StrengthItem
+            key={`${strength.full}-${index}`}
+            strength={strength}
+            index={index}
+            isExpanded={Boolean(expandedItems[`strength-${index}`])}
+            onToggle={() => onToggleExpand(`strength-${index}`)}
+          />
+        ))}
         {strengths.length === 0 && (
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 py-1">
             No reliable strength was identified from the available evidence.
@@ -398,72 +533,92 @@ function StrengthsCard({ strengths, expandedItems, onToggleExpand }) {
   );
 }
 
+function PriorityItemActions({ priority, index, isExpanded, onToggleExpand, onShowInEssay }) {
+  const showExpand = priority.issue.isTruncated || priority.action.isTruncated;
+  if (!showExpand && !priority.annotation) return null;
+
+  return (
+    <div className="ml-7 flex flex-wrap items-center gap-x-3 gap-y-1">
+      {showExpand && (
+        <button
+          type="button"
+          aria-controls={`feedback-priority-${index}`}
+          aria-expanded={isExpanded}
+          aria-label={`${isExpanded ? 'Show less' : 'Show full'} priority ${index + 1}`}
+          onClick={() => onToggleExpand(`priority-${index}`)}
+          className="inline text-[11px] font-extrabold text-[#5661e9] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5661e9] focus-visible:ring-offset-2 dark:text-indigo-300"
+        >
+          {isExpanded ? 'Less' : 'More'}
+        </button>
+      )}
+      {priority.annotation && onShowInEssay && (
+        <button
+          type="button"
+          onClick={() => onShowInEssay(priority.annotation)}
+          className="inline text-[11px] font-extrabold text-[#5661e9] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5661e9] focus-visible:ring-offset-2 dark:text-indigo-300"
+        >
+          Show in my essay
+        </button>
+      )}
+    </div>
+  );
+}
+
+function PriorityItem({ priority, index, isExpanded, onToggleExpand, onShowInEssay }) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <span className="inline-flex h-5 w-5 min-w-[20px] shrink-0 items-center justify-center rounded-md bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/30 dark:text-indigo-200 dark:border-indigo-400/40 font-black text-[11px] leading-none shadow-2xs">
+          {index + 1}
+        </span>
+        <span className="text-[9px] font-black uppercase tracking-wider text-[#5661e9] dark:text-indigo-400">
+          {priority.criterion}
+        </span>
+      </div>
+      <div id={`feedback-priority-${index}`}>
+        <p className="text-xs font-black text-slate-950 dark:text-white pl-7 leading-snug">
+          {isExpanded ? priority.issue.full : priority.issue.preview}
+        </p>
+        <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 pl-7 leading-relaxed">
+          <strong className="text-[#5661e9] dark:text-indigo-400 font-black mr-1.5 uppercase tracking-wider text-[9px]">
+            DO:
+          </strong>
+          {isExpanded ? priority.action.full : priority.action.preview}
+        </p>
+      </div>
+      <PriorityItemActions
+        priority={priority}
+        index={index}
+        isExpanded={isExpanded}
+        onToggleExpand={onToggleExpand}
+        onShowInEssay={onShowInEssay}
+      />
+    </div>
+  );
+}
+
 function PrioritiesCard({ priorities, expandedItems, onToggleExpand, onShowInEssay }) {
   return (
     <section className="rounded-2xl border border-[#dce0f5] bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] p-3.5 sm:p-4 dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] shadow-2xs">
-      <div className="mb-3 flex items-center justify-between gap-2 border-b border-[#e2e5f6] pb-2 dark:border-white/10">
-        <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
-          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/40 shadow-2xs">
-            <Target className="h-3.5 w-3.5" />
-          </span>
+      <div className="mb-3 flex items-center gap-2 border-b border-[#e2e5f6] pb-2 dark:border-white/10">
+        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/40 shadow-2xs">
+          <Target className="h-3.5 w-3.5" />
+        </span>
+        <span className="text-xs font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
           Top 3 priorities
-        </div>
+        </span>
       </div>
-
       <div className="space-y-3">
-        {priorities.map((priority, index) => {
-          const isExpanded = Boolean(expandedItems[`priority-${index}`]);
-          return (
-            <div key={`${priority.issue.full}-${index}`} className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-5 w-5 min-w-[20px] shrink-0 items-center justify-center rounded-md bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/30 dark:text-indigo-200 dark:border-indigo-400/40 font-black text-[11px] leading-none shadow-2xs">
-                  {index + 1}
-                </span>
-                <span className="text-[9px] font-black uppercase tracking-wider text-[#5661e9] dark:text-indigo-400">
-                  {priority.criterion}
-                </span>
-              </div>
-              <div id={`feedback-priority-${index}`}>
-                <p className="text-xs font-black text-slate-950 dark:text-white pl-7 leading-snug">
-                  {isExpanded ? priority.issue.full : priority.issue.preview}
-                </p>
-                <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 pl-7 leading-relaxed">
-                  <strong className="text-[#5661e9] dark:text-indigo-400 font-black mr-1.5 uppercase tracking-wider text-[9px]">
-                    DO:
-                  </strong>
-                  {isExpanded ? priority.action.full : priority.action.preview}
-                </p>
-              </div>
-              {(priority.issue.isTruncated ||
-                priority.action.isTruncated ||
-                priority.annotation) && (
-                <div className="ml-7 flex flex-wrap items-center gap-x-3 gap-y-1">
-                  {(priority.issue.isTruncated || priority.action.isTruncated) && (
-                    <button
-                      type="button"
-                      aria-controls={`feedback-priority-${index}`}
-                      aria-expanded={isExpanded}
-                      aria-label={`${isExpanded ? 'Show less' : 'Show full'} priority ${index + 1}`}
-                      onClick={() => onToggleExpand(`priority-${index}`)}
-                      className="inline text-[11px] font-extrabold text-[#5661e9] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5661e9] focus-visible:ring-offset-2 dark:text-indigo-300"
-                    >
-                      {isExpanded ? 'Less' : 'More'}
-                    </button>
-                  )}
-                  {priority.annotation && onShowInEssay && (
-                    <button
-                      type="button"
-                      onClick={() => onShowInEssay(priority.annotation)}
-                      className="inline text-[11px] font-extrabold text-[#5661e9] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5661e9] focus-visible:ring-offset-2 dark:text-indigo-300"
-                    >
-                      Show in my essay
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {priorities.map((priority, index) => (
+          <PriorityItem
+            key={`${priority.issue.full}-${index}`}
+            priority={priority}
+            index={index}
+            isExpanded={Boolean(expandedItems[`priority-${index}`])}
+            onToggleExpand={onToggleExpand}
+            onShowInEssay={onShowInEssay}
+          />
+        ))}
         {priorities.length === 0 && (
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 py-1">
             No priority data is available for this saved attempt.
@@ -474,7 +629,37 @@ function PrioritiesCard({ priorities, expandedItems, onToggleExpand, onShowInEss
   );
 }
 
+function ImprovementRow({ item }) {
+  return (
+    <div className="pt-3 first:pt-0 space-y-1.5">
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <span className="font-semibold text-rose-600 dark:text-rose-400 line-through decoration-rose-400 decoration-2">
+          {item.original}
+        </span>
+        <ArrowRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+        <span className="font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+          <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-500/30">
+            {item.isDirectCorrection ? 'Better' : 'Try this'}
+          </span>
+          {item.correction}
+        </span>
+      </div>
+      <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+        <strong className="font-extrabold text-slate-900 dark:text-white mr-1">
+          Why it matters:
+        </strong>
+        {item.explanation}
+      </p>
+    </div>
+  );
+}
+
 function ImprovementsCard({ improvements, visibleImprovements, showAll, onToggleShowAll }) {
+  const countLabel =
+    improvements.length > 0
+      ? `${improvements.length} ${improvements.length === 1 ? 'item' : 'items'}`
+      : 'All clear';
+
   return (
     <section className="overflow-hidden rounded-2xl border border-[#e2e5f6] bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] shadow-2xs dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829]">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e2e5f6] dark:border-white/10 px-3.5 py-2.5 bg-slate-50/50 dark:bg-white/[0.02]">
@@ -485,35 +670,13 @@ function ImprovementsCard({ improvements, visibleImprovements, showAll, onToggle
           Corrections & improvements
         </div>
         <span className="rounded-full bg-white dark:bg-white/10 px-2.5 py-0.5 text-[10px] font-black text-slate-700 dark:text-slate-300 border border-[#dce0f5] dark:border-white/10">
-          {improvements.length > 0
-            ? `${improvements.length} ${improvements.length === 1 ? 'item' : 'items'}`
-            : 'All clear'}
+          {countLabel}
         </span>
       </div>
       {improvements.length > 0 ? (
         <div className="p-3 sm:p-3.5 space-y-3 divide-y divide-slate-100 dark:divide-white/5">
           {visibleImprovements.map((item, index) => (
-            <div key={`${item.original}-${index}`} className="pt-3 first:pt-0 space-y-1.5">
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="font-semibold text-rose-600 dark:text-rose-400 line-through decoration-rose-400 decoration-2">
-                  {item.original}
-                </span>
-                <ArrowRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                <span className="font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-500/30">
-                    {item.isDirectCorrection ? 'Better' : 'Try this'}
-                  </span>
-                  {item.correction}
-                </span>
-              </div>
-
-              <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                <strong className="font-extrabold text-slate-900 dark:text-white mr-1">
-                  Why it matters:
-                </strong>
-                {item.explanation}
-              </p>
-            </div>
+            <ImprovementRow key={`${item.original}-${index}`} item={item} index={index} />
           ))}
         </div>
       ) : (
@@ -530,15 +693,15 @@ function ImprovementsCard({ improvements, visibleImprovements, showAll, onToggle
         >
           {showAll ? 'Show fewer improvements' : `View all ${improvements.length} improvements`}
           <ChevronDown
-            className={`h-3.5 w-3.5 transition-transform duration-200 ${
-              showAll ? 'rotate-180' : ''
-            }`}
+            className={`h-3.5 w-3.5 transition-transform duration-200 ${showAll ? 'rotate-180' : ''}`}
           />
         </button>
       )}
     </section>
   );
 }
+
+// ─── Main exported component ──────────────────────────────────────────────────
 
 export function FeedbackPanel({
   feedback,
@@ -553,13 +716,14 @@ export function FeedbackPanel({
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [expandedFeedbackItems, setExpandedFeedbackItems] = useState({});
 
+  const combinedBand = useMemo(() => calcCombinedBand(allFeedbacks), [allFeedbacks]);
+
   const toggleFeedbackItem = (itemKey) => {
-    setExpandedFeedbackItems((current) => ({ ...current, [itemKey]: !current[itemKey] }));
+    setExpandedFeedbackItems((cur) => ({ ...cur, [itemKey]: !cur[itemKey] }));
   };
 
   const handleDownloadPdf = async () => {
     if (isDownloadingPdf) return;
-
     setIsDownloadingPdf(true);
     try {
       const { downloadWritingReportPdf } = await import('../../../utils/writingReportPdf');
@@ -574,80 +738,11 @@ export function FeedbackPanel({
     }
   };
 
-  const task1Band = Number(allFeedbacks['Task 1']?.overallBand);
-  const task2Band = Number(allFeedbacks['Task 2']?.overallBand);
-  const combinedBand =
-    task1Band > 0 && task2Band > 0 ? Math.round(((task1Band + task2Band * 2) / 3) * 2) / 2 : null;
+  const { taskType, criteria, priorities, takeaway, strengths, improvements, visibleImprovements } =
+    useFeedbackData(feedback, allFeedbacks, showAllCorrections);
 
-  const taskType = feedback?.taskType === 'Task 2' ? 'Task 2' : 'Task 1';
-  const criteria = useMemo(
-    () =>
-      CRITERIA.map((item) => ({
-        ...item,
-        label: getCriterionLabel(item, taskType),
-        score: getCriterionScore(feedback?.criteriaScores, item.keys),
-      })).filter((item) => item.score != null),
-    [feedback?.criteriaScores, taskType]
-  );
-  const priorities = useMemo(() => {
-    const sourcePriorities =
-      Array.isArray(feedback?.priorities) && feedback.priorities.length
-        ? feedback.priorities.slice(0, 3)
-        : createLegacyPriorities(feedback);
-
-    return sourcePriorities.map((priority) => ({
-      criterion: cleanFeedbackText(priority.criterion),
-      issue: prepareFeedbackText(priority.issue, 96, { dropHeading: true }),
-      action: prepareFeedbackText(priority.action, 108, { dropHeading: true }),
-      annotation: (Array.isArray(feedback?.annotations) ? feedback.annotations : []).find(
-        (annotation) => annotation?.originalText === priority.evidenceText
-      ),
-    }));
-  }, [feedback]);
-
-  const takeaway = useMemo(
-    () => buildTakeaway(feedback, priorities, taskType),
-    [feedback, priorities, taskType]
-  );
-
-  const strengths = useMemo(
-    () =>
-      (Array.isArray(feedback?.strengths) ? feedback.strengths : [])
-        .slice(0, 3)
-        .map((strength) => prepareFeedbackText(strength, 104, { dropHeading: true }))
-        .filter((strength) => strength.full),
-    [feedback?.strengths]
-  );
-
-  const corrections = useMemo(
-    () =>
-      (Array.isArray(feedback?.corrections) ? feedback.corrections : []).map((item) => ({
-        original: compactUiText(item.original, 88),
-        correction: compactUiText(item.correction, 88),
-        explanation: compactUiText(item.explanation, 112, { dropHeading: true }),
-      })),
-    [feedback?.corrections]
-  );
-
-  const suggestedImprovements = useMemo(
-    () =>
-      (Array.isArray(feedback?.annotations) ? feedback.annotations : [])
-        .filter(isValidImprovementAnnotation)
-        .map((annotation) => ({
-          original: compactUiText(annotation.originalText, 88),
-          correction: compactUiText(annotation.suggestion, 88),
-          explanation: compactUiText(annotation.explanation, 112, { dropHeading: true }),
-          isDirectCorrection: annotation.severity === 'error',
-        })),
-    [feedback?.annotations]
-  );
-
-  const improvements = corrections.length
-    ? corrections.map((correction) => ({ ...correction, isDirectCorrection: true }))
-    : suggestedImprovements;
-  const visibleImprovements = showAllCorrections ? improvements : improvements.slice(0, 3);
-
-  if (!feedback && !isAnalyzing && !feedbackError) return null;
+  const hasNoState = !feedback && !isAnalyzing && !feedbackError;
+  if (hasNoState) return null;
 
   return (
     <div
@@ -655,11 +750,11 @@ export function FeedbackPanel({
       className="flex h-full min-h-0 flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white"
     >
       <AnimatePresence mode="wait">
-        {isAnalyzing ? (
-          <AnalyzingState loadingMessage={loadingMessage} />
-        ) : feedbackError ? (
+        {isAnalyzing && <AnalyzingState loadingMessage={loadingMessage} />}
+        {!isAnalyzing && feedbackError && (
           <ErrorState feedbackError={feedbackError} handleGetFeedback={handleGetFeedback} />
-        ) : (
+        )}
+        {!isAnalyzing && !feedbackError && feedback && (
           <motion.div
             key="results"
             initial={{ opacity: 0, y: 10 }}
@@ -676,34 +771,10 @@ export function FeedbackPanel({
               handleDownloadPdf={handleDownloadPdf}
             />
 
-            {combinedBand && (
-              <div className="flex items-center justify-between rounded-xl border border-[#d2d7f8] bg-gradient-to-r from-[#efedff]/80 via-[#f0f2fe] to-[#e6e9fc] px-3 py-2 dark:border-indigo-500/30 dark:from-indigo-950/40 dark:via-indigo-900/30 dark:to-indigo-950/40 shadow-2xs">
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-indigo-200">
-                  <TrendingUp className="h-3.5 w-3.5 text-[#5661e9] dark:text-indigo-400" /> Writing
-                  estimate{' '}
-                  <span className="hidden text-[10px] font-medium text-slate-500 sm:inline dark:text-indigo-300/70">
-                    Task 1 × ⅓ + Task 2 × ⅔
-                  </span>
-                </div>
-                <span className="text-xl font-black text-[#5661e9] dark:text-indigo-300">
-                  {combinedBand.toFixed(1)}
-                </span>
-              </div>
-            )}
+            {combinedBand && <CombinedBandBanner combinedBand={combinedBand} />}
 
             {feedback.isBelowMinimumWordCount && (
-              <div className="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-500/20 dark:bg-amber-500/10">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                <div>
-                  <p className="text-xs font-extrabold text-amber-900 dark:text-amber-200">
-                    Below the {taskType === 'Task 2' ? '250' : '150'}-word minimum
-                  </p>
-                  <p className="mt-0.5 text-[11px] leading-5 text-amber-800/80 dark:text-amber-300/80">
-                    With {feedback.wordCount ?? 'fewer'} words, there is less evidence of full task
-                    coverage. Language criteria are still judged from what you demonstrated.
-                  </p>
-                </div>
-              </div>
+              <WordCountWarning taskType={taskType} wordCount={feedback.wordCount} />
             )}
 
             <div className="grid gap-2.5 lg:grid-cols-1 xl:grid-cols-2">
@@ -724,7 +795,7 @@ export function FeedbackPanel({
               improvements={improvements}
               visibleImprovements={visibleImprovements}
               showAll={showAllCorrections}
-              onToggleShowAll={() => setShowAllCorrections((value) => !value)}
+              onToggleShowAll={() => setShowAllCorrections((v) => !v)}
             />
 
             <div className="flex items-center gap-2 px-1 pb-1 text-[10px] leading-4 text-slate-400 dark:text-slate-500">
