@@ -35,6 +35,10 @@ import { AuthLeftPanel } from '@/features/auth/components/AuthLeftPanel';
 import { VerificationView } from '@/features/auth/components/VerificationView';
 import { trackAppEvent } from '@/lib/tracking';
 import { clearAdminAccess } from '@/features/auth/utils/adminAccess';
+import {
+  getAuthRateLimitWaitSeconds,
+  isAuthRateLimitError,
+} from '@/features/auth/utils/authRateLimit';
 
 const AUTH_DESTINATION_KEY = 'auth_destination';
 
@@ -257,16 +261,19 @@ export default function Login() {
       }
     } catch (err) {
       console.error('Authentication failed:', err);
-      setLockoutTime(() => {
-        const newTime = Date.now() + 60000;
-        return newTime;
-      });
       const msg = (err?.message || 'Authentication failed. Please try again.').toLowerCase();
-      if (msg.includes('email not confirmed')) {
+      if (isAuthRateLimitError(err)) {
+        const waitSeconds = getAuthRateLimitWaitSeconds(err);
+        setLockoutTime(Date.now() + waitSeconds * 1000);
+        setError(`Too many requests. Please wait ${waitSeconds} seconds before trying again.`);
+      } else if (msg.includes('email not confirmed')) {
+        setLockoutTime(null);
         setError('Please confirm your email. Check your inbox or spam folder.');
       } else if (msg.includes('invalid login credentials')) {
+        setLockoutTime(null);
         setError('Invalid email or password. Please try again.');
       } else {
+        setLockoutTime(null);
         setError(err.message || 'Error occurred. Please try again.');
       }
 
