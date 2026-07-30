@@ -2,7 +2,7 @@ import process from 'node:process';
 
 const SITE_URL = 'https://www.ieltsai.pro';
 const CORE_ROUTES = [
-  { path: '/', lastmod: '2026-07-26', changefreq: 'weekly', priority: '1.0' },
+  { path: '/', lastmod: '2026-07-30', changefreq: 'weekly', priority: '1.0' },
   {
     path: '/ielts-writing-checker',
     lastmod: '2026-07-26',

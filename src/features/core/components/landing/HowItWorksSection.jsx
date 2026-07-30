@@ -218,6 +218,9 @@ function GoalPreview({ reduceMotion }) {
             fill="#635bff"
             stroke="#ffffff"
             strokeWidth="1.5"
+            // Explicit starting radius keeps the first SVG render from emitting
+            // r="undefined", which the browser reports as a console error.
+            initial={{ r: 4 }}
             animate={reduceMotion ? undefined : { r: [4, 6, 4] }}
             transition={{ duration: 1.6, repeat: Infinity }}
           />

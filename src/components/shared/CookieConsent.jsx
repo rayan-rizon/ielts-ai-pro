@@ -88,9 +88,10 @@ export default function CookieConsent() {
             <Cookie className="w-3.5 h-3.5" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-[12px] font-bold tracking-tight text-slate-900 dark:text-slate-50 mb-0.5 leading-tight">
+            {/* h2 (not h4) so the banner never breaks the page heading order */}
+            <h2 className="text-[12px] font-bold tracking-tight text-slate-900 dark:text-slate-50 mb-0.5 leading-tight">
               Privacy & Cookies
-            </h4>
+            </h2>
             <p className="text-[10.5px] font-normal text-slate-600 dark:text-slate-300/90 leading-snug">
               We use essential cookies to power your IELTS prep experience.
             </p>
@@ -215,7 +216,7 @@ export default function CookieConsent() {
           <button
             type="button"
             onClick={() => saveConsent({ functional: true, analytics: false, marketing: false })}
-            className="w-full text-[10px] font-medium text-slate-400 dark:text-slate-400/80 hover:text-slate-700 dark:hover:text-slate-200 transition-colors pt-1.5 block text-center cursor-pointer hover:underline"
+            className="w-full min-h-[28px] text-[10px] font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors mt-1 py-1.5 block text-center cursor-pointer hover:underline"
           >
             Reject All
           </button>

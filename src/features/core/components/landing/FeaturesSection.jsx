@@ -437,6 +437,9 @@ function AnalyticsCard({ reduceMotion }) {
                 fill="#635bff"
                 stroke="#ffffff"
                 strokeWidth="1.5"
+                // Framer needs an explicit starting radius; without it the first
+                // SVG render emits r="undefined" and the browser logs an error.
+                initial={{ r: 4.5 }}
                 animate={reduceMotion ? undefined : { r: i === 5 ? [4.5, 7, 4.5] : 4.5 }}
                 transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
               />

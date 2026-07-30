@@ -150,6 +150,17 @@ const getStructuredData = () => ({
         height: 72,
       },
     },
+    // The questions below are the ones FAQSection renders on this page, so the
+    // markup stays consistent with the visible content Google requires.
+    {
+      '@type': 'FAQPage',
+      '@id': 'https://www.ieltsai.pro/#faq',
+      mainEntity: faqs.map(({ q, a }) => ({
+        '@type': 'Question',
+        name: q,
+        acceptedAnswer: { '@type': 'Answer', text: a },
+      })),
+    },
     {
       '@type': 'WebSite',
       '@id': 'https://www.ieltsai.pro/#website',
@@ -167,6 +178,8 @@ const getStructuredData = () => ({
       operatingSystem: 'Web',
       description:
         'Web-based IELTS practice platform with Reading and Listening tests, AI-assisted Writing and Speaking feedback, progress analytics, vocabulary review, and adaptive study planning.',
+      inLanguage: 'en',
+      isAccessibleForFree: true,
       datePublished: '2025-10-15',
       dateModified: '2026-07-26',
       offers: {

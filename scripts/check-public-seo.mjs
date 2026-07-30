@@ -202,6 +202,41 @@ if (!indexHtml.includes(`${siteUrl}/llms.txt`)) {
   fail('homepage does not advertise the dynamic llms.txt file');
 }
 
+// The crawler fallback in index.html is the only internal link graph a
+// non-rendering crawler ever sees, so it has to point at the canonical routes
+// and never at a retired URL that 301s into a robots-disallowed page.
+const staticDirectory = indexHtml.match(
+  /<nav aria-label="Static Site Directory">([\s\S]*?)<\/nav>/
+)?.[1];
+if (!staticDirectory) fail('index.html is missing the static crawler directory');
+
+const staticDirectoryHrefs = Array.from(
+  staticDirectory.matchAll(/href="([^"]+)"/g),
+  (match) => match[1]
+);
+for (const route of Object.keys(retiredRoutes)) {
+  if (staticDirectoryHrefs.includes(route)) {
+    fail(`static crawler directory still links retired route ${route}`);
+  }
+}
+for (const route of publicRoutes) {
+  if (!staticDirectoryHrefs.includes(route)) {
+    fail(`static crawler directory is missing canonical route ${route}`);
+  }
+}
+
+// A logo URL that falls through the SPA rewrite resolves to HTML, which makes
+// the Organization markup unusable, so the file has to exist in public/.
+const staticLogoPath = JSON.parse(staticJsonLd)['@graph']?.find(
+  (node) => node['@type'] === 'Organization'
+)?.logo?.url;
+if (!staticLogoPath?.startsWith(`${siteUrl}/`)) {
+  fail('homepage Organization markup is missing a same-origin logo URL');
+}
+if (!existsSync(path.join(root, 'public', staticLogoPath.slice(`${siteUrl}/`.length)))) {
+  fail(`homepage Organization logo ${staticLogoPath} does not exist in public/`);
+}
+
 console.log(
   `SEO check passed: ${publicRoutes.length} public routes, server-rendered blog, sitemap, llms.txt and RSS routes, valid homepage metadata/schema, ${Object.keys(retiredRoutes).length} retired routes redirected.`
 );

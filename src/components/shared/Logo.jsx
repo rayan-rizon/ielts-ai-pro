@@ -1,6 +1,12 @@
 import React from 'react';
 import { cn } from '@/lib/cn';
 
+// Intrinsic size of logo.svg / footer.svg. Declared on the <img> tags so the
+// browser can reserve the right box before the file loads; the Tailwind height
+// classes still decide the rendered size.
+const LOGO_WIDTH = 300;
+const LOGO_HEIGHT = 72;
+
 export function LogoIcon({ className = 'w-8 h-8', variant = 'auto' }) {
   return (
     <svg
@@ -162,6 +168,8 @@ export function Logo({
         <img
           src="/footer.svg"
           alt="IELTS AI Pro Logo"
+          width={LOGO_WIDTH}
+          height={LOGO_HEIGHT}
           className={cn(
             'w-auto object-contain transition-transform duration-300',
             animated && 'group-hover:scale-[1.03]',
@@ -179,6 +187,8 @@ export function Logo({
         <img
           src="/logo.svg"
           alt="IELTS AI Pro Logo"
+          width={LOGO_WIDTH}
+          height={LOGO_HEIGHT}
           className={cn(
             'w-auto object-contain transition-transform duration-300',
             animated && 'group-hover:scale-[1.03]',
@@ -195,6 +205,8 @@ export function Logo({
       <img
         src="/logo.svg"
         alt="IELTS AI Pro Logo"
+        width={LOGO_WIDTH}
+        height={LOGO_HEIGHT}
         className={cn(
           'dark:hidden w-auto object-contain transition-transform duration-300',
           animated && 'group-hover:scale-[1.03]',
@@ -204,6 +216,8 @@ export function Logo({
       <img
         src="/footer.svg"
         alt="IELTS AI Pro Logo"
+        width={LOGO_WIDTH}
+        height={LOGO_HEIGHT}
         className={cn(
           'hidden dark:block w-auto object-contain transition-transform duration-300',
           animated && 'group-hover:scale-[1.03]',

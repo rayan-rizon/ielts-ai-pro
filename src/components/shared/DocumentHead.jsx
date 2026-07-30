@@ -148,6 +148,7 @@ export default function DocumentHead({
       <meta property="og:title" content={m.fullTitle} data-oid="x6zb:zz" />
       <meta property="og:description" content={m.description || ''} data-oid="-f53ng9" />
       <meta property="og:type" content={m.type} data-oid="cwkvf-j" />
+      <meta property="og:locale" content="en_US" data-oid="head-og-locale" />
       <meta property="og:site_name" content={SITE_NAME} data-oid="yk6vytg" />
       {m.canonicalUrl && <meta property="og:url" content={m.canonicalUrl} data-oid="7gt-:pm" />}
       {m.image && <meta property="og:image" content={m.image} data-oid="ay8zl_0" />}
