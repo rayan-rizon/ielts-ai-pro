@@ -113,7 +113,52 @@ function calcCombinedBand(allFeedbacks) {
   return null;
 }
 
-// ─── Custom hook ──────────────────────────────────────────────────────────────
+// ─── Custom hooks ─────────────────────────────────────────────────────────────
+
+function usePriorities(feedback) {
+  return useMemo(() => {
+    const annotations = Array.isArray(feedback?.annotations) ? feedback.annotations : [];
+    const source =
+      Array.isArray(feedback?.priorities) && feedback.priorities.length
+        ? feedback.priorities.slice(0, 3)
+        : createLegacyPriorities(feedback);
+    return source.map((p) => ({
+      criterion: cleanFeedbackText(p.criterion),
+      issue: prepareFeedbackText(p.issue, 96, { dropHeading: true }),
+      action: prepareFeedbackText(p.action, 108, { dropHeading: true }),
+      annotation: annotations.find((a) => a?.originalText === p.evidenceText),
+    }));
+  }, [feedback]);
+}
+
+function useImprovements(feedback, showAll) {
+  const corrections = useMemo(
+    () =>
+      (Array.isArray(feedback?.corrections) ? feedback.corrections : []).map((item) => ({
+        original: compactUiText(item.original, 88),
+        correction: compactUiText(item.correction, 88),
+        explanation: compactUiText(item.explanation, 112, { dropHeading: true }),
+        isDirectCorrection: true,
+      })),
+    [feedback?.corrections]
+  );
+
+  const suggested = useMemo(
+    () =>
+      (Array.isArray(feedback?.annotations) ? feedback.annotations : [])
+        .filter(isValidImprovementAnnotation)
+        .map((a) => ({
+          original: compactUiText(a.originalText, 88),
+          correction: compactUiText(a.suggestion, 88),
+          explanation: compactUiText(a.explanation, 112, { dropHeading: true }),
+          isDirectCorrection: a.severity === 'error',
+        })),
+    [feedback?.annotations]
+  );
+
+  const improvements = corrections.length ? corrections : suggested;
+  return { improvements, visibleImprovements: showAll ? improvements : improvements.slice(0, 3) };
+}
 
 function useFeedbackData(feedback, allFeedbacks, showAllCorrections) {
   const taskType = feedback?.taskType === 'Task 2' ? 'Task 2' : 'Task 1';
@@ -128,20 +173,7 @@ function useFeedbackData(feedback, allFeedbacks, showAllCorrections) {
     [feedback?.criteriaScores, taskType]
   );
 
-  const priorities = useMemo(() => {
-    const annotations = Array.isArray(feedback?.annotations) ? feedback.annotations : [];
-    const source =
-      Array.isArray(feedback?.priorities) && feedback.priorities.length
-        ? feedback.priorities.slice(0, 3)
-        : createLegacyPriorities(feedback);
-
-    return source.map((p) => ({
-      criterion: cleanFeedbackText(p.criterion),
-      issue: prepareFeedbackText(p.issue, 96, { dropHeading: true }),
-      action: prepareFeedbackText(p.action, 108, { dropHeading: true }),
-      annotation: annotations.find((a) => a?.originalText === p.evidenceText),
-    }));
-  }, [feedback]);
+  const priorities = usePriorities(feedback);
 
   const takeaway = useMemo(
     () => buildTakeaway(feedback, priorities, taskType),
@@ -157,34 +189,31 @@ function useFeedbackData(feedback, allFeedbacks, showAllCorrections) {
     [feedback?.strengths]
   );
 
-  const corrections = useMemo(
-    () =>
-      (Array.isArray(feedback?.corrections) ? feedback.corrections : []).map((item) => ({
-        original: compactUiText(item.original, 88),
-        correction: compactUiText(item.correction, 88),
-        explanation: compactUiText(item.explanation, 112, { dropHeading: true }),
-        isDirectCorrection: true,
-      })),
-    [feedback?.corrections]
-  );
-
-  const suggestedImprovements = useMemo(
-    () =>
-      (Array.isArray(feedback?.annotations) ? feedback.annotations : [])
-        .filter(isValidImprovementAnnotation)
-        .map((a) => ({
-          original: compactUiText(a.originalText, 88),
-          correction: compactUiText(a.suggestion, 88),
-          explanation: compactUiText(a.explanation, 112, { dropHeading: true }),
-          isDirectCorrection: a.severity === 'error',
-        })),
-    [feedback?.annotations]
-  );
-
-  const improvements = corrections.length ? corrections : suggestedImprovements;
-  const visibleImprovements = showAllCorrections ? improvements : improvements.slice(0, 3);
+  const { improvements, visibleImprovements } = useImprovements(feedback, showAllCorrections);
 
   return { taskType, criteria, priorities, takeaway, strengths, improvements, visibleImprovements };
+}
+
+function useDownloadPdf(allFeedbacks) {
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (isDownloadingPdf) return;
+    setIsDownloadingPdf(true);
+    try {
+      const { downloadWritingReportPdf } = await import('../../../utils/writingReportPdf');
+      const drafts = useWritingTestStore.getState().drafts;
+      downloadWritingReportPdf({ feedbacks: allFeedbacks, drafts });
+      toast.success('Writing report downloaded');
+    } catch (err) {
+      console.error(err);
+      toast.error('Could not download the PDF', { description: 'Please try again in a moment.' });
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
+  return { isDownloadingPdf, handleDownloadPdf };
 }
 
 // ─── Small leaf components ────────────────────────────────────────────────────
@@ -713,31 +742,13 @@ export function FeedbackPanel({
 }) {
   const allFeedbacks = useWritingTestStore((state) => state.feedbacks);
   const [showAllCorrections, setShowAllCorrections] = useState(false);
-  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [expandedFeedbackItems, setExpandedFeedbackItems] = useState({});
 
   const combinedBand = useMemo(() => calcCombinedBand(allFeedbacks), [allFeedbacks]);
-
-  const toggleFeedbackItem = (itemKey) => {
+  const toggleFeedbackItem = (itemKey) =>
     setExpandedFeedbackItems((cur) => ({ ...cur, [itemKey]: !cur[itemKey] }));
-  };
 
-  const handleDownloadPdf = async () => {
-    if (isDownloadingPdf) return;
-    setIsDownloadingPdf(true);
-    try {
-      const { downloadWritingReportPdf } = await import('../../../utils/writingReportPdf');
-      const drafts = useWritingTestStore.getState().drafts;
-      downloadWritingReportPdf({ feedbacks: allFeedbacks, drafts });
-      toast.success('Writing report downloaded');
-    } catch (error) {
-      console.error(error);
-      toast.error('Could not download the PDF', { description: 'Please try again in a moment.' });
-    } finally {
-      setIsDownloadingPdf(false);
-    }
-  };
-
+  const { isDownloadingPdf, handleDownloadPdf } = useDownloadPdf(allFeedbacks);
   const { taskType, criteria, priorities, takeaway, strengths, improvements, visibleImprovements } =
     useFeedbackData(feedback, allFeedbacks, showAllCorrections);
 
