@@ -3,6 +3,8 @@ import { Check, Circle, Headphones, Lightbulb, Mic2, ShieldCheck, Sparkles } fro
 
 import { cn } from '@/lib/cn';
 
+import HandsFreeAnswerControl from './HandsFreeAnswerControl';
+
 const PART_DETAILS = {
   1: {
     title: 'Introduction',
@@ -308,6 +310,8 @@ export default function SpeakingSessionRail({
   currentPartNumber,
   testStarted,
   isPart2Prep,
+  handsFreeEnabled,
+  onHandsFreeChange,
 }) {
   return (
     <>
@@ -323,6 +327,7 @@ export default function SpeakingSessionRail({
             currentPartNumber={currentPartNumber}
           />
         </div>
+        <HandsFreeAnswerControl enabled={handsFreeEnabled} onChange={onHandsFreeChange} compact />
       </aside>
 
       <aside
@@ -336,6 +341,7 @@ export default function SpeakingSessionRail({
           currentPartNumber={currentPartNumber}
         />
         <UsefulTip currentPartNumber={currentPartNumber} />
+        <HandsFreeAnswerControl enabled={handsFreeEnabled} onChange={onHandsFreeChange} />
       </aside>
     </>
   );

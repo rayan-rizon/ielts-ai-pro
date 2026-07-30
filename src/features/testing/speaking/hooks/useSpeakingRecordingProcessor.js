@@ -2,9 +2,11 @@ import { useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { callEdgeFunction } from '@/utils/api';
+import { supabase } from '@/lib/supabase';
 
 import {
   buildConversationHistory,
+  buildExpectedExaminerResponse,
   buildLocalDevSpeakingResponse,
   formatIeltsQuestion,
   getQuestionLines,
@@ -23,6 +25,7 @@ export default function useSpeakingRecordingProcessor({
   currentPartNumber,
   pendingTimersRef,
   questionIndexRef,
+  requestAutoStart,
   saveSessionProgress,
   session,
   setAllPartsAcousticMetrics,
@@ -51,49 +54,50 @@ export default function useSpeakingRecordingProcessor({
 
       if (!audioBlob || audioBlob.size < 5000) {
         setConversation((prev) => prev.filter((entry) => !entry.isLoading));
-        const message = "I didn't hear anything. Please click the microphone and speak clearly.";
+        const message = "I didn't hear anything. I'll reopen the microphone—please speak clearly.";
         setConversation((prev) => [...prev, { speaker: 'ai', text: message }]);
-        speakText(message);
+        Promise.resolve(speakText(message)).finally(() => requestAutoStart?.());
         return;
       }
 
       setIsProcessing(true);
       setProcessingStatus('Processing your answer...');
-      setConversation((prev) => [...prev, { speaker: 'user', text: '...', isLoading: true }]);
+      const draftTranscript = String(metadata.liveTranscript || '').trim();
+      setConversation((prev) => [
+        ...prev,
+        {
+          speaker: 'user',
+          text: draftTranscript,
+          isLoading: true,
+          isTranscriptDraft: Boolean(draftTranscript),
+        },
+      ]);
 
       try {
-        const audioBase64 = await blobToBase64(audioBlob);
-
         const snapshotQuestionIndex = questionIndexRef.current;
         const currentPart = allParts[currentPartNumber];
         const questionLines = getQuestionLines(currentPart?.questions);
         const questionContext = questionLines[snapshotQuestionIndex] || '';
+        prefetchExpectedExaminerSpeech({
+          currentPartNumber,
+          questionLines,
+          snapshotQuestionIndex,
+        });
+        const pronunciationPromise = preparePronunciationAudio({
+          acousticMetrics: acousticMetricsRef.current,
+          audioBlob,
+          durationMs: Number(metadata.duration),
+          partNumber: currentPartNumber,
+          pronunciationAttemptedParts: pronunciationAttemptedPartsRef.current,
+        });
 
-        setProcessingStatus('Transcribing your answer...');
+        setProcessingStatus('Uploading your answer...');
+        const [audioBase64, pronunciationAudioBase64] = await Promise.all([
+          blobToBase64(audioBlob),
+          pronunciationPromise,
+        ]);
 
-        let pronunciationAudioBase64 = null;
-        const partSampleAlreadyAttempted =
-          pronunciationAttemptedPartsRef.current.has(currentPartNumber);
-        const requestPronunciation =
-          !partSampleAlreadyAttempted &&
-          shouldRequestPronunciationSample({
-            partNumber: currentPartNumber,
-            durationMs: Number(metadata.duration),
-            existingSamples: acousticMetricsRef.current,
-          });
-
-        if (requestPronunciation) {
-          // One bounded attempt per eligible part keeps payloads and Azure usage
-          // predictable even when the provider is not configured or unavailable.
-          pronunciationAttemptedPartsRef.current.add(currentPartNumber);
-          try {
-            setProcessingStatus('Checking pronunciation...');
-            const pronunciationBlob = await convertAudioBlobToWav16kMono(audioBlob);
-            pronunciationAudioBase64 = await blobToBase64(pronunciationBlob);
-          } catch (error) {
-            console.warn('Pronunciation sample conversion unavailable:', error);
-          }
-        }
+        setProcessingStatus(getTranscriptionStatus(pronunciationAudioBase64));
 
         const response = await processSpeakingTurn({
           audioBase64,
@@ -125,6 +129,7 @@ export default function useSpeakingRecordingProcessor({
           currentPartNumber,
           pendingTimersRef,
           questionIndexRef,
+          requestAutoStart,
           saveSessionProgress,
           session,
           setAllPartsAcousticMetrics,
@@ -138,6 +143,7 @@ export default function useSpeakingRecordingProcessor({
       } catch (error) {
         handleProcessingError(error, {
           pendingTimersRef,
+          requestAutoStart,
           setConversation,
           setIsProcessing,
           speakAiMessageFromLoadingState,
@@ -155,6 +161,7 @@ export default function useSpeakingRecordingProcessor({
       currentPartNumber,
       pendingTimersRef,
       questionIndexRef,
+      requestAutoStart,
       saveSessionProgress,
       session,
       setAllPartsAcousticMetrics,
@@ -170,6 +177,60 @@ export default function useSpeakingRecordingProcessor({
       timerExpiredRef,
     ]
   );
+}
+
+function prefetchExpectedExaminerSpeech({
+  currentPartNumber,
+  questionLines,
+  snapshotQuestionIndex,
+}) {
+  const isLastQuestion = snapshotQuestionIndex >= questionLines.length - 1;
+  const text = buildExpectedExaminerResponse({
+    currentPartNumber,
+    currentQuestionIndex: snapshotQuestionIndex,
+    nextQuestion: isLastQuestion ? null : questionLines[snapshotQuestionIndex + 1],
+    isLastQuestion,
+  });
+  if (!text) return;
+
+  supabase.functions
+    .invoke('synthesizeSpeech', {
+      body: { text, voice: 'en-GB-Neural2-B' },
+    })
+    .catch(() => {});
+}
+
+function preparePronunciationAudio({
+  acousticMetrics,
+  audioBlob,
+  durationMs,
+  partNumber,
+  pronunciationAttemptedParts,
+}) {
+  const shouldPrepare =
+    !pronunciationAttemptedParts.has(partNumber) &&
+    shouldRequestPronunciationSample({
+      partNumber,
+      durationMs,
+      existingSamples: acousticMetrics,
+    });
+  if (!shouldPrepare) return Promise.resolve(null);
+
+  // One bounded attempt per eligible part keeps payloads and Azure usage
+  // predictable even when the provider is not configured or unavailable.
+  pronunciationAttemptedParts.add(partNumber);
+  return convertAudioBlobToWav16kMono(audioBlob)
+    .then(blobToBase64)
+    .catch((error) => {
+      console.warn('Pronunciation sample conversion unavailable:', error);
+      return null;
+    });
+}
+
+function getTranscriptionStatus(pronunciationAudioBase64) {
+  return pronunciationAudioBase64
+    ? 'Transcribing and checking pronunciation...'
+    : 'Transcribing your answer...';
 }
 
 async function processSpeakingTurn({
@@ -231,7 +292,9 @@ async function processSpeakingTurn({
 
 function replaceLoadingUserTranscript(conversation, transcript) {
   const updated = [...conversation];
-  const loadingIndex = updated.findIndex((entry) => entry.isLoading);
+  const loadingIndex = updated.findLastIndex(
+    (entry) => entry.isLoading && entry.speaker === 'user'
+  );
 
   if (loadingIndex !== -1) {
     updated[loadingIndex] = {
@@ -302,11 +365,7 @@ function handleSuccessfulTurn(response, context) {
 
   saveSessionProgress({
     answers: {
-      conversation: [
-        ...(context.conversationRef?.current || []),
-        { speaker: 'user', text: response.userTranscript, isLoading: false },
-        ...(response.examinerResponse ? [{ speaker: 'ai', text: response.examinerResponse }] : []),
-      ],
+      conversation: buildPersistedTurnConversation(context, response),
       currentQuestionIndex:
         response.nextQuestionIndex >= 0 ? response.nextQuestionIndex : questionIndexRef.current,
     },
@@ -320,47 +379,42 @@ function handleSuccessfulTurn(response, context) {
   });
 }
 
+function buildPersistedTurnConversation(context, response) {
+  const conversation = replaceLoadingUserTranscript(
+    context.conversationRef?.current || [],
+    response.userTranscript
+  ).filter((entry) => !entry.isLoading);
+  if (!response.examinerResponse) return conversation;
+
+  return [...conversation, { speaker: 'ai', text: response.examinerResponse }];
+}
+
 function queueAiReply(message, response, context) {
-  const { currentPartNumber, pendingTimersRef, setConversation, speakAiMessageFromLoadingState } =
-    context;
+  const speechPromise = Promise.resolve(context.speakAiMessageFromLoadingState(message));
 
-  const responseTimerId = setTimeout(() => {
-    pendingTimersRef.current.delete(responseTimerId);
-    setConversation((prev) => [...prev, { speaker: 'ai', text: '...', isLoading: true }]);
-    speakAiMessageFromLoadingState(message);
+  if (response.isPartComplete) {
+    speechPromise.finally(() => context.setIsPartComplete(true));
+    return;
+  }
 
-    if (response.isPartComplete) {
-      const partCompleteTimerId = setTimeout(() => {
-        pendingTimersRef.current.delete(partCompleteTimerId);
-        context.setIsPartComplete(true);
-      }, 3000);
-      pendingTimersRef.current.add(partCompleteTimerId);
-    } else if (context.timerExpiredRef.current) {
-      const timerForceCompleteId = setTimeout(() => {
-        pendingTimersRef.current.delete(timerForceCompleteId);
-        setConversation((prev) => [
-          ...prev,
-          {
-            speaker: 'ai',
-            text: `That's all the time we have for Part ${currentPartNumber}. Let's move on.`,
-          },
-        ]);
-        const finalTimerId = setTimeout(() => {
-          pendingTimersRef.current.delete(finalTimerId);
-          context.setIsPartComplete(true);
-        }, 1500);
-        pendingTimersRef.current.add(finalTimerId);
-      }, 2000);
-      pendingTimersRef.current.add(timerForceCompleteId);
-    }
-  }, 500);
-  pendingTimersRef.current.add(responseTimerId);
+  if (context.timerExpiredRef.current) {
+    speechPromise.finally(() => finishExpiredPart(context));
+    return;
+  }
+
+  speechPromise.finally(() => context.requestAutoStart?.());
+}
+
+function finishExpiredPart(context) {
+  const message = `That's all the time we have for Part ${context.currentPartNumber}. Let's move on.`;
+  Promise.resolve(context.speakAiMessageFromLoadingState(message)).finally(() =>
+    context.setIsPartComplete(true)
+  );
 }
 
 function handlePartCompleteResponse(response, context) {
   const {
     currentPartNumber,
-    pendingTimersRef,
     saveSessionProgress,
     session,
     setConversation,
@@ -369,14 +423,9 @@ function handlePartCompleteResponse(response, context) {
 
   setConversation((prev) => prev.filter((entry) => !entry.isLoading));
   const farewell = response.message || `That concludes Part ${currentPartNumber}.`;
-  setConversation((prev) => [...prev, { speaker: 'ai', text: '...', isLoading: true }]);
-  speakAiMessageFromLoadingState(farewell);
-
-  const completeTimerId = setTimeout(() => {
-    pendingTimersRef.current.delete(completeTimerId);
-    context.setIsPartComplete(true);
-  }, 2500);
-  pendingTimersRef.current.add(completeTimerId);
+  Promise.resolve(speakAiMessageFromLoadingState(farewell)).finally(() =>
+    context.setIsPartComplete(true)
+  );
 
   saveSessionProgress({
     content_data: {
@@ -387,7 +436,7 @@ function handlePartCompleteResponse(response, context) {
 }
 
 function handleProcessingError(error, context) {
-  const { pendingTimersRef, setConversation, setIsProcessing, speakAiMessageFromLoadingState } =
+  const { requestAutoStart, setConversation, setIsProcessing, speakAiMessageFromLoadingState } =
     context;
 
   console.error('Error processing recording:', error);
@@ -407,7 +456,9 @@ function handleProcessingError(error, context) {
 
   setConversation((prev) => {
     const updated = [...prev];
-    const loadingIndex = updated.findIndex((entry) => entry.isLoading);
+    const loadingIndex = updated.findLastIndex(
+      (entry) => entry.isLoading && entry.speaker === 'user'
+    );
     if (loadingIndex !== -1) {
       updated[loadingIndex] = {
         speaker: 'user',
@@ -419,13 +470,10 @@ function handleProcessingError(error, context) {
     return updated;
   });
 
-  const errorRecoveryTimerId = setTimeout(() => {
-    pendingTimersRef.current.delete(errorRecoveryTimerId);
-    const recoveryMessage =
-      "I'm sorry, I didn't quite catch that. Could you please repeat your answer?";
-    setConversation((prev) => [...prev, { speaker: 'ai', text: '...', isLoading: true }]);
-    speakAiMessageFromLoadingState(recoveryMessage);
+  const recoveryMessage =
+    "I'm sorry, I didn't quite catch that. Could you please repeat your answer?";
+  Promise.resolve(speakAiMessageFromLoadingState(recoveryMessage)).finally(() => {
     setIsProcessing(false);
-  }, 1000);
-  pendingTimersRef.current.add(errorRecoveryTimerId);
+    requestAutoStart?.();
+  });
 }

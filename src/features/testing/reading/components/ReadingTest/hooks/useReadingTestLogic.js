@@ -2,7 +2,10 @@ import { useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useReadingTestDispatch, useReadingTestState } from '../context/ReadingTestContext';
 import { createTestSession, initializeTest } from '@/lib/testInitializer';
-import { getLearningActivityId } from '@/features/testing/shared/activityContext';
+import {
+  getLearningActivityId,
+  getRequestedTestMode,
+} from '@/features/testing/shared/activityContext';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { calculateTestResults } from '../utils'; // Fixed import path
 import { removeFromCache } from '@/lib/apiCache';
@@ -38,7 +41,7 @@ export function useReadingTestLogic(
   const [error, setError] = useState(null);
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(contextUser); // Initialize with context user
-  const [selectedMode, setSelectedMode] = useState('practice');
+  const [selectedMode, setSelectedMode] = useState(() => getRequestedTestMode(location.search));
   const [examEligibility, setExamEligibility] = useState({ eligible: false, reason: '' });
   const [isStarting, setIsStarting] = useState(false);
 

@@ -53,6 +53,7 @@ describe('speakingTestUtils', () => {
     ).toEqual({
       conversation: [{ speaker: 'ai', text: 'Do you work or study?' }],
       currentQuestionIndex: 0,
+      resumePrompt: 'Do you work or study?',
       repaired: true,
     });
   });
@@ -70,6 +71,7 @@ describe('speakingTestUtils', () => {
         { speaker: 'ai', text: 'Do you work or study?' },
       ],
       currentQuestionIndex: 0,
+      resumePrompt: 'Do you work or study?',
       repaired: true,
     });
   });
@@ -89,6 +91,63 @@ describe('speakingTestUtils', () => {
       currentQuestionIndex: 1,
       repaired: true,
     });
+  });
+
+  it('restores the next question when a resumed conversation ends with the learner answer', () => {
+    expect(
+      buildSpeakingResumeState({
+        conversation: [
+          { speaker: 'ai', text: 'Do you work or study?' },
+          { speaker: 'user', text: 'I am currently studying engineering.' },
+        ],
+        currentQuestionIndex: 0,
+        currentPart: { questions: 'Do you work or study?\nWhat do you enjoy about it?' },
+      })
+    ).toEqual({
+      conversation: [
+        { speaker: 'ai', text: 'Do you work or study?' },
+        { speaker: 'user', text: 'I am currently studying engineering.' },
+        { speaker: 'ai', text: 'What do you enjoy about it?' },
+      ],
+      currentQuestionIndex: 1,
+      resumePrompt: 'What do you enjoy about it?',
+      repaired: true,
+    });
+  });
+
+  it('does not repeat the answered question when the saved index already points forward', () => {
+    const state = buildSpeakingResumeState({
+      conversation: [
+        { speaker: 'ai', text: 'Do you work or study?' },
+        { speaker: 'user', text: 'I work as a designer.' },
+      ],
+      currentQuestionIndex: 1,
+      currentPart: { questions: 'Do you work or study?\nWhat do you enjoy about it?' },
+    });
+
+    expect(state.currentQuestionIndex).toBe(1);
+    expect(state.conversation.at(-1)).toEqual({
+      speaker: 'ai',
+      text: 'What do you enjoy about it?',
+    });
+  });
+
+  it('recovers a completed part when the final saved entry answered its last question', () => {
+    const state = buildSpeakingResumeState({
+      conversation: [
+        { speaker: 'ai', text: 'What do you enjoy about your work?' },
+        { speaker: 'user', text: 'I enjoy solving difficult problems.' },
+      ],
+      currentQuestionIndex: 0,
+      currentPart: { questions: 'What do you enjoy about your work?' },
+    });
+
+    expect(state).toMatchObject({
+      currentQuestionIndex: 0,
+      isPartComplete: true,
+      repaired: true,
+    });
+    expect(state.conversation).toHaveLength(2);
   });
 
   it('builds conversation history for the edge function', () => {

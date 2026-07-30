@@ -19,6 +19,7 @@ export default function useSpeakingTestInitialization({
   acousticMetricsRef,
   pendingGreetingRef,
   checkCurrentQuota,
+  requestAutoStart,
   requestFinalEvaluation,
   setAllParts,
   setAllPartsAcousticMetrics,
@@ -38,6 +39,7 @@ export default function useSpeakingTestInitialization({
   setTestStarted,
   setTestTitle,
   setTimeLeft,
+  speakText,
 }) {
   useEffect(() => {
     const resolveInitialSession = async (rawTestId) => {
@@ -171,7 +173,9 @@ export default function useSpeakingTestInitialization({
       setConversation(resumeState.conversation);
       setCurrentQuestionIndex(resumeState.currentQuestionIndex);
       setAllPartsConversation(resumeAllPartsConversation);
-      setIsPartComplete(Boolean(matchingSession.content_data?.isPartComplete));
+      setIsPartComplete(
+        Boolean(matchingSession.content_data?.isPartComplete || resumeState.isPartComplete)
+      );
       setIsPart2Prep(isPart2Prep);
       setPrepTimeLeft(
         typeof matchingSession.content_data?.prepTimeLeft === 'number'
@@ -194,18 +198,13 @@ export default function useSpeakingTestInitialization({
       setTestStarted(true);
       setIsLoading(false);
 
-      if (resumeState.repaired) {
-        TestSession.update(matchingSession.id, {
-          answers: {
-            ...matchingSession.answers,
-            conversation: resumeState.conversation,
-            currentQuestionIndex: resumeState.currentQuestionIndex,
-          },
-          updated_at: new Date().toISOString(),
-        }).catch((error) => {
-          console.warn('Failed to repair resumed speaking session:', error);
-        });
-      }
+      repairAndResumeSpeakingSession({
+        matchingSession,
+        requestAutoStart,
+        resumeState,
+        shouldAutoStart: !isPart2Prep && !resumeState.isPartComplete,
+        speakText,
+      });
 
       if (resumeState.conversation.filter((entry) => entry.speaker === 'user').length === 0) {
         checkCurrentQuota();
@@ -284,4 +283,33 @@ export default function useSpeakingTestInitialization({
     initializeTest();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testId, authLoading, authUser?.id]);
+}
+
+function repairAndResumeSpeakingSession({
+  matchingSession,
+  requestAutoStart,
+  resumeState,
+  shouldAutoStart,
+  speakText,
+}) {
+  const promptPromise = resumeState.resumePrompt
+    ? speakText(resumeState.resumePrompt)
+    : Promise.resolve();
+  if (shouldAutoStart) promptPromise.finally(() => requestAutoStart?.());
+  if (!resumeState.repaired) return;
+
+  TestSession.update(matchingSession.id, {
+    answers: {
+      ...matchingSession.answers,
+      conversation: resumeState.conversation,
+      currentQuestionIndex: resumeState.currentQuestionIndex,
+    },
+    content_data: {
+      ...matchingSession.content_data,
+      ...(resumeState.isPartComplete ? { isPartComplete: true } : {}),
+    },
+    updated_at: new Date().toISOString(),
+  }).catch((error) => {
+    console.warn('Failed to repair resumed speaking session:', error);
+  });
 }

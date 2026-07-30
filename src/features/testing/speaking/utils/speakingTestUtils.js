@@ -13,6 +13,12 @@ const DEV_FOLLOW_UP_RESPONSES = [
   "Excellent response. Let's continue with the next question.",
 ];
 
+const EXAMINER_ACKNOWLEDGEMENTS = {
+  1: ['Thank you.', 'I see.', 'All right.', 'Thank you for that.'],
+  2: ['Thank you for your response.'],
+  3: ['Thank you.', 'That is an interesting point.', 'I see.', 'Thank you for explaining that.'],
+};
+
 export const PART_TWO_PREP_MESSAGE =
   "Now it's time for Part 2, the Individual Long Turn. I'm going to give you a topic and I'd like you to talk about it for 1 to 2 minutes. Before you talk, you'll have one minute to think about what you're going to say. Here's your topic card.";
 
@@ -46,61 +52,157 @@ export function buildSpeakingResumeState({
   currentPart,
   isPart2Prep = false,
 }) {
-  const savedConversation = Array.isArray(conversation)
-    ? conversation.filter(
-        (entry) =>
-          entry &&
-          !entry.isLoading &&
-          (entry.speaker === 'ai' || entry.speaker === 'user') &&
-          typeof entry.text === 'string' &&
-          entry.text.trim()
-      )
-    : [];
+  const savedConversation = normalizeSavedConversation(conversation);
   const questionLines = getQuestionLines(currentPart?.questions).map(formatIeltsQuestion);
-  const parsedQuestionIndex = Number(currentQuestionIndex);
-  const hasValidQuestionIndex = Number.isInteger(parsedQuestionIndex) && parsedQuestionIndex >= 0;
-  const normalizedQuestionIndex = hasValidQuestionIndex
-    ? Math.min(parsedQuestionIndex, Math.max(questionLines.length - 1, 0))
-    : 0;
-  const questionIndexWasNormalized =
-    !hasValidQuestionIndex || normalizedQuestionIndex !== parsedQuestionIndex;
+  const indexState = normalizeResumeQuestionIndex(currentQuestionIndex, questionLines.length);
 
   if (isPart2Prep) {
-    const prepConversation =
-      savedConversation.length > 0
-        ? savedConversation
-        : [{ speaker: 'ai', text: PART_TWO_PREP_MESSAGE }];
-
-    return {
-      conversation: prepConversation,
-      currentQuestionIndex: 0,
-      repaired: prepConversation.length !== savedConversation.length || questionIndexWasNormalized,
-    };
+    return buildPartTwoPrepResumeState(savedConversation, indexState.wasNormalized);
   }
 
+  const repair = buildQuestionResumeRepair({
+    savedConversation,
+    questionLines,
+    normalizedQuestionIndex: indexState.value,
+  });
+
+  return {
+    conversation: repair.conversation,
+    currentQuestionIndex: repair.questionIndex,
+    ...(repair.resumePrompt ? { resumePrompt: repair.resumePrompt } : {}),
+    ...(repair.isPartComplete ? { isPartComplete: true } : {}),
+    repaired:
+      repair.wasChanged ||
+      indexState.wasNormalized ||
+      savedConversation.length !== (Array.isArray(conversation) ? conversation.length : 0),
+  };
+}
+
+function normalizeSavedConversation(conversation) {
+  if (!Array.isArray(conversation)) return [];
+
+  return conversation.filter(
+    (entry) =>
+      entry &&
+      !entry.isLoading &&
+      (entry.speaker === 'ai' || entry.speaker === 'user') &&
+      typeof entry.text === 'string' &&
+      entry.text.trim()
+  );
+}
+
+function normalizeResumeQuestionIndex(currentQuestionIndex, questionCount) {
+  const parsed = Number(currentQuestionIndex);
+  const isValid = Number.isInteger(parsed) && parsed >= 0;
+  const value = isValid ? Math.min(parsed, Math.max(questionCount - 1, 0)) : 0;
+  return { value, wasNormalized: !isValid || value !== parsed };
+}
+
+function buildPartTwoPrepResumeState(savedConversation, questionIndexWasNormalized) {
+  const conversation =
+    savedConversation.length > 0
+      ? savedConversation
+      : [{ speaker: 'ai', text: PART_TWO_PREP_MESSAGE }];
+
+  return {
+    conversation,
+    currentQuestionIndex: 0,
+    repaired: conversation.length !== savedConversation.length || questionIndexWasNormalized,
+  };
+}
+
+function buildQuestionResumeRepair({ savedConversation, questionLines, normalizedQuestionIndex }) {
+  const questionState = inferResumeQuestionState({
+    savedConversation,
+    questionLines,
+    normalizedQuestionIndex,
+  });
   const currentQuestion =
-    questionLines[normalizedQuestionIndex] ||
+    questionLines[questionState.questionIndex] ||
     questionLines[0] ||
     "Let's continue with your speaking test.";
-  const alreadyContainsCurrentQuestion = savedConversation.some(
-    (entry) => entry.speaker === 'ai' && formatIeltsQuestion(entry.text).trim() === currentQuestion
-  );
-  const hasUserResponse = savedConversation.some((entry) => entry.speaker === 'user');
-  const shouldRestorePrompt =
-    savedConversation.length === 0 ||
-    ((questionIndexWasNormalized || !hasUserResponse) && !alreadyContainsCurrentQuestion);
-  const restoredConversation = shouldRestorePrompt
+  const alreadyContainsCurrentQuestion = hasExaminerQuestion(savedConversation, currentQuestion);
+  const resumePrompt = shouldRestoreResumePrompt({
+    savedConversation,
+    currentQuestion,
+    alreadyContainsCurrentQuestion,
+    questionState,
+  });
+  const conversation = resumePrompt
     ? [...savedConversation, { speaker: 'ai', text: currentQuestion }]
     : savedConversation;
 
   return {
-    conversation: restoredConversation,
-    currentQuestionIndex: normalizedQuestionIndex,
-    repaired:
-      restoredConversation.length !== savedConversation.length ||
-      questionIndexWasNormalized ||
-      savedConversation.length !== (Array.isArray(conversation) ? conversation.length : 0),
+    conversation,
+    questionIndex: questionState.questionIndex,
+    resumePrompt,
+    isPartComplete: questionState.isPartComplete,
+    wasChanged:
+      conversation.length !== savedConversation.length ||
+      questionState.questionIndex !== normalizedQuestionIndex ||
+      questionState.isPartComplete,
   };
+}
+
+function inferResumeQuestionState({ savedConversation, questionLines, normalizedQuestionIndex }) {
+  const answerNeedsFollowUp = savedConversation.at(-1)?.speaker === 'user';
+  const lastAskedQuestionIndex = findLastAskedQuestionIndex(savedConversation, questionLines);
+  const canAdvanceFromAnswer = answerNeedsFollowUp && lastAskedQuestionIndex >= 0;
+  const inferredQuestionIndex = canAdvanceFromAnswer
+    ? lastAskedQuestionIndex + 1
+    : normalizedQuestionIndex;
+  const isPartComplete =
+    answerNeedsFollowUp &&
+    questionLines.length > 0 &&
+    inferredQuestionIndex >= questionLines.length;
+  const questionIndex = isPartComplete
+    ? normalizedQuestionIndex
+    : Math.min(
+        Math.max(normalizedQuestionIndex, inferredQuestionIndex),
+        Math.max(questionLines.length - 1, 0)
+      );
+
+  return { answerNeedsFollowUp, isPartComplete, questionIndex };
+}
+
+function shouldRestoreResumePrompt({
+  savedConversation,
+  currentQuestion,
+  alreadyContainsCurrentQuestion,
+  questionState,
+}) {
+  if (questionState.isPartComplete || alreadyContainsCurrentQuestion) return null;
+
+  const needsPrompt =
+    savedConversation.length === 0 ||
+    questionState.answerNeedsFollowUp ||
+    !hasUserResponse(savedConversation);
+  return needsPrompt ? currentQuestion : null;
+}
+
+function hasExaminerQuestion(conversation, question) {
+  return conversation.some(
+    (entry) => entry.speaker === 'ai' && formatIeltsQuestion(entry.text).trim() === question
+  );
+}
+
+function hasUserResponse(conversation) {
+  return conversation.some((entry) => entry.speaker === 'user');
+}
+
+function findLastAskedQuestionIndex(conversation, questionLines) {
+  for (let entryIndex = conversation.length - 1; entryIndex >= 0; entryIndex -= 1) {
+    const entry = conversation[entryIndex];
+    if (entry?.speaker !== 'ai') continue;
+
+    const examinerText = formatIeltsQuestion(entry.text).trim();
+    const questionIndex = questionLines.findLastIndex(
+      (question) => examinerText === question || examinerText.endsWith(question)
+    );
+    if (questionIndex >= 0) return questionIndex;
+  }
+
+  return -1;
 }
 
 export function buildConversationHistory(conversation = []) {
@@ -159,6 +261,27 @@ export function buildCueCardTopic(part) {
     title: topicText,
     bulletPoints: bulletPoints.length > 0 ? bulletPoints : FALLBACK_CUE_CARD_POINTS,
   };
+}
+
+export function buildExpectedExaminerResponse({
+  currentPartNumber,
+  currentQuestionIndex,
+  nextQuestion,
+  isLastQuestion,
+}) {
+  if (isLastQuestion) {
+    const farewells = {
+      1: 'Thank you. That concludes Part 1 of the speaking test.',
+      2: 'Thank you for your response. That brings us to the end of Part 2.',
+      3: 'Thank you very much. That concludes the speaking test.',
+    };
+    return farewells[currentPartNumber] || `Thank you. That concludes Part ${currentPartNumber}.`;
+  }
+
+  const options = EXAMINER_ACKNOWLEDGEMENTS[currentPartNumber] || EXAMINER_ACKNOWLEDGEMENTS[1];
+  const acknowledgement = options[Math.abs(currentQuestionIndex) % options.length];
+  const cleanQuestion = formatIeltsQuestion(nextQuestion || '').trim();
+  return cleanQuestion ? `${acknowledgement} ${cleanQuestion}` : acknowledgement;
 }
 
 function getDevFollowUp({ isLastQuestion, nextQuestion, currentQuestionIndex, currentPartNumber }) {

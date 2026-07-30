@@ -24,10 +24,32 @@ export const getInitials = (name) => {
 export const endpointColors = {
   generateDetailedFeedback: '#8b5cf6',
   generateStudyRecommendations: '#06b6d4',
-  generateAdaptiveLearningPath: '#22c55e',
+  generateAdaptiveLearningPath: '#3b82f6',
   processSpeakingSession: '#10b981',
   transcribeAudio: '#f59e0b',
+  synthesizeSpeech: '#6366f1',
+  evaluateSpeakingTest: '#ec4899',
   SpeakingSession: '#10b981',
+};
+
+export const formatEndpointName = (endpoint) => {
+  if (!endpoint) return '';
+  const mapping = {
+    generateDetailedFeedback: 'Detailed Feedback',
+    generateStudyRecommendations: 'Study Recommendations',
+    generateAdaptiveLearningPath: 'Adaptive Learning Path',
+    processSpeakingSession: 'Speaking Session',
+    transcribeAudio: 'Transcribe Audio',
+    synthesizeSpeech: 'Synthesize Speech',
+    evaluateSpeakingTest: 'Evaluate Speaking Test',
+    SpeakingSession: 'Speaking Session',
+  };
+  if (mapping[endpoint]) return mapping[endpoint];
+  return endpoint
+    .replace(/^generate/, '')
+    .replace(/^process/, '')
+    .replace(/([A-Z])/g, ' $1')
+    .trim();
 };
 
 export const getModelForEndpoint = (endpoint) => {

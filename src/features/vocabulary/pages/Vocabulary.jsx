@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState, useEffect, useMemo } from 'react';
+import React, { Suspense, lazy, useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, BookOpen, MoreVertical, Trash2, AlertCircle, Languages } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
@@ -28,6 +28,8 @@ import {
   SUPPORTED_LANGUAGES,
   saveLanguagePreference,
 } from '@/features/vocabulary/services/translateService';
+import { generateAdaptiveLearningPath } from '@/utils/api';
+import { completeVocabularyLearningActivity } from '@/features/vocabulary/services/vocabularyRetention';
 import {
   useVocabularyMutations,
   useReviewSession,
@@ -274,6 +276,15 @@ const PersonalWordBank = ({
 
 export default function Vocabulary() {
   const { user } = useAuth();
+  const learningPathContext = useMemo(() => {
+    const params = new URLSearchParams(typeof window === 'undefined' ? '' : window.location.search);
+    return {
+      activityId: params.get('activityId'),
+      reviewRequested: params.get('mode') === 'review',
+    };
+  }, []);
+  const reviewSessionSize = useRef(0);
+  const autoStartedReview = useRef(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [alertConfig, setAlertConfig] = useState({ open: false, title: '', message: '' });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -387,6 +398,24 @@ export default function Vocabulary() {
     setAllVocabulary,
     user,
     onReviewRecorded: () => setRetentionRefreshKey((key) => key + 1),
+    onSessionComplete: async () => {
+      if (learningPathContext.activityId) {
+        await completeVocabularyLearningActivity(
+          learningPathContext.activityId,
+          reviewSessionSize.current
+        ).catch((error) =>
+          console.warn('Vocabulary review completed; path activity update was deferred:', error)
+        );
+      }
+      if (['pro', 'premium'].includes(String(user?.subscription_tier || '').toLowerCase())) {
+        await generateAdaptiveLearningPath({
+          trigger: 'vocabulary_completed',
+          module: 'vocabulary',
+        }).catch((error) =>
+          console.warn('Vocabulary evidence was saved; Learning Path refresh was deferred:', error)
+        );
+      }
+    },
   });
 
   const startReviewSession = () => {
@@ -398,8 +427,22 @@ export default function Vocabulary() {
       });
       return;
     }
+    reviewSessionSize.current = dueForReview.length;
     hookStartReviewSession();
   };
+
+  useEffect(() => {
+    if (
+      learningPathContext.reviewRequested &&
+      !isLoading &&
+      dueForReview.length > 0 &&
+      !autoStartedReview.current
+    ) {
+      autoStartedReview.current = true;
+      reviewSessionSize.current = dueForReview.length;
+      hookStartReviewSession();
+    }
+  }, [dueForReview.length, hookStartReviewSession, isLoading, learningPathContext.reviewRequested]);
 
   const handleStartGame = (startFn, title, minWords) => {
     const result = startFn();

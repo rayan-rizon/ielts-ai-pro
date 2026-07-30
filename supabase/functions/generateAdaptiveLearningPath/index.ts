@@ -12,6 +12,7 @@ import {
   normalizeStudyAvailability,
   scheduleRecurringRepair,
   summarizeEvidence,
+  summarizeVocabularyEvidence,
 } from '../_shared/learningPathV2.ts';
 import {
   checkRateLimit,
@@ -34,6 +35,7 @@ const ALLOWED_TRIGGERS = new Set([
   'first_plan',
   'test_completed',
   'grammar_completed',
+  'vocabulary_completed',
   'goal_changed',
   'result_recovery',
   'manual_refresh',
@@ -48,6 +50,9 @@ const triggerMessage = (trigger: string, module?: string) => {
   }
   if (trigger === 'grammar_completed') {
     return 'A completed Grammar Lab activity changed the evidence or transfer outcome used by your plan.';
+  }
+  if (trigger === 'vocabulary_completed') {
+    return 'A completed vocabulary review changed the due-word and retention evidence used by your plan.';
   }
   if (trigger === 'result_recovery') {
     return 'A result-specific recovery request was fitted into the broader exam roadmap.';
@@ -109,6 +114,25 @@ function collectActivities(schedule: Record<string, any[]>) {
   );
 }
 
+function applyAiRanking(schedule: Record<string, any[]>, rankedActivityKeys: string[]) {
+  const rankByKey = new Map(rankedActivityKeys.map((key, index) => [key, index + 1]));
+  return Object.fromEntries(
+    Object.entries(schedule).map(([day, tasks]) => [
+      day,
+      (Array.isArray(tasks) ? tasks : [])
+        .map((task: any) => ({
+          ...task,
+          ai_rank: rankByKey.get(task.activity_key) || null,
+        }))
+        .sort(
+          (first: any, second: any) =>
+            Number(first.is_optional) - Number(second.is_optional) ||
+            (rankByKey.get(first.activity_key) || 999) - (rankByKey.get(second.activity_key) || 999)
+        ),
+    ])
+  );
+}
+
 function mergeRecoveryTasks(schedule: Record<string, any[]>, previousPath: any, availability: any) {
   if (!previousPath?.weekly_schedule && !previousPath?.recovery_backlog) return schedule;
   const merged = Object.fromEntries(
@@ -161,6 +185,7 @@ async function buildCoachSummary({
   evidence,
   readiness,
   checkpoint,
+  candidates,
 }: any) {
   const metadata = {
     trigger,
@@ -177,6 +202,7 @@ async function buildCoachSummary({
     explanation: readiness.overall.available
       ? `Your current practice evidence spans Band ${readiness.overall.range[0]}–${readiness.overall.range[1]}. This is an observed range, not a prediction.`
       : readiness.overall.disclaimer,
+    rankedActivityKeys: (candidates || []).map((candidate: any) => candidate.activity_key),
   };
 
   if (!geminiApiKey) {
@@ -185,7 +211,14 @@ async function buildCoachSummary({
       deterministicFallback: true,
       fallbackReason: 'provider_not_configured',
     });
-    return { summary: fallback, deterministicFallback: true };
+    return {
+      summary: {
+        headline: fallback.headline,
+        explanation: fallback.explanation,
+      },
+      rankedActivityKeys: fallback.rankedActivityKeys,
+      deterministicFallback: true,
+    };
   }
 
   const reservation = await reserveDatabaseQuota(
@@ -202,13 +235,21 @@ async function buildCoachSummary({
       deterministicFallback: true,
       fallbackReason: 'quota_unavailable',
     });
-    return { summary: fallback, deterministicFallback: true };
+    return {
+      summary: {
+        headline: fallback.headline,
+        explanation: fallback.explanation,
+      },
+      rankedActivityKeys: fallback.rankedActivityKeys,
+      deterministicFallback: true,
+    };
   }
 
   try {
-    const prompt = `You are an IELTS coach. Write a concise, conservative plan explanation from aggregate evidence only.
+    const prompt = `You are an IELTS coach ranking a safe, pre-validated study plan.
+Use aggregate evidence only. Never invent activities, keys, evidence, routes, scores, or capacity.
 Never predict improvement, promise a score, or call level-check/needs-more-results skills weaknesses.
-Return JSON only: {"headline":"max 18 words","explanation":"max 65 words"}.
+Return JSON only: {"headline":"max 18 words","explanation":"max 65 words","rankedActivityKeys":["exact provided keys, most useful first"]}.
 
 <aggregate_evidence>
 ${JSON.stringify({
@@ -221,6 +262,15 @@ ${JSON.stringify({
   missingDiagnostics: readiness.missing_diagnostics,
   observedOverallRange: readiness.overall.range,
   nextCheckpoint: checkpoint,
+  candidates: (candidates || []).map((candidate: any) => ({
+    activityKey: candidate.activity_key,
+    module: candidate.module,
+    activityType: candidate.activity_type,
+    stage: candidate.stage_key,
+    priority: candidate.priority,
+    evidenceClass: candidate.evidence?.class || null,
+    scheduledDate: candidate.scheduled_date,
+  })),
 })}
 </aggregate_evidence>`;
 
@@ -233,7 +283,7 @@ ${JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.25,
-            maxOutputTokens: 400,
+            maxOutputTokens: 300,
             responseMimeType: 'application/json',
           },
         }),
@@ -251,6 +301,19 @@ ${JSON.stringify({
     if (typeof parsed.headline !== 'string' || typeof parsed.explanation !== 'string') {
       throw new Error('Malformed coach summary');
     }
+    const allowedKeys = new Set((candidates || []).map((candidate: any) => candidate.activity_key));
+    const rankedActivityKeys = Array.isArray(parsed.rankedActivityKeys)
+      ? parsed.rankedActivityKeys.filter(
+          (key: unknown, index: number, values: unknown[]) =>
+            typeof key === 'string' && allowedKeys.has(key) && values.indexOf(key) === index
+        )
+      : [];
+    const completeRanking = [
+      ...rankedActivityKeys,
+      ...(candidates || [])
+        .map((candidate: any) => candidate.activity_key)
+        .filter((key: string) => !rankedActivityKeys.includes(key)),
+    ];
 
     await finalizeApiUsage(supabase, reservation.reservationId, tokensUsed, false, {
       ...metadata,
@@ -264,6 +327,7 @@ ${JSON.stringify({
         headline: parsed.headline.trim().slice(0, 180),
         explanation: parsed.explanation.trim().slice(0, 650),
       },
+      rankedActivityKeys: completeRanking,
       deterministicFallback: false,
     };
   } catch (error: any) {
@@ -279,7 +343,14 @@ ${JSON.stringify({
       },
       'failed'
     );
-    return { summary: fallback, deterministicFallback: true };
+    return {
+      summary: {
+        headline: fallback.headline,
+        explanation: fallback.explanation,
+      },
+      rankedActivityKeys: fallback.rankedActivityKeys,
+      deterministicFallback: true,
+    };
   }
 }
 
@@ -337,41 +408,59 @@ serve(async (req: Request) => {
     }
 
     const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
-    const [{ data: sessions }, { data: skills }, { data: grammarAttempts }, { data: latestRows }] =
-      await Promise.all([
-        supabase
-          .from('test_sessions')
-          .select(
-            'id, test_type, score, completed_at, created_at, is_completed, content_data, evaluation_status, evaluation_version'
-          )
-          .eq('user_id', profile.id)
-          .eq('is_completed', true)
-          .gte('completed_at', cutoff)
-          .order('completed_at', { ascending: false })
-          .limit(120),
-        supabase
-          .from('skill_proficiency')
-          .select(
-            'skill_code, module, mastery_probability, confidence_level, practice_count, correct_count, last_practiced_at, next_review_at, evidence_version'
-          )
-          .eq('user_id', profile.id)
-          .limit(120),
-        supabase
-          .from('grammar_attempts')
-          .select(
-            'id, mode, target_skills, completion_state, total_questions, correct_count, transfer_evaluation, completed_at, updated_at'
-          )
-          .eq('user_id', profile.id)
-          .eq('completion_state', 'completed')
-          .order('completed_at', { ascending: false })
-          .limit(80),
-        supabase
-          .from('learning_paths')
-          .select('id, path_data, created_at')
-          .eq('user_id', profile.id)
-          .order('created_at', { ascending: false })
-          .limit(1),
-      ]);
+    const [
+      { data: sessions },
+      { data: skills },
+      { data: grammarAttempts },
+      { data: vocabularyItems },
+      { data: vocabularyReviews },
+      { data: latestRows },
+    ] = await Promise.all([
+      supabase
+        .from('test_sessions')
+        .select(
+          'id, test_type, test_mode, score, completed_at, created_at, is_completed, content_data, evaluation_status, evaluation_version'
+        )
+        .eq('user_id', profile.id)
+        .eq('is_completed', true)
+        .gte('completed_at', cutoff)
+        .order('completed_at', { ascending: false })
+        .limit(120),
+      supabase
+        .from('skill_proficiency')
+        .select(
+          'skill_code, module, mastery_probability, confidence_level, practice_count, correct_count, last_practiced_at, next_review_at, evidence_version'
+        )
+        .eq('user_id', profile.id)
+        .limit(120),
+      supabase
+        .from('grammar_attempts')
+        .select(
+          'id, mode, target_skills, completion_state, total_questions, correct_count, transfer_evaluation, completed_at, updated_at'
+        )
+        .eq('user_id', profile.id)
+        .eq('completion_state', 'completed')
+        .order('completed_at', { ascending: false })
+        .limit(80),
+      supabase
+        .from('vocabulary_items')
+        .select('id, next_review_date')
+        .eq('user_id', profile.id)
+        .limit(500),
+      supabase
+        .from('vocabulary_review_events')
+        .select('quality, reviewed_at')
+        .eq('user_id', profile.id)
+        .gte('reviewed_at', cutoff)
+        .order('reviewed_at', { ascending: false })
+        .limit(500),
+      supabase
+        .from('learning_paths')
+        .select('id, path_data, created_at')
+        .eq('user_id', profile.id)
+        .order('created_at', { ascending: false })
+        .limit(1),
+    ]);
 
     const timezone = String(profile.study_availability?.timezone || body?.timezone || 'UTC');
     const availability = normalizeStudyAvailability(
@@ -392,8 +481,10 @@ serve(async (req: Request) => {
         id: session.id,
         module: session.test_type,
         score: session.score,
+        test_mode: session.test_mode || 'practice',
         completed_at: session.completed_at,
         type_stats: session.content_data?.typeStats || null,
+        time_metrics: session.content_data?.timeMetrics || null,
       })),
       skills: currentSkills.map((skill: any) => ({
         code: skill.skill_code,
@@ -412,6 +503,7 @@ serve(async (req: Request) => {
         transfer_outcome: attempt.transfer_evaluation?.outcome || null,
         completed_at: attempt.completed_at || attempt.updated_at,
       })),
+      vocabulary: summarizeVocabularyEvidence(vocabularyItems || [], vocabularyReviews || []),
     };
     const fingerprint = await fingerprintLearningPathInputs(fingerprintInput);
     const latest = latestRows?.[0];
@@ -435,6 +527,10 @@ serve(async (req: Request) => {
 
     const evidence = summarizeEvidence(currentSkills);
     const readiness = aggregateReadiness(sessions || []);
+    const vocabularyEvidence = summarizeVocabularyEvidence(
+      vocabularyItems || [],
+      vocabularyReviews || []
+    );
     const recurringMistakes = findRecurringObjectiveMistakes(sessions || []);
     const localToday = localIsoDate(availability.timezone);
     const planningTestDate =
@@ -446,6 +542,7 @@ serve(async (req: Request) => {
       availability,
       evidence,
       readiness,
+      vocabularyEvidence,
       testDate: planningTestDate,
       now: localToday,
     });
@@ -466,7 +563,9 @@ serve(async (req: Request) => {
       study_availability: availability,
       weekly_capacity_minutes: scheduleData.weekly_capacity_minutes,
       weekly_planned_minutes: scheduleData.weekly_planned_minutes,
+      availability_source: profile.study_availability ? 'confirmed' : 'default',
     };
+    const candidateActivities = collectActivities(scheduleData.schedule).slice(0, 18);
     const coach = await buildCoachSummary({
       geminiApiKey: Deno.env.get('GEMINI_API_KEY'),
       supabase,
@@ -477,7 +576,9 @@ serve(async (req: Request) => {
       evidence,
       readiness,
       checkpoint,
+      candidates: candidateActivities,
     });
+    scheduleData.schedule = applyAiRanking(scheduleData.schedule, coach.rankedActivityKeys || []);
 
     const effectiveTrigger = latest ? trigger : 'first_plan';
     const learningPath = {
@@ -499,6 +600,27 @@ serve(async (req: Request) => {
           scheduleData.weekly_planned_minutes > 0
             ? scheduleData.grammar_minutes / scheduleData.weekly_planned_minutes
             : 0,
+      },
+      vocabulary_allocation: {
+        minutes: scheduleData.vocabulary_minutes,
+        cap_minutes: scheduleData.vocabulary_cap_minutes,
+        share:
+          scheduleData.weekly_planned_minutes > 0
+            ? scheduleData.vocabulary_minutes / scheduleData.weekly_planned_minutes
+            : 0,
+      },
+      support_evidence: {
+        grammar: {
+          recent_attempt_count: (grammarAttempts || []).length,
+          due_review_count: evidence.due_reviews.filter(
+            (signal: any) => signal.module === 'grammar'
+          ).length,
+        },
+        vocabulary: vocabularyEvidence,
+      },
+      ai_ranking: {
+        activity_keys: coach.rankedActivityKeys || [],
+        constrained_to_candidates: true,
       },
       grammar_evidence: {
         recent_attempts: (grammarAttempts || []).map((attempt: any) => ({

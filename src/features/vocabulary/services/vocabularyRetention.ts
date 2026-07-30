@@ -109,3 +109,28 @@ export async function recordVocabularyReviewEvent({
 
   if (error) throw error;
 }
+
+export async function completeVocabularyLearningActivity(
+  activityId: string,
+  reviewedCount: number
+) {
+  if (!activityId) return;
+  const completedAt = new Date().toISOString();
+  const { error } = await supabase
+    .from('learning_path_activities')
+    .update({
+      is_completed: true,
+      completed_at: completedAt,
+      completion_source: 'vocabulary_review',
+      outcome_score: reviewedCount,
+      outcome_data: {
+        verified: true,
+        reviewed_count: reviewedCount,
+        completed_at: completedAt,
+      },
+    })
+    .eq('id', activityId)
+    .eq('completion_policy', 'verified');
+
+  if (error) throw error;
+}

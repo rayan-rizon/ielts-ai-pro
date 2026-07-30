@@ -6,6 +6,13 @@ const migration = readFileSync(
   resolve(process.cwd(), 'supabase/migrations/20260722170000_learning_path_v2.sql'),
   'utf8'
 ).toLowerCase();
+const verifiedActivityMigration = readFileSync(
+  resolve(
+    process.cwd(),
+    'supabase/migrations/20260730150247_learning_path_verified_activity_contract.sql'
+  ),
+  'utf8'
+).toLowerCase();
 
 describe('Learning Path migration contract', () => {
   it('adds validated versioned JSON availability while preserving the weekly field', () => {
@@ -51,5 +58,18 @@ describe('Learning Path migration contract', () => {
   it('only exposes measured weaknesses through the legacy weak-skills RPC', () => {
     expect(migration).toContain('proficiency.practice_count >= 5');
     expect(migration).toContain('proficiency.confidence_level >= 0.40');
+  });
+
+  it('carries only verified evidence into regenerated plan activities', () => {
+    expect(verifiedActivityMigration).toContain('completion_policy');
+    expect(verifiedActivityMigration).toContain('evidence_key');
+    expect(verifiedActivityMigration).toContain('left join lateral');
+    expect(verifiedActivityMigration).toContain(
+      "previous.activity_key = item.activity->>'activity_key'"
+    );
+    expect(verifiedActivityMigration).toContain(
+      "'test_session', 'grammar_attempt', 'transfer', 'vocabulary_review'"
+    );
+    expect(verifiedActivityMigration).not.toContain("previous.completion_source in ('manual'");
   });
 });

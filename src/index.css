@@ -12,6 +12,110 @@
       sans-serif;
     font-weight: 700;
   }
+
+  @keyframes learning-path-connector-flow {
+    0% {
+      background-position: 200% 0;
+    }
+
+    100% {
+      background-position: -100% 0;
+    }
+  }
+
+  @keyframes learning-path-connector-dot {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+
+    16%,
+    84% {
+      opacity: 1;
+    }
+
+    100% {
+      transform: translateX(calc(56px - 100%));
+      opacity: 0;
+    }
+  }
+
+  .learning-path-connector-signal {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(99, 102, 241, 0.1) 28%,
+      rgba(56, 189, 248, 0.95) 50%,
+      rgba(99, 102, 241, 0.1) 72%,
+      transparent 100%
+    );
+    background-size: 220% 100%;
+    animation: learning-path-connector-flow 2.5s linear infinite;
+  }
+
+  .learning-path-connector-dot {
+    left: 0;
+    top: 50%;
+    margin-top: -0.25rem;
+    animation: learning-path-connector-dot 2.5s ease-in-out infinite;
+  }
+
+  @media (max-width: 639px) {
+    @keyframes learning-path-connector-flow-vertical {
+      0% {
+        background-position: 0 200%;
+      }
+
+      100% {
+        background-position: 0 -100%;
+      }
+    }
+
+    @keyframes learning-path-connector-dot-vertical {
+      0% {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+
+      16%,
+      84% {
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(calc(20px - 100%));
+        opacity: 0;
+      }
+    }
+
+    .learning-path-connector-signal {
+      background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(99, 102, 241, 0.1) 28%,
+        rgba(56, 189, 248, 0.95) 50%,
+        rgba(99, 102, 241, 0.1) 72%,
+        transparent 100%
+      );
+      background-size: 100% 220%;
+      animation-name: learning-path-connector-flow-vertical;
+    }
+
+    .learning-path-connector-dot {
+      left: 50%;
+      top: 0;
+      margin-left: -0.25rem;
+      margin-top: 0;
+      animation-name: learning-path-connector-dot-vertical;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .learning-path-connector-signal,
+    .learning-path-connector-dot {
+      animation: none;
+    }
+  }
 }
 
 @layer base {

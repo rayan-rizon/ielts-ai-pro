@@ -14,6 +14,99 @@ function compactTranscript(value: unknown): string {
   return typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '';
 }
 
+function transcriptTokens(value: string): string[] {
+  return compactTranscript(value)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}'\s]/gu, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function transcriptSimilarity(left: string, right: string): number {
+  const leftTokens = new Set(transcriptTokens(left));
+  const rightTokens = new Set(transcriptTokens(right));
+  if (leftTokens.size === 0 || rightTokens.size === 0) return 0;
+
+  let shared = 0;
+  leftTokens.forEach((token) => {
+    if (rightTokens.has(token)) shared += 1;
+  });
+
+  return (2 * shared) / (leftTokens.size + rightTokens.size);
+}
+
+export function buildBrowserTranscriptHint(value: unknown): {
+  transcript: string;
+  confidence: number;
+} | null {
+  if (!Array.isArray(value)) return null;
+
+  const reliableSegments = value
+    .map((entry: any) => ({
+      transcript: compactTranscript(entry?.transcript),
+      confidence: Number(entry?.confidence),
+    }))
+    .filter(
+      (entry) => entry.transcript && Number.isFinite(entry.confidence) && entry.confidence >= 0.65
+    );
+  if (reliableSegments.length === 0) return null;
+
+  return {
+    transcript: reliableSegments.map((entry) => entry.transcript).join(' '),
+    confidence:
+      reliableSegments.reduce((total, entry) => total + entry.confidence, 0) /
+      reliableSegments.length,
+  };
+}
+
+export function getTranscriptVerificationReason(params: {
+  cloudflareTranscript: string;
+  browserHint?: { transcript: string; confidence: number } | null;
+  audioDurationMs?: number | null;
+}): 'unexpectedly-short' | 'high-confidence-disagreement' | null {
+  const cloudflareWordCount = transcriptTokens(params.cloudflareTranscript).length;
+  const audioDurationMs = Math.max(0, Number(params.audioDurationMs) || 0);
+
+  if (audioDurationMs >= 6500 && cloudflareWordCount <= 2) return 'unexpectedly-short';
+
+  const browserHint = params.browserHint;
+  if (
+    browserHint &&
+    transcriptTokens(browserHint.transcript).length >= 4 &&
+    transcriptSimilarity(params.cloudflareTranscript, browserHint.transcript) < 0.22
+  ) {
+    return 'high-confidence-disagreement';
+  }
+
+  return null;
+}
+
+export function chooseVerifiedTranscript(params: {
+  cloudflareTranscript: string;
+  geminiTranscript: string;
+  browserHint?: { transcript: string; confidence: number } | null;
+  reason: 'unexpectedly-short' | 'high-confidence-disagreement';
+}): 'cloudflare' | 'gemini-fallback' {
+  const cloudflareWords = transcriptTokens(params.cloudflareTranscript).length;
+  const geminiWords = transcriptTokens(params.geminiTranscript).length;
+
+  if (params.reason === 'unexpectedly-short') {
+    return geminiWords > cloudflareWords ? 'gemini-fallback' : 'cloudflare';
+  }
+
+  if (!params.browserHint) return 'cloudflare';
+  const cloudflareSimilarity = transcriptSimilarity(
+    params.cloudflareTranscript,
+    params.browserHint.transcript
+  );
+  const geminiSimilarity = transcriptSimilarity(
+    params.geminiTranscript,
+    params.browserHint.transcript
+  );
+
+  return geminiSimilarity >= cloudflareSimilarity + 0.08 ? 'gemini-fallback' : 'cloudflare';
+}
+
 export async function transcribeWithCloudflare(params: {
   accountId: string;
   apiToken: string;
@@ -62,9 +155,12 @@ export async function transcribeWithGeminiFallback(params: {
   apiKey: string;
   audioBase64: string;
   audioMimeType: string;
+  questionContext?: string;
+  browserTranscriptHint?: string;
 }): Promise<TranscriptionResult> {
   const model = 'gemini-2.5-flash-lite';
   const startedAt = Date.now();
+  const prompt = buildGeminiTranscriptionPrompt(params);
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${params.apiKey}`,
     {
@@ -74,9 +170,7 @@ export async function transcribeWithGeminiFallback(params: {
         contents: [
           {
             parts: [
-              {
-                text: 'Transcribe this English speaking-test answer accurately. Return only the spoken words, with ordinary punctuation. If there is no intelligible speech, return (Inaudible).',
-              },
+              { text: prompt },
               {
                 inlineData: {
                   mimeType: params.audioMimeType || 'audio/webm',
@@ -97,10 +191,7 @@ export async function transcribeWithGeminiFallback(params: {
 
   if (!response.ok) throw new Error(`Gemini transcription fallback failed (${response.status})`);
   const payload = await response.json();
-  const transcript = compactTranscript(payload?.candidates?.[0]?.content?.parts?.[0]?.text);
-  if (!transcript || transcript === '(Inaudible)') {
-    throw new Error('Gemini transcription fallback returned no intelligible speech');
-  }
+  const transcript = readGeminiTranscript(payload);
 
   return {
     transcript,
@@ -109,6 +200,35 @@ export async function transcribeWithGeminiFallback(params: {
     latencyMs: Date.now() - startedAt,
     tokensUsed: Number(payload?.usageMetadata?.totalTokenCount) || 0,
   };
+}
+
+function buildGeminiTranscriptionPrompt(params: {
+  questionContext?: string;
+  browserTranscriptHint?: string;
+}): string {
+  const context = compactTranscript(params.questionContext).slice(0, 500);
+  const browserHint = compactTranscript(params.browserTranscriptHint).slice(0, 1000);
+  const supportingContext = [
+    context ? `The examiner's question was: ${context}` : '',
+    browserHint ? `A fallible live-caption preview was: ${browserHint}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+  const instruction =
+    "Transcribe this English speaking-test answer accurately. Return only the words actually spoken, with ordinary punctuation. Preserve the learner's wording and grammatical mistakes. Use the context below only to resolve genuinely unclear sounds; never add words merely because they appear in the context. If there is no intelligible speech, return (Inaudible).";
+
+  return supportingContext
+    ? `${instruction}\n\nSupporting context:\n${supportingContext}`
+    : instruction;
+}
+
+function readGeminiTranscript(payload: any): string {
+  const transcript = compactTranscript(payload?.candidates?.[0]?.content?.parts?.[0]?.text);
+  const isInaudible = new Set(['', '(Inaudible)']).has(transcript);
+  if (isInaudible) {
+    throw new Error('Gemini transcription fallback returned no intelligible speech');
+  }
+  return transcript;
 }
 
 function toHalfBand(score: number): number {

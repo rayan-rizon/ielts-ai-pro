@@ -49,6 +49,7 @@ const planSignals = readFileSync(
   'utf8'
 );
 const app = readFileSync(resolve(process.cwd(), 'src/App.jsx'), 'utf8');
+const layout = readFileSync(resolve(process.cwd(), 'src/features/core/pages/Layout.jsx'), 'utf8');
 const hook = readFileSync(
   resolve(process.cwd(), 'src/features/learning/hooks/useLearningPathData.js'),
   'utf8'
@@ -69,8 +70,12 @@ describe('Learning Path main page composition', () => {
   });
 
   it('includes the useful revision, checkpoint, roadmap, schedule, and evidence sections', () => {
-    expect(planSignals).toContain('Why your plan changed');
-    expect(planSignals).toContain('Next goal');
+    expect(planSignals).toContain('Your plan guide');
+    expect(planSignals).toContain('What changed, and what to do next');
+    expect(planSignals).toContain('Open next task');
+    expect(planSignals).toContain('Review goals');
+    expect(dashboard).toContain('nextTask={primaryTask}');
+    expect(dashboard).toContain('onStart={startTask}');
     expect(roadmap).toContain('Your path to exam day');
     expect(weekPlan).toContain("This week's plan");
     expect(priorities).toContain('What to improve next');
@@ -85,14 +90,27 @@ describe('Learning Path main page composition', () => {
     expect(weekPlan).toContain('sm:grid-cols-[44px_minmax(0,1fr)_auto]');
     expect(roadmap).toContain('auto-cols-[88%]');
     expect(roadmap).toContain('sm:grid-cols-2');
-    expect(roadmap).toContain('lg:grid-cols-4');
+    expect(roadmap).toContain('xl:grid-cols-4');
+    expect(dashboard).toContain('md:grid-cols-2');
+    expect(dashboard).toContain('2xl:grid-cols-[1.08fr_1fr_0.9fr]');
+    expect(dashboard).toContain('items-stretch');
+    expect(hero).toContain('lg:min-h-[238px]');
     expect(hero).toContain('grid-cols-2');
     expect(hero).toContain('sm:grid-cols-4');
     expect(readiness).toContain('grid-cols-2');
     expect(readiness).toContain('sm:grid-cols-4');
+    expect(layout).toContain("location.pathname === '/learning-path' ? 'right-4' : 'left-4'");
     expect(app).toContain("path: '/learning-path-preview'");
     expect(app).toContain('<Navigate to="/learning-path" replace />');
     expect(app).not.toContain('LearningPathPreview');
+  });
+
+  it('makes the roadmap rail keyboard-operable and names its current and next states', () => {
+    expect(roadmap).toContain('Current stage path');
+    expect(roadmap).toContain('Next stage path');
+    expect(roadmap).toContain("event.key === 'Enter'");
+    expect(roadmap).toContain("event.key === ' '");
+    expect(roadmap).toContain('aria-pressed={selectedIndex === index}');
   });
 
   it('keeps legacy status contextual and collapses the seven-day schedule by default', () => {
@@ -206,8 +224,8 @@ describe('Learning Path main page composition', () => {
     expect(phases.map((phase) => phase.status)).toEqual([
       'Completed',
       'In Progress',
-      'Locked',
-      'Locked',
+      'Upcoming',
+      'Upcoming',
     ]);
   });
 
@@ -245,14 +263,19 @@ describe('Learning Path main page composition', () => {
         {
           tasks: [
             { activity_type: 'diagnostic', title: 'Writing diagnostic', is_completed: false },
-            { activity_type: 'timed_assessment', title: 'Reading timed check', is_completed: true },
+            {
+              activity_type: 'timed_assessment',
+              title: 'Reading timed check',
+              is_completed: true,
+              completion_source: 'test_session',
+            },
           ],
         },
       ],
       targetBand: 7,
     });
 
-    expect(phases.map((phase) => phase.progressPercent)).toEqual([25, 50, 50, 25]);
+    expect(phases.map((phase) => phase.progressPercent)).toEqual([25, 50, 50, 0]);
     expect(phases[0].progressLabel).toBe('1 of 4 subjects checked');
     expect(phases[0].actionTask?.title).toBe('Writing diagnostic');
     expect(phases[0].checklist.map((item) => item.done)).toEqual([false, false, true]);
@@ -308,8 +331,11 @@ describe('Learning Path main page composition', () => {
     ).toBe('test_completed');
   });
 
-  it('shows real roadmap locks and a cost-safe update action', () => {
-    expect(roadmap).toContain("Locked: 'Locked'");
+  it('shows interactive evidence stages and a cost-safe update action', () => {
+    expect(roadmap).toContain('InteractiveStageRail');
+    expect(roadmap).toContain('Current stage path');
+    expect(roadmap).toContain("Planned: 'Planned'");
+    expect(roadmap).not.toContain("Locked: 'Locked'");
     expect(roadmap).toContain('item.done');
     expect(hero).toContain('Check for updates');
     expect(hero).toContain('No AI request when nothing changed');
@@ -318,7 +344,9 @@ describe('Learning Path main page composition', () => {
   });
 
   it('retries the activity query when scheduled_date is not deployed yet', () => {
-    expect(hook).toContain("/scheduled_date/i.test(activitiesError.message || '')");
+    expect(hook).toContain(
+      '/scheduled_date|stage_key|completion_policy|requested_mode|evidence_key/i.test('
+    );
     expect(hook).toContain('V1 column set');
   });
 });

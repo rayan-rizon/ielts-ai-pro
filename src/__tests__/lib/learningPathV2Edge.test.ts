@@ -17,9 +17,13 @@ describe('Learning Path Edge Function safeguards', () => {
   });
 
   it('keeps AI bounded and scheduling deterministic', () => {
-    expect(source).toContain('maxOutputTokens: 400');
+    expect(source).toContain('maxOutputTokens: 300');
     expect(source).toContain('buildSevenDaySchedule');
     expect(source).toContain('Never predict improvement');
+    expect(source).toContain(
+      'Never invent activities, keys, evidence, routes, scores, or capacity'
+    );
+    expect(source).toContain('allowedKeys.has(key)');
   });
 
   it('falls back when quota, provider, or parsing is unavailable', () => {

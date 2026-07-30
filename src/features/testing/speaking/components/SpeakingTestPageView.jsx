@@ -37,9 +37,11 @@ export default function SpeakingTestPageView({
     currentPart,
     currentPartNumber,
     exitDialogProps,
+    handsFreeEnabled,
     headerProps,
     isTestComplete: shellIsTestComplete,
     setShowExitDialog,
+    setHandsFreeEnabled,
     showExitDialog,
     showUpgradeDialog,
     testStarted,
@@ -92,6 +94,8 @@ export default function SpeakingTestPageView({
               currentPartNumber={currentPartNumber}
               testStarted={conversationPanelProps.testStarted}
               isPart2Prep={conversationPanelProps.isPart2Prep}
+              handsFreeEnabled={handsFreeEnabled}
+              onHandsFreeChange={setHandsFreeEnabled}
             />
           </div>
         </div>

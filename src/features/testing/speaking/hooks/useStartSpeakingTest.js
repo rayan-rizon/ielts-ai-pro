@@ -12,6 +12,7 @@ export default function useStartSpeakingTest({
   firstQuestionInsertedRef,
   isStartingTestRef,
   pendingGreetingRef,
+  requestAutoStart,
   session,
   setConversation,
   setCurrentQuestionIndex,
@@ -49,6 +50,7 @@ export default function useStartSpeakingTest({
         allParts,
         firstQuestionInsertedRef,
         pendingGreetingRef,
+        requestAutoStart,
         setConversation,
         setCurrentQuestionIndex,
         setTestStarted,
@@ -62,6 +64,7 @@ export default function useStartSpeakingTest({
     firstQuestionInsertedRef,
     isStartingTestRef,
     pendingGreetingRef,
+    requestAutoStart,
     session,
     setConversation,
     setCurrentQuestionIndex,
@@ -108,6 +111,7 @@ function playInitialGreeting({
   allParts,
   firstQuestionInsertedRef,
   pendingGreetingRef,
+  requestAutoStart,
   setConversation,
   setCurrentQuestionIndex,
   setTestStarted,
@@ -119,22 +123,18 @@ function playInitialGreeting({
     currentPart: allParts[partNumber],
   });
 
-  setConversation(initialConversation.slice(0, 1));
-  const greetingPromise = speakText(greeting);
+  const firstQuestion = initialConversation[1]?.text;
+  setConversation(initialConversation);
+  setCurrentQuestionIndex(0);
   setTestStarted(true);
+  pendingGreetingRef.current = null;
+  firstQuestionInsertedRef.current = Boolean(firstQuestion);
 
-  (async () => {
-    pendingGreetingRef.current = null;
-    await greetingPromise;
-    firstQuestionInsertedRef.current = false;
+  void playGreetingAndQuestion({ firstQuestion, greeting, requestAutoStart, speakText });
+}
 
-    if (firstQuestionInsertedRef.current) return;
-
-    firstQuestionInsertedRef.current = true;
-    const firstQuestion = initialConversation[1]?.text;
-    if (!firstQuestion) return;
-    setConversation((prev) => [...prev, { speaker: 'ai', text: firstQuestion }]);
-    speakText(firstQuestion);
-    setCurrentQuestionIndex(0);
-  })();
+async function playGreetingAndQuestion({ firstQuestion, greeting, requestAutoStart, speakText }) {
+  await speakText(greeting);
+  if (firstQuestion) await speakText(firstQuestion);
+  requestAutoStart?.();
 }

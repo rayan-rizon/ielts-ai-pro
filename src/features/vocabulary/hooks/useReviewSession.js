@@ -46,6 +46,7 @@ export function useReviewSession({
   setAllVocabulary,
   user,
   onReviewRecorded,
+  onSessionComplete,
 }) {
   const [isReviewSessionOpen, setIsReviewSessionOpen] = useState(false);
   const [currentReviewItem, setCurrentReviewItem] = useState(null);
@@ -115,12 +116,21 @@ export function useReviewSession({
         } else {
           setIsReviewSessionOpen(false);
           setCurrentReviewItem(null);
+          await onSessionComplete?.();
         }
       } catch (error) {
         console.error('Review submit error:', error);
       }
     },
-    [currentReviewItem, dueForReview, setDueForReview, setAllVocabulary, user, onReviewRecorded]
+    [
+      currentReviewItem,
+      dueForReview,
+      setDueForReview,
+      setAllVocabulary,
+      user,
+      onReviewRecorded,
+      onSessionComplete,
+    ]
   );
 
   const closeReviewSession = useCallback(() => {

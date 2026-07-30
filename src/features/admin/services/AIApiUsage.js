@@ -1,19 +1,37 @@
 import { supabase } from '@/lib/supabase';
 import { User } from '@/features/auth/services/User';
 
-// Approximate blended cost per 1K total tokens.
-// Total-token telemetry cannot separate input, output, audio, and thinking tokens,
-// so dashboard values are estimates rather than invoice-equivalent amounts.
-const MODEL_PRICING = {
-  'gemini-2.5-flash': 0.001, // Conservative text blend: $0.30 input / $2.50 output per 1M
-  'gemini-2.5-flash-lite': 0.0002, // Conservative text blend: $0.10 input / $0.40 output per 1M
-  'gemini-2.0-flash': 0.0002,
-  'gemini-1.5-flash': 0.0002, // Legacy model
-  'gpt-4o': 0.01, // ~$10.00 per 1M tokens (blended)
-  'gpt-4o-mini': 0.0003, // ~$0.30 per 1M tokens (blended)
-  'claude-3-5-sonnet': 0.015, // ~$15.00 per 1M tokens (blended)
-  default: 0.0002,
-};
+const asNumber = (value) => Number(value) || 0;
+const isMissingRpc = (error) =>
+  error?.code === 'PGRST116' || error?.code === 'PGRST202' || error?.message?.includes('function');
+
+const normalizeDailyStats = (data) =>
+  (data || []).map((row) => ({
+    date: row.date,
+    total: asNumber(row.total),
+    completed: asNumber(row.completed ?? row.total),
+    pending: asNumber(row.pending),
+    failed: asNumber(row.failed),
+    cached: asNumber(row.cached),
+    tokens: asNumber(row.tokens),
+  }));
+
+const normalizeEndpointStats = (data) =>
+  (data || []).map((row) => {
+    const total = asNumber(row.total);
+    const completed = asNumber(row.completed ?? total);
+    const cached = asNumber(row.cached);
+
+    return {
+      endpoint: row.endpoint || 'Unknown endpoint',
+      total,
+      completed,
+      pending: asNumber(row.pending),
+      failed: asNumber(row.failed),
+      cached,
+      cacheHitRate: completed > 0 ? Number(row.cacheHitRate ?? (cached / completed) * 100) || 0 : 0,
+    };
+  });
 
 export const AIApiUsage = {
   // Get aggregated usage stats paginated via RPC
@@ -49,11 +67,20 @@ export const AIApiUsage = {
     if (error) throw error;
 
     return {
-      totalApiCalls: data.totalApiCalls,
-      totalCachedCalls: data.totalCachedCalls,
-      totalTokens: data.totalTokens,
-      uniqueUsers: data.uniqueUsers,
-      totalCost: (data.totalTokens / 1000) * MODEL_PRICING['gemini-2.5-flash'],
+      totalRequests: asNumber(data.totalRequests ?? data.totalApiCalls),
+      completedCalls: asNumber(data.completedCalls ?? data.totalApiCalls),
+      pendingCalls: asNumber(data.pendingCalls),
+      failedCalls: asNumber(data.failedCalls),
+      totalCachedCalls: asNumber(data.totalCachedCalls),
+      totalTokens: asNumber(data.totalTokens),
+      uniqueUsers: asNumber(data.uniqueUsers),
+      totalUsers: asNumber(data.totalUsers),
+      trackedProviderCost: asNumber(data.trackedProviderCost),
+      pricedCompletedCalls: asNumber(data.pricedCompletedCalls),
+      unpricedCompletedCalls: Object.hasOwn(data, 'trackedProviderCost')
+        ? asNumber(data.unpricedCompletedCalls)
+        : asNumber(data.completedCalls ?? data.totalApiCalls),
+      costTelemetryAvailable: Object.hasOwn(data, 'trackedProviderCost'),
     };
   },
 
@@ -135,14 +162,15 @@ export const AIApiUsage = {
     }
 
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    startDate.setHours(0, 0, 0, 0);
+    startDate.setDate(startDate.getDate() - Math.max(days - 1, 0));
 
     const { data, error } = await supabase.rpc('get_daily_api_usage_stats', {
       p_start_date: startDate.toISOString(),
     });
 
     // If RPC doesn't exist, fallback to raw query
-    if (error?.code === 'PGRST116' || error?.message?.includes('function')) {
+    if (isMissingRpc(error)) {
       const { data: rawData, error: rawError } = await supabase
         .from('ai_api_usage')
         .select('created_at, endpoint, cached')
@@ -163,11 +191,13 @@ export const AIApiUsage = {
           (dailyStats[date].endpoints[row.endpoint] || 0) + 1;
       });
 
-      return Object.values(dailyStats).sort((a, b) => a.date.localeCompare(b.date));
+      return normalizeDailyStats(
+        Object.values(dailyStats).sort((a, b) => a.date.localeCompare(b.date))
+      );
     }
 
     if (error) throw error;
-    return data;
+    return normalizeDailyStats(data);
   },
 
   // Get usage summary by user
@@ -207,18 +237,36 @@ export const AIApiUsage = {
   },
 
   // Get endpoint breakdown
-  async getEndpointStats() {
+  async getEndpointStats(days) {
     const isUserAdmin = await User.isAdmin();
     if (!isUserAdmin) {
       throw new Error('Admin access required');
     }
 
-    const { data, error } = await supabase.from('ai_api_usage').select('endpoint, cached');
+    const startDate = Number.isFinite(days)
+      ? (() => {
+          const date = new Date();
+          date.setHours(0, 0, 0, 0);
+          date.setDate(date.getDate() - Math.max(days - 1, 0));
+          return date.toISOString();
+        })()
+      : null;
+    const { data, error } = await supabase.rpc('get_ai_usage_endpoint_stats', {
+      p_start_date: startDate,
+    });
 
-    if (error) throw error;
+    if (!error) return normalizeEndpointStats(data);
+
+    if (!isMissingRpc(error)) throw error;
+
+    let query = supabase.from('ai_api_usage').select('endpoint, cached, created_at');
+    if (startDate) query = query.gte('created_at', startDate);
+
+    const { data: rawData, error: rawError } = await query;
+    if (rawError) throw rawError;
 
     const endpointStats = {};
-    data?.forEach((row) => {
+    rawData?.forEach((row) => {
       if (!endpointStats[row.endpoint]) {
         endpointStats[row.endpoint] = { total: 0, cached: 0 };
       }
@@ -226,10 +274,12 @@ export const AIApiUsage = {
       if (row.cached) endpointStats[row.endpoint].cached++;
     });
 
-    return Object.entries(endpointStats).map(([endpoint, stats]) => ({
-      endpoint,
-      ...stats,
-      cacheHitRate: stats.total > 0 ? ((stats.cached / stats.total) * 100).toFixed(1) : 0,
-    }));
+    return normalizeEndpointStats(
+      Object.entries(endpointStats).map(([endpoint, stats]) => ({
+        endpoint,
+        ...stats,
+        cacheHitRate: stats.total > 0 ? ((stats.cached / stats.total) * 100).toFixed(1) : 0,
+      }))
+    );
   },
 };

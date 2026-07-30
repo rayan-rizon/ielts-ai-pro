@@ -16,7 +16,7 @@ describe('explicit Learning Path activity routing', () => {
     ).toBe('/grammar?mode=review&skill=grammar_articles_determiners&activityId=activity-1');
   });
 
-  it('routes Grammar transfer provenance without changing IELTS module routes', () => {
+  it('routes Grammar transfer provenance and keeps the requested IELTS test mode', () => {
     expect(
       buildActivityUrl({
         module: 'grammar',
@@ -28,7 +28,7 @@ describe('explicit Learning Path activity routing', () => {
         module: 'writing',
         routing: { route: 'writing', mode: 'practice' },
       })
-    ).toBe('/writing');
+    ).toBe('/writing?mode=practice');
   });
 
   it('does not infer an unknown activity as Reading', () => {

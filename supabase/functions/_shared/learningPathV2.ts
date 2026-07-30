@@ -1,4 +1,4 @@
-export const LEARNING_PATH_GENERATOR_VERSION = '2.1.0';
+export const LEARNING_PATH_GENERATOR_VERSION = '2.2.0';
 
 export const STUDY_DAYS = [
   'monday',
@@ -32,6 +32,16 @@ type SkillSignal = {
   practice_count?: number | null;
   correct_count?: number | null;
   next_review_at?: string | null;
+};
+
+type VocabularyItemSignal = {
+  id?: string;
+  next_review_date?: string | null;
+};
+
+type VocabularyReviewSignal = {
+  quality?: number | null;
+  reviewed_at?: string | null;
 };
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
@@ -207,6 +217,48 @@ export function summarizeEvidence(skills: SkillSignal[], now: Date | string = ne
   };
 }
 
+export function summarizeVocabularyEvidence(
+  items: VocabularyItemSignal[] = [],
+  reviews: VocabularyReviewSignal[] = [],
+  now: Date | string = new Date()
+) {
+  const nowMs = new Date(now).getTime();
+  const recentCutoff = nowMs - 30 * 86400000;
+  const dueCount = items.filter((item) => {
+    const dueAt = item.next_review_date ? new Date(item.next_review_date).getTime() : NaN;
+    return Number.isFinite(dueAt) && dueAt <= nowMs;
+  }).length;
+  const recentReviews = reviews.filter((review) => {
+    const reviewedAt = review.reviewed_at ? new Date(review.reviewed_at).getTime() : NaN;
+    return Number.isFinite(reviewedAt) && reviewedAt >= recentCutoff;
+  });
+  const retained = recentReviews.filter((review) => numberOr(review.quality, -1) >= 3).length;
+  const retention =
+    recentReviews.length > 0 ? Math.round((retained / recentReviews.length) * 100) : null;
+  const reliableRetention = recentReviews.length >= 10;
+  const needsSupport = dueCount >= 5 || (reliableRetention && Number(retention) < 70);
+
+  return {
+    saved_count: items.length,
+    due_count: dueCount,
+    reviews_30d: recentReviews.length,
+    retained_30d: retained,
+    retention_30d: retention,
+    confidence: reliableRetention
+      ? 'reliable'
+      : recentReviews.length > 0
+        ? 'developing'
+        : 'insufficient',
+    needs_support: needsSupport,
+    reason:
+      dueCount >= 5
+        ? `${dueCount} saved words are due for spaced review.`
+        : reliableRetention && Number(retention) < 70
+          ? `Recent review retention is ${retention}% across ${recentReviews.length} reviews.`
+          : null,
+  };
+}
+
 export function aggregateReadiness(sessions: any[], now: Date | string = new Date()) {
   const cutoff = addDays(startOfUtcDay(now), -90).getTime();
   const recent = (Array.isArray(sessions) ? sessions : []).filter((session) => {
@@ -223,10 +275,25 @@ export function aggregateReadiness(sessions: any[], now: Date | string = new Dat
 
   const modules: Record<string, any> = {};
   IELTS_MODULES.forEach((module) => {
-    const scores = recent
-      .filter((session) => String(session.test_type).toLowerCase() === module)
+    const moduleSessions = recent.filter(
+      (session) => String(session.test_type).toLowerCase() === module
+    );
+    const scores = moduleSessions
       .map((session) => numberOr(session.score, NaN))
       .filter(Number.isFinite);
+    const modeCounts = moduleSessions.reduce(
+      (counts, session) => {
+        const rawMode = String(session.test_mode || 'practice').toLowerCase();
+        const mode = rawMode === 'mock' ? 'exam' : rawMode === 'timed' ? 'timed' : 'practice';
+        counts[mode] += 1;
+        return counts;
+      },
+      { practice: 0, timed: 0, exam: 0 }
+    );
+    const latestExam = moduleSessions.find(
+      (session) => String(session.test_mode || '').toLowerCase() === 'mock'
+    );
+    const latestExamScore = latestExam ? Number(latestExam.score) : NaN;
     const count = scores.length;
     modules[module] = {
       module,
@@ -234,6 +301,8 @@ export function aggregateReadiness(sessions: any[], now: Date | string = new Dat
       sufficient: count >= 2,
       median: count ? roundBand(median(scores)) : null,
       observed_range: count ? [Math.min(...scores), Math.max(...scores)] : null,
+      mode_counts: modeCounts,
+      latest_exam_score: Number.isFinite(latestExamScore) ? latestExamScore : null,
       confidence:
         count >= 5 ? 'high' : count >= 3 ? 'moderate' : count >= 2 ? 'developing' : 'insufficient',
     };
@@ -367,6 +436,10 @@ type GeneratedActivity = {
   reason: string;
   success_criterion: string;
   evidence: Record<string, unknown>;
+  stage_key: 'foundation' | 'repair' | 'integration' | 'readiness';
+  completion_policy: 'verified';
+  requested_mode: string;
+  evidence_key: string;
   routing: {
     route: string;
     mode: string;
@@ -403,6 +476,10 @@ function activityForCategory(
         observations: measured.observations,
         confidence: measured.confidence,
       },
+      stage_key: 'repair',
+      completion_policy: 'verified',
+      requested_mode: 'practice',
+      evidence_key: `skill:${measured.skill_code}`,
       routing: { route: measured.module, mode: 'practice' },
     };
   }
@@ -416,6 +493,10 @@ function activityForCategory(
       reason: `This previously practised skill is due for recall; it is not being inferred as a new weakness.`,
       success_criterion: 'Recall the rule, re-attempt errors, and score 8/10 without notes.',
       evidence: { class: due.evidence_class, observations: due.observations, due: true },
+      stage_key: 'repair',
+      completion_policy: 'verified',
+      requested_mode: 'review',
+      evidence_key: `review:${due.skill_code}`,
       routing: { route: due.module, mode: 'review' },
     };
   }
@@ -460,6 +541,14 @@ function activityForCategory(
           : early?.observations || 0,
         source: shouldDiagnoseGrammar ? evidence.grammar_diagnostic_source : null,
       },
+      stage_key: shouldDiagnoseGrammar || missingModule ? 'foundation' : 'integration',
+      completion_policy: 'verified',
+      requested_mode: shouldDiagnoseGrammar || missingModule ? 'practice' : 'timed',
+      evidence_key: shouldDiagnoseGrammar
+        ? `grammar-diagnostic:${evidence.grammar_diagnostic_source || 'general'}`
+        : missingModule
+          ? `module-diagnostic:${module}`
+          : `timed-check:${module}`,
       routing: {
         route: module,
         mode: shouldDiagnoseGrammar || missingModule ? 'diagnostic' : 'timed',
@@ -484,6 +573,10 @@ function activityForCategory(
       class: strong?.evidence_class || 'maintenance',
       observations: strong?.observations || 0,
     },
+    stage_key: 'repair',
+    completion_policy: 'verified',
+    requested_mode: 'practice',
+    evidence_key: `maintenance:${module}`,
     routing: { route: module, mode: 'practice' },
   };
 }
@@ -492,12 +585,14 @@ export function buildSevenDaySchedule({
   availability,
   evidence,
   readiness,
+  vocabularyEvidence = null,
   testDate,
   now = new Date(),
 }: {
   availability: StudyAvailability;
   evidence: any;
   readiness: any;
+  vocabularyEvidence?: any;
   testDate?: string | null;
   now?: Date | string;
 }) {
@@ -578,6 +673,10 @@ export function buildSevenDaySchedule({
                 ? 'Record a short response and review only transcript-grounded grammar observations.'
                 : 'Write a short Academic IELTS paragraph and review exact text-grounded grammar observations.',
             evidence: base.evidence,
+            stage_key: 'repair',
+            completion_policy: 'verified',
+            requested_mode: 'practice',
+            evidence_key: `grammar-transfer:${base.skill_targets[0] || 'general'}:${transferTarget}`,
             routing: {
               route: 'grammar',
               mode: 'transfer',
@@ -612,6 +711,16 @@ export function buildSevenDaySchedule({
               : 'maintenance',
             observations: 0,
           },
+          stage_key: readiness.missing_diagnostics.includes(fallbackModule)
+            ? 'foundation'
+            : 'repair',
+          completion_policy: 'verified',
+          requested_mode: readiness.missing_diagnostics.includes(fallbackModule)
+            ? 'practice'
+            : 'practice',
+          evidence_key: readiness.missing_diagnostics.includes(fallbackModule)
+            ? `module-diagnostic:${fallbackModule}`
+            : `maintenance:${fallbackModule}`,
           routing: {
             route: fallbackModule,
             mode: readiness.missing_diagnostics.includes(fallbackModule)
@@ -620,9 +729,35 @@ export function buildSevenDaySchedule({
           },
         };
       }
+      if (
+        category === 'assessment' &&
+        daysUntilExam !== null &&
+        daysUntilExam <= 14 &&
+        base.stage_key === 'integration'
+      ) {
+        base = {
+          ...base,
+          title: `${base.module.charAt(0).toUpperCase() + base.module.slice(1)} Exam Mode check`,
+          activity_type: 'exam_assessment',
+          stage_key: 'readiness',
+          requested_mode: 'exam',
+          evidence_key: `exam-check:${base.module}`,
+          reason:
+            'Your exam date is close, so this verified Exam Mode attempt checks pacing and current score evidence.',
+          routing: { ...base.routing, mode: 'exam' },
+        };
+      }
+      const activityKeyParts = [
+        'v2',
+        dateKey,
+        base.stage_key,
+        base.module,
+        base.evidence_key.replace(/[^a-z0-9:_-]/gi, '-'),
+        block === 0 ? 'primary' : `optional-${block}`,
+      ];
       schedule[day].push({
         ...base,
-        activity_key: `v2:${dateKey}:${block === 0 ? 'primary' : `optional:${block}`}`,
+        activity_key: activityKeyParts.join(':'),
         scheduled_day: day,
         scheduled_date: dateKey,
         estimated_time: minutes,
@@ -634,6 +769,56 @@ export function buildSevenDaySchedule({
       taskCursor += 1;
     }
   }
+
+  let vocabularyMinutes = 0;
+  const vocabularyCapMinutes = Math.max(
+    0,
+    Math.min(
+      Math.floor((assignedMinutes * 0.15) / 5) * 5,
+      Math.floor((assignedMinutes * 0.25) / 5) * 5 - grammarMinutes
+    )
+  );
+  if (vocabularyEvidence?.needs_support && vocabularyCapMinutes >= 20) {
+    const targetDay = STUDY_DAYS.find((day) =>
+      (schedule[day] || []).some(
+        (task) => task.is_optional || ['maintenance', 'spaced_review'].includes(task.activity_type)
+      )
+    );
+    if (targetDay) {
+      const replaceIndex = schedule[targetDay].findIndex(
+        (task) => task.is_optional || ['maintenance', 'spaced_review'].includes(task.activity_type)
+      );
+      const replaced = schedule[targetDay][replaceIndex];
+      const minutes = Math.min(replaced.estimated_time, vocabularyCapMinutes);
+      schedule[targetDay][replaceIndex] = {
+        ...replaced,
+        title: 'Vocabulary spaced review',
+        module: 'vocabulary',
+        activity_type: 'vocabulary_review',
+        stage_key: 'repair',
+        priority: 'high',
+        skill_targets: [],
+        requested_mode: 'review',
+        completion_policy: 'verified',
+        evidence_key: 'vocabulary:due-review',
+        reason:
+          vocabularyEvidence.reason ||
+          'Your saved vocabulary has enough review evidence for a focused recall session.',
+        success_criterion: 'Complete the due review queue and rate each word honestly.',
+        evidence: {
+          class: 'measured_support',
+          due_count: vocabularyEvidence.due_count,
+          reviews_30d: vocabularyEvidence.reviews_30d,
+          retention_30d: vocabularyEvidence.retention_30d,
+        },
+        routing: { route: 'vocabulary', mode: 'review' },
+        activity_key: `v2:${replaced.scheduled_date}:repair:vocabulary:due-review:${replaceIndex}`,
+        estimated_time: minutes,
+      };
+      vocabularyMinutes = minutes;
+    }
+  }
+
   return {
     schedule,
     allocation,
@@ -641,6 +826,8 @@ export function buildSevenDaySchedule({
     weekly_planned_minutes: assignedMinutes,
     grammar_minutes: grammarMinutes,
     grammar_cap_minutes: grammarBudgetMinutes,
+    vocabulary_minutes: vocabularyMinutes,
+    vocabulary_cap_minutes: vocabularyCapMinutes,
   };
 }
 

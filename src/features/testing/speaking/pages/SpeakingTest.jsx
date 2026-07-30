@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
 
@@ -21,6 +21,17 @@ import useSpeakingTestState from '../hooks/useSpeakingTestState';
 import useSpeakingTimers from '../hooks/useSpeakingTimers';
 import useStartPartTwoSpeaking from '../hooks/useStartPartTwoSpeaking';
 import useStartSpeakingTest from '../hooks/useStartSpeakingTest';
+import { canAutoStartSpeakingAnswer } from '../utils/speakingCaptureUtils';
+
+const HANDS_FREE_STORAGE_KEY = 'ielts-speaking-hands-free';
+
+function getInitialHandsFreePreference() {
+  try {
+    return window.localStorage.getItem(HANDS_FREE_STORAGE_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+}
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
@@ -30,6 +41,25 @@ export default function SpeakingTest() {
   const [searchParams] = useSearchParams();
   const testId = paramId || searchParams.get('test-id');
   const { userProfile: authUser, loading: authLoading } = useAuth();
+  const [handsFreeEnabled, setHandsFreeEnabled] = useState(getInitialHandsFreePreference);
+  const handsFreeEnabledRef = useRef(handsFreeEnabled);
+  handsFreeEnabledRef.current = handsFreeEnabled;
+  const autoStartRequestedRef = useRef(false);
+  const [autoStartRequestVersion, setAutoStartRequestVersion] = useState(0);
+  const requestAutoStart = useCallback(() => {
+    if (!handsFreeEnabledRef.current) return;
+    autoStartRequestedRef.current = true;
+    setAutoStartRequestVersion((version) => version + 1);
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(HANDS_FREE_STORAGE_KEY, String(handsFreeEnabled));
+    } catch {
+      // The preference remains active for this session when storage is unavailable.
+    }
+    if (!handsFreeEnabled) autoStartRequestedRef.current = false;
+  }, [handsFreeEnabled]);
 
   // ─── TTS Hook ──────────────────────────────────────────────────────────
   const { speakText, cancelCurrentAudio, isSpeaking, isTTSLoading, isMuted, setIsMuted } =
@@ -210,6 +240,7 @@ export default function SpeakingTest() {
     currentPartNumber,
     pendingTimersRef,
     questionIndexRef,
+    requestAutoStart,
     saveSessionProgress,
     session,
     setAllPartsAcousticMetrics,
@@ -225,16 +256,17 @@ export default function SpeakingTest() {
     timerExpiredRef,
   });
 
-  // ─── Audio Recorder Hook ───────────────────────────────────────────────
+  const recorder = useAudioRecorder({
+    processRecording,
+    partNumber: currentPartNumber,
+    handsFreeEnabled,
+  });
   const {
-    startListening,
-    stopListening,
     cancelListening,
     isListening,
-    isRecording,
-    micError,
     setIsProcessing: setRecorderProcessing,
-  } = useAudioRecorder({ processRecording });
+    startListening,
+  } = recorder;
 
   // Keep recorder hook aware of processing state
   useEffect(() => {
@@ -242,10 +274,75 @@ export default function SpeakingTest() {
   }, [isProcessing, setRecorderProcessing]);
 
   useEffect(() => {
+    const canStartAutomatically = canAutoStartSpeakingAnswer({
+      requested: autoStartRequestedRef.current,
+      handsFreeEnabled,
+      testStarted,
+      isProcessing,
+      isSpeaking,
+      isTTSLoading,
+      isListening,
+      isPartComplete,
+      isPart2Prep,
+      isTestComplete,
+    });
+    if (!canStartAutomatically) return;
+
+    autoStartRequestedRef.current = false;
+    startListening();
+  }, [
+    autoStartRequestVersion,
+    isListening,
+    handsFreeEnabled,
+    isPart2Prep,
+    isPartComplete,
+    isProcessing,
+    isSpeaking,
+    isTTSLoading,
+    isTestComplete,
+    startListening,
+    testStarted,
+  ]);
+
+  useEffect(() => {
     if (isTestComplete) {
       cancelListening();
     }
   }, [cancelListening, isTestComplete]);
+
+  const handleHandsFreeChange = useCallback(
+    (enabled) => {
+      setHandsFreeEnabled(enabled);
+      if (
+        enabled &&
+        canAutoStartSpeakingAnswer({
+          requested: true,
+          handsFreeEnabled: true,
+          testStarted,
+          isProcessing,
+          isSpeaking,
+          isTTSLoading,
+          isListening,
+          isPartComplete,
+          isPart2Prep,
+          isTestComplete,
+        })
+      ) {
+        requestAutoStart();
+      }
+    },
+    [
+      isListening,
+      isPart2Prep,
+      isPartComplete,
+      isProcessing,
+      isSpeaking,
+      isTTSLoading,
+      isTestComplete,
+      requestAutoStart,
+      testStarted,
+    ]
+  );
 
   const moveToNextPart = useMoveToNextSpeakingPart({
     allParts,
@@ -265,6 +362,7 @@ export default function SpeakingTest() {
     setPrepTimeLeft,
     setTimeLeft,
     speakText,
+    requestAutoStart,
     timerExpiredRef,
   });
 
@@ -294,6 +392,8 @@ export default function SpeakingTest() {
     setTestStarted,
     setTestTitle,
     setTimeLeft,
+    requestAutoStart,
+    speakText,
   });
 
   const handleStartTest = useStartSpeakingTest({
@@ -308,6 +408,7 @@ export default function SpeakingTest() {
     setCurrentQuestionIndex,
     setSession,
     setTestStarted,
+    requestAutoStart,
     speakText,
     testId,
   });
@@ -322,6 +423,7 @@ export default function SpeakingTest() {
     setIsPart2Prep,
     saveSessionProgress,
     session,
+    requestAutoStart,
     speakText,
   });
 
@@ -418,19 +520,18 @@ export default function SpeakingTest() {
           cueCardTopic,
           prepTimeLeft,
           handleStartPart2Speaking,
-          isListening,
-          isRecording,
+          ...recorder,
           isProcessing,
           isSpeaking,
           isTTSLoading,
           processingStatus,
-          micError,
+          handsFreeEnabled,
           timerExpiredRef,
-          startListening,
-          stopListening,
           handleStartTest,
         },
         isTestComplete,
+        handsFreeEnabled,
+        setHandsFreeEnabled: handleHandsFreeChange,
         setShowExitDialog,
         showExitDialog,
         showUpgradeDialog,

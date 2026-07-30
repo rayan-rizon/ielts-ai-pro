@@ -37,7 +37,9 @@ function getBubbleClass(entry) {
   return 'rounded-2xl rounded-tr-md border border-primary/10 bg-primary/[0.065] text-left font-medium text-foreground dark:bg-primary/[0.11]';
 }
 
-function LoadingText() {
+function LoadingText({ speaker }) {
+  const label = speaker === 'ai' ? 'Examiner responding' : 'Preparing transcript';
+
   return (
     <div className="flex items-center gap-3">
       <div className="flex gap-1">
@@ -46,14 +48,36 @@ function LoadingText() {
         <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:300ms]" />
       </div>
       <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground animate-pulse">
-        Transcribing
+        {label}
       </span>
     </div>
   );
 }
 
+function DraftTranscript({ entry }) {
+  return (
+    <div className="space-y-2">
+      <p className="whitespace-pre-wrap text-foreground">
+        {entry.text?.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1')}
+      </p>
+      <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.13em] text-primary/70">
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-40" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+        </span>
+        Finalising transcript
+      </div>
+    </div>
+  );
+}
+
 function MessageBody({ entry }) {
-  if (entry.isLoading) return <LoadingText />;
+  if (entry.isLoading) {
+    if (entry.speaker === 'user') {
+      if (entry.isTranscriptDraft) return <DraftTranscript entry={entry} />;
+    }
+    return <LoadingText speaker={entry.speaker} />;
+  }
 
   return (
     <p className="whitespace-pre-wrap">

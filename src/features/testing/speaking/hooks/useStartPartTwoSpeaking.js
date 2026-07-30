@@ -10,6 +10,7 @@ export default function useStartPartTwoSpeaking({
   setIsPart2Prep,
   saveSessionProgress,
   session,
+  requestAutoStart,
   speakText,
 }) {
   return useCallback(() => {
@@ -18,11 +19,14 @@ export default function useStartPartTwoSpeaking({
 
     const message =
       'Alright, your preparation time is up. Please start speaking now. Remember, you should talk for 1 to 2 minutes.';
-    const messagePromise = speakText(message);
-    setConversation([{ speaker: 'ai', text: message }]);
-
     const questionLines = getQuestionLines(currentPart?.questions);
     const firstQuestion = questionLines.length > 0 ? formatIeltsQuestion(questionLines[0]) : null;
+    setConversation([
+      { speaker: 'ai', text: message },
+      ...(firstQuestion ? [{ speaker: 'ai', text: firstQuestion }] : []),
+    ]);
+    void speakPartTwoStart({ firstQuestion, message, requestAutoStart, speakText });
+
     saveSessionProgress({
       answers: {
         conversation: [
@@ -40,13 +44,7 @@ export default function useStartPartTwoSpeaking({
       },
     });
 
-    if (questionLines.length > 0) {
-      messagePromise.then(() => {
-        setConversation((prev) => [...prev, { speaker: 'ai', text: firstQuestion }]);
-        speakText(firstQuestion);
-        setCurrentQuestionIndex(0);
-      });
-    }
+    setCurrentQuestionIndex(0);
   }, [
     currentPart?.questions,
     setConversation,
@@ -55,6 +53,13 @@ export default function useStartPartTwoSpeaking({
     setIsPart2Prep,
     saveSessionProgress,
     session?.content_data,
+    requestAutoStart,
     speakText,
   ]);
+}
+
+async function speakPartTwoStart({ firstQuestion, message, requestAutoStart, speakText }) {
+  await speakText(message);
+  if (firstQuestion) await speakText(firstQuestion);
+  requestAutoStart?.();
 }

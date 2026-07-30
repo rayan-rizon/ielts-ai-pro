@@ -61,6 +61,11 @@ export default function SpeakingConversationPanel({
   isTTSLoading,
   processingStatus,
   micError,
+  liveTranscript,
+  recordingStartedAt,
+  autoFinishCountdown,
+  hasDetectedSpeech,
+  handsFreeEnabled,
   timerExpiredRef,
   startListening,
   stopListening,
@@ -143,6 +148,11 @@ export default function SpeakingConversationPanel({
                   isTTSLoading={isTTSLoading}
                   processingStatus={processingStatus}
                   micError={micError}
+                  liveTranscript={liveTranscript}
+                  recordingStartedAt={recordingStartedAt}
+                  autoFinishCountdown={autoFinishCountdown}
+                  hasDetectedSpeech={hasDetectedSpeech}
+                  handsFreeEnabled={handsFreeEnabled}
                   timerExpiredRef={timerExpiredRef}
                   onStartListening={startListening}
                   onStopListening={stopListening}

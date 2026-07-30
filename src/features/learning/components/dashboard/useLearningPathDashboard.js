@@ -125,6 +125,14 @@ export function useLearningPathDashboard({
   };
 
   const toggleTask = async (task) => {
+    if (task?.completion_policy === 'verified') {
+      if (!task.is_completed) startTask(task);
+      else
+        toast.info('This completion is verified', {
+          description: 'It stays linked to the scored activity that completed it.',
+        });
+      return;
+    }
     try {
       await toggleActivity({
         activityKey: task.activity_key,

@@ -3,7 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useListeningTestDispatch, useListeningTestState } from '../context/ListeningTestContext';
 import { initializeTest } from '@/lib/testInitializer';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
-import { getLearningActivityId } from '@/features/testing/shared/activityContext';
+import {
+  getLearningActivityId,
+  getRequestedTestMode,
+} from '@/features/testing/shared/activityContext';
 import { computeQuestionNumbers } from '../utils/questionProcessing';
 import { calculateListeningTestResults } from '../utils/scoreCalculator';
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
@@ -52,7 +55,7 @@ export const useListeningTestLogic = () => {
 
   const { userProfile: currentUser, loading: authLoading } = useAuth();
   const [pendingAudioSeek, setPendingAudioSeek] = useState(null);
-  const [selectedMode, setSelectedMode] = useState('practice');
+  const [selectedMode, setSelectedMode] = useState(() => getRequestedTestMode());
   const [examEligibility, setExamEligibility] = useState({ eligible: false, reason: '' });
   const [isStarting, setIsStarting] = useState(false);
   const [examReview, setExamReview] = useState(false);

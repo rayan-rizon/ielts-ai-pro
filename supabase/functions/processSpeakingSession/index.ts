@@ -14,8 +14,11 @@ import {
 } from '../_shared/security.ts';
 import {
   assessPronunciationWithAzure,
+  buildBrowserTranscriptHint,
   buildDeterministicExaminerResponse,
+  chooseVerifiedTranscript,
   CLOUDFLARE_COST_PER_AUDIO_MINUTE_USD,
+  getTranscriptVerificationReason,
   transcribeWithCloudflare,
   transcribeWithGeminiFallback,
 } from '../_shared/speakingProviders.ts';
@@ -93,6 +96,25 @@ function isFailedTranscript(value: string): boolean {
   );
 }
 
+async function runPronunciationAssessment(params: {
+  endpoint: string;
+  apiKey: string;
+  wavBase64: string;
+  transcript: string;
+  durationMs: number;
+}): Promise<{ data: Record<string, unknown> | null; error: string | null }> {
+  try {
+    return {
+      data: await assessPronunciationWithAzure(params),
+      error: null,
+    };
+  } catch (error: any) {
+    const message = error?.message || 'Pronunciation assessment failed';
+    console.warn(message);
+    return { data: null, error: message };
+  }
+}
+
 serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -164,6 +186,7 @@ serve(async (req: Request) => {
       conversationHistory = [],
       currentQuestionIndex = 0,
       questionContext = '',
+      speechConfidence = null,
       pronunciationAudioBase64 = null,
       pronunciationDurationMs = null,
       requestPronunciation = false,
@@ -316,8 +339,43 @@ serve(async (req: Request) => {
     let transcriptionLatencyMs = 0;
     let tokensUsed = 0;
     let transcriptionError: string | null = null;
+    let transcriptionVerificationReason: ReturnType<typeof getTranscriptVerificationReason> = null;
+    let transcriptionVerificationCompleted = false;
+    let transcriptionVerificationError: string | null = null;
+    let cloudflareTranscriptionCompleted = false;
+    const browserTranscriptHint = buildBrowserTranscriptHint(speechConfidence);
+    const pronunciationDuration = Number(pronunciationDurationMs);
+    const pronunciationEligible =
+      requestPronunciation === true &&
+      [1, 3].includes(partNumber) &&
+      typeof pronunciationAudioBase64 === 'string' &&
+      pronunciationAudioBase64.length > 0 &&
+      Number.isFinite(pronunciationDuration) &&
+      pronunciationDuration >= MIN_PRONUNCIATION_DURATION_MS &&
+      pronunciationDuration <= MAX_PRONUNCIATION_DURATION_MS;
+    const azureSpeechKey = Deno.env.get('AZURE_SPEECH_KEY') || '';
+    const azureSpeechRegion = Deno.env.get('AZURE_SPEECH_REGION') || '';
+    const azureSpeechEndpoint =
+      Deno.env.get('AZURE_SPEECH_ENDPOINT') ||
+      (azureSpeechRegion ? `https://${azureSpeechRegion}.stt.speech.microsoft.com` : '');
+    const canAssessFromBrowserHint =
+      pronunciationEligible &&
+      browserTranscriptHint &&
+      browserTranscriptHint.confidence >= 0.82 &&
+      azureSpeechKey &&
+      azureSpeechEndpoint;
+    const earlyPronunciationPromise = canAssessFromBrowserHint
+      ? runPronunciationAssessment({
+          endpoint: azureSpeechEndpoint,
+          apiKey: azureSpeechKey,
+          wavBase64: pronunciationAudioBase64,
+          transcript: browserTranscriptHint.transcript,
+          durationMs: pronunciationDuration,
+        })
+      : null;
 
     if (audioBase64 && !transcript) {
+      const geminiApiKey = Deno.env.get('GEMINI_API_KEY') || '';
       try {
         if (!Deno.env.get('CLOUDFLARE_ACCOUNT_ID') || !Deno.env.get('CLOUDFLARE_AI_API_TOKEN')) {
           throw new Error('Cloudflare Workers AI credentials are not configured');
@@ -331,16 +389,55 @@ serve(async (req: Request) => {
         transcriptionProvider = result.provider;
         transcriptionModel = result.model;
         transcriptionLatencyMs = result.latencyMs;
+        cloudflareTranscriptionCompleted = true;
+
+        transcriptionVerificationReason = getTranscriptVerificationReason({
+          cloudflareTranscript: transcript,
+          browserHint: browserTranscriptHint,
+          audioDurationMs,
+        });
+
+        if (transcriptionVerificationReason && geminiApiKey) {
+          try {
+            const verification = await transcribeWithGeminiFallback({
+              apiKey: geminiApiKey,
+              audioBase64,
+              audioMimeType,
+              questionContext,
+              browserTranscriptHint: browserTranscriptHint?.transcript,
+            });
+            transcriptionLatencyMs += verification.latencyMs;
+            tokensUsed += verification.tokensUsed;
+            transcriptionVerificationCompleted = true;
+
+            const selectedProvider = chooseVerifiedTranscript({
+              cloudflareTranscript: transcript,
+              geminiTranscript: verification.transcript,
+              browserHint: browserTranscriptHint,
+              reason: transcriptionVerificationReason,
+            });
+            if (selectedProvider === 'gemini-fallback') {
+              transcript = verification.transcript;
+              transcriptionProvider = verification.provider;
+              transcriptionModel = verification.model;
+            }
+          } catch (verificationError: any) {
+            transcriptionVerificationError =
+              verificationError?.message || 'Transcript verification failed';
+            console.warn(transcriptionVerificationError);
+          }
+        }
       } catch (cloudflareError: any) {
         transcriptionError = cloudflareError?.message || 'Cloudflare transcription failed';
         console.warn(transcriptionError);
-        const geminiApiKey = Deno.env.get('GEMINI_API_KEY') || '';
         if (geminiApiKey) {
           try {
             const fallback = await transcribeWithGeminiFallback({
               apiKey: geminiApiKey,
               audioBase64,
               audioMimeType,
+              questionContext,
+              browserTranscriptHint: browserTranscriptHint?.transcript,
             });
             transcript = fallback.transcript;
             transcriptionProvider = fallback.provider;
@@ -359,36 +456,21 @@ serve(async (req: Request) => {
 
     let pronunciationData: Record<string, unknown> | null = null;
     let pronunciationError: string | null = null;
-    const pronunciationDuration = Number(pronunciationDurationMs);
-    const shouldAssessPronunciation =
-      !transcriptionFailed &&
-      requestPronunciation === true &&
-      [1, 3].includes(partNumber) &&
-      typeof pronunciationAudioBase64 === 'string' &&
-      pronunciationAudioBase64.length > 0 &&
-      Number.isFinite(pronunciationDuration) &&
-      pronunciationDuration >= MIN_PRONUNCIATION_DURATION_MS &&
-      pronunciationDuration <= MAX_PRONUNCIATION_DURATION_MS;
+    const shouldAssessPronunciation = !transcriptionFailed && pronunciationEligible;
 
     if (shouldAssessPronunciation) {
-      const azureSpeechKey = Deno.env.get('AZURE_SPEECH_KEY') || '';
-      const azureSpeechRegion = Deno.env.get('AZURE_SPEECH_REGION') || '';
-      const azureSpeechEndpoint =
-        Deno.env.get('AZURE_SPEECH_ENDPOINT') ||
-        (azureSpeechRegion ? `https://${azureSpeechRegion}.stt.speech.microsoft.com` : '');
       if (azureSpeechKey && azureSpeechEndpoint) {
-        try {
-          pronunciationData = await assessPronunciationWithAzure({
+        const assessment =
+          (await earlyPronunciationPromise) ||
+          (await runPronunciationAssessment({
             endpoint: azureSpeechEndpoint,
             apiKey: azureSpeechKey,
             wavBase64: pronunciationAudioBase64,
             transcript,
             durationMs: pronunciationDuration,
-          });
-        } catch (error: any) {
-          pronunciationError = error?.message || 'Pronunciation assessment failed';
-          console.warn(pronunciationError);
-        }
+          }));
+        pronunciationData = assessment.data;
+        pronunciationError = assessment.error;
       } else {
         pronunciationError = 'Azure Speech credentials are not configured';
       }
@@ -403,10 +485,9 @@ serve(async (req: Request) => {
           isLastQuestion,
         });
     const normalizedAudioDurationMs = Math.max(0, Number(audioDurationMs) || 0);
-    const transcriptionCostUsd =
-      transcriptionProvider === 'cloudflare'
-        ? (normalizedAudioDurationMs / 60000) * CLOUDFLARE_COST_PER_AUDIO_MINUTE_USD
-        : 0;
+    const transcriptionCostUsd = cloudflareTranscriptionCompleted
+      ? (normalizedAudioDurationMs / 60000) * CLOUDFLARE_COST_PER_AUDIO_MINUTE_USD
+      : 0;
     const pronunciationCostUsd = Number(pronunciationData?.estimatedCostUsd) || 0;
     const estimatedProviderCostUsd = transcriptionCostUsd + pronunciationCostUsd;
 
@@ -421,6 +502,10 @@ serve(async (req: Request) => {
       transcriptionLatencyMs,
       transcriptionCostUsd,
       transcriptionError,
+      transcriptionVerificationReason,
+      transcriptionVerificationCompleted,
+      transcriptionVerificationError,
+      browserTranscriptHintUsed: Boolean(browserTranscriptHint),
       pronunciationRequested: requestPronunciation === true,
       pronunciationCompleted: Boolean(pronunciationData),
       pronunciationProvider: pronunciationData?.provider || null,
@@ -448,6 +533,8 @@ serve(async (req: Request) => {
         processing: {
           transcriptionProvider,
           transcriptionLatencyMs,
+          transcriptionVerificationReason,
+          transcriptionVerificationCompleted,
           pronunciationCompleted: Boolean(pronunciationData),
           estimatedProviderCostUsd,
         },

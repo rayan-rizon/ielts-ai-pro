@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CalendarClock, CalendarDays, Check, ChevronDown, Play } from 'lucide-react';
+import { CalendarClock, CalendarDays, Check, ChevronDown, Play, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -8,7 +8,6 @@ import { format, parseISO, isValid } from 'date-fns';
 import { cn } from '@/lib/cn';
 import {
   DAY_FORMAT,
-  dateKey,
   formatMinutes,
   getDaySummaryMeta,
   getFriendlyPlanText,
@@ -71,6 +70,57 @@ function TaskDetails({ task, canReschedule, onReschedule }) {
   );
 }
 
+function CompletionControl({ task, friendlyTitle, onToggle, size = 'sm' }) {
+  const verified = task.completion_policy === 'verified';
+  const dimensions = size === 'md' ? 'h-9 w-9' : 'h-8 w-8';
+
+  if (verified) {
+    return (
+      <span
+        role="status"
+        aria-label={
+          task.is_completed
+            ? `${friendlyTitle} verified complete`
+            : `${friendlyTitle} completes automatically from your activity result`
+        }
+        title={
+          task.is_completed
+            ? 'Verified from your completed activity'
+            : 'Complete this through the Start button'
+        }
+        className={cn(
+          'flex shrink-0 items-center justify-center rounded-xl border',
+          dimensions,
+          task.is_completed
+            ? 'border-emerald-300 bg-emerald-500/15 text-emerald-600 dark:border-emerald-500/30 dark:text-emerald-400'
+            : 'border-indigo-200 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/30 dark:text-indigo-300'
+        )}
+      >
+        {task.is_completed ? <Check className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(task)}
+      aria-label={
+        task.is_completed ? `Mark ${friendlyTitle} incomplete` : `Mark ${friendlyTitle} complete`
+      }
+      className={cn(
+        'flex shrink-0 items-center justify-center rounded-xl border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
+        dimensions,
+        task.is_completed
+          ? 'border-emerald-300 bg-emerald-500/15 text-emerald-600 dark:border-emerald-500/30 dark:text-emerald-400'
+          : 'border-slate-200 text-slate-400 hover:border-emerald-300 hover:text-emerald-600 dark:border-white/10'
+      )}
+    >
+      <Check className="h-4 w-4" />
+    </button>
+  );
+}
+
 function TaskRow({ task, canReschedule, expanded, onExpand, onToggle, onStart, onReschedule }) {
   const style = getModuleStyle(task.module);
   const Icon = style.icon;
@@ -84,23 +134,12 @@ function TaskRow({ task, canReschedule, expanded, onExpand, onToggle, onStart, o
       )}
     >
       <div className="flex items-center gap-2.5">
-        <button
-          type="button"
-          onClick={() => onToggle(task)}
-          aria-label={
-            task.is_completed
-              ? `Mark ${friendlyTitle} incomplete`
-              : `Mark ${friendlyTitle} complete`
-          }
-          className={cn(
-            'flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
-            task.is_completed
-              ? 'border-emerald-300 bg-emerald-500/15 text-emerald-600 dark:border-emerald-500/30 dark:text-emerald-400'
-              : 'border-slate-200 text-slate-400 hover:border-emerald-300 hover:text-emerald-600 dark:border-white/10'
-          )}
-        >
-          <Check className="h-3.5 w-3.5" />
-        </button>
+        <CompletionControl
+          task={task}
+          friendlyTitle={friendlyTitle}
+          onToggle={onToggle}
+          size="sm"
+        />
         <span
           className={cn(
             'hidden h-8 w-8 shrink-0 items-center justify-center rounded-xl font-bold sm:flex',
@@ -164,16 +203,21 @@ function DayDateBadge({ date, isToday }) {
   return (
     <div
       className={cn(
-        'flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-2xl text-center shadow-sm',
+        'flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-2xl text-center transition-all duration-200',
         isToday
-          ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-[0_4px_14px_-4px_rgba(79,70,229,0.6)]'
-          : 'bg-slate-100 text-slate-700 dark:bg-white/5 dark:text-slate-300'
+          ? 'bg-[#505bdd] text-white shadow-sm'
+          : 'border border-slate-200/60 bg-slate-50/80 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200'
       )}
     >
-      <span className="text-[7px] font-black uppercase tracking-wider opacity-85">
+      <span
+        className={cn(
+          'text-[8px] font-extrabold uppercase tracking-wider',
+          isToday ? 'text-indigo-100' : 'text-slate-400 dark:text-slate-400'
+        )}
+      >
         {DAY_FORMAT.format(date).split(',')[0]}
       </span>
-      <span className="text-base font-black leading-none">{date.getDate()}</span>
+      <span className="mt-0.5 text-base font-black leading-none">{date.getDate()}</span>
     </div>
   );
 }
@@ -222,23 +266,12 @@ function PrimaryTaskActions({ primary, onToggle, onStart }) {
 
   return (
     <div className="flex items-center gap-2">
-      <button
-        type="button"
-        onClick={() => onToggle(primary)}
-        aria-label={
-          primary.is_completed
-            ? `Mark ${friendlyTitle} incomplete`
-            : `Mark ${friendlyTitle} complete`
-        }
-        className={cn(
-          'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
-          primary.is_completed
-            ? 'border-emerald-300 bg-emerald-500/15 text-emerald-600 dark:border-emerald-500/30 dark:text-emerald-400'
-            : 'border-slate-200 text-slate-400 hover:border-emerald-300 hover:text-emerald-600 dark:border-white/10 dark:hover:border-emerald-500/40'
-        )}
-      >
-        <Check className="h-4 w-4" />
-      </button>
+      <CompletionControl
+        task={primary}
+        friendlyTitle={friendlyTitle}
+        onToggle={onToggle}
+        size="md"
+      />
       <button
         type="button"
         onClick={() => onStart(primary)}
@@ -361,16 +394,22 @@ export default function WeekPlan({
 
   return (
     <section
-      className="h-full min-w-0 rounded-3xl border border-indigo-100/90 bg-gradient-to-br from-indigo-50/70 via-slate-50/30 to-white/90 p-5 shadow-lg shadow-indigo-500/10 hover:shadow-xl hover:shadow-indigo-500/15 transition-all duration-300 backdrop-blur md:col-span-2 lg:col-span-1 dark:border-indigo-500/20 dark:from-slate-900 dark:via-indigo-950/30 dark:to-slate-900 sm:p-6"
+      className="relative flex h-full min-w-0 flex-col overflow-hidden rounded-[26px] border border-[#e0e4f1] bg-white shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] transition-all duration-300 backdrop-blur hover:shadow-[0_24px_55px_-38px_rgba(48,58,128,0.85)] md:col-span-2 2xl:col-span-1 dark:border-white/10 dark:bg-[#10131f] p-5 sm:p-6"
       aria-labelledby="week-plan-title"
     >
+      {/* Corner Light Gradient Glow matching Grammar Lab */}
+      <div
+        className="pointer-events-none absolute -top-12 -right-12 h-44 w-44 rounded-full bg-[#dcd8ff]/50 blur-2xl dark:bg-indigo-900/30"
+        aria-hidden="true"
+      />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
-            <CalendarDays className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="text-[10px] font-black uppercase tracking-[0.18em]">
-              This week's plan
-            </span>
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-[#dfe3ff] bg-[#eef0ff] px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-[#505bdd] shadow-2xs dark:border-indigo-500/30 dark:bg-indigo-500/15 dark:text-indigo-300">
+            <CalendarDays
+              className="h-3.5 w-3.5 text-[#505bdd] dark:text-indigo-300"
+              aria-hidden="true"
+            />
+            <span>This week's plan</span>
           </div>
           <h2
             id="week-plan-title"
@@ -378,16 +417,16 @@ export default function WeekPlan({
           >
             Your next 7 days
           </h2>
-          <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+          <p className="mt-1 text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-300">
             See one main task per day. Open a day for the reason and extra practice.
           </p>
         </div>
-        <Badge className="whitespace-nowrap bg-indigo-500/10 text-[9px] font-black text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200">
+        <Badge className="whitespace-nowrap rounded-full border border-indigo-200/60 bg-indigo-50/60 px-3 py-0.5 text-[9px] font-bold text-indigo-600 backdrop-blur-md shadow-2xs dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/25">
           {plannedDays} study {plannedDays === 1 ? 'day' : 'days'}
         </Badge>
       </div>
 
-      <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-md shadow-indigo-500/5 dark:border-white/10 dark:bg-slate-900/90">
+      <div className="mt-5 flex-1 overflow-hidden rounded-2xl border border-[#e0e4f1] bg-white shadow-sm dark:border-white/10 dark:bg-[#10131f]/90">
         {visibleDays.map((day, dayIndex) => (
           <ScheduleDayRow
             key={day.dateKey}
@@ -407,7 +446,7 @@ export default function WeekPlan({
         ))}
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3">
+      <div className="mt-auto pt-4 flex items-center justify-between gap-3">
         <p className="text-[10px] font-medium leading-relaxed text-slate-500 dark:text-slate-400">
           {daysToMove
             ? `${daysToMove} ${daysToMove === 1 ? 'day needs' : 'days need'} moving`
@@ -416,7 +455,7 @@ export default function WeekPlan({
         <button
           type="button"
           onClick={() => setShowFullWeek((value) => !value)}
-          className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-black text-indigo-700 transition-colors hover:bg-indigo-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-indigo-300"
+          className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-extrabold text-[#505bdd] transition-colors hover:bg-[#eef0ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5661e9] dark:text-indigo-300 dark:hover:bg-indigo-500/20"
         >
           {showFullWeek ? 'Show key days' : 'Show all 7 days'}
           <ChevronDown

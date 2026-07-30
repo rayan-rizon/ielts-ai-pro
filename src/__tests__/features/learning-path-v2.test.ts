@@ -10,6 +10,7 @@ import {
   getWeeklyCapacity,
   normalizeStudyAvailability,
   summarizeEvidence,
+  summarizeVocabularyEvidence,
 } from '../../../supabase/functions/_shared/learningPathV2';
 
 const now = new Date('2026-07-22T12:00:00.000Z');
@@ -22,6 +23,26 @@ describe('Learning Path evidence policy', () => {
     expect(classifyEvidence({ practice_count: 5, confidence_level: 0.4 })).toBe(
       'measured_priority'
     );
+  });
+
+  it('adds vocabulary support only from due or sufficiently repeated retention evidence', () => {
+    const items = Array.from({ length: 5 }, (_, index) => ({
+      id: String(index),
+      next_review_date: '2026-07-21T12:00:00.000Z',
+    }));
+    const early = summarizeVocabularyEvidence(
+      items.slice(0, 2),
+      [{ quality: 1, reviewed_at: '2026-07-20T12:00:00.000Z' }],
+      now
+    );
+    const due = summarizeVocabularyEvidence(items, [], now);
+
+    expect(early).toMatchObject({
+      confidence: 'developing',
+      needs_support: false,
+      retention_30d: 0,
+    });
+    expect(due).toMatchObject({ due_count: 5, needs_support: true });
   });
 
   it('ranks only sufficiently observed low-mastery skills as measured priorities', () => {
@@ -77,6 +98,28 @@ describe('practice readiness range', () => {
     expect(readiness.overall.available).toBe(true);
     expect(readiness.overall.range).toEqual([6.5, 7]);
     expect(readiness.overall.disclaimer).toContain('not a score prediction');
+  });
+
+  it('keeps Exam Mode evidence separate and preserves a valid zero score', () => {
+    const readiness = aggregateReadiness(
+      [
+        {
+          ...session('reading', 0, 20),
+          test_mode: 'mock',
+        },
+        {
+          ...session('reading', 6, 18),
+          test_mode: 'practice',
+        },
+      ],
+      now
+    );
+    expect(readiness.modules.reading.mode_counts).toEqual({
+      practice: 1,
+      timed: 0,
+      exam: 1,
+    });
+    expect(readiness.modules.reading.latest_exam_score).toBe(0);
   });
 
   it('ignores scored attempts older than 90 days', () => {

@@ -13,7 +13,10 @@ import {
   toPersistedTestMode,
 } from '@/features/testing/shared/testMode';
 import { useExamDeadline } from '@/features/testing/shared/hooks/useExamDeadline';
-import { getLearningActivityId } from '@/features/testing/shared/activityContext';
+import {
+  getLearningActivityId,
+  getRequestedTestMode,
+} from '@/features/testing/shared/activityContext';
 
 // Modular Hooks
 import { useWritingInitialization } from './useWritingInitialization';
@@ -61,7 +64,7 @@ export function useWritingTaskLogic(passedUser = null) {
   const setShowUpgradeDialog = useWritingTestStore((state) => state.setShowUpgradeDialog);
 
   const [showSample, setShowSample] = useState(false);
-  const [selectedMode, setSelectedMode] = useState('practice');
+  const [selectedMode, setSelectedMode] = useState(() => getRequestedTestMode());
   const [examEligibility, setExamEligibility] = useState({ eligible: false, reason: '' });
   const [isStarting, setIsStarting] = useState(false);
   const modeInitializationKeyRef = useRef(null);

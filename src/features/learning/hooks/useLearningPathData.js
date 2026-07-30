@@ -160,13 +160,18 @@ async function fetchLearningPathData(userId) {
   let { data: activities, error: activitiesError } = await supabase
     .from('learning_path_activities')
     .select(
-      'id, activity_key, scheduled_day, scheduled_date, is_completed, completed_at, outcome_score, outcome_band, outcome_accuracy, completion_source, outcome_data, title, description, module, estimated_minutes, priority, activity_type, skill_targets'
+      'id, activity_key, scheduled_day, scheduled_date, stage_key, completion_policy, requested_mode, evidence_key, is_completed, completed_at, outcome_score, outcome_band, outcome_accuracy, completion_source, outcome_data, title, description, module, estimated_minutes, priority, activity_type, skill_targets'
     )
     .eq('learning_path_id', pathRecord.id);
 
   // Keep the page usable during the schema-first rollout window. Older projects do not yet
   // expose scheduled_date, so retry with the V1 column set and let path_data supply dates.
-  if (activitiesError && /scheduled_date/i.test(activitiesError.message || '')) {
+  if (
+    activitiesError &&
+    /scheduled_date|stage_key|completion_policy|requested_mode|evidence_key/i.test(
+      activitiesError.message || ''
+    )
+  ) {
     const legacyResult = await supabase
       .from('learning_path_activities')
       .select(
@@ -234,7 +239,7 @@ async function fetchAllLearningPathData(userId) {
       ? await supabase
           .from('learning_path_activities')
           .select(
-            'id, activity_key, scheduled_day, scheduled_date, is_completed, completed_at, outcome_score, outcome_band, outcome_accuracy, completion_source, outcome_data, title, description, module, estimated_minutes, priority, activity_type, skill_targets'
+            'id, activity_key, scheduled_day, scheduled_date, stage_key, completion_policy, requested_mode, evidence_key, is_completed, completed_at, outcome_score, outcome_band, outcome_accuracy, completion_source, outcome_data, title, description, module, estimated_minutes, priority, activity_type, skill_targets'
           )
           .eq('learning_path_id', lp.id)
       : { data: [] };
@@ -520,6 +525,10 @@ export function useLearningPathData(isPremium = true) {
         outcome_band: null,
         outcome_accuracy: null,
         completion_source: isCompleted ? 'manual' : null,
+        stage_key: taskObj.stage_key || null,
+        completion_policy: taskObj.completion_policy || 'self_reported',
+        requested_mode: taskObj.requested_mode || taskObj.routing?.mode || null,
+        evidence_key: taskObj.evidence_key || null,
         title: taskObj.title || `Task ${taskIdx + 1}`,
         module: taskObj.module || 'general',
         estimated_minutes: taskObj.estimated_time || 30,

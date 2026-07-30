@@ -84,9 +84,9 @@ describe('connected learner evidence', () => {
       expect(url).toContain(`activityId=${activityId}`);
     }
 
-    expect(withLearningActivity('/speaking-test?test-id=test-1', `?activityId=${activityId}`)).toBe(
-      `/speaking-test?test-id=test-1&activityId=${activityId}`
-    );
+    expect(
+      withLearningActivity('/speaking-test?test-id=test-1', `?activityId=${activityId}&mode=exam`)
+    ).toBe(`/speaking-test?test-id=test-1&activityId=${activityId}&mode=exam`);
     for (const source of speakingCardSources) {
       expect(source).not.toContain('to={`/speaking-test?test-id=${test.id}`}');
       expect(source).not.toContain('to={`/speaking-test?test-id=${test.id}&retake=true`}');

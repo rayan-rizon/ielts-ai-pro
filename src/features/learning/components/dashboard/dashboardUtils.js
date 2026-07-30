@@ -57,6 +57,26 @@ export const MODULE_STYLE = {
     bar: 'bg-gradient-to-r from-amber-500 to-orange-500',
     badge: 'bg-amber-100/80 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200',
   },
+  grammar: {
+    icon: PenLine,
+    label: 'Grammar',
+    color: 'text-violet-700 dark:text-violet-300',
+    surface:
+      'bg-violet-50/90 text-violet-800 border-violet-200/80 dark:bg-violet-500/15 dark:text-violet-300 dark:border-violet-500/30',
+    border: 'border-violet-200/80 dark:border-violet-500/30',
+    bar: 'bg-gradient-to-r from-violet-600 to-purple-500',
+    badge: 'bg-violet-100/80 text-violet-800 dark:bg-violet-500/20 dark:text-violet-200',
+  },
+  vocabulary: {
+    icon: Sprout,
+    label: 'Vocabulary',
+    color: 'text-teal-700 dark:text-teal-300',
+    surface:
+      'bg-teal-50/90 text-teal-800 border-teal-200/80 dark:bg-teal-500/15 dark:text-teal-300 dark:border-teal-500/30',
+    border: 'border-teal-200/80 dark:border-teal-500/30',
+    bar: 'bg-gradient-to-r from-teal-600 to-emerald-500',
+    badge: 'bg-teal-100/80 text-teal-800 dark:bg-teal-500/20 dark:text-teal-200',
+  },
   general: {
     icon: Sparkles,
     label: 'General',
@@ -75,14 +95,16 @@ export const ROADMAP_PRESENTATION = [
     name: 'Starting point',
     shortName: 'Build foundations',
     icon: Sprout,
-    objective: 'Check your starting level and close essential knowledge gaps.',
-    checkpoint: 'Two recent scored practices in every IELTS subject.',
+    objective: 'Establish trustworthy starting scores and close essential knowledge gaps.',
+    checkpoint: 'Starting scores established in at least three subjects using recent practice.',
     checkpointShort: '2 recent scores in every subject',
-    surface: 'bg-[#fcf8ff]/80 border-purple-200/80 dark:bg-purple-950/20 dark:border-purple-500/20',
+    surface:
+      'bg-[linear-gradient(160deg,#ffffff_35%,#faf8ff_100%)] border-purple-200/50 shadow-[0_4px_20px_-10px_rgba(168,85,247,0.08)] dark:bg-none dark:bg-purple-950/15 dark:border-purple-500/20',
     nodeStyle:
-      'bg-purple-100/90 border-2 border-purple-300 text-purple-600 dark:bg-purple-950 dark:border-purple-700 dark:text-purple-300 shadow-[0_4px_14px_rgba(168,85,247,0.2)]',
-    bar: 'bg-gradient-to-r from-purple-600 to-indigo-600',
-    phaseBadge: 'bg-purple-100/90 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
+      'bg-purple-50/90 border border-purple-200/80 text-purple-600 dark:bg-purple-950/80 dark:border-purple-800/80 dark:text-purple-300 shadow-2xs',
+    bar: 'bg-purple-600',
+    phaseBadge:
+      'bg-[#f0f2fe] text-[#505bdd] border border-[#dce0fa] dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30',
     bullets: ['Understand test format', 'Build core vocabulary', 'Develop basic strategies'],
   },
   {
@@ -93,11 +115,13 @@ export const ROADMAP_PRESENTATION = [
     objective: 'Improve the skills that recent answers confirm need attention.',
     checkpoint: 'Focus skills reach 70%+ across 20 new answers.',
     checkpointShort: '70%+ across 20 new answers',
-    surface: 'bg-[#f4f9ff]/80 border-blue-200/80 dark:bg-blue-950/20 dark:border-blue-500/20',
+    surface:
+      'bg-[linear-gradient(160deg,#ffffff_35%,#f5f8ff_100%)] border-indigo-200/60 shadow-[0_4px_20px_-10px_rgba(79,70,229,0.08)] dark:bg-none dark:bg-indigo-950/15 dark:border-indigo-500/20',
     nodeStyle:
-      'bg-blue-100/90 border-2 border-blue-300 text-blue-600 dark:bg-blue-950 dark:border-blue-700 dark:text-blue-300 shadow-[0_4px_14px_rgba(59,130,246,0.2)]',
-    bar: 'bg-gradient-to-r from-blue-600 to-cyan-500',
-    phaseBadge: 'bg-blue-100/90 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
+      'bg-blue-50/90 border border-blue-200/80 text-blue-600 dark:bg-blue-950/80 dark:border-blue-800/80 dark:text-blue-300 shadow-2xs',
+    bar: 'bg-[#505bdd]',
+    phaseBadge:
+      'bg-[#f0f2fe] text-[#505bdd] border border-[#dce0fa] dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30',
     bullets: ['Improve accuracy', 'Expand ideas & examples', 'Practice under timed conditions'],
   },
   {
@@ -108,11 +132,13 @@ export const ROADMAP_PRESENTATION = [
     objective: 'Combine skills in timed sections and review errors.',
     checkpoint: 'Two timed modules completed within official time limits.',
     checkpointShort: '2 modules within official time limits',
-    surface: 'bg-[#fffdf5]/80 border-amber-200/80 dark:bg-amber-950/20 dark:border-amber-500/20',
+    surface:
+      'bg-[linear-gradient(160deg,#ffffff_35%,#fffdf5_100%)] border-amber-200/50 shadow-[0_4px_20px_-10px_rgba(245,158,11,0.08)] dark:bg-none dark:bg-amber-950/15 dark:border-amber-500/20',
     nodeStyle:
-      'bg-amber-100/90 border-2 border-amber-300 text-amber-600 dark:bg-amber-950 dark:border-amber-700 dark:text-amber-300 shadow-[0_4px_14px_rgba(245,158,11,0.2)]',
-    bar: 'bg-gradient-to-r from-amber-500 to-orange-500',
-    phaseBadge: 'bg-amber-100/90 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
+      'bg-amber-50/90 border border-amber-200/80 text-amber-600 dark:bg-amber-950/80 dark:border-amber-800/80 dark:text-amber-300 shadow-2xs',
+    bar: 'bg-amber-500',
+    phaseBadge:
+      'bg-[#f0f2fe] text-[#505bdd] border border-[#dce0fa] dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30',
     bullets: ['Higher-level strategies', 'Strengthen weak areas', 'Increase speed & accuracy'],
   },
   {
@@ -120,14 +146,16 @@ export const ROADMAP_PRESENTATION = [
     name: 'Mock & test readiness',
     shortName: 'Get exam ready',
     icon: Flag,
-    objective: 'Use full mocks to confirm pacing and score stability.',
-    checkpoint: 'A recent mock reaches your target in all four subjects.',
-    checkpointShort: 'Recent mock scores at target in all subjects',
-    surface: 'bg-[#fff5f7]/80 border-rose-200/80 dark:bg-rose-950/20 dark:border-rose-500/20',
+    objective: 'Use verified Exam Mode attempts to confirm pacing and score stability.',
+    checkpoint: 'A recent Exam Mode score reaches your target in all four subjects.',
+    checkpointShort: 'Exam Mode scores at target in all subjects',
+    surface:
+      'bg-[linear-gradient(160deg,#ffffff_35%,#fff5f7_100%)] border-rose-200/50 shadow-[0_4px_20px_-10px_rgba(244,63,94,0.08)] dark:bg-none dark:bg-rose-950/15 dark:border-rose-500/20',
     nodeStyle:
-      'bg-rose-100/90 border-2 border-rose-300 text-rose-600 dark:bg-rose-950 dark:border-rose-700 dark:text-rose-300 shadow-[0_4px_14px_rgba(244,63,94,0.2)]',
-    bar: 'bg-gradient-to-r from-rose-500 to-pink-500',
-    phaseBadge: 'bg-rose-100/90 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300',
+      'bg-rose-50/90 border border-rose-200/80 text-rose-600 dark:bg-rose-950/80 dark:border-rose-800/80 dark:text-rose-300 shadow-2xs',
+    bar: 'bg-rose-500',
+    phaseBadge:
+      'bg-[#f0f2fe] text-[#505bdd] border border-[#dce0fa] dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30',
     bullets: ['Full-length simulations', 'Score consistency', 'Exam-day confidence'],
   },
 ];
@@ -311,6 +339,7 @@ export function rankBestNextTask(days = [], context = {}) {
         const estimated = Number(task.estimated_time || task.estimated_minutes || 30);
         const capacity = Number(task.day?.capacity || 0);
         const score =
+          (Number.isFinite(Number(task.ai_rank)) ? Math.max(0, 45 - Number(task.ai_rank) * 3) : 0) +
           (task.priority === 'high' ? 50 : task.priority === 'medium' ? 25 : 5) +
           targetGap * 10 +
           (skills.some((skill) => due.has(skill)) ? 35 : 0) +
@@ -410,27 +439,32 @@ export function computeSevenDays(path, activityByKey = {}, availability = {}) {
     date.setDate(date.getDate() + offset);
     const scheduledDate = dateKey(date);
     const dayName = STUDY_DAYS[(date.getDay() + 6) % 7];
-    const dayTasks = Array.isArray(schedule)
-      ? schedule.filter((task) => task?.scheduled_date === scheduledDate)
-      : schedule?.[dayName] || [];
-    const tasks = dayTasks
-      .filter(
-        (task) =>
-          !task?.scheduled_date || String(task.scheduled_date).slice(0, 10) === scheduledDate
-      )
+    const allPlanTasks = Array.isArray(schedule)
+      ? schedule
+      : Object.values(schedule || {}).flatMap((tasks) => (Array.isArray(tasks) ? tasks : []));
+    const knownKeys = new Set(allPlanTasks.map((task) => task?.activity_key).filter(Boolean));
+    const allTasks = [
+      ...allPlanTasks,
+      ...Object.values(activityByKey || {}).filter(
+        (activity) => activity?.activity_key && !knownKeys.has(activity.activity_key)
+      ),
+    ];
+    const tasks = allTasks
       .map((task) => {
         const activity = activityByKey?.[task.activity_key] || {};
-        return {
+        const merged = {
           ...task,
           ...activity,
-          activity_key: task.activity_key,
+          activity_key: task.activity_key || activity.activity_key,
           scheduled_day: activity.scheduled_day || task.scheduled_day || dayName,
           scheduled_date: activity.scheduled_date || task.scheduled_date || scheduledDate,
           estimated_time:
             activity.estimated_minutes || task.estimated_time || task.estimated_minutes || 0,
-          is_completed: Boolean(activity.is_completed),
+          is_completed: Boolean(activity.is_completed ?? task.is_completed),
         };
+        return merged;
       })
+      .filter((task) => String(task.scheduled_date || '').slice(0, 10) === scheduledDate)
       .sort((first, second) => Number(first.is_optional) - Number(second.is_optional));
 
     return {
@@ -492,11 +526,11 @@ export function getPhaseStatus({
 }) {
   if (dateState === 'completed') return 'Completed';
   if (dateState === 'current') return 'In Progress';
-  if (dateState === 'upcoming') return 'Locked';
+  if (dateState === 'upcoming') return 'Upcoming';
   if (isPhaseInProgress(index, actual, isLegacyPlan)) return 'In Progress';
   if (isPhaseCondensed(index, actual, isLegacyPlan, firstIncludedIndex)) return 'Condensed';
   if (index < displayCurrentIndex) return 'Completed';
-  return 'Locked';
+  return 'Planned';
 }
 
 const parseRoadmapDate = (value) => {
@@ -590,9 +624,12 @@ const formatRoadmapRange = (phase) => {
 
 const PHASE_TASK_MATCHERS = {
   foundation: (type, title) => type === 'diagnostic' || title.includes('diagnostic'),
-  repair: (type) => ['targeted_drill', 'spaced_review'].includes(type),
-  integration: (type, title) => type === 'timed_assessment' || title.includes('timed'),
-  readiness: (type, title) => type === 'mock' || title.includes('mock'),
+  repair: (type) =>
+    ['targeted_drill', 'spaced_review', 'grammar_transfer', 'vocabulary_review'].includes(type),
+  integration: (type, title) =>
+    type === 'timed_assessment' || (title.includes('timed') && type !== 'exam_assessment'),
+  readiness: (type, title) =>
+    ['mock', 'exam_assessment'].includes(type) || title.includes('exam mode'),
 };
 
 const taskMatchesPhase = (task, phaseKey) => {
@@ -697,9 +734,23 @@ function buildRepairPhase(evidence = {}) {
   };
 }
 
+const VERIFIED_COMPLETION_SOURCES = new Set([
+  'test_session',
+  'grammar_attempt',
+  'transfer',
+  'vocabulary_review',
+]);
+
+const isVerifiedCompletion = (task) =>
+  Boolean(
+    task?.is_completed &&
+    (VERIFIED_COMPLETION_SOURCES.has(String(task?.completion_source || '').toLowerCase()) ||
+      task?.outcome_data?.verified === true)
+  );
+
 function buildIntegrationPhase(tasks) {
   const timedTasks = tasks.filter((task) => taskMatchesPhase(task, 'integration'));
-  const completed = timedTasks.filter((task) => task.is_completed).length;
+  const completed = timedTasks.filter(isVerifiedCompletion).length;
   return {
     progressPercent: clampPercent((completed / Math.max(2, timedTasks.length || 2)) * 100),
     progressLabel: timedTasks.length
@@ -718,37 +769,38 @@ function buildIntegrationPhase(tasks) {
   };
 }
 
-const getMockChecklistLabel = (hasMock) =>
-  hasMock ? 'Full mock added to your plan' : 'Schedule a full mock';
+const getMockChecklistLabel = (hasExamTask) =>
+  hasExamTask ? 'Exam Mode check added to your plan' : 'Schedule an Exam Mode check';
 
-const getScoreTargetChecklistLabel = (completedMocks, targetScore) =>
-  completedMocks
-    ? `Recent subject scores reach Band ${targetScore.toFixed(1)}`
-    : 'Complete one full mock';
+const getScoreTargetChecklistLabel = (completedExamModules, targetScore) =>
+  completedExamModules
+    ? `Verified Exam Mode scores reach Band ${targetScore.toFixed(1)}`
+    : 'Complete one Exam Mode attempt';
 
 function buildReadinessPhase(readiness = {}, targetBand = 7, tasks = []) {
   const moduleItems = Object.values(readiness.modules || {});
   const measured = moduleItems.filter(hasEnoughModuleEvidence);
   const targetScore = Number(targetBand || 7);
-  const atTarget = measured.filter((item) => Number(item?.median || 0) >= targetScore);
-  const hasOverallRange = Boolean(readiness.overall?.available && readiness.overall?.range);
-  const mockTasks = tasks.filter((task) => taskMatchesPhase(task, 'readiness'));
-  const completedMocks = mockTasks.filter((task) => task.is_completed).length;
-
-  const count = hasOverallRange ? atTarget.length : measured.length;
-  const labelText = hasOverallRange
-    ? `${atTarget.length} of 4 recent subject scores at target`
-    : `${measured.length} of 4 subjects ready for comparison`;
+  const examReadyModules = moduleItems.filter(
+    (item) =>
+      Number(item?.mode_counts?.exam || 0) > 0 &&
+      Number.isFinite(Number(item?.latest_exam_score)) &&
+      Number(item.latest_exam_score) >= targetScore
+  );
+  const examTasks = tasks.filter((task) => taskMatchesPhase(task, 'readiness'));
+  const completedExamTasks = examTasks.filter(isVerifiedCompletion).length;
+  const count = examReadyModules.length;
+  const labelText = `${examReadyModules.length} of 4 Exam Mode scores at target`;
 
   return {
     progressPercent: clampPercent((count / 4) * 100),
     progressLabel: labelText,
     checklist: [
       { label: 'Recent scores ready in all 4 subjects', done: measured.length === 4 },
-      { label: getMockChecklistLabel(mockTasks.length > 0), done: mockTasks.length > 0 },
+      { label: getMockChecklistLabel(examTasks.length > 0), done: examTasks.length > 0 },
       {
-        label: getScoreTargetChecklistLabel(completedMocks, targetScore),
-        done: completedMocks > 0,
+        label: getScoreTargetChecklistLabel(examReadyModules.length, targetScore),
+        done: completedExamTasks > 0 && examReadyModules.length > 0,
       },
     ],
   };
@@ -807,10 +859,26 @@ export function buildRoadmapViewModel({
     targetBand,
   });
 
-  return computed.map((phase) => {
+  const merged = computed.map((phase) => {
     const data = derived.find((d) => d.key === phase.key) || {};
     return { ...phase, ...data };
   });
+  const currentIndex = Math.max(
+    0,
+    merged.findIndex((phase) => Number(phase.progressPercent || 0) < 100)
+  );
+
+  return merged.map((phase, index) => ({
+    ...phase,
+    status:
+      Number(phase.progressPercent || 0) >= 100
+        ? 'Completed'
+        : index === currentIndex
+          ? 'In Progress'
+          : index === currentIndex + 1
+            ? 'Upcoming'
+            : 'Planned',
+  }));
 }
 
 export function getSnapshotReadiness(rawReadiness, sessions) {

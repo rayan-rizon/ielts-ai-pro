@@ -262,7 +262,10 @@ export default function Layout({ children, currentPageName }) {
               {/* Minimal floating toggle for mobile (Hidden on test pages to avoid header overlap) */}
               {!isTestPage && (
                 <div
-                  className="md:hidden absolute top-4 left-4 z-50 flex items-center gap-2 pointer-events-none"
+                  className={cn(
+                    'pointer-events-none absolute top-4 z-50 flex items-center gap-2 md:hidden',
+                    location.pathname === '/learning-path' ? 'right-4' : 'left-4'
+                  )}
                   data-oid="9gb208j"
                 >
                   <div className="pointer-events-auto bg-background/60 backdrop-blur-md border border-border shadow-sm rounded-xl p-1">

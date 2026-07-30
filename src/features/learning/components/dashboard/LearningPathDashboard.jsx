@@ -99,7 +99,7 @@ export default function LearningPathDashboard(props) {
         onStart={startTask}
       />
 
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-stretch gap-5 md:grid-cols-2 lg:grid-cols-[1.08fr_1fr_0.86fr]">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-stretch gap-5 md:grid-cols-2 2xl:grid-cols-[1.08fr_1fr_0.9fr]">
         <WeekPlan
           days={sevenDays}
           canReschedule={path?.version === 2}
@@ -119,14 +119,21 @@ export default function LearningPathDashboard(props) {
         />
       </div>
 
-      <ReadinessPanel readiness={readiness} days={sevenDays} onStart={startTask} />
+      <div className="grid min-w-0 grid-cols-1 items-stretch gap-5 lg:grid-cols-2">
+        <PlanSignalsCard
+          trigger={path?.generation_trigger}
+          changeReason={path?.why_plan_changed}
+          checkpoint={path?.next_checkpoint}
+          readiness={readiness}
+          nextTask={primaryTask}
+          onStart={startTask}
+          onCustomize={() => setCustomizeOpen(true)}
+          planUpdateAvailable={planUpdateAvailable}
+          refreshing={refreshing}
+        />
 
-      <PlanSignalsCard
-        trigger={path?.generation_trigger}
-        changeReason={path?.why_plan_changed}
-        checkpoint={path?.next_checkpoint}
-        readiness={readiness}
-      />
+        <ReadinessPanel readiness={readiness} days={sevenDays} onStart={startTask} />
+      </div>
 
       <CoachBanner
         isLegacyPlan={isLegacyPlan}

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
 import {
   buildCueCardTopic,
@@ -7,94 +7,40 @@ import {
   PART_TWO_PREP_MESSAGE,
 } from '../utils/speakingTestUtils';
 
-export default function useMoveToNextSpeakingPart({
-  allParts,
-  allPartsConversation,
-  conversation,
-  currentPartNumber,
-  requestFinalEvaluation,
-  saveSessionProgress,
-  session,
-  setAllPartsConversation,
-  setConversation,
-  setCueCardTopic,
-  setCurrentPartNumber,
-  setCurrentQuestionIndex,
-  setIsPart2Prep,
-  setIsPartComplete,
-  setPrepTimeLeft,
-  setTimeLeft,
-  speakText,
-  timerExpiredRef,
-}) {
-  return useCallback(async () => {
-    const currentConversation = conversation.filter((entry) => !entry.isLoading);
-    const nextAllPartsConversation = {
-      ...allPartsConversation,
-      [currentPartNumber]: currentConversation,
-    };
+export default function useMoveToNextSpeakingPart(options) {
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+  return useCallback(() => moveToNextSpeakingPart(optionsRef.current), []);
+}
 
-    setAllPartsConversation(nextAllPartsConversation);
+async function moveToNextSpeakingPart(context) {
+  const currentConversation = context.conversation.filter((entry) => !entry.isLoading);
+  const nextAllPartsConversation = {
+    ...context.allPartsConversation,
+    [context.currentPartNumber]: currentConversation,
+  };
+  context.setAllPartsConversation(nextAllPartsConversation);
 
-    const nextPartNumber = currentPartNumber + 1;
-    const nextPart = allParts[nextPartNumber];
+  const nextPartNumber = context.currentPartNumber + 1;
+  const nextPart = context.allParts[nextPartNumber];
+  if (!nextPart) {
+    await context.requestFinalEvaluation(nextAllPartsConversation);
+    return;
+  }
 
-    if (!nextPart) {
-      await requestFinalEvaluation(nextAllPartsConversation);
-      return;
-    }
-
-    resetPartState({
-      nextPart,
-      nextPartNumber,
-      setCurrentPartNumber,
-      setCurrentQuestionIndex,
-      setIsPartComplete,
-      setTimeLeft,
-      timerExpiredRef,
-    });
-
-    if (nextPartNumber === 2) {
-      startPartTwoPreparation({
-        currentConversation,
-        currentPartNumber,
-        nextAllPartsConversation,
-        nextPart,
-        nextPartNumber,
-        saveSessionProgress,
-        session,
-        setConversation,
-        setCueCardTopic,
-        setIsPart2Prep,
-        setPrepTimeLeft,
-        speakText,
-      });
-      return;
-    }
-
-    startDiscussionPart({
-      currentConversation,
-      currentPartNumber,
-      nextAllPartsConversation,
-      nextPart,
-      nextPartNumber,
-      saveSessionProgress,
-      session,
-      setConversation,
-      setCurrentQuestionIndex,
-      speakText,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    currentPartNumber,
-    conversation,
-    allPartsConversation,
-    allParts,
-    speakText,
-    saveSessionProgress,
-    requestFinalEvaluation,
-    session?.content_data,
-  ]);
+  resetPartState({ ...context, nextPart, nextPartNumber });
+  const transitionContext = {
+    ...context,
+    currentConversation,
+    nextAllPartsConversation,
+    nextPart,
+    nextPartNumber,
+  };
+  if (nextPartNumber === 2) {
+    startPartTwoPreparation(transitionContext);
+    return;
+  }
+  startDiscussionPart(transitionContext);
 }
 
 function resetPartState({
@@ -158,25 +104,23 @@ function startDiscussionPart({
   nextAllPartsConversation,
   nextPart,
   nextPartNumber,
+  requestAutoStart,
   saveSessionProgress,
   session,
   setConversation,
   setCurrentQuestionIndex,
   speakText,
 }) {
-  const message = `Excellent! Now let's move on to Part ${nextPartNumber}: "${nextPart.title}". Take a moment to prepare, then click the microphone when you're ready.`;
-  const messagePromise = speakText(message);
-  setConversation([{ speaker: 'ai', text: message }]);
+  const message = `Excellent! Now let's move on to Part ${nextPartNumber}: "${nextPart.title}". Listen to the question, then your microphone will start automatically.`;
 
   const questionLines = getQuestionLines(nextPart.questions);
   const firstQuestion = questionLines.length > 0 ? formatIeltsQuestion(questionLines[0]) : null;
-  if (questionLines.length > 0) {
-    messagePromise.then(() => {
-      setConversation((prev) => [...prev, { speaker: 'ai', text: firstQuestion }]);
-      speakText(firstQuestion);
-      setCurrentQuestionIndex(0);
-    });
-  }
+  setConversation([
+    { speaker: 'ai', text: message },
+    ...(firstQuestion ? [{ speaker: 'ai', text: firstQuestion }] : []),
+  ]);
+  setCurrentQuestionIndex(0);
+  void speakDiscussionStart({ firstQuestion, message, requestAutoStart, speakText });
 
   saveNextPartProgress({
     currentConversation,
@@ -195,6 +139,12 @@ function startDiscussionPart({
       cueCardTopic: null,
     },
   });
+}
+
+async function speakDiscussionStart({ firstQuestion, message, requestAutoStart, speakText }) {
+  await speakText(message);
+  if (firstQuestion) await speakText(firstQuestion);
+  requestAutoStart?.();
 }
 
 function saveNextPartProgress({

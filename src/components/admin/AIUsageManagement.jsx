@@ -1,9 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Cpu, RefreshCw } from 'lucide-react';
+import { Cpu, RefreshCw, CalendarDays } from 'lucide-react';
 import { AIApiUsage } from '@/entities';
 import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 import AIUsageStatsCards from './ai-usage/AIUsageStatsCards';
 import AIUsageCharts from './ai-usage/AIUsageCharts';
@@ -26,13 +33,17 @@ const AIUsageManagement = () => {
   });
   const [dailyStats, setDailyStats] = useState([]);
   const [endpointStats, setEndpointStats] = useState([]);
+  const [dateRange, setDateRange] = useState(30);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
   const [sortField, setSortField] = useState('totalCalls');
   const [sortDirection, setSortDirection] = useState('desc');
 
-  const fetchUserStats = async () => {
+  const fetchUserStats = async ({ isManualRefresh = false } = {}) => {
     try {
-      setLoading(true);
+      if (isManualRefresh) setRefreshing(true);
+      else setLoading(true);
 
       const [paginatedUsers, aggTotals] = await Promise.all([
         AIApiUsage.getUserStatsPaginated({
@@ -52,9 +63,14 @@ const AIUsageManagement = () => {
           avatar_url: u.avatar_url,
         },
         totalCalls: u.total_calls,
+        completedCalls: u.completed_calls,
+        pendingCalls: u.pending_calls,
+        failedCalls: u.failed_calls,
         cachedCalls: u.cached_calls,
         totalTokens: u.total_tokens,
-        cost: u.estimated_cost,
+        trackedProviderCost: u.tracked_provider_cost,
+        unpricedCompletedCalls: u.unpriced_completed_calls,
+        hasLifecycleTelemetry: typeof u.completed_calls !== 'undefined',
         endpoints: u.endpoints || {},
         lastActivity: u.last_activity,
       }));
@@ -64,26 +80,28 @@ const AIUsageManagement = () => {
       setTotalPages(Math.ceil((paginatedUsers.total || 0) / pageSize));
 
       setTotals(aggTotals || {});
+      setLastUpdatedAt(new Date());
     } catch (error) {
       console.error('Error fetching user stats:', error);
       toast.error('Failed to load user statistics');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const fetchChartStats = async () => {
+  const fetchChartStats = useCallback(async () => {
     try {
       const [daily, endpoints] = await Promise.all([
-        AIApiUsage.getDailyStats(30).catch(() => []),
-        AIApiUsage.getEndpointStats().catch(() => []),
+        AIApiUsage.getDailyStats(dateRange).catch(() => []),
+        AIApiUsage.getEndpointStats(dateRange).catch(() => []),
       ]);
       setDailyStats(daily || []);
       setEndpointStats(endpoints || []);
     } catch (error) {
       console.error('Error fetching chart stats:', error);
     }
-  };
+  }, [dateRange]);
 
   useEffect(() => {
     fetchUserStats();
@@ -92,7 +110,7 @@ const AIUsageManagement = () => {
 
   useEffect(() => {
     fetchChartStats();
-  }, []);
+  }, [fetchChartStats]);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -124,7 +142,7 @@ const AIUsageManagement = () => {
       className="space-y-6 pb-10"
     >
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-1">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 pb-1">
         <motion.div variants={itemVariants} className="space-y-0.5">
           <h2 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5">
             <div className="p-2.5 bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-400 rounded-xl border border-violet-200/50 dark:border-violet-800/50 shadow-2xs">
@@ -133,22 +151,44 @@ const AIUsageManagement = () => {
             <span>AI Usage Analytics</span>
           </h2>
           <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
-            Monitor real-time AI API consumption, token quotas, cache efficiency, and costs per
-            candidate
+            Operational view of AI request delivery, token volume, cache efficiency, and recorded
+            provider spend.
+          </p>
+          <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+            {lastUpdatedAt
+              ? `Last refreshed ${lastUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+              : 'Loading the latest usage records'}
           </p>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
+        <motion.div variants={itemVariants} className="flex items-center gap-2 w-full xl:w-auto">
+          <Select value={String(dateRange)} onValueChange={(value) => setDateRange(Number(value))}>
+            <SelectTrigger
+              aria-label="Chart time range"
+              className="h-9 w-[130px] rounded-xl border-slate-200/90 bg-white text-xs font-bold text-slate-700 shadow-2xs dark:border-white/10 dark:bg-slate-900 dark:text-slate-200"
+            >
+              <CalendarDays className="mr-1.5 h-3.5 w-3.5 text-violet-500" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Last 7 days</SelectItem>
+              <SelectItem value="30">Last 30 days</SelectItem>
+              <SelectItem value="90">Last 90 days</SelectItem>
+            </SelectContent>
+          </Select>
           <Button
             onClick={() => {
-              fetchUserStats();
+              fetchUserStats({ isManualRefresh: true });
               fetchChartStats();
             }}
+            disabled={refreshing}
             variant="outline"
             className="h-9 px-3.5 font-extrabold text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 shadow-2xs rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-2"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-violet-500" />
-            <span>Refresh Data</span>
+            <RefreshCw
+              className={`w-3.5 h-3.5 text-violet-500 ${refreshing ? 'animate-spin' : ''}`}
+            />
+            <span>{refreshing ? 'Refreshing' : 'Refresh'}</span>
           </Button>
         </motion.div>
       </div>
@@ -159,6 +199,7 @@ const AIUsageManagement = () => {
         dailyStats={dailyStats}
         endpointStats={endpointStats}
         itemVariants={itemVariants}
+        dateRange={dateRange}
       />
 
       <AIUsageTable
