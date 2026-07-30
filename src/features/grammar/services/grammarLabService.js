@@ -13,28 +13,83 @@ function unwrapRpc(data, error) {
 }
 
 export async function getGrammarDashboard() {
-  const [dashboardResult, resourcesResult] = await Promise.all([
-    supabase.rpc('get_grammar_dashboard'),
-    supabase
-      .from('grammar_resources')
-      .select(
-        'id, slug, skill_code, title, summary, content_markdown, estimated_minutes, content_version'
-      )
-      .eq('publication_status', 'published')
-      .order('content_version', { ascending: false }),
-  ]);
+  const [dashboardResult, resourcesResult, guideProgressResult, completedPracticeResult] =
+    await Promise.all([
+      supabase.rpc('get_grammar_dashboard'),
+      supabase
+        .from('grammar_resources')
+        .select(
+          'id, slug, skill_code, title, summary, content_markdown, estimated_minutes, content_version'
+        )
+        .eq('publication_status', 'published')
+        .order('content_version', { ascending: false }),
+      supabase.from('grammar_guide_progress').select('guide_slug, completed_at'),
+      supabase
+        .from('grammar_attempts')
+        .select('target_skills')
+        .eq('mode', 'practice')
+        .eq('completion_state', 'completed'),
+    ]);
 
   const dashboard = unwrapRpc(dashboardResult.data, dashboardResult.error) || {};
+  const guideProgress = guideProgressResult.error
+    ? []
+    : (guideProgressResult.data || []).map((item) => item.guide_slug);
+  if (guideProgressResult.error && guideProgressResult.error.code !== '42P01') {
+    console.warn('Grammar guide completion could not be loaded:', guideProgressResult.error);
+  }
+  if (completedPracticeResult.error) {
+    console.warn('Completed Grammar practices could not be loaded:', completedPracticeResult.error);
+  }
+  const completedPracticeSkillSets = (completedPracticeResult.data || []).map(
+    (attempt) => attempt.target_skills || []
+  );
   if (resourcesResult.error) {
     console.warn('Grammar guides could not be loaded:', resourcesResult.error);
-    return { ...dashboard, resources: [], resourcesUnavailable: true };
+    return {
+      ...dashboard,
+      resources: [],
+      resourcesUnavailable: true,
+      completedGuideSlugs: guideProgress,
+      completedPracticeSkillSets,
+    };
   }
 
   const latestBySlug = new Map();
   (resourcesResult.data || []).forEach((resource) => {
     if (!latestBySlug.has(resource.slug)) latestBySlug.set(resource.slug, resource);
   });
-  return { ...dashboard, resources: Array.from(latestBySlug.values()) };
+  return {
+    ...dashboard,
+    resources: Array.from(latestBySlug.values()),
+    completedGuideSlugs: guideProgress,
+    completedPracticeSkillSets,
+  };
+}
+
+export async function setGrammarGuideCompletion({ userId, guideSlug, completed }) {
+  if (!userId || !guideSlug) throw new Error('Choose a guide before updating its completion.');
+
+  if (!completed) {
+    const { error } = await supabase
+      .from('grammar_guide_progress')
+      .delete()
+      .eq('user_id', userId)
+      .eq('guide_slug', guideSlug);
+    if (error) throw error;
+    return { guideSlug, completed: false };
+  }
+
+  const { error } = await supabase.from('grammar_guide_progress').upsert(
+    {
+      user_id: userId,
+      guide_slug: guideSlug,
+      completed_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id,guide_slug' }
+  );
+  if (error) throw error;
+  return { guideSlug, completed: true };
 }
 
 export async function startGrammarAttempt({

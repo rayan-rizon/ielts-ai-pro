@@ -248,6 +248,11 @@ export default function GrammarLab() {
               resource={selectedGuide}
               user={grammar.user}
               isStarting={grammar.isStarting}
+              isCompleted={grammar.dashboard?.completedGuideSlugs?.includes(selectedGuide?.slug)}
+              isUpdatingCompletion={grammar.isUpdatingGuideCompletion}
+              onSetCompletion={(completed) =>
+                grammar.setGuideCompletion({ guideSlug: selectedGuide?.slug, completed })
+              }
               onBack={showDashboard}
               onPractice={(skillCode) =>
                 startAttempt({

@@ -289,14 +289,8 @@ const AnnotationSummary = ({ annotations, filters, onFilterToggle }) => {
   }, [annotations]);
 
   return (
-    <div
-      className="flex flex-wrap items-center gap-2.5 px-3 py-2 bg-white dark:bg-[#0D0E1A] rounded-xl border border-slate-100 dark:border-white/5 shadow-sm mb-3"
-      data-oid="lv6bt79"
-    >
-      <span
-        className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1"
-        data-oid="22od5e0"
-      >
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-wider mr-0.5">
         Filters:
       </span>
 
@@ -304,19 +298,17 @@ const AnnotationSummary = ({ annotations, filters, onFilterToggle }) => {
         <button
           onClick={() => onFilterToggle('error')}
           className={cn(
-            'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all border',
+            'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border shadow-2xs',
             filters.includes('error')
-              ? 'bg-rose-50 border-rose-200 text-rose-600 dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-400'
-              : 'bg-transparent border-transparent text-slate-500 hover:bg-rose-50 hover:text-rose-500'
+              ? 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-500/20 dark:border-rose-500/40 dark:text-rose-200'
+              : 'bg-slate-100/70 border-slate-200/60 text-slate-700 hover:text-rose-700 dark:bg-white/5 dark:border-white/10 dark:text-slate-300'
           )}
-          data-oid="b_4vpa1"
         >
           <div
             className={cn(
-              'w-2 h-2 rounded-full',
-              filters.includes('error') ? 'bg-rose-500' : 'bg-slate-300'
+              'w-1.5 h-1.5 rounded-full',
+              filters.includes('error') ? 'bg-rose-600' : 'bg-slate-400 dark:bg-slate-500'
             )}
-            data-oid="wp7skdr"
           />
           {counts.error} Errors
         </button>
@@ -326,19 +318,17 @@ const AnnotationSummary = ({ annotations, filters, onFilterToggle }) => {
         <button
           onClick={() => onFilterToggle('warning')}
           className={cn(
-            'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all border',
+            'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border shadow-2xs',
             filters.includes('warning')
-              ? 'bg-orange-50 border-orange-200 text-orange-600 dark:bg-orange-500/10 dark:border-orange-500/30 dark:text-orange-400'
-              : 'bg-transparent border-transparent text-slate-500 hover:bg-orange-50 hover:text-orange-500'
+              ? 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-500/20 dark:border-amber-500/40 dark:text-amber-200'
+              : 'bg-slate-100/70 border-slate-200/60 text-slate-700 hover:text-amber-700 dark:bg-white/5 dark:border-white/10 dark:text-slate-300'
           )}
-          data-oid="-xq3v38"
         >
           <div
             className={cn(
-              'w-2 h-2 rounded-full',
-              filters.includes('warning') ? 'bg-orange-500' : 'bg-slate-300'
+              'w-1.5 h-1.5 rounded-full',
+              filters.includes('warning') ? 'bg-amber-600' : 'bg-slate-400 dark:bg-slate-500'
             )}
-            data-oid="oxp_u0:"
           />
           {counts.warning} Warnings
         </button>
@@ -348,19 +338,17 @@ const AnnotationSummary = ({ annotations, filters, onFilterToggle }) => {
         <button
           onClick={() => onFilterToggle('suggestion')}
           className={cn(
-            'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all border',
+            'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border shadow-2xs',
             filters.includes('suggestion')
-              ? 'bg-sky-50 border-sky-200 text-sky-600 dark:bg-sky-500/10 dark:border-sky-500/30 dark:text-sky-400'
-              : 'bg-transparent border-transparent text-slate-500 hover:bg-sky-50 hover:text-sky-500'
+              ? 'bg-sky-50 border-sky-200 text-sky-800 dark:bg-sky-500/20 dark:border-sky-500/40 dark:text-sky-200'
+              : 'bg-slate-100/70 border-slate-200/60 text-slate-700 hover:text-sky-700 dark:bg-white/5 dark:border-white/10 dark:text-slate-300'
           )}
-          data-oid="zlqdlb-"
         >
           <div
             className={cn(
-              'w-2 h-2 rounded-full',
-              filters.includes('suggestion') ? 'bg-sky-500' : 'bg-slate-300'
+              'w-1.5 h-1.5 rounded-full',
+              filters.includes('suggestion') ? 'bg-sky-600' : 'bg-slate-400 dark:bg-slate-500'
             )}
-            data-oid="ei1tneb"
           />
           {counts.suggestion} Suggestions
         </button>
@@ -370,19 +358,17 @@ const AnnotationSummary = ({ annotations, filters, onFilterToggle }) => {
         <button
           onClick={() => onFilterToggle('positive')}
           className={cn(
-            'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all border',
+            'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border shadow-2xs',
             filters.includes('positive')
-              ? 'bg-teal-50 border-teal-200 text-teal-600 dark:bg-teal-500/10 dark:border-teal-500/30 dark:text-teal-400'
-              : 'bg-transparent border-transparent text-slate-500 hover:bg-teal-50 hover:text-teal-500'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:text-emerald-200'
+              : 'bg-slate-100/70 border-slate-200/60 text-slate-700 hover:text-emerald-700 dark:bg-white/5 dark:border-white/10 dark:text-slate-300'
           )}
-          data-oid="1tt9av2"
         >
           <div
             className={cn(
-              'w-2 h-2 rounded-full',
-              filters.includes('positive') ? 'bg-teal-500' : 'bg-slate-300'
+              'w-1.5 h-1.5 rounded-full',
+              filters.includes('positive') ? 'bg-emerald-600' : 'bg-slate-400 dark:bg-slate-500'
             )}
-            data-oid="eh9cb69"
           />
           {counts.positive} Good
         </button>
@@ -628,58 +614,41 @@ export default function AnnotatedText({
   if (!text) return null;
 
   return (
-    <div className={cn('space-y-3', className)} data-oid="2i5_klq">
-      {/* Summary Bar */}
-      {annotations.length > 0 && (
-        <AnnotationSummary
-          annotations={annotations}
-          filters={filters}
-          onFilterToggle={handleFilterToggle}
-          data-oid="0uicvua"
-        />
-      )}
-
+    <div className={cn('space-y-3', className)}>
       {/* Annotated Text */}
       <div
         ref={containerRef}
-        className="relative p-4 md:px-6 md:pb-6 md:pt-5 bg-white dark:bg-[#0D0E1A] rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm overflow-visible"
-        data-oid="6l:qtga"
+        className="relative p-3.5 sm:p-5 bg-white dark:bg-[#0D0E1A] rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm overflow-visible"
       >
-        <div
-          className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100/80 dark:border-white/5"
-          data-oid="azcluld"
-        >
-          <div
-            className="p-2.5 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/15 dark:to-orange-500/15 rounded-xl border border-amber-100 dark:border-amber-500/20 shadow-sm"
-            data-oid="xi0dgv6"
-          >
-            <Sparkles className="w-5 h-5 text-amber-500" data-oid="1tqcz5i" />
+        <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3 pb-2.5 border-b border-slate-100 dark:border-white/5">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 bg-amber-500/10 dark:bg-amber-500/15 rounded-lg border border-amber-500/20 text-amber-600 dark:text-amber-400 shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5" />
+            </div>
+            <div>
+              <h3 className="text-sm sm:text-base font-black text-slate-950 dark:text-white tracking-tight leading-snug">
+                Your Text with Annotations
+              </h3>
+              <p className="mt-0.5 text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                Interactive Feedback Mode
+              </p>
+            </div>
           </div>
-          <div data-oid="7pl1f.f">
-            <h3
-              className="font-bold text-slate-800 dark:text-slate-100 tracking-tight"
-              data-oid="agneej4"
-            >
-              Your Text with Annotations
-            </h3>
-            <p
-              className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider"
-              data-oid="1hak-y4"
-            >
-              Interactive Feedback Mode
-            </p>
-          </div>
-          <div
-            className="ml-auto px-3 py-1.5 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10 flex items-center gap-2"
-            data-oid="x1upy0m"
-          >
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" data-oid="mq0uizv" />
-            <span
-              className="text-xs font-bold text-slate-600 dark:text-slate-300"
-              data-oid="bpot-fg"
-            >
-              {filteredAnnotations.length} Highlights
-            </span>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            {annotations.length > 0 && (
+              <AnnotationSummary
+                annotations={annotations}
+                filters={filters}
+                onFilterToggle={handleFilterToggle}
+              />
+            )}
+            <div className="px-2.5 py-1 bg-slate-100 dark:bg-white/10 rounded-full border border-slate-200 dark:border-white/15 flex items-center gap-1.5 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              <span className="text-xs font-black text-slate-800 dark:text-slate-100">
+                {filteredAnnotations.length} Highlights
+              </span>
+            </div>
           </div>
         </div>
 

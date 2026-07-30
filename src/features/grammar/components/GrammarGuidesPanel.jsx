@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import { LayoutGroup, motion } from 'framer-motion';
-import { ArrowRight, BookOpenText, ChevronRight, Clock3, LockKeyhole, Search } from 'lucide-react';
+import { ArrowRight, BookOpenText, ChevronRight, Clock3, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/cn';
 import { GRAMMAR_GUIDES, GRAMMAR_GUIDE_CATEGORIES } from '../data/grammarGuideCatalog';
 import SkillVisual from './SkillVisual';
 import { skillLabel } from '../constants';
-import { contentTierLabel, hasContentAccess } from '@/features/subscription/config/contentAccess';
+import { hasContentAccess } from '@/features/subscription/config/contentAccess';
+import ContentStatusBadge from '@/features/subscription/components/ContentStatusBadge';
 
 const SKILL_VISUALS = {
   grammar_sentence_boundaries: {
@@ -36,7 +37,12 @@ const SKILL_VISUALS = {
   },
 };
 
-export default function GrammarGuidesPanel({ resources, resourcesUnavailable, user }) {
+export default function GrammarGuidesPanel({
+  resources,
+  resourcesUnavailable,
+  user,
+  completedGuideSlugs = [],
+}) {
   const [category, setCategory] = useState('All guides');
   const [query, setQuery] = useState('');
   const visibleGuides = useMemo(() => {
@@ -133,6 +139,7 @@ export default function GrammarGuidesPanel({ resources, resourcesUnavailable, us
           {visibleGuides.map((resource) => {
             const visual = SKILL_VISUALS[resource.skill_code] || SKILL_VISUALS.grammar_word_forms;
             const isLocked = !hasContentAccess(user, resource.access_tier);
+            const isCompleted = completedGuideSlugs.includes(resource.slug);
             return (
               <Link
                 key={resource.id}
@@ -151,17 +158,11 @@ export default function GrammarGuidesPanel({ resources, resourcesUnavailable, us
                       slug={resource.slug}
                       compact
                     />
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[9px] font-black shadow-sm dark:bg-white/10',
-                        isLocked
-                          ? 'text-slate-500 dark:text-slate-300'
-                          : 'text-emerald-700 dark:text-emerald-300'
-                      )}
-                    >
-                      {isLocked && <LockKeyhole className="h-2.5 w-2.5" />}
-                      {contentTierLabel(resource.access_tier)}
-                    </span>
+                    <ContentStatusBadge
+                      user={user}
+                      requiredTier={resource.access_tier}
+                      completed={isCompleted}
+                    />
                   </div>
                   <div className="mt-2.5 text-[9px] font-extrabold uppercase tracking-[0.1em] text-[#5c66dc]">
                     {skillLabel(resource.skill_code)}

@@ -82,6 +82,7 @@ export default function GrammarDashboard({
         <GrammarPracticeKitsPanel
           access={access}
           user={user}
+          completedPracticeSkillSets={dashboard?.completedPracticeSkillSets}
           isStarting={isStarting}
           onStart={onStart}
         />
@@ -120,6 +121,7 @@ export default function GrammarDashboard({
           resources={dashboard?.resources}
           resourcesUnavailable={dashboard?.resourcesUnavailable}
           user={user}
+          completedGuideSlugs={dashboard?.completedGuideSlugs}
         />
       </div>
     </div>

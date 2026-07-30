@@ -51,4 +51,21 @@ describe('GrammarPracticeKitsPanel', () => {
       '/pricing'
     );
   });
+
+  it('marks only a submitted matching practice kit as completed', () => {
+    render(
+      <MemoryRouter>
+        <GrammarPracticeKitsPanel
+          user={{ subscription_tier: 'premium' }}
+          access={{ isPaid: true, dailyRemaining: 5 }}
+          isStarting={false}
+          onStart={vi.fn()}
+          completedPracticeSkillSets={[['grammar_verb_forms']]}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getAllByText('Completed')).toHaveLength(1);
+    expect(screen.queryByText('Included')).not.toBeInTheDocument();
+  });
 });

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { BookOpen, FileEdit, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import ConfettiCelebration from '@/components/ConfettiCelebration';
 import XPNotification from '@/components/XPNotification';
@@ -236,45 +237,49 @@ function WritingTaskContent() {
 }
 
 function WritingViewModeToggle({ viewMode, setViewMode }) {
+  const tabs = [
+    { id: 'review', label: 'Annotated Review', icon: Sparkles },
+    { id: 'question', label: 'Question', icon: BookOpen },
+    { id: 'edit', label: 'Editor', icon: FileEdit },
+  ];
+
   return (
-    <div
-      className="sticky top-0 z-40 bg-white/80 dark:bg-[#05060B]/90 backdrop-blur-xl border-b border-slate-200/40 dark:border-white/5 px-3 py-1.5 sm:px-4"
-      data-oid="dowvur:"
-    >
-      <div className="flex items-center justify-center w-full" data-oid="3v:texu">
-        <div
-          className="flex p-0.5 bg-slate-100/80 dark:bg-[#0D0E1A] rounded-full border border-slate-200/50 dark:border-white/10 shadow-inner"
-          data-oid=":s9x3zg"
-        >
-          {['review', 'question', 'edit'].map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className={cn(
-                'relative px-5 py-1 text-xs md:text-sm font-bold rounded-full transition-all duration-300 flex-1 sm:flex-none text-center z-10',
-                viewMode === mode
-                  ? 'text-indigo-600 dark:text-white'
-                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100'
-              )}
-              data-oid="9pob-6k"
-            >
-              {viewMode === mode && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute inset-0 bg-white dark:bg-indigo-600 rounded-full shadow-lg dark:shadow-indigo-500/30 border border-slate-200/50 dark:border-white/10 pointer-events-none -z-10"
-                  transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
-                  data-oid="uy8a.j4"
+    <div className="sticky top-0 z-40 bg-white/70 dark:bg-[#05060B]/80 backdrop-blur-md border-b border-slate-200/30 dark:border-white/5 px-3 py-1.5 sm:px-4">
+      <div className="flex items-center justify-center w-full">
+        <div className="flex items-center p-0.5 sm:p-1 bg-slate-100/70 dark:bg-[#0D0E1A]/80 rounded-full border border-slate-200/40 dark:border-white/5">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = viewMode === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setViewMode(tab.id)}
+                className={cn(
+                  'group relative px-4 sm:px-5 py-1.5 text-xs md:text-sm font-extrabold rounded-full transition-colors duration-200 flex-1 sm:flex-none text-center z-10 flex items-center justify-center gap-1.5',
+                  isActive
+                    ? 'text-indigo-600 dark:text-white'
+                    : 'text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white hover:bg-slate-200/40 dark:hover:bg-white/5'
+                )}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeWritingTab"
+                    className="absolute inset-0 bg-white dark:bg-indigo-600 rounded-full shadow-2xs dark:shadow-indigo-500/20 border border-slate-200/50 dark:border-white/10 pointer-events-none -z-10"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <Icon
+                  className={cn(
+                    'w-3.5 h-3.5 transition-colors shrink-0',
+                    isActive
+                      ? 'text-indigo-600 dark:text-white'
+                      : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
+                  )}
                 />
-              )}
-              <span className="relative" data-oid="od:phi1">
-                {mode === 'review'
-                  ? 'Annotated Review'
-                  : mode === 'question'
-                    ? 'Question'
-                    : 'Editor'}
-              </span>
-            </button>
-          ))}
+                <span className="relative">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

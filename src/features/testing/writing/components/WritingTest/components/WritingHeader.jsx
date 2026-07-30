@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/lib/cn';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -229,11 +230,9 @@ export function WritingHeader({
                   }
                 }}
                 disabled={isAnalyzing}
-                className={`flex items-center gap-1.5 sm:gap-2 font-black px-3 sm:px-5 h-8 sm:h-9.5 rounded-lg sm:rounded-xl shadow-md transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-80 disabled:hover:translate-y-0 text-[10px] sm:text-xs uppercase tracking-widest ${
-                  currentFeedback && isCompleted
-                    ? 'bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 text-white shadow-blue-500/30 hover:shadow-blue-500/50 border-none'
-                    : 'bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 shadow-slate-900/25 dark:shadow-indigo-500/20'
-                }`}
+                className={cn(
+                  'flex items-center gap-1.5 sm:gap-2 font-black px-4 sm:px-5.5 h-8.5 sm:h-9.5 rounded-full shadow-md shadow-[#6256ef]/25 hover:shadow-lg hover:shadow-[#6256ef]/35 bg-[#6256ef] hover:bg-[#5246e0] text-white border-0 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-80 disabled:hover:scale-100 text-[11px] sm:text-xs uppercase tracking-wider'
+                )}
                 data-oid="ua-kwyv"
               >
                 {isAnalyzing ? (

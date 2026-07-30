@@ -52,6 +52,7 @@ describe('Vocabulary Kit page routing', () => {
     );
 
     expect(smartKitsSource).toContain('Slow-moving Vocabulary Kits carousel');
+    expect(smartKitsSource).toContain('ContentStatusBadge');
     expect(smartKitsSource).toContain('prefers-reduced-motion: reduce');
     expect(detailSource).toContain('onAddAll={handleAddAll}');
     expect(detailSource).toContain('scrollVocabularyPageToTop');
@@ -60,5 +61,6 @@ describe('Vocabulary Kit page routing', () => {
     expect(detailSource).toContain('AnimatePresence mode="wait"');
     expect(studySource).toContain('Add all (${unsavedWords.length})');
     expect(studySource).toContain("source: 'Vocabulary Kit'");
+    expect(resourceSource).toContain('allVocabulary={vocabulary.allVocabulary}');
   });
 });

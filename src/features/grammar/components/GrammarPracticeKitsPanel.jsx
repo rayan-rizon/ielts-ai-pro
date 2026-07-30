@@ -1,16 +1,9 @@
-import {
-  ArrowRight,
-  BookOpenCheck,
-  CheckCircle2,
-  Clock3,
-  Layers3,
-  LockKeyhole,
-  RefreshCw,
-} from 'lucide-react';
+import { ArrowRight, BookOpenCheck, CheckCircle2, Clock3, Layers3, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/cn';
 import { GRAMMAR_GUIDE_KITS, getGrammarGuide } from '../data/grammarGuideCatalog';
-import { contentTierLabel, hasContentAccess } from '@/features/subscription/config/contentAccess';
+import { hasContentAccess } from '@/features/subscription/config/contentAccess';
+import ContentStatusBadge from '@/features/subscription/components/ContentStatusBadge';
 
 const KIT_TONES = {
   violet: {
@@ -35,7 +28,18 @@ const KIT_TONES = {
   },
 };
 
-export default function GrammarPracticeKitsPanel({ access, isStarting, onStart, user }) {
+function hasCompletedPractice(kit, completedPracticeSkillSets) {
+  const target = [...kit.skills].sort().join('|');
+  return completedPracticeSkillSets.some((skills) => [...skills].sort().join('|') === target);
+}
+
+export default function GrammarPracticeKitsPanel({
+  access,
+  isStarting,
+  onStart,
+  user,
+  completedPracticeSkillSets = [],
+}) {
   const noAllowance = !access?.isPaid && Number(access?.dailyRemaining || 0) <= 0;
 
   return (
@@ -65,6 +69,7 @@ export default function GrammarPracticeKitsPanel({ access, isStarting, onStart, 
           const tone = KIT_TONES[kit.tone] || KIT_TONES.violet;
           const firstGuide = getGrammarGuide(kit.guideSlugs[0]);
           const isLocked = !hasContentAccess(user, kit.access_tier);
+          const isCompleted = hasCompletedPractice(kit, completedPracticeSkillSets);
           return (
             <article
               key={kit.slug}
@@ -82,12 +87,11 @@ export default function GrammarPracticeKitsPanel({ access, isStarting, onStart, 
                 >
                   <BookOpenCheck className="h-4.5 w-4.5" />
                 </div>
-                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-slate-100/90 via-white/95 to-slate-100/90 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 backdrop-blur-md px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/60 shadow-2xs">
-                  {isLocked && (
-                    <LockKeyhole className="h-2.5 w-2.5 text-slate-500 dark:text-slate-400" />
-                  )}
-                  {contentTierLabel(kit.access_tier)}
-                </span>
+                <ContentStatusBadge
+                  user={user}
+                  requiredTier={kit.access_tier}
+                  completed={isCompleted}
+                />
               </div>
               <h3 className="relative mt-2.5 text-sm font-black tracking-tight text-slate-950 dark:text-white">
                 {kit.title}
@@ -129,7 +133,7 @@ export default function GrammarPracticeKitsPanel({ access, isStarting, onStart, 
                   ) : (
                     <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
                   )}
-                  {isLocked ? 'Pro kit' : 'Practise'}
+                  {isLocked ? 'Unlock' : 'Practise'}
                 </button>
               </div>
             </article>

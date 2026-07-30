@@ -465,7 +465,7 @@ export default function Vocabulary() {
             </div>
 
             {/* Topic Word Lists */}
-            <WordGroupList allVocabulary={allVocabulary} />
+            <WordGroupList allVocabulary={allVocabulary} user={user} />
 
             {/* My Saved Words (Table & Cards View) */}
             <PersonalWordBank

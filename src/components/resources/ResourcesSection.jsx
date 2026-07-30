@@ -21,8 +21,11 @@ import {
 import { Resource } from '@/entities';
 import { cn } from '@/lib/cn';
 import { useResources } from '@/features/learning/hooks/useResources';
+import { useAuth } from '@/features/auth/context/AuthContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import { VOCABULARY_KITS } from '@/features/vocabulary/data/vocabularyKits';
+import KitCard from '@/features/vocabulary/components/KitCard';
+import { useVocabularyData } from '@/features/vocabulary/hooks';
 
 const CONTENT_TYPES = [
   { id: 'all', label: 'All', icon: LayoutGrid },
@@ -196,45 +199,12 @@ const ArticleResourceCard = ({ resource, onOpen }) => (
 );
 
 // ─── Vocabulary Card ───────────────────────────────────────────
-const VocabularyResourceCard = ({ resource, onOpen }) => {
-  let wordCount = 0;
-  try {
-    const parsed = JSON.parse(resource.content || '[]');
-    wordCount = Array.isArray(parsed) ? parsed.length : 0;
-  } catch {
-    wordCount = 0;
-  }
-
-  return (
-    <BaseResourceCard
-      resource={resource}
-      onOpen={onOpen}
-      thumbnail={resource.thumbnail_url}
-      badgeText="Vocab"
-      badgeBg="bg-slate-700"
-      actionText="Study Deck"
-      maxHeight="130px"
-    >
-      <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.15),transparent_60%)]" />
-        <div className="w-8 h-8 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mb-1 shadow-2xs">
-          <Brain className="w-4 h-4 text-white" />
-        </div>
-        <span className="text-[10px] font-black uppercase tracking-wider text-white/90">
-          Vocabulary Deck
-        </span>
-        <div className="absolute top-1.5 right-1.5">
-          <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-black/60 backdrop-blur-md text-indigo-200 border border-white/10 shadow-2xs">
-            {wordCount > 0 ? `${wordCount} Words` : 'Word List'}
-          </span>
-        </div>
-      </div>
-    </BaseResourceCard>
-  );
+const VocabularyResourceCard = ({ resource, index = 0, user, allVocabulary }) => {
+  return <KitCard kit={resource} index={index} user={user} allVocabulary={allVocabulary} />;
 };
 
 // ─── Generic Dispatcher ────────────────────────────────────────
-const ResourceCard = ({ resource, onOpen }) => {
+const ResourceCard = ({ resource, index = 0, onOpen, user, allVocabulary }) => {
   switch (resource.content_type) {
     case 'video':
       return <VideoResourceCard resource={resource} onOpen={onOpen} />;
@@ -243,7 +213,15 @@ const ResourceCard = ({ resource, onOpen }) => {
     case 'blog':
       return <ArticleResourceCard resource={resource} onOpen={onOpen} />;
     case 'vocabulary':
-      return <VocabularyResourceCard resource={resource} onOpen={onOpen} />;
+      return (
+        <VocabularyResourceCard
+          resource={resource}
+          index={index}
+          onOpen={onOpen}
+          user={user}
+          allVocabulary={allVocabulary}
+        />
+      );
     default:
       return <VideoResourceCard resource={resource} onOpen={onOpen} />;
   }
@@ -358,7 +336,7 @@ const ResourcesSkeleton = () => (
 );
 
 // ─── "All" View: Segmented Display ────────────────────────────
-const SegmentedAllView = ({ resources, onOpen, onViewAll }) => {
+const SegmentedAllView = ({ resources, onOpen, onViewAll, user, allVocabulary }) => {
   const videos = resources.filter((r) => r.content_type === 'video');
   const pdfs = resources.filter((r) => r.content_type === 'pdf');
   const articles = resources.filter((r) => r.content_type === 'blog');
@@ -452,15 +430,21 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll }) => {
             color="indigo"
             onViewAll={() => onViewAll('vocabulary')}
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {vocabs.slice(0, 8).map((resource, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2.5">
+            {vocabs.slice(0, 12).map((resource, i) => (
               <motion.div
-                key={resource.id}
+                key={resource.id || resource.slug}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
               >
-                <VocabularyResourceCard resource={resource} onOpen={onOpen} />
+                <VocabularyResourceCard
+                  resource={resource}
+                  index={i}
+                  onOpen={onOpen}
+                  user={user}
+                  allVocabulary={allVocabulary}
+                />
               </motion.div>
             ))}
           </div>
@@ -471,7 +455,7 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll }) => {
 };
 
 // ─── Filtered Grid View ────────────────────────────────────────
-const FilteredGridView = ({ resources, filterType, onOpen }) => {
+const FilteredGridView = ({ resources, filterType, onOpen, user, allVocabulary }) => {
   // Choose grid layout based on type
   const gridClass = useMemo(() => {
     switch (filterType) {
@@ -480,7 +464,7 @@ const FilteredGridView = ({ resources, filterType, onOpen }) => {
       case 'blog':
         return 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3';
       case 'vocabulary':
-        return 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3';
+        return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2.5';
       default:
         return 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3';
     }
@@ -490,12 +474,18 @@ const FilteredGridView = ({ resources, filterType, onOpen }) => {
     <div className={gridClass}>
       {resources.map((resource, i) => (
         <motion.div
-          key={resource.id}
+          key={resource.id || resource.slug}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.04 }}
         >
-          <ResourceCard resource={resource} onOpen={onOpen} />
+          <ResourceCard
+            resource={resource}
+            index={i}
+            onOpen={onOpen}
+            user={user}
+            allVocabulary={allVocabulary}
+          />
         </motion.div>
       ))}
     </div>
@@ -793,6 +783,8 @@ const ResourcesContent = ({
   handleOpenResource,
   handleViewAllType,
   handleReset,
+  user,
+  allVocabulary,
 }) => {
   const getContent = () => {
     if (isLoading) return <ResourcesSkeleton />;
@@ -807,11 +799,19 @@ const ResourcesContent = ({
           resources={resources}
           onOpen={handleOpenResource}
           onViewAll={handleViewAllType}
+          user={user}
+          allVocabulary={allVocabulary}
         />
       );
     }
     return (
-      <FilteredGridView resources={resources} filterType={filterType} onOpen={handleOpenResource} />
+      <FilteredGridView
+        resources={resources}
+        filterType={filterType}
+        onOpen={handleOpenResource}
+        user={user}
+        allVocabulary={allVocabulary}
+      />
     );
   };
 
@@ -833,6 +833,8 @@ const ResourcesContent = ({
 // ─── Main Component ─────────────────────────────────────────────
 const ResourcesSection = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const vocabulary = useVocabularyData(user);
 
   const {
     searchParams,
@@ -878,6 +880,8 @@ const ResourcesSection = () => {
         handleOpenResource={handleOpenResource}
         handleViewAllType={handleViewAllType}
         handleReset={handleReset}
+        user={user}
+        allVocabulary={vocabulary.allVocabulary}
       />
       {totalPages > 1 && (
         <PaginationBar

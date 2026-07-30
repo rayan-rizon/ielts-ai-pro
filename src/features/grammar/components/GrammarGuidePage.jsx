@@ -406,7 +406,16 @@ function GuideSection({ section }) {
   );
 }
 
-export default function GrammarGuidePage({ resource, user, isStarting, onBack, onPractice }) {
+export default function GrammarGuidePage({
+  resource,
+  user,
+  isStarting,
+  isCompleted = false,
+  isUpdatingCompletion = false,
+  onSetCompletion,
+  onBack,
+  onPractice,
+}) {
   if (!resource) {
     return (
       <section className="mx-auto max-w-3xl rounded-3xl border border-[#e3e6f4] bg-white p-8 text-center">
@@ -558,6 +567,32 @@ export default function GrammarGuidePage({ resource, user, isStarting, onBack, o
               className="mt-4 w-full rounded-xl bg-[#5661e9] font-extrabold text-white hover:bg-[#4853d6]"
             >
               Practise this skill <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </section>
+
+          <section className="rounded-3xl border border-[#dce8e2] bg-[linear-gradient(145deg,#f6fffb,#effbf5)] p-5 dark:border-emerald-400/20 dark:bg-none dark:bg-[#10131f]">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
+              <h2 className="text-sm font-black text-slate-950 dark:text-white">
+                {isCompleted ? 'Guide completed' : 'Finished this guide?'}
+              </h2>
+            </div>
+            <p className="mt-2 text-xs font-medium leading-5 text-slate-600 dark:text-slate-300">
+              {isCompleted
+                ? 'This is saved to your Grammar Lab progress. You can change it whenever you need.'
+                : 'Mark it complete only after you have worked through the guide and its checks.'}
+            </p>
+            <Button
+              type="button"
+              onClick={() => onSetCompletion?.(!isCompleted)}
+              disabled={!onSetCompletion || isUpdatingCompletion}
+              variant={isCompleted ? 'outline' : 'default'}
+              className={cn(
+                'mt-4 w-full rounded-xl font-extrabold',
+                !isCompleted && 'bg-emerald-600 text-white hover:bg-emerald-700'
+              )}
+            >
+              {isCompleted ? 'Mark as incomplete' : 'Mark guide complete'}
             </Button>
           </section>
 

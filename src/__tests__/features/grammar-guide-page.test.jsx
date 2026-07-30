@@ -27,6 +27,7 @@ const resource = {
 describe('GrammarGuidePage', () => {
   it('renders a semantic, addressable full-page guide with a practice action', () => {
     const onPractice = vi.fn();
+    const onSetCompletion = vi.fn();
     render(
       <MemoryRouter>
         <GrammarGuidePage
@@ -34,6 +35,7 @@ describe('GrammarGuidePage', () => {
           isStarting={false}
           onBack={vi.fn()}
           onPractice={onPractice}
+          onSetCompletion={onSetCompletion}
         />
       </MemoryRouter>
     );
@@ -51,6 +53,30 @@ describe('GrammarGuidePage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Practise this skill/ }));
     expect(onPractice).toHaveBeenCalledWith('grammar_verb_forms');
+    expect(onSetCompletion).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mark guide complete' }));
+    expect(onSetCompletion).toHaveBeenCalledWith(true);
+  });
+
+  it('lets a learner explicitly reverse a completion choice', () => {
+    const onSetCompletion = vi.fn();
+    render(
+      <MemoryRouter>
+        <GrammarGuidePage
+          resource={resource}
+          user={{ subscription_tier: 'free' }}
+          isStarting={false}
+          isCompleted
+          onBack={vi.fn()}
+          onPractice={vi.fn()}
+          onSetCompletion={onSetCompletion}
+        />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mark as incomplete' }));
+    expect(onSetCompletion).toHaveBeenCalledWith(false);
   });
 
   it('shows a useful not-found state', () => {

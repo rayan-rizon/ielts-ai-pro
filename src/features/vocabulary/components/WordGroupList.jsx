@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useId, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -8,6 +8,8 @@ import {
 } from '@/features/vocabulary/data/vocabularyKits';
 
 import Kit3DIcon from '@/features/vocabulary/components/Kit3DIcons';
+import ContentStatusBadge from '@/features/subscription/components/ContentStatusBadge';
+import { getVocabularyKitProgress } from '@/features/vocabulary/utils/kitProgress';
 
 export const KitVisual = ({ id, kit }) => {
   return <Kit3DIcon kit={kit} id={id} />;
@@ -38,7 +40,7 @@ const THEMES = {
 
 const FALLBACK_THEMES = [THEMES.indigo, THEMES.emerald, THEMES.sky, THEMES.violet];
 
-const WordGroupList = memo(({ allVocabulary = [] }) => {
+const WordGroupList = memo(({ allVocabulary = [], user }) => {
   const viewportRef = useRef(null);
   const [isPaused, setIsPaused] = useState(false);
   const displayKits = [
@@ -47,13 +49,11 @@ const WordGroupList = memo(({ allVocabulary = [] }) => {
       (kit) => !FEATURED_VOCABULARY_KITS.some((featured) => featured.id === kit.id)
     ).slice(0, 4),
   ].map((kit, index) => {
-    const savedWords = kit.words.filter((item) =>
-      allVocabulary.some((saved) => saved?.word?.toLowerCase() === item.word.toLowerCase())
-    ).length;
+    const progress = getVocabularyKitProgress(kit, allVocabulary);
     return {
       ...kit,
       wordCount: kit.word_count,
-      progressPercent: kit.word_count ? Math.round((savedWords / kit.word_count) * 100) : 0,
+      progress,
       theme: FALLBACK_THEMES[index % FALLBACK_THEMES.length],
     };
   });
@@ -191,9 +191,11 @@ const WordGroupList = memo(({ allVocabulary = [] }) => {
                     >
                       <KitVisual id={kit.id} />
                     </div>
-                    <span className="rounded-full bg-white/80 px-2 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-slate-500 shadow-sm dark:bg-white/10 dark:text-slate-300">
-                      {kit.wordCount} items
-                    </span>
+                    <ContentStatusBadge
+                      user={user}
+                      requiredTier={kit.access_tier}
+                      completed={kit.progress.isComplete}
+                    />
                   </div>
                   <h4 className="mt-3 line-clamp-2 text-xs font-extrabold leading-4 text-slate-900 transition-colors group-hover:text-[#5661e9] dark:text-white dark:group-hover:text-indigo-300">
                     {kit.title}
@@ -202,13 +204,15 @@ const WordGroupList = memo(({ allVocabulary = [] }) => {
 
                 <div className="mt-2">
                   <div className="flex items-center justify-between text-[10px] font-extrabold">
-                    <span className="text-slate-400">{kit.progressPercent}% saved</span>
+                    <span className="text-slate-400">
+                      {kit.progress.savedCount}/{kit.wordCount} saved
+                    </span>
                     <ArrowRight className="h-3.5 w-3.5 text-[#5661e9] transition group-hover:translate-x-0.5" />
                   </div>
                   <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[#eceef8] dark:bg-slate-800">
                     <div
                       className={`h-full rounded-full ${theme.progressBar}`}
-                      style={{ width: `${kit.progressPercent}%` }}
+                      style={{ width: `${kit.progress.percent}%` }}
                     />
                   </div>
                 </div>

@@ -9,6 +9,7 @@ import {
   getGrammarAttempt,
   getGrammarDashboard,
   getRecentSpeakingTransfers,
+  setGrammarGuideCompletion,
   startGrammarAttempt,
   submitGrammarResponse,
 } from '../services/grammarLabService';
@@ -122,6 +123,18 @@ export function useGrammarLab() {
     },
   });
 
+  const guideCompletionMutation = useMutation({
+    mutationFn: ({ guideSlug, completed }) =>
+      setGrammarGuideCompletion({ userId: user?.id, guideSlug, completed }),
+    onSuccess: async ({ completed }) => {
+      await queryClient.invalidateQueries({ queryKey: ['grammarLab', 'dashboard', user?.id] });
+      toast.success(completed ? 'Guide marked complete' : 'Guide marked incomplete');
+    },
+    onError: (error) => {
+      toast.error('Could not update guide completion', { description: error.message });
+    },
+  });
+
   const dashboard = dashboardQuery.data;
   const recommendedSkill = useMemo(() => {
     const skills = dashboard?.skills || [];
@@ -167,5 +180,7 @@ export function useGrammarLab() {
     isSubmitting: responseMutation.isPending,
     isCompleting: completeMutation.isPending,
     isEvaluating: transferMutation.isPending,
+    setGuideCompletion: guideCompletionMutation.mutateAsync,
+    isUpdatingGuideCompletion: guideCompletionMutation.isPending,
   };
 }
