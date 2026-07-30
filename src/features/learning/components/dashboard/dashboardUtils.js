@@ -900,7 +900,9 @@ export function getTargetBandValue(snapshotValue, userValue) {
 }
 
 export function getExamDateValue(snapshotValue, userValue) {
-  return snapshotValue || userValue || null;
+  // Account goals are the source of truth. A saved path is only a historical snapshot and can
+  // briefly lag after a learner changes their exam date.
+  return userValue || snapshotValue || null;
 }
 
 export function getExamDaysLeft(examDate) {
@@ -924,11 +926,16 @@ export function isExamDatePassed(examDate) {
 export function computeDashboardSnapshot(path, user = {}, stats = {}) {
   const goal = path?.goal_snapshot;
   const readiness = getSnapshotReadiness(path?.readiness, stats.sessions);
-  const roadmap = getSnapshotRoadmap(path?.roadmap, user.test_date);
   const targetBand = getTargetBandValue(goal?.target_band, user.target_band_score);
   const examDate = getExamDateValue(goal?.test_date, user.test_date);
+  const savedExamDate = normalizeGoalDate(goal?.test_date);
+  const currentExamDate = normalizeGoalDate(examDate);
   const daysLeft = getExamDaysLeft(examDate);
   const examDatePassed = isExamDatePassed(examDate);
+  const roadmap =
+    examDatePassed || currentExamDate !== savedExamDate
+      ? buildRoadmap(examDate)
+      : getSnapshotRoadmap(path?.roadmap, user.test_date);
 
   return { readiness, roadmap, targetBand, examDate, daysLeft, examDatePassed };
 }

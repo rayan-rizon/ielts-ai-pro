@@ -247,7 +247,7 @@ const TestManagement = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="space-y-4 pb-6"
+      className="space-y-4 pb-6 pt-12 md:pt-0"
       data-oid="hw-n65o"
     >
       <DeleteTestModal
@@ -268,21 +268,21 @@ const TestManagement = () => {
 
       {/* Header Section */}
       <div
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1"
         data-oid="3n6l.-c"
       >
-        <div className="space-y-0.5" data-oid="7nmjad-">
+        <div className="space-y-0.5 min-w-0 flex-1" data-oid="7nmjad-">
           <h2
-            className="text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
+            className="text-lg sm:text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
             data-oid="title-tm"
           >
             <div
-              className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shadow-2xs"
+              className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shadow-2xs shrink-0"
               data-oid="_sx8x6c"
             >
-              <ClipboardList className="w-5 h-5" data-oid="4sa8au3" />
+              <ClipboardList className="w-4 h-4 sm:w-5 sm:h-5" data-oid="4sa8au3" />
             </div>
-            Test Management
+            <span className="truncate">Test Management</span>
           </h2>
           <p
             className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 ml-1"
@@ -292,12 +292,15 @@ const TestManagement = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2" data-oid="snzlq7m">
+        <div
+          className="flex items-center gap-2 w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
+          data-oid="snzlq7m"
+        >
           <DropdownMenu data-oid="dd-actions">
             <DropdownMenuTrigger asChild data-oid="dd-trig">
               <Button
                 variant="outline"
-                className="h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
+                className="flex-1 sm:flex-none justify-center h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
               >
                 <MoreVertical className="w-4 h-4 mr-1.5 text-slate-500" data-oid="mv" />
                 Actions
@@ -345,7 +348,7 @@ const TestManagement = () => {
 
           <Button
             onClick={() => setIsCreatingTest(true)}
-            className="h-9 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold shadow-2xs rounded-xl text-xs gap-1 transition-all"
+            className="flex-1 sm:flex-none justify-center h-9 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold shadow-2xs rounded-xl text-xs gap-1 transition-all"
             data-oid="j.xyy95"
           >
             <Plus className="w-3.5 h-3.5" data-oid="tp5._-7" />
@@ -354,8 +357,8 @@ const TestManagement = () => {
         </div>
       </div>
 
-      {/* Stats Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5" data-oid="jqkuwoz">
+      {/* Stats Section (2 Columns on mobile) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5" data-oid="jqkuwoz">
         {[
           { label: 'Total Tests', value: stats.total, icon: ClipboardList, color: 'blue' },
           { label: 'Active', value: stats.active, icon: BookOpen, color: 'emerald' },

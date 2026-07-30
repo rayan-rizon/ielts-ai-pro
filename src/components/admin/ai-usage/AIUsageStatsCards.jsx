@@ -83,7 +83,7 @@ const AIUsageStatsCards = ({ totals, loading, itemVariants }) => {
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2.5 sm:gap-3">
       {cards.map((item, idx) => (
         <motion.div
           key={idx}
@@ -92,13 +92,13 @@ const AIUsageStatsCards = ({ totals, loading, itemVariants }) => {
           transition={{ duration: 0.2 }}
         >
           <Card className="border border-slate-200/90 dark:border-white/10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xs rounded-2xl shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden group">
-            <CardContent className="px-4 py-3.5 flex items-center justify-between gap-2.5">
-              <div className="space-y-1 min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">
+            <CardContent className="px-3 sm:px-4 py-3 flex items-center justify-between gap-1.5 sm:gap-2.5">
+              <div className="space-y-0.5 min-w-0 flex-1">
+                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">
                   {item.label}
                 </p>
-                <div className="flex items-baseline gap-1.5 flex-wrap">
-                  <h4 className="text-xl font-black text-slate-950 dark:text-white leading-none">
+                <div className="flex items-baseline gap-1 flex-wrap">
+                  <h4 className="text-base sm:text-xl font-black text-slate-950 dark:text-white leading-none">
                     {loading ? (
                       <Skeleton className="h-5 w-14 rounded-md" />
                     ) : item.isString ? (
@@ -108,16 +108,16 @@ const AIUsageStatsCards = ({ totals, loading, itemVariants }) => {
                     )}
                   </h4>
                   {item.subValue && !loading && (
-                    <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 truncate">
+                    <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-500 dark:text-slate-400 truncate">
                       {item.subValue}
                     </span>
                   )}
                 </div>
               </div>
               <div
-                className={`p-2 rounded-xl border shrink-0 transition-transform group-hover:scale-105 ${item.badgeStyle}`}
+                className={`p-1.5 sm:p-2 rounded-xl border shrink-0 transition-transform group-hover:scale-105 ${item.badgeStyle}`}
               >
-                <item.icon className="w-4 h-4" />
+                <item.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </CardContent>
           </Card>

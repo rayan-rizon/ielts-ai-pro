@@ -7,38 +7,44 @@ const PART_CONFIGS = [
   {
     key: 'part1',
     icon: MessageSquare,
-    iconBg: 'bg-blue-100/80 text-blue-600 dark:bg-blue-950/60 dark:text-blue-300',
-    cardBorder: 'border-slate-200/90 dark:border-white/10',
-    dot: 'bg-blue-500',
-    analysisBg: 'bg-slate-50/70 border-slate-200/60 dark:bg-zinc-900/60 dark:border-white/10',
+    bgGradient: 'from-[#fdfcff] to-[#f3efff] dark:from-[#101322] dark:to-[#16192d]',
+    cardBorder:
+      'border-[#eaecf6] hover:border-violet-200/80 dark:border-white/10 dark:hover:border-indigo-500/30',
+    iconBg:
+      'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#d2d7f8]/60 dark:border-indigo-500/30',
+    dot: 'bg-[#5661e9]',
     scoreBadge:
-      'bg-blue-50/90 border-blue-200/90 dark:bg-blue-950/60 dark:border-blue-800/60 shadow-xs',
-    scoreTag: 'text-blue-600 dark:text-blue-400',
-    scoreNum: 'text-blue-950 dark:text-blue-100',
+      'bg-white/80 border-[#d2d7f8] dark:bg-indigo-950/60 dark:border-indigo-800/60 shadow-xs',
+    scoreTag: 'text-[#5661e9] dark:text-indigo-400',
+    scoreNum: 'text-slate-900 dark:text-white',
   },
   {
     key: 'part2',
     icon: Mic,
-    iconBg: 'bg-amber-100/80 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300',
-    cardBorder: 'border-slate-200/90 dark:border-white/10',
-    dot: 'bg-amber-500',
-    analysisBg: 'bg-slate-50/70 border-slate-200/60 dark:bg-zinc-900/60 dark:border-white/10',
+    bgGradient: 'from-[#fffdfc] to-[#fff5ee] dark:from-[#15121c] dark:to-[#1e1726]',
+    cardBorder:
+      'border-[#eaecf6] hover:border-amber-200/80 dark:border-white/10 dark:hover:border-amber-500/30',
+    iconBg:
+      'bg-[#fff1e7] text-[#df7437] dark:bg-amber-500/20 dark:text-amber-300 border border-[#fcdbc8]/60 dark:border-amber-500/30',
+    dot: 'bg-[#df7437]',
     scoreBadge:
-      'bg-amber-50/90 border-amber-200/90 dark:bg-amber-950/60 dark:border-amber-800/60 shadow-xs',
-    scoreTag: 'text-amber-600 dark:text-amber-400',
-    scoreNum: 'text-amber-950 dark:text-amber-100',
+      'bg-white/80 border-[#fcdbc8] dark:bg-amber-950/60 dark:border-amber-800/60 shadow-xs',
+    scoreTag: 'text-[#df7437] dark:text-amber-400',
+    scoreNum: 'text-slate-900 dark:text-white',
   },
   {
     key: 'part3',
     icon: Users,
-    iconBg: 'bg-pink-100/80 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300',
-    cardBorder: 'border-slate-200/90 dark:border-white/10',
-    dot: 'bg-rose-500',
-    analysisBg: 'bg-slate-50/70 border-slate-200/60 dark:bg-zinc-900/60 dark:border-white/10',
+    bgGradient: 'from-[#fffdfd] to-[#fff0f5] dark:from-[#181119] dark:to-[#221422]',
+    cardBorder:
+      'border-[#eaecf6] hover:border-rose-200/80 dark:border-white/10 dark:hover:border-rose-500/30',
+    iconBg:
+      'bg-[#ffeef3] text-[#e11d48] dark:bg-rose-500/20 dark:text-rose-300 border border-[#fccedb]/60 dark:border-rose-500/30',
+    dot: 'bg-[#e11d48]',
     scoreBadge:
-      'bg-rose-50/90 border-rose-200/90 dark:bg-rose-950/60 dark:border-rose-800/60 shadow-xs',
-    scoreTag: 'text-rose-600 dark:text-rose-400',
-    scoreNum: 'text-rose-950 dark:text-rose-100',
+      'bg-white/80 border-[#fccedb] dark:bg-rose-950/60 dark:border-rose-800/60 shadow-xs',
+    scoreTag: 'text-[#e11d48] dark:text-rose-400',
+    scoreNum: 'text-slate-900 dark:text-white',
   },
 ];
 
@@ -49,7 +55,8 @@ function PartCard({ part, data }) {
   return (
     <article
       className={cn(
-        'group flex h-full flex-col justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-zinc-950',
+        'group flex h-full flex-col justify-between rounded-2xl border bg-gradient-to-br p-4 shadow-[0_10px_30px_-18px_rgba(43,53,128,0.1)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md',
+        part.bgGradient,
         part.cardBorder
       )}
     >
@@ -69,7 +76,7 @@ function PartCard({ part, data }) {
               <h4 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
                 {data.label}
               </h4>
-              <p className="text-xs font-bold text-slate-600 dark:text-zinc-300 mt-0.5">
+              <p className="text-xs font-bold text-slate-500 dark:text-zinc-400 mt-0.5">
                 {data.subtitle}
               </p>
             </div>
@@ -94,19 +101,14 @@ function PartCard({ part, data }) {
         </div>
 
         {/* Part Analysis Section Text */}
-        <div className="mt-5 border-t border-slate-100 pt-4 dark:border-white/[0.08]">
-          <div className="mb-2 flex items-center gap-2">
+        <div className="mt-3 border-t border-slate-200/60 pt-3 dark:border-white/[0.08]">
+          <div className="mb-1.5 flex items-center gap-2">
             <span className={cn('h-2 w-2 rounded-full', part.dot)} />
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-zinc-200">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-zinc-400">
               Part Analysis
             </span>
           </div>
-          <p
-            className={cn(
-              'rounded-xl border p-3.5 text-xs font-semibold leading-relaxed text-slate-800 dark:text-zinc-200',
-              part.analysisBg
-            )}
-          >
+          <p className="text-xs font-semibold leading-relaxed text-slate-700 dark:text-zinc-200">
             {data.observation || 'No response was available for this part.'}
           </p>
         </div>
@@ -121,8 +123,8 @@ export default function PartByPartSection({ parts }) {
   const hasSavedPartScore = normalizedParts.some((part) => part.band != null);
 
   return (
-    <section className="rounded-2xl border border-slate-200/80 bg-slate-50/40 p-6 shadow-sm dark:border-white/10 dark:bg-black/20">
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+    <section className="space-y-3">
+      <div className="flex flex-wrap items-end justify-between gap-2">
         <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
           Part-by-Part Performance
         </h3>
@@ -132,7 +134,7 @@ export default function PartByPartSection({ parts }) {
           </p>
         )}
       </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 sm:gap-5">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3 sm:gap-4">
         {normalizedParts.map((data) => (
           <PartCard
             key={data.key}

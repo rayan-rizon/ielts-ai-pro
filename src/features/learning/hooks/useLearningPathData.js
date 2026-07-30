@@ -4,6 +4,7 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryClient';
+import { upsertLearningPathActivity } from '@/features/learning/utils/activityPersistence';
 
 // --- Constants ---
 const EMPTY_OBJ = {};
@@ -537,9 +538,7 @@ export function useLearningPathData(isPremium = true) {
         skill_targets: taskObj.skill_targets || [],
       };
 
-      const { error } = await supabase
-        .from('learning_path_activities')
-        .upsert(payload, { onConflict: 'learning_path_id,activity_key' });
+      const { error } = await upsertLearningPathActivity(supabase, payload);
 
       if (error) throw error;
       return payload;

@@ -64,26 +64,26 @@ const UserAnalytics = ({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-4 pb-6"
+      className="space-y-4 pb-6 pt-12 md:pt-0"
       data-oid="6o_vgjg"
     >
       {/* Header Section */}
       <div
-        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-1"
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-1"
         data-oid="x.6bi2i"
       >
-        <motion.div variants={itemVariants} className="space-y-0.5" data-oid="fpvh1xc">
+        <motion.div variants={itemVariants} className="space-y-0.5 min-w-0" data-oid="fpvh1xc">
           <h2
-            className="text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
+            className="text-lg sm:text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
             data-oid="s-nvif-"
           >
             <div
-              className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shadow-2xs"
+              className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shadow-2xs shrink-0"
               data-oid="j_zqisa"
             >
-              <BarChart3 className="w-5 h-5" data-oid="1mxkow0" />
+              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" data-oid="1mxkow0" />
             </div>
-            User Analytics
+            <span className="truncate">User Analytics</span>
           </h2>
           <p
             className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 ml-1"
@@ -95,18 +95,18 @@ const UserAnalytics = ({
 
         <motion.div
           variants={itemVariants}
-          className="flex items-center gap-2.5"
+          className="flex items-center gap-2.5 w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
           data-oid="46ygl42"
         >
           <Button
             variant="outline"
-            className="h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
+            className="flex-1 sm:flex-none justify-center h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
           >
             <Download className="w-4 h-4 mr-1.5 text-slate-500" />
             Export Report
           </Button>
           <div
-            className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900 rounded-xl px-3 py-1.5 flex items-center gap-2 shadow-2xs"
+            className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900 rounded-xl px-3 py-1.5 flex items-center gap-2 shadow-2xs shrink-0"
             data-oid="wt4_e28"
           >
             <div className="relative" data-oid="lm:9cb5">
@@ -126,8 +126,8 @@ const UserAnalytics = ({
         </motion.div>
       </div>
 
-      {/* Compact KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5" data-oid="2ki0x24">
+      {/* Compact KPI Grid (2 Columns on mobile) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5" data-oid="2ki0x24">
         {[
           {
             title: 'Total Community',

@@ -18,6 +18,9 @@ function useRecorderRefs(partNumber, handsFreeEnabled) {
     discardRecording: useRef(false),
     stopReason: useRef('manual'),
     speechRecognition: useRef(null),
+    recognitionRestartTimer: useRef(null),
+    recognitionBaseTranscript: useRef(''),
+    recognitionSessionFinal: useRef(''),
     speechConfidence: useRef([]),
     liveTranscript: useRef(''),
     audioContext: useRef(null),
@@ -31,6 +34,7 @@ function useRecorderRefs(partNumber, handsFreeEnabled) {
     graceStartedAt: useRef(null),
     captureConfig: useRef(getSpeakingCaptureConfig(partNumber)),
     smartFinishEnabled: useRef(handsFreeEnabled),
+    autoSubmitPaused: useRef(false),
     isListening: useRef(false),
     isRecording: useRef(false),
     isProcessing: useRef(false),
@@ -47,6 +51,7 @@ function useRecorderState() {
   const [liveTranscript, setLiveTranscript] = useState('');
   const [recordingStartedAt, setRecordingStartedAt] = useState(null);
   const [autoFinishCountdown, setAutoFinishCountdown] = useState(null);
+  const [autoSubmitPaused, setAutoSubmitPaused] = useState(false);
   const [hasDetectedSpeech, setHasDetectedSpeech] = useState(false);
 
   return {
@@ -57,6 +62,7 @@ function useRecorderState() {
       liveTranscript,
       recordingStartedAt,
       autoFinishCountdown,
+      autoSubmitPaused,
       hasDetectedSpeech,
     },
     actions: {
@@ -66,6 +72,7 @@ function useRecorderState() {
       setLiveTranscript,
       setRecordingStartedAt,
       setAutoFinishCountdown,
+      setAutoSubmitPaused,
       setHasDetectedSpeech,
     },
   };
@@ -95,12 +102,26 @@ export default function useAudioRecorder({
   const setIsProcessing = useCallback((value) => {
     runtimeRef.current.refs.isProcessing.current = value;
   }, []);
+  const setAutoSubmitPaused = useCallback((paused) => {
+    const currentRuntime = runtimeRef.current;
+    const nextPaused = Boolean(paused);
+    currentRuntime.refs.autoSubmitPaused.current = nextPaused;
+    currentRuntime.refs.graceStartedAt.current = null;
+    currentRuntime.actions.setAutoFinishCountdown(null);
+    currentRuntime.actions.setAutoSubmitPaused(nextPaused);
+
+    if (!nextPaused && currentRuntime.refs.isListening.current) {
+      currentRuntime.refs.lastVoiceAt.current = Date.now();
+    }
+  }, []);
 
   useEffect(() => {
     const currentRuntime = runtimeRef.current;
     currentRuntime.refs.smartFinishEnabled.current = handsFreeEnabled;
+    currentRuntime.refs.autoSubmitPaused.current = false;
     currentRuntime.refs.graceStartedAt.current = null;
     currentRuntime.actions.setAutoFinishCountdown(null);
+    currentRuntime.actions.setAutoSubmitPaused(false);
 
     if (handsFreeEnabled && currentRuntime.refs.isListening.current) {
       currentRuntime.refs.lastVoiceAt.current = Date.now();
@@ -114,6 +135,7 @@ export default function useAudioRecorder({
     stopListening,
     cancelListening,
     setIsProcessing,
+    setAutoSubmitPaused,
     ...values,
   };
 }

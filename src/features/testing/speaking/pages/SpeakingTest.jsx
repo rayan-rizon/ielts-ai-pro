@@ -21,6 +21,7 @@ import useSpeakingTestState from '../hooks/useSpeakingTestState';
 import useSpeakingTimers from '../hooks/useSpeakingTimers';
 import useStartPartTwoSpeaking from '../hooks/useStartPartTwoSpeaking';
 import useStartSpeakingTest from '../hooks/useStartSpeakingTest';
+import { shouldAutomaticallyFinalizeSpeaking } from '../utils/autoFinalEvaluation';
 import { canAutoStartSpeakingAnswer } from '../utils/speakingCaptureUtils';
 
 const HANDS_FREE_STORAGE_KEY = 'ielts-speaking-hands-free';
@@ -45,6 +46,7 @@ export default function SpeakingTest() {
   const handsFreeEnabledRef = useRef(handsFreeEnabled);
   handsFreeEnabledRef.current = handsFreeEnabled;
   const autoStartRequestedRef = useRef(false);
+  const autoFinalEvaluationRequestedRef = useRef(false);
   const [autoStartRequestVersion, setAutoStartRequestVersion] = useState(0);
   const requestAutoStart = useCallback(() => {
     if (!handsFreeEnabledRef.current) return;
@@ -62,8 +64,17 @@ export default function SpeakingTest() {
   }, [handsFreeEnabled]);
 
   // ─── TTS Hook ──────────────────────────────────────────────────────────
-  const { speakText, cancelCurrentAudio, isSpeaking, isTTSLoading, isMuted, setIsMuted } =
-    useSpeechSynthesis();
+  const {
+    speakText,
+    cancelCurrentAudio,
+    isSpeaking,
+    isTTSLoading,
+    activeSpeechText,
+    isPlaybackActive,
+    speechProgress,
+    isMuted,
+    setIsMuted,
+  } = useSpeechSynthesis();
 
   const {
     acousticMetricsRef,
@@ -366,6 +377,40 @@ export default function SpeakingTest() {
     timerExpiredRef,
   });
 
+  useEffect(() => {
+    const isFinalPart = Object.keys(allParts).length > 0 && !allParts[currentPartNumber + 1];
+    if (!isPartComplete || !isFinalPart) {
+      autoFinalEvaluationRequestedRef.current = false;
+    }
+
+    if (
+      !shouldAutomaticallyFinalizeSpeaking({
+        allParts,
+        currentPartNumber,
+        isPartComplete,
+        isTestComplete,
+        isEvaluating,
+        evaluationStatus: session?.evaluation_status,
+        evaluationPending: session?.content_data?.evaluationPending,
+        alreadyRequested: autoFinalEvaluationRequestedRef.current,
+      })
+    ) {
+      return;
+    }
+
+    autoFinalEvaluationRequestedRef.current = true;
+    moveToNextPart();
+  }, [
+    allParts,
+    currentPartNumber,
+    isEvaluating,
+    isPartComplete,
+    isTestComplete,
+    moveToNextPart,
+    session?.content_data?.evaluationPending,
+    session?.evaluation_status,
+  ]);
+
   useSpeakingTestInitialization({
     testId,
     authLoading,
@@ -524,6 +569,9 @@ export default function SpeakingTest() {
           isProcessing,
           isSpeaking,
           isTTSLoading,
+          activeSpeechText,
+          isPlaybackActive,
+          speechProgress,
           processingStatus,
           handsFreeEnabled,
           timerExpiredRef,

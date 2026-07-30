@@ -147,6 +147,13 @@ describe('exam roadmap and capacity allocation', () => {
     ]);
   });
 
+  it('never presents an internal planning horizon as an expired exam date', () => {
+    const roadmap = buildRoadmap('2026-07-20', new Date('2026-07-31T12:00:00.000Z'));
+
+    expect(roadmap).toHaveLength(4);
+    expect(roadmap.every((phase) => !phase.start_date && !phase.end_date)).toBe(true);
+  });
+
   it('shifts the final 14 days toward timed assessment without inventing more capacity', () => {
     expect(getAllocation(14)).toEqual({
       measured_priority: 25,

@@ -147,7 +147,7 @@ const NotificationCenter = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8 pb-10"
+      className="space-y-8 pb-10 pt-12 md:pt-0"
       data-oid="264wdil"
     >
       <RefinedDeleteModal
@@ -162,36 +162,40 @@ const NotificationCenter = () => {
 
       {/* Header Section */}
       <div
-        className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6"
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-1"
         data-oid="uw_7qqa"
       >
-        <motion.div variants={itemVariants} className="space-y-1" data-oid="2gx73tu">
+        <motion.div variants={itemVariants} className="space-y-0.5 min-w-0" data-oid="2gx73tu">
           <h2
-            className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3"
+            className="text-lg sm:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2.5"
             data-oid="bb48cxc"
           >
             <div
-              className="p-2 bg-primary/10 rounded-lg text-primary shadow-sm border border-primary/20"
+              className="p-2 bg-primary/10 rounded-xl text-primary shadow-2xs border border-primary/20 shrink-0"
               data-oid="b7fone2"
             >
-              <Bell className="w-6 h-6" data-oid="9h5:pqk" />
+              <Bell className="w-4 h-4 sm:w-6 sm:h-6" data-oid="9h5:pqk" />
             </div>
-            Notification Hub
+            <span className="truncate">Notification Hub</span>
           </h2>
-          <p className="text-muted-foreground text-lg ml-1" data-oid="nri9tsw">
+          <p className="text-xs sm:text-base text-muted-foreground" data-oid="nri9tsw">
             Broadcast real-time communications to your community
           </p>
         </motion.div>
 
-        <motion.div variants={itemVariants} data-oid="_p439bb">
+        <motion.div
+          variants={itemVariants}
+          className="w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
+          data-oid="_p439bb"
+        >
           <Button
             variant="outline"
             onClick={fetchNotifications}
-            className="rounded-xl border-border/50 bg-card/50 h-11 px-4 hover:bg-muted/50 transition-all font-bold"
+            className="w-full sm:w-auto justify-center rounded-xl border-border/50 bg-card/50 h-9 sm:h-11 px-4 hover:bg-muted/50 transition-all font-bold text-xs sm:text-sm"
             data-oid="ql8nl.k"
           >
             <RefreshCcw
-              className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`}
+              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 ${loading ? 'animate-spin' : ''}`}
               data-oid="3pqe:wu"
             />
             RELOAD HISTORY
@@ -199,32 +203,35 @@ const NotificationCenter = () => {
         </motion.div>
       </div>
 
-      <div className="grid lg:grid-cols-12 gap-8" data-oid="vs4:v7u">
+      <div className="grid lg:grid-cols-12 gap-5 sm:gap-8" data-oid="vs4:v7u">
         {/* Compose Form */}
         <motion.div variants={itemVariants} className="lg:col-span-4" data-oid="fel2r.n">
           <div
-            className="rounded-xl border text-card-foreground bg-card/50 backdrop-blur-sm border-border/50 shadow-sm overflow-hidden"
+            className="rounded-2xl border text-card-foreground bg-card/50 backdrop-blur-sm border-border/50 shadow-2xs overflow-hidden"
             data-oid="psgkr4c"
           >
-            <div className="p-6 space-y-6" data-oid="fh-axg7">
-              <div className="space-y-1" data-oid="zzws1jg">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6" data-oid="fh-axg7">
+              <div className="space-y-0.5" data-oid="zzws1jg">
                 <h3
-                  className="text-xl font-bold tracking-tight flex items-center gap-2"
+                  className="text-base sm:text-xl font-bold tracking-tight flex items-center gap-2"
                   data-oid="wa5ux1g"
                 >
-                  <Megaphone className="w-5 h-5 text-primary" data-oid="e1y4ood" />
+                  <Megaphone
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0"
+                    data-oid="e1y4ood"
+                  />
                   New Notification
                 </h3>
                 <p
-                  className="text-xs font-medium text-muted-foreground uppercase tracking-wider"
+                  className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider"
                   data-oid="dd889ul"
                 >
                   Create Broadcast Message
                 </p>
               </div>
 
-              <div className="space-y-5" data-oid=".g1j-mg">
-                <div className="space-y-2" data-oid="w:xfi.c">
+              <div className="space-y-4 sm:space-y-5" data-oid=".g1j-mg">
+                <div className="space-y-1.5" data-oid="w:xfi.c">
                   <Label
                     className="text-xs font-medium uppercase tracking-wider opacity-70 ml-1"
                     data-oid="l_ig0au"
@@ -243,13 +250,13 @@ const NotificationCenter = () => {
                         setNewNotification({ ...newNotification, title: e.target.value })
                       }
                       placeholder="Enter notification title..."
-                      className="h-10 pl-10 bg-background border-border focus-visible:ring-primary/20 rounded-lg"
+                      className="h-10 pl-10 bg-background border-border focus-visible:ring-primary/20 rounded-xl text-xs"
                       data-oid="ztd8jgv"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2" data-oid="49s3hol">
+                <div className="space-y-1.5" data-oid="49s3hol">
                   <Label
                     className="text-xs font-medium uppercase tracking-wider opacity-70 ml-1"
                     data-oid="h4gd_.x"
@@ -263,13 +270,16 @@ const NotificationCenter = () => {
                     }
                     placeholder="Enter your notification message..."
                     rows={4}
-                    className="bg-background border-border focus-visible:ring-primary/20 rounded-lg resize-none p-3"
+                    className="bg-background border-border focus-visible:ring-primary/20 rounded-xl resize-none p-3 text-xs"
                     data-oid="rzxp6al"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4" data-oid="yi7q2yg">
-                  <div className="space-y-2" data-oid="etdm2jo">
+                <div
+                  className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3 sm:gap-4"
+                  data-oid="yi7q2yg"
+                >
+                  <div className="space-y-1.5" data-oid="etdm2jo">
                     <Label
                       className="text-xs font-medium uppercase tracking-wider opacity-70 ml-1"
                       data-oid="afxt7gr"
@@ -282,12 +292,12 @@ const NotificationCenter = () => {
                       data-oid="yodqsxb"
                     >
                       <SelectTrigger
-                        className="h-10 bg-background border-border rounded-lg"
+                        className="h-10 bg-background border-border rounded-xl text-xs"
                         data-oid="qdz.pey"
                       >
                         <SelectValue data-oid="cu0:egv" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-lg border-border" data-oid="h1eqx2p">
+                      <SelectContent className="rounded-xl border-border" data-oid="h1eqx2p">
                         <SelectItem value="info" data-oid="c8jx0xc">
                           Information
                         </SelectItem>
@@ -304,7 +314,7 @@ const NotificationCenter = () => {
                     </Select>
                   </div>
 
-                  <div className="space-y-2" data-oid="1q.tvlq">
+                  <div className="space-y-1.5" data-oid="1q.tvlq">
                     <Label
                       className="text-xs font-medium uppercase tracking-wider opacity-70 ml-1"
                       data-oid="l4rrg6m"
@@ -319,12 +329,12 @@ const NotificationCenter = () => {
                       data-oid="rots022"
                     >
                       <SelectTrigger
-                        className="h-10 bg-background border-border rounded-lg"
+                        className="h-10 bg-background border-border rounded-xl text-xs"
                         data-oid="h5v.qcd"
                       >
                         <SelectValue data-oid=".:zk69m" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-lg border-border" data-oid="2dxgwtr">
+                      <SelectContent className="rounded-xl border-border" data-oid="2dxgwtr">
                         <SelectItem value="all" data-oid="pe9w_n2">
                           All Users
                         </SelectItem>
@@ -342,7 +352,7 @@ const NotificationCenter = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2" data-oid="acwpffe">
+                <div className="space-y-1.5" data-oid="acwpffe">
                   <Label
                     className="text-xs font-medium uppercase tracking-wider opacity-70 ml-1"
                     data-oid=":a7wu63"
@@ -362,14 +372,14 @@ const NotificationCenter = () => {
                       onChange={(e) =>
                         setNewNotification({ ...newNotification, expires_in_days: e.target.value })
                       }
-                      className="h-10 pl-10 bg-background border-border focus-visible:ring-primary/20 rounded-lg"
+                      className="h-10 pl-10 bg-background border-border focus-visible:ring-primary/20 rounded-xl text-xs"
                       data-oid="w1da0cb"
                     />
                   </div>
                 </div>
 
                 <Button
-                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors font-medium"
+                  className="w-full h-10 sm:h-11 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl transition-colors font-bold text-xs sm:text-sm"
                   onClick={handleSend}
                   disabled={sending}
                   data-oid="nu2ibv6"
@@ -389,11 +399,116 @@ const NotificationCenter = () => {
         {/* History List */}
         <motion.div variants={itemVariants} className="lg:col-span-8" data-oid=".3mslx.">
           <div
-            className="rounded-xl border text-card-foreground bg-card/50 backdrop-blur-sm border-border/50 shadow-sm overflow-hidden"
+            className="rounded-2xl border text-card-foreground bg-card/50 backdrop-blur-sm border-border/50 shadow-2xs overflow-hidden"
             data-oid="9udz.wj"
           >
             <div className="p-0" data-oid="t_29d-f">
-              <div className="overflow-x-auto no-scrollbar" data-oid="rud0-.v">
+              {/* Mobile View: Card List */}
+              <div className="md:hidden divide-y divide-border/50" data-oid="mobile-notif-list">
+                {loading ? (
+                  <div
+                    className="p-10 text-center text-muted-foreground"
+                    data-oid="mob-notif-loading"
+                  >
+                    <Loader2 className="w-7 h-7 animate-spin mx-auto mb-3 text-primary" />
+                    <p className="text-xs font-bold">Loading history...</p>
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <div
+                    className="p-10 text-center text-muted-foreground space-y-2"
+                    data-oid="mob-notif-empty"
+                  >
+                    <Bell className="w-8 h-8 mx-auto text-muted-foreground/40" />
+                    <p className="font-bold text-sm text-foreground">No notifications found</p>
+                    <p className="text-xs text-muted-foreground">
+                      Create your first broadcast to get started.
+                    </p>
+                  </div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      className="p-4 space-y-3"
+                      data-oid={`mob-notif-${notif.id}`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div
+                            className={`p-2 rounded-xl border shrink-0 ${
+                              notif.type === 'success'
+                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                                : notif.type === 'warning'
+                                  ? 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400'
+                                  : notif.type === 'announcement'
+                                    ? 'bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400'
+                                    : 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400'
+                            }`}
+                          >
+                            {notif.type === 'success' && <CheckCircle2 className="w-4 h-4" />}
+                            {notif.type === 'warning' && <AlertCircle className="w-4 h-4" />}
+                            {notif.type === 'announcement' && <Megaphone className="w-4 h-4" />}
+                            {notif.type === 'info' && <Info className="w-4 h-4" />}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-xs font-bold text-foreground truncate">
+                              {notif.title}
+                            </h4>
+                            <p className="text-[10px] text-muted-foreground font-mono">
+                              ID: {notif.id.substring(0, 8)}...
+                            </p>
+                          </div>
+                        </div>
+
+                        <Badge
+                          variant="outline"
+                          className={`rounded-lg px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border shrink-0 ${getBadgeStyle(notif.type)}`}
+                        >
+                          {notif.type}
+                        </Badge>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] p-2.5 rounded-xl bg-muted/40 border border-border/40">
+                        <div className="flex items-center gap-1.5 font-medium text-muted-foreground">
+                          <Users className="w-3.5 h-3.5 opacity-60" />
+                          <span className="capitalize text-foreground font-semibold">
+                            {notif.target_audience}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 font-medium text-muted-foreground">
+                          <Calendar className="w-3.5 h-3.5 opacity-60" />
+                          <span>
+                            {new Date(notif.expires_at).toLocaleDateString(undefined, {
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </span>
+                          {new Date(notif.expires_at) < new Date() && (
+                            <Badge className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 text-[9px] px-1.5 py-0">
+                              EXPIRED
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end pt-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setDeletingId(notif.id)}
+                          className="h-8 text-xs font-bold text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl flex items-center gap-1.5"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Recall Notification</span>
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Desktop View: Table */}
+              <div className="hidden md:block overflow-x-auto no-scrollbar" data-oid="rud0-.v">
                 <Table className="min-w-[800px]" data-oid="geia3.8">
                   <TableHeader
                     className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/20 dark:to-indigo-900/20 border-b border-blue-200/60 dark:border-blue-800/50"

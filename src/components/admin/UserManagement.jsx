@@ -372,7 +372,7 @@ const UserManagement = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8 pb-10"
+      className="space-y-8 pb-10 pt-12 md:pt-0"
       data-oid="z_23py6"
     >
       <RefinedDeleteModal
@@ -455,21 +455,21 @@ const UserManagement = () => {
 
       {/* Header Section */}
       <div
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1"
         data-oid="7zo3538"
       >
-        <motion.div variants={itemVariants} className="space-y-0.5" data-oid="85swrl-">
+        <motion.div variants={itemVariants} className="space-y-0.5 min-w-0" data-oid="85swrl-">
           <h2
-            className="text-2xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
+            className="text-lg sm:text-2xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
             data-oid="9t49n:l"
           >
             <div
-              className="p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xs"
+              className="p-2 sm:p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xs shrink-0"
               data-oid="_::hin1"
             >
-              <Users className="w-5 h-5" data-oid="9w0m6vz" />
+              <Users className="w-4 h-4 sm:w-5 sm:h-5" data-oid="9w0m6vz" />
             </div>
-            <span>User Directory</span>
+            <span className="truncate">User Directory</span>
           </h2>
           <p
             className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400"
@@ -480,11 +480,15 @@ const UserManagement = () => {
           </p>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="flex items-center gap-2" data-oid="lb2009i">
+        <motion.div
+          variants={itemVariants}
+          className="flex items-center gap-2 w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
+          data-oid="lb2009i"
+        >
           <Button
             variant="outline"
             onClick={fetchUsers}
-            className="h-9 px-3.5 font-extrabold text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 shadow-2xs rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-2"
+            className="flex-1 sm:flex-none justify-center h-9 px-3.5 font-extrabold text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 shadow-2xs rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-2"
             data-oid="iiog8.p"
           >
             <RefreshCcw
@@ -495,7 +499,7 @@ const UserManagement = () => {
           </Button>
           <Button
             onClick={() => setIsCreatingUser(true)}
-            className="h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-2xs transition-all flex items-center gap-2"
+            className="flex-1 sm:flex-none justify-center h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-2xs transition-all flex items-center gap-2"
             data-oid="5yf.zvf"
           >
             <UserPlus className="w-4 h-4" data-oid="izku-.9" />
@@ -510,8 +514,11 @@ const UserManagement = () => {
         className="flex flex-col gap-3 bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 p-3.5 rounded-2xl shadow-2xs"
         data-oid="6l6kxmo"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center" data-oid="we320wu">
-          <div className="lg:col-span-4 relative group" data-oid="8bpgm8k">
+        <div
+          className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-12 gap-2.5 items-center"
+          data-oid="we320wu"
+        >
+          <div className="min-[480px]:col-span-2 lg:col-span-4 relative group" data-oid="8bpgm8k">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors"
               data-oid=":agny.j"
@@ -521,19 +528,19 @@ const UserManagement = () => {
               placeholder="Search candidate name or email address..."
               value={userFilters.search}
               onChange={(e) => setUserFilters({ ...userFilters, search: e.target.value })}
-              className="h-9 pl-9 bg-slate-50/70 dark:bg-slate-900/50 border-slate-200/80 dark:border-white/10 rounded-xl font-medium text-xs text-slate-900 dark:text-white placeholder:text-slate-400"
+              className="h-9 pl-9 bg-slate-50/70 dark:bg-slate-900/50 border-slate-200/80 dark:border-white/10 rounded-xl font-medium text-xs text-slate-900 dark:text-white placeholder:text-slate-400 w-full"
               data-oid="n0fsc29"
             />
           </div>
 
-          <div className="lg:col-span-2" data-oid="t.er117">
+          <div className="min-[480px]:col-span-1 lg:col-span-2" data-oid="t.er117">
             <Select
               value={userFilters.subscription}
               onValueChange={(value) => setUserFilters({ ...userFilters, subscription: value })}
               data-oid="cr47ek3"
             >
               <SelectTrigger
-                className="h-9 bg-slate-50/70 dark:bg-slate-900/50 border-slate-200/80 dark:border-white/10 rounded-xl px-3 text-xs"
+                className="h-9 bg-slate-50/70 dark:bg-slate-900/50 border-slate-200/80 dark:border-white/10 rounded-xl px-3 text-xs w-full"
                 data-oid="sv33jb2"
               >
                 <div className="flex items-center gap-2" data-oid="9pc6ua1">
@@ -561,14 +568,14 @@ const UserManagement = () => {
             </Select>
           </div>
 
-          <div className="lg:col-span-2" data-oid="828ulek">
+          <div className="min-[480px]:col-span-1 lg:col-span-2" data-oid="828ulek">
             <Select
               value={userFilters.role}
               onValueChange={(value) => setUserFilters({ ...userFilters, role: value })}
               data-oid="pxuzgl5"
             >
               <SelectTrigger
-                className="h-9 bg-slate-50/70 dark:bg-slate-900/50 border-slate-200/80 dark:border-white/10 rounded-xl px-3 text-xs"
+                className="h-9 bg-slate-50/70 dark:bg-slate-900/50 border-slate-200/80 dark:border-white/10 rounded-xl px-3 text-xs w-full"
                 data-oid="le5yfh_"
               >
                 <div className="flex items-center gap-2" data-oid="m8uoj4x">
@@ -590,18 +597,18 @@ const UserManagement = () => {
             </Select>
           </div>
 
-          <div className="lg:col-span-2 space-y-1" data-oid="fq76h81">
+          <div className="min-[480px]:col-span-1 lg:col-span-2 space-y-1" data-oid="fq76h81">
             <Select
               value={userFilters.inactiveDays}
               onValueChange={(value) => setUserFilters({ ...userFilters, inactiveDays: value })}
               data-oid="7yr43eq"
             >
               <SelectTrigger
-                className="h-10 bg-muted/20 border-border/40 rounded-lg px-4"
+                className="h-9 bg-slate-50/70 dark:bg-slate-900/50 border-slate-200/80 dark:border-white/10 rounded-xl px-3 text-xs w-full"
                 data-oid="8xwumsc"
               >
                 <div className="flex items-center gap-2" data-oid="s835xyf">
-                  <Clock className="w-4 h-4 text-amber-500/60" data-oid="d4bb-1t" />
+                  <Clock className="w-3.5 h-3.5 text-amber-500/80" data-oid="d4bb-1t" />
                   <SelectValue placeholder="Activity" data-oid="035uysa" />
                 </div>
               </SelectTrigger>
@@ -628,11 +635,11 @@ const UserManagement = () => {
             </Select>
           </div>
 
-          <div className="lg:col-span-2 flex justify-end" data-oid="5.zub_x">
+          <div className="min-[480px]:col-span-1 lg:col-span-2 flex justify-end" data-oid="5.zub_x">
             <Button
               variant="ghost"
               onClick={resetFilters}
-              className="h-10 w-full lg:w-auto px-4 rounded-lg font-bold text-sm text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all uppercase tracking-tight"
+              className="h-9 w-full lg:w-auto px-4 rounded-xl font-bold text-xs text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all uppercase tracking-tight"
               data-oid="e6-0y21"
             >
               Clear Filters
@@ -645,24 +652,24 @@ const UserManagement = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-between py-2 px-3 rounded-lg bg-amber-500/10 border border-amber-500/30"
+            className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30"
             data-oid="bpt0ege"
           >
             <span
-              className="text-sm font-semibold text-amber-700 dark:text-amber-400"
+              className="text-xs sm:text-sm font-semibold text-amber-700 dark:text-amber-400"
               data-oid="2nm4h46"
             >
               {selectedUsers.size} user{selectedUsers.size > 1 ? 's' : ''} selected
             </span>
-            <div className="flex gap-2" data-oid="3x92mt_">
+            <div className="flex items-center gap-2" data-oid="3x92mt_">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowWarningModal(true)}
-                className="rounded-lg border-amber-500/30 text-amber-600 hover:bg-amber-500/10 hover:text-amber-600"
+                className="flex-1 sm:flex-none justify-center rounded-lg border-amber-500/30 text-amber-600 hover:bg-amber-500/10 hover:text-amber-600 text-xs h-8"
                 data-oid="oyllzm0"
               >
-                <Mail className="w-4 h-4 mr-2" data-oid="89qxbsa" />
+                <Mail className="w-3.5 h-3.5 mr-1.5" data-oid="89qxbsa" />
                 Send Warning
               </Button>
               <Button
@@ -670,10 +677,10 @@ const UserManagement = () => {
                 size="sm"
                 onClick={handleBulkDelete}
                 disabled={loading}
-                className="rounded-lg border-rose-500/30 text-rose-600 hover:bg-rose-500/10 hover:text-rose-600"
+                className="flex-1 sm:flex-none justify-center rounded-lg border-rose-500/30 text-rose-600 hover:bg-rose-500/10 hover:text-rose-600 text-xs h-8"
                 data-oid="cxx3tre"
               >
-                <Trash2 className="w-4 h-4 mr-2" data-oid="wig6x3e" />
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" data-oid="wig6x3e" />
                 Delete Selected
               </Button>
             </div>
@@ -687,8 +694,11 @@ const UserManagement = () => {
           className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs rounded-2xl overflow-hidden"
           data-oid="n7uwuzb"
         >
-          <div className="overflow-x-auto" data-oid="_h_qjay">
-            <Table data-oid="hu_q:cf">
+          <div
+            className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
+            data-oid="_h_qjay"
+          >
+            <Table className="min-w-[850px]" data-oid="hu_q:cf">
               <TableHeader
                 className="bg-slate-50/80 dark:bg-slate-900/40 border-b border-slate-100 dark:border-white/5"
                 data-oid="86l2vgq"
@@ -974,7 +984,7 @@ const UserManagement = () => {
             data-oid="mk63_9i"
           >
             <DialogContent
-              className="sm:max-w-md bg-card border-border/50 backdrop-blur-2xl rounded-lg p-0 overflow-hidden shadow-lg"
+              className="w-[95vw] sm:w-full sm:max-w-md bg-card border-border/50 backdrop-blur-2xl rounded-2xl p-0 overflow-hidden shadow-lg max-h-[90vh] overflow-y-auto"
               data-oid="oj2mbu."
             >
               <div

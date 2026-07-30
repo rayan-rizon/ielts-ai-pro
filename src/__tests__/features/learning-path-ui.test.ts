@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   buildRoadmapViewModel,
+  computeDashboardSnapshot,
   computePhases,
   computeSevenDays,
   dateKey,
@@ -99,7 +100,9 @@ describe('Learning Path main page composition', () => {
     expect(hero).toContain('sm:grid-cols-4');
     expect(readiness).toContain('grid-cols-2');
     expect(readiness).toContain('sm:grid-cols-4');
-    expect(layout).toContain("location.pathname === '/learning-path' ? 'right-4' : 'left-4'");
+    expect(layout).toContain(
+      'pointer-events-none absolute top-4 left-4 z-50 flex items-center gap-2 md:hidden'
+    );
     expect(app).toContain("path: '/learning-path-preview'");
     expect(app).toContain('<Navigate to="/learning-path" replace />');
     expect(app).not.toContain('LearningPathPreview');
@@ -229,11 +232,51 @@ describe('Learning Path main page composition', () => {
     ]);
   });
 
+  it('does not show stale roadmap dates after the account exam date has passed', () => {
+    const snapshot = computeDashboardSnapshot(
+      {
+        goal_snapshot: { test_date: '2020-01-01' },
+        roadmap: [
+          {
+            key: 'foundation',
+            start_date: '2026-07-31',
+            end_date: '2026-08-15',
+          },
+        ],
+      },
+      { test_date: '2020-01-01' }
+    );
+
+    expect(snapshot.examDate).toBe('2020-01-01');
+    expect(snapshot.examDatePassed).toBe(true);
+    expect(snapshot.roadmap.every((phase) => !phase.start_date && !phase.end_date)).toBe(true);
+  });
+
+  it('uses the account exam date while a saved roadmap is being refreshed', () => {
+    const snapshot = computeDashboardSnapshot(
+      {
+        goal_snapshot: { test_date: '2099-10-22' },
+        roadmap: [
+          {
+            key: 'foundation',
+            start_date: '2026-07-31',
+            end_date: '2026-08-15',
+          },
+        ],
+      },
+      { test_date: '2020-01-01' }
+    );
+
+    expect(snapshot.examDate).toBe('2020-01-01');
+    expect(snapshot.roadmap.every((phase) => !phase.start_date && !phase.end_date)).toBe(true);
+  });
+
   it('makes the exam-date tile and missing-score prompt actionable', () => {
     expect(hero).toContain('label="Exam date"');
     expect(hero).toContain('onClick={() => setCustomizeOpen(true)}');
     expect(readiness).toContain('Start score check');
     expect(weekPulse).toContain('Fix schedule');
+    expect(roadmap).toContain('Your saved exam date has passed');
   });
 
   it('derives roadmap progress from evidence instead of a static completion value', () => {
@@ -348,5 +391,9 @@ describe('Learning Path main page composition', () => {
       '/scheduled_date|stage_key|completion_policy|requested_mode|evidence_key/i.test('
     );
     expect(hook).toContain('V1 column set');
+  });
+
+  it('uses a compatibility write when newer activity metadata has not been deployed yet', () => {
+    expect(hook).toContain('upsertLearningPathActivity(supabase, payload)');
   });
 });

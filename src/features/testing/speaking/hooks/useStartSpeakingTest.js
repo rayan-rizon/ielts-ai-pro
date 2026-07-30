@@ -46,7 +46,7 @@ export default function useStartSpeakingTest({
     }
 
     if (pendingGreetingRef.current) {
-      playInitialGreeting({
+      void playInitialGreeting({
         allParts,
         firstQuestionInsertedRef,
         pendingGreetingRef,
@@ -99,7 +99,7 @@ async function createSpeakingSession({
       learning_path_activity_id: getLearningActivityId(),
       evaluation_status: 'not_requested',
       content_data: { passage_id: resolvedPassageId, currentPart: partNumber },
-      answers: { conversation: initialConversation, currentQuestionIndex: 0 },
+      answers: { conversation: initialConversation.slice(0, 1), currentQuestionIndex: 0 },
     });
     setSession(newSession);
   } catch (error) {
@@ -107,7 +107,7 @@ async function createSpeakingSession({
   }
 }
 
-function playInitialGreeting({
+export async function playInitialGreeting({
   allParts,
   firstQuestionInsertedRef,
   pendingGreetingRef,
@@ -124,17 +124,16 @@ function playInitialGreeting({
   });
 
   const firstQuestion = initialConversation[1]?.text;
-  setConversation(initialConversation);
+  setConversation(initialConversation.slice(0, 1));
   setCurrentQuestionIndex(0);
   setTestStarted(true);
   pendingGreetingRef.current = null;
-  firstQuestionInsertedRef.current = Boolean(firstQuestion);
 
-  void playGreetingAndQuestion({ firstQuestion, greeting, requestAutoStart, speakText });
-}
-
-async function playGreetingAndQuestion({ firstQuestion, greeting, requestAutoStart, speakText }) {
-  await speakText(greeting);
-  if (firstQuestion) await speakText(firstQuestion);
+  await Promise.resolve(speakText(greeting)).catch(() => {});
+  if (firstQuestion) {
+    setConversation((previous) => [...previous, { speaker: 'ai', text: firstQuestion }]);
+    firstQuestionInsertedRef.current = true;
+    await Promise.resolve(speakText(firstQuestion)).catch(() => {});
+  }
   requestAutoStart?.();
 }

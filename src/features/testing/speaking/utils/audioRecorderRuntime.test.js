@@ -54,6 +54,9 @@ function buildRuntime(processRecording) {
       discardRecording: ref(false),
       stopReason: ref('manual'),
       speechRecognition: ref(null),
+      recognitionRestartTimer: ref(null),
+      recognitionBaseTranscript: ref(''),
+      recognitionSessionFinal: ref(''),
       speechConfidence: ref([]),
       liveTranscript: ref(''),
       audioContext: ref(null),
@@ -67,6 +70,7 @@ function buildRuntime(processRecording) {
       graceStartedAt: ref(null),
       captureConfig: ref(getSpeakingCaptureConfig(1)),
       smartFinishEnabled: ref(true),
+      autoSubmitPaused: ref(false),
       isListening: ref(false),
       isRecording: ref(false),
       isProcessing: ref(false),
@@ -78,6 +82,7 @@ function buildRuntime(processRecording) {
       setLiveTranscript: vi.fn(),
       setRecordingStartedAt: vi.fn(),
       setAutoFinishCountdown: vi.fn(),
+      setAutoSubmitPaused: vi.fn(),
       setHasDetectedSpeech: vi.fn(),
     },
   };
@@ -153,5 +158,64 @@ describe('audioRecorderRuntime hands-free silence detection', () => {
     stopRecorderCapture(runtime, 'manual');
     expect(processRecording).toHaveBeenCalledOnce();
     expect(processRecording.mock.calls[0][1].stopReason).toBe('manual');
+  });
+
+  it('pauses silence auto-send and gives a fresh silence window when resumed', async () => {
+    const processRecording = vi.fn().mockResolvedValue(undefined);
+    const runtime = buildRuntime(processRecording);
+
+    await startRecorderCapture(runtime);
+    recognition.onresult({
+      results: [
+        {
+          0: { transcript: 'I need a moment to organise my answer.', confidence: 0.9 },
+          isFinal: true,
+          length: 1,
+        },
+      ],
+    });
+
+    runtime.refs.autoSubmitPaused.current = true;
+    await vi.advanceTimersByTimeAsync(8000);
+    expect(processRecording).not.toHaveBeenCalled();
+
+    runtime.refs.autoSubmitPaused.current = false;
+    runtime.refs.lastVoiceAt.current = Date.now();
+    await vi.advanceTimersByTimeAsync(4200);
+
+    expect(processRecording).toHaveBeenCalledOnce();
+    expect(processRecording.mock.calls[0][1].stopReason).toBe('smart-finish');
+  });
+
+  it('keeps completed caption text when browser recognition restarts', async () => {
+    const processRecording = vi.fn().mockResolvedValue(undefined);
+    const runtime = buildRuntime(processRecording);
+
+    await startRecorderCapture(runtime);
+    recognition.onresult({
+      results: [
+        {
+          0: { transcript: 'The city has', confidence: 0.9 },
+          isFinal: true,
+          length: 1,
+        },
+      ],
+    });
+
+    recognition.onend();
+    await vi.advanceTimersByTimeAsync(250);
+    recognition.onresult({
+      results: [
+        {
+          0: { transcript: 'several museums.', confidence: 0.92 },
+          isFinal: true,
+          length: 1,
+        },
+      ],
+    });
+
+    expect(runtime.actions.setLiveTranscript).toHaveBeenLastCalledWith(
+      'The city has several museums.'
+    );
   });
 });

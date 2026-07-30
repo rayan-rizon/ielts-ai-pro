@@ -55,14 +55,14 @@ function PriorityRow({ skill, index }) {
     }[skill.kind] || skill.kind;
 
   return (
-    <div className="min-w-0 border-b border-slate-100 p-3.5 last:border-b-0 dark:border-white/5">
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="w-4 text-center text-[10px] font-black text-slate-400 dark:text-slate-500">
+    <div className="min-w-0 border-b border-slate-100 px-3 py-3 last:border-b-0 dark:border-white/5 sm:px-3.5">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span className="w-4 shrink-0 text-center text-xs font-bold text-slate-400 dark:text-slate-500">
           {index + 1}
         </span>
         <span
           className={cn(
-            'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-bold shadow-xs',
+            'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-bold shadow-2xs',
             style.surface,
             style.color
           )}
@@ -70,31 +70,31 @@ function PriorityRow({ skill, index }) {
           <Icon className="h-4 w-4" />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-            <p className="min-w-[7rem] flex-1 text-xs font-black leading-snug text-slate-950 dark:text-white">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-1.5">
+            <p className="truncate text-xs font-black leading-snug text-slate-950 dark:text-white">
               {formatSkill(skill.skill_code)}
             </p>
             <span
               className={cn(
-                'max-w-full shrink-0 rounded-full px-2 py-0.5 text-[9.5px] font-black uppercase tracking-wider',
+                'shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider',
                 tone
               )}
             >
               {kindLabel}
             </span>
           </div>
-          <div className="mt-2 flex items-center gap-2">
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
+          <div className="mt-1.5 flex items-center gap-2">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
               <div
                 className={cn('h-full rounded-full transition-all duration-500', style.bar)}
                 style={{ width: `${Math.max(5, mastery)}%` }}
               />
             </div>
-            <span className="w-8 text-right text-xs font-black tabular-nums text-slate-700 dark:text-slate-300">
+            <span className="w-7 text-right text-xs font-black tabular-nums text-slate-700 dark:text-slate-300">
               {mastery}%
             </span>
           </div>
-          <p className="mt-1 break-words text-[10.5px] font-semibold leading-relaxed text-slate-600 dark:text-slate-300">
+          <p className="mt-0.5 truncate text-[10px] font-semibold text-slate-500 dark:text-slate-400">
             Current skill level · {(skill.observations || 0).toLocaleString()} answers ·{' '}
             {confidenceText}
           </p>

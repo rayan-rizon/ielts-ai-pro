@@ -1,56 +1,82 @@
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const resendApiKey = Deno.env.get('RESEND_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Content-Type': 'application/json',
 };
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  try {
-    const authHeader = req.headers.get('Authorization')!;
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
+  if (req.method !== 'GET') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: corsHeaders,
     });
+  }
+
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    console.error('[admin-email-stats] Supabase service configuration is missing');
+    return new Response(JSON.stringify({ error: 'Email metrics are not configured' }), {
+      status: 503,
+      headers: corsHeaders,
+    });
+  }
+
+  if (!resendApiKey) {
+    console.error('[admin-email-stats] RESEND_API_KEY is not configured');
+    return new Response(JSON.stringify({ error: 'Resend email metrics are not configured' }), {
+      status: 503,
+      headers: corsHeaders,
+    });
+  }
+
+  const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
+  if (!token) {
+    return new Response(JSON.stringify({ error: 'Authentication required' }), {
+      status: 401,
+      headers: corsHeaders,
+    });
+  }
+
+  try {
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser();
-    if (userError || !user) throw new Error('Unauthorized');
-
-    // Simple admin check: Ensure user.role or the user's role in DB is admin
-    const { data: userProfile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('auth_id', user.id)
-      .single();
-
-    if (userProfile?.role !== 'admin') {
-      return new Response(JSON.stringify({ error: 'Forbidden. Admin access required.' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    } = await supabase.auth.getUser(token);
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: 'Authentication required' }), {
+        status: 401,
+        headers: corsHeaders,
       });
     }
 
-    if (!resendApiKey) {
-      return new Response(JSON.stringify({ error: 'RESEND_API_KEY not configured.' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    const { data: userProfile, error: profileError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('auth_id', user.id)
+      .maybeSingle();
+
+    if (profileError || userProfile?.role !== 'admin') {
+      return new Response(JSON.stringify({ error: 'Admin access required' }), {
+        status: 403,
+        headers: corsHeaders,
       });
     }
 
     // Fetch recent emails from Resend (last 100)
-    const response = await fetch('https://api.resend.com/emails', {
+    const response = await fetch('https://api.resend.com/emails?limit=100', {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${resendApiKey}`,
@@ -59,11 +85,12 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch from Resend', details: error }),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      const error = await response.text();
+      console.error('[admin-email-stats] Resend request failed:', response.status, error);
+      return new Response(JSON.stringify({ error: 'Unable to fetch Resend delivery metrics' }), {
+        status: 502,
+        headers: corsHeaders,
+      });
     }
 
     const data = await response.json();
@@ -93,12 +120,13 @@ serve(async (req) => {
         },
         recent: emails.slice(0, 10), // Only send 10 latest fully
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      { headers: corsHeaders, status: 200 }
     );
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
+  } catch (error) {
+    console.error('[admin-email-stats] Unexpected error:', error);
+    return new Response(JSON.stringify({ error: 'Unable to load email delivery metrics' }), {
+      headers: corsHeaders,
+      status: 500,
     });
   }
 });

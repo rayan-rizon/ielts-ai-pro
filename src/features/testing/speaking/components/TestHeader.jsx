@@ -17,9 +17,9 @@ const formatTime = (seconds) => {
 function StatusSection({ label, children, className }) {
   return (
     <section
-      className={cn('min-w-0 border-border/70 px-4 py-4 sm:px-5 xl:border-l xl:py-5', className)}
+      className={cn('min-w-0 border-border/70 px-4 py-3.5 sm:px-5 xl:border-l xl:py-4', className)}
     >
-      <p className="mb-2 text-[9px] font-extrabold uppercase tracking-[0.18em] text-muted-foreground">
+      <p className="mb-1.5 text-[9px] font-extrabold uppercase tracking-[0.18em] text-muted-foreground">
         {label}
       </p>
       {children}
@@ -51,15 +51,15 @@ const TestHeader = React.memo(
     const progressLabel = `${Math.round(partProgress)}%`;
 
     return (
-      <header className="relative z-40 mb-3 sm:mb-4">
-        <div className="mb-1 flex h-8 items-center justify-between pl-10 sm:mb-2 sm:pl-0">
+      <header className="relative z-40 mb-2.5 sm:mb-3">
+        <div className="mb-1 flex h-8 items-center justify-between sm:mb-2">
           <Button
             variant="ghost"
             onClick={onShowExitDialog}
             aria-label="Back to Speaking"
-            className="group relative flex h-9 sm:h-9.5 shrink-0 items-center justify-center rounded-xl border border-[#d2d7f8] bg-gradient-to-r from-white to-[#f4f3ff] px-2.5 sm:px-3 text-slate-700 shadow-2xs transition-all duration-200 hover:border-[#5661e9] hover:text-[#5661e9] hover:shadow-xs active:scale-95 dark:border-white/10 dark:from-white/10 dark:to-white/5 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300"
+            className="group relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-card/95 text-foreground shadow-sm backdrop-blur-lg transition-all duration-200 hover:border-primary/40 hover:text-primary hover:shadow-md active:scale-95 sm:h-9 sm:w-auto sm:border-[#d2d7f8] sm:bg-gradient-to-r sm:from-white sm:to-[#f4f3ff] sm:px-3 sm:text-slate-700 dark:border-white/10 dark:bg-white/10 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300"
           >
-            <ArrowLeft className="h-4.5 w-4.5 sm:h-5 sm:w-5 transition-transform duration-200 group-hover:-translate-x-0.5 stroke-[2.5] sm:mr-2" />
+            <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5 stroke-[2.5] sm:mr-2 sm:h-4.5 sm:w-4.5" />
             <span className="hidden text-xs font-bold sm:inline">Back to Speaking</span>
           </Button>
         </div>
@@ -198,19 +198,19 @@ const TestHeader = React.memo(
             </section>
           </div>
 
-          <div className="hidden xl:grid xl:grid-cols-[minmax(18rem,1.45fr)_minmax(9rem,0.72fr)_minmax(13rem,1fr)_minmax(8rem,0.65fr)_5rem_minmax(8rem,0.65fr)]">
-            <section className="col-span-2 flex min-w-0 items-center gap-3.5 border-b border-border/70 px-4 py-4 sm:px-5 xl:col-span-1 xl:border-b-0 xl:py-5">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-500/[0.09] text-rose-500 sm:h-14 sm:w-14">
-                <Headphones className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />
+          <div className="hidden xl:grid xl:grid-cols-[minmax(16rem,1.4fr)_minmax(8rem,0.7fr)_minmax(11rem,0.9fr)_minmax(7rem,0.6fr)_4.5rem_minmax(7rem,0.6fr)]">
+            <section className="col-span-2 flex min-w-0 items-center gap-3 border-b border-border/70 px-4 py-3.5 sm:px-5 xl:col-span-1 xl:border-b-0 xl:py-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-500/[0.09] text-rose-500">
+                <Headphones className="h-5 w-5" aria-hidden="true" />
               </span>
               <div className="min-w-0">
                 <p className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-rose-500">
                   Speaking practice
                 </p>
-                <h1 className="mt-1 truncate text-base font-black tracking-[-0.02em] text-foreground sm:text-lg">
+                <h1 className="mt-0.5 truncate text-base font-black tracking-[-0.02em] text-foreground">
                   IELTS Speaking Session
                 </h1>
-                <p className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground">
+                <p className="truncate text-[11px] font-medium text-muted-foreground">
                   {testTitle}
                 </p>
               </div>

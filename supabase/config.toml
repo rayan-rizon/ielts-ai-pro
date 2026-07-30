@@ -305,6 +305,12 @@ enabled = false
 [functions.stripe-webhook]
 verify_jwt = false
 
+[functions.admin-payment-history]
+verify_jwt = true
+
+[functions.admin-email-stats]
+verify_jwt = true
+
 [functions.evaluateGrammarTransfer]
 verify_jwt = true
 

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { SystemSetting } from '@/features/admin/services/SystemSetting';
 import { supabase } from '@/lib/supabase';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import {
   Mail,
   Loader2,
@@ -31,7 +32,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 
-const ADMIN_EMAIL_STATS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-email-stats`;
 const ADMIN_EMAIL_TESTER_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-email-tester`;
 
 const EMAIL_TRIGGERS = [
@@ -113,31 +113,20 @@ export default function AdminEmailSettings() {
   const fetchStats = async () => {
     try {
       setLoadingStats(true);
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) throw new Error('No active session');
-
-      await fetch(ADMIN_EMAIL_STATS_URL, {
-        method: 'OPTIONS',
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-
-      const res = await fetch(ADMIN_EMAIL_STATS_URL, {
+      const { data, error } = await supabase.functions.invoke('admin-email-stats', {
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
       });
 
-      if (!res.ok) {
-        throw new Error(await res.text());
+      if (error) {
+        let message = error.message;
+        if (error instanceof FunctionsHttpError) {
+          const body = await error.context.json().catch(() => null);
+          message = body?.error || message;
+        }
+        throw new Error(message);
       }
 
-      const resData = await res.json();
-      setStats(resData.metrics);
+      setStats(data?.metrics || null);
     } catch (err) {
       console.error('Failed to fetch Resend stats:', err);
       // Suppress toast, just fail gracefully in UI

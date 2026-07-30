@@ -15,11 +15,13 @@ const readyProps = {
   liveTranscript: '',
   recordingStartedAt: null,
   autoFinishCountdown: null,
+  autoSubmitPaused: false,
   hasDetectedSpeech: false,
   handsFreeEnabled: true,
   timerExpiredRef: { current: false },
   onStartListening: vi.fn(),
   onStopListening: vi.fn(),
+  onAutoSubmitPausedChange: vi.fn(),
   onStartTest: vi.fn(),
 };
 
@@ -49,7 +51,7 @@ describe('speaking recording controls', () => {
     );
   });
 
-  it('shows live captions and a cancellable smart-finish countdown while recording', () => {
+  it('keeps recording controls compact while the transcript streams in chat', () => {
     render(
       <RecordingControls
         {...readyProps}
@@ -61,11 +63,10 @@ describe('speaking recording controls', () => {
       />
     );
 
-    expect(screen.getByText('Live answer')).toBeInTheDocument();
-    expect(screen.getByText('I know the capital city quite well.')).toBeInTheDocument();
-    expect(screen.getByText(/Finishing in 2s/)).toBeInTheDocument();
+    expect(screen.getByText('Transcript streaming in chat')).toBeInTheDocument();
+    expect(screen.queryByText('I know the capital city quite well.')).not.toBeInTheDocument();
     expect(
-      screen.getByText('Live transcript preview. Final wording may be refined after you finish.')
+      screen.getByRole('button', { name: 'Pause automatic answer sending' })
     ).toBeInTheDocument();
   });
 
@@ -82,5 +83,31 @@ describe('speaking recording controls', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Finish and send answer' }));
     expect(onStopListening).toHaveBeenCalledWith('manual');
+  });
+
+  it('lets the learner pause and resume silence auto-send without stopping recording', () => {
+    const onAutoSubmitPausedChange = vi.fn();
+    const { rerender } = render(
+      <RecordingControls
+        {...readyProps}
+        isListening
+        onAutoSubmitPausedChange={onAutoSubmitPausedChange}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pause automatic answer sending' }));
+    expect(onAutoSubmitPausedChange).toHaveBeenCalledWith(true);
+
+    rerender(
+      <RecordingControls
+        {...readyProps}
+        isListening
+        autoSubmitPaused
+        onAutoSubmitPausedChange={onAutoSubmitPausedChange}
+      />
+    );
+    expect(screen.getByText('Auto-send paused')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Resume automatic answer sending' }));
+    expect(onAutoSubmitPausedChange).toHaveBeenLastCalledWith(false);
   });
 });

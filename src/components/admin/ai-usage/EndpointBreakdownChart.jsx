@@ -57,25 +57,27 @@ const EndpointBreakdownChart = ({ endpointStats, itemVariants, dateRange }) => {
   return (
     <motion.div variants={itemVariants}>
       <Card className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-xs hover:shadow-md transition-all duration-300 overflow-hidden">
-        <CardHeader className="pb-2 pt-5 px-6 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-sm font-black text-slate-950 dark:text-white flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/50 shadow-2xs">
-              <Cpu className="w-4 h-4" />
+        <CardHeader className="pb-2 pt-4 sm:pt-5 px-4 sm:px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 space-y-0">
+          <CardTitle className="text-xs sm:text-sm font-black text-slate-950 dark:text-white flex items-center gap-2.5">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/50 shadow-2xs shrink-0">
+              <Cpu className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-black">Delivered Workload by Endpoint</span>
-              <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs sm:text-sm font-black truncate">
+                Delivered Workload by Endpoint
+              </span>
+              <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 truncate">
                 Top active AI API endpoints
               </span>
             </div>
           </CardTitle>
           {totalDelivered > 0 && (
-            <span className="text-[11px] font-mono font-extrabold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/50">
+            <span className="text-[10px] sm:text-[11px] font-mono font-extrabold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/50 shrink-0">
               {totalDelivered.toLocaleString()} total
             </span>
           )}
         </CardHeader>
-        <CardContent className="px-6 pb-6 pt-3">
+        <CardContent className="px-3 sm:px-6 pb-4 sm:pb-6 pt-2 sm:pt-3">
           <div className="h-64">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">

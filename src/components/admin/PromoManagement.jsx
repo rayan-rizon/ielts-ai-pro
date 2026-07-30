@@ -199,26 +199,26 @@ const PromoManagement = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6 pb-10"
+      className="space-y-6 pb-10 pt-12 md:pt-0"
       data-oid="xefa5fm"
     >
       {/* Header Section */}
       <div
-        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-2"
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-1"
         data-oid="t09iq41"
       >
-        <motion.div variants={itemVariants} className="space-y-0.5" data-oid="hmt29g7">
+        <motion.div variants={itemVariants} className="space-y-0.5 min-w-0" data-oid="hmt29g7">
           <h2
-            className="text-2xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
+            className="text-lg sm:text-2xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
             data-oid="p_m5rx-"
           >
             <div
-              className="p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xs"
+              className="p-2 sm:p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xs shrink-0"
               data-oid="3a1l_ft"
             >
-              <Crown className="w-5 h-5" data-oid="gttwt3-" />
+              <Crown className="w-4 h-4 sm:w-5 sm:h-5" data-oid="gttwt3-" />
             </div>
-            <span>Promo Management</span>
+            <span className="truncate">Promo Management</span>
           </h2>
           <p
             className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400"
@@ -228,11 +228,15 @@ const PromoManagement = () => {
           </p>
         </motion.div>
 
-        <motion.div variants={itemVariants} data-oid="0d8o7jk">
+        <motion.div
+          variants={itemVariants}
+          className="w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
+          data-oid="0d8o7jk"
+        >
           <Dialog open={isAddingPromo} onOpenChange={setIsAddingPromo} data-oid="1h:ezv_">
             <DialogTrigger asChild data-oid="tg9ov7q">
               <Button
-                className="h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-2xs transition-all duration-200 flex items-center gap-2"
+                className="w-full sm:w-auto justify-center h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-2xs transition-all duration-200 flex items-center gap-2"
                 data-oid="inebb0n"
               >
                 <Plus className="w-4 h-4" data-oid="sqgy9wi" />
@@ -240,7 +244,7 @@ const PromoManagement = () => {
               </Button>
             </DialogTrigger>
             <DialogContent
-              className="bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 max-w-md rounded-2xl p-6 shadow-2xl"
+              className="w-[95vw] sm:w-full sm:max-w-md bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
               data-oid="6etczsj"
             >
               <DialogHeader className="space-y-1" data-oid="gki-6n1">
@@ -580,7 +584,7 @@ const PromoManagement = () => {
       </div>
 
       {/* Stats Quick Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" data-oid="ht6hdc1">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4" data-oid="ht6hdc1">
         {[
           { label: 'Active Promos', value: stats.active, icon: Sparkles, color: 'rose' },
           { label: 'Total Uses', value: stats.totalUses, icon: Activity, color: 'indigo' },
@@ -591,23 +595,26 @@ const PromoManagement = () => {
               className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
               data-oid="fo7lk0x"
             >
-              <CardContent className="p-4 flex items-center justify-between" data-oid="txz9-xr">
-                <div data-oid="qza69_b">
+              <CardContent
+                className="p-2.5 sm:p-4 flex items-center justify-between gap-1.5 sm:gap-2"
+                data-oid="txz9-xr"
+              >
+                <div className="min-w-0" data-oid="qza69_b">
                   <p
-                    className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-0.5"
+                    className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 mb-0.5 truncate"
                     data-oid="sl4pda0"
                   >
                     {item.label}
                   </p>
                   <h4
-                    className="text-2xl font-black text-slate-950 dark:text-white leading-none"
+                    className="text-base sm:text-2xl font-black text-slate-950 dark:text-white leading-none"
                     data-oid="w7i27i:"
                   >
                     {item.value}
                   </h4>
                 </div>
                 <div
-                  className={`p-2.5 rounded-xl border ${
+                  className={`p-1.5 sm:p-2.5 rounded-xl border shrink-0 ${
                     item.color === 'rose'
                       ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border-rose-200/60 dark:border-rose-800/40'
                       : item.color === 'indigo'
@@ -616,7 +623,7 @@ const PromoManagement = () => {
                   }`}
                   data-oid="go7cflq"
                 >
-                  <item.icon className="w-4 h-4" data-oid="yj8k6pd" />
+                  <item.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="yj8k6pd" />
                 </div>
               </CardContent>
             </Card>
@@ -658,13 +665,16 @@ const PromoManagement = () => {
             </Button>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-oid="2_wr1zd">
+          <div
+            className="grid grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3"
+            data-oid="2_wr1zd"
+          >
             <AnimatePresence mode="popLayout" data-oid="s2q7nt2">
               {loading
-                ? [...Array(6)].map((_, i) => (
+                ? [...Array(10)].map((_, i) => (
                     <div
                       key={`skeleton-${i}`}
-                      className="h-[220px] rounded-3xl bg-muted/20 animate-pulse border border-border/50"
+                      className="h-[175px] rounded-2xl bg-muted/20 animate-pulse border border-border/50"
                       data-oid="-lo.y9o"
                     />
                   ))
@@ -686,116 +696,115 @@ const PromoManagement = () => {
                         data-oid="tb3qs9z"
                       >
                         <Card
-                          className={`relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 shadow-2xs transition-all duration-200 hover:border-slate-300 ${!promo.is_active || isExpired ? 'opacity-65' : ''}`}
+                          className={`relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 shadow-2xs transition-all duration-200 hover:border-slate-300 hover:shadow-xs flex flex-col justify-between ${!promo.is_active || isExpired ? 'opacity-65' : ''}`}
                           data-oid="bz44b1w"
                         >
-                          <CardContent className="p-5 space-y-4" data-oid="pc_4hrp">
-                            {/* Top Row: Code & Status */}
-                            <div className="flex justify-between items-start" data-oid="q2a02es">
-                              <div className="space-y-0.5" data-oid="mf9qt:3">
-                                <div className="flex items-center gap-2" data-oid="551a25a">
-                                  <span
-                                    className="font-mono text-lg font-black text-slate-950 dark:text-white tracking-tight"
-                                    data-oid="lakyau4"
-                                  >
-                                    {promo.code}
-                                  </span>
-                                  <Badge
-                                    variant="outline"
-                                    className={`rounded-full px-2 py-0.5 text-[9px] uppercase font-black tracking-wider border ${
-                                      isExpired
-                                        ? 'bg-rose-50 text-rose-600 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900'
-                                        : promo.is_active
-                                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900'
-                                          : 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900'
-                                    }`}
-                                    data-oid="y_04_jw"
-                                  >
-                                    {isExpired ? 'Expired' : promo.is_active ? 'Active' : 'Paused'}
-                                  </Badge>
-                                </div>
-                                <p
-                                  className="text-[10px] text-slate-400 font-bold uppercase tracking-wider"
-                                  data-oid="4.u6ng4"
+                          <CardContent
+                            className="p-3.5 space-y-3 flex-1 flex flex-col justify-between"
+                            data-oid="pc_4hrp"
+                          >
+                            {/* Top Row: Code, Status & Quick Actions */}
+                            <div className="space-y-1" data-oid="q2a02es">
+                              <div
+                                className="flex items-center justify-between gap-1"
+                                data-oid="97oe6q_"
+                              >
+                                <span
+                                  className="font-mono text-sm font-black text-slate-950 dark:text-white tracking-tight truncate"
+                                  data-oid="lakyau4"
                                 >
-                                  Redemption Code
-                                </p>
+                                  {promo.code}
+                                </span>
+                                <div className="flex items-center gap-0.5 shrink-0">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => togglePromoStatus(promo.id, promo.is_active)}
+                                    className={`h-6 w-6 rounded-md ${promo.is_active ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40' : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'}`}
+                                    data-oid="-e4n69n"
+                                  >
+                                    <Power className="w-3 h-3" data-oid="ti3md76" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDeletePromo(promo)}
+                                    className="h-6 w-6 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-md"
+                                    data-oid="s:e4kc9"
+                                  >
+                                    <Trash2 className="w-3 h-3" data-oid="d820kin" />
+                                  </Button>
+                                </div>
                               </div>
 
-                              <div className="flex gap-1" data-oid="97oe6q_">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => togglePromoStatus(promo.id, promo.is_active)}
-                                  className={`h-7 w-7 rounded-lg ${promo.is_active ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40' : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'}`}
-                                  data-oid="-e4n69n"
+                              <div className="flex items-center gap-1.5" data-oid="551a25a">
+                                <Badge
+                                  variant="outline"
+                                  className={`rounded-md px-1.5 py-0.5 text-[8px] uppercase font-black tracking-wider border shrink-0 ${
+                                    isExpired
+                                      ? 'bg-rose-50 text-rose-600 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900'
+                                      : promo.is_active
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900'
+                                        : 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900'
+                                  }`}
+                                  data-oid="y_04_jw"
                                 >
-                                  <Power className="w-3.5 h-3.5" data-oid="ti3md76" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleDeletePromo(promo)}
-                                  className="h-7 w-7 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg"
-                                  data-oid="s:e4kc9"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" data-oid="d820kin" />
-                                </Button>
+                                  {isExpired ? 'Expired' : promo.is_active ? 'Active' : 'Paused'}
+                                </Badge>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                                  Promo Code
+                                </span>
                               </div>
                             </div>
 
-                            {/* Middle Section: Value/Grant */}
+                            {/* Middle Section: Scheme / Grant details */}
                             <div
-                              className="p-3 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/70 dark:bg-slate-900/40"
+                              className="p-2.5 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/70 dark:bg-slate-900/40 flex items-center gap-2"
                               data-oid="lvjua9_"
                             >
-                              <div className="flex items-center gap-3" data-oid="j2sy6hp">
-                                <div
-                                  className={`p-2 rounded-lg border ${promo.grants_subscription ? 'bg-purple-50 text-purple-600 border-purple-200/60 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-800' : 'bg-indigo-50 text-indigo-600 border-indigo-200/60 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-800'}`}
-                                  data-oid="c.w7qxf"
+                              <div
+                                className={`p-1.5 rounded-lg border shrink-0 ${promo.grants_subscription ? 'bg-purple-50 text-purple-600 border-purple-200/60 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-800' : 'bg-indigo-50 text-indigo-600 border-indigo-200/60 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-800'}`}
+                                data-oid="c.w7qxf"
+                              >
+                                {promo.grants_subscription ? (
+                                  <Crown className="w-3.5 h-3.5" data-oid="emkorr3" />
+                                ) : promo.discount_type === 'percentage' ? (
+                                  <Percent className="w-3.5 h-3.5" data-oid="vryv52a" />
+                                ) : (
+                                  <Tag className="w-3.5 h-3.5" data-oid="a6oiygw" />
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1 space-y-0.5" data-oid="w6gwrad">
+                                <h3
+                                  className="font-black text-xs leading-tight text-slate-950 dark:text-white truncate"
+                                  data-oid="kf37n66"
                                 >
                                   {promo.grants_subscription ? (
-                                    <Crown className="w-4 h-4" data-oid="emkorr3" />
-                                  ) : promo.discount_type === 'percentage' ? (
-                                    <Percent className="w-4 h-4" data-oid="vryv52a" />
+                                    <span className="capitalize" data-oid="kkzn9h_">
+                                      {promo.grants_subscription} Access
+                                    </span>
                                   ) : (
-                                    <Tag className="w-4 h-4" data-oid="a6oiygw" />
+                                    <span data-oid="97pxef4">
+                                      {promo.discount_value}
+                                      {promo.discount_type === 'percentage' ? '% Off' : '$ Fixed'}
+                                    </span>
                                   )}
-                                </div>
-                                <div data-oid="w6gwrad">
-                                  <h3
-                                    className="font-black text-sm leading-tight text-slate-950 dark:text-white"
-                                    data-oid="kf37n66"
-                                  >
-                                    {promo.grants_subscription ? (
-                                      <span className="capitalize" data-oid="kkzn9h_">
-                                        {promo.grants_subscription} Access
-                                      </span>
-                                    ) : (
-                                      <span data-oid="97pxef4">
-                                        {promo.discount_value}
-                                        {promo.discount_type === 'percentage'
-                                          ? '% Off Discount'
-                                          : '$ Fixed Discount'}
-                                      </span>
-                                    )}
-                                  </h3>
-                                  <p
-                                    className="text-[11px] text-slate-500 font-medium"
-                                    data-oid="yxqs:g8"
-                                  >
-                                    {promo.grants_subscription
-                                      ? `Full tier access for ${promo.subscription_duration_days} days`
-                                      : `Applicable to checkout plans`}
-                                  </p>
-                                </div>
+                                </h3>
+                                <p
+                                  className="text-[10px] text-slate-500 font-medium truncate"
+                                  data-oid="yxqs:g8"
+                                >
+                                  {promo.grants_subscription
+                                    ? `${promo.subscription_duration_days} days tier grant`
+                                    : `Checkout discount`}
+                                </p>
                               </div>
                             </div>
 
-                            {/* Bottom Section: Stats & Expiry */}
-                            <div className="space-y-2 pt-0.5" data-oid="4ufas4f">
+                            {/* Bottom Section: Expiry & Progress */}
+                            <div className="space-y-1.5 pt-0.5" data-oid="4ufas4f">
                               <div
-                                className="flex items-center justify-between text-[10px] font-bold text-slate-500"
+                                className="flex items-center justify-between text-[9px] sm:text-[10px] font-bold text-slate-500"
                                 data-oid="h97cakb"
                               >
                                 <div
@@ -804,19 +813,18 @@ const PromoManagement = () => {
                                 >
                                   <Calendar className="w-3 h-3" data-oid="olf.xea" />
                                   <span data-oid="6oxki71">
-                                    Expires{' '}
+                                    Exp{' '}
                                     {new Date(promo.valid_until).toLocaleDateString(undefined, {
                                       month: 'short',
                                       day: 'numeric',
-                                      year: '2-digit',
                                     })}
                                   </span>
                                 </div>
                                 <div
-                                  className="text-slate-700 dark:text-slate-300 font-mono"
+                                  className="text-slate-700 dark:text-slate-300 font-mono font-extrabold"
                                   data-oid="..rwin9"
                                 >
-                                  {promo.current_uses || 0} / {promo.max_uses} uses
+                                  {promo.current_uses || 0}/{promo.max_uses}
                                 </div>
                               </div>
 

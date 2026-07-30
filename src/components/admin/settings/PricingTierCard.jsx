@@ -186,7 +186,7 @@ export default function PricingTierCard({
               {regional?.map((region, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-2 bg-slate-50/80 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200/80 dark:border-white/5 group/item hover:border-slate-300 transition-colors shadow-2xs"
+                  className="flex flex-col min-[450px]:flex-row items-stretch min-[450px]:items-center gap-2 bg-slate-50/80 dark:bg-slate-900/60 p-2 sm:p-2.5 rounded-xl border border-slate-200/80 dark:border-white/5 group/item hover:border-slate-300 transition-colors shadow-2xs"
                   data-oid="qb:ds67"
                 >
                   <CountryAutocomplete

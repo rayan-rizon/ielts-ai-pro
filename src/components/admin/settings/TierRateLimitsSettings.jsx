@@ -106,9 +106,9 @@ const TierHeader = ({
   hasChanges,
 }) => (
   <CardHeader className="bg-slate-50/80 dark:bg-slate-900/90 border-b border-slate-100 dark:border-white/5 p-4 sm:p-5">
-    <div className="flex items-center justify-between">
+    <div className="flex flex-col min-[480px]:flex-row items-start min-[480px]:items-center justify-between gap-3">
       <div className="flex items-center gap-3">
-        <div className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white shadow-2xs">
+        <div className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white shadow-2xs shrink-0">
           <TierIcon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
         </div>
         <div>
@@ -124,7 +124,7 @@ const TierHeader = ({
         onClick={onAddOverride}
         size="sm"
         variant="outline"
-        className="bg-white dark:bg-slate-800 hover:bg-slate-100 border-slate-200 dark:border-white/10 gap-1.5 h-8 px-3 text-xs font-extrabold rounded-xl shadow-2xs"
+        className="w-full min-[480px]:w-auto justify-center bg-white dark:bg-slate-800 hover:bg-slate-100 border-slate-200 dark:border-white/10 gap-1.5 h-8 px-3 text-xs font-extrabold rounded-xl shadow-2xs shrink-0"
       >
         <Plus className="w-3.5 h-3.5 text-indigo-600" />
         Add Override
@@ -479,12 +479,12 @@ const TierRateLimitsSettings = () => {
     >
       <motion.div
         variants={itemVariants}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-1"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-1"
       >
-        <div className="space-y-0.5">
-          <h3 className="text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2">
-            <Gauge className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-            <span>AI Rate Limits Config</span>
+        <div className="space-y-0.5 min-w-0">
+          <h3 className="text-lg sm:text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2">
+            <Gauge className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+            <span className="truncate">AI Rate Limits Config</span>
           </h3>
           <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
             Configure global defaults and currency-specific regional API limits.
@@ -494,7 +494,7 @@ const TierRateLimitsSettings = () => {
           variant="outline"
           size="sm"
           onClick={fetchTierLimits}
-          className="gap-2 h-9 rounded-xl border-slate-200 dark:border-slate-800 font-bold text-xs"
+          className="w-full sm:w-auto justify-center gap-2 h-9 rounded-xl border-slate-200 dark:border-slate-800 font-bold text-xs shrink-0 mt-1 sm:mt-0"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           Refresh Limits

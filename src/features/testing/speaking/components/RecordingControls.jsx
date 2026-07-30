@@ -1,21 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   AudioLines,
-  Captions,
   Loader2,
   Mic,
   MicOff,
+  Pause,
   PlayCircle,
+  Play,
   Square,
   Volume2,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { Button } from '@/components/ui/button';
-
-import { formatRecordingDuration } from '../utils/speakingCaptureUtils';
-
-const WAVEFORM_SHAPE = [0.35, 0.58, 0.8, 0.48, 0.92, 0.64, 1, 0.72, 0.5, 0.82, 0.55, 0.38];
 
 function MicrophoneError({ message }) {
   if (!message) return null;
@@ -33,7 +30,7 @@ function MicrophoneError({ message }) {
   );
 }
 
-function ExaminerStatus({ isProcessing, isTTSLoading, isSpeaking, processingStatus }) {
+function ExaminerStatus({ isProcessing, processingStatus }) {
   if (isProcessing) {
     return (
       <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
@@ -45,116 +42,7 @@ function ExaminerStatus({ isProcessing, isTTSLoading, isSpeaking, processingStat
     );
   }
 
-  if (isTTSLoading || isSpeaking) {
-    return (
-      <div className="flex items-center gap-2 rounded-full border border-rose-500/15 bg-rose-500/[0.06] px-3 py-1 text-rose-600 dark:text-rose-400">
-        <AudioLines className={isSpeaking ? 'h-4 w-4 animate-pulse' : 'h-4 w-4'} />
-        <span className="text-[10px] font-extrabold uppercase tracking-[0.16em]">
-          {isSpeaking ? 'Examiner speaking' : 'Examiner preparing'}
-        </span>
-      </div>
-    );
-  }
-
   return null;
-}
-
-function LiveWaveform() {
-  return (
-    <div className="flex h-8 flex-1 items-center justify-center gap-1" aria-hidden="true">
-      {WAVEFORM_SHAPE.map((shape, index) => {
-        return (
-          <motion.span
-            key={index}
-            className="w-1 rounded-full bg-gradient-to-t from-rose-500 to-orange-400"
-            animate={{ height: [5, 8 + shape * 22, 5] }}
-            transition={{
-              duration: 0.7 + (index % 3) * 0.12,
-              repeat: Infinity,
-              delay: index * 0.035,
-              ease: 'easeInOut',
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
-function StreamingAnswer({
-  liveTranscript,
-  recordingStartedAt,
-  autoFinishCountdown,
-  hasDetectedSpeech,
-}) {
-  const [durationMs, setDurationMs] = useState(0);
-
-  useEffect(() => {
-    if (!recordingStartedAt) {
-      setDurationMs(0);
-      return undefined;
-    }
-
-    const updateDuration = () => setDurationMs(Date.now() - recordingStartedAt);
-    updateDuration();
-    const timer = setInterval(updateDuration, 250);
-    return () => clearInterval(timer);
-  }, [recordingStartedAt]);
-
-  const preview =
-    liveTranscript ||
-    (hasDetectedSpeech
-      ? 'Keep speaking naturally—your answer is still being captured.'
-      : 'Start speaking when you are ready.');
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
-      className="w-full max-w-3xl overflow-hidden rounded-2xl border border-rose-500/15 bg-gradient-to-br from-rose-500/[0.055] via-card to-blue-500/[0.035] shadow-sm"
-    >
-      <div className="flex items-center gap-3 border-b border-border/55 px-3.5 py-2.5 sm:px-4">
-        <span className="relative flex h-2.5 w-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-60" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-rose-500" />
-        </span>
-        <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-foreground">
-          Live answer
-        </span>
-        <LiveWaveform />
-        <span className="font-mono text-xs font-bold tabular-nums text-muted-foreground">
-          {formatRecordingDuration(durationMs)}
-        </span>
-      </div>
-
-      <div className="flex min-h-[54px] items-start gap-2.5 px-3.5 py-3 sm:px-4">
-        <Captions className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" aria-hidden="true" />
-        <div className="min-w-0">
-          <p className="line-clamp-2 text-sm leading-5 text-foreground">{preview}</p>
-          <p className="mt-1 text-[10px] text-muted-foreground">
-            Live transcript preview. Final wording may be refined after you finish.
-          </p>
-        </div>
-      </div>
-
-      <AnimatePresence>
-        {autoFinishCountdown && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="border-t border-amber-500/15 bg-amber-500/[0.07] px-3.5 py-2 text-center sm:px-4"
-          >
-            <p className="text-xs font-bold text-amber-800 dark:text-amber-300">
-              Finishing in {autoFinishCountdown}s
-              <span className="font-normal"> — keep speaking to continue</span>
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
 }
 
 const RecordingControls = React.memo(
@@ -167,14 +55,12 @@ const RecordingControls = React.memo(
     isTTSLoading,
     processingStatus,
     micError,
-    liveTranscript,
-    recordingStartedAt,
-    autoFinishCountdown,
-    hasDetectedSpeech,
+    autoSubmitPaused,
     handsFreeEnabled,
     timerExpiredRef,
     onStartListening,
     onStopListening,
+    onAutoSubmitPausedChange,
     onStartTest,
   }) => (
     <div className="flex w-full flex-col items-center gap-3">
@@ -204,39 +90,56 @@ const RecordingControls = React.memo(
 
       {testStarted && !isPart2Prep && (
         <>
-          <AnimatePresence mode="wait">
+          <motion.div
+            key="status"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex min-h-8 items-center justify-center"
+          >
             {isListening ? (
-              <StreamingAnswer
-                key="streaming"
-                liveTranscript={liveTranscript}
-                recordingStartedAt={recordingStartedAt}
-                autoFinishCountdown={autoFinishCountdown}
-                hasDetectedSpeech={hasDetectedSpeech}
-              />
+              <div className="flex items-center gap-2 text-primary">
+                <AudioLines className="h-4 w-4 animate-pulse" aria-hidden="true" />
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.16em]">
+                  {autoSubmitPaused ? 'Auto-send paused' : 'Transcript streaming in chat'}
+                </span>
+              </div>
             ) : (
-              <motion.div
-                key="status"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex min-h-8 items-center justify-center"
-              >
-                <ExaminerStatus
-                  isProcessing={isProcessing}
-                  isTTSLoading={isTTSLoading}
-                  isSpeaking={isSpeaking}
-                  processingStatus={processingStatus}
-                />
+              <>
+                <ExaminerStatus isProcessing={isProcessing} processingStatus={processingStatus} />
                 {!isProcessing && !isTTSLoading && !isSpeaking && (
                   <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-muted-foreground">
                     {handsFreeEnabled ? 'Microphone starting' : 'Ready for your answer'}
                   </p>
                 )}
-              </motion.div>
+              </>
             )}
-          </AnimatePresence>
+          </motion.div>
 
           <div className="flex w-full max-w-md items-center justify-center gap-3">
+            {isListening && handsFreeEnabled && (
+              <motion.button
+                type="button"
+                onClick={() => onAutoSubmitPausedChange(!autoSubmitPaused)}
+                whileTap={{ scale: 0.96 }}
+                aria-label={
+                  autoSubmitPaused
+                    ? 'Resume automatic answer sending'
+                    : 'Pause automatic answer sending'
+                }
+                aria-pressed={autoSubmitPaused}
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-all sm:h-14 sm:w-14 ${
+                  autoSubmitPaused
+                    ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 shadow-sm dark:text-amber-300'
+                    : 'border-border bg-card text-muted-foreground shadow-sm hover:border-amber-500/30 hover:bg-amber-500/[0.06] hover:text-amber-700'
+                }`}
+              >
+                {autoSubmitPaused ? (
+                  <Play className="h-5 w-5 fill-current" aria-hidden="true" />
+                ) : (
+                  <Pause className="h-5 w-5 fill-current" aria-hidden="true" />
+                )}
+              </motion.button>
+            )}
             <motion.button
               onClick={isListening ? () => onStopListening('manual') : onStartListening}
               disabled={isProcessing || isSpeaking || isTTSLoading || timerExpiredRef?.current}
@@ -272,7 +175,9 @@ const RecordingControls = React.memo(
                 <>
                   <Volume2 className="h-3.5 w-3.5" aria-hidden="true" />
                   {handsFreeEnabled
-                    ? 'I’ll send after a natural pause. Keep speaking to cancel the countdown.'
+                    ? autoSubmitPaused
+                      ? 'Take your time. Tap play when you want silence detection to resume.'
+                      : 'I’ll send after a natural pause. Pause auto-send whenever you need to think.'
                     : 'Manual mode is on. Finish and send when your answer is complete.'}
                 </>
               ) : (

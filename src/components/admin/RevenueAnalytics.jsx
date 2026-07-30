@@ -52,26 +52,26 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-4 pb-6"
+      className="space-y-4 pb-6 pt-12 md:pt-0"
       data-oid="45jhl4z"
     >
       {/* Header */}
       <div
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1"
         data-oid="1.gc99z"
       >
-        <div className="space-y-0.5" data-oid="7fl_9iv">
+        <div className="space-y-0.5 min-w-0 flex-1" data-oid="7fl_9iv">
           <h1
-            className="text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
+            className="text-lg sm:text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
             data-oid="m:s25zy"
           >
             <div
-              className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-900 text-emerald-600 dark:text-emerald-400 shadow-2xs"
+              className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-900 text-emerald-600 dark:text-emerald-400 shadow-2xs shrink-0"
               data-oid="sam3tn:"
             >
-              <DollarSign className="w-5 h-5" data-oid="0sam1wh" />
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" data-oid="0sam1wh" />
             </div>
-            Revenue Intelligence
+            <span className="truncate">Revenue Intelligence</span>
           </h1>
           <p
             className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 ml-1"
@@ -80,10 +80,13 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
             Financial performance and subscription health monitoring
           </p>
         </div>
-        <div className="flex items-center gap-2" data-oid="_x5waub">
+        <div
+          className="flex items-center gap-2 w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
+          data-oid="_x5waub"
+        >
           <Button
             variant="outline"
-            className="h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
+            className="w-full sm:w-auto justify-center h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
             data-oid="ja3t_jw"
           >
             <ArrowDownRight
@@ -95,8 +98,8 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
         </div>
       </div>
 
-      {/* KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5" data-oid="1k7:55y">
+      {/* KPI Grid (2 Columns on mobile) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5" data-oid="1k7:55y">
         {[
           {
             title: 'Revenue (Local & Global)',

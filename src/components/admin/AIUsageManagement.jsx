@@ -139,16 +139,16 @@ const AIUsageManagement = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6 pb-10"
+      className="space-y-6 pb-10 pt-12 md:pt-0"
     >
       {/* Header */}
-      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 pb-1">
-        <motion.div variants={itemVariants} className="space-y-0.5">
-          <h2 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5">
-            <div className="p-2.5 bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-400 rounded-xl border border-violet-200/50 dark:border-violet-800/50 shadow-2xs">
-              <Cpu className="w-5 h-5" />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-1">
+        <motion.div variants={itemVariants} className="space-y-0.5 min-w-0">
+          <h2 className="text-lg sm:text-2xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5">
+            <div className="p-2 sm:p-2.5 bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-400 rounded-xl border border-violet-200/50 dark:border-violet-800/50 shadow-2xs shrink-0">
+              <Cpu className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <span>AI Usage Analytics</span>
+            <span className="truncate">AI Usage Analytics</span>
           </h2>
           <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
             Operational view of AI request delivery, token volume, cache efficiency, and recorded
@@ -161,11 +161,14 @@ const AIUsageManagement = () => {
           </p>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="flex items-center gap-2 w-full xl:w-auto">
+        <motion.div
+          variants={itemVariants}
+          className="flex items-center gap-2 w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
+        >
           <Select value={String(dateRange)} onValueChange={(value) => setDateRange(Number(value))}>
             <SelectTrigger
               aria-label="Chart time range"
-              className="h-9 w-[130px] rounded-xl border-slate-200/90 bg-white text-xs font-bold text-slate-700 shadow-2xs dark:border-white/10 dark:bg-slate-900 dark:text-slate-200"
+              className="flex-1 sm:flex-none justify-center h-9 w-full sm:w-[130px] rounded-xl border-slate-200/90 bg-white text-xs font-bold text-slate-700 shadow-2xs dark:border-white/10 dark:bg-slate-900 dark:text-slate-200"
             >
               <CalendarDays className="mr-1.5 h-3.5 w-3.5 text-violet-500" />
               <SelectValue />
@@ -183,7 +186,7 @@ const AIUsageManagement = () => {
             }}
             disabled={refreshing}
             variant="outline"
-            className="h-9 px-3.5 font-extrabold text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 shadow-2xs rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-2"
+            className="flex-1 sm:flex-none justify-center h-9 px-3.5 font-extrabold text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 shadow-2xs rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-2"
           >
             <RefreshCw
               className={`w-3.5 h-3.5 text-violet-500 ${refreshing ? 'animate-spin' : ''}`}

@@ -12,7 +12,8 @@ import { supabase } from '@/lib/supabase';
  *  - Web Speech fallback no longer fires when Google TTS explicitly signals fallback.
  *  - Stale response guards correctly prevent race conditions.
  *
- * Public API: { speakText, cancelCurrentAudio, isSpeaking, isTTSLoading, isMuted, setIsMuted }
+ * Public API also exposes the exact active utterance and playback state so the
+ * conversation UI never has to guess which queued message is being spoken.
  */
 
 // ── Chrome 15-second utterance bug fix ────────────────────────────────────────
@@ -82,6 +83,9 @@ async function speakChunksViaWebSpeech(chunks, selectedVoice, isMountedRef) {
 export default function useSpeechSynthesis() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isTTSLoading, setIsTTSLoading] = useState(false);
+  const [activeSpeechText, setActiveSpeechText] = useState('');
+  const [isPlaybackActive, setIsPlaybackActive] = useState(false);
+  const [speechProgress, setSpeechProgress] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
 
   // Refs to track in-flight audio + prevent race conditions
@@ -150,6 +154,9 @@ export default function useSpeechSynthesis() {
     }
     setIsSpeaking(false);
     setIsTTSLoading(false);
+    setIsPlaybackActive(false);
+    setActiveSpeechText('');
+    setSpeechProgress(null);
   }, []);
 
   /**
@@ -183,6 +190,9 @@ export default function useSpeechSynthesis() {
         .trim();
 
       // ── 1. Show loading state ──────────────────────────────────────────────
+      setActiveSpeechText(String(text).trim());
+      setIsPlaybackActive(false);
+      setSpeechProgress(null);
       setIsTTSLoading(true);
       setIsSpeaking(true);
 
@@ -209,13 +219,26 @@ export default function useSpeechSynthesis() {
             currentAudioRef.current = audio;
 
             audio.onplay = () => {
-              if (requestIdRef.current === myRequestId && options.onPlayStart) {
-                options.onPlayStart();
+              if (requestIdRef.current === myRequestId) {
+                setSpeechProgress(0);
+                setIsPlaybackActive(true);
+                options.onPlayStart?.();
+              }
+            };
+            audio.ontimeupdate = () => {
+              if (
+                requestIdRef.current === myRequestId &&
+                Number.isFinite(audio.duration) &&
+                audio.duration > 0
+              ) {
+                setSpeechProgress(Math.min(1, audio.currentTime / audio.duration));
               }
             };
             audio.onended = () => {
               if (requestIdRef.current === myRequestId) {
                 currentAudioRef.current = null;
+                setSpeechProgress(1);
+                setIsPlaybackActive(false);
               }
               resolve();
             };
@@ -270,6 +293,8 @@ export default function useSpeechSynthesis() {
         if (options.onPlayStart) {
           options.onPlayStart();
         }
+        setSpeechProgress(null);
+        setIsPlaybackActive(true);
         const sentences = splitIntoSentences(cleanText);
         await speakChunksViaWebSpeech(sentences, webVoiceRef.current, isMountedRef);
       }
@@ -278,10 +303,23 @@ export default function useSpeechSynthesis() {
       if (requestIdRef.current === myRequestId && isMountedRef.current) {
         setIsSpeaking(false);
         setIsTTSLoading(false);
+        setIsPlaybackActive(false);
+        setActiveSpeechText('');
+        setSpeechProgress(null);
       }
     },
     [cancelCurrentAudio]
   );
 
-  return { speakText, cancelCurrentAudio, isSpeaking, isTTSLoading, isMuted, setIsMuted };
+  return {
+    speakText,
+    cancelCurrentAudio,
+    isSpeaking,
+    isTTSLoading,
+    activeSpeechText,
+    isPlaybackActive,
+    speechProgress,
+    isMuted,
+    setIsMuted,
+  };
 }

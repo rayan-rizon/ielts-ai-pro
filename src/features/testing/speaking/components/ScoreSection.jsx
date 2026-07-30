@@ -16,14 +16,14 @@ const CRITERIA_STYLES = {
     text: 'text-amber-600 dark:text-amber-400',
   },
   grammar: {
-    bar: 'from-purple-500 to-violet-500',
-    dot: 'bg-purple-500',
-    text: 'text-purple-600 dark:text-purple-400',
+    bar: 'from-indigo-500 to-violet-500',
+    dot: 'bg-indigo-500',
+    text: 'text-indigo-600 dark:text-indigo-400',
   },
   pronunciation: {
-    bar: 'from-teal-500 to-emerald-500',
-    dot: 'bg-teal-500',
-    text: 'text-teal-600 dark:text-teal-400',
+    bar: 'from-emerald-500 to-teal-500',
+    dot: 'bg-emerald-500',
+    text: 'text-emerald-600 dark:text-emerald-400',
   },
 };
 
@@ -38,7 +38,7 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
   const scoreDisplay = formatBandScore(overallScore);
 
   return (
-    <div className="group relative flex min-h-[285px] flex-col items-center justify-between overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-6 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-rose-200/80 hover:shadow-xl hover:shadow-rose-950/5 dark:border-white/10 dark:bg-zinc-950 lg:col-span-4">
+    <div className="group relative flex min-h-[260px] flex-col items-center justify-between overflow-hidden rounded-2xl border border-[#eaecf6] bg-gradient-to-br from-[#fdfcff] via-white to-[#f4f6fc] p-4 sm:p-5 text-center shadow-[0_10px_30px_-18px_rgba(43,53,128,0.1)] transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-200/80 hover:shadow-md dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] lg:col-span-4">
       {/* Ambient Glow */}
       <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-rose-500/5 blur-2xl transition-opacity duration-500 group-hover:opacity-100 dark:bg-rose-500/10" />
 
@@ -46,13 +46,13 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
         Overall Band Score
       </h3>
 
-      <div className="group/ring relative my-2 inline-flex items-center justify-center">
+      <div className="group/ring relative my-1.5 inline-flex items-center justify-center">
         {/* Ambient Glow */}
-        <div className="absolute inset-2 rounded-full bg-rose-500/15 blur-2xl transition-opacity duration-500 group-hover/ring:opacity-30" />
+        <div className="absolute inset-2 rounded-full bg-rose-500/10 blur-2xl transition-opacity duration-500 group-hover/ring:opacity-30" />
 
         {/* Circular SVG Gauge */}
         <svg
-          className="h-36 w-36 -rotate-90 drop-shadow-md"
+          className="h-32 w-32 -rotate-90 drop-shadow-xs"
           viewBox="0 0 148 148"
           aria-hidden="true"
         >
@@ -104,8 +104,8 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3.5 py-1 text-xs font-black text-rose-600 shadow-sm dark:bg-rose-950/40 dark:text-rose-300">
+      <div className="space-y-1">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffeef3] px-3.5 py-0.5 text-xs font-black text-[#e11d48] border border-[#fccedb]/60 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-500/30">
           <Award className="h-3.5 w-3.5 text-rose-500" />
           {bandInfo.label}
         </span>
@@ -119,23 +119,23 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
 
 export function CoachSummaryCard({ conciseFeedback, conciseTargetTip, showTargetTip }) {
   return (
-    <div className="group relative flex min-h-[285px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-rose-200/80 hover:shadow-xl hover:shadow-rose-950/5 dark:border-white/10 dark:bg-zinc-950 lg:col-span-4">
+    <div className="group relative flex min-h-[260px] flex-col justify-between overflow-hidden rounded-2xl border border-[#eaecf6] bg-gradient-to-br from-[#fffdfd] via-white to-[#fff5f2] p-4 sm:p-5 shadow-[0_10px_30px_-18px_rgba(43,53,128,0.1)] transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-200/80 hover:shadow-md dark:border-white/10 dark:from-[#181119] dark:via-[#13111d] dark:to-[#1f1618] lg:col-span-4">
       <div>
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
             Coach Summary
           </h3>
-          <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-rose-600 dark:bg-rose-950/40 dark:text-rose-300">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#ffeef3] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#e11d48] border border-[#fccedb]/60 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-500/30">
             <Sparkles className="h-3 w-3 text-rose-500" />
             AI Coach
           </span>
         </div>
 
-        <div className="mt-4 flex items-start gap-3.5">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-md shadow-rose-500/20">
-            <FileEdit className="h-5 w-5" />
+        <div className="mt-3 flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#ffeef3] text-[#e11d48] border border-[#fccedb]/60 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-500/30">
+            <FileEdit className="h-4.5 w-4.5" />
           </div>
-          <p className="text-xs font-medium leading-relaxed text-slate-700 dark:text-zinc-200">
+          <p className="text-xs font-semibold leading-relaxed text-slate-700 dark:text-zinc-200">
             {conciseFeedback ||
               'Complete more speaking responses to unlock a detailed coach summary.'}
           </p>
@@ -143,9 +143,9 @@ export function CoachSummaryCard({ conciseFeedback, conciseTargetTip, showTarget
       </div>
 
       {showTargetTip && (
-        <div className="mt-4 rounded-xl border border-rose-200/80 bg-gradient-to-r from-rose-50/80 via-rose-50/40 to-amber-50/40 p-3.5 dark:border-rose-950/40 dark:from-rose-950/30 dark:to-zinc-900">
-          <div className="mb-1 flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
-            <Star className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />
+        <div className="mt-3 rounded-xl border border-[#fcdbc8]/60 bg-[#fff5ee]/70 p-3 dark:border-amber-900/40 dark:bg-amber-950/25">
+          <div className="mb-1 flex items-center gap-1.5 text-[#df7437] dark:text-amber-400">
+            <Star className="h-3.5 w-3.5 fill-[#df7437] text-[#df7437]" />
             <p className="text-[10px] font-black uppercase tracking-wider">Focus Area</p>
           </div>
           <p className="text-xs font-semibold leading-relaxed text-slate-700 dark:text-zinc-300">
@@ -167,7 +167,7 @@ export function PerformanceMetricsPanel({ criteria }) {
       : null;
 
   return (
-    <div className="group relative flex min-h-[285px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-300/80 hover:shadow-xl hover:shadow-slate-950/5 dark:border-white/10 dark:bg-zinc-950 lg:col-span-4">
+    <div className="group relative flex min-h-[260px] flex-col justify-between overflow-hidden rounded-2xl border border-[#eaecf6] bg-gradient-to-br from-[#fcfdff] via-white to-[#f4f6fc] p-4 sm:p-5 shadow-[0_10px_30px_-18px_rgba(43,53,128,0.1)] transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] lg:col-span-4">
       <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
         Performance at a Glance
       </h3>
@@ -207,8 +207,8 @@ export function PerformanceMetricsPanel({ criteria }) {
       </div>
 
       {avgScore && (
-        <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3.5 py-2 dark:bg-zinc-900/60">
-          <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+        <div className="flex items-center justify-between rounded-xl border border-[#eaecf6] bg-[#f4f6fc]/80 px-3.5 py-1.5 dark:border-white/10 dark:bg-zinc-900/60">
+          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
             Average
           </span>
           <span className="text-sm font-black text-slate-900 dark:text-white">{avgScore}</span>

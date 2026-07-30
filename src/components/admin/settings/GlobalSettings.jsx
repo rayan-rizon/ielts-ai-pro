@@ -192,7 +192,7 @@ export default function GlobalSettings() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6 pb-12 max-w-7xl mx-auto px-1 sm:px-2"
+      className="space-y-6 pb-12 pt-12 md:pt-0 max-w-7xl mx-auto px-1 sm:px-2"
       data-oid="_8_3dg3"
     >
       {/* Header Section */}
@@ -200,17 +200,17 @@ export default function GlobalSettings() {
         className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2"
         data-oid="kdpj5_b"
       >
-        <motion.div variants={itemVariants} data-oid="kha4q:o">
+        <motion.div variants={itemVariants} data-oid="kha4q:o" className="min-w-0 flex-1">
           <div className="flex items-center gap-3">
             <div
-              className="p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-2xl border border-indigo-200/60 dark:border-indigo-800/60 shadow-2xs"
+              className="p-2 sm:p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-2xl border border-indigo-200/60 dark:border-indigo-800/60 shadow-2xs shrink-0"
               data-oid="7q-v0g0"
             >
-              <Settings className="w-5 h-5" data-oid="9.znbfp" />
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5" data-oid="9.znbfp" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <h2
-                className="text-2xl sm:text-3xl font-black tracking-tight text-slate-950 dark:text-white"
+                className="text-lg sm:text-3xl font-black tracking-tight text-slate-950 dark:text-white truncate"
                 data-oid="rpads70"
               >
                 Global Settings
@@ -227,7 +227,7 @@ export default function GlobalSettings() {
 
         {saving && (
           <div
-            className="flex items-center gap-2 px-3.5 py-1.5 bg-indigo-50 dark:bg-indigo-950/50 rounded-full border border-indigo-200/80 dark:border-indigo-800/60 shadow-2xs"
+            className="flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-950/50 rounded-full border border-indigo-200/80 dark:border-indigo-800/60 shadow-2xs shrink-0"
             data-oid="7n88hnp"
           >
             <Activity
@@ -235,7 +235,7 @@ export default function GlobalSettings() {
               data-oid="yytghqi"
             />
             <span
-              className="text-xs font-bold text-indigo-700 dark:text-indigo-300"
+              className="text-[11px] sm:text-xs font-bold text-indigo-700 dark:text-indigo-300"
               data-oid="57qqa9r"
             >
               Saving changes...
@@ -251,14 +251,14 @@ export default function GlobalSettings() {
         data-oid="bufrpat"
       >
         {/* Compact Segmented Tab Navigation */}
-        <div className="flex overflow-x-auto no-scrollbar pb-1">
+        <div className="flex overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 pb-1">
           <TabsList
-            className="inline-flex h-auto items-center justify-start gap-1 p-1.5 bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xs backdrop-blur-md"
+            className="inline-flex h-auto items-center justify-start gap-1 p-1 sm:p-1.5 bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xs backdrop-blur-md shrink-0"
             data-oid="ybobvet"
           >
             <TabsTrigger
               value="general"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all shrink-0"
               data-oid="tbs-gen"
             >
               <Globe className="w-3.5 h-3.5" />
@@ -266,7 +266,7 @@ export default function GlobalSettings() {
             </TabsTrigger>
             <TabsTrigger
               value="announcements"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all shrink-0"
               data-oid="tbs-ann"
             >
               <Bell className="w-3.5 h-3.5" />
@@ -274,7 +274,7 @@ export default function GlobalSettings() {
             </TabsTrigger>
             <TabsTrigger
               value="pricing"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all shrink-0"
               data-oid="tbs-prc"
             >
               <CreditCard className="w-3.5 h-3.5" />
@@ -282,7 +282,7 @@ export default function GlobalSettings() {
             </TabsTrigger>
             <TabsTrigger
               value="security"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all shrink-0"
               data-oid="tbs-sec"
             >
               <Lock className="w-3.5 h-3.5" />
@@ -290,7 +290,7 @@ export default function GlobalSettings() {
             </TabsTrigger>
             <TabsTrigger
               value="rate-limits"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all shrink-0"
               data-oid="tbs-rat"
             >
               <Gauge className="w-3.5 h-3.5" />
@@ -298,7 +298,7 @@ export default function GlobalSettings() {
             </TabsTrigger>
             <TabsTrigger
               value="emails"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-xs transition-all shrink-0"
               data-oid="tbs-eml"
             >
               <Mail className="w-3.5 h-3.5" />

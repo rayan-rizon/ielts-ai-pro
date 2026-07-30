@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlayCircle, Timer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -59,16 +59,19 @@ export default function SpeakingConversationPanel({
   isProcessing,
   isSpeaking,
   isTTSLoading,
+  activeSpeechText,
+  isPlaybackActive,
+  speechProgress,
   processingStatus,
   micError,
   liveTranscript,
-  recordingStartedAt,
   autoFinishCountdown,
-  hasDetectedSpeech,
+  autoSubmitPaused,
   handsFreeEnabled,
   timerExpiredRef,
   startListening,
   stopListening,
+  setAutoSubmitPaused,
   handleStartTest,
 }) {
   const cueCardRef = useRef(null);
@@ -89,12 +92,99 @@ export default function SpeakingConversationPanel({
     return () => clearTimeout(delayedScroll);
   }, [conversationContainerRef, isPart2Prep]);
 
+  useEffect(() => {
+    if (!isListening || !conversationContainerRef.current) return;
+    conversationContainerRef.current.scrollTo({
+      top: conversationContainerRef.current.scrollHeight,
+      behavior: liveTranscript ? 'smooth' : 'auto',
+    });
+  }, [conversationContainerRef, isListening, liveTranscript]);
+
+  const finalCandidateMessage = conversation.findLast((entry) => entry.speaker === 'user');
+  const latestExaminerIndex = conversation.findLastIndex((entry) => entry.speaker === 'ai');
+  const latestExaminerMessage = latestExaminerIndex >= 0 ? conversation[latestExaminerIndex] : null;
+  const latestExaminerKey = latestExaminerMessage
+    ? `${latestExaminerIndex}:${latestExaminerMessage.text}`
+    : null;
+  const activeExaminerIndex = activeSpeechText
+    ? conversation.findLastIndex(
+        (entry) => entry.speaker === 'ai' && entry.text?.trim() === activeSpeechText
+      )
+    : -1;
+  const activeExaminerKey =
+    activeExaminerIndex >= 0
+      ? `${activeExaminerIndex}:${conversation[activeExaminerIndex].text}`
+      : null;
+  const [examinerStream, setExaminerStream] = useState({
+    key: null,
+    phase: 'finished',
+  });
+
+  useLayoutEffect(() => {
+    if (!latestExaminerKey) return;
+    setExaminerStream((current) =>
+      current.key === latestExaminerKey ? current : { key: latestExaminerKey, phase: 'queued' }
+    );
+  }, [latestExaminerKey]);
+
+  useEffect(() => {
+    if (!activeExaminerKey || examinerStream.key !== activeExaminerKey) return;
+    if (isPlaybackActive) {
+      setExaminerStream((current) =>
+        current.phase === 'playing' ? current : { ...current, phase: 'playing' }
+      );
+      return;
+    }
+    if (!isSpeaking && !isTTSLoading && examinerStream.phase === 'playing') {
+      setExaminerStream((current) => ({ ...current, phase: 'finished' }));
+    }
+  }, [
+    activeExaminerKey,
+    examinerStream.key,
+    examinerStream.phase,
+    isPlaybackActive,
+    isSpeaking,
+    isTTSLoading,
+  ]);
+
+  useEffect(() => {
+    if (
+      examinerStream.phase !== 'queued' ||
+      examinerStream.key !== latestExaminerKey ||
+      isSpeaking ||
+      isTTSLoading
+    ) {
+      return undefined;
+    }
+
+    const settleExistingMessage = setTimeout(() => {
+      setExaminerStream((current) =>
+        current.key === latestExaminerKey && current.phase === 'queued'
+          ? { ...current, phase: 'finished' }
+          : current
+      );
+    }, 900);
+    return () => clearTimeout(settleExistingMessage);
+  }, [examinerStream.key, examinerStream.phase, isSpeaking, isTTSLoading, latestExaminerKey]);
+
+  const latestExaminerIsNew =
+    Boolean(latestExaminerKey) && examinerStream.key !== latestExaminerKey;
+  const queuedExaminerIndex =
+    latestExaminerIsNew || examinerStream.phase === 'queued' ? latestExaminerIndex : -1;
+  const liveExaminerIndex = activeExaminerIndex >= 0 ? activeExaminerIndex : queuedExaminerIndex;
+  const showExaminerLive =
+    liveExaminerIndex >= 0 &&
+    (queuedExaminerIndex >= 0 || isTTSLoading || isPlaybackActive || isSpeaking);
+  const showStreamingCandidate =
+    (isListening || isProcessing) &&
+    (!finalCandidateMessage || finalCandidateMessage.text !== liveTranscript);
+
   return (
-    <Card className="isolate flex min-h-[470px] transform-gpu flex-col overflow-hidden rounded-2xl border border-border/65 bg-card/95 shadow-[0_22px_65px_-42px_hsl(var(--foreground)/0.38)] backdrop-blur-xl sm:min-h-[560px] sm:rounded-3xl lg:min-h-[600px] xl:h-[calc(100vh-13.25rem)] xl:min-h-[500px] xl:max-h-[740px]">
-      <CardContent className="flex min-h-0 flex-1 flex-col bg-dot-slate-200/20 p-0 dark:bg-dot-white/[0.02]">
+    <Card className="isolate flex h-[calc(100dvh-14rem)] max-h-[740px] min-h-[420px] transform-gpu flex-col overflow-hidden rounded-2xl border border-border/65 bg-card/95 shadow-[0_22px_65px_-42px_hsl(var(--foreground)/0.38)] backdrop-blur-xl sm:h-[calc(100dvh-15rem)] sm:min-h-[480px] sm:rounded-3xl xl:h-[calc(100vh-13.25rem)] xl:min-h-[500px]">
+      <CardContent className="flex min-h-0 flex-1 flex-col bg-gradient-to-b from-slate-50/50 via-white/30 to-indigo-50/20 p-0 dark:bg-dot-white/[0.02] dark:from-zinc-950 dark:via-zinc-900/80 dark:to-zinc-950">
         <div
           ref={conversationContainerRef}
-          className="custom-scrollbar min-h-[300px] flex-1 space-y-4 overflow-y-auto scroll-smooth p-3.5 sm:min-h-[400px] sm:space-y-5 sm:p-6 md:p-7 lg:min-h-[430px]"
+          className="custom-scrollbar flex-1 space-y-4 overflow-y-auto scroll-smooth p-3.5 sm:space-y-5 sm:p-6 md:p-7"
           aria-live="polite"
           aria-label="Conversation with the AI examiner"
         >
@@ -105,11 +195,37 @@ export default function SpeakingConversationPanel({
               {conversation.map((entry, index) => (
                 <ConversationMessage
                   key={`${entry.speaker}-${index}`}
-                  entry={entry}
+                  entry={
+                    index === liveExaminerIndex && showExaminerLive
+                      ? {
+                          ...entry,
+                          isExaminerLive: true,
+                          isExaminerSpeaking: isPlaybackActive,
+                          isExaminerPreparing: !isPlaybackActive,
+                          speechProgress,
+                        }
+                      : entry
+                  }
                   index={index}
                   authUser={authUser}
                 />
               ))}
+              {showStreamingCandidate && (
+                <ConversationMessage
+                  key="candidate-live-transcript"
+                  entry={{
+                    speaker: 'user',
+                    text: liveTranscript,
+                    isLoading: true,
+                    isLive: isListening,
+                    isTranscriptDraft: !isListening,
+                    autoFinishCountdown,
+                    autoSubmitPaused,
+                  }}
+                  index={conversation.length}
+                  authUser={authUser}
+                />
+              )}
             </AnimatePresence>
           )}
           {isPartComplete && (
@@ -148,14 +264,12 @@ export default function SpeakingConversationPanel({
                   isTTSLoading={isTTSLoading}
                   processingStatus={processingStatus}
                   micError={micError}
-                  liveTranscript={liveTranscript}
-                  recordingStartedAt={recordingStartedAt}
-                  autoFinishCountdown={autoFinishCountdown}
-                  hasDetectedSpeech={hasDetectedSpeech}
+                  autoSubmitPaused={autoSubmitPaused}
                   handsFreeEnabled={handsFreeEnabled}
                   timerExpiredRef={timerExpiredRef}
                   onStartListening={startListening}
                   onStopListening={stopListening}
+                  onAutoSubmitPausedChange={setAutoSubmitPaused}
                   onStartTest={handleStartTest}
                 />
               </div>

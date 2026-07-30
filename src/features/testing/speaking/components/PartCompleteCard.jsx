@@ -1,97 +1,94 @@
 import React from 'react';
-import { CheckCircle2, ChevronRight, Milestone } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { CheckCircle2, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const PartCompleteCard = React.memo(
-  ({ isPartComplete, currentPartNumber, allParts, onMoveToNext }) => (
-    <AnimatePresence>
-      {isPartComplete && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.98, y: -10 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="w-full"
-        >
-          <div className="relative overflow-hidden rounded-[1.5rem] border border-rose-500/20 bg-gradient-to-br from-rose-500/10 via-orange-500/5 to-transparent dark:from-rose-500/20 dark:via-orange-500/10 dark:to-transparent backdrop-blur-md">
-            {/* Background Decorative Pattern */}
-            <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none bg-dot-rose-900 dark:bg-dot-white" />
+  ({ isPartComplete, currentPartNumber, allParts, onMoveToNext }) => {
+    const hasNextPart = Boolean(allParts[currentPartNumber + 1]);
 
-            <div className="relative p-5 md:p-6 flex flex-col items-center text-center space-y-4">
-              {/* Dynamic Milestone Icon */}
-              <motion.div
-                className="relative"
-                animate={{
-                  y: [0, -3, 0],
-                  rotate: [0, 2, -2, 0],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              >
-                <div className="absolute inset-0 bg-rose-500/20 blur-xl rounded-full" />
-                <div className="relative w-12 h-12 bg-gradient-to-br from-rose-500 to-orange-600 rounded-xl shadow-lg flex items-center justify-center transform rotate-2">
-                  <CheckCircle2 className="w-6 h-6 text-white" />
-                </div>
-              </motion.div>
+    return (
+      <AnimatePresence>
+        {isPartComplete && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: -8 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+            className="w-full"
+          >
+            {/* Card */}
+            <div className="relative overflow-hidden rounded-2xl border border-rose-200/60 bg-gradient-to-br from-rose-50 via-pink-50/60 to-orange-50/40 shadow-[0_4px_24px_-8px_hsl(350_80%_60%/0.18)] dark:border-rose-500/15 dark:from-rose-950/40 dark:via-pink-950/20 dark:to-orange-950/15">
+              {/* Subtle radial glow at top-centre */}
+              <div
+                className="pointer-events-none absolute -top-10 left-1/2 h-40 w-56 -translate-x-1/2 rounded-full bg-rose-400/20 blur-3xl dark:bg-rose-500/15"
+                aria-hidden="true"
+              />
 
-              <div className="space-y-1">
-                <Badge className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/10 font-bold tracking-widest uppercase text-[9px] px-2 py-0">
-                  Section Complete
-                </Badge>
-                <h2 className="text-xl md:text-2xl font-black tracking-tight text-foreground leading-tight">
-                  Part {currentPartNumber} Finished
-                </h2>
-                <p className="text-xs md:text-sm text-muted-foreground font-semibold leading-relaxed max-w-sm mx-auto tracking-tight opacity-90">
-                  {allParts[currentPartNumber + 1]
-                    ? `You have completed this part. Tap below to start Part ${currentPartNumber + 1}.`
-                    : `Test finished. Generating your score now.`}
-                </p>
-              </div>
+              <div className="relative flex flex-col items-center gap-3.5 px-5 py-5 text-center md:py-6">
+                {/* Icon */}
+                <motion.div
+                  className="relative"
+                  animate={{ y: [0, -3, 0] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  {/* Glow ring */}
+                  <div className="absolute inset-0 rounded-2xl bg-rose-400/25 blur-lg" />
+                  <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-400 to-rose-600 shadow-lg shadow-rose-500/30">
+                    <CheckCircle2 className="h-6 w-6 text-white drop-shadow-sm" />
+                  </div>
+                </motion.div>
 
-              <div className="pt-1">
-                <div className="relative group">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-rose-500 to-orange-600 rounded-xl blur opacity-20 group-hover:opacity-60 transition duration-500 animate-pulse" />
-                  <Button
-                    onClick={onMoveToNext}
-                    size="sm"
-                    className="relative bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 h-11 px-8 text-[11px] font-black uppercase tracking-[0.2em] rounded-xl shadow-lg transition-all group overflow-hidden"
-                  >
-                    <span className="relative z-10 flex items-center gap-2">
-                      {allParts[currentPartNumber + 1] ? (
-                        <>
-                          Proceed to Part {currentPartNumber + 1}
-                          <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                        </>
-                      ) : (
-                        <>
-                          Generate Final Report
-                          <Milestone className="w-4 h-4" />
-                        </>
-                      )}
-                    </span>
-                  </Button>
-                </div>
-              </div>
-
-              {!allParts[currentPartNumber + 1] && (
-                <div className="flex items-center gap-2 pt-1">
-                  <span className="flex h-1 w-1 rounded-full bg-rose-500 animate-ping" />
-                  <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-40">
-                    Preparing Results
+                {/* Text */}
+                <div className="space-y-1.5">
+                  <span className="inline-flex items-center rounded-full border border-rose-300/60 bg-rose-100/80 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-rose-600 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-400">
+                    Section complete
+                  </span>
+                  <h2 className="text-xl font-black tracking-tight text-foreground md:text-2xl">
+                    Part {currentPartNumber} Finished
+                  </h2>
+                  <p className="mx-auto max-w-[26rem] text-xs font-medium leading-relaxed text-muted-foreground md:text-sm">
+                    {hasNextPart
+                      ? `You have completed this part. Tap below to start Part ${currentPartNumber + 1}.`
+                      : 'Your test is complete. Your report is being generated automatically.'}
                   </p>
                 </div>
-              )}
+
+                {/* CTA */}
+                {hasNextPart ? (
+                  <div className="pt-0.5">
+                    <Button
+                      onClick={onMoveToNext}
+                      className="group relative h-11 overflow-hidden rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 px-8 text-[11px] font-black uppercase tracking-[0.18em] text-white shadow-md shadow-rose-500/30 transition-all duration-200 hover:from-rose-600 hover:to-rose-700 hover:shadow-rose-500/45 active:scale-95"
+                    >
+                      <span className="flex items-center gap-2">
+                        Proceed to Part {currentPartNumber + 1}
+                        <ChevronRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                      </span>
+                    </Button>
+                  </div>
+                ) : (
+                  <div
+                    className="flex items-center gap-2 rounded-full border border-rose-200/60 bg-white/80 px-4 py-2 shadow-sm dark:border-rose-500/15 dark:bg-white/5"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <Loader2
+                      className="h-3.5 w-3.5 animate-spin text-rose-500"
+                      aria-hidden="true"
+                    />
+                    <p className="text-[9px] font-black uppercase tracking-[0.16em] text-rose-600 dark:text-rose-400">
+                      Analysing your performance
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  }
 );
 
 PartCompleteCard.displayName = 'PartCompleteCard';

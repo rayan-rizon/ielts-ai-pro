@@ -201,7 +201,7 @@ export default function SpeakingReport({
           </header>
 
           {/* Main Content Area */}
-          <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+          <div className="space-y-4 p-4 sm:p-5 lg:p-6">
             <SpeakingReportSummary
               finalEvaluation={finalEvaluation}
               pronunciationBreakdown={pronunciationBreakdown}

@@ -59,20 +59,20 @@ const PricingSettingsHeader = () => (
 
 const PricingSettingsFooter = ({ onSave, pricingTiers, saving }) => (
   <div
-    className="flex items-center justify-between pt-5 border-t border-slate-100 dark:border-white/5"
+    className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-5 border-t border-slate-100 dark:border-white/5"
     data-oid="b25u3fj"
   >
     <div
       className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400"
       data-oid="qih51.2"
     >
-      <div className="w-2 h-2 rounded-full bg-emerald-500" data-oid="4n.-03f"></div>
+      <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" data-oid="4n.-03f"></div>
       <span data-oid="8vwkl:7">Pricing updates apply across all billing flows immediately</span>
     </div>
     <Button
       onClick={() => onSave('pricing_tiers', pricingTiers)}
       disabled={saving}
-      className="h-9 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-2xs transition-all"
+      className="w-full sm:w-auto justify-center h-9 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-2xs transition-all shrink-0"
       data-oid=":i.ehgz"
     >
       {saving ? (

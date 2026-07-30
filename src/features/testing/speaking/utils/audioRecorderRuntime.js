@@ -113,9 +113,17 @@ function updateLiveRecognition(runtime, event) {
     });
   }
 
-  const preview = [...finalSegments, ...interimSegments].join(' ').replace(/\s+/g, ' ').trim();
-  runtime.refs.speechConfidence.current = confidence;
-  runtime.refs.liveTranscript.current = preview;
+  const sessionFinal = finalSegments.join(' ').replace(/\s+/g, ' ').trim();
+  if (runtime.refs.recognitionSessionFinal) {
+    runtime.refs.recognitionSessionFinal.current = sessionFinal;
+  }
+  const baseTranscript = runtime.refs.recognitionBaseTranscript?.current || '';
+  const preview = [baseTranscript, sessionFinal, ...interimSegments]
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (runtime.refs.speechConfidence) runtime.refs.speechConfidence.current = confidence;
+  if (runtime.refs.liveTranscript) runtime.refs.liveTranscript.current = preview;
   runtime.actions.setLiveTranscript(preview);
   if (preview) markVoiceDetected(runtime, Date.now());
 }
@@ -141,6 +149,7 @@ function startSilenceMonitor(runtime) {
     const { refs } = runtime;
     if (!refs.isListening.current) return;
     if (!refs.smartFinishEnabled.current) return;
+    if (refs.autoSubmitPaused.current) return;
     if (!refs.speechDetected.current) return;
 
     const now = Date.now();
@@ -161,7 +170,11 @@ function startBrowserRecognition(runtime) {
   recognition.maxAlternatives = 1;
   recognition.lang = 'en-GB';
   recognition.onresult = (event) => updateLiveRecognition(runtime, event);
-  recognition.onerror = () => {};
+  recognition.onerror = (event) => {
+    if (event?.error === 'not-allowed' || event?.error === 'service-not-allowed') {
+      runtime.refs.speechRecognition.current = null;
+    }
+  };
   recognition.onend = () => restartRecognitionIfActive(runtime, recognition);
   recognition.start();
   runtime.refs.speechRecognition.current = recognition;
@@ -170,11 +183,32 @@ function startBrowserRecognition(runtime) {
 function restartRecognitionIfActive(runtime, recognition) {
   const isCurrentRecognition = runtime.refs.speechRecognition.current === recognition;
   if (!runtime.refs.isListening.current || !isCurrentRecognition) return;
-  try {
-    recognition.start();
-  } catch {
-    // Some browsers impose a restart delay. Recording continues without captions.
+
+  const completedText = runtime.refs.recognitionSessionFinal.current;
+  if (completedText) {
+    runtime.refs.recognitionBaseTranscript.current = [
+      runtime.refs.recognitionBaseTranscript.current,
+      completedText,
+    ]
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    runtime.refs.recognitionSessionFinal.current = '';
   }
+
+  runtime.refs.recognitionRestartTimer.current = setTimeout(() => {
+    if (
+      !runtime.refs.isListening.current ||
+      runtime.refs.speechRecognition.current !== recognition
+    ) {
+      return;
+    }
+    try {
+      recognition.start();
+    } catch {
+      restartRecognitionIfActive(runtime, recognition);
+    }
+  }, 250);
 }
 
 function cleanupAudioAnalysis(runtime) {
@@ -191,6 +225,10 @@ function cleanupAudioAnalysis(runtime) {
   if (refs.silenceMonitor.current) {
     clearInterval(refs.silenceMonitor.current);
     refs.silenceMonitor.current = null;
+  }
+  if (refs.recognitionRestartTimer.current) {
+    clearTimeout(refs.recognitionRestartTimer.current);
+    refs.recognitionRestartTimer.current = null;
   }
 }
 
@@ -242,16 +280,20 @@ export function cancelRecorderCapture(runtime) {
 
 export function resetRecorderCapture(runtime) {
   const { refs, actions } = runtime;
-  refs.liveTranscript.current = '';
-  refs.speechConfidence.current = [];
-  refs.speechDetected.current = false;
-  refs.voiceFrames.current = 0;
-  refs.lastVoiceAt.current = 0;
-  refs.graceStartedAt.current = null;
-  refs.noiseFloor.current = MIN_VOICE_THRESHOLD / 2;
+  if (refs.liveTranscript) refs.liveTranscript.current = '';
+  if (refs.recognitionBaseTranscript) refs.recognitionBaseTranscript.current = '';
+  if (refs.recognitionSessionFinal) refs.recognitionSessionFinal.current = '';
+  if (refs.speechConfidence) refs.speechConfidence.current = [];
+  if (refs.speechDetected) refs.speechDetected.current = false;
+  if (refs.voiceFrames) refs.voiceFrames.current = 0;
+  if (refs.lastVoiceAt) refs.lastVoiceAt.current = 0;
+  if (refs.graceStartedAt) refs.graceStartedAt.current = null;
+  if (refs.autoSubmitPaused) refs.autoSubmitPaused.current = false;
+  if (refs.noiseFloor) refs.noiseFloor.current = MIN_VOICE_THRESHOLD / 2;
   actions.setLiveTranscript('');
   actions.setRecordingStartedAt(null);
   actions.setAutoFinishCountdown(null);
+  actions.setAutoSubmitPaused(false);
   actions.setHasDetectedSpeech(false);
 }
 

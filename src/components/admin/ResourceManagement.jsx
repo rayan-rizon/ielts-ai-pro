@@ -591,42 +591,45 @@ const ResourceManagement = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-4 pb-6"
+      className="space-y-4 pb-6 pt-12 md:pt-0"
       data-oid="7ze--xz"
     >
       {/* Top Header Section */}
       <motion.div
         variants={itemVariants}
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1"
         data-oid="o56ihpo"
       >
-        <div className="space-y-0.5" data-oid="8o9gofp">
+        <div className="space-y-0.5 min-w-0" data-oid="8o9gofp">
           <h2
-            className="text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
+            className="text-lg sm:text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
             data-oid="3fimod-"
           >
             <div
-              className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shadow-2xs"
+              className="p-1.5 sm:p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shadow-2xs shrink-0"
               data-oid="fm45sc-"
             >
-              <Library className="w-5 h-5" data-oid="i1.ai0g" />
+              <Library className="w-4 h-4 sm:w-5 sm:h-5" data-oid="i1.ai0g" />
             </div>
-            Resource Management
+            <span className="truncate">Resource Management</span>
           </h2>
           <p
-            className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 ml-1"
+            className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 ml-0.5"
             data-oid="r5:4ldd"
           >
             Manage educational video guides, PDFs, blogs, and vocabulary banks for candidates
           </p>
         </div>
 
-        <div className="flex items-center gap-2" data-oid="42vher3">
+        <div
+          className="flex items-center gap-2 w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
+          data-oid="42vher3"
+        >
           <DropdownMenu data-oid="actions-dropdown">
             <DropdownMenuTrigger asChild data-oid="actions-trigger">
               <Button
                 variant="outline"
-                className="h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
+                className="flex-1 sm:flex-none justify-center h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
                 data-oid="btn-more-actions"
               >
                 <MoreVertical className="w-4 h-4 mr-1.5 text-slate-500" data-oid="icon-more" />
@@ -698,15 +701,15 @@ const ResourceManagement = () => {
           >
             <DialogTrigger asChild data-oid="6_pg2-m">
               <Button
-                className="h-8 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold shadow-2xs rounded-xl text-xs gap-1 transition-all"
+                className="flex-1 sm:flex-none justify-center h-9 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold shadow-2xs rounded-xl text-xs gap-1 transition-all"
                 data-oid="pow-z6t"
               >
-                <Plus className="w-3.5 h-3.5" data-oid="_lhw9j3" />
+                <Plus className="w-4 h-4" data-oid="_lhw9j3" />
                 Add Resource
               </Button>
             </DialogTrigger>
             <DialogContent
-              className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 max-w-lg rounded-2xl overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto"
+              className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 w-[95vw] max-w-lg rounded-2xl overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto p-4 sm:p-6"
               data-oid="dtsedp6"
             >
               <DialogHeader className="space-y-1" data-oid="9ymdqci">
@@ -733,22 +736,22 @@ const ResourceManagement = () => {
                   >
                     Content Type
                   </Label>
-                  <div className="grid grid-cols-3 gap-3" data-oid="p0.5qes">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3" data-oid="p0.5qes">
                     {CONTENT_TYPES.map((type) => (
                       <button
                         key={type.id}
                         type="button"
                         onClick={() => setFormData({ ...formData, content_type: type.id })}
-                        className={`p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
+                        className={`p-2.5 sm:p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-1.5 sm:gap-2 ${
                           formData.content_type === type.id
                             ? `border-${type.color}-500 bg-${type.color}-500/10 text-${type.color}-600 dark:text-${type.color}-400`
                             : 'border-border/50 hover:border-border text-muted-foreground hover:text-foreground'
                         }`}
                         data-oid="r1h-r_w"
                       >
-                        <type.icon className="w-5 h-5" data-oid="ps_q55-" />
+                        <type.icon className="w-4 h-4 sm:w-5 sm:h-5" data-oid="ps_q55-" />
                         <span
-                          className="text-xs font-bold uppercase tracking-wider"
+                          className="text-[10px] sm:text-xs font-bold uppercase tracking-wider"
                           data-oid="dswdj1n"
                         >
                           {type.label}
@@ -841,7 +844,7 @@ const ResourceManagement = () => {
                     <Label className="text-sm font-bold ml-1 uppercase tracking-wider opacity-70">
                       Upload PDF
                     </Label>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                       <div className="relative flex-1">
                         <input
                           type="file"
@@ -849,56 +852,35 @@ const ResourceManagement = () => {
                           onChange={handlePdfUpload}
                           disabled={uploadingPdf}
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                          data-oid="pdf-input"
                         />
-                        <div
-                          className={`h-12 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors ${
-                            uploadingPdf
-                              ? 'border-primary/50 bg-primary/5'
-                              : 'border-border/50 hover:border-primary/50 hover:bg-primary/5'
-                          }`}
-                        >
-                          {uploadingPdf ? (
-                            <>
-                              <Sparkles className="w-4 h-4 text-primary animate-spin" />
-                              <span className="text-sm text-primary font-medium">
-                                Uploading to R2...
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <Upload className="w-4 h-4 text-muted-foreground" />
-                              <span className="text-sm text-muted-foreground">
-                                {formData.url
-                                  ? 'Change PDF File'
-                                  : 'Click to Upload PDF (Max 50MB)'}
-                              </span>
-                            </>
-                          )}
+                        <div className="h-11 px-3 border border-border/50 rounded-xl bg-muted/30 flex items-center gap-2 hover:border-primary/50 transition-colors">
+                          <FileText className="w-4 h-4 text-primary shrink-0" />
+                          <span className="text-xs font-semibold text-muted-foreground truncate">
+                            {uploadingPdf
+                              ? 'Uploading PDF...'
+                              : formData.url && formData.url.endsWith('.pdf')
+                                ? 'PDF uploaded successfully'
+                                : 'Choose a PDF file to upload'}
+                          </span>
                         </div>
                       </div>
-                      {formData.url && (
-                        <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-600">
-                          <CheckCircle2 className="w-6 h-6" />
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
 
                 {/* Description */}
-                <div className="space-y-2" data-oid="yn-3nf0">
-                  <Label
-                    className="text-sm font-bold ml-1 uppercase tracking-wider opacity-70"
-                    data-oid="dm070i5"
-                  >
+                <div className="space-y-2" data-oid="desc-section">
+                  <Label className="text-sm font-bold ml-1 uppercase tracking-wider opacity-70">
                     Description
                   </Label>
                   <Textarea
-                    value={formData.description}
+                    value={formData.description || ''}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Brief description of the resource"
-                    className="min-h-[80px] bg-muted/30 border-border/50 rounded-xl resize-none focus-visible:ring-primary/20"
-                    data-oid="qrcpbvm"
+                    placeholder="Enter brief description"
+                    rows={3}
+                    className="bg-muted/30 border-border/50 rounded-xl focus-visible:ring-primary/20 text-xs font-medium"
+                    data-oid="desc-input"
                   />
                 </div>
 
@@ -913,8 +895,8 @@ const ResourceManagement = () => {
                   <div className="flex items-center gap-3" data-oid="844q26t">
                     {(formData.thumbnail_url || thumbnailFile) && (
                       <div
-                        className="w-16 h-16 rounded-lg overflow-hidden border border-border/50 bg-muted/30"
-                        data-oid="7:ai7ok"
+                        className="w-16 h-16 rounded-xl overflow-hidden border border-border/50 relative shrink-0"
+                        data-oid="55e0t91"
                       >
                         <img
                           src={
@@ -961,7 +943,7 @@ const ResourceManagement = () => {
                         key={tier}
                         type="button"
                         onClick={() => setFormData({ ...formData, access_tier: tier })}
-                        className={`py-2 px-4 rounded-xl border-2 transition-all duration-200 text-xs font-bold uppercase tracking-wider ${
+                        className={`py-2 px-3 sm:px-4 rounded-xl border-2 transition-all duration-200 text-xs font-bold uppercase tracking-wider ${
                           formData.access_tier === tier
                             ? 'border-primary bg-primary/10 text-primary'
                             : 'border-border/50 hover:border-border text-muted-foreground'
@@ -997,14 +979,14 @@ const ResourceManagement = () => {
                 </div>
               </div>
 
-              <DialogFooter className="gap-3" data-oid="q.ovgwu">
+              <DialogFooter className="gap-3 flex-col sm:flex-row" data-oid="q.ovgwu">
                 <Button
                   variant="ghost"
                   onClick={() => {
                     setIsDialogOpen(false);
                     resetForm();
                   }}
-                  className="rounded-xl font-bold h-11"
+                  className="rounded-xl font-bold h-11 w-full sm:w-auto"
                   data-oid="bvuumc8"
                 >
                   Cancel
@@ -1016,7 +998,7 @@ const ResourceManagement = () => {
                     uploadingPdf ||
                     (formData.content_type === 'video' && fetchingMetadata)
                   }
-                  className="px-8 rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
+                  className="px-8 rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 w-full sm:w-auto"
                   data-oid="btn-submit"
                 >
                   {submitting ? (
@@ -1033,8 +1015,8 @@ const ResourceManagement = () => {
         </div>
       </motion.div>
 
-      {/* 3 Compact KPI Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5" data-oid="ju0dnr8">
+      {/* 3 Compact KPI Stat Cards (3 columns on mobile & desktop) */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3.5" data-oid="ju0dnr8">
         {[
           { label: 'Total Resources', value: stats.total, icon: Library, color: 'indigo' },
           { label: 'Published', value: stats.published, icon: Sparkles, color: 'emerald' },
@@ -1046,25 +1028,25 @@ const ResourceManagement = () => {
               data-oid="eqw6up2"
             >
               <CardContent
-                className="p-3.5 px-4 flex items-center justify-between"
+                className="p-2.5 sm:p-3.5 px-3 sm:px-4 flex items-center justify-between"
                 data-oid="vrw0:b8"
               >
-                <div data-oid="9_afd1:">
+                <div data-oid="9_afd1:" className="min-w-0 flex-1">
                   <p
-                    className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-0.5"
+                    className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 mb-0.5 truncate"
                     data-oid="7.kttsj"
                   >
                     {item.label}
                   </p>
                   <h4
-                    className="text-xl font-black text-slate-950 dark:text-white leading-none"
+                    className="text-base sm:text-xl font-black text-slate-950 dark:text-white leading-none"
                     data-oid="odze9k4"
                   >
                     {item.value || 0}
                   </h4>
                 </div>
                 <div
-                  className={`p-2 rounded-xl ${
+                  className={`p-1.5 sm:p-2 rounded-xl shrink-0 ${
                     item.color === 'emerald'
                       ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-900'
                       : item.color === 'indigo'
@@ -1073,7 +1055,7 @@ const ResourceManagement = () => {
                   }`}
                   data-oid="5d3m6tk"
                 >
-                  <item.icon className="w-4 h-4" data-oid="zq:k7jh" />
+                  <item.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="zq:k7jh" />
                 </div>
               </CardContent>
             </Card>
@@ -1084,7 +1066,7 @@ const ResourceManagement = () => {
       {/* Search & Filter Toolbar */}
       <motion.div
         variants={itemVariants}
-        className="flex flex-col sm:flex-row items-center gap-3 bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 p-2 rounded-2xl shadow-2xs"
+        className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 p-2 rounded-2xl shadow-2xs"
         data-oid="a_eoz4w"
       >
         <div className="relative flex-1 w-full" data-oid="u9h2esc">
@@ -1099,7 +1081,7 @@ const ResourceManagement = () => {
               setPagination((p) => ({ ...p, page: 1 }));
             }}
             placeholder="Search by title, description, or URL..."
-            className="h-9 pl-9 border-none bg-transparent focus-visible:ring-0 text-xs font-semibold placeholder:text-slate-400 shadow-none"
+            className="h-9 pl-9 border-none bg-transparent focus-visible:ring-0 text-xs font-semibold placeholder:text-slate-400 shadow-none w-full"
             data-oid="-7jwxl2"
           />
         </div>
@@ -1149,19 +1131,19 @@ const ResourceManagement = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-4 border border-white/10"
+            className="fixed bottom-4 left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 bg-slate-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl shadow-2xl flex items-center justify-between sm:justify-start gap-2 sm:gap-4 border border-white/10 overflow-x-auto max-w-[calc(100vw-1.5rem)]"
             data-oid="47a_a6n"
           >
-            <span className="font-bold text-sm whitespace-nowrap" data-oid="jhdg0tw">
+            <span className="font-bold text-xs sm:text-sm whitespace-nowrap" data-oid="jhdg0tw">
               {selectedIds.length} selected
             </span>
-            <div className="h-4 w-px bg-white/20" data-oid="q8zu:.b" />
-            <div className="flex gap-2" data-oid="hrdl2y4">
+            <div className="h-4 w-px bg-white/20 shrink-0" data-oid="q8zu:.b" />
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0" data-oid="hrdl2y4">
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => handleBulkAction('publish')}
-                className="hover:bg-white/10 hover:text-white text-white/90 h-8 font-semibold"
+                className="hover:bg-white/10 hover:text-white text-white/90 h-8 font-semibold text-xs px-2.5 sm:px-3"
                 data-oid="i5sd2.g"
               >
                 Publish
@@ -1170,7 +1152,7 @@ const ResourceManagement = () => {
                 size="sm"
                 variant="ghost"
                 onClick={() => handleBulkAction('unpublish')}
-                className="hover:bg-white/10 hover:text-white text-white/90 h-8 font-semibold"
+                className="hover:bg-white/10 hover:text-white text-white/90 h-8 font-semibold text-xs px-2.5 sm:px-3"
                 data-oid="uf3617t"
               >
                 Unpublish
@@ -1179,7 +1161,7 @@ const ResourceManagement = () => {
                 size="sm"
                 variant="destructive"
                 onClick={() => handleBulkAction('delete')}
-                className="h-8 rounded-lg font-bold shadow-sm"
+                className="h-8 rounded-lg font-bold shadow-sm text-xs px-2.5 sm:px-3"
                 data-oid="dv2nga1"
               >
                 Delete
@@ -1189,7 +1171,7 @@ const ResourceManagement = () => {
               size="icon"
               variant="ghost"
               onClick={() => setSelectedIds([])}
-              className="h-8 w-8 rounded-full hover:bg-white/10 text-white/70 hover:text-white ml-2 transition-colors"
+              className="h-8 w-8 rounded-full hover:bg-white/10 text-white/70 hover:text-white shrink-0 ml-1 transition-colors"
               data-oid="7spaznw"
             >
               <X className="w-4 h-4" data-oid="1c3nwu2" />
@@ -1203,7 +1185,10 @@ const ResourceManagement = () => {
           className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs rounded-2xl overflow-hidden"
           data-oid="p8t1fgh"
         >
-          <div className="overflow-x-auto" data-oid="u-.q60o">
+          <div
+            className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
+            data-oid="u-.q60o"
+          >
             <Table className="min-w-[900px]" data-oid="lh7lr::">
               <TableHeader
                 className="bg-slate-50/80 dark:bg-slate-900/40 border-b border-slate-100 dark:border-white/5"

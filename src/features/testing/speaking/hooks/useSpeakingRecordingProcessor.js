@@ -62,16 +62,6 @@ export default function useSpeakingRecordingProcessor({
 
       setIsProcessing(true);
       setProcessingStatus('Processing your answer...');
-      const draftTranscript = String(metadata.liveTranscript || '').trim();
-      setConversation((prev) => [
-        ...prev,
-        {
-          speaker: 'user',
-          text: draftTranscript,
-          isLoading: true,
-          isTranscriptDraft: Boolean(draftTranscript),
-        },
-      ]);
 
       try {
         const snapshotQuestionIndex = questionIndexRef.current;
@@ -303,6 +293,13 @@ function replaceLoadingUserTranscript(conversation, transcript) {
       isLoading: false,
       error: isTranscriptError(transcript),
     };
+  } else {
+    updated.push({
+      speaker: 'user',
+      text: transcript || '(Unable to transcribe - please try again)',
+      isLoading: false,
+      error: isTranscriptError(transcript),
+    });
   }
 
   return updated;
@@ -466,6 +463,13 @@ function handleProcessingError(error, context) {
         isLoading: false,
         error: true,
       };
+    } else {
+      updated.push({
+        speaker: 'user',
+        text: '(Failed to transcribe)',
+        isLoading: false,
+        error: true,
+      });
     }
     return updated;
   });

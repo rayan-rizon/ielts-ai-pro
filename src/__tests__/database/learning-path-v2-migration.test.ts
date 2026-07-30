@@ -9,7 +9,7 @@ const migration = readFileSync(
 const verifiedActivityMigration = readFileSync(
   resolve(
     process.cwd(),
-    'supabase/migrations/20260730150247_learning_path_verified_activity_contract.sql'
+    'supabase/migrations/20260730184647_learning_path_verified_activity_contract.sql'
   ),
   'utf8'
 ).toLowerCase();

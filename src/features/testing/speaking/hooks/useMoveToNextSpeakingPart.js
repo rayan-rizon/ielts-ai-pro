@@ -115,12 +115,15 @@ function startDiscussionPart({
 
   const questionLines = getQuestionLines(nextPart.questions);
   const firstQuestion = questionLines.length > 0 ? formatIeltsQuestion(questionLines[0]) : null;
-  setConversation([
-    { speaker: 'ai', text: message },
-    ...(firstQuestion ? [{ speaker: 'ai', text: firstQuestion }] : []),
-  ]);
+  setConversation([{ speaker: 'ai', text: message }]);
   setCurrentQuestionIndex(0);
-  void speakDiscussionStart({ firstQuestion, message, requestAutoStart, speakText });
+  void speakDiscussionStart({
+    firstQuestion,
+    message,
+    requestAutoStart,
+    setConversation,
+    speakText,
+  });
 
   saveNextPartProgress({
     currentConversation,
@@ -141,9 +144,22 @@ function startDiscussionPart({
   });
 }
 
-async function speakDiscussionStart({ firstQuestion, message, requestAutoStart, speakText }) {
+async function speakDiscussionStart({
+  firstQuestion,
+  message,
+  requestAutoStart,
+  setConversation,
+  speakText,
+}) {
   await speakText(message);
-  if (firstQuestion) await speakText(firstQuestion);
+  if (firstQuestion) {
+    setConversation((current) =>
+      current.some((entry) => entry.speaker === 'ai' && entry.text === firstQuestion)
+        ? current
+        : [...current, { speaker: 'ai', text: firstQuestion }]
+    );
+    await speakText(firstQuestion);
+  }
   requestAutoStart?.();
 }
 

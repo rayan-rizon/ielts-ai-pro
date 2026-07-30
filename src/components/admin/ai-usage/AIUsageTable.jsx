@@ -65,8 +65,8 @@ const AIUsageTable = ({
             </div>
           </CardTitle>
         </CardHeader>
-        <div className="overflow-x-auto">
-          <Table>
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+          <Table className="min-w-[950px]">
             <TableHeader className="bg-slate-50/90 dark:bg-slate-900/60 border-b border-slate-100 dark:border-white/5">
               <TableRow>
                 <SortHeader field="name" label="Candidate User" />

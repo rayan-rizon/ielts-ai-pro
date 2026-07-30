@@ -61,8 +61,8 @@ const SystemHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdatin
 
   return (
     <div className="space-y-6" data-oid="yqie2t6">
-      {/* KPI Cards Row (4 Columns) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" data-oid="r:iaur6">
+      {/* KPI Cards Row (2 Columns on mobile, 4 on desktop) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4" data-oid="r:iaur6">
         {/* Database Status */}
         <Card
           className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/80 rounded-2xl shadow-2xs hover:border-slate-300 transition-all"

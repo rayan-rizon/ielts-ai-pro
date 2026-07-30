@@ -362,6 +362,7 @@ export default function RoadmapSection({
   evidence,
   days,
   targetBand,
+  examDatePassed = false,
   onStart,
 }) {
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
@@ -421,7 +422,9 @@ export default function RoadmapSection({
             Your path to exam day
           </h2>
           <p className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-300">
-            Four clear stages. Progress comes from verified practice; dates adjust with your exam.
+            {examDatePassed
+              ? 'Your saved exam date has passed. Choose a new date to place these stages on a new timeline.'
+              : 'Four clear stages. Progress comes from verified practice; dates adjust with your exam.'}
             <span className="ml-1 font-bold text-[#505bdd] dark:text-indigo-300 sm:hidden">
               Swipe to see every stage.
             </span>

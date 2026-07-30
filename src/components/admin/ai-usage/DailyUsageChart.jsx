@@ -61,19 +61,21 @@ const DailyUsageChart = ({ dailyStats, itemVariants, dateRange }) => {
   return (
     <motion.div variants={itemVariants}>
       <Card className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-xs hover:shadow-md transition-all duration-300 overflow-hidden">
-        <CardHeader className="pb-2 pt-5 px-6 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-sm font-black text-slate-950 dark:text-white flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400 border border-violet-200/60 dark:border-violet-800/50 shadow-2xs">
-              <TrendingUp className="w-4 h-4" />
+        <CardHeader className="pb-2 pt-4 sm:pt-5 px-4 sm:px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 space-y-0">
+          <CardTitle className="text-xs sm:text-sm font-black text-slate-950 dark:text-white flex items-center gap-2.5">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400 border border-violet-200/60 dark:border-violet-800/50 shadow-2xs shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-black">Request Delivery Volume</span>
-              <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs sm:text-sm font-black truncate">
+                Request Delivery Volume
+              </span>
+              <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 truncate">
                 Daily API throughput (Last {dateRange} Days)
               </span>
             </div>
           </CardTitle>
-          <div className="flex items-center gap-3 text-xs font-bold">
+          <div className="flex items-center gap-3 text-xs font-bold shrink-0">
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-violet-500" />
               <span className="text-slate-600 dark:text-slate-300 text-[11px]">Total</span>
@@ -84,7 +86,7 @@ const DailyUsageChart = ({ dailyStats, itemVariants, dateRange }) => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="px-6 pb-6 pt-3">
+        <CardContent className="px-3 sm:px-6 pb-4 sm:pb-6 pt-2 sm:pt-3">
           <div className="h-64">
             {dailyStats && dailyStats.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">

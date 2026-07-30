@@ -96,6 +96,7 @@ export default function LearningPathDashboard(props) {
         evidence={evidence}
         days={sevenDays}
         targetBand={targetBand}
+        examDatePassed={examDatePassed}
         onStart={startTask}
       />
 

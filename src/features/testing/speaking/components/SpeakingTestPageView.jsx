@@ -60,7 +60,8 @@ export default function SpeakingTestPageView({
 
       <ExitDialog open={showExitDialog} blocker={blocker} {...exitDialogProps} />
 
-      <div className="relative mx-auto w-full max-w-[1500px] px-2.5 pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-0 sm:px-5 sm:pb-7 sm:pt-1 lg:px-6">
+      {/* Page Wrapper */}
+      <div className="relative mx-auto w-full max-w-[1500px] px-3 pb-3 pt-0 sm:px-4 sm:pb-4 sm:pt-1 lg:px-5">
         <TestHeader
           currentPartNumber={currentPartNumber}
           currentPart={currentPart}
@@ -77,7 +78,7 @@ export default function SpeakingTestPageView({
           {...headerProps}
         />
 
-        <div className="grid gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1fr)_21rem] xl:items-start xl:gap-5">
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start xl:gap-4">
           <div className="order-2 min-w-0 xl:order-1">
             <SpeakingConversationPanel
               currentPartNumber={currentPartNumber}

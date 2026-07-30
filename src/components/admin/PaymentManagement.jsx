@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
+import { matchesPaymentSearch, mergePaymentHistory } from './paymentHistory';
 
 export default function PaymentManagement() {
   const [requests, setRequests] = useState([]);
@@ -56,9 +57,25 @@ export default function PaymentManagement() {
         query = query.eq('status', filter);
       }
 
-      const { data, error } = await query;
+      const [{ data, error }, { data: stripeData, error: stripeError }] = await Promise.all([
+        query,
+        supabase.functions.invoke('admin-payment-history', { method: 'GET' }),
+      ]);
+
       if (error) throw error;
-      setRequests(data || []);
+
+      if (stripeError) {
+        // Manual payments are still useful when Stripe history is temporarily unavailable.
+        console.error('Error fetching Stripe payment history:', stripeError);
+        toast.error('Stripe payment history is temporarily unavailable');
+      }
+
+      const paymentHistory = mergePaymentHistory(data || [], stripeData?.payments || []);
+      setRequests(
+        filter === 'all'
+          ? paymentHistory
+          : paymentHistory.filter((payment) => payment.status === filter)
+      );
     } catch (error) {
       console.error('Error fetching payments:', error);
       toast.error('Failed to load payment requests');
@@ -96,35 +113,40 @@ export default function PaymentManagement() {
     }
   };
 
-  const filteredRequests = requests.filter(
-    (req) =>
-      req.transaction_id.toLowerCase().includes(search.toLowerCase()) ||
-      req.sender_phone.includes(search) ||
-      req.user?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-      req.user?.email?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredRequests = requests.filter((request) => matchesPaymentSearch(request, search));
 
   return (
-    <div className="space-y-6" data-oid="66djezk">
+    <div className="space-y-6 pb-10 pt-12 md:pt-0" data-oid="66djezk">
       <div
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1"
         data-oid="hhg.nt6"
       >
-        <div data-oid="ktp:fpz">
+        <div className="space-y-0.5 min-w-0" data-oid="ktp:fpz">
           <h2
-            className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2"
+            className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5"
             data-oid="u5k8:w-"
           >
-            <CreditCard className="w-7 h-7 text-indigo-500" data-oid="8k80j1w" />
-            Payment Requests
+            <div
+              className="p-2 sm:p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 shadow-2xs shrink-0"
+              data-oid="3a1l_ft"
+            >
+              <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" data-oid="8k80j1w" />
+            </div>
+            <span className="truncate">Payment Requests</span>
           </h2>
-          <p className="text-slate-500 text-sm mt-1" data-oid="60q36qc">
+          <p
+            className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400"
+            data-oid="60q36qc"
+          >
             Review and approve manual subscription payments
           </p>
         </div>
 
-        <div className="flex items-center gap-3" data-oid="ak9jwuz">
-          <div className="relative" data-oid="7i3m2z0">
+        <div
+          className="flex items-center gap-2 w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
+          data-oid="ak9jwuz"
+        >
+          <div className="relative flex-1 sm:flex-initial w-full sm:w-64" data-oid="7i3m2z0">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
               data-oid="7kg-h.:"
@@ -134,14 +156,14 @@ export default function PaymentManagement() {
               placeholder="Search TrxID, Phone, User..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-10 w-64 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10"
+              className="pl-9 h-9 w-full bg-white dark:bg-slate-900 border-slate-200/90 dark:border-white/10 rounded-xl text-xs font-medium"
               data-oid="upereuz"
             />
           </div>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="h-10 px-3 pr-8 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="h-9 px-3 pr-8 rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 shrink-0"
             data-oid="9sv59ch"
           >
             <option value="all" data-oid="xs0kyxv">
@@ -161,11 +183,148 @@ export default function PaymentManagement() {
       </div>
 
       <div
-        className="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-xl shadow-slate-200/50 dark:shadow-none"
+        className="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200/90 dark:border-white/10 overflow-hidden shadow-2xs"
         data-oid="zki:.j."
       >
-        <div className="overflow-x-auto" data-oid="hgd1hrt">
-          <table className="w-full text-left border-collapse" data-oid="he0.xbq">
+        {/* Mobile View: Card List */}
+        <div
+          className="md:hidden divide-y divide-slate-100 dark:divide-white/5"
+          data-oid="mobile-payment-list"
+        >
+          {loading ? (
+            <div className="p-12 text-center text-slate-500" data-oid="mob-loading">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-indigo-500" />
+              <p className="text-xs font-bold">Loading payment requests...</p>
+            </div>
+          ) : filteredRequests.length === 0 ? (
+            <div className="p-12 text-center text-slate-500" data-oid="mob-empty">
+              <AlertCircle className="w-8 h-8 mx-auto mb-3 opacity-20" />
+              <p className="text-xs font-bold">No payment requests found</p>
+            </div>
+          ) : (
+            filteredRequests.map((request) => (
+              <div key={request.id} className="p-4 space-y-3" data-oid={`mob-req-${request.id}`}>
+                {/* Header: User Info & Status */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 shrink-0">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-extrabold text-xs text-slate-900 dark:text-white truncate">
+                        {request.user?.full_name || 'Unknown User'}
+                      </p>
+                      <p className="text-[10px] text-slate-500 truncate">{request.user?.email}</p>
+                    </div>
+                  </div>
+                  <Badge
+                    className={cn(
+                      'rounded-full px-2.5 py-0.5 border-none font-bold uppercase text-[9px] shrink-0',
+                      request.status === 'pending' &&
+                        'bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400',
+                      request.status === 'approved' &&
+                        'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400',
+                      request.status === 'rejected' &&
+                        'bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400'
+                    )}
+                  >
+                    {request.status}
+                  </Badge>
+                </div>
+
+                {/* Plan & Transaction details */}
+                <div className="p-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/5 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <div className="flex items-center gap-1.5">
+                      <Badge
+                        className={cn(
+                          'uppercase text-[9px] px-1.5 py-0.2',
+                          request.tier === 'premium'
+                            ? 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-none'
+                            : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-none'
+                        )}
+                      >
+                        {request.tier}
+                      </Badge>
+                      <span className="font-extrabold text-slate-900 dark:text-white">
+                        {request.currency} {request.amount}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-normal uppercase">
+                        ({request.interval})
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                      <Clock className="w-3 h-3" />
+                      {new Date(request.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 font-mono text-xs pt-1 border-t border-slate-200/40 dark:border-white/5">
+                    <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                      <Hash className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="font-bold uppercase truncate">{request.transaction_id}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                      <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span className="truncate">
+                        {request.sender_phone} ({request.payment_method})
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions Row */}
+                {request.status === 'pending' ? (
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button
+                      size="sm"
+                      disabled={isProcessing === request.id}
+                      onClick={() => handleStatusUpdate(request, 'approved')}
+                      className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white h-9 rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1.5"
+                    >
+                      {isProcessing === request.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <Check className="w-4 h-4" />
+                          <span>Approve Payment</span>
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      disabled={isProcessing === request.id}
+                      onClick={() => handleStatusUpdate(request, 'rejected')}
+                      className="flex-1 h-9 rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1.5"
+                    >
+                      {isProcessing === request.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <X className="w-4 h-4" />
+                          <span>Reject</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-end text-xs text-slate-400 font-medium pt-1 gap-1">
+                    <CheckCircle2 className="w-4 h-4 text-slate-400" />
+                    <span>Processed</span>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Table */}
+        <div
+          className="hidden md:block overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
+          data-oid="hgd1hrt"
+        >
+          <table className="w-full min-w-[750px] text-left border-collapse" data-oid="he0.xbq">
             <thead data-oid="qq3nc7e">
               <tr
                 className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-white/5"

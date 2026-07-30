@@ -343,8 +343,13 @@ export function aggregateReadiness(sessions: any[], now: Date | string = new Dat
 
 export function buildRoadmap(testDate: string | null | undefined, now: Date | string = new Date()) {
   const start = startOfUtcDay(now);
-  const parsedExam = testDate ? startOfUtcDay(testDate) : addDays(start, 84);
-  const examDate = parsedExam.getTime() > start.getTime() ? parsedExam : addDays(start, 28);
+  const parsedExam = testDate ? startOfUtcDay(testDate) : null;
+  const hasScheduledExam = Boolean(
+    parsedExam && !Number.isNaN(parsedExam.getTime()) && parsedExam.getTime() > start.getTime()
+  );
+  // Keep a planning horizon for task allocation when a date is missing or expired, but do not
+  // surface that internal horizon as a learner's exam timeline.
+  const examDate = hasScheduledExam ? parsedExam : addDays(start, 84);
   const totalDays = Math.max(1, Math.ceil((examDate.getTime() - start.getTime()) / 86400000));
 
   const templates = [
@@ -401,8 +406,12 @@ export function buildRoadmap(testDate: string | null | undefined, now: Date | st
     const end = index === activeTemplates.length - 1 ? examDate : addDays(cursor, phaseDays - 1);
     const item = {
       ...phase,
-      start_date: toIsoDate(cursor),
-      end_date: toIsoDate(end),
+      ...(hasScheduledExam
+        ? {
+            start_date: toIsoDate(cursor),
+            end_date: toIsoDate(end),
+          }
+        : {}),
       current: start.getTime() >= cursor.getTime() && start.getTime() <= end.getTime(),
     };
     cursor = addDays(end, 1);
