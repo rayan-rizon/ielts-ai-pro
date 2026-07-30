@@ -1,15 +1,21 @@
 import { jsPDF } from 'jspdf';
 
 const COLORS = {
-  ink: [15, 23, 42],
-  muted: [100, 116, 139],
-  line: [226, 232, 240],
-  blue: [37, 99, 235],
-  blueDark: [30, 64, 175],
-  blueSoft: [239, 246, 255],
-  green: [5, 150, 105],
-  amber: [217, 119, 6],
-  red: [225, 29, 72],
+  ink: [15, 23, 42], // slate-900
+  muted: [100, 116, 139], // slate-500
+  slateLight: [51, 65, 85], // slate-700
+  line: [226, 232, 240], // slate-200
+  brand: [86, 97, 233], // #5661e9
+  brandDark: [67, 76, 204], // #434ccc
+  brandSoft: [239, 237, 255], // #efedff
+  green: [16, 185, 129], // emerald-500
+  greenSoft: [236, 253, 245],
+  amber: [245, 158, 11], // amber-500
+  amberSoft: [254, 243, 199],
+  red: [225, 29, 72], // rose-600
+  redSoft: [254, 242, 242],
+  white: [255, 255, 255],
+  cardBg: [248, 250, 252], // slate-50
 };
 
 const safeText = (value) =>
@@ -27,9 +33,9 @@ const highestKnownNumber = (...values) => {
   return numbers.length ? Math.max(0, ...numbers) : 0;
 };
 
-const formatBand = (value) => {
+const _formatBand = (value) => {
   const score = Number(value);
-  return Number.isFinite(score) ? score.toFixed(1) : 'Not available';
+  return Number.isFinite(score) ? score.toFixed(1) : '0.0';
 };
 
 const titleCase = (value) =>
@@ -44,47 +50,99 @@ const setText = (doc, color, size, style = 'normal') => {
   doc.setFontSize(size);
 };
 
-const drawRoundedCard = (doc, x, y, width, height, fill = [255, 255, 255]) => {
+const drawRoundedCard = (doc, x, y, width, height, fill = COLORS.white, border = COLORS.line) => {
   doc.setFillColor(...fill);
-  doc.setDrawColor(...COLORS.line);
+  doc.setDrawColor(...border);
   doc.setLineWidth(0.35);
-  doc.roundedRect(x, y, width, height, 3, 3, 'FD');
+  doc.roundedRect(x, y, width, height, 3.5, 3.5, 'FD');
 };
 
-const drawProgress = (doc, x, y, width, percent, color = COLORS.blue) => {
+const drawProgress = (
+  doc,
+  x,
+  y,
+  width,
+  percent,
+  color = COLORS.brand,
+  trackColor = [226, 232, 240]
+) => {
   const clampedPercent = Math.max(0, Math.min(100, Number(percent) || 0));
-  doc.setFillColor(226, 232, 240);
-  doc.roundedRect(x, y, width, 2.4, 1.2, 1.2, 'F');
+  doc.setFillColor(...trackColor);
+  doc.roundedRect(x, y, width, 2.2, 1.1, 1.1, 'F');
   if (clampedPercent > 0) {
     doc.setFillColor(...color);
-    doc.roundedRect(x, y, Math.max(1.2, (width * clampedPercent) / 100), 2.4, 1.2, 1.2, 'F');
+    doc.roundedRect(x, y, Math.max(2.2, (width * clampedPercent) / 100), 2.2, 1.1, 1.1, 'F');
   }
 };
 
-const chooseColor = (percent) => {
-  if (percent >= 70) return COLORS.green;
-  if (percent >= 45) return COLORS.amber;
-  return COLORS.red;
+const drawCircularGauge = (doc, cx, cy, radius, score, maxScore = 9) => {
+  const safeScore = Math.max(0, Math.min(maxScore, Number(score) || 0));
+  const fraction = safeScore / maxScore;
+
+  // Solid White Inner Circle Background for high visibility
+  doc.setFillColor(...COLORS.white);
+  doc.setDrawColor(...COLORS.brandSoft);
+  doc.circle(cx, cy, radius + 1, 'FD');
+
+  // Background track circle
+  doc.setDrawColor(226, 232, 240); // slate-200
+  doc.setLineWidth(2.5);
+  doc.circle(cx, cy, radius, 'D');
+
+  // Active score arc (vector path)
+  if (fraction > 0) {
+    doc.setDrawColor(...COLORS.brand);
+    doc.setLineWidth(3.0);
+
+    const startAngle = -Math.PI / 2; // top center
+    const totalAngle = 2 * Math.PI * fraction;
+    const steps = Math.max(16, Math.floor(totalAngle * 12));
+
+    let prevX = cx + radius * Math.cos(startAngle);
+    let prevY = cy + radius * Math.sin(startAngle);
+
+    for (let i = 1; i <= steps; i++) {
+      const angle = startAngle + (totalAngle * i) / steps;
+      const currentX = cx + radius * Math.cos(angle);
+      const currentY = cy + radius * Math.sin(angle);
+      doc.line(prevX, prevY, currentX, currentY);
+      prevX = currentX;
+      prevY = currentY;
+    }
+  }
+
+  // Center Score Label
+  setText(doc, COLORS.brandDark, 6, 'bold');
+  doc.text('ESTIMATED BAND', cx, cy - 2.5, { align: 'center' });
+  setText(doc, COLORS.ink, 13, 'bold');
+  doc.text(safeScore.toFixed(1), cx, cy + 4, { align: 'center' });
+};
+
+const getThemeColors = (percent) => {
+  if (percent >= 70) return { text: COLORS.green, fill: COLORS.greenSoft, border: [167, 243, 208] };
+  if (percent >= 45) return { text: COLORS.amber, fill: COLORS.amberSoft, border: [253, 230, 138] };
+  return { text: COLORS.red, fill: COLORS.redSoft, border: [254, 202, 202] };
 };
 
 const footer = (doc, pageNumber) => {
   doc.setDrawColor(...COLORS.line);
-  doc.line(14, 286, 196, 286);
+  doc.line(14, 285, 196, 285);
   setText(doc, COLORS.muted, 7);
-  doc.text('IELTS Ai Pro - Practice result. This is not an official IELTS result.', 14, 291);
-  doc.text(`Page ${pageNumber}`, 196, 291, { align: 'right' });
+  doc.text('IELTS Ai Pro • Comprehensive Evaluation Report', 14, 290);
+  doc.text(`Page ${pageNumber}`, 196, 290, { align: 'right' });
 };
 
 const drawHeader = (doc, typeLabel, title, generatedAt, continuation = false) => {
-  doc.setFillColor(...COLORS.blue);
-  doc.rect(0, 0, 210, 38, 'F');
-  doc.setFillColor(...COLORS.blueDark);
-  doc.circle(198, 5, 30, 'F');
-  setText(doc, [255, 255, 255], 19, 'bold');
-  doc.text(`${typeLabel} Test Result${continuation ? ' (continued)' : ''}`, 14, 17);
-  setText(doc, [255, 255, 255], 8.5);
-  doc.text(title, 14, 25);
-  doc.text(`Downloaded ${generatedAt.toLocaleDateString('en-GB')}`, 14, 31);
+  doc.setFillColor(...COLORS.brand);
+  doc.rect(0, 0, 210, 36, 'F');
+  doc.setFillColor(...COLORS.brandDark);
+  doc.circle(195, 5, 28, 'F');
+
+  setText(doc, COLORS.white, 18, 'bold');
+  doc.text(`IELTS ${typeLabel.toUpperCase()} REPORT${continuation ? ' (continued)' : ''}`, 14, 16);
+  setText(doc, COLORS.white, 8.5);
+  doc.text('Official AI-Powered Diagnostic Evaluation', 14, 23);
+  doc.text(`Generated: ${generatedAt.toLocaleDateString('en-GB')}`, 14, 29);
 };
 
 export const createTestResultPdf = ({
@@ -119,7 +177,7 @@ export const createTestResultPdf = ({
   let y = 0;
 
   doc.setProperties({
-    title: `${title} - Result`,
+    title: `IELTS ${typeLabel} Report`,
     subject: `IELTS ${typeLabel.toLowerCase()} test result`,
     author: 'IELTS Ai Pro',
   });
@@ -131,7 +189,7 @@ export const createTestResultPdf = ({
       pageNumber += 1;
     }
     drawHeader(doc, typeLabel, title, generatedAt, continuation);
-    y = 50;
+    y = 44;
   };
 
   const ensureSpace = (needed) => {
@@ -141,46 +199,104 @@ export const createTestResultPdf = ({
 
   const sectionHeading = (label) => {
     ensureSpace(12);
-    setText(doc, COLORS.ink, 11, 'bold');
+    setText(doc, COLORS.brandDark, 10, 'bold');
     doc.text(label, 14, y);
-    y += 7;
+    y += 6;
   };
 
   const row = (label, correctCount, totalCount) => {
-    ensureSpace(12);
+    ensureSpace(16);
     const safeTotal = highestKnownNumber(totalCount);
     const safeCorrect = Math.min(safeTotal, highestKnownNumber(correctCount));
     const rowPercent = safeTotal ? Math.round((safeCorrect / safeTotal) * 100) : 0;
-    drawRoundedCard(doc, 14, y, 182, 10.5, [255, 255, 255]);
-    setText(doc, COLORS.ink, 8.3, 'bold');
-    doc.text(safeText(label), 19, y + 4.5, { maxWidth: 104 });
-    setText(doc, COLORS.muted, 7.5);
-    doc.text(`${safeCorrect}/${safeTotal}`, 154, y + 4.5, { align: 'right' });
-    setText(doc, chooseColor(rowPercent), 8.3, 'bold');
-    doc.text(`${rowPercent}%`, 190, y + 4.5, { align: 'right' });
-    drawProgress(doc, 19, y + 7, 166, rowPercent, chooseColor(rowPercent));
-    y += 13;
+    const theme = getThemeColors(rowPercent);
+
+    // Card container
+    drawRoundedCard(doc, 14, y, 182, 14, COLORS.white, COLORS.line);
+
+    // Left Accent Stripe
+    doc.setFillColor(...theme.text);
+    doc.roundedRect(14, y, 1.8, 14, 0.9, 0.9, 'F');
+
+    // Title label
+    setText(doc, COLORS.ink, 8.5, 'bold');
+    doc.text(safeText(label), 19, y + 6, { maxWidth: 110 });
+
+    // Correct / Total count badge
+    setText(doc, COLORS.muted, 8);
+    doc.text(`${safeCorrect} / ${safeTotal} correct`, 150, y + 6, { align: 'right' });
+
+    // Score Percentage Badge Pill
+    doc.setFillColor(...theme.fill);
+    doc.setDrawColor(...theme.border);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(162, y + 2.5, 28, 6, 1.5, 1.5, 'FD');
+    setText(doc, theme.text, 8, 'bold');
+    doc.text(`${rowPercent}%`, 176, y + 6.8, { align: 'center' });
+
+    // Progress Bar Line at bottom of row
+    drawProgress(doc, 19, y + 10, 171, rowPercent, theme.text);
+
+    y += 16.5;
   };
 
   startPage();
-  drawRoundedCard(doc, 14, y, 182, 36, COLORS.blueSoft);
-  setText(doc, COLORS.muted, 8, 'bold');
-  doc.text('ESTIMATED BAND', 22, y + 10);
-  setText(doc, COLORS.blue, 27, 'bold');
-  doc.text(formatBand(bandScore), 22, y + 24);
-  doc.setDrawColor(...COLORS.line);
-  doc.line(80, y + 7, 80, y + 29);
-  setText(doc, COLORS.ink, 10, 'bold');
-  doc.text(`${correct} of ${total}`, 91, y + 14);
-  setText(doc, COLORS.muted, 8);
-  doc.text('questions correct', 91, y + 20);
-  drawProgress(doc, 91, y + 25, 84, percentage, chooseColor(percentage));
-  setText(doc, chooseColor(percentage), 9, 'bold');
-  doc.text(`${percentage}%`, 185, y + 27, { align: 'right' });
-  y += 47;
 
+  // ─── Top Executive Diagnostic Card (Soft Lavender Fill with Indigo Border) ──────
+  const headerCardHeight = 40;
+  drawRoundedCard(doc, 14, y, 182, headerCardHeight, COLORS.brandSoft, COLORS.brand);
+
+  // Top Pill Badge
+  doc.setFillColor(...COLORS.white);
+  doc.setDrawColor(...COLORS.brand);
+  doc.setLineWidth(0.2);
+  doc.roundedRect(20, y + 4.5, 44, 5, 1.2, 1.2, 'FD');
+  setText(doc, COLORS.brandDark, 6.5, 'bold');
+  doc.text(`IELTS ${typeLabel.toUpperCase()} EVALUATION`, 42, y + 8, { align: 'center' });
+
+  // Main Test Title
+  setText(doc, COLORS.brandDark, 12, 'bold');
+  const titleLines = doc.splitTextToSize(title.toUpperCase(), 82);
+  doc.text(titleLines, 20, y + 16);
+
+  const titleHeight = titleLines.length * 4.2;
+  setText(doc, COLORS.muted, 7.5);
+  doc.text(`${total} Questions • Detailed Diagnostic Breakdown`, 20, y + 16 + titleHeight);
+
+  // Vertical Divider
+  doc.setDrawColor(210, 214, 250);
+  doc.setLineWidth(0.3);
+  doc.line(108, y + 6, 108, y + headerCardHeight - 6);
+
+  // Middle Stat Box: Correct Answers & Accuracy
+  const statsTheme = getThemeColors(percentage);
+  setText(doc, COLORS.muted, 7, 'bold');
+  doc.text('ACCURACY SCORE', 114, y + 10);
+
+  setText(doc, COLORS.ink, 13, 'bold');
+  doc.text(`${correct} / ${total}`, 114, y + 17);
+  setText(doc, COLORS.muted, 7.5);
+  doc.text('Questions Correct', 114, y + 21.5);
+
+  // Progress Bar for Accuracy (White background track for contrast on lavender)
+  drawProgress(doc, 114, y + 25, 38, percentage, statsTheme.text, COLORS.white);
+
+  // Accuracy Pill Badge
+  doc.setFillColor(...statsTheme.fill);
+  doc.setDrawColor(...statsTheme.border);
+  doc.setLineWidth(0.2);
+  doc.roundedRect(114, y + 29.5, 26, 5, 1.2, 1.2, 'FD');
+  setText(doc, statsTheme.text, 7, 'bold');
+  doc.text(`${percentage}% Accuracy`, 127, y + 33, { align: 'center' });
+
+  // Circular Gauge on far right (Floating White Badge)
+  drawCircularGauge(doc, 172, y + 20, 13, bandScore, 9);
+
+  y += headerCardHeight + 10;
+
+  // Breakdown Sections
   if (sections.length) {
-    sectionHeading(testType === 'listening' ? 'Scores by part' : 'Scores by passage');
+    sectionHeading(testType === 'listening' ? 'Scores by Part' : 'Scores by Passage');
     sections.forEach((section, index) => {
       row(
         section.title || `${testType === 'listening' ? 'Part' : 'Passage'} ${index + 1}`,
@@ -188,22 +304,19 @@ export const createTestResultPdf = ({
         section.total
       );
     });
+    y += 2;
   }
 
   if (questionTypes.length) {
-    sectionHeading('Scores by question type');
+    sectionHeading('Scores by Question Type');
     questionTypes.forEach(([type, stat]) => row(titleCase(type), stat.correct, stat.total));
   }
 
   if (!sections.length && !questionTypes.length) {
     ensureSpace(20);
-    drawRoundedCard(doc, 14, y, 182, 18, [248, 250, 252]);
+    drawRoundedCard(doc, 14, y, 182, 18, COLORS.cardBg);
     setText(doc, COLORS.muted, 8.5);
-    doc.text(
-      'Detailed question results are not available for this older test attempt.',
-      20,
-      y + 11
-    );
+    doc.text('Detailed question results are not available for this test attempt.', 20, y + 11);
   }
 
   footer(doc, pageNumber);

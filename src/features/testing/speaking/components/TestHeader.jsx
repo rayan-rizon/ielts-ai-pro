@@ -57,9 +57,9 @@ const TestHeader = React.memo(
             variant="ghost"
             onClick={onShowExitDialog}
             aria-label="Back to Speaking"
-            className="group h-8 rounded-xl px-1.5 text-muted-foreground transition-colors hover:bg-card hover:text-foreground sm:h-9 sm:px-3"
+            className="group relative flex h-9 sm:h-9.5 shrink-0 items-center justify-center rounded-xl border border-[#d2d7f8] bg-gradient-to-r from-white to-[#f4f3ff] px-2.5 sm:px-3 text-slate-700 shadow-2xs transition-all duration-200 hover:border-[#5661e9] hover:text-[#5661e9] hover:shadow-xs active:scale-95 dark:border-white/10 dark:from-white/10 dark:to-white/5 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300"
           >
-            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5 sm:mr-2" />
+            <ArrowLeft className="h-4.5 w-4.5 sm:h-5 sm:w-5 transition-transform duration-200 group-hover:-translate-x-0.5 stroke-[2.5] sm:mr-2" />
             <span className="hidden text-xs font-bold sm:inline">Back to Speaking</span>
           </Button>
         </div>

@@ -90,7 +90,7 @@ describe('premium analysis UI', () => {
     renderAnalysis({ isPremium: true, onReviewQuestion });
 
     expect(screen.getByText('Where you lost marks')).toBeInTheDocument();
-    expect(screen.getByRole('combobox', { name: 'Target band' })).toBeInTheDocument();
+    expect(screen.getByText('Target band')).toBeInTheDocument();
     expect(screen.getByText('Answer mix')).toBeInTheDocument();
     expect(screen.getByText('Best recovery opportunity')).toBeInTheDocument();
     expect(screen.getByText('Review these answers first')).toBeInTheDocument();

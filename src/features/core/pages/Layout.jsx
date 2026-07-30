@@ -259,19 +259,21 @@ export default function Layout({ children, currentPageName }) {
             </Sidebar>
 
             <main className="flex-1 flex flex-col overflow-hidden relative" data-oid="ikt0z38">
-              {/* Minimal floating toggle for mobile */}
-              <div
-                className="md:hidden absolute top-4 left-4 z-50 flex items-center gap-2 pointer-events-none"
-                data-oid="9gb208j"
-              >
-                <div className="pointer-events-auto bg-background/60 backdrop-blur-md border border-border shadow-sm rounded-xl p-1">
-                  <SidebarTrigger
-                    className="h-9 w-9 text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300"
-                    aria-label="Open mobile menu"
-                    data-oid="u0ntjik"
-                  />
+              {/* Minimal floating toggle for mobile (Hidden on test pages to avoid header overlap) */}
+              {!isTestPage && (
+                <div
+                  className="md:hidden absolute top-4 left-4 z-50 flex items-center gap-2 pointer-events-none"
+                  data-oid="9gb208j"
+                >
+                  <div className="pointer-events-auto bg-background/60 backdrop-blur-md border border-border shadow-sm rounded-xl p-1">
+                    <SidebarTrigger
+                      className="h-9 w-9 text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300"
+                      aria-label="Open mobile menu"
+                      data-oid="u0ntjik"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div
                 ref={mainContentRef}

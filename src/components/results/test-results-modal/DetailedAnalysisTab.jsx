@@ -132,7 +132,7 @@ function FreeTeaser({ analysis, testType, onUpgrade }) {
   );
 }
 
-function RecoveryMap({ analysis, currentBand, selectedTarget, onTargetChange }) {
+function RecoveryMap({ analysis, currentBand, selectedTarget, _onTargetChange }) {
   const totalLost = analysis.typeLosses.reduce((sum, entry) => sum + entry.lost, 0);
   const totalCorrect = analysis.typeLosses.reduce((sum, entry) => sum + entry.correct, 0);
   const totalQuestions = analysis.typeLosses.reduce((sum, entry) => sum + entry.total, 0);
@@ -150,20 +150,33 @@ function RecoveryMap({ analysis, currentBand, selectedTarget, onTargetChange }) 
         eyebrow="Compare the size of each loss before choosing what to practise."
         title="Where you lost marks"
         action={
-          <span className="text-sm font-black text-rose-600 dark:text-rose-400">
-            {totalLost} lost
-          </span>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2.5 rounded-lg border border-slate-200/80 bg-slate-50/80 px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300">
+              <span className="flex items-center gap-1.5">
+                <i className="h-2 w-2 rounded-full bg-emerald-500" /> Correct
+              </span>
+              <span className="flex items-center gap-1.5">
+                <i className="h-2 w-2 rounded-full bg-[#5661e9]" /> Incorrect
+              </span>
+              <span className="flex items-center gap-1.5">
+                <i className="h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-600" /> Skipped
+              </span>
+            </div>
+            <span className="text-sm font-black text-rose-600 dark:text-rose-400">
+              {totalLost} lost
+            </span>
+          </div>
         }
       />
 
-      <div className="grid items-stretch gap-3 lg:grid-cols-[220px_minmax(0,1fr)_220px]">
-        <div className="h-full rounded-2xl border border-[#d2d7f8] bg-[#efedff]/55 p-3.5 dark:border-indigo-900/50 dark:bg-indigo-950/25">
+      <div className="grid items-start gap-3 lg:grid-cols-[210px_minmax(0,1fr)_220px]">
+        <div className="rounded-2xl border border-[#d2d7f8] bg-[#efedff]/55 p-3 dark:border-indigo-900/50 dark:bg-indigo-950/25">
           <div className="flex items-center justify-between gap-2">
             <div>
               <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
                 Current band
               </p>
-              <p className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">
+              <p className="text-2xl font-black tracking-tight text-slate-950 dark:text-white">
                 {formatBand(currentBand)}
               </p>
             </div>
@@ -172,25 +185,16 @@ function RecoveryMap({ analysis, currentBand, selectedTarget, onTargetChange }) 
               <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
                 Target band
               </p>
-              <select
-                aria-label="Target band"
-                value={selectedTarget}
-                onChange={(event) => onTargetChange(Number(event.target.value))}
-                className="mt-0.5 rounded-lg border border-[#d2d7f8] bg-white px-2 py-1 text-base font-black text-[#5661e9] outline-none focus:border-[#5661e9] dark:border-white/10 dark:bg-slate-900 dark:text-indigo-300"
-              >
-                {analysis.target.options.map((band) => (
-                  <option key={band} value={band}>
-                    {formatBand(band)}
-                  </option>
-                ))}
-              </select>
+              <p className="text-2xl font-black tracking-tight text-[#5661e9] dark:text-indigo-300">
+                {formatBand(selectedTarget)}
+              </p>
             </div>
           </div>
-          <div className="mt-3 border-t border-[#d2d7f8] pt-2.5 dark:border-white/10">
-            <p className="text-2xl font-black text-[#5661e9] dark:text-indigo-300">
+          <div className="mt-2 border-t border-[#d2d7f8] pt-2 dark:border-white/10">
+            <p className="text-xl font-black text-[#5661e9] dark:text-indigo-300 leading-none">
               +{analysis.target.additionalCorrect}
             </p>
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+            <p className="mt-0.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300 leading-tight">
               more correct answer{analysis.target.additionalCorrect === 1 ? '' : 's'} needed
             </p>
           </div>
@@ -208,7 +212,7 @@ function RecoveryMap({ analysis, currentBand, selectedTarget, onTargetChange }) 
                     <p className="truncate text-xs font-bold text-slate-800 dark:text-slate-200">
                       {entry.label}
                     </p>
-                    <p className="text-[10px] text-slate-400">
+                    <p className="text-[10px] font-medium text-slate-400">
                       {entry.correct}/{entry.total} correct
                     </p>
                   </div>
@@ -221,7 +225,7 @@ function RecoveryMap({ analysis, currentBand, selectedTarget, onTargetChange }) 
                   aria-label={`${entry.label}: ${entry.correct} correct, ${entry.incorrect} incorrect and ${entry.skipped} skipped`}
                 >
                   <div
-                    className="h-full bg-emerald-400"
+                    className="h-full bg-emerald-500"
                     style={{ width: `${entry.total ? (entry.correct / entry.total) * 100 : 0}%` }}
                   />
                   <div
@@ -229,7 +233,7 @@ function RecoveryMap({ analysis, currentBand, selectedTarget, onTargetChange }) 
                     style={{ width: `${entry.total ? (entry.incorrect / entry.total) * 100 : 0}%` }}
                   />
                   <div
-                    className="h-full bg-slate-400"
+                    className="h-full bg-slate-300 dark:bg-slate-600"
                     style={{ width: `${entry.total ? (entry.skipped / entry.total) * 100 : 0}%` }}
                   />
                 </div>
@@ -245,19 +249,19 @@ function RecoveryMap({ analysis, currentBand, selectedTarget, onTargetChange }) 
         <div className="flex h-full flex-col justify-between rounded-2xl border border-[#e2e5f6] bg-white/80 p-3.5 dark:border-white/10 dark:bg-white/5">
           <div className="flex items-center gap-3">
             <div
-              className="relative h-16 w-16 shrink-0 rounded-full"
+              className="relative h-14 w-14 shrink-0 rounded-full"
               style={{
-                background: `conic-gradient(#34d399 0 ${correctPct}%, #5661e9 ${correctPct}% ${correctPct + incorrectPct}%, #94a3b8 ${correctPct + incorrectPct}% ${correctPct + incorrectPct + skippedPct}%)`,
+                background: `conic-gradient(#10b981 0 ${correctPct}%, #5661e9 ${correctPct}% ${correctPct + incorrectPct}%, #cbd5e1 ${correctPct + incorrectPct}% ${correctPct + incorrectPct + skippedPct}%)`,
               }}
               aria-label={`${totalCorrect} correct, ${totalIncorrect} incorrect and ${totalSkipped} skipped overall`}
             >
-              <div className="absolute inset-[7px] flex items-center justify-center rounded-full bg-white dark:bg-slate-950">
-                <span className="text-sm font-black text-slate-950 dark:text-white">
+              <div className="absolute inset-[6px] flex items-center justify-center rounded-full bg-white dark:bg-slate-950">
+                <span className="text-xs font-black text-slate-950 dark:text-white">
                   {totalCorrect}/{totalQuestions || 0}
                 </span>
               </div>
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-[10px] font-bold text-slate-400">Answer mix</p>
               <p className="text-sm font-black text-slate-900 dark:text-white">
                 {totalQuestions ? Math.round(correctPct) : 0}% correct
@@ -284,28 +288,13 @@ function RecoveryMap({ analysis, currentBand, selectedTarget, onTargetChange }) 
           )}
         </div>
       </div>
-
-      <div className="flex flex-wrap gap-4 border-t border-[#dce0f5]/80 dark:border-white/10 pt-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-        <span className="flex items-center gap-1.5">
-          <i className="h-2 w-2 rounded-full bg-emerald-400" />
-          Correct
-        </span>
-        <span className="flex items-center gap-1.5">
-          <i className="h-2 w-2 rounded-full bg-[#5661e9]" />
-          Incorrect
-        </span>
-        <span className="flex items-center gap-1.5">
-          <i className="h-2 w-2 rounded-full bg-slate-400" />
-          Skipped
-        </span>
-      </div>
     </section>
   );
 }
 
 function MistakeQueue({ analysis, onReviewQuestion }) {
   return (
-    <section className={`${CARD} h-full p-3.5 sm:p-4 space-y-3`}>
+    <section className={`${CARD} p-3.5 sm:p-4 space-y-3`}>
       <SectionHeading
         icon={BookOpenCheck}
         eyebrow="Start with the answers most likely to improve your score."
@@ -827,14 +816,12 @@ export function DetailedAnalysisTab({
           selectedTarget={selectedTarget || analysis.target.targetBand}
           onTargetChange={setSelectedTarget}
         />
-        <div className="grid gap-3 lg:grid-cols-12 lg:grid-rows-[auto_auto]">
-          <div className="min-w-0 lg:col-span-7 lg:row-span-2">
+        <div className="grid items-start gap-3 lg:grid-cols-12">
+          <div className="min-w-0 lg:col-span-7">
             <MistakeQueue analysis={analysis} onReviewQuestion={handleReview} />
           </div>
-          <div className="min-w-0 lg:col-span-5">
+          <div className="min-w-0 space-y-3 lg:col-span-5">
             <SectionStrategy analysis={analysis} testType={testType} />
-          </div>
-          <div className="min-w-0 lg:col-span-5">
             <RecentPatterns
               analysis={analysis}
               loading={historyQuery.isLoading}

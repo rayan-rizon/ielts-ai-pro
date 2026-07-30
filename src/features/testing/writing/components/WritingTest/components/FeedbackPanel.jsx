@@ -123,48 +123,71 @@ function buildTakeaway(feedback, priorities, taskType) {
 
 function ScoreRing({ score }) {
   const safeScore = Math.max(0, Math.min(9, Number(score) || 0));
-  const radius = 48;
+  const radius = 46;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (safeScore / 9) * circumference;
 
   return (
     <div
-      className="relative flex h-28 w-28 shrink-0 items-center justify-center sm:h-32 sm:w-32"
+      className="relative flex h-28 w-28 shrink-0 items-center justify-center sm:h-32 sm:w-32 group select-none"
       aria-label={`Band ${safeScore} out of 9`}
     >
+      {/* Background Soft Glow */}
+      <div className="absolute inset-3 rounded-full bg-[#5661e9]/[0.03] blur-md dark:bg-indigo-500/[0.05] pointer-events-none" />
+
       <svg
         viewBox="0 0 120 120"
-        className="h-full w-full -rotate-90 overflow-visible"
+        className="h-full w-full -rotate-90 overflow-visible relative"
         aria-hidden="true"
       >
         <defs>
           <linearGradient id="writing-score-gradient" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#5661e9" />
+            <stop offset="0%" stopColor="#6366f1" />
+            <stop offset="50%" stopColor="#5661e9" />
             <stop offset="100%" stopColor="#3b42c4" />
           </linearGradient>
+          <filter id="writing-ring-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="1" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
         </defs>
+
+        {/* Subtle Background Track Line */}
+        <circle
+          cx="60"
+          cy="60"
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="9"
+          className="text-[#e2e5f6] dark:text-white/10"
+        />
+
+        {/* Animated Active Score Arc */}
         <motion.circle
           cx="60"
           cy="60"
           r={radius}
           fill="none"
           stroke="url(#writing-score-gradient)"
-          strokeWidth="11"
+          strokeWidth="10"
           strokeLinecap="round"
           strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 0.9, ease: 'easeOut' }}
+          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+          filter="url(#writing-ring-glow)"
         />
       </svg>
+
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[9px] font-black uppercase tracking-[0.18em] text-[#5661e9] dark:text-indigo-300">
+        <span className="text-[9.5px] font-black uppercase tracking-[0.2em] text-[#5661e9] dark:text-indigo-300">
           Band
         </span>
-        <span className="mt-0.5 text-3xl font-black leading-none tracking-[-0.04em] text-slate-950 dark:text-white sm:text-4xl">
+        <span className="my-0.5 text-3xl font-black leading-none tracking-[-0.04em] text-slate-950 dark:text-white sm:text-4xl">
           {safeScore.toFixed(1)}
         </span>
-        <span className="mt-1 text-[9px] font-bold text-slate-400 dark:text-slate-500">
+        <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
           out of 9
         </span>
       </div>
@@ -276,7 +299,8 @@ export function FeedbackPanel({
     setIsDownloadingPdf(true);
     try {
       const { downloadWritingReportPdf } = await import('../../../utils/writingReportPdf');
-      downloadWritingReportPdf({ feedbacks: allFeedbacks });
+      const drafts = useWritingTestStore.getState().drafts;
+      downloadWritingReportPdf({ feedbacks: allFeedbacks, drafts });
       toast.success('Writing report downloaded');
     } catch (error) {
       console.error(error);
@@ -378,17 +402,17 @@ export function FeedbackPanel({
             transition={{ duration: 0.35 }}
             className="flex-1 space-y-3 overflow-y-auto p-3 sm:p-4"
           >
-            <section className="overflow-hidden rounded-2xl border border-[#d2d7f8] bg-gradient-to-br from-[#ffffff] via-[#f2f4fe] to-[#e6e9fc] text-slate-950 shadow-[0_12px_32px_-18px_rgba(86,97,233,0.25)] dark:border-white/10 dark:from-[#101322] dark:via-[#13172e] dark:to-[#181d38] dark:text-white">
+            <section className="overflow-hidden rounded-2xl border border-[#d2d7f8] bg-gradient-to-br from-[#ffffff] via-[#f2f4fe] to-[#e6e9fc] text-slate-950 shadow-[0_12px_32px_-18px_rgba(86,97,233,0.25)] dark:border-white/10 dark:from-[#0e111d] dark:via-[#121629] dark:to-[#181d36] dark:text-white">
               <div className="relative overflow-hidden p-4 sm:p-5">
                 <div className="relative flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-[0.12em] text-slate-800 dark:text-white">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/15 dark:text-indigo-300 border border-[#d2d7f8] shadow-2xs">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 shadow-2xs">
                       <Sparkles className="h-4 w-4" />
                     </span>
                     Writing assessment
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-gradient-to-r from-white to-[#f4f3ff] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-700 border border-[#d2d7f8] dark:bg-white/5 dark:text-slate-200 dark:border-white/10 shadow-2xs">
+                    <span className="whitespace-nowrap shrink-0 rounded-full bg-gradient-to-r from-white to-[#f4f3ff] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-slate-700 border border-[#d2d7f8] dark:from-white/10 dark:to-white/5 dark:text-slate-200 dark:border-white/10 shadow-2xs">
                       {taskType}
                     </span>
                     <Button
@@ -396,7 +420,7 @@ export function FeedbackPanel({
                       variant="ghost"
                       onClick={handleDownloadPdf}
                       disabled={isDownloadingPdf}
-                      className="h-8 rounded-lg bg-gradient-to-r from-white to-[#f4f3ff] px-3 text-xs font-black text-slate-700 border border-[#d2d7f8] transition-all hover:border-[#5661e9] hover:shadow-2xs dark:bg-white/5 dark:text-white dark:border-white/10 dark:hover:bg-white/10"
+                      className="h-8 rounded-lg bg-gradient-to-r from-white to-[#f4f3ff] px-3 text-xs font-black text-slate-700 border border-[#d2d7f8] transition-all hover:border-[#5661e9] hover:shadow-2xs dark:from-white/10 dark:to-white/5 dark:text-white dark:border-white/10 dark:hover:bg-white/15"
                     >
                       {isDownloadingPdf ? (
                         <LoaderCircle className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -408,8 +432,8 @@ export function FeedbackPanel({
                   </div>
                 </div>
 
-                <div className="relative mt-4 grid items-center gap-4 sm:grid-cols-[132px_1fr] sm:gap-5">
-                  <div className="mx-auto sm:border-r sm:border-[#d2d7f8]/70 sm:pr-5 dark:sm:border-white/10">
+                <div className="relative mt-4 grid items-center gap-3 sm:gap-4 sm:grid-cols-[120px_1fr] md:grid-cols-[132px_1fr] sm:gap-5">
+                  <div className="mx-auto sm:border-r sm:border-[#d2d7f8]/70 sm:pr-4 md:sm:pr-5 dark:sm:border-white/10">
                     <ScoreRing score={feedback.overallBand} />
                   </div>
                   <div className="text-center sm:text-left">
@@ -436,14 +460,14 @@ export function FeedbackPanel({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5 border-t border-[#d2d7f8] bg-gradient-to-r from-[#f4f5fe] via-[#ebedfd] to-[#e4e7fc] p-3 sm:grid-cols-4 sm:gap-3 sm:p-3.5 dark:border-white/10 dark:bg-black/20">
+              <div className="grid grid-cols-2 gap-2 sm:gap-2.5 border-t border-[#d2d7f8] bg-gradient-to-r from-[#f4f5fe] via-[#ebedfd] to-[#e4e7fc] p-2.5 sm:p-3.5 dark:border-white/10 dark:from-[#0a0d18] dark:via-[#0c0f1c] dark:to-[#0a0d18] lg:grid-cols-2 xl:grid-cols-4">
                 {criteria.map((item) => (
                   <div
                     key={item.short}
                     className="group relative flex flex-col justify-between rounded-xl border border-[#dce0f5] bg-gradient-to-br from-white via-[#fcfbff] to-[#f2f1fe] p-2.5 transition-all duration-200 hover:border-[#5661e9]/70 hover:shadow-xs dark:border-white/10 dark:from-[#161a2e] dark:via-[#111425] dark:to-[#0e111d] dark:hover:border-indigo-400/50 sm:p-3"
                   >
                     <div className="flex items-center justify-between gap-1">
-                      <span className="rounded-md bg-[#efedff] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30 shadow-2xs">
+                      <span className="rounded-md bg-[#efedff] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 shadow-2xs">
                         {item.short}
                       </span>
                       <span className="text-lg font-black tracking-tight text-slate-950 transition-colors group-hover:text-[#5661e9] dark:text-white dark:group-hover:text-indigo-300 sm:text-xl">
@@ -472,7 +496,7 @@ export function FeedbackPanel({
             </section>
 
             {combinedBand && (
-              <div className="flex items-center justify-between rounded-xl border border-[#d2d7f8] bg-gradient-to-r from-[#efedff]/80 via-[#f0f2fe] to-[#e6e9fc] px-3 py-2 dark:border-indigo-500/20 dark:bg-indigo-500/10 shadow-2xs">
+              <div className="flex items-center justify-between rounded-xl border border-[#d2d7f8] bg-gradient-to-r from-[#efedff]/80 via-[#f0f2fe] to-[#e6e9fc] px-3 py-2 dark:border-indigo-500/30 dark:from-indigo-950/40 dark:via-indigo-900/30 dark:to-indigo-950/40 shadow-2xs">
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-indigo-200">
                   <TrendingUp className="h-3.5 w-3.5 text-[#5661e9] dark:text-indigo-400" /> Writing
                   estimate{' '}
@@ -501,11 +525,11 @@ export function FeedbackPanel({
               </div>
             )}
 
-            <div className="grid gap-2.5 xl:grid-cols-2">
-              <section className="rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/40 via-white to-emerald-50/20 p-3.5 sm:p-4 dark:border-emerald-900/40 dark:from-emerald-950/20 dark:to-transparent shadow-2xs">
-                <div className="mb-3 flex items-center justify-between gap-2 border-b border-emerald-200/60 pb-2 dark:border-emerald-500/15">
+            <div className="grid gap-2.5 lg:grid-cols-1 xl:grid-cols-2">
+              <section className="rounded-2xl border border-[#dce0f5] bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] p-3.5 sm:p-4 dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] shadow-2xs">
+                <div className="mb-3 flex items-center justify-between gap-2 border-b border-[#e2e5f6] pb-2 dark:border-white/10">
                   <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/80 dark:bg-emerald-500/15 dark:text-emerald-400">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/70 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 shadow-2xs">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                     </span>
                     Key strengths
@@ -515,7 +539,7 @@ export function FeedbackPanel({
                 <div className="space-y-2.5">
                   {strengths.map((strength, index) => (
                     <div key={`${strength.full}-${index}`} className="flex items-start gap-2.5">
-                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400">
+                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/70 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 shadow-2xs">
                         <Check className="h-2.5 w-2.5 stroke-[3]" />
                       </span>
                       <div
@@ -550,10 +574,10 @@ export function FeedbackPanel({
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-[#d2d7f8] bg-gradient-to-br from-[#efedff]/40 via-white to-[#f4f3ff]/40 p-3.5 sm:p-4 dark:border-indigo-900/40 dark:from-indigo-950/20 dark:to-transparent shadow-2xs">
-                <div className="mb-3 flex items-center justify-between gap-2 border-b border-[#d2d7f8]/60 pb-2 dark:border-indigo-500/15">
+              <section className="rounded-2xl border border-[#dce0f5] bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] p-3.5 sm:p-4 dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] shadow-2xs">
+                <div className="mb-3 flex items-center justify-between gap-2 border-b border-[#e2e5f6] pb-2 dark:border-white/10">
                   <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/15 dark:text-indigo-400">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/40 shadow-2xs">
                       <Target className="h-3.5 w-3.5" />
                     </span>
                     Top 3 priorities
@@ -564,7 +588,7 @@ export function FeedbackPanel({
                   {priorities.map((priority, index) => (
                     <div key={`${priority.issue.full}-${index}`} className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex h-5 w-5 min-w-[20px] shrink-0 items-center justify-center rounded-md bg-[#5661e9] text-white font-black text-[11px] leading-none shadow-2xs">
+                        <span className="inline-flex h-5 w-5 min-w-[20px] shrink-0 items-center justify-center rounded-md bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/30 dark:text-indigo-200 dark:border-indigo-400/40 font-black text-[11px] leading-none shadow-2xs">
                           {index + 1}
                         </span>
                         <span className="text-[9px] font-black uppercase tracking-wider text-[#5661e9] dark:text-indigo-400">
@@ -627,7 +651,7 @@ export function FeedbackPanel({
             <section className="overflow-hidden rounded-2xl border border-[#e2e5f6] bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] shadow-2xs dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829]">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e2e5f6] dark:border-white/10 px-3.5 py-2.5 bg-slate-50/50 dark:bg-white/[0.02]">
                 <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/15 dark:text-indigo-400">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/40">
                     <Lightbulb className="h-3.5 w-3.5" />
                   </span>
                   Corrections & improvements

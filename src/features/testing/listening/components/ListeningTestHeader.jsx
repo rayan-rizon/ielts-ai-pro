@@ -87,10 +87,13 @@ const ListeningTestHeader = ({
                 onExit();
               }
             }}
-            className="shrink-0 h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors flex items-center justify-center p-0"
+            className="group relative flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-xl border border-[#d2d7f8] bg-gradient-to-r from-white to-[#f4f3ff] text-slate-700 shadow-2xs transition-all duration-200 hover:border-[#5661e9] hover:text-[#5661e9] hover:shadow-xs active:scale-95 dark:border-white/10 dark:from-white/10 dark:to-white/5 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300 p-0"
             data-oid="g_mhami"
           >
-            <ArrowLeft className="w-4 h-4 sm:w-4.5 sm:h-4.5" data-oid="23xs5x9" />
+            <ArrowLeft
+              className="w-4.5 h-4.5 sm:w-5 sm:h-5 transition-transform duration-200 group-hover:-translate-x-0.5 stroke-[2.5]"
+              data-oid="23xs5x9"
+            />
           </Button>
 
           <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog} data-oid="dycq7pd">
@@ -133,7 +136,7 @@ const ListeningTestHeader = ({
           <div className="flex items-center gap-2 sm:gap-3" data-oid=".:xhcj4">
             {/* Title & Badge */}
             <div
-              className="flex flex-col min-w-0 max-w-[120px] sm:max-w-[200px] lg:max-w-[300px]"
+              className="flex flex-col min-w-0 max-w-[160px] xs:max-w-[220px] sm:max-w-[320px] md:max-w-[420px] lg:max-w-[550px]"
               data-oid="uszsrof"
             >
               <h1

@@ -11,7 +11,6 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -171,39 +170,52 @@ function useAnnotatedSegments(plainText, filteredAnnotations) {
 
 // ─── Tooltip Sub-components ───────────────────────────────────────────────────
 
+const SEVERITY_BADGE_STYLES = {
+  error:
+    'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-950/60 dark:text-rose-400 dark:border-rose-800/60',
+  warning:
+    'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/60 dark:text-amber-400 dark:border-amber-800/60',
+  suggestion:
+    'bg-[#efedff] text-[#5661e9] border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30',
+  positive:
+    'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800/60',
+};
+
 const TooltipHeader = ({ annotation, config, onClose }) => {
   const Icon = config.icon;
+  const severityStyle =
+    SEVERITY_BADGE_STYLES[annotation.severity] || SEVERITY_BADGE_STYLES.suggestion;
+
   return (
-    <div className="flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-slate-100 dark:border-white/5">
-      <div className="flex items-center gap-2">
-        <div className={cn('p-1.5 rounded-lg flex-shrink-0', config.bgClass)}>
-          <Icon className={cn('w-3.5 h-3.5', config.textClass)} />
-        </div>
-        <span className={cn('text-xs font-black uppercase tracking-wider', config.textClass)}>
+    <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-[#e2e5f6] dark:border-white/10">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 shadow-2xs shrink-0">
+          <Icon className="w-3.5 h-3.5 stroke-[2.5]" />
+        </span>
+        <span className="text-xs font-black uppercase tracking-wider text-slate-950 dark:text-white truncate">
           {config.label}
         </span>
       </div>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 shrink-0">
         {annotation.severity !== 'positive' && (
-          <Badge
-            variant="outline"
+          <span
             className={cn(
-              'text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shadow-2xs',
-              config.textClass,
-              config.borderClass
+              'inline-flex h-6 items-center px-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider border leading-none shadow-2xs',
+              severityStyle
             )}
           >
             {annotation.severity}
-          </Badge>
+          </span>
         )}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onClose();
           }}
-          className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+          className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100/80 text-slate-500 hover:bg-slate-200 hover:text-slate-900 border border-slate-200/60 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/20 dark:hover:text-white dark:border-white/10 transition-all active:scale-95 shadow-2xs"
+          title="Close"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="w-3.5 h-3.5 stroke-[2.5]" />
         </button>
       </div>
     </div>
@@ -211,16 +223,16 @@ const TooltipHeader = ({ annotation, config, onClose }) => {
 };
 
 const TooltipCorrectionBlock = ({ annotation }) => (
-  <div className="p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-950/70 border border-slate-200/70 dark:border-white/10 mb-2.5 space-y-2">
+  <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-[#fafbff] via-[#f5f6fe] to-[#eff1fe] dark:from-slate-900/60 dark:via-slate-900/30 dark:to-slate-950/60 border border-[#e2e5f6] dark:border-white/10 mb-2 space-y-2 shadow-2xs">
     <div className="flex flex-col gap-0.5">
-      <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+      <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
         Original
       </span>
       <span className="text-xs font-bold text-slate-600 dark:text-slate-300 line-through decoration-rose-400/80 decoration-2">
         {annotation.originalText}
       </span>
     </div>
-    <div className="h-px bg-slate-200/80 dark:bg-white/10" />
+    <div className="h-px bg-[#e2e5f6]/80 dark:bg-white/10" />
     <div className="flex flex-col gap-0.5">
       <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
         Correction
@@ -233,16 +245,13 @@ const TooltipCorrectionBlock = ({ annotation }) => (
 );
 
 const TooltipActions = ({ config, onApply, onIgnore }) => (
-  <div className="grid grid-cols-2 gap-2">
+  <div className="grid grid-cols-2 gap-2 pt-0.5">
     <Button
       onClick={(e) => {
         e.stopPropagation();
         onApply();
       }}
-      className={cn(
-        'h-8.5 text-xs font-black rounded-lg shadow-2xs hover:shadow-md transition-all active:scale-95 border-0',
-        APPLY_BUTTON_COLORS[config.color]
-      )}
+      className="h-8.5 text-xs font-black rounded-xl bg-gradient-to-r from-[#5661e9] to-[#4853d6] hover:from-[#4853d6] hover:to-[#3b42c4] text-white shadow-2xs hover:shadow-xs transition-all active:scale-95 border-0"
     >
       Apply Correction
     </Button>
@@ -252,7 +261,7 @@ const TooltipActions = ({ config, onApply, onIgnore }) => (
         e.stopPropagation();
         onIgnore();
       }}
-      className="h-8.5 text-xs font-black text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white bg-slate-100/80 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 border-slate-200/80 dark:border-white/10 rounded-lg active:scale-95"
+      className="h-8.5 text-xs font-black text-[#5661e9] hover:text-[#4853d6] dark:text-slate-200 bg-gradient-to-r from-[#f8f9ff] to-[#f4f5fe] hover:bg-slate-100/80 dark:bg-white/10 dark:hover:bg-white/15 border-[#d2d7f8] dark:border-white/10 rounded-xl active:scale-95 shadow-2xs"
     >
       Dismiss
     </Button>
@@ -268,30 +277,30 @@ const AnnotationTooltip = ({ annotation, onApply, onIgnore, onClose, config, con
   return (
     <motion.div
       ref={tooltipRef}
-      initial={{ opacity: 0, scale: 0.95, y: 8 }}
+      initial={{ opacity: 0, scale: 0.95, y: 6 }}
       animate={{ opacity: 1, scale: 1, y: 0, x: offsets.x }}
-      exit={{ opacity: 0, scale: 0.95, y: 8 }}
+      exit={{ opacity: 0, scale: 0.95, y: 6 }}
       transition={{ duration: 0.15, ease: 'easeOut' }}
       style={{ left: '50%', translateX: '-50%' }}
       className={cn(
-        'absolute z-[9999] w-[320px] sm:w-[336px] rounded-2xl shadow-xl overflow-hidden',
-        'bg-white dark:bg-slate-900',
-        'border border-slate-200 dark:border-white/10',
-        'mt-2'
+        'absolute z-[9999] w-[calc(100vw-36px)] max-w-[328px] rounded-2xl shadow-[0_12px_32px_-16px_rgba(86,97,233,0.18)] overflow-hidden',
+        'bg-gradient-to-br from-white via-[#fafbff] to-[#f5f6fe] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829]',
+        'border border-[#e2e5f6] dark:border-white/10',
+        'mt-1.5'
       )}
     >
       {/* Pointer Arrow */}
       <div
-        className="absolute -top-1.5 left-1/2 w-3 h-3 rotate-45 border-l border-t border-slate-200 dark:border-white/10 bg-inherit origin-center"
+        className="absolute -top-1.5 left-1/2 w-3 h-3 rotate-45 border-l border-t border-[#dce0f5] dark:border-white/10 bg-inherit origin-center"
         style={{ marginLeft: '-6px', transform: `translateX(${offsets.arrowX}px) rotate(45deg)` }}
       />
 
-      <div className="p-3.5 relative bg-white dark:bg-slate-900">
+      <div className="pt-2 pb-2.5 px-3 relative">
         <TooltipHeader annotation={annotation} config={config} onClose={onClose} />
 
         {!isPositive && <TooltipCorrectionBlock annotation={annotation} />}
 
-        <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed mb-3 px-0.5 font-medium opacity-95">
+        <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed mb-2 px-0.5 font-medium opacity-95">
           "{annotation.explanation}"
         </p>
 
@@ -480,34 +489,32 @@ const VocabularyCard = ({ enhancement }) => {
       layout
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 hover:border-indigo-300 dark:hover:border-indigo-500/40 shadow-xs hover:shadow-md transition-all duration-300 p-2.5 sm:p-3 space-y-2"
+      className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] border border-[#dce0f5] dark:border-white/10 hover:border-[#5661e9]/60 dark:hover:border-indigo-500/40 shadow-2xs hover:shadow-xs transition-all duration-300 p-2.5 sm:p-3 space-y-2"
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="p-1.5 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="p-1.5 rounded-xl bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#d2d7f8] dark:border-indigo-500/30 shrink-0 shadow-2xs">
             <BookOpen className="w-3.5 h-3.5" />
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-[9px] font-black text-indigo-600/80 dark:text-indigo-400/80 uppercase tracking-widest leading-none mb-0.5">
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-[9px] font-black text-[#5661e9] dark:text-indigo-400 uppercase tracking-wider leading-none mb-0.5">
               Original Phrase
             </span>
-            <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate tracking-tight">
+            <span className="text-xs font-black text-slate-950 dark:text-white leading-snug break-words">
               "{enhancement.original}"
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="hidden xs:inline-block px-2 py-0.5 rounded-full bg-indigo-100/80 dark:bg-indigo-500/15 text-[9px] font-black text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-500/30 uppercase tracking-wider">
-            Enhance
-          </span>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1 rounded-lg hover:bg-indigo-100/60 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+            className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100/80 text-slate-500 hover:bg-slate-200 hover:text-slate-900 border border-slate-200/60 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/20 dark:hover:text-white dark:border-white/10 transition-all active:scale-95 shadow-2xs"
+            title="Toggle Details"
           >
             <ChevronDown
               className={cn(
-                'w-4 h-4 transition-transform duration-200',
+                'w-3.5 h-3.5 transition-transform duration-200',
                 isExpanded && 'rotate-180'
               )}
             />
@@ -521,16 +528,16 @@ const VocabularyCard = ({ enhancement }) => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden space-y-2 pt-1 border-t border-indigo-100/60 dark:border-white/5"
+            className="overflow-hidden space-y-2 pt-1 border-t border-[#e2e5f6] dark:border-white/10"
           >
-            <p className="text-xs text-slate-600 dark:text-slate-300 italic border-l-2 border-indigo-400/80 pl-2.5 py-0.5 font-medium">
+            <p className="text-xs text-slate-600 dark:text-slate-300 italic border-l-2 border-[#5661e9] pl-2.5 py-0.5 font-medium">
               "{enhancement.context}"
             </p>
             <div className="flex flex-wrap gap-1.5 pt-1">
               {alternatives.map((alt, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-xs font-black text-indigo-700 dark:text-indigo-200 border border-indigo-200/80 dark:border-indigo-500/30 shadow-2xs"
+                  className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#efedff] text-xs font-bold text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-200 border border-[#d2d7f8] dark:border-indigo-500/30 shadow-2xs"
                 >
                   {alt}
                 </span>
@@ -541,14 +548,14 @@ const VocabularyCard = ({ enhancement }) => {
       </AnimatePresence>
 
       {!isExpanded && alternatives.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-indigo-100/60 dark:border-white/5">
-          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-0.5">
+        <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-[#e2e5f6] dark:border-white/10">
+          <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-0.5">
             Try:
           </span>
           {preview.map((alt, i) => (
             <span
               key={i}
-              className="text-[11px] font-black text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-indigo-200/80 dark:border-indigo-500/30 shadow-2xs truncate max-w-[220px]"
+              className="text-[11px] font-bold text-[#5661e9] dark:text-indigo-300 bg-[#efedff]/80 dark:bg-indigo-500/15 px-2.5 py-0.5 rounded-full border border-[#d2d7f8] dark:border-indigo-500/30 shadow-2xs leading-normal truncate max-w-[240px]"
             >
               {alt}
             </span>
@@ -784,7 +791,7 @@ export default function AnnotatedText({
               Vocabulary Upgrade
             </h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2.5">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2.5">
             {vocabularyEnhancements.map((enhancement, i) => (
               <VocabularyCard key={i} enhancement={enhancement} />
             ))}
