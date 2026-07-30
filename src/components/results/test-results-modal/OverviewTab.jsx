@@ -16,10 +16,10 @@ export const OverviewTab = ({
   return (
     <motion.div
       key="overview"
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -6 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
       className="p-3 sm:p-4 max-w-[1400px] mx-auto space-y-3"
     >
       {/* Top Row: Hero Score Card (Left) + Path to Milestone Card (Right) */}

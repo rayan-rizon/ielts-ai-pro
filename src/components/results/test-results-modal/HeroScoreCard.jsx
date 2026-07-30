@@ -31,15 +31,20 @@ function getMotivationalText(score) {
   };
 }
 
-const StatIcon = ({ tone, children }) => {
+const StatIcon = ({ tone = 'slate', children }) => {
   const tones = {
-    blue: 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400',
-    rose: 'bg-rose-50 text-rose-500 dark:bg-rose-950/40 dark:text-rose-400',
-    amber: 'bg-amber-50 text-amber-500 dark:bg-amber-950/40 dark:text-amber-400',
-    slate: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
+    indigo:
+      'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#d2d7f8]/80 dark:border-indigo-500/40',
+    rose: 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/40',
+    amber:
+      'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/40',
+    slate:
+      'bg-slate-100/90 text-slate-700 dark:bg-white/10 dark:text-slate-300 border border-slate-200/80 dark:border-white/10',
   };
   return (
-    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${tones[tone]}`}>
+    <div
+      className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${tones[tone] || tones.slate}`}
+    >
       {children}
     </div>
   );
@@ -63,24 +68,24 @@ export function HeroScoreCard({ testResults }) {
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.25 }}
-      className="h-full min-h-[304px] grid grid-cols-1 md:grid-cols-[minmax(270px,1.15fr)_1px_minmax(220px,0.85fr)] items-center gap-4 p-4 xl:p-5 rounded-2xl bg-white dark:bg-slate-950 border border-blue-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden"
+      className="h-full min-h-[304px] grid grid-cols-1 md:grid-cols-[minmax(270px,1.15fr)_1px_minmax(220px,0.85fr)] items-center gap-4 p-4 xl:p-5 rounded-2xl bg-gradient-to-br from-white via-[#fcfbff] to-[#f3f2ff] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] border border-[#dce0f5] dark:border-white/10 shadow-[0_10px_30px_-15px_rgba(86,97,233,0.15)] hover:shadow-[0_16px_36px_-18px_rgba(86,97,233,0.22)] transition-all duration-300 relative overflow-hidden"
     >
-      <div className="absolute -left-20 -top-20 w-64 h-64 rounded-full bg-blue-50/80 dark:bg-blue-950/20 blur-3xl pointer-events-none" />
+      <div className="absolute -left-20 -top-20 w-64 h-64 rounded-full bg-[#5661e9]/10 dark:bg-indigo-500/10 blur-3xl pointer-events-none" />
 
       <div className="relative min-w-0 flex justify-center">
         <ArchScoreGauge score={score} />
       </div>
 
-      <div className="hidden md:block w-px h-[210px] bg-slate-200 dark:bg-slate-800" />
+      <div className="hidden md:block w-px h-[210px] bg-[#dce0f5] dark:bg-white/10" />
 
       <div className="relative min-w-0 space-y-3">
         <div>
           <h3 className="text-base font-black text-slate-950 dark:text-white tracking-tight">
             {motivational.title}
-            <span className="ml-1 text-blue-500">✦</span>
+            <span className="ml-1 text-[#5661e9]">✦</span>
           </h3>
           <p className="mt-1 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
             {motivational.subtitle}
@@ -88,65 +93,68 @@ export function HeroScoreCard({ testResults }) {
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/70 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 px-3.5 py-2.5">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-[#e2e5f6] dark:border-white/10 bg-white/90 dark:bg-white/5 px-3.5 py-2.5 shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0">
-              <StatIcon tone="blue">
+              <StatIcon tone="indigo">
                 <Check className="w-4 h-4 stroke-[2.5]" />
               </StatIcon>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                   Correct
                 </p>
-                <p className="text-base font-black leading-none text-slate-900 dark:text-white mt-0.5">
-                  {correct} <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">/ {total}</span>
+                <p className="text-base font-black leading-none text-slate-950 dark:text-white mt-0.5">
+                  {correct}{' '}
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                    / {total}
+                  </span>
                 </p>
               </div>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-sm font-black text-blue-600 dark:text-blue-400">{accuracy}%</p>
+              <p className="text-sm font-black text-[#5661e9] dark:text-indigo-400">{accuracy}%</p>
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Accuracy</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/70 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 px-3.5 py-2.5">
+            <div className="flex items-center gap-2.5 rounded-xl border border-[#e2e5f6] dark:border-white/10 bg-white/90 dark:bg-white/5 px-3.5 py-2.5 shadow-2xs">
               <StatIcon tone="rose">
                 <X className="w-4 h-4 stroke-[2.5]" />
               </StatIcon>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                   Mistakes
                 </p>
-                <p className="text-base font-black leading-none text-slate-900 dark:text-white mt-0.5">
+                <p className="text-base font-black leading-none text-rose-600 dark:text-rose-400 mt-0.5">
                   {mistakes}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2.5 rounded-xl border border-slate-200/70 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 px-3.5 py-2.5">
+            <div className="flex items-center gap-2.5 rounded-xl border border-[#e2e5f6] dark:border-white/10 bg-white/90 dark:bg-white/5 px-3.5 py-2.5 shadow-2xs">
               <StatIcon tone="amber">
                 <Minus className="w-4 h-4 stroke-[2.5]" />
               </StatIcon>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                   Skipped
                 </p>
-                <p className="text-base font-black leading-none text-slate-900 dark:text-white mt-0.5">
+                <p className="text-base font-black leading-none text-amber-600 dark:text-amber-400 mt-0.5">
                   {unanswered}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/70 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 px-3.5 py-2.5">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-[#e2e5f6] dark:border-white/10 bg-white/90 dark:bg-white/5 px-3.5 py-2.5 shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0">
               <StatIcon tone="slate">
                 <Clock className="w-4 h-4" />
               </StatIcon>
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200">
                 Time taken
               </span>
             </div>
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+            <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300 whitespace-nowrap">
               {formattedTime}
             </span>
           </div>

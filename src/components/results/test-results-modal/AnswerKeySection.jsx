@@ -65,50 +65,49 @@ export const AnswerKeySection = React.memo(
 
     return (
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.25 }}
-        className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-blue-200/80 dark:border-slate-800 shadow-sm space-y-3 h-full flex flex-col justify-between"
+        className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] border border-[#dce0f5] dark:border-white/10 shadow-[0_10px_30px_-15px_rgba(86,97,233,0.12)] space-y-3 h-full flex flex-col justify-between"
       >
         {/* Header & Filter Tabs */}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h3 className="text-sm font-black text-slate-900 dark:text-white">Review Your Answers</h3>
+          <h3 className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-wider">
+            Review Your Answers
+          </h3>
 
           {/* Filter Tab Pills */}
-          <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
-            <button
-              onClick={() => setFilterTab('all')}
-              className={cn(
-                'px-3 py-1 rounded-lg text-xs font-bold transition-all',
-                filterTab === 'all'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
-              )}
-            >
-              All ({totalQuestions})
-            </button>
-            <button
-              onClick={() => setFilterTab('wrong')}
-              className={cn(
-                'px-3 py-1 rounded-lg text-xs font-bold transition-all',
-                filterTab === 'wrong'
-                  ? 'bg-rose-500 text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
-              )}
-            >
-              Incorrect ({statusCounts.wrong})
-            </button>
-            <button
-              onClick={() => setFilterTab('skipped')}
-              className={cn(
-                'px-3 py-1 rounded-lg text-xs font-bold transition-all',
-                filterTab === 'skipped'
-                  ? 'bg-amber-500 text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
-              )}
-            >
-              Skipped ({statusCounts.skipped})
-            </button>
+          <div className="flex items-center gap-1 bg-[#eeeff8] dark:bg-[#101322] p-1 rounded-xl border border-[#dce0f5] dark:border-white/10 shadow-2xs relative">
+            {[
+              { id: 'all', label: `All (${totalQuestions})` },
+              { id: 'wrong', label: `Incorrect (${statusCounts.wrong})` },
+              { id: 'skipped', label: `Skipped (${statusCounts.skipped})` },
+            ].map((t) => {
+              const isActive = filterTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setFilterTab(t.id)}
+                  className={cn(
+                    'relative px-3 py-1 rounded-lg text-xs font-extrabold transition-colors z-10 cursor-pointer select-none',
+                    isActive
+                      ? 'text-white'
+                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-bold'
+                  )}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="answerKeyFilterTabPill"
+                      initial={false}
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                      className="absolute inset-0 bg-[#5661e9] rounded-lg shadow-2xs -z-10"
+                    />
+                  )}
+                  {t.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -131,8 +130,8 @@ export const AnswerKeySection = React.memo(
                     }
                   }}
                   className={cn(
-                    'h-8 rounded-lg flex items-center justify-center text-xs font-black transition-all border',
-                    'active:scale-95 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500/50',
+                    'h-8 rounded-lg flex items-center justify-center text-xs font-black transition-all border shadow-2xs',
+                    'active:scale-95 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#5661e9]/50',
                     status === 'correct'
                       ? 'bg-emerald-50/90 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-800/60 hover:bg-emerald-100'
                       : status === 'wrong'
@@ -150,7 +149,7 @@ export const AnswerKeySection = React.memo(
         </div>
 
         {/* Status Dots Legend */}
-        <div className="flex flex-wrap items-center justify-center gap-5 pt-2.5 border-t border-slate-200/60 dark:border-slate-800">
+        <div className="flex flex-wrap items-center justify-center gap-5 pt-2.5 border-t border-[#dce0f5]/80 dark:border-white/10">
           <div className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-2xs" />
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">

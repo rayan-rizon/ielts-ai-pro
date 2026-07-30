@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { cn } from '@/lib/cn';
 
 import ConfettiCelebration from '@/components/ConfettiCelebration';
 
@@ -48,11 +49,11 @@ const ModalFooter = ({
   onDownloadPdf,
   isDownloadingPdf,
 }) => (
-  <div className="px-4 sm:px-5 py-2.5 bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 z-50">
+  <div className="px-4 sm:px-5 py-2.5 bg-gradient-to-r from-white via-[#fafbff] to-[#f4f3ff] dark:from-[#0d0e1c] dark:to-[#101326] border-t border-[#dce0f5] dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2.5 z-50">
     <div className="flex items-center gap-3">
       {!isPremium ? (
         <div className="flex items-center gap-2 group cursor-pointer" onClick={handleUpgrade}>
-          <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 group-hover:scale-105 transition-transform">
+          <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 group-hover:scale-105 transition-transform border border-amber-200/60">
             <Crown className="w-3.5 h-3.5" />
           </div>
           <div className="text-left">
@@ -66,7 +67,7 @@ const ModalFooter = ({
         </div>
       ) : (
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-500">
+          <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 border border-emerald-200/60">
             <Sparkles className="w-4 h-4" />
           </div>
           <div className="text-left">
@@ -86,7 +87,7 @@ const ModalFooter = ({
         variant="outline"
         onClick={onDownloadPdf}
         disabled={isDownloadingPdf}
-        className="flex-1 sm:flex-none h-9 rounded-xl font-bold text-xs border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition-all"
+        className="flex-1 sm:flex-none h-9 rounded-xl font-bold text-xs border-[#dce0f5] dark:border-white/10 bg-white/90 dark:bg-white/10 text-slate-900 dark:text-white hover:bg-white transition-all shadow-2xs"
       >
         {isDownloadingPdf ? (
           <LoaderCircle className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -97,14 +98,14 @@ const ModalFooter = ({
       </Button>
       <Button
         onClick={onReviewAnswers}
-        className="flex-1 sm:min-w-[180px] h-9 rounded-xl font-bold text-xs bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm shadow-blue-500/20"
+        className="flex-1 sm:min-w-[180px] h-9 rounded-xl font-bold text-xs bg-[#5661e9] text-white hover:bg-[#4853d6] active:scale-[0.98] transition-all shadow-xs"
       >
         Review Mistakes
       </Button>
       <Button
         variant="outline"
         onClick={onClose}
-        className="flex-1 sm:min-w-[130px] h-9 rounded-xl font-bold text-xs border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition-all"
+        className="flex-1 sm:min-w-[130px] h-9 rounded-xl font-bold text-xs border-[#dce0f5] dark:border-white/10 bg-white/90 dark:bg-white/10 text-slate-900 dark:text-white hover:bg-white transition-all shadow-2xs"
       >
         Close
       </Button>
@@ -113,9 +114,9 @@ const ModalFooter = ({
 );
 
 const ModalHeader = ({ testType, testMode, children }) => (
-  <header className="px-4 sm:px-5 pr-14 py-2.5 min-h-[62px] flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center gap-2.5 shrink-0 z-10 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+  <header className="px-4 sm:px-5 pr-14 py-2.5 min-h-[62px] flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center gap-2.5 shrink-0 z-10 bg-gradient-to-r from-white via-[#fafbff] to-[#f4f3ff] dark:from-[#0d0e1c] dark:to-[#101326] border-b border-[#dce0f5] dark:border-white/10">
     <div className="flex items-center gap-2.5 min-w-0">
-      <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 dark:bg-blue-950/50 dark:border-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+      <div className="w-8 h-8 rounded-xl bg-[#efedff] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:border-indigo-500/30 text-[#5661e9] dark:text-indigo-300 flex items-center justify-center shrink-0 shadow-2xs">
         <BookOpen className="w-4 h-4" />
       </div>
       <div className="min-w-0">
@@ -126,7 +127,7 @@ const ModalHeader = ({ testType, testMode, children }) => (
         >
           IELTS {testType.charAt(0).toUpperCase() + testType.slice(1)} Test Result
         </motion.h2>
-        <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">
+        <p className="text-[9px] font-black uppercase tracking-wider text-[#5661e9] dark:text-indigo-400">
           {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
         </p>
       </div>
@@ -136,26 +137,47 @@ const ModalHeader = ({ testType, testMode, children }) => (
   </header>
 );
 
-const TabsNav = () => (
-  <div className="w-full md:w-[360px] shrink-0 z-10">
-    <TabsList className="grid w-full grid-cols-2 h-10 p-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
-      <TabsTrigger
-        value="overview"
-        className="gap-2 h-8 px-3 text-xs font-bold rounded-lg transition-all text-slate-500 data-[state=active]:bg-slate-950 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-950 data-[state=active]:shadow-sm"
-      >
-        <BarChart3 className="w-4 h-4" />
-        Overview
-      </TabsTrigger>
-      <TabsTrigger
-        value="analysis"
-        className="gap-2 h-8 px-3 text-xs font-bold rounded-lg transition-all text-slate-500 data-[state=active]:bg-slate-950 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-950 data-[state=active]:shadow-sm"
-      >
-        <Brain className="w-4 h-4" />
-        Deep Analysis
-      </TabsTrigger>
-    </TabsList>
-  </div>
-);
+const TabsNav = ({ activeTab, setActiveTab }) => {
+  const tabs = [
+    { value: 'overview', label: 'Overview', icon: BarChart3 },
+    { value: 'analysis', label: 'Deep Analysis', icon: Brain },
+  ];
+
+  return (
+    <div className="w-full md:w-[340px] shrink-0 z-10">
+      <TabsList className="grid w-full grid-cols-2 h-10 p-1 bg-[#eeeff8] dark:bg-[#101322] border border-[#dce0f5] dark:border-white/10 rounded-xl shadow-2xs relative">
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          const isActive = activeTab === t.value;
+          return (
+            <TabsTrigger
+              key={t.value}
+              value={t.value}
+              onClick={() => setActiveTab?.(t.value)}
+              className={cn(
+                'relative flex items-center justify-center gap-2 h-8 px-3 text-xs rounded-lg transition-colors z-10 cursor-pointer select-none font-bold',
+                isActive
+                  ? 'text-white font-extrabold data-[state=active]:bg-transparent data-[state=active]:text-white shadow-none'
+                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+              )}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="activeModalTabIndicator"
+                  initial={false}
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  className="absolute inset-0 bg-[#5661e9] dark:bg-indigo-600 rounded-lg shadow-xs -z-10"
+                />
+              )}
+              <Icon className="w-3.5 h-3.5" />
+              <span>{t.label}</span>
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
+    </div>
+  );
+};
 
 // Main TestResultsModal component
 function useCelebration(showResults, testResults, celebrate) {
@@ -227,10 +249,10 @@ const ModalContent = React.memo(
           className="flex-1 flex flex-col overflow-hidden"
         >
           <ModalHeader testType={testType} testMode={testMode}>
-            <TabsNav />
+            <TabsNav activeTab={activeTab} setActiveTab={setActiveTab} />
           </ModalHeader>
 
-          <div key={activeTab} className="flex-1 overflow-y-auto custom-scrollbar">
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
             <AnimatePresence mode="wait">
               {activeTab === 'overview' && (
                 <TabsContent value="overview" forceMount className="m-0 focus-visible:outline-none">

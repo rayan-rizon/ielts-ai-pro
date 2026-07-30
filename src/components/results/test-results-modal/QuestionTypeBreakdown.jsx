@@ -32,12 +32,14 @@ const TYPE_ICONS = {
 };
 
 const TYPE_COLORS = [
-  { bg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400', bar: 'bg-blue-600' },
-  { bg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', bar: 'bg-emerald-500' },
-  { bg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400', bar: 'bg-amber-500' },
-  { bg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400', bar: 'bg-purple-500' },
-  { bg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400', bar: 'bg-indigo-500' },
-  { bg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400', bar: 'bg-rose-500' },
+  {
+    bg: 'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300',
+    bar: 'bg-gradient-to-r from-[#5661e9] to-[#7c86ff]',
+  },
+  {
+    bg: 'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300',
+    bar: 'bg-gradient-to-r from-[#5661e9] to-[#7c86ff]',
+  },
 ];
 
 export function QuestionTypeBreakdown({ testResults }) {
@@ -68,12 +70,14 @@ export function QuestionTypeBreakdown({ testResults }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.15 }}
-      className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-blue-200/80 dark:border-slate-800 shadow-sm space-y-3"
+      className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] border border-[#dce0f5] dark:border-white/10 shadow-[0_10px_30px_-15px_rgba(86,97,233,0.12)] space-y-3"
     >
-      <h3 className="text-sm font-black text-slate-900 dark:text-white">Question Type Breakdown</h3>
+      <h3 className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-wider">
+        Question Type Breakdown
+      </h3>
 
       <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${desktopColumns} gap-2.5`}>
         {typeEntries.map((item, idx) => {
@@ -83,33 +87,35 @@ export function QuestionTypeBreakdown({ testResults }) {
           return (
             <div
               key={item.type}
-              className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between space-y-2.5 transition-colors hover:border-blue-300 dark:hover:border-blue-700"
+              className="p-3 rounded-xl bg-white/90 dark:bg-white/5 border border-[#e2e5f6] dark:border-white/10 flex flex-col justify-between space-y-2.5 transition-all shadow-2xs hover:border-[#5661e9]/60 hover:shadow-xs"
             >
               <div className="flex items-center gap-2.5">
                 <div
-                  className={`w-8 h-8 rounded-xl ${colorTheme.bg} flex items-center justify-center shrink-0`}
+                  className={`w-8 h-8 rounded-xl ${colorTheme.bg} flex items-center justify-center shrink-0 shadow-2xs border border-current/10`}
                 >
                   <IconComponent className="w-3.5 h-3.5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="min-h-[24px] text-xs font-extrabold text-slate-900 dark:text-white leading-tight line-clamp-2">
+                  <h4 className="min-h-[24px] text-xs font-extrabold text-slate-950 dark:text-white leading-tight line-clamp-2">
                     {item.label}
                   </h4>
                 </div>
               </div>
 
               <div className="flex items-baseline justify-between pt-1">
-                <p className="text-xs font-black text-slate-900 dark:text-white leading-none">
+                <p className="text-xs font-black text-slate-950 dark:text-white leading-none">
                   {item.correct}{' '}
-                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">/ {item.total}</span>
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                    / {item.total}
+                  </span>
                 </p>
-                <span className="text-xs font-black text-slate-800 dark:text-slate-200">
+                <span className="text-xs font-black text-[#5661e9] dark:text-indigo-400">
                   {item.accuracy}%
                 </span>
               </div>
 
               {/* Progress Bar */}
-              <div className="h-2 bg-slate-200/70 dark:bg-slate-700/60 rounded-full overflow-hidden">
+              <div className="h-2 bg-slate-200/80 dark:bg-white/10 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${item.accuracy}%` }}

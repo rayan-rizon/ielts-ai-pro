@@ -8,12 +8,12 @@ export function PassageBreakdownCard({ testResults, testType = 'reading', onRevi
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.2 }}
-      className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-blue-200/80 dark:border-slate-800 shadow-sm space-y-3 h-full flex flex-col justify-between"
+      className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] border border-[#dce0f5] dark:border-white/10 shadow-[0_10px_30px_-15px_rgba(86,97,233,0.12)] space-y-3 h-full flex flex-col justify-between"
     >
-      <h3 className="text-sm font-black text-slate-900 dark:text-white">
+      <h3 className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-wider">
         {sectionLabel} Breakdown
       </h3>
 
@@ -30,23 +30,23 @@ export function PassageBreakdownCard({ testResults, testType = 'reading', onRevi
               key={idx}
               type="button"
               onClick={onReviewAnswers}
-              className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 flex items-center justify-between gap-3 cursor-pointer transition-colors group"
+              className="p-2.5 rounded-xl bg-white/90 dark:bg-white/5 border border-[#e2e5f6] dark:border-white/10 hover:border-[#5661e9]/60 flex items-center justify-between gap-3 cursor-pointer transition-all shadow-2xs group"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <div className="w-8 h-8 rounded-xl bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#d2d7f8] dark:border-indigo-500/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                   <BookOpen className="w-3.5 h-3.5" />
                 </div>
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                <h4 className="text-xs font-bold text-slate-950 dark:text-white truncate">
                   {title}
                 </h4>
               </div>
 
               <div className="flex items-center gap-2.5 shrink-0">
-                <p className="text-xs font-black text-slate-900 dark:text-white">
+                <p className="text-xs font-black text-slate-950 dark:text-white">
                   {correct}{' '}
                   <span className="text-[11px] font-semibold text-slate-400">/ {total}</span>
                 </p>
-                <span className="px-2 py-0.5 rounded-lg bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 text-[11px] font-black border border-slate-200 dark:border-slate-800">
+                <span className="px-2 py-0.5 rounded-lg bg-[#efedff] dark:bg-indigo-500/20 text-[#5661e9] dark:text-indigo-300 text-[11px] font-black border border-[#d2d7f8] dark:border-indigo-500/30">
                   {percentage}%
                 </span>
                 <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />

@@ -317,11 +317,20 @@ export function normalizeWritingEvaluation(
             typeof priority.action === 'string' &&
             priority.action.trim().length > 0
         )
-        .map((priority: any) => ({
-          criterion: priority.criterion,
-          issue: compactFeedbackText(priority.issue, 1, 90),
-          action: compactFeedbackText(priority.action, 1, 105),
-        }))
+        .map((priority: any) => {
+          const evidenceText =
+            typeof priority.evidenceText === 'string' &&
+            annotations.some((annotation: any) => annotation.originalText === priority.evidenceText)
+              ? priority.evidenceText
+              : null;
+
+          return {
+            criterion: priority.criterion,
+            issue: compactFeedbackText(priority.issue, 1, 90),
+            action: compactFeedbackText(priority.action, 1, 105),
+            ...(evidenceText ? { evidenceText } : {}),
+          };
+        })
         .slice(0, 3)
     : [];
 

@@ -14,7 +14,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
 
-// Annotation type configuration
+// ─── Constants ────────────────────────────────────────────────────────────────
+
 const ANNOTATION_CONFIG = {
   grammar: {
     icon: AlertCircle,
@@ -72,11 +73,20 @@ const ANNOTATION_CONFIG = {
   },
 };
 
-// Tooltip component for annotations with smart positioning correction
-const AnnotationTooltip = ({ annotation, onApply, onIgnore, onClose, config, containerRef }) => {
-  const Icon = config.icon;
+const APPLY_BUTTON_COLORS = {
+  rose: 'bg-rose-500 hover:bg-rose-600 text-white',
+  orange: 'bg-orange-500 hover:bg-orange-600 text-white',
+  indigo: 'bg-indigo-600 hover:bg-indigo-700 text-white',
+  sky: 'bg-sky-500 hover:bg-sky-600 text-white',
+};
+
+// ─── Custom Hooks ─────────────────────────────────────────────────────────────
+
+/**
+ * Computes the horizontal offset needed to keep a tooltip inside its container.
+ */
+function useAnnotationPositioning(containerRef) {
   const tooltipRef = useRef(null);
-  const arrowRef = useRef(null);
   const [offsets, setOffsets] = useState({ x: 0, arrowX: 0 });
 
   useLayoutEffect(() => {
@@ -84,425 +94,489 @@ const AnnotationTooltip = ({ annotation, onApply, onIgnore, onClose, config, con
 
     const tooltipRect = tooltipRef.current.getBoundingClientRect();
     const containerRect = containerRef.current.getBoundingClientRect();
-
-    // Padding to keep from touching the very edge
     const padding = 15;
-
-    // Calculate overflow
-    // standard left is centered, so we start from there.
-    // The current render position "should" be centered on the span.
-
-    // We simulate where it would be if centered:
-    // Actually, asking bounding client rect gives us the CURRENT position.
-    // Since we start with x:0, the first render is centered.
-    // We measure that, and calculate deviation.
-
     let deltaX = 0;
 
-    // Check Right Edge
     if (tooltipRect.right > containerRect.right - padding) {
       deltaX = containerRect.right - padding - tooltipRect.right;
-    }
-    // Check Left Edge
-    else if (tooltipRect.left < containerRect.left + padding) {
+    } else if (tooltipRect.left < containerRect.left + padding) {
       deltaX = containerRect.left + padding - tooltipRect.left;
     }
 
-    // Limit deltaX so arrow doesn't detach (keep arrow within card)
-    // Card half width is roughly 192px. Safe zone is ~170px.
-    const maxShift = tooltipRect.width / 2 - 24; // 24px buffer for corner radius
+    const maxShift = tooltipRect.width / 2 - 24;
     deltaX = Math.max(Math.min(deltaX, maxShift), -maxShift);
 
     if (Math.abs(deltaX) > 1) {
-      setOffsets({
-        x: deltaX,
-        arrowX: -deltaX, // Counter-shift arrow to keep it pointing at the word
-      });
+      setOffsets({ x: deltaX, arrowX: -deltaX });
     }
   }, [containerRef]);
 
-  return (
-    <motion.div
-      ref={tooltipRef}
-      initial={{ opacity: 0, scale: 0.95, y: 10 }}
-      animate={{ opacity: 1, scale: 1, y: 0, x: offsets.x }}
-      exit={{ opacity: 0, scale: 0.95, y: 10 }}
-      transition={{ duration: 0.15, ease: 'easeOut' }}
-      style={{ left: '50%', translateX: '-50%' }} // Initial center alignment
-      className={cn(
-        'absolute z-[9999] w-96 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] overflow-hidden',
-        'bg-white dark:bg-slate-900',
-        'border border-slate-200/60 dark:border-white/10',
-        'mt-3'
-      )}
-      data-oid="gcva2e:"
-    >
-      {/* Pointer Arrow */}
-      <div
-        ref={arrowRef}
-        className={cn(
-          'absolute -top-1.5 left-1/2 w-3 h-3 rotate-45 border-l border-t border-slate-200/60 dark:border-white/10 bg-inherit origin-center'
-        )}
-        style={{
-          marginLeft: '-6px', // Center the 12px arrow (w-3)
-          transform: `translateX(${offsets.arrowX}px) rotate(45deg)`,
-        }}
-        data-oid=":47_5-b"
-      />
+  return { tooltipRef, offsets };
+}
 
-      <div className="p-5 relative bg-white dark:bg-slate-900" data-oid="n8h3tes">
-        <div className="flex items-center gap-3 mb-4" data-oid="0488tr7">
-          <div className={cn('p-2 rounded-xl flex-shrink-0', config.bgClass)} data-oid="yy1xtwl">
-            <Icon className={cn('w-4 h-4', config.textClass)} data-oid="8s7ctjh" />
-          </div>
-          <div className="flex flex-col" data-oid="6gz18.y">
-            <span
-              className={cn('text-[10px] font-bold uppercase tracking-[0.2em]', config.textClass)}
-              data-oid="__u2mlc"
-            >
-              {config.label}
-            </span>
-            <span
-              className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase"
-              data-oid="ydj_:0s"
-            >
-              Suggestion
-            </span>
-          </div>
-          <div className="ml-auto flex items-center gap-2" data-oid="i-oyqh:">
-            {annotation.severity !== 'positive' && (
-              <Badge
-                variant="outline"
-                className={cn(
-                  'text-[10px] font-bold uppercase py-0.5',
-                  config.textClass,
-                  config.borderClass
-                )}
-                data-oid="3j1ilgj"
-              >
-                {annotation.severity}
-              </Badge>
-            )}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
-              className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 transition-colors"
-              data-oid="69v::6u"
-            >
-              <X className="w-4 h-4" data-oid="7r_ki:9" />
-            </button>
-          </div>
+/**
+ * Builds the list of text segments (annotated + plain) from plain text and annotations.
+ */
+/** Removes positions that overlap with previously accepted ones. */
+function filterNonOverlapping(positions) {
+  const result = [];
+  let lastEnd = 0;
+  for (const pos of positions) {
+    if (pos.start >= lastEnd) {
+      result.push(pos);
+      lastEnd = pos.end;
+    }
+  }
+  return result;
+}
+
+/** Converts a sorted non-overlapping position list + plainText into segments. */
+function buildSegments(plainText, positions) {
+  const result = [];
+  let currentIndex = 0;
+  for (const pos of positions) {
+    if (pos.start > currentIndex) {
+      result.push({ text: plainText.slice(currentIndex, pos.start), annotation: null });
+    }
+    result.push({ text: plainText.slice(pos.start, pos.end), annotation: pos.annotation });
+    currentIndex = pos.end;
+  }
+  if (currentIndex < plainText.length) {
+    result.push({ text: plainText.slice(currentIndex), annotation: null });
+  }
+  return result;
+}
+
+/**
+ * Builds the list of text segments (annotated + plain) from plain text and annotations.
+ */
+function useAnnotatedSegments(plainText, filteredAnnotations) {
+  return useMemo(() => {
+    if (!plainText || filteredAnnotations.length === 0) {
+      return [{ text: plainText, annotation: null }];
+    }
+
+    const positions = filteredAnnotations
+      .map((annotation) => {
+        const index = plainText.indexOf(annotation.originalText);
+        if (index === -1) return null;
+        return { start: index, end: index + annotation.originalText.length, annotation };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.start - b.start);
+
+    return buildSegments(plainText, filterNonOverlapping(positions));
+  }, [plainText, filteredAnnotations]);
+}
+
+// ─── Tooltip Sub-components ───────────────────────────────────────────────────
+
+const TooltipHeader = ({ annotation, config, onClose }) => {
+  const Icon = config.icon;
+  return (
+    <div className="flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-slate-100 dark:border-white/5">
+      <div className="flex items-center gap-2">
+        <div className={cn('p-1.5 rounded-lg flex-shrink-0', config.bgClass)}>
+          <Icon className={cn('w-3.5 h-3.5', config.textClass)} />
         </div>
-
-        {annotation.severity !== 'positive' && (
-          <div
-            className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800 mb-4 space-y-3"
-            data-oid="_kqxoxl"
-          >
-            <div className="flex flex-col gap-1.5" data-oid="64shoqw">
-              <span
-                className="text-[10px] font-bold text-slate-400 uppercase tracking-widest"
-                data-oid="vebk6xb"
-              >
-                Original
-              </span>
-              <span
-                className="text-sm line-through text-slate-500 font-medium decoration-slate-300 dark:decoration-slate-700"
-                data-oid=".ed:lkn"
-              >
-                {annotation.originalText}
-              </span>
-            </div>
-            <div className="h-px bg-slate-200/60 dark:bg-slate-800" data-oid="0u.pc_8" />
-            <div className="flex flex-col gap-1.5" data-oid="v86_ryj">
-              <span
-                className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest"
-                data-oid="0btrx2y"
-              >
-                Correction
-              </span>
-              <span
-                className="text-[15px] font-bold text-emerald-600 dark:text-emerald-400 leading-snug"
-                data-oid="awy2e76"
-              >
-                {annotation.suggestion}
-              </span>
-            </div>
-          </div>
-        )}
-
-        <p
-          className="text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed mb-5 px-1 font-medium italic opacity-90"
-          data-oid="r85n0el"
-        >
-          "{annotation.explanation}"
-        </p>
-
-        {annotation.severity !== 'positive' && onApply && (
-          <div className="grid grid-cols-2 gap-3" data-oid="g3d0vfz">
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                onApply();
-              }}
-              className={cn(
-                'h-10 text-xs font-bold shadow-md hover:shadow-lg transition-all',
-                config.color === 'rose' && 'bg-rose-500 hover:bg-rose-600 text-white',
-                config.color === 'orange' && 'bg-orange-500 hover:bg-orange-600 text-white',
-                config.color === 'indigo' && 'bg-indigo-600 hover:bg-indigo-700 text-white',
-                config.color === 'sky' && 'bg-sky-500 hover:bg-sky-600 text-white'
-              )}
-              data-oid="ms6u:er"
-            >
-              Apply Correction
-            </Button>
-            <Button
-              variant="outline"
-              onClick={(e) => {
-                e.stopPropagation();
-                onIgnore();
-              }}
-              className="h-10 text-xs font-bold text-slate-500 hover:text-slate-700 border-slate-200 dark:border-slate-800"
-              data-oid="pxo:-kb"
-            >
-              Dismiss
-            </Button>
-          </div>
-        )}
+        <span className={cn('text-xs font-black uppercase tracking-wider', config.textClass)}>
+          {config.label}
+        </span>
       </div>
-    </motion.div>
-  );
-};
-
-// Summary bar component
-const AnnotationSummary = ({ annotations, filters, onFilterToggle }) => {
-  const counts = useMemo(() => {
-    const c = { error: 0, warning: 0, suggestion: 0, positive: 0 };
-    annotations.forEach((a) => {
-      if (a.severity && c[a.severity] !== undefined) {
-        c[a.severity]++;
-      }
-    });
-    return c;
-  }, [annotations]);
-
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-wider mr-0.5">
-        Filters:
-      </span>
-
-      {counts.error > 0 && (
-        <button
-          onClick={() => onFilterToggle('error')}
-          className={cn(
-            'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border shadow-2xs',
-            filters.includes('error')
-              ? 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-500/20 dark:border-rose-500/40 dark:text-rose-200'
-              : 'bg-slate-100/70 border-slate-200/60 text-slate-700 hover:text-rose-700 dark:bg-white/5 dark:border-white/10 dark:text-slate-300'
-          )}
-        >
-          <div
+      <div className="flex items-center gap-1.5">
+        {annotation.severity !== 'positive' && (
+          <Badge
+            variant="outline"
             className={cn(
-              'w-1.5 h-1.5 rounded-full',
-              filters.includes('error') ? 'bg-rose-600' : 'bg-slate-400 dark:bg-slate-500'
+              'text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shadow-2xs',
+              config.textClass,
+              config.borderClass
             )}
-          />
-          {counts.error} Errors
-        </button>
-      )}
-
-      {counts.warning > 0 && (
+          >
+            {annotation.severity}
+          </Badge>
+        )}
         <button
-          onClick={() => onFilterToggle('warning')}
-          className={cn(
-            'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border shadow-2xs',
-            filters.includes('warning')
-              ? 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-500/20 dark:border-amber-500/40 dark:text-amber-200'
-              : 'bg-slate-100/70 border-slate-200/60 text-slate-700 hover:text-amber-700 dark:bg-white/5 dark:border-white/10 dark:text-slate-300'
-          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
         >
-          <div
-            className={cn(
-              'w-1.5 h-1.5 rounded-full',
-              filters.includes('warning') ? 'bg-amber-600' : 'bg-slate-400 dark:bg-slate-500'
-            )}
-          />
-          {counts.warning} Warnings
+          <X className="w-3.5 h-3.5" />
         </button>
-      )}
-
-      {counts.suggestion > 0 && (
-        <button
-          onClick={() => onFilterToggle('suggestion')}
-          className={cn(
-            'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border shadow-2xs',
-            filters.includes('suggestion')
-              ? 'bg-sky-50 border-sky-200 text-sky-800 dark:bg-sky-500/20 dark:border-sky-500/40 dark:text-sky-200'
-              : 'bg-slate-100/70 border-slate-200/60 text-slate-700 hover:text-sky-700 dark:bg-white/5 dark:border-white/10 dark:text-slate-300'
-          )}
-        >
-          <div
-            className={cn(
-              'w-1.5 h-1.5 rounded-full',
-              filters.includes('suggestion') ? 'bg-sky-600' : 'bg-slate-400 dark:bg-slate-500'
-            )}
-          />
-          {counts.suggestion} Suggestions
-        </button>
-      )}
-
-      {counts.positive > 0 && (
-        <button
-          onClick={() => onFilterToggle('positive')}
-          className={cn(
-            'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border shadow-2xs',
-            filters.includes('positive')
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:text-emerald-200'
-              : 'bg-slate-100/70 border-slate-200/60 text-slate-700 hover:text-emerald-700 dark:bg-white/5 dark:border-white/10 dark:text-slate-300'
-          )}
-        >
-          <div
-            className={cn(
-              'w-1.5 h-1.5 rounded-full',
-              filters.includes('positive') ? 'bg-emerald-600' : 'bg-slate-400 dark:bg-slate-500'
-            )}
-          />
-          {counts.positive} Good
-        </button>
-      )}
+      </div>
     </div>
   );
 };
 
-// Compact Vocabulary Card
-const VocabularyCard = ({ enhancement }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+const TooltipCorrectionBlock = ({ annotation }) => (
+  <div className="p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-950/70 border border-slate-200/70 dark:border-white/10 mb-2.5 space-y-2">
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+        Original
+      </span>
+      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 line-through decoration-rose-400/80 decoration-2">
+        {annotation.originalText}
+      </span>
+    </div>
+    <div className="h-px bg-slate-200/80 dark:bg-white/10" />
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+        Correction
+      </span>
+      <span className="text-sm font-black text-emerald-700 dark:text-emerald-300 leading-snug">
+        {annotation.suggestion}
+      </span>
+    </div>
+  </div>
+);
+
+const TooltipActions = ({ config, onApply, onIgnore }) => (
+  <div className="grid grid-cols-2 gap-2">
+    <Button
+      onClick={(e) => {
+        e.stopPropagation();
+        onApply();
+      }}
+      className={cn(
+        'h-8.5 text-xs font-black rounded-lg shadow-2xs hover:shadow-md transition-all active:scale-95 border-0',
+        APPLY_BUTTON_COLORS[config.color]
+      )}
+    >
+      Apply Correction
+    </Button>
+    <Button
+      variant="outline"
+      onClick={(e) => {
+        e.stopPropagation();
+        onIgnore();
+      }}
+      className="h-8.5 text-xs font-black text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white bg-slate-100/80 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 border-slate-200/80 dark:border-white/10 rounded-lg active:scale-95"
+    >
+      Dismiss
+    </Button>
+  </div>
+);
+
+// ─── Tooltip ──────────────────────────────────────────────────────────────────
+
+const AnnotationTooltip = ({ annotation, onApply, onIgnore, onClose, config, containerRef }) => {
+  const { tooltipRef, offsets } = useAnnotationPositioning(containerRef);
+  const isPositive = annotation.severity === 'positive';
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="group relative overflow-hidden rounded-xl bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-500/20 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all duration-300"
-      data-oid="f6.wzpo"
+      ref={tooltipRef}
+      initial={{ opacity: 0, scale: 0.95, y: 8 }}
+      animate={{ opacity: 1, scale: 1, y: 0, x: offsets.x }}
+      exit={{ opacity: 0, scale: 0.95, y: 8 }}
+      transition={{ duration: 0.15, ease: 'easeOut' }}
+      style={{ left: '50%', translateX: '-50%' }}
+      className={cn(
+        'absolute z-[9999] w-[320px] sm:w-[336px] rounded-2xl shadow-xl overflow-hidden',
+        'bg-white dark:bg-slate-900',
+        'border border-slate-200 dark:border-white/10',
+        'mt-2'
+      )}
     >
+      {/* Pointer Arrow */}
       <div
-        className="absolute top-0 left-0 w-1 h-full bg-indigo-500/50 group-hover:bg-indigo-500 transition-colors"
-        data-oid=":etkgoc"
-      ></div>
+        className="absolute -top-1.5 left-1/2 w-3 h-3 rotate-45 border-l border-t border-slate-200 dark:border-white/10 bg-inherit origin-center"
+        style={{ marginLeft: '-6px', transform: `translateX(${offsets.arrowX}px) rotate(45deg)` }}
+      />
 
-      <div className="p-3 pl-4" data-oid="p:pbe9v">
-        <div className="flex items-center justify-between gap-3" data-oid="-gcjx.d">
-          <div className="flex items-center gap-2 min-w-0" data-oid="mf-a_f7">
-            <div
-              className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
-              data-oid="2x.savs"
-            >
-              <BookOpen className="w-3.5 h-3.5" data-oid="kj15n4c" />
-            </div>
-            <div className="flex flex-col min-w-0" data-oid="w1as1v.">
-              <span
-                className="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                data-oid="elvoimf"
-              >
-                Enhance
-              </span>
-              <span
-                className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate"
-                data-oid="t.7z7xv"
-              >
-                "{enhancement.original}"
-              </span>
-            </div>
-          </div>
+      <div className="p-3.5 relative bg-white dark:bg-slate-900">
+        <TooltipHeader annotation={annotation} config={config} onClose={onClose} />
 
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1.5 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400 transition-colors"
-            data-oid="puk1yl-"
-          >
-            <ChevronDown
-              className={cn('w-4 h-4 transition-transform', isExpanded && 'rotate-180')}
-              data-oid="z3l6hh9"
-            />
-          </button>
-        </div>
+        {!isPositive && <TooltipCorrectionBlock annotation={annotation} />}
 
-        <AnimatePresence data-oid="gq25oo6">
-          {isExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0, marginTop: 0 }}
-              animate={{ height: 'auto', opacity: 1, marginTop: 8 }}
-              exit={{ height: 0, opacity: 0, marginTop: 0 }}
-              className="overflow-hidden"
-              data-oid="ae0x--l"
-            >
-              <p
-                className="text-xs text-slate-500 dark:text-slate-400 mb-3 italic border-l-2 border-indigo-100 pl-2"
-                data-oid="ic0s5yn"
-              >
-                "{enhancement.context}"
-              </p>
-              <div className="flex flex-wrap gap-1.5" data-oid="ke.bms2">
-                {enhancement.alternatives?.map((alt, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-500/15 text-xs font-semibold text-indigo-700 dark:text-indigo-200 border border-indigo-100 dark:border-indigo-500/20"
-                    data-oid="wlrcgql"
-                  >
-                    {alt}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed mb-3 px-0.5 font-medium opacity-95">
+          "{annotation.explanation}"
+        </p>
 
-        {!isExpanded && enhancement.alternatives && (
-          <div className="flex items-center gap-2 mt-2 pl-10 overflow-hidden" data-oid="npcwfzl">
-            <span className="text-xs text-slate-400" data-oid="p997ig3">
-              Try:
-            </span>
-            <div className="flex gap-1.5" data-oid="enh1l0k">
-              {enhancement.alternatives.slice(0, 2).map((alt, i) => (
-                <span
-                  key={i}
-                  className="text-[11px] font-bold text-indigo-600 dark:text-indigo-200 bg-indigo-50/60 dark:bg-indigo-500/15 px-1.5 py-0.5 rounded-md border border-indigo-100/50 dark:border-indigo-500/10"
-                  data-oid="f_f.5ea"
-                >
-                  {alt}
-                </span>
-              ))}
-              {enhancement.alternatives.length > 2 && (
-                <span className="text-[10px] font-medium text-slate-400 py-0.5" data-oid="1tn.5dp">
-                  + {enhancement.alternatives.length - 2}
-                </span>
-              )}
-            </div>
-          </div>
+        {!isPositive && onApply && (
+          <TooltipActions config={config} onApply={onApply} onIgnore={onIgnore} />
         )}
       </div>
     </motion.div>
   );
 };
 
-// Main AnnotatedText Component
-export default function AnnotatedText({
-  text,
-  annotations = [],
-  vocabularyEnhancements = [],
+// ─── Filter Pill ──────────────────────────────────────────────────────────────
+
+const FILTER_PILL_CONFIG = {
+  error: {
+    active:
+      'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-500/20 dark:border-rose-500/40 dark:text-rose-200',
+    dot: 'bg-rose-600',
+  },
+  warning: {
+    active:
+      'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-500/20 dark:border-amber-500/40 dark:text-amber-200',
+    dot: 'bg-amber-600',
+  },
+  suggestion: {
+    active:
+      'bg-sky-50 border-sky-200 text-sky-800 dark:bg-sky-500/20 dark:border-sky-500/40 dark:text-sky-200',
+    dot: 'bg-sky-600',
+  },
+  positive: {
+    active:
+      'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:text-emerald-200',
+    dot: 'bg-emerald-600',
+  },
+};
+
+const INACTIVE_PILL =
+  'bg-slate-100/70 border-slate-200/60 text-slate-700 dark:bg-white/5 dark:border-white/10 dark:text-slate-300';
+const INACTIVE_DOT = 'bg-slate-400 dark:bg-slate-500';
+
+const FilterPill = ({ type, count, isActive, onToggle, label }) => {
+  const cfg = FILTER_PILL_CONFIG[type];
+  return (
+    <button
+      onClick={() => onToggle(type)}
+      className={cn(
+        'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border shadow-2xs',
+        isActive ? cfg.active : INACTIVE_PILL
+      )}
+    >
+      <div className={cn('w-1.5 h-1.5 rounded-full', isActive ? cfg.dot : INACTIVE_DOT)} />
+      {count} {label}
+    </button>
+  );
+};
+
+// ─── Summary Bar ──────────────────────────────────────────────────────────────
+
+const AnnotationSummary = ({ annotations, filters, onFilterToggle, onSelectAll }) => {
+  const counts = useMemo(() => {
+    const c = { error: 0, warning: 0, suggestion: 0, positive: 0 };
+    annotations.forEach((a) => {
+      if (a.severity && c[a.severity] !== undefined) c[a.severity]++;
+    });
+    return c;
+  }, [annotations]);
+
+  const pills = [
+    { type: 'error', label: 'Errors' },
+    { type: 'warning', label: 'Warnings' },
+    { type: 'suggestion', label: 'Suggestions' },
+    { type: 'positive', label: 'Good' },
+  ];
+
+  const allTypes = ['error', 'warning', 'suggestion', 'positive'];
+  const isAllActive = allTypes.every((t) => filters.includes(t));
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-wider mr-0.5">
+        Filters:
+      </span>
+      {pills.map(({ type, label }) =>
+        counts[type] > 0 ? (
+          <FilterPill
+            key={type}
+            type={type}
+            count={counts[type]}
+            label={label}
+            isActive={filters.includes(type)}
+            onToggle={onFilterToggle}
+          />
+        ) : null
+      )}
+
+      <button
+        type="button"
+        onClick={onSelectAll}
+        title={isAllActive ? 'Click to hide all highlights' : 'Click to show all highlights'}
+        className={cn(
+          'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border shadow-2xs cursor-pointer hover:scale-105 active:scale-95',
+          isAllActive
+            ? 'bg-amber-500/15 border-amber-500/30 text-amber-800 dark:text-amber-200'
+            : 'bg-slate-100/80 border-slate-200/60 text-slate-700 dark:bg-white/5 dark:border-white/10 dark:text-slate-300'
+        )}
+      >
+        <span
+          className={cn(
+            'w-1.5 h-1.5 rounded-full',
+            isAllActive ? 'bg-amber-500 animate-pulse' : 'bg-slate-400'
+          )}
+        />
+        <span>{annotations.length} Highlights</span>
+      </button>
+    </div>
+  );
+};
+
+// ─── Annotated Segment ────────────────────────────────────────────────────────
+
+const AnnotatedSegment = ({ segment, isActive, onActivate, onApply, onIgnore, containerRef }) => {
+  const config = ANNOTATION_CONFIG[segment.annotation.type] || ANNOTATION_CONFIG.grammar;
+  const effectiveConfig =
+    segment.annotation.severity === 'error' ? ANNOTATION_CONFIG.grammar : config;
+  const annotationRef = useRef(null);
+
+  useEffect(() => {
+    if (isActive) {
+      annotationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [isActive]);
+
+  return (
+    <span className="relative inline">
+      <motion.span
+        ref={annotationRef}
+        onClick={(e) => {
+          e.stopPropagation();
+          onActivate();
+        }}
+        whileHover={{ scale: 1.02 }}
+        className={cn(
+          'cursor-pointer px-2 py-0.5 rounded-lg mx-0.5 transition-all duration-200 border shadow-[0_1px_2px_rgba(0,0,0,0.02)]',
+          'inline [box-decoration-break:clone] [-webkit-box-decoration-break:clone]',
+          effectiveConfig.borderClass,
+          effectiveConfig.bgClass,
+          isActive &&
+            cn(
+              'ring-2 ring-indigo-500/40 bg-indigo-100/30 dark:bg-indigo-500/20 z-10 relative shadow-md scale-[1.01]'
+            )
+        )}
+      >
+        <span
+          className={cn(effectiveConfig.textClass, 'font-medium transition-colors duration-200')}
+        >
+          {segment.text}
+        </span>
+      </motion.span>
+
+      <AnimatePresence>
+        {isActive && (
+          <AnnotationTooltip
+            annotation={segment.annotation}
+            config={config}
+            onApply={onApply}
+            onIgnore={onIgnore}
+            onClose={() => onActivate(true)}
+            containerRef={containerRef}
+          />
+        )}
+      </AnimatePresence>
+    </span>
+  );
+};
+
+// ─── Vocabulary Card ──────────────────────────────────────────────────────────
+
+const VocabularyCard = ({ enhancement }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const alternatives = enhancement.alternatives ?? [];
+  const preview = alternatives.slice(0, 2);
+  const overflow = alternatives.length - 2;
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 hover:border-indigo-300 dark:hover:border-indigo-500/40 shadow-xs hover:shadow-md transition-all duration-300 p-2.5 sm:p-3 space-y-2"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="p-1.5 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shrink-0">
+            <BookOpen className="w-3.5 h-3.5" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[9px] font-black text-indigo-600/80 dark:text-indigo-400/80 uppercase tracking-widest leading-none mb-0.5">
+              Original Phrase
+            </span>
+            <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate tracking-tight">
+              "{enhancement.original}"
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="hidden xs:inline-block px-2 py-0.5 rounded-full bg-indigo-100/80 dark:bg-indigo-500/15 text-[9px] font-black text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-500/30 uppercase tracking-wider">
+            Enhance
+          </span>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-1 rounded-lg hover:bg-indigo-100/60 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+          >
+            <ChevronDown
+              className={cn(
+                'w-4 h-4 transition-transform duration-200',
+                isExpanded && 'rotate-180'
+              )}
+            />
+          </button>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden space-y-2 pt-1 border-t border-indigo-100/60 dark:border-white/5"
+          >
+            <p className="text-xs text-slate-600 dark:text-slate-300 italic border-l-2 border-indigo-400/80 pl-2.5 py-0.5 font-medium">
+              "{enhancement.context}"
+            </p>
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {alternatives.map((alt, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-xs font-black text-indigo-700 dark:text-indigo-200 border border-indigo-200/80 dark:border-indigo-500/30 shadow-2xs"
+                >
+                  {alt}
+                </span>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {!isExpanded && alternatives.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-indigo-100/60 dark:border-white/5">
+          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-0.5">
+            Try:
+          </span>
+          {preview.map((alt, i) => (
+            <span
+              key={i}
+              className="text-[11px] font-black text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-indigo-200/80 dark:border-indigo-500/30 shadow-2xs truncate max-w-[220px]"
+            >
+              {alt}
+            </span>
+          ))}
+          {overflow > 0 && (
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 py-0.5">
+              +{overflow} more
+            </span>
+          )}
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
+// ─── Annotation State Hook ────────────────────────────────────────────────────
+
+function useAnnotationState({
+  annotations,
   onApplyCorrection,
   onIgnoreAnnotation,
-  className,
+  focusAnnotation,
 }) {
   const [activeAnnotation, setActiveAnnotation] = useState(null);
   const [ignoredAnnotations, setIgnoredAnnotations] = useState(new Set());
+  const [filters, setFilters] = useState(['error', 'warning', 'suggestion', 'positive']);
   const containerRef = useRef(null);
 
-  // Click outside dismissal
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -513,28 +587,47 @@ export default function AnnotatedText({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const [filters, setFilters] = useState(['error', 'warning', 'suggestion', 'positive']);
+  useEffect(() => {
+    if (!focusAnnotation?.originalText) return;
 
-  // Strip HTML tags for display
-  const plainText = useMemo(() => {
-    return (
-      text
-        ?.replace(/<[^>]*>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim() || ''
+    const annotation = annotations.find(
+      (candidate) => candidate.originalText === focusAnnotation.originalText
     );
-  }, [text]);
+    if (!annotation) return;
 
-  // Filter annotations
-  const filteredAnnotations = useMemo(() => {
-    return annotations
-      .filter((a) => !ignoredAnnotations.has(a.originalText))
-      .filter((a) => filters.includes(a.severity));
-  }, [annotations, ignoredAnnotations, filters]);
-  const handleFilterToggle = (filter) => {
+    setIgnoredAnnotations((previous) => {
+      if (!previous.has(annotation.originalText)) return previous;
+      const next = new Set(previous);
+      next.delete(annotation.originalText);
+      return next;
+    });
+    setFilters((previous) =>
+      previous.includes(annotation.severity) ? previous : [...previous, annotation.severity]
+    );
+    setActiveAnnotation(annotation);
+  }, [annotations, focusAnnotation?.originalText, focusAnnotation?.requestId]);
+
+  const filteredAnnotations = useMemo(
+    () =>
+      annotations
+        .filter((a) => !ignoredAnnotations.has(a.originalText))
+        .filter((a) => filters.includes(a.severity)),
+    [annotations, ignoredAnnotations, filters]
+  );
+
+  const handleFilterToggle = (filter) =>
     setFilters((prev) =>
       prev.includes(filter) ? prev.filter((f) => f !== filter) : [...prev, filter]
     );
+
+  const handleSelectAll = () => {
+    const allTypes = ['error', 'warning', 'suggestion', 'positive'];
+    const isAllActive = allTypes.every((t) => filters.includes(t));
+    if (isAllActive) {
+      setFilters([]);
+    } else {
+      setFilters(allTypes);
+    }
   };
 
   const handleIgnore = (annotation) => {
@@ -548,197 +641,152 @@ export default function AnnotatedText({
     setActiveAnnotation(null);
   };
 
-  // Build annotated text segments
-  const segments = useMemo(() => {
-    if (!plainText || filteredAnnotations.length === 0) {
-      return [{ text: plainText, annotation: null }];
-    }
+  const handleActivate = (annotation, isActive) => {
+    setActiveAnnotation(isActive ? null : annotation);
+  };
 
-    // Find all annotation positions
-    const positions = [];
-    filteredAnnotations.forEach((annotation) => {
-      const index = plainText.indexOf(annotation.originalText);
-      if (index !== -1) {
-        positions.push({
-          start: index,
-          end: index + annotation.originalText.length,
-          annotation,
-        });
-      }
-    });
+  return {
+    activeAnnotation,
+    filteredAnnotations,
+    filters,
+    containerRef,
+    handleFilterToggle,
+    handleSelectAll,
+    handleIgnore,
+    handleApply,
+    handleActivate,
+  };
+}
 
-    // Sort by position
-    positions.sort((a, b) => a.start - b.start);
+// ─── Header Sub-component ─────────────────────────────────────────────────────
 
-    // Remove overlapping annotations
-    const nonOverlapping = [];
-    let lastEnd = 0;
-    positions.forEach((pos) => {
-      if (pos.start >= lastEnd) {
-        nonOverlapping.push(pos);
-        lastEnd = pos.end;
-      }
-    });
+const AnnotatedTextHeader = ({ annotations, filters, onFilterToggle, onSelectAll }) => (
+  <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3 pb-2.5 border-b border-slate-100 dark:border-white/5">
+    <div className="flex items-center gap-2.5">
+      <div className="p-1.5 bg-indigo-50 dark:bg-indigo-500/15 rounded-lg border border-indigo-200/60 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 shadow-2xs">
+        <Sparkles className="w-3.5 h-3.5" />
+      </div>
+      <div>
+        <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight leading-snug">
+          Your Text with Annotations
+        </h3>
+        <p className="mt-0.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+          Interactive Feedback Mode
+        </p>
+      </div>
+    </div>
 
-    // Build segments
-    const result = [];
-    let currentIndex = 0;
+    <div className="flex flex-wrap items-center gap-2.5">
+      {annotations.length > 0 && (
+        <AnnotationSummary
+          annotations={annotations}
+          filters={filters}
+          onFilterToggle={onFilterToggle}
+          onSelectAll={onSelectAll}
+        />
+      )}
+    </div>
+  </div>
+);
 
-    nonOverlapping.forEach((pos) => {
-      // Text before annotation
-      if (pos.start > currentIndex) {
-        result.push({
-          text: plainText.slice(currentIndex, pos.start),
-          annotation: null,
-        });
-      }
-      // Annotated text
-      result.push({
-        text: plainText.slice(pos.start, pos.end),
-        annotation: pos.annotation,
-      });
-      currentIndex = pos.end;
-    });
+// ─── Body Sub-component ───────────────────────────────────────────────────────
 
-    // Remaining text
-    if (currentIndex < plainText.length) {
-      result.push({
-        text: plainText.slice(currentIndex),
-        annotation: null,
-      });
-    }
+const AnnotatedTextBody = ({
+  segments,
+  activeAnnotation,
+  containerRef,
+  onApply,
+  onIgnore,
+  onActivate,
+}) => (
+  <div className="text-[15px] leading-8 text-slate-700 dark:text-slate-200 whitespace-pre-wrap font-serif">
+    {segments.map((segment, i) => {
+      if (!segment.annotation) return <span key={i}>{segment.text}</span>;
+      const isActive = activeAnnotation?.originalText === segment.annotation.originalText;
+      return (
+        <AnnotatedSegment
+          key={i}
+          segment={segment}
+          isActive={isActive}
+          containerRef={containerRef}
+          onApply={() => onApply(segment.annotation)}
+          onIgnore={() => onIgnore(segment.annotation)}
+          onActivate={(forceClose) => onActivate(segment.annotation, isActive || forceClose)}
+        />
+      );
+    })}
+  </div>
+);
 
-    return result;
-  }, [plainText, filteredAnnotations]);
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+export default function AnnotatedText({
+  text,
+  annotations = [],
+  vocabularyEnhancements = [],
+  onApplyCorrection,
+  onIgnoreAnnotation,
+  focusAnnotation,
+  className,
+}) {
+  const {
+    activeAnnotation,
+    filteredAnnotations,
+    filters,
+    containerRef,
+    handleFilterToggle,
+    handleSelectAll,
+    handleIgnore,
+    handleApply,
+    handleActivate,
+  } = useAnnotationState({ annotations, onApplyCorrection, onIgnoreAnnotation, focusAnnotation });
+
+  const plainText = useMemo(
+    () =>
+      text
+        ?.replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim() || '',
+    [text]
+  );
+
+  const segments = useAnnotatedSegments(plainText, filteredAnnotations);
 
   if (!text) return null;
 
   return (
     <div className={cn('space-y-3', className)}>
-      {/* Annotated Text */}
       <div
         ref={containerRef}
-        className="relative p-3.5 sm:p-5 bg-white dark:bg-[#0D0E1A] rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm overflow-visible"
+        className="relative p-3.5 sm:p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-visible"
       >
-        <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3 pb-2.5 border-b border-slate-100 dark:border-white/5">
-          <div className="flex items-center gap-2.5">
-            <div className="p-1.5 bg-amber-500/10 dark:bg-amber-500/15 rounded-lg border border-amber-500/20 text-amber-600 dark:text-amber-400 shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5" />
-            </div>
-            <div>
-              <h3 className="text-sm sm:text-base font-black text-slate-950 dark:text-white tracking-tight leading-snug">
-                Your Text with Annotations
-              </h3>
-              <p className="mt-0.5 text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-wider">
-                Interactive Feedback Mode
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2.5">
-            {annotations.length > 0 && (
-              <AnnotationSummary
-                annotations={annotations}
-                filters={filters}
-                onFilterToggle={handleFilterToggle}
-              />
-            )}
-            <div className="px-2.5 py-1 bg-slate-100 dark:bg-white/10 rounded-full border border-slate-200 dark:border-white/15 flex items-center gap-1.5 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-              <span className="text-xs font-black text-slate-800 dark:text-slate-100">
-                {filteredAnnotations.length} Highlights
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="text-[15px] leading-8 text-slate-600 dark:text-slate-200 whitespace-pre-wrap font-serif"
-          data-oid="ogtkokh"
-        >
-          {segments.map((segment, i) => {
-            if (!segment.annotation) {
-              return (
-                <span key={i} data-oid="54l_n0f">
-                  {segment.text}
-                </span>
-              );
-            }
-
-            const config = ANNOTATION_CONFIG[segment.annotation.type] || ANNOTATION_CONFIG.grammar;
-            const isActive = activeAnnotation?.originalText === segment.annotation.originalText;
-
-            // Priority logic for error coloring
-            const isError = segment.annotation.severity === 'error';
-            const effectiveConfig = isError ? ANNOTATION_CONFIG.grammar : config;
-
-            return (
-              <span key={i} className="relative inline" data-oid="ianepdw">
-                <motion.span
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveAnnotation(isActive ? null : segment.annotation);
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                  className={cn(
-                    'cursor-pointer px-2 py-0.5 rounded-lg mx-0.5 transition-all duration-200 border shadow-[0_1px_2px_rgba(0,0,0,0.02)]',
-                    'inline [box-decoration-break:clone] [-webkit-box-decoration-break:clone]', // Added box-decoration-break for multiline highlights
-                    effectiveConfig.borderClass,
-                    effectiveConfig.bgClass,
-                    isActive &&
-                      cn(
-                        'ring-2 ring-indigo-500/40 bg-indigo-100/30 dark:bg-indigo-500/20',
-                        'z-10 relative shadow-md scale-[1.01]'
-                      )
-                  )}
-                  data-oid="x:jeyc1"
-                >
-                  <span
-                    className={cn(
-                      effectiveConfig.textClass,
-                      'font-medium transition-colors duration-200'
-                    )}
-                    data-oid="o18cs4y"
-                  >
-                    {segment.text}
-                  </span>
-                </motion.span>
-
-                <AnimatePresence data-oid="bxm.oom">
-                  {isActive && (
-                    <AnnotationTooltip
-                      annotation={segment.annotation}
-                      config={config}
-                      onApply={() => handleApply(segment.annotation)}
-                      onIgnore={() => handleIgnore(segment.annotation)}
-                      onClose={() => setActiveAnnotation(null)}
-                      containerRef={containerRef}
-                      data-oid="31y:q2r"
-                    />
-                  )}
-                </AnimatePresence>
-              </span>
-            );
-          })}
-        </div>
+        <AnnotatedTextHeader
+          annotations={annotations}
+          filters={filters}
+          onFilterToggle={handleFilterToggle}
+          onSelectAll={handleSelectAll}
+        />
+        <AnnotatedTextBody
+          segments={segments}
+          activeAnnotation={activeAnnotation}
+          containerRef={containerRef}
+          onApply={handleApply}
+          onIgnore={handleIgnore}
+          onActivate={handleActivate}
+        />
       </div>
 
-      {/* Vocabulary Enhancements */}
-      {vocabularyEnhancements && vocabularyEnhancements.length > 0 && (
-        <div className="space-y-4 pt-4" data-oid=":7k_4r8">
-          <div className="flex items-center gap-2 px-1" data-oid="n00_5_3">
-            <BookOpen className="w-4 h-4 text-indigo-500" data-oid="5x1_vre" />
-            <h3
-              className="text-sm font-bold text-slate-500 uppercase tracking-wider"
-              data-oid="9.43i7j"
-            >
+      {vocabularyEnhancements?.length > 0 && (
+        <div className="space-y-2 pt-2">
+          <div className="flex items-center gap-2 px-1">
+            <BookOpen className="w-4 h-4 text-indigo-500" />
+            <h3 className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">
               Vocabulary Upgrade
             </h3>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4" data-oid="nrr.8q7">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2.5">
             {vocabularyEnhancements.map((enhancement, i) => (
-              <VocabularyCard key={i} enhancement={enhancement} data-oid="njn16hl" />
+              <VocabularyCard key={i} enhancement={enhancement} />
             ))}
           </div>
         </div>

@@ -79,25 +79,25 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className="p-4 xl:p-5 rounded-2xl bg-white dark:bg-slate-950 border border-blue-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between h-full space-y-3 relative overflow-hidden"
+      className="p-4 xl:p-5 rounded-2xl bg-gradient-to-br from-white via-[#fbfaff] to-[#f0eeff] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] border border-[#dce0f5] dark:border-white/10 shadow-[0_10px_30px_-15px_rgba(86,97,233,0.15)] hover:shadow-[0_16px_36px_-18px_rgba(86,97,233,0.22)] transition-all duration-300 flex flex-col justify-between h-full space-y-3 relative overflow-hidden"
     >
       {/* Liquid Glass Background Accents */}
-      <div className="absolute -top-12 -right-12 w-40 h-40 bg-blue-50 dark:bg-blue-950/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#5661e9]/10 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header */}
       <div className="flex items-center justify-between z-10">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-white text-[#5661e9] shadow-xs dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#d2d7f8] dark:border-indigo-500/30 flex items-center justify-center">
             <Target className="w-4 h-4" />
           </div>
           <h3 className="text-sm font-black tracking-tight text-slate-950 dark:text-white">
             Your Path to Band {nextBand.toFixed(1)}
           </h3>
         </div>
-        <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 text-xs font-bold border border-blue-200 dark:border-blue-800">
+        <span className="px-2.5 py-1 rounded-lg bg-[#efedff] dark:bg-indigo-500/20 text-[#5661e9] dark:text-indigo-300 text-xs font-bold border border-[#d2d7f8] dark:border-indigo-500/30">
           Band {nextBand.toFixed(1)}
         </span>
       </div>
@@ -108,27 +108,27 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
           <span className="text-slate-500 dark:text-slate-400">
             Progress to Band {nextBand.toFixed(1)}
           </span>
-          <span className="text-xs font-black text-blue-600 dark:text-blue-400">
+          <span className="text-xs font-black text-[#5661e9] dark:text-indigo-400">
             {progressPct}%
           </span>
         </div>
-        <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-2 bg-slate-200/80 dark:bg-white/10 rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progressPct}%` }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="h-full bg-blue-600 rounded-full"
+            className="h-full bg-gradient-to-r from-[#5661e9] to-[#7c86ff] rounded-full"
           />
         </div>
       </div>
 
       {/* Key Weakness Card */}
-      <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 flex items-start gap-3 z-10">
-        <div className="w-8.5 h-8.5 rounded-xl bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900 flex items-center justify-center shrink-0">
+      <div className="p-3.5 rounded-xl bg-[#efedff]/70 dark:bg-indigo-500/10 border border-[#d2d7f8] dark:border-indigo-500/25 flex items-start gap-3 z-10">
+        <div className="w-8.5 h-8.5 rounded-xl bg-white dark:bg-slate-900 text-[#5661e9] dark:text-indigo-400 border border-[#d2d7f8] dark:border-indigo-500/30 flex items-center justify-center shrink-0 shadow-2xs">
           <Target className="w-4 h-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+          <p className="text-xs font-bold uppercase tracking-wider text-[#5661e9] dark:text-indigo-400">
             Key weakness
           </p>
           <h4 className="text-sm font-black text-slate-950 dark:text-white leading-tight my-0.5">
@@ -144,9 +144,9 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
       <button
         type="button"
         onClick={onReviewAnswers}
-        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center gap-3 transition-colors text-left group z-10"
+        className="w-full p-2.5 rounded-xl bg-white/90 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-[#e2e5f6] dark:border-white/10 flex items-center gap-3 transition-colors text-left group z-10 shadow-2xs"
       >
-        <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+        <div className="w-8 h-8 rounded-lg bg-[#5661e9] text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
           <TrendingUp className="w-4 h-4" />
         </div>
         <div className="flex-1 min-w-0">
@@ -164,9 +164,9 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
       <button
         type="button"
         onClick={onReviewAnswers}
-        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center gap-3 transition-colors text-left group z-10"
+        className="w-full p-2.5 rounded-xl bg-white/90 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-[#e2e5f6] dark:border-white/10 flex items-center gap-3 transition-colors text-left group z-10 shadow-2xs"
       >
-        <div className="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+        <div className="w-8 h-8 rounded-lg bg-[#5661e9] text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
           <Target className="w-4 h-4" />
         </div>
         <div className="flex-1 min-w-0">

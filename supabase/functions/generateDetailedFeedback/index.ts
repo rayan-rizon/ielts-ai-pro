@@ -243,6 +243,7 @@ serve(async (req: Request) => {
               },
               issue: { type: 'STRING' },
               action: { type: 'STRING' },
+              evidenceText: { type: 'STRING' },
             },
             required: ['criterion', 'issue', 'action'],
           },
@@ -283,6 +284,7 @@ COMPACT FEEDBACK CONTRACT
 - summary: 1 direct sentence, maximum 18 words, stating the clearest success and main limiter.
 - strengths: 1–3 items, maximum 14 words each. Cite an exact phrase or observable structural feature. No generic praise.
 - priorities: exactly the 3 highest band-gain issues, ordered by impact. issue is maximum 12 words; action is maximum 14 words and must be concrete. Use only the allowed criterion labels.
+- priorities evidenceText: only when a priority is supported by an annotation, include that annotation's originalText exactly. Otherwise omit evidenceText; never invent an anchor.
 - annotations: 0–10 high-value highlights. originalText must be an exact, unique 1–7 word substring. suggestion is maximum 12 words. explanation is maximum 14 words and must state why the change matters for clarity, accuracy, or the relevant band criterion. Use severity='error' only for genuine grammar, spelling, word-form, tense, agreement, missing-element, or factual-reporting errors. Style preferences are suggestions, never errors. Do not repeat an issue.
 - vocabularyEnhancements: 0–4 natural, context-fitting upgrades; two alternatives each. Never force exotic synonyms.
 - Do not output separate weaknesses, suggestions, corrections, or overallBand. The server derives correction rows from grounded error annotations.
@@ -455,6 +457,7 @@ Register and tone:
       taskPrompt: normalizeText(taskPrompt),
       taskType,
       imageUrl,
+      priorityEvidenceRevision: 1,
     });
     const encode = new TextEncoder().encode(hashInput);
     const hashBuffer = await crypto.subtle.digest('SHA-256', encode);

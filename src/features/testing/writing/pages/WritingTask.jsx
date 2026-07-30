@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookOpen, FileEdit, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import ConfettiCelebration from '@/components/ConfettiCelebration';
 import XPNotification from '@/components/XPNotification';
@@ -54,6 +53,7 @@ function WritingFeedbackDrawer({
   feedbackError,
   handleGetFeedback,
   loadingMessage,
+  onShowInEssay,
 }) {
   if (!hasFeedbackPane) return null;
 
@@ -76,6 +76,7 @@ function WritingFeedbackDrawer({
           feedbackError={feedbackError}
           handleGetFeedback={handleGetFeedback}
           loadingMessage={loadingMessage}
+          onShowInEssay={onShowInEssay}
           onClose={() => {}}
           data-oid="zp34i4j"
         />
@@ -141,7 +142,18 @@ function WritingTaskContent() {
     (testMode !== 'exam' || isCompleted);
 
   const [showTask, setShowTask] = useWritingInitialTaskPanelState(hasFeedbackPane);
+  const [viewMode, setViewMode] = useState('review');
+  const [focusAnnotation, setFocusAnnotation] = useState(null);
   const showTaskPanel = showTask && !hasFeedbackPane;
+
+  const handleShowInEssay = useCallback((annotation) => {
+    setViewMode('review');
+    setFocusAnnotation({ ...annotation, requestId: Date.now() });
+  }, []);
+
+  useEffect(() => {
+    if (hasFeedbackPane) setViewMode('review');
+  }, [hasFeedbackPane]);
 
   useEffect(() => {
     initialize();
@@ -199,6 +211,9 @@ function WritingTaskContent() {
           isSidebarClosed={!showTaskPanel}
           onToggleSidebar={() => setShowTask((prev) => !prev)}
           hasFeedback={hasFeedbackPane}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          focusAnnotation={focusAnnotation}
           showSample={showSample}
           setShowSample={setShowSample}
           data-oid="xaa39j6"
@@ -212,6 +227,7 @@ function WritingTaskContent() {
             feedbackError={feedbackError}
             handleGetFeedback={handleGetFeedback}
             loadingMessage={loadingMessage}
+            onShowInEssay={handleShowInEssay}
           />
         </AnimatePresence>
       </div>
@@ -238,45 +254,37 @@ function WritingTaskContent() {
 
 function WritingViewModeToggle({ viewMode, setViewMode }) {
   const tabs = [
-    { id: 'review', label: 'Annotated Review', icon: Sparkles },
-    { id: 'question', label: 'Question', icon: BookOpen },
-    { id: 'edit', label: 'Editor', icon: FileEdit },
+    { id: 'review', label: 'Annotated Review' },
+    { id: 'question', label: 'Question' },
+    { id: 'edit', label: 'Editor' },
   ];
 
   return (
-    <div className="sticky top-0 z-40 bg-white/70 dark:bg-[#05060B]/80 backdrop-blur-md border-b border-slate-200/30 dark:border-white/5 px-3 py-1.5 sm:px-4">
+    <div className="sticky top-0 z-40 bg-white/80 dark:bg-[#05060B]/80 backdrop-blur-md border-b border-slate-200/50 dark:border-white/5 px-3 py-2 sm:px-4">
       <div className="flex items-center justify-center w-full">
-        <div className="flex items-center p-0.5 sm:p-1 bg-slate-100/70 dark:bg-[#0D0E1A]/80 rounded-full border border-slate-200/40 dark:border-white/5">
+        <div className="flex items-center p-1 bg-slate-100/90 dark:bg-[#101322]/90 rounded-full border border-slate-200/80 dark:border-white/10 shadow-xs">
           {tabs.map((tab) => {
-            const Icon = tab.icon;
             const isActive = viewMode === tab.id;
             return (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setViewMode(tab.id)}
                 className={cn(
-                  'group relative px-4 sm:px-5 py-1.5 text-xs md:text-sm font-extrabold rounded-full transition-colors duration-200 flex-1 sm:flex-none text-center z-10 flex items-center justify-center gap-1.5',
+                  'group relative px-4 sm:px-5 py-1.5 text-xs sm:text-sm font-extrabold rounded-full transition-colors duration-200 flex-1 sm:flex-none text-center z-10 flex items-center justify-center',
                   isActive
-                    ? 'text-indigo-600 dark:text-white'
-                    : 'text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white hover:bg-slate-200/40 dark:hover:bg-white/5'
+                    ? 'text-[#5661e9] dark:text-white'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 )}
               >
                 {isActive && (
                   <motion.div
                     layoutId="activeWritingTab"
-                    className="absolute inset-0 bg-white dark:bg-indigo-600 rounded-full shadow-2xs dark:shadow-indigo-500/20 border border-slate-200/50 dark:border-white/10 pointer-events-none -z-10"
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    className="absolute inset-0 bg-white dark:bg-indigo-600 rounded-full shadow-xs border border-[#d2d7f8] dark:border-indigo-500/30 pointer-events-none -z-10"
+                    transition={{ type: 'spring', stiffness: 450, damping: 35 }}
                   />
                 )}
-                <Icon
-                  className={cn(
-                    'w-3.5 h-3.5 transition-colors shrink-0',
-                    isActive
-                      ? 'text-indigo-600 dark:text-white'
-                      : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
-                  )}
-                />
-                <span className="relative">{tab.label}</span>
+                <span>{tab.label}</span>
               </button>
             );
           })}
@@ -286,7 +294,7 @@ function WritingViewModeToggle({ viewMode, setViewMode }) {
   );
 }
 
-function AnnotatedReviewPane({ feedback, writing, setWriting }) {
+function AnnotatedReviewPane({ feedback, writing, setWriting, focusAnnotation }) {
   const applyCorrection = useCallback(
     (annotation) => {
       const source = feedback.originalSource || writing;
@@ -306,6 +314,7 @@ function AnnotatedReviewPane({ feedback, writing, setWriting }) {
           annotations={feedback.annotations || []}
           vocabularyEnhancements={feedback.vocabularyEnhancements || []}
           onApplyCorrection={applyCorrection}
+          focusAnnotation={focusAnnotation}
           data-oid="wg_1:8b"
         />
       </div>
@@ -342,6 +351,7 @@ function WritingPaneBody({
   isAnalyzing,
   isSidebarClosed,
   onToggleSidebar,
+  focusAnnotation,
 }) {
   const isReviewMode = hasFeedback && viewMode === 'review' && Boolean(currentFeedback);
   const isQuestionMode = hasFeedback && viewMode === 'question';
@@ -367,7 +377,12 @@ function WritingPaneBody({
   let content;
   if (showReview) {
     content = (
-      <AnnotatedReviewPane feedback={currentFeedback} writing={writing} setWriting={setWriting} />
+      <AnnotatedReviewPane
+        feedback={currentFeedback}
+        writing={writing}
+        setWriting={setWriting}
+        focusAnnotation={focusAnnotation}
+      />
     );
   } else if (showQuestion) {
     content = (
@@ -410,6 +425,9 @@ function WritingEditorPane({
   isSidebarClosed,
   onToggleSidebar,
   hasFeedback,
+  viewMode,
+  setViewMode,
+  focusAnnotation,
   showSample,
   setShowSample,
 }) {
@@ -420,12 +438,6 @@ function WritingEditorPane({
   const isAnalyzing = useWritingTestStore((state) => state.isAnalyzing);
   const currentFeedback = useWritingTestStore((state) => state.currentFeedback);
   const setDraft = useWritingTestStore((state) => state.setDraft);
-
-  const [viewMode, setViewMode] = useState('review');
-
-  useEffect(() => {
-    if (hasFeedback) setViewMode('review');
-  }, [hasFeedback]);
 
   const setWriting = useCallback(
     (content) => setDraft(activeType, content),
@@ -464,6 +476,7 @@ function WritingEditorPane({
           isAnalyzing={isAnalyzing}
           isSidebarClosed={isSidebarClosed}
           onToggleSidebar={onToggleSidebar}
+          focusAnnotation={focusAnnotation}
         />
       </div>
     </div>

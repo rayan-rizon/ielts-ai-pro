@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FeedbackPanel } from '@/features/testing/writing/components/WritingTest/components/FeedbackPanel';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 
@@ -37,6 +37,7 @@ const feedback = {
       criterion: 'Grammar',
       issue: 'Agreement errors recur in key sentences.',
       action: 'Check each verb against its subject during proofreading.',
+      evidenceText: 'people is',
     },
     {
       criterion: 'Task Response',
@@ -85,6 +86,17 @@ describe('Writing feedback panel', () => {
 
     expect(screen.getByText('Why it matters:')).toBeInTheDocument();
     expect(screen.getByText('A plural subject needs a plural verb.')).toBeInTheDocument();
+  });
+
+  it('opens the exact annotated evidence for a grounded priority', () => {
+    const onShowInEssay = vi.fn();
+    render(<FeedbackPanel feedback={feedback} onShowInEssay={onShowInEssay} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show in my essay' }));
+
+    expect(onShowInEssay).toHaveBeenCalledWith(
+      expect.objectContaining({ originalText: 'people is', suggestion: 'people are' })
+    );
   });
 
   it('shows annotation-based improvements when there are no direct corrections', () => {
@@ -144,5 +156,45 @@ describe('Writing feedback panel', () => {
       screen.getByText(/The response provides a clear and comprehensive description/)
     ).toBeInTheDocument();
     expect(container.textContent).not.toContain('accurately reporting every minor feature');
+  });
+
+  it('lets learners expand only the feedback item that was shortened', () => {
+    const verboseFeedback = {
+      ...feedback,
+      strengths: [
+        'The response directly addresses both parts of the prompt, providing a clear position and relevant support throughout the essay.',
+      ],
+      priorities: [
+        {
+          criterion: 'Task Response',
+          issue:
+            'The second body paragraph needs a fuller explanation of how the proposed policy would affect families in practice.',
+          action:
+            'Add one specific example that shows how families would benefit, then connect it clearly to your main position.',
+        },
+      ],
+    };
+
+    render(<FeedbackPanel feedback={verboseFeedback} />);
+
+    expect(screen.getByRole('button', { name: 'Show full strength 1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Show full priority 1' })).toBeInTheDocument();
+    expect(screen.queryByText(/relevant support throughout the essay/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show full priority 1' }));
+
+    expect(
+      screen.getByText(
+        'The second body paragraph needs a fuller explanation of how the proposed policy would affect families in practice.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Show less priority 1' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: 'Show full strength 1' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    );
   });
 });

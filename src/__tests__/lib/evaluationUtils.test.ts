@@ -123,11 +123,18 @@ describe('evaluationUtils', () => {
             criterion: 'Grammar',
             issue: 'Subject–verb agreement is not consistently controlled.',
             action: 'Check every present-tense verb against its subject.',
+            evidenceText: 'transport reduce',
           },
           {
             criterion: 'Unsupported criterion',
             issue: 'This item must be filtered.',
             action: 'Do nothing.',
+          },
+          {
+            criterion: 'Lexical Resource',
+            issue: 'Topic vocabulary repeats too often.',
+            action: 'Use natural alternatives for repeated topic words.',
+            evidenceText: 'reliable services',
           },
         ],
         vocabularyEnhancements: [],
@@ -150,6 +157,12 @@ describe('evaluationUtils', () => {
         criterion: 'Grammar',
         issue: 'Subject–verb agreement is not consistently controlled.',
         action: 'Check every present-tense verb against its subject.',
+        evidenceText: 'transport reduce',
+      },
+      {
+        criterion: 'Lexical Resource',
+        issue: 'Topic vocabulary repeats too often.',
+        action: 'Use natural alternatives for repeated topic words.',
       },
     ]);
     expect(result.corrections).toEqual([
