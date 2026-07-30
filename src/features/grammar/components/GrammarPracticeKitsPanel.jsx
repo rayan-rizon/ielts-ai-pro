@@ -14,19 +14,23 @@ import { contentTierLabel, hasContentAccess } from '@/features/subscription/conf
 
 const KIT_TONES = {
   violet: {
-    panel: 'border-violet-100 from-violet-50 to-white dark:border-violet-400/15',
+    panel:
+      'border-violet-200/90 from-violet-50/70 to-white dark:border-violet-400/20 hover:border-violet-300',
     icon: 'bg-violet-100 text-violet-700 dark:bg-violet-400/10 dark:text-violet-300',
   },
   blue: {
-    panel: 'border-blue-100 from-blue-50 to-white dark:border-blue-400/15',
+    panel:
+      'border-blue-200/90 from-blue-50/70 to-white dark:border-blue-400/20 hover:border-blue-300',
     icon: 'bg-blue-100 text-blue-700 dark:bg-blue-400/10 dark:text-blue-300',
   },
   emerald: {
-    panel: 'border-emerald-100 from-emerald-50 to-white dark:border-emerald-400/15',
+    panel:
+      'border-emerald-200/90 from-emerald-50/70 to-white dark:border-emerald-400/20 hover:border-emerald-300',
     icon: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300',
   },
   amber: {
-    panel: 'border-amber-100 from-amber-50 to-white dark:border-amber-400/15',
+    panel:
+      'border-amber-200/90 from-amber-50/70 to-white dark:border-amber-400/20 hover:border-amber-300',
     icon: 'bg-amber-100 text-amber-700 dark:bg-amber-400/10 dark:text-amber-300',
   },
 };
@@ -65,19 +69,23 @@ export default function GrammarPracticeKitsPanel({ access, isStarting, onStart, 
             <article
               key={kit.slug}
               className={cn(
-                'group relative flex min-h-[175px] flex-col overflow-hidden rounded-2xl border bg-gradient-to-br p-3.5 transition hover:-translate-y-0.5 dark:from-white/[0.035] dark:to-white/[0.015]',
+                'group relative flex min-h-[175px] flex-col overflow-hidden rounded-2xl border bg-gradient-to-br p-3.5 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-6px_rgba(15,23,42,0.12)] dark:from-slate-900/60 dark:to-slate-950/40 dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.4)] dark:hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.6)]',
                 tone.panel
               )}
             >
-              <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full border-[18px] border-current opacity-[0.035]" />
               <div className="relative flex items-start justify-between gap-2.5">
                 <div
-                  className={cn('flex h-9 w-9 items-center justify-center rounded-xl', tone.icon)}
+                  className={cn(
+                    'flex h-9 w-9 items-center justify-center rounded-xl shadow-2xs',
+                    tone.icon
+                  )}
                 >
                   <BookOpenCheck className="h-4.5 w-4.5" />
                 </div>
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em] text-slate-500 shadow-2xs dark:bg-white/10 dark:text-slate-300">
-                  {isLocked && <LockKeyhole className="h-2.5 w-2.5" />}
+                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-slate-100/90 via-white/95 to-slate-100/90 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 backdrop-blur-md px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/60 shadow-2xs">
+                  {isLocked && (
+                    <LockKeyhole className="h-2.5 w-2.5 text-slate-500 dark:text-slate-400" />
+                  )}
                   {contentTierLabel(kit.access_tier)}
                 </span>
               </div>
@@ -99,7 +107,7 @@ export default function GrammarPracticeKitsPanel({ access, isStarting, onStart, 
                 <Link
                   to={isLocked ? '/pricing' : `/grammar/guides/${firstGuide.slug}`}
                   aria-label={isLocked ? `Unlock ${kit.title}` : `Start ${kit.title} guide`}
-                  className="inline-flex h-8 items-center justify-center rounded-xl border border-white/80 bg-white/80 px-2.5 text-[10px] font-extrabold text-slate-700 transition hover:border-[#cdd2f6] hover:text-[#505bdd] dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+                  className="inline-flex h-8 items-center justify-center rounded-xl border border-slate-200/90 bg-white/90 px-2.5 text-[10px] font-extrabold text-slate-700 transition hover:border-[#cdd2f6] hover:bg-slate-50 hover:text-[#505bdd] dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                   {isLocked ? 'Unlock' : 'Start guide'}
                 </Link>
@@ -114,7 +122,7 @@ export default function GrammarPracticeKitsPanel({ access, isStarting, onStart, 
                     })
                   }
                   disabled={isStarting || noAllowance || isLocked}
-                  className="inline-flex h-8 items-center justify-center rounded-xl bg-[#5661e9] px-2.5 text-[10px] font-extrabold text-white transition hover:bg-[#4853d6] disabled:cursor-not-allowed disabled:opacity-45"
+                  className="inline-flex h-8 items-center justify-center rounded-xl bg-[#5661e9] px-2.5 text-[10px] font-extrabold text-white transition hover:bg-[#4853d6] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   {isStarting ? (
                     <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />

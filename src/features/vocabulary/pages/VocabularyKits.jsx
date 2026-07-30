@@ -69,15 +69,10 @@ const KitCard = memo(function KitCard({ kit, index }) {
                 <Kit3DIcon kit={kit} />
               </div>
             </span>
-            <span
-              className={cn(
-                'inline-flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[9px] font-black shadow-2xs dark:bg-white/10',
-                isFree
-                  ? 'text-emerald-700 dark:text-emerald-300'
-                  : 'text-slate-500 dark:text-slate-300'
+            <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-slate-100/90 via-white/95 to-slate-100/90 dark:from-slate-800/80 dark:via-slate-900/80 dark:to-slate-800/80 backdrop-blur-md px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/60 shadow-2xs">
+              {!isFree && (
+                <LockKeyhole className="h-2.5 w-2.5 text-slate-500 dark:text-slate-400" />
               )}
-            >
-              {!isFree && <LockKeyhole className="h-2.5 w-2.5" />}
               {contentTierLabel(kit.access_tier)}
             </span>
           </div>
