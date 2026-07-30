@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BookOpen,
@@ -114,8 +114,13 @@ export function TaskPanel({
   allowSample = true,
 }) {
   const activeType = useWritingTestStore((state) => state.activeType) || 'Task 1';
+  const compositeTasks = useWritingTestStore((state) => state.compositeTasks);
+  const activeTask = useMemo(() => {
+    const activeTaskData = compositeTasks?.[activeType];
+    return activeTaskData ? { ...task, ...activeTaskData, activeType } : task;
+  }, [activeType, compositeTasks, task]);
 
-  if (!task) return null;
+  if (!activeTask) return null;
 
   return (
     <motion.div
@@ -184,7 +189,7 @@ export function TaskPanel({
           </div>
 
           {/* Instructions Section */}
-          {task.instructions && (
+          {activeTask.instructions && (
             <div className="px-3.5 py-2 bg-slate-50/20 dark:bg-transparent border-b border-slate-100 dark:border-slate-800/60">
               <h4 className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
                 Instructions
@@ -194,7 +199,7 @@ export function TaskPanel({
                            prose-p:text-slate-600 dark:prose-p:text-slate-400 
                            prose-p:text-[11.5px] sm:prose-p:text-[12px] prose-p:font-normal prose-p:leading-snug
                            [&_p]:my-0 [&_p+p]:mt-0.5"
-                dangerouslySetInnerHTML={{ __html: formatInstructionHTML(task.instructions) }}
+                dangerouslySetInnerHTML={{ __html: formatInstructionHTML(activeTask.instructions) }}
               />
             </div>
           )}
@@ -208,9 +213,9 @@ export function TaskPanel({
               className="text-sm font-serif font-medium leading-relaxed text-slate-800 dark:text-slate-100 border-l-2 border-orange-500/40 pl-3 py-0.5 bg-orange-500/[0.01] dark:bg-orange-500/[0.005] rounded-r-lg"
               dangerouslySetInnerHTML={{
                 __html: sanitizeHtml(
-                  task.prompt ||
-                    (typeof task.content === 'string' && !task.content.startsWith('{')
-                      ? task.content
+                  activeTask.prompt ||
+                    (typeof activeTask.content === 'string' && !activeTask.content.startsWith('{')
+                      ? activeTask.content
                       : '') ||
                     '<em class="text-slate-400">Task content not available. Please select a different task or contact support.</em>'
                 ),
@@ -220,10 +225,12 @@ export function TaskPanel({
         </div>
 
         {/* Enhanced Image Display */}
-        {task.image_url && <ImageDisplay imageUrl={task.image_url} data-oid="d5.uiql" />}
+        {activeTask.image_url && (
+          <ImageDisplay imageUrl={activeTask.image_url} data-oid="d5.uiql" />
+        )}
 
         {/* Sample Answer Toggle */}
-        {allowSample && task.sample_answer && (
+        {allowSample && activeTask.sample_answer && (
           <div className="pt-1" data-oid="b7qzctz">
             <Button
               variant="ghost"
@@ -278,7 +285,9 @@ export function TaskPanel({
                                 prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-p:leading-8
                                 prose-headings:font-bold prose-headings:text-amber-950 dark:prose-headings:text-amber-100
                                 [&>p]:mb-4 [&_p]:mb-4 space-y-4 [&>*:first-child]:mt-0 font-serif"
-                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(task.sample_answer || '') }}
+                      dangerouslySetInnerHTML={{
+                        __html: sanitizeHtml(activeTask.sample_answer || ''),
+                      }}
                       data-oid="ib.uee1"
                     />
                   </div>

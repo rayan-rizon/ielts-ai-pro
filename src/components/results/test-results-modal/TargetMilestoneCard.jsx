@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Target, TrendingUp, ChevronRight } from 'lucide-react';
+import { ArrowRight, Target } from 'lucide-react';
 import { QUESTION_TYPE_LABELS } from './utils';
 import { LISTENING_RAW_SCORE_THRESHOLDS, READING_RAW_SCORE_THRESHOLDS } from '@/lib/ieltsBandScore';
 
@@ -40,6 +40,7 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
 
   // Calculate progress % toward next milestone
   const nextThreshold = Math.ceil(((thresholds[nextBand] || 40) / 40) * total);
+  const answersNeeded = Math.max(0, nextThreshold - correct);
   const prevBand = [...bandLevels].reverse().find((b) => b <= currentBand);
   const prevThreshold = prevBand ? Math.ceil(((thresholds[prevBand] || 0) / 40) * total) : 0;
   const range = Math.max(1, nextThreshold - prevThreshold);
@@ -82,37 +83,42 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className="p-4 xl:p-5 rounded-2xl bg-gradient-to-br from-white via-[#fbfaff] to-[#f0eeff] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] border border-[#dce0f5] dark:border-white/10 shadow-[0_10px_30px_-15px_rgba(86,97,233,0.15)] hover:shadow-[0_16px_36px_-18px_rgba(86,97,233,0.22)] transition-all duration-300 flex flex-col justify-between h-full space-y-3 relative overflow-hidden"
+      className="p-4 xl:p-5 rounded-2xl bg-gradient-to-br from-white via-[#fbfaff] to-[#f0eeff] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] border border-[#dce0f5] dark:border-white/10 shadow-[0_10px_30px_-15px_rgba(86,97,233,0.15)] hover:shadow-[0_16px_36px_-18px_rgba(86,97,233,0.22)] transition-all duration-300 flex flex-col h-full gap-4 relative overflow-hidden"
     >
-      {/* Liquid Glass Background Accents */}
       <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#5661e9]/10 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Header */}
-      <div className="flex items-center justify-between z-10">
+      <div className="flex items-center justify-between gap-3 z-10">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-white text-[#5661e9] shadow-xs dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#d2d7f8] dark:border-indigo-500/30 flex items-center justify-center">
             <Target className="w-4 h-4" />
           </div>
-          <h3 className="text-sm font-black tracking-tight text-slate-950 dark:text-white">
-            Your Path to Band {nextBand.toFixed(1)}
-          </h3>
+          <div>
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+              Your next milestone
+            </p>
+            <h3 className="text-base font-black tracking-tight text-slate-950 dark:text-white">
+              Band {nextBand.toFixed(1)}
+            </h3>
+          </div>
         </div>
-        <span className="px-2.5 py-1 rounded-lg bg-[#efedff] dark:bg-indigo-500/20 text-[#5661e9] dark:text-indigo-300 text-xs font-bold border border-[#d2d7f8] dark:border-indigo-500/30">
-          Band {nextBand.toFixed(1)}
-        </span>
+        <div className="text-right">
+          <p className="text-2xl font-black tracking-tight text-[#5661e9] dark:text-indigo-300">
+            +{answersNeeded}
+          </p>
+          <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+            correct answer{answersNeeded === 1 ? '' : 's'} needed
+          </p>
+        </div>
       </div>
 
-      {/* Milestone Progress Bar (Clean non-overlapping header) */}
       <div className="space-y-1.5 z-10">
         <div className="flex items-center justify-between text-xs font-bold">
-          <span className="text-slate-500 dark:text-slate-400">
-            Progress to Band {nextBand.toFixed(1)}
-          </span>
+          <span className="text-slate-500 dark:text-slate-400">Milestone progress</span>
           <span className="text-xs font-black text-[#5661e9] dark:text-indigo-400">
             {progressPct}%
           </span>
         </div>
-        <div className="h-2 bg-slate-200/80 dark:bg-white/10 rounded-full overflow-hidden">
+        <div className="h-2.5 bg-slate-200/80 dark:bg-white/10 rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progressPct}%` }}
@@ -122,62 +128,19 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
         </div>
       </div>
 
-      {/* Key Weakness Card */}
-      <div className="p-3.5 rounded-xl bg-[#efedff]/70 dark:bg-indigo-500/10 border border-[#d2d7f8] dark:border-indigo-500/25 flex items-start gap-3 z-10">
-        <div className="w-8.5 h-8.5 rounded-xl bg-white dark:bg-slate-900 text-[#5661e9] dark:text-indigo-400 border border-[#d2d7f8] dark:border-indigo-500/30 flex items-center justify-center shrink-0 shadow-2xs">
-          <Target className="w-4 h-4" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold uppercase tracking-wider text-[#5661e9] dark:text-indigo-400">
-            Key weakness
-          </p>
-          <h4 className="text-sm font-black text-slate-950 dark:text-white leading-tight my-0.5">
-            {weakestLabel}
-          </h4>
-          <p className="text-xs text-slate-600 dark:text-slate-400 leading-snug">
-            Focus on improving accuracy in {weakestLabel.toLowerCase()} questions.
-          </p>
-        </div>
-      </div>
-
-      {/* What to Improve Action Button */}
       <button
         type="button"
         onClick={onReviewAnswers}
-        className="w-full p-2.5 rounded-xl bg-white/90 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-[#e2e5f6] dark:border-white/10 flex items-center gap-3 transition-colors text-left group z-10 shadow-2xs"
+        className="w-full mt-auto p-3.5 rounded-xl bg-[#5661e9] hover:bg-[#4853d6] text-white flex items-center gap-3 transition-all text-left group z-10 shadow-sm"
       >
-        <div className="w-8 h-8 rounded-lg bg-[#5661e9] text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-          <TrendingUp className="w-4 h-4" />
-        </div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">
-            What to improve
-          </h4>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-            {tipText}
-          </p>
+          <p className="text-[10px] font-bold text-indigo-100">Best place to start</p>
+          <h4 className="text-sm font-black leading-tight">Review {weakestLabel}</h4>
+          <p className="text-[11px] text-indigo-100 line-clamp-2 mt-1">{tipText}</p>
         </div>
-        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
-      </button>
-
-      {/* The current results flow can take learners directly to their mistakes. */}
-      <button
-        type="button"
-        onClick={onReviewAnswers}
-        className="w-full p-2.5 rounded-xl bg-white/90 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border border-[#e2e5f6] dark:border-white/10 flex items-center gap-3 transition-colors text-left group z-10 shadow-2xs"
-      >
-        <div className="w-8 h-8 rounded-lg bg-[#5661e9] text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-          <Target className="w-4 h-4" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h4 className="text-xs font-black text-slate-900 dark:text-white leading-tight">
-            Review this focus area
-          </h4>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-            See the mistakes that are holding back your score.
-          </p>
-        </div>
-        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 shrink-0 group-hover:translate-x-0.5 transition-transform">
+          <ArrowRight className="w-4 h-4" />
+        </span>
       </button>
     </motion.div>
   );

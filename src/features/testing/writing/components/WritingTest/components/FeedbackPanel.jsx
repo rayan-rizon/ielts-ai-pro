@@ -102,16 +102,23 @@ function createLegacyPriorities(feedback) {
   }));
 }
 
-function buildSummary(feedback, priorities) {
-  if (feedback?.summary) return compactUiText(feedback.summary, 128, { dropHeading: true });
+function buildTakeaway(feedback, priorities, taskType) {
   const band = Number(feedback?.overallBand || 0);
-  const level =
-    band >= 8 ? 'strong' : band >= 7 ? 'effective' : band >= 6 ? 'competent' : 'developing';
-  const nextCriterion = cleanFeedbackText(priorities[0]?.criterion).toLowerCase();
-  const article = /^[aeiou]/i.test(level) ? 'An' : 'A';
-  return nextCriterion
-    ? `${article} ${level} response. Focus next on ${nextCriterion}.`
-    : `${article} ${level} response across the four IELTS Writing criteria.`;
+  const assessment =
+    band >= 8
+      ? `Excellent ${taskType} response`
+      : band >= 7
+        ? `Strong ${taskType} response`
+        : band >= 6
+          ? `Solid ${taskType} response`
+          : `Developing ${taskType} response`;
+  const priority = priorities[0];
+
+  return {
+    assessment,
+    nextFocus: priority?.criterion || null,
+    nextAction: priority?.action?.preview || null,
+  };
 }
 
 function ScoreRing({ score }) {
@@ -122,32 +129,27 @@ function ScoreRing({ score }) {
 
   return (
     <div
-      className="relative h-32 w-32 shrink-0 sm:h-36 sm:w-36"
+      className="relative flex h-28 w-28 shrink-0 items-center justify-center sm:h-32 sm:w-32"
       aria-label={`Band ${safeScore} out of 9`}
     >
-      <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
+      <svg
+        viewBox="0 0 120 120"
+        className="h-full w-full -rotate-90 overflow-visible"
+        aria-hidden="true"
+      >
         <defs>
           <linearGradient id="writing-score-gradient" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#5661e9" />
-            <stop offset="100%" stopColor="#4853d6" />
+            <stop offset="100%" stopColor="#3b42c4" />
           </linearGradient>
         </defs>
-        <circle
-          cx="60"
-          cy="60"
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="8"
-          className="text-slate-100 dark:text-white/10"
-        />
         <motion.circle
           cx="60"
           cy="60"
           r={radius}
           fill="none"
           stroke="url(#writing-score-gradient)"
-          strokeWidth="8"
+          strokeWidth="11"
           strokeLinecap="round"
           strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
@@ -156,13 +158,15 @@ function ScoreRing({ score }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[9px] font-black uppercase tracking-widest text-[#5661e9] dark:text-indigo-300">
-          BAND
+        <span className="text-[9px] font-black uppercase tracking-[0.18em] text-[#5661e9] dark:text-indigo-300">
+          Band
         </span>
-        <span className="text-4xl sm:text-5xl font-black tracking-tight text-slate-950 dark:text-white">
+        <span className="mt-0.5 text-3xl font-black leading-none tracking-[-0.04em] text-slate-950 dark:text-white sm:text-4xl">
           {safeScore.toFixed(1)}
         </span>
-        <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">of 9.0</span>
+        <span className="mt-1 text-[9px] font-bold text-slate-400 dark:text-slate-500">
+          out of 9
+        </span>
       </div>
     </div>
   );
@@ -179,18 +183,18 @@ function AnalyzingState({ loadingMessage }) {
       exit={{ opacity: 0 }}
       className="flex min-h-[520px] flex-1 items-center justify-center bg-slate-50 p-6 dark:bg-slate-950"
     >
-      <div className="w-full max-w-sm rounded-2xl border border-slate-200/80 bg-white p-7 text-center shadow-md dark:border-white/10 dark:bg-slate-900">
+      <div className="w-full max-w-sm rounded-2xl border border-[#dce0f5] bg-white p-7 text-center shadow-md dark:border-white/10 dark:bg-slate-900">
         <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-            className="absolute inset-0 rounded-full border-2 border-transparent border-t-indigo-500 border-r-indigo-400"
+            className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#5661e9] border-r-indigo-400"
           />
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-500/20">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#5661e9] text-white shadow-md shadow-indigo-500/20">
             <Sparkles className="h-6 w-6" />
           </div>
         </div>
-        <p className="text-xs font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+        <p className="text-xs font-extrabold uppercase tracking-wider text-[#5661e9] dark:text-indigo-400">
           Building your review
         </p>
         <h2 className="mt-2 text-xl font-black text-slate-900 dark:text-white">
@@ -203,12 +207,12 @@ function AnalyzingState({ loadingMessage }) {
           {steps.map((step, index) => (
             <div
               key={step}
-              className="flex items-center gap-2 rounded-xl border border-slate-200/60 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-700 dark:border-white/5 dark:bg-white/5 dark:text-slate-300"
+              className="flex items-center gap-2 rounded-xl border border-[#e2e5f6] bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-700 dark:border-white/5 dark:bg-white/5 dark:text-slate-300"
             >
               <span
                 className={cn(
                   'h-2 w-2 rounded-full',
-                  index === 0 ? 'animate-pulse bg-indigo-500' : 'bg-slate-300 dark:bg-white/15'
+                  index === 0 ? 'animate-pulse bg-[#5661e9]' : 'bg-slate-300 dark:bg-white/15'
                 )}
               />
               {step}
@@ -240,7 +244,7 @@ function ErrorState({ feedbackError, handleGetFeedback }) {
         </p>
         <Button
           onClick={handleGetFeedback}
-          className="mt-5 h-11 rounded-xl bg-slate-900 px-5 font-bold text-white hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500"
+          className="mt-5 h-11 rounded-xl bg-[#5661e9] px-5 font-bold text-white hover:bg-[#4853d6]"
         >
           <RefreshCw className="mr-2 h-4 w-4" /> Try again
         </Button>
@@ -312,7 +316,10 @@ export function FeedbackPanel({
       ),
     }));
   }, [feedback]);
-  const summary = useMemo(() => buildSummary(feedback, priorities), [feedback, priorities]);
+  const takeaway = useMemo(
+    () => buildTakeaway(feedback, priorities, taskType),
+    [feedback, priorities, taskType]
+  );
   const strengths = useMemo(
     () =>
       (Array.isArray(feedback?.strengths) ? feedback.strengths : [])
@@ -371,17 +378,17 @@ export function FeedbackPanel({
             transition={{ duration: 0.35 }}
             className="flex-1 space-y-3 overflow-y-auto p-3 sm:p-4"
           >
-            <section className="overflow-hidden rounded-2xl border border-[#dce0f5] bg-gradient-to-br from-[#fafbff] via-[#f5f4ff] to-[#eae8ff] text-slate-950 dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] dark:text-white shadow-[0_12px_36px_-16px_rgba(86,97,233,0.18)] hover:shadow-[0_18px_42px_-18px_rgba(86,97,233,0.25)] transition-all duration-300">
+            <section className="overflow-hidden rounded-2xl border border-[#d2d7f8] bg-gradient-to-br from-[#ffffff] via-[#f2f4fe] to-[#e6e9fc] text-slate-950 shadow-[0_12px_32px_-18px_rgba(86,97,233,0.25)] dark:border-white/10 dark:from-[#101322] dark:via-[#13172e] dark:to-[#181d38] dark:text-white">
               <div className="relative overflow-hidden p-4 sm:p-5">
                 <div className="relative flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-slate-950 dark:text-white">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-white text-[#5661e9] shadow-xs dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#d2d7f8] dark:border-indigo-500/30">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-[0.12em] text-slate-800 dark:text-white">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/15 dark:text-indigo-300 border border-[#d2d7f8] shadow-2xs">
                       <Sparkles className="h-4 w-4" />
                     </span>
-                    AI feedback summary
+                    Writing assessment
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-white/90 dark:bg-white/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 border border-[#dce0f5] dark:border-white/10 shadow-2xs">
+                    <span className="rounded-full bg-gradient-to-r from-white to-[#f4f3ff] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-700 border border-[#d2d7f8] dark:bg-white/5 dark:text-slate-200 dark:border-white/10 shadow-2xs">
                       {taskType}
                     </span>
                     <Button
@@ -389,7 +396,7 @@ export function FeedbackPanel({
                       variant="ghost"
                       onClick={handleDownloadPdf}
                       disabled={isDownloadingPdf}
-                      className="h-8 rounded-xl bg-white/90 hover:bg-white dark:bg-white/10 dark:hover:bg-white/15 px-3 text-xs font-black text-slate-800 dark:text-white border border-[#dce0f5] dark:border-white/10 shadow-2xs transition-all hover:scale-[1.02] active:scale-[0.98]"
+                      className="h-8 rounded-lg bg-gradient-to-r from-white to-[#f4f3ff] px-3 text-xs font-black text-slate-700 border border-[#d2d7f8] transition-all hover:border-[#5661e9] hover:shadow-2xs dark:bg-white/5 dark:text-white dark:border-white/10 dark:hover:bg-white/10"
                     >
                       {isDownloadingPdf ? (
                         <LoaderCircle className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -401,35 +408,45 @@ export function FeedbackPanel({
                   </div>
                 </div>
 
-                <div className="relative mt-4 grid items-center gap-4 sm:grid-cols-[140px_1fr] sm:gap-6">
-                  <div className="mx-auto">
+                <div className="relative mt-4 grid items-center gap-4 sm:grid-cols-[132px_1fr] sm:gap-5">
+                  <div className="mx-auto sm:border-r sm:border-[#d2d7f8]/70 sm:pr-5 dark:sm:border-white/10">
                     <ScoreRing score={feedback.overallBand} />
                   </div>
-                  <div className="text-center sm:border-l sm:border-[#dce0f5]/90 dark:sm:border-white/10 sm:pl-6 sm:text-left">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5661e9]/10 text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#5661e9]/25 px-3 py-0.5 text-[9px] font-black uppercase tracking-widest mb-2 shadow-2xs">
-                      Main takeaway
+                  <div className="text-center sm:text-left">
+                    <span className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
+                      Your result
                     </span>
-                    <p className="text-base sm:text-lg font-black leading-snug tracking-tight text-slate-950 dark:text-white">
-                      {summary}
-                    </p>
-                    <p className="mt-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    <h2 className="mt-1 text-xl font-black leading-tight tracking-[-0.03em] text-slate-950 dark:text-white sm:text-2xl">
+                      {takeaway.assessment}
+                    </h2>
+                    {takeaway.nextFocus && takeaway.nextAction && (
+                      <div className="mt-3 border-l-2 border-[#5661e9] pl-3 text-left dark:border-indigo-400">
+                        <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.14em] text-[#5661e9] dark:text-indigo-300">
+                          <Target className="h-3 w-3" /> Priority · {takeaway.nextFocus}
+                        </div>
+                        <p className="mt-1 text-[11px] font-semibold leading-relaxed text-slate-600 dark:text-slate-200">
+                          {takeaway.nextAction}
+                        </p>
+                      </div>
+                    )}
+                    <p className="mt-2 text-[10px] font-semibold text-slate-400 dark:text-slate-500">
                       Practice estimate based on public IELTS descriptors
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 p-3 sm:p-3.5 bg-slate-50/70 dark:bg-[#0c0e18]/80 border-t border-[#dce0f5] dark:border-white/10">
+              <div className="grid grid-cols-2 gap-2.5 border-t border-[#d2d7f8] bg-gradient-to-r from-[#f4f5fe] via-[#ebedfd] to-[#e4e7fc] p-3 sm:grid-cols-4 sm:gap-3 sm:p-3.5 dark:border-white/10 dark:bg-black/20">
                 {criteria.map((item) => (
                   <div
                     key={item.short}
-                    className="group relative flex flex-col justify-between rounded-xl border border-[#d5daea] bg-gradient-to-br from-white via-[#fcfbff] to-[#f4f2ff] p-2.5 sm:p-3 dark:border-white/10 dark:from-white/[0.06] dark:to-white/[0.02] shadow-2xs hover:border-[#5661e9]/60 hover:shadow-xs transition-all duration-200"
+                    className="group relative flex flex-col justify-between rounded-xl border border-[#dce0f5] bg-gradient-to-br from-white via-[#fcfbff] to-[#f2f1fe] p-2.5 transition-all duration-200 hover:border-[#5661e9]/70 hover:shadow-xs dark:border-white/10 dark:from-[#161a2e] dark:via-[#111425] dark:to-[#0e111d] dark:hover:border-indigo-400/50 sm:p-3"
                   >
                     <div className="flex items-center justify-between gap-1">
-                      <span className="rounded-md bg-[#5661e9]/10 text-[#5661e9] dark:bg-indigo-500/25 dark:text-indigo-300 border border-[#5661e9]/20 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider">
+                      <span className="rounded-md bg-[#efedff] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30 shadow-2xs">
                         {item.short}
                       </span>
-                      <span className="text-lg sm:text-xl font-black tracking-tight text-slate-950 dark:text-white group-hover:text-[#5661e9] dark:group-hover:text-indigo-300 transition-colors">
+                      <span className="text-lg font-black tracking-tight text-slate-950 transition-colors group-hover:text-[#5661e9] dark:text-white dark:group-hover:text-indigo-300 sm:text-xl">
                         {item.score.toFixed(1)}
                       </span>
                     </div>
@@ -441,7 +458,7 @@ export function FeedbackPanel({
                       {item.label}
                     </div>
 
-                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200/70 dark:bg-white/10">
+                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#efedff] dark:bg-white/10 border border-[#d2d7f8]/60 dark:border-white/10">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${(item.score / 9) * 100}%` }}
@@ -455,15 +472,15 @@ export function FeedbackPanel({
             </section>
 
             {combinedBand && (
-              <div className="flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50/60 px-3 py-2 dark:border-indigo-500/20 dark:bg-indigo-500/10">
-                <div className="flex items-center gap-2 text-xs font-bold text-indigo-950 dark:text-indigo-200">
-                  <TrendingUp className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />{' '}
-                  Writing estimate{' '}
-                  <span className="hidden text-[10px] font-medium text-indigo-700/70 sm:inline dark:text-indigo-300/70">
+              <div className="flex items-center justify-between rounded-xl border border-[#d2d7f8] bg-gradient-to-r from-[#efedff]/80 via-[#f0f2fe] to-[#e6e9fc] px-3 py-2 dark:border-indigo-500/20 dark:bg-indigo-500/10 shadow-2xs">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-indigo-200">
+                  <TrendingUp className="h-3.5 w-3.5 text-[#5661e9] dark:text-indigo-400" /> Writing
+                  estimate{' '}
+                  <span className="hidden text-[10px] font-medium text-slate-500 sm:inline dark:text-indigo-300/70">
                     Task 1 × ⅓ + Task 2 × ⅔
                   </span>
                 </div>
-                <span className="text-xl font-black text-indigo-700 dark:text-indigo-300">
+                <span className="text-xl font-black text-[#5661e9] dark:text-indigo-300">
                   {combinedBand.toFixed(1)}
                 </span>
               </div>
@@ -485,10 +502,10 @@ export function FeedbackPanel({
             )}
 
             <div className="grid gap-2.5 xl:grid-cols-2">
-              <section className="rounded-2xl border border-[#e4e7f4] bg-white p-3.5 sm:p-4 dark:border-white/10 dark:bg-[#10131f] shadow-xs">
-                <div className="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-[#e4e7f4] dark:border-white/10">
+              <section className="rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/40 via-white to-emerald-50/20 p-3.5 sm:p-4 dark:border-emerald-900/40 dark:from-emerald-950/20 dark:to-transparent shadow-2xs">
+                <div className="mb-3 flex items-center justify-between gap-2 border-b border-emerald-200/60 pb-2 dark:border-emerald-500/15">
                   <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#eaf9f1] text-[#159669] dark:bg-emerald-500/15 dark:text-emerald-400">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/80 dark:bg-emerald-500/15 dark:text-emerald-400">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                     </span>
                     Key strengths
@@ -498,7 +515,7 @@ export function FeedbackPanel({
                 <div className="space-y-2.5">
                   {strengths.map((strength, index) => (
                     <div key={`${strength.full}-${index}`} className="flex items-start gap-2.5">
-                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#159669]/15 text-[#159669] dark:bg-emerald-500/20 dark:text-emerald-400">
+                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400">
                         <Check className="h-2.5 w-2.5 stroke-[3]" />
                       </span>
                       <div
@@ -517,7 +534,7 @@ export function FeedbackPanel({
                             aria-expanded={Boolean(expandedFeedbackItems[`strength-${index}`])}
                             aria-label={`${expandedFeedbackItems[`strength-${index}`] ? 'Show less' : 'Show full'} strength ${index + 1}`}
                             onClick={() => toggleFeedbackItem(`strength-${index}`)}
-                            className="ml-1 inline font-extrabold text-[#159669] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#159669] focus-visible:ring-offset-2 dark:text-emerald-400"
+                            className="ml-1 inline font-extrabold text-emerald-600 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:text-emerald-400"
                           >
                             {expandedFeedbackItems[`strength-${index}`] ? 'Less' : 'More'}
                           </button>
@@ -533,10 +550,10 @@ export function FeedbackPanel({
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-[#e4e7f4] bg-white p-3.5 sm:p-4 dark:border-white/10 dark:bg-[#10131f] shadow-xs">
-                <div className="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-[#e4e7f4] dark:border-white/10">
+              <section className="rounded-2xl border border-[#d2d7f8] bg-gradient-to-br from-[#efedff]/40 via-white to-[#f4f3ff]/40 p-3.5 sm:p-4 dark:border-indigo-900/40 dark:from-indigo-950/20 dark:to-transparent shadow-2xs">
+                <div className="mb-3 flex items-center justify-between gap-2 border-b border-[#d2d7f8]/60 pb-2 dark:border-indigo-500/15">
                   <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#fff1e7] text-[#df7437] dark:bg-amber-500/15 dark:text-amber-400">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/15 dark:text-indigo-400">
                       <Target className="h-3.5 w-3.5" />
                     </span>
                     Top 3 priorities
@@ -547,21 +564,21 @@ export function FeedbackPanel({
                   {priorities.map((priority, index) => (
                     <div key={`${priority.issue.full}-${index}`} className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex h-5 w-5 min-w-[20px] shrink-0 items-center justify-center rounded-md bg-[#df7437]/15 text-[#df7437] dark:bg-amber-500/20 dark:text-amber-300 text-[11px] font-black leading-none">
+                        <span className="inline-flex h-5 w-5 min-w-[20px] shrink-0 items-center justify-center rounded-md bg-[#5661e9] text-white font-black text-[11px] leading-none shadow-2xs">
                           {index + 1}
                         </span>
-                        <span className="text-[9px] font-black uppercase tracking-wider text-[#5963d9] dark:text-indigo-400">
+                        <span className="text-[9px] font-black uppercase tracking-wider text-[#5661e9] dark:text-indigo-400">
                           {priority.criterion}
                         </span>
                       </div>
                       <div id={`feedback-priority-${index}`}>
-                        <p className="text-xs font-bold text-slate-950 dark:text-white pl-6 leading-snug">
+                        <p className="text-xs font-black text-slate-950 dark:text-white pl-7 leading-snug">
                           {expandedFeedbackItems[`priority-${index}`]
                             ? priority.issue.full
                             : priority.issue.preview}
                         </p>
-                        <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300 pl-6 leading-relaxed">
-                          <strong className="text-[#5661e9] dark:text-indigo-400 font-extrabold mr-1.5 uppercase tracking-wider text-[9px]">
+                        <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 pl-7 leading-relaxed">
+                          <strong className="text-[#5661e9] dark:text-indigo-400 font-black mr-1.5 uppercase tracking-wider text-[9px]">
                             DO:
                           </strong>
                           {expandedFeedbackItems[`priority-${index}`]
@@ -572,7 +589,7 @@ export function FeedbackPanel({
                       {(priority.issue.isTruncated ||
                         priority.action.isTruncated ||
                         priority.annotation) && (
-                        <div className="ml-6 flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <div className="ml-7 flex flex-wrap items-center gap-x-3 gap-y-1">
                           {(priority.issue.isTruncated || priority.action.isTruncated) && (
                             <button
                               type="button"
@@ -607,15 +624,15 @@ export function FeedbackPanel({
               </section>
             </div>
 
-            <section className="overflow-hidden rounded-2xl border border-[#e4e7f4] bg-white shadow-xs dark:border-white/10 dark:bg-[#10131f]">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e4e7f4] dark:border-white/10 px-3.5 py-2.5 bg-slate-50/50 dark:bg-white/[0.02]">
+            <section className="overflow-hidden rounded-2xl border border-[#e2e5f6] bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] shadow-2xs dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829]">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e2e5f6] dark:border-white/10 px-3.5 py-2.5 bg-slate-50/50 dark:bg-white/[0.02]">
                 <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5a63df] dark:bg-indigo-500/15 dark:text-indigo-400">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/15 dark:text-indigo-400">
                     <Lightbulb className="h-3.5 w-3.5" />
                   </span>
                   Corrections & improvements
                 </div>
-                <span className="rounded-full bg-slate-100 dark:bg-white/10 px-2.5 py-0.5 text-[10px] font-black text-slate-700 dark:text-slate-300 border border-slate-200/70 dark:border-white/10">
+                <span className="rounded-full bg-white dark:bg-white/10 px-2.5 py-0.5 text-[10px] font-black text-slate-700 dark:text-slate-300 border border-[#dce0f5] dark:border-white/10">
                   {improvements.length > 0
                     ? `${improvements.length} ${improvements.length === 1 ? 'item' : 'items'}`
                     : 'All clear'}
@@ -657,7 +674,7 @@ export function FeedbackPanel({
                 <button
                   type="button"
                   onClick={() => setShowAllCorrections((value) => !value)}
-                  className="flex w-full items-center justify-center gap-1 border-t border-[#e4e7f4] py-2 text-[11px] font-extrabold text-[#5661e9] hover:bg-slate-50 dark:border-white/10 dark:text-indigo-300 dark:hover:bg-white/5"
+                  className="flex w-full items-center justify-center gap-1 border-t border-[#e2e5f6] py-2 text-[11px] font-extrabold text-[#5661e9] hover:bg-slate-50 dark:border-white/10 dark:text-indigo-300 dark:hover:bg-white/5"
                 >
                   {showAllCorrections
                     ? 'Show fewer improvements'

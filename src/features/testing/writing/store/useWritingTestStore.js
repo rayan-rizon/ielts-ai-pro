@@ -62,11 +62,12 @@ export const useWritingTestStore = create(
         /**
          * Set task data after fetching
          */
-        setTask: (task, compositeTasks = {}) =>
+        setTask: (task, compositeTasks = {}, activeType) =>
           set({
             task,
             compositeTasks,
             isLoading: false,
+            ...(activeType ? { activeType } : {}),
           }),
 
         /**
@@ -238,7 +239,8 @@ export const useWritingTestStore = create(
          */
         switchTaskFull: (newType) => {
           const state = get();
-          const newTaskData = state.compositeTasks[newType] || {};
+          const newTaskData = state.compositeTasks[newType];
+          if (!newTaskData) return;
           const {
             prompt: _previousPrompt,
             instructions: _previousInstructions,

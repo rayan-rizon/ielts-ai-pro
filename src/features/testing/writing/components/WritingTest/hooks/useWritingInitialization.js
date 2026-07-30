@@ -256,13 +256,17 @@ function updateUrlWithSession(navigate, isNewAttempt, sessionId) {
  * - Fetching Task/Session data (via RPC or fallback)
  * - Handling Session validity/tab-safety
  */
-function applyTaskToStore(store, selectedTask, params) {
+function applyTaskToStore(store, selectedTask) {
   const { compositeTasks, currentTaskData, initialActiveType } =
     parseCompositeWritingTask(selectedTask);
-  const finalActiveType = compositeTasks[store.activeType] ? store.activeType : initialActiveType;
+  const activeType = useWritingTestStore.getState().activeType;
+  const finalActiveType = compositeTasks[activeType] ? activeType : initialActiveType;
   const finalTaskData = compositeTasks[finalActiveType] || currentTaskData;
-  store.setTask({ ...selectedTask, ...finalTaskData, activeType: finalActiveType }, compositeTasks);
-  if (!store.activeType || params.isNewAttempt) store.setActiveType(finalActiveType);
+  store.setTask(
+    { ...selectedTask, ...finalTaskData, activeType: finalActiveType },
+    compositeTasks,
+    finalActiveType
+  );
   return initialActiveType;
 }
 
@@ -280,13 +284,17 @@ async function loadUserAndData(store, params, passedUser) {
   return { ...sessionAndTask, userData };
 }
 
-async function applySessionOrCreate({ store, selectedTask, existingSession, params }) {
-  const initialActiveType = applyTaskToStore(store, selectedTask, params);
-  if (existingSession) {
-    restoreWritingSessionState(store, existingSession, initialActiveType);
-  } else {
+async function applySessionOrCreate({ store, selectedTask, existingSession }) {
+  if (!existingSession) {
+    // Reset before deriving the active task. Resetting after setTask used to leave
+    // Task 2's prompt/sample in `task` while the UI had switched back to Task 1.
     store.resetTest();
     store.setSession(null);
+  }
+
+  const initialActiveType = applyTaskToStore(store, selectedTask);
+  if (existingSession) {
+    restoreWritingSessionState(store, existingSession, initialActiveType);
   }
 }
 
@@ -307,7 +315,6 @@ async function runInitialize(store, navigate, passedUser) {
       store,
       selectedTask,
       existingSession,
-      params,
     });
   } catch (err) {
     console.error('Initialization error:', err);

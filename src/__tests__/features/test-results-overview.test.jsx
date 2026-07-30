@@ -42,6 +42,9 @@ describe('test result overview', () => {
     );
 
     expect(screen.getByText('80%')).toBeInTheDocument();
+    expect(screen.getByText('Your next milestone')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Review Gap Fill/i })).toBeInTheDocument();
+    expect(screen.queryByText('Review this focus area')).not.toBeInTheDocument();
   });
 
   it('recalculates stale saved score fields from the scored answers', () => {

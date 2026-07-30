@@ -70,9 +70,11 @@ describe('Writing feedback panel', () => {
   it('presents the compact score-first hierarchy', () => {
     render(<FeedbackPanel feedback={feedback} />);
 
-    expect(screen.getByText('AI feedback summary')).toBeInTheDocument();
+    expect(screen.getByText('Writing assessment')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'PDF' })).toBeInTheDocument();
     expect(screen.getByLabelText('Band 6 out of 9')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Solid Task 2 response' })).toBeInTheDocument();
+    expect(screen.getByText(/Priority · Grammar/)).toBeInTheDocument();
     expect(screen.getAllByText('Task Response')).toHaveLength(2);
     expect(screen.getByText('Key strengths')).toBeInTheDocument();
     expect(screen.getByText('Top 3 priorities')).toBeInTheDocument();
@@ -149,9 +151,7 @@ describe('Writing feedback panel', () => {
     const { container } = render(<FeedbackPanel feedback={legacyFeedback} />);
 
     expect(container.textContent).not.toContain('**');
-    expect(
-      screen.getByText('A competent response. Focus next on coherence & cohesion.')
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Solid Task 2 response' })).toBeInTheDocument();
     expect(
       screen.getByText(/The response provides a clear and comprehensive description/)
     ).toBeInTheDocument();

@@ -78,19 +78,28 @@ function renderAnalysis(props) {
 describe('premium analysis UI', () => {
   it('limits free users to the two approved teasers', () => {
     renderAnalysis({ isPremium: false });
-    expect(screen.getByText('Largest lost-point area')).toBeInTheDocument();
-    expect(screen.getByText('Next-band gap')).toBeInTheDocument();
-    expect(screen.queryByText('Score recovery map')).not.toBeInTheDocument();
-    expect(screen.queryByText('Priority mistake queue')).not.toBeInTheDocument();
+    expect(screen.getByText('Your biggest score loss')).toBeInTheDocument();
+    expect(screen.getByText('Answers needed for your next band')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Unlock premium coaching/i })).toBeInTheDocument();
+    expect(screen.queryByText('Where you lost marks')).not.toBeInTheDocument();
+    expect(screen.queryByText('Review these answers first')).not.toBeInTheDocument();
   });
 
   it('renders the paid coaching flow and routes mistake review', () => {
     const onReviewQuestion = vi.fn();
     renderAnalysis({ isPremium: true, onReviewQuestion });
 
-    expect(screen.getByText('Score recovery map')).toBeInTheDocument();
-    expect(screen.getByText('Target band planner')).toBeInTheDocument();
-    expect(screen.getByText('Seven-day recovery plan')).toBeInTheDocument();
+    expect(screen.getByText('Where you lost marks')).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Target band' })).toBeInTheDocument();
+    expect(screen.getByText('Answer mix')).toBeInTheDocument();
+    expect(screen.getByText('Best recovery opportunity')).toBeInTheDocument();
+    expect(screen.getByText('Review these answers first')).toBeInTheDocument();
+    expect(screen.getByText('Your 7-day practice plan')).toBeInTheDocument();
+    expect(screen.getByText('Review 3 priority mistakes')).toBeInTheDocument();
+    expect(screen.queryByText('Mini retest and result comparison')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show all 7 days' }));
+    expect(screen.getByText('Mini retest and result comparison')).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole('button', { name: /Review/i })[0]);
     expect(onReviewQuestion).toHaveBeenCalledWith(1);
@@ -98,7 +107,7 @@ describe('premium analysis UI', () => {
 
   it('keeps legacy plans on-screen but disables saving', () => {
     renderAnalysis({ isPremium: true, sessionId: null });
-    expect(screen.getByRole('button', { name: 'Use as my 7-day plan' })).toBeDisabled();
-    expect(screen.getByText(/Legacy results can use this plan on-screen/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save plan' })).toBeDisabled();
+    expect(screen.getByText(/This older result can show the plan/)).toBeInTheDocument();
   });
 });

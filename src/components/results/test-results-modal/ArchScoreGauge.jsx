@@ -27,7 +27,7 @@ export function ArchScoreGauge({ score }) {
   const cx = 160;
   const cy = 154;
   const radius = 112;
-  const strokeWidth = 22;
+  const strokeWidth = 28;
 
   // Arc length for 180 degrees (semi-circle)
   const arcLength = Math.PI * radius; // ~270.18
@@ -50,8 +50,6 @@ export function ArchScoreGauge({ score }) {
 
   return (
     <div className="relative flex flex-col items-center justify-center select-none py-1 group">
-      <div className="absolute inset-x-10 top-10 bottom-1 rounded-full bg-blue-500/[0.06] blur-2xl pointer-events-none" />
-
       <div className="relative w-[270px] h-[160px] xl:w-[320px] xl:h-[190px]">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
           <defs>
@@ -63,25 +61,15 @@ export function ArchScoreGauge({ score }) {
               y2="154"
               gradientUnits="userSpaceOnUse"
             >
-              <stop offset="0%" stopColor="#3B82F6" />
-              <stop offset="55%" stopColor="#2563EB" />
-              <stop offset="100%" stopColor="#1D4ED8" />
+              <stop offset="0%" stopColor="#5661e9" />
+              <stop offset="55%" stopColor="#4853d6" />
+              <stop offset="100%" stopColor="#3b42c4" />
             </linearGradient>
             <filter id={glowId} x="-25%" y="-25%" width="150%" height="150%">
               <feGaussianBlur stdDeviation="2.5" result="blur" />
               <feComposite in="SourceGraphic" in2="blur" operator="over" />
             </filter>
           </defs>
-
-          {/* Background Arc Track */}
-          <path
-            d={`M ${cx - radius},${cy} A ${radius},${radius} 0 0,1 ${cx + radius},${cy}`}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={strokeWidth}
-            strokeLinecap="round"
-            className="text-slate-200 dark:text-slate-800"
-          />
 
           {/* Animated Active Arc Stroke */}
           <motion.path
