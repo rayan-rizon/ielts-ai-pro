@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
-import { Users, Activity, UserCheck, Award, Target } from 'lucide-react';
+import { Activity, UserCheck } from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -13,6 +14,7 @@ import {
 import { cn } from '@/lib/cn';
 import {
   AdminPageHeader,
+  Kpi,
   PANEL,
   MICRO,
   NUM,
@@ -37,6 +39,17 @@ const UserAnalytics = ({
 }) => {
   const { userGrowthData = [], recentSignups = [] } = analyticsData;
 
+  // The RPC returns new signups per period; the running total is a more
+  // useful "is the community growing" read at a glance, so derive it here
+  // rather than round-tripping to the server for it.
+  const growthWithCumulative = useMemo(() => {
+    let running = 0;
+    return userGrowthData.map((point) => {
+      running += Number(point.users) || 0;
+      return { ...point, cumulative: running };
+    });
+  }, [userGrowthData]);
+
   return (
     <motion.div
       variants={STAGGER_CONTAINER}
@@ -54,46 +67,24 @@ const UserAnalytics = ({
 
       {/* KPI Row */}
       <motion.div variants={FADE_UP} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {[
-          {
-            label: 'Total Community',
-            value: stats.totalUsers || 0,
-            sub: 'Registered learners',
-            icon: Users,
-          },
-          {
-            label: 'Premium Conversion',
-            value: stats.premiumUsers || 0,
-            sub: `${stats.conversionRate || 0}% rate`,
-            icon: Award,
-          },
-          {
-            label: 'Completed Sessions',
-            value: stats.completedTests || 0,
-            sub: 'Finished test sessions',
-            icon: Target,
-          },
-        ].map((item) => (
-          <div key={item.label} className={cn(PANEL, 'py-2.5 px-3.5')}>
-            <div className="flex items-center gap-1.5 mb-1">
-              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{item.label}</p>
-            </div>
-            <div className="flex items-end justify-between">
-              <div>
-                <span
-                  className={cn(
-                    NUM,
-                    'text-xl font-bold text-stone-900 dark:text-stone-50 leading-none'
-                  )}
-                >
-                  {item.value.toLocaleString()}
-                </span>
-                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1')}>{item.sub}</p>
-              </div>
-              <item.icon className="w-4 h-4 text-stone-300 dark:text-stone-600 shrink-0" />
-            </div>
-          </div>
-        ))}
+        <Kpi
+          label="Total community"
+          value={(stats.totalUsers || 0).toLocaleString()}
+          sub="Registered learners"
+          tip="Everyone who has ever created an account, regardless of whether they're still active."
+        />
+        <Kpi
+          label="Premium conversion"
+          value={(stats.premiumUsers || 0).toLocaleString()}
+          sub={`${stats.conversionRate || 0}% of all users`}
+          tip="Users on a Pro or Premium plan, and what share of the total community that represents."
+        />
+        <Kpi
+          label="Completed sessions"
+          value={(stats.completedTests || 0).toLocaleString()}
+          sub="Finished test sessions"
+          tip="Test sessions marked complete — a volume metric, not a score. Where they scored isn't shown here."
+        />
       </motion.div>
 
       {/* Growth Chart */}
@@ -130,11 +121,34 @@ const UserAnalytics = ({
                 <Activity className="w-5 h-5 text-stone-500 dark:text-stone-400 animate-pulse" />
               </div>
             )}
-            <div className="h-[280px] w-full">
+            <div className="flex items-center gap-3 mb-2">
+              <span
+                className={cn(
+                  MICRO,
+                  'text-stone-500 dark:text-stone-400 flex items-center gap-1.5'
+                )}
+              >
+                <span className="w-2 h-0.5 rounded-full bg-indigo-500" />
+                New signups
+              </span>
+              <span
+                className={cn(
+                  MICRO,
+                  'text-stone-500 dark:text-stone-400 flex items-center gap-1.5'
+                )}
+              >
+                <span
+                  className="w-2 h-0.5 rounded-full bg-stone-400 dark:bg-stone-500"
+                  style={{ borderTop: '1.5px dashed' }}
+                />
+                Cumulative
+              </span>
+            </div>
+            <div className="h-[260px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={userGrowthData}
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  data={growthWithCumulative}
+                  margin={{ top: 10, right: 10, left: -14, bottom: 0 }}
                 >
                   <defs>
                     <linearGradient id="colorUsersUA" x1="0" y1="0" x2="0" y2="1">
@@ -155,46 +169,79 @@ const UserAnalytics = ({
                     tickMargin={10}
                   />
                   <YAxis
+                    yAxisId="new"
                     axisLine={false}
                     tickLine={false}
+                    allowDecimals={false}
+                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                  />
+                  <YAxis
+                    yAxisId="cumulative"
+                    orientation="right"
+                    axisLine={false}
+                    tickLine={false}
+                    allowDecimals={false}
                     tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
                   />
                   <Tooltip
+                    cursor={{ stroke: 'rgba(120,113,108,0.35)' }}
                     content={({ active, payload, label }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className={cn(PANEL, 'p-3 shadow-xl')}>
-                            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1')}>
-                              {label}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-indigo-500" />
-                              <span
-                                className={cn(
-                                  NUM,
-                                  'text-base font-bold text-stone-900 dark:text-stone-50'
-                                )}
-                              >
-                                {payload[0].value.toLocaleString()}
-                              </span>
-                              <span className="text-xs font-bold text-stone-500 dark:text-stone-400">
-                                learners
-                              </span>
-                            </div>
+                      if (!active || !payload?.length) return null;
+                      const newCount = payload.find((p) => p.dataKey === 'users')?.value ?? 0;
+                      const cumulative =
+                        payload.find((p) => p.dataKey === 'cumulative')?.value ?? 0;
+                      return (
+                        <div className={cn(PANEL, 'p-3 shadow-xl min-w-[150px]')}>
+                          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5')}>
+                            {label}
+                          </p>
+                          <div className="flex items-center justify-between gap-3 text-[11px]">
+                            <span className="flex items-center gap-1.5 text-stone-500">
+                              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                              New
+                            </span>
+                            <span
+                              className={cn(NUM, 'font-bold text-stone-800 dark:text-stone-100')}
+                            >
+                              {newCount.toLocaleString()}
+                            </span>
                           </div>
-                        );
-                      }
-                      return null;
+                          <div className="flex items-center justify-between gap-3 text-[11px] mt-0.5">
+                            <span className="flex items-center gap-1.5 text-stone-500">
+                              <span className="w-1.5 h-1.5 rounded-full bg-stone-400" />
+                              Cumulative
+                            </span>
+                            <span
+                              className={cn(NUM, 'font-bold text-stone-800 dark:text-stone-100')}
+                            >
+                              {cumulative.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      );
                     }}
                   />
                   <Area
+                    yAxisId="new"
                     type="monotone"
                     dataKey="users"
                     stroke="#6366f1"
                     strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#colorUsersUA)"
-                    animationDuration={1200}
+                    activeDot={{ r: 4, strokeWidth: 2, stroke: '#fff' }}
+                    animationDuration={1000}
+                  />
+                  <Area
+                    yAxisId="cumulative"
+                    type="monotone"
+                    dataKey="cumulative"
+                    stroke="#a8a29e"
+                    strokeWidth={1.5}
+                    strokeDasharray="4 3"
+                    fill="none"
+                    activeDot={{ r: 3.5, strokeWidth: 2, stroke: '#fff' }}
+                    animationDuration={1000}
                   />
                 </AreaChart>
               </ResponsiveContainer>

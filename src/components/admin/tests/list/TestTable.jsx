@@ -378,7 +378,7 @@ const TestTable = ({
                           onClick={onClick}
                           title={title}
                           className={cn(
-                            'h-7 w-7 grid place-items-center rounded-md transition-colors',
+                            'h-7 w-7 grid place-items-center rounded-md transition-all duration-150 active:scale-90',
                             tone === 'fault'
                               ? 'text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)]'
                               : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'

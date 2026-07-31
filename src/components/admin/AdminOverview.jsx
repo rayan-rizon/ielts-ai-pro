@@ -29,7 +29,7 @@ import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 import { AnalyticsService } from '@/features/admin/services/AnalyticsService';
 import ServiceStatusStrip from './ServiceStatusStrip';
-import { NUM, MICRO, PANEL, Kpi, InfoTip } from './ui/primitives';
+import { NUM, MICRO, PANEL, Kpi, InfoTip, Tip } from './ui/primitives';
 
 const SEVERITY = {
   high: 'bg-[rgb(var(--signal-fault))]',
@@ -206,26 +206,27 @@ const RetentionGrid = ({ cohorts }) => {
                 const pct = c.size ? Math.round((c[w] / c.size) * 100) : 0;
                 return (
                   <td key={w} className="px-0.5">
-                    <div
-                      title={`${c[w]} of ${c.size}`}
-                      className="h-7 rounded grid place-items-center"
-                      style={{
-                        // Opacity encodes retention so the row reads as a heat strip.
-                        backgroundColor: `rgb(var(--signal-ok) / ${pct === 0 ? 0.05 : 0.12 + (pct / 100) * 0.55})`,
-                      }}
-                    >
-                      <span
-                        className={cn(
-                          NUM,
-                          'text-[10px] font-bold',
-                          pct === 0
-                            ? 'text-stone-300 dark:text-stone-600'
-                            : 'text-stone-800 dark:text-stone-50'
-                        )}
+                    <Tip content={`${c[w]} of ${c.size} ran a test`}>
+                      <div
+                        className="h-7 rounded grid place-items-center transition-transform duration-150 hover:scale-[1.08] cursor-default"
+                        style={{
+                          // Opacity encodes retention so the row reads as a heat strip.
+                          backgroundColor: `rgb(var(--signal-ok) / ${pct === 0 ? 0.05 : 0.12 + (pct / 100) * 0.55})`,
+                        }}
                       >
-                        {pct}%
-                      </span>
-                    </div>
+                        <span
+                          className={cn(
+                            NUM,
+                            'text-[10px] font-bold',
+                            pct === 0
+                              ? 'text-stone-400 dark:text-stone-600'
+                              : 'text-stone-800 dark:text-stone-50'
+                          )}
+                        >
+                          {pct}%
+                        </span>
+                      </div>
+                    </Tip>
                   </td>
                 );
               })}
@@ -422,7 +423,7 @@ const AdminOverview = () => {
                   <Link
                     key={action.key}
                     to={`${createPageUrl('AdminPanel')}?tab=${action.tab}`}
-                    className="group flex items-start gap-2.5 p-2.5 -mx-1 rounded-lg hover:bg-stone-50 dark:hover:bg-white/[0.03] transition-colors"
+                    className="group flex items-start gap-2.5 p-2.5 -mx-1 rounded-lg hover:bg-stone-50 dark:hover:bg-white/[0.03] hover:translate-x-0.5 active:scale-[0.99] transition-all duration-150"
                   >
                     <span
                       className={cn(
@@ -558,6 +559,8 @@ const AdminOverview = () => {
                     stroke="rgb(var(--signal-ok))"
                     strokeWidth={2}
                     fill="url(#ovSignups)"
+                    activeDot={{ r: 4, strokeWidth: 2, stroke: '#fff' }}
+                    animationDuration={900}
                   />
                   <Area
                     type="monotone"
@@ -566,6 +569,8 @@ const AdminOverview = () => {
                     strokeWidth={1.5}
                     strokeDasharray="4 3"
                     fill="none"
+                    activeDot={{ r: 3.5, strokeWidth: 2, stroke: '#fff' }}
+                    animationDuration={900}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -584,7 +589,7 @@ const AdminOverview = () => {
                 {(data?.recentSignups || []).slice(0, 5).map((user) => (
                   <div
                     key={user.id}
-                    className="flex items-center gap-2.5 py-1.5 border-b border-stone-100 dark:border-white/[0.05] last:border-0"
+                    className="flex items-center gap-2.5 py-1.5 px-1.5 -mx-1.5 rounded-md border-b border-stone-100 dark:border-white/[0.05] last:border-0 hover:bg-stone-50 dark:hover:bg-white/[0.03] transition-colors"
                   >
                     <div className="w-6 h-6 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-[9px] font-black text-stone-500 dark:text-stone-300 shrink-0">
                       {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
@@ -762,28 +767,34 @@ const AdminOverview = () => {
               </span>
             </div>
             <div className="flex items-end gap-[3px] h-32 pt-4">
-              {hourly.map((h) => {
+              {hourly.map((h, i) => {
                 const share = maxHourly ? (h.sessions / maxHourly) * 100 : 0;
                 return (
-                  <div key={h.hour} className="flex-1 flex flex-col items-center gap-1 group">
-                    <div className="w-full flex-1 flex items-end">
-                      <div
-                        title={`${String(h.hour).padStart(2, '0')}:00 — ${h.sessions} sessions`}
-                        className={cn(
-                          'w-full rounded-sm transition-colors',
-                          h.hour === peakHour
-                            ? 'bg-[rgb(var(--signal-ok))]'
-                            : 'bg-[rgb(var(--signal-ok)/0.28)] group-hover:bg-[rgb(var(--signal-ok)/0.5)]'
-                        )}
-                        style={{ height: `${Math.max(share, 2)}%` }}
-                      />
+                  <Tip
+                    key={h.hour}
+                    content={`${String(h.hour).padStart(2, '0')}:00 UTC — ${h.sessions} session${h.sessions === 1 ? '' : 's'}`}
+                  >
+                    <div className="flex-1 flex flex-col items-center gap-1 group cursor-default">
+                      <div className="w-full flex-1 flex items-end">
+                        <m.div
+                          initial={{ height: 0 }}
+                          animate={{ height: `${Math.max(share, 2)}%` }}
+                          transition={{ duration: 0.5, delay: i * 0.008, ease: [0.23, 1, 0.32, 1] }}
+                          className={cn(
+                            'w-full rounded-sm transition-colors',
+                            h.hour === peakHour
+                              ? 'bg-[rgb(var(--signal-ok))]'
+                              : 'bg-[rgb(var(--signal-ok)/0.28)] group-hover:bg-[rgb(var(--signal-ok)/0.55)]'
+                          )}
+                        />
+                      </div>
+                      {h.hour % 3 === 0 && (
+                        <span className={cn(NUM, 'text-[8px] text-stone-500 dark:text-stone-400')}>
+                          {h.hour}
+                        </span>
+                      )}
                     </div>
-                    {h.hour % 3 === 0 && (
-                      <span className={cn(NUM, 'text-[8px] text-stone-500 dark:text-stone-400')}>
-                        {h.hour}
-                      </span>
-                    )}
-                  </div>
+                  </Tip>
                 );
               })}
             </div>
@@ -805,7 +816,7 @@ const AdminOverview = () => {
                 return (
                   <div
                     key={mod.module}
-                    className="grid grid-cols-12 items-center gap-3 py-2.5 border-b border-stone-100 dark:border-white/[0.05] last:border-0"
+                    className="grid grid-cols-12 items-center gap-3 py-2.5 px-1.5 -mx-1.5 rounded-md border-b border-stone-100 dark:border-white/[0.05] last:border-0 hover:bg-stone-50 dark:hover:bg-white/[0.03] transition-colors"
                   >
                     <span className="col-span-3 sm:col-span-2 text-[11px] font-extrabold text-stone-900 dark:text-stone-50">
                       {mod.module}
@@ -824,7 +835,7 @@ const AdminOverview = () => {
                       <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
                         <div
                           className={cn(
-                            'h-full rounded-full',
+                            'h-full rounded-full transition-[width] duration-700 ease-out',
                             weak ? 'bg-[rgb(var(--signal-warn))]' : 'bg-[rgb(var(--signal-ok))]'
                           )}
                           style={{ width: `${mod.completion}%` }}

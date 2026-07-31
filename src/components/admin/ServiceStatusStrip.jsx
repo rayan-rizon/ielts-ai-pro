@@ -4,6 +4,7 @@ import { AlertOctagon, AlertTriangle, CheckCircle2, ChevronRight, Loader2 } from
 import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 import { PlatformHealth, STATUS_LABEL } from '@/features/admin/services/PlatformHealth';
+import { Tip } from './ui/primitives';
 
 const NUM = 'font-mono tabular-nums tracking-tight';
 const MICRO = 'text-[9px] font-bold uppercase tracking-[0.14em]';
@@ -107,19 +108,17 @@ const ServiceStatusStrip = () => {
         <div className="flex items-center gap-1.5 flex-wrap">
           {/* Problems get named; a healthy platform just reports the count. */}
           {problems.slice(0, 4).map((service) => (
-            <span
-              key={service.key}
-              title={service.impact}
-              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-stone-200 dark:border-white/10"
-            >
-              <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', DOT[service.status])} />
-              <span className="text-[10px] font-extrabold text-stone-700 dark:text-stone-200 whitespace-nowrap">
-                {service.label}
+            <Tip key={service.key} content={service.impact}>
+              <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-stone-200 dark:border-white/10 transition-transform duration-150 hover:scale-[1.03] cursor-default">
+                <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', DOT[service.status])} />
+                <span className="text-[10px] font-extrabold text-stone-700 dark:text-stone-200 whitespace-nowrap">
+                  {service.label}
+                </span>
+                <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 whitespace-nowrap')}>
+                  {STATUS_LABEL[service.status]}
+                </span>
               </span>
-              <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 whitespace-nowrap')}>
-                {STATUS_LABEL[service.status]}
-              </span>
-            </span>
+            </Tip>
           ))}
           {healthy && (
             <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>

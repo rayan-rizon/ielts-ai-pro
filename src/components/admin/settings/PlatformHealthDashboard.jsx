@@ -33,6 +33,7 @@ import {
   STATUS_LABEL,
   CATEGORY_LABEL,
 } from '@/features/admin/services/PlatformHealth';
+import { Tip } from '@/components/admin/ui/primitives';
 
 /*
  * Instrument-panel treatment: graphite surfaces, hairline rules, and exactly
@@ -327,43 +328,44 @@ const ServiceTile = ({ service }) => {
   const alarming = service.status === 'down' || service.status === 'unconfigured';
 
   return (
-    <div
-      title={service.impact}
-      className={cn(
-        PANEL,
-        'relative overflow-hidden flex items-center gap-3 px-3.5 py-3 transition-colors hover:border-stone-300 dark:hover:border-white/20'
-      )}
-    >
-      <span className={cn('absolute left-0 top-0 h-full w-[2px]', signal.rail)} />
-      <span className="relative flex h-1.5 w-1.5 shrink-0 ml-0.5">
-        {alarming && (
-          <span
-            className={cn(
-              'absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping',
-              signal.dot
-            )}
-          />
-        )}
-        <span className={cn('relative inline-flex h-1.5 w-1.5 rounded-full', signal.dot)} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-extrabold tracking-tight text-stone-900 dark:text-stone-50 truncate leading-tight">
-          {service.label}
-        </p>
-        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate mt-0.5')}>
-          {headline.label}
-        </p>
-      </div>
-      <span
+    <Tip content={service.impact}>
+      <div
         className={cn(
-          NUM,
-          'text-sm font-bold shrink-0',
-          alarming ? FAULT_TEXT : 'text-stone-900 dark:text-stone-50'
+          PANEL,
+          'relative overflow-hidden flex items-center gap-3 px-3.5 py-3 transition-all duration-150 hover:-translate-y-0.5 hover:border-stone-300 dark:hover:border-white/20 hover:shadow-sm cursor-default'
         )}
       >
-        {headline.value}
-      </span>
-    </div>
+        <span className={cn('absolute left-0 top-0 h-full w-[2px]', signal.rail)} />
+        <span className="relative flex h-1.5 w-1.5 shrink-0 ml-0.5">
+          {alarming && (
+            <span
+              className={cn(
+                'absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping',
+                signal.dot
+              )}
+            />
+          )}
+          <span className={cn('relative inline-flex h-1.5 w-1.5 rounded-full', signal.dot)} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-extrabold tracking-tight text-stone-900 dark:text-stone-50 truncate leading-tight">
+            {service.label}
+          </p>
+          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate mt-0.5')}>
+            {headline.label}
+          </p>
+        </div>
+        <span
+          className={cn(
+            NUM,
+            'text-sm font-bold shrink-0',
+            alarming ? FAULT_TEXT : 'text-stone-900 dark:text-stone-50'
+          )}
+        >
+          {headline.value}
+        </span>
+      </div>
+    </Tip>
   );
 };
 

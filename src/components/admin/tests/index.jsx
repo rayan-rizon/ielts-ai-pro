@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { m } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import {
   Plus,
@@ -41,10 +42,20 @@ import { MICRO, PANEL, Kpi, AdminButton, AdminPageHeader } from '../ui/primitive
 import { useSearchParams } from 'react-router-dom';
 
 const TEST_STRUCTURES = [
-  { key: 'reading', name: 'Reading', icon: BookOpen },
-  { key: 'listening', name: 'Listening', icon: Headphones },
-  { key: 'writing', name: 'Writing', icon: PenTool },
-  { key: 'speaking', name: 'Speaking', icon: Mic },
+  { key: 'reading', name: 'Reading', icon: BookOpen, accent: 'text-sky-600 dark:text-sky-400' },
+  {
+    key: 'listening',
+    name: 'Listening',
+    icon: Headphones,
+    accent: 'text-violet-600 dark:text-violet-400',
+  },
+  {
+    key: 'writing',
+    name: 'Writing',
+    icon: PenTool,
+    accent: 'text-amber-600 dark:text-amber-400',
+  },
+  { key: 'speaking', name: 'Speaking', icon: Mic, accent: 'text-rose-600 dark:text-rose-400' },
 ];
 
 const FIELD_INPUT =
@@ -265,14 +276,21 @@ const TestManagement = () => {
               key={typeInfo.key}
               onClick={() => handleTestTypeChange(typeInfo.key)}
               className={cn(
-                'h-8 px-3.5 rounded-md font-bold text-xs transition-colors flex items-center gap-1.5 whitespace-nowrap',
+                'relative h-8 px-3.5 rounded-md font-bold text-xs flex items-center gap-1.5 whitespace-nowrap transition-transform active:scale-[0.96]',
                 isActive
-                  ? 'bg-white dark:bg-[#131315] text-stone-900 dark:text-stone-50 shadow-2xs'
+                  ? 'text-stone-900 dark:text-stone-50'
                   : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
               )}
             >
-              <Icon className="w-3.5 h-3.5" />
-              {typeInfo.name}
+              {isActive && (
+                <m.span
+                  layoutId="testTypeActivePill"
+                  className="absolute inset-0 bg-white dark:bg-[#131315] rounded-md shadow-2xs"
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                />
+              )}
+              <Icon className={cn('relative w-3.5 h-3.5', isActive && typeInfo.accent)} />
+              <span className="relative">{typeInfo.name}</span>
             </button>
           );
         })}

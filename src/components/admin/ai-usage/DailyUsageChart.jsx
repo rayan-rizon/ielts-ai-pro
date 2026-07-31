@@ -107,6 +107,8 @@ const DailyUsageChart = ({ dailyStats, dateRange }) => (
               strokeWidth={1.5}
               strokeDasharray="4 3"
               fill="url(#gradientTotal)"
+              activeDot={{ r: 3.5, strokeWidth: 2, stroke: '#fff' }}
+              animationDuration={900}
             />
             <Area
               type="monotone"
@@ -114,6 +116,8 @@ const DailyUsageChart = ({ dailyStats, dateRange }) => (
               stroke="rgb(var(--signal-ok))"
               strokeWidth={2}
               fill="url(#gradientCompleted)"
+              activeDot={{ r: 4, strokeWidth: 2, stroke: '#fff' }}
+              animationDuration={900}
             />
           </AreaChart>
         </ResponsiveContainer>

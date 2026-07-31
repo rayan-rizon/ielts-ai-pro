@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   XAxis,
   YAxis,
@@ -43,6 +44,7 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 const EndpointBreakdownChart = ({ endpointStats, dateRange }) => {
+  const [activeIndex, setActiveIndex] = useState(null);
   const chartData = [...(endpointStats || [])]
     .sort((a, b) => b.completed - a.completed || b.total - a.total)
     .slice(0, 6);
@@ -93,12 +95,20 @@ const EndpointBreakdownChart = ({ endpointStats, dateRange }) => {
                 content={<CustomTooltip />}
                 cursor={{ fill: 'rgba(120,113,108,0.08)' }}
               />
-              <Bar dataKey="completed" radius={[0, 6, 6, 0]} barSize={16}>
+              <Bar
+                dataKey="completed"
+                radius={[0, 6, 6, 0]}
+                barSize={16}
+                onMouseEnter={(_, index) => setActiveIndex(index)}
+                onMouseLeave={() => setActiveIndex(null)}
+                animationDuration={700}
+              >
                 {chartData.map((entry, index) => (
                   <Cell
                     key={index}
                     fill={endpointColors[entry.endpoint] || '#6366f1'}
-                    opacity={0.85}
+                    opacity={activeIndex === null || activeIndex === index ? 0.85 : 0.35}
+                    style={{ transition: 'opacity 150ms ease' }}
                   />
                 ))}
               </Bar>

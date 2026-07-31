@@ -31,6 +31,24 @@ export const SIGNAL_TEXT = {
   idle: 'text-stone-500 dark:text-stone-400',
 };
 
+/**
+ * Generic styled tooltip — wraps any element (a bar, a heat-cell, a badge) so
+ * hover info matches the panel system instead of falling back to the browser's
+ * native `title=` tooltip. Prefer this over a bare `title` attribute anywhere
+ * the content is more than a one-word label.
+ */
+export const Tip = ({ children, content, side = 'top' }) => (
+  <Tooltip delayDuration={150}>
+    <TooltipTrigger asChild>{children}</TooltipTrigger>
+    <TooltipContent
+      side={side}
+      className="rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#1b1b1e] px-2.5 py-1.5 text-[11px] font-semibold leading-snug text-stone-700 dark:text-stone-200 shadow-lg"
+    >
+      {content}
+    </TooltipContent>
+  </Tooltip>
+);
+
 /** Small "what does this mean?" affordance next to a metric label. */
 export const InfoTip = ({ children, className }) => (
   <Tooltip delayDuration={150}>
@@ -82,7 +100,13 @@ export const LiveDot = ({ active = true, tone = 'ok' }) => (
 
 /** Standard KPI tile. */
 export const Kpi = ({ label, value, sub, delta, tip, live = false, className }) => (
-  <div className={cn(PANEL, 'py-2.5 px-3.5', className)}>
+  <div
+    className={cn(
+      PANEL,
+      'py-2.5 px-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/[0.12]',
+      className
+    )}
+  >
     <div className="flex items-center gap-1.5">
       {live && <LiveDot />}
       <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{label}</p>
@@ -144,7 +168,7 @@ export const AdminButton = forwardRef(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          'inline-flex items-center justify-center gap-1.5 rounded-md font-bold transition-colors disabled:opacity-50 disabled:pointer-events-none',
+          'inline-flex items-center justify-center gap-1.5 rounded-md font-bold transition-all duration-150 active:scale-[0.96] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100',
           size === 'sm' ? 'h-7 px-2.5 text-[11px]' : 'h-8 px-3 text-xs',
           ADMIN_BUTTON_VARIANTS[variant] || ADMIN_BUTTON_VARIANTS.primary,
           className
@@ -163,7 +187,7 @@ AdminButton.displayName = 'AdminButton';
 export const ADMIN_TABS_LIST =
   'inline-flex h-auto items-center justify-start gap-1 p-1 bg-stone-100 dark:bg-white/[0.04] border border-stone-200/80 dark:border-white/[0.07] rounded-lg shrink-0';
 export const ADMIN_TAB_TRIGGER =
-  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-stone-500 dark:text-stone-400 data-[state=active]:bg-white dark:data-[state=active]:bg-[#131315] data-[state=active]:text-stone-900 dark:data-[state=active]:text-stone-50 data-[state=active]:shadow-2xs transition-colors shrink-0';
+  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-stone-500 dark:text-stone-400 data-[state=active]:bg-white dark:data-[state=active]:bg-[#131315] data-[state=active]:text-stone-900 dark:data-[state=active]:text-stone-50 data-[state=active]:shadow-2xs transition-all duration-150 active:scale-[0.96] shrink-0';
 
 /**
  * Shared enter animation for admin pages/panels — a quiet staggered fade+rise

@@ -89,8 +89,43 @@ const CONTENT_TYPES = [
   { id: 'video', label: 'Video', icon: Video, color: 'rose' },
   { id: 'pdf', label: 'PDF', icon: FileText, color: 'blue' },
   { id: 'blog', label: 'Blog', icon: BookOpen, color: 'emerald' },
-  { id: 'vocabulary', label: 'Vocabulary', icon: Brain, color: 'indigo' },
+  { id: 'vocabulary', label: 'Vocabulary', icon: Brain, color: 'violet' },
 ];
+
+// Tailwind can't see classes built from a template string (`border-${color}-500`),
+// so it purges them from the production build — the content-type selector below
+// used to render completely unstyled. Static, literal classes per type instead.
+const CONTENT_TYPE_STYLE = {
+  video: {
+    active: 'border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-400',
+    icon: 'text-rose-500 dark:text-rose-400',
+    iconBg: 'bg-rose-500/10 border-rose-300/50 dark:border-rose-800/60',
+    badge:
+      'text-rose-600 dark:text-rose-400 border-rose-300/50 dark:border-rose-800/60 bg-rose-500/[0.06]',
+  },
+  pdf: {
+    active: 'border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400',
+    icon: 'text-blue-500 dark:text-blue-400',
+    iconBg: 'bg-blue-500/10 border-blue-300/50 dark:border-blue-800/60',
+    badge:
+      'text-blue-600 dark:text-blue-400 border-blue-300/50 dark:border-blue-800/60 bg-blue-500/[0.06]',
+  },
+  blog: {
+    active: 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    icon: 'text-emerald-500 dark:text-emerald-400',
+    iconBg: 'bg-emerald-500/10 border-emerald-300/50 dark:border-emerald-800/60',
+    badge:
+      'text-emerald-600 dark:text-emerald-400 border-emerald-300/50 dark:border-emerald-800/60 bg-emerald-500/[0.06]',
+  },
+  vocabulary: {
+    active: 'border-violet-500 bg-violet-500/10 text-violet-600 dark:text-violet-400',
+    icon: 'text-violet-500 dark:text-violet-400',
+    iconBg: 'bg-violet-500/10 border-violet-300/50 dark:border-violet-800/60',
+    badge:
+      'text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-800/60 bg-violet-500/[0.06]',
+  },
+};
+const contentTypeStyle = (type) => CONTENT_TYPE_STYLE[type] || CONTENT_TYPE_STYLE.pdf;
 
 const ResourceManagement = () => {
   const [resources, setResources] = useState([]);
@@ -712,11 +747,12 @@ const ResourceManagement = () => {
                         key={type.id}
                         type="button"
                         onClick={() => setFormData({ ...formData, content_type: type.id })}
-                        className={`p-2.5 sm:p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-1.5 sm:gap-2 ${
+                        className={cn(
+                          'p-2.5 sm:p-3 rounded-xl border-2 transition-all duration-200 active:scale-95 flex flex-col items-center gap-1.5 sm:gap-2',
                           formData.content_type === type.id
-                            ? `border-${type.color}-500 bg-${type.color}-500/10 text-${type.color}-600 dark:text-${type.color}-400`
+                            ? contentTypeStyle(type.id).active
                             : 'border-border/50 hover:border-border text-muted-foreground hover:text-foreground'
-                        }`}
+                        )}
                         data-oid="r1h-r_w"
                       >
                         <type.icon className="w-4 h-4 sm:w-5 sm:h-5" data-oid="ps_q55-" />
@@ -1069,8 +1105,12 @@ const ResourceManagement = () => {
                   className={cn(
                     'w-3 h-3 relative z-10',
                     isActive
-                      ? 'text-white dark:text-stone-900'
-                      : 'text-stone-500 dark:text-stone-400'
+                      ? type.id === 'all'
+                        ? 'text-white dark:text-stone-900'
+                        : 'text-white/90 dark:text-stone-900/80'
+                      : type.color
+                        ? contentTypeStyle(type.id).icon
+                        : 'text-stone-500 dark:text-stone-400'
                   )}
                   data-oid={`icon-${type.id}`}
                 />
@@ -1371,11 +1411,17 @@ const ResourceManagement = () => {
                                 />
                               ) : (
                                 <div
-                                  className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/[0.06] border border-stone-200/80 dark:border-white/[0.07] grid place-items-center shrink-0"
+                                  className={cn(
+                                    'w-8 h-8 rounded-md border grid place-items-center shrink-0',
+                                    contentTypeStyle(resource.content_type).iconBg
+                                  )}
                                   data-oid="mji9x8k"
                                 >
                                   <Icon
-                                    className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400"
+                                    className={cn(
+                                      'w-3.5 h-3.5',
+                                      contentTypeStyle(resource.content_type).icon
+                                    )}
                                     data-oid="xw9ksuj"
                                   />
                                 </div>
@@ -1406,21 +1452,12 @@ const ResourceManagement = () => {
                           <TableCell className="py-3 px-4 text-center" data-oid="sxceztj">
                             <span
                               className={cn(
-                                'inline-flex items-center rounded-md border px-1.5 py-0.5 capitalize',
+                                'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 capitalize transition-transform duration-150 hover:scale-105',
                                 MICRO,
-                                resource.content_type === 'video' &&
-                                  'text-rose-600 dark:text-rose-400 border-rose-300/50 dark:border-rose-800/60 bg-rose-500/[0.06]',
-                                resource.content_type === 'pdf' &&
-                                  'text-blue-600 dark:text-blue-400 border-blue-300/50 dark:border-blue-800/60 bg-blue-500/[0.06]',
-                                resource.content_type === 'blog' &&
-                                  'text-emerald-600 dark:text-emerald-400 border-emerald-300/50 dark:border-emerald-800/60 bg-emerald-500/[0.06]',
-                                resource.content_type === 'vocabulary' &&
-                                  'text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-800/60 bg-violet-500/[0.06]',
-                                !['video', 'pdf', 'blog', 'vocabulary'].includes(
-                                  resource.content_type
-                                ) && 'text-stone-500 border-stone-200 dark:border-white/10'
+                                contentTypeStyle(resource.content_type).badge
                               )}
                             >
+                              <Icon className="w-2.5 h-2.5" />
                               {resource.content_type}
                             </span>
                           </TableCell>
@@ -1462,7 +1499,7 @@ const ResourceManagement = () => {
                                   openEditDialog(resource);
                                 }}
                                 title="Edit"
-                                className="h-7 w-7 grid place-items-center rounded-md transition-colors text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
+                                className="h-7 w-7 grid place-items-center rounded-md transition-all duration-150 active:scale-90 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
                                 data-oid="btn-edit"
                               >
                                 <Edit className="w-3.5 h-3.5" data-oid="icon-edit" />
@@ -1473,7 +1510,7 @@ const ResourceManagement = () => {
                                   togglePublishStatus(resource);
                                 }}
                                 title={resource.is_published ? 'Unpublish' : 'Publish'}
-                                className="h-7 w-7 grid place-items-center rounded-md transition-colors text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
+                                className="h-7 w-7 grid place-items-center rounded-md transition-all duration-150 active:scale-90 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
                                 data-oid="btn-pub"
                               >
                                 {resource.is_published ? (
@@ -1488,7 +1525,7 @@ const ResourceManagement = () => {
                                   handleDelete(resource);
                                 }}
                                 title="Delete"
-                                className="h-7 w-7 grid place-items-center rounded-md transition-colors text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)]"
+                                className="h-7 w-7 grid place-items-center rounded-md transition-all duration-150 active:scale-90 text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)]"
                                 data-oid="btn-del"
                               >
                                 <Trash2 className="w-3.5 h-3.5" data-oid="del" />
