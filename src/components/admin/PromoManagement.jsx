@@ -42,6 +42,8 @@ import {
   Kpi,
   AdminButton,
   AdminPageHeader,
+  PILL_BASE,
+  pillTone,
   STAGGER_CONTAINER,
   FADE_UP,
 } from './ui/primitives';
@@ -50,14 +52,7 @@ const FIELD_LABEL = cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5 block')
 const FIELD_INPUT =
   'h-10 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
 
-const STATUS_PILL = {
-  active:
-    'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)]',
-  paused:
-    'text-[rgb(var(--signal-warn))] border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)]',
-  expired:
-    'text-[rgb(var(--signal-fault))] border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)]',
-};
+const STATUS_TONE = { active: 'ok', paused: 'warn', expired: 'fault' };
 
 const emptyPromo = () => ({
   code: '',
@@ -179,10 +174,12 @@ const PromoManagement = () => {
               <Plus className="w-3.5 h-3.5" />
               Add promo code
             </AdminButton>
-            <DialogContent className="w-[95vw] sm:w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Create promo code</DialogTitle>
-                <DialogDescription>
+            <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto p-4 sm:p-5">
+              <DialogHeader className="space-y-0.5">
+                <DialogTitle className="text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
+                  Create promo code
+                </DialogTitle>
+                <DialogDescription className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                   Generate a discount rule or direct tier-access code
                 </DialogDescription>
               </DialogHeader>
@@ -191,7 +188,7 @@ const PromoManagement = () => {
                 <div>
                   <Label className={FIELD_LABEL}>Promo code</Label>
                   <div className="relative">
-                    <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 dark:text-stone-400" />
+                    <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                     <Input
                       value={newPromo.code}
                       onChange={(e) =>
@@ -200,7 +197,7 @@ const PromoManagement = () => {
                       placeholder="SUMMER25"
                       className={cn(
                         FIELD_INPUT,
-                        'h-12 pl-10 font-mono text-lg font-black uppercase tracking-widest'
+                        'pl-8 font-mono font-bold uppercase tracking-widest'
                       )}
                     />
                   </div>
@@ -377,7 +374,7 @@ const PromoManagement = () => {
                 )}
               </div>
 
-              <DialogFooter>
+              <DialogFooter className="gap-2 flex-col sm:flex-row">
                 <AdminButton variant="ghost" onClick={() => setIsAddingPromo(false)}>
                   Cancel
                 </AdminButton>
@@ -474,13 +471,7 @@ const PromoManagement = () => {
                           </div>
                         </div>
 
-                        <span
-                          className={cn(
-                            'inline-flex items-center rounded-md border px-1.5 py-0.5',
-                            MICRO,
-                            STATUS_PILL[status]
-                          )}
-                        >
+                        <span className={cn(PILL_BASE, pillTone(STATUS_TONE[status]))}>
                           {status}
                         </span>
 
@@ -489,7 +480,7 @@ const PromoManagement = () => {
                             className={cn(
                               'w-6 h-6 rounded-md grid place-items-center shrink-0',
                               promo.grants_subscription
-                                ? 'bg-violet-500/[0.08] text-violet-600 dark:text-violet-400'
+                                ? 'bg-indigo-500/[0.08] text-indigo-600 dark:text-indigo-400'
                                 : 'bg-stone-200/60 dark:bg-white/[0.06] text-stone-600 dark:text-stone-300'
                             )}
                           >
@@ -555,7 +546,7 @@ const PromoManagement = () => {
                                 usagePercentage > 90
                                   ? 'bg-[rgb(var(--signal-fault))]'
                                   : promo.grants_subscription
-                                    ? 'bg-violet-500'
+                                    ? 'bg-indigo-500'
                                     : 'bg-[rgb(var(--signal-ok))]'
                               )}
                             />

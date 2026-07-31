@@ -1,301 +1,125 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, ChevronRight, Clock, Users, ArrowRight, ChevronDown } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown, ChevronRight, Clock } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { formatTestTitle } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { createPageUrl } from '@/utils';
+import { Empty, MICRO, MUTED, NUM, PANEL, PanelTitle, Pill, WELL } from './primitives';
 
-const CambridgeTestsCard = React.memo(({ cambridgeTests = [], user }) => {
-  const isPro = user?.subscription_tier === 'pro' || user?.subscription_tier === 'premium';
-  const [expanded, setExpanded] = useState(true);
-
-  if (!cambridgeTests?.length && !isPro) {
-    // We already handle the "Locked" state in the main render,
-    // but if for some reason we want to hide it completely when empty for non-pros,
-    // we could keep a return null. However, the current code has a "Locked" UI
-    // that should be shown to non-pros even if tests are empty (or failed to fetch).
-  }
+function volumeNumber(test, index) {
   return (
-    <Card
-      className={cn(
-        'rounded-2xl transition-all duration-300 overflow-hidden group flex flex-col h-full',
-        'bg-white dark:bg-slate-900',
-        'border border-slate-200 dark:border-slate-800',
-        'shadow-sm',
-        'hover:shadow-md transition-shadow duration-300',
-        'hover:border-indigo-500/40 dark:hover:border-indigo-500/40'
-      )}
-      data-oid="d2101jw"
-    >
-      <CardHeader className="p-4 md:p-5 pb-0" data-oid="8d6d:g9">
-        <div
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-          data-oid="nqm2hqv"
-        >
-          <CardTitle
-            className="text-base md:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2.5"
-            data-oid="zbho-ei"
-          >
-            <div
-              className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-100 dark:border-indigo-500/20 transition-transform group-hover:rotate-12"
-              data-oid="aghf1ol"
+    test.cambridge_book_number ||
+    (test.cambridge_year ? test.cambridge_year - 2005 : null) ||
+    test.title?.match(/\d+/)?.[0] ||
+    index + 1
+  );
+}
+
+const CambridgeTestsCard = React.memo(({ cambridgeTests = [] }) => {
+  const [expanded, setExpanded] = useState(true);
+  const count = cambridgeTests?.length || 0;
+
+  return (
+    <div className={cn(PANEL, 'flex h-full flex-col p-4')}>
+      <PanelTitle
+        label="Official Cambridge tests"
+        tip="Authentic Cambridge IELTS past papers."
+        action={
+          <div className="flex items-center gap-3">
+            <Link
+              to={createPageUrl('Reading')}
+              className={cn(
+                MICRO,
+                'hidden items-center gap-0.5 text-slate-500 transition-colors hover:text-[#5a63df] dark:text-slate-400 sm:inline-flex'
+              )}
             >
-              <ShieldCheck
-                className="w-4 h-4 transition-transform duration-500 group-hover:scale-110"
-                data-oid="1ez4dm."
-              />
-            </div>
-            <div data-oid="tw69a0b">
-              <span className="tracking-tight" data-oid="6z10roy">
-                Official Cambridge Tests
-              </span>
-              <p
-                className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mt-0.5"
-                data-oid="k0-ep78"
-              >
-                Authentic Practice Material
-              </p>
-            </div>
-          </CardTitle>
-          <div
-            className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"
-            data-oid="cgr_7w5"
-          >
-            <Button
-              asChild
-              variant="ghost"
-              size="sm"
-              className="hidden md:flex h-7 px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
-              data-oid="jmi1qmq"
-            >
-              <Link to={createPageUrl('Reading')} data-oid="-qf90xx">
-                Archives <ChevronRight className="w-3 h-3 ml-0.5" data-oid="u0tqb9p" />
-              </Link>
-            </Button>
-            <motion.button
+              All tests <ChevronRight className="h-3 w-3" />
+            </Link>
+            <button
               type="button"
-              onClick={() => setExpanded((v) => !v)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors px-2.5 py-1.5 rounded-full bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200/50 dark:border-white/5 w-full sm:w-auto justify-center"
-              data-oid="f:bfouq"
+              onClick={() => setExpanded((value) => !value)}
+              aria-expanded={expanded}
+              className={cn(
+                MICRO,
+                'inline-flex items-center gap-1 text-slate-500 transition-colors hover:text-[#5a63df] dark:text-slate-400'
+              )}
             >
-              {expanded ? 'Collapse' : 'Expand'}
+              {expanded ? 'Collapse' : `Expand · ${count}`}
               <ChevronDown
                 className={cn(
-                  'w-2.5 h-2.5 transition-transform duration-300',
+                  'h-3 w-3 transition-transform duration-200',
                   expanded && 'rotate-180'
                 )}
-                data-oid="oibc.yg"
               />
-            </motion.button>
+            </button>
           </div>
-        </div>
-      </CardHeader>
+        }
+      />
 
-      <CardContent className="p-4 md:p-5 pt-3" data-oid="62mepw:">
-        <AnimatePresence initial={false} data-oid="44vsl.g">
-          {expanded && (
-            <motion.div
-              key="expanded"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: 'linear' }}
-              className="overflow-hidden"
-              data-oid="cdb9ruh"
-            >
-              <div
-                className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-2"
-                data-oid="i74xpr2"
-              >
-                {cambridgeTests.map((test, idx) => (
-                  <motion.div
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="tests"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+            className="overflow-hidden"
+          >
+            {count === 0 ? (
+              <Empty>The official Cambridge library is being updated. Check back shortly.</Empty>
+            ) : (
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                {cambridgeTests.map((test, index) => (
+                  <Link
                     key={test.id}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.08, type: 'spring', damping: 20 }}
-                    whileHover={{ y: -6 }}
-                    className="group/item"
-                    data-oid="i5ro-ju"
-                  >
-                    <Link
-                      to={`/reading-test?test-id=${test.id}`}
-                      className="block h-full"
-                      data-oid="y_y55ae"
-                    >
-                      <div
-                        className={cn(
-                          'relative overflow-hidden h-full rounded-2xl transition-all duration-300',
-                          'bg-slate-50/50 dark:bg-slate-900/50',
-                          'border border-slate-200 dark:border-slate-800',
-                          'shadow-sm',
-                          'hover:bg-white dark:hover:bg-slate-900 hover:shadow-md transition-all duration-300',
-                          'hover:border-indigo-500/40 dark:hover:border-indigo-500/40'
-                        )}
-                        data-oid="5dk-ed4"
-                      >
-                        {/* Decorative Gradient & Pattern */}
-                        <div
-                          className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-500/10 to-transparent rounded-full -mr-20 -mt-20 group-hover/item:scale-125 transition-transform duration-700"
-                          data-oid="wuwlf25"
-                        />
-
-                        <div
-                          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:16px_16px]"
-                          data-oid=".uoktay"
-                        />
-
-                        <div
-                          className="p-3 sm:p-4 relative z-10 flex items-center justify-between gap-2 sm:gap-4"
-                          data-oid=".drbj0-"
-                        >
-                          <div
-                            className="flex items-center gap-2.5 sm:gap-4 min-w-0 flex-1"
-                            data-oid="4o6kyu_"
-                          >
-                            <div
-                              className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-500/10 dark:to-slate-900 border border-indigo-100 dark:border-white/10 flex flex-col items-center justify-center shrink-0 shadow-lg transition-all duration-300 group-hover/item:scale-105 group-hover/item:shadow-indigo-500/20"
-                              data-oid="m38p44o"
-                            >
-                              <span
-                                className="text-[7px] sm:text-[9px] font-black text-indigo-600 dark:text-indigo-400 leading-none mb-0.5 sm:mb-1"
-                                data-oid="h9.vler"
-                              >
-                                VOL
-                              </span>
-                              <span
-                                className="text-sm sm:text-xl font-black text-slate-900 dark:text-white group-hover/item:text-indigo-600 dark:group-hover/item:text-indigo-400 transition-colors"
-                                data-oid="zun_whd"
-                              >
-                                {test.cambridge_book_number ||
-                                  (test.cambridge_year ? test.cambridge_year - 2005 : null) ||
-                                  test.title.match(/\d+/)?.[0] ||
-                                  idx + 1}
-                              </span>
-                            </div>
-                            <div className="min-w-0 flex-1" data-oid="un0khfu">
-                              <div
-                                className="flex items-center gap-2 mb-0.5 sm:mb-1"
-                                data-oid="zbf4lj2"
-                              >
-                                <Badge
-                                  className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-0 text-[6px] sm:text-[8px] font-black px-1.5 py-0 sm:py-0.5 rounded-md uppercase tracking-tight shadow-lg shadow-indigo-500/25"
-                                  data-oid="8-zq1:8"
-                                >
-                                  OFFICIAL
-                                </Badge>
-                                <span
-                                  className="text-[8px] sm:text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-tight truncate hidden sm:inline-block"
-                                  data-oid="ilhcv.1"
-                                >
-                                  IELTS SERIES
-                                </span>
-                              </div>
-                              <h4
-                                className="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white line-clamp-1 group-hover/item:text-indigo-600 dark:group-hover/item:text-indigo-400 transition-colors leading-tight"
-                                data-oid="-a3pu5g"
-                              >
-                                {formatTestTitle(test)}
-                              </h4>
-                              <div
-                                className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 mt-0.5 sm:mt-2"
-                                data-oid="nhag8y6"
-                              >
-                                <div
-                                  className="flex items-center gap-1 text-slate-600 dark:text-slate-400"
-                                  data-oid="zs80av2"
-                                >
-                                  <Clock
-                                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-indigo-500"
-                                    data-oid="s3l2oxd"
-                                  />
-
-                                  <span
-                                    className="text-[9px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-300"
-                                    data-oid="7b3dssd"
-                                  >
-                                    60m
-                                  </span>
-                                </div>
-                                <div
-                                  className="w-0.5 h-0.5 sm:w-1 sm:h-1 rounded-full bg-slate-300 dark:bg-slate-700"
-                                  data-oid="vox4xqu"
-                                />
-
-                                <div
-                                  className="flex items-center gap-1 text-slate-600 dark:text-slate-400"
-                                  data-oid="j:wt.-v"
-                                >
-                                  <Users
-                                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-indigo-500"
-                                    data-oid="sz0zmr7"
-                                  />
-
-                                  <span
-                                    className="text-[9px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-300"
-                                    data-oid=":kevg7g"
-                                  >
-                                    2.4k
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-3 shrink-0" data-oid="1cim5uu">
-                            <div
-                              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 border-0 flex items-center justify-center text-white shadow-lg transition-all duration-300 group-hover/item:scale-110 group-hover/item:shadow-indigo-500/30 transform group-hover/item:translate-x-1"
-                              data-oid="_9:3z-0"
-                            >
-                              <ArrowRight
-                                className="w-3.5 h-3.5 sm:w-5 sm:h-5"
-                                data-oid="icxo22t"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))}
-
-                {!cambridgeTests?.length && (
-                  <div
-                    className="col-span-full py-12 flex flex-col items-center justify-center text-center"
-                    data-oid="h-vweab"
+                    to={`/reading-test?test-id=${test.id}`}
+                    className={cn(
+                      'group flex items-center gap-3 rounded-lg border border-transparent p-2.5 transition-all duration-150 hover:border-[#e4e2f0] hover:bg-[#f7f6fd] active:scale-[0.99] dark:hover:border-white/[0.07] dark:hover:bg-white/[0.03]'
+                    )}
                   >
                     <div
-                      className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mb-4 border border-indigo-100 dark:border-indigo-500/20"
-                      data-oid="hoju-qc"
+                      className={cn(
+                        WELL,
+                        'flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-md'
+                      )}
                     >
-                      <ShieldCheck className="w-8 h-8 text-indigo-500" data-oid="rdii92d" />
+                      <span className={cn(MICRO, 'text-[8px] leading-none text-[#5a63df]')}>
+                        Vol
+                      </span>
+                      <span
+                        className={cn(
+                          NUM,
+                          'text-base font-bold leading-none text-slate-900 dark:text-slate-50'
+                        )}
+                      >
+                        {volumeNumber(test, index)}
+                      </span>
                     </div>
-                    <h4
-                      className="text-xl font-black text-slate-900 dark:text-white mb-2"
-                      data-oid="fuju5n:"
-                    >
-                      No Official Tests Found
-                    </h4>
-                    <p
-                      className="text-sm font-semibold text-slate-500 dark:text-slate-400 max-w-sm"
-                      data-oid="ldveysa"
-                    >
-                      We're currently updating our official Cambridge library. Please check back
-                      later for authentic practice material.
-                    </p>
-                  </div>
-                )}
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <Pill tone="accent">Official</Pill>
+                        <span className={cn(MICRO, MUTED, 'flex items-center gap-1')}>
+                          <Clock className="h-2.5 w-2.5" />
+                          60m
+                        </span>
+                      </div>
+                      <h4 className="mt-1 truncate text-[12px] font-extrabold leading-tight text-slate-800 dark:text-slate-100">
+                        {formatTestTitle(test)}
+                      </h4>
+                    </div>
+
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-300 transition-colors group-hover:text-[#5a63df] dark:text-slate-600" />
+                  </Link>
+                ))}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </CardContent>
-    </Card>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 });
 

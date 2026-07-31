@@ -1,19 +1,14 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { m } from 'framer-motion';
 import {
   Users,
   Video,
   MessageSquare,
   Crown,
-  Sparkles,
   Globe,
   Zap,
   ArrowRight,
-  ShieldCheck,
   Trophy,
-  Rocket,
   Clock,
   Lock,
   BookOpen,
@@ -21,515 +16,319 @@ import {
   PenTool,
   Headphones,
   Bot,
-  CheckCircle2,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/cn';
+import {
+  IconChip,
+  MICRO,
+  MUTED,
+  PANEL,
+  Pill,
+  TILE,
+} from '@/features/dashboard/components/primitives';
 
-// Standardized App Page Header
-const PageHeader = () => (
-  <motion.div
-    initial={{ opacity: 0, y: -6 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.25, ease: 'easeOut' }}
-    className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/10 mb-5"
-  >
-    <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20 shadow-sm">
-        <Users className="w-5 h-5" />
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
+};
+const FADE_UP = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.23, 1, 0.32, 1] } },
+};
+
+const FEATURES = [
+  {
+    icon: Video,
+    title: 'Live video practice',
+    desc: 'Face-to-face rooms for speaking.',
+    tag: 'Audio & video',
+  },
+  {
+    icon: MessageSquare,
+    title: 'Direct feedback',
+    desc: 'Peer reviews on your writing tasks.',
+    tag: 'Peer evaluation',
+  },
+  {
+    icon: Trophy,
+    title: 'Group missions',
+    desc: 'Team challenges and joint rewards.',
+    tag: 'XP multiplier',
+  },
+  {
+    icon: Bot,
+    title: 'AI moderation',
+    desc: 'Focused and productive study sessions.',
+    tag: '24/7 AI agent',
+  },
+];
+
+const MODULE_ICON = { Writing: PenTool, Speaking: Mic, Reading: BookOpen, Listening: Headphones };
+const MODULE_TONE = { Writing: 'accent', Speaking: 'emerald', Reading: 'rose', Listening: 'amber' };
+
+const HOW_IT_WORKS = [
+  { step: '01', title: 'Pick a topic', desc: 'Reading, writing, speaking or listening.' },
+  { step: '02', title: 'Find your team', desc: 'Join or create rooms with specific needs.' },
+  { step: '03', title: 'Start simulation', desc: 'Sync testing or open-ended practice.' },
+  { step: '04', title: 'Progress together', desc: 'Earn shared XP and group badges.' },
+];
+
+const PREVIEWS = [
+  {
+    name: 'Evening Writing Mastery',
+    members: 8,
+    type: 'Writing',
+    difficulty: 'Academic',
+    isFull: false,
+  },
+  {
+    name: 'Speaking Club: Fluency Focus',
+    members: 5,
+    type: 'Speaking',
+    difficulty: 'General',
+    isFull: false,
+  },
+  {
+    name: 'Intensive Reading Lab',
+    members: 12,
+    type: 'Reading',
+    difficulty: 'Academic',
+    isFull: true,
+  },
+  {
+    name: 'Listening & Vocab Sync',
+    members: 4,
+    type: 'Listening',
+    difficulty: 'Advanced',
+    isFull: false,
+  },
+];
+
+function FeatureTile({ icon: Icon, title, desc, tag }) {
+  return (
+    <div className={cn(TILE, 'flex flex-col gap-2 p-3')}>
+      <div className="flex items-center justify-between">
+        <IconChip icon={Icon} />
+        <Pill tone="neutral">{tag}</Pill>
       </div>
       <div>
-        <div className="flex items-center gap-2">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-none sm:leading-tight">
-            Study Groups
-          </h1>
-          <Badge className="px-2.5 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 rounded-md font-semibold text-xs uppercase tracking-wider">
-            Peer Community
-          </Badge>
-        </div>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-          Collaborative practice rooms & live peer learning communities.
-        </p>
-      </div>
-    </div>
-
-    {/* Metadata Pills */}
-    <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
-      <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-xl shadow-2xs">
-        <div className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-          <Globe className="w-3.5 h-3.5" />
-        </div>
-        <div className="flex flex-col">
-          <span className="text-xs font-extrabold text-slate-900 dark:text-white leading-none">
-            Global
-          </span>
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
-            Network
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-xl shadow-2xs">
-        <div className="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20">
-          <Zap className="w-3.5 h-3.5" />
-        </div>
-        <div className="flex flex-col">
-          <span className="text-xs font-extrabold text-slate-900 dark:text-white leading-none">
-            Real-time
-          </span>
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
-            Live Rooms
-          </span>
-        </div>
-      </div>
-    </div>
-  </motion.div>
-);
-
-const FeatureHighlight = ({ icon: Icon, title, desc, tag, color }) => {
-  const colorMap = {
-    blue: {
-      icon: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200/60 dark:border-blue-500/20',
-      badge: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
-      hover: 'hover:border-blue-400 dark:hover:border-blue-500/40',
-    },
-    indigo: {
-      icon: 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200/60 dark:border-indigo-500/20',
-      badge: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
-      hover: 'hover:border-indigo-400 dark:hover:border-indigo-500/40',
-    },
-    purple: {
-      icon: 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200/60 dark:border-purple-500/20',
-      badge: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
-      hover: 'hover:border-purple-400 dark:hover:border-purple-500/40',
-    },
-    rose: {
-      icon: 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200/60 dark:border-rose-500/20',
-      badge: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
-      hover: 'hover:border-rose-400 dark:hover:border-rose-500/40',
-    },
-  };
-
-  const theme = colorMap[color] || colorMap.indigo;
-
-  return (
-    <div
-      className={cn(
-        'group flex flex-col justify-between p-3 sm:p-3.5 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer',
-        theme.hover
-      )}
-    >
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <div
-            className={cn(
-              'w-8.5 h-8.5 rounded-lg flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-105 shadow-2xs',
-              theme.icon
-            )}
-          >
-            <Icon className="w-4 h-4" />
-          </div>
-
-          {tag && (
-            <Badge
-              variant="outline"
-              className={cn(
-                'text-[9px] font-extrabold uppercase px-1.5 py-0 rounded-md border',
-                theme.badge
-              )}
-            >
-              {tag}
-            </Badge>
-          )}
-        </div>
-
-        <div className="space-y-0.5">
-          <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-            {title}
-          </h4>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
-            {desc}
-          </p>
-        </div>
+        <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">{title}</h4>
+        <p className={cn('mt-0.5 text-[11px] font-medium leading-tight', MUTED)}>{desc}</p>
       </div>
     </div>
   );
-};
+}
 
-const GroupPreviewCard = ({ name, members, type, difficulty, isFull }) => {
-  const themes = {
-    Writing: {
-      icon: PenTool,
-      badge:
-        'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200/60 dark:border-indigo-500/20',
-      iconBg:
-        'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200/60 dark:border-indigo-500/20',
-      hoverBorder: 'hover:border-indigo-500/50 dark:hover:border-indigo-500/50',
-    },
-    Speaking: {
-      icon: Mic,
-      badge:
-        'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20',
-      iconBg:
-        'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20',
-      hoverBorder: 'hover:border-emerald-500/50 dark:hover:border-emerald-500/50',
-    },
-    Reading: {
-      icon: BookOpen,
-      badge:
-        'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200/60 dark:border-rose-500/20',
-      iconBg:
-        'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200/60 dark:border-rose-500/20',
-      hoverBorder: 'hover:border-rose-500/50 dark:hover:border-rose-500/50',
-    },
-    Listening: {
-      icon: Headphones,
-      badge:
-        'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200/60 dark:border-amber-500/20',
-      iconBg:
-        'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200/60 dark:border-amber-500/20',
-      hoverBorder: 'hover:border-amber-500/50 dark:hover:border-amber-500/50',
-    },
-  };
-
-  const theme = themes[type] || themes.Writing;
-  const Icon = theme.icon;
+function GroupPreviewCard({ name, members, type, difficulty, isFull }) {
+  const Icon = MODULE_ICON[type] || PenTool;
+  const tone = MODULE_TONE[type] || 'accent';
 
   return (
-    <motion.div
-      whileHover={{ y: -3 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className={cn(
-        'group relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-2xs hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden',
-        theme.hoverBorder
-      )}
-    >
-      <div className="space-y-3">
-        {/* Header Row: Skill Icon + Member Avatars */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5">
-            <div
-              className={cn(
-                'w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105',
-                theme.iconBg
-              )}
-            >
-              <Icon className="w-4.5 h-4.5" />
-            </div>
-            {/* Category pill — rich pastel with icon */}
-            <span
-              className={cn(
-                'inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-lg border tracking-wide',
-                theme.badge
-              )}
-            >
-              <Icon className="w-3 h-3" />
-              {type}
-            </span>
-          </div>
-
-          {/* Participant Avatars + count pill */}
-          <div className="flex items-center -space-x-2">
-            {[...Array(3)].map((_, i) => (
-              <img
-                key={i}
-                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}-${i}`}
-                className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 object-cover shadow-sm"
-                alt="Participant"
-              />
-            ))}
-            {/* Member count — glowing indigo pill */}
-            <div className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 bg-indigo-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm ring-2 ring-indigo-500/30">
-              +{members}
-            </div>
-          </div>
+    <div className={cn(TILE, 'group flex flex-col justify-between gap-3 p-4')}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <IconChip icon={Icon} tone={tone} />
+          <Pill tone={tone}>{type}</Pill>
         </div>
-
-        {/* Title & Difficulty */}
-        <div className="space-y-1.5">
-          <h4 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex items-center justify-between">
-            <span className="truncate">{name}</span>
-            <ArrowRight className="w-4 h-4 text-indigo-500 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 shrink-0 ml-1" />
-          </h4>
-          <div className="flex items-center gap-1.5">
-            {/* Difficulty badge — color-coded, pill style */}
-            <span
-              className={cn(
-                'inline-flex items-center text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider border',
-                difficulty === 'Academic'
-                  ? 'bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-500/30'
-                  : difficulty === 'General'
-                    ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-300/50 dark:border-sky-500/30'
-                    : 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-300/50 dark:border-orange-500/30'
-              )}
-            >
-              {difficulty}
-            </span>
-            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
-              · {members} members
-            </span>
+        <div className="flex items-center -space-x-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <img
+              key={i}
+              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}-${i}`}
+              className="h-6 w-6 rounded-full border-2 border-white bg-slate-100 object-cover dark:border-[#141319] dark:bg-slate-800"
+              alt=""
+            />
+          ))}
+          <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[#5a63df] text-[9px] font-black text-white dark:border-[#141319]">
+            +{members}
           </div>
         </div>
       </div>
 
-      {/* Card Footer: Status Pill & Action */}
-      <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between mt-2.5">
-        {/* Live/Full status pill */}
-        <div
-          className={cn(
-            'inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border',
-            isFull
-              ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
-              : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300/60 dark:border-emerald-500/30'
-          )}
-        >
+      <div>
+        <h4 className="flex items-center justify-between text-sm font-extrabold leading-snug text-slate-900 dark:text-white">
+          <span className="truncate">{name}</span>
+          <ArrowRight className="ml-1 h-4 w-4 shrink-0 -translate-x-2 text-[#5a63df] opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100" />
+        </h4>
+        <div className="mt-1 flex items-center gap-1.5">
+          <Pill tone="neutral">{difficulty}</Pill>
+          <span className={cn('text-[10px] font-semibold', MUTED)}>· {members} members</span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-[#eeedf7] pt-2.5 dark:border-white/[0.07]">
+        <Pill tone={isFull ? 'neutral' : 'ok'}>
           <span
             className={cn(
-              'w-1.5 h-1.5 rounded-full',
-              isFull
-                ? 'bg-slate-400'
-                : 'bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.7)]'
+              'h-1.5 w-1.5 rounded-full',
+              isFull ? 'bg-slate-400' : 'bg-[rgb(var(--signal-ok))]'
             )}
           />
-          {isFull ? 'Room Full' : 'Live Practice'}
-        </div>
-
-        {/* Pro/Info action — pill with lock icon */}
-        <div
-          className={cn(
-            'inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border transition-all duration-200 group-hover:scale-105',
-            isFull
-              ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
-              : 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-300/50 dark:border-indigo-500/30'
-          )}
-        >
-          <Lock className="w-2.5 h-2.5" />
-          {isFull ? 'View Info' : 'Pro Preview'}
-        </div>
+          {isFull ? 'Room full' : 'Live practice'}
+        </Pill>
+        <Pill tone={isFull ? 'neutral' : 'accent'}>
+          <Lock className="h-2.5 w-2.5" />
+          {isFull ? 'View info' : 'Pro preview'}
+        </Pill>
       </div>
-    </motion.div>
+    </div>
   );
-};
+}
 
 export default function StudyGroups() {
-  const previews = [
-    {
-      name: 'Evening Writing Mastery',
-      members: 8,
-      type: 'Writing',
-      difficulty: 'Academic',
-      isFull: false,
-    },
-    {
-      name: 'Speaking Club: Fluency Focus',
-      members: 5,
-      type: 'Speaking',
-      difficulty: 'General',
-      isFull: false,
-    },
-    {
-      name: 'Intensive Reading Lab',
-      members: 12,
-      type: 'Reading',
-      difficulty: 'Academic',
-      isFull: true,
-    },
-    {
-      name: 'Listening & Vocab Sync',
-      members: 4,
-      type: 'Listening',
-      difficulty: 'Advanced',
-      isFull: false,
-    },
-  ];
-
   return (
-    <div className="relative min-h-screen pb-16 bg-slate-50 dark:bg-[#020617] transition-colors duration-300 font-sans">
-      {/* Background Gradient & Subtle Grid */}
-      <div aria-hidden="true" className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-5%] left-[-5%] w-[45rem] h-[45rem] rounded-full bg-indigo-500/10 blur-[100px]" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[40rem] h-[40rem] rounded-full bg-violet-500/10 blur-[100px]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808005_1px,transparent_1px),linear-gradient(to_bottom,#80808005_1px,transparent_1px)] bg-[size:32px_32px]" />
-      </div>
+    <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#0b0a10] dark:text-white sm:px-4 md:px-5 md:py-5">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+      />
 
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, ease: 'easeOut' }}
-        className="p-3 sm:p-5 md:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-5 relative z-10"
+      <m.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="relative z-10 mx-auto max-w-[1200px] space-y-3"
       >
-        <PageHeader />
-
-        {/* Main Grid Layout */}
-        <div className="grid lg:grid-cols-12 gap-5 items-start">
-          {/* Left Main Column (8 cols) */}
-          <div className="lg:col-span-8 space-y-5">
-            {/* Hero Main Section Card (Reduced Height) */}
-            <div className="relative overflow-hidden rounded-3xl border border-indigo-200/80 dark:border-indigo-500/20 bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-indigo-950/40 dark:via-slate-900 dark:to-purple-950/30 backdrop-blur-2xl p-4 sm:p-5 space-y-3 shadow-md shadow-indigo-500/5">
-              {/* Subtle Ambient Glow Effect */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 blur-3xl pointer-events-none -z-10" />
-
-              <div className="flex items-center justify-between">
-                <Badge className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1.5">
-                  <Clock className="w-3 h-3" />
-                  <span>Launching Next Quarter</span>
-                </Badge>
-                <ShieldCheck className="w-4.5 h-4.5 text-indigo-500/50" />
+        <m.header
+          variants={FADE_UP}
+          className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <IconChip icon={Users} size="lg" />
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                  Study groups
+                </h1>
+                <Pill tone="accent">Peer community</Pill>
               </div>
+              <p className={cn('mt-0.5 text-sm font-medium', MUTED)}>
+                Collaborative practice rooms & live peer learning communities.
+              </p>
+            </div>
+          </div>
 
-              <div className="space-y-0.5 max-w-xl">
-                <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
-                  Connect, Collaborate, and{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-400">
-                    Conquer.
-                  </span>
-                </h2>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                  A state-of-the-art virtual simulation environment. Join specialized rooms to
-                  practice with peers at your level.
+          <div className="flex items-center gap-2">
+            <div className={cn(TILE, 'flex items-center gap-2 px-3 py-1.5')}>
+              <IconChip icon={Globe} tone="emerald" size="sm" />
+              <div>
+                <p className="text-xs font-extrabold leading-none text-slate-900 dark:text-white">
+                  Global
                 </p>
+                <p className={cn(MICRO, MUTED, 'mt-0.5')}>Network</p>
+              </div>
+            </div>
+            <div className={cn(TILE, 'flex items-center gap-2 px-3 py-1.5')}>
+              <IconChip icon={Zap} tone="amber" size="sm" />
+              <div>
+                <p className="text-xs font-extrabold leading-none text-slate-900 dark:text-white">
+                  Real-time
+                </p>
+                <p className={cn(MICRO, MUTED, 'mt-0.5')}>Live rooms</p>
+              </div>
+            </div>
+          </div>
+        </m.header>
+
+        <div className="grid gap-3 lg:grid-cols-12 lg:items-start">
+          <div className="space-y-3 lg:col-span-8">
+            <m.div variants={FADE_UP} className={cn(PANEL, 'p-4 sm:p-5')}>
+              <div className="flex items-center justify-between">
+                <Pill tone="accent">
+                  <Clock className="h-3 w-3" />
+                  Launching next quarter
+                </Pill>
               </div>
 
-              {/* 4 Compact Feature Cards */}
-              <div className="grid sm:grid-cols-2 gap-2.5">
-                <FeatureHighlight
-                  icon={Video}
-                  title="Live Video Practice"
-                  desc="Face-to-face practice rooms for speaking."
-                  tag="Audio & Video"
-                  color="blue"
-                />
-                <FeatureHighlight
-                  icon={MessageSquare}
-                  title="Direct Feedback"
-                  desc="Peer reviews on your writing tasks."
-                  tag="Peer Evaluation"
-                  color="indigo"
-                />
-                <FeatureHighlight
-                  icon={Trophy}
-                  title="Group Missions"
-                  desc="Team challenges and joint rewards."
-                  tag="XP Multiplier"
-                  color="purple"
-                />
-                <FeatureHighlight
-                  icon={Bot}
-                  title="AI Moderation"
-                  desc="Focused and productive study sessions."
-                  tag="24/7 AI Agent"
-                  color="rose"
-                />
+              <h2 className="mt-3 text-lg font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-xl">
+                Connect, collaborate, and conquer.
+              </h2>
+              <p className={cn('mt-1 max-w-xl text-[13px] font-medium leading-relaxed', MUTED)}>
+                A state-of-the-art virtual simulation environment. Join specialized rooms to
+                practice with peers at your level.
+              </p>
+
+              <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                {FEATURES.map((f) => (
+                  <FeatureTile key={f.title} {...f} />
+                ))}
               </div>
 
-              {/* Action Button & Disclaimer */}
-              <div className="pt-2.5 border-t border-slate-200/80 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <Button
+              <div className="mt-4 flex flex-col gap-2 border-t border-[#eeedf7] pt-3.5 dark:border-white/[0.07] sm:flex-row sm:items-center sm:justify-between">
+                <button
                   disabled
-                  className="rounded-xl px-4 h-8 font-bold text-xs bg-indigo-600 opacity-80 text-white cursor-not-allowed shadow-xs border-0"
+                  className="inline-flex h-9 w-fit items-center justify-center rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white opacity-70"
                 >
-                  Coming Soon
-                </Button>
+                  Coming soon
+                </button>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300">
-                  <Crown className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Exclusive to Pro & Premium Members</span>
+                  <Crown className="h-3.5 w-3.5 text-amber-500" />
+                  Exclusive to Pro & Premium members
                 </div>
               </div>
-            </div>
+            </m.div>
 
-            {/* Active Rooms Preview Grid */}
-            <div className="space-y-3.5">
+            <m.div variants={FADE_UP} className="space-y-2.5">
               <div className="flex items-center justify-between px-0.5">
-                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
-                  Active Rooms Preview
+                <h3 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
+                  Active rooms preview
                 </h3>
-                <Badge
-                  variant="outline"
-                  className="border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold px-2 py-0.5 rounded-lg text-[10px] uppercase"
-                >
-                  Real-time Status
-                </Badge>
+                <Pill tone="neutral">Real-time status</Pill>
               </div>
-
-              <div className="grid sm:grid-cols-2 gap-3.5">
-                {previews.map((preview, i) => (
-                  <GroupPreviewCard key={i} {...preview} />
+              <div className="grid gap-2.5 sm:grid-cols-2">
+                {PREVIEWS.map((preview) => (
+                  <GroupPreviewCard key={preview.name} {...preview} />
                 ))}
               </div>
+            </m.div>
+          </div>
+
+          <m.div variants={FADE_UP} className={cn(PANEL, 'p-4 sm:p-5 lg:col-span-4')}>
+            <div className="border-b border-[#eeedf7] pb-3 dark:border-white/[0.07]">
+              <h3 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
+                How it works
+              </h3>
+              <p className={cn('mt-0.5 text-xs font-medium', MUTED)}>
+                Four simple steps to IELTS group mastery.
+              </p>
             </div>
-          </div>
 
-          {/* Right Sidebar Column (4 cols) - How It Works */}
-          <div className="lg:col-span-4 space-y-5">
-            <Card className="rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm p-5 sm:p-6 space-y-5">
-              <div className="space-y-1 border-b border-slate-100 dark:border-white/[0.08] pb-3.5">
-                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight uppercase">
-                  How it works
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                  Four simple steps to IELTS group mastery.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {[
-                  {
-                    step: '01',
-                    title: 'Pick a Topic',
-                    desc: 'Reading, Writing, Speaking or Listening.',
-                    color: 'text-indigo-600 dark:text-indigo-400',
-                  },
-                  {
-                    step: '02',
-                    title: 'Find your Team',
-                    desc: 'Join or create rooms with specific needs.',
-                    color: 'text-emerald-600 dark:text-emerald-400',
-                  },
-                  {
-                    step: '03',
-                    title: 'Start Simulation',
-                    desc: 'Sync testing or open-ended practice.',
-                    color: 'text-purple-600 dark:text-purple-400',
-                  },
-                  {
-                    step: '04',
-                    title: 'Progress Together',
-                    desc: 'Earn shared XP and group badges.',
-                    color: 'text-rose-600 dark:text-rose-400',
-                  },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-3 group/item">
-                    <span
-                      className={cn(
-                        'text-xl sm:text-2xl font-black italic leading-none shrink-0 opacity-80',
-                        item.color
-                      )}
-                    >
-                      {item.step}
-                    </span>
-                    <div className="space-y-0.5">
-                      <h4 className="font-extrabold text-xs text-slate-900 dark:text-white tracking-tight uppercase">
-                        {item.title}
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                        {item.desc}
-                      </p>
-                    </div>
+            <div className="mt-4 space-y-3.5">
+              {HOW_IT_WORKS.map((item) => (
+                <div key={item.step} className="flex items-start gap-3">
+                  <span className={cn('shrink-0 text-lg font-black italic text-[#5a63df]/70')}>
+                    {item.step}
+                  </span>
+                  <div>
+                    <h4 className="text-xs font-extrabold uppercase tracking-tight text-slate-900 dark:text-white">
+                      {item.title}
+                    </h4>
+                    <p className={cn('mt-0.5 text-[11px] font-medium leading-relaxed', MUTED)}>
+                      {item.desc}
+                    </p>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
+            </div>
 
-              {/* Pro Tip Box */}
-              <div className="bg-amber-50 dark:bg-amber-950/40 rounded-2xl p-3.5 border border-amber-200/80 dark:border-amber-900/50">
-                <p className="text-xs font-bold text-amber-800 dark:text-amber-300 leading-relaxed">
-                  <strong>PRO TIP:</strong> Group study increases retention rates and practice
-                  consistency by up to 45%.
-                </p>
-              </div>
-            </Card>
-          </div>
+            <div
+              className={cn(
+                TILE,
+                'mt-4 border-amber-200/60 bg-amber-50/40 p-3.5 dark:border-amber-500/20 dark:bg-amber-500/[0.06]'
+              )}
+            >
+              <p className="text-xs font-bold leading-relaxed text-amber-800 dark:text-amber-300">
+                <strong>Pro tip:</strong> Group study increases retention rates and practice
+                consistency by up to 45%.
+              </p>
+            </div>
+          </m.div>
         </div>
-      </motion.div>
-    </div>
+      </m.div>
+    </main>
   );
 }

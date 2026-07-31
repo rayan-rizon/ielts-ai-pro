@@ -11,14 +11,12 @@ import {
   Trash2,
 } from 'lucide-react';
 import { getQuestionCount, formatTestTitle, cn } from '@/lib/utils';
-import { NUM, MICRO } from '../../ui/primitives';
+import { NUM, MICRO, PILL_BASE, pillTone } from '../../ui/primitives';
 
-const TIER_PILL = {
-  premium:
-    'text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-800/60 bg-violet-500/[0.06]',
-  pro: 'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)]',
-  free: 'text-stone-500 border-stone-200 dark:border-white/10 bg-stone-500/[0.04]',
-};
+// Paid tiers all read as "accent" — the point is free vs. gated, not which
+// paid tier, so one tone for pro+premium keeps the table from turning into
+// a color-per-value legend.
+const tierTone = (tier) => (tier && tier !== 'free' ? pillTone('accent') : pillTone('neutral'));
 
 const TestTable = ({
   tests,
@@ -271,13 +269,8 @@ const TestTable = ({
                             {formatTestTitle(test)}
                           </button>
                           {test.is_official_cambridge && (
-                            <span
-                              className={cn(
-                                MICRO,
-                                'inline-flex items-center gap-1 shrink-0 rounded-md px-1.5 py-0.5 border text-indigo-600 dark:text-indigo-400 border-indigo-300/50 dark:border-indigo-800/60 bg-indigo-500/[0.06]'
-                              )}
-                            >
-                              <GraduationCap className="w-2.5 h-2.5" />
+                            <span className={cn(PILL_BASE, pillTone('accent'), 'shrink-0')}>
+                              <GraduationCap className="w-2 h-2" />
                               Cambridge
                             </span>
                           )}
@@ -295,26 +288,12 @@ const TestTable = ({
                     </div>
                   </td>
                   <td className="px-3 py-3 text-center">
-                    <span
-                      className={cn(
-                        'inline-flex items-center rounded-md border px-1.5 py-0.5',
-                        MICRO,
-                        test.is_active
-                          ? 'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)]'
-                          : 'text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/10'
-                      )}
-                    >
+                    <span className={cn(PILL_BASE, pillTone(test.is_active ? 'ok' : 'neutral'))}>
                       {test.is_active ? 'Active' : 'Draft'}
                     </span>
                   </td>
                   <td className="px-3 py-3 text-center">
-                    <span
-                      className={cn(
-                        'inline-flex items-center rounded-md border px-1.5 py-0.5 capitalize',
-                        MICRO,
-                        TIER_PILL[test.access_tier] || TIER_PILL.free
-                      )}
-                    >
+                    <span className={cn(PILL_BASE, tierTone(test.access_tier), 'capitalize')}>
                       {test.access_tier || 'free'}
                     </span>
                   </td>

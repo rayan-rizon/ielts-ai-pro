@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
 import { Activity, UserCheck } from 'lucide-react';
 import {
   AreaChart,
@@ -18,17 +17,14 @@ import {
   PANEL,
   MICRO,
   NUM,
+  PILL_BASE,
+  pillTone,
   STAGGER_CONTAINER,
   FADE_UP,
   SectionLabel,
 } from './ui/primitives';
 
-const TIER_PILL = {
-  premium:
-    'text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-800/60 bg-violet-500/[0.06]',
-  pro: 'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)]',
-  free: 'text-stone-500 border-stone-200 dark:border-white/10 bg-stone-500/[0.04]',
-};
+const tierTone = (tier) => (tier && tier !== 'free' ? pillTone('accent') : pillTone('neutral'));
 
 const UserAnalytics = ({
   stats = {},
@@ -94,23 +90,33 @@ const UserAnalytics = ({
           <div className="flex items-center justify-between p-4 border-b border-stone-200/80 dark:border-white/[0.07]">
             <SectionLabel>Growth Trajectory</SectionLabel>
             <div className="flex items-center gap-1 p-0.5 bg-stone-100 dark:bg-white/[0.04] rounded-lg border border-stone-200/80 dark:border-white/[0.07]">
-              {['30D', '90D', '1Y'].map((range) => (
-                <button
-                  key={range}
-                  onClick={() => onRangeChange?.(range)}
-                  disabled={isDataLoading}
-                  className={cn(
-                    'px-2.5 py-1 rounded-md transition-all',
-                    MICRO,
-                    range === selectedRange
-                      ? 'bg-white dark:bg-[#131315] text-stone-900 dark:text-stone-50 shadow-2xs'
-                      : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200',
-                    isDataLoading && 'opacity-50 cursor-not-allowed'
-                  )}
-                >
-                  {range}
-                </button>
-              ))}
+              {['30D', '90D', '1Y'].map((range) => {
+                const isActive = range === selectedRange;
+                return (
+                  <button
+                    key={range}
+                    onClick={() => onRangeChange?.(range)}
+                    disabled={isDataLoading}
+                    className={cn(
+                      'relative px-2.5 py-1 rounded-md transition-all active:scale-95',
+                      MICRO,
+                      isActive
+                        ? 'text-stone-900 dark:text-stone-50'
+                        : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200',
+                      isDataLoading && 'opacity-50 cursor-not-allowed'
+                    )}
+                  >
+                    {isActive && (
+                      <motion.span
+                        layoutId="userAnalyticsRangePill"
+                        className="absolute inset-0 bg-white dark:bg-[#131315] rounded-md shadow-2xs"
+                        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                      />
+                    )}
+                    <span className="relative">{range}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -295,15 +301,7 @@ const UserAnalytics = ({
                     </div>
 
                     <div className="flex items-center gap-3 shrink-0">
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          'rounded-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border',
-                          TIER_PILL[tier] || TIER_PILL.free
-                        )}
-                      >
-                        {tier}
-                      </Badge>
+                      <span className={cn(PILL_BASE, tierTone(tier))}>{tier}</span>
                       <div className="text-right hidden sm:block">
                         <p
                           className={cn(

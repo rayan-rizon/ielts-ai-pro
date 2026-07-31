@@ -4,7 +4,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryClient';
 import { mergeDefaultTestMode } from '@/features/testing/shared/testMode';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -23,17 +22,15 @@ import {
   Save,
   Trash2,
   Clock,
-  Sparkles,
   Trophy,
   Crown,
   Gift,
   BarChart3,
-  Check,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
-import { Badge } from '@/components/ui/badge';
+import { IconChip, MUTED, PANEL, Pill, TILE } from '@/features/dashboard/components/primitives';
 import { generateAdaptiveLearningPath } from '@/utils/api';
 import {
   getWeeklyCapacity,
@@ -55,10 +52,10 @@ const loadSupabaseClient = () => import('@/lib/supabase').then((module) => modul
 
 function SettingsTabFallback() {
   return (
-    <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 p-5 space-y-3">
+    <div className={cn(PANEL, 'space-y-3 p-5')}>
       <Skeleton className="h-6 w-36 rounded-lg" />
-      <Skeleton className="h-20 w-full rounded-xl" />
-      <Skeleton className="h-20 w-full rounded-xl" />
+      <Skeleton className="h-20 w-full rounded-lg" />
+      <Skeleton className="h-20 w-full rounded-lg" />
     </div>
   );
 }
@@ -282,8 +279,8 @@ export default function Settings() {
 
   if (isUserLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-[#020617]">
-        <Clock className="w-8 h-8 animate-spin text-indigo-600" />
+      <div className="flex min-h-screen items-center justify-center bg-[#f8f8fb] dark:bg-[#0b0a10]">
+        <Clock className="h-8 w-8 animate-spin text-[#5a63df]" />
       </div>
     );
   }
@@ -301,65 +298,57 @@ export default function Settings() {
   };
 
   return (
-    <div className="relative min-h-screen pb-16 bg-slate-50 dark:bg-[#020617] transition-colors duration-300 font-sans">
-      {/* Background Subtle Gradient & Grid */}
-      <div aria-hidden="true" className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-5%] left-[-5%] w-[45rem] h-[45rem] rounded-full bg-indigo-500/10 blur-[100px]" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[40rem] h-[40rem] rounded-full bg-violet-500/10 blur-[100px]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808005_1px,transparent_1px),linear-gradient(to_bottom,#80808005_1px,transparent_1px)] bg-[size:32px_32px]" />
-      </div>
+    <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#0b0a10] dark:text-white sm:px-4 md:px-5 md:py-5">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+      />
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
-        className="p-3 sm:p-5 md:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-4 sm:space-y-6 relative z-10"
+        className="relative z-10 mx-auto max-w-[1400px] space-y-3"
       >
         {/* Header Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-white/10">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-600/10 dark:bg-indigo-400/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
-              <UserIcon className="w-5 h-5" />
-            </div>
+            <IconChip icon={UserIcon} size="lg" />
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-none sm:leading-tight">
-                  Account Settings
+                <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                  Account settings
                 </h1>
-                <Badge className="px-2.5 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 rounded-md font-semibold uppercase text-xs">
-                  {user?.subscription_tier || 'Free'}
-                </Badge>
+                <Pill tone="accent">{user?.subscription_tier || 'Free'}</Pill>
               </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+              <p className={cn('text-sm font-medium', MUTED)}>
                 Manage your preferences, study goals, and account security.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              onClick={handleSave}
-              disabled={isSaving}
-              size="sm"
-              className="rounded-xl px-5 h-10 font-semibold bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20 active:scale-95 transition-all text-white text-sm border-0"
-            >
-              {isSaving ? (
-                <Clock className="mr-1.5 h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="mr-1.5 h-4 w-4" />
-              )}
-              Save Changes
-            </Button>
-          </div>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-[#5a63df] px-5 text-sm font-bold text-white transition-colors hover:bg-[#4a52c9] disabled:opacity-60"
+          >
+            {isSaving ? <Clock className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            Save changes
+          </button>
         </div>
 
         {/* Main Layout Grid (3:9 split) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-12">
           {/* Left Sidebar Column (3 cols) */}
-          <div className="lg:col-span-3 space-y-4 lg:sticky lg:top-6">
+          <div className="space-y-3 lg:sticky lg:top-4 lg:col-span-3">
             {/* Navigation Tabs */}
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 p-1.5">
-              <nav className="flex lg:flex-col gap-1 overflow-x-auto no-scrollbar">
+            <div className={cn(PANEL, 'p-1.5')}>
+              <nav className="no-scrollbar flex gap-1 overflow-x-auto lg:flex-col">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
@@ -368,18 +357,16 @@ export default function Settings() {
                       key={item.id}
                       onClick={() => handleTabChange(item.id)}
                       className={cn(
-                        'flex shrink-0 items-center gap-2.5 px-3.5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 relative overflow-hidden whitespace-nowrap',
+                        'relative flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg px-3.5 py-2.5 text-sm font-bold transition-colors duration-150',
                         isActive
-                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20 font-bold'
-                          : 'text-slate-600 hover:text-slate-900 dark:hover:text-white dark:text-slate-400 hover:bg-slate-100/70 dark:hover:bg-white/5'
+                          ? 'bg-[#5a63df]/[0.09] text-[#4a52c9] dark:bg-[#5a63df]/[0.22] dark:text-[#c3c7ff]'
+                          : 'text-slate-600 hover:bg-[#5a63df]/[0.05] hover:text-[#4a52c9] dark:text-slate-300 dark:hover:bg-white/[0.05] dark:hover:text-slate-100'
                       )}
                     >
-                      <Icon
-                        className={cn(
-                          'w-4 h-4 shrink-0',
-                          isActive ? 'text-white' : 'text-slate-400'
-                        )}
-                      />
+                      {isActive && (
+                        <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-[#5a63df]" />
+                      )}
+                      <Icon className={cn('h-4 w-4 shrink-0', !isActive && 'text-slate-400')} />
                       <span>{item.label}</span>
                     </button>
                   );
@@ -388,27 +375,25 @@ export default function Settings() {
             </div>
 
             {/* Compact Profile Summary Widget */}
-            <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-2xl p-4 text-white shadow-md shadow-indigo-500/15 relative overflow-hidden hidden lg:block">
-              <div className="relative z-10 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white/30 shrink-0 shadow-sm">
+            <div className={cn(TILE, 'hidden p-4 lg:block')}>
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-[#e4e2f0] dark:border-white/10">
                   <img
                     src={
                       formData.avatar_url ||
                       `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.full_name || 'default'}`
                     }
                     alt="Profile"
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="text-sm font-bold truncate">
+                  <h4 className="truncate text-sm font-extrabold text-slate-900 dark:text-white">
                     {formData.full_name || 'User Profile'}
                   </h4>
-                  <p className="text-xs text-indigo-100/90 truncate font-medium">
-                    {formData.email}
-                  </p>
-                  <div className="mt-1 flex items-center gap-2 text-xs font-semibold opacity-90">
-                    <Trophy className="w-3.5 h-3.5 text-amber-300" />
+                  <p className={cn('truncate text-xs font-medium', MUTED)}>{formData.email}</p>
+                  <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+                    <Trophy className="h-3.5 w-3.5" />
                     <span>Target Band {formData.target_band_score}</span>
                   </div>
                 </div>
@@ -417,7 +402,7 @@ export default function Settings() {
           </div>
 
           {/* Right Content Column (9 cols) */}
-          <div className="lg:col-span-9 space-y-4">
+          <div className="space-y-3 lg:col-span-9">
             <AnimatePresence mode="wait">
               {activeTab === 'profile' && (
                 <ProfileSection
@@ -478,42 +463,43 @@ export default function Settings() {
             }
           }}
         >
-          <DialogContent className="sm:max-w-[380px] rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-5 shadow-xl">
+          <DialogContent className="rounded-xl border-[#e4e2f0] bg-white p-5 dark:border-white/10 dark:bg-[#131218] sm:max-w-[380px]">
             <DialogHeader className="space-y-2">
-              <DialogTitle className="flex items-center gap-2 text-xl font-black text-rose-600">
+              <DialogTitle className="flex items-center gap-2 text-lg font-extrabold text-[rgb(var(--signal-fault))]">
                 <Trash2 className="h-5 w-5" />
-                Delete Account
+                Delete account
               </DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+              <DialogDescription className={cn('text-xs font-medium leading-relaxed', MUTED)}>
                 This action is permanent and will wipe all your IELTS progress.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3 py-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
-                Type <span className="text-rose-600 font-bold px-1">DELETE</span> below
+              <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                Type <span className="px-1 font-bold text-[rgb(var(--signal-fault))]">DELETE</span>{' '}
+                below
               </p>
               <Input
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="delete"
-                className="h-11 rounded-xl border-rose-500/20 focus:ring-rose-500 bg-transparent font-black text-center text-lg tracking-tight transition-all placeholder:opacity-30 outline-none"
+                className="h-11 rounded-lg border-[rgb(var(--signal-fault)/0.25)] bg-transparent text-center text-lg font-black tracking-tight outline-none transition-all placeholder:opacity-30 focus:ring-[rgb(var(--signal-fault))]"
                 autoComplete="off"
               />
             </div>
             <DialogFooter className="flex-row gap-2">
-              <Button
-                variant="outline"
+              <button
+                type="button"
                 onClick={() => {
                   setShowDeleteModal(false);
                   setDeleteConfirmText('');
                 }}
                 disabled={isDeletingAccount}
-                className="rounded-xl h-10 font-bold flex-1 border-slate-200 dark:border-white/10 text-xs hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
+                className="h-10 flex-1 rounded-lg border border-[#e2e5f2] text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
               >
                 Cancel
-              </Button>
-              <Button
-                variant="destructive"
+              </button>
+              <button
+                type="button"
                 onClick={async () => {
                   setIsDeletingAccount(true);
                   try {
@@ -528,14 +514,18 @@ export default function Settings() {
                   }
                 }}
                 disabled={deleteConfirmText.toUpperCase() !== 'DELETE' || isDeletingAccount}
-                className="rounded-xl h-10 font-black flex-1 shadow-md shadow-rose-500/20 text-xs border-0"
+                className="h-10 flex-1 rounded-lg bg-[rgb(var(--signal-fault))] text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isDeletingAccount ? <Clock className="animate-spin w-4 h-4" /> : 'Confirm Wipe'}
-              </Button>
+                {isDeletingAccount ? (
+                  <Clock className="mx-auto h-4 w-4 animate-spin" />
+                ) : (
+                  'Confirm wipe'
+                )}
+              </button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </motion.div>
-    </div>
+      </m.div>
+    </main>
   );
 }

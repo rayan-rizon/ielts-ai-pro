@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/cn';
 import { SystemSetting } from '@/features/admin/services/SystemSetting';
 import PlatformHealthDashboard from './PlatformHealthDashboard';
 import TierRateLimitsSettings from './TierRateLimitsSettings';
@@ -20,6 +21,37 @@ import { toast } from 'sonner';
 
 import { Loader2, Activity, CreditCard, Bell, HeartPulse, Gauge, Mail, Lock } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/ui/primitives';
+
+const SECTIONS = [
+  { value: 'general', label: 'Health', icon: HeartPulse },
+  { value: 'announcements', label: 'Announcements', icon: Bell },
+  { value: 'pricing', label: 'Pricing', icon: CreditCard },
+  { value: 'security', label: 'Security', icon: Lock },
+  { value: 'rate-limits', label: 'Rate Limits', icon: Gauge },
+  { value: 'emails', label: 'Emails', icon: Mail },
+];
+
+// A quiet sliding-pill indicator behind the active tab, matching the same
+// layoutId pattern used for the Test Management module tabs.
+const SectionTab = ({ section, isActive }) => {
+  const Icon = section.icon;
+  return (
+    <TabsTrigger
+      value={section.value}
+      className={cn(ADMIN_TAB_TRIGGER, 'relative overflow-visible data-[state=active]:shadow-none')}
+    >
+      {isActive && (
+        <motion.span
+          layoutId="settingsTabActivePill"
+          className="absolute inset-0 bg-white dark:bg-[#131315] rounded-md shadow-2xs"
+          transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+        />
+      )}
+      <Icon className="relative w-3.5 h-3.5" />
+      <span className="relative">{section.label}</span>
+    </TabsTrigger>
+  );
+};
 
 export default function GlobalSettings() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -222,30 +254,13 @@ export default function GlobalSettings() {
         {/* Compact Segmented Tab Navigation */}
         <div className="flex overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 pb-1">
           <TabsList className={ADMIN_TABS_LIST} data-oid="ybobvet">
-            <TabsTrigger value="general" className={ADMIN_TAB_TRIGGER} data-oid="tbs-gen">
-              <HeartPulse className="w-3.5 h-3.5" />
-              Health
-            </TabsTrigger>
-            <TabsTrigger value="announcements" className={ADMIN_TAB_TRIGGER} data-oid="tbs-ann">
-              <Bell className="w-3.5 h-3.5" />
-              Announcements
-            </TabsTrigger>
-            <TabsTrigger value="pricing" className={ADMIN_TAB_TRIGGER} data-oid="tbs-prc">
-              <CreditCard className="w-3.5 h-3.5" />
-              Pricing
-            </TabsTrigger>
-            <TabsTrigger value="security" className={ADMIN_TAB_TRIGGER} data-oid="tbs-sec">
-              <Lock className="w-3.5 h-3.5" />
-              Security
-            </TabsTrigger>
-            <TabsTrigger value="rate-limits" className={ADMIN_TAB_TRIGGER} data-oid="tbs-rat">
-              <Gauge className="w-3.5 h-3.5" />
-              Rate Limits
-            </TabsTrigger>
-            <TabsTrigger value="emails" className={ADMIN_TAB_TRIGGER} data-oid="tbs-eml">
-              <Mail className="w-3.5 h-3.5" />
-              Emails
-            </TabsTrigger>
+            {SECTIONS.map((section) => (
+              <SectionTab
+                key={section.value}
+                section={section}
+                isActive={activeSection === section.value}
+              />
+            ))}
           </TabsList>
         </div>
 

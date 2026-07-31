@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import {
   Gift,
   Check,
   Share2,
-  Users,
   Calendar,
   PenLine,
   Mic,
@@ -12,31 +11,36 @@ import {
   Sparkles,
   Copy,
   Lock,
-  ArrowRight,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useUserReferrals, useReferralTiers } from '../hooks/useUserReferrals';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import {
+  Bar,
+  IconChip,
+  MICRO,
+  MUTED,
+  PANEL,
+  PanelTitle,
+  Pill,
+  TILE,
+} from '@/features/dashboard/components/primitives';
 
-const containerVariants = {
+const STAGGER = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
+  visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
+};
+const FADE_UP = {
+  hidden: { y: 10, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { duration: 0.25 } },
 };
 
-const itemVariants = {
-  hidden: { y: 15, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: { duration: 0.3 },
-  },
-};
+const STEPS = [
+  { step: '1', label: 'Share link' },
+  { step: '2', label: 'Friend joins' },
+  { step: '3', label: 'Earn rewards' },
+];
 
 export default function ReferralSection() {
   const { data: stats, isLoading, claimRewards, isClaiming } = useUserReferrals();
@@ -97,120 +101,103 @@ export default function ReferralSection() {
     stats?.next_tier && stats?.referral_count >= stats?.next_tier?.referrals_required;
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.2 }}
-      className="w-full space-y-6"
+      className="w-full space-y-3"
     >
       <AnimatePresence mode="wait">
         {isLoading ? (
-          <motion.div
+          <m.div
             key="loading"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full"
+            className="grid w-full grid-cols-1 gap-3 lg:grid-cols-2"
           >
-            <div className="bg-white/80 dark:bg-slate-900/80 rounded-3xl p-6 h-[20rem]">
-              <Skeleton className="h-10 w-10 rounded-xl mb-4" />
-              <Skeleton className="h-7 w-40 mb-6" />
-              <Skeleton className="h-12 w-full rounded-xl mb-4" />
-              <Skeleton className="h-10 w-full rounded-xl mt-auto" />
+            <div className={cn(PANEL, 'h-[17rem] p-4 sm:p-5')}>
+              <Skeleton className="mb-4 h-9 w-9 rounded-lg" />
+              <Skeleton className="mb-4 h-6 w-40 rounded" />
+              <Skeleton className="mb-4 h-10 w-full rounded-lg" />
+              <Skeleton className="mt-auto h-9 w-full rounded-lg" />
             </div>
-
-            <div className="bg-white/80 dark:bg-slate-900/80 rounded-3xl p-6 h-[20rem] flex flex-col justify-between">
-              <Skeleton className="h-8 w-44 mb-4" />
-              <div className="grid grid-cols-2 gap-4">
-                <Skeleton className="h-28 rounded-2xl" />
-                <Skeleton className="h-28 rounded-2xl" />
+            <div className={cn(PANEL, 'flex h-[17rem] flex-col justify-between p-4 sm:p-5')}>
+              <Skeleton className="mb-4 h-6 w-36 rounded" />
+              <div className="grid grid-cols-2 gap-3">
+                <Skeleton className="h-24 rounded-lg" />
+                <Skeleton className="h-24 rounded-lg" />
               </div>
-              <Skeleton className="h-8 w-full mt-4" />
+              <Skeleton className="mt-4 h-7 w-full rounded" />
             </div>
-
-            <div className="lg:col-span-2 bg-white/80 dark:bg-slate-900/80 rounded-3xl p-6">
-              <Skeleton className="h-7 w-56 mb-6" />
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Skeleton className="h-32 rounded-2xl" />
-                <Skeleton className="h-32 rounded-2xl" />
-                <Skeleton className="h-32 rounded-2xl" />
+            <div className={cn(PANEL, 'p-4 sm:p-5 lg:col-span-2')}>
+              <Skeleton className="mb-4 h-6 w-48 rounded" />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <Skeleton className="h-28 rounded-lg" />
+                <Skeleton className="h-28 rounded-lg" />
+                <Skeleton className="h-28 rounded-lg" />
               </div>
             </div>
-          </motion.div>
+          </m.div>
         ) : (
-          <motion.div
+          <m.div
             key="content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-stretch"
+            className="grid w-full grid-cols-1 gap-3 lg:grid-cols-12 lg:items-stretch"
           >
-            {/* Left Hero Box: Invite & Earn (6 cols) */}
-            <motion.div
-              variants={containerVariants}
+            <m.div
+              variants={STAGGER}
               initial="hidden"
               animate="visible"
-              className="lg:col-span-6 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 rounded-2xl sm:rounded-3xl p-6 shadow-lg shadow-indigo-500/20 border border-indigo-500/30 text-white flex flex-col justify-between space-y-5 relative overflow-hidden h-full"
+              className={cn(PANEL, 'flex h-full flex-col justify-between p-4 sm:p-5 lg:col-span-6')}
             >
-              {/* Card Header */}
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shrink-0">
-                    <Gift className="w-6 h-6 text-white" />
-                  </div>
+                  <IconChip icon={Gift} size="lg" />
                   <div>
-                    <h3 className="text-xl font-bold text-white tracking-tight">
-                      Invite & Earn Rewards
+                    <h3 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
+                      Invite &amp; earn rewards
                     </h3>
-                    <p className="text-sm text-indigo-100/80 font-medium">
-                      Invite friends to join IELTS Mastery Pro and unlock bonus access.
+                    <p className={cn('text-xs font-medium', MUTED)}>
+                      Invite friends to unlock bonus AI access.
                     </p>
                   </div>
                 </div>
 
-                {/* Code Box */}
-                <div className="bg-black/25 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-white/15 flex items-center justify-between gap-3 group">
-                  <div className="font-mono text-lg sm:text-xl font-bold tracking-widest text-white truncate px-1">
+                <div className={cn(TILE, 'flex items-center justify-between gap-3 p-3')}>
+                  <span className="truncate px-1 font-mono text-lg font-extrabold tracking-widest text-slate-900 dark:text-white">
                     {stats?.referral_code || '...'}
-                  </div>
-                  <Button
-                    size="sm"
+                  </span>
+                  <button
+                    type="button"
                     onClick={handleCopy}
                     className={cn(
-                      'h-9 px-4 rounded-xl font-semibold transition-all duration-300 shadow-md text-xs border-0 shrink-0',
-                      copied
-                        ? 'bg-emerald-500 text-white scale-105'
-                        : 'bg-white text-indigo-700 hover:bg-indigo-50'
+                      'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-xs font-bold transition-all active:scale-95',
+                      copied ? 'bg-[rgb(var(--signal-ok))] text-white' : 'bg-[#5a63df] text-white'
                     )}
                   >
                     {copied ? (
                       <>
-                        <Check className="w-4 h-4 mr-1.5" /> Copied
+                        <Check className="h-3.5 w-3.5" /> Copied
                       </>
                     ) : (
                       <>
-                        <Copy className="w-4 h-4 mr-1.5" /> Copy Code
+                        <Copy className="h-3.5 w-3.5" /> Copy code
                       </>
                     )}
-                  </Button>
+                  </button>
                 </div>
 
-                {/* 3 Step Timeline */}
-                <div className="grid grid-cols-3 gap-2 pt-1">
-                  {[
-                    { step: '1', label: 'Share Link' },
-                    { step: '2', label: 'Friend Joins' },
-                    { step: '3', label: 'Earn Rewards' },
-                  ].map((s) => (
-                    <div
-                      key={s.step}
-                      className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 flex items-center gap-2 border border-white/10"
-                    >
-                      <span className="w-5 h-5 rounded-lg bg-white/20 text-white text-xs font-bold flex items-center justify-center shrink-0">
+                <div className="grid grid-cols-3 gap-2">
+                  {STEPS.map((s) => (
+                    <div key={s.step} className={cn(TILE, 'flex items-center gap-2 p-2.5')}>
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#5a63df]/10 text-[10px] font-extrabold text-[#5a63df]">
                         {s.step}
                       </span>
-                      <span className="text-xs font-semibold text-white/90 truncate">
+                      <span className="truncate text-[11px] font-bold text-slate-700 dark:text-slate-200">
                         {s.label}
                       </span>
                     </div>
@@ -218,124 +205,92 @@ export default function ReferralSection() {
                 </div>
               </div>
 
-              {/* Action Button */}
-              <div className="pt-2">
-                <Button
-                  onClick={handleShare}
-                  className="w-full h-11 rounded-xl bg-white text-indigo-700 hover:bg-indigo-50 font-bold shadow-md active:scale-95 transition-all text-sm border-0"
-                >
-                  <Share2 className="w-4 h-4 mr-2" /> Share Referral Link
-                </Button>
-              </div>
-            </motion.div>
+              <button
+                type="button"
+                onClick={handleShare}
+                className="mt-4 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-[#5a63df] text-sm font-bold text-white transition-all active:scale-95"
+              >
+                <Share2 className="h-4 w-4" /> Share referral link
+              </button>
+            </m.div>
 
-            {/* Right Box: Referral Status & Stats (6 cols) */}
-            <motion.div
-              variants={containerVariants}
+            <m.div
+              variants={STAGGER}
               initial="hidden"
               animate="visible"
-              className="lg:col-span-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-white/5 flex flex-col justify-between space-y-5 h-full"
+              className={cn(PANEL, 'flex h-full flex-col justify-between p-4 sm:p-5 lg:col-span-6')}
             >
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold shrink-0">
-                    <Users className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                      Referral Status
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                      Your current referral progress & earned credits.
-                    </p>
-                  </div>
-                </div>
-
+              <div className="flex items-center justify-between border-b border-[#eeedf7] pb-3 dark:border-white/[0.07]">
+                <PanelTitle label="Referral status" accent className="mb-0" />
                 {hasUnclaimedRewards && (
-                  <Button
-                    size="sm"
+                  <button
+                    type="button"
                     onClick={handleClaimRewards}
                     disabled={isClaiming}
-                    className="h-9 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold shadow-md active:scale-95 transition-all text-xs border-0"
+                    className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-amber-500 px-3 text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-60"
                   >
-                    <Sparkles className="w-4 h-4 mr-1.5 animate-spin" /> Claim Reward
-                  </Button>
+                    <Sparkles className="h-3.5 w-3.5" /> Claim
+                  </button>
                 )}
               </div>
 
-              {/* 2 Stat Cards */}
-              <div className="grid grid-cols-2 gap-4 my-auto">
-                <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-950/40 border border-slate-200/80 dark:border-white/10 text-center space-y-1">
-                  <span className="text-3xl font-extrabold text-slate-900 dark:text-white block">
+              <div className="my-4 grid grid-cols-2 gap-2.5">
+                <div className={cn(TILE, 'p-3.5 text-center')}>
+                  <span className="block text-2xl font-black tabular-nums text-slate-900 dark:text-white">
                     {stats?.referral_count || 0}
                   </span>
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Successful Invites
-                  </span>
+                  <span className={cn(MICRO, MUTED)}>Successful invites</span>
                 </div>
-
-                <div className="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-500/20 text-center space-y-1">
-                  <span className="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 block">
+                <div
+                  className={cn(TILE, 'border-[#5a63df]/25 bg-[#5a63df]/[0.05] p-3.5 text-center')}
+                >
+                  <span className="block text-2xl font-black tabular-nums text-[#5a63df]">
                     {stats?.bonus_writing_credits || 0}
                   </span>
-                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                    Bonus Credits
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#5a63df]">
+                    Bonus credits
                   </span>
                 </div>
               </div>
 
-              {/* Progress Bar for Next Tier */}
               {stats?.next_tier && (
-                <div className="pt-2 space-y-2">
-                  <div className="flex justify-between items-center text-xs font-semibold">
-                    <span className="text-slate-500 dark:text-slate-400">
-                      Next Reward:{' '}
-                      <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                        +{stats.next_tier.extra_days} Days AI Access
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className={MUTED}>
+                      Next reward:{' '}
+                      <span className="font-bold text-[#5a63df]">
+                        +{stats.next_tier.extra_days} days AI access
                       </span>
                     </span>
-                    <Badge className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border-0 text-xs px-2 py-0.5">
+                    <Pill tone="neutral">
                       {stats.referral_count} / {stats.next_tier.referrals_required}
-                    </Badge>
+                    </Pill>
                   </div>
-
-                  <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200/50 dark:border-white/5">
-                    <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-600"
-                      initial={{ width: 0 }}
-                      animate={{
-                        width: `${Math.min((stats.referral_count / stats.next_tier.referrals_required) * 100, 100)}%`,
-                      }}
-                      transition={{ duration: 1, ease: 'easeOut' }}
-                    />
-                  </div>
+                  <Bar value={(stats.referral_count / stats.next_tier.referrals_required) * 100} />
                 </div>
               )}
-            </motion.div>
+            </m.div>
 
-            {/* Milestones & Rewards Section (Full Width) */}
             {tiers && tiers.length > 0 && (
-              <motion.div
-                variants={containerVariants}
+              <m.div
+                variants={STAGGER}
                 initial="hidden"
                 animate="visible"
-                className="lg:col-span-12 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-white/5 space-y-5"
+                className={cn(PANEL, 'p-4 sm:p-5 lg:col-span-12')}
               >
-                <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/5">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold shrink-0">
-                    <Trophy className="w-5 h-5" />
-                  </div>
+                <div className="flex items-center gap-3 border-b border-[#eeedf7] pb-3 dark:border-white/[0.07]">
+                  <IconChip icon={Trophy} tone="amber" />
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                      Milestones & Rewards
+                    <h3 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
+                      Milestones &amp; rewards
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    <p className={cn('text-xs font-medium', MUTED)}>
                       Unlock extra AI practice time and evaluation credits as your friends sign up.
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+                <div className="mt-4 grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {tiers.map((tier) => {
                     const claimed = stats?.claimed_rewards?.some(
                       (r) => r.referrals_required === tier.referrals_required
@@ -343,86 +298,73 @@ export default function ReferralSection() {
                     const canClaim = stats?.referral_count >= tier.referrals_required && !claimed;
 
                     return (
-                      <motion.div
+                      <m.div
                         key={tier.id}
-                        variants={itemVariants}
+                        variants={FADE_UP}
                         className={cn(
-                          'rounded-2xl p-5 border transition-all duration-300 relative overflow-hidden flex flex-col justify-between space-y-4 h-full',
-                          claimed
-                            ? 'bg-emerald-500/5 border-emerald-500/30'
-                            : canClaim
-                              ? 'bg-amber-500/5 border-amber-500/40 shadow-md ring-2 ring-amber-500/20'
-                              : 'bg-slate-50/50 dark:bg-slate-950/40 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+                          TILE,
+                          'flex h-full flex-col justify-between gap-3 p-4',
+                          claimed &&
+                            'border-[rgba(var(--signal-ok),0.3)] bg-[rgba(var(--signal-ok),0.05)]',
+                          canClaim && 'border-amber-400/50 bg-amber-50/50 dark:bg-amber-500/[0.06]'
                         )}
                       >
-                        {/* Tier Header */}
-                        <div className="flex justify-between items-center">
-                          <Badge
-                            className={cn(
-                              'font-bold px-3 py-1 rounded-lg text-xs uppercase tracking-wider border-0',
-                              claimed
-                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                                : canClaim
-                                  ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                                  : 'bg-slate-200/70 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-                            )}
-                          >
+                        <div className="flex items-center justify-between">
+                          <Pill tone={claimed ? 'ok' : canClaim ? 'amber' : 'neutral'}>
                             {tier.referrals_required}{' '}
-                            {tier.referrals_required === 1 ? 'Friend' : 'Friends'}
-                          </Badge>
+                            {tier.referrals_required === 1 ? 'friend' : 'friends'}
+                          </Pill>
 
                           {claimed && (
-                            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                              <Check className="w-4 h-4" /> Claimed
+                            <span className="flex items-center gap-1 text-xs font-bold text-[rgb(var(--signal-ok))]">
+                              <Check className="h-3.5 w-3.5" /> Claimed
                             </span>
                           )}
                           {canClaim && (
-                            <span className="flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400 animate-pulse">
-                              <Sparkles className="w-4 h-4" /> Unlocked
+                            <span className="flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400">
+                              <Sparkles className="h-3.5 w-3.5" /> Unlocked
                             </span>
                           )}
                           {!claimed && !canClaim && (
-                            <span className="flex items-center gap-1 text-xs font-medium text-slate-400">
-                              <Lock className="w-3.5 h-3.5" /> Locked
+                            <span
+                              className={cn('flex items-center gap-1 text-xs font-medium', MUTED)}
+                            >
+                              <Lock className="h-3 w-3" /> Locked
                             </span>
                           )}
                         </div>
 
-                        {/* Reward Highlights */}
-                        <div className="space-y-3 pt-1">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                              <Calendar className="w-4 h-4" />
-                            </div>
-                            <span className="text-base font-bold text-slate-900 dark:text-white">
-                              +{tier.extra_days} Days AI Access
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2.5">
+                            <IconChip icon={Calendar} size="sm" />
+                            <span className="text-sm font-extrabold text-slate-900 dark:text-white">
+                              +{tier.extra_days} days AI access
                             </span>
                           </div>
-
-                          <div className="space-y-1.5 pl-12">
+                          <div className="space-y-1 pl-[26px]">
                             {tier.writing_credits > 0 && (
                               <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
-                                <PenLine className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                                <span>+{tier.writing_credits} Writing Evaluations</span>
+                                <PenLine className="h-3.5 w-3.5 shrink-0 text-[#5a63df]" />
+                                <span>+{tier.writing_credits} writing evaluations</span>
                               </div>
                             )}
                             {tier.speaking_credits > 0 && (
                               <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
-                                <Mic className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                <span>+{tier.speaking_credits} Speaking Evaluations</span>
+                                <Mic className="h-3.5 w-3.5 shrink-0 text-[rgb(var(--signal-ok))]" />
+                                <span>+{tier.speaking_credits} speaking evaluations</span>
                               </div>
                             )}
                           </div>
                         </div>
-                      </motion.div>
+                      </m.div>
                     );
                   })}
                 </div>
-              </motion.div>
+              </m.div>
             )}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </m.div>
   );
 }

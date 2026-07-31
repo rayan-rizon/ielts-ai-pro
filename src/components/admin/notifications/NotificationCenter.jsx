@@ -17,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import {
   Bell,
   Send,
@@ -41,6 +40,7 @@ import {
   AdminButton,
   PANEL,
   MICRO,
+  PILL_BASE,
   STAGGER_CONTAINER,
   FADE_UP,
 } from '../ui/primitives';
@@ -163,6 +163,7 @@ const NotificationCenter = () => {
         <AdminPageHeader
           title="Notifications"
           description="Broadcast real-time communications to your user community"
+          tip="Notifications land in every targeted user's dashboard immediately and disappear on their own once expired — recalling one removes it early from everyone it reached."
         >
           <AdminButton variant="outline" onClick={fetchNotifications}>
             <RefreshCcw className={cn('w-3 h-3', loading && 'animate-spin')} />
@@ -315,15 +316,15 @@ const NotificationCenter = () => {
                             </p>
                           </div>
                         </div>
-                        <Badge
-                          variant="outline"
+                        <span
                           className={cn(
-                            'rounded-md px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider border shrink-0',
-                            meta.cls
+                            PILL_BASE,
+                            meta.cls,
+                            'shrink-0 transition-transform duration-150 hover:scale-105'
                           )}
                         >
                           {meta.label}
-                        </Badge>
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
@@ -441,15 +442,15 @@ const NotificationCenter = () => {
                               </div>
                             </TableCell>
                             <TableCell className="py-3 px-4">
-                              <Badge
-                                variant="outline"
+                              <span
                                 className={cn(
-                                  'rounded-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border',
-                                  meta.cls
+                                  PILL_BASE,
+                                  meta.cls,
+                                  'transition-transform duration-150 hover:scale-105'
                                 )}
                               >
                                 {meta.label}
-                              </Badge>
+                              </span>
                             </TableCell>
                             <TableCell className="py-3 px-4">
                               <div className="flex items-center gap-1.5">

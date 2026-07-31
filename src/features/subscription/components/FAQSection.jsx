@@ -6,6 +6,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { IconChip, PANEL } from '@/features/dashboard/components/primitives';
+import { cn } from '@/lib/cn';
 
 const faqs = [
   {
@@ -32,36 +34,38 @@ const faqs = [
 
 export default function FAQSection() {
   return (
-    <section className="max-w-4xl mx-auto mb-32">
-      <div className="flex items-center gap-3 mb-10 justify-center">
-        <HelpCircle className="w-6 h-6 text-indigo-500" />
-        <h2 className="text-3xl font-black tracking-tight">Frequently Asked Questions</h2>
+    <section className="mx-auto mb-16 max-w-3xl">
+      <div className="mb-6 flex items-center justify-center gap-2.5">
+        <IconChip icon={HelpCircle} size="md" />
+        <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
+          Frequently asked questions
+        </h2>
       </div>
-      <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-slate-200 dark:border-white/5 p-6 sm:p-8 md:p-10 shadow-xl">
+      <div className={cn(PANEL, 'p-5 sm:p-7')}>
         <Accordion type="single" collapsible className="w-full">
           {faqs.map((faq, i) => (
             <AccordionItem
               key={i}
               value={`item-${i}`}
-              className="border-b-slate-200/60 dark:border-white/5 last:border-0"
+              className="border-b-[#eeedf7] last:border-0 dark:border-b-white/[0.07]"
             >
-              <AccordionTrigger className="text-left font-bold text-lg py-6 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+              <AccordionTrigger className="text-left text-sm font-bold text-slate-800 transition-colors hover:text-[#5a63df] dark:text-slate-100 dark:hover:text-[#a9afff] sm:text-base">
                 {faq.question}
               </AccordionTrigger>
-              <AccordionContent className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed pb-6 text-base">
+              <AccordionContent className="text-[13px] font-medium leading-relaxed text-slate-500 dark:text-slate-400">
                 {faq.answer}
               </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
-        <div className="mt-10 text-center">
-          <p className="text-slate-500 font-medium">
+        <div className="mt-6 text-center">
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
             Still have questions?{' '}
             <a
               href="mailto:support@ieltsai.pro"
-              className="text-indigo-600 font-bold hover:underline"
+              className="font-bold text-[#5a63df] hover:underline"
             >
-              Contact Support
+              Contact support
             </a>
           </p>
         </div>

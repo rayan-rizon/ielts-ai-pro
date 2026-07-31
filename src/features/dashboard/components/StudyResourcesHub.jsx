@@ -1,37 +1,23 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  BookOpen,
-  FileText,
-  Youtube,
-  GraduationCap,
-  ArrowRight,
-  Play,
-  ChevronDown,
-  ExternalLink,
-  Eye,
-  PlayCircle,
-} from 'lucide-react';
-import { cn } from '@/lib/cn';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Resource } from '@/features/learning/services/Resource';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { ChevronDown, ChevronRight, FileText, Play } from 'lucide-react';
+import { cn } from '@/lib/cn';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Resource } from '@/features/learning/services/Resource';
+import { createPageUrl } from '@/utils';
+import { Empty, MICRO, MUTED, NUM, PANEL, PanelTitle, SectionLabel, WELL } from './primitives';
 
 const StudyResourcesHub = React.memo(
   ({ initialResources = [], isLoading: parentLoading = false }) => {
     const [expanded, setExpanded] = useState(true);
     const navigate = useNavigate();
 
-    const resources = initialResources;
-    const isLoading = parentLoading;
-
+    const resources = initialResources || [];
     const videos = resources.filter((r) => r.content_type === 'video').slice(0, 3);
     const books = resources.filter((r) => r.content_type === 'pdf').slice(0, 4);
 
-    const handleOpenResource = (resource) => {
+    const openResource = (resource) => {
       Resource.incrementViewCount(resource.id);
       if (resource.content_type === 'blog' && resource.slug) {
         navigate(`/blog/${resource.slug}`);
@@ -40,268 +26,177 @@ const StudyResourcesHub = React.memo(
       }
     };
 
-    /**
-     * Improved Compact Video Card
-     */
-    const VideoCard = ({ item }) => {
-      const getThumbnail = () => {
-        if (item.thumbnail_url) return item.thumbnail_url;
-        const embedInfo = Resource.getVideoEmbedInfo(item.url);
-        if (embedInfo?.type === 'youtube') {
-          return `https://img.youtube.com/vi/${embedInfo.id}/mqdefault.jpg`;
-        }
-        return null;
-      };
-
-      return (
-        <motion.div
-          whileHover={{ scale: 1.01, x: 4 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => handleOpenResource(item)}
-          className={cn(
-            'group/item relative flex items-start gap-4 p-3 rounded-2xl bg-white/40 dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 shadow-sm cursor-pointer transition-all duration-300',
-            'hover:bg-white/80 dark:hover:bg-slate-900 hover:shadow-lg dark:hover:shadow-rose-500/10 hover:border-rose-500/20'
-          )}
-        >
-          {/* Thumbnail with Overlay */}
-          <div className="w-28 aspect-video rounded-lg overflow-hidden bg-slate-200 dark:bg-slate-800 shrink-0 relative border border-slate-200 dark:border-white/5 group-hover/item:border-rose-500/20 transition-colors">
-            {getThumbnail() ? (
-              <img
-                src={getThumbnail()}
-                alt=""
-                className="w-full h-full object-cover transition-transform duration-500 group-hover/item:scale-110"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-rose-500/10">
-                <PlayCircle className="w-8 h-8 text-rose-500/50" />
-              </div>
-            )}
-
-            {/* Play Button Overlay */}
-            <div className="absolute inset-0 bg-black/10 group-hover/item:bg-black/20 transition-colors flex items-center justify-center">
-              <div className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover/item:scale-110 transition-transform duration-300">
-                <Play className="w-5 h-5 text-rose-600 fill-rose-600 ml-1" />
-              </div>
-            </div>
-
-            {/* Duration Badge (Mocked or Real if available) */}
-            <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/70 backdrop-blur-sm rounded text-[8px] font-bold text-white">
-              WATCH
-            </div>
-          </div>
-
-          <div className="flex-1 min-w-0 py-0.5">
-            <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-snug line-clamp-2 group-hover/item:text-rose-600 dark:group-hover/item:text-rose-400 transition-colors mb-1.5">
-              {item.title}
-            </h4>
-
-            {item.description && (
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium line-clamp-2 leading-relaxed mb-2">
-                {item.description}
-              </p>
-            )}
-
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1 text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tight">
-                <Eye className="w-3 h-3 text-slate-300 dark:text-slate-500" />
-                {item.view_count || 0} views
-              </span>
-            </div>
-          </div>
-
-          <button className="self-center p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors opacity-0 group-hover/item:opacity-100">
-            <ExternalLink className="w-4 h-4" />
-          </button>
-        </motion.div>
-      );
+    const videoThumbnail = (item) => {
+      if (item.thumbnail_url) return item.thumbnail_url;
+      const embed = Resource.getVideoEmbedInfo(item.url);
+      return embed?.type === 'youtube'
+        ? `https://img.youtube.com/vi/${embed.id}/mqdefault.jpg`
+        : null;
     };
 
-    /**
-     * Improved Compact Book Card
-     */
-    const BookCard = ({ item }) => {
-      const thumbnail = item.thumbnail_url;
-
+    const VideoRow = ({ item }) => {
+      const thumbnail = videoThumbnail(item);
       return (
-        <motion.div
-          whileHover={{ scale: 1.05, y: -4 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => handleOpenResource(item)}
-          className={cn(
-            'group/item relative flex flex-col items-center gap-2 p-1.5 rounded-2xl bg-white/40 dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 shadow-sm cursor-pointer transition-all duration-300',
-            'hover:bg-white/80 dark:hover:bg-slate-900 hover:shadow-xl dark:hover:shadow-blue-500/10 hover:border-blue-500/20'
-          )}
+        <button
+          type="button"
+          onClick={() => openResource(item)}
+          className="group flex w-full items-center gap-3 rounded-lg border border-transparent p-2 text-left transition-all duration-150 hover:border-[#e4e2f0] hover:bg-[#f7f6fd] active:scale-[0.99] dark:hover:border-white/[0.07] dark:hover:bg-white/[0.03]"
         >
-          {/* 3D Book Cover Effect */}
-          <div className="w-20 h-28 rounded-r-md rounded-l-sm overflow-hidden bg-slate-200 dark:bg-slate-800 shrink-0 relative border-y border-r border-slate-200 dark:border-white/5 shadow-[2px_1px_4px_rgba(0,0,0,0.1)] transition-transform group-hover/item:-rotate-2 group-hover/item:translate-x-1 duration-300 after:absolute after:inset-y-0 after:left-0 after:w-1 after:bg-gradient-to-r after:from-black/20 after:to-transparent">
+          <div
+            className={cn(
+              WELL,
+              'relative h-10 w-16 shrink-0 overflow-hidden rounded-md border border-[#e4e2f0] dark:border-white/[0.07]'
+            )}
+          >
             {thumbnail ? (
-              <img src={thumbnail} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 p-2 text-center">
-                <FileText className="w-6 h-6 text-white/40 mb-1" />
-                <span className="text-[6px] text-white font-bold leading-tight line-clamp-3 uppercase tracking-wider">
-                  {item.title}
-                </span>
-              </div>
-            )}
-
-            {/* Glossy Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-black/0 via-white/10 to-white/20 pointer-events-none" />
+              <img src={thumbnail} alt="" loading="lazy" className="h-full w-full object-cover" />
+            ) : null}
+            <span className="absolute inset-0 grid place-items-center bg-black/15 transition-colors group-hover:bg-black/25">
+              <Play className="h-3.5 w-3.5 fill-white text-white" />
+            </span>
           </div>
 
-          <div className="w-full min-w-0 py-0.5 text-center">
-            <h4 className="font-bold text-slate-800 dark:text-slate-100 text-xs leading-snug line-clamp-2 group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 transition-colors mb-1">
+          <div className="min-w-0 flex-1">
+            <h4 className="truncate text-[12px] font-extrabold leading-tight text-slate-800 dark:text-slate-100">
               {item.title}
             </h4>
-
-            <div className="flex items-center justify-center gap-3">
-              <span className="flex items-center gap-1 text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tight">
-                <BookOpen className="w-3 h-3 text-slate-300 dark:text-slate-500" />
-                {item.view_count || 0} reads
-              </span>
-            </div>
+            <p className={cn(MICRO, MUTED, 'mt-1')}>
+              <span className={cn(NUM, 'font-bold')}>{item.view_count || 0}</span> views
+            </p>
           </div>
-        </motion.div>
+
+          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-300 transition-colors group-hover:text-[#5a63df] dark:text-slate-600" />
+        </button>
       );
     };
+
+    const BookTile = ({ item }) => (
+      <button
+        type="button"
+        onClick={() => openResource(item)}
+        className="group flex flex-col gap-2 rounded-lg border border-transparent p-2 text-left transition-all duration-150 hover:border-[#e4e2f0] hover:bg-[#f7f6fd] active:scale-[0.99] dark:hover:border-white/[0.07] dark:hover:bg-white/[0.03]"
+      >
+        <div
+          className={cn(
+            WELL,
+            'relative aspect-[3/4] w-full overflow-hidden rounded-md border border-[#e4e2f0] dark:border-white/[0.07]'
+          )}
+        >
+          {item.thumbnail_url ? (
+            <img
+              src={item.thumbnail_url}
+              alt=""
+              loading="lazy"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="grid h-full w-full place-items-center">
+              <FileText className="h-5 w-5 text-[#5a63df]/40" />
+            </span>
+          )}
+        </div>
+        <div className="min-w-0">
+          <h4 className="line-clamp-2 text-[11px] font-extrabold leading-tight text-slate-800 dark:text-slate-100">
+            {item.title}
+          </h4>
+          <p className={cn(MICRO, MUTED, 'mt-1')}>
+            <span className={cn(NUM, 'font-bold')}>{item.view_count || 0}</span> reads
+          </p>
+        </div>
+      </button>
+    );
 
     return (
-      <Card
-        className={cn(
-          'rounded-2xl transition-all duration-300 overflow-hidden group',
-          'bg-white dark:bg-slate-900',
-          'border border-slate-200 dark:border-slate-800',
-          'shadow-sm',
-          'hover:shadow-md transition-shadow duration-300',
-          'hover:border-indigo-500/40 dark:hover:border-indigo-500/40'
-        )}
-      >
-        <CardHeader className="p-3 md:p-3 pb-0">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <CardTitle className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-100 dark:border-indigo-500/20 transition-transform group-hover:rotate-12">
-                <GraduationCap className="w-6 h-6 transition-transform duration-500 group-hover:scale-110" />
-              </div>
-              <div>
-                <span className="tracking-tight">Study Resources</span>
-                <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mt-1">
-                  Knowledge Base
-                </p>
-              </div>
-            </CardTitle>
+      <div className={cn(PANEL, 'p-4')}>
+        <PanelTitle
+          label="Study library"
+          tip="Videos and guides, most-viewed first."
+          action={
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(createPageUrl('Resources'))}
-                className="h-9 px-4 text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded-xl"
-              >
-                Full Library <ArrowRight className="w-3.5 h-3.5 ml-2" />
-              </Button>
-              <motion.button
+              <button
                 type="button"
-                onClick={() => setExpanded((v) => !v)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors px-4 py-2 rounded-xl bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200/50 dark:border-white/5"
+                onClick={() => navigate(createPageUrl('Resources'))}
+                className={cn(
+                  MICRO,
+                  'inline-flex items-center gap-0.5 text-slate-500 transition-colors hover:text-[#5a63df] dark:text-slate-400'
+                )}
+              >
+                Full library <ChevronRight className="h-3 w-3" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setExpanded((value) => !value)}
+                aria-expanded={expanded}
+                className={cn(
+                  MICRO,
+                  'inline-flex items-center gap-1 text-slate-500 transition-colors hover:text-[#5a63df] dark:text-slate-400'
+                )}
               >
                 {expanded ? 'Collapse' : 'Expand'}
                 <ChevronDown
                   className={cn(
-                    'w-3 h-3 transition-transform duration-300',
+                    'h-3 w-3 transition-transform duration-200',
                     expanded && 'rotate-180'
                   )}
                 />
-              </motion.button>
+              </button>
             </div>
-          </div>
-        </CardHeader>
+          }
+        />
 
-        <CardContent className="p-3 md:p-3 pt-0">
-          <AnimatePresence initial={false}>
-            {expanded && (
-              <motion.div
-                key="expanded"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden"
-              >
-                {isLoading ? (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
-                    {[...Array(6)].map((_, i) => (
-                      <Skeleton key={i} className="h-20 w-full rounded-2xl" />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-1">
-                    {/* Left Column: Videos */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between px-1">
-                        <div className="flex items-center gap-2">
-                          <div className="p-1.5 rounded-lg bg-rose-500/10">
-                            <Youtube className="w-3.5 h-3.5 text-rose-500" />
-                          </div>
-                          <div>
-                            <span className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none">
-                              Premium Video Lessons
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {videos.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-3">
-                          {videos.map((item) => (
-                            <VideoCard key={item.id} item={item} />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="py-8 text-center bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
-                          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                            No videos available yet.
-                          </p>
-                        </div>
-                      )}
+        <AnimatePresence initial={false}>
+          {expanded && (
+            <motion.div
+              key="library"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+              className="overflow-hidden"
+            >
+              {parentLoading ? (
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  {Array.from({ length: 2 }).map((_, index) => (
+                    <div key={index} className="space-y-2">
+                      <Skeleton className="h-2.5 w-32 rounded" />
+                      <Skeleton className="h-14 w-full rounded-lg" />
+                      <Skeleton className="h-14 w-full rounded-lg" />
                     </div>
-
-                    {/* Right Column: Books */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between px-1">
-                        <div className="flex items-center gap-2">
-                          <div className="p-1.5 rounded-lg bg-blue-500/10">
-                            <BookOpen className="w-3.5 h-3.5 text-blue-500" />
-                          </div>
-                          <div>
-                            <span className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none">
-                              Essential Study Guides
-                            </span>
-                          </div>
-                        </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                  <div>
+                    <SectionLabel className="mb-2">Video lessons</SectionLabel>
+                    {videos.length > 0 ? (
+                      <div className="space-y-1">
+                        {videos.map((item) => (
+                          <VideoRow key={item.id} item={item} />
+                        ))}
                       </div>
-
-                      {books.length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                          {books.map((item) => (
-                            <BookCard key={item.id} item={item} />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="py-8 text-center bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
-                          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                            Check back soon for new guides!
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    ) : (
+                      <Empty className="py-6">No video lessons published yet.</Empty>
+                    )}
                   </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </CardContent>
-      </Card>
+
+                  <div>
+                    <SectionLabel className="mb-2">Study guides</SectionLabel>
+                    {books.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                        {books.map((item) => (
+                          <BookTile key={item.id} item={item} />
+                        ))}
+                      </div>
+                    ) : (
+                      <Empty className="py-6">No guides published yet.</Empty>
+                    )}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     );
   }
 );

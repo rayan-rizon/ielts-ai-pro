@@ -33,9 +33,9 @@ export default function CustomizeGoalsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl border-slate-200/80 bg-white sm:max-w-2xl dark:border-white/15 dark:bg-[#111324]">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl border-[#e4e2f0] bg-white sm:max-w-2xl dark:border-white/10 dark:bg-[#131218]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-black text-slate-950 dark:text-white">
+          <DialogTitle className="text-lg font-extrabold text-slate-900 dark:text-white">
             Customize your study plan
           </DialogTitle>
           <DialogDescription className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
@@ -124,7 +124,7 @@ export default function CustomizeGoalsModal({
           <Button
             onClick={onSaveGoals}
             disabled={savingGoals}
-            className="rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-500"
+            className="rounded-lg bg-[#5a63df] font-bold text-white hover:bg-[#4a52c9]"
           >
             {savingGoals ? 'Recalculating…' : 'Save and recalculate'}
           </Button>

@@ -20,7 +20,8 @@ async function fetchDashboardStats(userId) {
     cambridgeResult,
     vocabCountResult,
     masteredVocabResult,
-    weakestSkillResult,
+    dueVocabResult,
+    skillProficiencyResult,
   ] = await Promise.all([
     supabase.rpc('get_dashboard_stats'),
     supabase.rpc('get_recent_sessions', { p_limit: 8 }),
@@ -34,12 +35,24 @@ async function fetchDashboardStats(userId) {
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .gte('mastery_level', 4),
+    // Words the spaced-repetition scheduler wants reviewed now. Same predicate as
+    // the get_due_vocabulary RPC, but a head-count so we never ship 20 rows the
+    // dashboard would only measure.
+    supabase
+      .from('vocabulary_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .or(`next_review_date.is.null,next_review_date.lte.${new Date().toISOString()}`),
+    // Every tracked question type, weakest first — the dashboard shows a ranked
+    // breakdown, not just the single worst skill.
     supabase
       .from('skill_proficiency')
-      .select('*')
+      .select(
+        'skill_code, module, mastery_probability, practice_count, correct_count, streak_count'
+      )
       .eq('user_id', userId)
       .order('mastery_probability', { ascending: true })
-      .limit(1),
+      .limit(24),
   ]);
 
   if (statsResult.error) {
@@ -51,6 +64,7 @@ async function fetchDashboardStats(userId) {
 
   const totalWords = vocabCountResult.count || 0;
   const masteredWords = masteredVocabResult.count || 0;
+  const skillProficiency = skillProficiencyResult?.data || [];
 
   return {
     serverStats: statsResult.data || {},
@@ -59,9 +73,12 @@ async function fetchDashboardStats(userId) {
     vocabStats: {
       totalWords,
       masteredWords,
+      dueWords: dueVocabResult.count || 0,
       masteryPercentage: totalWords > 0 ? Math.round((masteredWords / totalWords) * 100) : 0,
     },
-    weakestSkill: weakestSkillResult?.data?.[0] || null,
+    skillProficiency,
+    // Weakest skill is the head of the same ranked list — one query, not two.
+    weakestSkill: skillProficiency[0] || null,
   };
 }
 
@@ -172,6 +189,8 @@ export default function useDashboardData(authUser, authLoading) {
         recentTests: [],
         cambridgeTests: [],
         weakestSkill: null,
+        skillProficiency: [],
+        vocabStats: { totalWords: 0, masteredWords: 0, dueWords: 0, masteryPercentage: 0 },
       };
     }
 
@@ -208,6 +227,13 @@ export default function useDashboardData(authUser, authLoading) {
       recentTests,
       cambridgeTests: dashboardData.cambridgeTests || [],
       weakestSkill: dashboardData.weakestSkill || null,
+      skillProficiency: dashboardData.skillProficiency || [],
+      vocabStats: dashboardData.vocabStats || {
+        totalWords: 0,
+        masteredWords: 0,
+        dueWords: 0,
+        masteryPercentage: 0,
+      },
     };
   }, [dashboardData, user?.target_band_score, authUser?.target_band_score]);
 
@@ -241,6 +267,8 @@ export default function useDashboardData(authUser, authLoading) {
     stats: computedData.stats,
     cambridgeTests: computedData.cambridgeTests,
     weakestSkill: computedData.weakestSkill,
+    skillProficiency: computedData.skillProficiency,
+    vocabStats: computedData.vocabStats,
     studyResources: studyResources || [],
     resourcesLoading,
   };

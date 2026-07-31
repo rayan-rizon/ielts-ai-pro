@@ -1,19 +1,20 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import DataExport from '@/features/settings/components/DataExport';
 import CookieSettings from './CookieSettings';
 
 export default function PrivacySection() {
   return (
-    <motion.div
+    <m.div
       key="privacy"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-8"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.2 }}
+      className="space-y-3"
     >
       <DataExport />
       <CookieSettings />
-    </motion.div>
+    </m.div>
   );
 }

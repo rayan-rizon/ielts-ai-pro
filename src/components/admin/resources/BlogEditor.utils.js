@@ -138,34 +138,53 @@ export async function createSeoCover(file) {
 
 export const QUILL_STYLES = `
   .ql-toolbar {
-    border-top-left-radius: 0.75rem;
-    border-top-right-radius: 0.75rem;
-    border-color: rgba(var(--border), 0.5) !important;
-    background-color: hsl(var(--muted) / 0.3);
-    padding: 12px !important;
+    border: none !important;
+    border-bottom: 1px solid rgb(231 229 228) !important;
+    background-color: rgb(250 250 249);
+    padding: 8px 10px !important;
   }
   .ql-container {
-    border-bottom-left-radius: 0.75rem;
-    border-bottom-right-radius: 0.75rem;
-    border-color: rgba(var(--border), 0.5) !important;
-    background-color: hsl(var(--background));
+    border: none !important;
+    background-color: #fff;
     font-family: inherit;
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
   .ql-editor {
-    min-height: 400px;
-    padding: 24px;
-    line-height: 1.8;
+    min-height: 380px;
+    padding: 20px;
+    line-height: 1.75;
   }
   .ql-editor h1,
   .ql-editor h2,
   .ql-editor h3 {
-    font-weight: 700;
-    margin-top: 1.5em;
+    font-weight: 800;
+    margin-top: 1.4em;
     margin-bottom: 0.5em;
   }
   .ql-editor p {
     margin-bottom: 1em;
+  }
+  .dark .ql-toolbar {
+    background-color: rgb(19 19 21);
+    border-bottom-color: rgba(255,255,255,0.08) !important;
+  }
+  .dark .ql-container {
+    background-color: rgb(19 19 21);
+  }
+  .dark .ql-editor {
+    color: rgb(245 245 244);
+  }
+  .dark .ql-editor.ql-blank::before {
+    color: rgba(255,255,255,0.35);
+  }
+  .dark .ql-snow .ql-stroke {
+    stroke: rgba(255,255,255,0.55);
+  }
+  .dark .ql-snow .ql-fill {
+    fill: rgba(255,255,255,0.55);
+  }
+  .dark .ql-snow .ql-picker {
+    color: rgba(255,255,255,0.7);
   }
 `;
 

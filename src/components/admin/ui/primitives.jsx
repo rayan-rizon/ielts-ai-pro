@@ -17,6 +17,27 @@ export const MICRO = 'text-[9px] font-bold uppercase tracking-[0.14em]';
 export const PANEL =
   'rounded-xl border border-stone-200/80 dark:border-white/[0.07] bg-white dark:bg-[#131315]';
 
+/**
+ * Compact status/category chip for dense contexts — table rows, list rows.
+ * MICRO's wide tracking reads fine as a section label but turns a 4-letter
+ * word like "FREE" into an oversized pill inside a table row; this is the
+ * same weight, tighter. `PILL_BASE` is the shape only (no color) so callers
+ * pair it with a semantic tone; `pillTone` gives the three signal tones plus
+ * a neutral default for anything that isn't ok/warn/fault.
+ */
+export const PILL_BASE =
+  'inline-flex items-center gap-1 rounded-full border px-2 py-[2px] text-[9px] font-bold uppercase tracking-wide leading-normal';
+export const pillTone = (tone) =>
+  ({
+    ok: 'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)]',
+    warn: 'text-[rgb(var(--signal-warn))] border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)]',
+    fault:
+      'text-[rgb(var(--signal-fault))] border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)]',
+    accent:
+      'text-indigo-600 dark:text-indigo-400 border-indigo-300/50 dark:border-indigo-800/60 bg-indigo-500/[0.06]',
+    neutral: 'text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/10',
+  })[tone] || pillTone('neutral');
+
 export const SIGNAL_BG = {
   ok: 'bg-[rgb(var(--signal-ok))]',
   warn: 'bg-[rgb(var(--signal-warn))]',

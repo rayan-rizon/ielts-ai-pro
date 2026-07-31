@@ -1,17 +1,14 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { m } from 'framer-motion';
 import {
-  Crown,
-  ArrowRight,
-  Loader2,
-  ExternalLink,
-  Clock,
-  Calendar,
-  CreditCard,
   AlertCircle,
   AlertTriangle,
+  ArrowRight,
+  Calendar,
+  CreditCard,
+  Crown,
+  ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import {
   Dialog,
@@ -23,6 +20,14 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/cn';
 import { format } from 'date-fns';
+import {
+  IconChip,
+  MUTED,
+  PANEL,
+  PanelTitle,
+  Pill,
+  TILE,
+} from '@/features/dashboard/components/primitives';
 
 export default function SubscriptionSection({
   user,
@@ -34,173 +39,157 @@ export default function SubscriptionSection({
   handleToggleCancellation,
   navigate,
 }) {
-  const isCancelling_ = isCancelling;
+  const isFree = user?.subscription_tier === 'free' || !user?.subscription_tier;
+  const isCancellingScheduled = !!user?.cancel_at_period_end;
 
   return (
-    <motion.div
+    <m.div
       key="subscription"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.2 }}
-      className="space-y-5"
+      className="space-y-3"
     >
-      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200 dark:border-white/5 space-y-5">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
-            <Crown className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-              Current Subscription
-            </h3>
-            <p className="text-sm text-slate-500 font-medium">
-              Manage your plan details and billing cycle.
-            </p>
-          </div>
-        </div>
+      <div className={cn(PANEL, 'p-4 sm:p-5')}>
+        <PanelTitle label="Current subscription" accent />
+        <p className={cn('-mt-2 mb-4 text-xs font-medium', MUTED)}>
+          Manage your plan details and billing cycle.
+        </p>
 
-        <div className="bg-slate-50/70 dark:bg-slate-950/40 rounded-xl p-5 border border-slate-100 dark:border-white/5">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div className={cn(TILE, 'p-4')}>
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <Badge
-                  className={cn(
-                    'px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider text-xs',
-                    user?.subscription_tier === 'pro' || user?.subscription_tier === 'premium'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-                  )}
-                >
-                  {user?.subscription_tier || 'Free'} Plan
-                </Badge>
-                {user?.cancel_at_period_end && (
-                  <Badge
-                    variant="destructive"
-                    className="px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider text-xs"
-                  >
-                    Cancelling
-                  </Badge>
-                )}
+              <div className="flex items-center gap-1.5">
+                <Pill tone={isFree ? 'neutral' : 'accent'}>
+                  <Crown className="h-2.5 w-2.5" />
+                  {user?.subscription_tier || 'Free'} plan
+                </Pill>
+                {isCancellingScheduled && <Pill tone="fault">Cancelling</Pill>}
               </div>
-              <h4 className="text-2xl font-black text-slate-900 dark:text-white">
-                {user?.subscription_tier === 'free' || !user?.subscription_tier
-                  ? 'Basic Learner'
+              <h4 className="text-xl font-black text-slate-900 dark:text-white">
+                {isFree
+                  ? 'Basic learner'
                   : user?.subscription_tier === 'pro'
-                    ? 'Pro Member'
-                    : 'Premium Elite'}
+                    ? 'Pro member'
+                    : 'Premium elite'}
               </h4>
-              <p className="text-sm text-slate-500 font-medium">
-                {user?.subscription_tier === 'free' || !user?.subscription_tier
+              <p className={cn('text-xs font-medium', MUTED)}>
+                {isFree
                   ? 'Limited access to AI tools'
                   : `Full access to all ${user?.subscription_tier} features`}
               </p>
             </div>
 
-            <div className="flex flex-col gap-2 min-w-[180px]">
-              {user?.subscription_tier === 'free' || !user?.subscription_tier ? (
-                <Button
+            <div className="flex min-w-[180px] flex-col gap-2">
+              {isFree ? (
+                <button
+                  type="button"
                   onClick={() => navigate('/pricing')}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold h-10 rounded-xl shadow-md shadow-indigo-500/20 active:scale-95 transition-all text-sm border-0"
+                  className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition-all active:scale-95"
                 >
-                  Upgrade Now <ArrowRight className="ml-1.5 w-4 h-4" />
-                </Button>
+                  Upgrade now <ArrowRight className="h-3.5 w-3.5" />
+                </button>
               ) : (
                 <>
                   {user?.stripe_customer_id && (
-                    <Button
+                    <button
+                      type="button"
                       onClick={handleOpenCustomerPortal}
                       disabled={isOpeningPortal}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold h-10 rounded-xl shadow-md shadow-indigo-500/20 active:scale-95 transition-all text-sm border-0"
+                      className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-60"
                     >
                       {isOpeningPortal ? (
-                        <Loader2 className="animate-spin w-4 h-4 mr-1.5" />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
-                        <ExternalLink className="w-4 h-4 mr-1.5" />
+                        <ExternalLink className="h-3.5 w-3.5" />
                       )}
-                      Stripe Portal
-                    </Button>
+                      Stripe portal
+                    </button>
                   )}
-                  <Button
-                    variant="outline"
+                  <button
+                    type="button"
                     onClick={() => navigate('/pricing')}
-                    className="w-full h-10 rounded-xl border-slate-200 dark:border-white/10 font-semibold hover:bg-white dark:hover:bg-white/5 active:scale-95 transition-all text-sm"
+                    className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-[#e2e5f2] bg-white text-xs font-bold text-slate-700 transition-all hover:border-[#c9cdf3] active:scale-95 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200"
                   >
-                    Change Plan
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    disabled={isCancelling_}
+                    Change plan
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isCancelling}
                     onClick={() => {
-                      if (user?.cancel_at_period_end) {
+                      if (isCancellingScheduled) {
                         handleToggleCancellation();
                       } else {
                         setShowCancelDialog(true);
                       }
                     }}
                     className={cn(
-                      'w-full h-10 rounded-xl font-semibold transition-all text-sm',
-                      user?.cancel_at_period_end
-                        ? 'text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/5 dark:text-emerald-400'
-                        : 'text-rose-500 hover:text-rose-600 hover:bg-rose-500/5 dark:text-rose-400'
+                      'inline-flex h-9 w-full items-center justify-center rounded-lg text-xs font-bold transition-all active:scale-95 disabled:opacity-60',
+                      isCancellingScheduled
+                        ? 'text-[rgb(var(--signal-ok))] hover:bg-[rgba(var(--signal-ok),0.08)]'
+                        : 'text-[rgb(var(--signal-fault))] hover:bg-[rgba(var(--signal-fault),0.08)]'
                     )}
                   >
-                    {isCancelling_ ? (
-                      <Clock className="animate-spin w-4 h-4" />
-                    ) : user?.cancel_at_period_end ? (
-                      'Reactivate Subscription'
+                    {isCancelling ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : isCancellingScheduled ? (
+                      'Reactivate subscription'
                     ) : (
-                      'Cancel Subscription'
+                      'Cancel subscription'
                     )}
-                  </Button>
+                  </button>
                 </>
               )}
             </div>
           </div>
         </div>
 
-        {user?.subscription_tier !== 'free' &&
-          user?.subscription_tier &&
-          user?.subscription_end_date && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <div className="p-3.5 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/30">
-                <div className="flex items-center gap-2 text-slate-400 mb-0.5">
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider">
-                    {user?.cancel_at_period_end ? 'Expiry Date' : 'Renewal Date'}
-                  </span>
-                </div>
-                <p className="text-base font-bold text-slate-900 dark:text-white">
-                  {format(new Date(user?.subscription_end_date), 'MMMM dd, yyyy')}
-                </p>
+        {!isFree && user?.subscription_end_date && (
+          <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            <div className={cn(TILE, 'p-3.5')}>
+              <div className="mb-0.5 flex items-center gap-1.5 text-slate-400">
+                <Calendar className="h-3.5 w-3.5" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">
+                  {isCancellingScheduled ? 'Expiry date' : 'Renewal date'}
+                </span>
               </div>
-              <div className="p-3.5 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/30">
-                <div className="flex items-center gap-2 text-slate-400 mb-0.5">
-                  <CreditCard className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Next Charge</span>
-                </div>
-                <p className="text-base font-bold text-slate-900 dark:text-white">
-                  {user?.cancel_at_period_end
-                    ? '$0.00'
-                    : user?.subscription_amount
-                      ? `${user?.subscription_currency === 'BDT' ? '৳' : '$'}${Number(user?.subscription_amount).toFixed(2)}`
-                      : user?.subscription_tier === 'premium'
-                        ? '$15.99'
-                        : '$9.99'}
-                </p>
-              </div>
+              <p className="text-sm font-extrabold text-slate-900 dark:text-white">
+                {format(new Date(user?.subscription_end_date), 'MMMM dd, yyyy')}
+              </p>
             </div>
-          )}
+            <div className={cn(TILE, 'p-3.5')}>
+              <div className="mb-0.5 flex items-center gap-1.5 text-slate-400">
+                <CreditCard className="h-3.5 w-3.5" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">Next charge</span>
+              </div>
+              <p className="text-sm font-extrabold text-slate-900 dark:text-white">
+                {isCancellingScheduled
+                  ? '$0.00'
+                  : user?.subscription_amount
+                    ? `${user?.subscription_currency === 'BDT' ? '৳' : '$'}${Number(user?.subscription_amount).toFixed(2)}`
+                    : user?.subscription_tier === 'premium'
+                      ? '$15.99'
+                      : '$9.99'}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {user?.subscription_tier !== 'free' && user?.subscription_tier && (
-        <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4 flex gap-3 items-start">
-          <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+      {!isFree && (
+        <div
+          className={cn(
+            TILE,
+            'flex items-start gap-3 border-amber-200/60 bg-amber-50/40 p-3.5 dark:border-amber-500/20 dark:bg-amber-500/[0.06]'
+          )}
+        >
+          <IconChip icon={AlertCircle} tone="amber" size="sm" />
           <div>
-            <h4 className="font-bold text-amber-600 mb-0.5 text-xs uppercase tracking-wider">
-              Billing Note
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+              Billing note
             </h4>
-            <p className="text-sm text-amber-500/80 font-medium leading-relaxed">
+            <p className="mt-0.5 text-xs font-medium leading-relaxed text-amber-800/80 dark:text-amber-300/80">
               Subscription billing is managed via Stripe. Changes reflect across your profile within
               a few seconds.
             </p>
@@ -208,15 +197,14 @@ export default function SubscriptionSection({
         </div>
       )}
 
-      {/* Cancel Confirmation Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent className="sm:max-w-[420px] rounded-3xl border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl p-6 md:p-8 shadow-2xl">
-          <DialogHeader className="space-y-3">
-            <DialogTitle className="flex items-center gap-3 text-2xl font-black text-rose-600">
-              <AlertTriangle className="h-6 w-6 shrink-0" />
-              Cancel Subscription?
+        <DialogContent className="rounded-2xl border-[#e2e5f2] bg-white p-6 dark:border-white/10 dark:bg-[#131218] sm:max-w-[420px]">
+          <DialogHeader className="space-y-2.5">
+            <DialogTitle className="flex items-center gap-2.5 text-lg font-extrabold text-[rgb(var(--signal-fault))]">
+              <AlertTriangle className="h-5 w-5 shrink-0" />
+              Cancel subscription?
             </DialogTitle>
-            <DialogDescription className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+            <DialogDescription className={cn('text-xs font-medium leading-relaxed', MUTED)}>
               Your subscription will remain active until{' '}
               {user?.subscription_end_date ? (
                 <strong className="text-slate-700 dark:text-slate-200">
@@ -229,36 +217,45 @@ export default function SubscriptionSection({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="my-4 p-4 bg-rose-50 dark:bg-rose-500/10 rounded-2xl border border-rose-100 dark:border-rose-500/20">
-            <p className="text-sm font-bold text-rose-600 dark:text-rose-400">
+          <div
+            className={cn(
+              TILE,
+              'my-3 border-[rgba(var(--signal-fault),0.25)] bg-[rgba(var(--signal-fault),0.05)] p-3.5'
+            )}
+          >
+            <p className="text-xs font-extrabold text-[rgb(var(--signal-fault))]">
               You will lose access to:
             </p>
-            <ul className="mt-2 space-y-1 text-sm text-rose-500/80 dark:text-rose-400/80 font-medium list-disc list-inside">
+            <ul className="mt-1.5 list-inside list-disc space-y-1 text-xs font-medium text-[rgb(var(--signal-fault))]/80">
               <li>All AI-powered assessments</li>
               <li>Unlimited Speaking &amp; Writing tests</li>
               <li>Detailed feedback &amp; analytics</li>
             </ul>
           </div>
 
-          <DialogFooter className="flex-row gap-3 mt-2">
-            <Button
-              variant="outline"
+          <DialogFooter className="mt-1 flex-row gap-2.5">
+            <button
+              type="button"
               onClick={() => setShowCancelDialog(false)}
-              className="flex-1 rounded-xl h-12 font-bold border-slate-200 dark:border-white/10 hover:bg-white/5 transition-all"
+              className="h-10 flex-1 rounded-lg border border-[#e2e5f2] bg-white text-xs font-bold text-slate-700 transition-all active:scale-95 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200"
             >
-              Keep Subscription
-            </Button>
-            <Button
-              variant="destructive"
+              Keep subscription
+            </button>
+            <button
+              type="button"
               onClick={handleToggleCancellation}
-              disabled={isCancelling_}
-              className="flex-1 rounded-xl h-12 font-black shadow-lg shadow-rose-500/20 border-0"
+              disabled={isCancelling}
+              className="h-10 flex-1 rounded-lg bg-[rgb(var(--signal-fault))] text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-60"
             >
-              {isCancelling_ ? <Loader2 className="animate-spin w-4 h-4" /> : 'Confirm Cancel'}
-            </Button>
+              {isCancelling ? (
+                <Loader2 className="mx-auto h-4 w-4 animate-spin" />
+              ) : (
+                'Confirm cancel'
+              )}
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </motion.div>
+    </m.div>
   );
 }

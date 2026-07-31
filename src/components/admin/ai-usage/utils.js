@@ -21,15 +21,18 @@ export const getInitials = (name) => {
     .slice(0, 2);
 };
 
+// One hue family (indigo → violet), varied by shade rather than by rainbow
+// hue, so the chart reads as part of the graphite instrument-panel theme
+// instead of a rainbow of unrelated colors.
 export const endpointColors = {
-  generateDetailedFeedback: '#8b5cf6',
-  generateStudyRecommendations: '#06b6d4',
-  generateAdaptiveLearningPath: '#3b82f6',
-  processSpeakingSession: '#10b981',
-  transcribeAudio: '#f59e0b',
-  synthesizeSpeech: '#6366f1',
-  evaluateSpeakingTest: '#ec4899',
-  SpeakingSession: '#10b981',
+  generateDetailedFeedback: '#4f46e5', // indigo-600
+  generateStudyRecommendations: '#6366f1', // indigo-500
+  generateAdaptiveLearningPath: '#818cf8', // indigo-400
+  processSpeakingSession: '#7c3aed', // violet-600
+  transcribeAudio: '#a78bfa', // violet-400
+  synthesizeSpeech: '#4338ca', // indigo-700
+  evaluateSpeakingTest: '#8b7cf6', // violet-500
+  SpeakingSession: '#7c3aed',
 };
 
 export const formatEndpointName = (endpoint) => {

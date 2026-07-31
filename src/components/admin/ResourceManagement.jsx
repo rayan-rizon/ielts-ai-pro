@@ -29,16 +29,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import RefinedDeleteModal from './shared/RefinedDeleteModal';
 import {
   Plus,
   Trash2,
@@ -78,6 +69,7 @@ import {
   PANEL,
   MICRO,
   NUM,
+  PILL_BASE,
   STAGGER_CONTAINER,
   FADE_UP,
 } from './ui/primitives';
@@ -126,6 +118,15 @@ const CONTENT_TYPE_STYLE = {
   },
 };
 const contentTypeStyle = (type) => CONTENT_TYPE_STYLE[type] || CONTENT_TYPE_STYLE.pdf;
+
+const FIELD_LABEL = cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5 block');
+const FIELD_INPUT =
+  'h-10 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
+const TIER_ACCENT = {
+  free: 'border-stone-300 dark:border-white/20 bg-stone-100 dark:bg-white/[0.06] text-stone-700 dark:text-stone-200',
+  pro: 'border-[rgb(var(--signal-ok)/0.4)] bg-[rgb(var(--signal-ok)/0.08)] text-[rgb(var(--signal-ok))]',
+  premium: 'border-indigo-400/50 bg-indigo-500/[0.08] text-indigo-600 dark:text-indigo-400',
+};
 
 const ResourceManagement = () => {
   const [resources, setResources] = useState([]);
@@ -714,97 +715,66 @@ const ResourceManagement = () => {
               </AdminButton>
             </DialogTrigger>
             <DialogContent
-              className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 w-[95vw] max-w-lg rounded-2xl overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto p-4 sm:p-6"
+              className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-lg rounded-lg overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto p-4 sm:p-5"
               data-oid="dtsedp6"
             >
-              <DialogHeader className="space-y-1" data-oid="9ymdqci">
+              <DialogHeader className="space-y-0.5" data-oid="9ymdqci">
                 <DialogTitle
-                  className="text-lg font-black tracking-tight text-slate-950 dark:text-white"
+                  className="text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50"
                   data-oid="q4ff11i"
                 >
-                  {editingResource ? 'Edit Resource' : 'New Resource'}
+                  {editingResource ? 'Edit resource' : 'New resource'}
                 </DialogTitle>
-                <DialogDescription
-                  className="text-slate-500 dark:text-slate-400 font-medium text-xs"
-                  data-oid="koc8ozk"
-                >
+                <DialogDescription className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                   Enter details to publish or update educational content
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-5 py-4" data-oid="b99_0_r">
+              <div className="space-y-4 py-3" data-oid="b99_0_r">
                 {/* Content Type Selector */}
-                <div className="space-y-2" data-oid="sy.xfys">
-                  <Label
-                    className="text-sm font-bold ml-1 uppercase tracking-wider opacity-70"
-                    data-oid="ow56.:7"
-                  >
-                    Content Type
-                  </Label>
-                  <div className="grid grid-cols-3 gap-2 sm:gap-3" data-oid="p0.5qes">
+                <div>
+                  <Label className={FIELD_LABEL}>Content type</Label>
+                  <div className="grid grid-cols-4 gap-1.5">
                     {CONTENT_TYPES.map((type) => (
                       <button
                         key={type.id}
                         type="button"
                         onClick={() => setFormData({ ...formData, content_type: type.id })}
                         className={cn(
-                          'p-2.5 sm:p-3 rounded-xl border-2 transition-all duration-200 active:scale-95 flex flex-col items-center gap-1.5 sm:gap-2',
+                          'p-2 rounded-md border transition-all duration-150 active:scale-95 flex flex-col items-center gap-1',
                           formData.content_type === type.id
                             ? contentTypeStyle(type.id).active
-                            : 'border-border/50 hover:border-border text-muted-foreground hover:text-foreground'
+                            : 'border-stone-200 dark:border-white/10 text-stone-400 hover:border-stone-300 dark:hover:border-white/20'
                         )}
-                        data-oid="r1h-r_w"
                       >
-                        <type.icon className="w-4 h-4 sm:w-5 sm:h-5" data-oid="ps_q55-" />
-                        <span
-                          className="text-[10px] sm:text-xs font-bold uppercase tracking-wider"
-                          data-oid="dswdj1n"
-                        >
-                          {type.label}
-                        </span>
+                        <type.icon className="w-3.5 h-3.5" />
+                        <span className={MICRO}>{type.label}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 {/* Title */}
-                <div className="space-y-2" data-oid="hh9hmic">
-                  <Label
-                    className="text-sm font-bold ml-1 uppercase tracking-wider opacity-70"
-                    data-oid="li34xyq"
-                  >
-                    Title *
-                  </Label>
+                <div>
+                  <Label className={FIELD_LABEL}>Title *</Label>
                   <Input
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="Enter resource title"
-                    className="h-11 bg-muted/30 border-border/50 rounded-xl focus-visible:ring-primary/20"
-                    data-oid="75.hcge"
+                    className={cn(FIELD_INPUT, 'w-full')}
                   />
                 </div>
 
                 {/* URL */}
-                <div className="space-y-2" data-oid="mexanab">
-                  <Label
-                    className="text-sm font-bold ml-1 uppercase tracking-wider opacity-70"
-                    data-oid="-m:2557"
-                  >
-                    URL *
-                  </Label>
-                  <div className="relative" data-oid="tqea:xz">
-                    <Link2
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary"
-                      data-oid="r05-p:t"
-                    />
-
+                <div>
+                  <Label className={FIELD_LABEL}>URL *</Label>
+                  <div className="relative">
+                    <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
                     <Input
                       value={formData.url}
                       onChange={(e) => {
                         const newUrl = e.target.value;
                         setFormData((prev) => ({ ...prev, url: newUrl }));
-
-                        // Clear validation error if any
                         if (urlError) validateUrl(newUrl, formData.content_type);
                       }}
                       placeholder={
@@ -814,96 +784,82 @@ const ResourceManagement = () => {
                             ? 'https://example.com/document.pdf'
                             : 'https://blog.example.com/article'
                       }
-                      className={`h-11 pl-10 pr-12 bg-muted/30 border-border/50 rounded-xl focus-visible:ring-primary/20 ${urlError ? 'border-red-500' : ''}`}
-                      data-oid="x7g.4gw"
+                      className={cn(
+                        FIELD_INPUT,
+                        'pl-8 pr-10 w-full',
+                        urlError && 'border-[rgb(var(--signal-fault))]'
+                      )}
                     />
-
                     {formData.content_type === 'video' && formData.url.length > 10 && (
                       <button
                         type="button"
                         onClick={() => fetchVideoMetadata(formData.url)}
                         disabled={fetchingMetadata}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all disabled:opacity-50"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 grid place-items-center rounded-md bg-indigo-500/[0.08] text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/[0.15] transition-all active:scale-90 disabled:opacity-50"
                         title="Fetch video details"
-                        data-oid="fetch-meta-btn"
                       >
                         <Sparkles
-                          className={cn('w-4 h-4', fetchingMetadata && 'animate-spin')}
-                          data-oid="icon-spark"
+                          className={cn('w-3.5 h-3.5', fetchingMetadata && 'animate-spin')}
                         />
                       </button>
                     )}
                   </div>
                   {urlError && (
-                    <p
-                      className="text-xs text-red-500 flex items-center gap-1 ml-1"
-                      data-oid="upsldzt"
-                    >
-                      <AlertCircle className="w-3 h-3" data-oid="y.pbbc0" /> {urlError}
+                    <p className="text-[11px] text-[rgb(var(--signal-fault))] flex items-center gap-1 mt-1">
+                      <AlertCircle className="w-3 h-3" /> {urlError}
                     </p>
                   )}
                 </div>
 
                 {/* PDF Upload Section */}
                 {formData.content_type === 'pdf' && (
-                  <div className="space-y-2" data-oid="pdf-upload-section">
-                    <Label className="text-sm font-bold ml-1 uppercase tracking-wider opacity-70">
-                      Upload PDF
-                    </Label>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                      <div className="relative flex-1">
-                        <input
-                          type="file"
-                          accept="application/pdf"
-                          onChange={handlePdfUpload}
-                          disabled={uploadingPdf}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
-                          data-oid="pdf-input"
-                        />
-                        <div className="h-11 px-3 border border-border/50 rounded-xl bg-muted/30 flex items-center gap-2 hover:border-primary/50 transition-colors">
-                          <FileText className="w-4 h-4 text-primary shrink-0" />
-                          <span className="text-xs font-semibold text-muted-foreground truncate">
-                            {uploadingPdf
-                              ? 'Uploading PDF...'
-                              : formData.url && formData.url.endsWith('.pdf')
-                                ? 'PDF uploaded successfully'
-                                : 'Choose a PDF file to upload'}
-                          </span>
-                        </div>
+                  <div>
+                    <Label className={FIELD_LABEL}>Upload PDF</Label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        onChange={handlePdfUpload}
+                        disabled={uploadingPdf}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                      />
+                      <div
+                        className={cn(
+                          FIELD_INPUT,
+                          'px-3 flex items-center gap-2 hover:border-stone-400 dark:hover:border-white/25 transition-colors'
+                        )}
+                      >
+                        <FileText className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                        <span className="text-xs font-semibold text-stone-500 dark:text-stone-400 truncate">
+                          {uploadingPdf
+                            ? 'Uploading PDF…'
+                            : formData.url && formData.url.endsWith('.pdf')
+                              ? 'PDF uploaded successfully'
+                              : 'Choose a PDF file to upload'}
+                        </span>
                       </div>
                     </div>
                   </div>
                 )}
 
                 {/* Description */}
-                <div className="space-y-2" data-oid="desc-section">
-                  <Label className="text-sm font-bold ml-1 uppercase tracking-wider opacity-70">
-                    Description
-                  </Label>
+                <div>
+                  <Label className={FIELD_LABEL}>Description</Label>
                   <Textarea
                     value={formData.description || ''}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Enter brief description"
                     rows={3}
-                    className="bg-muted/30 border-border/50 rounded-xl focus-visible:ring-primary/20 text-xs font-medium"
-                    data-oid="desc-input"
+                    className="rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium resize-none p-2.5"
                   />
                 </div>
 
                 {/* Thumbnail Upload */}
-                <div className="space-y-2" data-oid="id2w2gd">
-                  <Label
-                    className="text-sm font-bold ml-1 uppercase tracking-wider opacity-70"
-                    data-oid="0xaxc41"
-                  >
-                    Thumbnail Image
-                  </Label>
-                  <div className="flex items-center gap-3" data-oid="844q26t">
+                <div>
+                  <Label className={FIELD_LABEL}>Thumbnail image</Label>
+                  <div className="flex items-center gap-2.5">
                     {(formData.thumbnail_url || thumbnailFile) && (
-                      <div
-                        className="w-16 h-16 rounded-xl overflow-hidden border border-border/50 relative shrink-0"
-                        data-oid="55e0t91"
-                      >
+                      <div className="w-12 h-12 rounded-md overflow-hidden border border-stone-200 dark:border-white/10 relative shrink-0">
                         <img
                           src={
                             thumbnailFile
@@ -912,16 +868,12 @@ const ResourceManagement = () => {
                           }
                           alt="Thumbnail preview"
                           className="w-full h-full object-cover"
-                          data-oid="o5.pvq4"
                         />
                       </div>
                     )}
-                    <label
-                      className="flex-1 h-16 border-2 border-dashed border-border/50 rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
-                      data-oid=".h.-9w9"
-                    >
-                      <Upload className="w-4 h-4 text-muted-foreground" data-oid="1cw35_v" />
-                      <span className="text-sm text-muted-foreground" data-oid="noq7m0w">
+                    <label className="flex-1 h-12 border-2 border-dashed border-stone-200 dark:border-white/10 rounded-md flex items-center justify-center gap-2 cursor-pointer hover:border-indigo-400/50 hover:bg-indigo-500/[0.04] transition-all">
+                      <Upload className="w-3.5 h-3.5 text-stone-400" />
+                      <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
                         {thumbnailFile ? thumbnailFile.name : 'Upload image'}
                       </span>
                       <input
@@ -929,32 +881,27 @@ const ResourceManagement = () => {
                         accept="image/*"
                         className="hidden"
                         onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
-                        data-oid="qky:hkz"
                       />
                     </label>
                   </div>
                 </div>
 
                 {/* Access Tier Selector */}
-                <div className="space-y-2" data-oid="4koqs-m">
-                  <Label
-                    className="text-sm font-bold ml-1 uppercase tracking-wider opacity-70"
-                    data-oid="u_u_fc."
-                  >
-                    Access Tier
-                  </Label>
-                  <div className="grid grid-cols-3 gap-2" data-oid="h.jthgs">
+                <div>
+                  <Label className={FIELD_LABEL}>Access tier</Label>
+                  <div className="grid grid-cols-3 gap-1.5">
                     {['free', 'pro', 'premium'].map((tier) => (
                       <button
                         key={tier}
                         type="button"
                         onClick={() => setFormData({ ...formData, access_tier: tier })}
-                        className={`py-2 px-3 sm:px-4 rounded-xl border-2 transition-all duration-200 text-xs font-bold uppercase tracking-wider ${
+                        className={cn(
+                          MICRO,
+                          'py-2 rounded-md border transition-all active:scale-95',
                           formData.access_tier === tier
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border/50 hover:border-border text-muted-foreground'
-                        }`}
-                        data-oid="ggl4ea."
+                            ? TIER_ACCENT[tier]
+                            : 'border-stone-200 dark:border-white/10 text-stone-500 dark:text-stone-400 hover:border-stone-300 dark:hover:border-white/20'
+                        )}
                       >
                         {tier}
                       </button>
@@ -963,15 +910,12 @@ const ResourceManagement = () => {
                 </div>
 
                 {/* Publish Toggle */}
-                <div
-                  className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-border/50"
-                  data-oid="bgnheqq"
-                >
-                  <div className="space-y-0.5" data-oid="2fogzjp">
-                    <Label className="text-sm font-bold" data-oid="weo7afk">
-                      Publish Immediately
+                <div className="flex items-center justify-between p-3 rounded-md bg-stone-50 dark:bg-white/[0.03] border border-stone-200/70 dark:border-white/[0.06]">
+                  <div>
+                    <Label className="text-xs font-bold text-stone-900 dark:text-stone-50">
+                      Publish immediately
                     </Label>
-                    <p className="text-xs text-muted-foreground" data-oid="t.vzrn1">
+                    <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
                       Make visible to users on dashboard
                     </p>
                   </div>
@@ -980,7 +924,6 @@ const ResourceManagement = () => {
                     onCheckedChange={(checked) =>
                       setFormData({ ...formData, is_published: checked })
                     }
-                    data-oid="bg3gmmj"
                   />
                 </div>
               </div>
@@ -1452,12 +1395,17 @@ const ResourceManagement = () => {
                           <TableCell className="py-3 px-4 text-center" data-oid="sxceztj">
                             <span
                               className={cn(
-                                'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 capitalize transition-transform duration-150 hover:scale-105',
-                                MICRO,
-                                contentTypeStyle(resource.content_type).badge
+                                PILL_BASE,
+                                contentTypeStyle(resource.content_type).badge,
+                                'capitalize transition-transform duration-150 hover:scale-105'
                               )}
                             >
-                              <Icon className="w-2.5 h-2.5" />
+                              <Icon
+                                className={cn(
+                                  'w-2 h-2',
+                                  contentTypeStyle(resource.content_type).icon
+                                )}
+                              />
                               {resource.content_type}
                             </span>
                           </TableCell>
@@ -1575,50 +1523,20 @@ const ResourceManagement = () => {
       </motion.div>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen} data-oid="081hpnm">
-        <AlertDialogContent
-          className="bg-card border-border/50 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl"
-          data-oid="ffzftz5"
-        >
-          <AlertDialogHeader data-oid="ltm.yj7">
-            <AlertDialogTitle
-              className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2"
-              data-oid="c26w95x"
-            >
-              <Trash2 className="w-6 h-6 text-destructive" data-oid="b1bde3y" />
-              Confirm Deletion
-            </AlertDialogTitle>
-            <AlertDialogDescription
-              className="text-muted-foreground text-lg leading-relaxed"
-              data-oid="jggdsa1"
-            >
-              {bulkActionToDelete
-                ? `Are you sure you want to delete ${selectedIds.length} selected resources? This action is permanent and cannot be undone.`
-                : `Are you sure you want to delete "${resourceToDelete?.title}"? This action is permanent and cannot be undone.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-3 mt-6" data-oid="wu360f9">
-            <AlertDialogCancel
-              disabled={submitting}
-              className="rounded-xl font-bold h-12"
-              data-oid="u91cmaa"
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                confirmDelete();
-              }}
-              disabled={submitting}
-              className="h-12 px-8 rounded-xl font-black bg-destructive text-destructive-foreground shadow-lg shadow-destructive/10 hover:bg-destructive/90"
-              data-oid="k.ttggi"
-            >
-              {submitting ? 'Deleting...' : 'Delete Permanently'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <RefinedDeleteModal
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete resource"
+        description={
+          bulkActionToDelete
+            ? `Permanently delete ${selectedIds.length} selected resources? This cannot be undone.`
+            : 'This resource will be permanently removed and cannot be recovered.'
+        }
+        itemIdentifier={!bulkActionToDelete ? resourceToDelete?.title : null}
+        confirmText="DELETE"
+        isLoading={submitting}
+      />
     </motion.div>
   );
 };

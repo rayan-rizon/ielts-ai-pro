@@ -1,11 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Shield, BarChart3, Megaphone, Cookie } from 'lucide-react';
+import { BarChart3, Megaphone, Shield } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { CONSENT_STORAGE_KEY, CONSENT_VERSION, refreshTrackingBootstrap } from '@/lib/tracking';
+import { MUTED, PANEL, PanelTitle, TILE } from '@/features/dashboard/components/primitives';
+
+const OPTIONS = [
+  {
+    id: 'functional',
+    label: 'Essential cookies',
+    description: 'Required for the app to work securely (e.g., login sessions).',
+    icon: Shield,
+    disabled: true,
+  },
+  {
+    id: 'analytics',
+    label: 'Analytics cookies',
+    description: 'Help us improve by tracking which features you use most.',
+    icon: BarChart3,
+    disabled: false,
+  },
+  {
+    id: 'marketing',
+    label: 'Marketing cookies',
+    description: 'Used to show you relevant offers and promotions.',
+    icon: Megaphone,
+    disabled: false,
+  },
+];
 
 export default function CookieSettings() {
   const [preferences, setPreferences] = useState({
@@ -63,75 +87,46 @@ export default function CookieSettings() {
     }
   };
 
-  const options = [
-    {
-      id: 'functional',
-      label: 'Essential Cookies',
-      description: 'Required for the app to work securely (e.g., login sessions).',
-      icon: Shield,
-      disabled: true,
-    },
-    {
-      id: 'analytics',
-      label: 'Analytics Cookies',
-      description: 'Help us improve by tracking which features you use most.',
-      icon: BarChart3,
-      disabled: false,
-    },
-    {
-      id: 'marketing',
-      label: 'Marketing Cookies',
-      description: 'Used to show you relevant offers and promotions.',
-      icon: Megaphone,
-      disabled: false,
-    },
-  ];
-
   return (
-    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200 dark:border-white/5 space-y-5">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0 shadow-2xs">
-          <Cookie className="w-5 h-5" />
-        </div>
-        <div>
-          <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-            Cookie Preferences
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
-            Manage how we use data to improve your experience.
-          </p>
-        </div>
-      </div>
+    <div className={cn(PANEL, 'p-4 sm:p-5')}>
+      <PanelTitle label="Cookie preferences" accent />
+      <p className={cn('-mt-2 mb-4 text-xs font-medium', MUTED)}>
+        Manage how we use data to improve your experience.
+      </p>
 
-      <div className="space-y-3">
-        {options.map((option) => {
+      <div className="space-y-2.5">
+        {OPTIONS.map((option) => {
           const Icon = option.icon;
           const isEnabled = preferences[option.id];
           return (
             <div
               key={option.id}
               className={cn(
-                'flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-200',
-                isEnabled
-                  ? 'bg-blue-50/40 border-blue-200/60 dark:bg-blue-950/20 dark:border-blue-500/20'
-                  : 'bg-slate-50/80 border-slate-200/80 dark:bg-slate-950/40 dark:border-white/5'
+                TILE,
+                'flex items-center gap-3 p-3.5 transition-colors',
+                isEnabled && 'border-[#5a63df]/25 bg-[#5a63df]/[0.05]'
               )}
             >
               <div
                 className={cn(
-                  'p-2 rounded-lg shrink-0',
+                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
                   isEnabled
-                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'
-                    : 'bg-slate-200 text-slate-500 dark:bg-slate-800'
+                    ? 'bg-[#5a63df]/15 text-[#5a63df]'
+                    : 'bg-slate-200/70 text-slate-500 dark:bg-white/[0.06] dark:text-slate-400'
                 )}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="h-4 w-4" />
               </div>
-              <div className="flex-1 min-w-0 pr-2">
-                <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white block mb-0.5">
+              <div className="min-w-0 flex-1 pr-2">
+                <span className="mb-0.5 block text-xs font-bold text-slate-900 dark:text-white sm:text-sm">
                   {option.label}
                 </span>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed truncate sm:whitespace-normal">
+                <p
+                  className={cn(
+                    'truncate text-xs font-medium leading-relaxed sm:whitespace-normal',
+                    MUTED
+                  )}
+                >
                   {option.description}
                 </p>
               </div>
@@ -146,15 +141,15 @@ export default function CookieSettings() {
         })}
       </div>
 
-      <div className="flex justify-end pt-1">
-        <Button
+      <div className="mt-4 flex justify-end border-t border-[#eeedf7] pt-4 dark:border-white/[0.07]">
+        <button
+          type="button"
           onClick={savePreferences}
           disabled={loading}
-          size="sm"
-          className="rounded-xl h-10 px-5 font-semibold bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20 active:scale-95 transition-all text-white text-xs sm:text-sm border-0"
+          className="inline-flex h-9 items-center rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-60"
         >
-          {loading ? 'Saving...' : 'Save Preferences'}
-        </Button>
+          {loading ? 'Saving...' : 'Save preferences'}
+        </button>
       </div>
     </div>
   );

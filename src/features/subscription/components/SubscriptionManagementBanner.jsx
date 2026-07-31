@@ -1,6 +1,5 @@
 import React from 'react';
 import { m } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 
 export default function SubscriptionManagementBanner({
   user,
@@ -16,28 +15,28 @@ export default function SubscriptionManagementBanner({
     <m.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center gap-3 mb-16 -mt-8"
+      className="mb-16 -mt-8 flex flex-col items-center gap-3"
     >
-      <p className="text-slate-600 dark:text-slate-400 text-xs font-semibold">
+      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
         Want to manage your current subscription or payment methods?
       </p>
       {showSupport ? (
-        <Button
-          variant="outline"
+        <button
+          type="button"
           onClick={() => window.open('mailto:support@ieltsai.pro', '_blank')}
-          className="rounded-full px-8 h-11 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase tracking-widest text-xs shadow-sm"
+          className="inline-flex h-10 items-center justify-center rounded-lg border border-[#e2e5f2] bg-white px-5 text-xs font-bold uppercase tracking-widest text-slate-600 transition-colors hover:border-[#c9cdf3] hover:text-slate-900 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:text-white"
         >
-          Contact Support
-        </Button>
+          Contact support
+        </button>
       ) : (
-        <Button
-          variant="outline"
+        <button
+          type="button"
           onClick={handleOpenPortal}
           disabled={isLoading}
-          className="rounded-full px-8 h-11 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase tracking-widest text-xs shadow-sm"
+          className="inline-flex h-10 items-center justify-center rounded-lg border border-[#e2e5f2] bg-white px-5 text-xs font-bold uppercase tracking-widest text-slate-600 transition-colors hover:border-[#c9cdf3] hover:text-slate-900 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:text-white"
         >
-          {isLoading ? 'Opening…' : 'Open Billing Portal'}
-        </Button>
+          {isLoading ? 'Opening…' : 'Open billing portal'}
+        </button>
       )}
     </m.div>
   );

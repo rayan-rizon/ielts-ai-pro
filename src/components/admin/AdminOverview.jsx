@@ -117,25 +117,33 @@ const Funnel = ({ steps }) => {
               </div>
             )}
             <div className="flex items-center gap-3">
-              <div className="relative flex-1 h-8 rounded-md bg-stone-100 dark:bg-white/[0.04] overflow-hidden">
-                <div
-                  className={cn(
-                    'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700',
-                    isWorst
-                      ? 'bg-[rgb(var(--signal-fault)/0.22)]'
-                      : 'bg-[rgb(var(--signal-ok)/0.18)]'
-                  )}
-                  style={{ width: `${Math.max(share, 3)}%` }}
-                />
-                <div className="relative h-full flex items-center justify-between px-3">
-                  <span className="text-[11px] font-extrabold text-stone-800 dark:text-stone-100 truncate">
-                    {step.label}
-                  </span>
-                  <span className={cn(NUM, 'text-[11px] font-bold text-stone-500 shrink-0 ml-2')}>
-                    {Math.round(share)}%
-                  </span>
+              <Tip
+                content={
+                  i === 0
+                    ? `${step.users} signed up`
+                    : `${step.users} of ${top} (${Math.round(share)}%) reached this step${dropPct > 0 ? ` — lost ${dropPct}% since the previous step` : ''}`
+                }
+              >
+                <div className="relative flex-1 h-8 rounded-md bg-stone-100 dark:bg-white/[0.04] overflow-hidden cursor-default">
+                  <div
+                    className={cn(
+                      'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700',
+                      isWorst
+                        ? 'bg-[rgb(var(--signal-fault)/0.22)]'
+                        : 'bg-[rgb(var(--signal-ok)/0.18)]'
+                    )}
+                    style={{ width: `${Math.max(share, 3)}%` }}
+                  />
+                  <div className="relative h-full flex items-center justify-between px-3">
+                    <span className="text-[11px] font-extrabold text-stone-800 dark:text-stone-100 truncate">
+                      {step.label}
+                    </span>
+                    <span className={cn(NUM, 'text-[11px] font-bold text-stone-500 shrink-0 ml-2')}>
+                      {Math.round(share)}%
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </Tip>
               <span
                 className={cn(
                   NUM,
@@ -654,9 +662,15 @@ const AdminOverview = () => {
           <div className={cn(PANEL, 'p-4 h-full flex flex-col gap-4')}>
             <div>
               <div className="flex items-baseline justify-between">
-                <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-                  Engagement depth
-                </h3>
+                <div className="flex items-center gap-1.5">
+                  <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                    Engagement depth
+                  </h3>
+                  <InfoTip>
+                    Of everyone who ever tried a test, how many came back for a second (2+) and how
+                    many became regulars (5+). "Come back" is returned ÷ tried.
+                  </InfoTip>
+                </div>
                 <span className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}>
                   {eng.repeatRate ?? 0}%
                   <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 ml-1.5')}>
@@ -766,7 +780,11 @@ const AdminOverview = () => {
                 UTC
               </span>
             </div>
-            <div className="flex items-end gap-[3px] h-32 pt-4">
+            {/* No items-end here: children need to stretch to h-32 so the bars'
+                percentage height has a definite container to resolve against —
+                the bottom-anchoring instead happens one level in via items-end
+                on each bar's own wrapper. */}
+            <div className="flex gap-[3px] h-32 pt-4">
               {hourly.map((h, i) => {
                 const share = maxHourly ? (h.sessions / maxHourly) * 100 : 0;
                 return (

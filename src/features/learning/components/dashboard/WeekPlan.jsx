@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
-import { CalendarClock, CalendarDays, Check, ChevronDown, Play, ShieldCheck } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { CalendarClock, Check, ChevronDown, Play, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format, parseISO, isValid } from 'date-fns';
 import { cn } from '@/lib/cn';
+import {
+  IconChip,
+  MICRO,
+  PANEL,
+  PanelTitle,
+  Pill,
+} from '@/features/dashboard/components/primitives';
 import {
   DAY_FORMAT,
   formatMinutes,
@@ -13,6 +19,7 @@ import {
   getFriendlyPlanText,
   getFriendlyTaskTitle,
   getModuleStyle,
+  getModuleTone,
 } from './dashboardUtils';
 
 function TaskDetails({ task, canReschedule, onReschedule }) {
@@ -23,41 +30,44 @@ function TaskDetails({ task, canReschedule, onReschedule }) {
   }, [task.scheduled_date]);
 
   return (
-    <div className="mt-3 rounded-xl bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-600 dark:bg-white/5 dark:text-slate-300 sm:ml-10">
+    <div className="mt-3 rounded-lg bg-[#f4f3fb] p-3 text-[11px] leading-relaxed text-slate-600 dark:bg-white/[0.04] dark:text-slate-300 sm:ml-10">
       <p>
-        <strong className="font-black text-slate-900 dark:text-white">Why this helps:</strong>{' '}
+        <strong className="font-bold text-slate-900 dark:text-white">Why this helps:</strong>{' '}
         {getFriendlyPlanText(
           task.reason || task.description || 'This matches your recent practice results.'
         )}
       </p>
       <p className="mt-1.5">
-        <strong className="font-black text-slate-900 dark:text-white">Goal:</strong>{' '}
+        <strong className="font-bold text-slate-900 dark:text-white">Goal:</strong>{' '}
         {getFriendlyPlanText(task.success_criterion || 'Complete the task and review the outcome.')}
       </p>
       {task.id && canReschedule && (
-        <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-slate-600 dark:text-slate-400">
-          <CalendarClock className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />{' '}
-          Move to date
+        <div
+          className={cn(
+            'mt-3 flex items-center gap-2',
+            MICRO,
+            'font-bold text-slate-600 dark:text-slate-400'
+          )}
+        >
+          <CalendarClock className="h-3.5 w-3.5 shrink-0 text-[#5a63df]" /> Move to date
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="h-8 min-w-0 flex-1 justify-start rounded-xl border border-slate-200 bg-white px-2.5 text-[10px] font-bold dark:border-white/10 dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all outline-none"
+                className="h-8 min-w-0 flex-1 justify-start rounded-lg border-[#e2e5f2] bg-white px-2.5 text-[10px] font-bold hover:bg-slate-50 dark:border-white/10 dark:bg-[#131218] dark:hover:bg-white/5"
               >
                 {selectedDate ? format(selectedDate, 'MMM dd, yyyy') : 'Select date'}
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-auto p-0 rounded-2xl border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden"
+              className="w-auto overflow-hidden rounded-xl border-[#e2e5f2] bg-white p-0 shadow-2xl dark:border-white/10 dark:bg-[#131218]"
               align="start"
             >
               <CalendarComponent
                 mode="single"
                 selected={selectedDate}
                 onSelect={(date) => {
-                  if (date) {
-                    onReschedule(task, format(date, 'yyyy-MM-dd'));
-                  }
+                  if (date) onReschedule(task, format(date, 'yyyy-MM-dd'));
                 }}
                 disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                 initialFocus
@@ -89,11 +99,11 @@ function CompletionControl({ task, friendlyTitle, onToggle, size = 'sm' }) {
             : 'Complete this through the Start button'
         }
         className={cn(
-          'flex shrink-0 items-center justify-center rounded-xl border',
+          'flex shrink-0 items-center justify-center rounded-lg border',
           dimensions,
           task.is_completed
-            ? 'border-emerald-300 bg-emerald-500/15 text-emerald-600 dark:border-emerald-500/30 dark:text-emerald-400'
-            : 'border-indigo-200 bg-indigo-500/10 text-indigo-600 dark:border-indigo-500/30 dark:text-indigo-300'
+            ? 'border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.08)] text-[rgb(var(--signal-ok))]'
+            : 'border-[#5a63df]/25 bg-[#5a63df]/[0.07] text-[#5a63df]'
         )}
       >
         {task.is_completed ? <Check className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
@@ -109,11 +119,11 @@ function CompletionControl({ task, friendlyTitle, onToggle, size = 'sm' }) {
         task.is_completed ? `Mark ${friendlyTitle} incomplete` : `Mark ${friendlyTitle} complete`
       }
       className={cn(
-        'flex shrink-0 items-center justify-center rounded-xl border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
+        'flex shrink-0 items-center justify-center rounded-lg border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
         dimensions,
         task.is_completed
-          ? 'border-emerald-300 bg-emerald-500/15 text-emerald-600 dark:border-emerald-500/30 dark:text-emerald-400'
-          : 'border-slate-200 text-slate-400 hover:border-emerald-300 hover:text-emerald-600 dark:border-white/10'
+          ? 'border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.08)] text-[rgb(var(--signal-ok))]'
+          : 'border-slate-200 text-slate-400 hover:border-[rgb(var(--signal-ok)/0.4)] hover:text-[rgb(var(--signal-ok))] dark:border-white/10'
       )}
     >
       <Check className="h-4 w-4" />
@@ -129,7 +139,7 @@ function TaskRow({ task, canReschedule, expanded, onExpand, onToggle, onStart, o
   return (
     <div
       className={cn(
-        'min-w-0 rounded-2xl bg-white p-2.5 shadow-sm dark:bg-slate-950/60 sm:p-3',
+        'min-w-0 rounded-lg bg-white p-2.5 shadow-sm dark:bg-white/[0.03] sm:p-3',
         task.is_completed && 'opacity-60'
       )}
     >
@@ -140,29 +150,17 @@ function TaskRow({ task, canReschedule, expanded, onExpand, onToggle, onStart, o
           onToggle={onToggle}
           size="sm"
         />
-        <span
-          className={cn(
-            'hidden h-8 w-8 shrink-0 items-center justify-center rounded-xl font-bold sm:flex',
-            style.surface,
-            style.color
-          )}
-        >
-          <Icon className="h-3.5 w-3.5" />
-        </span>
+        <IconChip icon={Icon} tone={getModuleTone(task.module)} className="hidden sm:flex" />
         <button
           type="button"
           onClick={onExpand}
-          className="min-w-0 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          className="min-w-0 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
         >
           <span className="flex items-center gap-2">
-            <span className="line-clamp-2 text-xs font-black leading-snug text-slate-900 dark:text-white">
+            <span className="line-clamp-2 text-xs font-bold leading-snug text-slate-900 dark:text-white">
               {friendlyTitle}
             </span>
-            {task.is_optional && (
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[8px] font-black uppercase text-slate-500 dark:bg-white/10 dark:text-slate-300">
-                Optional
-              </span>
-            )}
+            {task.is_optional && <Pill tone="neutral">Optional</Pill>}
           </span>
           <span className="mt-0.5 block text-[10px] font-medium text-slate-500 dark:text-slate-400">
             {formatMinutes(task.estimated_time || task.estimated_minutes)} ·{' '}
@@ -173,7 +171,7 @@ function TaskRow({ task, canReschedule, expanded, onExpand, onToggle, onStart, o
           type="button"
           onClick={() => onStart(task)}
           aria-label={`Start ${friendlyTitle}`}
-          className="flex h-8 shrink-0 items-center justify-center rounded-xl bg-slate-900 px-3 text-[10px] font-bold text-white hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:bg-indigo-600 dark:hover:bg-indigo-500"
+          className="flex h-8 shrink-0 items-center justify-center rounded-lg bg-[#5a63df] px-3 text-[10px] font-bold text-white transition-colors hover:bg-[#4a52c9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
         >
           <Play className="h-3 w-3 fill-current sm:mr-1" />{' '}
           <span className="hidden sm:inline">Start</span>
@@ -182,7 +180,7 @@ function TaskRow({ task, canReschedule, expanded, onExpand, onToggle, onStart, o
           type="button"
           onClick={onExpand}
           aria-label={`${expanded ? 'Hide' : 'Show'} details for ${friendlyTitle}`}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:hover:bg-white/5"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:hover:bg-white/5"
         >
           <ChevronDown
             className={cn(
@@ -203,21 +201,21 @@ function DayDateBadge({ date, isToday }) {
   return (
     <div
       className={cn(
-        'flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-2xl text-center transition-all duration-200',
+        'flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg text-center',
         isToday
-          ? 'bg-[#505bdd] text-white shadow-sm'
-          : 'border border-slate-200/60 bg-slate-50/80 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200'
+          ? 'bg-[#5a63df] text-white'
+          : 'border border-[#eeedf7] bg-[#fbfbfe] text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200'
       )}
     >
       <span
         className={cn(
-          'text-[8px] font-extrabold uppercase tracking-wider',
-          isToday ? 'text-indigo-100' : 'text-slate-400 dark:text-slate-400'
+          'text-[8px] font-bold uppercase tracking-wider',
+          isToday ? 'text-white/80' : 'text-slate-400'
         )}
       >
         {DAY_FORMAT.format(date).split(',')[0]}
       </span>
-      <span className="mt-0.5 text-base font-black leading-none">{date.getDate()}</span>
+      <span className="mt-0.5 text-base font-extrabold leading-none">{date.getDate()}</span>
     </div>
   );
 }
@@ -230,28 +228,24 @@ function PrimaryTaskSummary({ primary, day, isToday, onExpand }) {
     <button
       type="button"
       onClick={onExpand}
-      className="min-w-0 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+      className="min-w-0 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
     >
       <span className="flex items-center gap-2">
         <span
           className={cn(
-            'line-clamp-2 min-w-0 flex-1 text-xs font-black leading-snug text-slate-900 dark:text-white',
+            'line-clamp-2 min-w-0 flex-1 text-xs font-bold leading-snug text-slate-900 dark:text-white',
             primary?.is_completed && 'line-through opacity-50'
           )}
         >
           {friendlyTitle}
         </span>
-        {additionalTasks > 0 && (
-          <span className="shrink-0 rounded-full bg-indigo-500/10 px-2 py-0.5 text-[8px] font-black text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
-            +{additionalTasks}
-          </span>
-        )}
+        {additionalTasks > 0 && <Pill tone="accent">+{additionalTasks}</Pill>}
       </span>
       <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] font-medium text-slate-500 dark:text-slate-400">
         <span>{isToday ? 'Today' : DAY_FORMAT.format(day.date)}</span>
         <span>{durationText}</span>
         {overflow && (
-          <span className="font-black text-amber-600 dark:text-amber-400">
+          <span className="font-bold text-amber-600 dark:text-amber-400">
             Move to an available day
           </span>
         )}
@@ -276,7 +270,7 @@ function PrimaryTaskActions({ primary, onToggle, onStart }) {
         type="button"
         onClick={() => onStart(primary)}
         aria-label={`Start ${friendlyTitle}`}
-        className="flex h-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 px-3 text-[10px] font-black text-white transition-all hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:bg-indigo-600 dark:hover:bg-indigo-500"
+        className="flex h-9 shrink-0 items-center justify-center rounded-lg bg-[#5a63df] px-3 text-[10px] font-bold text-white transition-colors hover:bg-[#4a52c9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
       >
         <Play className="h-3 w-3 fill-current sm:mr-1.5" />
         <span className="hidden sm:inline">Start</span>
@@ -295,10 +289,8 @@ function ExpandedDayTaskList({
   onReschedule,
 }) {
   return (
-    <div className="space-y-2 border-t border-slate-200/80 bg-slate-50/80 px-3.5 py-3 dark:border-white/10 dark:bg-white/[0.02]">
-      <p className="px-1 text-[8px] font-black uppercase tracking-[0.16em] text-slate-400">
-        All tasks for this day
-      </p>
+    <div className="space-y-2 border-t border-[#eeedf7] bg-[#f8f8fc] px-3.5 py-3 dark:border-white/10 dark:bg-white/[0.02]">
+      <p className={cn(MICRO, 'px-1 text-slate-400')}>All tasks for this day</p>
       {tasks.map((task) => (
         <TaskRow
           key={task.activity_key}
@@ -333,8 +325,8 @@ function ScheduleDayRow({
   return (
     <div
       className={cn(
-        'border-b border-slate-200/80 last:border-b-0 dark:border-white/10',
-        isToday && 'bg-indigo-500/[0.05] dark:bg-indigo-500/[0.08]'
+        'border-b border-[#eeedf7] last:border-b-0 dark:border-white/10',
+        isToday && 'bg-[#5a63df]/[0.04]'
       )}
     >
       <div className="grid min-h-[72px] grid-cols-[44px_minmax(0,1fr)] items-center gap-x-3 gap-y-2 px-3 py-3 sm:grid-cols-[44px_minmax(0,1fr)_auto] sm:px-3.5">
@@ -346,7 +338,7 @@ function ScheduleDayRow({
             type="button"
             onClick={onExpand}
             aria-label={`${expanded ? 'Hide' : 'Show'} ${DAY_FORMAT.format(day.date)} tasks`}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:hover:bg-white/5"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:hover:bg-white/5"
           >
             <ChevronDown
               className={cn('h-4 w-4 transition-transform duration-200', expanded && 'rotate-180')}
@@ -394,39 +386,29 @@ export default function WeekPlan({
 
   return (
     <section
-      className="relative flex h-full min-w-0 flex-col overflow-hidden rounded-[26px] border border-[#e0e4f1] bg-white shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] transition-all duration-300 backdrop-blur hover:shadow-[0_24px_55px_-38px_rgba(48,58,128,0.85)] md:col-span-2 2xl:col-span-1 dark:border-white/10 dark:bg-[#10131f] p-5 sm:p-6"
+      className={cn(PANEL, 'flex h-full min-w-0 flex-col p-5 sm:p-6 md:col-span-2 2xl:col-span-1')}
       aria-labelledby="week-plan-title"
     >
-      {/* Corner Light Gradient Glow matching Grammar Lab */}
-      <div
-        className="pointer-events-none absolute -top-12 -right-12 h-44 w-44 rounded-full bg-[#dcd8ff]/50 blur-2xl dark:bg-indigo-900/30"
-        aria-hidden="true"
+      <PanelTitle
+        label="This week's plan"
+        accent
+        action={
+          <Pill tone="accent">
+            {plannedDays} study {plannedDays === 1 ? 'day' : 'days'}
+          </Pill>
+        }
       />
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-[#dfe3ff] bg-[#eef0ff] px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-[#505bdd] shadow-2xs dark:border-indigo-500/30 dark:bg-indigo-500/15 dark:text-indigo-300">
-            <CalendarDays
-              className="h-3.5 w-3.5 text-[#505bdd] dark:text-indigo-300"
-              aria-hidden="true"
-            />
-            <span>This week's plan</span>
-          </div>
-          <h2
-            id="week-plan-title"
-            className="mt-1 text-lg font-black tracking-tight text-slate-950 dark:text-white sm:text-xl"
-          >
-            Your next 7 days
-          </h2>
-          <p className="mt-1 text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-300">
-            See one main task per day. Open a day for the reason and extra practice.
-          </p>
-        </div>
-        <Badge className="whitespace-nowrap rounded-full border border-indigo-200/60 bg-indigo-50/60 px-3 py-0.5 text-[9px] font-bold text-indigo-600 backdrop-blur-md shadow-2xs dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/25">
-          {plannedDays} study {plannedDays === 1 ? 'day' : 'days'}
-        </Badge>
-      </div>
+      <h2
+        id="week-plan-title"
+        className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white"
+      >
+        Your next 7 days
+      </h2>
+      <p className="mt-1 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
+        See one main task per day. Open a day for the reason and extra practice.
+      </p>
 
-      <div className="mt-5 flex-1 overflow-hidden rounded-2xl border border-[#e0e4f1] bg-white shadow-sm dark:border-white/10 dark:bg-[#10131f]/90">
+      <div className="mt-4 flex-1 overflow-hidden rounded-lg border border-[#eeedf7] bg-white dark:border-white/10 dark:bg-white/[0.02]">
         {visibleDays.map((day, dayIndex) => (
           <ScheduleDayRow
             key={day.dateKey}
@@ -446,7 +428,7 @@ export default function WeekPlan({
         ))}
       </div>
 
-      <div className="mt-auto pt-4 flex items-center justify-between gap-3">
+      <div className="mt-4 flex items-center justify-between gap-3 pt-1">
         <p className="text-[10px] font-medium leading-relaxed text-slate-500 dark:text-slate-400">
           {daysToMove
             ? `${daysToMove} ${daysToMove === 1 ? 'day needs' : 'days need'} moving`
@@ -455,7 +437,7 @@ export default function WeekPlan({
         <button
           type="button"
           onClick={() => setShowFullWeek((value) => !value)}
-          className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-extrabold text-[#505bdd] transition-colors hover:bg-[#eef0ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5661e9] dark:text-indigo-300 dark:hover:bg-indigo-500/20"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-[#5a63df] transition-colors hover:bg-[#5a63df]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
         >
           {showFullWeek ? 'Show key days' : 'Show all 7 days'}
           <ChevronDown

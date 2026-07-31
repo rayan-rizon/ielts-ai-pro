@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -25,7 +24,6 @@ import {
   Clock,
   CreditCard,
   Edit,
-  Loader2,
   Lock,
   Mail,
   RefreshCcw,
@@ -336,14 +334,14 @@ const UserManagement = () => {
 
       {/* Warning email modal */}
       <Dialog open={showWarningModal} onOpenChange={setShowWarningModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+        <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-xl p-4 sm:p-5">
+          <DialogHeader className="space-y-0.5">
+            <DialogTitle className="flex items-center gap-2 text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
               <Mail className="w-4 h-4 text-[rgb(var(--signal-warn))]" />
-              Send Inactivity Warning
+              Send inactivity warning
             </DialogTitle>
-            <DialogDescription>
-              Send warning emails to {selectedUsers.size} selected user(s).
+            <DialogDescription className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+              Send warning emails to {selectedUsers.size} selected user(s)
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-2">
@@ -356,27 +354,24 @@ const UserManagement = () => {
               onChange={(e) => setWarningDays(parseInt(e.target.value) || 14)}
               className={FIELD_INPUT}
             />
-            <p className="text-[11px] text-stone-500">
+            <p className="text-[11px] text-stone-500 dark:text-stone-400">
               Users are warned their account may be deleted if they don&apos;t log in within this
               many days.
             </p>
           </div>
-          <DialogFooter className="gap-2">
-            <Button variant="ghost" onClick={() => setShowWarningModal(false)}>
+          <DialogFooter className="gap-2 flex-col sm:flex-row">
+            <AdminButton variant="ghost" onClick={() => setShowWarningModal(false)}>
               Cancel
-            </Button>
-            <Button
+            </AdminButton>
+            <AdminButton
               onClick={handleSendWarning}
               disabled={isSendingWarning}
+              loading={isSendingWarning}
               className="bg-[rgb(var(--signal-warn))] hover:opacity-90 text-white"
             >
-              {isSendingWarning ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4 mr-2" />
-              )}
+              <Send className="w-3.5 h-3.5" />
               {isSendingWarning ? 'Sending…' : 'Send warnings'}
-            </Button>
+            </AdminButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -697,13 +692,15 @@ const UserManagement = () => {
             setEditingUser(null);
           }}
         >
-          <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{isCreatingUser ? 'Create user' : 'Edit user'}</DialogTitle>
-              <DialogDescription>
+          <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto p-4 sm:p-5">
+            <DialogHeader className="space-y-0.5">
+              <DialogTitle className="text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
+                {isCreatingUser ? 'Create user' : 'Edit user'}
+              </DialogTitle>
+              <DialogDescription className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                 {isCreatingUser
-                  ? 'Add a new user to the platform.'
-                  : 'Update user information and permissions.'}
+                  ? 'Add a new user to the platform'
+                  : 'Update user information and permissions'}
               </DialogDescription>
             </DialogHeader>
 
@@ -740,7 +737,7 @@ const UserManagement = () => {
                         placeholder="Generate or type…"
                       />
                     </div>
-                    <Button
+                    <AdminButton
                       type="button"
                       variant="outline"
                       onClick={() => {
@@ -752,11 +749,11 @@ const UserManagement = () => {
                           .join('');
                         setNewUser((prev) => ({ ...prev, password: pwd }));
                       }}
-                      className="h-9 px-3 rounded-md border-stone-300 dark:border-white/15"
+                      className="h-9 w-9 px-0"
                       title="Generate strong password"
                     >
                       <Wand2 className="w-3.5 h-3.5" />
-                    </Button>
+                    </AdminButton>
                   </div>
                   <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1.5')}>
                     8+ chars, uppercase, lowercase, number, special character.
@@ -824,8 +821,8 @@ const UserManagement = () => {
               </div>
             </div>
 
-            <DialogFooter>
-              <Button
+            <DialogFooter className="gap-2 flex-col sm:flex-row">
+              <AdminButton
                 variant="ghost"
                 onClick={() => {
                   setIsCreatingUser(false);
@@ -833,17 +830,18 @@ const UserManagement = () => {
                 }}
               >
                 Cancel
-              </Button>
-              <Button
+              </AdminButton>
+              <AdminButton
                 onClick={
                   editingUser
                     ? () => handleUpdateUser(editingUser.id, editingUser)
                     : handleCreateUser
                 }
                 disabled={loading || (!editingUser && !newUser.email)}
+                loading={loading}
               >
                 {loading ? 'Processing…' : isCreatingUser ? 'Create user' : 'Update user'}
-              </Button>
+              </AdminButton>
             </DialogFooter>
           </DialogContent>
         </Dialog>

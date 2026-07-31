@@ -164,7 +164,9 @@ const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }
         />
       </div>
 
-      <ThemeToggle />
+      <div className="flex justify-center">
+        <ThemeToggle />
+      </div>
 
       <div className="bg-stone-50 dark:bg-white/[0.03] hover:bg-stone-100 dark:hover:bg-white/[0.06] p-2.5 rounded-md flex items-center gap-3 cursor-pointer transition-colors border border-stone-200/70 dark:border-white/[0.06] group-data-[collapsible=icon]:justify-center my-1">
         <div className="w-8 h-8 bg-stone-900 dark:bg-white/10 rounded-md flex items-center justify-center flex-shrink-0">

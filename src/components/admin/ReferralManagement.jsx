@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -8,13 +7,13 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Calendar,
   Edit3,
   Gift,
-  Loader2,
   Mic,
   PenLine,
   Plus,
@@ -345,12 +344,15 @@ export default function ReferralManagement() {
       )}
 
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent className="sm:max-w-[420px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+        <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-xl p-4 sm:p-5">
+          <DialogHeader className="space-y-0.5">
+            <DialogTitle className="flex items-center gap-2 text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
               <Gift className="w-4 h-4 text-stone-500 dark:text-stone-400" />
               {editingTier ? 'Edit reward tier' : 'Add reward tier'}
             </DialogTitle>
+            <DialogDescription className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+              Set the referral threshold and rewards unlocked at this tier
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3 py-2">
@@ -414,18 +416,18 @@ export default function ReferralManagement() {
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddModal(false)}>
+          <DialogFooter className="gap-2 flex-col sm:flex-row">
+            <AdminButton variant="ghost" onClick={() => setShowAddModal(false)}>
               Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={saving || !formData.referrals_required}>
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
+            </AdminButton>
+            <AdminButton
+              onClick={handleSave}
+              disabled={saving || !formData.referrals_required}
+              loading={saving}
+            >
+              <Save className="w-3.5 h-3.5" />
               {editingTier ? 'Update' : 'Create'}
-            </Button>
+            </AdminButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

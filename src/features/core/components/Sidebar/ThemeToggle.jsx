@@ -9,7 +9,7 @@ export const ThemeToggle = memo(() => {
   return (
     <SidebarMenuButton
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="group w-full justify-start gap-3 px-3 py-2 text-stone-700 dark:text-stone-200 font-medium hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors group-data-[collapsible=icon]:px-2.5"
+      className="group w-full justify-start gap-3 px-3 py-2 text-stone-700 dark:text-stone-200 font-medium hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!gap-0"
       aria-label="Toggle theme"
     >
       <div className="relative w-4 h-4 flex items-center justify-center shrink-0">

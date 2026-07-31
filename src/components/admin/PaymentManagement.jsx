@@ -16,25 +16,12 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
 import { matchesPaymentSearch, mergePaymentHistory } from './paymentHistory';
-import { NUM, MICRO, PANEL, Kpi, AdminPageHeader } from './ui/primitives';
+import { NUM, MICRO, PANEL, Kpi, AdminPageHeader, PILL_BASE, pillTone } from './ui/primitives';
 
-const STATUS_PILL = {
-  pending:
-    'text-[rgb(var(--signal-warn))] border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.08)]',
-  approved:
-    'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.08)]',
-  rejected:
-    'text-[rgb(var(--signal-fault))] border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.08)]',
-};
+const STATUS_TONE = { pending: 'warn', approved: 'ok', rejected: 'fault' };
 
 const StatusPill = ({ status }) => (
-  <span
-    className={cn(
-      'inline-flex items-center rounded-md border px-1.5 py-0.5 shrink-0',
-      MICRO,
-      STATUS_PILL[status] || STATUS_PILL.pending
-    )}
-  >
+  <span className={cn(PILL_BASE, pillTone(STATUS_TONE[status] || 'neutral'), 'shrink-0')}>
     {status}
   </span>
 );

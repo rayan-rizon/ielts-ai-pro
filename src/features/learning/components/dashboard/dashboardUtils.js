@@ -288,6 +288,21 @@ export function getModuleStyle(module = 'general') {
   return MODULE_STYLE[normalizedModule] || MODULE_STYLE.general;
 }
 
+/** Maps a module to one of the shared IconChip/Pill tones (primitives.jsx). */
+const MODULE_TONE = {
+  reading: 'emerald',
+  writing: 'rose',
+  listening: 'sky',
+  speaking: 'amber',
+  grammar: 'accent',
+  vocabulary: 'emerald',
+  general: 'accent',
+};
+
+export function getModuleTone(module = 'general') {
+  return MODULE_TONE[String(module).toLowerCase()] || 'accent';
+}
+
 export function getPrioritiesList(evidence) {
   if (!evidence) return [];
   const measured = (evidence.measured_priorities || []).map((item) => ({

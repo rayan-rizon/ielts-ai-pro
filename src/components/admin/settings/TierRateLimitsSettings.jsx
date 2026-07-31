@@ -144,15 +144,24 @@ const TierHeader = ({
             onClick={() => onSelectCurrency(cur)}
             className={cn(
               MICRO,
-              'px-2.5 py-1 rounded-md transition-colors flex items-center gap-1.5 border shrink-0',
+              'relative px-2.5 py-1 rounded-md transition-all active:scale-95 flex items-center gap-1.5 border shrink-0',
               isCurActive
-                ? 'bg-stone-900 dark:bg-white/10 text-white dark:text-stone-50 border-transparent'
+                ? 'text-white dark:text-stone-50 border-transparent'
                 : 'bg-white dark:bg-[#131315] text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20'
             )}
           >
-            {cur === 'ALL' && <Globe className="w-2.5 h-2.5 opacity-80" />}
-            <span>{cur === 'ALL' ? 'Global' : cur}</span>
-            {curChanged && <span className="w-1 h-1 rounded-full bg-[rgb(var(--signal-warn))]" />}
+            {isCurActive && (
+              <m.span
+                layoutId={`currencyPill-${tierName}`}
+                className="absolute inset-0 bg-stone-900 dark:bg-white/10 rounded-md"
+                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              />
+            )}
+            {cur === 'ALL' && <Globe className="relative w-2.5 h-2.5 opacity-80" />}
+            <span className="relative">{cur === 'ALL' ? 'Global' : cur}</span>
+            {curChanged && (
+              <span className="relative w-1 h-1 rounded-full bg-[rgb(var(--signal-warn))]" />
+            )}
           </button>
         );
       })}

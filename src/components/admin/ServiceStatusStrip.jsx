@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertOctagon, AlertTriangle, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react';
+import {
+  AlertOctagon,
+  AlertTriangle,
+  CheckCircle2,
+  ChevronRight,
+  ChevronDown,
+  Loader2,
+  X,
+} from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 import { PlatformHealth, STATUS_LABEL } from '@/features/admin/services/PlatformHealth';
@@ -33,6 +41,10 @@ const DOT = {
 const ServiceStatusStrip = () => {
   const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Collapsed, never fully hidden — silently dropping a live fault would be
+  // worse than a strip taking a bit of room. Resets on remount by design, so
+  // a dismissed outage from an earlier visit doesn't stay hidden forever.
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -63,6 +75,32 @@ const ServiceStatusStrip = () => {
   const warning = services.filter((s) => s.status === 'degraded' || s.status === 'attention');
   const healthy = broken.length === 0 && warning.length === 0;
   const problems = [...broken, ...warning];
+  const dotTone = broken.length > 0 ? FAULT : warning.length > 0 ? WARN : OK;
+
+  if (collapsed) {
+    return (
+      <button
+        onClick={() => setCollapsed(false)}
+        className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg border border-stone-200/80 dark:border-white/[0.07] bg-white dark:bg-[#131315] hover:border-stone-300 dark:hover:border-white/20 transition-colors text-left"
+      >
+        <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', dotTone)} />
+        <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+          Platform status:{' '}
+          <span className="text-stone-700 dark:text-stone-200">
+            {healthy
+              ? 'nominal'
+              : [
+                  broken.length > 0 && `${broken.length} fault`,
+                  warning.length > 0 && `${warning.length} degraded`,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+          </span>
+        </span>
+        <ChevronDown className="w-3 h-3 text-stone-400 ml-auto" />
+      </button>
+    );
+  }
 
   return (
     <div
@@ -138,6 +176,14 @@ const ServiceStatusStrip = () => {
             Details
             <ChevronRight className="w-3 h-3" />
           </Link>
+          <button
+            onClick={() => setCollapsed(true)}
+            aria-label="Collapse platform status"
+            title="Collapse"
+            className="h-6 w-6 grid place-items-center rounded-md text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors shrink-0"
+          >
+            <X className="w-3 h-3" />
+          </button>
         </div>
       </div>
     </div>

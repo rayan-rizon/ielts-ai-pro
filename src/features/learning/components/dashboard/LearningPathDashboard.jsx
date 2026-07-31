@@ -12,17 +12,14 @@ import { useLearningPathDashboard } from './useLearningPathDashboard';
 
 function LearningPathLoadingView() {
   return (
-    <div className="space-y-5" aria-label="Loading learning path">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="h-[360px] animate-pulse rounded-3xl bg-slate-200/70 motion-reduce:animate-none dark:bg-white/5" />
-        <div className="h-[360px] animate-pulse rounded-3xl bg-slate-200/70 motion-reduce:animate-none dark:bg-white/5" />
-      </div>
-      <div className="h-56 animate-pulse rounded-3xl bg-slate-200/70 motion-reduce:animate-none dark:bg-white/5" />
+    <div className="space-y-4" aria-label="Loading learning path">
+      <div className="h-[220px] animate-pulse rounded-xl bg-[#eceafa] motion-reduce:animate-none dark:bg-white/5" />
+      <div className="h-[280px] animate-pulse rounded-xl bg-[#eceafa] motion-reduce:animate-none dark:bg-white/5" />
       <div className="grid gap-4 lg:grid-cols-3">
         {[0, 1, 2].map((item) => (
           <div
             key={item}
-            className="h-96 animate-pulse rounded-3xl bg-slate-200/70 motion-reduce:animate-none dark:bg-white/5"
+            className="h-96 animate-pulse rounded-xl bg-[#eceafa] motion-reduce:animate-none dark:bg-white/5"
           />
         ))}
       </div>
@@ -68,7 +65,7 @@ export default function LearningPathDashboard(props) {
   } = dashboard;
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-3">
       <HeroSection
         isLegacyPlan={isLegacyPlan}
         primaryTask={primaryTask}
@@ -100,7 +97,7 @@ export default function LearningPathDashboard(props) {
         onStart={startTask}
       />
 
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-stretch gap-5 md:grid-cols-2 2xl:grid-cols-[1.08fr_1fr_0.9fr]">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-stretch gap-3 md:grid-cols-2 2xl:grid-cols-[1.08fr_1fr_0.9fr]">
         <WeekPlan
           days={sevenDays}
           canReschedule={path?.version === 2}
@@ -120,7 +117,7 @@ export default function LearningPathDashboard(props) {
         />
       </div>
 
-      <div className="grid min-w-0 grid-cols-1 items-stretch gap-5 lg:grid-cols-2">
+      <div className="grid min-w-0 grid-cols-1 items-stretch gap-3 lg:grid-cols-2">
         <PlanSignalsCard
           trigger={path?.generation_trigger}
           changeReason={path?.why_plan_changed}

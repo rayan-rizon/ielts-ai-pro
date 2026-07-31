@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -8,13 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Calendar as CalendarIcon, Target, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
 import { cn } from '@/lib/cn';
 import StudyAvailabilityEditor from '@/features/learning/components/StudyAvailabilityEditor';
+import { PANEL, PanelTitle, TILE } from '@/features/dashboard/components/primitives';
 
 export default function GoalsSection({ formData, setFormData }) {
   const selectedDate = React.useMemo(() => {
@@ -24,114 +24,102 @@ export default function GoalsSection({ formData, setFormData }) {
   }, [formData.test_date]);
 
   return (
-    <motion.div
+    <m.div
       key="goals"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.2 }}
-      className="space-y-5"
+      className={cn(PANEL, 'p-4 sm:p-5')}
     >
-      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200 dark:border-white/5 space-y-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Target className="w-5 h-5 text-indigo-500" />
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-              Target Score & Exam Date
-            </h3>
-          </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-            Configure your IELTS target band and exam timeline to optimize AI study recommendations.
-          </p>
-        </div>
+      <PanelTitle label="Target score & exam date" accent />
+      <p className="-mt-2 mb-4 text-xs font-medium text-slate-500 dark:text-slate-400">
+        Configure your IELTS target band and exam timeline to optimize AI study recommendations.
+      </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Target Band Score
-            </Label>
-            <Select
-              value={formData.target_band_score.toString()}
-              onValueChange={(val) =>
-                setFormData({ ...formData, target_band_score: parseFloat(val) })
-              }
-            >
-              <SelectTrigger className="h-11 rounded-xl bg-slate-50/50 dark:bg-slate-950/40 border-slate-200 dark:border-white/10 font-bold text-sm px-4">
-                <SelectValue placeholder="Select Band" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl border-slate-200 dark:border-white/10 p-1">
-                {[5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0].map((score) => (
-                  <SelectItem
-                    key={score}
-                    value={score.toString()}
-                    className="rounded-lg font-medium py-2 text-sm"
-                  >
-                    Band {score}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Target Exam Date
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'w-full h-11 justify-start text-left font-bold text-sm rounded-xl px-3.5 bg-slate-50/50 dark:bg-slate-950/40 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-slate-900/60 transition-all outline-none',
-                    !formData.test_date && 'text-slate-400 font-medium'
-                  )}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Target band score
+          </Label>
+          <Select
+            value={formData.target_band_score.toString()}
+            onValueChange={(val) =>
+              setFormData({ ...formData, target_band_score: parseFloat(val) })
+            }
+          >
+            <SelectTrigger className="h-10 rounded-lg border-[#e2e5f2] bg-white text-sm font-bold dark:border-white/10 dark:bg-white/[0.04]">
+              <SelectValue placeholder="Select band" />
+            </SelectTrigger>
+            <SelectContent className="rounded-lg border-[#e2e5f2] p-1 dark:border-white/10">
+              {[5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0].map((score) => (
+                <SelectItem
+                  key={score}
+                  value={score.toString()}
+                  className="rounded-md py-2 text-sm font-medium"
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4 text-indigo-500 shrink-0" />
-                  {selectedDate ? (
-                    <span className="text-slate-900 dark:text-white font-bold text-sm">
-                      {format(selectedDate, 'MMM dd, yyyy')}
-                    </span>
-                  ) : (
-                    <span className="text-sm font-medium">Pick a target date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-auto p-0 rounded-2xl border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden"
-                align="start"
-              >
-                <CalendarComponent
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setFormData({ ...formData, test_date: format(date, 'yyyy-MM-dd') });
-                    }
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+                  Band {score}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Study Availability Schedule */}
-        <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-indigo-500" />
-            <h4 className="text-base font-bold text-slate-900 dark:text-white">
-              Study Availability Schedule
-            </h4>
-          </div>
-          <div className="bg-slate-50/70 dark:bg-slate-950/30 p-4 rounded-xl border border-slate-100 dark:border-white/5">
-            <StudyAvailabilityEditor
-              value={formData.study_availability}
-              legacyWeeklyHours={formData.study_hours_goal}
-              onChange={(study_availability) => setFormData({ ...formData, study_availability })}
-            />
-          </div>
+        <div className="space-y-1.5">
+          <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Target exam date
+          </Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  'flex h-10 w-full items-center rounded-lg border border-[#e2e5f2] bg-white px-3 text-left text-sm font-bold transition-colors hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/[0.04]',
+                  !formData.test_date && 'text-slate-400 font-medium'
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4 shrink-0 text-[#5a63df]" />
+                {selectedDate ? (
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    {format(selectedDate, 'MMM dd, yyyy')}
+                  </span>
+                ) : (
+                  <span className="font-medium">Pick a target date</span>
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-auto overflow-hidden rounded-xl border-[#e2e5f2] bg-white p-0 dark:border-white/10 dark:bg-[#131218]"
+              align="start"
+            >
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  if (date) setFormData({ ...formData, test_date: format(date, 'yyyy-MM-dd') });
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
-    </motion.div>
+
+      <div className="mt-5 border-t border-[#eeedf7] pt-4 dark:border-white/[0.07]">
+        <div className="mb-3 flex items-center gap-2">
+          <Clock className="h-4 w-4 text-[#5a63df]" />
+          <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">
+            Study availability schedule
+          </h4>
+        </div>
+        <div className={cn(TILE, 'p-3.5')}>
+          <StudyAvailabilityEditor
+            value={formData.study_availability}
+            legacyWeeklyHours={formData.study_hours_goal}
+            onChange={(study_availability) => setFormData({ ...formData, study_availability })}
+          />
+        </div>
+      </div>
+    </m.div>
   );
 }

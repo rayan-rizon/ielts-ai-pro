@@ -7,58 +7,17 @@ import {
   RefreshCw,
   Settings2,
   Target,
-  TimerReset,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
+import {
+  Eyebrow,
+  IconChip,
+  PANEL,
+  Pill,
+  Stat,
+  TITLE,
+} from '@/features/dashboard/components/primitives';
 import { formatMinutes, getFriendlyPlanText, getFriendlyTaskTitle } from './dashboardUtils';
-
-function Metric({ icon: Icon, label, value, hint, badgeColor = 'indigo', onClick }) {
-  const Component = onClick ? 'button' : 'div';
-
-  const badgeStyles = {
-    indigo:
-      'bg-[#eef0ff] text-[#505bdd] border border-[#dfe3ff] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30',
-    sky: 'bg-sky-50 text-sky-600 border border-sky-200/60 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30',
-    amber:
-      'bg-amber-50 text-amber-600 border border-amber-200/60 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30',
-    rose: 'bg-rose-50 text-rose-600 border border-rose-200/60 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30',
-  };
-
-  return (
-    <Component
-      type={onClick ? 'button' : undefined}
-      onClick={onClick}
-      className={cn(
-        'group relative min-w-0 w-full border-r border-[#e0e4f1] bg-transparent px-3 py-2.5 text-left transition-all duration-200 last:border-r-0 sm:px-4 dark:border-white/10',
-        onClick &&
-          'hover:bg-[#f3efff]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#5661e9] dark:hover:bg-indigo-500/10 cursor-pointer'
-      )}
-    >
-      <div className="flex items-center gap-1.5">
-        <span
-          className={cn(
-            'flex h-6 w-6 shrink-0 items-center justify-center rounded-lg shadow-2xs transition-transform duration-200 group-hover:scale-110',
-            badgeStyles[badgeColor]
-          )}
-        >
-          <Icon className="h-3 w-3" aria-hidden="true" />
-        </span>
-        <span className="truncate text-[8px] font-extrabold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400 sm:text-[9px]">
-          {label}
-        </span>
-      </div>
-      <div className="mt-0.5 truncate text-sm font-black leading-tight tracking-tight text-slate-950 sm:text-base dark:text-white">
-        {value}
-      </div>
-      {hint && (
-        <div className="mt-0.5 truncate text-[9px] font-extrabold text-[#505bdd] dark:text-indigo-400">
-          {hint}
-        </div>
-      )}
-    </Component>
-  );
-}
 
 function HeroBanner({
   isLegacyPlan,
@@ -113,99 +72,61 @@ function HeroBanner({
   const isRefreshActive = isLegacyPlan || planUpdateAvailable;
 
   return (
-    <section className="relative overflow-hidden rounded-[26px] border border-[#e0e4f1] bg-white shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] transition-all duration-300 backdrop-blur hover:shadow-[0_24px_55px_-38px_rgba(48,58,128,0.85)] dark:border-white/10 dark:bg-[#10131f]">
-      {/* Corner Light Gradient Glow matching all other dashboard cards */}
-      <div
-        className="pointer-events-none absolute -top-12 -right-12 z-20 h-52 w-52 rounded-full bg-[#dcd8ff]/60 blur-2xl dark:bg-indigo-900/40"
-        aria-hidden="true"
-      />
-      {/* Light gradient backdrop matching Grammar Lab header */}
-      <div className="relative min-h-[264px] overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#f4f1ff] via-[#f8f7fd] to-white sm:min-h-[248px] lg:min-h-[238px] dark:from-purple-950/40 dark:via-indigo-950/20 dark:to-[#10131f]">
-        {/* Soft Ambient Light Gradient Corner Glows */}
-        <div
-          className="pointer-events-none absolute -top-20 -right-20 h-96 w-96 rounded-full bg-gradient-to-br from-[#c8c1ff] via-[#dcd8ff] to-[#f3efff] opacity-80 blur-3xl dark:from-indigo-600/30 dark:to-purple-900/20"
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute -top-10 -left-10 h-72 w-72 rounded-full bg-gradient-to-br from-[#e0e4ff] via-[#f0eeff] to-transparent opacity-70 blur-3xl dark:from-indigo-900/20"
-          aria-hidden="true"
-        />
+    <section className={cn(PANEL, 'overflow-hidden')} aria-label="Your personalized IELTS path">
+      <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-stretch">
+        <div className="min-w-0">
+          <Pill tone="accent">Your personalized IELTS path</Pill>
 
-        <img
-          src="/images/learning-path/ai-coach-study-hero.webp"
-          width="1672"
-          height="941"
-          alt="Learner writing in a notebook beside a laptop and a friendly AI study coach"
-          className="absolute inset-y-0 right-0 h-full w-auto max-w-none object-contain object-right opacity-45 sm:opacity-75 lg:opacity-95"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 via-[52%] to-transparent sm:via-[49%] lg:via-white/92 lg:via-[45%] dark:from-[#10131f] dark:via-[#10131f]/95 dark:to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white/90 to-transparent dark:from-[#10131f]/90" />
-
-        <div className="relative z-10 flex min-h-[264px] max-w-[680px] flex-col justify-center p-5 sm:min-h-[248px] sm:px-6 sm:py-5 lg:min-h-[238px] lg:w-[62%] lg:px-7">
-          <div className="flex items-center gap-2">
-            <span className="rounded-full border border-[#9ea9f5] bg-white px-3.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#3b44b8] shadow-[0_2px_10px_-3px_rgba(59,68,184,0.25)] dark:border-indigo-400/40 dark:bg-[#10131f] dark:text-indigo-300">
-              Your personalized IELTS path
-            </span>
-          </div>
-
-          <h1 className="mt-2 max-w-2xl text-[26px] font-black leading-[1.08] tracking-[-0.04em] text-slate-950 sm:text-[30px] lg:text-[33px] dark:text-white">
+          <h1 className="mt-3 text-2xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-3xl">
             A clear study plan for your goals
           </h1>
-          <p className="mt-1 max-w-xl text-xs font-medium leading-relaxed text-slate-600 sm:text-sm dark:text-slate-300">
+          <p className="mt-1.5 max-w-xl text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400">
             Guided by recent practice results, target score, exam date, and available time.
           </p>
 
-          {/* Today's Next Step mini-card matching Grammar card aesthetics */}
           <button
             type="button"
             onClick={() => primaryTask && startTask(primaryTask)}
             disabled={!primaryTask}
-            className="mt-2 flex w-full max-w-md flex-col gap-1 rounded-xl border border-indigo-200/50 bg-gradient-to-br from-white/95 via-[#f8f6ff]/90 to-[#edf0ff]/80 px-3 py-2 shadow-[0_2px_12px_-4px_rgba(79,70,229,0.08)] backdrop-blur-md transition-all duration-200 hover:border-indigo-300 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-default dark:border-white/10 dark:from-[#131626]/95 dark:via-[#191d33]/85 dark:to-[#10131f]/90 text-left group"
+            className="group mt-4 flex w-full max-w-md flex-col gap-1.5 rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-3 text-left transition-colors duration-150 hover:border-[#c9cdf3] hover:bg-white disabled:cursor-default disabled:hover:border-[#ebeaf7] dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50/60 dark:bg-indigo-500/15 px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-500/25 shadow-2xs">
-                Best next task
-              </span>
+              <Eyebrow>Best next task</Eyebrow>
               {taskDuration && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 px-2 py-0.5 text-[11px] font-bold font-mono text-slate-600 dark:text-slate-300">
-                  <Clock3 className="w-3 h-3 text-slate-400" />
+                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-white/5 dark:text-slate-400">
+                  <Clock3 className="h-3 w-3" />
                   {taskDuration}
                 </span>
               )}
             </div>
-
-            <div className="flex items-start gap-2">
-              <span className="flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 shadow-2xs group-hover:scale-105 transition-transform dark:bg-indigo-500/20 dark:text-indigo-300 mt-0.5">
-                <TimerReset className="h-3.5 w-3.5" aria-hidden="true" />
-              </span>
-              <div className="min-w-0 flex-1 space-y-0.5">
-                <h3 className="text-sm font-extrabold text-slate-950 dark:text-white tracking-tight leading-snug">
-                  {titleText}
-                </h3>
-                <p className="text-[11px] font-medium leading-relaxed text-slate-600 dark:text-slate-300">
+            <div className="flex items-start gap-2.5">
+              <IconChip icon={Target} size="md" />
+              <div className="min-w-0 flex-1">
+                <h3 className={cn(TITLE, 'leading-snug')}>{titleText}</h3>
+                <p className="mt-0.5 text-[12px] font-medium leading-relaxed text-slate-500 dark:text-slate-400">
                   {getFriendlyPlanText(reasonText)}
                 </p>
               </div>
             </div>
           </button>
 
-          {/* Action Buttons row matching Grammar Hero actions */}
-          <div className="mt-3.5 flex flex-wrap items-center gap-2.5">
-            <Button
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
               onClick={() => primaryTask && startTask(primaryTask)}
               disabled={!primaryTask}
-              className="h-10 rounded-xl bg-[#5661e9] px-5 font-extrabold text-white shadow-[0_12px_24px_-14px_rgba(76,87,225,0.9)] hover:bg-[#4853d6] transition-all"
+              className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#5a63df] px-4 text-sm font-bold text-white transition-colors hover:bg-[#4a52c9] disabled:cursor-default disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#141319]"
             >
-              Continue learning <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+              Continue learning <ArrowRight className="h-4 w-4" />
+            </button>
 
-            <Button
-              variant="outline"
+            <button
+              type="button"
               onClick={() => setCustomizeOpen(true)}
-              className="h-10 rounded-xl border border-[#9ea9f5] bg-white px-4 text-xs font-black text-[#3b44b8] shadow-[0_3px_12px_-3px_rgba(59,68,184,0.25)] transition hover:border-[#505bdd] hover:bg-[#f4f1ff] dark:border-indigo-400/40 dark:bg-[#10131f] dark:text-indigo-300 dark:hover:bg-white/10"
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#e2e5f2] px-4 text-sm font-bold text-slate-600 transition-colors hover:border-[#c9cdf3] hover:text-slate-900 dark:border-white/10 dark:text-slate-300 dark:hover:text-white"
             >
-              <Settings2 className="mr-2 h-4 w-4 text-[#3b44b8] dark:text-indigo-300" /> Edit plan
-            </Button>
+              <Settings2 className="h-4 w-4" /> Edit plan
+            </button>
 
             <button
               type="button"
@@ -213,45 +134,51 @@ function HeroBanner({
               title="No AI request when nothing changed"
               onClick={refreshPlan}
               disabled={refreshing}
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#9ea9f5] bg-white px-4 text-xs font-black text-[#3b44b8] shadow-[0_3px_12px_-3px_rgba(59,68,184,0.25)] transition hover:border-[#505bdd] hover:bg-[#f4f1ff] dark:border-indigo-400/40 dark:bg-[#10131f] dark:text-indigo-300 dark:hover:bg-white/10"
+              className="inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-bold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-100"
             >
               <RefreshCw
-                className={cn(
-                  'h-3.5 w-3.5 text-[#3b44b8] dark:text-indigo-300',
-                  refreshing && 'animate-spin motion-reduce:animate-none'
-                )}
-                aria-hidden="true"
+                className={cn('h-4 w-4', refreshing && 'animate-spin motion-reduce:animate-none')}
               />
-              <span>{isRefreshActive ? 'Update your plan' : 'Check updates'}</span>
+              {isRefreshActive ? 'Update your plan' : 'Check updates'}
             </button>
           </div>
           <p className="sr-only">Finished tasks are never turned into a predicted IELTS score.</p>
         </div>
+
+        <img
+          src="/images/learning-path/ai-coach-study-hero.webp"
+          width="1672"
+          height="941"
+          alt="Learner writing in a notebook beside a laptop and a friendly AI study coach"
+          className="hidden min-h-[260px] w-full rounded-lg object-cover lg:block"
+        />
       </div>
 
-      {/* Upgraded Lower Stat Bar matching Grammar Lab footer stats */}
-      <div className="grid grid-cols-2 border-t border-[#e0e4f1] bg-[#f8f7fd]/90 dark:bg-[#10131f]/90 backdrop-blur-md overflow-hidden rounded-b-[26px] sm:grid-cols-4 dark:border-white/10">
-        <Metric
+      <div className="grid grid-cols-2 gap-2.5 border-t border-[#eeedf7] p-3 dark:border-white/[0.07] sm:grid-cols-4">
+        <Stat
+          size="sm"
           icon={Target}
           label="Target band"
           value={Number(targetBand || 7).toFixed(1)}
-          badgeColor="indigo"
         />
-        <Metric icon={Gauge} label="Recent score level" value={readinessValue} badgeColor="sky" />
-        <Metric
+        <Stat size="sm" icon={Gauge} tone="sky" label="Recent score level" value={readinessValue} />
+        <Stat
+          size="sm"
           icon={Clock3}
+          tone="amber"
           label="Weekly study time"
           value={formatMinutes(weeklyCapacity)}
-          badgeColor="amber"
         />
-        <Metric
-          icon={CalendarDays}
-          label="Exam date"
-          value={examValue}
-          hint={examHint}
-          badgeColor="rose"
-          onClick={() => setCustomizeOpen(true)}
-        />
+        <button type="button" onClick={() => setCustomizeOpen(true)} className="text-left">
+          <Stat
+            size="sm"
+            icon={CalendarDays}
+            tone="rose"
+            label="Exam date"
+            value={examValue}
+            sub={examHint}
+          />
+        </button>
       </div>
     </section>
   );

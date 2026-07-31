@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { m } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/cn';
 import DocumentHead from '@/components/shared/DocumentHead';
 import { calculatePrice } from '@/lib/pricingUtils';
 import { usePricing } from '@/features/subscription/hooks/usePricing';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
-import PromoCodeRedemption from '@/components/PromoCodeRedemption';
 import ManualPayment from '../components/ManualPayment';
 import { trackAppEvent } from '@/lib/tracking';
 
@@ -292,14 +288,25 @@ export default function Pricing() {
         keywords="IELTS pricing, IELTS courses cost, affordable IELTS prep, IELTS plans"
       />
 
-      <div className="relative min-h-screen pb-16 bg-white dark:bg-[#070912] transition-colors duration-500 overflow-hidden font-sans">
-        <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000_20%,transparent_100%)]" />
+      <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-16 transition-colors duration-500 dark:bg-[#0b0a10]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-24 -left-24 -z-0 h-[24rem] w-[24rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.4),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.12),transparent_70%)]"
+        />
 
         <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="px-4 md:px-8 pt-6 sm:pt-8 md:pt-10 pb-12 max-w-7xl mx-auto space-y-8 relative z-10"
+          className="relative z-10 mx-auto max-w-7xl space-y-8 px-4 pb-12 pt-6 sm:pt-8 md:px-8 md:pt-10"
         >
           <PricingHeaderSection
             billingInterval={billingInterval}
