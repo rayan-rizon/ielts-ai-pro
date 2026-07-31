@@ -46,7 +46,7 @@ import {
   FADE_UP,
 } from './ui/primitives';
 
-const FIELD_LABEL = cn(MICRO, 'text-stone-400 mb-1.5 block');
+const FIELD_LABEL = cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5 block');
 const FIELD_INPUT =
   'h-10 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
 
@@ -191,7 +191,7 @@ const PromoManagement = () => {
                 <div>
                   <Label className={FIELD_LABEL}>Promo code</Label>
                   <div className="relative">
-                    <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                    <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 dark:text-stone-400" />
                     <Input
                       value={newPromo.code}
                       onChange={(e) =>
@@ -262,9 +262,9 @@ const PromoManagement = () => {
                       <Label className={FIELD_LABEL}>Value</Label>
                       <div className="relative">
                         {newPromo.discount_type === 'percentage' ? (
-                          <Percent className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                          <Percent className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                         ) : (
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-xs">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 dark:text-stone-400 font-bold text-xs">
                             $
                           </span>
                         )}
@@ -292,10 +292,10 @@ const PromoManagement = () => {
                           className={cn(
                             FIELD_INPUT,
                             'w-full flex items-center gap-2 px-3 text-left',
-                            !newPromo.valid_until && 'text-stone-400'
+                            !newPromo.valid_until && 'text-stone-500 dark:text-stone-400'
                           )}
                         >
-                          <Calendar className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                          <Calendar className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 shrink-0" />
                           {newPromo.valid_until
                             ? format(new Date(newPromo.valid_until), 'PP')
                             : 'Pick a date'}
@@ -324,7 +324,7 @@ const PromoManagement = () => {
                     <div>
                       <Label className={FIELD_LABEL}>Access duration (days)</Label>
                       <div className="relative">
-                        <Timer className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                        <Timer className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                         <Input
                           type="number"
                           value={newPromo.subscription_duration_days}
@@ -343,7 +343,7 @@ const PromoManagement = () => {
                     <div>
                       <Label className={FIELD_LABEL}>Usage cap</Label>
                       <div className="relative">
-                        <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                        <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                         <Input
                           type="number"
                           value={newPromo.max_uses}
@@ -362,7 +362,7 @@ const PromoManagement = () => {
                   <m.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}>
                     <Label className={FIELD_LABEL}>Total redemptions</Label>
                     <div className="relative">
-                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                       <Input
                         type="number"
                         value={newPromo.max_uses}
@@ -401,7 +401,7 @@ const PromoManagement = () => {
             <h3 className="font-extrabold text-sm text-stone-900 dark:text-stone-50">
               No promo codes yet
             </h3>
-            <p className="text-xs text-stone-400 max-w-[240px] mx-auto mt-1">
+            <p className="text-xs text-stone-500 dark:text-stone-400 max-w-[240px] mx-auto mt-1">
               Create your first campaign to start driving more subscriptions.
             </p>
             <AdminButton className="mt-4" onClick={() => setIsAddingPromo(true)}>
@@ -459,14 +459,14 @@ const PromoManagement = () => {
                           <div className="flex items-center gap-0.5 shrink-0">
                             <button
                               onClick={() => togglePromoStatus(promo.id, promo.is_active)}
-                              className="h-6 w-6 grid place-items-center rounded-md text-stone-400 hover:text-[rgb(var(--signal-warn))] hover:bg-[rgb(var(--signal-warn)/0.08)] transition-colors"
+                              className="h-6 w-6 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-warn))] hover:bg-[rgb(var(--signal-warn)/0.08)] transition-colors"
                               title={promo.is_active ? 'Pause' : 'Activate'}
                             >
                               <Power className="w-3 h-3" />
                             </button>
                             <button
                               onClick={() => handleDeletePromo(promo)}
-                              className="h-6 w-6 grid place-items-center rounded-md text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors"
+                              className="h-6 w-6 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors"
                               title="Delete"
                             >
                               <Trash2 className="w-3 h-3" />
@@ -514,7 +514,7 @@ const PromoManagement = () => {
                                 </span>
                               )}
                             </p>
-                            <p className={cn(MICRO, 'text-stone-400 truncate')}>
+                            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>
                               {promo.grants_subscription
                                 ? `${promo.subscription_duration_days}d grant`
                                 : 'checkout discount'}
@@ -524,7 +524,12 @@ const PromoManagement = () => {
 
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between">
-                            <span className={cn(MICRO, 'text-stone-400 flex items-center gap-1')}>
+                            <span
+                              className={cn(
+                                MICRO,
+                                'text-stone-500 dark:text-stone-400 flex items-center gap-1'
+                              )}
+                            >
                               <Calendar className="w-2.5 h-2.5" />
                               {new Date(promo.valid_until).toLocaleDateString(undefined, {
                                 month: 'short',

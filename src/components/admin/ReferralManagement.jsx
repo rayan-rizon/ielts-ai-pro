@@ -28,7 +28,10 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
 import { NUM, MICRO, PANEL, Kpi, AdminButton, AdminPageHeader } from './ui/primitives';
 
-const FIELD_LABEL = cn(MICRO, 'text-stone-400 mb-1.5 flex items-center gap-1.5');
+const FIELD_LABEL = cn(
+  MICRO,
+  'text-stone-500 dark:text-stone-400 mb-1.5 flex items-center gap-1.5'
+);
 const FIELD_INPUT =
   'h-9 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
 
@@ -197,7 +200,9 @@ export default function ReferralManagement() {
       {/* Reward tiers */}
       <div className={cn(PANEL, 'p-4')}>
         <div className="mb-3">
-          <h3 className={cn(MICRO, 'text-stone-400')}>Milestone reward rules</h3>
+          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+            Milestone reward rules
+          </h3>
         </div>
 
         <div className="space-y-2">
@@ -250,7 +255,9 @@ export default function ReferralManagement() {
 
               <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100 dark:border-white/[0.05]">
                 <div className="flex items-center gap-2">
-                  <span className={cn(MICRO, 'text-stone-400 sm:hidden')}>Active</span>
+                  <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 sm:hidden')}>
+                    Active
+                  </span>
                   <Switch
                     checked={tier.is_active}
                     onCheckedChange={() => handleToggleActive(tier)}
@@ -259,13 +266,13 @@ export default function ReferralManagement() {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => openEditModal(tier)}
-                    className="h-7 w-7 grid place-items-center rounded-md text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors"
+                    className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => handleDelete(tier)}
-                    className="h-7 w-7 grid place-items-center rounded-md text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors"
+                    className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -280,7 +287,7 @@ export default function ReferralManagement() {
               <p className="text-xs font-bold text-stone-900 dark:text-stone-50">
                 No reward tiers yet
               </p>
-              <p className={cn(MICRO, 'text-stone-400 mt-1')}>
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1')}>
                 Add one to create your first milestone
               </p>
             </div>
@@ -292,8 +299,8 @@ export default function ReferralManagement() {
       {stats?.topReferrers?.length > 0 && (
         <div className={cn(PANEL, 'p-4')}>
           <div className="flex items-center gap-1.5 mb-3">
-            <TrendingUp className="w-3.5 h-3.5 text-stone-400" />
-            <h3 className={cn(MICRO, 'text-stone-400')}>Top advocates</h3>
+            <TrendingUp className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
+            <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Top advocates</h3>
           </div>
           <div className="space-y-1.5">
             {stats.topReferrers.slice(0, 5).map((referrer, idx) => (
@@ -316,7 +323,9 @@ export default function ReferralManagement() {
                     <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
                       {referrer.name}
                     </p>
-                    <p className={cn(NUM, 'text-[10px] text-stone-400 truncate')}>
+                    <p
+                      className={cn(NUM, 'text-[10px] text-stone-500 dark:text-stone-400 truncate')}
+                    >
                       {referrer.email}
                     </p>
                   </div>
@@ -339,7 +348,7 @@ export default function ReferralManagement() {
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Gift className="w-4 h-4 text-stone-400" />
+              <Gift className="w-4 h-4 text-stone-500 dark:text-stone-400" />
               {editingTier ? 'Edit reward tier' : 'Add reward tier'}
             </DialogTitle>
           </DialogHeader>

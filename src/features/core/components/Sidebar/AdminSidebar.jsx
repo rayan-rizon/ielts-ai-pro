@@ -178,7 +178,7 @@ const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }
           </p>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--signal-ok))]" />
-            <span className={`${MICRO} text-stone-400`}>Administrator</span>
+            <span className={`${MICRO} text-stone-500 dark:text-stone-400`}>Administrator</span>
           </div>
         </div>
       </div>
@@ -273,7 +273,7 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
       <AdminSidebarHeader />
       <SidebarContent className="p-3 group-data-[collapsible=icon]:p-2">
         <SidebarGroup>
-          <SidebarGroupLabel className={`${MICRO} text-stone-400 px-3 py-2`}>
+          <SidebarGroupLabel className={`${MICRO} text-stone-500 dark:text-stone-400 px-3 py-2`}>
             Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -291,7 +291,7 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
         </SidebarGroup>
 
         <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className={`${MICRO} text-stone-400 px-3 py-2`}>
+          <SidebarGroupLabel className={`${MICRO} text-stone-500 dark:text-stone-400 px-3 py-2`}>
             Intelligence
           </SidebarGroupLabel>
           <SidebarGroupContent>

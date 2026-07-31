@@ -84,7 +84,7 @@ const getActiveLimitData = (tierLimits, tierName, currency) => {
 
 const LimitInput = ({ label, value, onChange }) => (
   <div className="space-y-0.5">
-    <Label className={cn(MICRO, 'text-stone-400')}>{label}</Label>
+    <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{label}</Label>
     <Input
       type="number"
       value={value ?? 0}
@@ -116,7 +116,9 @@ const TierHeader = ({
           <h4 className="text-sm font-extrabold text-stone-900 dark:text-stone-50 capitalize">
             {tierName} tier
           </h4>
-          <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>API & evaluation quotas</p>
+          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
+            API & evaluation quotas
+          </p>
         </div>
       </div>
       <button
@@ -174,7 +176,9 @@ const TierBody = ({
       <div className="space-y-3">
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className={cn(MICRO, 'text-stone-400')}>General ({selectedCur})</span>
+            <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+              General ({selectedCur})
+            </span>
             {changed && (
               <span className={cn(MICRO, 'text-[rgb(var(--signal-warn))]')}>Modified</span>
             )}
@@ -244,7 +248,7 @@ const TierBody = ({
       </div>
 
       <div className="pt-3 border-t border-stone-100 dark:border-white/[0.06] flex justify-between items-center mt-2">
-        <span className={cn(MICRO, 'text-stone-400')}>
+        <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
           {activeLimitData.updated_at
             ? `Saved ${new Date(activeLimitData.updated_at).toLocaleDateString()}`
             : 'Not saved'}
@@ -423,10 +427,10 @@ const TierRateLimitsSettings = () => {
       >
         <div>
           <h3 className="text-sm font-extrabold text-stone-900 dark:text-stone-50 flex items-center gap-2">
-            <Gauge className="w-4 h-4 text-stone-400" />
+            <Gauge className="w-4 h-4 text-stone-500 dark:text-stone-400" />
             AI Rate Limits
           </h3>
-          <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
             Global defaults and currency-specific overrides
           </p>
         </div>
@@ -467,7 +471,7 @@ const TierRateLimitsSettings = () => {
       </div>
 
       <m.div variants={FADE_UP} className={cn(PANEL, 'p-4 flex items-start gap-3')}>
-        <Gauge className="w-3.5 h-3.5 text-stone-400 shrink-0 mt-0.5" />
+        <Gauge className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 shrink-0 mt-0.5" />
         <div className="space-y-1 text-xs">
           <p className="font-extrabold text-stone-900 dark:text-stone-50">Rate limit enforcement</p>
           <p className="text-stone-500 dark:text-stone-400">

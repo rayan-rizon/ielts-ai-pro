@@ -76,7 +76,7 @@ const UserAnalytics = ({
         ].map((item) => (
           <div key={item.label} className={cn(PANEL, 'py-2.5 px-3.5')}>
             <div className="flex items-center gap-1.5 mb-1">
-              <p className={cn(MICRO, 'text-stone-400')}>{item.label}</p>
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{item.label}</p>
             </div>
             <div className="flex items-end justify-between">
               <div>
@@ -88,7 +88,7 @@ const UserAnalytics = ({
                 >
                   {item.value.toLocaleString()}
                 </span>
-                <p className={cn(MICRO, 'text-stone-400 mt-1')}>{item.sub}</p>
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1')}>{item.sub}</p>
               </div>
               <item.icon className="w-4 h-4 text-stone-300 dark:text-stone-600 shrink-0" />
             </div>
@@ -113,7 +113,7 @@ const UserAnalytics = ({
                     MICRO,
                     range === selectedRange
                       ? 'bg-white dark:bg-[#131315] text-stone-900 dark:text-stone-50 shadow-2xs'
-                      : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200',
+                      : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200',
                     isDataLoading && 'opacity-50 cursor-not-allowed'
                   )}
                 >
@@ -127,7 +127,7 @@ const UserAnalytics = ({
           <div className="p-4 relative min-h-[280px]">
             {isDataLoading && (
               <div className="absolute inset-0 z-10 bg-white/60 dark:bg-[#131315]/60 backdrop-blur-[2px] flex items-center justify-center rounded-b-xl">
-                <Activity className="w-5 h-5 text-stone-400 animate-pulse" />
+                <Activity className="w-5 h-5 text-stone-500 dark:text-stone-400 animate-pulse" />
               </div>
             )}
             <div className="h-[280px] w-full">
@@ -164,7 +164,9 @@ const UserAnalytics = ({
                       if (active && payload && payload.length) {
                         return (
                           <div className={cn(PANEL, 'p-3 shadow-xl')}>
-                            <p className={cn(MICRO, 'text-stone-400 mb-1')}>{label}</p>
+                            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1')}>
+                              {label}
+                            </p>
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-indigo-500" />
                               <span
@@ -175,7 +177,9 @@ const UserAnalytics = ({
                               >
                                 {payload[0].value.toLocaleString()}
                               </span>
-                              <span className="text-xs font-bold text-stone-400">learners</span>
+                              <span className="text-xs font-bold text-stone-500 dark:text-stone-400">
+                                learners
+                              </span>
                             </div>
                           </div>
                         );
@@ -204,7 +208,9 @@ const UserAnalytics = ({
         <div className={cn(PANEL, 'overflow-hidden')}>
           <div className="p-4 border-b border-stone-200/80 dark:border-white/[0.07]">
             <SectionLabel>Recent Signups</SectionLabel>
-            <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>Latest learning community arrivals</p>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
+              Latest learning community arrivals
+            </p>
           </div>
 
           <div className="divide-y divide-stone-100 dark:divide-white/[0.04]">
@@ -233,7 +239,7 @@ const UserAnalytics = ({
                         <p
                           className={cn(
                             MICRO,
-                            'text-stone-400 font-mono normal-case tracking-normal truncate'
+                            'text-stone-500 dark:text-stone-400 font-mono normal-case tracking-normal truncate'
                           )}
                         >
                           {user.email}
@@ -263,7 +269,7 @@ const UserAnalytics = ({
                             day: 'numeric',
                           })}
                         </p>
-                        <p className={cn(MICRO, 'text-stone-400')}>joined</p>
+                        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>joined</p>
                       </div>
                     </div>
                   </div>
@@ -275,7 +281,9 @@ const UserAnalytics = ({
                 <p className="text-sm font-bold text-stone-700 dark:text-stone-200">
                   No recent registrants
                 </p>
-                <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>New signups will appear here</p>
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
+                  New signups will appear here
+                </p>
               </div>
             )}
           </div>

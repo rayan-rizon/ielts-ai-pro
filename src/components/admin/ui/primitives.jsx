@@ -28,7 +28,7 @@ export const SIGNAL_TEXT = {
   ok: 'text-[rgb(var(--signal-ok))]',
   warn: 'text-[rgb(var(--signal-warn))]',
   fault: 'text-[rgb(var(--signal-fault))]',
-  idle: 'text-stone-400',
+  idle: 'text-stone-500 dark:text-stone-400',
 };
 
 /** Small "what does this mean?" affordance next to a metric label. */
@@ -39,7 +39,7 @@ export const InfoTip = ({ children, className }) => (
         type="button"
         aria-label="What this means"
         className={cn(
-          'inline-grid place-items-center align-middle text-stone-300 hover:text-stone-500 dark:text-stone-600 dark:hover:text-stone-300 transition-colors',
+          'inline-grid place-items-center align-middle text-stone-400 hover:text-stone-600 dark:text-stone-600 dark:hover:text-stone-300 transition-colors',
           className
         )}
       >
@@ -57,7 +57,9 @@ export const InfoTip = ({ children, className }) => (
 
 /** Section heading with the hairline rule used across admin pages. */
 export const SectionLabel = ({ children, accent = 'idle', className }) => (
-  <h3 className={cn(MICRO, 'text-stone-400 flex items-center gap-1.5', className)}>
+  <h3
+    className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5', className)}
+  >
     <span className={cn('w-4 h-px', SIGNAL_BG[accent])} />
     {children}
   </h3>
@@ -83,7 +85,7 @@ export const Kpi = ({ label, value, sub, delta, tip, live = false, className }) 
   <div className={cn(PANEL, 'py-2.5 px-3.5', className)}>
     <div className="flex items-center gap-1.5">
       {live && <LiveDot />}
-      <p className={cn(MICRO, 'text-stone-400')}>{label}</p>
+      <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{label}</p>
       {tip && <InfoTip>{tip}</InfoTip>}
     </div>
     <div className="flex items-baseline gap-2 mt-1">
@@ -92,7 +94,7 @@ export const Kpi = ({ label, value, sub, delta, tip, live = false, className }) 
       </span>
       {delta}
     </div>
-    {sub && <p className={cn(MICRO, 'text-stone-400 mt-1')}>{sub}</p>}
+    {sub && <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1')}>{sub}</p>}
   </div>
 );
 

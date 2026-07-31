@@ -35,7 +35,9 @@ const AIUsageTableRow = ({ row, maxCalls }) => {
             <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
               {row.user?.full_name || 'Unknown user'}
             </p>
-            <p className={cn(NUM, 'text-[10px] text-stone-400 truncate')}>{row.user?.email}</p>
+            <p className={cn(NUM, 'text-[10px] text-stone-500 dark:text-stone-400 truncate')}>
+              {row.user?.email}
+            </p>
           </div>
         </div>
       </Td>
@@ -54,7 +56,7 @@ const AIUsageTableRow = ({ row, maxCalls }) => {
 
       <Td>
         {!row.hasLifecycleTelemetry ? (
-          <span className={cn(MICRO, 'text-stone-400')}>—</span>
+          <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>—</span>
         ) : (
           <div className="space-y-1">
             <span className={cn(NUM, 'text-xs font-bold text-[rgb(var(--signal-ok))]')}>
@@ -97,7 +99,7 @@ const AIUsageTableRow = ({ row, maxCalls }) => {
                 MICRO,
                 (row.cachedCalls || 0) > 0
                   ? 'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.08)]'
-                  : 'text-stone-400 border-stone-200 dark:border-white/10'
+                  : 'text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/10'
               )}
             >
               <Sparkles className="w-2.5 h-2.5" />
@@ -120,14 +122,14 @@ const AIUsageTableRow = ({ row, maxCalls }) => {
 
       <Td>
         {!row.hasLifecycleTelemetry ? (
-          <span className={cn(MICRO, 'text-stone-400')}>—</span>
+          <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>—</span>
         ) : (
           <div>
             <span className={cn(NUM, 'text-xs font-bold', costTone)}>
               ${cost < 0.01 && cost > 0 ? cost.toFixed(4) : cost.toFixed(2)}
             </span>
             {row.unpricedCompletedCalls > 0 && (
-              <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
                 {row.unpricedCompletedCalls} unpriced
               </p>
             )}
@@ -152,11 +154,13 @@ const AIUsageTableRow = ({ row, maxCalls }) => {
                     <span className="text-[10px] font-bold text-stone-700 dark:text-stone-200 truncate">
                       {formatEndpointName(endpoint)}
                     </span>
-                    <span className={cn(NUM, 'text-[10px] text-stone-400 shrink-0')}>
+                    <span
+                      className={cn(NUM, 'text-[10px] text-stone-500 dark:text-stone-400 shrink-0')}
+                    >
                       ({count})
                     </span>
                   </div>
-                  <p className={cn(MICRO, 'text-stone-400 pl-3')}>
+                  <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 pl-3')}>
                     {getModelForEndpoint(endpoint)}
                   </p>
                 </div>
@@ -167,7 +171,7 @@ const AIUsageTableRow = ({ row, maxCalls }) => {
 
       <Td>
         <div className={cn(NUM, 'flex items-center gap-1.5 text-[10px] text-stone-500')}>
-          <Clock className="w-3 h-3 text-stone-400 shrink-0" />
+          <Clock className="w-3 h-3 text-stone-500 dark:text-stone-400 shrink-0" />
           {row.lastActivity
             ? new Date(row.lastActivity).toLocaleDateString(undefined, {
                 month: 'short',

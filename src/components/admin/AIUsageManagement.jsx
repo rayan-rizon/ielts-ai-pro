@@ -148,7 +148,7 @@ const AIUsageManagement = () => {
               'h-8 w-[135px] rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-700 dark:text-stone-200'
             )}
           >
-            <CalendarDays className="mr-1.5 h-3 w-3 text-stone-400" />
+            <CalendarDays className="mr-1.5 h-3 w-3 text-stone-500 dark:text-stone-400" />
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

@@ -32,7 +32,7 @@ const AIUsageTable = ({
   <div className={cn(PANEL, 'overflow-hidden')}>
     <div className="flex items-center justify-between px-4 py-3 border-b border-stone-100 dark:border-white/[0.06]">
       <div className="flex items-center gap-1.5">
-        <h3 className={cn(MICRO, 'text-stone-400')}>Usage per user</h3>
+        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Usage per user</h3>
         <InfoTip>
           Every user with at least one AI call in this window. Click a column header to sort.
         </InfoTip>
@@ -48,7 +48,7 @@ const AIUsageTable = ({
                 onClick={col.field ? () => handleSort(col.field) : undefined}
                 className={cn(
                   MICRO,
-                  'px-4 py-2.5 text-stone-400 font-bold',
+                  'px-4 py-2.5 text-stone-500 dark:text-stone-400 font-bold',
                   col.field &&
                     'cursor-pointer select-none hover:text-stone-700 dark:hover:text-stone-200'
                 )}
@@ -70,8 +70,10 @@ const AIUsageTable = ({
           {loading ? (
             <tr>
               <td colSpan={8} className="py-16 text-center">
-                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-stone-400" />
-                <span className={cn(MICRO, 'text-stone-400')}>Loading usage data</span>
+                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-stone-500 dark:text-stone-400" />
+                <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  Loading usage data
+                </span>
               </td>
             </tr>
           ) : sortedUsers.length > 0 ? (
@@ -82,7 +84,9 @@ const AIUsageTable = ({
             <tr>
               <td colSpan={8} className="py-16 text-center">
                 <Users className="w-6 h-6 mx-auto mb-2 text-stone-300 dark:text-stone-600" />
-                <p className={cn(MICRO, 'text-stone-400')}>No AI usage data recorded</p>
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  No AI usage data recorded
+                </p>
               </td>
             </tr>
           )}

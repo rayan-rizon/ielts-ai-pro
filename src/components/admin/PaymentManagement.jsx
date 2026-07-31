@@ -190,7 +190,9 @@ export default function PaymentManagement() {
         </button>
       </div>
     ) : (
-      <span className={cn(MICRO, 'inline-flex items-center gap-1 text-stone-400')}>
+      <span
+        className={cn(MICRO, 'inline-flex items-center gap-1 text-stone-500 dark:text-stone-400')}
+      >
         <CheckCircle2 className="w-3 h-3" />
         Processed
       </span>
@@ -204,7 +206,7 @@ export default function PaymentManagement() {
         tip="Manual bKash/Nagad transfers land here as pending requests. Approving one triggers the database rule that upgrades the learner's plan — until you do, they have paid but are still on the free tier."
       >
         <div className="relative w-full sm:w-56">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
           <Input
             placeholder="Search TrxID, phone, user…"
             value={search}
@@ -251,13 +253,15 @@ export default function PaymentManagement() {
         <div className="md:hidden divide-y divide-stone-100 dark:divide-white/[0.05]">
           {loading ? (
             <div className="p-12 text-center">
-              <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-stone-400" />
-              <p className={cn(MICRO, 'text-stone-400')}>Loading payments</p>
+              <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-stone-500 dark:text-stone-400" />
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Loading payments</p>
             </div>
           ) : filteredRequests.length === 0 ? (
             <div className="p-12 text-center">
               <AlertCircle className="w-6 h-6 mx-auto mb-3 text-stone-300 dark:text-stone-600" />
-              <p className={cn(MICRO, 'text-stone-400')}>No payment requests found</p>
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                No payment requests found
+              </p>
             </div>
           ) : (
             filteredRequests.map((request) => (
@@ -267,14 +271,16 @@ export default function PaymentManagement() {
                 )}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-stone-400 shrink-0">
+                    <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-stone-500 dark:text-stone-400 shrink-0">
                       <User className="w-3.5 h-3.5" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
                         {request.user?.full_name || 'Unknown user'}
                       </p>
-                      <p className={cn(MICRO, 'text-stone-400 truncate mt-0.5')}>
+                      <p
+                        className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate mt-0.5')}
+                      >
                         {request.user?.email}
                       </p>
                     </div>
@@ -289,13 +295,13 @@ export default function PaymentManagement() {
                     >
                       {request.currency} {request.amount}
                     </span>
-                    <span className={cn(MICRO, 'text-stone-400')}>
+                    <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                       {request.tier} · {request.interval}
                     </span>
                   </div>
                   <div className="pt-1.5 border-t border-stone-200/60 dark:border-white/[0.05] space-y-1">
                     <div className="flex items-center gap-1.5">
-                      <Hash className="w-3 h-3 text-stone-400 shrink-0" />
+                      <Hash className="w-3 h-3 text-stone-500 dark:text-stone-400 shrink-0" />
                       <span
                         className={cn(
                           NUM,
@@ -306,7 +312,7 @@ export default function PaymentManagement() {
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <Phone className="w-3 h-3 text-stone-400 shrink-0" />
+                      <Phone className="w-3 h-3 text-stone-500 dark:text-stone-400 shrink-0" />
                       <span className={cn(NUM, 'text-[11px] text-stone-500 truncate')}>
                         {request.sender_phone} ({request.payment_method})
                       </span>
@@ -326,7 +332,10 @@ export default function PaymentManagement() {
             <thead>
               <tr className="border-b border-stone-200 dark:border-white/[0.07]">
                 {['Learner', 'Plan', 'Transaction', 'Status', ''].map((h, i) => (
-                  <th key={i} className={cn(MICRO, 'px-4 py-3 text-stone-400 font-bold')}>
+                  <th
+                    key={i}
+                    className={cn(MICRO, 'px-4 py-3 text-stone-500 dark:text-stone-400 font-bold')}
+                  >
                     {h}
                   </th>
                 ))}
@@ -336,15 +345,19 @@ export default function PaymentManagement() {
               {loading ? (
                 <tr>
                   <td colSpan="5" className="px-4 py-20 text-center">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-stone-400" />
-                    <span className={cn(MICRO, 'text-stone-400')}>Loading payments</span>
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-stone-500 dark:text-stone-400" />
+                    <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                      Loading payments
+                    </span>
                   </td>
                 </tr>
               ) : filteredRequests.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="px-4 py-20 text-center">
                     <AlertCircle className="w-6 h-6 mx-auto mb-3 text-stone-300 dark:text-stone-600" />
-                    <span className={cn(MICRO, 'text-stone-400')}>No payment requests found</span>
+                    <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                      No payment requests found
+                    </span>
                   </td>
                 </tr>
               ) : (
@@ -355,14 +368,19 @@ export default function PaymentManagement() {
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-stone-400 shrink-0">
+                        <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-stone-500 dark:text-stone-400 shrink-0">
                           <User className="w-3.5 h-3.5" />
                         </div>
                         <div className="min-w-0">
                           <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
                             {request.user?.full_name || 'Unknown user'}
                           </p>
-                          <p className={cn(MICRO, 'text-stone-400 truncate mt-0.5')}>
+                          <p
+                            className={cn(
+                              MICRO,
+                              'text-stone-500 dark:text-stone-400 truncate mt-0.5'
+                            )}
+                          >
                             {request.user?.email}
                           </p>
                         </div>
@@ -372,19 +390,19 @@ export default function PaymentManagement() {
                       <p className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}>
                         {request.currency} {request.amount}
                       </p>
-                      <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+                      <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
                         {request.tier} · {request.interval}
                       </p>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
-                        <Hash className="w-3 h-3 text-stone-400 shrink-0" />
+                        <Hash className="w-3 h-3 text-stone-500 dark:text-stone-400 shrink-0" />
                         <span className={cn(NUM, 'text-[11px] text-stone-700 dark:text-stone-200')}>
                           {request.transaction_id}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <Phone className="w-3 h-3 text-stone-400 shrink-0" />
+                        <Phone className="w-3 h-3 text-stone-500 dark:text-stone-400 shrink-0" />
                         <span className={cn(NUM, 'text-[11px] text-stone-500')}>
                           {request.sender_phone} ({request.payment_method})
                         </span>
@@ -392,7 +410,12 @@ export default function PaymentManagement() {
                     </td>
                     <td className="px-4 py-3">
                       <StatusPill status={request.status} />
-                      <div className={cn(MICRO, 'flex items-center gap-1 text-stone-400 mt-1.5')}>
+                      <div
+                        className={cn(
+                          MICRO,
+                          'flex items-center gap-1 text-stone-500 dark:text-stone-400 mt-1.5'
+                        )}
+                      >
                         <Clock className="w-2.5 h-2.5" />
                         {new Date(request.created_at).toLocaleDateString()}
                       </div>

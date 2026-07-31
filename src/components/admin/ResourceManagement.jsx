@@ -599,7 +599,10 @@ const ResourceManagement = () => {
           <DropdownMenu data-oid="actions-dropdown">
             <DropdownMenuTrigger asChild data-oid="actions-trigger">
               <AdminButton variant="outline" data-oid="btn-more-actions">
-                <MoreVertical className="w-3.5 h-3.5 text-stone-400" data-oid="icon-more" />
+                <MoreVertical
+                  className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400"
+                  data-oid="icon-more"
+                />
                 Actions
               </AdminButton>
             </DropdownMenuTrigger>
@@ -983,7 +986,9 @@ const ResourceManagement = () => {
           { label: 'Total Views', value: stats.totalViews, icon: Eye },
         ].map((item) => (
           <div key={item.label} className={cn(PANEL, 'py-2.5 px-3.5')}>
-            <p className={cn(MICRO, 'text-stone-400 mb-1 truncate')}>{item.label}</p>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1 truncate')}>
+              {item.label}
+            </p>
             <div className="flex items-end justify-between">
               <span
                 className={cn(
@@ -1010,7 +1015,7 @@ const ResourceManagement = () => {
       >
         <div className="relative flex-1 w-full" data-oid="u9h2esc">
           <SearchIcon
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400"
             data-oid="aehg331"
           />
           <Input
@@ -1020,7 +1025,7 @@ const ResourceManagement = () => {
               setPagination((p) => ({ ...p, page: 1 }));
             }}
             placeholder="Search by title, description, or URL..."
-            className="h-8 pl-8 border-none bg-transparent focus-visible:ring-0 text-xs font-semibold placeholder:text-stone-400 shadow-none w-full"
+            className="h-8 pl-8 border-none bg-transparent focus-visible:ring-0 text-xs font-semibold placeholder:text-stone-500 dark:text-stone-400 shadow-none w-full"
             data-oid="-7jwxl2"
           />
         </div>
@@ -1063,7 +1068,9 @@ const ResourceManagement = () => {
                 <Icon
                   className={cn(
                     'w-3 h-3 relative z-10',
-                    isActive ? 'text-white dark:text-stone-900' : 'text-stone-400'
+                    isActive
+                      ? 'text-white dark:text-stone-900'
+                      : 'text-stone-500 dark:text-stone-400'
                   )}
                   data-oid={`icon-${type.id}`}
                 />
@@ -1155,7 +1162,13 @@ const ResourceManagement = () => {
                     onClick={() => handleSort('title')}
                     data-oid="4fc45ak"
                   >
-                    <div className={cn('flex items-center gap-1.5', MICRO, 'text-stone-400')}>
+                    <div
+                      className={cn(
+                        'flex items-center gap-1.5',
+                        MICRO,
+                        'text-stone-500 dark:text-stone-400'
+                      )}
+                    >
                       Resource Title & URL
                       {sortField === 'title' ? (
                         sortDirection === 'asc' ? (
@@ -1177,7 +1190,7 @@ const ResourceManagement = () => {
                       className={cn(
                         'flex items-center justify-center gap-1.5',
                         MICRO,
-                        'text-stone-400'
+                        'text-stone-500 dark:text-stone-400'
                       )}
                     >
                       Type
@@ -1201,7 +1214,7 @@ const ResourceManagement = () => {
                       className={cn(
                         'flex items-center justify-center gap-1.5',
                         MICRO,
-                        'text-stone-400'
+                        'text-stone-500 dark:text-stone-400'
                       )}
                     >
                       Status
@@ -1225,7 +1238,7 @@ const ResourceManagement = () => {
                       className={cn(
                         'flex items-center justify-center gap-1.5',
                         MICRO,
-                        'text-stone-400'
+                        'text-stone-500 dark:text-stone-400'
                       )}
                     >
                       Views
@@ -1241,7 +1254,7 @@ const ResourceManagement = () => {
                     </div>
                   </TableHead>
                   <TableHead className="py-3 px-4 text-right" data-oid=":ifq2i:">
-                    <span className={cn(MICRO, 'text-stone-400')}>Actions</span>
+                    <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Actions</span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -1381,7 +1394,7 @@ const ResourceManagement = () => {
                                   onClick={(e) => e.stopPropagation()}
                                   className={cn(
                                     MICRO,
-                                    'font-mono normal-case tracking-normal text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 truncate block max-w-[220px]'
+                                    'font-mono normal-case tracking-normal text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 truncate block max-w-[220px]'
                                   )}
                                   data-oid="r78phhx"
                                 >
@@ -1418,7 +1431,7 @@ const ResourceManagement = () => {
                                 MICRO,
                                 resource.is_published
                                   ? 'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)]'
-                                  : 'text-stone-400 border-stone-200 dark:border-white/10'
+                                  : 'text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/10'
                               )}
                             >
                               {resource.is_published ? 'Published' : 'Draft'}
@@ -1449,7 +1462,7 @@ const ResourceManagement = () => {
                                   openEditDialog(resource);
                                 }}
                                 title="Edit"
-                                className="h-7 w-7 grid place-items-center rounded-md transition-colors text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
+                                className="h-7 w-7 grid place-items-center rounded-md transition-colors text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
                                 data-oid="btn-edit"
                               >
                                 <Edit className="w-3.5 h-3.5" data-oid="icon-edit" />
@@ -1460,7 +1473,7 @@ const ResourceManagement = () => {
                                   togglePublishStatus(resource);
                                 }}
                                 title={resource.is_published ? 'Unpublish' : 'Publish'}
-                                className="h-7 w-7 grid place-items-center rounded-md transition-colors text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
+                                className="h-7 w-7 grid place-items-center rounded-md transition-colors text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
                                 data-oid="btn-pub"
                               >
                                 {resource.is_published ? (
@@ -1475,7 +1488,7 @@ const ResourceManagement = () => {
                                   handleDelete(resource);
                                 }}
                                 title="Delete"
-                                className="h-7 w-7 grid place-items-center rounded-md transition-colors text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)]"
+                                className="h-7 w-7 grid place-items-center rounded-md transition-colors text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)]"
                                 data-oid="btn-del"
                               >
                                 <Trash2 className="w-3.5 h-3.5" data-oid="del" />
@@ -1497,7 +1510,7 @@ const ResourceManagement = () => {
               className="px-4 py-3 border-t border-stone-100 dark:border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3"
               data-oid="pagin"
             >
-              <p className={cn(MICRO, 'text-stone-400')}>
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                 Page {pagination.page} of {totalPages} —{' '}
                 {Math.min(pagination.count, pagination.limit)} items
               </p>

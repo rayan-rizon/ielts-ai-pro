@@ -264,7 +264,9 @@ const ProblemPanel = ({ service, index, onRepaired }) => {
             <h4 className="text-[13px] font-extrabold tracking-tight text-stone-900 dark:text-stone-50 truncate">
               {service.label}
             </h4>
-            <p className={cn(MICRO, 'text-stone-400 mt-1 truncate')}>{service.provider}</p>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1 truncate')}>
+              {service.provider}
+            </p>
           </div>
           <span
             className={cn(
@@ -285,7 +287,9 @@ const ProblemPanel = ({ service, index, onRepaired }) => {
         <div className="mt-4 pt-3 border-t border-dashed border-stone-200 dark:border-white/[0.07] grid grid-cols-3 gap-x-4 gap-y-3">
           {metrics.map(([key, value]) => (
             <div key={key} className="min-w-0">
-              <p className={cn(MICRO, 'text-stone-400 truncate')}>{METRIC_LABEL[key] || key}</p>
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>
+                {METRIC_LABEL[key] || key}
+              </p>
               <p
                 className={cn(
                   NUM,
@@ -304,7 +308,7 @@ const ProblemPanel = ({ service, index, onRepaired }) => {
         {/* How to actually clear this fault */}
         {repair && (
           <div className="mt-3 pt-3 border-t border-dashed border-stone-200 dark:border-white/[0.07]">
-            <p className={cn(MICRO, 'text-stone-400 mb-1.5')}>How to fix</p>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5')}>How to fix</p>
             <p className="text-[11px] font-medium text-stone-600 dark:text-stone-300 leading-relaxed">
               {repair.how}
             </p>
@@ -346,7 +350,9 @@ const ServiceTile = ({ service }) => {
         <p className="text-[11px] font-extrabold tracking-tight text-stone-900 dark:text-stone-50 truncate leading-tight">
           {service.label}
         </p>
-        <p className={cn(MICRO, 'text-stone-400 truncate mt-0.5')}>{headline.label}</p>
+        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate mt-0.5')}>
+          {headline.label}
+        </p>
       </div>
       <span
         className={cn(
@@ -430,8 +436,8 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
   if (loading) {
     return (
       <div className="min-h-[320px] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-7 h-7 text-stone-400 animate-spin" />
-        <p className={cn(MICRO, 'text-stone-400')}>Polling services</p>
+        <Loader2 className="w-7 h-7 text-stone-500 dark:text-stone-400 animate-spin" />
+        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Polling services</p>
       </div>
     );
   }
@@ -496,14 +502,14 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
         <div className="relative p-5">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
             <div className="min-w-0">
-              <p className={cn(MICRO, 'text-stone-400')}>Platform status</p>
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Platform status</p>
               <div className="flex items-baseline gap-3 mt-1.5">
                 <h3
                   className={cn('text-3xl font-extrabold tracking-[-0.03em] leading-none', accent)}
                 >
                   {headline}
                 </h3>
-                <span className={cn(MICRO, 'text-stone-400')}>
+                <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                   <span className={cn(NUM, 'text-xs font-bold text-stone-500 dark:text-stone-300')}>
                     {counts.operational}
                   </span>
@@ -530,7 +536,7 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
                     'h-8 w-[135px] rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-700 dark:text-stone-200'
                   )}
                 >
-                  <Clock className="mr-1.5 h-3 w-3 text-stone-400" />
+                  <Clock className="mr-1.5 h-3 w-3 text-stone-500 dark:text-stone-400" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -564,7 +570,7 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
             {legend.map((l) => (
               <span key={l.label} className="inline-flex items-center gap-1.5">
                 <span className={cn('w-1.5 h-1.5 rounded-full', l.cls)} />
-                <span className={cn(MICRO, 'text-stone-400')}>{l.label}</span>
+                <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{l.label}</span>
                 <span
                   className={cn(NUM, 'text-[11px] font-bold text-stone-700 dark:text-stone-200')}
                 >
@@ -572,7 +578,7 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
                 </span>
               </span>
             ))}
-            <span className={cn(MICRO, 'text-stone-300 dark:text-stone-600 ml-auto')}>
+            <span className={cn(MICRO, 'text-stone-500 dark:text-stone-600 ml-auto')}>
               {health?.generatedAt && new Date(health.generatedAt).toLocaleTimeString()}
             </span>
           </div>
@@ -582,7 +588,7 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
       {/* Needs attention */}
       {problems.length > 0 && (
         <section className="space-y-2.5">
-          <h3 className={cn(MICRO, 'text-stone-400 flex items-center gap-1.5')}>
+          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
             <span className={cn('w-4 h-px', FAULT_BG)} />
             Needs attention
           </h3>
@@ -601,7 +607,7 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
 
       {/* All services */}
       <section className="space-y-3.5">
-        <h3 className={cn(MICRO, 'text-stone-400 flex items-center gap-1.5')}>
+        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
           <span className="w-4 h-px bg-stone-300 dark:bg-stone-700" />
           All services
         </h3>
@@ -610,8 +616,8 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
           return (
             <div key={category} className="space-y-2">
               <div className="flex items-center gap-1.5">
-                <CatIcon className="w-3 h-3 text-stone-400" />
-                <span className={cn(MICRO, 'text-stone-400')}>
+                <CatIcon className="w-3 h-3 text-stone-500 dark:text-stone-400" />
+                <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                   {CATEGORY_LABEL[category] || category}
                 </span>
                 <span className="flex-1 h-px bg-stone-200 dark:bg-white/[0.06]" />
@@ -630,13 +636,13 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <div className={cn(PANEL, 'p-4')}>
           <div className="flex items-center justify-between mb-3">
-            <h3 className={cn(MICRO, 'text-stone-400')}>Error log</h3>
-            <span className={cn(NUM, 'text-[11px] font-bold text-stone-400')}>
+            <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Error log</h3>
+            <span className={cn(NUM, 'text-[11px] font-bold text-stone-500 dark:text-stone-400')}>
               {incidents.length}
             </span>
           </div>
           {incidents.length === 0 ? (
-            <p className="text-xs font-medium text-stone-400 py-8 text-center">
+            <p className="text-xs font-medium text-stone-500 dark:text-stone-400 py-8 text-center">
               No provider errors in this window.
             </p>
           ) : (
@@ -651,11 +657,16 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
                     <p className="text-[11px] font-semibold text-stone-700 dark:text-stone-200 break-words leading-snug">
                       {incident.message}
                     </p>
-                    <p className={cn(MICRO, 'text-stone-400 mt-1')}>
+                    <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1')}>
                       {incident.service} · {new Date(incident.last_seen).toLocaleString()}
                     </p>
                   </div>
-                  <span className={cn(NUM, 'text-[11px] font-bold text-stone-400 shrink-0')}>
+                  <span
+                    className={cn(
+                      NUM,
+                      'text-[11px] font-bold text-stone-500 dark:text-stone-400 shrink-0'
+                    )}
+                  >
                     ×{incident.occurrences}
                   </span>
                 </div>
@@ -666,7 +677,7 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
 
         <div className="space-y-3">
           <div className={cn(PANEL, 'p-4')}>
-            <h3 className={cn(MICRO, 'text-stone-400 mb-3')}>Activity</h3>
+            <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-3')}>Activity</h3>
             <div className="grid grid-cols-3 gap-3">
               {[
                 { label: 'Signups', value: health?.activity?.signups },
@@ -682,14 +693,21 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
                   >
                     {Number(item.value || 0).toLocaleString()}
                   </p>
-                  <p className={cn(MICRO, 'text-stone-400 mt-1.5')}>{item.label}</p>
+                  <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1.5')}>
+                    {item.label}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
 
           <div className={cn(PANEL, 'p-4')}>
-            <h3 className={cn(MICRO, 'text-stone-400 mb-3 flex items-center gap-1.5')}>
+            <h3
+              className={cn(
+                MICRO,
+                'text-stone-500 dark:text-stone-400 mb-3 flex items-center gap-1.5'
+              )}
+            >
               <ShieldCheck className="w-3 h-3" />
               Operations
             </h3>
@@ -703,7 +721,9 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                {isUpdating && <Loader2 className="w-4 h-4 animate-spin text-stone-400" />}
+                {isUpdating && (
+                  <Loader2 className="w-4 h-4 animate-spin text-stone-500 dark:text-stone-400" />
+                )}
                 <Switch
                   checked={maintenanceMode}
                   onCheckedChange={onToggleMaintenance}

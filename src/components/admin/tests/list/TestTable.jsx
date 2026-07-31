@@ -186,7 +186,7 @@ const TestTable = ({
         'px-3 py-2.5 cursor-pointer select-none transition-colors group',
         sortConfig?.key === column
           ? 'text-stone-900 dark:text-stone-50'
-          : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200',
+          : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200',
         className
       )}
     >
@@ -216,8 +216,17 @@ const TestTable = ({
             <SortHeader column="title" label="Test" className="w-[360px]" />
             <SortHeader column="is_active" label="Status" className="text-center" />
             <SortHeader column="access_tier" label="Tier" className="text-center" />
-            <th className={cn(MICRO, 'px-3 py-2.5 text-stone-400 text-center')}>Content</th>
-            <th className={cn(MICRO, 'px-3 py-2.5 text-stone-400 text-right pr-4')}>Actions</th>
+            <th className={cn(MICRO, 'px-3 py-2.5 text-stone-500 dark:text-stone-400 text-center')}>
+              Content
+            </th>
+            <th
+              className={cn(
+                MICRO,
+                'px-3 py-2.5 text-stone-500 dark:text-stone-400 text-right pr-4'
+              )}
+            >
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -273,7 +282,12 @@ const TestTable = ({
                             </span>
                           )}
                         </div>
-                        <p className={cn(NUM, 'text-[10px] text-stone-400 mt-0.5')}>
+                        <p
+                          className={cn(
+                            NUM,
+                            'text-[10px] text-stone-500 dark:text-stone-400 mt-0.5'
+                          )}
+                        >
                           {test.id.substring(0, 8)} ·{' '}
                           {new Date(test.created_at).toLocaleDateString()}
                         </p>
@@ -287,7 +301,7 @@ const TestTable = ({
                         MICRO,
                         test.is_active
                           ? 'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)]'
-                          : 'text-stone-400 border-stone-200 dark:border-white/10'
+                          : 'text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/10'
                       )}
                     >
                       {test.is_active ? 'Active' : 'Draft'}
@@ -366,8 +380,8 @@ const TestTable = ({
                           className={cn(
                             'h-7 w-7 grid place-items-center rounded-md transition-colors',
                             tone === 'fault'
-                              ? 'text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)]'
-                              : 'text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'
+                              ? 'text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)]'
+                              : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'
                           )}
                         >
                           <Icon className="w-3.5 h-3.5" />
@@ -385,7 +399,7 @@ const TestTable = ({
                 <p className="text-sm font-extrabold text-stone-900 dark:text-stone-50">
                   No tests found
                 </p>
-                <p className="text-xs text-stone-400 mt-1 max-w-xs mx-auto">
+                <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 max-w-xs mx-auto">
                   Adjust your filters or create a new test to get started.
                 </p>
               </td>

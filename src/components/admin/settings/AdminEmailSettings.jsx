@@ -217,7 +217,9 @@ export default function AdminEmailSettings() {
               <h3 className="text-sm font-extrabold text-stone-900 dark:text-stone-50">
                 Email delivery health
               </h3>
-              <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>Resend metrics, last 100 emails</p>
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
+                Resend metrics, last 100 emails
+              </p>
             </div>
           </div>
           <button
@@ -235,7 +237,7 @@ export default function AdminEmailSettings() {
         <div className="p-4">
           {loadingStats ? (
             <div className="flex justify-center py-6">
-              <Loader2 className="w-5 h-5 animate-spin text-stone-400" />
+              <Loader2 className="w-5 h-5 animate-spin text-stone-500 dark:text-stone-400" />
             </div>
           ) : stats?.error ? (
             <div className="flex items-center gap-2 p-3 rounded-md border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] text-[rgb(var(--signal-warn))]">
@@ -285,12 +287,14 @@ export default function AdminEmailSettings() {
             <h3 className="text-sm font-extrabold text-stone-900 dark:text-stone-50">
               Email triggers
             </h3>
-            <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>Toggle automated lifecycle emails</p>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
+              Toggle automated lifecycle emails
+            </p>
           </div>
         </div>
         {loadingConfig ? (
           <div className="flex justify-center items-center h-32">
-            <Loader2 className="w-5 h-5 animate-spin text-stone-400" />
+            <Loader2 className="w-5 h-5 animate-spin text-stone-500 dark:text-stone-400" />
           </div>
         ) : (
           <div className="divide-y divide-stone-100 dark:divide-white/[0.06]">
@@ -301,10 +305,12 @@ export default function AdminEmailSettings() {
               >
                 <div className="flex-1 space-y-0.5">
                   <Label className="text-xs font-extrabold text-stone-900 dark:text-stone-50 flex items-center gap-1.5 cursor-pointer">
-                    <Mail className="w-3.5 h-3.5 text-stone-400" />
+                    <Mail className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                     {trigger.label}
                   </Label>
-                  <p className={cn(MICRO, 'text-stone-400 pl-5')}>{trigger.description}</p>
+                  <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 pl-5')}>
+                    {trigger.description}
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-3 pl-5 sm:pl-0">
@@ -338,7 +344,7 @@ export default function AdminEmailSettings() {
                       Test
                     </button>
                   </div>
-                  <span className={cn(MICRO, 'text-stone-400 hidden lg:block')}>
+                  <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 hidden lg:block')}>
                     {preferences[trigger.id] ? 'Active' : 'Disabled'}
                   </span>
                   <Switch
@@ -376,8 +382,10 @@ export default function AdminEmailSettings() {
           <div className="flex-1 overflow-y-auto p-5 bg-stone-50 dark:bg-white/[0.02]">
             {previewing?.loading ? (
               <div className="flex flex-col items-center justify-center h-56 gap-2.5">
-                <Loader2 className="w-5 h-5 animate-spin text-stone-400" />
-                <p className={cn(MICRO, 'text-stone-400')}>Generating template…</p>
+                <Loader2 className="w-5 h-5 animate-spin text-stone-500 dark:text-stone-400" />
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  Generating template…
+                </p>
               </div>
             ) : (
               <div

@@ -39,7 +39,7 @@ export default function AnnouncementsSettingsTab({
             <h3 className="text-sm font-extrabold text-stone-900 dark:text-stone-50">
               Public Announcements
             </h3>
-            <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
               Persistent message banner shown to every user
             </p>
           </div>
@@ -51,7 +51,7 @@ export default function AnnouncementsSettingsTab({
               <Label className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
                 Banner status
               </Label>
-              <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
                 {announcement?.enabled ? 'Active and visible to all users' : 'Currently hidden'}
               </p>
             </div>
@@ -74,7 +74,9 @@ export default function AnnouncementsSettingsTab({
                 className="space-y-5 overflow-hidden"
               >
                 <div>
-                  <Label className={cn(MICRO, 'text-stone-400 mb-1.5 block')}>Message</Label>
+                  <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5 block')}>
+                    Message
+                  </Label>
                   <Textarea
                     value={announcement?.message}
                     onChange={(e) =>
@@ -86,7 +88,9 @@ export default function AnnouncementsSettingsTab({
                 </div>
 
                 <div>
-                  <Label className={cn(MICRO, 'text-stone-400 mb-1.5 block')}>Severity</Label>
+                  <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5 block')}>
+                    Severity
+                  </Label>
                   <div className="grid grid-cols-3 gap-2">
                     {SEVERITY_TYPES.map((type) => (
                       <button
@@ -99,7 +103,7 @@ export default function AnnouncementsSettingsTab({
                                 type.ring,
                                 'bg-stone-50 dark:bg-white/[0.04] text-stone-900 dark:text-stone-50'
                               )
-                            : 'border-stone-200 dark:border-white/10 text-stone-400 hover:border-stone-300 dark:hover:border-white/20'
+                            : 'border-stone-200 dark:border-white/10 text-stone-500 dark:text-stone-400 hover:border-stone-300 dark:hover:border-white/20'
                         )}
                       >
                         <span className={cn('w-1.5 h-1.5 rounded-full', type.dot)} />

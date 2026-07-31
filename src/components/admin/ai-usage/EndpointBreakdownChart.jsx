@@ -52,7 +52,7 @@ const EndpointBreakdownChart = ({ endpointStats, dateRange }) => {
     <div className={cn(PANEL, 'p-4')}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
-          <h3 className={cn(MICRO, 'text-stone-400')}>Workload by endpoint</h3>
+          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Workload by endpoint</h3>
           <InfoTip>Which AI feature is generating the most delivered requests.</InfoTip>
         </div>
         {totalDelivered > 0 && (
@@ -105,7 +105,7 @@ const EndpointBreakdownChart = ({ endpointStats, dateRange }) => {
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-stone-400">
+          <div className="h-full flex flex-col items-center justify-center text-stone-500 dark:text-stone-400">
             <Cpu className="w-6 h-6 mb-2 opacity-40" />
             <p className={cn(MICRO)}>No endpoint activity in the last {dateRange} days</p>
           </div>

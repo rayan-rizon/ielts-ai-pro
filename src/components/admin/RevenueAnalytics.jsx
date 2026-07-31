@@ -60,7 +60,7 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
         ].map((item) => (
           <div key={item.label} className={cn(PANEL, 'py-2.5 px-3.5')}>
             <div className="flex items-center gap-1.5 mb-1">
-              <p className={cn(MICRO, 'text-stone-400')}>{item.label}</p>
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{item.label}</p>
             </div>
             <div className="flex items-end justify-between gap-2">
               <div className="min-w-0">
@@ -72,7 +72,9 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
                   )}
                 </p>
                 {item.sub && (
-                  <p className={cn(MICRO, 'text-stone-400 mt-0.5 truncate')}>{item.sub}</p>
+                  <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5 truncate')}>
+                    {item.sub}
+                  </p>
                 )}
               </div>
               <item.icon className="w-4 h-4 text-stone-300 dark:text-stone-600 shrink-0" />
@@ -87,7 +89,7 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
           <div className="flex items-start justify-between p-4 border-b border-stone-200/80 dark:border-white/[0.07]">
             <div>
               <SectionLabel>Monthly Revenue Trajectory</SectionLabel>
-              <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
                 Stripe (USD) and local BKash/Nagad (BDT)
               </p>
             </div>
@@ -95,11 +97,11 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
             <div className="flex items-center gap-3 shrink-0">
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-0.5 rounded-full bg-emerald-500 inline-block" />
-                <span className={cn(MICRO, 'text-stone-400')}>USD</span>
+                <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>USD</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-0.5 rounded-full bg-indigo-500 inline-block" />
-                <span className={cn(MICRO, 'text-stone-400')}>BDT</span>
+                <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>BDT</span>
               </div>
             </div>
           </div>
@@ -160,7 +162,9 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
                         if (active && payload && payload.length) {
                           return (
                             <div className={cn(PANEL, 'p-3 shadow-xl')}>
-                              <p className={cn(MICRO, 'text-stone-400 mb-1.5')}>{label}</p>
+                              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5')}>
+                                {label}
+                              </p>
                               {payload.map((p) => (
                                 <div key={p.dataKey} className="flex items-center gap-2 mb-0.5">
                                   <div
@@ -177,7 +181,7 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
                                       ? `$${Number(p.value).toFixed(2)}`
                                       : `৳${Number(p.value).toLocaleString()}`}
                                   </span>
-                                  <span className={cn(MICRO, 'text-stone-400')}>
+                                  <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                                     {p.dataKey === 'revenue_usd' ? 'Global' : 'Local'}
                                   </span>
                                 </div>
@@ -213,7 +217,7 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
                 <p className="text-sm font-bold text-stone-700 dark:text-stone-200">
                   No revenue data yet
                 </p>
-                <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
                   Payments will appear here as they are processed
                 </p>
               </div>
@@ -227,7 +231,7 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
         <div className={cn(PANEL, 'overflow-hidden')}>
           <div className="p-4 border-b border-stone-200/80 dark:border-white/[0.07]">
             <SectionLabel>Recent Transactions</SectionLabel>
-            <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
               Latest payments across Stripe and local methods
             </p>
           </div>
@@ -252,7 +256,7 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
                       <p
                         className={cn(
                           MICRO,
-                          'text-stone-400 font-mono normal-case tracking-normal truncate'
+                          'text-stone-500 dark:text-stone-400 font-mono normal-case tracking-normal truncate'
                         )}
                       >
                         {tx.tier || '—'} · {tx.billing_interval || '—'} · {tx.payment_method}
@@ -269,7 +273,7 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
                         maximumFractionDigits: 2,
                       })}
                     </span>
-                    <span className={cn(MICRO, 'text-stone-400')}>
+                    <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                       {new Date(tx.created_at).toLocaleDateString(undefined, {
                         month: 'short',
                         day: 'numeric',
@@ -284,7 +288,7 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
                 <p className="text-sm font-bold text-stone-700 dark:text-stone-200">
                   No payments yet
                 </p>
-                <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
                   Recorded transactions will appear here
                 </p>
               </div>

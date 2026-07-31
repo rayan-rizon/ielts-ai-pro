@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn';
 import { NUM, MICRO, PANEL, FADE_UP } from '@/components/admin/ui/primitives';
 import CountryAutocomplete from './CountryAutocomplete';
 
-const FIELD_LABEL = cn(MICRO, 'text-stone-400 mb-1.5 block');
+const FIELD_LABEL = cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5 block');
 
 export default function PricingTierCard({
   tierId,
@@ -31,13 +31,15 @@ export default function PricingTierCard({
           </div>
           <div>
             <h4 className="font-extrabold text-sm text-stone-900 dark:text-stone-50">{tierName}</h4>
-            <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>{tierDescription}</p>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
+              {tierDescription}
+            </p>
           </div>
         </div>
         <span
           className={cn(
             MICRO,
-            'text-stone-400 border border-stone-200 dark:border-white/10 rounded-md px-1.5 py-0.5'
+            'text-stone-500 dark:text-stone-400 border border-stone-200 dark:border-white/10 rounded-md px-1.5 py-0.5'
           )}
         >
           Monthly
@@ -65,7 +67,7 @@ export default function PricingTierCard({
         <div>
           <Label className={FIELD_LABEL}>Original price (was)</Label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-sm text-stone-400 z-10 select-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-sm text-stone-500 dark:text-stone-400 z-10 select-none">
               $
             </span>
             <Input
@@ -74,7 +76,7 @@ export default function PricingTierCard({
               min="0"
               value={originalPrice || ''}
               onChange={(e) => onChangeOriginalPrice(parseFloat(e.target.value))}
-              className="h-10 pl-7 font-bold text-sm rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-400"
+              className="h-10 pl-7 font-bold text-sm rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-500 dark:text-stone-400"
               placeholder="15"
             />
           </div>
@@ -90,14 +92,14 @@ export default function PricingTierCard({
             <p className="text-[11px] font-extrabold text-[rgb(var(--signal-ok))]">
               Auto discount: {Math.round((1 - price / originalPrice) * 100)}% off
             </p>
-            <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
               Quarterly rate: {Math.round((1 - (price * 0.85) / originalPrice) * 100)}% off total
             </p>
           </div>
         </div>
       )}
 
-      <div className={cn(MICRO, 'flex items-center gap-1.5 text-stone-400')}>
+      <div className={cn(MICRO, 'flex items-center gap-1.5 text-stone-500 dark:text-stone-400')}>
         <span className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--signal-ok))]" />
         {activeText}
       </div>
@@ -105,7 +107,7 @@ export default function PricingTierCard({
       <div className="pt-3 border-t border-stone-100 dark:border-white/[0.06]">
         <div className="flex items-center justify-between mb-2">
           <Label className={cn(FIELD_LABEL, 'mb-0 flex items-center gap-1.5')}>
-            <Globe className="w-3 h-3 text-stone-400" /> Regional pricing
+            <Globe className="w-3 h-3 text-stone-500 dark:text-stone-400" /> Regional pricing
           </Label>
           <button
             onClick={() => onRegionalUpdate({ tier: tierId, action: 'add' })}
@@ -167,7 +169,7 @@ export default function PricingTierCard({
                 <span
                   className={cn(
                     MICRO,
-                    'absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 bg-stone-100 dark:bg-white/[0.06] px-1 py-0.5 rounded pointer-events-none'
+                    'absolute right-2 top-1/2 -translate-y-1/2 text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-white/[0.06] px-1 py-0.5 rounded pointer-events-none'
                   )}
                 >
                   {region.currency || 'USD'}
@@ -175,14 +177,16 @@ export default function PricingTierCard({
               </div>
               <button
                 onClick={() => onRegionalUpdate({ tier: tierId, action: 'remove', index: idx })}
-                className="h-8 w-8 grid place-items-center shrink-0 rounded-md text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors"
+                className="h-8 w-8 grid place-items-center shrink-0 rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
           ))}
           {(!regional || regional.length === 0) && (
-            <p className="text-xs text-stone-400 italic">No regional overrides configured</p>
+            <p className="text-xs text-stone-500 dark:text-stone-400 italic">
+              No regional overrides configured
+            </p>
           )}
         </div>
       </div>

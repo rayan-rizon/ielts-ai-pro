@@ -7,7 +7,7 @@ import { MICRO, PANEL, AdminButton, FADE_UP } from '@/components/admin/ui/primit
 
 const FIELD_INPUT =
   'h-9 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
-const FIELD_LABEL = cn(MICRO, 'text-stone-400 mb-1.5 block');
+const FIELD_LABEL = cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5 block');
 
 export default function SecuritySettingsTab({
   passwordData,
@@ -24,12 +24,14 @@ export default function SecuritySettingsTab({
           </div>
           <div>
             <h3 className="text-sm font-extrabold text-stone-900 dark:text-stone-50">Security</h3>
-            <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>Your account credentials</p>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
+              Your account credentials
+            </p>
           </div>
         </div>
 
         <div className="p-5 space-y-4">
-          <h4 className={cn(MICRO, 'text-stone-400')}>Change password</h4>
+          <h4 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Change password</h4>
 
           <div>
             <Label className={FIELD_LABEL} htmlFor="current-password">

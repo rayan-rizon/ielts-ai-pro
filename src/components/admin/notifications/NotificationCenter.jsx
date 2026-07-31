@@ -47,7 +47,7 @@ import {
 
 const FIELD_INPUT =
   'h-9 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
-const FIELD_LABEL = cn(MICRO, 'text-stone-400 mb-1.5 block');
+const FIELD_LABEL = cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5 block');
 
 const TYPE_META = {
   info: {
@@ -176,7 +176,7 @@ const NotificationCenter = () => {
         <motion.div variants={FADE_UP} className="lg:col-span-4">
           <div className={cn(PANEL, 'p-4 space-y-4')}>
             <div>
-              <p className={cn(MICRO, 'text-stone-400')}>Compose broadcast</p>
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Compose broadcast</p>
             </div>
 
             <div className="space-y-3">
@@ -184,7 +184,7 @@ const NotificationCenter = () => {
               <div>
                 <label className={FIELD_LABEL}>Title</label>
                 <div className="relative">
-                  <Sparkles className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                  <Sparkles className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                   <Input
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -245,7 +245,7 @@ const NotificationCenter = () => {
               <div>
                 <label className={FIELD_LABEL}>Expires in (days)</label>
                 <div className="relative">
-                  <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                  <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                   <Input
                     type="number"
                     min="1"
@@ -276,8 +276,8 @@ const NotificationCenter = () => {
             <div className="md:hidden divide-y divide-stone-100 dark:divide-white/[0.05]">
               {loading ? (
                 <div className="p-8 text-center">
-                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-stone-400 mb-2" />
-                  <p className={cn(MICRO, 'text-stone-400')}>Loading…</p>
+                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-stone-500 dark:text-stone-400 mb-2" />
+                  <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Loading…</p>
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="p-8 text-center space-y-2">
@@ -285,7 +285,9 @@ const NotificationCenter = () => {
                   <p className="text-sm font-bold text-stone-700 dark:text-stone-200">
                     No notifications yet
                   </p>
-                  <p className={cn(MICRO, 'text-stone-400')}>Create your first broadcast above</p>
+                  <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                    Create your first broadcast above
+                  </p>
                 </div>
               ) : (
                 notifications.map((notif) => {
@@ -306,7 +308,7 @@ const NotificationCenter = () => {
                             <p
                               className={cn(
                                 MICRO,
-                                'text-stone-400 font-mono normal-case tracking-normal'
+                                'text-stone-500 dark:text-stone-400 font-mono normal-case tracking-normal'
                               )}
                             >
                               {notif.id.substring(0, 8)}…
@@ -324,7 +326,7 @@ const NotificationCenter = () => {
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className={cn(MICRO, 'text-stone-400')}>
+                        <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                           {notif.target_audience} ·{' '}
                           {new Date(notif.expires_at).toLocaleDateString(undefined, {
                             month: 'short',
@@ -353,19 +355,27 @@ const NotificationCenter = () => {
                 <TableHeader>
                   <TableRow className="border-b border-stone-200/80 dark:border-white/[0.07] hover:bg-transparent">
                     <TableHead className="py-3 px-4 w-[280px]">
-                      <span className={cn(MICRO, 'text-stone-400')}>Notification</span>
+                      <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                        Notification
+                      </span>
                     </TableHead>
                     <TableHead className="py-3 px-4">
-                      <span className={cn(MICRO, 'text-stone-400')}>Type</span>
+                      <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Type</span>
                     </TableHead>
                     <TableHead className="py-3 px-4">
-                      <span className={cn(MICRO, 'text-stone-400')}>Audience</span>
+                      <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                        Audience
+                      </span>
                     </TableHead>
                     <TableHead className="py-3 px-4">
-                      <span className={cn(MICRO, 'text-stone-400')}>Expires</span>
+                      <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                        Expires
+                      </span>
                     </TableHead>
                     <TableHead className="py-3 px-4 text-right">
-                      <span className={cn(MICRO, 'text-stone-400')}>Actions</span>
+                      <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                        Actions
+                      </span>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -390,7 +400,7 @@ const NotificationCenter = () => {
                             <p className="text-sm font-bold text-stone-700 dark:text-stone-200">
                               No notifications yet
                             </p>
-                            <p className={cn(MICRO, 'text-stone-400')}>
+                            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                               Create your first broadcast using the form
                             </p>
                           </div>
@@ -422,7 +432,7 @@ const NotificationCenter = () => {
                                   <p
                                     className={cn(
                                       MICRO,
-                                      'text-stone-400 font-mono normal-case tracking-normal'
+                                      'text-stone-500 dark:text-stone-400 font-mono normal-case tracking-normal'
                                     )}
                                   >
                                     {notif.id.substring(0, 8)}…
@@ -443,7 +453,7 @@ const NotificationCenter = () => {
                             </TableCell>
                             <TableCell className="py-3 px-4">
                               <div className="flex items-center gap-1.5">
-                                <Users className="w-3 h-3 text-stone-400" />
+                                <Users className="w-3 h-3 text-stone-500 dark:text-stone-400" />
                                 <span className="text-xs font-semibold text-stone-700 dark:text-stone-200 capitalize">
                                   {notif.target_audience}
                                 </span>
@@ -451,7 +461,7 @@ const NotificationCenter = () => {
                             </TableCell>
                             <TableCell className="py-3 px-4">
                               <div className="flex items-center gap-1.5">
-                                <Calendar className="w-3 h-3 text-stone-400" />
+                                <Calendar className="w-3 h-3 text-stone-500 dark:text-stone-400" />
                                 <span className="text-xs font-semibold text-stone-700 dark:text-stone-200">
                                   {new Date(notif.expires_at).toLocaleDateString(undefined, {
                                     month: 'short',

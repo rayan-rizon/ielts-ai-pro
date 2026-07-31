@@ -48,7 +48,7 @@ const ServiceStatusStrip = () => {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-stone-200/80 dark:border-white/[0.07] bg-white dark:bg-[#131315] px-4 py-3 flex items-center gap-2 text-stone-400">
+      <div className="rounded-xl border border-stone-200/80 dark:border-white/[0.07] bg-white dark:bg-[#131315] px-4 py-3 flex items-center gap-2 text-stone-500 dark:text-stone-400">
         <Loader2 className="w-3.5 h-3.5 animate-spin" />
         <span className={MICRO}>Polling services</span>
       </div>
@@ -90,7 +90,7 @@ const ServiceStatusStrip = () => {
             <CheckCircle2 className="w-4 h-4 text-[rgb(var(--signal-ok))] shrink-0" />
           )}
           <div className="min-w-0">
-            <p className={cn(MICRO, 'text-stone-400')}>Platform status</p>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Platform status</p>
             <p className="text-[13px] font-extrabold tracking-tight text-stone-900 dark:text-stone-50 truncate leading-tight mt-0.5">
               {healthy
                 ? 'All systems nominal'
@@ -116,13 +116,13 @@ const ServiceStatusStrip = () => {
               <span className="text-[10px] font-extrabold text-stone-700 dark:text-stone-200 whitespace-nowrap">
                 {service.label}
               </span>
-              <span className={cn(MICRO, 'text-stone-400 whitespace-nowrap')}>
+              <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 whitespace-nowrap')}>
                 {STATUS_LABEL[service.status]}
               </span>
             </span>
           ))}
           {healthy && (
-            <span className={cn(MICRO, 'text-stone-400')}>
+            <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
               <span className={cn(NUM, 'text-[11px] text-stone-600 dark:text-stone-300')}>
                 {services.length}
               </span>

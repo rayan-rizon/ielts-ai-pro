@@ -60,7 +60,7 @@ const pctChange = (value, prev) => {
 const Delta = ({ value, prev, invert = false }) => {
   const change = pctChange(value, prev);
   if (change === null || change === 0) {
-    return <span className={cn(MICRO, 'text-stone-400')}>flat</span>;
+    return <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>flat</span>;
   }
   // On cost, up is bad — invert flips which direction reads as good.
   const good = invert ? change < 0 : change > 0;
@@ -107,7 +107,9 @@ const Funnel = ({ steps }) => {
                 <span
                   className={cn(
                     MICRO,
-                    isWorst ? 'text-[rgb(var(--signal-fault))]' : 'text-stone-400'
+                    isWorst
+                      ? 'text-[rgb(var(--signal-fault))]'
+                      : 'text-stone-500 dark:text-stone-400'
                   )}
                 >
                   −{dropPct}% drop{isWorst ? ' · biggest leak' : ''}
@@ -154,7 +156,9 @@ const Funnel = ({ steps }) => {
 const RetentionGrid = ({ cohorts }) => {
   if (!cohorts.length) {
     return (
-      <p className="text-xs text-stone-400 py-8 text-center font-medium">Not enough history yet.</p>
+      <p className="text-xs text-stone-500 dark:text-stone-400 py-8 text-center font-medium">
+        Not enough history yet.
+      </p>
     );
   }
 
@@ -165,10 +169,27 @@ const RetentionGrid = ({ cohorts }) => {
       <table className="w-full border-separate border-spacing-y-1">
         <thead>
           <tr>
-            <th className={cn(MICRO, 'text-stone-400 text-left font-bold pb-1')}>Cohort</th>
-            <th className={cn(MICRO, 'text-stone-400 text-right font-bold pb-1 pr-2')}>Size</th>
+            <th
+              className={cn(MICRO, 'text-stone-500 dark:text-stone-400 text-left font-bold pb-1')}
+            >
+              Cohort
+            </th>
+            <th
+              className={cn(
+                MICRO,
+                'text-stone-500 dark:text-stone-400 text-right font-bold pb-1 pr-2'
+              )}
+            >
+              Size
+            </th>
             {weeks.map((w, i) => (
-              <th key={w} className={cn(MICRO, 'text-stone-400 text-center font-bold pb-1')}>
+              <th
+                key={w}
+                className={cn(
+                  MICRO,
+                  'text-stone-500 dark:text-stone-400 text-center font-bold pb-1'
+                )}
+              >
                 W{i}
               </th>
             ))}
@@ -255,8 +276,8 @@ const AdminOverview = () => {
   if (loading && !data) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
-        <Loader2 className="w-7 h-7 text-stone-400 animate-spin" />
-        <p className={cn(MICRO, 'text-stone-400')}>Loading overview</p>
+        <Loader2 className="w-7 h-7 text-stone-500 dark:text-stone-400 animate-spin" />
+        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Loading overview</p>
       </div>
     );
   }
@@ -304,7 +325,7 @@ const AdminOverview = () => {
         className="flex flex-col sm:flex-row sm:items-end justify-between gap-3"
       >
         <div>
-          <p className={cn(MICRO, 'text-stone-400')}>{dateLabel}</p>
+          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{dateLabel}</p>
           <h1 className="text-2xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50 mt-1">
             {greeting}, Admin
           </h1>
@@ -323,7 +344,7 @@ const AdminOverview = () => {
               'h-8 w-[140px] rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-700 dark:text-stone-200'
             )}
           >
-            <Clock className="mr-1.5 h-3 w-3 text-stone-400" />
+            <Clock className="mr-1.5 h-3 w-3 text-stone-500 dark:text-stone-400" />
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -383,15 +404,17 @@ const AdminOverview = () => {
         <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
           <div className={cn(PANEL, 'p-4 h-full')}>
             <div className="flex items-center justify-between mb-3">
-              <h3 className={cn(MICRO, 'text-stone-400')}>Needs you</h3>
-              <span className={cn(NUM, 'text-[11px] font-bold text-stone-400')}>
+              <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Needs you</h3>
+              <span className={cn(NUM, 'text-[11px] font-bold text-stone-500 dark:text-stone-400')}>
                 {actions.length}
               </span>
             </div>
             {actions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <ShieldCheck className="w-6 h-6 text-[rgb(var(--signal-ok))] opacity-60" />
-                <p className="text-xs font-medium text-stone-400 mt-2">Nothing waiting on you.</p>
+                <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-2">
+                  Nothing waiting on you.
+                </p>
               </div>
             ) : (
               <div className="space-y-1.5">
@@ -418,7 +441,7 @@ const AdminOverview = () => {
                           {action.label}
                         </span>
                       </div>
-                      <p className="text-[10px] text-stone-400 font-medium mt-0.5 leading-snug">
+                      <p className="text-[10px] text-stone-500 dark:text-stone-400 font-medium mt-0.5 leading-snug">
                         {action.detail}
                       </p>
                     </div>
@@ -435,14 +458,18 @@ const AdminOverview = () => {
           <div className={cn(PANEL, 'p-4 h-full')}>
             <div className="flex items-baseline justify-between mb-4">
               <div className="flex items-center gap-1.5">
-                <h3 className={cn(MICRO, 'text-stone-400')}>Activation funnel · all time</h3>
+                <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  Activation funnel · all time
+                </h3>
                 <InfoTip>
                   How far people get through the product. Each bar is the number of users who
                   reached that step. The red label marks the step losing the most people — the
                   free-to-paid step is excluded because it is always the biggest drop.
                 </InfoTip>
               </div>
-              <span className={cn(MICRO, 'text-stone-400')}>share of signups</span>
+              <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                share of signups
+              </span>
             </div>
             <Funnel steps={data?.funnel || []} />
           </div>
@@ -452,13 +479,25 @@ const AdminOverview = () => {
         <m.div variants={itemVariants} className="col-span-12 lg:col-span-8">
           <div className={cn(PANEL, 'p-4 h-full flex flex-col')}>
             <div className="flex items-baseline justify-between mb-3">
-              <h3 className={cn(MICRO, 'text-stone-400')}>Signups vs active users</h3>
+              <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                Signups vs active users
+              </h3>
               <div className="flex items-center gap-3">
-                <span className={cn(MICRO, 'text-stone-400 flex items-center gap-1.5')}>
+                <span
+                  className={cn(
+                    MICRO,
+                    'text-stone-500 dark:text-stone-400 flex items-center gap-1.5'
+                  )}
+                >
                   <span className="w-2 h-0.5 rounded-full bg-[rgb(var(--signal-ok))]" />
                   Signups
                 </span>
-                <span className={cn(MICRO, 'text-stone-400 flex items-center gap-1.5')}>
+                <span
+                  className={cn(
+                    MICRO,
+                    'text-stone-500 dark:text-stone-400 flex items-center gap-1.5'
+                  )}
+                >
                   <span className="w-2 h-0.5 rounded-full bg-stone-400" />
                   Active
                 </span>
@@ -498,7 +537,9 @@ const AdminOverview = () => {
                       if (!active || !payload?.length) return null;
                       return (
                         <div className="rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315] px-3 py-2 shadow-lg">
-                          <p className={cn(MICRO, 'text-stone-400 mb-1')}>{label}</p>
+                          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1')}>
+                            {label}
+                          </p>
                           {payload.map((p) => (
                             <p
                               key={p.dataKey}
@@ -536,7 +577,9 @@ const AdminOverview = () => {
         <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
           <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
             <div>
-              <h3 className={cn(MICRO, 'text-stone-400 mb-2')}>Latest signups</h3>
+              <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-2')}>
+                Latest signups
+              </h3>
               <div className="space-y-px">
                 {(data?.recentSignups || []).slice(0, 5).map((user) => (
                   <div
@@ -550,7 +593,7 @@ const AdminOverview = () => {
                       <p className="text-[11px] font-extrabold text-stone-900 dark:text-stone-50 truncate leading-tight">
                         {user.full_name || user.email?.split('@')[0]}
                       </p>
-                      <p className={cn(MICRO, 'text-stone-400 truncate')}>
+                      <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>
                         {user.onboarding_completed ? 'Onboarded' : 'Not onboarded'}
                       </p>
                     </div>
@@ -570,7 +613,7 @@ const AdminOverview = () => {
                   </div>
                 ))}
                 {(data?.recentSignups || []).length === 0 && (
-                  <p className="text-xs text-stone-400 py-6 text-center font-medium">
+                  <p className="text-xs text-stone-500 dark:text-stone-400 py-6 text-center font-medium">
                     No signups yet.
                   </p>
                 )}
@@ -584,14 +627,18 @@ const AdminOverview = () => {
           <div className={cn(PANEL, 'p-4 h-full')}>
             <div className="flex items-baseline justify-between mb-3">
               <div className="flex items-center gap-1.5">
-                <h3 className={cn(MICRO, 'text-stone-400')}>Weekly retention by signup cohort</h3>
+                <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  Weekly retention by signup cohort
+                </h3>
                 <InfoTip>
                   Each row is everyone who signed up that week. W0 is the share who took a test in
                   their signup week, W1 the share who came back the week after, and so on. Darker
                   means more people returned — empty cells mean nobody came back.
                 </InfoTip>
               </div>
-              <span className={cn(MICRO, 'text-stone-400')}>% who ran a test</span>
+              <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                % who ran a test
+              </span>
             </div>
             <RetentionGrid cohorts={data?.retention || []} />
           </div>
@@ -602,10 +649,14 @@ const AdminOverview = () => {
           <div className={cn(PANEL, 'p-4 h-full flex flex-col gap-4')}>
             <div>
               <div className="flex items-baseline justify-between">
-                <h3 className={cn(MICRO, 'text-stone-400')}>Engagement depth</h3>
+                <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  Engagement depth
+                </h3>
                 <span className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}>
                   {eng.repeatRate ?? 0}%
-                  <span className={cn(MICRO, 'text-stone-400 ml-1.5')}>come back</span>
+                  <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 ml-1.5')}>
+                    come back
+                  </span>
                 </span>
               </div>
               <div className="mt-3 space-y-2">
@@ -617,7 +668,11 @@ const AdminOverview = () => {
                   const share = eng.startedUsers ? (row.n / eng.startedUsers) * 100 : 0;
                   return (
                     <div key={row.label} className="flex items-center gap-3">
-                      <span className={cn(MICRO, 'text-stone-400 w-28 shrink-0')}>{row.label}</span>
+                      <span
+                        className={cn(MICRO, 'text-stone-500 dark:text-stone-400 w-28 shrink-0')}
+                      >
+                        {row.label}
+                      </span>
                       <div className="flex-1 h-1.5 rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
                         <div
                           className="h-full rounded-full bg-[rgb(var(--signal-ok))]"
@@ -640,26 +695,35 @@ const AdminOverview = () => {
 
             <div className="pt-3 border-t border-dashed border-stone-200 dark:border-white/[0.07] grid grid-cols-2 gap-4">
               <div>
-                <p className={cn(MICRO, 'text-stone-400')}>Cost / completed test</p>
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  Cost / completed test
+                </p>
                 <p className={cn(NUM, 'text-lg font-bold text-stone-900 dark:text-stone-50 mt-1')}>
                   ${Number(econ.costPerCompletedTest ?? 0).toFixed(4)}
                 </p>
               </div>
               <div>
-                <p className={cn(MICRO, 'text-stone-400')}>Cost / paying user</p>
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  Cost / paying user
+                </p>
                 <p className={cn(NUM, 'text-lg font-bold text-stone-900 dark:text-stone-50 mt-1')}>
                   ${Number(econ.costPerPayingUser ?? 0).toFixed(4)}
                 </p>
               </div>
               <div>
-                <p className={cn(MICRO, 'text-stone-400')}>Mock vs practice</p>
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Mock vs practice</p>
                 <p className={cn(NUM, 'text-lg font-bold text-stone-900 dark:text-stone-50 mt-1')}>
                   {eng.mockSessions ?? 0}
-                  <span className="text-stone-400"> / {eng.practiceSessions ?? 0}</span>
+                  <span className="text-stone-500 dark:text-stone-400">
+                    {' '}
+                    / {eng.practiceSessions ?? 0}
+                  </span>
                 </p>
               </div>
               <div>
-                <p className={cn(MICRO, 'text-stone-400')}>Cost data coverage</p>
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  Cost data coverage
+                </p>
                 <p
                   className={cn(
                     NUM,
@@ -681,13 +745,15 @@ const AdminOverview = () => {
           <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
             <div className="flex items-baseline justify-between mb-3">
               <div className="flex items-center gap-1.5">
-                <h3 className={cn(MICRO, 'text-stone-400')}>Activity by hour · last 30 days</h3>
+                <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  Activity by hour · last 30 days
+                </h3>
                 <InfoTip>
                   Test sessions grouped by hour of day (UTC). Use the quiet hours for deploys,
                   migrations and maintenance mode, and make sure support covers the busy ones.
                 </InfoTip>
               </div>
-              <span className={cn(MICRO, 'text-stone-400')}>
+              <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                 peak{' '}
                 <span className={cn(NUM, 'text-stone-700 dark:text-stone-200')}>
                   {peakHour === null ? '—' : `${String(peakHour).padStart(2, '0')}:00`}
@@ -713,7 +779,9 @@ const AdminOverview = () => {
                       />
                     </div>
                     {h.hour % 3 === 0 && (
-                      <span className={cn(NUM, 'text-[8px] text-stone-400')}>{h.hour}</span>
+                      <span className={cn(NUM, 'text-[8px] text-stone-500 dark:text-stone-400')}>
+                        {h.hour}
+                      </span>
                     )}
                   </div>
                 );
@@ -726,8 +794,8 @@ const AdminOverview = () => {
         <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
           <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
             <div className="flex items-baseline justify-between mb-3">
-              <h3 className={cn(MICRO, 'text-stone-400')}>Module engagement</h3>
-              <span className={cn(MICRO, 'text-stone-400')}>
+              <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Module engagement</h3>
+              <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                 completion = sessions finished, not scores
               </span>
             </div>

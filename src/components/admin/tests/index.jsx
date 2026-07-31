@@ -177,8 +177,8 @@ const TestManagement = () => {
   if (loading && passages.length === 0) {
     return (
       <div className="flex flex-col justify-center items-center h-96 gap-3">
-        <Loader2 className="w-7 h-7 animate-spin text-stone-400" />
-        <p className={cn(MICRO, 'text-stone-400')}>Loading tests</p>
+        <Loader2 className="w-7 h-7 animate-spin text-stone-500 dark:text-stone-400" />
+        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Loading tests</p>
       </div>
     );
   }
@@ -222,7 +222,7 @@ const TestManagement = () => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <AdminButton variant="outline">
-              <MoreVertical className="w-3.5 h-3.5 text-stone-400" />
+              <MoreVertical className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
               Actions
             </AdminButton>
           </DropdownMenuTrigger>
@@ -282,7 +282,7 @@ const TestManagement = () => {
         {/* Toolbar */}
         <div className="flex flex-col xl:flex-row gap-2.5 items-center p-3 border-b border-stone-100 dark:border-white/[0.06]">
           <div className="relative flex-1 w-full">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-500 dark:text-stone-400" />
             <Input
               placeholder={`Search ${selectedTestType} tests…`}
               value={searchQuery}
@@ -317,7 +317,7 @@ const TestManagement = () => {
 
             <Select value={cambridgeFilter} onValueChange={setCambridgeFilter}>
               <SelectTrigger className={cn(FIELD_INPUT, 'w-[130px]')}>
-                <GraduationCap className="w-3.5 h-3.5 text-stone-400 mr-1" />
+                <GraduationCap className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 mr-1" />
                 <SelectValue placeholder="Source" />
               </SelectTrigger>
               <SelectContent>

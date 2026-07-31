@@ -23,7 +23,7 @@ const CustomDailyTooltip = ({ active, payload, label }) => {
   return (
     <div className="rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315] px-3 py-2 shadow-lg min-w-[170px]">
       <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-dashed border-stone-200 dark:border-white/10">
-        <span className={cn(MICRO, 'text-stone-400')}>{formattedDate}</span>
+        <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{formattedDate}</span>
         <span className={cn(NUM, 'text-[10px] font-bold text-[rgb(var(--signal-ok))]')}>
           {rate}%
         </span>
@@ -50,18 +50,20 @@ const DailyUsageChart = ({ dailyStats, dateRange }) => (
   <div className={cn(PANEL, 'p-4')}>
     <div className="flex items-center justify-between mb-3">
       <div className="flex items-center gap-1.5">
-        <h3 className={cn(MICRO, 'text-stone-400')}>Request volume · {dateRange}d</h3>
+        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+          Request volume · {dateRange}d
+        </h3>
         <InfoTip>
           Daily AI requests. The gap between the two lines is requests that never delivered —
           failed, cached-out, or still pending.
         </InfoTip>
       </div>
       <div className="flex items-center gap-3">
-        <span className={cn(MICRO, 'text-stone-400 flex items-center gap-1.5')}>
+        <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
           <span className="w-2 h-0.5 rounded-full bg-stone-400" />
           Requests
         </span>
-        <span className={cn(MICRO, 'text-stone-400 flex items-center gap-1.5')}>
+        <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
           <span className="w-2 h-0.5 rounded-full bg-[rgb(var(--signal-ok))]" />
           Delivered
         </span>
@@ -116,7 +118,7 @@ const DailyUsageChart = ({ dailyStats, dateRange }) => (
           </AreaChart>
         </ResponsiveContainer>
       ) : (
-        <div className="h-full flex flex-col items-center justify-center text-stone-400">
+        <div className="h-full flex flex-col items-center justify-center text-stone-500 dark:text-stone-400">
           <Activity className="w-6 h-6 mb-2 opacity-40" />
           <p className={cn(MICRO)}>No API usage recorded yet</p>
         </div>

@@ -30,7 +30,7 @@ export default function PricingSettingsTab({
           </div>
           <div>
             <h3 className="text-sm font-extrabold text-stone-900 dark:text-stone-50">Pricing</h3>
-            <p className={cn(MICRO, 'text-stone-400 mt-0.5')}>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
               Rates, discounts, and regional overrides
             </p>
           </div>
@@ -80,7 +80,9 @@ export default function PricingSettingsTab({
           </m.div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4 border-t border-stone-100 dark:border-white/[0.06]">
-            <span className={cn(MICRO, 'text-stone-400 flex items-center gap-1.5')}>
+            <span
+              className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}
+            >
               <span className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--signal-ok))]" />
               Pricing updates apply across all billing flows immediately
             </span>

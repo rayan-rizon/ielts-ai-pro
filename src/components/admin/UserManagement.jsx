@@ -73,7 +73,7 @@ const ROLE_PILL = {
 
 const FIELD_INPUT =
   'h-9 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
-const FIELD_LABEL = cn(MICRO, 'text-stone-400 mb-1.5 block');
+const FIELD_LABEL = cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5 block');
 
 const UserManagement = () => {
   const { isAdmin } = useAuth();
@@ -400,7 +400,7 @@ const UserManagement = () => {
       <div className={cn(PANEL, 'p-3.5 space-y-3')}>
         <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-12 gap-2.5 items-center">
           <div className="min-[480px]:col-span-2 lg:col-span-4 relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-500 dark:text-stone-400" />
             <Input
               placeholder="Search name or email…"
               value={userFilters.search}
@@ -415,7 +415,7 @@ const UserManagement = () => {
               onValueChange={(value) => setUserFilters({ ...userFilters, subscription: value })}
             >
               <SelectTrigger className={cn(FIELD_INPUT, 'w-full')}>
-                <CreditCard className="w-3.5 h-3.5 text-stone-400 mr-1.5" />
+                <CreditCard className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 mr-1.5" />
                 <SelectValue placeholder="Plan" />
               </SelectTrigger>
               <SelectContent>
@@ -433,7 +433,7 @@ const UserManagement = () => {
               onValueChange={(value) => setUserFilters({ ...userFilters, role: value })}
             >
               <SelectTrigger className={cn(FIELD_INPUT, 'w-full')}>
-                <Shield className="w-3.5 h-3.5 text-stone-400 mr-1.5" />
+                <Shield className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 mr-1.5" />
                 <SelectValue placeholder="Role" />
               </SelectTrigger>
               <SelectContent>
@@ -450,7 +450,7 @@ const UserManagement = () => {
               onValueChange={(value) => setUserFilters({ ...userFilters, inactiveDays: value })}
             >
               <SelectTrigger className={cn(FIELD_INPUT, 'w-full')}>
-                <Clock className="w-3.5 h-3.5 text-stone-400 mr-1.5" />
+                <Clock className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 mr-1.5" />
                 <SelectValue placeholder="Activity" />
               </SelectTrigger>
               <SelectContent>
@@ -527,7 +527,7 @@ const UserManagement = () => {
                       'py-2.5 px-4 cursor-pointer select-none transition-colors group',
                       sortField === field
                         ? 'text-stone-900 dark:text-stone-50'
-                        : 'text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
+                        : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
                     )}
                   >
                     <span className="inline-flex items-center gap-1">
@@ -544,7 +544,11 @@ const UserManagement = () => {
                     </span>
                   </th>
                 ))}
-                <th className={cn(MICRO, 'py-2.5 px-4 text-stone-400 text-right')}>Actions</th>
+                <th
+                  className={cn(MICRO, 'py-2.5 px-4 text-stone-500 dark:text-stone-400 text-right')}
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -560,7 +564,9 @@ const UserManagement = () => {
                 <tr>
                   <td colSpan={7} className="py-16 text-center">
                     <Search className="w-6 h-6 mx-auto mb-2 text-stone-300 dark:text-stone-600" />
-                    <p className={cn(MICRO, 'text-stone-400')}>No users match your filters</p>
+                    <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                      No users match your filters
+                    </p>
                     <button
                       onClick={resetFilters}
                       className={cn(
@@ -596,7 +602,7 @@ const UserManagement = () => {
                           <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
                             {user.full_name || 'Anonymous user'}
                           </p>
-                          <p className={cn(NUM, 'text-[10px] text-stone-400')}>
+                          <p className={cn(NUM, 'text-[10px] text-stone-500 dark:text-stone-400')}>
                             {user.id.slice(0, 8)}
                           </p>
                         </div>
@@ -604,7 +610,7 @@ const UserManagement = () => {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-1.5 text-[11px] text-stone-600 dark:text-stone-300">
-                        <Mail className="w-3 h-3 text-stone-400 shrink-0" />
+                        <Mail className="w-3 h-3 text-stone-500 dark:text-stone-400 shrink-0" />
                         <span className={cn(NUM, 'truncate')}>{user.email}</span>
                       </div>
                     </td>
@@ -637,7 +643,7 @@ const UserManagement = () => {
                       <div
                         className={cn(NUM, 'flex items-center gap-1 text-[10px] text-stone-500')}
                       >
-                        <Clock className="w-2.5 h-2.5 text-stone-400 shrink-0" />
+                        <Clock className="w-2.5 h-2.5 text-stone-500 dark:text-stone-400 shrink-0" />
                         {user.last_active ? (
                           relativeTime(user.last_active)
                         ) : (
@@ -650,14 +656,14 @@ const UserManagement = () => {
                         <button
                           onClick={() => setEditingUser(user)}
                           aria-label={`Edit ${user.full_name || user.email}`}
-                          className="h-7 w-7 grid place-items-center rounded-md text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors"
+                          className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors"
                         >
                           <Edit className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setUserToDelete(user)}
                           aria-label={`Delete ${user.full_name || user.email}`}
-                          className="h-7 w-7 grid place-items-center rounded-md text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors"
+                          className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -705,7 +711,7 @@ const UserManagement = () => {
               <div>
                 <Label className={FIELD_LABEL}>Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                  <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                   <Input
                     type="email"
                     disabled={!!editingUser}
@@ -726,7 +732,7 @@ const UserManagement = () => {
                   <Label className={FIELD_LABEL}>Initial password</Label>
                   <div className="flex gap-2">
                     <div className="relative flex-1">
-                      <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                      <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                       <Input
                         value={newUser.password}
                         onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
@@ -752,7 +758,7 @@ const UserManagement = () => {
                       <Wand2 className="w-3.5 h-3.5" />
                     </Button>
                   </div>
-                  <p className={cn(MICRO, 'text-stone-400 mt-1.5')}>
+                  <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1.5')}>
                     8+ chars, uppercase, lowercase, number, special character.
                   </p>
                 </div>
@@ -761,7 +767,7 @@ const UserManagement = () => {
               <div>
                 <Label className={FIELD_LABEL}>Name</Label>
                 <div className="relative">
-                  <Users className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                  <Users className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                   <Input
                     value={editingUser ? editingUser.full_name : newUser.full_name}
                     onChange={(e) =>
