@@ -1,6 +1,5 @@
 import React, { memo, useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { TrendingUp, Info } from 'lucide-react';
 import {
   calculateRetentionProgress,
@@ -15,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { cn } from '@/lib/cn';
+import { IconChip, MUTED, PANEL, TILE } from '@/features/dashboard/components/primitives';
 
 const EMPTY_PROGRESS = { reviewed: 0, retained: 0, forgotten: 0, retention: 0 };
 
@@ -57,30 +58,28 @@ const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
   const message = getRetentionMessage(retention, reviewed);
 
   return (
-    <Card className="w-full overflow-hidden border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] rounded-[22px] relative">
-      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#505bdd]/10 blur-xl" />
+    <div className={cn(PANEL, 'relative overflow-hidden p-4 sm:p-5')}>
+      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#5a63df]/10 blur-xl" />
 
-      <CardHeader className="p-4 pb-3 border-b border-slate-200/80 dark:border-white/10 flex flex-row items-center justify-between relative">
-        <CardTitle className="flex items-center gap-2.5 text-sm font-black text-slate-900 dark:text-white">
-          <div className="w-8 h-8 rounded-xl bg-[#efedff] text-[#5862df] dark:bg-indigo-500/20 dark:text-indigo-300 flex items-center justify-center ring-1 ring-[#5862df]/15 dark:ring-indigo-500/30 shadow-xs">
-            <TrendingUp className="w-4 h-4" strokeWidth={2.5} />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span>Retention Progress</span>
+      <div className="relative flex flex-wrap items-center justify-between gap-2 border-b border-[#eeedf7] pb-3 dark:border-white/[0.07]">
+        <h3 className="flex min-w-0 items-center gap-2 text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
+          <IconChip icon={TrendingUp} />
+          <div className="flex items-center gap-1 min-w-0">
+            <span className="truncate">Retention Progress</span>
             <Info
-              className="w-3.5 h-3.5 text-slate-400 cursor-help"
-              aria-label="Retention is based on the ratings you give during vocabulary review. Ratings 3 to 5 are retained; ratings 0 to 2 are forgotten."
+              className="h-3.5 w-3.5 shrink-0 cursor-help text-slate-400"
+              aria-label="Retention is based on review ratings."
             />
           </div>
-        </CardTitle>
+        </h3>
         <Select value={period} onValueChange={setPeriod}>
           <SelectTrigger
             aria-label="Choose a retention period"
-            className="h-8 w-[118px] text-xs font-extrabold text-slate-700 dark:text-slate-300 bg-white/90 dark:bg-white/10 px-3 rounded-xl border border-[#d8dcfa] dark:border-white/10 shadow-xs"
+            className="h-7.5 w-[105px] shrink-0 rounded-lg border-[#e2e5f2] bg-white px-2 text-[11px] font-bold text-slate-700 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300"
           >
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="rounded-xl">
+          <SelectContent className="rounded-lg">
             {RETENTION_PERIODS.map((option) => (
               <SelectItem key={option.value} value={option.value} className="text-xs font-semibold">
                 {option.label}
@@ -88,14 +87,13 @@ const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
             ))}
           </SelectContent>
         </Select>
-      </CardHeader>
+      </div>
 
-      <CardContent className="p-4 sm:p-5 space-y-4 relative">
-        {/* Retention Score Ring */}
+      <div className="relative space-y-4 pt-4">
         <div className="flex items-center gap-4">
-          <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+          <div className="relative flex h-24 w-24 shrink-0 items-center justify-center">
             <svg
-              className="w-full h-full transform -rotate-90"
+              className="h-full w-full -rotate-90 transform"
               viewBox="0 0 36 36"
               role="img"
               aria-label={`Retention rate: ${retention}%`}
@@ -107,10 +105,10 @@ const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="3.2"
-                className="text-[#eceef8] dark:text-slate-800"
+                className="text-[#f4f3fb] dark:text-white/10"
               />
 
-              <motion.circle
+              <m.circle
                 initial={{ strokeDasharray: '0, 100' }}
                 animate={{ strokeDasharray: `${retention}, 100` }}
                 transition={{ duration: 1.2, ease: 'easeOut' }}
@@ -118,66 +116,65 @@ const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
                 cy="18"
                 r="15.9155"
                 fill="none"
-                stroke="#5661e9"
+                stroke="#5a63df"
                 strokeWidth="3.4"
                 strokeLinecap="round"
               />
             </svg>
 
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+              <span className="text-2xl font-black leading-none tracking-tight text-slate-900 dark:text-white">
                 {isLoading ? '–' : `${retention}%`}
               </span>
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mt-0.5">
+              <span className="mt-0.5 text-[9px] font-extrabold uppercase tracking-widest text-slate-400">
                 Retained
               </span>
             </div>
           </div>
 
           <div className="space-y-1">
-            <h4 className="text-sm font-black text-slate-900 dark:text-white">
+            <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">
               {reviewed === 0 ? 'Ready to build recall' : 'Effective Retention!'}
             </h4>
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+            <p className={cn('text-xs font-medium leading-relaxed', MUTED)}>
               {isLoading ? 'Loading your review outcomes…' : message}
             </p>
           </div>
         </div>
 
-        {/* Breakdown Stats Row */}
-        <div className="pt-3 border-t border-slate-200/80 dark:border-white/10 grid grid-cols-3 gap-2.5 text-center">
-          <div className="rounded-xl border border-[#e0e4f1] dark:border-white/10 bg-white/80 dark:bg-white/5 p-2.5 shadow-xs">
-            <div className="flex items-center justify-center gap-1.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-[#5661e9]" />
-              Reviewed
+        <div className="grid grid-cols-3 gap-1.5 border-t border-[#eeedf7] pt-3 text-center dark:border-white/[0.07]">
+          <div className={cn(TILE, 'p-1.5 sm:p-2')}>
+            <div className="flex items-center justify-center gap-1 text-[9px] font-extrabold uppercase tracking-tight text-slate-500 dark:text-slate-400">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#5a63df]" />
+              <span className="truncate">Reviewed</span>
             </div>
-            <span className="text-base font-black text-slate-900 dark:text-white mt-0.5 block">
+            <span className="mt-0.5 block text-sm font-black text-slate-900 dark:text-white sm:text-base">
               {isLoading ? '–' : reviewed}
             </span>
           </div>
 
-          <div className="rounded-xl border border-[#e0e4f1] dark:border-white/10 bg-white/80 dark:bg-white/5 p-2.5 shadow-xs">
-            <div className="flex items-center justify-center gap-1.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              Retained
+          <div className={cn(TILE, 'p-1.5 sm:p-2')}>
+            <div className="flex items-center justify-center gap-1 text-[9px] font-extrabold uppercase tracking-tight text-slate-500 dark:text-slate-400">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+              <span className="truncate">Retained</span>
             </div>
-            <span className="text-base font-black text-slate-900 dark:text-white mt-0.5 block">
+            <span className="mt-0.5 block text-sm font-black text-slate-900 dark:text-white sm:text-base">
               {isLoading ? '–' : retained}
             </span>
           </div>
 
-          <div className="rounded-xl border border-[#e0e4f1] dark:border-white/10 bg-white/80 dark:bg-white/5 p-2.5 shadow-xs">
-            <div className="flex items-center justify-center gap-1.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-amber-500" />
-              Forgotten
+          <div className={cn(TILE, 'p-1.5 sm:p-2')}>
+            <div className="flex items-center justify-center gap-1 text-[9px] font-extrabold uppercase tracking-tight text-slate-500 dark:text-slate-400">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+              <span className="truncate">Forgotten</span>
             </div>
-            <span className="text-base font-black text-slate-900 dark:text-white mt-0.5 block">
+            <span className="mt-0.5 block text-sm font-black text-slate-900 dark:text-white sm:text-base">
               {isLoading ? '–' : forgotten}
             </span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 });
 

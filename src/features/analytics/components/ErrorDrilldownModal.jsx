@@ -33,7 +33,7 @@ const TYPE_ICONS = {
 const TYPE_COLORS = {
   reading: 'text-sky-600 bg-sky-50 dark:bg-sky-500/20 dark:text-sky-300 ring-1 ring-sky-200/70',
   listening:
-    'text-indigo-600 bg-indigo-50 dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-indigo-200/70',
+    'text-[#5a63df] bg-[#5a63df]/10 dark:bg-[#5a63df]/20 dark:text-[#a9afff] ring-1 ring-[#5a63df]/20',
   writing:
     'text-amber-600 bg-amber-50 dark:bg-amber-500/20 dark:text-amber-300 ring-1 ring-amber-200/70',
   speaking:
@@ -42,29 +42,29 @@ const TYPE_COLORS = {
 
 const CATEGORY_META = {
   rushed: {
-    title: 'Moving Too Fast',
-    description: 'Sessions where you hurried and missed points.',
+    title: 'Rushed answers',
+    description: 'Wrong answers given in 20 seconds or less.',
     icon: Zap,
     badgeBg:
       'bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 ring-1 ring-amber-200/70',
   },
   overanalyzed: {
-    title: 'Thinking Too Long',
-    description: 'Sessions where you spent too much time on each question.',
+    title: 'Overthought answers',
+    description: 'Wrong answers that took 2.5 minutes or more.',
     icon: Clock,
     badgeBg:
-      'bg-purple-50 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 ring-1 ring-purple-200/70',
+      'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff] ring-1 ring-[#5a63df]/20',
   },
   nearMisses: {
-    title: 'Almost Got It!',
-    description: 'You were so close! One small mistake cost the point.',
+    title: 'Near misses',
+    description: 'Small mistakes on questions you nearly had right.',
     icon: TrendingDown,
     badgeBg:
-      'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-[#5661e9]/20',
+      'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff] ring-1 ring-[#5a63df]/20',
   },
   unanswered: {
-    title: 'Left Blank',
-    description: 'Missed chances. Always try to pick an answer!',
+    title: 'Left blank',
+    description: 'IELTS has no negative marking — always pick an answer.',
     icon: Calendar,
     badgeBg:
       'bg-rose-50 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 ring-1 ring-rose-200/70',
@@ -73,28 +73,28 @@ const CATEGORY_META = {
 
 export default function ErrorDrilldownModal({ isOpen, onClose, category, data = [] }) {
   const meta = CATEGORY_META[category] || {
-    title: 'Pattern Deep-Dive',
-    description: 'Analyze specific sessions to improve.',
+    title: 'Session detail',
+    description: 'The sessions behind this pattern.',
     icon: Zap,
     badgeBg:
-      'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-[#5661e9]/20',
+      'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff] ring-1 ring-[#5a63df]/20',
   };
 
   const Icon = meta.icon;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] w-[calc(100%-1.5rem)] rounded-[22px] border border-[#e0e4f1] dark:border-white/10 bg-white dark:bg-slate-950 p-0 overflow-hidden shadow-2xl">
-        <DialogHeader className="px-4 py-3.5 sm:px-5 border-b border-slate-100 dark:border-white/10 text-left">
+      <DialogContent className="w-[calc(100%-1.5rem)] overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-0 dark:border-white/10 dark:bg-[#141319] sm:max-w-[500px]">
+        <DialogHeader className="border-b border-[#eceafa] px-4 py-3.5 text-left dark:border-white/[0.07] sm:px-5">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-[#5661e9]/20 shadow-xs">
-              <Icon className="w-4.5 h-4.5" strokeWidth={2.2} />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff]">
+              <Icon className="h-4 w-4" strokeWidth={2.25} />
             </div>
             <div className="min-w-0">
-              <DialogTitle className="text-base font-black tracking-tight text-slate-950 dark:text-white">
+              <DialogTitle className="text-[15px] font-extrabold tracking-tight text-slate-900 dark:text-white">
                 {meta.title}
               </DialogTitle>
-              <DialogDescription className="text-[11px] font-medium text-slate-400 truncate">
+              <DialogDescription className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-400">
                 {meta.description}
               </DialogDescription>
             </div>
@@ -132,7 +132,7 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.04 }}
-                    className="group flex items-center justify-between gap-3 p-2.5 rounded-xl border border-indigo-100/80 bg-[#faf9ff] dark:bg-slate-900/80 dark:border-white/10 hover:bg-white hover:border-[#5661e9]/50 hover:shadow-2xs transition-all"
+                    className="group flex items-center justify-between gap-3 rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/40 hover:shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/[0.15]"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
@@ -185,7 +185,7 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
                       <Link
                         to={getReviewUrl(session)}
                         onClick={onClose}
-                        className="inline-flex items-center gap-0.5 rounded-lg border border-transparent bg-white px-2.5 py-1 text-xs font-black text-[#5661e9] shadow-2xs transition-all hover:border-indigo-200 hover:bg-indigo-50 dark:bg-indigo-500/20 dark:text-indigo-300 dark:hover:bg-indigo-500/30 cursor-pointer"
+                        className="inline-flex cursor-pointer items-center gap-0.5 rounded-md bg-[#5a63df]/10 px-2.5 py-1 text-xs font-black text-[#5a63df] transition-all hover:bg-[#5a63df]/20 dark:bg-[#5a63df]/20 dark:text-[#a9afff]"
                       >
                         Review <ChevronRight className="h-3 w-3" />
                       </Link>

@@ -9,6 +9,7 @@ import SkillVisual from './SkillVisual';
 import { skillLabel } from '../constants';
 import { hasContentAccess } from '@/features/subscription/config/contentAccess';
 import ContentStatusBadge from '@/features/subscription/components/ContentStatusBadge';
+import { MUTED } from '@/features/dashboard/components/primitives';
 
 const SKILL_VISUALS = {
   grammar_sentence_boundaries: {
@@ -63,19 +64,19 @@ export default function GrammarGuidesPanel({
     <section id="grammar-guides" className="scroll-mt-6 p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#5963d9]">
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#5a63df]">
             <BookOpenText className="h-3.5 w-3.5" />
             Complete workbook
           </div>
-          <h2 className="mt-1 text-lg font-black tracking-tight text-slate-950 dark:text-white">
+          <h2 className="mt-1 text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
             IELTS grammar guides
           </h2>
-          <p className="mt-1 max-w-2xl text-xs font-medium leading-5 text-slate-500 dark:text-slate-400">
+          <p className={cn('mt-1 max-w-2xl text-xs font-medium leading-5', MUTED)}>
             Follow all 18 units in order, or choose the exact rule you need before a practice set.
           </p>
         </div>
         <div className="text-right">
-          <div className="text-xl font-black text-slate-950 dark:text-white">
+          <div className="text-xl font-black tabular-nums text-slate-900 dark:text-white">
             {GRAMMAR_GUIDES.length}
           </div>
           <div className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-400">
@@ -84,7 +85,7 @@ export default function GrammarGuidesPanel({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#e8eaf5] bg-[#fafbfe] p-3 dark:border-white/10 dark:bg-white/[0.025] xl:flex-row xl:items-center">
+      <div className="mt-4 flex flex-col gap-3 rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-3 dark:border-white/10 dark:bg-white/[0.025] xl:flex-row xl:items-center">
         <div className="relative xl:w-64">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <Input
@@ -92,7 +93,7 @@ export default function GrammarGuidesPanel({
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search grammar guides..."
             aria-label="Search grammar guides"
-            className="h-9 rounded-xl border-[#e1e4f0] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#10131f]"
+            className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#10131f]"
           />
         </div>
         <LayoutGroup id="grammar-guide-category-tabs">
@@ -106,16 +107,16 @@ export default function GrammarGuidesPanel({
                   onClick={() => setCategory(item)}
                   whileTap={{ scale: 0.97 }}
                   className={cn(
-                    'relative whitespace-nowrap rounded-xl px-3 py-2 text-[10px] font-extrabold transition-colors',
+                    'relative whitespace-nowrap rounded-lg px-3 py-2 text-[10px] font-extrabold transition-colors',
                     isActive
                       ? 'text-white'
-                      : 'bg-white text-slate-500 hover:bg-[#f0f2ff] hover:text-[#505bdd] dark:bg-white/5 dark:text-slate-300'
+                      : 'bg-white text-slate-500 hover:bg-[#f0f1fd] hover:text-[#5a63df] dark:bg-white/5 dark:text-slate-300'
                   )}
                 >
                   {isActive && (
                     <motion.span
                       layoutId="grammar-guide-active-category"
-                      className="absolute inset-0 rounded-xl bg-[#5661e9] shadow-[0_8px_18px_-12px_rgba(65,76,210,0.85)]"
+                      className="absolute inset-0 rounded-lg bg-[#5a63df]"
                       transition={{ type: 'spring', stiffness: 500, damping: 34 }}
                     />
                   )}
@@ -145,7 +146,7 @@ export default function GrammarGuidesPanel({
                 key={resource.id}
                 to={`/grammar/guides/${resource.slug}`}
                 className={cn(
-                  'group flex min-h-[174px] flex-col justify-between rounded-2xl border border-[#eceafa] bg-gradient-to-br p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-[0_16px_32px_-24px_rgba(59,70,150,0.65)] dark:border-white/10 dark:from-white/[0.035] dark:to-white/[0.015]',
+                  'group flex min-h-[174px] flex-col justify-between rounded-xl border border-[#eceafa] bg-gradient-to-br p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/[0.015]',
                   visual.panelClass,
                   visual.cardClass
                 )}
@@ -164,7 +165,7 @@ export default function GrammarGuidesPanel({
                       completed={isCompleted}
                     />
                   </div>
-                  <div className="mt-2.5 text-[9px] font-extrabold uppercase tracking-[0.1em] text-[#5c66dc]">
+                  <div className="mt-2.5 text-[9px] font-extrabold uppercase tracking-[0.1em] text-[#5a63df]">
                     {skillLabel(resource.skill_code)}
                   </div>
                   <h3 className="mt-1 text-xs font-extrabold leading-4 text-slate-900 dark:text-white">
@@ -178,7 +179,7 @@ export default function GrammarGuidesPanel({
                   <span className="inline-flex items-center gap-1">
                     <Clock3 className="h-3 w-3" /> {resource.estimated_minutes} min
                   </span>
-                  <span className="inline-flex items-center gap-0.5 text-[#5661e9]">
+                  <span className="inline-flex items-center gap-0.5 text-[#5a63df]">
                     {isLocked ? 'Preview' : 'Open'}{' '}
                     <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
                   </span>
@@ -188,9 +189,9 @@ export default function GrammarGuidesPanel({
           })}
         </div>
       ) : (
-        <div className="mt-4 rounded-2xl border border-dashed border-[#dfe2f1] px-5 py-10 text-center">
+        <div className="mt-4 rounded-xl border border-dashed border-[#e2e5f2] px-5 py-10 text-center">
           <Search className="mx-auto h-5 w-5 text-slate-400" />
-          <div className="mt-2 text-sm font-black text-slate-800 dark:text-white">
+          <div className="mt-2 text-sm font-extrabold text-slate-800 dark:text-white">
             No matching guide
           </div>
           <button
@@ -199,7 +200,7 @@ export default function GrammarGuidesPanel({
               setQuery('');
               setCategory('All guides');
             }}
-            className="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold text-[#5661e9]"
+            className="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold text-[#5a63df]"
           >
             Show all guides <ArrowRight className="h-3.5 w-3.5" />
           </button>

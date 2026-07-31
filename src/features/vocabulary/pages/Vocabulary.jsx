@@ -1,10 +1,9 @@
 import React, { Suspense, lazy, useState, useEffect, useMemo, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Search, BookOpen, MoreVertical, Trash2, AlertCircle, Languages } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -15,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/cn';
 
 import VocabularyList from '@/features/vocabulary/components/VocabularyList';
 import VocabularyStats from '@/features/vocabulary/components/VocabularyStats';
@@ -37,6 +37,7 @@ import {
   useMatchPairs,
   useVocabularyData,
 } from '@/features/vocabulary/hooks';
+import { IconChip, MUTED, PANEL, Pill } from '@/features/dashboard/components/primitives';
 
 const ReviewSession = lazy(() => import('@/features/vocabulary/components/ReviewSession'));
 const GameModals = lazy(() =>
@@ -72,29 +73,19 @@ const getWordLimit = (subscriptionTier) =>
   VOCABULARY_LIMITS[(subscriptionTier || 'free').toLowerCase()] || VOCABULARY_LIMITS.free;
 
 const PageHeader = ({ stats, user }) => (
-  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5 pb-5 border-b border-slate-200/80 dark:border-slate-800">
-    {/* Left Side: Bolder Title & Subtitle (No PREMIUM badge as requested) */}
-    <div className="space-y-1.5 max-w-2xl">
-      <div className="flex items-center gap-2">
-        <Badge
-          variant="outline"
-          className="px-3 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-black text-[10px] uppercase tracking-wider"
-        >
-          IELTS Vocabulary Engine
-        </Badge>
-      </div>
-
-      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-none sm:leading-tight">
+  <div className="flex flex-col gap-4 border-b border-[#eeedf7] pb-4 dark:border-white/[0.07] xl:flex-row xl:items-end xl:justify-between">
+    <div className="max-w-2xl space-y-1.5">
+      <Pill tone="accent">IELTS Vocabulary Engine</Pill>
+      <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
         Vocabulary Mastery
       </h1>
-      <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base font-semibold leading-relaxed">
+      <p className={cn('text-sm font-medium', MUTED)}>
         Master high-precision vocabulary, active recall flashcards, and topic word lists for IELTS
         Band 8.0+.
       </p>
     </div>
 
-    {/* Right Side: Header Stats Cluster */}
-    <div className="w-full xl:w-auto flex justify-start xl:justify-end min-w-0">
+    <div className="flex w-full min-w-0 justify-start xl:w-auto xl:justify-end">
       <VocabularyStats
         stats={stats}
         wordLimit={getWordLimit(user?.subscription_tier)}
@@ -104,31 +95,24 @@ const PageHeader = ({ stats, user }) => (
   </div>
 );
 
-const BackgroundDecor = () => (
-  <div aria-hidden="true" className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-    <div className="absolute top-[-10%] left-[-10%] w-[50rem] h-[50rem] rounded-full bg-indigo-500/10 blur-[130px]" />
-    <div className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] rounded-full bg-purple-500/10 blur-[130px]" />
-  </div>
-);
-
 const LoadingSkeleton = () => (
-  <div className="min-h-screen bg-slate-50 dark:bg-[#020617] p-8 space-y-8">
-    <div className="max-w-[1600px] mx-auto space-y-8">
-      <div className="flex justify-between items-start gap-6">
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-64 rounded-xl" />
-          <Skeleton className="h-6 w-96 rounded-lg" />
+  <div className="min-h-screen space-y-4 bg-[#f8f8fb] p-4 dark:bg-[#0b0a10] sm:p-6 md:p-8">
+    <div className="mx-auto max-w-[1600px] space-y-4">
+      <div className="flex items-start justify-between gap-6">
+        <div className="space-y-3">
+          <Skeleton className="h-8 w-64 rounded-lg" />
+          <Skeleton className="h-5 w-96 rounded-lg" />
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 space-y-6">
-          <Skeleton className="h-64 w-full rounded-3xl" />
-          <Skeleton className="h-48 w-full rounded-3xl" />
-          <Skeleton className="h-96 w-full rounded-3xl" />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div className="space-y-3 lg:col-span-8">
+          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <Skeleton className="h-96 w-full rounded-xl" />
         </div>
-        <div className="lg:col-span-4 space-y-6">
-          <Skeleton className="h-48 w-full rounded-3xl" />
-          <Skeleton className="h-96 w-full rounded-3xl" />
+        <div className="space-y-3 lg:col-span-4">
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <Skeleton className="h-96 w-full rounded-xl" />
         </div>
       </div>
     </div>
@@ -137,25 +121,22 @@ const LoadingSkeleton = () => (
 
 const AlertDialog = ({ config, setConfig }) => (
   <Dialog open={config.open} onOpenChange={(open) => setConfig((prev) => ({ ...prev, open }))}>
-    <DialogContent className="max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-2xl p-6">
-      <div className="flex flex-col items-center text-center gap-4">
-        <div className="w-12 h-12 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center">
-          <AlertCircle className="w-6 h-6" />
-        </div>
+    <DialogContent className="max-w-md rounded-xl border-[#e2e5f2] bg-white p-6 dark:border-white/10 dark:bg-[#131218]">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <IconChip icon={AlertCircle} tone="amber" size="lg" />
         <div className="space-y-1">
-          <DialogTitle className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
+          <DialogTitle className="text-base font-extrabold text-slate-900 dark:text-white">
             {config.title}
           </DialogTitle>
-          <p className="text-slate-600 dark:text-slate-300 font-semibold text-xs leading-relaxed">
-            {config.message}
-          </p>
+          <p className={cn('text-xs font-medium leading-relaxed', MUTED)}>{config.message}</p>
         </div>
-        <Button
-          className="bg-indigo-600 hover:bg-indigo-500 text-white h-10 rounded-xl px-8 font-black text-xs w-full shadow-md"
+        <button
+          type="button"
+          className="mt-1 inline-flex h-10 w-full items-center justify-center rounded-lg bg-[#5a63df] text-xs font-bold text-white transition-all hover:bg-[#4a52c9] active:scale-95"
           onClick={() => setConfig((prev) => ({ ...prev, open: false }))}
         >
           Close
-        </Button>
+        </button>
       </div>
     </DialogContent>
   </Dialog>
@@ -178,85 +159,87 @@ const PersonalWordBank = ({
   handleDeleteWord,
   handleLoadMore,
 }) => (
-  <div className="rounded-[22px] border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] p-5 sm:p-6 space-y-4">
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-      <div className="space-y-0.5 min-w-0 shrink">
-        <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#efedff] text-[#5862df] dark:bg-indigo-500/20 dark:text-indigo-300 flex items-center justify-center ring-1 ring-[#5862df]/15 shrink-0">
-            <BookOpen className="w-4 h-4" />
-          </div>
-          My Saved Words
+  <div className={cn(PANEL, 'space-y-4 p-4 sm:p-5')}>
+    <div className="flex flex-col gap-3">
+      {/* Title section - full width to ensure text never squashes or breaks awkwardly */}
+      <div className="w-full space-y-1">
+        <h3 className="flex items-center gap-2.5 text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+          <IconChip icon={BookOpen} />
+          <span>My Saved Words</span>
         </h3>
-        <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">
+        <p className={cn('text-xs font-medium leading-relaxed', MUTED)}>
           Review saved words, track memory strength, and translate definitions.
         </p>
       </div>
 
-      <div className="flex items-center gap-2 flex-nowrap w-full md:w-auto shrink-0">
-        <div className="relative group flex-1 min-w-[120px] md:w-56 md:flex-none">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+      {/* Controls row - search input on left, language & actions on right */}
+      <div className="flex w-full flex-wrap items-center justify-between gap-2.5 pt-1">
+        <div className="group relative min-w-[200px] flex-1 sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#5a63df]" />
           <Input
             placeholder="Search saved words..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 bg-slate-50 dark:bg-slate-950 border-slate-200/80 dark:border-slate-800 h-9 rounded-xl font-semibold text-xs shadow-inner w-full"
+            className="h-9 w-full rounded-lg border-[#e2e5f2] bg-[#fbfbfe] pl-9 text-xs font-semibold dark:border-white/10 dark:bg-white/[0.04]"
           />
         </div>
 
-        <Select
-          value={targetLanguage}
-          onValueChange={(val) => {
-            setTargetLanguage(val);
-            saveLanguagePreference(val);
-          }}
-        >
-          <SelectTrigger className="w-[115px] md:w-[125px] h-9 rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200/80 dark:border-slate-800 text-xs font-bold shrink-0">
-            <Languages className="w-3.5 h-3.5 mr-1 text-indigo-500 shrink-0" />
-            <SelectValue placeholder="Language" />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl">
-            {SUPPORTED_LANGUAGES.map((lang) => (
-              <SelectItem key={lang.code} value={lang.code} className="font-semibold">
-                {lang.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="relative shrink-0">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-9 w-9 rounded-xl border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm shrink-0 flex items-center justify-center"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+        <div className="flex items-center gap-2 shrink-0">
+          <Select
+            value={targetLanguage}
+            onValueChange={(val) => {
+              setTargetLanguage(val);
+              saveLanguagePreference(val);
+            }}
           >
-            <MoreVertical className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" />
-          </Button>
+            <SelectTrigger className="h-9 w-[130px] shrink-0 rounded-lg border-[#e2e5f2] bg-[#fbfbfe] text-xs font-bold dark:border-white/10 dark:bg-white/[0.04]">
+              <Languages className="mr-1.5 h-3.5 w-3.5 shrink-0 text-[#5a63df]" />
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+            <SelectContent className="rounded-lg">
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <SelectItem key={lang.code} value={lang.code} className="text-xs font-semibold">
+                  {lang.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <AnimatePresence>
-            {isDropdownOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                className="absolute right-0 top-full mt-1.5 w-44 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 z-50 overflow-hidden p-1"
-              >
-                <button
-                  onClick={handleExportWords}
-                  className="w-full text-left px-3 py-2 text-xs font-bold uppercase tracking-wider hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg transition-all flex items-center gap-2"
+          <div className="relative shrink-0">
+            <Button
+              variant="outline"
+              size="icon"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-[#e2e5f2] bg-white dark:border-white/10 dark:bg-white/[0.04]"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            >
+              <MoreVertical className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
+            </Button>
+
+            <AnimatePresence>
+              {isDropdownOpen && (
+                <m.div
+                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  className="absolute right-0 top-full z-50 mt-1.5 w-44 overflow-hidden rounded-lg border border-[#e2e5f2] bg-white p-1 shadow-lg dark:border-white/10 dark:bg-[#131218]"
                 >
-                  <BookOpen className="w-3.5 h-3.5 text-indigo-500" /> Export Library
-                </button>
-                <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
-                <button
-                  onClick={handleClearAllWords}
-                  className="w-full text-left px-3 py-2 text-xs font-bold uppercase tracking-wider hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-lg transition-all flex items-center gap-2"
-                >
-                  <Trash2 className="w-3.5 h-3.5 text-rose-500" /> Clear All Words
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <button
+                    onClick={handleExportWords}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-700 transition-all hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/5"
+                  >
+                    <BookOpen className="h-3.5 w-3.5 text-[#5a63df]" /> Export Library
+                  </button>
+                  <div className="my-1 h-px bg-[#eeedf7] dark:bg-white/10" />
+                  <button
+                    onClick={handleClearAllWords}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-[rgb(var(--signal-fault))] transition-all hover:bg-[rgba(var(--signal-fault),0.08)]"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Clear All Words
+                  </button>
+                </m.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </div>
@@ -471,22 +454,26 @@ export default function Vocabulary() {
   if (isLoading && !allVocabulary.length) return <LoadingSkeleton />;
 
   return (
-    <div className="relative min-h-screen pb-20 bg-slate-50 dark:bg-[#020617] transition-colors duration-300 overflow-hidden">
-      <BackgroundDecor />
+    <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 transition-colors duration-300 dark:bg-[#0b0a10] dark:text-white">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+      />
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
-        className="p-4 sm:p-6 md:p-8 max-w-[1600px] mx-auto space-y-6 relative z-10"
+        className="relative z-10 mx-auto max-w-[1600px] space-y-4 p-4 sm:p-6 md:p-8"
       >
-        {/* Page Header (Bolder title, stats on top right, no PREMIUM badge) */}
         <PageHeader stats={stats} user={user} />
 
-        {/* Main Dashboard Layout Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Main Wide Column (8 cols) */}
-          <div className="lg:col-span-8 space-y-6">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+          <div className="space-y-4 lg:col-span-8">
             {/* Hero Card: Daily Review Queue + Featured Flashcard */}
             <ReviewBanner
               dueForReview={dueForReview}
@@ -585,7 +572,7 @@ export default function Vocabulary() {
           setTargetLanguage={setTargetLanguage}
           handleDeleteWord={handleDeleteWord}
         />
-      </motion.div>
+      </m.div>
     </div>
   );
 }

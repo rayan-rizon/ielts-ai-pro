@@ -29,6 +29,40 @@ export function isValidDuration(seconds) {
   return Number.isFinite(seconds) && seconds > 0 && seconds <= MAX_REASONABLE_TEST_SECONDS;
 }
 
+/**
+ * A test the learner opened and walked away from, not a test they sat and failed.
+ *
+ * Roughly a third of "completed" reading sessions in production are band 0 with
+ * zero correct answers and under five minutes on the clock — a learner clicking
+ * submit to get out of the test, not a measurement of their reading. Averaging
+ * them in drags the practice average down by whole bands and makes Reading look
+ * like the weakest module for people whose Reading is fine.
+ *
+ * The predicate is deliberately conservative: a zero band alone is never enough,
+ * because a genuine zero is a real result. It needs a known duration under the
+ * threshold AND no correct answer on record. Sessions with no timing at all are
+ * left alone rather than guessed at.
+ */
+export const ABANDON_MAX_SECONDS = 5 * 60;
+
+export function isAbandonedSession(session) {
+  if (!session) return false;
+  const score = Number(session.score);
+  if (!Number.isFinite(score) || score > 0) return false;
+
+  const content = session.content_data || {};
+  const correct = Number(content.correctAnswers ?? content.correct);
+  if (Number.isFinite(correct) && correct > 0) return false;
+
+  const seconds = getKnownDurationSeconds(session);
+  return seconds !== null && seconds < ABANDON_MAX_SECONDS;
+}
+
+/** Sessions that actually measure something — the basis for every average. */
+export function getMeasuredSessions(sessions) {
+  return (sessions || []).filter((session) => !isAbandonedSession(session));
+}
+
 function extractDurationFromMetrics(session) {
   const content = session.content_data || {};
   const tm = content.timeMetrics || {};
@@ -126,10 +160,14 @@ function getLatestModuleScores(scoredSessions) {
 export function computeStats(filteredSessions, previousSessions, authUser, vocabCount) {
   const totalTests = filteredSessions.length;
   const scoredSessions = filteredSessions.filter((s) => isValidBandScore(s.score));
+  const abandonedSessions = scoredSessions.filter(isAbandonedSession);
+  // Averages come from tests that were actually sat. `scoredTests` still counts
+  // every scored session so the two numbers can be reconciled on screen.
+  const measuredScored = scoredSessions.filter((s) => !isAbandonedSession(s));
 
   const avgScoreNum =
-    scoredSessions.length > 0
-      ? scoredSessions.reduce((sum, s) => sum + Number(s.score), 0) / scoredSessions.length
+    measuredScored.length > 0
+      ? measuredScored.reduce((sum, s) => sum + Number(s.score), 0) / measuredScored.length
       : 0;
 
   const studyTime = calculateStudyTime(filteredSessions);
@@ -144,8 +182,8 @@ export function computeStats(filteredSessions, previousSessions, authUser, vocab
     studyHoursTrend = 100;
   }
 
-  const improvement = calculateImprovement(scoredSessions);
-  const moduleLatestScores = getLatestModuleScores(scoredSessions);
+  const improvement = calculateImprovement(measuredScored);
+  const moduleLatestScores = getLatestModuleScores(measuredScored);
 
   const overallEstimate =
     moduleLatestScores.length === MODULES.length
@@ -159,6 +197,8 @@ export function computeStats(filteredSessions, previousSessions, authUser, vocab
     targetScore: authUser?.target_band_score || 7.0,
     totalTests,
     scoredTests: scoredSessions.length,
+    measuredTests: measuredScored.length,
+    abandonedTests: abandonedSessions.length,
     studyHours,
     studyMinutes: studyTime.minutes,
     studyHoursTrend,
@@ -166,14 +206,63 @@ export function computeStats(filteredSessions, previousSessions, authUser, vocab
     improvement: improvement > 0 ? `+${formatBand(improvement)}` : formatBand(improvement),
     overallEstimate,
     modulesWithData: moduleLatestScores.length,
+    practiceRhythm: computePracticeRhythm(filteredSessions),
+  };
+}
+
+/**
+ * How regularly the learner practises, and how recently.
+ *
+ * IELTS candidates plateau from irregular practice far more often than from
+ * practising the wrong thing, and neither the session count nor the study-hours
+ * total shows that — twelve tests in one weekend and twelve spread over a month
+ * produce the same headline number and very different exam results.
+ */
+export function computePracticeRhythm(sessions, now = Date.now()) {
+  const days = new Set();
+  let latest = null;
+
+  (sessions || []).forEach((session) => {
+    const raw = session?.completed_at || session?.created_at;
+    const time = new Date(raw).getTime();
+    if (!Number.isFinite(time)) return;
+    days.add(new Date(time).toISOString().slice(0, 10));
+    if (latest === null || time > latest) latest = time;
+  });
+
+  const activeDays = days.size;
+  const daysSinceLast = latest === null ? null : Math.floor((now - latest) / (24 * 60 * 60 * 1000));
+
+  // Spread over the observed window rather than the timeframe length, so a
+  // learner who joined last week is not marked down for the weeks before that.
+  const sorted = [...days].sort();
+  const spanDays =
+    sorted.length < 2
+      ? sorted.length
+      : Math.max(
+          1,
+          Math.round(
+            (new Date(sorted[sorted.length - 1]).getTime() - new Date(sorted[0]).getTime()) /
+              (24 * 60 * 60 * 1000)
+          ) + 1
+        );
+
+  return {
+    activeDays,
+    spanDays,
+    daysSinceLast,
+    // Share of days in the practised window that actually had a session.
+    consistency: spanDays > 0 ? Math.round((activeDays / spanDays) * 100) : 0,
   };
 }
 
 export function computeModuleStats(filteredSessions) {
   return MODULES.map((type) => {
-    const sessions = filteredSessions.filter(
+    const scored = filteredSessions.filter(
       (s) => String(s.test_type || '').toLowerCase() === type && isValidBandScore(s.score)
     );
+    // Abandoned attempts are reported, never averaged — see isAbandonedSession.
+    const sessions = scored.filter((s) => !isAbandonedSession(s));
     const currentAvg =
       sessions.length > 0
         ? sessions.reduce((sum, s) => sum + Number(s.score), 0) / sessions.length
@@ -186,10 +275,21 @@ export function computeModuleStats(filteredSessions) {
       type,
       avg: currentAvg,
       count: sessions.length,
+      abandoned: scored.length - sessions.length,
       lastScore: sessions[0]?.score ?? 0,
       highest,
       sessions,
       recentScores,
+      // Spread of the scored attempts — a band 7 that swings between 5.5 and 8
+      // is a different problem from a steady band 7.
+      volatility:
+        sessions.length >= 3
+          ? Math.round(
+              (Math.max(...sessions.map((s) => Number(s.score))) -
+                Math.min(...sessions.map((s) => Number(s.score)))) *
+                10
+            ) / 10
+          : null,
     };
   });
 }
@@ -211,19 +311,127 @@ function processTypeStats(content, aggState, module) {
   });
 }
 
+export function sectionUnitLabel(module) {
+  if (module === 'reading') return 'Passage';
+  if (module === 'listening') return 'Part';
+  return 'Section';
+}
+
 function processSectionStats(content, aggState, module) {
-  if (!content.sectionStats) return;
+  if (!Array.isArray(content.sectionStats)) return;
+  const passageTimes = content.passageTimes || {};
+
   content.sectionStats.forEach((secStats, idx) => {
     const moduleLabel = String(module || 'Test').replace(/\b\w/g, (letter) => letter.toUpperCase());
-    const sectionLabel =
-      module === 'reading' ? 'Passage' : module === 'listening' ? 'Part' : 'Section';
-    const secKey = `${moduleLabel} ${sectionLabel} ${idx + 1}`;
-    if (!aggState.allSectionStats[secKey])
-      aggState.allSectionStats[secKey] = { correct: 0, total: 0 };
-    aggState.allSectionStats[secKey].correct += secStats.correct || 0;
-    aggState.allSectionStats[secKey].total += secStats.total || 0;
+    const secKey = `${moduleLabel} ${sectionUnitLabel(module)} ${idx + 1}`;
+    if (!aggState.allSectionStats[secKey]) {
+      aggState.allSectionStats[secKey] = {
+        correct: 0,
+        total: 0,
+        module: module || 'unknown',
+        position: idx + 1,
+        attempts: 0,
+        seconds: 0,
+        timedAttempts: 0,
+      };
+    }
+    const bucket = aggState.allSectionStats[secKey];
+    bucket.correct += secStats.correct || 0;
+    bucket.total += secStats.total || 0;
+    bucket.attempts += 1;
+
+    // Passage/part timing lets the panel say *where* the clock ran out, not just
+    // that it did — reading candidates almost always lose it on the last passage.
+    const seconds = Number(passageTimes[idx] ?? passageTimes[String(idx)]);
+    if (Number.isFinite(seconds) && seconds > 0) {
+      bucket.seconds += seconds;
+      bucket.timedAttempts += 1;
+    }
   });
 }
+
+/**
+ * Per-question pacing, joined against whether the answer was right.
+ *
+ * `errorPatterns` already counts near-misses and blanks, but the two mistakes
+ * that actually respond to coaching — snap answers and questions the learner
+ * sank minutes into — are only visible by crossing `timePerQuestionSeconds`
+ * with `correctAnswersMap`. Both have been written to every graded session for
+ * months and neither was read.
+ */
+export const RUSHED_MAX_SECONDS = 20;
+export const OVERANALYSED_MIN_SECONDS = 150;
+
+function processQuestionTiming(content, aggState, sessionBrief) {
+  const times = content.timePerQuestionSeconds;
+  const answers = content.correctAnswersMap;
+  if (!times || !answers) return;
+
+  let rushedHere = 0;
+  let overanalysedHere = 0;
+
+  Object.entries(times).forEach(([questionId, rawSeconds]) => {
+    const seconds = Number(rawSeconds);
+    const record = answers[questionId];
+    if (!record || !Number.isFinite(seconds) || seconds <= 0) return;
+    // isCorrect === null means never answered; blanks are counted separately.
+    if (record.isCorrect !== false) return;
+
+    if (seconds <= RUSHED_MAX_SECONDS) {
+      rushedHere += 1;
+    } else if (seconds >= OVERANALYSED_MIN_SECONDS) {
+      overanalysedHere += 1;
+    }
+  });
+
+  aggState.behaviourAgg.rushed += rushedHere;
+  aggState.behaviourAgg.overanalysed += overanalysedHere;
+
+  // Mirrors processErrorPatterns below — the drilldown modal needs a session
+  // list per category, not just the aggregate count.
+  if (rushedHere > 0) {
+    aggState.enhancedMetricsAgg.sessionReferences.rushed.push({
+      ...sessionBrief,
+      count: rushedHere,
+    });
+  }
+  if (overanalysedHere > 0) {
+    aggState.enhancedMetricsAgg.sessionReferences.overanalyzed.push({
+      ...sessionBrief,
+      count: overanalysedHere,
+    });
+  }
+}
+
+/**
+ * Does changing an answer help this learner or hurt them?
+ *
+ * "Trust your first instinct" is the most repeated piece of IELTS advice and
+ * almost nobody can check it against their own record. `answerChangeCounts`
+ * plus `correctAnswersMap` answers it directly: accuracy on questions the
+ * learner revised, against accuracy on questions they left alone.
+ */
+function processAnswerChanges(content, aggState) {
+  const changes = content.answerChangeCounts;
+  const answers = content.correctAnswersMap;
+  if (!changes || !answers) return;
+
+  Object.entries(answers).forEach(([questionId, record]) => {
+    if (!record || record.isCorrect === null || record.isCorrect === undefined) return;
+    const changed = Number(changes[questionId]) > 0;
+    const bucket = changed ? aggState.behaviourAgg.revised : aggState.behaviourAgg.firstAnswer;
+    bucket.total += 1;
+    if (record.isCorrect === true) bucket.correct += 1;
+  });
+}
+
+/*
+ * NOTE: `content_data.skillGaps` (scanningEfficiency, globalComprehension, …)
+ * is deliberately NOT aggregated here. Those are the grader's inferred
+ * cognitive-skill labels rather than anything the learner measurably did, and
+ * evidence-grounded-analytics.test.js guards against surfacing them. Everything
+ * this module reports is countable: answers, seconds, revisions.
+ */
 
 function processTimeMetrics(content, aggState) {
   if (!content.timeMetrics) return;
@@ -291,6 +499,8 @@ function processSessionContent(s, aggState) {
   processModuleEfficiency(s, type, aggState);
   processTimeMetrics(content, aggState);
   processErrorPatterns(content, aggState, sessionBrief);
+  processQuestionTiming(content, aggState, sessionBrief);
+  processAnswerChanges(content, aggState);
 }
 
 function getFeedbackScores(fbs, taskName) {
@@ -409,8 +619,15 @@ function buildInitialAggState() {
       troubleTypesFrequency: {},
       totalNearMisses: 0,
       totalUnanswered: 0,
-      sessionReferences: { nearMisses: [], unanswered: [] },
+      sessionReferences: { nearMisses: [], unanswered: [], rushed: [], overanalyzed: [] },
     },
+    behaviourAgg: {
+      rushed: 0,
+      overanalysed: 0,
+      revised: { correct: 0, total: 0 },
+      firstAnswer: { correct: 0, total: 0 },
+    },
+
     writingCriteriaAgg: {
       taskAchievement: { sum: 0, count: 0 },
       coherence: { sum: 0, count: 0 },
@@ -442,9 +659,38 @@ function computeSectionPerformance(aggState) {
   return Object.entries(aggState.allSectionStats)
     .map(([section, stats]) => ({
       section,
+      module: stats.module,
+      position: stats.position,
+      correct: stats.correct,
+      total: stats.total,
+      attempts: stats.attempts,
       accuracy: Math.round((stats.correct / (stats.total || 1)) * 100),
+      avgMinutes:
+        stats.timedAttempts > 0 ? Math.round(stats.seconds / stats.timedAttempts / 60) : null,
     }))
-    .sort((a, b) => a.section.localeCompare(b.section));
+    .filter((row) => row.total > 0)
+    .sort((a, b) => a.module.localeCompare(b.module) || a.position - b.position);
+}
+
+function computeAnswerBehaviour(aggState) {
+  const { revised, firstAnswer, rushed, overanalysed } = aggState.behaviourAgg;
+  const rate = (bucket) =>
+    bucket.total > 0 ? Math.round((bucket.correct / bucket.total) * 100) : null;
+
+  const revisedRate = rate(revised);
+  const firstRate = rate(firstAnswer);
+
+  return {
+    rushed,
+    overanalysed,
+    revised: { ...revised, accuracy: revisedRate },
+    firstAnswer: { ...firstAnswer, accuracy: firstRate },
+    // Positive means revising helped. Needs both samples to mean anything, and
+    // a handful of questions is not evidence — the panel gates on `hasSignal`.
+    revisionEdge: revisedRate != null && firstRate != null ? revisedRate - firstRate : null,
+    hasSignal: revised.total >= 8 && firstAnswer.total >= 8,
+    hasTiming: rushed + overanalysed > 0,
+  };
 }
 
 function computeEfficiency(aggState) {
@@ -489,6 +735,7 @@ export function buildPacingSummary(efficiency = {}) {
 function computeEnhancedMetricsResult(aggState) {
   const tNearMisses = aggState.enhancedMetricsAgg.totalNearMisses;
   const tUnanswered = aggState.enhancedMetricsAgg.totalUnanswered;
+  const behaviour = computeAnswerBehaviour(aggState);
 
   return {
     hasData: aggState.enhancedMetricsAgg.sessionCount > 0,
@@ -500,14 +747,19 @@ function computeEnhancedMetricsResult(aggState) {
               60
           )
         : 0,
-    totalRushed: 0,
-    totalOveranalyzed: 0,
+    totalRushed: behaviour.rushed,
+    totalOveranalyzed: behaviour.overanalysed,
     totalNearMisses: tNearMisses,
     totalUnanswered: tUnanswered,
+    behaviour,
     sessionReferences: aggState.enhancedMetricsAgg.sessionReferences,
+    // Rushing and over-thinking were hardcoded to zero, so two of the four ring
+    // segments — and half of this panel's advice — could never appear.
     errorAuditData: [
-      { name: 'Almost Correct', value: tNearMisses, color: '#5661e9' },
-      { name: 'Left Blank', value: tUnanswered, color: '#f43f5e' },
+      { name: 'Almost Correct', value: tNearMisses },
+      { name: 'Left Blank', value: tUnanswered },
+      { name: 'Rushing', value: behaviour.rushed },
+      { name: 'Thinking Too Long', value: behaviour.overanalysed },
     ].filter((d) => d.value > 0),
     topTroubleTypes: Object.entries(aggState.enhancedMetricsAgg.troubleTypesFrequency)
       .sort((a, b) => b[1] - a[1])
@@ -720,6 +972,9 @@ export function computeRecentPractice(filteredSessions) {
       score,
       accuracy: getSessionAccuracy(content),
       durationMinutes,
+      // Surfaced so the log can label a walk-away instead of showing "Band 0.0"
+      // next to tests the learner genuinely sat.
+      abandoned: isAbandonedSession(session),
       date: session.completed_at || session.created_at,
       passageId: session.passage_id || content.passage_id || content.id || null,
       resultData: {
@@ -738,13 +993,104 @@ function computeDistribution(moduleStats) {
     .filter((d) => d.value > 0);
 }
 
+/**
+ * Exam readiness — the question every candidate actually has, which no single
+ * number on this page answered: "if I sat the test on Saturday, am I ready?"
+ *
+ * Four factors, equally weighted, each one honest about what it can and cannot
+ * know. This is a readiness *check*, not a predicted exam band: the app has no
+ * business telling someone they will get a 7.
+ */
+export const READINESS_FACTORS = [
+  {
+    key: 'coverage',
+    label: 'Module coverage',
+    hint: 'All four modules scored at least once. A band you cannot see is a band you cannot plan around.',
+  },
+  {
+    key: 'proximity',
+    label: 'Distance to target',
+    hint: 'How close your current average sits to the band you are aiming for.',
+  },
+  {
+    key: 'consistency',
+    label: 'Practice consistency',
+    hint: 'Share of days in your practice window that actually had a session.',
+  },
+  {
+    key: 'stability',
+    label: 'Score stability',
+    hint: 'How much your scored results swing. Wide swings mean the band is not yet reliable.',
+  },
+];
+
+export function computeExamReadiness(stats, moduleStats = []) {
+  const target = Number(stats?.targetScore) || 7;
+  const scored = moduleStats.filter((m) => m.count > 0);
+  const measured = Number(stats?.measuredTests) || 0;
+
+  if (measured === 0) return null;
+
+  const coverage = Math.round((scored.length / MODULES.length) * 100);
+
+  const current = Number(stats?.overallEstimate ?? stats?.avgScore);
+  const gap = Number.isFinite(current) ? target - current : null;
+  // At target or above scores 100; a full band short scores 0. Linear between.
+  const proximity = gap === null ? 0 : Math.round(Math.max(0, Math.min(1, 1 - gap / 1.0)) * 100);
+
+  const consistency = Math.min(100, Number(stats?.practiceRhythm?.consistency) || 0);
+
+  const volatilities = scored.map((m) => m.volatility).filter((v) => v != null);
+  // A 2-band swing scores 0, a flat result scores 100.
+  const stability = volatilities.length
+    ? Math.round(
+        Math.max(
+          0,
+          Math.min(1, 1 - volatilities.reduce((a, b) => a + b, 0) / volatilities.length / 2)
+        ) * 100
+      )
+    : null;
+
+  const factors = { coverage, proximity, consistency, stability };
+  const known = Object.values(factors).filter((v) => v != null);
+  const score = Math.round(known.reduce((a, b) => a + b, 0) / known.length);
+
+  return {
+    score,
+    factors,
+    // Named so the panel never has to invent copy for the state it is in.
+    verdict:
+      score >= 80
+        ? 'Exam ready'
+        : score >= 60
+          ? 'Nearly there'
+          : score >= 35
+            ? 'Building up'
+            : 'Early days',
+    tone: score >= 80 ? 'ok' : score >= 60 ? 'accent' : score >= 35 ? 'warn' : 'fault',
+    missingModules: MODULES.filter((type) => !scored.some((m) => m.type === type)),
+    measuredTests: measured,
+  };
+}
+
 export function computeChartData(filteredSessions, moduleStats) {
-  const scoredSessions = filteredSessions.filter((s) => isValidBandScore(s.score));
+  // Walk-aways are excluded here too — the per-module trend line otherwise
+  // shows a fake band-0 dip for a test the learner never actually sat, the
+  // same distortion fixed in computeStats/computeModuleStats.
+  const scoredSessions = filteredSessions.filter(
+    (s) => isValidBandScore(s.score) && !isAbandonedSession(s)
+  );
 
   const pie = computeDistribution(moduleStats);
   const moduleHistory = computeModuleHistory(scoredSessions);
   const overallProgress = computeOverallProgress(moduleHistory);
   const recentPractice = computeRecentPractice(filteredSessions);
+  // Every scored result across all modules, chronological — the "All" trend
+  // tab. Distinct from `overallProgress`, which is the IELTS-rounded Overall
+  // band and only exists once all four modules are scored.
+  const history = MODULES.flatMap((type) => moduleHistory[type] || []).sort(
+    (a, b) => a.timestamp - b.timestamp
+  );
 
-  return { pie, moduleHistory, overallProgress, recentPractice };
+  return { pie, moduleHistory, overallProgress, recentPractice, history };
 }

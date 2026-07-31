@@ -1,145 +1,100 @@
 import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
+import { BarChart3, BookOpen, Clock3, Headphones, Mic2, PenLine, Trophy } from 'lucide-react';
 import {
-  BarChart3,
-  BookOpen,
-  Clock3,
-  Headphones,
-  Info,
-  Mic2,
-  PenLine,
-  TimerReset,
-  Trophy,
-} from 'lucide-react';
-import {
-  Bar,
+  Bar as RBar,
   BarChart,
   CartesianGrid,
-  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/cn';
 import { ITEM_VARIANTS } from '../constants';
 import { buildPacingSummary } from '../hooks/analyticsCalculations';
 import { formatBand } from '../utils';
-import ModuleMasteryCard from './PerformanceTrends/ModuleMasteryCard';
+import {
+  Empty,
+  IconChip,
+  MICRO,
+  MUTED,
+  NUM,
+  PANEL,
+  PanelFootnote,
+  PanelTitle,
+  Pill,
+  TILE,
+  WELL,
+} from '@/features/dashboard/components/primitives';
+import SectionBreakdownCard from './SectionBreakdownCard';
+import PracticeHabitsCard from './PracticeHabitsCard';
 
+/**
+ * Module icons are deliberately one calm tone rather than four.
+ *
+ * Colour on this page is reserved for meaning — amber marks the module to focus
+ * on, green marks the strongest. Tinting each module its own hue as well turned
+ * the panel into a rainbow and left the one signal that matters competing with
+ * three that did not. The icon glyphs already distinguish the modules.
+ */
 const MODULE_UI = {
-  reading: {
-    label: 'Reading',
-    icon: BookOpen,
-    color: '#22a866',
-    soft: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300',
-  },
-  writing: {
-    label: 'Writing',
-    icon: PenLine,
-    color: '#4f7df3',
-    soft: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300',
-  },
-  listening: {
-    label: 'Listening',
-    icon: Headphones,
-    color: '#f5a742',
-    soft: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
-  },
-  speaking: {
-    label: 'Speaking',
-    icon: Mic2,
-    color: '#b85ed1',
-    soft: 'bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-500/10 dark:text-fuchsia-300',
-  },
+  reading: { label: 'Reading', icon: BookOpen, tone: 'neutral' },
+  writing: { label: 'Writing', icon: PenLine, tone: 'neutral' },
+  listening: { label: 'Listening', icon: Headphones, tone: 'neutral' },
+  speaking: { label: 'Speaking', icon: Mic2, tone: 'neutral' },
 };
 
-function OverviewCard({ children, className }) {
-  return (
-    <Card
-      className={cn(
-        'overflow-hidden rounded-[22px] border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)]',
-        className
-      )}
-    >
-      {children}
-    </Card>
-  );
-}
-
-function PanelHeading({ icon: Icon, title, description, action }) {
-  return (
-    <CardHeader className="px-4 pb-2 pt-4 sm:px-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl bg-[#efedff] text-[#5862df] ring-1 ring-[#5862df]/15 dark:bg-indigo-500/20 dark:text-indigo-300 shadow-xs">
-            <Icon className="h-4.5 w-4.5" strokeWidth={2.2} />
-          </div>
-          <div className="min-w-0">
-            <CardTitle className="text-base font-black tracking-tight text-slate-950 dark:text-white">
-              {title}
-            </CardTitle>
-            {description ? (
-              <p className="mt-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">
-                {description}
-              </p>
-            ) : null}
-          </div>
-        </div>
-        {action}
-      </div>
-    </CardHeader>
-  );
-}
-
-function BandRing({ module }) {
+/**
+ * Ranked module comparison — weakest first.
+ *
+ * This replaces the old four-donut grid plus the radar chart, which drew the
+ * exact same four numbers twice in the same row. Ordering weakest-to-strongest
+ * turns the panel into an answer ("work on Listening") instead of a lookup
+ * table the learner has to compare by eye.
+ */
+function ModuleRow({ module, isWeakest, isBest }) {
   const config = MODULE_UI[module.type] || MODULE_UI.reading;
   const score = module.count > 0 ? Number(module.avg) : null;
-  const progress = score == null ? 0 : Math.max(0, Math.min(100, (score / 9) * 100));
-  const radius = 21;
-  const circumference = 2 * Math.PI * radius;
-  const Icon = config.icon;
+  const pct = score == null ? 0 : Math.max(0, Math.min(100, (score / 9) * 100));
 
   return (
-    <div className="flex min-w-0 flex-col items-center justify-center rounded-2xl border border-slate-200/70 bg-gradient-to-b from-indigo-50/40 via-slate-50/60 to-slate-50/30 p-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-xs dark:border-white/10 dark:from-indigo-950/20 dark:via-slate-900/50 dark:to-slate-900/80">
-      <div className="relative h-[62px] w-[62px] shrink-0">
-        <svg viewBox="0 0 52 52" className="h-full w-full -rotate-90" aria-hidden="true">
-          <circle
-            cx="26"
-            cy="26"
-            r={radius}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="5"
-            className="text-slate-200/70 dark:text-slate-800"
-          />
-          <motion.circle
-            cx="26"
-            cy="26"
-            r={radius}
-            fill="none"
-            stroke={config.color}
-            strokeWidth="5"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset: circumference * (1 - progress / 100) }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center text-base font-bold tracking-tight text-slate-950 dark:text-white">
-          {score == null ? '—' : formatBand(score)}
+    <div className="flex items-center gap-2.5">
+      <IconChip icon={config.icon} tone={config.tone} size="sm" />
+      <div className={cn('relative h-8 flex-1 overflow-hidden rounded-md', WELL)}>
+        <div
+          className={cn(
+            'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700',
+            isWeakest ? 'bg-[rgb(var(--signal-warn)/0.18)]' : 'bg-[#5a63df]/[0.16]'
+          )}
+          style={{ width: `${pct}%` }}
+        />
+        <div className="relative flex h-full items-center justify-between gap-2 px-3">
+          <span className="truncate text-[11px] font-extrabold text-slate-800 dark:text-slate-100">
+            {config.label}
+          </span>
+          <span className={cn(MICRO, MUTED, 'shrink-0')}>
+            {module.count ? (
+              <>
+                <span className={NUM}>{module.count}</span> scored
+              </>
+            ) : (
+              'No score'
+            )}
+          </span>
         </div>
       </div>
-      <div className="mt-2 flex items-center gap-1.5 min-w-0">
-        <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: config.color }} />
-        <span className="truncate text-xs font-bold text-slate-900 dark:text-white">
-          {config.label}
-        </span>
-      </div>
-      <span className="mt-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
-        {module.count ? `${module.count} scored` : 'No score'}
+      <span
+        className={cn(
+          NUM,
+          'w-9 shrink-0 text-right text-sm font-bold',
+          score == null ? 'text-slate-300 dark:text-slate-700' : 'text-slate-900 dark:text-slate-50'
+        )}
+      >
+        {score == null ? '—' : formatBand(score)}
+      </span>
+      <span className="w-[68px] shrink-0 text-right">
+        {isWeakest ? <Pill tone="warn">Focus</Pill> : isBest ? <Pill tone="ok">Best</Pill> : null}
       </span>
     </div>
   );
@@ -165,137 +120,98 @@ function SectionPerformance({ moduleStats }) {
     return sorted[0].type !== bestModule?.type ? sorted[0] : null;
   }, [bestModule, scoredModules]);
 
+  // Weakest first: the thing to act on should be the thing read first.
+  const ordered = useMemo(() => {
+    const withScore = [...scoredModules].sort((a, b) => a.score - b.score);
+    const withoutScore = moduleStats.filter((m) => !(m.count > 0 && m.avg != null));
+    return [...withScore, ...withoutScore];
+  }, [moduleStats, scoredModules]);
+
   return (
-    <motion.div variants={ITEM_VARIANTS} className="h-full">
-      <OverviewCard className="flex h-full flex-col justify-between">
-        <PanelHeading
-          icon={BarChart3}
-          title="Section Performance"
-          description="Average band score in this period"
+    <m.div variants={ITEM_VARIANTS} className="h-full">
+      <section className={cn(PANEL, 'flex h-full flex-col p-4')}>
+        <PanelTitle
+          label="Which skill needs work"
+          accent
+          tip="Your average band per module in this period, weakest listed first."
         />
-        <CardContent className="flex flex-1 flex-col justify-between px-3.5 pb-3.5 pt-1 sm:px-4.5">
-          <div className="grid grid-cols-2 gap-2.5">
-            {moduleStats.map((module) => (
-              <BandRing key={module.type} module={module} />
+
+        {ordered.length === 0 ? (
+          <Empty icon={BarChart3}>No module scores in this period yet.</Empty>
+        ) : (
+          <div className="space-y-2">
+            {ordered.map((module) => (
+              <ModuleRow
+                key={module.type}
+                module={module}
+                isWeakest={weakestModule?.type === module.type}
+                isBest={scoredModules.length > 1 && bestModule?.type === module.type}
+              />
             ))}
           </div>
+        )}
 
-          <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-slate-200/70 bg-gradient-to-r from-indigo-50/30 to-slate-50/50 p-2.5 dark:border-white/10 dark:from-indigo-950/20 dark:to-slate-900/40">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700 shadow-xs dark:bg-indigo-950 dark:text-indigo-300">
-                <Trophy className="h-3.5 w-3.5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                  Strongest Section
-                </p>
-                <p className="text-xs font-bold text-slate-950 dark:text-white truncate">
-                  {bestModule
-                    ? `${bestModule.label} (Band ${formatBand(bestModule.score)})`
-                    : 'None scored yet'}
-                </p>
-              </div>
-            </div>
-            {weakestModule && (
-              <span className="shrink-0 rounded-lg bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/80">
-                Focus: {weakestModule.label}
-              </span>
+        <div className={cn(TILE, 'mt-3 flex items-center gap-2 p-2.5')}>
+          <IconChip icon={Trophy} tone="accent" size="sm" />
+          <p className={cn('min-w-0 text-[11px] font-medium', MUTED)}>
+            {weakestModule ? (
+              <>
+                <span className="font-extrabold text-slate-800 dark:text-slate-100">
+                  {weakestModule.label}
+                </span>{' '}
+                is your lowest at band{' '}
+                <span className={cn(NUM, 'font-bold')}>{formatBand(weakestModule.score)}</span> —
+                practising it lifts your overall score fastest.
+              </>
+            ) : bestModule ? (
+              <>
+                Strongest so far is{' '}
+                <span className="font-extrabold text-slate-800 dark:text-slate-100">
+                  {bestModule.label}
+                </span>{' '}
+                at band <span className={cn(NUM, 'font-bold')}>{formatBand(bestModule.score)}</span>
+                . Score another module to compare.
+              </>
+            ) : (
+              'Complete a scored test in each module to see which one to prioritise.'
             )}
-          </div>
-        </CardContent>
-      </OverviewCard>
-    </motion.div>
+          </p>
+        </div>
+      </section>
+    </m.div>
   );
 }
 
 function PacingTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
-
   const dataPoint = payload[0]?.payload;
-  const isSingleBar = payload.length === 1;
-  const hoveredItem = payload[0];
-
-  if (isSingleBar && hoveredItem) {
-    const isYou = hoveredItem.dataKey === 'averageMinutes';
-    const val = hoveredItem.value;
-    const delta = dataPoint?.deltaMinutes;
-
-    return (
-      <div className="min-w-[185px] rounded-xl border border-slate-200/90 bg-white/95 p-3 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-slate-900/95 animate-in fade-in-0 zoom-in-95 duration-150">
-        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2 dark:border-white/10">
-          <div className="flex items-center gap-1.5">
-            <span
-              className={cn(
-                'h-2.5 w-2.5 rounded-full shadow-xs',
-                isYou ? 'bg-[#4f46e5]' : 'bg-[#818cf8]'
-              )}
-            />
-            <span className="text-xs font-bold text-slate-950 dark:text-white">
-              {label} · {isYou ? 'Your Pace' : 'Test Limit'}
-            </span>
-          </div>
-        </div>
-
-        <div className="mt-2 space-y-1 text-xs">
-          <div className="flex items-center justify-between gap-3 text-slate-600 dark:text-slate-300">
-            <span className="font-semibold">{isYou ? 'Recorded Duration' : 'Standard Limit'}</span>
-            <span className="font-bold text-slate-950 dark:text-white text-sm">
-              {val != null ? `${val} min` : '—'}
-            </span>
-          </div>
-          {isYou && delta != null && (
-            <p className="text-[10.5px] font-bold text-indigo-600 dark:text-indigo-400 pt-0.5">
-              {Math.abs(delta) <= 3
-                ? 'On pace with benchmark'
-                : delta > 0
-                  ? `${delta}m over test limit`
-                  : `${Math.abs(delta)}m under test limit`}
-            </p>
-          )}
-          {!isYou && (
-            <p className="text-[10.5px] font-medium text-slate-400 dark:text-slate-500 pt-0.5">
-              Fixed 60-minute IELTS Reading cap
-            </p>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  const values = Object.fromEntries(payload.map((entry) => [entry.dataKey, entry.value]));
-  const youVal = values.averageMinutes;
-  const idealVal = values.benchmarkMinutes;
+  const delta = dataPoint?.deltaMinutes;
 
   return (
-    <div className="min-w-[185px] rounded-xl border border-slate-200/90 bg-white/95 p-3 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-slate-900/95 animate-in fade-in-0 zoom-in-95 duration-150">
-      <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2 dark:border-white/10">
-        <div className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-indigo-600 shadow-xs" />
-          <span className="text-xs font-bold text-slate-950 dark:text-white">{label}</span>
-        </div>
-      </div>
-
-      <div className="mt-2 space-y-1.5 text-xs font-medium">
-        <div className="flex items-center justify-between gap-3 text-slate-600 dark:text-slate-300">
-          <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-[#4f46e5]" />
-            <span>You</span>
+    <div className="min-w-[170px] rounded-lg border border-[#e4e2f0] bg-white p-2.5 shadow-lg dark:border-white/10 dark:bg-[#1b1a22]">
+      <p className="text-[11px] font-extrabold text-slate-900 dark:text-white">{label}</p>
+      <div className="mt-1.5 space-y-1">
+        {payload.map((entry) => (
+          <div
+            key={entry.dataKey}
+            className="flex items-center justify-between gap-3 text-[11px] font-medium text-slate-600 dark:text-slate-300"
+          >
+            <span>{entry.dataKey === 'averageMinutes' ? 'You' : 'Test limit'}</span>
+            <span className={cn(NUM, 'font-bold text-slate-900 dark:text-white')}>
+              {entry.value != null ? `${entry.value} min` : '—'}
+            </span>
           </div>
-          <span className="font-bold text-slate-950 dark:text-white">
-            {youVal != null ? `${youVal} min` : '—'}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between gap-3 text-slate-600 dark:text-slate-300">
-          <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-[#818cf8]" />
-            <span>Test limit</span>
-          </div>
-          <span className="font-bold text-slate-950 dark:text-white">
-            {idealVal != null ? `${idealVal} min` : '—'}
-          </span>
-        </div>
+        ))}
       </div>
+      {delta != null && (
+        <p className={cn(MICRO, 'mt-1.5 text-[#5a63df] dark:text-[#a9afff]')}>
+          {Math.abs(delta) <= 3
+            ? 'On pace with the limit'
+            : delta > 0
+              ? `${delta}m over the limit`
+              : `${Math.abs(delta)}m under the limit`}
+        </p>
+      )}
     </div>
   );
 }
@@ -304,172 +220,115 @@ function PacingChart({ efficiency }) {
   const data = useMemo(() => buildPacingSummary(efficiency), [efficiency]);
   const hasTiming = data.some((item) => item.averageMinutes != null);
   const readingData = data.find((item) => item.type === 'reading') || data[0];
+  const delta = readingData?.deltaMinutes;
+  const statusText =
+    delta == null
+      ? 'No timing'
+      : Math.abs(delta) <= 3
+        ? 'On pace'
+        : delta > 0
+          ? `${delta}m over`
+          : `${Math.abs(delta)}m under`;
 
   return (
-    <motion.div variants={ITEM_VARIANTS} className="h-full">
-      <OverviewCard className="flex h-full flex-col justify-between">
-        <PanelHeading
-          icon={TimerReset}
-          title="Reading Duration"
-          description="Recorded elapsed time vs 60-min test limit"
+    <m.div variants={ITEM_VARIANTS} className="h-full">
+      <section className={cn(PANEL, 'flex h-full flex-col p-4')}>
+        <PanelTitle
+          label="Are you finishing in time"
+          tip="Your recorded Reading duration against the 60-minute exam limit."
+          action={
+            hasTiming && delta != null ? (
+              // Running over the limit is a caution, not a failure — amber, not red.
+              <Pill tone={Math.abs(delta) <= 3 ? 'ok' : 'warn'}>{statusText}</Pill>
+            ) : null
+          }
         />
-        <CardContent className="flex flex-1 flex-col justify-between px-3.5 pb-3.5 pt-2 sm:px-4.5 space-y-3">
-          {hasTiming ? (
-            <>
-              <div className="h-[210px] sm:h-[230px] w-full" data-testid="analytics-pacing-chart">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={data}
-                    margin={{ top: 12, right: 12, left: -20, bottom: 4 }}
-                    barGap={8}
-                    barCategoryGap="15%"
-                  >
-                    <defs>
-                      <linearGradient id="pacingYouGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#6366f1" />
-                        <stop offset="100%" stopColor="#4338ca" />
-                      </linearGradient>
-                      <linearGradient id="pacingLimitGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#e0e7ff" />
-                        <stop offset="100%" stopColor="#c7d2fe" />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid
-                      vertical={false}
-                      stroke="hsl(var(--border))"
-                      opacity={0.4}
-                      strokeDasharray="3 4"
-                    />
-                    <XAxis
-                      dataKey="label"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 700 }}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                      unit="m"
-                      domain={[0, 65]}
-                    />
-                    <Tooltip content={<PacingTooltip />} shared={false} cursor={false} />
-                    <Legend
-                      iconType="circle"
-                      iconSize={8}
-                      wrapperStyle={{ fontSize: 11, fontWeight: 700, paddingTop: 6 }}
-                      formatter={(value) => (
-                        <span className="text-slate-700 dark:text-slate-200 font-bold text-xs ml-1">
-                          {value}
-                        </span>
-                      )}
-                    />
-                    <Bar
-                      dataKey="averageMinutes"
-                      name="You"
-                      fill="url(#pacingYouGrad)"
-                      radius={[6, 6, 2, 2]}
-                      barSize={40}
-                      className="cursor-pointer [&_rect]:transition-colors [&_rect]:duration-200 [&_rect:hover]:fill-[#3730a3]"
-                    />
-                    <Bar
-                      dataKey="benchmarkMinutes"
-                      name="Test Limit"
-                      fill="url(#pacingLimitGrad)"
-                      radius={[6, 6, 2, 2]}
-                      barSize={40}
-                      className="cursor-pointer [&_rect]:transition-colors [&_rect]:duration-200 [&_rect:hover]:fill-[#818cf8]"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
 
-              {readingData && (
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 w-full">
-                  <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 px-2.5 py-1.5 text-center dark:border-white/10 dark:bg-slate-900/50">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                      Module
-                    </p>
-                    <p className="mt-0.5 text-xs font-bold text-slate-900 dark:text-white">
-                      Reading
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-indigo-200/80 bg-indigo-50/70 px-2.5 py-1.5 text-center dark:border-indigo-800/40 dark:bg-indigo-950/40">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                      Your Duration
-                    </p>
-                    <p className="mt-0.5 text-xs font-bold text-indigo-700 dark:text-indigo-300">
-                      {readingData.averageMinutes != null
-                        ? `${readingData.averageMinutes} mins`
-                        : '—'}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 px-2.5 py-1.5 text-center dark:border-white/10 dark:bg-slate-900/50">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                      Test Limit
-                    </p>
-                    <p className="mt-0.5 text-xs font-bold text-slate-900 dark:text-white">
-                      {readingData.benchmarkMinutes} mins
-                    </p>
-                  </div>
-
-                  {(() => {
-                    const delta = readingData.deltaMinutes;
-                    const statusText =
-                      delta == null
-                        ? 'No timing'
-                        : Math.abs(delta) <= 3
-                          ? 'On pace'
-                          : delta > 0
-                            ? `${delta}m over`
-                            : `${Math.abs(delta)}m under`;
-
-                    return (
-                      <div className="rounded-xl border border-indigo-200/80 bg-indigo-50/70 px-2.5 py-1.5 text-center dark:border-indigo-800/40 dark:bg-indigo-950/40">
-                        <p className="text-[9px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                          Status
-                        </p>
-                        <p className="mt-0.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 truncate">
-                          {statusText}
-                        </p>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-
-              <div className="flex items-center gap-2 rounded-xl border border-slate-200/80 bg-slate-50/80 px-3 py-2 text-xs font-medium text-slate-600 dark:border-white/10 dark:bg-slate-900/40 dark:text-slate-400">
-                <Info className="h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
-                <span>
-                  Missing durations stay blank. Finishing faster is not automatically better.
-                </span>
-              </div>
-            </>
-          ) : (
-            <div className="flex h-[200px] flex-col items-center justify-center text-center">
-              <Clock3 className="mb-2 h-7 w-7 text-indigo-400" />
-              <p className="font-bold text-slate-900 dark:text-white text-sm">No timing data</p>
-              <p className="mt-0.5 max-w-xs text-xs text-slate-500">
-                Complete a timed Reading practice to compare the recorded duration.
-              </p>
+        {hasTiming ? (
+          <>
+            <div className="h-[190px] w-full" data-testid="analytics-pacing-chart">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={data}
+                  margin={{ top: 8, right: 8, left: -22, bottom: 0 }}
+                  barGap={6}
+                  barCategoryGap="22%"
+                >
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.25} />
+                  <XAxis
+                    dataKey="label"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fontWeight: 700 }}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10 }}
+                    unit="m"
+                    domain={[0, 65]}
+                  />
+                  <Tooltip content={<PacingTooltip />} cursor={false} />
+                  <RBar
+                    dataKey="averageMinutes"
+                    name="You"
+                    fill="#5a63df"
+                    radius={[4, 4, 2, 2]}
+                    barSize={26}
+                  />
+                  <RBar
+                    dataKey="benchmarkMinutes"
+                    name="Test limit"
+                    fill="#c9cdf3"
+                    radius={[4, 4, 2, 2]}
+                    barSize={26}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-          )}
-        </CardContent>
-      </OverviewCard>
-    </motion.div>
+
+            <div className="mt-2 flex items-center gap-3">
+              <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
+                <span className="h-2 w-2 rounded-full bg-[#5a63df]" /> You
+              </span>
+              <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
+                <span className="h-2 w-2 rounded-full bg-[#c9cdf3]" /> Test limit
+              </span>
+            </div>
+
+            <PanelFootnote>
+              Finishing faster is not automatically better. Missing durations stay blank.
+            </PanelFootnote>
+          </>
+        ) : (
+          <Empty icon={Clock3}>
+            Complete a timed Reading practice to compare your duration with the exam limit.
+          </Empty>
+        )}
+      </section>
+    </m.div>
   );
 }
 
-export default function AnalyticsOverview({ stats, chartData, radarData }) {
+export default function AnalyticsOverview({ stats, chartData }) {
   if (!stats || !chartData) return null;
   return (
-    <section className="space-y-4" aria-label="Analytics overview">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <section className="grid grid-cols-12 gap-3" aria-label="Analytics overview">
+      <div className="col-span-12 lg:col-span-7">
         <SectionPerformance moduleStats={stats.moduleStats || []} />
-        <ModuleMasteryCard radarData={radarData || []} />
+      </div>
+      <div className="col-span-12 lg:col-span-5">
         <PacingChart efficiency={stats.efficiency || {}} />
+      </div>
+
+      <div className="col-span-12 lg:col-span-6">
+        <SectionBreakdownCard sectionPerformance={stats.sectionPerformance || []} />
+      </div>
+      <div className="col-span-12 lg:col-span-6">
+        <PracticeHabitsCard
+          practiceRhythm={stats.practiceRhythm}
+          behaviour={stats.enhancedMetrics?.behaviour}
+        />
       </div>
     </section>
   );

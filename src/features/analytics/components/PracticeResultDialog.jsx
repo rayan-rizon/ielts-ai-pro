@@ -239,7 +239,7 @@ function SummaryResultDialog({ session, onClose }) {
                 onClose();
                 navigate(reportPath);
               }}
-              className="gap-2 rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700"
+              className="gap-2 rounded-xl bg-[#5a63df] font-bold text-white hover:bg-[#4a52c9]"
             >
               Open full report <ExternalLink className="h-4 w-4" />
             </Button>

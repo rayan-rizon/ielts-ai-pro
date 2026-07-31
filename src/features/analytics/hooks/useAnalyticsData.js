@@ -13,6 +13,7 @@ import {
   computeAdvancedMetrics,
   computeInsights,
   computeChartData,
+  computeExamReadiness,
 } from './analyticsCalculations';
 
 export default function useAnalyticsData(selectedTimeframe) {
@@ -65,6 +66,30 @@ export default function useAnalyticsData(selectedTimeframe) {
         .eq('user_id', userId)
         .eq('completion_state', 'completed')
         .order('completed_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  /**
+   * Per-skill mastery the adaptive engine already maintains (2,400+ rows in
+   * production across six modules, including Grammar and Vocabulary, which no
+   * test session covers). The dashboard reads this; Analytics — the page whose
+   * whole job is diagnosis — did not.
+   */
+  const { data: skillProficiency = [] } = useQuery({
+    queryKey: ['analytics', 'skillProficiency', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('skill_proficiency')
+        .select(
+          'skill_code, module, mastery_probability, practice_count, correct_count, streak_count'
+        )
+        .eq('user_id', userId)
+        .order('mastery_probability', { ascending: true })
+        .limit(60);
       if (error) throw error;
       return data || [];
     },
@@ -130,6 +155,8 @@ export default function useAnalyticsData(selectedTimeframe) {
     };
   }, [grammarAttempts, selectedTimeframe]);
 
+  const readiness = useMemo(() => computeExamReadiness(stats, moduleStats), [stats, moduleStats]);
+
   return {
     user: authUser,
     isLoading,
@@ -138,6 +165,8 @@ export default function useAnalyticsData(selectedTimeframe) {
       ...stats,
       moduleStats,
       ...advancedMetrics,
+      readiness,
+      skillProficiency,
       grammarEvidence,
       evidenceSummary: learningPathEvidence,
       insights: {

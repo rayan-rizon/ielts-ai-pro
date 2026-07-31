@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
+import { AnimatePresence, LayoutGroup, m } from 'framer-motion';
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import DocumentHead from '@/components/shared/DocumentHead';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/features/auth/context/AuthContext';
@@ -25,6 +24,14 @@ import {
 } from '@/features/vocabulary/data/vocabularyKits';
 import { cn } from '@/lib/cn';
 import KitCard from '@/features/vocabulary/components/KitCard';
+import {
+  IconChip,
+  MUTED,
+  PANEL,
+  Pill,
+  Stat,
+  TILE,
+} from '@/features/dashboard/components/primitives';
 
 function scrollVocabularyPageToTop(pageElement) {
   let scrollParent = pageElement?.parentElement;
@@ -63,55 +70,52 @@ function KitsLibrary() {
         description="Study curated IELTS vocabulary kits for Speaking, Reading, Writing, target bands, and common exam topics."
       />
 
-      <div className="relative min-h-screen overflow-hidden bg-[#f7f8fc] pb-20 dark:bg-[#020617]">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[380px] bg-[radial-gradient(circle_at_15%_10%,rgba(99,102,241,0.12),transparent_34%),radial-gradient(circle_at_85%_0%,rgba(14,165,233,0.09),transparent_30%)]" />
+      <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 dark:bg-[#0b0a10] dark:text-white">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+        />
 
-        <main className="relative mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8">
+        <main className="relative z-10 mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8">
           <Link
             to="/vocabulary"
-            className="ml-12 inline-flex items-center gap-2 rounded-xl px-2 py-1.5 text-xs font-extrabold text-slate-500 transition hover:bg-white hover:text-indigo-700 dark:hover:bg-white/5 dark:hover:text-white sm:ml-0"
+            className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-500 transition hover:bg-white hover:text-[#5a63df] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" /> Vocabulary Mastery
           </Link>
 
-          <section className="mt-3 overflow-hidden rounded-[30px] border border-indigo-100 bg-[linear-gradient(120deg,#eef2ff_0%,#faf5ff_47%,#eff6ff_100%)] px-5 py-6 shadow-[0_30px_80px_-58px_rgba(79,70,229,0.45)] sm:px-8 sm:py-8">
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
+          <section className={cn(PANEL, 'mt-3 p-5 sm:p-6')}>
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white/80 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-indigo-600">
-                  <Sparkles className="h-3.5 w-3.5" /> Curated from two complete IELTS banks
-                </div>
-                <h1 className="mt-3 max-w-3xl text-3xl font-black tracking-[-0.045em] text-slate-800 sm:text-4xl">
+                <Pill tone="accent">
+                  <Sparkles className="h-3 w-3" /> Curated from two complete IELTS banks
+                </Pill>
+                <h1 className="mt-3 max-w-3xl text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
                   Vocabulary Kits
                 </h1>
-                <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-600 sm:text-base">
+                <p className={cn('mt-2 max-w-2xl text-sm font-medium', MUTED)}>
                   Focused IELTS phrases in context — ready to save to your personal word bank.
                 </p>
               </div>
 
               <div className="grid grid-cols-3 gap-2">
-                {[
-                  [VOCABULARY_KITS.length, 'focused kits'],
-                  [VOCABULARY_KITS.reduce((sum, kit) => sum + kit.word_count, 0), 'entries'],
-                  [5, 'learning paths'],
-                ].map(([value, label]) => (
-                  <div
-                    key={label}
-                    className="rounded-2xl border border-white/80 bg-white/70 p-3 text-center shadow-sm"
-                  >
-                    <div className="text-xl font-black text-indigo-700">{value}</div>
-                    <div className="mt-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
-                      {label}
-                    </div>
-                  </div>
-                ))}
+                <Stat size="sm" tone="accent" label="Focused kits" value={VOCABULARY_KITS.length} />
+                <Stat
+                  size="sm"
+                  tone="emerald"
+                  label="Entries"
+                  value={VOCABULARY_KITS.reduce((sum, kit) => sum + kit.word_count, 0)}
+                />
+                <Stat size="sm" tone="sky" label="Learning paths" value={5} />
               </div>
             </div>
           </section>
 
-          <section
-            id="vocabulary-kits-catalog"
-            className="mt-5 rounded-3xl border border-[#e4e7fa] bg-gradient-to-br from-white via-[#faf9ff] to-[#f2f0ff] p-4 sm:p-5 shadow-2xs dark:border-white/10 dark:from-[#10131f] dark:to-[#10131f]"
-          >
+          <section id="vocabulary-kits-catalog" className={cn(PANEL, 'mt-4 p-4 sm:p-5')}>
             <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
               <div className="relative xl:w-80">
                 <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -119,7 +123,7 @@ function KitsLibrary() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search kits and topics..."
-                  className="h-10 rounded-xl border-slate-200 bg-white pl-10 text-sm font-semibold dark:border-white/10 dark:bg-slate-950"
+                  className="h-10 rounded-lg border-[#e2e5f2] bg-white pl-10 text-sm font-semibold dark:border-white/10 dark:bg-white/[0.04]"
                 />
               </div>
               <LayoutGroup id="vocabulary-kit-category-tabs">
@@ -131,7 +135,7 @@ function KitsLibrary() {
                   {VOCABULARY_KIT_CATEGORIES.map((item) => {
                     const isActive = category === item;
                     return (
-                      <motion.button
+                      <m.button
                         key={item}
                         type="button"
                         role="tab"
@@ -139,21 +143,21 @@ function KitsLibrary() {
                         onClick={() => setCategory(item)}
                         whileTap={{ scale: 0.97 }}
                         className={cn(
-                          'relative whitespace-nowrap rounded-xl px-3 py-2 text-[11px] font-extrabold transition-colors',
+                          'relative whitespace-nowrap rounded-lg px-3 py-2 text-[11px] font-extrabold transition-colors',
                           isActive
                             ? 'text-white'
-                            : 'bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-700 dark:bg-white/5 dark:text-slate-400'
+                            : 'bg-white text-slate-500 hover:bg-[#f4f3fb] hover:text-[#5a63df] dark:bg-white/5 dark:text-slate-400'
                         )}
                       >
                         {isActive && (
-                          <motion.span
+                          <m.span
                             layoutId="vocabulary-kit-active-category"
-                            className="absolute inset-0 rounded-xl bg-[#5661e9] shadow-[0_8px_18px_-12px_rgba(65,76,210,0.85)]"
+                            className="absolute inset-0 rounded-lg bg-[#5a63df]"
                             transition={{ type: 'spring', stiffness: 500, damping: 34 }}
                           />
                         )}
                         <span className="relative">{item}</span>
-                      </motion.button>
+                      </m.button>
                     );
                   })}
                 </div>
@@ -162,10 +166,10 @@ function KitsLibrary() {
 
             <div className="mt-4 flex items-center justify-between px-1">
               <div>
-                <h2 className="text-lg font-black tracking-tight text-slate-800 dark:text-white">
+                <h2 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
                   {category}
                 </h2>
-                <p className="mt-0.5 text-xs font-semibold text-slate-500">
+                <p className={cn('mt-0.5 text-xs font-semibold', MUTED)}>
                   {visibleKits.length} {visibleKits.length === 1 ? 'kit' : 'kits'} available
                 </p>
               </div>
@@ -173,7 +177,7 @@ function KitsLibrary() {
 
             {visibleKits.length ? (
               <AnimatePresence mode="wait" initial={false}>
-                <motion.div
+                <m.div
                   key={category}
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -190,15 +194,15 @@ function KitsLibrary() {
                       allVocabulary={vocabulary.allVocabulary}
                     />
                   ))}
-                </motion.div>
+                </m.div>
               </AnimatePresence>
             ) : (
-              <div className="mt-5 rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center dark:border-white/10 dark:bg-slate-900">
+              <div className={cn(TILE, 'mt-5 border-dashed px-6 py-16 text-center')}>
                 <Search className="mx-auto h-7 w-7 text-slate-400" />
-                <h2 className="mt-3 text-lg font-black text-slate-900 dark:text-white">
+                <h2 className="mt-3 text-lg font-extrabold text-slate-900 dark:text-white">
                   No matching kits
                 </h2>
-                <p className="mt-1 text-sm font-medium text-slate-500">
+                <p className={cn('mt-1 text-sm font-medium', MUTED)}>
                   Try a broader search or choose another learning path.
                 </p>
               </div>
@@ -279,42 +283,47 @@ function KitDetail({ kit }) {
   return (
     <>
       <DocumentHead title={`${kit.title} | IELTS Ai Pro`} description={kit.description} />
-      <div className="min-h-screen bg-[#f7f8fc] pb-20 dark:bg-[#020617]">
-        <main ref={pageTopRef} className="mx-auto max-w-[1320px] px-4 py-5 sm:px-6 lg:px-8">
+      <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 dark:bg-[#0b0a10] dark:text-white">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+        />
+        <main
+          ref={pageTopRef}
+          className="relative z-10 mx-auto max-w-[1320px] px-4 py-5 sm:px-6 lg:px-8"
+        >
           <Link
             to="/vocabulary/kits"
-            className="ml-12 inline-flex items-center gap-2 rounded-xl px-2 py-1.5 text-xs font-extrabold text-slate-500 transition hover:bg-white hover:text-indigo-700 dark:hover:bg-white/5 dark:hover:text-white sm:ml-0"
+            className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-500 transition hover:bg-white hover:text-[#5a63df] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" /> All Vocabulary Kits
           </Link>
 
-          <section className="relative mt-3 overflow-hidden rounded-[30px] border border-indigo-100 bg-white px-5 py-7 shadow-[0_24px_70px_-50px_rgba(48,58,128,0.7)] dark:border-white/10 dark:bg-slate-900 sm:px-8 sm:py-9">
-            <div className="absolute inset-y-0 right-0 hidden w-[42%] bg-[radial-gradient(circle_at_70%_40%,rgba(99,102,241,0.16),transparent_55%)] lg:block" />
+          <section className={cn(PANEL, 'relative mt-3 overflow-hidden p-5 sm:p-6')}>
+            <div className="absolute inset-y-0 right-0 hidden w-[42%] bg-[radial-gradient(circle_at_70%_40%,rgba(90,99,223,0.14),transparent_55%)] lg:block" />
             <div className="relative max-w-3xl">
-              <Badge className="border border-indigo-100 bg-indigo-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-indigo-600 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-indigo-300">
-                {kit.category}
-              </Badge>
-              <h1 className="mt-4 text-3xl font-black tracking-[-0.045em] text-slate-800 dark:text-white sm:text-4xl">
+              <Pill tone="accent">{kit.category}</Pill>
+              <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
                 {kit.title}
               </h1>
-              <p className="mt-3 max-w-2xl text-base font-medium leading-7 text-slate-600 dark:text-slate-300">
+              <p className={cn('mt-2 max-w-2xl text-sm font-medium leading-6', MUTED)}>
                 {kit.description}
               </p>
-              <div className="mt-5 flex flex-wrap gap-2 text-[11px] font-extrabold">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-slate-600 dark:bg-white/5 dark:text-slate-300">
-                  <Layers3 className="h-3.5 w-3.5 text-indigo-500" />
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Pill tone="neutral">
+                  <Layers3 className="h-3 w-3 text-[#5a63df]" />
                   {kit.word_count} entries
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
+                </Pill>
+                <Pill tone="emerald">
+                  <CheckCircle2 className="h-3 w-3" />
                   {savedCount} saved
-                </span>
+                </Pill>
               </div>
             </div>
           </section>
 
-          <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_290px] lg:items-start">
-            <article className="overflow-hidden rounded-[28px] border border-slate-200/90 bg-white shadow-[0_18px_55px_-44px_rgba(48,58,128,0.7)] dark:border-white/10 dark:bg-slate-950">
+          <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_290px] lg:items-start">
+            <article className={cn(PANEL, 'overflow-hidden')}>
               <VocabularyStudyView
                 resource={kit}
                 user={user}
@@ -327,32 +336,35 @@ function KitDetail({ kit }) {
               />
             </article>
 
-            <aside className="space-y-4 lg:sticky lg:top-5">
-              <section className="rounded-3xl border border-indigo-100 bg-[linear-gradient(145deg,#f8f8ff,#eef1ff)] p-5 dark:border-indigo-400/20 dark:bg-none dark:bg-slate-900">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-indigo-600 shadow-sm dark:bg-white/10 dark:text-indigo-300">
-                  <Target className="h-5 w-5" />
-                </div>
-                <h2 className="mt-3 text-base font-black text-slate-800 dark:text-white">
+            <aside className="space-y-3 lg:sticky lg:top-5">
+              <section className={cn(PANEL, 'p-4 sm:p-5')}>
+                <IconChip icon={Target} size="lg" />
+                <h2 className="mt-3 text-base font-extrabold text-slate-900 dark:text-white">
                   Study this kit well
                 </h2>
-                <ol className="mt-3 space-y-2 text-xs font-semibold leading-5 text-slate-600 dark:text-slate-300">
+                <ol className={cn('mt-3 space-y-2 text-xs font-semibold leading-5', MUTED)}>
                   <li>1. Read the phrase and its precise meaning.</li>
                   <li>2. Notice the natural collocation or model use.</li>
                   <li>3. Save one item or add every new item to your word bank.</li>
                 </ol>
-                <Button asChild className="mt-4 w-full rounded-xl bg-indigo-600 font-extrabold">
+                <Button
+                  asChild
+                  className="mt-4 w-full rounded-lg bg-[#5a63df] font-bold hover:bg-[#4a52c9]"
+                >
                   <Link to="/vocabulary">
                     Open my word bank <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               </section>
 
-              <section className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-slate-900">
+              <section className={cn(PANEL, 'p-4 sm:p-5')}>
                 <div className="flex items-center gap-2">
-                  <BookOpenText className="h-4 w-4 text-indigo-500" />
-                  <h2 className="text-sm font-black text-slate-800 dark:text-white">Source bank</h2>
+                  <BookOpenText className="h-4 w-4 text-[#5a63df]" />
+                  <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                    Source bank
+                  </h2>
                 </div>
-                <p className="mt-2 text-xs font-medium leading-5 text-slate-500 dark:text-slate-400">
+                <p className={cn('mt-2 text-xs font-medium leading-5', MUTED)}>
                   {kit.source}. Entries are presented as phrases and collocations so learners can
                   practise accurate use instead of memorising isolated words.
                 </p>
@@ -367,14 +379,20 @@ function KitDetail({ kit }) {
 
 function MissingKit() {
   return (
-    <div className="min-h-screen bg-[#f7f8fc] px-4 py-20 dark:bg-[#020617]">
-      <section className="mx-auto max-w-xl rounded-3xl border border-slate-200 bg-white p-8 text-center dark:border-white/10 dark:bg-slate-900">
-        <BookOpenText className="mx-auto h-8 w-8 text-indigo-500" />
-        <h1 className="mt-3 text-xl font-black text-slate-800 dark:text-white">Kit not found</h1>
-        <p className="mt-2 text-sm font-medium text-slate-500">
+    <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] px-4 py-20 dark:bg-[#0b0a10]">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+      />
+      <section className={cn(PANEL, 'relative z-10 mx-auto max-w-xl p-8 text-center')}>
+        <BookOpenText className="mx-auto h-8 w-8 text-[#5a63df]" />
+        <h1 className="mt-3 text-xl font-extrabold text-slate-900 dark:text-white">
+          Kit not found
+        </h1>
+        <p className={cn('mt-2 text-sm font-medium', MUTED)}>
           This Vocabulary Kit is not available.
         </p>
-        <Button asChild className="mt-5 rounded-xl bg-indigo-600 font-extrabold">
+        <Button asChild className="mt-5 rounded-lg bg-[#5a63df] font-bold hover:bg-[#4a52c9]">
           <Link to="/vocabulary/kits">Browse all kits</Link>
         </Button>
       </section>

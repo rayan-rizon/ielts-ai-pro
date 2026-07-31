@@ -1,10 +1,13 @@
 import React from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { Headphones } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MemoizedTestCard } from './TestCard';
 import ListeningCardListView from './ListeningCardListView';
-import { COLOR_KEYS } from './colorConfig';
+import { cn } from '@/lib/cn';
+import { Empty, PANEL } from '@/features/dashboard/components/primitives';
+
+const GRID_CLASS = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3';
 
 function getTestNumber(test) {
   return test.cambridge_test_number || test.title.match(/Test\s*(\d+)/i)?.[1] || 1;
@@ -61,28 +64,31 @@ function groupTestsByVolume(tests) {
   });
 }
 
+function SkeletonGridItem({ i }) {
+  return (
+    <div key={i} className={cn(PANEL, 'flex h-[280px] flex-col p-4')}>
+      <div className="mb-3 flex items-start justify-between">
+        <Skeleton className="h-9 w-9 rounded-lg" />
+        <Skeleton className="h-5 w-16 rounded-full" />
+      </div>
+      <div className="flex-grow space-y-3">
+        <Skeleton className="h-5 w-3/4 rounded-lg" />
+        <Skeleton className="h-3.5 w-full rounded-lg" />
+        <div className="grid grid-cols-2 gap-2 pt-2">
+          <Skeleton className="h-8 rounded-lg" />
+          <Skeleton className="h-8 rounded-lg" />
+        </div>
+      </div>
+      <Skeleton className="mt-3 h-10 w-full rounded-lg" />
+    </div>
+  );
+}
+
 export function ListeningSkeletonGrid() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-6">
+    <div className={GRID_CLASS}>
       {[...Array(8)].map((_, i) => (
-        <div
-          key={i}
-          className="bg-white dark:bg-[#111111] rounded-2xl border border-slate-200 dark:border-white/5 p-6 flex flex-col h-[400px]"
-        >
-          <div className="flex justify-between items-start mb-6">
-            <Skeleton className="w-12 h-12 rounded-xl" />
-            <Skeleton className="h-6 w-20 rounded-lg" />
-          </div>
-          <div className="flex-grow space-y-4">
-            <Skeleton className="h-7 w-3/4 rounded-lg" />
-            <Skeleton className="h-4 w-full rounded-lg" />
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <Skeleton className="h-10 rounded-xl" />
-              <Skeleton className="h-10 rounded-xl" />
-            </div>
-          </div>
-          <Skeleton className="h-12 w-full rounded-xl mt-6" />
-        </div>
+        <SkeletonGridItem key={i} i={i} />
       ))}
     </div>
   );
@@ -90,19 +96,11 @@ export function ListeningSkeletonGrid() {
 
 function ListeningEmptyState({ searchQuery }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="col-span-full py-24 text-center bg-transparent"
-    >
-      <div className="w-24 h-24 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-        <Headphones className="w-10 h-10 text-slate-300 dark:text-slate-600" />
-      </div>
-      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No tests available</h3>
-      <p className="text-slate-500 dark:text-slate-400">
+    <div className={cn(PANEL, 'col-span-full p-4 sm:p-5')}>
+      <Empty icon={Headphones}>
         {searchQuery ? `No tests matching "${searchQuery}"` : "Admins haven't added any tests yet."}
-      </p>
-    </motion.div>
+      </Empty>
+    </div>
   );
 }
 
@@ -120,13 +118,13 @@ function ListeningGridOnly({
 }) {
   return (
     <AnimatePresence mode="wait">
-      <motion.div
+      <m.div
         key={activeTab}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-6"
+        className={GRID_CLASS}
       >
         {filteredTests.map((test) => {
           const testSession = sessions.find((s) => s.passage_id === test.id);
@@ -150,7 +148,7 @@ function ListeningGridOnly({
           );
         })}
         {filteredTests.length === 0 && <ListeningEmptyState searchQuery={searchQuery} />}
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   );
 }
@@ -162,31 +160,27 @@ export function ListeningTestsGrid(props) {
     const grouped = groupTestsByVolume(filteredTests);
     return (
       <AnimatePresence mode="wait">
-        <motion.div
+        <m.div
           key={props.activeTab}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
+          className={GRID_CLASS}
         >
-          {grouped.map((group, index) => {
-            const color = COLOR_KEYS[index % COLOR_KEYS.length];
-            return (
-              <ListeningCardListView
-                key={group.id}
-                group={group}
-                sessions={sessions}
-                userData={userData}
-                isAdmin={isAdmin}
-                hasMounted={hasMounted}
-                questionCounts={props.questionCounts}
-                color={color}
-              />
-            );
-          })}
+          {grouped.map((group) => (
+            <ListeningCardListView
+              key={group.id}
+              group={group}
+              sessions={sessions}
+              userData={userData}
+              isAdmin={isAdmin}
+              hasMounted={hasMounted}
+              questionCounts={props.questionCounts}
+            />
+          ))}
           {filteredTests.length === 0 && <ListeningEmptyState searchQuery={searchQuery} />}
-        </motion.div>
+        </m.div>
       </AnimatePresence>
     );
   }

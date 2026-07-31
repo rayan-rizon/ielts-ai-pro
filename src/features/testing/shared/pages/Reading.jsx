@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -8,6 +7,8 @@ import ReadingHeader from '@/features/testing/reading/ReadingHeader';
 import { SkeletonGrid, TestsGrid } from '@/features/testing/reading/ReadingGrid';
 import { useReadingData } from '@/features/testing/reading/useReadingData';
 import { filterReadingTests } from '@/features/testing/reading/readingFilterUtils';
+import { MICRO, MUTED } from '@/features/dashboard/components/primitives';
+import { cn } from '@/lib/cn';
 
 export default function Reading() {
   const { userProfile: userData, isAdmin, loading: authLoading } = useAuth();
@@ -37,16 +38,18 @@ export default function Reading() {
   const filteredTests = filterReadingTests(passages, sessions, activeTab, debouncedSearchQuery);
 
   return (
-    <div
-      className="min-h-screen bg-[#FDFDFF] dark:bg-[#050505] font-sans text-slate-900 dark:text-slate-100"
-      data-oid="wm8:xgq"
-    >
+    <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#0b0a10] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5">
       <div
-        className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-2 sm:pt-3 pb-6 space-y-4"
-        data-oid="f56k7km"
-      >
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+      />
+
+      <div className="relative z-10 mx-auto max-w-[1600px] space-y-4">
         <ReadingHeader
-          totalPassages={passages.length}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           activeTab={activeTab}
@@ -55,55 +58,52 @@ export default function Reading() {
           onViewModeChange={setViewMode}
         />
 
-        <div className="min-h-[600px]" data-oid="e0wud_g">
-          {isLoading ? (
-            <SkeletonGrid viewMode={viewMode} />
-          ) : (
-            <TestsGrid
-              filteredTests={filteredTests}
-              sessions={sessions}
-              testCounts={testCounts}
-              questionCounts={questionCounts}
-              durations={durations}
-              userData={userData}
-              isAdmin={isAdmin}
-              hasMounted={hasMounted}
-              viewMode={viewMode}
-              searchQuery={searchQuery}
-              activeTab={activeTab}
-            />
-          )}
+        {isLoading ? (
+          <SkeletonGrid viewMode={viewMode} />
+        ) : (
+          <TestsGrid
+            filteredTests={filteredTests}
+            sessions={sessions}
+            testCounts={testCounts}
+            questionCounts={questionCounts}
+            durations={durations}
+            userData={userData}
+            isAdmin={isAdmin}
+            hasMounted={hasMounted}
+            viewMode={viewMode}
+            searchQuery={searchQuery}
+            activeTab={activeTab}
+          />
+        )}
 
-          {!isLoading && readingData?.hasMore && (
-            <div className="flex justify-center mt-12" data-oid="zv16_e_">
-              <Button
-                onClick={handleLoadMore}
-                disabled={isLoadingMore}
-                variant="outline"
-                className="px-8 py-3 rounded-2xl border-2 border-blue-500/20 bg-white/80 dark:bg-white/5 backdrop-blur-xl text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest text-xs hover:bg-blue-500/10 hover:border-blue-500/40 transition-all duration-300 shadow-lg shadow-blue-500/5"
-                data-oid="y.p0nr8"
-              >
-                {isLoadingMore ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-                    Loading...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    Load More Tests <ChevronRight className="w-4 h-4" />
-                  </span>
-                )}
-              </Button>
-            </div>
-          )}
+        {!isLoading && readingData?.hasMore && (
+          <div className="flex justify-center pt-2">
+            <button
+              type="button"
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#e2e5f2] bg-white px-6 text-xs font-bold uppercase tracking-wider text-[#5a63df] transition-all hover:bg-[#5a63df]/[0.06] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-[#a9afff]"
+            >
+              {isLoadingMore ? (
+                <>
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#5a63df]/30 border-t-[#5a63df]" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  Load More Tests <ChevronRight className="h-3.5 w-3.5" />
+                </>
+              )}
+            </button>
+          </div>
+        )}
 
-          {!isLoading && readingData?.totalCount > 0 && (
-            <p className="text-center text-xs text-slate-400 mt-4" data-oid="74nc1:d">
-              Showing {filteredTests.length} of {readingData.totalCount} tests
-            </p>
-          )}
-        </div>
+        {!isLoading && readingData?.totalCount > 0 && (
+          <p className={cn(MICRO, MUTED, 'pt-1 text-center')}>
+            Showing {filteredTests.length} of {readingData.totalCount} tests
+          </p>
+        )}
       </div>
-    </div>
+    </main>
   );
 }

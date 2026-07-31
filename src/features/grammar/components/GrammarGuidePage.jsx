@@ -22,6 +22,7 @@ import { cn } from '@/lib/cn';
 import { skillLabel, skillMeta } from '../constants';
 import { getGrammarGuide } from '../data/grammarGuideCatalog';
 import { contentTierLabel, hasContentAccess } from '@/features/subscription/config/contentAccess';
+import { IconChip, MUTED, PANEL, Pill } from '@/features/dashboard/components/primitives';
 
 function headingId(value) {
   return String(value || '')
@@ -39,7 +40,7 @@ function renderInline(value, keyPrefix) {
         return (
           <strong
             key={`${keyPrefix}-strong-${index}`}
-            className="font-extrabold text-slate-950 dark:text-white"
+            className="font-extrabold text-slate-900 dark:text-white"
           >
             {part.slice(2, -2)}
           </strong>
@@ -138,9 +139,9 @@ function GuideBlock({ block, index }) {
       <h3
         id={block.id}
         className={cn(
-          'mt-6 scroll-mt-24 text-base font-extrabold tracking-tight text-slate-950 dark:text-white',
+          'mt-6 scroll-mt-24 text-base font-extrabold tracking-tight text-slate-900 dark:text-white',
           isPractice &&
-            'rounded-2xl border border-indigo-100 bg-indigo-50/70 px-4 py-3 text-indigo-950 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-indigo-100'
+            'rounded-lg border border-[#5a63df]/20 bg-[#5a63df]/[0.06] px-4 py-3 text-slate-900 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-indigo-100'
         )}
       >
         {content}
@@ -154,14 +155,14 @@ function GuideBlock({ block, index }) {
       <XCircle
         role="img"
         aria-label="Incorrect example"
-        className="mt-1.5 h-4 w-4 shrink-0 text-rose-500"
+        className="mt-1.5 h-4 w-4 shrink-0 text-rose-500 dark:text-rose-400"
       />
     ) : (
       <CheckCircle2
         role={isCorrectExample ? 'img' : undefined}
         aria-label={isCorrectExample ? 'Correct example' : undefined}
         aria-hidden={isCorrectExample ? undefined : true}
-        className="mt-1.5 h-4 w-4 shrink-0 text-emerald-500"
+        className="mt-1.5 h-4 w-4 shrink-0 text-emerald-500 dark:text-emerald-400"
       />
     );
 
@@ -179,21 +180,21 @@ function GuideBlock({ block, index }) {
   }
   if (block.type === 'numbered') {
     return (
-      <li className="ml-5 list-decimal pl-1 text-sm font-medium leading-7 text-slate-600 marker:font-extrabold marker:text-[#5963e8] dark:text-slate-300">
+      <li className="ml-5 list-decimal pl-1 text-sm font-medium leading-7 text-slate-600 marker:font-extrabold marker:text-[#5a63df] dark:text-slate-300">
         {content}
       </li>
     );
   }
   if (block.type === 'example') {
     return (
-      <blockquote className="my-4 rounded-2xl border border-[#dfe3fb] bg-[#f5f6ff] px-5 py-4 text-[15px] font-bold leading-7 text-slate-800 shadow-[inset_4px_0_0_#6972e8] dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-slate-100">
+      <blockquote className="my-4 rounded-lg border border-[#dfe3fa] bg-[#f5f6ff] px-5 py-4 text-[15px] font-bold leading-7 text-slate-800 shadow-[inset_4px_0_0_#5a63df] dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-slate-100">
         {content}
       </blockquote>
     );
   }
   if (block.type === 'table') {
     return (
-      <div className="my-4 overflow-x-auto rounded-2xl border border-[#e3e6f4] dark:border-white/10">
+      <div className="my-4 overflow-x-auto rounded-lg border border-[#e3e6f4] dark:border-white/10">
         <table className="w-full min-w-[520px] border-collapse text-left text-xs">
           <thead className="bg-[#f5f6fc] text-slate-800 dark:bg-white/5 dark:text-white">
             <tr>
@@ -271,10 +272,10 @@ function InteractiveAnswerCheck({ section }) {
   };
 
   return (
-    <div className="rounded-2xl border border-emerald-200 bg-emerald-50/65 p-4 dark:border-emerald-400/20 dark:bg-emerald-400/10">
+    <div className="rounded-lg border border-emerald-200 bg-emerald-50/65 p-4 dark:border-emerald-400/20 dark:bg-emerald-400/10">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-black text-emerald-950 dark:text-emerald-100">
+          <div className="text-sm font-extrabold text-emerald-950 dark:text-emerald-100">
             Check one answer at a time
           </div>
           <p className="mt-1 text-xs font-medium leading-5 text-emerald-800/75 dark:text-emerald-200/75">
@@ -305,7 +306,7 @@ function InteractiveAnswerCheck({ section }) {
           return (
             <div
               key={item.number}
-              className="overflow-hidden rounded-xl border border-emerald-200/80 bg-white/85 dark:border-emerald-400/15 dark:bg-[#10131f]"
+              className="overflow-hidden rounded-lg border border-emerald-200/80 bg-white/85 dark:border-emerald-400/15 dark:bg-[#10131f]"
             >
               {!isRevealed ? (
                 <button
@@ -363,7 +364,7 @@ function InteractiveAnswerCheck({ section }) {
       </div>
 
       {checked.size === items.length && (
-        <div className="mt-3 rounded-xl bg-emerald-100/80 px-3 py-2 text-xs font-bold text-emerald-900 dark:bg-emerald-400/15 dark:text-emerald-100">
+        <div className="mt-3 rounded-lg bg-emerald-100/80 px-3 py-2 text-xs font-bold text-emerald-900 dark:bg-emerald-400/15 dark:text-emerald-100">
           {confident.size === items.length
             ? 'Strong check. Continue to measured practice while the rule is fresh.'
             : `${items.length - confident.size} item${
@@ -393,10 +394,8 @@ function GuideSection({ section }) {
     >
       {section.title && (
         <div className="mb-4 flex items-start gap-3">
-          <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#eef0ff] text-[#5661e9] dark:bg-indigo-400/10 dark:text-indigo-300">
-            {isAnswerKey ? <CheckCircle2 className="h-4 w-4" /> : <Lightbulb className="h-4 w-4" />}
-          </div>
-          <h2 className="text-xl font-black tracking-[-0.025em] text-slate-950 dark:text-white">
+          <IconChip icon={isAnswerKey ? CheckCircle2 : Lightbulb} size="lg" />
+          <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             {displayTitle}
           </h2>
         </div>
@@ -418,13 +417,15 @@ export default function GrammarGuidePage({
 }) {
   if (!resource) {
     return (
-      <section className="mx-auto max-w-3xl rounded-3xl border border-[#e3e6f4] bg-white p-8 text-center">
-        <BookOpenText className="mx-auto h-8 w-8 text-[#6872e8]" />
-        <h1 className="mt-3 text-xl font-black text-slate-950">Guide not found</h1>
-        <p className="mt-2 text-sm font-medium text-slate-500">
+      <section className={cn(PANEL, 'mx-auto max-w-3xl p-8 text-center')}>
+        <BookOpenText className="mx-auto h-8 w-8 text-[#5a63df]" />
+        <h1 className="mt-3 text-xl font-extrabold text-slate-900 dark:text-white">
+          Guide not found
+        </h1>
+        <p className={cn('mt-2 text-sm font-medium', MUTED)}>
           This Grammar Lab guide is not available.
         </p>
-        <Button onClick={onBack} variant="outline" className="mt-5 rounded-xl font-extrabold">
+        <Button onClick={onBack} variant="outline" className="mt-5 rounded-lg font-bold">
           Back to Grammar Lab
         </Button>
       </section>
@@ -433,24 +434,22 @@ export default function GrammarGuidePage({
 
   if (!hasContentAccess(user, resource.access_tier)) {
     return (
-      <section className="mx-auto max-w-2xl rounded-3xl border border-[#dfe3fa] bg-white p-8 text-center shadow-[0_18px_55px_-44px_rgba(48,58,128,0.7)] dark:border-indigo-400/20 dark:bg-[#10131f] sm:p-10">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-300">
-          <LockKeyhole className="h-6 w-6" />
-        </div>
-        <h1 className="mt-4 text-xl font-black tracking-tight text-slate-950 dark:text-white">
+      <section className={cn(PANEL, 'mx-auto max-w-2xl p-8 text-center sm:p-10')}>
+        <IconChip icon={LockKeyhole} size="lg" className="mx-auto" />
+        <h1 className="mt-4 text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
           {contentTierLabel(resource.access_tier)} grammar guide
         </h1>
-        <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
+        <p className={cn('mx-auto mt-2 max-w-md text-sm font-medium leading-6', MUTED)}>
           Upgrade to {contentTierLabel(resource.access_tier)} to continue this workbook unit and its
           practice.
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
-          <Button onClick={onBack} variant="outline" className="rounded-xl font-extrabold">
+          <Button onClick={onBack} variant="outline" className="rounded-lg font-bold">
             Back to Grammar Lab
           </Button>
           <Button
             asChild
-            className="rounded-xl bg-[#5661e9] font-extrabold text-white hover:bg-[#4853d6]"
+            className="rounded-lg bg-[#5a63df] font-bold text-white hover:bg-[#4a52c9]"
           >
             <Link to="/pricing">View plans</Link>
           </Button>
@@ -484,35 +483,35 @@ export default function GrammarGuidePage({
       <button
         type="button"
         onClick={onBack}
-        className="mb-4 inline-flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-extrabold text-slate-500 transition hover:bg-white hover:text-slate-950 dark:hover:bg-white/5 dark:hover:text-white"
+        className="mb-4 inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-500 transition hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
       >
         <ArrowLeft className="h-4 w-4" /> Grammar Lab
       </button>
 
-      <section className="relative overflow-hidden rounded-3xl border border-[#dfe3f3] bg-white px-6 py-7 shadow-[0_24px_70px_-50px_rgba(48,58,128,0.7)] dark:border-white/10 dark:bg-[#10131f] sm:px-8 sm:py-9">
-        <div className="absolute inset-y-0 right-0 hidden w-[42%] bg-[radial-gradient(circle_at_70%_40%,rgba(126,135,255,0.18),transparent_55%)] lg:block" />
+      <section className={cn(PANEL, 'relative overflow-hidden px-6 py-7 sm:px-8 sm:py-9')}>
+        <div className="absolute inset-y-0 right-0 hidden w-[42%] bg-[radial-gradient(circle_at_70%_40%,rgba(90,99,223,0.14),transparent_55%)] lg:block" />
         <div className="relative max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#dfe3ff] bg-[#f2f3ff] px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#5059d8]">
-            <BookOpenText className="h-3.5 w-3.5" />
+          <Pill tone="accent">
+            <BookOpenText className="h-3 w-3" />
             {skillLabel(resource.skill_code)}
-          </div>
-          <h1 className="mt-4 text-3xl font-black tracking-[-0.045em] text-slate-950 dark:text-white sm:text-4xl">
+          </Pill>
+          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
             {resource.title}
           </h1>
-          <p className="mt-3 max-w-2xl text-base font-medium leading-7 text-slate-600 dark:text-slate-300">
+          <p className={cn('mt-3 max-w-2xl text-base font-medium leading-7', MUTED)}>
             {resource.summary}
           </p>
-          <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-bold text-slate-500">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f7f8fc] px-3 py-1.5">
-              <Clock3 className="h-3.5 w-3.5 text-[#6872e8]" />
+          <div className="mt-5 flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f4f3fb] px-3 py-1.5 dark:bg-white/5">
+              <Clock3 className="h-3.5 w-3.5 text-[#5a63df]" />
               {resource.estimated_minutes} minute guide
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
               <Sparkles className="h-3.5 w-3.5" />
               IELTS Writing & Speaking
             </span>
             {resource.unit_number && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f7f8fc] px-3 py-1.5 dark:bg-white/5">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f4f3fb] px-3 py-1.5 dark:bg-white/5">
                 Unit {resource.unit_number} of 18
               </span>
             )}
@@ -520,19 +519,16 @@ export default function GrammarGuidePage({
         </div>
       </section>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
-        <article className="space-y-8 rounded-3xl border border-[#e3e6f4] bg-white px-5 py-7 shadow-[0_18px_55px_-44px_rgba(48,58,128,0.7)] dark:border-white/10 dark:bg-[#10131f] sm:px-8 sm:py-9">
+      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+        <article className={cn(PANEL, 'space-y-8 px-5 py-7 sm:px-8 sm:py-9')}>
           {sections.map((section) => (
             <GuideSection key={section.id} section={section} />
           ))}
         </article>
 
-        <aside className="space-y-4 lg:sticky lg:top-6">
-          <nav
-            aria-label="Guide contents"
-            className="rounded-3xl border border-[#e3e6f4] bg-white p-5 shadow-[0_18px_55px_-44px_rgba(48,58,128,0.7)] dark:border-white/10 dark:bg-[#10131f]"
-          >
-            <div className="text-xs font-extrabold uppercase tracking-[0.13em] text-[#5963d9]">
+        <aside className="space-y-3 lg:sticky lg:top-6">
+          <nav aria-label="Guide contents" className={cn(PANEL, 'p-4 sm:p-5')}>
+            <div className="text-xs font-extrabold uppercase tracking-[0.13em] text-[#5a63df]">
               In this guide
             </div>
             <div className="mt-3 space-y-1">
@@ -540,9 +536,9 @@ export default function GrammarGuidePage({
                 <a
                   key={`${item.id}-${index}`}
                   href={`#${item.id}`}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-bold text-slate-600 transition hover:bg-[#f3f4ff] hover:text-[#505bdd] dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-indigo-300"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-bold text-slate-600 transition hover:bg-[#f4f3fb] hover:text-[#5a63df] dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-indigo-300"
                 >
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#eef0ff] text-[10px] text-[#5963d9]">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#5a63df]/10 text-[10px] text-[#5a63df] dark:bg-indigo-500/20 dark:text-indigo-300">
                     {index + 1}
                   </span>
                   {item.title}
@@ -551,33 +547,31 @@ export default function GrammarGuidePage({
             </div>
           </nav>
 
-          <section className="rounded-3xl border border-[#dfe3fa] bg-[linear-gradient(145deg,#f7f7ff,#eef1ff)] p-5 dark:border-indigo-400/20 dark:bg-none dark:bg-[#10131f]">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#5661e9] shadow-sm">
-              <Route className="h-5 w-5" />
-            </div>
-            <h2 className="mt-3 text-base font-black text-slate-950 dark:text-white">
+          <section className={cn(PANEL, 'p-4 sm:p-5')}>
+            <IconChip icon={Route} size="lg" />
+            <h2 className="mt-3 text-base font-extrabold text-slate-900 dark:text-white">
               Your next step
             </h2>
-            <p className="mt-2 text-xs font-medium leading-5 text-slate-600 dark:text-slate-300">
+            <p className={cn('mt-2 text-xs font-medium leading-5', MUTED)}>
               {meta.guideOutcome || meta.transferHint}
             </p>
             <Button
               onClick={() => onPractice(resource.skill_code)}
               disabled={isStarting}
-              className="mt-4 w-full rounded-xl bg-[#5661e9] font-extrabold text-white hover:bg-[#4853d6]"
+              className="mt-4 w-full rounded-lg bg-[#5a63df] font-bold text-white hover:bg-[#4a52c9]"
             >
               Practise this skill <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </section>
 
-          <section className="rounded-3xl border border-[#dce8e2] bg-[linear-gradient(145deg,#f6fffb,#effbf5)] p-5 dark:border-emerald-400/20 dark:bg-none dark:bg-[#10131f]">
+          <section className={cn(PANEL, 'p-4 sm:p-5')}>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
-              <h2 className="text-sm font-black text-slate-950 dark:text-white">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">
                 {isCompleted ? 'Guide completed' : 'Finished this guide?'}
               </h2>
             </div>
-            <p className="mt-2 text-xs font-medium leading-5 text-slate-600 dark:text-slate-300">
+            <p className={cn('mt-2 text-xs font-medium leading-5', MUTED)}>
               {isCompleted
                 ? 'This is saved to your Grammar Lab progress. You can change it whenever you need.'
                 : 'Mark it complete only after you have worked through the guide and its checks.'}
@@ -588,7 +582,7 @@ export default function GrammarGuidePage({
               disabled={!onSetCompletion || isUpdatingCompletion}
               variant={isCompleted ? 'outline' : 'default'}
               className={cn(
-                'mt-4 w-full rounded-xl font-extrabold',
+                'mt-4 w-full rounded-lg font-bold',
                 !isCompleted && 'bg-emerald-600 text-white hover:bg-emerald-700'
               )}
             >
@@ -597,14 +591,11 @@ export default function GrammarGuidePage({
           </section>
 
           {(previousGuide || nextGuide) && (
-            <nav
-              aria-label="Workbook units"
-              className="grid grid-cols-2 gap-2 rounded-3xl border border-[#e3e6f4] bg-white p-3 dark:border-white/10 dark:bg-[#10131f]"
-            >
+            <nav aria-label="Workbook units" className={cn(PANEL, 'grid grid-cols-2 gap-2 p-3')}>
               {previousGuide ? (
                 <Link
                   to={`/grammar/guides/${previousGuide.slug}`}
-                  className="rounded-xl px-3 py-2 text-left text-[10px] font-extrabold text-slate-500 transition hover:bg-[#f3f4ff] hover:text-[#505bdd] dark:hover:bg-white/5"
+                  className="rounded-lg px-3 py-2 text-left text-[10px] font-extrabold text-slate-500 transition hover:bg-[#f4f3fb] hover:text-[#5a63df] dark:text-slate-400 dark:hover:bg-white/5"
                 >
                   ← Unit {previousGuide.unit_number}
                 </Link>
@@ -614,7 +605,7 @@ export default function GrammarGuidePage({
               {nextGuide && (
                 <Link
                   to={`/grammar/guides/${nextGuide.slug}`}
-                  className="rounded-xl px-3 py-2 text-right text-[10px] font-extrabold text-[#5661e9] transition hover:bg-[#f3f4ff] dark:hover:bg-white/5"
+                  className="rounded-lg px-3 py-2 text-right text-[10px] font-extrabold text-[#5a63df] transition hover:bg-[#f4f3fb] dark:hover:bg-white/5"
                 >
                   Unit {nextGuide.unit_number} →
                 </Link>
@@ -622,8 +613,10 @@ export default function GrammarGuidePage({
             </nav>
           )}
 
-          <section className="rounded-3xl border border-[#e3e6f4] bg-white p-5 dark:border-white/10 dark:bg-[#10131f]">
-            <h2 className="text-sm font-black text-slate-950 dark:text-white">Apply it in IELTS</h2>
+          <section className={cn(PANEL, 'p-4 sm:p-5')}>
+            <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">
+              Apply it in IELTS
+            </h2>
             <div className="mt-3 space-y-2">
               {[
                 { to: '/writing', label: 'Writing practice', icon: FilePenLine },
@@ -633,13 +626,10 @@ export default function GrammarGuidePage({
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={cn(
-                    'flex items-center justify-between rounded-xl border border-[#eceefa] px-3 py-2.5',
-                    'text-xs font-extrabold text-slate-700 transition hover:border-[#cfd4fa] hover:text-[#505bdd]'
-                  )}
+                  className="flex items-center justify-between rounded-lg border border-[#e2e5f2] px-3 py-2.5 text-xs font-extrabold text-slate-700 transition hover:border-[#c9cdf3] hover:text-[#5a63df] dark:border-white/10 dark:text-slate-200 dark:hover:border-indigo-500/30 dark:hover:text-indigo-300"
                 >
                   <span className="flex items-center gap-2">
-                    <item.icon className="h-4 w-4 text-[#6872e8]" />
+                    <item.icon className="h-4 w-4 text-[#5a63df]" />
                     {item.label}
                   </span>
                   <ArrowRight className="h-3.5 w-3.5" />

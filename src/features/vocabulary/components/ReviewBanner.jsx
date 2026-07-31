@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useId } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Play, Volume2, ChevronLeft, ChevronRight, CheckCircle2, BookmarkPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
 import { playPronunciation } from '../utils/audioUtils';
+import { PANEL, Pill, TILE } from '@/features/dashboard/components/primitives';
 
 const FEATURED_WORDS = [
   {
@@ -157,43 +157,41 @@ export default function ReviewBanner({
     totalWords > 0 ? Math.round(((totalWords - dueForReview.length) / totalWords) * 100) : 100;
 
   return (
-    <div className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] text-slate-900 dark:text-white p-6 sm:p-7 border border-[#e0e4f1] dark:border-white/10 shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] group">
-      <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#505bdd]/10 blur-2xl" />
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10">
-        {/* Left Side: Daily Review Queue */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="flex items-center gap-3 flex-wrap">
+    <div className={cn(PANEL, 'group relative overflow-hidden p-5 sm:p-6')}>
+      <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#5a63df]/10 blur-2xl" />
+      <div className="relative z-10 grid grid-cols-1 items-center gap-5 xl:grid-cols-12">
+        <div className="space-y-3.5 xl:col-span-6">
+          <div className="flex flex-wrap items-center gap-3">
             <ReviewEmblemSVG />
             <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-black leading-tight tracking-tight text-slate-900 dark:text-white">
+              <h2 className="text-xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-2xl whitespace-nowrap">
                 Daily Review
               </h2>
-              <Badge
-                variant="outline"
-                className="px-2.5 py-0.5 rounded-md bg-[#efedff] dark:bg-indigo-950/60 border-none text-[#505bdd] dark:text-indigo-300 font-black text-[10px] uppercase tracking-wider"
-              >
-                SMART REVIEW
-              </Badge>
+              <Pill tone="accent">Smart review</Pill>
             </div>
           </div>
 
-          <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm font-semibold leading-relaxed max-w-md">
+          <p
+            className={cn(
+              'max-w-md text-xs font-medium leading-relaxed sm:text-sm',
+              'text-slate-500 dark:text-slate-400'
+            )}
+          >
             Strengthen retention with spaced repetition.
           </p>
 
-          {/* Progress Bar */}
-          <div className="space-y-1.5 max-w-md pt-1">
+          <div className="max-w-md space-y-1.5 pt-1">
             <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
               <span>
                 {dueForReview.length} of {totalWords > 0 ? totalWords : 30} items
               </span>
-              <span className="text-[#5661e9] dark:text-indigo-400 font-black">
+              <span className="font-extrabold text-[#5a63df] dark:text-indigo-400">
                 {clearedPercent}%
               </span>
             </div>
-            <div className="w-full h-2 bg-[#eceef8] dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[#f4f3fb] dark:bg-white/10">
               <div
-                className="h-full bg-[#5661e9] rounded-full transition-all duration-700"
+                className="h-full rounded-full bg-[#5a63df] transition-all duration-700"
                 style={{
                   width: `${totalWords > 0 ? Math.max(8, clearedPercent) : 80}%`,
                 }}
@@ -201,92 +199,91 @@ export default function ReviewBanner({
             </div>
           </div>
 
-          {/* Solid Color Buttons (NO Gradients) */}
-          <div className="pt-2 flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5 pt-1">
             <Button
               onClick={onStartReview}
               disabled={!hasDueItems}
               className={cn(
-                'h-11 px-6 rounded-xl font-bold text-xs transition-all shadow-xs flex items-center gap-2',
+                'flex h-10 w-full sm:w-auto items-center justify-center gap-2 rounded-lg px-5 text-xs font-bold transition-all',
                 hasDueItems
-                  ? 'bg-[#5661e9] hover:bg-[#4853da] text-white shadow-indigo-500/20 active:scale-[0.98]'
-                  : 'bg-slate-300 dark:bg-slate-800 text-slate-500 border-none cursor-not-allowed'
+                  ? 'bg-[#5a63df] text-white hover:bg-[#4a52c9] active:scale-[0.98]'
+                  : 'cursor-not-allowed bg-slate-300 text-slate-500 dark:bg-slate-800'
               )}
             >
-              <Play className="w-3.5 h-3.5 fill-current" />
+              <Play className="h-3.5 w-3.5 fill-current" />
               {hasDueItems ? 'Start Review Session' : 'Review Queue Clear'}
             </Button>
 
             <Button
               onClick={onStartReview}
               variant="outline"
-              className="h-11 px-5 rounded-xl font-bold text-xs bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 border border-[#d8dcfa] dark:border-slate-700 shadow-xs"
+              className="h-10 w-full sm:w-auto rounded-lg border border-[#e2e5f2] bg-white px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200"
             >
               Review All Due ({dueForReview.length})
             </Button>
           </div>
         </div>
 
-        {/* Right Side: Featured Word Card */}
-        <div className="lg:col-span-6">
-          <div className="bg-white/95 dark:bg-[#10131f] rounded-2xl p-5 border border-[#e0e4f1] dark:border-white/10 shadow-xs h-[215px] flex flex-col justify-between relative overflow-hidden group/featured">
-            {/* Top Row: Badge & Pagination */}
-            <div className="flex items-center justify-between gap-2 pb-1 shrink-0">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#505bdd] dark:text-indigo-400">
-                FEATURED WORD
+        <div className="xl:col-span-6">
+          <div
+            className={cn(
+              TILE,
+              'group/featured relative flex min-h-[210px] flex-col justify-between overflow-hidden p-4'
+            )}
+          >
+            <div className="flex shrink-0 items-center justify-between gap-2 pb-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#5a63df] dark:text-indigo-400">
+                Featured word
               </span>
 
               <div className="flex items-center gap-1">
                 <button
                   onClick={handlePrev}
-                  className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors cursor-pointer"
+                  className="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
                   title="Previous word"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="h-4 w-4" />
                 </button>
                 <button
                   onClick={handleNext}
-                  className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors cursor-pointer"
+                  className="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
                   title="Next word"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
             </div>
 
-            {/* Middle Content Box */}
-            <div className="flex-1 overflow-hidden flex flex-col justify-center my-0.5">
+            <div className="my-0.5 flex flex-1 flex-col justify-center overflow-hidden">
               <AnimatePresence mode="wait">
-                <motion.div
+                <m.div
                   key={featured.word}
                   initial={{ opacity: 0, y: 3 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -3 }}
                   transition={{ duration: 0.15 }}
-                  className="space-y-1.5"
+                  className="space-y-2"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-xl sm:text-2xl font-black tracking-tight text-[#505bdd] dark:text-indigo-300">
+                        <h3 className="text-xl font-extrabold tracking-tight text-[#5a63df] dark:text-indigo-300 sm:text-2xl">
                           {featured.word}
                         </h3>
                         <button
                           onClick={handleAudio}
                           className={cn(
-                            'p-1 rounded-full hover:bg-[#efedff] dark:hover:bg-indigo-950/60 text-[#505bdd] transition-colors cursor-pointer',
-                            isPlayingAudio && 'text-amber-500 animate-pulse'
+                            'rounded-full p-1 text-[#5a63df] transition-colors hover:bg-[#5a63df]/10',
+                            isPlayingAudio && 'animate-pulse text-amber-500'
                           )}
                           title="Listen audio pronunciation"
                         >
-                          <Volume2 className="w-4 h-4" />
+                          <Volume2 className="h-4 w-4" />
                         </button>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-500 font-mono mt-0.5">
-                        <span>{featured.ipa}</span>
-                        <Badge className="bg-[#5661e9] text-white border-none text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md">
-                          {featured.pos}
-                        </Badge>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-1.5 font-mono text-xs text-slate-500">
+                        <span className="whitespace-nowrap">{featured.ipa}</span>
+                        <Pill tone="accent">{featured.pos}</Pill>
                       </div>
                     </div>
 
@@ -295,41 +292,40 @@ export default function ReviewBanner({
                       variant="ghost"
                       onClick={handleAddFeatured}
                       disabled={addedFeatured[featured.word] === true}
-                      className="h-8 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#efedff] dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold uppercase tracking-wider border border-slate-200 dark:border-slate-700 shrink-0 cursor-pointer"
+                      className="h-8 shrink-0 whitespace-nowrap rounded-lg border border-[#e2e5f2] bg-slate-100 px-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 hover:bg-[#5a63df]/10 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
                     >
                       {addedFeatured[featured.word] === true ? (
                         <>
-                          <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-500" /> Saved
+                          <CheckCircle2 className="mr-1 h-3.5 w-3.5 text-emerald-500" /> Saved
                         </>
                       ) : (
                         <>
-                          <BookmarkPlus className="w-3.5 h-3.5 mr-1 text-[#505bdd]" /> Add to Bank
+                          <BookmarkPlus className="mr-1 h-3.5 w-3.5 text-[#5a63df]" /> Add to Bank
                         </>
                       )}
                     </Button>
                   </div>
 
-                  <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-medium line-clamp-2">
+                  <p className="line-clamp-2 text-xs font-medium leading-relaxed text-slate-700 dark:text-slate-200">
                     {featured.definition}
                   </p>
 
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal flex items-center gap-1 truncate">
-                    <span className="text-[#505bdd] font-bold">"</span>
-                    <span className="italic truncate">{featured.example}</span>
+                  <div className="flex items-center gap-1 truncate text-[11px] leading-normal text-slate-500 dark:text-slate-400">
+                    <span className="font-bold text-[#5a63df]">&quot;</span>
+                    <span className="truncate italic">{featured.example}</span>
                   </div>
-                </motion.div>
+                </m.div>
               </AnimatePresence>
             </div>
 
-            {/* Bottom Pagination Dots */}
-            <div className="flex items-center justify-center gap-1.5 pt-1 shrink-0">
+            <div className="flex shrink-0 items-center justify-center gap-1.5 pt-1">
               {FEATURED_WORDS.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentIdx(i)}
                   className={cn(
                     'h-1.5 rounded-full transition-all duration-300',
-                    i === currentIdx ? 'w-5 bg-[#5661e9]' : 'w-1.5 bg-slate-200 dark:bg-slate-700'
+                    i === currentIdx ? 'w-5 bg-[#5a63df]' : 'w-1.5 bg-slate-200 dark:bg-slate-700'
                   )}
                 />
               ))}

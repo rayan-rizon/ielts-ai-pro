@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { LayoutGrid, Award, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -43,16 +42,18 @@ export default function Speaking() {
   const filteredTests = filterSpeakingTests(passages, sessions, activeTab, debouncedSearchQuery);
 
   return (
-    <div
-      className="min-h-screen bg-[#FDFDFF] dark:bg-[#050505] font-sans text-slate-900 dark:text-slate-100"
-      data-oid="b-dgzsd"
-    >
+    <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#0b0a10] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5">
       <div
-        className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-2 sm:pt-3 pb-6 space-y-4"
-        data-oid="_:ejdhs"
-      >
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+      />
+
+      <div className="relative z-10 mx-auto max-w-[1600px] space-y-4">
         <SpeakingHeader
-          totalPassages={passages.length}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           activeTab={activeTab}
@@ -62,50 +63,44 @@ export default function Speaking() {
           onViewModeChange={setViewMode}
         />
 
-        <div className="min-h-[600px]" data-oid="toaita2">
-          {isLoading ? (
-            <SpeakingSkeletonGrid />
-          ) : (
-            <SpeakingTestsGrid
-              filteredTests={filteredTests}
-              sessions={sessions}
-              testCounts={testCounts}
-              questionCounts={questionCounts}
-              durations={durations}
-              userData={userData}
-              isAdmin={isAdmin}
-              hasMounted={hasMounted}
-              activeTab={activeTab}
-              searchQuery={searchQuery}
-              viewMode={viewMode}
-            />
-          )}
-        </div>
+        {isLoading ? (
+          <SpeakingSkeletonGrid />
+        ) : (
+          <SpeakingTestsGrid
+            filteredTests={filteredTests}
+            sessions={sessions}
+            testCounts={testCounts}
+            questionCounts={questionCounts}
+            durations={durations}
+            userData={userData}
+            isAdmin={isAdmin}
+            hasMounted={hasMounted}
+            activeTab={activeTab}
+            searchQuery={searchQuery}
+            viewMode={viewMode}
+          />
+        )}
 
         {speakingData?.hasMore && (
-          <div className="flex justify-center mt-12 pb-12" data-oid=".rl8k_q">
-            <Button
+          <div className="flex justify-center pt-2">
+            <button
+              type="button"
               onClick={handleLoadMore}
               disabled={isLoadingMore}
-              variant="outline"
-              className="rounded-full px-8 h-12 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold tracking-wide hover:bg-white dark:hover:bg-white/5 hover:border-rose-200 dark:hover:border-rose-900 transition-all shadow-sm"
-              data-oid="m1vzfzh"
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#e2e5f2] bg-white px-6 text-xs font-bold uppercase tracking-wider text-[#5a63df] transition-all hover:bg-[#5a63df]/[0.06] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-[#a9afff]"
             >
               {isLoadingMore ? (
                 <>
-                  <div
-                    className="w-4 h-4 border-2 border-slate-400 border-t-slate-600 rounded-full animate-spin mr-2"
-                    data-oid="4ie-gdy"
-                  />
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#5a63df]/30 border-t-[#5a63df]" />
                   Loading...
                 </>
               ) : (
                 'Load More Tests'
               )}
-            </Button>
+            </button>
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }

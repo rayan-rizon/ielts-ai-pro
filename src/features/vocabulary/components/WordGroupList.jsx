@@ -10,6 +10,8 @@ import {
 import Kit3DIcon from '@/features/vocabulary/components/Kit3DIcons';
 import ContentStatusBadge from '@/features/subscription/components/ContentStatusBadge';
 import { getVocabularyKitProgress } from '@/features/vocabulary/utils/kitProgress';
+import { IconChip, MUTED } from '@/features/dashboard/components/primitives';
+import { cn } from '@/lib/cn';
 
 export const KitVisual = ({ id, kit }) => {
   return <Kit3DIcon kit={kit} id={id} />;
@@ -113,9 +115,7 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
       <div className="flex items-center justify-between gap-3 px-0.5">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-xl bg-[#efedff] text-[#5862df] dark:bg-indigo-500/20 dark:text-indigo-300 flex items-center justify-center ring-1 ring-[#5862df]/15 shadow-xs">
-              <Sparkles className="w-4 h-4 fill-current" />
-            </div>
+            <IconChip icon={Sparkles} />
             <h3
               id="smart-vocabulary-kits"
               className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white"
@@ -123,7 +123,7 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
               Smart Vocabulary Kits
             </h3>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+          <p className={cn('text-xs font-medium', MUTED)}>
             Explore focused kits while the shelf gently moves.
           </p>
         </div>
@@ -133,7 +133,7 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
             type="button"
             aria-label="Show previous Vocabulary Kits"
             onClick={() => scrollCarousel(-1)}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-indigo-100 bg-white text-indigo-600 shadow-2xs transition hover:bg-indigo-50 active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#e2e5f2] bg-white text-[#5a63df] transition hover:bg-[#5a63df]/10 active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-indigo-300"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -141,13 +141,13 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
             type="button"
             aria-label="Show next Vocabulary Kits"
             onClick={() => scrollCarousel(1)}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-indigo-100 bg-white text-indigo-600 shadow-2xs transition hover:bg-indigo-50 active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#e2e5f2] bg-white text-[#5a63df] transition hover:bg-[#5a63df]/10 active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-indigo-300"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
           <Link
             to="/vocabulary/kits"
-            className="inline-flex h-8 items-center gap-1 rounded-xl px-2.5 text-xs font-bold text-[#5661e9] transition-colors hover:bg-[#efedff] dark:text-indigo-300 dark:hover:bg-indigo-950/50"
+            className="inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-xs font-bold text-[#5a63df] transition-colors hover:bg-[#5a63df]/10 dark:text-indigo-300 dark:hover:bg-indigo-950/50"
           >
             All kits <ArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -176,7 +176,7 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
               whileHover={{ y: -2 }}
               transition={{ type: 'spring', stiffness: 350, damping: 25 }}
               aria-hidden={isClone}
-              className="group w-[180px] shrink-0 snap-start rounded-2xl border border-[#eceafa] bg-gradient-to-br from-[#fdfcff] to-[#f3efff] transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-[0_16px_32px_-24px_rgba(59,70,150,0.65)] dark:border-white/10 dark:from-white/[0.035] dark:to-white/[0.015] sm:w-[192px]"
+              className="group w-[180px] shrink-0 snap-start rounded-xl border border-[#eceafa] bg-gradient-to-br from-[#fdfcff] to-[#f3efff] transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/[0.015] sm:w-[192px]"
             >
               <Link
                 to={`/vocabulary/kits/${kit.slug}`}
@@ -197,7 +197,7 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
                       completed={kit.progress.isComplete}
                     />
                   </div>
-                  <h4 className="mt-3 line-clamp-2 text-xs font-extrabold leading-4 text-slate-900 transition-colors group-hover:text-[#5661e9] dark:text-white dark:group-hover:text-indigo-300">
+                  <h4 className="mt-3 line-clamp-2 text-xs font-extrabold leading-4 text-slate-900 transition-colors group-hover:text-[#5a63df] dark:text-white dark:group-hover:text-indigo-300">
                     {kit.title}
                   </h4>
                 </div>
@@ -207,7 +207,7 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
                     <span className="text-slate-400">
                       {kit.progress.savedCount}/{kit.wordCount} saved
                     </span>
-                    <ArrowRight className="h-3.5 w-3.5 text-[#5661e9] transition group-hover:translate-x-0.5" />
+                    <ArrowRight className="h-3.5 w-3.5 text-[#5a63df] transition group-hover:translate-x-0.5" />
                   </div>
                   <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[#eceef8] dark:bg-slate-800">
                     <div

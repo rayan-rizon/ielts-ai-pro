@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/cn';
+import { MUTED } from '@/features/dashboard/components/primitives';
 import GrammarEvidenceBadge from './GrammarEvidenceBadge';
 import SkillVisual from './SkillVisual';
 
@@ -48,10 +49,10 @@ export default function GrammarSkillsPanel({
     <div id="grammar-skills" className="scroll-mt-6 p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-black tracking-tight text-slate-950 dark:text-white">
+          <h2 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
             Six grammar skills
           </h2>
-          <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <p className={cn('mt-1 text-xs font-medium', MUTED)}>
             Each result shows how much practice it is based on.
           </p>
         </div>
@@ -61,7 +62,7 @@ export default function GrammarSkillsPanel({
           disabled={
             isStarting || !dueReviews || (!access.isPaid && Number(access.dailyRemaining || 0) <= 0)
           }
-          className="rounded-xl border border-[#e1e4f3] px-3 py-1.5 text-[11px] font-extrabold text-slate-600 transition hover:border-[#cdd2f6] hover:text-[#505bdd] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300"
+          className="rounded-lg border border-[#e2e5f2] px-3 py-1.5 text-[11px] font-bold text-slate-600 transition hover:border-[#c9cdf3] hover:text-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300"
         >
           Review due items
         </button>
@@ -88,11 +89,11 @@ export default function GrammarSkillsPanel({
               }
               disabled={isStarting || (!access.isPaid && Number(access.dailyRemaining || 0) <= 0)}
               className={cn(
-                'group flex min-h-[108px] items-center gap-3 rounded-2xl border bg-gradient-to-br p-3.5 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_32px_-24px_rgba(59,70,150,0.65)] dark:bg-white/[0.025]',
+                'group flex min-h-[108px] items-center gap-3 rounded-xl border bg-gradient-to-br p-3.5 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:bg-white/[0.025]',
                 visual.panelClass,
                 visual.cardClass,
                 isRecommended
-                  ? 'border-[#aeb5ff] ring-2 ring-[#6972ee]/10 dark:border-indigo-400/40'
+                  ? 'border-[#5a63df]/50 ring-2 ring-[#5a63df]/10 dark:border-indigo-400/40'
                   : 'border-[#eaecf6] dark:border-white/10'
               )}
             >
@@ -102,7 +103,7 @@ export default function GrammarSkillsPanel({
                   <div className="text-sm font-extrabold leading-4 text-slate-900 dark:text-white">
                     {skill.label}
                   </div>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-[#5661e9]" />
+                  <ArrowRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-[#5a63df]" />
                 </div>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   <GrammarEvidenceBadge
@@ -111,7 +112,7 @@ export default function GrammarSkillsPanel({
                     compact
                   />
                   {skill.isDue && (
-                    <span className="text-[10px] font-extrabold text-orange-700 dark:text-orange-200">
+                    <span className="text-[10px] font-extrabold text-amber-700 dark:text-amber-300">
                       Due
                     </span>
                   )}
@@ -127,7 +128,7 @@ export default function GrammarSkillsPanel({
                       value={accuracy}
                       className="mt-2 h-1.5 bg-[#eceef8]"
                       indicatorClassName={
-                        skill.evidenceClass === 'measured' ? 'bg-emerald-500' : 'bg-[#6972e8]'
+                        skill.evidenceClass === 'measured' ? 'bg-emerald-500' : 'bg-[#5a63df]'
                       }
                     />
                     <div className="mt-1.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400">

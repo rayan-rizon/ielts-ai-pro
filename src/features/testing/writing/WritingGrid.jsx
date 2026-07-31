@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { PenTool } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import WritingCardView from './WritingCardView';
@@ -17,9 +17,10 @@ import {
 import { pickLatestSessionForTest } from './writingSessionHelpers';
 import { computeWritingProgressFull } from './writingProgressHelpers';
 import WritingCardListView from './WritingCardListView';
-import { getWritingColor } from './writingColorConfig';
+import { cn } from '@/lib/cn';
+import { Empty, PANEL } from '@/features/dashboard/components/primitives';
 
-const COLOR_KEYS = ['orange', 'amber', 'rose', 'indigo', 'blue', 'cyan'];
+const GRID_CLASS = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3';
 
 // ---------------------------------------------------------------------------
 // TestCard — prop derivation + delegation to WritingCardView
@@ -53,7 +54,6 @@ function buildWritingCardProps({
   const isLocked = computeWritingAccessLock(test, user, isAdmin);
   const progress = computeWritingProgressFull(activeSession, test);
   const displayTitle = buildWritingDisplayTitle(test);
-  const color = getWritingColor(displayTitle || 'default');
   const Icon = resolveWritingIcon(test);
   const { ContainerLink, linkProps } = resolveWritingLinkConfig(isLocked, test);
 
@@ -65,7 +65,6 @@ function buildWritingCardProps({
     progress,
     displayScore,
     displayTitle,
-    color,
     Icon,
     ContainerLink,
     linkProps,
@@ -124,22 +123,22 @@ export const MemoizedWritingCard = memo(WritingTestCard, arePropsEqual);
 
 export function WritingSkeletonGrid() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-6">
+    <div className={GRID_CLASS}>
       {[...Array(8)].map((_, i) => (
-        <div
-          key={i}
-          className="bg-white dark:bg-[#111111] rounded-2xl border border-slate-200 dark:border-white/5 p-6 flex flex-col h-[400px]"
-          data-oid="2d804an"
-        >
-          <div className="flex justify-between items-start mb-6" data-oid="cn292:d">
-            <Skeleton className="w-12 h-12 rounded-xl" data-oid="3rlo03b" />
-            <Skeleton className="h-6 w-20 rounded-lg" data-oid="qsdqolm" />
+        <div key={i} className={cn(PANEL, 'flex h-[280px] flex-col p-4')}>
+          <div className="mb-3 flex items-start justify-between">
+            <Skeleton className="h-9 w-9 rounded-lg" />
+            <Skeleton className="h-5 w-16 rounded-full" />
           </div>
-          <div className="flex-grow space-y-4 shadow-none" data-oid=":pzsp8x">
-            <Skeleton className="h-7 w-3/4 rounded-lg" data-oid="73k:s9g" />
-            <Skeleton className="h-4 w-full rounded-lg" data-oid="qi342e." />
+          <div className="flex-grow space-y-3">
+            <Skeleton className="h-5 w-3/4 rounded-lg" />
+            <Skeleton className="h-3.5 w-full rounded-lg" />
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <Skeleton className="h-8 rounded-lg" />
+              <Skeleton className="h-8 rounded-lg" />
+            </div>
           </div>
-          <Skeleton className="h-12 w-full rounded-xl mt-6" data-oid="jbb.5d4" />
+          <Skeleton className="mt-3 h-10 w-full rounded-lg" />
         </div>
       ))}
     </div>
@@ -152,25 +151,11 @@ export function WritingSkeletonGrid() {
 
 function WritingEmptyState({ searchQuery }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="col-span-full py-24 text-center bg-transparent"
-      data-oid="p2zjnef"
-    >
-      <div
-        className="w-24 h-24 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6"
-        data-oid="rc79rf2"
-      >
-        <PenTool className="w-10 h-10 text-slate-300 dark:text-slate-600" data-oid="8xium.d" />
-      </div>
-      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2" data-oid="lv_4mec">
-        No tasks available
-      </h3>
-      <p className="text-slate-500 dark:text-slate-400" data-oid="o-_p36c">
+    <div className={cn(PANEL, 'col-span-full p-4 sm:p-5')}>
+      <Empty icon={PenTool}>
         {searchQuery ? `No tasks matching "${searchQuery}"` : "Admins haven't added any tasks yet."}
-      </p>
-    </motion.div>
+      </Empty>
+    </div>
   );
 }
 
@@ -243,14 +228,13 @@ function WritingGridOnly({
 }) {
   return (
     <AnimatePresence mode="wait">
-      <motion.div
+      <m.div
         key={activeTab}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-6"
-        data-oid="5.erghn"
+        className={GRID_CLASS}
       >
         {filteredTests.map((test) => {
           const testId = String(test.id);
@@ -270,7 +254,7 @@ function WritingGridOnly({
           );
         })}
         {filteredTests.length === 0 && <WritingEmptyState searchQuery={searchQuery} />}
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   );
 }
@@ -282,30 +266,26 @@ export function WritingTestsGrid(props) {
     const grouped = groupTestsByVolume(filteredTests);
     return (
       <AnimatePresence mode="wait">
-        <motion.div
+        <m.div
           key={props.activeTab}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
+          className={GRID_CLASS}
         >
-          {grouped.map((group, index) => {
-            const color = COLOR_KEYS[index % COLOR_KEYS.length];
-            return (
-              <WritingCardListView
-                key={group.id}
-                group={group}
-                sessions={sessions}
-                userData={userData}
-                isAdmin={isAdmin}
-                hasMounted={hasMounted}
-                color={color}
-              />
-            );
-          })}
+          {grouped.map((group) => (
+            <WritingCardListView
+              key={group.id}
+              group={group}
+              sessions={sessions}
+              userData={userData}
+              isAdmin={isAdmin}
+              hasMounted={hasMounted}
+            />
+          ))}
           {filteredTests.length === 0 && <WritingEmptyState searchQuery={searchQuery} />}
-        </motion.div>
+        </m.div>
       </AnimatePresence>
     );
   }

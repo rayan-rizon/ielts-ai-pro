@@ -1,4 +1,5 @@
 import { cn } from '@/lib/cn';
+import { PANEL } from '@/features/dashboard/components/primitives';
 import { useGrammarDashboard } from '../hooks/useGrammarDashboard';
 import GrammarHeroPanel from './GrammarHeroPanel';
 import GrammarLearningPathCard from './GrammarLearningPathCard';
@@ -7,8 +8,7 @@ import GrammarEvidencePanel from './GrammarEvidencePanel';
 import GrammarGuidesPanel from './GrammarGuidesPanel';
 import GrammarPracticeKitsPanel from './GrammarPracticeKitsPanel';
 
-const surface =
-  'rounded-[22px] border border-[#e0e4f1] bg-white shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] dark:border-white/10 dark:bg-[#10131f]';
+const surface = PANEL;
 
 export default function GrammarDashboard({
   dashboard,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import {
   Layers,
   Sparkles,
@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { TILE } from '@/features/dashboard/components/primitives';
 
 export const VocabularyControlBar = ({
   activeTab,
@@ -40,122 +41,99 @@ export const VocabularyControlBar = ({
   ];
 
   return (
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-gradient-to-r from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] p-2 rounded-[20px] border border-[#e0e4f1] dark:border-white/10 shadow-xs">
-      {/* Tabs: Horizontally Scrollable */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth flex-1 min-w-0 max-w-full py-0.5">
+    <div
+      className={cn(
+        TILE,
+        'flex flex-col gap-2.5 p-2.5 lg:flex-row lg:items-center lg:justify-between'
+      )}
+    >
+      <div className="no-scrollbar flex min-w-0 max-w-full flex-1 items-center gap-1.5 overflow-x-auto scroll-smooth py-0.5">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
-            <motion.button
+            <m.button
               key={tab.id}
               whileTap={{ scale: 0.96 }}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                'relative px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200 flex items-center gap-2 shrink-0 cursor-pointer whitespace-nowrap z-10',
+                'relative z-10 flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200',
                 isActive
                   ? 'text-white'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-white/10'
+                  : 'text-slate-600 hover:bg-white hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white'
               )}
             >
               {isActive && (
-                <motion.div
+                <m.div
                   layoutId="activeTabIndicator"
-                  className="absolute inset-0 bg-[#5661e9] rounded-xl shadow-md shadow-indigo-500/20 -z-10"
+                  className="absolute inset-0 -z-10 rounded-lg bg-[#5a63df]"
                   transition={{ type: 'spring', stiffness: 450, damping: 32 }}
                 />
               )}
               <Icon
                 className={cn(
-                  'w-3.5 h-3.5 relative z-10 transition-colors',
-                  isActive ? 'text-white' : 'text-[#5862df] dark:text-indigo-400'
+                  'relative z-10 h-3.5 w-3.5 transition-colors',
+                  isActive ? 'text-white' : 'text-[#5a63df] dark:text-indigo-400'
                 )}
               />
               <span className="relative z-10">{tab.label}</span>
               <span
                 className={cn(
-                  'px-2 py-0.5 rounded-full text-[9.5px] font-black leading-none relative z-10 transition-colors',
+                  'relative z-10 rounded-full px-2 py-0.5 text-[9.5px] font-black leading-none transition-colors',
                   isActive
                     ? 'bg-white/20 text-white'
-                    : 'bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300'
+                    : 'bg-slate-200/80 text-slate-700 dark:bg-white/10 dark:text-slate-300'
                 )}
               >
                 {tab.count}
               </span>
-            </motion.button>
+            </m.button>
           );
         })}
       </div>
 
-      {/* Filters + View Switcher */}
-      <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 border-t sm:border-t-0 border-slate-200/60 dark:border-slate-800 pt-2 sm:pt-0">
-        <div className="flex items-center gap-1.5">
-          {/* Category Filter */}
+      <div className="flex w-full flex-wrap items-center justify-between gap-2 border-t border-[#eeedf7] pt-2 dark:border-white/[0.07] lg:w-auto lg:justify-end lg:border-t-0 lg:pt-0">
+        <div className="flex flex-1 items-center gap-1.5 sm:flex-none">
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="h-8.5 px-3 rounded-xl bg-white dark:bg-slate-900 border border-[#d8dcfa] dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs font-bold shadow-xs hover:border-[#5661e9] transition-all flex items-center gap-1.5 cursor-pointer">
-              <Filter className="w-3.5 h-3.5 text-[#5862df] dark:text-indigo-400 shrink-0" />
+            <SelectTrigger className="h-8.5 w-auto min-w-[130px] flex-1 shrink-0 gap-1.5 rounded-lg border border-[#e2e5f2] bg-white px-2.5 text-xs font-bold text-slate-800 transition-all hover:border-[#c9cdf3] dark:border-white/10 dark:bg-[#131218] dark:text-slate-200 sm:w-[140px] sm:flex-none">
+              <Filter className="h-3.5 w-3.5 shrink-0 text-[#5a63df]" />
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 shadow-lg">
-              <SelectItem value="all" className="font-semibold text-xs rounded-lg cursor-pointer">
+            <SelectContent className="rounded-lg border border-[#e2e5f2] bg-white p-1 shadow-lg dark:border-white/10 dark:bg-[#131218]">
+              <SelectItem value="all" className="rounded-md text-xs font-semibold">
                 All Categories
               </SelectItem>
-              <SelectItem
-                value="academic"
-                className="font-semibold text-xs rounded-lg cursor-pointer"
-              >
+              <SelectItem value="academic" className="rounded-md text-xs font-semibold">
                 Academic
               </SelectItem>
-              <SelectItem
-                value="speaking"
-                className="font-semibold text-xs rounded-lg cursor-pointer"
-              >
+              <SelectItem value="speaking" className="rounded-md text-xs font-semibold">
                 Speaking
               </SelectItem>
-              <SelectItem
-                value="writing"
-                className="font-semibold text-xs rounded-lg cursor-pointer"
-              >
+              <SelectItem value="writing" className="rounded-md text-xs font-semibold">
                 Writing
               </SelectItem>
-              <SelectItem
-                value="reading"
-                className="font-semibold text-xs rounded-lg cursor-pointer"
-              >
+              <SelectItem value="reading" className="rounded-md text-xs font-semibold">
                 Reading
               </SelectItem>
             </SelectContent>
           </Select>
 
-          {/* Sort Filter */}
           <Select value={sortOption} onValueChange={setSortOption}>
-            <SelectTrigger className="h-8.5 px-3 rounded-xl bg-white dark:bg-slate-900 border border-[#d8dcfa] dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs font-bold shadow-xs hover:border-[#5661e9] transition-all flex items-center gap-1.5 cursor-pointer">
-              <ArrowUpDown className="w-3.5 h-3.5 text-[#5862df] dark:text-indigo-400 shrink-0" />
+            <SelectTrigger className="h-8.5 w-auto min-w-[110px] flex-1 shrink-0 gap-1.5 rounded-lg border border-[#e2e5f2] bg-white px-2.5 text-xs font-bold text-slate-800 transition-all hover:border-[#c9cdf3] dark:border-white/10 dark:bg-[#131218] dark:text-slate-200 sm:w-[120px] sm:flex-none">
+              <ArrowUpDown className="h-3.5 w-3.5 shrink-0 text-[#5a63df]" />
               <SelectValue placeholder="Recent" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 shadow-lg">
-              <SelectItem
-                value="recent"
-                className="font-semibold text-xs rounded-lg cursor-pointer"
-              >
+            <SelectContent className="rounded-lg border border-[#e2e5f2] bg-white p-1 shadow-lg dark:border-white/10 dark:bg-[#131218]">
+              <SelectItem value="recent" className="rounded-md text-xs font-semibold">
                 Recent
               </SelectItem>
-              <SelectItem
-                value="alphabetical"
-                className="font-semibold text-xs rounded-lg cursor-pointer"
-              >
+              <SelectItem value="alphabetical" className="rounded-md text-xs font-semibold">
                 A → Z
               </SelectItem>
-              <SelectItem
-                value="reverse"
-                className="font-semibold text-xs rounded-lg cursor-pointer"
-              >
+              <SelectItem value="reverse" className="rounded-md text-xs font-semibold">
                 Z → A
               </SelectItem>
-              <SelectItem
-                value="mastery"
-                className="font-semibold text-xs rounded-lg cursor-pointer"
-              >
+              <SelectItem value="mastery" className="rounded-md text-xs font-semibold">
                 Mastery
               </SelectItem>
             </SelectContent>
@@ -164,41 +142,40 @@ export const VocabularyControlBar = ({
           {hasActiveFilters && (
             <button
               onClick={resetFilters}
-              className="text-xs font-extrabold text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 px-2 py-1 rounded-lg cursor-pointer transition-colors shrink-0"
+              className="shrink-0 rounded-lg px-2 py-1 text-xs font-extrabold text-[rgb(var(--signal-fault))] transition-colors hover:bg-[rgba(var(--signal-fault),0.08)]"
             >
               Reset
             </button>
           )}
         </div>
 
-        {/* View Switcher */}
-        <div className="flex items-center gap-0.5 bg-white/80 dark:bg-white/5 p-0.5 rounded-xl border border-[#d8dcfa] dark:border-white/10 shrink-0">
-          <motion.button
+        <div className="flex shrink-0 items-center gap-0.5 rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.04]">
+          <m.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setViewMode('table')}
             className={cn(
-              'p-1.5 rounded-lg transition-all flex items-center cursor-pointer',
+              'flex items-center rounded-md p-1.5 transition-all',
               viewMode === 'table'
-                ? 'bg-[#5661e9] text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-[#5a63df] text-white'
+                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             )}
             title="Table View"
           >
-            <LayoutList className="w-3.5 h-3.5" />
-          </motion.button>
-          <motion.button
+            <LayoutList className="h-3.5 w-3.5" />
+          </m.button>
+          <m.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setViewMode('grid')}
             className={cn(
-              'p-1.5 rounded-lg transition-all flex items-center cursor-pointer',
+              'flex items-center rounded-md p-1.5 transition-all',
               viewMode === 'grid'
-                ? 'bg-[#5661e9] text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-[#5a63df] text-white'
+                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             )}
             title="Cards View"
           >
-            <LayoutGrid className="w-3.5 h-3.5" />
-          </motion.button>
+            <LayoutGrid className="h-3.5 w-3.5" />
+          </m.button>
         </div>
       </div>
     </div>

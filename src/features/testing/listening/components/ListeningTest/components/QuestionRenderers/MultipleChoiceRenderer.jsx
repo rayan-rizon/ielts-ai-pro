@@ -160,14 +160,20 @@ const MultipleChoiceRenderer = ({
                   let badgeClass =
                     'w-5 h-5 min-w-[20px] rounded-full flex items-center justify-center text-[11px] font-bold transition-all shrink-0 mt-0.5 ';
                   if (isFinished) {
-                    if (isChecked && isActualCorrect) badgeClass += 'bg-emerald-600 text-white dark:bg-emerald-500';
+                    if (isChecked && isActualCorrect)
+                      badgeClass += 'bg-emerald-600 text-white dark:bg-emerald-500';
                     else if (isChecked) badgeClass += 'bg-rose-600 text-white dark:bg-rose-500';
-                    else if (isActualCorrect) badgeClass += 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
-                    else badgeClass += 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600';
+                    else if (isActualCorrect)
+                      badgeClass +=
+                        'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
+                    else
+                      badgeClass +=
+                        'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600';
                   } else if (isChecked) {
                     badgeClass += 'bg-blue-600 text-white dark:bg-blue-500 shadow-xs scale-105';
                   } else {
-                    badgeClass += 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 group-hover:text-blue-700 dark:group-hover:text-blue-300';
+                    badgeClass +=
+                      'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 group-hover:text-blue-700 dark:group-hover:text-blue-300';
                   }
 
                   return (
@@ -182,7 +188,8 @@ const MultipleChoiceRenderer = ({
                         id={id}
                         checked={isChecked}
                         onChange={(e) =>
-                          !isFinished && onMultiSelectChange(question.id, opt, e.target.checked, limit)
+                          !isFinished &&
+                          onMultiSelectChange(question.id, opt, e.target.checked, limit)
                         }
                         disabled={isFinished}
                         className="sr-only"
@@ -204,11 +211,7 @@ const MultipleChoiceRenderer = ({
                 })}
               </div>
             ) : (
-              <div
-                className="space-y-1 ml-0.5"
-                role="radiogroup"
-                data-oid="feq15vq"
-              >
+              <div className="space-y-1 ml-0.5" role="radiogroup" data-oid="feq15vq">
                 {question.options.map((opt, idx) => {
                   const { letter, body } = parseOption(opt, idx);
                   const isSelected = currentAnswer === opt;
@@ -218,14 +221,20 @@ const MultipleChoiceRenderer = ({
                   let badgeClass =
                     'w-5 h-5 min-w-[20px] rounded-full flex items-center justify-center text-[11px] font-bold transition-all shrink-0 mt-0.5 ';
                   if (isFinished) {
-                    if (isSelected && isActualCorrect) badgeClass += 'bg-emerald-600 text-white dark:bg-emerald-500';
+                    if (isSelected && isActualCorrect)
+                      badgeClass += 'bg-emerald-600 text-white dark:bg-emerald-500';
                     else if (isSelected) badgeClass += 'bg-rose-600 text-white dark:bg-rose-500';
-                    else if (isActualCorrect) badgeClass += 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
-                    else badgeClass += 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600';
+                    else if (isActualCorrect)
+                      badgeClass +=
+                        'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
+                    else
+                      badgeClass +=
+                        'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600';
                   } else if (isSelected) {
                     badgeClass += 'bg-blue-600 text-white dark:bg-blue-500 shadow-xs scale-105';
                   } else {
-                    badgeClass += 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 group-hover:text-blue-700 dark:group-hover:text-blue-300';
+                    badgeClass +=
+                      'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 group-hover:text-blue-700 dark:group-hover:text-blue-300';
                   }
 
                   return (

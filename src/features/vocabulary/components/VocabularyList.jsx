@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import { Empty, TILE } from '@/features/dashboard/components/primitives';
 import { VocabularyTableRow } from './VocabularyTableRow';
 import { VocabularyCardItem } from './VocabularyCardItem';
 import { VocabularyControlBar } from './VocabularyControlBar';
@@ -21,9 +23,9 @@ const VocabularyTableView = ({
   onDeleteWord,
   targetLanguage,
 }) => (
-  <div className="overflow-x-auto custom-scrollbar rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
-    <table className="w-full text-xs text-left border-collapse min-w-[700px]">
-      <thead className="text-[11px] text-slate-700 dark:text-slate-300 font-black uppercase tracking-wider bg-slate-50/90 dark:bg-slate-950 border-b border-slate-200/80 dark:border-slate-800">
+  <div className={cn(TILE, 'custom-scrollbar overflow-x-auto')}>
+    <table className="w-full min-w-[700px] border-collapse text-left text-xs">
+      <thead className="border-b border-[#ebeaf7] bg-[#fbfbfe] text-[11px] font-black uppercase tracking-wider text-slate-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-300">
         <tr>
           <th className="px-4 py-3.5">Term & Phonetics</th>
           <th className="px-3 py-3.5">POS</th>
@@ -47,8 +49,8 @@ const VocabularyTableView = ({
 
         {displayedWords.length === 0 && (
           <tr>
-            <td colSpan="6" className="px-6 py-14 text-center text-slate-500 font-bold">
-              No vocabulary words match your current search or filters.
+            <td colSpan="6" className="px-6 py-14">
+              <Empty>No vocabulary words match your current search or filters.</Empty>
             </td>
           </tr>
         )}
@@ -58,7 +60,7 @@ const VocabularyTableView = ({
 );
 
 const VocabularyCardGrid = ({ displayedWords, onViewWord, onToggleMastery, onDeleteWord }) => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
     {displayedWords.map((item) => (
       <VocabularyCardItem
         key={item.id}
@@ -70,8 +72,8 @@ const VocabularyCardGrid = ({ displayedWords, onViewWord, onToggleMastery, onDel
     ))}
 
     {displayedWords.length === 0 && (
-      <div className="col-span-full py-14 text-center text-slate-500 font-bold bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800">
-        No words match your current filters.
+      <div className={cn(TILE, 'col-span-full py-14')}>
+        <Empty>No words match your current filters.</Empty>
       </div>
     )}
   </div>
@@ -81,7 +83,7 @@ const LoadMoreButton = ({ isLoadingMore, onLoadMore }) => (
   <div className="p-3 text-center">
     <Button
       variant="ghost"
-      className="text-[#635BFF] dark:text-indigo-400 font-black text-xs uppercase tracking-wider hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-xl"
+      className="rounded-lg text-xs font-bold uppercase tracking-wider text-[#5a63df] hover:bg-[#5a63df]/10 dark:text-indigo-400 dark:hover:bg-indigo-950/40"
       onClick={onLoadMore}
       disabled={isLoadingMore}
     >
@@ -89,7 +91,7 @@ const LoadMoreButton = ({ isLoadingMore, onLoadMore }) => (
         'Loading...'
       ) : (
         <>
-          Load More Words <ChevronRight className="w-4 h-4 ml-1" />
+          Load More Words <ChevronRight className="ml-1 h-4 w-4" />
         </>
       )}
     </Button>
@@ -152,7 +154,7 @@ export default function VocabularyList({
       />
 
       <AnimatePresence mode="wait">
-        <motion.div
+        <m.div
           key={`${activeTab}-${categoryFilter}-${sortOption}-${viewMode}`}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -175,7 +177,7 @@ export default function VocabularyList({
               onDeleteWord={onDeleteWord}
             />
           )}
-        </motion.div>
+        </m.div>
       </AnimatePresence>
 
       {hasMore && <LoadMoreButton isLoadingMore={isLoadingMore} onLoadMore={onLoadMore} />}

@@ -2,9 +2,9 @@ import { ArrowRight, ClipboardCheck, Route, Send, Wrench } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/cn';
+import { IconChip, PANEL } from '@/features/dashboard/components/primitives';
 
-const surface =
-  'rounded-[22px] border border-[#e0e4f1] bg-white shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] dark:border-white/10 dark:bg-[#10131f]';
+const surface = PANEL;
 
 // ---------------------------------------------------------------------------
 // PathStage — a single step button in the learning path row
@@ -25,7 +25,7 @@ function PathStage({ icon: Icon, label, active, disabled, onClick }) {
         {active && (
           <motion.span
             layoutId="pathStageActiveGlow"
-            className="absolute -inset-1.5 rounded-[22px] bg-[#6570ee]/20 blur-sm dark:bg-indigo-400/25"
+            className="absolute -inset-1.5 rounded-2xl bg-[#5a63df]/15 blur-sm dark:bg-indigo-400/25"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: 'spring', stiffness: 350, damping: 25 }}
@@ -33,10 +33,10 @@ function PathStage({ icon: Icon, label, active, disabled, onClick }) {
         )}
         <span
           className={cn(
-            'relative flex h-11 w-11 items-center justify-center rounded-2xl border transition-colors duration-200',
+            'relative flex h-11 w-11 items-center justify-center rounded-xl border transition-colors duration-200',
             active
-              ? 'border-[#505bdd] bg-[#eef0ff] text-[#505bdd] shadow-[0_8px_20px_-10px_rgba(80,91,221,0.6)] ring-4 ring-[#6972ee]/15 dark:border-indigo-400 dark:bg-indigo-500/20 dark:text-indigo-300'
-              : 'border-slate-200/90 bg-white text-slate-400 shadow-sm group-hover:border-[#c9cef7] group-hover:text-[#5963df] dark:border-white/10 dark:bg-white/5 dark:text-slate-400'
+              ? 'border-[#5a63df] bg-[#5a63df]/10 text-[#5a63df] ring-4 ring-[#5a63df]/15 dark:border-indigo-400 dark:bg-indigo-500/20 dark:text-indigo-300'
+              : 'border-[#e2e5f2] bg-white text-slate-400 group-hover:border-[#c9cdf3] group-hover:text-[#5a63df] dark:border-white/10 dark:bg-white/5 dark:text-slate-400'
           )}
         >
           <Icon
@@ -47,7 +47,7 @@ function PathStage({ icon: Icon, label, active, disabled, onClick }) {
       <span
         className={cn(
           'text-[11px] font-extrabold transition-colors duration-200',
-          active ? 'text-[#505bdd] dark:text-indigo-300' : 'text-slate-500 dark:text-slate-400'
+          active ? 'text-[#5a63df] dark:text-indigo-300' : 'text-slate-500 dark:text-slate-400'
         )}
       >
         {label}
@@ -75,14 +75,11 @@ export default function GrammarLearningPathCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
-      className={cn(
-        surface,
-        'relative overflow-hidden bg-[linear-gradient(145deg,#ffffff_35%,#f4f1ff_100%)] p-5 dark:bg-none dark:bg-[#10131f]'
-      )}
+      className={cn(surface, 'relative overflow-hidden p-4 sm:p-5')}
       aria-labelledby="grammar-path-title"
     >
       <motion.div
-        className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[#dcd8ff]/50 blur-2xl dark:bg-indigo-900/30"
+        className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[#5a63df]/10 blur-2xl dark:bg-indigo-900/30"
         animate={{ scale: [1, 1.25, 1], opacity: [0.4, 0.7, 0.4] }}
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
       />
@@ -90,14 +87,13 @@ export default function GrammarLearningPathCard({
         <motion.div
           whileHover={{ rotate: 12, scale: 1.08 }}
           transition={{ type: 'spring', stiffness: 350, damping: 20 }}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#efedff] text-[#5862df] dark:bg-indigo-500/20 dark:text-indigo-300"
         >
-          <Route className="h-[18px] w-[18px]" />
+          <IconChip icon={Route} size="lg" />
         </motion.div>
         <div>
           <h2
             id="grammar-path-title"
-            className="text-base font-black tracking-tight text-slate-950 dark:text-white"
+            className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white"
           >
             Grammar Learning Path
           </h2>
@@ -109,9 +105,9 @@ export default function GrammarLearningPathCard({
 
       <div className="relative mt-5 flex items-start">
         <div className="pointer-events-none absolute left-[16%] right-[16%] top-[22px] overflow-hidden">
-          <span className="block w-full border-t-2 border-dashed border-[#d9dcf4] dark:border-white/15" />
+          <span className="block w-full border-t-2 border-dashed border-[#e2e5f2] dark:border-white/15" />
           <motion.span
-            className="absolute top-0 left-0 h-[2px] w-1/3 bg-gradient-to-r from-transparent via-[#505bdd] to-transparent dark:via-indigo-400"
+            className="absolute top-0 left-0 h-[2px] w-1/3 bg-gradient-to-r from-transparent via-[#5a63df] to-transparent dark:via-indigo-400"
             animate={{ x: ['-100%', '300%'] }}
             transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
           />
@@ -152,8 +148,8 @@ export default function GrammarLearningPathCard({
 
       <div className="mt-4 flex min-h-[22px] items-center justify-center gap-1.5">
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#505bdd] opacity-75 dark:bg-indigo-400" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-[#505bdd] dark:bg-indigo-400" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#5a63df] opacity-75 dark:bg-indigo-400" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-[#5a63df] dark:bg-indigo-400" />
         </span>
         <AnimatePresence mode="wait">
           <motion.p
@@ -162,7 +158,7 @@ export default function GrammarLearningPathCard({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -3 }}
             transition={{ duration: 0.2 }}
-            className="text-center text-[11px] font-extrabold text-[#505bdd] dark:text-indigo-300"
+            className="text-center text-[11px] font-extrabold text-[#5a63df] dark:text-indigo-300"
           >
             {pathStatus}
           </motion.p>
@@ -172,7 +168,7 @@ export default function GrammarLearningPathCard({
       <motion.div whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}>
         <Link
           to="/learning-path"
-          className="group mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-[#d8dcfa] bg-white/80 text-xs font-extrabold text-[#505bdd] shadow-sm transition hover:border-[#aeb5f7] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6972e8] dark:border-white/10 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10"
+          className="group mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#e2e5f2] bg-white/80 text-xs font-bold text-[#5a63df] transition hover:border-[#c9cdf3] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/10 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10"
         >
           View AI Learning Path{' '}
           <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" />

@@ -2,9 +2,9 @@ import React from 'react';
 import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { Award } from 'lucide-react';
-import { getSpeakingColorVariants } from './speakingColorConfig';
 import { computeSpeakingAccessLock, resolveSpeakingLinkConfig } from './speakingCardHelpers';
 import { BookProgressBadge, TestRowBadge, TestRowAction } from './SpeakingCardComponents';
+import { IconChip, MUTED, PANEL, TILE, TITLE } from '@/features/dashboard/components/primitives';
 
 function getTestName(test) {
   const num = test.cambridge_test_number || test.title.match(/Test\s*(\d+)/i)?.[1] || '1';
@@ -19,7 +19,7 @@ function resolveTestState(test, sessions, userData, isAdmin) {
   return { testSession, isLocked, isCompleted, isResuming };
 }
 
-function BookTestRow({ test, sessions, userData, isAdmin, color }) {
+function BookTestRow({ test, sessions, userData, isAdmin }) {
   const { testSession, isLocked, isCompleted, isResuming } = resolveTestState(
     test,
     sessions,
@@ -31,10 +31,15 @@ function BookTestRow({ test, sessions, userData, isAdmin, color }) {
   const { ContainerLink, linkProps } = resolveSpeakingLinkConfig(isLocked, test);
 
   return (
-    <div className="flex items-center justify-between py-1.5 px-2 rounded-xl hover:bg-slate-50/50 dark:hover:bg-white/5 border border-transparent hover:border-slate-100/50 dark:hover:border-white/5 transition-all duration-200">
-      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-        <ContainerLink {...linkProps} className="block group/title min-w-0">
-          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 hover:text-blue-500 transition-colors truncate block">
+    <div
+      className={cn(
+        TILE,
+        'flex items-center justify-between px-2.5 py-1.5 transition-all duration-150'
+      )}
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-2.5">
+        <ContainerLink {...linkProps} className="block min-w-0">
+          <span className="block truncate text-xs font-bold text-slate-800 transition-colors hover:text-[#5a63df] dark:text-slate-200">
             {testName}
           </span>
         </ContainerLink>
@@ -47,80 +52,51 @@ function BookTestRow({ test, sessions, userData, isAdmin, color }) {
         />
       </div>
 
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex shrink-0 items-center gap-1.5">
         <TestRowAction
           isLocked={isLocked}
           isResuming={isResuming}
           isCompleted={isCompleted}
           testSession={testSession}
           test={test}
-          color={color}
         />
       </div>
     </div>
   );
 }
 
-export default function SpeakingCardListView({
-  group,
-  sessions,
-  userData,
-  isAdmin,
-  hasMounted,
-  color,
-}) {
-  const colorVariants = getSpeakingColorVariants(color);
-
+export default function SpeakingCardListView({ group, sessions, userData, isAdmin, hasMounted }) {
   return (
     <m.div
       initial={hasMounted ? false : { opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
       className={cn(
-        'group relative flex flex-col bg-gradient-to-br border border-slate-200/60 dark:border-white/5 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-slate-300/80 dark:hover:border-white/20 hover:-translate-y-1 transition-all duration-300 ease-out',
-        colorVariants.gradient
+        PANEL,
+        'flex flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/[0.12]'
       )}
     >
-      <div>
-        {/* Book Card Header */}
-        <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-200/50 dark:border-white/5">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div
-              className={cn(
-                'w-9 h-9 rounded-lg flex items-center justify-center border bg-white dark:bg-white/5 shadow-sm shrink-0 group-hover:scale-105 transition-transform duration-300',
-                colorVariants.text,
-                colorVariants.border
-              )}
-            >
-              <Award className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <h4 className="text-[15px] font-extrabold text-slate-900 dark:text-white leading-tight tracking-tight truncate">
-                {group.label}
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold truncate">
-                {group.subtitle}
-              </p>
-            </div>
-          </div>
-          <div>
-            <BookProgressBadge tests={group.tests} sessions={sessions} />
+      <div className="mb-3 flex items-center justify-between border-b border-[#eceafa] pb-3 dark:border-white/[0.07]">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <IconChip icon={Award} tone="accent" size="md" />
+          <div className="min-w-0">
+            <h4 className={cn(TITLE, 'truncate text-sm')}>{group.label}</h4>
+            <p className={cn('truncate text-xs font-semibold', MUTED)}>{group.subtitle}</p>
           </div>
         </div>
+        <BookProgressBadge tests={group.tests} sessions={sessions} />
+      </div>
 
-        {/* List of Tests */}
-        <div className="flex flex-col gap-1.5">
-          {group.tests.map((test) => (
-            <BookTestRow
-              key={test.id}
-              test={test}
-              sessions={sessions}
-              userData={userData}
-              isAdmin={isAdmin}
-              color={color}
-            />
-          ))}
-        </div>
+      <div className="flex flex-col gap-1.5">
+        {group.tests.map((test) => (
+          <BookTestRow
+            key={test.id}
+            test={test}
+            sessions={sessions}
+            userData={userData}
+            isAdmin={isAdmin}
+          />
+        ))}
       </div>
     </m.div>
   );

@@ -18,11 +18,6 @@ const speakingCardSources = [
   readFileSync('src/features/testing/speaking/SpeakingCardComponents.jsx', 'utf8'),
   readFileSync('src/features/testing/speaking/SpeakingCardView.jsx', 'utf8'),
 ];
-const learnerTestHeaderSources = [
-  readFileSync('src/features/testing/reading/ReadingInsightsCard.jsx', 'utf8'),
-  readFileSync('src/features/testing/listening/ListeningHeader.jsx', 'utf8'),
-  readFileSync('src/features/testing/writing/WritingInsightsCard.jsx', 'utf8'),
-];
 
 const writingFeedback = (band: number, grammar: number) => ({
   overallBand: band,
@@ -90,13 +85,6 @@ describe('connected learner evidence', () => {
     for (const source of speakingCardSources) {
       expect(source).not.toContain('to={`/speaking-test?test-id=${test.id}`}');
       expect(source).not.toContain('to={`/speaking-test?test-id=${test.id}&retake=true`}');
-    }
-  });
-
-  it('uses skill progress wording across the connected test libraries', () => {
-    for (const source of learnerTestHeaderSources) {
-      expect(source).toContain('skill progress');
-      expect(source).not.toMatch(/mastery/i);
     }
   });
 

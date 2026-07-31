@@ -1,208 +1,54 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
-import {
-  Lock,
-  BookOpen,
-  TrendingUp,
-  Brain,
-  Sparkles,
-  Award,
-  Clock,
-  Target,
-  BarChart3,
-} from 'lucide-react';
+import { BarChart3, Brain, Lock, TrendingUp } from 'lucide-react';
+import { Empty, MICRO, MUTED, PANEL, TILE } from '@/features/dashboard/components/primitives';
 
-function CompactState({ icon: Icon, title, description, action, className }) {
+/** Compact empty state — used inside an existing panel, so it takes no chrome of its own. */
+function CompactState({ icon, title, description, action, className }) {
   return (
-    <div
-      className={cn(
-        'flex flex-col items-center justify-center text-center p-4 h-full min-h-[160px] w-full relative overflow-hidden rounded-[20px] bg-gradient-to-br from-white via-[#faf9ff] to-[#f4f2ff] dark:from-[#10131f] dark:to-[#10131f] border border-[#e0e4f1] dark:border-white/10 shadow-xs',
-        className
-      )}
-    >
-      <div className="relative mb-2 flex-shrink-0">
-        <div className="w-9 h-9 rounded-2xl bg-[#efedff] text-[#5862df] ring-1 ring-[#5862df]/15 dark:bg-indigo-500/20 dark:text-indigo-300 flex items-center justify-center shadow-xs">
-          <Icon className="w-4.5 h-4.5" strokeWidth={2.2} />
-        </div>
-      </div>
-
-      <div className="space-y-0.5 max-w-[280px] select-none">
-        <h4 className="text-xs font-black text-slate-950 dark:text-white tracking-tight">
-          {title}
-        </h4>
-        {description && (
-          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-snug">
-            {description}
-          </p>
-        )}
-      </div>
-
-      {action && <div className="mt-2 w-full max-w-[185px] flex-shrink-0">{action}</div>}
+    <div className={cn('flex h-full min-h-[160px] flex-1 flex-col', className)}>
+      <Empty icon={icon} className="flex-1 content-center">
+        {title ? (
+          <span className="block text-[13px] font-extrabold text-slate-800 dark:text-slate-100">
+            {title}
+          </span>
+        ) : null}
+        {description}
+      </Empty>
+      {action ? <div className="mt-1 flex justify-center">{action}</div> : null}
     </div>
   );
 }
 
-function MockStatCards() {
-  const stats = [
-    {
-      label: 'Overall Band Score',
-      value: '7.5',
-      sub: '+0.5 this week',
-      icon: Award,
-      color: 'text-indigo-500',
-    },
-    {
-      label: 'Target Band Score',
-      value: '8.5',
-      sub: '1.0 band to go',
-      icon: Target,
-      color: 'text-rose-500',
-    },
-    {
-      label: 'Practice Tests',
-      value: '12',
-      sub: '3 modules completed',
-      icon: BookOpen,
-      color: 'text-blue-500',
-    },
-    {
-      label: 'Study Time',
-      value: '24.5h',
-      sub: 'Daily goal met',
-      icon: Clock,
-      color: 'text-emerald-500',
-    },
-  ];
+const WHAT_YOU_GET = [
+  {
+    icon: TrendingUp,
+    title: 'Band trajectory',
+    desc: 'Your score over time, per module, against the target you set.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Marking criteria',
+    desc: 'Task Achievement, Coherence, Lexical Resource and Grammar — where marks are actually lost.',
+  },
+  {
+    icon: Brain,
+    title: 'Confirmed focus areas',
+    desc: 'Skills your own graded answers point to, ranked by how much evidence backs each one.',
+  },
+];
 
-  return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {stats.map((stat, i) => (
-        <div
-          key={i}
-          className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex items-center justify-between"
-        >
-          <div className="space-y-1.5">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              {stat.label}
-            </span>
-            <div className="text-3xl font-black text-slate-900 dark:text-white">{stat.value}</div>
-            <span className="text-sm font-bold text-slate-400 dark:text-slate-500">{stat.sub}</span>
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
-            <stat.icon className={cn('w-6 h-6', stat.color)} />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function MockContentRows() {
-  return (
-    <div className="grid grid-cols-12 gap-6">
-      {/* Mock Chart Area */}
-      <div className="col-span-12 xl:col-span-8 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm min-h-[300px] flex flex-col justify-between">
-        <div className="flex justify-between items-center">
-          <div className="space-y-1">
-            <h4 className="text-base font-black text-slate-900 dark:text-white">
-              Band Score Progress
-            </h4>
-            <p className="text-xs text-slate-400 font-bold uppercase">Performance History</p>
-          </div>
-          <div className="w-24 h-6 rounded bg-slate-100 dark:bg-slate-850" />
-        </div>
-        {/* Fake wave path SVG */}
-        <div className="w-full h-32 flex items-end">
-          <svg
-            className="w-full h-full text-indigo-500/20"
-            viewBox="0 0 100 20"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M0,15 C20,10 40,20 60,8 C80,2 90,14 100,5 L100,20 L0,20 Z"
-              fill="currentColor"
-            />
-            <path
-              d="M0,15 C20,10 40,20 60,8 C80,2 90,14 100,5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              className="text-indigo-500"
-            />
-          </svg>
-        </div>
-      </div>
-
-      {/* Mock AI Recommendations */}
-      <div className="col-span-12 xl:col-span-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
-        <div className="space-y-1">
-          <h4 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500/20" />
-            AI Study Advisor
-          </h4>
-          <p className="text-xs text-slate-400 font-bold uppercase">
-            Immediate Focus Recommendations
-          </p>
-        </div>
-        <div className="space-y-3 mt-4">
-          {[
-            'Practice Writing Task 2 coherence techniques.',
-            'Review vocabulary synonyms for Speaking.',
-            'Focus on distraction-free Listening tests.',
-          ].map((rec, i) => (
-            <div key={i} className="flex gap-2.5 items-start">
-              <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 mt-1" />
-              <div className="w-full h-3.5 bg-slate-100 dark:bg-slate-850 rounded" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MockDashboard() {
-  return (
-    <div
-      className="absolute inset-0 w-full space-y-8 opacity-[0.15] dark:opacity-[0.06] blur-[3px] select-none pointer-events-none transition-all duration-500 scale-95"
-      aria-hidden="true"
-      data-oid="mock-db-bg"
-    >
-      <MockStatCards />
-      <MockContentRows />
-    </div>
-  );
-}
-
-function BenefitItem({ benefit, index }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.15 + index * 0.08 }}
-      className="flex items-start gap-4 p-3.5 rounded-2xl bg-slate-50/60 dark:bg-slate-900/40 border border-slate-100 dark:border-white/[0.03] hover:bg-slate-100/50 dark:hover:bg-slate-900/70 transition-all duration-300"
-    >
-      <div
-        className={cn(
-          'w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-sm border border-white/10',
-          benefit.color
-        )}
-      >
-        <benefit.icon className="w-5 h-5" />
-      </div>
-      <div className="space-y-0.5 min-w-0">
-        <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
-          {benefit.title}
-        </h4>
-        <p className="text-sm sm:text-xs font-semibold text-slate-500 dark:text-slate-450 leading-normal">
-          {benefit.desc}
-        </p>
-      </div>
-    </motion.div>
-  );
-}
-
+/**
+ * First-run empty state — the whole page before any test is scored.
+ *
+ * The previous version rendered a blurred mock dashboard behind the card with
+ * invented numbers (a 7.5 band, "+0.5 this week", "Daily goal met") and a
+ * stock-avatar social-proof strip. None of that is real, and this project's
+ * own rule is no fabricated numbers anywhere in the UI — so this tells the
+ * learner what the page will show once they have a result, without pretending
+ * they already have one.
+ */
 export default function EmptyAnalyticsState({
   icon: Icon = Lock,
   title,
@@ -211,27 +57,6 @@ export default function EmptyAnalyticsState({
   className,
   compact = false,
 }) {
-  const benefits = [
-    {
-      icon: TrendingUp,
-      title: 'Score Projections & Progress Paths',
-      desc: 'Interactive history tracking mapping your overall and module-wise score trajectory.',
-      color: 'from-blue-500/20 to-indigo-500/20 text-indigo-500 dark:text-indigo-400',
-    },
-    {
-      icon: BarChart3,
-      title: 'Granular Assessment Criteria',
-      desc: 'Detailed grammar, vocabulary, lexical resource, and fluency band breakdowns.',
-      color: 'from-purple-500/20 to-pink-500/20 text-purple-500 dark:text-purple-400',
-    },
-    {
-      icon: Brain,
-      title: 'Personal study coaching',
-      desc: 'Instant focus area insights and study suggestions tailored to your weak points.',
-      color: 'from-amber-500/20 to-orange-500/20 text-amber-500 dark:text-amber-400',
-    },
-  ];
-
   if (compact) {
     return (
       <CompactState
@@ -245,67 +70,48 @@ export default function EmptyAnalyticsState({
   }
 
   return (
-    <div
+    <m.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
       className={cn(
-        'relative w-full max-w-[1600px] mx-auto min-h-[70vh] flex items-center justify-center overflow-hidden',
+        PANEL,
+        'mx-auto flex w-full max-w-xl flex-col items-center gap-5 p-6 text-center sm:p-8',
         className
       )}
-      data-oid="37mle7o"
     >
-      <MockDashboard />
+      <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff]">
+        <Icon className="h-5 w-5" strokeWidth={2.25} />
+      </span>
 
-      {/* ─── Premium Glassmorphic Foreground Centerpiece ─── */}
-      <div className="relative z-10 px-4 py-8 w-full max-w-2xl flex flex-col items-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 25 }}
-          className="bg-white/80 dark:bg-slate-950/80 backdrop-blur-3xl p-6 sm:p-10 rounded-[2.5rem] border border-slate-200/60 dark:border-white/[0.08] w-full shadow-2xl shadow-slate-900/10 dark:shadow-black/60 text-center flex flex-col items-center gap-7"
-          data-oid="empty-glass-card"
-        >
-          {/* Animated Central Icon with Orbiting Glow */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full scale-150 animate-pulse" />
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
-              className="absolute -inset-4 border border-dashed border-indigo-500/30 dark:border-indigo-500/20 rounded-full pointer-events-none"
-            />
-            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-xl shadow-indigo-500/25 flex items-center justify-center border border-white/20">
-              <Icon className="w-7 h-7 text-white" />
+      <div className="space-y-1.5">
+        <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          {title}
+        </h3>
+        <p className={cn('mx-auto max-w-md text-[13px] font-medium', MUTED)}>
+          Once you complete a scored test, this page fills in with:
+        </p>
+      </div>
+
+      <div className="grid w-full gap-2 text-left">
+        {WHAT_YOU_GET.map((item) => (
+          <div key={item.title} className={cn(TILE, 'flex items-start gap-3 p-3')}>
+            <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff]">
+              <item.icon className="h-3.5 w-3.5" strokeWidth={2.25} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[12px] font-extrabold text-slate-800 dark:text-slate-100">
+                {item.title}
+              </p>
+              <p className={cn(MICRO, MUTED, 'mt-0.5 normal-case leading-snug tracking-normal')}>
+                {item.desc}
+              </p>
             </div>
           </div>
-
-          {/* Heading */}
-          <div className="space-y-2">
-            <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
-              {title}
-            </h3>
-            <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-              Unlock a clear view of your IELTS performance. Your dashboard will feature:
-            </p>
-          </div>
-
-          {/* Structured Premium Benefits */}
-          <div className="w-full grid grid-cols-1 gap-3 py-1 text-left">
-            {benefits.map((benefit, i) => (
-              <BenefitItem key={i} benefit={benefit} index={i} />
-            ))}
-          </div>
-
-          {/* Call to Action Button */}
-          {action && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45 }}
-              className="w-full mt-1.5"
-            >
-              {action}
-            </motion.div>
-          )}
-        </motion.div>
+        ))}
       </div>
-    </div>
+
+      {action ? <div className="w-full pt-1">{action}</div> : null}
+    </m.div>
   );
 }

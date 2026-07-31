@@ -18,7 +18,6 @@ describe('Reading resume restart action', () => {
           isCompleted={false}
           test={test}
           session={session}
-          color="orange"
         />
       </MemoryRouter>
     );
@@ -39,7 +38,6 @@ describe('Reading resume restart action', () => {
           isCompleted={false}
           testSession={session}
           test={test}
-          color="orange"
         />
       </MemoryRouter>
     );

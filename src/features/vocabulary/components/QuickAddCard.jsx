@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Zap, Search, ChevronRight, Volume2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { useWordSuggestions, useWordDefinition } from '@/features/vocabulary/hooks';
 import { playPronunciation } from '../utils/audioUtils';
+import { IconChip, PANEL, Pill } from '@/features/dashboard/components/primitives';
 
 const VOCABULARY_LIMITS = { free: 100, pro: 300, premium: Infinity };
 const CATEGORIES = ['Academic', 'Speaking', 'Writing', 'Reading'];
@@ -131,37 +131,34 @@ export default function QuickAddCard({
   };
 
   return (
-    <Card className="w-full overflow-visible border border-[#e0e4f1] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f3f0ff] dark:from-[#10131f] dark:to-[#10131f] shadow-[0_20px_50px_-42px_rgba(48,58,128,0.72)] rounded-[22px] relative z-30">
-      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#505bdd]/10 blur-xl" />
-      <CardHeader className="p-4 pb-3 border-b border-slate-200/80 dark:border-white/10 flex flex-row items-center justify-between relative">
-        <CardTitle className="flex items-center gap-2.5 text-sm font-black text-slate-900 dark:text-white">
-          <div className="w-8 h-8 rounded-xl bg-[#efedff] text-[#5862df] dark:bg-indigo-500/20 dark:text-indigo-300 flex items-center justify-center ring-1 ring-[#5862df]/15 dark:ring-indigo-500/30 shadow-xs">
-            <Plus className="w-4 h-4" strokeWidth={2.5} />
-          </div>
-          <span>Quick Add Word</span>
-        </CardTitle>
-        <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#505bdd] dark:text-indigo-300 bg-white/90 dark:bg-white/10 px-2.5 py-0.5 rounded-full border border-[#d8dcfa] dark:border-white/10 shadow-xs">
-          AUTO LOOKUP
-        </span>
-      </CardHeader>
+    <div className={cn(PANEL, 'relative z-30 overflow-visible p-4')}>
+      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#5a63df]/10 blur-xl" />
+      <div className="relative flex flex-wrap items-center justify-between gap-2 border-b border-[#eeedf7] pb-3 dark:border-white/[0.07]">
+        <h3 className="flex min-w-0 items-center gap-2 text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
+          <IconChip icon={Plus} />
+          <span className="truncate">Quick Add Word</span>
+        </h3>
+        <Pill tone="accent" className="shrink-0 text-[8.5px]">
+          Auto lookup
+        </Pill>
+      </div>
 
-      <CardContent className="p-4 space-y-4 overflow-visible relative">
-        {/* Category Pills */}
+      <div className="relative space-y-4 overflow-visible pt-4">
         <div className="space-y-1.5">
-          <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest">
-            CATEGORY
+          <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+            Category
           </label>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
                 className={cn(
-                  'px-3.5 py-1.5 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer',
+                  'rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-200 text-center',
                   selectedCategory === cat
-                    ? 'bg-[#5661e9] text-white shadow-md shadow-indigo-500/20'
-                    : 'bg-white dark:bg-white/5 border border-[#d8dcfa] dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-[#6570ee]/40'
+                    ? 'bg-[#5a63df] text-white'
+                    : 'border border-[#e2e5f2] bg-white text-slate-700 hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/5 dark:text-slate-300'
                 )}
               >
                 {cat}
@@ -170,15 +167,14 @@ export default function QuickAddCard({
           </div>
         </div>
 
-        {/* Input & Suggestions */}
-        <div className="space-y-1.5 relative">
-          <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest">
-            WORD OR EXPRESSION
+        <div className="relative space-y-1.5">
+          <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+            Word or expression
           </label>
-          <div className="relative group">
+          <div className="group relative">
             <Input
-              placeholder="Type a word (e.g. ubiquitous)..."
-              className="bg-white dark:bg-slate-900 border-[#d8dcfa] dark:border-white/10 focus:border-[#5661e9] h-11 pl-3.5 pr-16 rounded-xl font-semibold text-xs shadow-xs text-slate-900 dark:text-white"
+              placeholder="Type a word to save..."
+              className="h-11 rounded-lg border-[#e2e5f2] bg-white pl-3.5 pr-16 text-xs font-semibold text-slate-900 focus:border-[#5a63df] dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
               value={newWord}
               onChange={(e) => {
                 setNewWord(e.target.value);
@@ -192,77 +188,76 @@ export default function QuickAddCard({
               autoComplete="off"
             />
 
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
               {newWord.trim() && (
                 <button
                   type="button"
                   onClick={handleAudio}
                   className={cn(
-                    'p-1.5 rounded-lg text-slate-400 hover:text-[#5661e9] transition-colors',
-                    isPlayingAudio && 'text-[#5661e9] animate-pulse bg-[#efedff]'
+                    'rounded-lg p-1.5 text-slate-400 transition-colors hover:text-[#5a63df]',
+                    isPlayingAudio && 'animate-pulse bg-[#5a63df]/10 text-[#5a63df]'
                   )}
                   title="Test audio"
                 >
-                  <Volume2 className="w-4 h-4" />
+                  <Volume2 className="h-4 w-4" />
                 </button>
               )}
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8 rounded-lg hover:bg-[#efedff] dark:hover:bg-indigo-950/40 text-[#505bdd]"
+                className="h-8 w-8 rounded-lg text-[#5a63df] hover:bg-[#5a63df]/10"
                 onClick={handleAddWord}
                 disabled={isFetchingDef || !newWord.trim()}
               >
-                <Zap className={cn('w-4 h-4', isFetchingDef && 'animate-spin')} />
+                <Zap className={cn('h-4 w-4', isFetchingDef && 'animate-spin')} />
               </Button>
             </div>
           </div>
 
-          {/* Autocomplete Dropdown */}
           <AnimatePresence>
             {showSuggestions && suggestions.length > 0 && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: -6, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                className="absolute z-50 w-full bg-white dark:bg-slate-900 border border-[#d8dcfa] dark:border-white/10 rounded-xl shadow-lg mt-1 overflow-hidden py-1"
+                className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-[#e2e5f2] bg-white py-1 shadow-lg dark:border-white/10 dark:bg-[#131218]"
               >
                 {suggestions.map((sug, index) => (
                   <div
                     key={index}
-                    className="px-3.5 py-2 hover:bg-[#efedff] dark:hover:bg-slate-800 cursor-pointer text-xs font-bold text-slate-900 dark:text-slate-200 transition-colors flex justify-between items-center group/item"
+                    className="group/item flex cursor-pointer items-center justify-between px-3.5 py-2 text-xs font-bold text-slate-900 transition-colors hover:bg-[#f4f3fb] dark:text-slate-200 dark:hover:bg-white/5"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       handleSelectSuggestion(sug.word);
                     }}
                   >
                     <div className="flex items-center gap-2">
-                      <Search className="w-3.5 h-3.5 text-[#505bdd]" />
+                      <Search className="h-3.5 w-3.5 text-[#5a63df]" />
                       <span>{sug.word}</span>
                     </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-400 opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                    <ChevronRight className="h-3.5 w-3.5 text-slate-400 opacity-0 transition-opacity group-hover/item:opacity-100" />
                   </div>
                 ))}
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </div>
 
         {newDefinition && (
-          <div className="bg-[#efedff]/80 dark:bg-indigo-950/40 p-3 rounded-xl border border-[#d8dcfa] dark:border-indigo-800/40 text-xs font-semibold text-[#505bdd] dark:text-indigo-200 italic leading-relaxed">
-            "{newDefinition}"
+          <div className="rounded-lg border border-[#e2e5f2] bg-[#5a63df]/[0.06] p-3 text-xs font-semibold italic leading-relaxed text-[#5a63df] dark:border-white/10 dark:bg-indigo-950/40 dark:text-indigo-200">
+            &quot;{newDefinition}&quot;
           </div>
         )}
 
         <Button
-          className="w-full bg-[#5661e9] hover:bg-[#4853da] text-white h-11 rounded-xl font-extrabold text-xs shadow-md shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#5a63df] text-xs font-bold text-white transition-all hover:bg-[#4a52c9] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           onClick={handleAddWord}
           disabled={isAdding || !newWord.trim()}
         >
-          <Plus className="w-4 h-4" strokeWidth={2.5} />
+          <Plus className="h-4 w-4" strokeWidth={2.5} />
           {isAdding ? 'Adding Word...' : 'Save Word'}
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

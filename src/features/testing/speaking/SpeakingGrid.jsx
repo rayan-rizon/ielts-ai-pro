@@ -1,12 +1,11 @@
 import React, { memo } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { Mic } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import SpeakingCardView from './SpeakingCardView';
-import { getSpeakingColor } from './speakingColorConfig';
 import SpeakingCardListView from './SpeakingCardListView';
-
-const COLOR_KEYS = ['rose', 'orange', 'blue', 'indigo', 'violet', 'cyan'];
+import { cn } from '@/lib/cn';
+import { Empty, PANEL } from '@/features/dashboard/components/primitives';
 
 import {
   buildSpeakingDisplayTitle,
@@ -14,6 +13,8 @@ import {
   resolveSpeakingLinkConfig,
   computeSpeakingAccessLock,
 } from './speakingCardHelpers';
+
+const GRID_CLASS = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3';
 
 // ---------------------------------------------------------------------------
 // Pure prop-builder (extracted from render to lower CC in grid)
@@ -42,7 +43,6 @@ function buildSpeakingCardProps({
   const isLocked = computeSpeakingAccessLock(test, user, isAdmin);
   const progress = computeSpeakingProgress(latestSession, test, questionCount);
   const displayTitle = buildSpeakingDisplayTitle(test);
-  const color = getSpeakingColor(displayTitle || 'default');
   const Icon = resolveSpeakingIcon(test);
   const activeSession = isResuming ? latestSession : undefined;
   const completedSession = isCompleted ? latestSession : undefined;
@@ -61,7 +61,6 @@ function buildSpeakingCardProps({
     progress,
     displayScore: latestSession?.score,
     displayTitle,
-    color,
     Icon,
     ContainerLink,
     linkProps,
@@ -106,25 +105,11 @@ const TestCard = memo(function TestCard({
 
 function SpeakingEmptyState({ searchQuery }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="col-span-full py-24 text-center bg-transparent"
-      data-oid="4yqk4q6"
-    >
-      <div
-        className="w-24 h-24 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6"
-        data-oid="45-2:h5"
-      >
-        <Mic className="w-10 h-10 text-slate-300 dark:text-slate-600" data-oid="8x2:p.1" />
-      </div>
-      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2" data-oid="t5l_0n_">
-        No speaking tests available
-      </h3>
-      <p className="text-slate-500 dark:text-slate-400" data-oid="6e2r-_z">
+    <div className={cn(PANEL, 'col-span-full p-4 sm:p-5')}>
+      <Empty icon={Mic}>
         {searchQuery ? `No tests matching "${searchQuery}"` : "Admins haven't added any tests yet."}
-      </p>
-    </motion.div>
+      </Empty>
+    </div>
   );
 }
 
@@ -134,25 +119,22 @@ function SpeakingEmptyState({ searchQuery }) {
 
 export function SpeakingSkeletonGrid() {
   return (
-    <div
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-6"
-      data-oid="650soz."
-    >
+    <div className={GRID_CLASS}>
       {[...Array(8)].map((_, i) => (
-        <div
-          key={i}
-          className="bg-white dark:bg-[#111111] rounded-2xl border border-slate-200 dark:border-white/5 p-6 flex flex-col h-[400px]"
-          data-oid="100:8ew"
-        >
-          <div className="flex justify-between items-start mb-6" data-oid="ks1ujq2">
-            <Skeleton className="w-12 h-12 rounded-xl" data-oid="w368d.-" />
-            <Skeleton className="h-6 w-20 rounded-lg" data-oid="rzg-50d" />
+        <div key={i} className={cn(PANEL, 'flex h-[280px] flex-col p-4')}>
+          <div className="mb-3 flex items-start justify-between">
+            <Skeleton className="h-9 w-9 rounded-lg" />
+            <Skeleton className="h-5 w-16 rounded-full" />
           </div>
-          <div className="flex-grow space-y-4" data-oid="h96l49a">
-            <Skeleton className="h-7 w-3/4 rounded-lg" data-oid="mf0m1uf" />
-            <Skeleton className="h-4 w-full rounded-lg" data-oid="gjscu8z" />
+          <div className="flex-grow space-y-3">
+            <Skeleton className="h-5 w-3/4 rounded-lg" />
+            <Skeleton className="h-3.5 w-full rounded-lg" />
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <Skeleton className="h-8 rounded-lg" />
+              <Skeleton className="h-8 rounded-lg" />
+            </div>
           </div>
-          <Skeleton className="h-12 w-full rounded-xl mt-6" data-oid="o51t76q" />
+          <Skeleton className="mt-3 h-10 w-full rounded-lg" />
         </div>
       ))}
     </div>
@@ -231,44 +213,39 @@ export function SpeakingTestsGrid({
     const grouped = groupTestsByVolume(filteredTests);
     return (
       <AnimatePresence>
-        <motion.div
+        <m.div
           key={activeTab}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
+          className={GRID_CLASS}
         >
-          {grouped.map((group, index) => {
-            const color = COLOR_KEYS[index % COLOR_KEYS.length];
-            return (
-              <SpeakingCardListView
-                key={group.id}
-                group={group}
-                sessions={sessions}
-                userData={userData}
-                isAdmin={isAdmin}
-                hasMounted={hasMounted}
-                color={color}
-              />
-            );
-          })}
+          {grouped.map((group) => (
+            <SpeakingCardListView
+              key={group.id}
+              group={group}
+              sessions={sessions}
+              userData={userData}
+              isAdmin={isAdmin}
+              hasMounted={hasMounted}
+            />
+          ))}
           {filteredTests.length === 0 && <SpeakingEmptyState searchQuery={searchQuery} />}
-        </motion.div>
+        </m.div>
       </AnimatePresence>
     );
   }
 
   return (
     <AnimatePresence>
-      <motion.div
+      <m.div
         key={activeTab}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-6"
-        data-oid="f:qit:j"
+        className={GRID_CLASS}
       >
         {filteredTests.map((test) => {
           const latestSession = sessions.find((s) => s.passage_id === test.id);
@@ -287,7 +264,7 @@ export function SpeakingTestsGrid({
           );
         })}
         {filteredTests.length === 0 && <SpeakingEmptyState searchQuery={searchQuery} />}
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   );
 }

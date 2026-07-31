@@ -1,8 +1,7 @@
 import { useState, useEffect, memo, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, m, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Search,
@@ -13,7 +12,6 @@ import {
   ArrowRight,
   X,
   LayoutGrid,
-  List,
   Library,
   Brain,
   ChevronRight,
@@ -26,41 +24,23 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { VOCABULARY_KITS } from '@/features/vocabulary/data/vocabularyKits';
 import KitCard from '@/features/vocabulary/components/KitCard';
 import { useVocabularyData } from '@/features/vocabulary/hooks';
+import {
+  Empty,
+  IconChip,
+  MICRO,
+  MUTED,
+  NUM,
+  PANEL,
+  TILE,
+  TITLE,
+} from '@/features/dashboard/components/primitives';
 
 const CONTENT_TYPES = [
   { id: 'all', label: 'All', icon: LayoutGrid },
-  {
-    id: 'video',
-    label: 'Videos',
-    icon: Video,
-    color: 'rose',
-    bgGradient: 'from-rose-500/10 to-transparent',
-    accent: 'rose-500',
-  },
-  {
-    id: 'pdf',
-    label: 'PDFs',
-    icon: FileText,
-    color: 'blue',
-    bgGradient: 'from-blue-500/10 to-transparent',
-    accent: 'blue-500',
-  },
-  {
-    id: 'blog',
-    label: 'Articles',
-    icon: BookOpen,
-    color: 'emerald',
-    bgGradient: 'from-emerald-500/10 to-transparent',
-    accent: 'emerald-500',
-  },
-  {
-    id: 'vocabulary',
-    label: 'Vocabulary',
-    icon: Brain,
-    color: 'indigo',
-    bgGradient: 'from-indigo-500/10 to-transparent',
-    accent: 'indigo-500',
-  },
+  { id: 'video', label: 'Videos', icon: Video, tone: 'rose' },
+  { id: 'pdf', label: 'PDFs', icon: FileText, tone: 'sky' },
+  { id: 'blog', label: 'Articles', icon: BookOpen, tone: 'emerald' },
+  { id: 'vocabulary', label: 'Vocabulary', icon: Brain, tone: 'accent' },
 ];
 
 // ─── Base Resource Card (Shared UI Component) ─────────────────
@@ -71,11 +51,10 @@ const BaseResourceCard = ({
   maxHeight,
   thumbnail,
   badgeText,
-  badgeBg,
+  badgeBg = 'bg-slate-800/85 dark:bg-black/60',
   icon: FallbackIcon,
   actionText,
   actionColor = 'text-slate-500 dark:text-slate-400',
-  hoverBorder = 'hover:border-slate-300 dark:hover:border-slate-700/80 hover:shadow-lg hover:shadow-slate-200/60 dark:hover:shadow-black/40',
   imageContain = false,
   children,
 }) => (
@@ -83,14 +62,14 @@ const BaseResourceCard = ({
     whileHover={{ y: -3 }}
     whileTap={{ scale: 0.98 }}
     className={cn(
-      'group relative flex flex-col h-full rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200/80 dark:border-slate-800 overflow-hidden cursor-pointer shadow-2xs transition-all duration-200',
-      hoverBorder
+      PANEL,
+      'group relative flex h-full cursor-pointer flex-col overflow-hidden transition-all duration-200 hover:shadow-sm dark:hover:border-white/[0.12]'
     )}
     onClick={() => onOpen(resource)}
   >
     {/* Cover Header */}
     <div
-      className="relative w-full overflow-hidden bg-slate-100 dark:bg-slate-900/90 flex items-center justify-center"
+      className={cn('relative flex w-full items-center justify-center overflow-hidden', TILE)}
       style={{ aspectRatio, maxHeight }}
     >
       {thumbnail ? (
@@ -106,7 +85,7 @@ const BaseResourceCard = ({
       ) : children ? (
         children
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+        <div className="flex h-full w-full items-center justify-center">
           {FallbackIcon && <FallbackIcon className="w-6 h-6 text-slate-400" />}
         </div>
       )}
@@ -116,7 +95,7 @@ const BaseResourceCard = ({
         <div className="absolute top-1.5 left-1.5">
           <span
             className={cn(
-              'px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider text-white shadow-2xs',
+              'px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider text-white',
               badgeBg
             )}
           >
@@ -127,14 +106,12 @@ const BaseResourceCard = ({
     </div>
 
     {/* Content */}
-    <div className="p-2.5 flex flex-col flex-grow">
-      <h3 className="text-xs font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2 transition-colors">
-        {resource.title}
-      </h3>
-      <div className="mt-auto flex items-center justify-between pt-1.5 border-t border-slate-200/60 dark:border-slate-800/80">
-        <div className="flex items-center gap-1 text-slate-400">
+    <div className="flex flex-grow flex-col p-2.5">
+      <h3 className={cn(TITLE, 'mb-2 text-xs leading-snug line-clamp-2')}>{resource.title}</h3>
+      <div className="mt-auto flex items-center justify-between border-t border-[#eceafa] pt-1.5 dark:border-white/[0.07]">
+        <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500">
           <Eye className="w-3 h-3" />
-          <span className="text-[10px] font-semibold">{resource.view_count || 0}</span>
+          <span className={cn(NUM, 'text-[10px] font-semibold')}>{resource.view_count || 0}</span>
         </div>
         <div className={cn('flex items-center gap-0.5 text-[10px] font-extrabold', actionColor)}>
           {actionText} <ArrowRight className="w-2.5 h-2.5" />
@@ -228,110 +205,74 @@ const ResourceCard = ({ resource, index = 0, onOpen, user, allVocabulary }) => {
 };
 
 // ─── Section Header ────────────────────────────────────────────
-const COLOR_STYLES = {
-  rose: { bg: 'bg-rose-500/10 text-rose-500', btn: 'text-rose-500' },
-  blue: { bg: 'bg-blue-500/10 text-blue-500', btn: 'text-blue-500' },
-  emerald: { bg: 'bg-emerald-500/10 text-emerald-500', btn: 'text-emerald-500' },
-  indigo: { bg: 'bg-indigo-500/10 text-indigo-500', btn: 'text-indigo-500' },
+const SECTION_TONE_TEXT = {
+  rose: 'text-rose-600 dark:text-rose-300',
+  sky: 'text-sky-600 dark:text-sky-300',
+  emerald: 'text-emerald-600 dark:text-emerald-300',
+  accent: 'text-[#5a63df] dark:text-[#a9afff]',
 };
 
-const SectionHeader = ({ icon: Icon, title, count, color = 'indigo', onViewAll }) => {
-  const style = COLOR_STYLES[color] || COLOR_STYLES.indigo;
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="flex items-center justify-between mb-4"
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className={cn('w-9 h-9 rounded-xl flex items-center justify-center shadow-sm', style.bg)}
-        >
-          <Icon className="w-4.5 h-4.5" />
-        </div>
-        <div>
-          <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
-            {title}
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tight">
-            {count} available
-          </p>
-        </div>
+const SectionHeader = ({ icon: Icon, title, count, tone = 'accent', onViewAll }) => (
+  <motion.div
+    initial={{ opacity: 0, x: -10 }}
+    animate={{ opacity: 1, x: 0 }}
+    className="mb-3.5 flex items-center justify-between"
+  >
+    <div className="flex items-center gap-2.5">
+      <IconChip icon={Icon} tone={tone} size="md" />
+      <div>
+        <h2 className={cn(TITLE, 'text-sm')}>{title}</h2>
+        <p className={cn(MICRO, MUTED, 'mt-0.5')}>
+          <span className={cn(NUM, 'font-bold')}>{count}</span> available
+        </p>
       </div>
-      {onViewAll && (
-        <button
-          onClick={onViewAll}
-          className={cn(
-            'flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest transition-all hover:gap-2',
-            style.btn
-          )}
-        >
-          View All
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
-      )}
-    </motion.div>
-  );
-};
+    </div>
+    {onViewAll && (
+      <button
+        onClick={onViewAll}
+        className={cn(
+          MICRO,
+          'flex items-center gap-1 transition-all hover:gap-1.5',
+          SECTION_TONE_TEXT[tone] || SECTION_TONE_TEXT.accent
+        )}
+      >
+        View all
+        <ChevronRight className="h-3 w-3" />
+      </button>
+    )}
+  </motion.div>
+);
 
 // ─── Skeleton ──────────────────────────────────────────────────
 const ResourcesSkeleton = () => (
-  <div className="space-y-12">
-    {/* Videos skeleton */}
-    <div>
-      <Skeleton className="h-8 w-48 mb-6 rounded-xl" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {[...Array(4)].map((_, i) => (
-          <div
-            key={`v${i}`}
-            className="rounded-2xl overflow-hidden border border-slate-200/50 dark:border-white/5"
-          >
-            <Skeleton className="aspect-video w-full" />
-            <div className="p-4 space-y-3">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-full" />
-              <div className="pt-3 border-t flex justify-between">
-                <Skeleton className="h-3 w-12" />
-                <Skeleton className="h-3 w-20" />
+  <div className="space-y-4">
+    {[
+      { key: 'video', cols: 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4', count: 4 },
+      {
+        key: 'pdf',
+        cols: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6',
+        count: 6,
+      },
+      { key: 'blog', cols: 'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4', count: 4 },
+    ].map((section) => (
+      <div key={section.key} className={cn(PANEL, 'space-y-3.5 p-4 sm:p-5')}>
+        <Skeleton className="h-8 w-48 rounded-lg" />
+        <div className={cn('grid grid-cols-1 gap-3', section.cols)}>
+          {[...Array(section.count)].map((_, i) => (
+            <div key={i} className={cn(TILE, 'overflow-hidden')}>
+              <Skeleton className="aspect-video w-full rounded-none" />
+              <div className="space-y-2 p-2.5">
+                <Skeleton className="h-3 w-3/4" />
+                <div className="flex justify-between pt-1.5">
+                  <Skeleton className="h-2.5 w-8" />
+                  <Skeleton className="h-2.5 w-12" />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
-
-    {/* PDFs skeleton */}
-    <div>
-      <Skeleton className="h-8 w-48 mb-6 rounded-xl" />
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-        {[...Array(6)].map((_, i) => (
-          <div key={`p${i}`} className="space-y-2">
-            <Skeleton className="aspect-[3/4] w-full rounded-xl" />
-            <Skeleton className="h-3 w-3/4 mx-auto" />
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {/* Articles skeleton */}
-    <div>
-      <Skeleton className="h-8 w-48 mb-6 rounded-xl" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <div
-            key={`a${i}`}
-            className="flex gap-4 p-4 rounded-2xl border border-slate-200/50 dark:border-white/5"
-          >
-            <Skeleton className="w-20 h-20 rounded-xl flex-shrink-0" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-3 w-16" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-3 w-2/3" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    ))}
   </div>
 );
 
@@ -346,12 +287,12 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll, user, allVocabulary })
     <div className="space-y-6">
       {/* Videos Section Card */}
       {videos.length > 0 && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 p-4 sm:p-5 shadow-sm space-y-3.5">
+        <section className={cn(PANEL, 'space-y-3.5 p-4 sm:p-5')}>
           <SectionHeader
             icon={Video}
             title="Video Lessons"
             count={videos.length}
-            color="rose"
+            tone="rose"
             onViewAll={() => onViewAll('video')}
           />
           {/* 2 rows of videos: 4 columns x 2 rows = 8 videos */}
@@ -372,12 +313,12 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll, user, allVocabulary })
 
       {/* PDFs Section Card (1 single row: 5 or 6 items max) */}
       {pdfs.length > 0 && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 p-4 sm:p-5 shadow-sm space-y-3.5">
+        <section className={cn(PANEL, 'space-y-3.5 p-4 sm:p-5')}>
           <SectionHeader
             icon={FileText}
             title="Study Guides & Books"
             count={pdfs.length}
-            color="blue"
+            tone="sky"
             onViewAll={() => onViewAll('pdf')}
           />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5">
@@ -397,12 +338,12 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll, user, allVocabulary })
 
       {/* Articles Section Card (2 rows: 4 columns x 2 rows = 8 items) */}
       {articles.length > 0 && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 p-4 sm:p-5 shadow-sm space-y-3.5">
+        <section className={cn(PANEL, 'space-y-3.5 p-4 sm:p-5')}>
           <SectionHeader
             icon={BookOpen}
             title="Reading Materials"
             count={articles.length}
-            color="emerald"
+            tone="emerald"
             onViewAll={() => onViewAll('blog')}
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -422,12 +363,12 @@ const SegmentedAllView = ({ resources, onOpen, onViewAll, user, allVocabulary })
 
       {/* Vocabulary Section Card (2 rows: 4 columns x 2 rows = 8 items) */}
       {vocabs.length > 0 && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 p-4 sm:p-5 shadow-sm space-y-3.5">
+        <section className={cn(PANEL, 'space-y-3.5 p-4 sm:p-5')}>
           <SectionHeader
             icon={Brain}
             title="Vocabulary Lists"
             count={vocabs.length}
-            color="indigo"
+            tone="accent"
             onViewAll={() => onViewAll('vocabulary')}
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2.5">
@@ -495,22 +436,22 @@ const FilteredGridView = ({ resources, filterType, onOpen, user, allVocabulary }
 // ─── Sub-Components for ResourcesSection ─────────────────────
 const ControlsBar = ({ searchQuery, setSearchQuery, filterType, handleTypeChange }) => (
   <div className="sticky top-4 z-40">
-    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl px-3 py-2 rounded-2xl shadow-lg shadow-slate-900/5 dark:shadow-black/30 border border-slate-200/80 dark:border-white/10 flex flex-wrap lg:flex-nowrap gap-2 items-center justify-between">
+    <div
+      className={cn(TILE, 'flex flex-wrap items-center justify-between gap-2 p-2 lg:flex-nowrap')}
+    >
       {/* Search */}
-      <div className="relative w-full lg:max-w-xs group">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <Search className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-500 transition-colors" />
-        </div>
+      <div className="group relative w-full lg:max-w-xs">
+        <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#5a63df]" />
         <Input
           placeholder="Search resources..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 bg-slate-50 dark:bg-slate-950 border-slate-200/60 dark:border-white/[0.10] h-9 rounded-full text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-indigo-500/40"
+          className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#131218]"
         />
         {searchQuery && (
           <button
             onClick={() => setSearchQuery('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 transition-all"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-all hover:bg-slate-200/60 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white"
           >
             <X className="w-3 h-3" />
           </button>
@@ -518,59 +459,58 @@ const ControlsBar = ({ searchQuery, setSearchQuery, filterType, handleTypeChange
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-0.5 p-0.5 bg-slate-100/80 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/[0.10] overflow-x-auto no-scrollbar flex-1 lg:flex-none">
-        {CONTENT_TYPES.map((type) => (
-          <button
-            key={type.id}
-            onClick={() => handleTypeChange(type.id)}
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap',
-              filterType === type.id
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/10'
-            )}
-          >
-            {type.icon && <type.icon className="w-3.5 h-3.5 shrink-0" />}
-            {type.label}
-          </button>
-        ))}
-      </div>
-
-      {/* View toggle */}
-      <div className="hidden lg:flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-white/10">
-        <div className="flex items-center gap-1.5 text-indigo-500 cursor-pointer">
-          <LayoutGrid className="w-4 h-4" />
-          <span className="text-xs font-semibold">Grid</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-slate-300 dark:text-slate-700 cursor-not-allowed">
-          <List className="w-4 h-4" />
-          <span className="text-xs font-semibold">List</span>
-        </div>
+      <div className="no-scrollbar flex flex-1 items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.04] lg:flex-none">
+        {CONTENT_TYPES.map((type) => {
+          const isActive = filterType === type.id;
+          return (
+            <m.button
+              key={type.id}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => handleTypeChange(type.id)}
+              className={cn(
+                'relative z-10 flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200',
+                isActive
+                  ? 'text-white'
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white'
+              )}
+            >
+              {isActive && (
+                <m.div
+                  layoutId="resourceTypeIndicator"
+                  className="absolute inset-0 -z-10 rounded-md bg-[#5a63df]"
+                  transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                />
+              )}
+              {type.icon && <type.icon className="relative z-10 h-3.5 w-3.5 shrink-0" />}
+              <span className="relative z-10">{type.label}</span>
+            </m.button>
+          );
+        })}
       </div>
     </div>
   </div>
 );
 
 const EmptyStateView = ({ searchQuery, filterType, onReset }) => (
-  <div className="text-center py-12 px-6 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/10">
-    <div className="w-14 h-14 bg-slate-100 dark:bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
-      <Library className="w-7 h-7 text-slate-400 dark:text-slate-600" />
-    </div>
-    <h3 className="text-lg font-black text-slate-900 dark:text-white mb-1 tracking-tight">
-      No resources found
-    </h3>
-    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-5 max-w-sm mx-auto">
-      {searchQuery
-        ? 'Try different keywords or browse categories.'
-        : "We're enriching our collection. Check back soon!"}
-    </p>
+  <div className={cn(PANEL, 'p-4 sm:p-5')}>
+    <Empty icon={Library}>
+      <span className={cn(TITLE, 'block text-sm')}>No resources found</span>
+      <span className="mt-1 block">
+        {searchQuery
+          ? 'Try different keywords or browse categories.'
+          : "We're enriching our collection. Check back soon!"}
+      </span>
+    </Empty>
     {(searchQuery || filterType !== 'all') && (
-      <Button
-        onClick={onReset}
-        className="rounded-xl h-9 px-6 font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md active:scale-95 transition-all text-sm border-0"
-      >
-        Show All Resources
-      </Button>
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={onReset}
+          className="h-9 rounded-lg bg-[#5a63df] px-5 text-xs font-bold text-white transition-all hover:bg-[#4a52c9] active:scale-95"
+        >
+          Show all resources
+        </button>
+      </div>
     )}
   </div>
 );
@@ -584,27 +524,26 @@ const PaginationBar = ({ pagination, totalPages, setPagination }) => {
   const isLast = pagination.page >= totalPages;
 
   return (
-    <div className="flex items-center justify-center gap-2 pt-6 pb-2">
-      {/* Prev */}
+    <div className="flex items-center justify-center gap-2 pb-2 pt-2">
       <button
         disabled={isFirst}
         onClick={() => goTo(pagination.page - 1)}
-        className="h-9 px-4 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
+        className="h-9 rounded-lg border border-[#e2e5f2] px-3.5 text-xs font-bold text-slate-500 transition-all duration-150 hover:border-[#c9cdf3] hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-30 dark:border-white/10 dark:text-slate-400 dark:hover:text-white"
       >
         ← Prev
       </button>
 
-      {/* Page numbers */}
       <div className="flex items-center gap-1">
         {[...Array(totalPages)].map((_, i) => (
           <button
             key={i}
             onClick={() => goTo(i + 1)}
             className={cn(
-              'w-9 h-9 rounded-xl text-xs font-semibold transition-all duration-150',
+              NUM,
+              'h-9 w-9 rounded-lg text-xs font-bold transition-all duration-150',
               pagination.page === i + 1
-                ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-white border border-transparent hover:border-slate-200 dark:hover:border-slate-700'
+                ? 'bg-[#5a63df] text-white'
+                : 'border border-transparent text-slate-500 hover:border-[#e2e5f2] hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:border-white/10 dark:hover:bg-white/5 dark:hover:text-white'
             )}
           >
             {i + 1}
@@ -612,16 +551,14 @@ const PaginationBar = ({ pagination, totalPages, setPagination }) => {
         ))}
       </div>
 
-      {/* Page info */}
-      <span className="text-xs text-slate-400 dark:text-slate-600 font-medium px-1 hidden sm:inline">
+      <span className={cn(MICRO, MUTED, 'hidden px-1 sm:inline')}>
         {pagination.page} / {totalPages}
       </span>
 
-      {/* Next */}
       <button
         disabled={isLast}
         onClick={() => goTo(pagination.page + 1)}
-        className="h-9 px-4 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
+        className="h-9 rounded-lg border border-[#e2e5f2] px-3.5 text-xs font-bold text-slate-500 transition-all duration-150 hover:border-[#c9cdf3] hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-30 dark:border-white/10 dark:text-slate-400 dark:hover:text-white"
       >
         Next →
       </button>

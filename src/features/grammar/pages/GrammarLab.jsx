@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/cn';
 import DocumentHead from '@/components/shared/DocumentHead';
 import GrammarAttempt from '../components/GrammarAttempt';
 import GrammarDashboard from '../components/GrammarDashboard';
@@ -17,32 +18,36 @@ import GrammarResults from '../components/GrammarResults';
 import GrammarTransfer from '../components/GrammarTransfer';
 import { getGrammarGuide } from '../data/grammarGuideCatalog';
 import { useGrammarLab } from '../hooks/useGrammarLab';
+import {
+  IconChip,
+  MICRO,
+  MUTED,
+  NUM,
+  PANEL,
+  Pill,
+} from '@/features/dashboard/components/primitives';
 
 function HeaderMetric({ icon: Icon, value, label, tone, href, onClick, disabled = false }) {
-  const tones = {
-    indigo: 'bg-[#efedff] text-[#5a63df]',
-    emerald: 'bg-[#eaf9f1] text-[#159669]',
-    orange: 'bg-[#fff1e7] text-[#df7437]',
-  };
   const content = (
     <>
-      <span
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}
-      >
-        <Icon className="h-4 w-4" />
-      </span>
+      <IconChip icon={Icon} tone={tone} />
       <span className="min-w-0 text-left">
-        <span className="block text-sm font-black leading-none text-slate-950 dark:text-white">
+        <span
+          className={cn(
+            NUM,
+            'block text-sm font-extrabold leading-none text-slate-900 dark:text-white'
+          )}
+        >
           {value}
         </span>
-        <span className="mt-1 block whitespace-nowrap text-[10px] font-bold text-slate-500">
-          {label}
-        </span>
+        <span className={cn(MICRO, MUTED, 'mt-1 block whitespace-nowrap')}>{label}</span>
       </span>
     </>
   );
-  const className =
-    'flex min-w-[102px] items-center gap-2 rounded-2xl border border-[#e2e5f2] bg-white px-2.5 py-2 shadow-[0_14px_30px_-26px_rgba(43,53,128,0.9)] transition hover:-translate-y-0.5 hover:border-[#cfd4f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6972e8] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0 dark:border-white/10 dark:bg-[#10131f] dark:hover:bg-white/5';
+  const className = cn(
+    PANEL,
+    'flex min-w-[102px] items-center gap-2 px-2.5 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0'
+  );
 
   return href ? (
     <a href={href} className={className}>
@@ -75,7 +80,7 @@ function GrammarHeaderStats({ dashboard, isStarting, onReview }) {
         icon={Target}
         value={observations}
         label="Practised"
-        tone="indigo"
+        tone="accent"
         href="#grammar-skills"
       />
       <HeaderMetric
@@ -89,7 +94,7 @@ function GrammarHeaderStats({ dashboard, isStarting, onReview }) {
         icon={RotateCcw}
         value={reviews}
         label="Reviews due"
-        tone="orange"
+        tone="amber"
         onClick={onReview}
         disabled={reviewUnavailable}
       />
@@ -186,20 +191,28 @@ export default function GrammarLab() {
       />
       <main
         ref={pageTopRef}
-        className="min-h-full bg-[radial-gradient(circle_at_78%_0%,rgba(226,222,255,0.36),transparent_32%),#f8f9fc] px-3 py-4 pt-16 text-slate-950 dark:bg-[#070913] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5"
+        className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#0b0a10] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5"
       >
-        <div className="mx-auto max-w-[1440px]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+        />
+        <div className="relative z-10 mx-auto max-w-[1440px]">
           {screen === 'dashboard' && (
             <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
-                <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.15em] text-[#5963d9]">
-                  <BookOpenCheck className="h-4 w-4" />
+                <Pill tone="accent">
+                  <BookOpenCheck className="h-3 w-3" />
                   Learning tool
-                </div>
-                <h1 className="text-3xl font-black leading-none tracking-tight text-slate-900 dark:text-white sm:text-4xl sm:leading-tight">
+                </Pill>
+                <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
                   Grammar Lab
                 </h1>
-                <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-300">
+                <p className={cn('mt-1 text-sm font-medium', MUTED)}>
                   Build accurate grammar for Academic IELTS Writing and Speaking
                 </p>
               </div>
@@ -214,29 +227,34 @@ export default function GrammarLab() {
           )}
 
           {grammar.isLoading ? (
-            <div className="space-y-4" aria-label="Loading Grammar Lab">
-              <div className="h-64 animate-pulse rounded-2xl bg-white dark:bg-white/5" />
-              <div className="grid gap-4 lg:grid-cols-2">
-                <div className="h-96 animate-pulse rounded-2xl bg-white dark:bg-white/5" />
-                <div className="h-96 animate-pulse rounded-2xl bg-white dark:bg-white/5" />
+            <div className="space-y-3" aria-label="Loading Grammar Lab">
+              <div className={cn(PANEL, 'h-64 animate-pulse')} />
+              <div className="grid gap-3 lg:grid-cols-2">
+                <div className={cn(PANEL, 'h-96 animate-pulse')} />
+                <div className={cn(PANEL, 'h-96 animate-pulse')} />
               </div>
             </div>
           ) : grammar.error && screen !== 'guide' ? (
-            <section className="rounded-2xl border border-amber-200 bg-white p-6 shadow-sm dark:border-amber-400/20 dark:bg-[#10131f]">
+            <section
+              className={cn(
+                PANEL,
+                'border-[rgba(var(--signal-warn),0.3)] bg-[rgba(var(--signal-warn),0.04)] p-5 sm:p-6'
+              )}
+            >
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-400/10 dark:text-amber-300">
-                  <AlertTriangle className="h-5 w-5" />
-                </div>
+                <IconChip icon={AlertTriangle} tone="amber" size="lg" />
                 <div>
-                  <h2 className="text-base font-extrabold">Grammar Lab data is unavailable</h2>
-                  <p className="mt-1 max-w-2xl text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
+                  <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
+                    Grammar Lab data is unavailable
+                  </h2>
+                  <p className={cn('mt-1 max-w-2xl text-sm font-medium leading-6', MUTED)}>
                     We could not load your Grammar evidence or practice library. Try again in a
                     moment; your existing test and Learning Path data are unaffected.
                   </p>
                   <Button
                     onClick={() => grammar.refetch()}
                     variant="outline"
-                    className="mt-4 rounded-xl font-extrabold"
+                    className="mt-4 rounded-lg font-bold"
                   >
                     <RefreshCw className="mr-2 h-4 w-4" /> Retry
                   </Button>

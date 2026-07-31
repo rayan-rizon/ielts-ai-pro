@@ -12,6 +12,7 @@ import {
 import { Link } from 'react-router-dom';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/cn';
+import { IconChip, MUTED, Pill, TILE } from '@/features/dashboard/components/primitives';
 import GrammarEvidenceBadge from './GrammarEvidenceBadge';
 
 const SOURCES = [
@@ -57,7 +58,7 @@ function EvidenceSourceCard({ source, signal }) {
   return (
     <article
       className={cn(
-        'group relative overflow-hidden rounded-2xl border bg-white/95 p-3 shadow-xs transition hover:-translate-y-0.5 dark:bg-white/[0.035]',
+        'group relative overflow-hidden rounded-lg border bg-white/95 p-3 transition hover:-translate-y-0.5 dark:bg-white/[0.035]',
         isSpeaking
           ? 'border-emerald-100 hover:border-emerald-300 dark:border-emerald-400/15'
           : 'border-indigo-100 hover:border-indigo-300 dark:border-indigo-400/15'
@@ -182,26 +183,22 @@ export default function GrammarEvidencePanel({
   return (
     <section
       id="grammar-evidence"
-      className="relative h-full scroll-mt-6 overflow-hidden rounded-3xl border border-[#e4e7fa] bg-gradient-to-br from-white via-[#faf9ff] to-[#f2f0ff] p-4 sm:p-4.5 dark:border-white/10 dark:from-[#10131f] dark:to-[#10131f]"
+      className="relative h-full scroll-mt-6 overflow-hidden p-4 sm:p-4.5"
     >
-      <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-indigo-500/10 blur-2xl" />
+      <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-[#5a63df]/10 blur-2xl" />
       <div className="relative flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#efedff] text-[#5862df] shadow-2xs ring-1 ring-[#5862df]/15 dark:bg-indigo-500/20 dark:text-indigo-300">
-            <ShieldCheck className="h-4.5 w-4.5" strokeWidth={2.2} />
-          </div>
+          <IconChip icon={ShieldCheck} size="lg" />
           <div>
-            <h2 className="text-base font-black tracking-tight text-slate-950 dark:text-white">
+            <h2 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
               Grammar from your tests
             </h2>
-            <p className="mt-0.5 text-[11px] font-medium leading-4 text-slate-500 dark:text-slate-400">
+            <p className={cn('mt-0.5 text-[11px] font-medium leading-4', MUTED)}>
               Your Writing and Speaking results, in one place.
             </p>
           </div>
         </div>
-        <span className="shrink-0 rounded-full border border-[#d8dcfa] bg-white/90 px-2.5 py-1 text-[9px] font-extrabold text-[#505bdd] shadow-2xs dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300">
-          {evidenceCount}/2 connected
-        </span>
+        <Pill tone="accent">{evidenceCount}/2 connected</Pill>
       </div>
 
       <LayoutGroup id="grammar-evidence-source-tabs">
@@ -225,7 +222,7 @@ export default function GrammarEvidencePanel({
                 className={cn(
                   'relative flex h-8 items-center justify-center gap-1.5 rounded-lg text-[11px] font-extrabold transition-colors',
                   isActive
-                    ? 'text-[#505bdd] dark:text-indigo-200'
+                    ? 'text-[#5a63df] dark:text-indigo-200'
                     : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
                 )}
               >
@@ -259,14 +256,14 @@ export default function GrammarEvidencePanel({
         />
       </div>
 
-      <div className="relative mt-2.5 rounded-2xl border border-[#dfe3fa] bg-white/80 p-3 dark:border-white/10 dark:bg-white/[0.035]">
+      <div className={cn(TILE, 'relative mt-2.5 p-3')}>
         <div className="flex items-center gap-2.5">
-          <ScanSearch className="h-4.5 w-4.5 shrink-0 text-[#5963d9]" />
+          <ScanSearch className="h-4.5 w-4.5 shrink-0 text-[#5a63df]" />
           <div>
-            <div className="text-xs font-black text-slate-900 dark:text-white">
+            <div className="text-xs font-extrabold text-slate-900 dark:text-white">
               Turn this result into a target
             </div>
-            <p className="mt-0.5 text-[11px] font-medium leading-4 text-slate-500 dark:text-slate-400">
+            <p className={cn('mt-0.5 text-[11px] font-medium leading-4', MUTED)}>
               A level check finds which of the six skills needs practice.
             </p>
           </div>
@@ -275,7 +272,7 @@ export default function GrammarEvidencePanel({
           type="button"
           onClick={() => (inProgressAttempt ? onResume(inProgressAttempt.id) : onStartDiagnostic())}
           disabled={actionDisabled}
-          className="mt-2.5 inline-flex h-10 w-full items-center justify-center rounded-xl bg-[#5661e9] px-4 text-xs font-black text-white shadow-[0_8px_18px_-12px_rgba(76,87,225,0.85)] transition hover:bg-[#4853d6] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-45"
+          className="mt-2.5 inline-flex h-10 w-full items-center justify-center rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition hover:bg-[#4a52c9] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-45"
         >
           {isStarting ? (
             <RefreshCw className="mr-2 h-4 w-4 animate-spin" />

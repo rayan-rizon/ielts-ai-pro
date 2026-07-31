@@ -35,6 +35,7 @@ export default function PerformanceTrends({
               tabs={tabs}
               onTabKeyDown={onTabKeyDown}
               tabsRef={tabsRef}
+              targetScore={stats?.targetScore}
             />
           </motion.div>
         </div>

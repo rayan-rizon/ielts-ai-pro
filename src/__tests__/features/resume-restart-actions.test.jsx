@@ -2,8 +2,10 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
-import { TestCardActions as ListeningActions } from '@/features/testing/listening/TestCard';
-import { TestRowAction as ListeningRowAction } from '@/features/testing/listening/ListeningCardComponents';
+import {
+  TestCardActions as ListeningActions,
+  TestRowAction as ListeningRowAction,
+} from '@/features/testing/listening/ListeningCardComponents';
 import {
   WritingActions,
   TestRowAction as WritingRowAction,
@@ -25,7 +27,6 @@ describe('resume restart actions', () => {
         isCompleted={false}
         test={test}
         session={session}
-        color="blue"
       />
     );
 
@@ -43,7 +44,6 @@ describe('resume restart actions', () => {
         isCompleted={false}
         testSession={session}
         test={test}
-        color="blue"
       />
     );
 
@@ -61,7 +61,6 @@ describe('resume restart actions', () => {
         isCompleted={false}
         test={test}
         session={session}
-        color="orange"
       />
     );
 
@@ -79,7 +78,6 @@ describe('resume restart actions', () => {
         isCompleted={false}
         testSession={session}
         test={test}
-        color="orange"
       />
     );
 

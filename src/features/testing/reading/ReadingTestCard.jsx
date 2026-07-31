@@ -9,7 +9,6 @@ import {
   buildReadingLinkTarget,
   resolveReadingLinkConfig,
 } from './readingCardHelpers';
-import { getColor } from './readingColorConfig';
 
 function getSessionId(session) {
   return session ? session.id : undefined;
@@ -36,7 +35,6 @@ function buildCardProps(config) {
   const isLocked = computeReadingAccessLock(test, user, isAdmin);
   const progress = computeReadingProgress(session, test, questionCount);
   const displayTitle = buildReadingDisplayTitle(test);
-  const color = getColor(displayTitle || 'default');
   const Icon = resolveReadingIcon(test);
   const linkTo = buildReadingLinkTarget({
     isResuming,
@@ -54,7 +52,6 @@ function buildCardProps(config) {
     isCompleted,
     progress,
     displayTitle,
-    color,
     Icon,
     ContainerLink,
     linkProps,

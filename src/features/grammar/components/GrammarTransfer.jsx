@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/cn';
 import { skillLabel, TRANSFER_PROMPTS } from '../constants';
+import { IconChip, MUTED, PANEL, TILE } from '@/features/dashboard/components/primitives';
 
 const WRITING_CONTEXTS = {
   task_1:
@@ -75,54 +76,59 @@ export default function GrammarTransfer({
       <button
         type="button"
         onClick={onExit}
-        className="mb-4 inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-500 transition hover:bg-white hover:text-slate-900 dark:hover:bg-white/5 dark:hover:text-white"
+        className="mb-4 inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-500 transition hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
       >
         <ArrowLeft className="h-4 w-4" /> Grammar Lab
       </button>
 
-      <section className="overflow-hidden rounded-2xl border border-[#e4e7f4] bg-white shadow-[0_20px_60px_-42px_rgba(41,53,130,0.65)] dark:border-white/10 dark:bg-[#10131f]">
-        <div className="border-b border-[#eceef7] bg-[#fafbff] px-6 py-5 dark:border-white/10 dark:bg-white/[0.025]">
-          <div className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#5963d9]">
+      <section className={cn(PANEL, 'overflow-hidden')}>
+        <div className="border-b border-[#eeedf7] bg-[#fbfbfe] px-6 py-5 dark:border-white/[0.07] dark:bg-white/[0.025]">
+          <div className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#5a63df]">
             IELTS transfer task
           </div>
-          <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Apply {skillLabel(targetSkill).toLowerCase()} in production
           </h1>
-          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
+          <p className={cn('mt-2 max-w-3xl text-sm font-medium leading-6', MUTED)}>
             Repair work becomes useful only when it transfers into Writing or Speaking. Transfer
             evidence is stored separately and does not directly change Grammar skill progress.
           </p>
         </div>
 
         <div className="p-6">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div role="tablist" aria-label="Transfer type" className="grid gap-3 sm:grid-cols-2">
             {[
               { key: 'writing', label: 'Academic Writing', icon: FilePenLine },
               { key: 'speaking', label: 'Speaking transcript', icon: Mic2 },
-            ].map((option) => (
-              <button
-                key={option.key}
-                type="button"
-                onClick={() => {
-                  setTransferType(option.key);
-                  setAttemptId(null);
-                  setError('');
-                }}
-                className={cn(
-                  'flex items-center gap-3 rounded-xl border p-4 text-left transition',
-                  transferType === option.key
-                    ? 'border-[#7b84ef] bg-[#f1f3ff] text-[#343db3] ring-2 ring-[#6972ee]/10 dark:bg-indigo-400/10 dark:text-indigo-100'
-                    : 'border-[#e5e8f3] bg-white text-slate-700 hover:border-[#cfd4fa] dark:border-white/10 dark:bg-white/[0.025] dark:text-slate-200'
-                )}
-              >
-                <option.icon className="h-5 w-5" />
-                <span className="text-sm font-extrabold">{option.label}</span>
-              </button>
-            ))}
+            ].map((option) => {
+              const isActive = transferType === option.key;
+              return (
+                <button
+                  key={option.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => {
+                    setTransferType(option.key);
+                    setAttemptId(null);
+                    setError('');
+                  }}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg border p-4 text-left transition',
+                    isActive
+                      ? 'border-[#5a63df]/50 bg-[#5a63df]/[0.08] text-[#5a63df] ring-2 ring-[#5a63df]/10 dark:bg-indigo-400/10 dark:text-indigo-200'
+                      : 'border-[#e2e5f2] bg-white text-slate-700 hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/[0.025] dark:text-slate-200'
+                  )}
+                >
+                  <option.icon className="h-5 w-5" />
+                  <span className="text-sm font-extrabold">{option.label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="mt-5 rounded-xl border border-[#e7e9f5] bg-[#fcfcff] p-4 dark:border-white/10 dark:bg-white/[0.025]">
-            <div className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#5963d9]">
+          <div className={cn(TILE, 'mt-5 p-4')}>
+            <div className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#5a63df]">
               Transfer prompt
             </div>
             <p className="mt-2 text-sm font-semibold leading-6 text-slate-700 dark:text-slate-200">
@@ -131,22 +137,25 @@ export default function GrammarTransfer({
           </div>
 
           {!isPaid ? (
-            <div className="mt-5 rounded-2xl border border-[#dfe3fa] bg-[#f3f4ff] p-5 dark:border-indigo-400/20 dark:bg-indigo-400/10">
+            <div
+              className={cn(
+                PANEL,
+                'mt-5 border-[#5a63df]/25 bg-[#5a63df]/[0.05] p-5 dark:bg-indigo-400/10'
+              )}
+            >
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#5661e9] shadow-sm dark:bg-white/10 dark:text-indigo-200">
-                  <LockKeyhole className="h-5 w-5" />
-                </div>
+                <IconChip icon={LockKeyhole} size="lg" />
                 <div>
-                  <h2 className="text-base font-extrabold text-slate-950 dark:text-white">
+                  <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
                     AI evaluation is available on Pro and Premium
                   </h2>
-                  <p className="mt-1 text-xs font-medium leading-5 text-slate-600 dark:text-slate-300">
+                  <p className={cn('mt-1 text-xs font-medium leading-5', MUTED)}>
                     You can use the prompt now. Upgrading adds exact, grounded correction and uses
                     the existing Writing or Speaking AI quota.
                   </p>
                   <Button
                     asChild
-                    className="mt-3 rounded-xl bg-[#5661e9] font-extrabold text-white"
+                    className="mt-3 rounded-lg bg-[#5a63df] font-bold text-white hover:bg-[#4a52c9]"
                   >
                     <Link to="/upgrade">View upgrade options</Link>
                   </Button>
@@ -155,25 +164,30 @@ export default function GrammarTransfer({
             </div>
           ) : transferType === 'writing' ? (
             <div className="mt-5 space-y-4">
-              <div className="grid gap-2 sm:grid-cols-2">
-                {Object.entries(WRITING_CONTEXTS).map(([key, value]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setTaskType(key)}
-                    className={cn(
-                      'rounded-xl border p-3 text-left text-xs font-semibold leading-5 transition',
-                      taskType === key
-                        ? 'border-[#7b84ef] bg-[#f1f3ff] text-[#343db3] dark:bg-indigo-400/10 dark:text-indigo-100'
-                        : 'border-[#e5e8f3] text-slate-600 hover:border-[#cfd4fa] dark:border-white/10 dark:text-slate-300'
-                    )}
-                  >
-                    <span className="mb-1 block font-extrabold uppercase tracking-[0.1em]">
-                      {key === 'task_1' ? 'Task 1' : 'Task 2'}
-                    </span>
-                    {value}
-                  </button>
-                ))}
+              <div role="tablist" aria-label="Writing task" className="grid gap-2 sm:grid-cols-2">
+                {Object.entries(WRITING_CONTEXTS).map(([key, value]) => {
+                  const isActive = taskType === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      onClick={() => setTaskType(key)}
+                      className={cn(
+                        'rounded-lg border p-3 text-left text-xs font-semibold leading-5 transition',
+                        isActive
+                          ? 'border-[#5a63df]/50 bg-[#5a63df]/[0.08] text-[#5a63df] dark:bg-indigo-400/10 dark:text-indigo-200'
+                          : 'border-[#e2e5f2] text-slate-600 hover:border-[#c9cdf3] dark:border-white/10 dark:text-slate-300'
+                      )}
+                    >
+                      <span className="mb-1 block font-extrabold uppercase tracking-[0.1em]">
+                        {key === 'task_1' ? 'Task 1' : 'Task 2'}
+                      </span>
+                      {value}
+                    </button>
+                  );
+                })}
               </div>
               <div>
                 <label
@@ -189,7 +203,7 @@ export default function GrammarTransfer({
                   rows={9}
                   maxLength={5000}
                   placeholder="Write your Academic IELTS paragraph here…"
-                  className="resize-y rounded-xl border-[#dfe3f0] bg-[#fcfcff] p-4 font-medium leading-6 focus-visible:ring-[#6972e8] dark:border-white/10 dark:bg-white/[0.025]"
+                  className="resize-y rounded-lg border-[#e2e5f2] bg-[#fbfbfe] p-4 font-medium leading-6 focus-visible:ring-[#5a63df] dark:border-white/10 dark:bg-white/[0.025]"
                 />
                 <div className="mt-2 text-right text-[11px] font-semibold text-slate-400">
                   {writingText.trim().split(/\s+/).filter(Boolean).length} words
@@ -198,45 +212,48 @@ export default function GrammarTransfer({
             </div>
           ) : (
             <div className="mt-5">
-              <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold leading-5 text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-200">
+              <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold leading-5 text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-200">
                 Speaking feedback is transcript-based. Punctuation, capitalization, spelling, and
                 likely transcription errors will not be treated as spoken grammar evidence.
               </div>
               <div className="mt-4 space-y-2">
                 {recentSpeakingSessions.length ? (
-                  recentSpeakingSessions.map((session) => (
-                    <button
-                      key={session.id}
-                      type="button"
-                      onClick={() => setSpeakingSessionId(session.id)}
-                      className={cn(
-                        'flex w-full items-center justify-between rounded-xl border p-3 text-left transition',
-                        speakingSessionId === session.id
-                          ? 'border-[#7b84ef] bg-[#f1f3ff] dark:bg-indigo-400/10'
-                          : 'border-[#e5e8f3] hover:border-[#cfd4fa] dark:border-white/10'
-                      )}
-                    >
-                      <div>
-                        <div className="text-sm font-extrabold text-slate-900 dark:text-white">
-                          {session.passage?.cambridge_title ||
-                            session.passage?.title ||
-                            'IELTS Speaking response'}
+                  recentSpeakingSessions.map((session) => {
+                    const isActive = speakingSessionId === session.id;
+                    return (
+                      <button
+                        key={session.id}
+                        type="button"
+                        onClick={() => setSpeakingSessionId(session.id)}
+                        className={cn(
+                          'flex w-full items-center justify-between rounded-lg border p-3 text-left transition',
+                          isActive
+                            ? 'border-[#5a63df]/50 bg-[#5a63df]/[0.08] dark:bg-indigo-400/10'
+                            : 'border-[#e2e5f2] hover:border-[#c9cdf3] dark:border-white/10'
+                        )}
+                      >
+                        <div>
+                          <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+                            {session.passage?.cambridge_title ||
+                              session.passage?.title ||
+                              'IELTS Speaking response'}
+                          </div>
+                          <div className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                            {new Date(
+                              session.completed_at || session.created_at
+                            ).toLocaleDateString()}
+                          </div>
                         </div>
-                        <div className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                          {new Date(
-                            session.completed_at || session.created_at
-                          ).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <span className="text-xs font-extrabold text-[#5963d9]">
-                        {speakingSessionId === session.id ? 'Selected' : 'Choose'}
-                      </span>
-                    </button>
-                  ))
+                        <span className="text-xs font-extrabold text-[#5a63df]">
+                          {isActive ? 'Selected' : 'Choose'}
+                        </span>
+                      </button>
+                    );
+                  })
                 ) : (
-                  <div className="rounded-xl border border-dashed border-[#dfe2f1] p-4 text-xs font-medium leading-5 text-slate-500 dark:border-white/10 dark:text-slate-400">
+                  <div className="rounded-lg border border-dashed border-[#e2e5f2] p-4 text-xs font-medium leading-5 text-slate-500 dark:border-white/10 dark:text-slate-400">
                     No completed Speaking transcript is available.{' '}
-                    <Link to="/speaking" className="font-extrabold text-[#5661e9]">
+                    <Link to="/speaking" className="font-extrabold text-[#5a63df]">
                       Complete Speaking practice first.
                     </Link>
                   </div>
@@ -251,7 +268,7 @@ export default function GrammarTransfer({
           )}
 
           {error && (
-            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-200">
+            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-200">
               {error}
             </div>
           )}
@@ -261,7 +278,7 @@ export default function GrammarTransfer({
               <Button
                 onClick={submit}
                 disabled={isStarting || isEvaluating}
-                className="rounded-xl bg-[#5661e9] px-5 font-extrabold text-white hover:bg-[#4853d6]"
+                className="rounded-lg bg-[#5a63df] px-5 font-bold text-white hover:bg-[#4a52c9]"
               >
                 {(isStarting || isEvaluating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Evaluate transfer

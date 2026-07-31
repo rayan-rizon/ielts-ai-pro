@@ -41,7 +41,7 @@ const KitCard = memo(function KitCard({ kit, index = 0, user, allVocabulary = []
         to={`/vocabulary/kits/${kit.slug || kit.id}`}
         aria-label={`Open ${cleanTitle}, ${kit.category}, ${status.label}`}
         className={cn(
-          'group flex h-full min-h-[164px] flex-col justify-between rounded-2xl border bg-gradient-to-br p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 dark:border-white/10 dark:from-white/[0.035] dark:to-white/[0.015]',
+          'group flex h-full min-h-[164px] flex-col justify-between rounded-xl border bg-gradient-to-br p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/[0.015]',
           theme.panel,
           theme.border,
           theme.hoverGlow
@@ -50,7 +50,7 @@ const KitCard = memo(function KitCard({ kit, index = 0, user, allVocabulary = []
         <div>
           {/* Top Bar: illustration plus learner-specific status. */}
           <div className="flex items-start justify-between gap-2">
-            <span className="relative shrink-0 flex items-center justify-center overflow-hidden bg-white/80 p-1 shadow-sm ring-1 ring-black/5 dark:bg-white/5 dark:ring-white/10 h-13 w-20 sm:w-22 rounded-2xl">
+            <span className="relative shrink-0 flex items-center justify-center overflow-hidden bg-white/80 p-1 shadow-sm ring-1 ring-black/5 dark:bg-white/5 dark:ring-white/10 h-13 w-20 sm:w-22 rounded-xl">
               <div className="flex h-full w-full items-center justify-center p-0.5 scale-105">
                 <Kit3DIcon kit={kit} />
               </div>
@@ -70,7 +70,7 @@ const KitCard = memo(function KitCard({ kit, index = 0, user, allVocabulary = []
           </div>
 
           {/* Cleaned Kit Title */}
-          <h3 className="mt-0.5 text-xs font-extrabold leading-4 text-slate-900 transition-colors group-hover:text-[#505bdd] dark:text-white dark:group-hover:text-indigo-300">
+          <h3 className="mt-0.5 text-xs font-extrabold leading-4 text-slate-900 transition-colors group-hover:text-[#5a63df] dark:text-white dark:group-hover:text-indigo-300">
             {cleanTitle}
           </h3>
 

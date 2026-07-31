@@ -1,169 +1,195 @@
 ---
 name: learner-panel-design
-description: Convert a learner-facing page (Analytics, Leaderboard, Study Groups, Vocabulary, etc.) to the compact instrument-panel design system built for /dashboard — primitives, layout rules, copy principles, and a page-by-page checklist.
+description: Design system guide for converting learner-facing pages (Analytics, Leaderboard, Study Groups, Vocabulary, etc.) to the compact instrument-panel UI system built for /dashboard — visual tokens, primitives, layout geometry, micro-interactions, dark mode, and UI checklists.
 ---
 
-# Learner panel design system
+# Learner Panel Design System (UI & Aesthetics Guide)
 
-This is the design system built for `src/features/dashboard/` (July 2026 rework). Use this
-skill whenever asked to redesign, modernize, or "match the new dashboard UI" on any other
-learner-facing page. It is not a visual reskin — it is a set of rules that keep data honest
-and layout self-correcting. Follow the rules, don't just copy class names.
+This is the UI design system built for `src/features/dashboard/` (July 2026 instrument-panel rework). Use this skill whenever asked to redesign, modernize, polish, or "match the new dashboard UI" on any student-facing page.
 
-## When to use this
+It is a **compact, high-density instrument-panel design system** designed to keep data legible, visual hierarchy crisp, and responsive layouts self-correcting across mobile and desktop.
 
-Trigger phrases: "match the new UI", "make it like the dashboard", "use the same design
-system", "apply the instrument panel style", or a direct ask to redesign one of the pages
-listed in **Target pages** below.
+---
 
-Do NOT use this for admin pages — those already have their own mirror system at
-`src/components/admin/ui/primitives.jsx` (graphite palette, same shapes). Use this one for
-anything under `src/features/*/pages/` that a _student_ sees.
+## 🎨 1. Visual & Aesthetic Foundations
 
-## Where everything lives
+The learner panel design system balances **high data density** with a **sleek, premium aesthetic**. Every visual element follows five foundational rules:
 
-- `src/features/dashboard/components/primitives.jsx` — the primitive library. Import from
-  here; do not redefine `PANEL`, `NUM`, etc. locally in a new feature. If a new page needs a
-  primitive that doesn't exist yet, add it to this file (or promote it to a shared location
-  if a second feature will need it) rather than forking it.
-- `src/features/dashboard/components/skillLabels.js` — `formatSkill()`, `stripModulePrefix()`,
-  `modulePage()`. Reuse these for any UI that renders a `skill_proficiency.skill_code`
-  anywhere outside the dashboard (e.g. an Analytics deep-dive).
-- `src/features/dashboard/components/DashboardGrid.jsx` and `StatBand.jsx` — reference
-  layouts. Read these before starting a conversion; they are the canonical example of every
-  rule below applied together.
+### A. Number-First Typography Hierarchy
 
-## Core principles (the part that actually matters)
+- ** Tabular Numerals (`NUM`)**: All rendered metrics, scores, and quantities use mono tabular numbers (`font-mono tabular-nums tracking-tight`) so numbers align vertically and read with mechanical precision.
+- ** Micro Meta Labels (`MICRO`)**: Card metadata, section headers, and sub-labels use high-tracking uppercase typography (`text-[9px] font-bold uppercase tracking-[0.14em]`).
+- ** Card Headings (`TITLE`)**: Distinct, highly legible titles (`text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100`) anchor every card visually without competing with key metrics.
 
-**1. Numbers must be true, not just present.**
-Before wiring a stat to data, know exactly what the underlying field counts. Two bugs found
-and fixed in this system illustrate the failure mode:
+### B. Dual-Theme Palette & Surface Elevation
 
-- A card said "across 470 sessions" when the field (`practice_count`) actually counts
-  _questions answered_, not test sessions — one test contributes dozens at once. The fix was
-  reading the DB trigger that writes the field, not guessing from the name.
-- A label-lookup dict (`SKILL_LABELS`) had keys like `TFNG`, `MCQ`, `Task 1` that never
-  matched a single real `skill_code` in the database — confirmed by querying live rows.
-  100% of labels were silently falling through to a generic formatter. The dict was dead
-  weight standing in for real behavior nobody had verified.
-  Rule: when a page shows a number or label sourced from the DB, read the query/RPC/trigger
-  that produces it before writing the copy around it. If you can't verify it, say less, not
-  more.
+- ** Light Mode Palette**: Crisp lavender-tinged white gradient surfaces (`from-white to-[#faf9ff]`) bounded by soft hairline borders (`border-[#e4e2f0]`).
+- ** Dark Mode Palette**: Deep obsidian night surfaces (`from-[#141319] to-[#100f15]`) with subtle white hairline rules (`dark:border-white/[0.07]`).
+- ** Elevation Model**: Zero heavy drop shadows. Hierarchy is achieved strictly through border rules, subtle background shifts (`WELL`, `TILE`), and background gradients.
 
-**2. Measured, never projected.**
-Show what happened, not what will happen. The "Exam" stat tile shows weeks left and the
-practice rate _right now_ — never a predicted exam-day band, because that number can't be
-known. The "Band trajectory" chart footnote states the actual delta between the first and
-last scored test in the window, never an extrapolated trend line.
+### C. Signal Color System
 
-**3. Honest empty states.**
-Every card that can render zero data has an explicit empty state via the `Empty` primitive
-— never a zero that looks like a real measurement, never a silently blank card. Match the
-existing tone: state what's missing and what produces the number ("No scored tests yet —
-your band history charts here"), not a generic "No data".
+Color is reserved strictly for status and meaning (never for arbitrary decoration):
 
-**4. Grids fill their container; they don't scroll or float.**
-If a page has a custom visualization (heatmap, bar row, timeline) sized in fixed pixels, it
-will either overflow-scroll or leave dead space the moment its column width doesn't match a
-guessed pixel size — this happened to the practice-history heatmap (14px cells left 132px of
-unused space in a 350px card). Use `flex-1` + `aspect-square` (or an equivalent
-container-driven size) so cells size themselves to whatever width the grid column actually
-gives them. Never hardcode a pixel width for something living in a responsive grid column.
+- **OK / Success**: `--signal-ok` (`rgb(var(--signal-ok))`) — Positive deltas, completed tasks, target band achieved.
+- **Warning / Caution**: `--signal-warn` (`rgb(var(--signal-warn))`) — Approaching deadline, stagnant band score, moderate risk.
+- **Fault / Alert**: `--signal-fault` (`rgb(var(--signal-fault))`) — Negative delta, critical question weakness, missed daily goal.
+- **Brand Accent**: `#5a63df` (Indigo) — Primary interactive elements, active progress meters, focus rings, selected state highlights.
 
-**5. One card, one file, one job.**
-Each panel is its own component under `components/`, `React.memo`-wrapped, with a
-`displayName`. Data transforms (filtering, sorting, deriving deltas) happen in a `useMemo`
-inside the component that renders them — not upstream in the hook — unless two cards need
-the same derived value. The hook (`useDashboardData.js`-equivalent) only fetches and does the
-minimal reshape needed to hand each card its own props.
+### D. Micro-Interactions & Motion Choreography
 
-**6. Reading order is priority order.**
-Order cards top-to-bottom / left-to-right by what the student needs first: standing, then
-whether it's moving, then what to do about it, then why, then supporting effort/history data,
-then reference material last. Don't order by data-source convenience.
+- ** Dynamic Hover State**: KPI tiles and interactive cards subtlely elevate on hover (`hover:-translate-y-0.5 transition-all duration-200 ease-in-out hover:shadow-sm dark:hover:border-white/[0.12]`).
+- ** Micro-Press Feedback**: Interactive buttons and tiles compress on active press (`active:scale-[0.99]`).
+- ** Staggered Entrance Animations**: Page layouts use Framer Motion container stagger (`STAGGER_CONTAINER`) and card fade-ups (`FADE_UP`) for smooth 60fps mounting without layout jank.
 
-## Primitive reference (import from `dashboard/components/primitives.jsx`)
+---
 
-| Primitive                       | Use for                                                                                                                                                                           |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PANEL`                         | The card shell class — border, gradient bg, both themes                                                                                                                           |
-| `WELL`                          | Quiet inset surface: meter tracks, nested rows                                                                                                                                    |
-| `TILE`                          | Nested tile one step quieter than `PANEL`                                                                                                                                         |
-| `NUM`                           | Every rendered number — mono tabular-nums                                                                                                                                         |
-| `MICRO` / `MUTED`               | Uppercase micro-labels / secondary text                                                                                                                                           |
-| `TITLE`                         | Card heading text                                                                                                                                                                 |
-| `Panel`                         | Polymorphic card wrapper (`as="section"` etc.)                                                                                                                                    |
-| `PanelTitle`                    | Card header: rail + heading + optional tip + optional right-side action                                                                                                           |
-| `PanelFootnote` / `FootNum`     | The closing summary line every card ends with — use these, don't hand-roll the border-top/text classes again                                                                      |
-| `Stat`                          | KPI tile (icon, label, big value, sub). Pass `size="sm"` for a dense stat row — this variant already existed unused until this pass; use it by default for any new multi-stat row |
-| `Ring`                          | Single-value donut — use where one ratio is the whole story (a mastery %, a completion %), not for anything with more than one series                                             |
-| `Meter` / `Bar`                 | Horizontal fill meters                                                                                                                                                            |
-| `Delta`                         | Signed change, colored — never hand-roll a +/− span                                                                                                                               |
-| `Empty`                         | Empty state — icon + one line, never blank                                                                                                                                        |
-| `Pill` / `IconChip`             | Small tags and icon badges, both keyed off a `tone`                                                                                                                               |
-| `Tip` / `InfoTip`               | Hover tooltip / "what does this mean" affordance next to a metric                                                                                                                 |
-| `FADE_UP` / `STAGGER_CONTAINER` | Framer-motion variants — every card wraps in `<m.div variants={FADE_UP}>`, the page wraps in `STAGGER_CONTAINER`                                                                  |
+## 🛠️ 2. Primitives Reference & Tailwind Recipes
 
-Signal tones (`ok` / `warn` / `fault`) come from CSS vars in `src/index.css`
-(`--signal-ok`, `--signal-warn`, `--signal-fault`, defined per light/dark). Use
-`rgb(var(--signal-ok))` etc. — never a hardcoded green/amber/red hex, so both themes stay in
-sync automatically.
+Import all UI primitives from `@/features/dashboard/components/primitives.jsx`. Do **not** hand-roll custom borders, numbers, or pill badges locally.
 
-## Layout rules
+| Primitive           | Class / Signature | Usage & Tailwind Styling Recipe                                                                                                                               |
+| :------------------ | :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PANEL`             | `string`          | Base card shell: `rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15]` |
+| `WELL`              | `string`          | Quiet inset surface for progress tracks, empty wells: `bg-[#f4f3fb] dark:bg-white/[0.04]`                                                                     |
+| `TILE`              | `string`          | Secondary nested surface: `rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] transition-colors duration-150 dark:border-white/10 dark:bg-white/[0.03]`          |
+| `NUM`               | `string`          | Monospace tabular numbers: `font-mono tabular-nums tracking-tight`                                                                                            |
+| `MICRO`             | `string`          | Uppercase micro label: `text-[9px] font-bold uppercase tracking-[0.14em]`                                                                                     |
+| `TITLE`             | `string`          | Card section title: `text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100`                                                            |
+| `MUTED`             | `string`          | Secondary muted text: `text-slate-500 dark:text-slate-400`                                                                                                    |
+| `Panel`             | Component         | Polymorphic section card wrapper (`<Panel as="section">`) with vertical flex column layout.                                                                   |
+| `PanelTitle`        | Component         | Standardized card header: hairline accent rail + title + optional tip + right-side action button.                                                             |
+| `PanelFootnote`     | Component         | Hairline summary line ending cards: `mt-3 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]`.                                                         |
+| `FootNum`           | Component         | Emphasized tabular number inside a footnote (`<FootNum>7.5</FootNum>`).                                                                                       |
+| `Stat`              | Component         | Top-level KPI metric tile with icon chip, tabular value, optional subtext, delta badge, and `size="sm"` variant.                                              |
+| `IconChip`          | Component         | Tinted micro icon badge (`size="sm"`: 20px, `size="md"`: 28px) with tone variants (`accent`, `emerald`, `amber`, `rose`, `sky`).                              |
+| `Pill`              | Component         | Micro badge tag (`PILL_BASE`) with dynamic signal tones (`ok`, `warn`, `fault`, `accent`, `rose`, `sky`, `amber`, `emerald`, `neutral`).                      |
+| `Meter`             | Component         | Ultra-dense horizontal fill bar with inner label and numeric readout.                                                                                         |
+| `Bar`               | Component         | Standalone thin progress track (`h-1.5`) with animated width fill (`duration-500 ease-out`).                                                                  |
+| `Ring`              | Component         | SVG stroke-dash donut chart for single-ratio progress indicators (e.g. completion %).                                                                         |
+| `Delta`             | Component         | Signed change indicator (`+0.5` or `−0.2`) formatted in `NUM` with signal color coding.                                                                       |
+| `Tip` / `InfoTip`   | Component         | Accessible hover tooltip trigger and micro popover for metric explanations.                                                                                   |
+| `Empty`             | Component         | Standardized empty state card with icon and helpful contextual empty copy.                                                                                    |
+| `STAGGER_CONTAINER` | Object            | Framer Motion variant for page-level staggered entry (`staggerChildren: 0.04`).                                                                               |
+| `FADE_UP`           | Object            | Framer Motion variant for individual card fade-and-rise entrance (`y: 12 → y: 0`).                                                                            |
 
-- Grid: `grid grid-cols-12 gap-3`, cards take `col-span-12` on mobile, split at `md:`/`lg:`
-  into their real proportions. Look at `DashboardGrid.jsx` for the exact span pattern before
-  inventing a new one.
-- Stat rows: `grid grid-cols-2 gap-2 lg:grid-cols-5` (or however many stats), `Stat
-size="sm"` for anything beyond 3 tiles so the row stays a strip, not a wall.
-- Every page needs a skeleton loader that **mirrors the real grid exactly** — same
-  `col-span` values, same card count, same approximate heights — or the page reflows when
-  data lands. Check `DashboardSkeleton.jsx` for the pattern: one skeleton block per real card,
-  same order.
-- Dark mode is class-based (`document.documentElement.classList` gets `dark`/`light`, driven
-  by `ThemeProvider` at `src/components/theme-provider.jsx`), not
-  `prefers-color-scheme` media queries directly — always pair a class with its `dark:`
-  variant, and test by toggling the root class, not just OS scheme.
+---
 
-## Conversion checklist for an existing page
+## 📐 3. Layout Architecture & Grid Guidelines
 
-1. Read the page's current data hook fully. For every value rendered, find where it's
-   queried (Supabase `.from()`/`.rpc()`) and confirm what it actually measures — don't trust
-   the variable name.
-2. List every stat/chart/list currently shown. Decide what's dead (unused fetch, unreachable
-   label map, a card superseded by something better) and delete it — don't leave a "just in
-   case" branch.
-3. Redraw the reading order: standing → movement → action → why → effort/history →
-   reference. Sketch the grid spans before touching JSX.
-4. Rebuild each card as its own file using the primitives table above. Copy the shape of the
-   closest existing dashboard card rather than starting from a blank component.
-5. Write (or update) the skeleton to match the new grid 1:1.
-6. Lint (`npx eslint <path> --ext .js,.jsx --fix`) and build (`npx vite build`) — zero errors
-   before visual QA.
-7. Visual QA in the Browser pane: real logged-in data, light AND dark (toggle the root
-   class), desktop AND 375px mobile (check `document.body.scrollWidth === window.innerWidth`
-   for zero horizontal overflow), console errors clean.
-8. If the page has any custom-drawn grid/visualization, measure its actual rendered width vs.
-   its container width via `getBoundingClientRect()` before declaring it fixed — don't eyeball
-   a screenshot and assume it fits.
+### A. 12-Column Responsive Grid System
 
-## Target pages (as of this pass)
+All learner-facing pages follow the 12-column grid layout pattern. Spans adapt cleanly between mobile (single column) and desktop:
 
-Still on the pre-rework glassmorphic style (`backdrop-blur`, `data-oid` attributes, Card/
-CardContent shadows) — grep confirmed, ordered by likely value as a next conversion:
+```jsx
+// Standard Page Container Pattern
+<m.div
+  variants={STAGGER_CONTAINER}
+  initial="hidden"
+  animate="visible"
+  className="grid grid-cols-12 gap-3 p-4 md:p-6"
+>
+  {/* Top KPI Stat Band (Full Width) */}
+  <m.div variants={FADE_UP} className="col-span-12">
+    <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
+      <Stat size="sm" icon={Trophy} label="Target Band" value="7.5" tone="accent" />
+      <Stat
+        size="sm"
+        icon={Activity}
+        label="Practice Rate"
+        value="12"
+        unit="q/day"
+        tone="emerald"
+      />
+      <Stat size="sm" icon={Clock} label="Days Left" value="24" tone="amber" />
+      <Stat size="sm" icon={BookOpen} label="Completed" value="84%" tone="sky" />
+      <Stat size="sm" icon={TrendingUp} label="Band Delta" value="+0.5" tone="emerald" />
+    </div>
+  </m.div>
 
-- `src/features/analytics/pages/Analytics.jsx` — highest value, directly adjacent to the
-  dashboard's "Band by module" and "Question types to fix" cards link here already.
-- `src/features/gamification/pages/Leaderboard.jsx`
-- `src/features/community/pages/StudyGroups.jsx`
-- `src/features/core/pages/BandScoreCalculator.jsx`
+  {/* Main Content Area: Primary Chart (8 Cols) + Sidebar Card (4 Cols) */}
+  <m.div variants={FADE_UP} className="col-span-12 lg:col-span-8">
+    <Panel className="p-4">
+      <PanelTitle label="Primary Trajectory" tip="Calculated from last 10 scored tests" />
+      {/* Visual content */}
+    </Panel>
+  </m.div>
 
-Lower priority / different audience (admin or auth flows already have their own system, or
-are low-traffic utility pages): `AdminPanel`, `AdminUserDetails`, `AdminLogin`, `Login`,
-`ForgotPassword`, `UpdatePassword`, `Error500`, `NotFound`, `LandingPage`,
-`TermsOfService`.
+  <m.div variants={FADE_UP} className="col-span-12 lg:col-span-4">
+    <Panel className="p-4">
+      <PanelTitle label="Focus Skill Areas" />
+      {/* Supporting details */}
+    </Panel>
+  </m.div>
+</m.div>
+```
 
-Re-grep before starting a conversion — this list is a snapshot, not a live source of truth:
+### B. Grid Column Guidelines
+
+1. **Stat Bands**: Use `grid-cols-2 lg:grid-cols-5` (or `lg:grid-cols-4`) with `<Stat size="sm">` so top metric rows act as compact instrument strips, not massive cards.
+2. **Container-Driven Sizing (`flex-1`)**: Never hardcode fixed pixel widths on custom visual elements (heatmaps, timelines, progress bars) in responsive grid columns. Use `flex-1` and responsive container widths to prevent horizontal overflow or empty whitespace gaps.
+3. **Reading Order Hierarchy**: Order cards top-to-bottom and left-to-right by priority:
+   - **Standing** (KPI metrics & current band)
+   - **Movement** (Delta trajectory & progress meters)
+   - **Actionable Steps** (Weak areas to practice now)
+   - **Supporting History** (Practice logs & detailed breakdowns)
+   - **Reference Material** (Study notes & resource links)
+
+---
+
+## 💀 4. Skeleton Loader 1:1 Mirroring
+
+To prevent layout reflow (CLS) when loading data, every page **must provide a skeleton loader that mirrors the real layout 1:1**:
+
+```jsx
+export function LearnerPageSkeleton() {
+  return (
+    <div className="grid grid-cols-12 gap-3 p-4 md:p-6 animate-pulse">
+      {/* Stat Band Skeleton */}
+      <div className="col-span-12 grid grid-cols-2 gap-2 lg:grid-cols-5">
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={i}
+            className="h-20 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-slate-100 dark:bg-white/5"
+          />
+        ))}
+      </div>
+      {/* 8-col & 4-col Cards Skeleton */}
+      <div className="col-span-12 lg:col-span-8 h-80 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-slate-100 dark:bg-white/5" />
+      <div className="col-span-12 lg:col-span-4 h-80 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-slate-100 dark:bg-white/5" />
+    </div>
+  );
+}
+```
+
+---
+
+## Checklist: Page UI Conversion & Modernization
+
+Follow this step-by-step UI checklist when converting legacy pages (e.g. `Analytics.jsx`, `Leaderboard.jsx`, `StudyGroups.jsx`, `BandScoreCalculator.jsx`):
+
+1. **Audit & Remove Legacy Glassmorphism**:
+   - Replace `backdrop-blur`, heavy `shadow-lg`, and legacy `Card`/`CardContent` wrappers with `PANEL`, `WELL`, `TILE`, and `Panel`.
+2. **Replace Local Typography with UI Primitives**:
+   - Wrap raw metric numbers in `NUM`.
+   - Standardize section labels with `Eyebrow`, `SectionLabel`, or `PanelTitle`.
+   - Convert status labels into signal-coded `Pill` elements.
+3. **Restructure Layout Grid**:
+   - Apply 12-column grid layout (`grid-cols-12 gap-3`).
+   - Group KPI metrics into a top `<Stat size="sm">` band strip.
+4. **Enforce Theme Balance & Color Tokens**:
+   - Test both Light Mode (`from-white to-[#faf9ff]`) and Dark Mode (`from-[#141319] to-[#100f15]`).
+   - Replace hardcoded hex colors with signal tokens (`rgb(var(--signal-ok))` etc.) or `#5a63df` accent.
+5. **Add Micro-Interactions & Entrance Motion**:
+   - Wrap layout container in `<m.div variants={STAGGER_CONTAINER}>`.
+   - Wrap individual cards in `<m.div variants={FADE_UP}>`.
+6. **Ensure Honest Empty States**:
+   - Add `<Empty icon={...}>` states for zero-data scenarios.
+7. **Create 1:1 Mirroring Skeleton Component**:
+   - Build/update the skeleton component to match card spans and heights exactly.
+8. **Mobile Overflow & Quality Gate**:
+   - Test at `375px` screen width in browser pane to ensure zero horizontal scroll (`scrollWidth === innerWidth`).
+   - Run build & lint checks (`npx vite build` & `npx eslint`) with zero errors.
 
 ```bash
 grep -rln "backdrop-blur\|data-oid=" src/features/*/pages/*.jsx

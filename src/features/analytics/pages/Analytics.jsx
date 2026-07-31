@@ -1,9 +1,10 @@
 import React, { useCallback, useMemo, useRef, useState, Suspense } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import useAnalyticsData from '@/features/analytics/hooks/useAnalyticsData';
-import { Button } from '@/components/ui/button';
 import DocumentHead from '@/components/shared/DocumentHead';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { cn } from '@/lib/cn';
 
 // Critical path components - load immediately
 import AnalyticsHeader from '../components/AnalyticsHeader';
@@ -17,32 +18,91 @@ const AIInsightsCard = React.lazy(() => import('../components/AIInsightsCard'));
 const BandScoreJourney = React.lazy(() => import('../components/BandScoreJourney'));
 const AnalyticsOverview = React.lazy(() => import('../components/AnalyticsOverview'));
 const ErrorDrilldownModal = React.lazy(() => import('../components/ErrorDrilldownModal'));
+const ExamReadinessCard = React.lazy(() => import('../components/ExamReadinessCard'));
+const SkillMasteryPanel = React.lazy(
+  () => import('@/features/dashboard/components/SkillMasteryPanel')
+);
 
 // Constants & Utils
 import { CONTAINER_VARIANTS } from '../constants';
 import { clamp01 } from '../utils';
+import { MUTED, PANEL, TITLE } from '@/features/dashboard/components/primitives';
+
+const PAGE_SHELL =
+  'relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#0b0a10] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5';
+
+function PageBackdrop() {
+  return (
+    <>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+      />
+    </>
+  );
+}
+
+/**
+ * Numbered section heading.
+ *
+ * The page is ordered as the four questions a learner actually arrives with —
+ * where do I stand, am I improving, what should I fix, where am I losing marks.
+ * Numbering them makes that reading order explicit rather than implied by
+ * card position, which is what the previous flat wall of panels relied on.
+ */
+function SectionHeading({ step, title, description }) {
+  return (
+    <div className="flex items-start gap-2.5 px-0.5 pt-1">
+      <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#5a63df] font-mono text-[10px] font-bold tabular-nums text-white">
+        {step}
+      </span>
+      <div className="min-w-0">
+        <h2 className={cn(TITLE, 'text-sm')}>{title}</h2>
+        {description ? (
+          <p className={cn('mt-0.5 text-[11px] font-medium', MUTED)}>{description}</p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 const AnalyticsSkeleton = React.memo(function AnalyticsSkeleton() {
   return (
-    <div className="p-4 md:p-6 max-w-[1600px] mx-auto space-y-6" data-oid="-qf76o:">
-      <div className="h-10 w-60 bg-muted/60 rounded-2xl animate-pulse" data-oid="croyqg4" />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-oid="i-90m3v">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-[120px] rounded-2xl bg-muted/50 animate-pulse"
-            data-oid="8fbnfx5"
-          />
-        ))}
-      </div>
-      <div className="grid grid-cols-12 gap-6" data-oid="dwju3z-">
-        <div className="col-span-12 xl:col-span-8 space-y-6" data-oid="tq-fgae">
-          <div className="h-[360px] rounded-2xl bg-muted/50 animate-pulse" data-oid="zkrd4:p" />
-          <div className="h-[320px] rounded-2xl bg-muted/50 animate-pulse" data-oid="roag7hx" />
+    <div className={PAGE_SHELL}>
+      <PageBackdrop />
+      <div className="relative z-10 mx-auto max-w-[1600px] animate-pulse space-y-4">
+        <div className="space-y-2 border-b border-[#eeedf7] pb-4 dark:border-white/[0.07]">
+          <div className="h-4 w-32 rounded-full bg-slate-200 dark:bg-white/10" />
+          <div className="h-7 w-48 rounded-lg bg-slate-200 dark:bg-white/10" />
+          <div className="h-10 w-full rounded-lg bg-slate-100 dark:bg-white/5" />
         </div>
-        <div className="col-span-12 xl:col-span-4 space-y-6" data-oid="4t_.mi0">
-          <div className="h-[240px] rounded-2xl bg-muted/50 animate-pulse" data-oid="w_ufs1y" />
-          <div className="h-[260px] rounded-2xl bg-muted/50 animate-pulse" data-oid="82lg_3f" />
+        <div className="grid grid-cols-12 gap-3">
+          <div className={cn(PANEL, 'col-span-12 h-[132px] lg:col-span-5')} />
+          <div className="col-span-12 grid grid-cols-1 gap-3 sm:grid-cols-3 lg:col-span-7">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className={cn(PANEL, 'h-[132px]')} />
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-12 gap-3">
+          <div className={cn(PANEL, 'col-span-12 h-[380px] xl:col-span-5')} />
+          <div className={cn(PANEL, 'col-span-12 h-[380px] md:col-span-6 xl:col-span-4')} />
+          <div className={cn(PANEL, 'col-span-12 h-[380px] md:col-span-6 xl:col-span-3')} />
+        </div>
+        <div className="grid grid-cols-12 gap-3">
+          <div className={cn(PANEL, 'col-span-12 h-[300px] lg:col-span-7')} />
+          <div className={cn(PANEL, 'col-span-12 h-[300px] lg:col-span-5')} />
+          <div className={cn(PANEL, 'col-span-12 h-[260px] lg:col-span-6')} />
+          <div className={cn(PANEL, 'col-span-12 h-[260px] lg:col-span-6')} />
+        </div>
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className={cn(PANEL, 'h-[280px]')} />
+          ))}
         </div>
       </div>
     </div>
@@ -51,19 +111,7 @@ const AnalyticsSkeleton = React.memo(function AnalyticsSkeleton() {
 
 // Skeleton fallback for lazy-loaded chart components
 const ChartSkeleton = React.memo(function ChartSkeleton({ height = 'h-64' }) {
-  return (
-    <div
-      className={`${height} rounded-2xl bg-muted/30 animate-pulse flex flex-col items-center justify-center relative overflow-hidden`}
-      data-oid="w3:-90v"
-    >
-      <div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-[-20deg] animate-shimmer"
-        style={{ animationDuration: '2s' }}
-      />
-      <div className="w-12 h-12 rounded-full bg-muted/40 mb-4" />
-      <div className="w-1/2 h-3 rounded-full bg-muted/40" />
-    </div>
-  );
+  return <div className={cn(PANEL, height, 'w-full animate-pulse')} />;
 });
 
 export default function Analytics() {
@@ -84,21 +132,6 @@ export default function Analytics() {
     const tier = (user?.subscription_tier || '').toLowerCase();
     return tier === 'pro' || tier === 'premium' || user?.role === 'admin';
   }, [user?.subscription_tier, user?.role]);
-
-  // The journey reflects completed-practice averages. Keep it distinct from the
-  // headline's latest-module overall estimate so learners never see two values
-  // presented as the same IELTS band.
-  const _practiceAverage = useMemo(() => parseFloat(stats?.avgScore), [stats?.avgScore]);
-
-  const radarData = useMemo(() => {
-    if (!stats?.moduleStats) return [];
-    const types = ['reading', 'writing', 'listening', 'speaking'];
-    return types.map((t) => ({
-      subject: t.charAt(0).toUpperCase() + t.slice(1),
-      A: stats.moduleStats.find((m) => m.type === t)?.avg || 0,
-      fullMark: 9,
-    }));
-  }, [stats?.moduleStats]);
 
   const tabs = useMemo(() => ['overview', 'reading', 'writing', 'listening', 'speaking'], []);
 
@@ -124,46 +157,52 @@ export default function Analytics() {
     [activeTab, tabs]
   );
 
-  if (isLoading) return <AnalyticsSkeleton data-oid="cs8j4yv" />;
+  if (isLoading) return <AnalyticsSkeleton />;
 
-  // Bug fix: show a proper empty state for new users with no completed tests
+  const headerProps = {
+    user,
+    stats,
+    isPremium,
+    tier: user?.subscription_tier,
+    role: user?.role,
+    selectedTimeframe,
+    setSelectedTimeframe,
+  };
+
+  // New users with no completed tests get an honest empty state, not zeroed charts.
   if (!stats?.totalTests) {
     return (
-      <motion.div
-        variants={CONTAINER_VARIANTS}
-        initial="hidden"
-        animate="visible"
-        className="p-3 md:p-4 max-w-[1600px] mx-auto space-y-4"
-        data-oid="flrz3b6-empty"
-      >
-        <DocumentHead
-          title="Analytics Dashboard"
-          description="Review your IELTS band progress, section performance, pacing, and completed practice results."
-          noIndex
-        />
-        <AnalyticsHeader
-          user={user}
-          stats={stats}
-          isPremium={isPremium}
-          tier={user?.subscription_tier}
-          role={user?.role}
-          selectedTimeframe={selectedTimeframe}
-          setSelectedTimeframe={setSelectedTimeframe}
-          data-oid="relgpvl"
-        />
-        <div className="pt-2 pb-8">
-          <EmptyAnalyticsState
-            title="No Tests Completed Yet"
-            action={
-              <Link to="/dashboard">
-                <Button className="rounded-2xl h-14 px-8 font-black uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-600/20 hover:scale-[1.03] active:scale-95 transition-all text-sm border-none">
-                  Start a Practice Test
-                </Button>
-              </Link>
-            }
+      <div className={PAGE_SHELL}>
+        <PageBackdrop />
+        <m.div
+          variants={CONTAINER_VARIANTS}
+          initial="hidden"
+          animate="visible"
+          className="relative z-10 mx-auto max-w-[1600px] space-y-4"
+        >
+          <DocumentHead
+            title="Analytics Dashboard"
+            description="Review your IELTS band progress, section performance, pacing, and completed practice results."
+            noIndex
           />
-        </div>
-      </motion.div>
+          <AnalyticsHeader {...headerProps} />
+          <div className="pt-2 pb-8">
+            <EmptyAnalyticsState
+              title="No Tests Completed Yet"
+              action={
+                <Link to="/dashboard">
+                  <button
+                    type="button"
+                    className="h-10 rounded-lg bg-[#5a63df] px-6 text-xs font-bold text-white transition-all hover:bg-[#4a52c9] active:scale-95"
+                  >
+                    Start a Practice Test
+                  </button>
+                </Link>
+              }
+            />
+          </div>
+        </m.div>
+      </div>
     );
   }
 
@@ -173,138 +212,151 @@ export default function Analytics() {
       : 0;
 
   return (
-    <motion.div
-      variants={CONTAINER_VARIANTS}
-      initial="hidden"
-      animate="visible"
-      className="p-3 md:p-4 max-w-[1600px] mx-auto space-y-4"
-      data-oid="flrz3b6"
-    >
-      <DocumentHead
-        title="Analytics Dashboard"
-        description="Review your IELTS band progress, section performance, pacing, and completed practice results."
-        noIndex
-      />
-      <AnalyticsHeader
-        user={user}
-        stats={stats}
-        isPremium={isPremium}
-        tier={user?.subscription_tier}
-        role={user?.role}
-        selectedTimeframe={selectedTimeframe}
-        setSelectedTimeframe={setSelectedTimeframe}
-        data-oid="relgpvl"
-      />
+    <TooltipProvider delayDuration={150}>
+      <div className={PAGE_SHELL}>
+        <PageBackdrop />
+        <m.div
+          variants={CONTAINER_VARIANTS}
+          initial="hidden"
+          animate="visible"
+          className="relative z-10 mx-auto max-w-[1600px] space-y-5"
+        >
+          <DocumentHead
+            title="Analytics Dashboard"
+            description="Review your IELTS band progress, section performance, pacing, and completed practice results."
+            noIndex
+          />
 
-      <section data-oid="tier1-hero">
-        <StatCards stats={stats} progressToTarget={progressToTarget} data-oid="b85992g" />
-      </section>
+          <AnalyticsHeader {...headerProps} />
 
-      {/* ─────────────────────────────────────────────────────────────────
-               TIER 2: JOURNEY & ACTION - Progress trajectory + next steps
-              ───────────────────────────────────────────────────────────────── */}
-      <section className="space-y-4" data-oid="dawzv-.">
-        <div className="grid grid-cols-12 gap-3 lg:gap-4" data-oid="hx1c1:y">
-          <div className="col-span-12 xl:col-span-8" data-oid="bri_zk1">
-            <Suspense
-              fallback={<ChartSkeleton height="h-48" data-oid="v8_ca1h" />}
-              data-oid=":n4io18"
-            >
-              <BandScoreJourney
-                targetScore={stats?.targetScore}
-                moduleHistory={chartData?.moduleHistory || {}}
-                overallProgress={chartData?.overallProgress || {}}
-                data-oid="2pu74s7"
-              />
+          {/* 1 — Standing: the band score and how far it is from the goal. */}
+          <section className="space-y-2.5">
+            <SectionHeading
+              step="1"
+              title="Where you stand"
+              description="Your current band, and the distance left to your target."
+            />
+            <StatCards stats={stats} progressToTarget={progressToTarget} />
+          </section>
+
+          {/* 2 — Movement: is the number going up, what should happen next, and
+              could this learner pass the exam today. */}
+          <section className="space-y-2.5">
+            <SectionHeading
+              step="2"
+              title="Are you improving?"
+              description="Scored results over time, a suggested next step, and an exam-readiness check."
+            />
+            <div className="grid grid-cols-12 gap-3">
+              <div className="col-span-12 xl:col-span-5">
+                <Suspense fallback={<ChartSkeleton height="h-[380px]" />}>
+                  <BandScoreJourney
+                    targetScore={stats?.targetScore}
+                    moduleHistory={chartData?.moduleHistory || {}}
+                    overallProgress={chartData?.overallProgress || {}}
+                  />
+                </Suspense>
+              </div>
+              <div className="col-span-12 md:col-span-6 xl:col-span-4">
+                <Suspense fallback={<ChartSkeleton height="h-[380px]" />}>
+                  <AIInsightsCard
+                    stats={stats}
+                    aiLoading={aiLoading}
+                    isPremium={isPremium}
+                    compact
+                  />
+                </Suspense>
+              </div>
+              <div className="col-span-12 md:col-span-6 xl:col-span-3">
+                <Suspense fallback={<ChartSkeleton height="h-[380px]" />}>
+                  <ExamReadinessCard readiness={stats?.readiness} />
+                </Suspense>
+              </div>
+            </div>
+          </section>
+
+          {/* 3 — Priority: which module to practise, and whether pacing is a problem. */}
+          <section className="space-y-2.5">
+            <SectionHeading
+              step="3"
+              title="What to work on next"
+              description="Modules ranked weakest first, plus how your timing compares to the exam limit."
+            />
+            <Suspense fallback={<ChartSkeleton height="h-[320px]" />}>
+              <AnalyticsOverview stats={stats} chartData={chartData} user={user} />
             </Suspense>
-          </div>
-          <div className="col-span-12 xl:col-span-4" data-oid="j2axk1i">
-            <Suspense
-              fallback={<ChartSkeleton height="h-64" data-oid="qn0gog1" />}
-              data-oid="5u8.rrb"
-            >
-              <AIInsightsCard
+          </section>
+
+          {/* 4 — Marking detail: the criteria examiners score you on, plus the
+              question-type mastery ledger the adaptive engine keeps but no
+              other page on the site surfaced in full. */}
+          <section className="space-y-2.5">
+            <SectionHeading
+              step="4"
+              title="Where you lose marks"
+              description="The four areas an examiner scores in Writing and Speaking, plus every tracked question type."
+            />
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
+              <CriteriaBreakdownCard
+                module="writing"
+                criteria={stats?.writingCriteria}
+                labels={{
+                  taskAchievement: 'Task Achievement',
+                  coherence: 'Coherence & Cohesion',
+                  lexicalResource: 'Lexical Resource',
+                  grammar: 'Grammatical Range',
+                }}
+              />
+              <CriteriaBreakdownCard
+                module="speaking"
+                criteria={stats?.speakingCriteria}
+                labels={{
+                  fluency: 'Fluency & Coherence',
+                  lexicalResource: 'Lexical Resource',
+                  grammar: 'Grammatical Range',
+                  pronunciation: 'Pronunciation',
+                }}
+              />
+              <Suspense fallback={<ChartSkeleton height="h-72" />}>
+                <SkillMasteryPanel skillProficiency={stats?.skillProficiency} />
+              </Suspense>
+            </div>
+          </section>
+
+          {/* 5 — Reference: everything else, deliberately last. */}
+          <section className="space-y-2.5">
+            <SectionHeading
+              step="5"
+              title="Full detail"
+              description="Module trends, question types, and your completed practice history."
+            />
+            <Suspense fallback={<ChartSkeleton height="h-96" />}>
+              <PerformanceTrends
                 stats={stats}
-                aiLoading={aiLoading}
+                chartData={chartData}
                 isPremium={isPremium}
-                compact
-                data-oid="vi_s3k9"
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                tabs={tabs}
+                onTabKeyDown={onTabKeyDown}
+                tabsRef={tabsRef}
+                user={user}
+                onDrilldown={(cat, data) => setDrilldown({ isOpen: true, category: cat, data })}
               />
             </Suspense>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      <Suspense fallback={<ChartSkeleton height="h-[620px]" />}>
-        <AnalyticsOverview stats={stats} chartData={chartData} user={user} radarData={radarData} />
-      </Suspense>
-
-      {/* ─────────────────────────────────────────────────────────────────
-               TIER 3: DEEP DIVE - Advanced analytics for power users
-              ───────────────────────────────────────────────────────────────── */}
-      <section className="space-y-4" data-oid="_ue32ts">
-        <div className="flex items-end justify-between gap-4 px-1 pt-2">
-          <div>
-            <h2 className="text-xl font-extrabold tracking-tight text-slate-950 dark:text-white">
-              Detailed results
-            </h2>
-            <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
-              See module trends, question types, sections, and Writing or Speaking score areas.
-            </p>
-          </div>
-        </div>
-        <Suspense fallback={<ChartSkeleton height="h-96" data-oid="9otx:wk" />} data-oid="_ud6929">
-          <PerformanceTrends
-            stats={stats}
-            radarData={radarData}
-            chartData={chartData}
-            isPremium={isPremium}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            tabs={tabs}
-            onTabKeyDown={onTabKeyDown}
-            tabsRef={tabsRef}
-            user={user}
-            onDrilldown={(cat, data) => setDrilldown({ isOpen: true, category: cat, data })}
-          />
-        </Suspense>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-          {/* Writing Criteria Breakdown */}
-          <CriteriaBreakdownCard
-            module="writing"
-            criteria={stats?.writingCriteria}
-            labels={{
-              taskAchievement: 'Task Achievement',
-              coherence: 'Coherence & Cohesion',
-              lexicalResource: 'Lexical Resource',
-              grammar: 'Grammatical Range',
-            }}
-          />
-          {/* Speaking Criteria Breakdown */}
-          <CriteriaBreakdownCard
-            module="speaking"
-            criteria={stats?.speakingCriteria}
-            labels={{
-              fluency: 'Fluency & Coherence',
-              lexicalResource: 'Lexical Resource',
-              grammar: 'Grammatical Range',
-              pronunciation: 'Pronunciation',
-            }}
-          />
-        </div>
-      </section>
-
-      {/* Global Drilldown Modal */}
-      <Suspense fallback={null} data-oid="rr7pq4b">
-        <ErrorDrilldownModal
-          isOpen={drilldown.isOpen}
-          onClose={() => setDrilldown((prev) => ({ ...prev, isOpen: false }))}
-          category={drilldown.category}
-          data={drilldown.data}
-          data-oid="hnf1olu"
-        />
-      </Suspense>
-    </motion.div>
+          {/* Global Drilldown Modal */}
+          <Suspense fallback={null}>
+            <ErrorDrilldownModal
+              isOpen={drilldown.isOpen}
+              onClose={() => setDrilldown((prev) => ({ ...prev, isOpen: false }))}
+              category={drilldown.category}
+              data={drilldown.data}
+            />
+          </Suspense>
+        </m.div>
+      </div>
+    </TooltipProvider>
   );
 }

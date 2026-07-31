@@ -1,22 +1,15 @@
 import React from 'react';
+import { m } from 'framer-motion';
 import { BarChart2, Crown, Zap } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { Badge } from '@/components/ui/badge';
+import { MICRO, MUTED, NUM, Pill, TILE } from '@/features/dashboard/components/primitives';
 
-const IconWrapper = React.memo(function IconWrapper({ icon: Icon, color, className }) {
-  return (
-    <div className={cn('relative flex items-center justify-center rounded-xl p-2', className)}>
-      <div className={cn('absolute inset-0 opacity-15 rounded-xl', color)} />
-      <Icon className={cn('w-4 h-4 relative z-10', color.replace('bg-', 'text-'))} />
-    </div>
-  );
-});
-
-const AnalyticsEmblemSVG = () => (
-  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#efedff] text-[#5661e9] ring-1 ring-[#5661e9]/20 shadow-xs dark:bg-indigo-500/20 dark:text-indigo-300">
-    <BarChart2 className="h-5 w-5 text-[#5661e9] dark:text-indigo-300" strokeWidth={2.4} />
-  </div>
-);
+const TIMEFRAME_LABELS = {
+  '7d': '7 days',
+  '30d': '30 days',
+  '90d': '90 days',
+  all: 'All time',
+};
 
 export default function AnalyticsHeader({
   user,
@@ -32,67 +25,90 @@ export default function AnalyticsHeader({
   const firstName = displayName.trim().split(/\s+/)[0];
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
-      <div className="space-y-1">
-        <div className="flex items-center gap-3">
-          <AnalyticsEmblemSVG />
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 dark:text-white leading-none sm:leading-tight">
-            Analytics Dashboard
+    <header className="flex flex-col gap-3 border-b border-[#eeedf7] pb-4 dark:border-white/[0.07]">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="max-w-2xl">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Pill tone="accent">
+              <BarChart2 className="h-3 w-3" />
+              Your progress report
+            </Pill>
+            {tier === 'premium' ? (
+              <Pill tone="accent">
+                <Crown className="h-3 w-3" /> Premium
+              </Pill>
+            ) : tier === 'pro' || isPremium ? (
+              <Pill tone="sky">
+                <Zap className="h-3 w-3" /> Pro
+              </Pill>
+            ) : null}
+          </div>
+
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            Analytics
           </h1>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 pl-0.5 pt-0.5">
-          {greeting}
-          {firstName ? `, ${firstName}` : ''}
-          {stats?.totalTests
-            ? ` · ${stats.totalTests} completed session${stats.totalTests === 1 ? '' : 's'} · target band ${stats.targetScore}`
-            : ' · Your performance, pace, and next practice focus.'}
-          {tier === 'premium' ? (
-            <Badge
-              variant="outline"
-              className="bg-purple-500/10 backdrop-blur-md border border-purple-500/20 text-purple-600 dark:text-purple-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-2xs flex items-center gap-1.5"
-            >
-              <Crown className="w-3 h-3 fill-purple-600/20 dark:fill-purple-400/20" />
-              PREMIUM
-            </Badge>
-          ) : tier === 'pro' || isPremium ? (
-            <Badge
-              variant="outline"
-              className="bg-blue-500/10 backdrop-blur-md border border-blue-500/20 text-blue-600 dark:text-blue-400 font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-2xs flex items-center gap-1.5"
-            >
-              <Zap className="w-3 h-3 fill-blue-600/20 dark:fill-blue-400/20" />
-              PRO
-            </Badge>
-          ) : null}
+          <p className={cn('mt-1 text-sm font-medium', MUTED)}>
+            {greeting}
+            {firstName ? `, ${firstName}` : ''}. Here is what your practice results say about your
+            band score, and what to work on next.
+          </p>
         </div>
       </div>
 
-      <div
-        className="flex items-center gap-1 rounded-[16px] border border-slate-200/80 dark:border-white/10 bg-slate-100 dark:bg-slate-900 p-1 shadow-xs shrink-0 self-start md:self-auto"
-        aria-label="Analytics timeframe"
-      >
-        {['7d', '30d', '90d', 'all'].map((tf) => {
-          const isActive = selectedTimeframe === tf;
-          return (
-            <button
-              key={tf}
-              type="button"
-              onClick={() => setSelectedTimeframe(tf)}
-              aria-pressed={isActive}
-              className={cn(
-                'h-8 px-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer',
-                isActive
-                  ? 'bg-[#5661e9] text-white shadow-md shadow-indigo-500/20'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/10'
-              )}
-            >
-              {tf}
-            </button>
-          );
-        })}
+      {/* Timeframe — labelled in plain words, not just "7d/30d". */}
+      <div className={cn(TILE, 'flex flex-wrap items-center justify-between gap-2 p-2')}>
+        <div className="flex items-center gap-2 pl-1">
+          <span className={cn(MICRO, MUTED)}>Showing</span>
+          {stats?.totalTests ? (
+            <span className={cn(MICRO, 'text-slate-700 dark:text-slate-200')}>
+              <span className={cn(NUM, 'font-bold')}>{stats.totalTests}</span> completed
+              {stats.totalTests === 1 ? ' session' : ' sessions'}
+              {stats?.targetScore ? (
+                <>
+                  {' · target band '}
+                  <span className={cn(NUM, 'font-bold')}>{stats.targetScore}</span>
+                </>
+              ) : null}
+            </span>
+          ) : (
+            <span className={cn(MICRO, MUTED)}>No completed sessions yet</span>
+          )}
+        </div>
+
+        <div
+          className="no-scrollbar flex items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.04]"
+          role="group"
+          aria-label="Analytics timeframe"
+        >
+          {['7d', '30d', '90d', 'all'].map((tf) => {
+            const isActive = selectedTimeframe === tf;
+            return (
+              <m.button
+                key={tf}
+                type="button"
+                whileTap={{ scale: 0.96 }}
+                onClick={() => setSelectedTimeframe(tf)}
+                aria-pressed={isActive}
+                className={cn(
+                  'relative z-10 shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200',
+                  isActive
+                    ? 'text-white'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white'
+                )}
+              >
+                {isActive && (
+                  <m.div
+                    layoutId="analyticsTimeframeIndicator"
+                    className="absolute inset-0 -z-10 rounded-md bg-[#5a63df]"
+                    transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                  />
+                )}
+                <span className="relative z-10">{TIMEFRAME_LABELS[tf]}</span>
+              </m.button>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </header>
   );
 }
-
-export { IconWrapper };

@@ -4,26 +4,27 @@ import { cn } from '@/lib/cn';
 import { GRAMMAR_GUIDE_KITS, getGrammarGuide } from '../data/grammarGuideCatalog';
 import { hasContentAccess } from '@/features/subscription/config/contentAccess';
 import ContentStatusBadge from '@/features/subscription/components/ContentStatusBadge';
+import { MUTED, Pill } from '@/features/dashboard/components/primitives';
 
 const KIT_TONES = {
   violet: {
     panel:
-      'border-violet-200/90 from-violet-50/70 to-white dark:border-violet-400/20 hover:border-violet-300',
+      'border-violet-200/80 from-violet-50/70 to-white dark:border-violet-400/15 hover:border-violet-300',
     icon: 'bg-violet-100 text-violet-700 dark:bg-violet-400/10 dark:text-violet-300',
   },
   blue: {
     panel:
-      'border-blue-200/90 from-blue-50/70 to-white dark:border-blue-400/20 hover:border-blue-300',
+      'border-blue-200/80 from-blue-50/70 to-white dark:border-blue-400/15 hover:border-blue-300',
     icon: 'bg-blue-100 text-blue-700 dark:bg-blue-400/10 dark:text-blue-300',
   },
   emerald: {
     panel:
-      'border-emerald-200/90 from-emerald-50/70 to-white dark:border-emerald-400/20 hover:border-emerald-300',
+      'border-emerald-200/80 from-emerald-50/70 to-white dark:border-emerald-400/15 hover:border-emerald-300',
     icon: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300',
   },
   amber: {
     panel:
-      'border-amber-200/90 from-amber-50/70 to-white dark:border-amber-400/20 hover:border-amber-300',
+      'border-amber-200/80 from-amber-50/70 to-white dark:border-amber-400/15 hover:border-amber-300',
     icon: 'bg-amber-100 text-amber-700 dark:bg-amber-400/10 dark:text-amber-300',
   },
 };
@@ -46,22 +47,22 @@ export default function GrammarPracticeKitsPanel({
     <section id="grammar-practice-kits" className="scroll-mt-6 p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#5963d9]">
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#5a63df]">
             <Layers3 className="h-3.5 w-3.5" />
             Guided practice
           </div>
-          <h2 className="mt-1 text-lg font-black tracking-tight text-slate-950 dark:text-white">
+          <h2 className="mt-1 text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
             IELTS grammar practice kits
           </h2>
-          <p className="mt-1 max-w-2xl text-xs font-medium leading-5 text-slate-500 dark:text-slate-400">
+          <p className={cn('mt-1 max-w-2xl text-xs font-medium leading-5', MUTED)}>
             Read the linked units, then launch a five-question set drawn from the same measured
             Grammar Lab skills.
           </p>
         </div>
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-[#f4f5fb] px-3 py-1.5 text-[10px] font-extrabold text-slate-500 dark:bg-white/5 dark:text-slate-300">
-          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+        <Pill tone="ok">
+          <CheckCircle2 className="h-3 w-3" />
           Results update your Grammar progress
-        </div>
+        </Pill>
       </div>
 
       <div className="mt-3.5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -74,16 +75,13 @@ export default function GrammarPracticeKitsPanel({
             <article
               key={kit.slug}
               className={cn(
-                'group relative flex min-h-[175px] flex-col overflow-hidden rounded-2xl border bg-gradient-to-br p-3.5 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-6px_rgba(15,23,42,0.12)] dark:from-slate-900/60 dark:to-slate-950/40 dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.4)] dark:hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.6)]',
+                'group relative flex min-h-[175px] flex-col overflow-hidden rounded-xl border bg-gradient-to-br p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:from-white/[0.025] dark:to-white/[0.01]',
                 tone.panel
               )}
             >
               <div className="relative flex items-start justify-between gap-2.5">
                 <div
-                  className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-xl shadow-2xs',
-                    tone.icon
-                  )}
+                  className={cn('flex h-9 w-9 items-center justify-center rounded-lg', tone.icon)}
                 >
                   <BookOpenCheck className="h-4.5 w-4.5" />
                 </div>
@@ -93,7 +91,7 @@ export default function GrammarPracticeKitsPanel({
                   completed={isCompleted}
                 />
               </div>
-              <h3 className="relative mt-2.5 text-sm font-black tracking-tight text-slate-950 dark:text-white">
+              <h3 className="relative mt-2.5 text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
                 {kit.title}
               </h3>
               <p className="relative mt-1 line-clamp-2 text-[11px] font-medium leading-[1.35] text-slate-600 dark:text-slate-300">
@@ -111,7 +109,7 @@ export default function GrammarPracticeKitsPanel({
                 <Link
                   to={isLocked ? '/pricing' : `/grammar/guides/${firstGuide.slug}`}
                   aria-label={isLocked ? `Unlock ${kit.title}` : `Start ${kit.title} guide`}
-                  className="inline-flex h-8 items-center justify-center rounded-xl border border-slate-200/90 bg-white/90 px-2.5 text-[10px] font-extrabold text-slate-700 transition hover:border-[#cdd2f6] hover:bg-slate-50 hover:text-[#505bdd] dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-200 dark:hover:bg-slate-800"
+                  className="inline-flex h-8 items-center justify-center rounded-lg border border-[#e2e5f2] bg-white/90 px-2.5 text-[10px] font-bold text-slate-700 transition hover:border-[#c9cdf3] hover:bg-slate-50 hover:text-[#5a63df] dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
                 >
                   {isLocked ? 'Unlock' : 'Start guide'}
                 </Link>
@@ -126,7 +124,7 @@ export default function GrammarPracticeKitsPanel({
                     })
                   }
                   disabled={isStarting || noAllowance || isLocked}
-                  className="inline-flex h-8 items-center justify-center rounded-xl bg-[#5661e9] px-2.5 text-[10px] font-extrabold text-white transition hover:bg-[#4853d6] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
+                  className="inline-flex h-8 items-center justify-center rounded-lg bg-[#5a63df] px-2.5 text-[10px] font-bold text-white transition hover:bg-[#4a52c9] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   {isStarting ? (
                     <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />
