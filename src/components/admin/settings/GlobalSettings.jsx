@@ -18,17 +18,8 @@ import {
 } from './settingsHelpers';
 import { toast } from 'sonner';
 
-import {
-  Loader2,
-  Settings,
-  CreditCard,
-  Bell,
-  HeartPulse,
-  Activity,
-  Gauge,
-  Mail,
-  Lock,
-} from 'lucide-react';
+import { Loader2, Activity, CreditCard, Bell, HeartPulse, Gauge, Mail, Lock } from 'lucide-react';
+import { AdminPageHeader } from '@/components/admin/ui/primitives';
 
 export default function GlobalSettings() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -197,53 +188,30 @@ export default function GlobalSettings() {
       data-oid="_8_3dg3"
     >
       {/* Header Section */}
-      <div
-        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2"
-        data-oid="kdpj5_b"
-      >
-        <motion.div variants={itemVariants} data-oid="kha4q:o" className="min-w-0 flex-1">
-          <div className="flex items-center gap-3">
+      <motion.div variants={itemVariants} data-oid="kdpj5_b">
+        <AdminPageHeader
+          title="Settings"
+          description="Manage system configurations, environment parameters, and platform controls"
+        >
+          {saving && (
             <div
-              className="p-2 sm:p-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-2xl border border-indigo-200/60 dark:border-indigo-800/60 shadow-2xs shrink-0"
-              data-oid="7q-v0g0"
+              className="flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-950/50 rounded-full border border-indigo-200/80 dark:border-indigo-800/60 shadow-2xs shrink-0"
+              data-oid="7n88hnp"
             >
-              <Settings className="w-4 h-4 sm:w-5 sm:h-5" data-oid="9.znbfp" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h2
-                className="text-lg sm:text-3xl font-black tracking-tight text-slate-950 dark:text-white truncate"
-                data-oid="rpads70"
+              <Activity
+                className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 animate-pulse"
+                data-oid="yytghqi"
+              />
+              <span
+                className="text-[11px] sm:text-xs font-bold text-indigo-700 dark:text-indigo-300"
+                data-oid="57qqa9r"
               >
-                Global Settings
-              </h2>
-              <p
-                className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium mt-0.5"
-                data-oid="ln-p8lk"
-              >
-                Manage system configurations, environment parameters, and platform controls
-              </p>
+                Saving changes...
+              </span>
             </div>
-          </div>
-        </motion.div>
-
-        {saving && (
-          <div
-            className="flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-950/50 rounded-full border border-indigo-200/80 dark:border-indigo-800/60 shadow-2xs shrink-0"
-            data-oid="7n88hnp"
-          >
-            <Activity
-              className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 animate-pulse"
-              data-oid="yytghqi"
-            />
-            <span
-              className="text-[11px] sm:text-xs font-bold text-indigo-700 dark:text-indigo-300"
-              data-oid="57qqa9r"
-            >
-              Saving changes...
-            </span>
-          </div>
-        )}
-      </div>
+          )}
+        </AdminPageHeader>
+      </motion.div>
 
       <Tabs
         value={activeSection}
@@ -256,27 +224,27 @@ export default function GlobalSettings() {
           <TabsList className={ADMIN_TABS_LIST} data-oid="ybobvet">
             <TabsTrigger value="general" className={ADMIN_TAB_TRIGGER} data-oid="tbs-gen">
               <HeartPulse className="w-3.5 h-3.5" />
-              <span>Health</span>
+              Health
             </TabsTrigger>
             <TabsTrigger value="announcements" className={ADMIN_TAB_TRIGGER} data-oid="tbs-ann">
               <Bell className="w-3.5 h-3.5" />
-              <span>Announcements</span>
+              Announcements
             </TabsTrigger>
             <TabsTrigger value="pricing" className={ADMIN_TAB_TRIGGER} data-oid="tbs-prc">
               <CreditCard className="w-3.5 h-3.5" />
-              <span>Pricing</span>
+              Pricing
             </TabsTrigger>
             <TabsTrigger value="security" className={ADMIN_TAB_TRIGGER} data-oid="tbs-sec">
               <Lock className="w-3.5 h-3.5" />
-              <span>Security</span>
+              Security
             </TabsTrigger>
             <TabsTrigger value="rate-limits" className={ADMIN_TAB_TRIGGER} data-oid="tbs-rat">
               <Gauge className="w-3.5 h-3.5" />
-              <span>Rate Limits</span>
+              Rate Limits
             </TabsTrigger>
             <TabsTrigger value="emails" className={ADMIN_TAB_TRIGGER} data-oid="tbs-eml">
               <Mail className="w-3.5 h-3.5" />
-              <span>Emails</span>
+              Emails
             </TabsTrigger>
           </TabsList>
         </div>

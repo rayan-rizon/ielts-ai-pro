@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,8 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -54,7 +52,6 @@ import {
   EyeOff,
   Upload,
   AlertCircle,
-  CheckCircle2,
   Download,
   FileJson,
   X,
@@ -75,6 +72,15 @@ import { uploadFile, uploadToR2 } from '@/lib/supabase';
 import { generatePdfThumbnail } from '@/lib/pdf-thumbnail';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
+import {
+  AdminPageHeader,
+  AdminButton,
+  PANEL,
+  MICRO,
+  NUM,
+  STAGGER_CONTAINER,
+  FADE_UP,
+} from './ui/primitives';
 
 import BlogEditor from './resources/BlogEditor';
 import VocabularyEditor from './resources/VocabularyEditor';
@@ -546,16 +552,6 @@ const ResourceManagement = () => {
 
   const totalPages = Math.ceil(pagination.count / pagination.limit);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  };
-
   const getContentTypeInfo = (type) => CONTENT_TYPES.find((t) => t.id === type) || CONTENT_TYPES[2];
 
   if (showBlogEditor) {
@@ -588,62 +584,33 @@ const ResourceManagement = () => {
 
   return (
     <motion.div
-      variants={containerVariants}
+      variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
       className="space-y-4 pb-6 pt-12 md:pt-0"
       data-oid="7ze--xz"
     >
       {/* Top Header Section */}
-      <motion.div
-        variants={itemVariants}
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1"
-        data-oid="o56ihpo"
-      >
-        <div className="space-y-0.5 min-w-0" data-oid="8o9gofp">
-          <h2
-            className="text-lg sm:text-xl font-black tracking-tight text-slate-950 dark:text-white flex items-center gap-2.5"
-            data-oid="3fimod-"
-          >
-            <div
-              className="p-1.5 sm:p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/80 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 shadow-2xs shrink-0"
-              data-oid="fm45sc-"
-            >
-              <Library className="w-4 h-4 sm:w-5 sm:h-5" data-oid="i1.ai0g" />
-            </div>
-            <span className="truncate">Resource Management</span>
-          </h2>
-          <p
-            className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 ml-0.5"
-            data-oid="r5:4ldd"
-          >
-            Manage educational video guides, PDFs, blogs, and vocabulary banks for candidates
-          </p>
-        </div>
-
-        <div
-          className="flex items-center gap-2 w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
-          data-oid="42vher3"
+      <motion.div variants={FADE_UP} data-oid="o56ihpo">
+        <AdminPageHeader
+          title="Resources"
+          description="Manage educational video guides, PDFs, blogs, and vocabulary banks for candidates"
         >
           <DropdownMenu data-oid="actions-dropdown">
             <DropdownMenuTrigger asChild data-oid="actions-trigger">
-              <Button
-                variant="outline"
-                className="flex-1 sm:flex-none justify-center h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs"
-                data-oid="btn-more-actions"
-              >
-                <MoreVertical className="w-4 h-4 mr-1.5 text-slate-500" data-oid="icon-more" />
+              <AdminButton variant="outline" data-oid="btn-more-actions">
+                <MoreVertical className="w-3.5 h-3.5 text-stone-400" data-oid="icon-more" />
                 Actions
-              </Button>
+              </AdminButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-48 rounded-xl border-border/50 bg-popover/95 backdrop-blur-xl"
+              className="w-48 rounded-xl border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315]"
               data-oid="actions-content"
             >
               <DropdownMenuItem
                 onClick={handleExport}
-                className="cursor-pointer font-medium py-2 rounded-lg"
+                className="cursor-pointer font-medium py-2 rounded-lg text-xs"
                 data-oid="item-export"
               >
                 <Download className="w-4 h-4 mr-2" data-oid="icon-export" />
@@ -658,20 +625,23 @@ const ResourceManagement = () => {
                   data-oid="input-import"
                 />
                 <DropdownMenuItem
-                  className="cursor-pointer font-medium py-2 rounded-lg"
+                  className="cursor-pointer font-medium py-2 rounded-lg text-xs"
                   data-oid="item-import"
                 >
                   <FileJson className="w-4 h-4 mr-2" data-oid="icon-import" />
                   Import Data
                 </DropdownMenuItem>
               </div>
-              <DropdownMenuSeparator className="bg-border/50" data-oid="sep-1" />
+              <DropdownMenuSeparator
+                className="bg-stone-100 dark:bg-white/[0.06]"
+                data-oid="sep-1"
+              />
               <DropdownMenuItem
                 onClick={() => {
                   setEditingResource(null);
                   setShowBlogEditor(true);
                 }}
-                className="cursor-pointer font-medium py-2 rounded-lg text-emerald-600 dark:text-emerald-400"
+                className="cursor-pointer font-medium py-2 rounded-lg text-xs text-emerald-600 dark:text-emerald-400"
                 data-oid="item-blog"
               >
                 <BookOpen className="w-4 h-4 mr-2" data-oid="icon-blog" />
@@ -682,7 +652,7 @@ const ResourceManagement = () => {
                   setEditingResource(null);
                   setShowVocabEditor(true);
                 }}
-                className="cursor-pointer font-medium py-2 rounded-lg text-indigo-600 dark:text-indigo-400"
+                className="cursor-pointer font-medium py-2 rounded-lg text-xs text-indigo-600 dark:text-indigo-400"
                 data-oid="item-vocab"
               >
                 <Brain className="w-4 h-4 mr-2" data-oid="icon-vocab" />
@@ -700,13 +670,10 @@ const ResourceManagement = () => {
             data-oid="0:6qif:"
           >
             <DialogTrigger asChild data-oid="6_pg2-m">
-              <Button
-                className="flex-1 sm:flex-none justify-center h-9 px-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold shadow-2xs rounded-xl text-xs gap-1 transition-all"
-                data-oid="pow-z6t"
-              >
-                <Plus className="w-4 h-4" data-oid="_lhw9j3" />
+              <AdminButton data-oid="pow-z6t">
+                <Plus className="w-3.5 h-3.5" data-oid="_lhw9j3" />
                 Add Resource
-              </Button>
+              </AdminButton>
             </DialogTrigger>
             <DialogContent
               className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 w-[95vw] max-w-lg rounded-2xl overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto p-4 sm:p-6"
@@ -979,99 +946,71 @@ const ResourceManagement = () => {
                 </div>
               </div>
 
-              <DialogFooter className="gap-3 flex-col sm:flex-row" data-oid="q.ovgwu">
-                <Button
+              <DialogFooter className="gap-2 flex-col sm:flex-row" data-oid="q.ovgwu">
+                <AdminButton
                   variant="ghost"
                   onClick={() => {
                     setIsDialogOpen(false);
                     resetForm();
                   }}
-                  className="rounded-xl font-bold h-11 w-full sm:w-auto"
                   data-oid="bvuumc8"
                 >
                   Cancel
-                </Button>
-                <Button
+                </AdminButton>
+                <AdminButton
                   onClick={handleSubmit}
                   disabled={
                     submitting ||
                     uploadingPdf ||
                     (formData.content_type === 'video' && fetchingMetadata)
                   }
-                  className="px-8 rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 w-full sm:w-auto"
+                  loading={submitting}
                   data-oid="btn-submit"
                 >
-                  {submitting ? (
-                    <>
-                      <span className="animate-spin mr-2">⏳</span> Saving...
-                    </>
-                  ) : (
-                    'Save Resource'
-                  )}
-                </Button>
+                  Save Resource
+                </AdminButton>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
+        </AdminPageHeader>
       </motion.div>
 
-      {/* 3 Compact KPI Stat Cards (3 columns on mobile & desktop) */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3.5" data-oid="ju0dnr8">
+      {/* KPI Stat Cards */}
+      <motion.div variants={FADE_UP} className="grid grid-cols-3 gap-2 sm:gap-3" data-oid="ju0dnr8">
         {[
-          { label: 'Total Resources', value: stats.total, icon: Library, color: 'indigo' },
-          { label: 'Published', value: stats.published, icon: Sparkles, color: 'emerald' },
-          { label: 'Total Views', value: stats.totalViews, icon: Eye, color: 'rose' },
-        ].map((item, idx) => (
-          <motion.div key={idx} variants={itemVariants} data-oid="11um8uk">
-            <Card
-              className="border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 rounded-2xl shadow-2xs overflow-hidden"
-              data-oid="eqw6up2"
-            >
-              <CardContent
-                className="p-2.5 sm:p-3.5 px-3 sm:px-4 flex items-center justify-between"
-                data-oid="vrw0:b8"
+          { label: 'Total Resources', value: stats.total, icon: Library },
+          { label: 'Published', value: stats.published, icon: Sparkles },
+          { label: 'Total Views', value: stats.totalViews, icon: Eye },
+        ].map((item) => (
+          <div key={item.label} className={cn(PANEL, 'py-2.5 px-3.5')}>
+            <p className={cn(MICRO, 'text-stone-400 mb-1 truncate')}>{item.label}</p>
+            <div className="flex items-end justify-between">
+              <span
+                className={cn(
+                  NUM,
+                  'text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-50 leading-none'
+                )}
               >
-                <div data-oid="9_afd1:" className="min-w-0 flex-1">
-                  <p
-                    className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 mb-0.5 truncate"
-                    data-oid="7.kttsj"
-                  >
-                    {item.label}
-                  </p>
-                  <h4
-                    className="text-base sm:text-xl font-black text-slate-950 dark:text-white leading-none"
-                    data-oid="odze9k4"
-                  >
-                    {item.value || 0}
-                  </h4>
-                </div>
-                <div
-                  className={`p-1.5 sm:p-2 rounded-xl shrink-0 ${
-                    item.color === 'emerald'
-                      ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-900'
-                      : item.color === 'indigo'
-                        ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400 border border-indigo-200/80 dark:border-indigo-900'
-                        : 'bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400 border border-rose-200/80 dark:border-rose-900'
-                  }`}
-                  data-oid="5d3m6tk"
-                >
-                  <item.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" data-oid="zq:k7jh" />
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+                {(item.value || 0).toLocaleString()}
+              </span>
+              <item.icon className="w-3.5 h-3.5 text-stone-300 dark:text-stone-600 shrink-0" />
+            </div>
+          </div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Search & Filter Toolbar */}
       <motion.div
-        variants={itemVariants}
-        className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 p-2 rounded-2xl shadow-2xs"
+        variants={FADE_UP}
+        className={cn(
+          PANEL,
+          'flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 p-2'
+        )}
         data-oid="a_eoz4w"
       >
         <div className="relative flex-1 w-full" data-oid="u9h2esc">
           <SearchIcon
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400"
             data-oid="aehg331"
           />
           <Input
@@ -1081,44 +1020,55 @@ const ResourceManagement = () => {
               setPagination((p) => ({ ...p, page: 1 }));
             }}
             placeholder="Search by title, description, or URL..."
-            className="h-9 pl-9 border-none bg-transparent focus-visible:ring-0 text-xs font-semibold placeholder:text-slate-400 shadow-none w-full"
+            className="h-8 pl-8 border-none bg-transparent focus-visible:ring-0 text-xs font-semibold placeholder:text-stone-400 shadow-none w-full"
             data-oid="-7jwxl2"
           />
         </div>
         <div
-          className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"
+          className="h-5 w-px bg-stone-200 dark:bg-white/[0.07] hidden sm:block"
           data-oid="spacer-line"
         />
         <div
-          className="flex items-center gap-1 p-0.5 w-full sm:w-auto overflow-x-auto no-scrollbar shrink-0"
+          className="flex items-center gap-1 p-0.5 w-full sm:w-auto overflow-x-auto no-scrollbar shrink-0 relative"
           data-oid="r-36p1t"
         >
           {[{ id: 'all', label: 'All', icon: LayoutGrid }, ...CONTENT_TYPES].map((type) => {
             const Icon = type.icon;
             const isActive = filterType === type.id;
             return (
-              <Button
+              <motion.button
                 key={type.id}
-                variant="ghost"
-                size="sm"
                 onClick={() => {
                   setFilterType(type.id);
                   setPagination((p) => ({ ...p, page: 1 }));
                 }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                 className={cn(
-                  'h-8 px-3 rounded-xl font-extrabold text-xs transition-all flex items-center gap-1.5 whitespace-nowrap border',
+                  'relative h-7 px-2.5 rounded-lg font-extrabold text-[11px] flex items-center gap-1.5 whitespace-nowrap border overflow-hidden',
                   isActive
-                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200/80 dark:border-white/10 hover:border-slate-300'
+                    ? 'text-white border-stone-800 dark:border-stone-200 shadow-2xs'
+                    : 'bg-white dark:bg-[#131315] text-stone-500 dark:text-stone-400 border-stone-200/80 dark:border-white/[0.07] hover:border-stone-300 dark:hover:border-white/20'
                 )}
                 data-oid="2092.e1"
               >
+                {isActive && (
+                  <motion.span
+                    layoutId="tab-active-bg"
+                    className="absolute inset-0 bg-stone-900 dark:bg-stone-50 rounded-lg"
+                    transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+                  />
+                )}
                 <Icon
-                  className={cn('w-3.5 h-3.5', isActive ? 'text-white' : 'text-slate-400')}
+                  className={cn(
+                    'w-3 h-3 relative z-10',
+                    isActive ? 'text-white dark:text-stone-900' : 'text-stone-400'
+                  )}
                   data-oid={`icon-${type.id}`}
                 />
-                {type.label}
-              </Button>
+                <span className="relative z-10">{type.label}</span>
+              </motion.button>
             );
           })}
         </div>
@@ -1180,18 +1130,15 @@ const ResourceManagement = () => {
         )}
       </AnimatePresence>
 
-      <motion.div variants={itemVariants} data-oid="k:o:4tl">
-        <Card
-          className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-white/10 shadow-2xs rounded-2xl overflow-hidden"
-          data-oid="p8t1fgh"
-        >
+      <motion.div variants={FADE_UP} data-oid="k:o:4tl">
+        <div className={cn(PANEL, 'overflow-hidden')} data-oid="p8t1fgh">
           <div
-            className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800"
+            className="overflow-x-auto scrollbar-thin scrollbar-thumb-stone-200 dark:scrollbar-thumb-white/10"
             data-oid="u-.q60o"
           >
             <Table className="min-w-[900px]" data-oid="lh7lr::">
               <TableHeader
-                className="bg-slate-50/80 dark:bg-slate-900/40 border-b border-slate-100 dark:border-white/5"
+                className="border-b border-stone-200/80 dark:border-white/[0.07]"
                 data-oid="8ym8_ow"
               >
                 <TableRow className="hover:bg-transparent" data-oid="1oauzid">
@@ -1204,11 +1151,11 @@ const ResourceManagement = () => {
                     />
                   </TableHead>
                   <TableHead
-                    className="py-3 px-4 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 w-[380px] cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors select-none"
+                    className="py-3 px-4 w-[380px] cursor-pointer select-none hover:text-stone-900 dark:hover:text-stone-50 transition-colors"
                     onClick={() => handleSort('title')}
                     data-oid="4fc45ak"
                   >
-                    <div className="flex items-center gap-1.5">
+                    <div className={cn('flex items-center gap-1.5', MICRO, 'text-stone-400')}>
                       Resource Title & URL
                       {sortField === 'title' ? (
                         sortDirection === 'asc' ? (
@@ -1222,11 +1169,17 @@ const ResourceManagement = () => {
                     </div>
                   </TableHead>
                   <TableHead
-                    className="py-3 px-4 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors select-none"
+                    className="py-3 px-4 text-center cursor-pointer select-none hover:text-stone-900 dark:hover:text-stone-50 transition-colors"
                     onClick={() => handleSort('content_type')}
                     data-oid="b9952cs"
                   >
-                    <div className="flex items-center justify-center gap-1.5">
+                    <div
+                      className={cn(
+                        'flex items-center justify-center gap-1.5',
+                        MICRO,
+                        'text-stone-400'
+                      )}
+                    >
                       Type
                       {sortField === 'content_type' ? (
                         sortDirection === 'asc' ? (
@@ -1240,11 +1193,17 @@ const ResourceManagement = () => {
                     </div>
                   </TableHead>
                   <TableHead
-                    className="py-3 px-4 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors select-none"
+                    className="py-3 px-4 text-center cursor-pointer select-none hover:text-stone-900 dark:hover:text-stone-50 transition-colors"
                     onClick={() => handleSort('is_published')}
                     data-oid="56ad8mw"
                   >
-                    <div className="flex items-center justify-center gap-1.5">
+                    <div
+                      className={cn(
+                        'flex items-center justify-center gap-1.5',
+                        MICRO,
+                        'text-stone-400'
+                      )}
+                    >
                       Status
                       {sortField === 'is_published' ? (
                         sortDirection === 'asc' ? (
@@ -1258,11 +1217,17 @@ const ResourceManagement = () => {
                     </div>
                   </TableHead>
                   <TableHead
-                    className="py-3 px-4 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors select-none"
+                    className="py-3 px-4 text-center cursor-pointer select-none hover:text-stone-900 dark:hover:text-stone-50 transition-colors"
                     onClick={() => handleSort('view_count')}
                     data-oid=".yt65mt"
                   >
-                    <div className="flex items-center justify-center gap-1.5">
+                    <div
+                      className={cn(
+                        'flex items-center justify-center gap-1.5',
+                        MICRO,
+                        'text-stone-400'
+                      )}
+                    >
                       Views
                       {sortField === 'view_count' ? (
                         sortDirection === 'asc' ? (
@@ -1275,11 +1240,8 @@ const ResourceManagement = () => {
                       )}
                     </div>
                   </TableHead>
-                  <TableHead
-                    className="py-3 px-4 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 text-right"
-                    data-oid=":ifq2i:"
-                  >
-                    Actions
+                  <TableHead className="py-3 px-4 text-right" data-oid=":ifq2i:">
+                    <span className={cn(MICRO, 'text-stone-400')}>Actions</span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -1289,32 +1251,32 @@ const ResourceManagement = () => {
                     [...Array(5)].map((_, i) => (
                       <TableRow
                         key={`skeleton-${i}`}
-                        className="border-b border-slate-100 dark:border-white/5"
+                        className="border-b border-stone-100 dark:border-white/[0.04]"
                         data-oid="-85f5s-"
                       >
                         <TableCell className="py-3 px-4" data-oid="skel-1">
-                          <div className="w-4 h-4 bg-slate-100 dark:bg-slate-800 animate-pulse rounded" />
+                          <div className="w-4 h-4 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded" />
                         </TableCell>
                         <TableCell className="py-3 px-4" data-oid="skel-2">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" />
+                            <div className="w-10 h-10 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded-lg" />
                             <div className="space-y-1.5">
-                              <div className="w-32 h-3 bg-slate-100 dark:bg-slate-800 animate-pulse rounded" />
-                              <div className="w-24 h-2 bg-slate-100 dark:bg-slate-800 animate-pulse rounded opacity-50" />
+                              <div className="w-32 h-3 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded" />
+                              <div className="w-24 h-2 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded opacity-50" />
                             </div>
                           </div>
                         </TableCell>
                         <TableCell className="py-3 px-4" data-oid="skel-3">
-                          <div className="w-16 h-5 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg mx-auto" />
+                          <div className="w-14 h-5 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded-md mx-auto" />
                         </TableCell>
                         <TableCell className="py-3 px-4" data-oid="skel-4">
-                          <div className="w-16 h-5 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg mx-auto" />
+                          <div className="w-14 h-5 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded-md mx-auto" />
                         </TableCell>
                         <TableCell className="py-3 px-4" data-oid="skel-5">
-                          <div className="w-10 h-3 bg-slate-100 dark:bg-slate-800 animate-pulse rounded mx-auto" />
+                          <div className="w-10 h-3 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded mx-auto" />
                         </TableCell>
                         <TableCell className="py-3 px-4" data-oid="skel-6">
-                          <div className="w-20 h-7 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg ml-auto" />
+                          <div className="w-20 h-7 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded-md ml-auto" />
                         </TableCell>
                       </TableRow>
                     ))
@@ -1349,13 +1311,13 @@ const ResourceManagement = () => {
                             Your library is currently empty. Start by adding your first educational
                             asset.
                           </p>
-                          <Button
+                          <AdminButton
                             onClick={() => setIsDialogOpen(true)}
-                            className="mt-5 bg-indigo-600 hover:bg-indigo-700 text-white h-9 px-6 rounded-xl font-extrabold text-xs shadow-2xs"
+                            className="mt-5"
                             data-oid="vvpkk1m"
                           >
                             Add Resource
-                          </Button>
+                          </AdminButton>
                         </motion.div>
                       </TableCell>
                     </TableRow>
@@ -1371,7 +1333,7 @@ const ResourceManagement = () => {
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.15 }}
                           onClick={() => openEditDialog(resource)}
-                          className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer"
+                          className="border-b border-stone-100 dark:border-white/[0.05] hover:bg-stone-50/70 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer"
                           data-oid="9wxwesr"
                         >
                           <TableCell
@@ -1382,7 +1344,6 @@ const ResourceManagement = () => {
                             <Checkbox
                               checked={selectedIds.includes(resource.id)}
                               onCheckedChange={(checked) => handleSelectOne(resource.id, checked)}
-                              className="border-slate-300 dark:border-slate-700"
                               data-oid="7p1.zr2"
                             />
                           </TableCell>
@@ -1392,23 +1353,23 @@ const ResourceManagement = () => {
                                 <img
                                   src={resource.thumbnail_url}
                                   alt=""
-                                  className="w-9 h-9 rounded-xl object-cover border border-slate-200/80 dark:border-white/10 shrink-0"
+                                  className="w-8 h-8 rounded-md object-cover border border-stone-200/80 dark:border-white/[0.07] shrink-0"
                                   data-oid="s:vpfd_"
                                 />
                               ) : (
                                 <div
-                                  className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300 shrink-0 shadow-2xs"
+                                  className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/[0.06] border border-stone-200/80 dark:border-white/[0.07] grid place-items-center shrink-0"
                                   data-oid="mji9x8k"
                                 >
                                   <Icon
-                                    className="w-4 h-4 text-indigo-600 dark:text-indigo-400"
+                                    className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400"
                                     data-oid="xw9ksuj"
                                   />
                                 </div>
                               )}
                               <div className="min-w-0" data-oid="hu9g-26">
                                 <p
-                                  className="font-extrabold text-xs text-slate-950 dark:text-white truncate max-w-[220px]"
+                                  className="font-extrabold text-xs text-stone-900 dark:text-stone-50 truncate max-w-[220px]"
                                   data-oid="eg-a6ai"
                                 >
                                   {resource.title}
@@ -1418,7 +1379,10 @@ const ResourceManagement = () => {
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   onClick={(e) => e.stopPropagation()}
-                                  className="text-[10px] font-mono text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 truncate block max-w-[220px]"
+                                  className={cn(
+                                    MICRO,
+                                    'font-mono normal-case tracking-normal text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 truncate block max-w-[220px]'
+                                  )}
                                   data-oid="r78phhx"
                                 >
                                   {resource.url}
@@ -1427,42 +1391,45 @@ const ResourceManagement = () => {
                             </div>
                           </TableCell>
                           <TableCell className="py-3 px-4 text-center" data-oid="sxceztj">
-                            <Badge
-                              variant="outline"
+                            <span
                               className={cn(
-                                'capitalize font-bold text-[10px] px-2 py-0.5 rounded-lg border',
+                                'inline-flex items-center rounded-md border px-1.5 py-0.5 capitalize',
+                                MICRO,
                                 resource.content_type === 'video' &&
-                                  'bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900',
+                                  'text-rose-600 dark:text-rose-400 border-rose-300/50 dark:border-rose-800/60 bg-rose-500/[0.06]',
                                 resource.content_type === 'pdf' &&
-                                  'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900',
+                                  'text-blue-600 dark:text-blue-400 border-blue-300/50 dark:border-blue-800/60 bg-blue-500/[0.06]',
                                 resource.content_type === 'blog' &&
-                                  'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900',
+                                  'text-emerald-600 dark:text-emerald-400 border-emerald-300/50 dark:border-emerald-800/60 bg-emerald-500/[0.06]',
                                 resource.content_type === 'vocabulary' &&
-                                  'bg-indigo-50 text-indigo-700 border-indigo-200/80 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-900'
+                                  'text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-800/60 bg-violet-500/[0.06]',
+                                !['video', 'pdf', 'blog', 'vocabulary'].includes(
+                                  resource.content_type
+                                ) && 'text-stone-500 border-stone-200 dark:border-white/10'
                               )}
-                              data-oid=":i36tj8"
                             >
                               {resource.content_type}
-                            </Badge>
+                            </span>
                           </TableCell>
                           <TableCell className="py-3 px-4 text-center" data-oid="-1064ur">
-                            <Badge
-                              variant="outline"
+                            <span
                               className={cn(
-                                'capitalize font-bold text-[10px] px-2 py-0.5 rounded-lg border',
+                                'inline-flex items-center rounded-md border px-1.5 py-0.5',
+                                MICRO,
                                 resource.is_published
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900'
-                                  : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                                  ? 'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)]'
+                                  : 'text-stone-400 border-stone-200 dark:border-white/10'
                               )}
-                              data-oid="w:xo_on"
                             >
                               {resource.is_published ? 'Published' : 'Draft'}
-                            </Badge>
+                            </span>
                           </TableCell>
                           <TableCell className="py-3 px-4 text-center" data-oid="tg35wai">
                             <span
-                              className="font-mono text-xs font-bold text-slate-600 dark:text-slate-300"
-                              data-oid=".1g.ywp"
+                              className={cn(
+                                NUM,
+                                'text-[11px] font-bold text-stone-700 dark:text-stone-200'
+                              )}
                             >
                               {resource.view_count || 0}
                             </span>
@@ -1472,34 +1439,28 @@ const ResourceManagement = () => {
                             data-oid="z.8z-y:"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <div className="flex justify-end items-center gap-1" data-oid="enq8n_h">
-                              <Button
-                                variant="ghost"
-                                size="icon"
+                            <div
+                              className="flex justify-end items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                              data-oid="enq8n_h"
+                            >
+                              <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openEditDialog(resource);
                                 }}
-                                className="h-7 w-7 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 title="Edit"
+                                className="h-7 w-7 grid place-items-center rounded-md transition-colors text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
                                 data-oid="btn-edit"
                               >
                                 <Edit className="w-3.5 h-3.5" data-oid="icon-edit" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
+                              </button>
+                              <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   togglePublishStatus(resource);
                                 }}
-                                className={cn(
-                                  'h-7 w-7 rounded-lg transition-colors',
-                                  resource.is_published
-                                    ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40'
-                                    : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
-                                )}
                                 title={resource.is_published ? 'Unpublish' : 'Publish'}
+                                className="h-7 w-7 grid place-items-center rounded-md transition-colors text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
                                 data-oid="btn-pub"
                               >
                                 {resource.is_published ? (
@@ -1507,20 +1468,18 @@ const ResourceManagement = () => {
                                 ) : (
                                   <Eye className="w-3.5 h-3.5" data-oid="on" />
                                 )}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
+                              </button>
+                              <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDelete(resource);
                                 }}
-                                className="h-7 w-7 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                                 title="Delete"
+                                className="h-7 w-7 grid place-items-center rounded-md transition-colors text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)]"
                                 data-oid="btn-del"
                               >
                                 <Trash2 className="w-3.5 h-3.5" data-oid="del" />
-                              </Button>
+                              </button>
                             </div>
                           </TableCell>
                         </motion.tr>
@@ -1535,43 +1494,34 @@ const ResourceManagement = () => {
           {/* Pagination */}
           {totalPages > 1 && (
             <div
-              className="px-6 py-4 bg-muted/20 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4"
+              className="px-4 py-3 border-t border-stone-100 dark:border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3"
               data-oid="pagin"
             >
-              <p
-                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60"
-                data-oid="page-info"
-              >
-                Page {pagination.page} of {totalPages} — Showing{' '}
+              <p className={cn(MICRO, 'text-stone-400')}>
+                Page {pagination.page} of {totalPages} —{' '}
                 {Math.min(pagination.count, pagination.limit)} items
               </p>
-              <div className="flex items-center gap-2" data-oid="btns-pag">
-                <Button
+              <div className="flex items-center gap-1.5" data-oid="btns-pag">
+                <AdminButton
                   variant="outline"
-                  size="sm"
                   disabled={pagination.page <= 1}
                   onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
-                  className="h-10 px-4 rounded-xl border-border/50 font-bold hover:bg-background transition-all"
-                  data-oid="btn-prev"
                 >
-                  <ChevronLeft className="w-4 h-4 mr-2" data-oid="cl" />
+                  <ChevronLeft className="w-3 h-3" />
                   Previous
-                </Button>
-                <Button
+                </AdminButton>
+                <AdminButton
                   variant="outline"
-                  size="sm"
                   disabled={pagination.page >= totalPages}
                   onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
-                  className="h-10 px-4 rounded-xl border-border/50 font-bold hover:bg-background transition-all"
-                  data-oid="btn-next"
                 >
                   Next
-                  <ChevronRight className="w-4 h-4 ml-2" data-oid="cr" />
-                </Button>
+                  <ChevronRight className="w-3 h-3" />
+                </AdminButton>
               </div>
             </div>
           )}
-        </Card>
+        </div>
       </motion.div>
 
       {/* Delete Confirmation Dialog */}

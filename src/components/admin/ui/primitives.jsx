@@ -80,27 +80,25 @@ export const LiveDot = ({ active = true, tone = 'ok' }) => (
 
 /** Standard KPI tile. */
 export const Kpi = ({ label, value, sub, delta, tip, live = false, className }) => (
-  <div className={cn(PANEL, 'p-4', className)}>
+  <div className={cn(PANEL, 'py-2.5 px-3.5', className)}>
     <div className="flex items-center gap-1.5">
       {live && <LiveDot />}
       <p className={cn(MICRO, 'text-stone-400')}>{label}</p>
       {tip && <InfoTip>{tip}</InfoTip>}
     </div>
-    <div className="flex items-baseline gap-2 mt-2">
-      <span
-        className={cn(NUM, 'text-2xl font-bold text-stone-900 dark:text-stone-50 leading-none')}
-      >
+    <div className="flex items-baseline gap-2 mt-1">
+      <span className={cn(NUM, 'text-xl font-bold text-stone-900 dark:text-stone-50 leading-none')}>
         {value}
       </span>
       {delta}
     </div>
-    {sub && <p className={cn(MICRO, 'text-stone-400 mt-2')}>{sub}</p>}
+    {sub && <p className={cn(MICRO, 'text-stone-400 mt-1')}>{sub}</p>}
   </div>
 );
 
 /** Page header shared by every admin screen. */
 export const AdminPageHeader = ({ title, description, tip, children }) => (
-  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 w-full">
     <div className="min-w-0">
       <div className="flex items-center gap-1.5">
         <h2 className="text-2xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50">

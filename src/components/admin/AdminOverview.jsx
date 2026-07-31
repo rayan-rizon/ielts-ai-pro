@@ -450,7 +450,7 @@ const AdminOverview = () => {
 
         {/* Trend */}
         <m.div variants={itemVariants} className="col-span-12 lg:col-span-8">
-          <div className={cn(PANEL, 'p-4')}>
+          <div className={cn(PANEL, 'p-4 h-full flex flex-col')}>
             <div className="flex items-baseline justify-between mb-3">
               <h3 className={cn(MICRO, 'text-stone-400')}>Signups vs active users</h3>
               <div className="flex items-center gap-3">
@@ -464,7 +464,7 @@ const AdminOverview = () => {
                 </span>
               </div>
             </div>
-            <div className="h-[230px] w-full">
+            <div className="h-[210px] sm:h-[220px] w-full flex-1 min-h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trend} margin={{ top: 5, right: 4, left: -24, bottom: 0 }}>
                   <defs>
@@ -534,45 +534,47 @@ const AdminOverview = () => {
 
         {/* Recent signups */}
         <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
-          <div className={cn(PANEL, 'p-4 h-full')}>
-            <h3 className={cn(MICRO, 'text-stone-400 mb-3')}>Latest signups</h3>
-            <div className="space-y-px">
-              {(data?.recentSignups || []).map((user) => (
-                <div
-                  key={user.id}
-                  className="flex items-center gap-2.5 py-2 border-b border-stone-100 dark:border-white/[0.05] last:border-0"
-                >
-                  <div className="w-7 h-7 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-[10px] font-black text-stone-500 dark:text-stone-300 shrink-0">
-                    {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-extrabold text-stone-900 dark:text-stone-50 truncate leading-tight">
-                      {user.full_name || user.email?.split('@')[0]}
-                    </p>
-                    <p className={cn(MICRO, 'text-stone-400 truncate mt-0.5')}>
-                      {user.onboarding_completed ? 'Onboarded' : 'Not onboarded'}
-                    </p>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className={cn(NUM, 'text-[10px] font-bold text-stone-500')}>
-                      {new Date(user.created_at).toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </p>
-                    {user.subscription_tier && user.subscription_tier !== 'free' && (
-                      <p className={cn(MICRO, 'text-[rgb(var(--signal-ok))]')}>
-                        {user.subscription_tier}
+          <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
+            <div>
+              <h3 className={cn(MICRO, 'text-stone-400 mb-2')}>Latest signups</h3>
+              <div className="space-y-px">
+                {(data?.recentSignups || []).slice(0, 5).map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex items-center gap-2.5 py-1.5 border-b border-stone-100 dark:border-white/[0.05] last:border-0"
+                  >
+                    <div className="w-6 h-6 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-[9px] font-black text-stone-500 dark:text-stone-300 shrink-0">
+                      {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-extrabold text-stone-900 dark:text-stone-50 truncate leading-tight">
+                        {user.full_name || user.email?.split('@')[0]}
                       </p>
-                    )}
+                      <p className={cn(MICRO, 'text-stone-400 truncate')}>
+                        {user.onboarding_completed ? 'Onboarded' : 'Not onboarded'}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className={cn(NUM, 'text-[10px] font-bold text-stone-500')}>
+                        {new Date(user.created_at).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </p>
+                      {user.subscription_tier && user.subscription_tier !== 'free' && (
+                        <p className={cn(MICRO, 'text-[rgb(var(--signal-ok))]')}>
+                          {user.subscription_tier}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-              {(data?.recentSignups || []).length === 0 && (
-                <p className="text-xs text-stone-400 py-8 text-center font-medium">
-                  No signups yet.
-                </p>
-              )}
+                ))}
+                {(data?.recentSignups || []).length === 0 && (
+                  <p className="text-xs text-stone-400 py-6 text-center font-medium">
+                    No signups yet.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </m.div>
@@ -675,8 +677,8 @@ const AdminOverview = () => {
         </m.div>
 
         {/* When the platform is actually used */}
-        <m.div variants={itemVariants} className="col-span-12">
-          <div className={cn(PANEL, 'p-4')}>
+        <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
+          <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
             <div className="flex items-baseline justify-between mb-3">
               <div className="flex items-center gap-1.5">
                 <h3 className={cn(MICRO, 'text-stone-400')}>Activity by hour · last 30 days</h3>
@@ -693,7 +695,7 @@ const AdminOverview = () => {
                 UTC
               </span>
             </div>
-            <div className="flex items-end gap-[3px] h-20">
+            <div className="flex items-end gap-[3px] h-32 pt-4">
               {hourly.map((h) => {
                 const share = maxHourly ? (h.sessions / maxHourly) * 100 : 0;
                 return (
@@ -721,8 +723,8 @@ const AdminOverview = () => {
         </m.div>
 
         {/* Module engagement */}
-        <m.div variants={itemVariants} className="col-span-12">
-          <div className={cn(PANEL, 'p-4')}>
+        <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
+          <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
             <div className="flex items-baseline justify-between mb-3">
               <h3 className={cn(MICRO, 'text-stone-400')}>Module engagement</h3>
               <span className={cn(MICRO, 'text-stone-400')}>

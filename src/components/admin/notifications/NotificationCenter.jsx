@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -11,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -32,12 +29,48 @@ import {
   AlertCircle,
   CheckCircle2,
   Megaphone,
-  Sparkles,
   RefreshCcw,
+  Sparkles,
 } from 'lucide-react';
 import { Notification } from '@/entities';
 import { toast } from 'sonner';
 import RefinedDeleteModal from '../shared/RefinedDeleteModal';
+import { cn } from '@/lib/cn';
+import {
+  AdminPageHeader,
+  AdminButton,
+  PANEL,
+  MICRO,
+  STAGGER_CONTAINER,
+  FADE_UP,
+} from '../ui/primitives';
+
+const FIELD_INPUT =
+  'h-9 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
+const FIELD_LABEL = cn(MICRO, 'text-stone-400 mb-1.5 block');
+
+const TYPE_META = {
+  info: {
+    label: 'Info',
+    icon: Info,
+    cls: 'text-blue-600 dark:text-blue-400 border-blue-300/50 dark:border-blue-800/60 bg-blue-500/[0.06]',
+  },
+  success: {
+    label: 'Success',
+    icon: CheckCircle2,
+    cls: 'text-emerald-600 dark:text-emerald-400 border-emerald-300/50 dark:border-emerald-800/60 bg-emerald-500/[0.06]',
+  },
+  warning: {
+    label: 'Alert',
+    icon: AlertCircle,
+    cls: 'text-amber-600 dark:text-amber-400 border-amber-300/50 dark:border-amber-800/60 bg-amber-500/[0.06]',
+  },
+  announcement: {
+    label: 'Announce',
+    icon: Megaphone,
+    cls: 'text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-800/60 bg-violet-500/[0.06]',
+  },
+};
 
 const NotificationCenter = () => {
   const [notifications, setNotifications] = useState([]);
@@ -45,7 +78,7 @@ const NotificationCenter = () => {
   const [sending, setSending] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
-  const [newNotification, setNewNotification] = useState({
+  const [form, setForm] = useState({
     title: '',
     message: '',
     type: 'info',
@@ -70,33 +103,23 @@ const NotificationCenter = () => {
   }, [fetchNotifications]);
 
   const handleSend = async () => {
-    if (!newNotification.title || !newNotification.message) {
+    if (!form.title || !form.message) {
       toast.error('Please fill in title and message');
       return;
     }
-
     try {
       setSending(true);
-
       const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + parseInt(newNotification.expires_in_days));
-
+      expiresAt.setDate(expiresAt.getDate() + parseInt(form.expires_in_days));
       await Notification.create({
-        title: newNotification.title,
-        message: newNotification.message,
-        type: newNotification.type,
-        target_audience: newNotification.target_audience,
+        title: form.title,
+        message: form.message,
+        type: form.type,
+        target_audience: form.target_audience,
         expires_at: expiresAt.toISOString(),
       });
-
       toast.success('Notification broadcasted successfully!');
-      setNewNotification({
-        title: '',
-        message: '',
-        type: 'info',
-        target_audience: 'all',
-        expires_in_days: 7,
-      });
+      setForm({ title: '', message: '', type: 'info', target_audience: 'all', expires_in_days: 7 });
       fetchNotifications();
     } catch (error) {
       console.error('Error sending notification:', error);
@@ -119,36 +142,12 @@ const NotificationCenter = () => {
     }
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  };
-
-  const getBadgeStyle = (type) => {
-    switch (type) {
-      case 'success':
-        return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
-      case 'warning':
-        return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
-      case 'announcement':
-        return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20';
-      default:
-        return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
-    }
-  };
-
   return (
     <motion.div
-      variants={containerVariants}
+      variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
-      className="space-y-8 pb-10 pt-12 md:pt-0"
-      data-oid="264wdil"
+      className="space-y-4 pb-6 pt-12 md:pt-0"
     >
       <RefinedDeleteModal
         isOpen={!!deletingId}
@@ -157,566 +156,333 @@ const NotificationCenter = () => {
         title="Recall Notification"
         description="This will instantly remove the message from all target user dashboards."
         confirmText="CONFIRM RECALL"
-        data-oid="aiw4r00"
       />
 
-      {/* Header Section */}
-      <div
-        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-1"
-        data-oid="uw_7qqa"
-      >
-        <motion.div variants={itemVariants} className="space-y-0.5 min-w-0" data-oid="2gx73tu">
-          <h2
-            className="text-lg sm:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2.5"
-            data-oid="bb48cxc"
-          >
-            <div
-              className="p-2 bg-primary/10 rounded-xl text-primary shadow-2xs border border-primary/20 shrink-0"
-              data-oid="b7fone2"
-            >
-              <Bell className="w-4 h-4 sm:w-6 sm:h-6" data-oid="9h5:pqk" />
-            </div>
-            <span className="truncate">Notification Hub</span>
-          </h2>
-          <p className="text-xs sm:text-base text-muted-foreground" data-oid="nri9tsw">
-            Broadcast real-time communications to your community
-          </p>
-        </motion.div>
-
-        <motion.div
-          variants={itemVariants}
-          className="w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
-          data-oid="_p439bb"
+      {/* Header */}
+      <motion.div variants={FADE_UP}>
+        <AdminPageHeader
+          title="Notifications"
+          description="Broadcast real-time communications to your user community"
         >
-          <Button
-            variant="outline"
-            onClick={fetchNotifications}
-            className="w-full sm:w-auto justify-center rounded-xl border-border/50 bg-card/50 h-9 sm:h-11 px-4 hover:bg-muted/50 transition-all font-bold text-xs sm:text-sm"
-            data-oid="ql8nl.k"
-          >
-            <RefreshCcw
-              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 ${loading ? 'animate-spin' : ''}`}
-              data-oid="3pqe:wu"
-            />
-            RELOAD HISTORY
-          </Button>
-        </motion.div>
-      </div>
+          <AdminButton variant="outline" onClick={fetchNotifications}>
+            <RefreshCcw className={cn('w-3 h-3', loading && 'animate-spin')} />
+            Refresh
+          </AdminButton>
+        </AdminPageHeader>
+      </motion.div>
 
-      <div className="grid lg:grid-cols-12 gap-5 sm:gap-8" data-oid="vs4:v7u">
-        {/* Compose Form */}
-        <motion.div variants={itemVariants} className="lg:col-span-4" data-oid="fel2r.n">
-          <div
-            className="rounded-2xl border text-card-foreground bg-card/50 backdrop-blur-sm border-border/50 shadow-2xs overflow-hidden"
-            data-oid="psgkr4c"
-          >
-            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6" data-oid="fh-axg7">
-              <div className="space-y-0.5" data-oid="zzws1jg">
-                <h3
-                  className="text-base sm:text-xl font-bold tracking-tight flex items-center gap-2"
-                  data-oid="wa5ux1g"
-                >
-                  <Megaphone
-                    className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0"
-                    data-oid="e1y4ood"
-                  />
-                  New Notification
-                </h3>
-                <p
-                  className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider"
-                  data-oid="dd889ul"
-                >
-                  Create Broadcast Message
-                </p>
-              </div>
+      <div className="grid lg:grid-cols-12 gap-4">
+        {/* Compose Panel */}
+        <motion.div variants={FADE_UP} className="lg:col-span-4">
+          <div className={cn(PANEL, 'p-4 space-y-4')}>
+            <div>
+              <p className={cn(MICRO, 'text-stone-400')}>Compose broadcast</p>
+            </div>
 
-              <div className="space-y-4 sm:space-y-5" data-oid=".g1j-mg">
-                <div className="space-y-1.5" data-oid="w:xfi.c">
-                  <Label
-                    className="text-xs font-medium uppercase tracking-wider opacity-70 ml-1"
-                    data-oid="l_ig0au"
-                  >
-                    Title
-                  </Label>
-                  <div className="relative" data-oid="due0m2w">
-                    <Sparkles
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
-                      data-oid="sp7fueh"
-                    />
-
-                    <Input
-                      value={newNotification.title}
-                      onChange={(e) =>
-                        setNewNotification({ ...newNotification, title: e.target.value })
-                      }
-                      placeholder="Enter notification title..."
-                      className="h-10 pl-10 bg-background border-border focus-visible:ring-primary/20 rounded-xl text-xs"
-                      data-oid="ztd8jgv"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5" data-oid="49s3hol">
-                  <Label
-                    className="text-xs font-medium uppercase tracking-wider opacity-70 ml-1"
-                    data-oid="h4gd_.x"
-                  >
-                    Message
-                  </Label>
-                  <Textarea
-                    value={newNotification.message}
-                    onChange={(e) =>
-                      setNewNotification({ ...newNotification, message: e.target.value })
-                    }
-                    placeholder="Enter your notification message..."
-                    rows={4}
-                    className="bg-background border-border focus-visible:ring-primary/20 rounded-xl resize-none p-3 text-xs"
-                    data-oid="rzxp6al"
+            <div className="space-y-3">
+              {/* Title */}
+              <div>
+                <label className={FIELD_LABEL}>Title</label>
+                <div className="relative">
+                  <Sparkles className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                  <Input
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    placeholder="Notification title…"
+                    className={cn(FIELD_INPUT, 'pl-8 w-full')}
                   />
                 </div>
-
-                <div
-                  className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3 sm:gap-4"
-                  data-oid="yi7q2yg"
-                >
-                  <div className="space-y-1.5" data-oid="etdm2jo">
-                    <Label
-                      className="text-xs font-medium uppercase tracking-wider opacity-70 ml-1"
-                      data-oid="afxt7gr"
-                    >
-                      Type
-                    </Label>
-                    <Select
-                      value={newNotification.type}
-                      onValueChange={(val) => setNewNotification({ ...newNotification, type: val })}
-                      data-oid="yodqsxb"
-                    >
-                      <SelectTrigger
-                        className="h-10 bg-background border-border rounded-xl text-xs"
-                        data-oid="qdz.pey"
-                      >
-                        <SelectValue data-oid="cu0:egv" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border" data-oid="h1eqx2p">
-                        <SelectItem value="info" data-oid="c8jx0xc">
-                          Information
-                        </SelectItem>
-                        <SelectItem value="success" data-oid="ahb0_j0">
-                          Success
-                        </SelectItem>
-                        <SelectItem value="warning" data-oid="deok4im">
-                          System Alert
-                        </SelectItem>
-                        <SelectItem value="announcement" data-oid="xq2jvte">
-                          Announcement
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-1.5" data-oid="1q.tvlq">
-                    <Label
-                      className="text-xs font-medium uppercase tracking-wider opacity-70 ml-1"
-                      data-oid="l4rrg6m"
-                    >
-                      Audience
-                    </Label>
-                    <Select
-                      value={newNotification.target_audience}
-                      onValueChange={(val) =>
-                        setNewNotification({ ...newNotification, target_audience: val })
-                      }
-                      data-oid="rots022"
-                    >
-                      <SelectTrigger
-                        className="h-10 bg-background border-border rounded-xl text-xs"
-                        data-oid="h5v.qcd"
-                      >
-                        <SelectValue data-oid=".:zk69m" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border" data-oid="2dxgwtr">
-                        <SelectItem value="all" data-oid="pe9w_n2">
-                          All Users
-                        </SelectItem>
-                        <SelectItem value="free" data-oid=":oqg00n">
-                          Free Tier
-                        </SelectItem>
-                        <SelectItem value="pro" data-oid="rn--_.s">
-                          Pro Users
-                        </SelectItem>
-                        <SelectItem value="premium" data-oid="c3oftej">
-                          Premium Users
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5" data-oid="acwpffe">
-                  <Label
-                    className="text-xs font-medium uppercase tracking-wider opacity-70 ml-1"
-                    data-oid=":a7wu63"
-                  >
-                    Expires In (Days)
-                  </Label>
-                  <div className="relative" data-oid="35st8ra">
-                    <Calendar
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
-                      data-oid="jdq_66t"
-                    />
-
-                    <Input
-                      type="number"
-                      min="1"
-                      value={newNotification.expires_in_days}
-                      onChange={(e) =>
-                        setNewNotification({ ...newNotification, expires_in_days: e.target.value })
-                      }
-                      className="h-10 pl-10 bg-background border-border focus-visible:ring-primary/20 rounded-xl text-xs"
-                      data-oid="w1da0cb"
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  className="w-full h-10 sm:h-11 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl transition-colors font-bold text-xs sm:text-sm"
-                  onClick={handleSend}
-                  disabled={sending}
-                  data-oid="nu2ibv6"
-                >
-                  {sending ? (
-                    <Loader2 className="animate-spin mr-2 h-4 w-4" data-oid="n5ggbdh" />
-                  ) : (
-                    <Send className="mr-2 h-4 w-4" data-oid="qoxebx5" />
-                  )}
-                  Send Notification
-                </Button>
               </div>
+
+              {/* Message */}
+              <div>
+                <label className={FIELD_LABEL}>Message</label>
+                <Textarea
+                  value={form.message}
+                  onChange={(e) => setForm({ ...form, message: e.target.value })}
+                  placeholder="Enter your message…"
+                  rows={4}
+                  className="rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium resize-none p-2.5"
+                />
+              </div>
+
+              {/* Type + Audience */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className={FIELD_LABEL}>Type</label>
+                  <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
+                    <SelectTrigger className={cn(FIELD_INPUT, 'w-full')}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="info">Information</SelectItem>
+                      <SelectItem value="success">Success</SelectItem>
+                      <SelectItem value="warning">System Alert</SelectItem>
+                      <SelectItem value="announcement">Announcement</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className={FIELD_LABEL}>Audience</label>
+                  <Select
+                    value={form.target_audience}
+                    onValueChange={(v) => setForm({ ...form, target_audience: v })}
+                  >
+                    <SelectTrigger className={cn(FIELD_INPUT, 'w-full')}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Users</SelectItem>
+                      <SelectItem value="free">Free Tier</SelectItem>
+                      <SelectItem value="pro">Pro Users</SelectItem>
+                      <SelectItem value="premium">Premium Users</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Expires */}
+              <div>
+                <label className={FIELD_LABEL}>Expires in (days)</label>
+                <div className="relative">
+                  <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                  <Input
+                    type="number"
+                    min="1"
+                    value={form.expires_in_days}
+                    onChange={(e) => setForm({ ...form, expires_in_days: e.target.value })}
+                    className={cn(FIELD_INPUT, 'pl-8 w-full')}
+                  />
+                </div>
+              </div>
+
+              <AdminButton
+                className="w-full justify-center"
+                onClick={handleSend}
+                loading={sending}
+                disabled={sending}
+              >
+                <Send className="w-3 h-3" />
+                Send Notification
+              </AdminButton>
             </div>
           </div>
         </motion.div>
 
-        {/* History List */}
-        <motion.div variants={itemVariants} className="lg:col-span-8" data-oid=".3mslx.">
-          <div
-            className="rounded-2xl border text-card-foreground bg-card/50 backdrop-blur-sm border-border/50 shadow-2xs overflow-hidden"
-            data-oid="9udz.wj"
-          >
-            <div className="p-0" data-oid="t_29d-f">
-              {/* Mobile View: Card List */}
-              <div className="md:hidden divide-y divide-border/50" data-oid="mobile-notif-list">
-                {loading ? (
-                  <div
-                    className="p-10 text-center text-muted-foreground"
-                    data-oid="mob-notif-loading"
-                  >
-                    <Loader2 className="w-7 h-7 animate-spin mx-auto mb-3 text-primary" />
-                    <p className="text-xs font-bold">Loading history...</p>
-                  </div>
-                ) : notifications.length === 0 ? (
-                  <div
-                    className="p-10 text-center text-muted-foreground space-y-2"
-                    data-oid="mob-notif-empty"
-                  >
-                    <Bell className="w-8 h-8 mx-auto text-muted-foreground/40" />
-                    <p className="font-bold text-sm text-foreground">No notifications found</p>
-                    <p className="text-xs text-muted-foreground">
-                      Create your first broadcast to get started.
-                    </p>
-                  </div>
-                ) : (
-                  notifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      className="p-4 space-y-3"
-                      data-oid={`mob-notif-${notif.id}`}
-                    >
+        {/* History Table */}
+        <motion.div variants={FADE_UP} className="lg:col-span-8">
+          <div className={cn(PANEL, 'overflow-hidden')}>
+            {/* Mobile list */}
+            <div className="md:hidden divide-y divide-stone-100 dark:divide-white/[0.05]">
+              {loading ? (
+                <div className="p-8 text-center">
+                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-stone-400 mb-2" />
+                  <p className={cn(MICRO, 'text-stone-400')}>Loading…</p>
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="p-8 text-center space-y-2">
+                  <Bell className="w-7 h-7 mx-auto text-stone-300" />
+                  <p className="text-sm font-bold text-stone-700 dark:text-stone-200">
+                    No notifications yet
+                  </p>
+                  <p className={cn(MICRO, 'text-stone-400')}>Create your first broadcast above</p>
+                </div>
+              ) : (
+                notifications.map((notif) => {
+                  const meta = TYPE_META[notif.type] || TYPE_META.info;
+                  const Icon = meta.icon;
+                  const expired = new Date(notif.expires_at) < new Date();
+                  return (
+                    <div key={notif.id} className="p-3.5 space-y-2.5">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                          <div
-                            className={`p-2 rounded-xl border shrink-0 ${
-                              notif.type === 'success'
-                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                                : notif.type === 'warning'
-                                  ? 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400'
-                                  : notif.type === 'announcement'
-                                    ? 'bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400'
-                                    : 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400'
-                            }`}
-                          >
-                            {notif.type === 'success' && <CheckCircle2 className="w-4 h-4" />}
-                            {notif.type === 'warning' && <AlertCircle className="w-4 h-4" />}
-                            {notif.type === 'announcement' && <Megaphone className="w-4 h-4" />}
-                            {notif.type === 'info' && <Info className="w-4 h-4" />}
+                          <div className={cn('p-1.5 rounded-lg border shrink-0', meta.cls)}>
+                            <Icon className="w-3.5 h-3.5" />
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <h4 className="text-xs font-bold text-foreground truncate">
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-stone-800 dark:text-stone-100 truncate">
                               {notif.title}
-                            </h4>
-                            <p className="text-[10px] text-muted-foreground font-mono">
-                              ID: {notif.id.substring(0, 8)}...
+                            </p>
+                            <p
+                              className={cn(
+                                MICRO,
+                                'text-stone-400 font-mono normal-case tracking-normal'
+                              )}
+                            >
+                              {notif.id.substring(0, 8)}…
                             </p>
                           </div>
                         </div>
-
                         <Badge
                           variant="outline"
-                          className={`rounded-lg px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border shrink-0 ${getBadgeStyle(notif.type)}`}
+                          className={cn(
+                            'rounded-md px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider border shrink-0',
+                            meta.cls
+                          )}
                         >
-                          {notif.type}
+                          {meta.label}
                         </Badge>
                       </div>
-
-                      <div className="flex items-center justify-between text-[11px] p-2.5 rounded-xl bg-muted/40 border border-border/40">
-                        <div className="flex items-center gap-1.5 font-medium text-muted-foreground">
-                          <Users className="w-3.5 h-3.5 opacity-60" />
-                          <span className="capitalize text-foreground font-semibold">
-                            {notif.target_audience}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 font-medium text-muted-foreground">
-                          <Calendar className="w-3.5 h-3.5 opacity-60" />
-                          <span>
-                            {new Date(notif.expires_at).toLocaleDateString(undefined, {
-                              month: 'short',
-                              day: 'numeric',
-                            })}
-                          </span>
-                          {new Date(notif.expires_at) < new Date() && (
-                            <Badge className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 text-[9px] px-1.5 py-0">
-                              EXPIRED
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end pt-1">
-                        <Button
-                          variant="outline"
+                      <div className="flex items-center justify-between">
+                        <span className={cn(MICRO, 'text-stone-400')}>
+                          {notif.target_audience} ·{' '}
+                          {new Date(notif.expires_at).toLocaleDateString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                          {expired && <span className="ml-1 text-rose-500"> EXPIRED</span>}
+                        </span>
+                        <AdminButton
+                          variant="destructive"
                           size="sm"
                           onClick={() => setDeletingId(notif.id)}
-                          className="h-8 text-xs font-bold text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl flex items-center gap-1.5"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Recall Notification</span>
-                        </Button>
+                          <Trash2 className="w-3 h-3" />
+                          Recall
+                        </AdminButton>
                       </div>
                     </div>
-                  ))
-                )}
-              </div>
+                  );
+                })
+              )}
+            </div>
 
-              {/* Desktop View: Table */}
-              <div className="hidden md:block overflow-x-auto no-scrollbar" data-oid="rud0-.v">
-                <Table className="min-w-[800px]" data-oid="geia3.8">
-                  <TableHeader
-                    className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/20 dark:to-indigo-900/20 border-b border-blue-200/60 dark:border-blue-800/50"
-                    data-oid="1:nvmx8"
-                  >
-                    <TableRow
-                      className="border-b border-white/5 hover:bg-transparent"
-                      data-oid="74h7cts"
-                    >
-                      <TableHead
-                        className="w-[300px] px-6 text-xs font-bold uppercase text-blue-700 dark:text-blue-300 tracking-wider"
-                        data-oid="z63:lt4"
-                      >
-                        Notification
-                      </TableHead>
-                      <TableHead
-                        className="px-6 text-xs font-bold uppercase text-blue-700 dark:text-blue-300 tracking-wider"
-                        data-oid="9juz5m0"
-                      >
-                        Type
-                      </TableHead>
-                      <TableHead
-                        className="px-6 text-xs font-bold uppercase text-blue-700 dark:text-blue-300 tracking-wider"
-                        data-oid="4t7bzsf"
-                      >
-                        Audience
-                      </TableHead>
-                      <TableHead
-                        className="px-6 text-xs font-bold uppercase text-blue-700 dark:text-blue-300 tracking-wider"
-                        data-oid="bi.59q_"
-                      >
-                        Expires
-                      </TableHead>
-                      <TableHead
-                        className="px-6 text-xs font-bold uppercase text-blue-700 dark:text-blue-300 tracking-wider text-right"
-                        data-oid="po-w136"
-                      >
-                        Actions
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody data-oid="ubg9wnv">
-                    <AnimatePresence mode="popLayout" data-oid="kzp_btq">
-                      {loading ? (
-                        [...Array(6)].map((_, i) => (
-                          <TableRow
-                            key={`skeleton-${i}`}
-                            className="border-b border-blue-100/60 dark:border-blue-800/40"
-                            data-oid="7xhb6fs"
-                          >
-                            <TableCell colSpan={5} className="py-4 px-6" data-oid="-tpf7dt">
-                              <div
-                                className="w-full h-6 bg-blue-50/40 dark:bg-blue-900/20 animate-pulse rounded-lg"
-                                data-oid="3gpm6:k"
-                              />
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : notifications.length === 0 ? (
-                        <TableRow data-oid="b35kend">
-                          <TableCell colSpan={5} className="h-48 text-center" data-oid="4dgib-m">
-                            <div
-                              className="flex flex-col items-center justify-center space-y-3"
-                              data-oid="ezirii5"
-                            >
-                              <div
-                                className="p-4 bg-blue-50/50 dark:bg-blue-900/20 rounded-full border border-blue-200/30 dark:border-blue-800/30"
-                                data-oid="6b73zw6"
-                              >
-                                <Bell
-                                  className="w-8 h-8 text-blue-400 opacity-50"
-                                  data-oid="pmd5r5n"
-                                />
-                              </div>
-                              <div className="space-y-1" data-oid=".xy6316">
-                                <p className="font-bold text-foreground text-lg" data-oid="h:1.c99">
-                                  No notifications found
-                                </p>
-                                <p className="text-sm text-muted-foreground" data-oid="da8_s7y">
-                                  Create your first broadcast to get started.
-                                </p>
-                              </div>
-                            </div>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-stone-200/80 dark:border-white/[0.07] hover:bg-transparent">
+                    <TableHead className="py-3 px-4 w-[280px]">
+                      <span className={cn(MICRO, 'text-stone-400')}>Notification</span>
+                    </TableHead>
+                    <TableHead className="py-3 px-4">
+                      <span className={cn(MICRO, 'text-stone-400')}>Type</span>
+                    </TableHead>
+                    <TableHead className="py-3 px-4">
+                      <span className={cn(MICRO, 'text-stone-400')}>Audience</span>
+                    </TableHead>
+                    <TableHead className="py-3 px-4">
+                      <span className={cn(MICRO, 'text-stone-400')}>Expires</span>
+                    </TableHead>
+                    <TableHead className="py-3 px-4 text-right">
+                      <span className={cn(MICRO, 'text-stone-400')}>Actions</span>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <AnimatePresence mode="popLayout">
+                    {loading ? (
+                      [...Array(5)].map((_, i) => (
+                        <TableRow
+                          key={`skel-${i}`}
+                          className="border-b border-stone-100 dark:border-white/[0.04]"
+                        >
+                          <TableCell colSpan={5} className="py-3 px-4">
+                            <div className="h-5 w-full bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded-md" />
                           </TableCell>
                         </TableRow>
-                      ) : (
-                        notifications.map((notif) => (
+                      ))
+                    ) : notifications.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="py-16 text-center">
+                          <div className="flex flex-col items-center gap-2">
+                            <Bell className="w-7 h-7 text-stone-300" />
+                            <p className="text-sm font-bold text-stone-700 dark:text-stone-200">
+                              No notifications yet
+                            </p>
+                            <p className={cn(MICRO, 'text-stone-400')}>
+                              Create your first broadcast using the form
+                            </p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      notifications.map((notif) => {
+                        const meta = TYPE_META[notif.type] || TYPE_META.info;
+                        const Icon = meta.icon;
+                        const expired = new Date(notif.expires_at) < new Date();
+                        return (
                           <motion.tr
                             layout
                             key={notif.id}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className={`group transition-all hover:bg-blue-50/40 dark:hover:bg-blue-900/25 border-b border-blue-100/60 dark:border-blue-800/40 bg-white dark:bg-slate-950`}
-                            data-oid="1yms9o:"
+                            className="group border-b border-stone-100 dark:border-white/[0.04] hover:bg-stone-50/60 dark:hover:bg-white/[0.02] transition-colors"
                           >
-                            <TableCell className="px-6 py-3" data-oid="brct:og">
-                              <div className="flex items-center gap-3" data-oid="j_oi9rt">
-                                <div
-                                  className={`p-2 rounded-lg border transition-all duration-200 shadow-sm ${
-                                    notif.type === 'success'
-                                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                                      : notif.type === 'warning'
-                                        ? 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400'
-                                        : notif.type === 'announcement'
-                                          ? 'bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400'
-                                          : 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400'
-                                  }`}
-                                  data-oid="9cdhz_u"
-                                >
-                                  {notif.type === 'success' && (
-                                    <CheckCircle2 className="w-4 h-4" data-oid="mva-yfj" />
-                                  )}
-                                  {notif.type === 'warning' && (
-                                    <AlertCircle className="w-4 h-4" data-oid="jgd6oww" />
-                                  )}
-                                  {notif.type === 'announcement' && (
-                                    <Megaphone className="w-4 h-4" data-oid="fapxejo" />
-                                  )}
-                                  {notif.type === 'info' && (
-                                    <Info className="w-4 h-4" data-oid="ns4f:e2" />
-                                  )}
+                            <TableCell className="py-3 px-4">
+                              <div className="flex items-center gap-2.5">
+                                <div className={cn('p-1.5 rounded-lg border shrink-0', meta.cls)}>
+                                  <Icon className="w-3.5 h-3.5" />
                                 </div>
-                                <div className="flex flex-col" data-oid="8ina_31">
-                                  <span
-                                    className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1"
-                                    data-oid="ymqmhk7"
-                                  >
+                                <div>
+                                  <p className="text-xs font-bold text-stone-800 dark:text-stone-100 line-clamp-1">
                                     {notif.title}
-                                  </span>
-                                  <span
-                                    className="text-[11px] text-muted-foreground font-medium"
-                                    data-oid="0wixgu2"
+                                  </p>
+                                  <p
+                                    className={cn(
+                                      MICRO,
+                                      'text-stone-400 font-mono normal-case tracking-normal'
+                                    )}
                                   >
-                                    ID: {notif.id.substring(0, 8)}...
-                                  </span>
+                                    {notif.id.substring(0, 8)}…
+                                  </p>
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell className="px-6 py-3" data-oid="m15_zhm">
+                            <TableCell className="py-3 px-4">
                               <Badge
                                 variant="outline"
-                                className={`rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getBadgeStyle(notif.type)}`}
-                                data-oid="2wt1q5_"
+                                className={cn(
+                                  'rounded-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border',
+                                  meta.cls
+                                )}
                               >
-                                {notif.type}
+                                {meta.label}
                               </Badge>
                             </TableCell>
-                            <TableCell className="px-6 py-3" data-oid="cdh2ymy">
-                              <div
-                                className="flex items-center gap-2 text-xs font-medium text-muted-foreground"
-                                data-oid="w8ibqsz"
-                              >
-                                <Users className="w-3.5 h-3.5 opacity-50" data-oid=".ygklls" />
-                                <span
-                                  className="text-foreground font-semibold capitalize"
-                                  data-oid="_f7x-aw"
-                                >
+                            <TableCell className="py-3 px-4">
+                              <div className="flex items-center gap-1.5">
+                                <Users className="w-3 h-3 text-stone-400" />
+                                <span className="text-xs font-semibold text-stone-700 dark:text-stone-200 capitalize">
                                   {notif.target_audience}
                                 </span>
                               </div>
                             </TableCell>
-                            <TableCell className="px-6 py-3" data-oid="yccs4dc">
-                              <div className="flex flex-col" data-oid="bvmjlqy">
-                                <div
-                                  className="flex items-center gap-1.5 text-xs font-semibold text-foreground"
-                                  data-oid="v0zxx3u"
-                                >
-                                  <Calendar
-                                    className="w-3.5 h-3.5 text-muted-foreground opacity-40"
-                                    data-oid="-g7z.n."
-                                  />
-
+                            <TableCell className="py-3 px-4">
+                              <div className="flex items-center gap-1.5">
+                                <Calendar className="w-3 h-3 text-stone-400" />
+                                <span className="text-xs font-semibold text-stone-700 dark:text-stone-200">
                                   {new Date(notif.expires_at).toLocaleDateString(undefined, {
                                     month: 'short',
                                     day: 'numeric',
                                     year: 'numeric',
                                   })}
-                                </div>
-                                {new Date(notif.expires_at) < new Date() && (
-                                  <span
-                                    className="text-[9px] text-red-500 font-bold mt-0.5 uppercase tracking-tighter"
-                                    data-oid="cmp0gm2"
-                                  >
+                                </span>
+                                {expired && (
+                                  <span className={cn(MICRO, 'text-[rgb(var(--signal-fault))]')}>
                                     EXPIRED
                                   </span>
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell className="px-6 py-3 text-right" data-oid="7j5s8pd">
-                              <Button
-                                variant="ghost"
-                                size="icon"
+                            <TableCell className="py-3 px-4 text-right">
+                              <AdminButton
+                                variant="destructive"
+                                size="sm"
                                 onClick={() => setDeletingId(notif.id)}
-                                className="h-8 w-8 text-slate-600 hover:bg-red-500/10 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
-                                title="Delete"
-                                data-oid="32fi4x1"
                               >
-                                <Trash2 className="w-4 h-4" data-oid="r:6hr6t" />
-                              </Button>
+                                <Trash2 className="w-3 h-3" />
+                                Recall
+                              </AdminButton>
                             </TableCell>
                           </motion.tr>
-                        ))
-                      )}
-                    </AnimatePresence>
-                  </TableBody>
-                </Table>
-              </div>
+                        );
+                      })
+                    )}
+                  </AnimatePresence>
+                </TableBody>
+              </Table>
             </div>
           </div>
         </motion.div>

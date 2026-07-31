@@ -27,7 +27,6 @@ import { supabase } from '@/lib/supabase';
  */
 const MICRO = 'text-[9px] font-bold uppercase tracking-[0.14em]';
 
-// Memoized Nav Item for Admin Sidebar
 const AdminNavItem = memo(({ item, isActive, pendingCount = 0 }) => {
   const { isMobile, setOpenMobile } = useSidebar();
 
@@ -37,14 +36,14 @@ const AdminNavItem = memo(({ item, isActive, pendingCount = 0 }) => {
 
   const btnClasses = `group transition-colors rounded-md mb-0.5 relative overflow-hidden ${
     isActive
-      ? 'bg-stone-900 dark:bg-white/10 text-white dark:text-stone-50 font-bold'
-      : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'
+      ? 'bg-stone-900 hover:bg-stone-800 text-white hover:text-white dark:bg-white/10 dark:hover:bg-white/15 dark:text-stone-50 dark:hover:text-stone-50 font-bold'
+      : 'text-stone-700 dark:text-stone-200 font-medium hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'
   }`;
 
   const iconClasses = `w-4 h-4 transition-colors ${
     isActive
       ? 'text-white dark:text-stone-50'
-      : 'text-stone-400 group-hover:text-stone-700 dark:group-hover:text-stone-200'
+      : 'text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100'
   }`;
 
   return (
@@ -104,7 +103,9 @@ const AdminSidebarQuickActions = memo(({ isMobile, setOpenMobile }) => {
 
   return (
     <SidebarGroup className="mt-4">
-      <SidebarGroupLabel className={`${MICRO} text-stone-400 px-3 py-2`}>
+      <SidebarGroupLabel
+        className={`${MICRO} text-stone-500 dark:text-stone-400 px-3 py-2 font-extrabold`}
+      >
         Quick actions
       </SidebarGroupLabel>
       <SidebarGroupContent>
@@ -112,15 +113,15 @@ const AdminSidebarQuickActions = memo(({ isMobile, setOpenMobile }) => {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="w-full justify-start gap-3 px-3 text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors"
+              className="group w-full justify-start gap-3 px-3 text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors font-medium"
               tooltip="Create Test"
             >
               <Link
                 to={createPageUrl('AdminPanel') + '?tab=tests&action=create'}
                 onClick={handleLinkClick}
               >
-                <Plus className="w-4 h-4" />
-                <span className="font-medium text-[13px] group-data-[collapsible=icon]:hidden">
+                <Plus className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors" />
+                <span className="text-[13px] group-data-[collapsible=icon]:hidden">
                   Create test
                 </span>
               </Link>
@@ -129,17 +130,15 @@ const AdminSidebarQuickActions = memo(({ isMobile, setOpenMobile }) => {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="w-full justify-start gap-3 px-3 text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors"
+              className="group w-full justify-start gap-3 px-3 text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors font-medium"
               tooltip="Add Promo"
             >
               <Link
                 to={createPageUrl('AdminPanel') + '?tab=promo&action=create'}
                 onClick={handleLinkClick}
               >
-                <Crown className="w-4 h-4" />
-                <span className="font-medium text-[13px] group-data-[collapsible=icon]:hidden">
-                  Add promo
-                </span>
+                <Crown className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors" />
+                <span className="text-[13px] group-data-[collapsible=icon]:hidden">Add promo</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -157,46 +156,40 @@ const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }
   }, [isMobile, setOpenMobile, handleLogout]);
 
   return (
-    <SidebarFooter className="border-t border-stone-200/70 dark:border-white/[0.06] p-3 group-data-[collapsible=icon]:p-2">
-      <div className="space-y-2">
-        <div className="flex justify-center mb-1">
-          <SidebarTrigger
-            className="text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md h-9 w-9 transition-colors"
-            aria-label="Toggle admin sidebar"
-          />
+    <SidebarFooter className="border-t border-stone-200/70 dark:border-white/[0.06] p-3 group-data-[collapsible=icon]:p-2 space-y-1">
+      <div className="flex justify-center mb-1">
+        <SidebarTrigger
+          className="text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md h-9 w-9 transition-colors"
+          aria-label="Toggle admin sidebar"
+        />
+      </div>
+
+      <ThemeToggle />
+
+      <div className="bg-stone-50 dark:bg-white/[0.03] hover:bg-stone-100 dark:hover:bg-white/[0.06] p-2.5 rounded-md flex items-center gap-3 cursor-pointer transition-colors border border-stone-200/70 dark:border-white/[0.06] group-data-[collapsible=icon]:justify-center my-1">
+        <div className="w-8 h-8 bg-stone-900 dark:bg-white/10 rounded-md flex items-center justify-center flex-shrink-0">
+          <span className="text-white dark:text-stone-50 font-bold text-xs">
+            {user?.full_name?.[0] || 'A'}
+          </span>
         </div>
-
-        <ThemeToggle />
-
-        <div className="bg-stone-50 dark:bg-white/[0.03] hover:bg-stone-100 dark:hover:bg-white/[0.06] p-2.5 rounded-lg flex items-center gap-3 cursor-pointer transition-colors border border-stone-200/70 dark:border-white/[0.06] group-data-[collapsible=icon]:justify-center">
-          <div className="w-9 h-9 bg-stone-900 dark:bg-white/10 rounded-md flex items-center justify-center flex-shrink-0 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8">
-            <span className="text-white dark:text-stone-50 font-bold text-sm">
-              {user?.full_name?.[0] || 'A'}
-            </span>
+        <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+          <p className="font-bold text-stone-900 dark:text-stone-50 text-xs truncate leading-none mb-1">
+            {user?.full_name || 'Admin User'}
+          </p>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--signal-ok))]" />
+            <span className={`${MICRO} text-stone-400`}>Administrator</span>
           </div>
-          <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-            <p className="font-bold text-stone-900 dark:text-stone-50 text-xs truncate leading-none mb-1">
-              {user?.full_name || 'Admin User'}
-            </p>
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--signal-ok))]" />
-              <span className={`${MICRO} text-stone-400`}>Administrator</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-1">
-          <SidebarMenuButton
-            onClick={onLogoutClick}
-            className="w-full justify-start gap-3 px-3 text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] rounded-md transition-colors group-data-[collapsible=icon]:px-2.5"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="font-medium text-[13px] group-data-[collapsible=icon]:hidden">
-              Sign out
-            </span>
-          </SidebarMenuButton>
         </div>
       </div>
+
+      <SidebarMenuButton
+        onClick={onLogoutClick}
+        className="group w-full justify-start gap-3 px-3 py-2 text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors font-medium group-data-[collapsible=icon]:px-2.5"
+      >
+        <LogOut className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors" />
+        <span className="text-[13px] group-data-[collapsible=icon]:hidden">Sign out</span>
+      </SidebarMenuButton>
     </SidebarFooter>
   );
 });
