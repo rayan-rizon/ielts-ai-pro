@@ -9,7 +9,6 @@ import {
   BarChart2,
   CheckCircle,
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 import { cn, formatInstructionHTML } from '@/lib/utils';
@@ -114,11 +113,11 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
               <div key={instruction} className="mb-3 space-y-1.5" data-oid="8jksp:y">
                 {displayInstruction.trim() && (
                   <div
-                    className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 text-slate-800 dark:text-slate-200 mb-1.5 shadow-2xs"
+                    className="flex items-start gap-2.5 p-3 rounded-xl bg-[#5a63df]/[0.06] dark:bg-[#5a63df]/10 border border-[#5a63df]/15 dark:border-[#5a63df]/20 text-slate-800 dark:text-slate-200 mb-1.5 shadow-2xs"
                     data-oid="6dw9uti"
                   >
                     <div
-                      className="p-1 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
+                      className="p-1 rounded-lg bg-[#5a63df]/10 dark:bg-[#5a63df]/20 text-[#5a63df] dark:text-[#a9afff] shrink-0 mt-0.5"
                       data-oid="ip7:at9"
                     >
                       <Lightbulb className="w-4 h-4" data-oid="3h83xkd" />
@@ -355,12 +354,12 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                         key={question.id}
                         id={`question-${question.id}`}
                         className={cn(
-                          'relative px-3.5 py-3 sm:px-4 sm:py-3 rounded-xl border transition-all duration-200 bg-white/90 dark:bg-slate-900/90 shadow-2xs hover:shadow-xs',
+                          'relative px-3.5 py-3 sm:px-4 sm:py-3 rounded-xl border transition-all duration-200 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] shadow-2xs hover:shadow-sm',
                           isFlagged
                             ? 'border-amber-300 dark:border-amber-800/80 ring-1 ring-amber-400/20 bg-amber-50/20 dark:bg-amber-950/10'
-                            : 'border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700',
+                            : 'border-[#e4e2f0] dark:border-white/[0.07] hover:border-[#c9cdf3] dark:hover:border-white/[0.15]',
                           highlightedQuestionId === question.id &&
-                            'ring-2 ring-indigo-500 border-indigo-500 dark:border-indigo-500 shadow-indigo-500/10 scale-[1.005]'
+                            'ring-2 ring-[#5a63df] border-[#5a63df] dark:border-[#5a63df] scale-[1.005]'
                         )}
                         data-oid="duo5yge"
                       >
@@ -495,9 +494,9 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                     key={i}
                     className={`h-1 transition-all duration-500 rounded-full ${
                       i === currentPassageIndex
-                        ? 'w-6 bg-blue-500'
+                        ? 'w-6 bg-[#5a63df]'
                         : i < currentPassageIndex
-                          ? 'w-1.5 bg-blue-200 dark:bg-blue-800'
+                          ? 'w-1.5 bg-[#5a63df]/30 dark:bg-[#5a63df]/40'
                           : 'w-1.5 bg-slate-200 dark:bg-slate-800'
                     }`}
                     data-oid="jh9w00e"
@@ -506,22 +505,22 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
               </div>
               <div className="flex gap-2" data-oid="bthfqv0">
                 <div
-                  className="flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full border border-blue-100 dark:border-blue-800/50"
+                  className="flex items-center gap-1.5 bg-[#5a63df]/10 dark:bg-[#5a63df]/20 px-2 py-0.5 rounded-full border border-[#5a63df]/20 dark:border-[#5a63df]/25"
                   data-oid="2bzt1bp"
                 >
                   <span
-                    className="text-[9px] uppercase tracking-wider font-bold text-blue-600 dark:text-blue-400 hidden xs:inline"
+                    className="text-[9px] uppercase tracking-wider font-bold text-[#5a63df] dark:text-[#a9afff] hidden min-[480px]:inline"
                     data-oid="crlbg7x"
                   >
                     Passage
                   </span>
                   <span
-                    className="text-xs font-black text-blue-700 dark:text-blue-300"
+                    className="text-xs font-black text-[#5a63df] dark:text-[#a9afff]"
                     data-oid="g4.yhpu"
                   >
                     {currentPassageIndex + 1}{' '}
                     <span
-                      className="text-blue-400 dark:text-blue-600 font-medium"
+                      className="text-[#5a63df]/50 dark:text-[#a9afff]/50 font-medium"
                       data-oid="hm2uha_"
                     >
                       /
@@ -557,10 +556,10 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                 (Object.keys(answers).length === 0 && !isFinished && !session?.is_completed)
               }
               className={cn(
-                'font-bold px-4 h-11 rounded-xl shadow-lg transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2 border-none',
+                'font-bold px-4 h-11 rounded-xl transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2 border-none',
                 isFinished || (session && session.is_completed)
-                  ? 'bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 text-white shadow-blue-500/30 hover:shadow-blue-500/50'
-                  : 'bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 shadow-slate-900/25 dark:shadow-indigo-500/20'
+                  ? 'bg-[#5a63df] hover:bg-[#4a52c9] text-white'
+                  : 'bg-slate-900 dark:bg-[#5a63df] text-white hover:bg-slate-800 dark:hover:bg-[#4a52c9]'
               )}
               data-oid="lz1j9du"
             >
@@ -597,7 +596,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                   Math.min(testData.sections.length - 1, currentPassageIndex + 1)
                 )
               }
-              className="bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 shadow-slate-900/25 dark:shadow-indigo-500/20 font-bold rounded-xl px-10 h-11 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+              className="bg-slate-900 dark:bg-[#5a63df] text-white hover:bg-slate-800 dark:hover:bg-[#4a52c9] font-bold rounded-xl px-10 h-11 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
               data-oid="z674zld"
             >
               <div className="flex items-center gap-2" data-oid="m6u07y5">

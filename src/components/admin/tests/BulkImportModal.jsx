@@ -35,6 +35,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/cn';
+import { PILL_BASE, pillTone, MICRO, AdminButton } from '@/components/admin/ui/primitives';
 
 const QUESTION_TYPES = [
   { value: 'true_false_not_given', label: 'True/False/Not Given' },
@@ -156,26 +157,25 @@ const BulkImportModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose} data-oid="txafz4z">
       <DialogContent
-        className="max-w-5xl h-[90vh] flex flex-col p-0 overflow-hidden"
+        className="max-w-5xl h-[90vh] flex flex-col gap-0 p-0 overflow-hidden"
         data-oid="0.e.7tz"
       >
         <DialogHeader
-          className="p-6 pb-2 border-b bg-slate-50 dark:bg-slate-900/50"
+          className="p-5 pb-3 pr-12 border-b border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.02]"
           data-oid="7s90kts"
         >
           <div className="flex justify-between items-center" data-oid="56j2_si">
-            <DialogTitle className="text-xl" data-oid="bs1nrb1">
+            <DialogTitle className="text-base font-extrabold" data-oid="bs1nrb1">
               Bulk Import Questions
             </DialogTitle>
-            <Badge
-              variant="outline"
-              className="text-xs font-normal relative top-[-4px]"
-              data-oid="jlhr4px"
-            >
+            <span className={cn(PILL_BASE, pillTone('neutral'))}>
               {mode === 'answers_only' ? 'Import Answers' : `Step ${step} of 3`}
-            </Badge>
+            </span>
           </div>
-          <DialogDescription data-oid="52o-yu6">
+          <DialogDescription
+            className={cn(MICRO, 'text-stone-500 dark:text-stone-400 normal-case')}
+            data-oid="52o-yu6"
+          >
             Paste your questions and answers to automatically import them.
           </DialogDescription>
 
@@ -185,7 +185,7 @@ const BulkImportModal = ({
               <div
                 className={cn(
                   'h-1 flex-1 rounded-full transition-colors',
-                  step >= 1 ? 'bg-violet-600' : 'bg-slate-200 dark:bg-slate-800'
+                  step >= 1 ? 'bg-stone-800 dark:bg-stone-200' : 'bg-stone-200 dark:bg-white/10'
                 )}
                 data-oid="dt4ax59"
               />
@@ -193,7 +193,7 @@ const BulkImportModal = ({
               <div
                 className={cn(
                   'h-1 flex-1 rounded-full transition-colors',
-                  step >= 2 ? 'bg-violet-600' : 'bg-slate-200 dark:bg-slate-800'
+                  step >= 2 ? 'bg-stone-800 dark:bg-stone-200' : 'bg-stone-200 dark:bg-white/10'
                 )}
                 data-oid="ekaix1n"
               />
@@ -201,7 +201,7 @@ const BulkImportModal = ({
               <div
                 className={cn(
                   'h-1 flex-1 rounded-full transition-colors',
-                  step >= 3 ? 'bg-violet-600' : 'bg-slate-200 dark:bg-slate-800'
+                  step >= 3 ? 'bg-stone-800 dark:bg-stone-200' : 'bg-stone-200 dark:bg-white/10'
                 )}
                 data-oid="0xxmbo5"
               />
@@ -210,7 +210,7 @@ const BulkImportModal = ({
         </DialogHeader>
 
         <div
-          className="flex-1 overflow-hidden p-6 bg-slate-50/30 dark:bg-background"
+          className="flex-1 overflow-hidden p-6 bg-stone-50/30 dark:bg-[#0c0c0d]"
           data-oid="61fqhx5"
         >
           {step === 1 && (
@@ -247,7 +247,7 @@ const BulkImportModal = ({
                     value={rawText}
                     onChange={(e) => setRawText(e.target.value)}
                     placeholder={`Questions 1-5\n\nDo the following statements agree with the information given in Reading Passage 1?\n\nTRUE   if the statement agrees with the information\nFALSE  if the statement contradicts the information\nNOT GIVEN if there is no information on this\n\n1. The polar bear is found in the Antarctic.\n2. ...`}
-                    className="h-[400px] font-mono text-sm resize-none focus-visible:ring-violet-500"
+                    className="h-[400px] font-mono text-sm resize-none focus-visible:"
                     data-oid="6w.rnbd"
                   />
                 </div>
@@ -258,7 +258,7 @@ const BulkImportModal = ({
           {step === 2 && (
             <div className="h-full flex flex-col gap-4" data-oid="6w:roim">
               <Alert
-                className="bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-200 dark:border-blue-900"
+                className="bg-stone-50 text-stone-800 border-stone-200 dark:bg-stone-900/20 dark:text-stone-200 dark:border-stone-900"
                 data-oid="9iycuh-"
               >
                 <Info className="h-4 w-4" data-oid="3v_.fxg" />
@@ -275,7 +275,7 @@ const BulkImportModal = ({
                 value={answerText}
                 onChange={(e) => setAnswerText(e.target.value)}
                 placeholder={`1. False\n2. True\n3. Not Given\n...\n25. B, D`}
-                className="flex-1 font-mono text-sm resize-none focus-visible:ring-violet-500"
+                className="flex-1 font-mono text-sm resize-none focus-visible:"
                 data-oid="j1q8xul"
               />
             </div>
@@ -295,7 +295,7 @@ const BulkImportModal = ({
                   {validation.suggestions.length > 0 && (
                     <Badge
                       variant="secondary"
-                      className="bg-amber-100 text-amber-800 hover:bg-amber-100 flex gap-1 border-amber-200"
+                      className="bg-[rgb(var(--signal-warn)/0.06)] text-[rgb(var(--signal-warn))] hover:bg-[rgb(var(--signal-warn)/0.06)] flex gap-1 border-[rgb(var(--signal-warn)/0.3)]"
                       data-oid="-vuuryo"
                     >
                       <Info className="w-3 h-3" data-oid="v-p9zrn" />{' '}
@@ -306,7 +306,7 @@ const BulkImportModal = ({
               )}
 
               <ScrollArea
-                className="flex-1 border rounded-lg bg-white dark:bg-slate-900"
+                className="flex-1 border rounded-lg bg-white dark:bg-stone-900"
                 data-oid="ku6-hts"
               >
                 <div className="divide-y" data-oid="oaqpbwu">
@@ -320,8 +320,9 @@ const BulkImportModal = ({
                       <div
                         key={q.id}
                         className={cn(
-                          'p-4 flex gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors',
-                          error && 'bg-red-50/50 hover:bg-red-50 dark:bg-red-900/10'
+                          'p-4 flex gap-4 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors',
+                          error &&
+                            'bg-[rgb(var(--signal-fault)/0.06)] hover:bg-[rgb(var(--signal-fault)/0.06)] bg-[rgb(var(--signal-fault)/0.06)]'
                         )}
                         data-oid="f80t0n3"
                       >
@@ -332,7 +333,7 @@ const BulkImportModal = ({
                         >
                           <Badge
                             variant="outline"
-                            className="w-6 h-6 rounded-full flex items-center justify-center p-0 border-slate-300 text-slate-500"
+                            className="w-6 h-6 rounded-full flex items-center justify-center p-0 border-stone-300 text-stone-500"
                             data-oid="otepwno"
                           >
                             {q.question_number}
@@ -342,12 +343,12 @@ const BulkImportModal = ({
                               <Tooltip data-oid="3-7k4q2">
                                 <TooltipTrigger data-oid="1zxa9yq">
                                   <AlertTriangle
-                                    className="w-4 h-4 text-red-500"
+                                    className="w-4 h-4 text-[rgb(var(--signal-fault))]"
                                     data-oid="115v.2d"
                                   />
                                 </TooltipTrigger>
                                 <TooltipContent
-                                  className="bg-red-500 text-white border-0"
+                                  className="bg-[rgb(var(--signal-fault))] text-white border-0"
                                   data-oid="bfw8l6c"
                                 >
                                   <p data-oid="s-qawit">{error.msg}</p>
@@ -359,10 +360,13 @@ const BulkImportModal = ({
                             <TooltipProvider data-oid="85hzylv">
                               <Tooltip data-oid="yytgjr-">
                                 <TooltipTrigger data-oid="qx17nt1">
-                                  <Info className="w-4 h-4 text-amber-500" data-oid="eu2uii_" />
+                                  <Info
+                                    className="w-4 h-4 text-[rgb(var(--signal-warn))]"
+                                    data-oid="eu2uii_"
+                                  />
                                 </TooltipTrigger>
                                 <TooltipContent
-                                  className="bg-amber-500 text-white border-0"
+                                  className="bg-[rgb(var(--signal-warn))] text-white border-0"
                                   data-oid="3u_s8e-"
                                 >
                                   <p data-oid="7at8d0b">{warning.msg}</p>
@@ -464,7 +468,7 @@ const BulkImportModal = ({
                           {/* Complex Type Previews */}
                           {q.type === 'table_completion' && q.table_data && (
                             <div
-                              className="text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700"
+                              className="text-xs bg-stone-100 dark:bg-stone-800 p-2 rounded border border-stone-200 dark:border-stone-700"
                               data-oid="m5m2_t6"
                             >
                               <div className="font-semibold mb-1" data-oid="6y9vj4k">
@@ -492,7 +496,7 @@ const BulkImportModal = ({
 
                           {q.type === 'flowchart' && q.flowchart && (
                             <div
-                              className="text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700 font-medium"
+                              className="text-xs bg-stone-100 dark:bg-stone-800 p-2 rounded border border-stone-200 dark:border-stone-700 font-medium"
                               data-oid="flow-prev"
                             >
                               <div className="font-semibold mb-1">Flowchart Detected:</div>
@@ -505,7 +509,7 @@ const BulkImportModal = ({
 
                           {q.type === 'matching_features' && q.matching_features && (
                             <div
-                              className="text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700"
+                              className="text-xs bg-stone-100 dark:bg-stone-800 p-2 rounded border border-stone-200 dark:border-stone-700"
                               data-oid="e871949"
                             >
                               <div className="font-semibold mb-1" data-oid="tcod1rg">
@@ -531,11 +535,11 @@ const BulkImportModal = ({
                             if (q.type === 'notes_completion' || q.type === 'note_completion') {
                               return (
                                 <div
-                                  className="bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 rounded-lg p-3"
+                                  className="bg-[rgb(var(--signal-ok)/0.06)] bg-[rgb(var(--signal-ok)/0.06)] border border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] rounded-lg p-3"
                                   data-oid="p2-xxc6"
                                 >
                                   <div
-                                    className="text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400 mb-2"
+                                    className="text-[10px] font-bold uppercase text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] mb-2"
                                     data-oid="49902pq"
                                   >
                                     Gap Answers
@@ -558,7 +562,7 @@ const BulkImportModal = ({
                                         >
                                           <Badge
                                             variant="outline"
-                                            className="w-5 h-5 rounded-full p-0 flex items-center justify-center shrink-0 text-[10px] border-emerald-200 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400 bg-white dark:bg-slate-950"
+                                            className="w-5 h-5 rounded-full p-0 flex items-center justify-center shrink-0 text-[10px] border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] bg-white dark:bg-stone-950"
                                             data-oid="f1_e_wl"
                                           >
                                             {num}
@@ -574,7 +578,7 @@ const BulkImportModal = ({
                                               });
                                             }}
                                             placeholder="Answer"
-                                            className="h-7 text-xs bg-white/80 dark:bg-slate-950 border-emerald-100 dark:border-emerald-900/50"
+                                            className="h-7 text-xs bg-white/80 dark:bg-stone-950 border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)]"
                                             data-oid="dps9usb"
                                           />
                                         </div>
@@ -591,11 +595,11 @@ const BulkImportModal = ({
 
                               return (
                                 <div
-                                  className="bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 rounded-lg p-3"
+                                  className="bg-[rgb(var(--signal-ok)/0.06)] bg-[rgb(var(--signal-ok)/0.06)] border border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] rounded-lg p-3"
                                   data-oid="blt5d17"
                                 >
                                   <div
-                                    className="text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400 mb-2"
+                                    className="text-[10px] font-bold uppercase text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] mb-2"
                                     data-oid="qu6iwi3"
                                   >
                                     {isParagraph ? 'Paragraph Answers' : 'Statement Answers'}
@@ -622,7 +626,7 @@ const BulkImportModal = ({
                                             >
                                               <Badge
                                                 variant="outline"
-                                                className="w-5 h-5 rounded-full p-0 flex items-center justify-center shrink-0 text-[10px] border-emerald-200 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400 bg-white dark:bg-slate-950"
+                                                className="w-5 h-5 rounded-full p-0 flex items-center justify-center shrink-0 text-[10px] border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] bg-white dark:bg-stone-950"
                                                 data-oid="0ykotq8"
                                               >
                                                 {num}
@@ -638,7 +642,7 @@ const BulkImportModal = ({
                                                   });
                                                 }}
                                                 placeholder="e.g. A"
-                                                className="h-7 text-xs bg-white/80 dark:bg-slate-950 border-emerald-100 dark:border-emerald-900/50 w-16"
+                                                className="h-7 text-xs bg-white/80 dark:bg-stone-950 border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] w-16"
                                                 data-oid="7h1ucm0"
                                               />
                                             </div>
@@ -660,7 +664,7 @@ const BulkImportModal = ({
                                             >
                                               <Badge
                                                 variant="outline"
-                                                className="w-5 h-5 rounded-full p-0 flex items-center justify-center shrink-0 text-[10px] border-emerald-200 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400 bg-white dark:bg-slate-950"
+                                                className="w-5 h-5 rounded-full p-0 flex items-center justify-center shrink-0 text-[10px] border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] bg-white dark:bg-stone-950"
                                                 data-oid="9vi08pr"
                                               >
                                                 {qNum}
@@ -679,7 +683,7 @@ const BulkImportModal = ({
                                                   });
                                                 }}
                                                 placeholder="e.g. A"
-                                                className="h-7 text-xs bg-white/80 dark:bg-slate-950 border-emerald-100 dark:border-emerald-900/50 w-16"
+                                                className="h-7 text-xs bg-white/80 dark:bg-stone-950 border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] w-16"
                                                 data-oid="2nn:59n"
                                               />
                                             </div>
@@ -696,8 +700,8 @@ const BulkImportModal = ({
                               const fc = q.flowchart;
                               let cumulativeIdx = 0;
                               return (
-                                <div className="bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 rounded-lg p-3">
-                                  <div className="text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400 mb-2">
+                                <div className="bg-[rgb(var(--signal-ok)/0.06)] bg-[rgb(var(--signal-ok)/0.06)] border border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] rounded-lg p-3">
+                                  <div className="text-[10px] font-bold uppercase text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] mb-2">
                                     Flowchart Answers
                                   </div>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -715,7 +719,7 @@ const BulkImportModal = ({
                                           >
                                             <Badge
                                               variant="outline"
-                                              className="w-5 h-5 rounded-full p-0 flex items-center justify-center shrink-0 text-[10px] border-emerald-200 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-400 bg-white dark:bg-slate-950"
+                                              className="w-5 h-5 rounded-full p-0 flex items-center justify-center shrink-0 text-[10px] border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] bg-white dark:bg-stone-950"
                                             >
                                               {num}
                                             </Badge>
@@ -730,7 +734,7 @@ const BulkImportModal = ({
                                                 });
                                               }}
                                               placeholder="Answer"
-                                              className="h-7 text-xs bg-white/80 dark:bg-slate-950 border-emerald-100 dark:border-emerald-900/50"
+                                              className="h-7 text-xs bg-white/80 dark:bg-stone-950 border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)]"
                                             />
                                           </div>
                                         );
@@ -745,11 +749,11 @@ const BulkImportModal = ({
                               const td = q.table_data;
                               return (
                                 <div
-                                  className="bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 rounded-lg p-3"
+                                  className="bg-[rgb(var(--signal-ok)/0.06)] bg-[rgb(var(--signal-ok)/0.06)] border border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] rounded-lg p-3"
                                   data-oid="mkcta.x"
                                 >
                                   <div
-                                    className="text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400 mb-2"
+                                    className="text-[10px] font-bold uppercase text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] mb-2"
                                     data-oid="knmgz56"
                                   >
                                     Table Answers
@@ -766,7 +770,7 @@ const BulkImportModal = ({
                                       >
                                         <Badge
                                           variant="outline"
-                                          className="w-5 h-5 rounded-full p-0 flex items-center justify-center shrink-0 text-[10px] border-emerald-200 text-emerald-600 bg-white"
+                                          className="w-5 h-5 rounded-full p-0 flex items-center justify-center shrink-0 text-[10px] border-[rgb(var(--signal-ok)/0.3)] text-[rgb(var(--signal-ok))] bg-white"
                                           data-oid="rntclq0"
                                         >
                                           {blank.blankNumber}
@@ -785,7 +789,7 @@ const BulkImportModal = ({
                                             });
                                           }}
                                           placeholder="Answer"
-                                          className="h-7 text-xs bg-white/80 border-emerald-100 dark:bg-slate-900"
+                                          className="h-7 text-xs bg-white/80 border-[rgb(var(--signal-ok)/0.3)] dark:bg-stone-900"
                                           data-oid="c13hemh"
                                         />
                                       </div>
@@ -799,7 +803,7 @@ const BulkImportModal = ({
                             return (
                               <div data-oid=":mb5cw0">
                                 <label
-                                  className="text-[10px] uppercase text-muted-foreground font-bold tracking-wider mb-1 block text-green-600 dark:text-green-500"
+                                  className="text-[10px] uppercase text-muted-foreground font-bold tracking-wider mb-1 block text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))]"
                                   data-oid="xsmpswe"
                                 >
                                   Correct Answer
@@ -813,7 +817,7 @@ const BulkImportModal = ({
                                   onChange={(e) =>
                                     updateQuestion(q.id, 'correct_answer', e.target.value)
                                   }
-                                  className="h-8 text-sm border-green-200 dark:border-green-900 focus-visible:ring-green-500 bg-green-50/30 dark:bg-green-900/10"
+                                  className="h-8 text-sm border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] focus-visible: bg-[rgb(var(--signal-ok)/0.06)] bg-[rgb(var(--signal-ok)/0.06)]"
                                   placeholder="e.g. TRUE"
                                   data-oid="l_hz4n4"
                                 />
@@ -827,7 +831,7 @@ const BulkImportModal = ({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-slate-400 hover:text-red-500"
+                            className="h-8 w-8 text-stone-400 hover:text-[rgb(var(--signal-fault))]"
                             onClick={() => deleteQuestion(q.id)}
                             data-oid="x-jfrgc"
                           >
@@ -843,25 +847,24 @@ const BulkImportModal = ({
           )}
         </div>
 
-        <DialogFooter className="p-4 border-t bg-slate-50 dark:bg-slate-900/50" data-oid="q83i9q2">
+        <DialogFooter className="p-4 border-t bg-stone-50 dark:bg-stone-900/50" data-oid="q83i9q2">
           <Button variant="ghost" onClick={handleBack} data-oid="yrto0t1">
             {step === 1 || (mode === 'answers_only' && step === 2) ? 'Cancel' : 'Back'}
           </Button>
 
           {step === 1 && (
-            <Button
+            <AdminButton
               onClick={handleParseQuestions}
               disabled={!rawText.trim()}
-              className="bg-violet-600 text-white hover:bg-violet-700"
               data-oid="9qkdmzh"
             >
-              Parse Questions <ArrowRight className="w-4 h-4 ml-2" data-oid="gbjkgg6" />
-            </Button>
+              Parse Questions <ArrowRight className="w-3.5 h-3.5" data-oid="gbjkgg6" />
+            </AdminButton>
           )}
 
           {step === 2 && (
             <div className="flex gap-2" data-oid="bjty1tz">
-              <Button
+              <AdminButton
                 variant="outline"
                 onClick={() => {
                   setAnswerText('');
@@ -870,27 +873,23 @@ const BulkImportModal = ({
                 data-oid="syhu:7f"
               >
                 Skip Answers
-              </Button>
-              <Button
-                onClick={handleParseAnswers}
-                className="bg-violet-600 text-white hover:bg-violet-700"
-                data-oid="k5_ujki"
-              >
-                Process Answers <ArrowRight className="w-4 h-4 ml-2" data-oid="fhup_qx" />
-              </Button>
+              </AdminButton>
+              <AdminButton onClick={handleParseAnswers} data-oid="k5_ujki">
+                Process Answers <ArrowRight className="w-3.5 h-3.5" data-oid="fhup_qx" />
+              </AdminButton>
             </div>
           )}
 
           {step === 3 && (
-            <Button
+            <AdminButton
               onClick={handleFinalImport}
               disabled={parsedQuestions.length === 0}
-              className="bg-green-600 hover:bg-green-700 text-white min-w-[140px]"
+              className="bg-[rgb(var(--signal-ok))] hover:bg-[rgb(var(--signal-ok))] hover:opacity-90 text-white min-w-[140px] justify-center"
               data-oid="bi4xai4"
             >
-              <Check className="w-4 h-4 mr-2" data-oid="cp2r0dx" />
+              <Check className="w-3.5 h-3.5" data-oid="cp2r0dx" />
               Import {parsedQuestions.length} Questions
-            </Button>
+            </AdminButton>
           )}
         </DialogFooter>
       </DialogContent>

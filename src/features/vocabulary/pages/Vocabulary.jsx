@@ -74,7 +74,7 @@ const getWordLimit = (subscriptionTier) =>
 
 const PageHeader = ({ stats, user }) => (
   <div className="flex flex-col gap-4 border-b border-[#eeedf7] pb-4 dark:border-white/[0.07] xl:flex-row xl:items-end xl:justify-between">
-    <div className="max-w-2xl space-y-1.5">
+    <div className="min-w-0 max-w-2xl space-y-1.5">
       <Pill tone="accent">IELTS Vocabulary Engine</Pill>
       <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
         Vocabulary Mastery
@@ -457,7 +457,7 @@ export default function Vocabulary() {
     <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 transition-colors duration-300 dark:bg-[#0b0a10] dark:text-white">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
       />
       <div
         aria-hidden="true"
@@ -517,8 +517,10 @@ export default function Vocabulary() {
             />
           </div>
 
-          {/* Sidebar Column (4 cols) */}
-          <div className="hidden lg:flex lg:col-span-4 flex-col space-y-5">
+          {/* Sidebar Column — stacks full-width below the word list on mobile/tablet
+              instead of disappearing entirely; only QuickAddCard is skipped here
+              since the page already renders a mobile copy of it above. */}
+          <div className="flex flex-col space-y-5 lg:col-span-4">
             <VocabularySidebar
               user={user}
               allVocabularyCount={allVocabulary.length}

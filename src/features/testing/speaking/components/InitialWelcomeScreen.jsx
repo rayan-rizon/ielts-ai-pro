@@ -2,6 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, Check, Loader2, Mic2, Volume2 } from 'lucide-react';
 
+import { cn } from '@/lib/cn';
+import { MUTED } from '@/features/dashboard/components/primitives';
+
 import useSpeakingDeviceChecks from '../hooks/useSpeakingDeviceChecks';
 
 const DEVICE_COPY = {
@@ -35,7 +38,7 @@ function ReadinessCard({ device, icon: Icon, status, onClick }) {
     ? 'border-emerald-500/20 bg-emerald-500/[0.055]'
     : needsAttention
       ? 'border-amber-500/25 bg-amber-500/[0.055]'
-      : 'border-border/60 bg-background/65 hover:border-primary/25 hover:bg-background';
+      : 'border-[#e4e2f0] bg-white/70 hover:border-rose-500/25 hover:bg-white dark:border-white/[0.07] dark:bg-white/[0.03] dark:hover:bg-white/[0.06]';
 
   return (
     <motion.button
@@ -60,7 +63,7 @@ function ReadinessCard({ device, icon: Icon, status, onClick }) {
         )}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-1 text-[10px] font-extrabold text-foreground sm:gap-1.5 sm:text-xs">
+        <span className="flex items-center gap-1 text-[10px] font-extrabold text-slate-800 dark:text-slate-100 sm:gap-1.5 sm:text-xs">
           {label}
           {isReady ? (
             <Check className="h-3 w-3 text-emerald-500" aria-hidden="true" />
@@ -68,7 +71,12 @@ function ReadinessCard({ device, icon: Icon, status, onClick }) {
             <AlertCircle className="h-3 w-3 text-amber-500" aria-hidden="true" />
           ) : null}
         </span>
-        <span className="mt-0.5 hidden truncate text-[9px] text-muted-foreground min-[360px]:block sm:text-[10px]">
+        <span
+          className={cn(
+            MUTED,
+            'mt-0.5 hidden truncate text-[9px] min-[360px]:block sm:text-[10px]'
+          )}
+        >
           {detail}
         </span>
       </span>
@@ -96,16 +104,16 @@ const InitialWelcomeScreen = ({ partNumber, title }) => {
             loading="eager"
           />
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-card to-transparent"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent dark:from-[#141319]"
             aria-hidden="true"
           />
         </div>
 
-        <h2 className="mt-0.5 text-xl font-black tracking-[-0.035em] text-foreground sm:text-3xl">
+        <h2 className="mt-0.5 text-xl font-black tracking-[-0.035em] text-slate-900 dark:text-slate-50 sm:text-3xl">
           Ready to start Part {partNumber}?
         </h2>
         <p className="mt-1 text-xs font-bold text-rose-500 sm:text-sm">{title}</p>
-        <p className="mt-1.5 max-w-xl text-xs leading-5 text-muted-foreground sm:text-sm sm:leading-6">
+        <p className={cn(MUTED, 'mt-1.5 max-w-xl text-xs leading-5 sm:text-sm sm:leading-6')}>
           {PART_INTROS[partNumber] || 'Answer naturally, listen carefully, and speak clearly.'}
           <br className="hidden sm:block" /> Answer naturally and speak clearly.
         </p>

@@ -21,7 +21,7 @@ function getFlowchartInputStyle(disabled, validation, value) {
   if (disabled) {
     return 'bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-foreground';
   }
-  return 'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground hover:border-slate-400/80 dark:hover:border-slate-600/80 focus-visible:ring-1 focus-visible:ring-blue-500/40 focus-visible:border-blue-500/50';
+  return 'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground hover:border-slate-400/80 dark:hover:border-slate-600/80 focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50';
 }
 
 function FlowchartDeepDive({
@@ -187,7 +187,7 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
             {stepIndex < flowchart.steps.length - 1 && (
               <div
                 data-testid="flowchart-arrow"
-                className="flex items-center justify-center text-blue-500/70 dark:text-blue-400/70 py-0"
+                className="flex items-center justify-center text-[#5a63df]/70 dark:text-[#a9afff]/70 py-0"
               >
                 <ArrowDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" />
               </div>

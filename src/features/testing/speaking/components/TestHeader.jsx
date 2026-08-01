@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
+import { MICRO, MUTED, NUM, PANEL, TITLE } from '@/features/dashboard/components/primitives';
 
 import { getQuestionLines } from '../utils/speakingTestUtils';
 
@@ -17,11 +18,12 @@ const formatTime = (seconds) => {
 function StatusSection({ label, children, className }) {
   return (
     <section
-      className={cn('min-w-0 border-border/70 px-4 py-3.5 sm:px-5 xl:border-l xl:py-4', className)}
+      className={cn(
+        'min-w-0 border-[#e4e2f0] px-4 py-3.5 dark:border-white/[0.07] sm:px-5 xl:border-l xl:py-4',
+        className
+      )}
     >
-      <p className="mb-1.5 text-[9px] font-extrabold uppercase tracking-[0.18em] text-muted-foreground">
-        {label}
-      </p>
+      <p className={cn(MICRO, MUTED, 'mb-1.5')}>{label}</p>
       {children}
     </section>
   );
@@ -57,49 +59,47 @@ const TestHeader = React.memo(
             variant="ghost"
             onClick={onShowExitDialog}
             aria-label="Back to Speaking"
-            className="group relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-card/95 text-foreground shadow-sm backdrop-blur-lg transition-all duration-200 hover:border-primary/40 hover:text-primary hover:shadow-md active:scale-95 sm:h-9 sm:w-auto sm:border-[#d2d7f8] sm:bg-gradient-to-r sm:from-white sm:to-[#f4f3ff] sm:px-3 sm:text-slate-700 dark:border-white/10 dark:bg-white/10 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300"
+            className={cn(
+              PANEL,
+              'group relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-slate-700 shadow-2xs transition-all duration-200 hover:border-rose-500/40 hover:text-rose-600 hover:shadow-xs active:scale-95 dark:text-slate-200 dark:hover:border-rose-400/50 dark:hover:text-rose-300 sm:h-9 sm:w-auto sm:px-3'
+            )}
           >
             <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5 stroke-[2.5] sm:mr-2 sm:h-4.5 sm:w-4.5" />
             <span className="hidden text-xs font-bold sm:inline">Back to Speaking</span>
           </Button>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-border/65 bg-card/95 shadow-[0_22px_65px_-42px_hsl(var(--foreground)/0.38)] backdrop-blur-xl sm:rounded-3xl">
+        <div className={cn(PANEL, 'overflow-hidden rounded-2xl sm:rounded-3xl')}>
           <div className="xl:hidden">
             <section className="flex min-w-0 items-center gap-3 py-2.5 pl-16 pr-3 sm:px-4 sm:py-3">
               <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-500/[0.09] text-rose-500 sm:flex">
                 <Headphones className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[8px] font-extrabold uppercase tracking-[0.17em] text-rose-500">
-                  Speaking practice
-                </p>
-                <h1 className="mt-0.5 truncate text-sm font-black tracking-[-0.02em] text-foreground sm:text-base">
+                <p className={cn(MICRO, 'text-rose-500')}>Speaking practice</p>
+                <h1 className={cn(TITLE, 'mt-0.5 truncate text-sm sm:text-base')}>
                   IELTS Speaking Session
                 </h1>
-                <p className="truncate text-[10px] font-medium text-muted-foreground sm:text-[11px]">
+                <p className={cn(MUTED, 'truncate text-[10px] font-medium sm:text-[11px]')}>
                   {testTitle}
                 </p>
               </div>
             </section>
 
-            <section className="grid grid-cols-[minmax(0,1fr)_auto_auto] border-t border-border/70 sm:hidden">
+            <section className="grid grid-cols-[minmax(0,1fr)_auto_auto] border-t border-[#e4e2f0] dark:border-white/[0.07] sm:hidden">
               <div className="min-w-0 px-3 py-2.5">
-                <p className="text-[8px] font-extrabold uppercase tracking-[0.17em] text-muted-foreground">
-                  Part {currentPartNumber}
-                </p>
-                <p className="mt-0.5 truncate text-[11px] font-extrabold text-foreground">
+                <p className={cn(MICRO, MUTED)}>Part {currentPartNumber}</p>
+                <p className="mt-0.5 truncate text-[11px] font-extrabold text-slate-800 dark:text-slate-100">
                   {currentPart?.title || `Speaking Part ${currentPartNumber}`}
                 </p>
               </div>
 
-              <div className="border-l border-border/70 px-3 py-2.5">
-                <p className="text-[8px] font-extrabold uppercase tracking-[0.17em] text-muted-foreground">
-                  Time
-                </p>
+              <div className="border-l border-[#e4e2f0] px-3 py-2.5 dark:border-white/[0.07]">
+                <p className={cn(MICRO, MUTED)}>Time</p>
                 <div
                   className={cn(
-                    'mt-0.5 flex items-center gap-1 font-mono text-sm font-black tabular-nums',
+                    NUM,
+                    'mt-0.5 flex items-center gap-1 text-sm font-black',
                     timeLeft < 60 ? 'text-red-500' : 'text-rose-500'
                   )}
                   aria-label={`${formatTime(timeLeft)} remaining`}
@@ -112,34 +112,34 @@ const TestHeader = React.memo(
                 </div>
               </div>
 
-              <div className="flex items-center border-l border-border/70 px-2.5">
+              <div className="flex items-center border-l border-[#e4e2f0] px-2.5 dark:border-white/[0.07]">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsMuted(!isMuted)}
                   aria-label={isMuted ? 'Unmute examiner audio' : 'Mute examiner audio'}
-                  className="h-9 w-9 rounded-xl bg-muted/65 text-foreground transition-colors hover:bg-muted"
+                  className="h-9 w-9 rounded-xl bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
                 >
                   {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 </Button>
               </div>
             </section>
 
-            <section className="hidden border-t border-border/70 px-3 py-2.5 sm:block sm:px-4 sm:py-3">
+            <section className="hidden border-t border-[#e4e2f0] px-3 py-2.5 dark:border-white/[0.07] sm:block sm:px-4 sm:py-3">
               <div className="flex items-end justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[8px] font-extrabold uppercase tracking-[0.17em] text-muted-foreground">
+                  <p className={cn(MICRO, MUTED)}>
                     Part {currentPartNumber} of {totalParts}
                   </p>
-                  <p className="mt-0.5 truncate text-xs font-extrabold text-foreground">
+                  <p className="mt-0.5 truncate text-xs font-extrabold text-slate-800 dark:text-slate-100">
                     {currentPart?.title || `Speaking Part ${currentPartNumber}`}
                   </p>
                 </div>
-                <p className="shrink-0 text-[10px] font-bold tabular-nums text-rose-500">
+                <p className={cn(NUM, 'shrink-0 text-[10px] font-bold text-rose-500')}>
                   {progressLabel}
                 </p>
               </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#f4f3fb] dark:bg-white/[0.04]">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${partProgress}%` }}
@@ -149,14 +149,13 @@ const TestHeader = React.memo(
               </div>
             </section>
 
-            <section className="hidden grid-cols-[1fr_1fr_auto] border-t border-border/70 sm:grid">
+            <section className="hidden grid-cols-[1fr_1fr_auto] border-t border-[#e4e2f0] dark:border-white/[0.07] sm:grid">
               <div className="min-w-0 px-3 py-2.5 sm:px-4 sm:py-3">
-                <p className="text-[8px] font-extrabold uppercase tracking-[0.17em] text-muted-foreground">
-                  Time left
-                </p>
+                <p className={cn(MICRO, MUTED)}>Time left</p>
                 <div
                   className={cn(
-                    'mt-1 flex items-center gap-1.5 font-mono text-base font-black tabular-nums sm:text-lg',
+                    NUM,
+                    'mt-1 flex items-center gap-1.5 text-base font-black sm:text-lg',
                     timeLeft < 60 ? 'text-red-500' : 'text-rose-500'
                   )}
                   aria-label={`${formatTime(timeLeft)} remaining`}
@@ -169,28 +168,26 @@ const TestHeader = React.memo(
                 </div>
               </div>
 
-              <div className="min-w-0 border-l border-border/70 px-3 py-2.5 sm:px-4 sm:py-3">
-                <p className="text-[8px] font-extrabold uppercase tracking-[0.17em] text-muted-foreground">
-                  {isLongTurn ? 'Task' : 'Question'}
-                </p>
+              <div className="min-w-0 border-l border-[#e4e2f0] px-3 py-2.5 dark:border-white/[0.07] sm:px-4 sm:py-3">
+                <p className={cn(MICRO, MUTED)}>{isLongTurn ? 'Task' : 'Question'}</p>
                 <div className="mt-1 flex items-center gap-1.5">
                   <MessageCircle
                     className="h-3.5 w-3.5 shrink-0 text-rose-500"
                     aria-hidden="true"
                   />
-                  <p className="truncate text-sm font-black text-foreground sm:text-base">
+                  <p className="truncate text-sm font-black text-slate-800 dark:text-slate-100 sm:text-base">
                     {questionValue}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center border-l border-border/70 px-2.5 sm:px-4">
+              <div className="flex items-center border-l border-[#e4e2f0] px-2.5 dark:border-white/[0.07] sm:px-4">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsMuted(!isMuted)}
                   aria-label={isMuted ? 'Unmute examiner audio' : 'Mute examiner audio'}
-                  className="h-10 w-10 rounded-xl bg-muted/65 text-foreground transition-colors hover:bg-muted"
+                  className="h-10 w-10 rounded-xl bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
                 >
                   {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 </Button>
@@ -199,37 +196,31 @@ const TestHeader = React.memo(
           </div>
 
           <div className="hidden xl:grid xl:grid-cols-[minmax(16rem,1.4fr)_minmax(8rem,0.7fr)_minmax(11rem,0.9fr)_minmax(7rem,0.6fr)_4.5rem_minmax(7rem,0.6fr)]">
-            <section className="col-span-2 flex min-w-0 items-center gap-3 border-b border-border/70 px-4 py-3.5 sm:px-5 xl:col-span-1 xl:border-b-0 xl:py-4">
+            <section className="col-span-2 flex min-w-0 items-center gap-3 border-b border-[#e4e2f0] px-4 py-3.5 dark:border-white/[0.07] sm:px-5 xl:col-span-1 xl:border-b-0 xl:py-4">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-500/[0.09] text-rose-500">
                 <Headphones className="h-5 w-5" aria-hidden="true" />
               </span>
               <div className="min-w-0">
-                <p className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-rose-500">
-                  Speaking practice
-                </p>
-                <h1 className="mt-0.5 truncate text-base font-black tracking-[-0.02em] text-foreground">
-                  IELTS Speaking Session
-                </h1>
-                <p className="truncate text-[11px] font-medium text-muted-foreground">
-                  {testTitle}
-                </p>
+                <p className={cn(MICRO, 'text-rose-500')}>Speaking practice</p>
+                <h1 className={cn(TITLE, 'mt-0.5 truncate text-base')}>IELTS Speaking Session</h1>
+                <p className={cn(MUTED, 'truncate text-[11px] font-medium')}>{testTitle}</p>
               </div>
             </section>
 
             <StatusSection label="Part" className="border-b xl:border-b-0">
-              <p className="flex items-baseline gap-1.5 text-foreground">
-                <span className="text-2xl font-black leading-none text-rose-500">
+              <p className="flex items-baseline gap-1.5 text-slate-800 dark:text-slate-100">
+                <span className={cn(NUM, 'text-2xl font-black leading-none text-rose-500')}>
                   {currentPartNumber}
                 </span>
                 <span className="text-base font-extrabold">of {totalParts}</span>
               </p>
-              <p className="mt-1.5 truncate text-[10px] font-medium text-muted-foreground">
+              <p className={cn(MUTED, 'mt-1.5 truncate text-[10px] font-medium')}>
                 {currentPart?.title || `Speaking Part ${currentPartNumber}`}
               </p>
             </StatusSection>
 
             <StatusSection label="Progress" className="border-b xl:border-b-0">
-              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#f4f3fb] dark:bg-white/[0.04]">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${partProgress}%` }}
@@ -237,7 +228,7 @@ const TestHeader = React.memo(
                   className="h-full rounded-full bg-rose-500"
                 />
               </div>
-              <p className="mt-2 text-[10px] font-medium text-muted-foreground">
+              <p className={cn(MUTED, 'mt-2 text-[10px] font-medium')}>
                 Part {currentPartNumber} is active
               </p>
             </StatusSection>
@@ -245,7 +236,8 @@ const TestHeader = React.memo(
             <StatusSection label="Time left">
               <div
                 className={cn(
-                  'flex items-center gap-2 font-mono text-xl font-black tabular-nums',
+                  NUM,
+                  'flex items-center gap-2 text-xl font-black',
                   timeLeft < 60 ? 'text-red-500' : 'text-rose-500'
                 )}
                 aria-label={`${formatTime(timeLeft)} remaining`}
@@ -258,13 +250,13 @@ const TestHeader = React.memo(
               </div>
             </StatusSection>
 
-            <section className="flex items-center justify-center border-l border-border/70 px-3 py-4 xl:py-5">
+            <section className="flex items-center justify-center border-l border-[#e4e2f0] px-3 py-4 dark:border-white/[0.07] xl:py-5">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsMuted(!isMuted)}
                 aria-label={isMuted ? 'Unmute examiner audio' : 'Mute examiner audio'}
-                className="h-11 w-11 rounded-2xl bg-muted/65 text-foreground transition-colors hover:bg-muted"
+                className="h-11 w-11 rounded-2xl bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
               >
                 {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
               </Button>
@@ -273,9 +265,11 @@ const TestHeader = React.memo(
             <StatusSection label={isLongTurn ? 'Task' : 'Question'}>
               <div className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4 text-rose-500" aria-hidden="true" />
-                <p className="truncate text-base font-black text-foreground">{questionValue}</p>
+                <p className="truncate text-base font-black text-slate-800 dark:text-slate-100">
+                  {questionValue}
+                </p>
               </div>
-              <p className="mt-1.5 text-[10px] font-medium text-muted-foreground">
+              <p className={cn(MUTED, 'mt-1.5 text-[10px] font-medium')}>
                 {isPart2Prep
                   ? 'Topic card ready'
                   : isLongTurn

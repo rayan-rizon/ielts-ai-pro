@@ -61,20 +61,23 @@ const TranscriptPanel = ({
       {/* Synchronized Transcript Section - Integrated Panel */}
       {!examMode ? (
         <div
-          className="flex-1 flex flex-col min-h-0 bg-white/70 dark:bg-slate-900/50 rounded-xl border border-slate-200/70 dark:border-slate-800/80 overflow-hidden shadow-2xs"
+          className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] overflow-hidden shadow-2xs"
           data-oid="qpvv9b:"
         >
           {/* Header */}
           <div
-            className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-200/60 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-800/40 shrink-0"
+            className="flex items-center justify-between px-3.5 py-2.5 border-b border-[#e4e2f0] dark:border-white/[0.07] bg-[#f4f3fb]/60 dark:bg-white/[0.04] shrink-0"
             data-oid="u.w7c68"
           >
             <div className="flex items-center gap-2.5" data-oid="35buee3">
               <div
-                className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-200/50 dark:border-blue-500/20"
+                className="p-1.5 rounded-lg bg-[#5a63df]/10 border border-[#5a63df]/20 dark:border-[#5a63df]/25"
                 data-oid="xxf0fo6"
               >
-                <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" data-oid="z6f5zjp" />
+                <FileText
+                  className="w-4 h-4 text-[#5a63df] dark:text-[#a9afff]"
+                  data-oid="z6f5zjp"
+                />
               </div>
               <div data-oid="u_ye_06">
                 <h3
@@ -95,7 +98,7 @@ const TranscriptPanel = ({
               size="sm"
               variant="ghost"
               onClick={() => dispatch({ type: ACTIONS.TOGGLE_TRANSCRIPT })}
-              className="text-blue-600 dark:text-blue-400 h-7 px-3 rounded-lg font-bold text-[11px] bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 shadow-2xs"
+              className="text-[#5a63df] dark:text-[#a9afff] h-7 px-3 rounded-lg font-bold text-[11px] bg-white dark:bg-white/[0.06] border border-[#e4e2f0] dark:border-white/[0.1] hover:bg-slate-50 dark:hover:bg-white/[0.1] transition-all duration-200 shadow-2xs"
               data-oid="wvgykuk"
             >
               {showTranscript ? 'Hide' : 'Show'}
@@ -131,7 +134,7 @@ const TranscriptPanel = ({
                     data-oid="-_fjv0o"
                   >
                     <div
-                      className="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 mb-2"
+                      className="p-2.5 rounded-full bg-[#f4f3fb] dark:bg-white/[0.06] mb-2"
                       data-oid="qrhww.y"
                     >
                       <AlertCircle className="w-5 h-5 text-slate-400" data-oid="e2sncoc" />
@@ -146,10 +149,10 @@ const TranscriptPanel = ({
           )}
         </div>
       ) : examReview ? (
-        <div className="grid flex-1 place-items-center rounded-xl border border-indigo-200 bg-indigo-50 p-5 text-center dark:border-indigo-500/20 dark:bg-indigo-500/10">
+        <div className="grid flex-1 place-items-center rounded-xl border border-[#5a63df]/20 bg-[#5a63df]/[0.06] p-5 text-center dark:border-[#5a63df]/25 dark:bg-[#5a63df]/10">
           <div>
-            <p className="font-black text-indigo-900 dark:text-indigo-200">Final review</p>
-            <p className="mt-1 text-xs leading-5 text-indigo-700 dark:text-indigo-300">
+            <p className="font-black text-slate-800 dark:text-[#a9afff]">Final review</p>
+            <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
               Audio is complete. Review your answers before automatic submission.
             </p>
           </div>

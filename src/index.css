@@ -664,3 +664,81 @@
 .dark [data-sonner-toast] [data-description] {
   color: #cbd5e1 !important;
 }
+
+/* ReactQuill Dark Mode Custom Styling */
+/* Quill's `.ql-toolbar.ql-snow` and `.ql-container.ql-snow` selectors are
+   more specific than the editor wrappers. Remove their default bright
+   borders so Listening and Writing editors use the surrounding panel rule. */
+.dark .ql-toolbar.ql-snow {
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+.dark .ql-container.ql-snow {
+  border: 0 !important;
+  color: #e2e8f0 !important;
+}
+.dark .ql-editor {
+  color: #f1f5f9 !important;
+  background-color: #131315 !important;
+}
+.dark .ql-editor.ql-blank::before {
+  color: #64748b !important;
+}
+.dark .ql-snow .ql-stroke {
+  stroke: #cbd5e1 !important;
+}
+.dark .ql-snow .ql-fill {
+  fill: #cbd5e1 !important;
+}
+.dark .ql-snow .ql-picker {
+  color: #e2e8f0 !important;
+}
+.dark .ql-snow .ql-picker-options {
+  background-color: #18181b !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+}
+.dark .ql-snow .ql-picker-item {
+  color: #cbd5e1 !important;
+}
+.dark .ql-snow .ql-picker-item:hover,
+.dark .ql-snow .ql-picker-item.ql-selected {
+  color: #818cf8 !important;
+}
+
+/* ============================================================
+   Global Dark Mode Overrides — Listening Test + Editor
+   ============================================================ */
+
+/* MCQ / Multi-select option badge circles (letter A B C D E)
+   The unselected state uses bg-slate-100 which renders as white
+   in dark mode due to CSS specificity issues.
+   Targeting the stable .mcq-option-badge class ensures correct dark surface. */
+.dark .mcq-option-badge:not([class*='bg-blue']):not([class*='bg-emerald']):not([class*='bg-rose']) {
+  background-color: #27272a !important; /* zinc-800 — dark, readable */
+  color: #a1a1aa !important; /* zinc-400 */
+}
+
+/* Sidebar toggle grid button (LayoutGrid icon) — stays white on dark bg */
+.dark button[title='Show Settings'],
+.dark button[title='Hide Settings'] {
+  background-color: #18181b !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #a1a1aa !important;
+}
+.dark button[title='Hide Settings'] {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  color: #e4e4e7 !important;
+}
+
+/* Add Single Question — dashed pill button needs dark treatment */
+.dark .listening-test-editor [data-oid='cc06:s_'] {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #a1a1aa !important;
+  background-color: transparent !important;
+}
+.dark .listening-test-editor [data-oid='cc06:s_']:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-style: solid !important;
+  color: #e4e4e7 !important;
+}

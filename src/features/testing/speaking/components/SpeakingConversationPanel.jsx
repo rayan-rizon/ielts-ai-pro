@@ -1,8 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { PlayCircle, Timer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/cn';
+import { MICRO, MUTED, NUM, PANEL } from '@/features/dashboard/components/primitives';
 
 import ConversationMessage from './ConversationMessage';
 import InitialWelcomeScreen from './InitialWelcomeScreen';
@@ -21,10 +22,10 @@ function Part2PreparationControls({ prepTimeLeft, onStartSpeaking }) {
           <Timer className="h-5 w-5" aria-hidden="true" />
         </span>
         <div>
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground">
-            Preparation time
-          </p>
-          <p className="mt-0.5 text-sm font-extrabold tabular-nums text-foreground">
+          <p className={cn(MICRO, MUTED)}>Preparation time</p>
+          <p
+            className={cn(NUM, 'mt-0.5 text-sm font-extrabold text-slate-800 dark:text-slate-100')}
+          >
             {minutes}:{seconds} remaining
           </p>
         </div>
@@ -180,8 +181,13 @@ export default function SpeakingConversationPanel({
     (!finalCandidateMessage || finalCandidateMessage.text !== liveTranscript);
 
   return (
-    <Card className="isolate flex h-[calc(100dvh-14rem)] max-h-[740px] min-h-[420px] transform-gpu flex-col overflow-hidden rounded-2xl border border-border/65 bg-card/95 shadow-[0_22px_65px_-42px_hsl(var(--foreground)/0.38)] backdrop-blur-xl sm:h-[calc(100dvh-15rem)] sm:min-h-[480px] sm:rounded-3xl xl:h-[calc(100vh-13.25rem)] xl:min-h-[500px]">
-      <CardContent className="flex min-h-0 flex-1 flex-col bg-gradient-to-b from-slate-50/50 via-white/30 to-indigo-50/20 p-0 dark:bg-dot-white/[0.02] dark:from-zinc-950 dark:via-zinc-900/80 dark:to-zinc-950">
+    <div
+      className={cn(
+        PANEL,
+        'isolate flex h-[calc(100dvh-14rem)] max-h-[740px] min-h-[420px] transform-gpu flex-col overflow-hidden rounded-2xl sm:h-[calc(100dvh-15rem)] sm:min-h-[480px] sm:rounded-3xl xl:h-[calc(100vh-13.25rem)] xl:min-h-[500px]'
+      )}
+    >
+      <div className="flex min-h-0 flex-1 flex-col">
         <div
           ref={conversationContainerRef}
           className="custom-scrollbar flex-1 space-y-4 overflow-y-auto scroll-smooth p-3.5 sm:space-y-5 sm:p-6 md:p-7"
@@ -246,7 +252,7 @@ export default function SpeakingConversationPanel({
         </div>
 
         {!isPartComplete && (
-          <div className="isolate shrink-0 transform-gpu border-t border-border/60 bg-card/95 px-3 py-2.5 sm:px-5 sm:py-4">
+          <div className="isolate shrink-0 transform-gpu border-t border-[#e4e2f0] px-3 py-2.5 dark:border-white/[0.07] sm:px-5 sm:py-4">
             {testStarted && isPart2Prep ? (
               <Part2PreparationControls
                 prepTimeLeft={prepTimeLeft}
@@ -276,7 +282,7 @@ export default function SpeakingConversationPanel({
             )}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

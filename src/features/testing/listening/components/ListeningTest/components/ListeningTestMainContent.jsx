@@ -55,7 +55,7 @@ export default function ListeningTestMainContent({
         {/* Left Panel: Transcript */}
         <div
           className={cn(
-            'shrink-0 bg-white dark:bg-card border-r dark:border-border flex flex-col h-full overflow-hidden transition-[width,transform] duration-300 ease-in-out absolute md:relative z-30 md:z-auto',
+            'shrink-0 bg-white dark:bg-[#0b0a10] border-r border-slate-200 dark:border-white/[0.07] flex flex-col h-full overflow-hidden transition-[width,transform] duration-300 ease-in-out absolute md:relative z-30 md:z-auto',
             isMobile && leftPanelWidth === 0 && '-translate-x-full',
             isMobile && leftPanelWidth === 100 && 'w-full translate-x-0'
           )}
@@ -115,7 +115,7 @@ export default function ListeningTestMainContent({
         {/* Right Panel: Questions */}
         <div
           className={cn(
-            'flex-1 flex flex-col min-h-0 bg-slate-50/50 dark:bg-slate-950/50 relative overflow-hidden transition-all duration-300',
+            'flex-1 flex flex-col min-h-0 bg-[#f8f8fb] dark:bg-[#0b0a10] relative overflow-hidden transition-all duration-300',
             isMobile && leftPanelWidth === 100 && 'hidden'
           )}
           style={{ width: isMobile ? '100%' : `${100 - leftPanelWidth}%` }}
@@ -127,9 +127,9 @@ export default function ListeningTestMainContent({
                 variant="outline"
                 size="sm"
                 onClick={() => setLeftPanelWidth(100)}
-                className="w-full justify-start gap-2 h-9 text-xs font-bold border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-xl"
+                className="w-full justify-start gap-2 h-9 text-xs font-bold border-slate-200 dark:border-white/[0.07] bg-white/50 dark:bg-white/[0.04] backdrop-blur-sm rounded-xl"
               >
-                <Lightbulb className="w-4 h-4 text-blue-500" />
+                <Lightbulb className="w-4 h-4 text-[#5a63df]" />
                 {isExamMode ? 'Show Audio' : 'Show Transcript & Audio'}
               </Button>
             </div>

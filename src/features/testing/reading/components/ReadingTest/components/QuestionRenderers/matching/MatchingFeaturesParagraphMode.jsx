@@ -32,7 +32,7 @@ function ParagraphPlaceholderItem({
     isFinished,
     value,
     isCorrect,
-    'inline-flex w-[90px] h-8 px-2 py-1 text-center bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/40 focus-visible:border-blue-500/50 hover:border-slate-400/80 dark:hover:border-slate-600/80 transition-all text-[15px]'
+    'inline-flex w-[90px] h-8 px-2 py-1 text-center bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-slate-600/80 transition-all text-[15px]'
   );
 
   return (

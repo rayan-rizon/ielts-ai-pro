@@ -40,7 +40,7 @@ const MapLabelingRenderer = ({
       return cn(
         baseStyle,
         'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground',
-        'focus:ring-1 focus:ring-blue-500/40 focus:border-blue-500/50',
+        'focus:ring-1 focus:ring-[#5a63df]/40 focus:border-[#5a63df]/50',
         'hover:border-slate-400/80 dark:hover:border-slate-600/80 shadow-sm'
       );
     }
@@ -137,7 +137,7 @@ const MapLabelingRenderer = ({
     <div
       key={question.id}
       id={`question-${question.id}`}
-      className="mb-0 bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-800/50 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-md p-4"
+      className="mb-0 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] shadow-md p-4"
       data-oid="u3ei-ba"
     >
       {/* Map Image */}
@@ -146,7 +146,7 @@ const MapLabelingRenderer = ({
           <img
             src={imageUrl}
             alt="Map/Diagram"
-            className="max-w-full max-h-[500px] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm"
+            className="max-w-full max-h-[500px] rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] shadow-sm"
             onError={handleImageError}
             data-oid="96bm3m."
           />
@@ -172,7 +172,7 @@ const MapLabelingRenderer = ({
             <div
               key={q.id || idx}
               id={`question-${qId}`}
-              className="flex items-center gap-4 py-1 px-3 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 transition-all duration-200"
+              className="flex items-center gap-4 py-1 px-3 rounded-xl bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] transition-all duration-200"
               data-oid="eff4q00"
             >
               {/* Question Number */}

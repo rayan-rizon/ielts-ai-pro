@@ -106,7 +106,7 @@ const TableCompletionRenderer = React.memo(
         }
       } else {
         styles +=
-          ' bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/40 focus-visible:border-blue-500/50 hover:border-slate-400/80 dark:hover:border-slate-600/80 shadow-sm';
+          ' bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-slate-600/80 shadow-sm';
       }
       return styles;
     };

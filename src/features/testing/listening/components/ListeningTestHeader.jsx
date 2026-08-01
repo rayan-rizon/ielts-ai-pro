@@ -9,7 +9,7 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { Badge } from '@/components/ui/badge';
+import { Pill } from '@/features/dashboard/components/primitives';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -73,7 +73,7 @@ const ListeningTestHeader = ({
       data-oid="ao4wuv7"
     >
       <div
-        className="w-full rounded-2xl flex items-center justify-between py-1 px-2.5 sm:py-1.5 sm:px-3.5 border border-slate-200/50 dark:border-white/10 bg-white/80 dark:bg-[#0B0C1A]/95 backdrop-blur-2xl shadow-[0_8px_32px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] ring-1 ring-transparent dark:ring-white/5 transition-all duration-300"
+        className="w-full rounded-2xl flex items-center justify-between py-1 px-2.5 sm:py-1.5 sm:px-3.5 border border-[#e4e2f0] dark:border-white/[0.07] bg-white/85 dark:bg-[#141319]/95 backdrop-blur-md shadow-sm dark:shadow-none transition-all duration-300"
         data-oid="btq_4pq"
       >
         <div className="flex items-center gap-2 shrink-0" data-oid="246o-4l">
@@ -87,7 +87,7 @@ const ListeningTestHeader = ({
                 onExit();
               }
             }}
-            className="group relative flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-xl border border-[#d2d7f8] bg-gradient-to-r from-white to-[#f4f3ff] text-slate-700 shadow-2xs transition-all duration-200 hover:border-[#5661e9] hover:text-[#5661e9] hover:shadow-xs active:scale-95 dark:border-white/10 dark:from-white/10 dark:to-white/5 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300 p-0"
+            className="group relative flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-xl border border-[#e4e2f0] bg-gradient-to-r from-white to-[#faf9ff] text-slate-700 shadow-2xs transition-all duration-200 hover:border-[#5a63df] hover:text-[#5a63df] hover:shadow-xs active:scale-95 dark:border-white/10 dark:from-white/10 dark:to-white/5 dark:text-slate-200 dark:hover:border-[#a9afff] dark:hover:text-[#a9afff] p-0"
             data-oid="g_mhami"
           >
             <ArrowLeft
@@ -117,7 +117,7 @@ const ListeningTestHeader = ({
               <AlertDialogFooter className="gap-2" data-oid="filfr6k">
                 <AlertDialogCancel
                   onClick={onContinue}
-                  className="w-full sm:w-auto rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200 px-6 font-semibold"
+                  className="w-full sm:w-auto rounded-xl border-slate-200 dark:border-white/[0.1] hover:bg-slate-50 dark:hover:bg-white/[0.06] transition-all duration-200 px-6 font-semibold"
                   data-oid="8n7gz33"
                 >
                   Continue Test
@@ -136,7 +136,7 @@ const ListeningTestHeader = ({
           <div className="flex items-center gap-2 sm:gap-3" data-oid=".:xhcj4">
             {/* Title & Badge */}
             <div
-              className="flex flex-col min-w-0 max-w-[160px] xs:max-w-[220px] sm:max-w-[320px] md:max-w-[420px] lg:max-w-[550px]"
+              className="flex flex-col min-w-0 max-w-[160px] min-[480px]:max-w-[220px] sm:max-w-[320px] md:max-w-[420px] lg:max-w-[550px]"
               data-oid="uszsrof"
             >
               <h1
@@ -162,12 +162,9 @@ const ListeningTestHeader = ({
                   </span>
                 )}
                 {!isAwaitingStart ? (
-                  <Badge
-                    variant="outline"
-                    className="h-4 rounded-full px-1.5 text-[8px] font-black uppercase tracking-wide"
-                  >
+                  <Pill tone={testMode === 'exam' ? 'accent' : 'neutral'}>
                     {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
-                  </Badge>
+                  </Pill>
                 ) : null}
               </div>
             </div>
@@ -190,13 +187,13 @@ const ListeningTestHeader = ({
               return (
                 <div key={`part-${index}`} className="flex-1 group relative" data-oid="2u66tdr">
                   <div
-                    className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden relative border border-black/5 dark:border-white/5"
+                    className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden relative border border-black/5 dark:border-white/5"
                     data-oid="rb5.1oh"
                   >
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${cappedPct}%` }}
-                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full relative overflow-hidden"
+                      className="h-full bg-[#5a63df] rounded-full relative overflow-hidden"
                       data-oid="tz_f3fi"
                     >
                       <motion.div
@@ -209,7 +206,7 @@ const ListeningTestHeader = ({
                   </div>
                   {/* Tooltip */}
                   <div
-                    className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-500 whitespace-nowrap bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded shadow-sm z-10"
+                    className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-500 whitespace-nowrap bg-white dark:bg-[#141319] border border-slate-200 dark:border-white/[0.1] px-2 py-1 rounded shadow-sm z-10"
                     data-oid="ic4_:7-"
                   >
                     Part {partIndex + 1}: {partAnswered}/{partTotal}
@@ -250,7 +247,7 @@ const ListeningTestHeader = ({
                 data-oid="via037s"
               >
                 {isSaving ? (
-                  <Loader2 className="w-3 h-3 text-indigo-500 animate-spin" data-oid="vjxneul" />
+                  <Loader2 className="w-3 h-3 text-[#5a63df] animate-spin" data-oid="vjxneul" />
                 ) : (
                   <div
                     className={`w-1.5 h-1.5 rounded-full transition-colors ${lastSaved ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300 dark:bg-slate-600'}`}
@@ -277,8 +274,8 @@ const ListeningTestHeader = ({
                   className={cn(
                     'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 h-7.5 rounded-full transition-all duration-200 font-bold text-[9.5px] sm:text-[10px] uppercase tracking-wider select-none hover:scale-105 active:scale-95',
                     showAnswerSheet
-                      ? 'bg-indigo-600 text-white hover:bg-indigo-700 hover:text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:bg-indigo-500/20 dark:hover:text-indigo-300'
+                      ? 'bg-[#5a63df] text-white hover:bg-[#4a52c9] hover:text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-[#5a63df]/10 hover:text-[#5a63df] dark:hover:bg-[#5a63df]/20 dark:hover:text-[#a9afff]'
                   )}
                   data-oid="6kj0gdx"
                 >
@@ -302,7 +299,7 @@ const ListeningTestHeader = ({
                   <Button
                     onClick={onSubmit}
                     disabled={isSubmitting}
-                    className="h-9 rounded-xl bg-indigo-600 px-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+                    className="h-9 rounded-xl bg-[#5a63df] px-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-[#4a52c9]"
                   >
                     {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Finish review'}
                   </Button>
@@ -310,7 +307,7 @@ const ListeningTestHeader = ({
                   !isLastPart ? (
                     <Button
                       onClick={onNextPart}
-                      className="bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 shadow-slate-900/25 dark:shadow-indigo-500/20 font-black rounded-xl px-4 sm:px-6 h-9 sm:h-10 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap text-[10px] sm:text-xs uppercase tracking-widest"
+                      className="bg-slate-900 dark:bg-[#5a63df] text-white hover:bg-slate-800 dark:hover:bg-[#4a52c9] font-black rounded-xl px-4 sm:px-6 h-9 sm:h-10 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap text-[10px] sm:text-xs uppercase tracking-widest"
                       data-oid="y5kko0z"
                     >
                       Next
@@ -319,7 +316,7 @@ const ListeningTestHeader = ({
                     <Button
                       onClick={onSubmit}
                       disabled={isSubmitting}
-                      className="bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 shadow-slate-900/25 dark:shadow-indigo-500/20 font-black rounded-xl px-4 sm:px-6 h-9 sm:h-10 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap text-[10px] sm:text-xs uppercase tracking-widest"
+                      className="bg-slate-900 dark:bg-[#5a63df] text-white hover:bg-slate-800 dark:hover:bg-[#4a52c9] font-black rounded-xl px-4 sm:px-6 h-9 sm:h-10 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap text-[10px] sm:text-xs uppercase tracking-widest"
                       data-oid="848h706"
                     >
                       {isSubmitting ? (
@@ -332,7 +329,7 @@ const ListeningTestHeader = ({
                 ) : (
                   <Button
                     onClick={onViewResults}
-                    className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 text-white font-bold px-3 sm:px-4 h-9 sm:h-10 rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 border-none transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5 sm:gap-2"
+                    className="bg-[#5a63df] hover:bg-[#4a52c9] text-white font-bold px-3 sm:px-4 h-9 sm:h-10 rounded-xl border-none transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5 sm:gap-2"
                     data-oid="5snr9gv"
                   >
                     <CheckCircle className="w-3.5 h-3.5 sm:w-4 h-4" data-oid="rmlelv3" />

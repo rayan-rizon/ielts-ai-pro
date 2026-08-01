@@ -655,7 +655,7 @@ function VocabularyCard({ reduceMotion }) {
 export default function FeaturesSection({ viewport }) {
   const reduceMotion = useReducedMotion();
   return (
-    <SoftSection className="bg-[#faf9ff] py-16 dark:bg-[#070914] lg:py-24">
+    <SoftSection className="bg-[#faf9ff] py-16 dark:bg-[#0b0a10] lg:py-24">
       <div className="relative z-10 mx-auto max-w-[1450px] px-5 md:px-8">
         <SectionHeading
           eyebrow="BUILT TO HELP YOU SCORE"

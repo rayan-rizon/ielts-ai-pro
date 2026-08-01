@@ -10,8 +10,8 @@ export default function SpeakingReportErrorState({ evaluationError, onRetryEvalu
         <AlertCircle className="w-10 h-10 text-rose-500" />
       </div>
       <div className="space-y-2">
-        <h2 className="text-2xl font-black text-foreground">Analysis Failed</h2>
-        <p className="text-muted-foreground font-medium max-w-xs mx-auto">
+        <h2 className="text-2xl font-black text-slate-900 dark:text-slate-50">Analysis Failed</h2>
+        <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xs mx-auto">
           We encountered an error while processing your speaking test. {evaluationError}
         </p>
       </div>
@@ -28,7 +28,7 @@ export default function SpeakingReportErrorState({ evaluationError, onRetryEvalu
           <Button
             variant="outline"
             asChild
-            className="h-14 px-6 rounded-2xl font-bold border-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="h-14 px-6 rounded-2xl font-bold border-2 hover:bg-[#f4f3fb] dark:hover:bg-white/[0.06]"
           >
             <Link to="/speaking">
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -38,7 +38,7 @@ export default function SpeakingReportErrorState({ evaluationError, onRetryEvalu
           <Button
             variant="outline"
             asChild
-            className="h-14 px-6 rounded-2xl font-bold border-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="h-14 px-6 rounded-2xl font-bold border-2 hover:bg-[#f4f3fb] dark:hover:bg-white/[0.06]"
           >
             <Link to="/dashboard">
               <Home className="w-4 h-4 mr-2" />

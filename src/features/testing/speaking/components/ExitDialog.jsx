@@ -54,7 +54,7 @@ const ExitDialog = React.memo(({ open, onOpenChange, blocker, isExitingRef, onBe
               onOpenChange(false);
               blocker.reset?.();
             }}
-            className="w-full sm:w-auto rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 px-6 font-semibold"
+            className="w-full sm:w-auto rounded-xl border-[#e4e2f0] dark:border-white/10 hover:bg-[#f4f3fb] dark:hover:bg-white/[0.06] transition-colors duration-200 px-6 font-semibold"
           >
             Continue Test
           </AlertDialogCancel>

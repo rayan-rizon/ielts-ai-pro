@@ -38,7 +38,7 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
   const scoreDisplay = formatBandScore(overallScore);
 
   return (
-    <div className="group relative flex min-h-[260px] flex-col items-center justify-between overflow-hidden rounded-2xl border border-[#eaecf6] bg-gradient-to-br from-[#fdfcff] via-white to-[#f4f6fc] p-4 sm:p-5 text-center shadow-[0_10px_30px_-18px_rgba(43,53,128,0.1)] transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-200/80 hover:shadow-md dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] lg:col-span-4">
+    <div className="group relative flex min-h-[260px] flex-col items-center justify-between overflow-hidden rounded-2xl border border-[#e4e2f0] bg-gradient-to-br from-[#fdfcff] via-white to-[#f4f6fc] p-4 sm:p-5 text-center transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-200/80 hover:shadow-md dark:border-white/[0.07] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] lg:col-span-4">
       {/* Ambient Glow */}
       <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-rose-500/5 blur-2xl transition-opacity duration-500 group-hover:opacity-100 dark:bg-rose-500/10" />
 
@@ -119,7 +119,7 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
 
 export function CoachSummaryCard({ conciseFeedback, conciseTargetTip, showTargetTip }) {
   return (
-    <div className="group relative flex min-h-[260px] flex-col justify-between overflow-hidden rounded-2xl border border-[#eaecf6] bg-gradient-to-br from-[#fffdfd] via-white to-[#fff5f2] p-4 sm:p-5 shadow-[0_10px_30px_-18px_rgba(43,53,128,0.1)] transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-200/80 hover:shadow-md dark:border-white/10 dark:from-[#181119] dark:via-[#13111d] dark:to-[#1f1618] lg:col-span-4">
+    <div className="group relative flex min-h-[260px] flex-col justify-between overflow-hidden rounded-2xl border border-[#e4e2f0] bg-gradient-to-br from-[#fffdfd] via-white to-[#fff5f2] p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-200/80 hover:shadow-md dark:border-white/[0.07] dark:from-[#181119] dark:via-[#13111d] dark:to-[#1f1618] lg:col-span-4">
       <div>
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
@@ -167,7 +167,7 @@ export function PerformanceMetricsPanel({ criteria }) {
       : null;
 
   return (
-    <div className="group relative flex min-h-[260px] flex-col justify-between overflow-hidden rounded-2xl border border-[#eaecf6] bg-gradient-to-br from-[#fcfdff] via-white to-[#f4f6fc] p-4 sm:p-5 shadow-[0_10px_30px_-18px_rgba(43,53,128,0.1)] transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] lg:col-span-4">
+    <div className="group relative flex min-h-[260px] flex-col justify-between overflow-hidden rounded-2xl border border-[#e4e2f0] bg-gradient-to-br from-[#fcfdff] via-white to-[#f4f6fc] p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:border-white/[0.07] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] lg:col-span-4">
       <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
         Performance at a Glance
       </h3>
@@ -207,7 +207,7 @@ export function PerformanceMetricsPanel({ criteria }) {
       </div>
 
       {avgScore && (
-        <div className="flex items-center justify-between rounded-xl border border-[#eaecf6] bg-[#f4f6fc]/80 px-3.5 py-1.5 dark:border-white/10 dark:bg-zinc-900/60">
+        <div className="flex items-center justify-between rounded-xl border border-[#e4e2f0] bg-[#f4f6fc]/80 px-3.5 py-1.5 dark:border-white/[0.07] dark:bg-zinc-900/60">
           <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
             Average
           </span>

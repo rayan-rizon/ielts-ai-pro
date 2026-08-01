@@ -105,7 +105,7 @@ export default function GrammarLearningPathCard({
 
       <div className="relative mt-5 flex items-start">
         <div className="pointer-events-none absolute left-[16%] right-[16%] top-[22px] overflow-hidden">
-          <span className="block w-full border-t-2 border-dashed border-[#e2e5f2] dark:border-white/15" />
+          <span className="block w-full border-t-2 border-dashed border-[#e2e5f2] dark:border-white/25" />
           <motion.span
             className="absolute top-0 left-0 h-[2px] w-1/3 bg-gradient-to-r from-transparent via-[#5a63df] to-transparent dark:via-indigo-400"
             animate={{ x: ['-100%', '300%'] }}

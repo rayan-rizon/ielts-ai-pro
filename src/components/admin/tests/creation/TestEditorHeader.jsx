@@ -1,5 +1,4 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -10,11 +9,15 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
-import { ChevronUp, Loader2, Save, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, Save, ShieldCheck } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import { AdminButton, MICRO, PILL_BASE, pillTone } from '../../ui/primitives';
 
 /**
  * Reusable Header for all Test Editors
- * Standardizes layout, styling, and metadata controls.
+ * Standardizes layout, styling, and metadata controls to the admin
+ * instrument-panel system — graphite surfaces, hairline rules, no per-module
+ * color (module identity is the icon only, see TestCreator's BASE_THEME).
  */
 const TestEditorHeader = ({
   title,
@@ -35,98 +38,60 @@ const TestEditorHeader = ({
     onMetadataChange({ ...metadata, [field]: value });
   };
 
-  const effectiveTheme = theme || {
-    border: 'border-slate-200',
-    light: 'bg-slate-50',
-    text: 'text-slate-600',
-    primary: 'bg-slate-900',
-    primaryHover: 'hover:bg-slate-800',
-    icon: ShieldCheck,
-  };
+  const ModuleIcon = theme?.icon || ShieldCheck;
 
   return (
-    <div
-      className={`px-4 sm:px-6 py-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b sticky top-0 flex flex-col lg:flex-row justify-between items-start lg:items-center shadow-sm z-50 gap-3 sm:gap-4 transition-all duration-300 ${effectiveTheme.border}`}
-      data-oid="hbg5tnl"
-    >
-      <div className="flex items-center gap-3 sm:gap-4 flex-1 w-full min-w-0" data-oid=".jwbil7">
-        <Button
-          variant="ghost"
-          size="icon"
+    <div className="px-4 sm:px-6 py-3 bg-white dark:bg-[#131315] border-b border-stone-200/80 dark:border-white/[0.07] sticky top-0 z-50 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 sm:gap-4">
+      <div className="flex items-center gap-3 sm:gap-4 flex-1 w-full min-w-0">
+        <button
+          type="button"
           onClick={onCancel}
-          className="shrink-0 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-all hover:scale-105 active:scale-95"
-          data-oid="pbsi-2d"
+          aria-label="Back"
+          className="shrink-0 h-8 w-8 grid place-items-center rounded-md text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors active:scale-90"
         >
-          <ChevronUp className="h-5 w-5 -rotate-90 text-slate-500" data-oid="b3i0o_w" />
-        </Button>
+          <ChevronLeft className="h-4 w-4" />
+        </button>
 
-        <div
-          className={`p-2.5 rounded-xl shrink-0 shadow-sm transition-transform hover:scale-110 ${effectiveTheme.light} ${effectiveTheme.text}`}
-          data-oid="-w1qy:2"
-        >
-          <effectiveTheme.icon className="w-5 h-5" data-oid="4ram4_k" />
+        <div className="w-9 h-9 rounded-lg grid place-items-center shrink-0 bg-stone-100 dark:bg-white/[0.04] text-stone-600 dark:text-stone-300">
+          <ModuleIcon className="w-4 h-4" />
         </div>
 
-        <div className="flex flex-col gap-1 w-full min-w-0" data-oid="_5sp-n8">
-          <div
-            className="flex flex-col xl:flex-row xl:items-center gap-2 xl:gap-6"
-            data-oid="mcvq5lt"
-          >
-            <div className="flex-1 min-w-0" data-oid="title-wrapper">
+        <div className="flex flex-col gap-1 w-full min-w-0">
+          <div className="flex flex-col xl:flex-row xl:items-center gap-2 xl:gap-6">
+            <div className="flex-1 min-w-0">
               <Input
                 value={title}
                 onChange={(e) => onTitleChange(e.target.value)}
-                className="font-black text-lg sm:text-xl border-transparent px-0 hover:px-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800 border-b-2 border-b-transparent focus:border-b-blue-500 transition-all h-9 w-full focus-visible:ring-0 bg-transparent dark:text-white dark:placeholder-slate-500 placeholder:text-slate-400 tracking-tight rounded-none"
+                className="font-extrabold text-lg border-transparent px-0 hover:px-2 hover:bg-stone-50 dark:hover:bg-white/[0.03] focus:bg-white dark:focus:bg-white/[0.03] border-b-2 border-b-transparent focus:border-b-stone-400 dark:focus:border-b-white/20 transition-all h-9 w-full focus-visible:ring-0 bg-transparent text-stone-900 dark:text-stone-50 placeholder:text-stone-400 dark:placeholder:text-stone-600 tracking-tight rounded-none"
                 placeholder="Untitled Test"
-                data-oid="tj5:ft."
               />
             </div>
 
             {/* Metadata Pills Container */}
-            <div className="flex items-center gap-2 flex-wrap min-w-0" data-oid="mecnn26">
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
               {/* Access Pill */}
-              <div
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border shadow-sm transition-colors shrink-0 ${effectiveTheme.light} ${effectiveTheme.border} hover:bg-white dark:hover:bg-slate-800`}
-                data-oid="lse70ga"
-              >
-                <span
-                  className={`text-[10px] uppercase font-black tracking-widest opacity-60 ${effectiveTheme.text}`}
-                  data-oid="nfe5f91"
-                >
-                  Access
-                </span>
+              <div className="flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.03] shrink-0">
+                <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>Access</span>
                 <Select
                   value={metadata.access_tier || 'free'}
                   onValueChange={(v) => updateMeta('access_tier', v)}
-                  data-oid=":rx1w-8"
                 >
-                  <SelectTrigger
-                    className="h-4 w-auto gap-1 border-0 bg-transparent p-0 text-xs font-bold focus:ring-0 text-slate-900 dark:text-slate-100 min-w-[50px]"
-                    data-oid="hdpyfip"
-                  >
-                    <SelectValue data-oid="_cvfqj-" />
+                  <SelectTrigger className="h-4 w-auto gap-1 border-0 bg-transparent p-0 text-[11px] font-bold focus:ring-0 text-stone-900 dark:text-stone-100 min-w-[44px]">
+                    <SelectValue />
                   </SelectTrigger>
-                  <SelectContent data-oid="63e1u-v">
-                    <SelectItem value="free" data-oid="ak2khxu">
-                      Free
-                    </SelectItem>
-                    <SelectItem value="pro" data-oid="kzl8k5o">
-                      Pro
-                    </SelectItem>
+                  <SelectContent>
+                    <SelectItem value="free">Free</SelectItem>
+                    <SelectItem value="pro">Pro</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Active Toggle (Optional) */}
               {showActiveToggle && (
-                <div
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm shrink-0"
-                  data-oid="4l:ccur"
-                >
+                <div className="flex items-center gap-2 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.03] shrink-0">
                   <label
                     htmlFor="active-switch"
-                    className="text-[10px] uppercase font-black tracking-widest text-slate-500 cursor-pointer"
-                    data-oid="4hqtn5i"
+                    className={cn(MICRO, 'text-stone-400 dark:text-stone-500 cursor-pointer')}
                   >
                     Active
                   </label>
@@ -135,58 +100,41 @@ const TestEditorHeader = ({
                     checked={!!metadata.is_active}
                     onCheckedChange={(c) => updateMeta('is_active', c)}
                     className="scale-75 origin-left"
-                    data-oid="jqcsic-"
                   />
                 </div>
               )}
 
               {/* Official Cambridge Pill */}
               <div
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border shadow-sm transition-all duration-300 shrink-0 ${metadata.is_official_cambridge ? 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800 shadow-amber-200/20' : 'bg-white border-slate-100 dark:bg-slate-800 dark:border-slate-700'}`}
-                data-oid="ec3-2rz"
+                className={cn(
+                  PILL_BASE,
+                  'h-7 px-2.5 gap-1.5 cursor-default',
+                  metadata.is_official_cambridge ? pillTone('accent') : pillTone('neutral')
+                )}
               >
-                <div className="flex items-center gap-2" data-oid="rrp432a">
-                  <ShieldCheck
-                    className={`w-4 h-4 transition-colors ${metadata.is_official_cambridge ? 'text-amber-500 fill-amber-500/10' : 'text-slate-300'}`}
-                    data-oid="-stiqtv"
-                  />
-
-                  <span
-                    className={`text-xs font-bold tracking-tight ${metadata.is_official_cambridge ? 'text-amber-700 dark:text-amber-400' : 'text-slate-400'}`}
-                    data-oid="ipjijkj"
-                  >
-                    Official
-                  </span>
-                </div>
+                <ShieldCheck className="w-3 h-3" />
+                <span>Official</span>
                 <Checkbox
                   checked={!!metadata.is_official_cambridge}
                   onCheckedChange={(c) => updateMeta('is_official_cambridge', c)}
-                  className={`h-4 w-4 rounded-md transition-all ${metadata.is_official_cambridge ? 'border-amber-500 bg-amber-500 text-white' : 'border-slate-300'}`}
-                  data-oid="pc8otj8"
+                  className="h-3.5 w-3.5 rounded"
                 />
               </div>
 
               {/* Cambridge Year/Num Selectors */}
               {metadata.is_official_cambridge && (
-                <div
-                  className="flex gap-2 animate-in fade-in zoom-in-95 duration-300 shrink-0"
-                  data-oid="g3ckqhb"
-                >
+                <div className="flex gap-2 animate-in fade-in zoom-in-95 duration-200 shrink-0">
                   <Select
                     value={String(metadata.cambridge_year || new Date().getFullYear())}
                     onValueChange={(v) => updateMeta('cambridge_year', parseInt(v))}
-                    data-oid="3-34gi5"
                   >
-                    <SelectTrigger
-                      className="h-8 w-24 rounded-xl border-amber-200 bg-amber-50/50 text-xs font-bold text-amber-900 dark:text-amber-400 dark:border-amber-950 dark:bg-amber-950/20"
-                      data-oid="c37j9ee"
-                    >
-                      <SelectValue placeholder="Year" data-oid="h0s-tcr" />
+                    <SelectTrigger className="h-7 w-24 rounded-md border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.03] text-[11px] font-bold text-stone-700 dark:text-stone-200">
+                      <SelectValue placeholder="Year" />
                     </SelectTrigger>
-                    <SelectContent data-oid="eigv.:7">
+                    <SelectContent>
                       {Array.from({ length: 15 }, (_, i) => new Date().getFullYear() - i + 1).map(
                         (y) => (
-                          <SelectItem key={y} value={String(y)} data-oid="0jwi:bx">
+                          <SelectItem key={y} value={String(y)}>
                             {y}
                           </SelectItem>
                         )
@@ -196,17 +144,13 @@ const TestEditorHeader = ({
                   <Select
                     value={String(metadata.cambridge_test_number || 1)}
                     onValueChange={(v) => updateMeta('cambridge_test_number', parseInt(v))}
-                    data-oid="k7r2ilv"
                   >
-                    <SelectTrigger
-                      className="h-8 w-24 rounded-xl border-amber-200 bg-amber-50/50 text-xs font-bold text-amber-900 dark:text-amber-400 dark:border-amber-950 dark:bg-amber-950/20"
-                      data-oid="liz0al4"
-                    >
-                      <SelectValue placeholder="Test #" data-oid="7uehmxk" />
+                    <SelectTrigger className="h-7 w-24 rounded-md border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.03] text-[11px] font-bold text-stone-700 dark:text-stone-200">
+                      <SelectValue placeholder="Test #" />
                     </SelectTrigger>
-                    <SelectContent data-oid="oamropu">
+                    <SelectContent>
                       {[1, 2, 3, 4].map((num) => (
-                        <SelectItem key={num} value={String(num)} data-oid="mzp4on2">
+                        <SelectItem key={num} value={String(num)}>
                           Test {num}
                         </SelectItem>
                       ))}
@@ -222,64 +166,39 @@ const TestEditorHeader = ({
         </div>
       </div>
 
-      <div
-        className="flex items-center gap-3 shrink-0 w-full lg:w-auto justify-between lg:justify-end mt-2 lg:mt-0"
-        data-oid="30pm5bi"
-      >
+      <div className="flex items-center gap-3 shrink-0 w-full lg:w-auto justify-between lg:justify-end mt-2 lg:mt-0">
         {/* Left Actions Slot (Undo/Redo) */}
         {leftActions && (
-          <div
-            className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl"
-            data-oid="7l-sugo"
-          >
+          <div className="flex items-center gap-1 bg-stone-100 dark:bg-white/[0.04] p-1 rounded-md">
             {leftActions}
           </div>
         )}
 
         {/* Last Saved Indicator */}
         {lastSaved && (
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50 hidden sm:flex animate-in fade-in"
-            data-oid="obai_kp"
-          >
-            <div className="relative flex h-2 w-2" data-oid="zxbdqlj">
-              <span
-                className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
-                data-oid="a3m0fvt"
-              ></span>
-              <span
-                className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"
-                data-oid="du3hyjb"
-              ></span>
-            </div>
-            <span className="text-[10px] font-bold tracking-tight" data-oid="uk5zj.k">
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)] text-[rgb(var(--signal-ok))] animate-in fade-in">
+            <span className="relative flex h-1.5 w-1.5 shrink-0">
+              <span className="absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping bg-[rgb(var(--signal-ok))]" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[rgb(var(--signal-ok))]" />
+            </span>
+            <span className={cn(MICRO, 'text-[rgb(var(--signal-ok))]')}>
               Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
         )}
 
-        <div className="flex gap-2 sm:gap-3 w-full sm:w-auto" data-oid="dxz3xe4">
-          <Button
-            variant="ghost"
-            onClick={onCancel}
-            className="hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 font-bold px-4 rounded-xl text-xs uppercase tracking-widest"
-            data-oid="oio0e81"
-          >
+        <div className="flex gap-2 w-full sm:w-auto">
+          <AdminButton variant="ghost" onClick={onCancel} className="uppercase tracking-widest">
             Cancel
-          </Button>
-          <Button
+          </AdminButton>
+          <AdminButton
             onClick={() => onSave(false)}
-            disabled={isSaving}
-            className={`shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all duration-300 font-black rounded-xl h-10 px-6 text-xs uppercase tracking-widest ${effectiveTheme.primary} ${effectiveTheme.primaryHover} text-white hover:-translate-y-0.5 active:translate-y-0`}
-            data-oid="wg9zj23"
+            loading={isSaving}
+            className="uppercase tracking-widest"
           >
-            {isSaving ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-2" data-oid="rz.hxqy" />
-            ) : (
-              <Save className="w-4 h-4 mr-2" data-oid="4s7dfs-" />
-            )}
+            {!isSaving && <Save className="w-3.5 h-3.5" />}
             {isSaving ? 'Saving...' : 'Save Changes'}
-          </Button>
+          </AdminButton>
         </div>
       </div>
     </div>

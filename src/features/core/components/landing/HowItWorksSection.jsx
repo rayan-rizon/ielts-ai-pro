@@ -266,7 +266,7 @@ export default function HowItWorksSection({ viewport }) {
   return (
     <SoftSection
       id="how-it-works"
-      className="scroll-mt-24 bg-[#faf9ff] dark:bg-[#070914] py-16 lg:py-24"
+      className="scroll-mt-24 bg-[#faf9ff] dark:bg-[#0b0a10] py-16 lg:py-24"
     >
       <div className="relative z-10 mx-auto max-w-[1450px] px-5 md:px-8 space-y-10">
         <SectionHeading

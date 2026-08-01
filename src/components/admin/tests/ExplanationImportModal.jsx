@@ -620,21 +620,21 @@ const ExplanationImportModal = ({
         className={cn(
           'rounded-lg border transition-all duration-200',
           question
-            ? 'border-slate-200/60 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/50'
-            : 'border-amber-200/60 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20'
+            ? 'border-stone-200/60 dark:border-stone-700/50 bg-white/80 dark:bg-stone-900/50'
+            : 'border-[rgb(var(--signal-warn)/0.3)] border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] bg-[rgb(var(--signal-warn)/0.06)]'
         )}
       >
         <button
           onClick={() => setExpandedQuestion(isExpanded ? null : qNum)}
-          className="w-full px-3 py-2 flex items-center gap-3 text-left hover:bg-slate-50/50 dark:hover:bg-slate-800/30 rounded-lg transition-colors"
+          className="w-full px-3 py-2 flex items-center gap-3 text-left hover:bg-stone-50/50 dark:hover:bg-stone-800/30 rounded-lg transition-colors"
         >
           <Badge
             variant={question ? 'default' : 'secondary'}
             className={cn(
               'text-xs font-bold min-w-[32px] justify-center',
               question
-                ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300'
-                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                ? 'bg-stone-100 text-stone-700 dark:bg-stone-900/40 dark:text-stone-300'
+                : 'bg-[rgb(var(--signal-warn)/0.06)] text-[rgb(var(--signal-warn))] bg-[rgb(var(--signal-warn)/0.06)] text-[rgb(var(--signal-warn))]'
             )}
           >
             Q{qNum}
@@ -659,7 +659,7 @@ const ExplanationImportModal = ({
                 {Object.keys(data.blanks).length} blanks
               </Badge>
             )}
-            {!question && <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />}
+            {!question && <AlertTriangle className="w-3.5 h-3.5 text-[rgb(var(--signal-warn))]" />}
             {isExpanded ? (
               <ChevronUp className="w-4 h-4 text-muted-foreground" />
             ) : (
@@ -677,35 +677,35 @@ const ExplanationImportModal = ({
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="px-3 pb-3 pt-1 border-t border-slate-100 dark:border-slate-800 space-y-2">
+              <div className="px-3 pb-3 pt-1 border-t border-stone-100 dark:border-stone-800 space-y-2">
                 {isBlanks ? (
                   // Render blanks
                   Object.entries(data.blanks).map(([blankKey, blankData]) => (
                     <div
                       key={blankKey}
-                      className="p-2 rounded-md bg-slate-50 dark:bg-slate-800/40 space-y-1.5"
+                      className="p-2 rounded-md bg-stone-50 dark:bg-stone-800/40 space-y-1.5"
                     >
                       <Badge variant="outline" className="text-[9px]">
                         Blank #{blankKey}
                       </Badge>
                       {blankData.passage_highlight && (
-                        <p className="text-[11px] text-slate-600 dark:text-slate-400 italic border-l-2 border-emerald-400/50 pl-2">
+                        <p className="text-[11px] text-stone-600 dark:text-stone-400 italic border-l-2 border-[rgb(var(--signal-ok)/0.3)] pl-2">
                           "{blankData.passage_highlight}"
                         </p>
                       )}
                       {blankData.synonym_map?.map((sm, i) => (
                         <div key={i} className="flex items-center gap-1 text-[10px]">
-                          <span className="text-blue-600 dark:text-blue-400 font-medium">
+                          <span className="text-stone-600 dark:text-stone-400 font-medium">
                             "{sm.question_keyword}"
                           </span>
                           <ArrowRight className="w-2.5 h-2.5 text-muted-foreground" />
-                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                          <span className="text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] font-medium">
                             "{sm.passage_keyword}"
                           </span>
                         </div>
                       ))}
                       {blankData.why_correct && (
-                        <p className="text-[10px] text-emerald-700 dark:text-emerald-300">
+                        <p className="text-[10px] text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))]">
                           {blankData.why_correct}
                         </p>
                       )}
@@ -715,21 +715,21 @@ const ExplanationImportModal = ({
                   <>
                     {data.passage_highlight && (
                       <div>
-                        <span className="text-[9px] uppercase tracking-wider text-emerald-600 font-bold">
+                        <span className="text-[9px] uppercase tracking-wider text-[rgb(var(--signal-ok))] font-bold">
                           Passage
                         </span>
-                        <p className="text-[11px] text-slate-600 dark:text-slate-400 italic border-l-2 border-emerald-400/50 pl-2 mt-0.5">
+                        <p className="text-[11px] text-stone-600 dark:text-stone-400 italic border-l-2 border-[rgb(var(--signal-ok)/0.3)] pl-2 mt-0.5">
                           "{data.passage_highlight}"
                         </p>
                       </div>
                     )}
                     {data.synonym_map?.map((sm, i) => (
                       <div key={i} className="flex items-center gap-1.5 text-[10px]">
-                        <span className="text-blue-600 dark:text-blue-400 font-medium">
+                        <span className="text-stone-600 dark:text-stone-400 font-medium">
                           "{sm.question_keyword}"
                         </span>
                         <ArrowRight className="w-2.5 h-2.5 text-muted-foreground flex-shrink-0" />
-                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                        <span className="text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] font-medium">
                           "{sm.passage_keyword}"
                         </span>
                         <span className="text-muted-foreground/60 hidden sm:inline">
@@ -739,25 +739,28 @@ const ExplanationImportModal = ({
                     ))}
                     {data.why_correct && (
                       <div>
-                        <span className="text-[9px] uppercase tracking-wider text-emerald-600 font-bold">
+                        <span className="text-[9px] uppercase tracking-wider text-[rgb(var(--signal-ok))] font-bold">
                           Why Correct
                         </span>
-                        <p className="text-[10px] text-slate-700 dark:text-slate-300 mt-0.5">
+                        <p className="text-[10px] text-stone-700 dark:text-stone-300 mt-0.5">
                           {data.why_correct}
                         </p>
                       </div>
                     )}
                     {data.why_wrong && Object.keys(data.why_wrong).length > 0 && (
                       <div>
-                        <span className="text-[9px] uppercase tracking-wider text-rose-600 font-bold">
+                        <span className="text-[9px] uppercase tracking-wider text-[rgb(var(--signal-fault))] font-bold">
                           Why Wrong
                         </span>
                         {Object.entries(data.why_wrong).map(([key, val]) => (
                           <p
                             key={key}
-                            className="text-[10px] text-slate-600 dark:text-slate-400 mt-0.5"
+                            className="text-[10px] text-stone-600 dark:text-stone-400 mt-0.5"
                           >
-                            <span className="font-bold text-rose-500">{key}:</span> {val}
+                            <span className="font-bold text-[rgb(var(--signal-fault))]">
+                              {key}:
+                            </span>{' '}
+                            {val}
                           </p>
                         ))}
                       </div>
@@ -779,7 +782,7 @@ const ExplanationImportModal = ({
           <div className="flex items-center justify-between mb-4">
             <div className="flex flex-col gap-1">
               <DialogTitle className="flex items-center gap-2 text-lg">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-stone-500 to-stone-500 flex items-center justify-center shadow-sm">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 Paraphrase Detective
@@ -795,7 +798,7 @@ const ExplanationImportModal = ({
               className={cn(
                 'pb-3 text-sm font-medium border-b-2 transition-colors',
                 activeTab === 'import'
-                  ? 'border-violet-500 text-violet-700 dark:border-violet-400 dark:text-violet-400'
+                  ? 'border-stone-500 text-stone-700 dark:border-stone-400 dark:text-stone-400'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border/50'
               )}
             >
@@ -806,7 +809,7 @@ const ExplanationImportModal = ({
               className={cn(
                 'pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2',
                 activeTab === 'manage'
-                  ? 'border-violet-500 text-violet-700 dark:border-violet-400 dark:text-violet-400'
+                  ? 'border-stone-500 text-stone-700 dark:border-stone-400 dark:text-stone-400'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border/50'
               )}
             >
@@ -814,7 +817,7 @@ const ExplanationImportModal = ({
               {dbQuestions?.filter(hasExplanation)?.length > 0 && (
                 <Badge
                   variant="secondary"
-                  className="px-1.5 py-0 h-5 text-[10px] bg-slate-100 dark:bg-slate-800 pointer-events-none"
+                  className="px-1.5 py-0 h-5 text-[10px] bg-stone-100 dark:bg-stone-800 pointer-events-none"
                 >
                   {dbQuestions.filter(hasExplanation).length}
                 </Badge>
@@ -842,7 +845,7 @@ const ExplanationImportModal = ({
                     size="sm"
                     onClick={handleDeleteAllExplanations}
                     disabled={isDeletingAll}
-                    className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 gap-1.5 h-8"
+                    className="text-xs text-[rgb(var(--signal-fault))] hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.06)] dark:hover:bg-[rgb(var(--signal-fault)/0.06)] gap-1.5 h-8"
                   >
                     {isDeletingAll ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -859,9 +862,9 @@ const ExplanationImportModal = ({
                   <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
                 </div>
               ) : !dbQuestions || dbQuestions.filter(hasExplanation).length === 0 ? (
-                <div className="text-center p-8 border border-dashed rounded-lg bg-slate-50/50 dark:bg-slate-900/20">
+                <div className="text-center p-8 border border-dashed rounded-lg bg-stone-50/50 dark:bg-stone-900/20">
                   <BookOpen className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                  <p className="text-sm font-medium text-stone-600 dark:text-stone-400">
                     No explanations found.
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -881,14 +884,14 @@ const ExplanationImportModal = ({
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                          className="relative group p-1 border rounded-xl overflow-hidden shadow-sm bg-slate-50/50 dark:bg-slate-900/30"
+                          className="relative group p-1 border rounded-xl overflow-hidden shadow-sm bg-stone-50/50 dark:bg-stone-900/30"
                         >
                           {renderPreviewEntry(String(q.question_number), q.explanation_data)}
                           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                             <Button
                               variant="destructive"
                               size="icon"
-                              className="w-7 h-7 bg-rose-500 hover:bg-rose-600 shadow-sm"
+                              className="w-7 h-7 bg-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault))] hover:opacity-90 shadow-sm"
                               onClick={(e) => handleDeleteExplanation(e, q.id, q.question_number)}
                               disabled={deletingId === q.id || isDeletingAll}
                               title="Delete Explanation"
@@ -910,13 +913,13 @@ const ExplanationImportModal = ({
             <>
               {/* Warning: Test not saved */}
               {!passageId && (
-                <div className="flex items-start gap-2 p-3 mb-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/40">
-                  <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2 p-3 mb-4 rounded-lg bg-[rgb(var(--signal-warn)/0.06)] bg-[rgb(var(--signal-warn)/0.06)] border border-[rgb(var(--signal-warn)/0.3)] border-[rgb(var(--signal-warn)/0.3)]">
+                  <AlertTriangle className="w-4 h-4 text-[rgb(var(--signal-warn))] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                    <p className="text-sm font-semibold text-[rgb(var(--signal-warn))] text-[rgb(var(--signal-warn))]">
                       Save the test first
                     </p>
-                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                    <p className="text-xs text-[rgb(var(--signal-warn))] text-[rgb(var(--signal-warn))] mt-0.5">
                       You need to save this test before importing explanations. The questions must
                       exist in the database.
                     </p>
@@ -927,7 +930,7 @@ const ExplanationImportModal = ({
               {/* Loading DB questions */}
               {loadingDb && (
                 <div className="flex items-center justify-center gap-2 py-4">
-                  <Loader2 className="w-4 h-4 text-violet-500 animate-spin" />
+                  <Loader2 className="w-4 h-4 text-stone-500 animate-spin" />
                   <span className="text-xs text-muted-foreground">
                     Loading questions from database...
                   </span>
@@ -938,16 +941,16 @@ const ExplanationImportModal = ({
               {step === 1 && !loadingDb && (
                 <div className="space-y-4">
                   {/* Gemini AI Guide Toggle */}
-                  <div className="rounded-xl border border-indigo-200/60 dark:border-indigo-800/40 overflow-hidden">
+                  <div className="rounded-xl border border-stone-200/60 dark:border-stone-800/40 overflow-hidden">
                     <button
                       onClick={() => setShowGuide(!showGuide)}
-                      className="w-full px-4 py-3 flex items-center gap-3 bg-indigo-50/50 dark:bg-indigo-950/20 hover:bg-indigo-100/50 dark:hover:bg-indigo-900/30 transition-colors text-left"
+                      className="w-full px-4 py-3 flex items-center gap-3 bg-stone-50/50 dark:bg-stone-950/20 hover:bg-stone-100/50 dark:hover:bg-stone-900/30 transition-colors text-left"
                     >
-                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-sm flex-shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-stone-500 to-stone-500 flex items-center justify-center shadow-sm flex-shrink-0">
                         <Info className="w-3.5 h-3.5 text-white" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                        <p className="text-sm font-semibold text-stone-800 dark:text-stone-200">
                           How to use Gemini AI to generate explanations
                         </p>
                         <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -970,12 +973,12 @@ const ExplanationImportModal = ({
                           transition={{ duration: 0.25 }}
                           className="overflow-hidden"
                         >
-                          <div className="px-4 pb-4 pt-2 border-t border-indigo-100 dark:border-indigo-900/30 space-y-3">
+                          <div className="px-4 pb-4 pt-2 border-t border-stone-100 dark:border-stone-900/30 space-y-3">
                             <div className="space-y-2">
-                              <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                              <h4 className="text-xs font-bold text-stone-700 dark:text-stone-300">
                                 Steps:
                               </h4>
-                              <ol className="text-[11px] text-slate-600 dark:text-slate-400 space-y-1.5 list-decimal pl-4">
+                              <ol className="text-[11px] text-stone-600 dark:text-stone-400 space-y-1.5 list-decimal pl-4">
                                 <li>Copy the prompt template below</li>
                                 <li>
                                   Open{' '}
@@ -983,7 +986,7 @@ const ExplanationImportModal = ({
                                     href="https://gemini.google.com"
                                     target="_blank"
                                     rel="noopener"
-                                    className="text-blue-500 underline"
+                                    className="text-stone-500 underline"
                                   >
                                     Gemini AI
                                   </a>{' '}
@@ -992,21 +995,21 @@ const ExplanationImportModal = ({
                                     href="https://aistudio.google.com"
                                     target="_blank"
                                     rel="noopener"
-                                    className="text-blue-500 underline"
+                                    className="text-stone-500 underline"
                                   >
                                     AI Studio
                                   </a>
                                 </li>
                                 <li>
                                   Paste the prompt and replace{' '}
-                                  <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded text-[10px]">
+                                  <code className="bg-stone-100 dark:bg-stone-800 px-1 rounded text-[10px]">
                                     [PASTE PASSAGE 1-3]
                                   </code>{' '}
                                   with the full text of all 3 passages
                                 </li>
                                 <li>
                                   Replace{' '}
-                                  <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded text-[10px]">
+                                  <code className="bg-stone-100 dark:bg-stone-800 px-1 rounded text-[10px]">
                                     [PASTE YOUR QUESTIONS AND ANSWERS HERE]
                                   </code>{' '}
                                   with all 40 questions + correct answers
@@ -1017,7 +1020,7 @@ const ExplanationImportModal = ({
                             </div>
 
                             <div className="relative">
-                              <pre className="text-[10px] bg-slate-900 dark:bg-slate-950 text-slate-300 p-3 rounded-lg overflow-x-auto max-h-48 scrollbar-thin">
+                              <pre className="text-[10px] bg-stone-900 dark:bg-stone-950 text-stone-300 p-3 rounded-lg overflow-x-auto max-h-48 scrollbar-thin">
                                 {GEMINI_PROMPT_TEMPLATE}
                               </pre>
                               <Button
@@ -1031,8 +1034,8 @@ const ExplanationImportModal = ({
                               </Button>
                             </div>
 
-                            <div className="rounded-lg border border-amber-200/60 dark:border-amber-800/40 bg-amber-50/50 dark:bg-amber-950/20 p-3">
-                              <p className="text-[10px] text-amber-800 dark:text-amber-200">
+                            <div className="rounded-lg border border-[rgb(var(--signal-warn)/0.3)] border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] bg-[rgb(var(--signal-warn)/0.06)] p-3">
+                              <p className="text-[10px] text-[rgb(var(--signal-warn))] text-[rgb(var(--signal-warn))]">
                                 <strong>💡 Tip:</strong> For best results, use Gemini 2.0 Flash or
                                 Pro. Include the question numbers and correct answers so Gemini can
                                 generate accurate "why_wrong" explanations. You can also edit the
@@ -1048,7 +1051,7 @@ const ExplanationImportModal = ({
                   {/* JSON Input */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      <label className="text-sm font-semibold text-stone-700 dark:text-stone-300">
                         Paste Explanation JSON
                       </label>
                       <Badge variant="outline" className="text-[9px]">
@@ -1059,17 +1062,19 @@ const ExplanationImportModal = ({
                       value={rawJson}
                       onChange={(e) => setRawJson(e.target.value)}
                       placeholder='{\n  "1": {\n    "passage_highlight": "...",\n    "synonym_map": [...],\n    "why_correct": "...",\n    "why_wrong": {"A": "...", "C": "..."}\n  },\n  "2": { ... }\n}'
-                      className="w-full h-64 rounded-lg border border-border bg-background px-3 py-2 text-xs font-mono resize-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all placeholder:text-muted-foreground/40"
+                      className="w-full h-64 rounded-lg border border-border bg-background px-3 py-2 text-xs font-mono resize-none focus:ring-2 focus: focus:border-stone-400 transition-all placeholder:text-muted-foreground/40"
                       spellCheck={false}
                     />
                     {parseError && (
                       <motion.div
                         initial={{ opacity: 0, y: -5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex items-start gap-2 p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-800/40"
+                        className="flex items-start gap-2 p-2.5 rounded-lg bg-[rgb(var(--signal-fault)/0.06)] bg-[rgb(var(--signal-fault)/0.06)] border border-[rgb(var(--signal-fault)/0.3)] border-[rgb(var(--signal-fault)/0.3)]"
                       >
-                        <AlertTriangle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
-                        <p className="text-xs text-rose-700 dark:text-rose-300">{parseError}</p>
+                        <AlertTriangle className="w-4 h-4 text-[rgb(var(--signal-fault))] flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-[rgb(var(--signal-fault))] text-[rgb(var(--signal-fault))]">
+                          {parseError}
+                        </p>
                       </motion.div>
                     )}
                   </div>
@@ -1080,15 +1085,15 @@ const ExplanationImportModal = ({
               {step === 2 && parsedData && (
                 <div className="space-y-3">
                   {/* Stats Bar */}
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/40">
-                    <Badge className="bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300 text-xs">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-stone-50 dark:bg-stone-900/50 border border-stone-200/60 dark:border-stone-700/40">
+                    <Badge className="bg-stone-100 text-stone-700 dark:bg-stone-900/40 dark:text-stone-300 text-xs">
                       {parsedData.validCount} entries
                     </Badge>
-                    <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 text-xs">
+                    <Badge className="bg-[rgb(var(--signal-ok)/0.06)] text-[rgb(var(--signal-ok))] bg-[rgb(var(--signal-ok)/0.06)] text-[rgb(var(--signal-ok))] text-xs">
                       {parsedData.matchedCount} matched
                     </Badge>
                     {parsedData.warningCount > 0 && (
-                      <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 text-xs">
+                      <Badge className="bg-[rgb(var(--signal-warn)/0.06)] text-[rgb(var(--signal-warn))] bg-[rgb(var(--signal-warn)/0.06)] text-[rgb(var(--signal-warn))] text-xs">
                         {parsedData.warningCount} warnings
                       </Badge>
                     )}
@@ -1096,12 +1101,15 @@ const ExplanationImportModal = ({
 
                   {/* Warnings */}
                   {parsedData.warnings.length > 0 && (
-                    <div className="p-2.5 rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-800/30">
-                      <p className="text-[10px] font-bold text-amber-700 dark:text-amber-300 mb-1">
+                    <div className="p-2.5 rounded-lg bg-[rgb(var(--signal-warn)/0.06)] bg-[rgb(var(--signal-warn)/0.06)] border border-[rgb(var(--signal-warn)/0.3)] border-[rgb(var(--signal-warn)/0.3)]">
+                      <p className="text-[10px] font-bold text-[rgb(var(--signal-warn))] text-[rgb(var(--signal-warn))] mb-1">
                         Warnings:
                       </p>
                       {parsedData.warnings.map((w, i) => (
-                        <p key={i} className="text-[10px] text-amber-600 dark:text-amber-400">
+                        <p
+                          key={i}
+                          className="text-[10px] text-[rgb(var(--signal-warn))] text-[rgb(var(--signal-warn))]"
+                        >
                           • {w}
                         </p>
                       ))}
@@ -1124,7 +1132,7 @@ const ExplanationImportModal = ({
                 <div className="flex flex-col items-center justify-center py-12 space-y-4">
                   {importing ? (
                     <>
-                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center shadow-xl">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-stone-500 to-stone-500 flex items-center justify-center shadow-xl">
                         <Loader2 className="w-8 h-8 text-white animate-spin" />
                       </div>
                       <p className="text-sm font-semibold text-foreground">
@@ -1138,8 +1146,8 @@ const ExplanationImportModal = ({
                         className={cn(
                           'w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl',
                           importResults.failCount === 0
-                            ? 'bg-gradient-to-br from-emerald-500 to-green-500'
-                            : 'bg-gradient-to-br from-amber-500 to-orange-500'
+                            ? 'bg-[rgb(var(--signal-ok))]'
+                            : 'bg-[rgb(var(--signal-warn))]'
                         )}
                       >
                         {importResults.failCount === 0 ? (
@@ -1160,8 +1168,8 @@ const ExplanationImportModal = ({
                         </p>
                       )}
                       {importResults.failCount > 0 && (
-                        <div className="w-full max-w-sm p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-800/40 text-left">
-                          <p className="text-xs text-rose-600 dark:text-rose-400 font-semibold mb-1">
+                        <div className="w-full max-w-sm p-2.5 rounded-lg bg-[rgb(var(--signal-fault)/0.06)] bg-[rgb(var(--signal-fault)/0.06)] border border-[rgb(var(--signal-fault)/0.3)] border-[rgb(var(--signal-fault)/0.3)] text-left">
+                          <p className="text-xs text-[rgb(var(--signal-fault))] text-[rgb(var(--signal-fault))] font-semibold mb-1">
                             {importResults.failCount} failed:
                           </p>
                           {importResults.errors.map((err, i) => (
@@ -1172,12 +1180,15 @@ const ExplanationImportModal = ({
                         </div>
                       )}
                       {importResults.warnings?.length > 0 && (
-                        <div className="w-full max-w-sm p-2.5 rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-800/30 text-left">
-                          <p className="text-xs text-amber-700 dark:text-amber-300 font-semibold mb-1">
+                        <div className="w-full max-w-sm p-2.5 rounded-lg bg-[rgb(var(--signal-warn)/0.06)] bg-[rgb(var(--signal-warn)/0.06)] border border-[rgb(var(--signal-warn)/0.3)] border-[rgb(var(--signal-warn)/0.3)] text-left">
+                          <p className="text-xs text-[rgb(var(--signal-warn))] text-[rgb(var(--signal-warn))] font-semibold mb-1">
                             Warnings:
                           </p>
                           {importResults.warnings.map((w, i) => (
-                            <p key={i} className="text-[10px] text-amber-600 dark:text-amber-400">
+                            <p
+                              key={i}
+                              className="text-[10px] text-[rgb(var(--signal-warn))] text-[rgb(var(--signal-warn))]"
+                            >
                               • {w}
                             </p>
                           ))}
@@ -1206,7 +1217,7 @@ const ExplanationImportModal = ({
                   <Button
                     onClick={handleParse}
                     disabled={!rawJson.trim()}
-                    className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-500 hover:to-indigo-500 shadow-md"
+                    className="bg-gradient-to-r from-stone-600 to-stone-600 text-white hover:from-stone-500 hover:to-stone-500 shadow-md"
                   >
                     <FileText className="w-4 h-4 mr-1.5" />
                     Parse & Preview
@@ -1227,7 +1238,7 @@ const ExplanationImportModal = ({
                   <Button
                     onClick={handleImport}
                     disabled={!parsedData || parsedData.matchedCount === 0}
-                    className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-500 hover:to-indigo-500 shadow-md"
+                    className="bg-gradient-to-r from-stone-600 to-stone-600 text-white hover:from-stone-500 hover:to-stone-500 shadow-md"
                   >
                     <Upload className="w-4 h-4 mr-1.5" />
                     Import {parsedData?.matchedCount || 0} Explanations
@@ -1237,7 +1248,7 @@ const ExplanationImportModal = ({
               {step === 3 && !importing && (
                 <Button
                   onClick={handleClose}
-                  className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white"
+                  className="bg-gradient-to-r from-stone-600 to-stone-600 text-white"
                 >
                   Done
                 </Button>

@@ -42,7 +42,7 @@ const ReadingTestNotes = ({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-full w-full sm:w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl z-[100] flex flex-col" // Increased width for mobile
+            className="fixed right-0 top-0 h-full w-full sm:w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-lg z-[100] flex flex-col" // Increased width for mobile
             data-oid="jf_oqb8"
           >
             {/* Header */}
@@ -52,11 +52,11 @@ const ReadingTestNotes = ({
             >
               <div className="flex items-center gap-3" data-oid="hp.6fbm">
                 <div
-                  className="w-10 h-10 bg-blue-100 dark:bg-blue-500/20 rounded-xl flex items-center justify-center"
+                  className="w-10 h-10 bg-[#5a63df]/10 dark:bg-[#5a63df]/20 rounded-xl flex items-center justify-center"
                   data-oid="97cjv4j"
                 >
                   <FileText
-                    className="w-5 h-5 text-blue-600 dark:text-blue-400"
+                    className="w-5 h-5 text-[#5a63df] dark:text-[#a9afff]"
                     data-oid="n3.o1.2"
                   />
                 </div>
@@ -123,14 +123,14 @@ const ReadingTestNotes = ({
                     key={note.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="group p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all hover:border-blue-200 dark:hover:border-blue-900/50"
+                    className="group p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all hover:border-[#5a63df]/30 dark:hover:border-[#5a63df]/40"
                     data-oid="x_yfsee"
                   >
                     <div className="flex items-start justify-between gap-3 mb-2" data-oid="iqgqdp4">
                       <div className="flex items-center gap-2" data-oid="1h.rvg5">
                         <Badge
                           variant="outline"
-                          className="text-[10px] font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/50"
+                          className="text-[10px] font-bold uppercase tracking-wider bg-[#5a63df]/10 dark:bg-[#5a63df]/20 text-[#5a63df] dark:text-[#a9afff] border-[#5a63df]/20 dark:border-[#5a63df]/25"
                           data-oid="ow7wk3v"
                         >
                           Passage {note.passageIndex + 1}
@@ -168,7 +168,7 @@ const ReadingTestNotes = ({
                             onClick={() => isRef && onNavigateToRef && onNavigateToRef(part)}
                             className={
                               isRef
-                                ? 'block italic text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10 p-2 rounded border border-blue-100 dark:border-blue-900/30 mb-2 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors'
+                                ? 'block italic text-[#5a63df] dark:text-[#a9afff] bg-[#5a63df]/[0.06] dark:bg-[#5a63df]/10 p-2 rounded border border-[#5a63df]/15 dark:border-[#5a63df]/20 mb-2 cursor-pointer hover:bg-[#5a63df]/10 dark:hover:bg-[#5a63df]/20 transition-colors'
                                 : ''
                             }
                             data-oid="9tbl1d."
@@ -193,7 +193,7 @@ const ReadingTestNotes = ({
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   placeholder="Type your notes here..."
-                  className="min-h-[100px] w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all rounded-xl resize-none p-4 pr-12 text-sm"
+                  className="min-h-[100px] w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-[#5a63df]/20 focus:border-[#5a63df] transition-all rounded-xl resize-none p-4 pr-12 text-sm"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
@@ -206,7 +206,7 @@ const ReadingTestNotes = ({
                 <Button
                   onClick={onAddNote}
                   disabled={!newNote.trim()}
-                  className="absolute right-2 bottom-2 h-8 w-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
+                  className="absolute right-2 bottom-2 h-8 w-8 rounded-lg bg-[#5a63df] hover:bg-[#4a52c9] text-white shadow-xs transition-all disabled:opacity-50"
                   data-oid=".9ae3a0"
                 >
                   <Send className="w-4 h-4" data-oid="5oakqpb" />

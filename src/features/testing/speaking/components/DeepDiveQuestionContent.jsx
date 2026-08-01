@@ -13,25 +13,23 @@ function GrammaticalErrorItem({ err }) {
           {err.correct}
         </span>
       </div>
-      <p className="text-[12px] text-muted-foreground/80 dark:text-zinc-400 italic">
-        {err.explanation}
-      </p>
+      <p className="text-[12px] text-slate-500/90 dark:text-slate-400 italic">{err.explanation}</p>
     </div>
   );
 }
 
 export default function DeepDiveQuestionContent({ item }) {
   return (
-    <div className="space-y-4 border-t border-border/50 p-4 pt-2">
+    <div className="space-y-4 border-t border-[#e4e2f0] dark:border-white/[0.07] p-4 pt-2">
       {/* Candidate Answer */}
       <div className="space-y-2.5">
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+          <div className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
             Your Response
           </span>
         </div>
-        <p className="text-[14px] text-foreground font-medium bg-white dark:bg-zinc-900/80 p-4 rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] leading-relaxed">
+        <p className="text-[14px] text-slate-800 dark:text-slate-100 font-medium bg-[#fbfbfe] dark:bg-white/[0.03] p-4 rounded-xl border border-[#ebeaf7] dark:border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] leading-relaxed">
           {item.candidateAnswer}
         </p>
       </div>

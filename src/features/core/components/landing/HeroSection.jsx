@@ -12,6 +12,18 @@ import Target from 'lucide-react/icons/target';
 import TrendingUp from 'lucide-react/icons/trending-up';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
+import {
+  PANEL,
+  TILE,
+  WELL,
+  NUM,
+  MICRO,
+  TITLE,
+  MUTED,
+  IconChip,
+  Pill,
+  Bar,
+} from '@/features/dashboard/components/primitives';
 
 const HeroMotionEffects = React.lazy(() => import('./HeroMotionEffects'));
 
@@ -22,7 +34,9 @@ function FloatingCard({ className, delay = 0, children, label }) {
       style={{ '--hero-float-delay': `${delay}s` }}
       data-hero-motion="float"
       className={cn(
-        'hero-floating-card absolute z-30 rounded-2xl border border-violet-200/70 bg-white/85 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.1),0_0_0_1px_rgba(109,85,238,0.05)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/80 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.05)] transition-shadow duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 scale-[0.68] min-[400px]:scale-[0.78] sm:scale-100 transform-gpu',
+        'hero-floating-card absolute z-30 p-3',
+        PANEL,
+        'transition-shadow duration-300 hover:shadow-sm scale-[0.68] min-[400px]:scale-[0.78] sm:scale-100 transform-gpu',
         className
       )}
     >
@@ -31,25 +45,11 @@ function FloatingCard({ className, delay = 0, children, label }) {
   );
 }
 
-function CardHeading({ icon: Icon, title, tone = 'blue' }) {
-  const tones = {
-    blue: 'bg-blue-500/10 text-blue-600 border border-blue-500/20 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/20',
-    green:
-      'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/20',
-    violet:
-      'bg-violet-500/10 text-violet-600 border border-violet-500/20 dark:bg-violet-500/15 dark:text-violet-300 dark:border-violet-500/20',
-  };
-
+function CardHeading({ icon, title, tone = 'accent' }) {
   return (
     <div className="flex items-center gap-2">
-      <span
-        className={cn('flex h-7 w-7 items-center justify-center rounded-lg shadow-xs', tones[tone])}
-      >
-        <Icon className="h-3.5 w-3.5" />
-      </span>
-      <p className="text-[11px] font-extrabold tracking-tight text-[#142344] dark:text-white">
-        {title}
-      </p>
+      <IconChip icon={icon} tone={tone} size="sm" />
+      <p className={cn(TITLE, 'text-[11px]')}>{title}</p>
     </div>
   );
 }
@@ -59,42 +59,44 @@ function PersonalizedAiCard() {
     <FloatingCard
       label="Personalized AI study plan preview"
       delay={0.72}
-      className="top-4 sm:top-5 right-[-6px] sm:right-2 w-[175px] sm:w-[195px] p-2.5 sm:p-3 origin-top-right border-violet-300/80 dark:border-violet-500/40 shadow-lg shadow-violet-500/10 animate-float-slow motion-reduce:animate-none"
+      className="top-4 sm:top-5 right-[-6px] sm:right-2 w-[175px] sm:w-[195px] origin-top-right animate-float-slow motion-reduce:animate-none"
     >
-      <CardHeading icon={Sparkles} title="Personalized AI Plan" tone="violet" />
+      <CardHeading icon={Sparkles} title="Personalized AI Plan" tone="accent" />
 
-      <div className="mt-2 space-y-2">
+      <div className="mt-2.5 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200">
-            Daily Target
-          </span>
-          <span className="bg-emerald-100/90 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 font-extrabold px-1.5 py-0.5 rounded-full text-[8.5px]">
-            Band 7.5+
-          </span>
+          <span className={cn(MICRO, MUTED)}>Daily Target</span>
+          <Pill tone="emerald">Band 7.5+</Pill>
         </div>
 
-        <div className="space-y-0.5">
-          <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 dark:text-slate-400">
-            <span>Adaptive Progress</span>
-            <span className="text-violet-600 dark:text-violet-400 font-extrabold">85%</span>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <span className={cn(MICRO, MUTED)}>Adaptive Progress</span>
+            <span
+              className={cn(NUM, 'text-[10px] font-extrabold text-[#5a63df] dark:text-[#a9afff]')}
+            >
+              85%
+            </span>
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-            <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-600 w-[85%]" />
-          </div>
+          <Bar value={85} />
         </div>
 
-        <div className="pt-0.5 space-y-1 text-[9px] font-semibold text-slate-600 dark:text-slate-300">
-          <div className="flex items-center gap-1">
-            <span className="flex h-3 w-3 items-center justify-center rounded-full bg-emerald-500 text-white shrink-0">
+        <div className="pt-0.5 space-y-1">
+          <div className="flex items-center gap-1.5">
+            <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-[rgb(var(--signal-ok))] text-white">
               <Check className="h-2 w-2" />
             </span>
-            <span className="truncate">Focus on Weak Gaps</span>
+            <span className="truncate text-[9px] font-semibold text-slate-600 dark:text-slate-300">
+              Focus on Weak Gaps
+            </span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="flex h-3 w-3 items-center justify-center rounded-full bg-violet-500 text-white shrink-0">
+          <div className="flex items-center gap-1.5">
+            <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-[#5a63df] text-white">
               <Check className="h-2 w-2" />
             </span>
-            <span className="truncate">Real-Time Rubric</span>
+            <span className="truncate text-[9px] font-semibold text-slate-600 dark:text-slate-300">
+              Real-Time Rubric
+            </span>
           </div>
         </div>
       </div>
@@ -107,38 +109,47 @@ function AiEvaluationCard() {
     <FloatingCard
       label="AI Evaluation preview"
       delay={0.55}
-      className="left-[-6px] sm:left-2 bottom-5 sm:bottom-8 w-[185px] sm:w-[205px] p-2.5 sm:p-3 origin-bottom-left border-indigo-200/80 dark:border-indigo-500/40 shadow-lg shadow-indigo-500/10 animate-float-delayed motion-reduce:animate-none"
+      className="left-[-6px] sm:left-2 bottom-5 sm:bottom-8 w-[185px] sm:w-[205px] origin-bottom-left animate-float-delayed motion-reduce:animate-none"
     >
-      <CardHeading icon={Mic} title="Instant AI Evaluation" tone="blue" />
+      <CardHeading icon={Mic} title="Instant AI Evaluation" tone="sky" />
 
-      <div className="mt-2 space-y-2">
-        <div className="flex items-center justify-between rounded-lg bg-slate-50/90 dark:bg-slate-900/60 p-1.5 border border-slate-100 dark:border-white/5">
+      <div className="mt-2.5 space-y-2">
+        <div className={cn(WELL, 'flex items-center justify-between rounded-lg p-1.5')}>
           <div>
-            <p className="text-[9px] font-bold text-slate-500 dark:text-slate-400">
-              Estimated Band
-            </p>
-            <p className="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-none mt-0.5">
+            <p className={cn(MICRO, MUTED)}>Estimated Band</p>
+            <p
+              className={cn(
+                NUM,
+                'mt-0.5 text-lg font-extrabold leading-none text-slate-900 dark:text-slate-50 sm:text-xl'
+              )}
+            >
               7.5
             </p>
           </div>
-          <span className="bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 font-extrabold px-1.5 py-0.5 rounded-md text-[9px] uppercase tracking-wide">
-            Good
-          </span>
+          <Pill tone="sky">Good</Pill>
         </div>
 
-        <div className="grid grid-cols-2 gap-1 text-[9px]">
-          <div className="rounded-md bg-violet-50/60 dark:bg-violet-950/30 px-1.5 py-1 border border-violet-100/60 dark:border-violet-900/30 flex items-center justify-between">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Speaking</span>
-            <b className="text-violet-700 dark:text-violet-300 font-extrabold text-[10px]">7.5</b>
+        <div className="grid grid-cols-2 gap-1.5">
+          <div className={cn(TILE, 'flex items-center justify-between px-1.5 py-1')}>
+            <span className="text-[9px] font-medium text-slate-500 dark:text-slate-400">
+              Speaking
+            </span>
+            <b className={cn(NUM, 'text-[10px] font-extrabold text-[#5a63df] dark:text-[#a9afff]')}>
+              7.5
+            </b>
           </div>
-          <div className="rounded-md bg-indigo-50/60 dark:bg-indigo-950/30 px-1.5 py-1 border border-indigo-100/60 dark:border-indigo-900/30 flex items-center justify-between">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Writing</span>
-            <b className="text-indigo-700 dark:text-indigo-300 font-extrabold text-[10px]">7.0</b>
+          <div className={cn(TILE, 'flex items-center justify-between px-1.5 py-1')}>
+            <span className="text-[9px] font-medium text-slate-500 dark:text-slate-400">
+              Writing
+            </span>
+            <b className={cn(NUM, 'text-[10px] font-extrabold text-[#5a63df] dark:text-[#a9afff]')}>
+              7.0
+            </b>
           </div>
         </div>
 
-        <p className="text-[8.5px] font-semibold text-slate-500 dark:text-slate-400 leading-tight">
-          ✨ Good fluency & task response
+        <p className="text-[8.5px] font-semibold leading-tight text-slate-500 dark:text-slate-400">
+          Good fluency & task response
         </p>
       </div>
     </FloatingCard>
@@ -259,7 +270,7 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
 
   return (
     <section
-      className="relative bg-gradient-to-b from-[#f8f5fe]/80 via-[#fcfaff] to-white dark:from-[#0d091e] dark:via-[#090716] dark:to-[#070914] pb-12 pt-24 sm:pb-16 sm:pt-28 lg:pb-20 lg:pt-32 overflow-hidden"
+      className="relative bg-gradient-to-b from-[#f8f5fe]/80 via-[#fcfaff] to-white dark:from-[#0b0a10] dark:to-[#0b0a10] pb-12 pt-24 sm:pb-16 sm:pt-28 lg:pb-20 lg:pt-32 overflow-hidden"
       aria-label="Hero"
       data-hero-root
     >
@@ -268,11 +279,15 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
           <HeroMotionEffects />
         </React.Suspense>
       ) : null}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 overflow-hidden dark:bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] dark:bg-[size:20px_20px] dark:opacity-[0.14]"
+      />
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-6 h-[38rem] w-[38rem] rounded-full bg-violet-200/20 blur-[140px] dark:bg-violet-600/10 transform-gpu" />
-        <div className="absolute -right-32 top-2 h-[42rem] w-[42rem] rounded-full bg-purple-200/15 blur-[150px] dark:bg-purple-600/10 transform-gpu" />
-        <div className="absolute left-1/3 top-1/4 h-[24rem] w-[24rem] rounded-full bg-fuchsia-100/15 blur-[130px] dark:bg-fuchsia-600/10 transform-gpu" />
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white to-transparent dark:from-[#070914]" />
+        <div className="absolute -left-32 top-6 h-[38rem] w-[38rem] rounded-full bg-violet-200/20 blur-[140px] dark:bg-[#5a63df]/10 transform-gpu" />
+        <div className="absolute -right-32 top-2 h-[42rem] w-[42rem] rounded-full bg-purple-200/15 blur-[150px] dark:bg-[#5a63df]/[0.08] transform-gpu" />
+        <div className="absolute left-1/3 top-1/4 h-[24rem] w-[24rem] rounded-full bg-fuchsia-100/15 blur-[130px] dark:bg-transparent transform-gpu" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white to-transparent dark:from-[#0b0a10]" />
       </div>
 
       <div className="relative mx-auto grid max-w-[1540px] items-center gap-10 sm:gap-12 px-5 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-8 xl:px-12 2xl:px-16">
@@ -286,10 +301,10 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
             </span>
           </div>
 
-          <h1 className="mt-5 text-[2.45rem] xs:text-[2.75rem] sm:text-[3.2rem] lg:text-[3.1rem] xl:text-[3.6rem] 2xl:text-[4rem] font-extrabold leading-[1.05] sm:leading-[1.04] tracking-[-0.045em] text-[#07142f] dark:text-white">
+          <h1 className="mt-5 text-[2.45rem] min-[480px]:text-[2.75rem] sm:text-[3.2rem] lg:text-[3.1rem] xl:text-[3.6rem] 2xl:text-[4rem] font-extrabold leading-[1.05] sm:leading-[1.04] tracking-[-0.045em] text-[#07142f] dark:text-white">
             <span className="block">AI-Powered</span>
             <span className="block">IELTS Practice</span>
-            <span className="font-handwritten relative mt-2 sm:mt-2.5 inline-block w-fit max-w-full whitespace-nowrap text-[0.82em] xs:text-[0.88em] sm:text-[0.94em] lg:text-[0.95em] xl:text-[1.02em] leading-[1.08] tracking-[-0.03em] text-[#6d55e8] pr-6 sm:pr-7">
+            <span className="font-handwritten relative mt-2 sm:mt-2.5 inline-block w-fit max-w-full whitespace-nowrap text-[0.82em] min-[480px]:text-[0.88em] sm:text-[0.94em] lg:text-[0.95em] xl:text-[1.02em] leading-[1.08] tracking-[-0.03em] text-[#6d55e8] pr-6 sm:pr-7">
               for a higher band score.
               <svg
                 className="absolute -bottom-2 sm:-bottom-2.5 left-[32%] sm:left-[35%] h-2.5 sm:h-3 w-[42%] text-[#b89eff]"

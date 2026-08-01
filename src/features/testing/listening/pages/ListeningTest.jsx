@@ -17,6 +17,7 @@ import { useListeningTestLayout } from '../components/ListeningTest/hooks/useLis
 import { useListeningTestNavigation } from '../components/ListeningTest/hooks/useListeningTestNavigation';
 import ListeningTestMainContent from '../components/ListeningTest/components/ListeningTestMainContent';
 import ListeningTestOverlays from '../components/ListeningTest/components/ListeningTestOverlays';
+import ListeningTestSheet from '../components/ListeningTestSheet';
 
 function ListeningTestInner() {
   const {
@@ -146,6 +147,24 @@ function ListeningTestInner() {
             examReview={examReview}
             onExamAudioEnded={handleExamAudioEnded}
           />
+
+          <ListeningTestSheet
+            showAnswerSheet={showAnswerSheet}
+            setShowAnswerSheet={setShowAnswerSheet}
+            activePart={state.activePart}
+            displaySections={nav.displaySections}
+            questionsWithComputedNumbers={state.questionsWithNumbers}
+            answers={state.answers}
+            handleAnswerChange={handleAnswerChange}
+            isFinished={state.isFinished}
+            correctAnswersMap={state.correctAnswersMap}
+            solvedCount={nav.stats.totalAns}
+            isMobile={layout.isMobile}
+            onQuestionClick={(key) => {
+              const el = document.getElementById(`question-${key}`);
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }}
+          />
         </div>
       </div>
 
@@ -165,18 +184,8 @@ function ListeningTestInner() {
         session={state.session}
         dispatch={dispatch}
         ACTIONS={ACTIONS}
-        showAnswerSheet={showAnswerSheet}
         setShowAnswerSheet={setShowAnswerSheet}
         handleNavigateToQuestion={nav.handleNavigateToQuestion}
-        activePart={state.activePart}
-        displaySections={nav.displaySections}
-        questionsWithNumbers={state.questionsWithNumbers}
-        answers={state.answers}
-        handleAnswerChange={handleAnswerChange}
-        isFinished={state.isFinished}
-        correctAnswersMap={state.correctAnswersMap}
-        stats={nav.stats}
-        isMobile={layout.isMobile}
       />
     </div>
   );

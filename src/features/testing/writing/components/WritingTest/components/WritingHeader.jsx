@@ -68,7 +68,7 @@ export function WritingHeader({
 
           <div className="flex flex-col min-w-0" data-oid="m4bipk0">
             <h1
-              className="text-[12px] sm:text-sm font-bold text-slate-900 dark:text-white leading-tight truncate max-w-[160px] xs:max-w-[220px] sm:max-w-[320px] md:max-w-[420px] lg:max-w-[550px]"
+              className="text-[12px] sm:text-sm font-bold text-slate-900 dark:text-white leading-tight truncate max-w-[160px] min-[480px]:max-w-[220px] sm:max-w-[320px] md:max-w-[420px] lg:max-w-[550px]"
               title={task?.title || 'Writing Task'}
               data-oid="in06s0r"
             >
@@ -87,7 +87,7 @@ export function WritingHeader({
                   data-oid="h9rc23x"
                 >
                   <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" data-oid="s_:7hbv" />
-                  <span className="hidden xs:inline">Official</span>
+                  <span className="hidden min-[480px]:inline">Official</span>
                 </span>
               )}
               {!isAwaitingStart ? (

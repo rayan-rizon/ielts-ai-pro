@@ -114,7 +114,7 @@ export default function SpeakingReport({
   return (
     <div
       data-testid="speaking-report-scroll"
-      className="custom-scrollbar relative isolate h-full min-h-0 overflow-y-auto overscroll-contain bg-slate-50/70 px-4 py-4 dark:bg-[#080808] sm:px-6 sm:py-6 lg:px-8 lg:py-8"
+      className="custom-scrollbar relative isolate h-full min-h-0 overflow-y-auto overscroll-contain bg-[#f7f6fd] px-4 py-4 dark:bg-[#0b0a0f] sm:px-6 sm:py-6 lg:px-8 lg:py-8"
     >
       {showConfetti && (
         <Confetti
@@ -143,7 +143,7 @@ export default function SpeakingReport({
         key="report"
         className="relative mx-auto w-full max-w-[1280px]"
       >
-        <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl shadow-rose-950/5 dark:border-white/10 dark:bg-zinc-950">
+        <section className="overflow-hidden rounded-2xl border border-[#e4e2f0] bg-gradient-to-b from-white to-[#faf9ff] shadow-xl shadow-rose-950/5 dark:border-white/[0.07] dark:from-[#141319] dark:to-[#100f15]">
           {/* Header Banner */}
           <header className="relative overflow-hidden bg-gradient-to-r from-rose-500 via-rose-500 to-rose-600 px-5 pb-5 pt-4 text-white sm:px-8 lg:px-10 lg:pb-6 lg:pt-5">
             <HeaderWaveBackground />
@@ -215,11 +215,11 @@ export default function SpeakingReport({
             />
 
             {/* Bottom Footer Actions Bar */}
-            <div className="flex flex-col justify-between gap-4 border-t border-slate-200 pt-6 dark:border-white/10 sm:flex-row sm:items-center">
+            <div className="flex flex-col justify-between gap-4 border-t border-[#e4e2f0] pt-6 dark:border-white/[0.07] sm:flex-row sm:items-center">
               <Button
                 asChild
                 variant="outline"
-                className="h-11 rounded-xl border-slate-200 px-6 text-xs font-black uppercase tracking-wider hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5 transition-all"
+                className="h-11 rounded-xl border-[#e4e2f0] px-6 text-xs font-black uppercase tracking-wider hover:bg-[#f4f3fb] dark:border-white/[0.07] dark:hover:bg-white/[0.06] transition-all"
               >
                 <Link to="/speaking">
                   <BookOpen className="mr-2.5 h-4 w-4" />

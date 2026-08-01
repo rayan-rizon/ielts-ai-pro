@@ -1,77 +1,50 @@
 import React from 'react';
 import { cn } from '@/lib/cn';
+import { LogoIcon } from '@/components/shared/Logo';
 
 /**
- * PremiumLoading component for a polished, immersive loading experience.
- * Uses pure CSS animations to avoid importing framer-motion on the critical path.
- * This component is used as a Suspense fallback, so it MUST be lightweight.
+ * Global route-transition / initial-load fallback — the first thing a user
+ * sees on nearly every navigation, so it uses the same page shell as every
+ * other screen (dot-grid + soft glow on `#f8f8fb` / `#0b0a10`) rather than a
+ * one-off backdrop-blur overlay. Pure CSS animation only — this sits on the
+ * Suspense critical path, before framer-motion or any primitive bundle has
+ * necessarily loaded.
  *
- * @param {string} message - Optional message to display below the loader.
- * @param {boolean} fullScreen - Whether to take up the full viewport.
- * @param {string} className - Additional CSS classes for the container.
+ * The mark itself carries the motion (see LogoIcon's built-in float/breathe
+ * keyframes); a thin accent ring supplies the actual "this is loading"
+ * affordance the logo's subtle animation doesn't read as on its own.
  */
-const PremiumLoading = ({ message = 'Verifying access...', fullScreen = true, className }) => {
+const PremiumLoading = ({ message = 'Loading', fullScreen = true, className }) => {
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center bg-slate-50/60 dark:bg-[#050505]/70 backdrop-blur-2xl z-[100] transition-all duration-300 animate-in fade-in-50 duration-200',
-        fullScreen ? 'fixed inset-0 w-full h-full' : 'flex-1 min-h-[60vh] w-full py-12',
+        'relative flex flex-col items-center justify-center bg-[#f8f8fb] dark:bg-[#0b0a10]',
+        fullScreen ? 'fixed inset-0 z-[100] h-full w-full' : 'min-h-[60vh] w-full flex-1 py-12',
         className
       )}
-      data-oid="premium-loader"
     >
-      <div className="relative flex flex-col items-center" data-oid="loader-container">
-        {/* Animated Rings — CSS only */}
-        <div className="relative h-20 w-20 mb-8" data-oid="loader-rings">
-          <div
-            className="absolute inset-0 rounded-full border-2 border-primary/20 animate-pulse"
-            data-oid="ring-outer"
-          />
-          <div
-            className="absolute inset-2 rounded-full border-t-2 border-primary shadow-[0_0_15px_rgba(var(--primary),0.3)] animate-spin"
-            style={{ animationDuration: '1.2s' }}
-            data-oid="ring-inner"
-          />
-          <div className="absolute inset-0 flex items-center justify-center" data-oid="loader-icon">
-            {/* Simple CSS spinner instead of Lucide Loader2 */}
-            <div
-              className="h-6 w-6 rounded-full border-2 border-primary/30 border-t-primary animate-pulse"
-              data-oid="loader-dot"
-            />
-          </div>
-        </div>
-
-        {/* Text Content — CSS animation only */}
-        <div className="text-center space-y-2 animate-fade-in" data-oid="loader-text">
-          <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 tracking-tight">
-            {message}
-          </h3>
-          <p className="text-sm text-muted-foreground/80 font-medium animate-pulse">
-            Please wait a moment
-          </p>
-        </div>
-
-        {/* Bottom Accent */}
-        <div
-          className="absolute -bottom-24 w-48 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent blur-sm"
-          data-oid="loader-accent"
-        />
-      </div>
-
-      {/* Background Decorative Elements */}
       <div
-        className="absolute inset-0 overflow-hidden pointer-events-none -z-10"
-        data-oid="decor-container"
-      >
-        <div
-          className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] animate-pulse"
-          data-oid="decor-1"
-        />
-        <div
-          className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px] animate-pulse"
-          style={{ animationDuration: '2s' }}
-          data-oid="decor-2"
-        />
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-24 -top-24 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+      />
+
+      <div className="relative flex flex-col items-center gap-4">
+        <div className="relative flex h-16 w-16 items-center justify-center">
+          <span className="absolute inset-0 rounded-full border-2 border-[#5a63df]/15" />
+          <span
+            className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#5a63df] animate-spin"
+            style={{ animationDuration: '900ms' }}
+          />
+          <LogoIcon className="h-9 w-9" />
+        </div>
+
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+          {message}
+        </p>
       </div>
     </div>
   );

@@ -27,7 +27,7 @@ const MatchingFeaturesRenderer = ({
       return cn(
         baseStyle,
         'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground',
-        'focus:ring-1 focus:ring-blue-500/40 focus:border-blue-500/50',
+        'focus:ring-1 focus:ring-[#5a63df]/40 focus:border-[#5a63df]/50',
         'hover:border-slate-400/80 dark:hover:border-slate-600/80 shadow-sm'
       );
     }
@@ -59,12 +59,12 @@ const MatchingFeaturesRenderer = ({
       {/* Box for Options */}
       {question.matching_features?.options?.length > 0 && (
         <div
-          className="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 rounded-xl p-3.5 mb-3 shadow-xs"
+          className="bg-[#f4f3fb] dark:bg-white/[0.04] border border-[#e4e2f0] dark:border-white/[0.07] rounded-xl p-3.5 mb-4 shadow-xs"
           data-oid="xl5fcqg"
         >
           {question.matching_features.box_title && (
             <h3
-              className="font-extrabold text-center text-slate-900 dark:text-slate-100 text-base sm:text-lg tracking-wider uppercase mb-3 border-b border-slate-200/80 dark:border-slate-700/80 pb-2"
+              className="font-extrabold text-center text-slate-900 dark:text-slate-100 text-base sm:text-lg tracking-wider uppercase mb-3 border-b border-[#e4e2f0] dark:border-white/[0.07] pb-2"
               data-oid=".2mc:94"
             >
               {question.matching_features.box_title}
@@ -80,7 +80,7 @@ const MatchingFeaturesRenderer = ({
               return (
                 <div key={idx} className="flex gap-3 items-baseline py-0.5" data-oid="4qq1hg2">
                   <span
-                    className="font-extrabold text-blue-600 dark:text-blue-400 min-w-[1.2rem] text-right text-sm"
+                    className="font-extrabold text-[#5a63df] dark:text-[#a9afff] min-w-[1.2rem] text-right text-sm"
                     data-oid="m59z936"
                   >
                     {label}
@@ -100,12 +100,12 @@ const MatchingFeaturesRenderer = ({
 
       {/* Questions List */}
       <div
-        className="flex flex-col rounded-xl overflow-hidden border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-slate-900 shadow-xs"
+        className="flex flex-col rounded-xl overflow-hidden border border-[#e4e2f0] dark:border-white/[0.07] bg-white dark:bg-[#141319] shadow-xs"
         data-oid="1s2u7h4"
       >
         {question.matching_features?.questions_title && (
           <div
-            className="px-4 py-3 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200/80 dark:border-slate-800"
+            className="px-4 py-3 bg-[#f4f3fb] dark:bg-white/[0.04] border-b border-[#e4e2f0] dark:border-white/[0.07]"
             data-oid="1gzj0yw-container"
           >
             <h3
@@ -134,7 +134,7 @@ const MatchingFeaturesRenderer = ({
             <div
               key={idx}
               id={`question-${qId}`}
-              className="flex items-center gap-2 py-3 px-4 border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group"
+              className="flex items-center gap-2 py-3 px-4 border-b border-slate-100 dark:border-white/[0.06] last:border-0 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors group"
               data-oid="zf-hu:v"
             >
               <div className="flex items-center gap-3" data-oid="v:n30a4">
@@ -180,7 +180,7 @@ const MatchingFeaturesRenderer = ({
                         data-oid="0zqnpjb"
                       >
                         <span
-                          className="font-semibold text-blue-600 dark:text-blue-400"
+                          className="font-semibold text-[#5a63df] dark:text-[#a9afff]"
                           data-oid="htxpg2z"
                         >
                           {label}

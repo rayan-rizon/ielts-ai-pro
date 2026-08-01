@@ -50,6 +50,8 @@ import {
 import { uploadFile } from '@/lib/supabase';
 import { uploadToR2 } from '@/lib/r2';
 import { sanitizeHtml } from '@/lib/security';
+import { cn } from '@/lib/cn';
+import { AdminButton, PANEL, MICRO, ADMIN_TABS_LIST, ADMIN_TAB_TRIGGER } from '../../ui/primitives';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import TableBuilder from '../builders/TableBuilder';
 import MatchingFeaturesBuilder from '../builders/MatchingFeaturesBuilder';
@@ -190,23 +192,23 @@ const RichTextEditor = ({
 
     return (
       <div
-        className={`border rounded-lg ${className} bg-white dark:bg-slate-900 dark:border-slate-700 shadow-sm overflow-hidden`}
+        className={`border rounded-lg ${className} bg-white dark:bg-stone-900 dark:border-stone-700 shadow-sm overflow-hidden`}
         data-oid="h5f73vi"
       >
         <div
-          className="flex items-center justify-between px-2 py-1.5 border-b bg-gray-50 dark:bg-slate-800 dark:border-slate-700 sticky top-0 z-10 backdrop-blur-sm bg-gray-50/90 dark:bg-slate-800/90"
+          className="flex items-center justify-between px-2 py-1.5 border-b bg-gray-50 dark:bg-stone-800 dark:border-stone-700 sticky top-0 z-10 backdrop-blur-sm bg-gray-50/90 dark:bg-stone-800/90"
           data-oid="0r8vcd8"
         >
           <div className="flex items-center gap-1" data-oid="7uoc5ns">
             <div
-              className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mr-2"
+              className="text-[10px] text-stone-500 dark:text-stone-400 font-medium mr-2"
               data-oid="6gg-_ja"
             >
               Instructions
             </div>
             {!isPreview && (
               <div
-                className="flex items-center border-l pl-2 gap-1 border-slate-200 dark:border-slate-700"
+                className="flex items-center border-l pl-2 gap-1 border-stone-200 dark:border-stone-700"
                 data-oid="0gkbj6j"
               >
                 <Button
@@ -214,7 +216,7 @@ const RichTextEditor = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => handleFormat('bold')}
-                  className="h-6 w-6 p-0 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  className="h-6 w-6 p-0 hover:bg-stone-200 dark:hover:bg-stone-700"
                   title="Bold"
                   data-oid="n37o7iy"
                 >
@@ -225,7 +227,7 @@ const RichTextEditor = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => handleFormat('italic')}
-                  className="h-6 w-6 p-0 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  className="h-6 w-6 p-0 hover:bg-stone-200 dark:hover:bg-stone-700"
                   title="Italic"
                   data-oid="bz9012j"
                 >
@@ -236,7 +238,7 @@ const RichTextEditor = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowImageUrlModal(true)}
-                  className="h-6 w-6 p-0 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  className="h-6 w-6 p-0 hover:bg-stone-200 dark:hover:bg-stone-700"
                   title="Insert Image URL"
                   data-oid="79cgqwj"
                 >
@@ -250,7 +252,7 @@ const RichTextEditor = ({
             variant="ghost"
             size="sm"
             onClick={() => setIsPreview(!isPreview)}
-            className="text-xs h-6 px-2 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="text-xs h-6 px-2 dark:text-stone-300 dark:hover:bg-stone-700"
             data-oid="0gdr8g:"
           >
             {isPreview ? (
@@ -264,7 +266,7 @@ const RichTextEditor = ({
         <div className="relative" data-oid="1t0qn8:">
           {isPreview ? (
             <div
-              className="bg-white dark:bg-slate-900 overflow-y-auto min-h-[60px] p-2"
+              className="bg-white dark:bg-stone-900 overflow-y-auto min-h-[60px] p-2"
               style={{ whiteSpace: 'pre-wrap' }}
               data-oid="q_6wtyg"
             >
@@ -277,7 +279,7 @@ const RichTextEditor = ({
               onChange={(e) => onChange(e.target.value)}
               placeholder={placeholder}
               rows={3}
-              className="border-0 rounded-none rounded-b-lg resize-none focus:ring-0 text-sm bg-white dark:bg-slate-950 dark:text-slate-200 font-mono min-h-[60px]"
+              className="border-0 rounded-none rounded-b-lg resize-none focus:ring-0 text-sm bg-white dark:bg-stone-950 dark:text-stone-200 font-mono min-h-[60px]"
               style={{ whiteSpace: 'pre-wrap', overflow: 'hidden' }}
               data-oid="_b3au::"
             />
@@ -290,28 +292,28 @@ const RichTextEditor = ({
               data-oid="k417t17"
             >
               <div
-                className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 max-w-md w-full border dark:border-slate-700 animate-in fade-in zoom-in duration-200"
+                className="bg-white dark:bg-stone-900 rounded-xl shadow-2xl p-6 max-w-md w-full border dark:border-stone-700 animate-in fade-in zoom-in duration-200"
                 onClick={(e) => e.stopPropagation()}
                 data-oid="igts.4p"
               >
                 <div className="flex items-center gap-3 mb-4" data-oid="d4cjdbf">
                   <div
-                    className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40"
+                    className="p-2 rounded-lg bg-stone-100 dark:bg-stone-900/40"
                     data-oid=".m9i7h:"
                   >
                     <Link2
-                      className="w-5 h-5 text-blue-600 dark:text-blue-400"
+                      className="w-5 h-5 text-stone-600 dark:text-stone-400"
                       data-oid="yorljuo"
                     />
                   </div>
                   <div data-oid="h7rdq:d">
                     <h3
-                      className="text-lg font-semibold text-slate-900 dark:text-white"
+                      className="text-lg font-semibold text-stone-900 dark:text-white"
                       data-oid="uwk2hwt"
                     >
                       Insert Image URL
                     </h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400" data-oid="rjy.6wz">
+                    <p className="text-sm text-stone-500 dark:text-stone-400" data-oid="rjy.6wz">
                       Paste a direct link to an image for instructions
                     </p>
                   </div>
@@ -321,7 +323,7 @@ const RichTextEditor = ({
                   value={imageUrlInput}
                   onChange={(e) => setImageUrlInput(e.target.value)}
                   placeholder="https://example.com/image.jpg"
-                  className="mb-4 dark:bg-slate-800 dark:border-slate-700"
+                  className="mb-4 dark:bg-stone-800 dark:border-stone-700"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -333,17 +335,17 @@ const RichTextEditor = ({
 
                 {imageUrlInput && (
                   <div
-                    className="mb-4 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border dark:border-slate-700"
+                    className="mb-4 p-2 rounded-lg bg-stone-100 dark:bg-stone-800 border dark:border-stone-700"
                     data-oid="mqms.m8"
                   >
                     <p
-                      className="text-xs text-slate-500 dark:text-slate-400 mb-2"
+                      className="text-xs text-stone-500 dark:text-stone-400 mb-2"
                       data-oid="ivaqi2z"
                     >
                       Preview:
                     </p>
                     <div
-                      className="relative min-h-[128px] flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700"
+                      className="relative min-h-[128px] flex items-center justify-center bg-stone-50 dark:bg-stone-900 rounded border border-stone-200 dark:border-stone-700"
                       data-oid="4-rggms"
                     >
                       <img
@@ -359,7 +361,7 @@ const RichTextEditor = ({
                       />
 
                       <div
-                        className="hidden flex-col items-center justify-center text-slate-400 p-4"
+                        className="hidden flex-col items-center justify-center text-stone-400 p-4"
                         data-oid="swsob7g"
                       >
                         <ImageIcon className="w-8 h-8 mb-2 opacity-50" data-oid="d_g4k73" />
@@ -383,7 +385,7 @@ const RichTextEditor = ({
                   </Button>
                   <Button
                     onClick={handleInsertImageUrl}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-stone-600 hover:bg-stone-700 text-white"
                     data-oid="p4tqqpn"
                   >
                     <ImageIcon className="w-4 h-4 mr-2" data-oid="pqgj:r9" />
@@ -666,7 +668,7 @@ const RichTextEditor = ({
           .replace(/\*(.*?)\*/g, '<em>$1</em>')
           .replace(
             /\[title\](.*?)\[\/title\]/g,
-            '<h2 class="text-xl font-bold text-blue-900 dark:text-blue-100 mb-3 text-center">$1</h2>'
+            '<h2 class="text-xl font-bold text-stone-900 dark:text-stone-100 mb-3 text-center">$1</h2>'
           )
           .replace(
             /\[heading\](.*?)\[\/heading\]/g,
@@ -684,7 +686,7 @@ const RichTextEditor = ({
           processed = processed.replace(
             /\[answer q=([\d,\s]+)\](.*?)\[\/answer\]/g,
             (match, qNum, content) =>
-              `<span class="bg-emerald-100/80 text-emerald-900 px-1 py-0.5 rounded-sm font-medium transition-all duration-200 dark:bg-emerald-500/20 dark:text-emerald-100">${content.trim()}<span class="inline-flex items-center justify-center bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm select-none align-middle ml-0.5 transform -translate-y-[1px] dark:bg-emerald-500">Q${qNum}</span></span>`
+              `<span class="bg-[rgb(var(--signal-ok)/0.08)] text-[rgb(var(--signal-ok))] px-1 py-0.5 rounded-sm font-medium transition-all duration-200">${content.trim()}<span class="inline-flex items-center justify-center bg-[rgb(var(--signal-ok))] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm select-none align-middle ml-0.5 transform -translate-y-[1px]">Q${qNum}</span></span>`
           );
         } else {
           processed = processed.replace(/\[answer q=[\d,\s]+\](.*?)\[\/answer\]/g, '$1');
@@ -703,11 +705,11 @@ const RichTextEditor = ({
 
   return (
     <div
-      className={`flex flex-col border rounded-lg ${className} bg-white dark:bg-slate-900 dark:border-slate-700 shadow-sm transition-all focus-within:ring-2 ring-primary/20`}
+      className={`flex flex-col border rounded-lg ${className} bg-white dark:bg-stone-900 dark:border-stone-700 shadow-sm transition-all focus-within:ring-2 ring-primary/20`}
       data-oid="w3c.z2d"
     >
       <div
-        className="flex items-center justify-between p-2 flex-wrap sm:flex-nowrap gap-2 border-b bg-white dark:bg-slate-900 dark:border-slate-700 rounded-t-lg sticky top-0 z-30 shadow-sm"
+        className="flex items-center justify-between p-2 flex-wrap sm:flex-nowrap gap-2 border-b bg-white dark:bg-stone-900 dark:border-stone-700 rounded-t-lg sticky top-0 z-30 shadow-sm"
         data-oid="cwtsu2g"
       >
         <div className="flex items-center gap-1 flex-wrap min-w-0" data-oid="pl:3xau">
@@ -719,7 +721,7 @@ const RichTextEditor = ({
               size="sm"
               onClick={button.action}
               disabled={button.disabled}
-              className="h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-slate-700 dark:text-slate-300"
+              className="h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-stone-700 dark:text-stone-300"
               title={button.label}
               data-oid="j7pej5b"
             >
@@ -742,7 +744,7 @@ const RichTextEditor = ({
               variant="ghost"
               size="sm"
               onClick={() => setShowAnswers(!showAnswers)}
-              className={`text-xs h-7 px-2 ${showAnswers ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/10' : 'text-slate-500 dark:text-slate-400'}`}
+              className={`text-xs h-7 px-2 ${showAnswers ? 'text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] bg-[rgb(var(--signal-ok)/0.06)] bg-[rgb(var(--signal-ok)/0.06)]' : 'text-stone-500 dark:text-stone-400'}`}
               title={showAnswers ? 'Hide Answers' : 'Show Answers'}
               data-oid="nidvuab"
             >
@@ -751,7 +753,9 @@ const RichTextEditor = ({
               ) : (
                 <EyeOff className="w-4 h-4 mr-1.5" data-oid="ak.bljh" />
               )}
-              <span className="hidden xs:inline">{showAnswers ? 'Answers On' : 'Answers Off'}</span>
+              <span className="hidden min-[480px]:inline">
+                {showAnswers ? 'Answers On' : 'Answers Off'}
+              </span>
             </Button>
           )}
           <Button
@@ -759,7 +763,7 @@ const RichTextEditor = ({
             variant="ghost"
             size="sm"
             onClick={() => setIsPreview(!isPreview)}
-            className="text-xs h-7 px-2 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="text-xs h-7 px-2 dark:text-stone-300 dark:hover:bg-stone-700"
             data-oid="ouw1xs."
           >
             {isPreview ? (
@@ -774,7 +778,7 @@ const RichTextEditor = ({
       <div className="relative flex-1 flex flex-col min-h-0 overflow-hidden" data-oid="1t0qn8:">
         {isPreview ? (
           <div
-            className="bg-white dark:bg-slate-900 overflow-y-auto flex-1 p-6 md:p-8"
+            className="bg-white dark:bg-stone-900 overflow-y-auto flex-1 p-6 md:p-8"
             data-oid="k-ddzo4"
           >
             {renderPreview(value || '')}
@@ -803,7 +807,7 @@ const RichTextEditor = ({
                     return (
                       <span
                         key={i}
-                        className="bg-emerald-500/20 dark:bg-emerald-400/20 ring-1 ring-emerald-500/40 rounded-sm py-0.5"
+                        className="bg-[rgb(var(--signal-ok)/0.06)] bg-[rgb(var(--signal-ok)/0.06)] ring-1  rounded-sm py-0.5"
                       >
                         {part}
                       </span>
@@ -814,7 +818,7 @@ const RichTextEditor = ({
                     return (
                       <span
                         key={i}
-                        className="bg-blue-500/10 dark:bg-blue-400/20 ring-1 ring-blue-500/30 rounded-sm py-0.5"
+                        className="bg-stone-500/10 dark:bg-stone-400/20 ring-1  rounded-sm py-0.5"
                       >
                         {part}
                       </span>
@@ -825,7 +829,7 @@ const RichTextEditor = ({
                     return (
                       <span
                         key={i}
-                        className="bg-amber-500/10 dark:bg-amber-400/20 ring-1 ring-amber-500/30 rounded-sm py-0.5"
+                        className="bg-[rgb(var(--signal-warn)/0.06)] bg-[rgb(var(--signal-warn)/0.06)] ring-1  rounded-sm py-0.5"
                       >
                         {part}
                       </span>
@@ -850,7 +854,7 @@ const RichTextEditor = ({
               }}
               placeholder={placeholder}
               rows={rows}
-              className="relative z-10 border-0 rounded-none rounded-b-lg resize-none focus:ring-0 font-mono text-sm bg-transparent dark:text-slate-200 p-3 w-full h-full min-h-[200px]"
+              className="relative z-10 border-0 rounded-none rounded-b-lg resize-none focus:ring-0 font-mono text-sm bg-transparent dark:text-stone-200 p-3 w-full h-full min-h-[200px]"
               style={{
                 lineHeight: '1.5',
                 caretColor: 'currentColor',
@@ -860,7 +864,7 @@ const RichTextEditor = ({
 
             {floatingMenu.visible && (
               <div
-                className="absolute z-50 flex items-center gap-1 p-1 bg-white dark:bg-slate-800 border dark:border-slate-700 shadow-lg rounded-lg animate-in fade-in zoom-in duration-200"
+                className="absolute z-50 flex items-center gap-1 p-1 bg-white dark:bg-stone-800 border dark:border-stone-700 shadow-lg rounded-lg animate-in fade-in zoom-in duration-200"
                 style={{
                   top: Math.max(0, floatingMenu.y),
                   left: Math.max(
@@ -871,14 +875,14 @@ const RichTextEditor = ({
                 data-oid=":.24zpt"
               >
                 <span
-                  className="text-[10px] font-bold text-slate-500 pl-1 dark:text-slate-400"
+                  className="text-[10px] font-bold text-stone-500 pl-1 dark:text-stone-400"
                   data-oid="5897.gc"
                 >
                   Q
                 </span>
                 <Input
                   autoFocus
-                  className="h-6 w-10 text-xs px-1 text-center bg-transparent border-slate-200 dark:border-slate-600 dark:text-white"
+                  className="h-6 w-10 text-xs px-1 text-center bg-transparent border-stone-200 dark:border-stone-600 dark:text-white"
                   placeholder="#"
                   value={qNumInput}
                   onChange={(e) => setQNumInput(e.target.value)}
@@ -895,7 +899,7 @@ const RichTextEditor = ({
                   size="sm"
                   variant="ghost"
                   onClick={applyHighlight}
-                  className="h-6 w-6 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/30"
+                  className="h-6 w-6 p-0 text-[rgb(var(--signal-ok))] hover:text-[rgb(var(--signal-ok))] hover:bg-[rgb(var(--signal-ok)/0.06)] dark:hover:bg-[rgb(var(--signal-ok)/0.06)]"
                   data-oid=".wi2dl_"
                 >
                   <CheckSquare className="w-4 h-4" data-oid="c88-kyu" />
@@ -904,7 +908,7 @@ const RichTextEditor = ({
                   size="sm"
                   variant="ghost"
                   onClick={() => setFloatingMenu((prev) => ({ ...prev, visible: false }))}
-                  className="h-6 w-6 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  className="h-6 w-6 p-0 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
                   data-oid="ppqxw8u"
                 >
                   <X className="w-3 h-3" data-oid="2r2zj:q" />
@@ -919,28 +923,28 @@ const RichTextEditor = ({
                 data-oid="wbfxoik"
               >
                 <div
-                  className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 max-w-md w-full border dark:border-slate-700 animate-in fade-in zoom-in duration-200"
+                  className="bg-white dark:bg-stone-900 rounded-xl shadow-2xl p-6 max-w-md w-full border dark:border-stone-700 animate-in fade-in zoom-in duration-200"
                   onClick={(e) => e.stopPropagation()}
                   data-oid="44e2ohw"
                 >
                   <div className="flex items-center gap-3 mb-4" data-oid="g564flg">
                     <div
-                      className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40"
+                      className="p-2 rounded-lg bg-stone-100 dark:bg-stone-900/40"
                       data-oid="olwzo4n"
                     >
                       <Link2
-                        className="w-5 h-5 text-blue-600 dark:text-blue-400"
+                        className="w-5 h-5 text-stone-600 dark:text-stone-400"
                         data-oid="7l-d2u4"
                       />
                     </div>
                     <div data-oid="itl1-7j">
                       <h3
-                        className="text-lg font-semibold text-slate-900 dark:text-white"
+                        className="text-lg font-semibold text-stone-900 dark:text-white"
                         data-oid="8rur2b_"
                       >
                         Insert Image URL
                       </h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400" data-oid="mx4o_ks">
+                      <p className="text-sm text-stone-500 dark:text-stone-400" data-oid="mx4o_ks">
                         Paste a direct link to an image
                       </p>
                     </div>
@@ -950,7 +954,7 @@ const RichTextEditor = ({
                     value={imageUrlInput}
                     onChange={(e) => setImageUrlInput(e.target.value)}
                     placeholder="https://example.com/image.jpg"
-                    className="mb-4 dark:bg-slate-800 dark:border-slate-700"
+                    className="mb-4 dark:bg-stone-800 dark:border-stone-700"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -962,17 +966,17 @@ const RichTextEditor = ({
 
                   {imageUrlInput && (
                     <div
-                      className="mb-4 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border dark:border-slate-700"
+                      className="mb-4 p-2 rounded-lg bg-stone-100 dark:bg-stone-800 border dark:border-stone-700"
                       data-oid="n8_7:2q"
                     >
                       <p
-                        className="text-xs text-slate-500 dark:text-slate-400 mb-2"
+                        className="text-xs text-stone-500 dark:text-stone-400 mb-2"
                         data-oid="yn8xhaa"
                       >
                         Preview:
                       </p>
                       <div
-                        className="relative min-h-[128px] flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700"
+                        className="relative min-h-[128px] flex items-center justify-center bg-stone-50 dark:bg-stone-900 rounded border border-stone-200 dark:border-stone-700"
                         data-oid="5nkrf9n"
                       >
                         <img
@@ -988,7 +992,7 @@ const RichTextEditor = ({
                         />
 
                         <div
-                          className="hidden flex-col items-center justify-center text-slate-400 p-4"
+                          className="hidden flex-col items-center justify-center text-stone-400 p-4"
                           data-oid="g54kgyv"
                         >
                           <ImageIcon className="w-8 h-8 mb-2 opacity-50" data-oid="zgb3ium" />
@@ -1012,7 +1016,7 @@ const RichTextEditor = ({
                     </Button>
                     <Button
                       onClick={handleInsertImageUrl}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      className="bg-stone-600 hover:bg-stone-700 text-white"
                       data-oid="e543pll"
                     >
                       <ImageIcon className="w-4 h-4 mr-2" data-oid="qcxdfb5" />
@@ -1089,17 +1093,7 @@ const getQuestionCount = (q) => {
 // --- Main Editor ---
 const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
   // Fallback theme if not provided
-  const effectiveTheme = theme || {
-    color: 'blue',
-    primary: 'bg-blue-600',
-    primaryHover: 'hover:bg-blue-700',
-    light: 'bg-blue-50 dark:bg-blue-950/40',
-    lighter: 'bg-blue-50/50 dark:bg-blue-950/20',
-    border: 'border-blue-100 dark:border-blue-900',
-    text: 'text-blue-700 dark:text-blue-300',
-    icon: BookOpen,
-    ring: 'ring-blue-500/20',
-  };
+  const effectiveTheme = theme || { icon: BookOpen };
 
   const [sections, setSections] = useState(() => {
     if (initialData?.content) {
@@ -1527,7 +1521,7 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
 
   return (
     <div
-      className="flex flex-col h-screen bg-slate-50 dark:bg-background text-foreground rounded-xl overflow-hidden"
+      className="flex flex-col h-screen bg-stone-100 dark:bg-[#08080a] text-stone-900 dark:text-stone-50 overflow-hidden"
       data-oid="x88e.5l"
     >
       {/* Premium Header */}
@@ -1544,23 +1538,15 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         data-oid="_y45go4"
       >
         {/* Format Pill (Reading/Writing Specific) */}
-        <div
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm ${effectiveTheme.light} ${effectiveTheme.border}`}
-          data-oid="::isya4"
-        >
-          <span
-            className={`text-[10px] uppercase font-bold tracking-wider ${effectiveTheme.text}`}
-            data-oid=".4_:8fs"
-          >
-            Format
-          </span>
+        <div className="flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.03] shrink-0">
+          <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>Format</span>
           <Select
             value={passageMetadata.test_format}
             onValueChange={(val) => setPassageMetadata((prev) => ({ ...prev, test_format: val }))}
             data-oid="i2wjt:r"
           >
             <SelectTrigger
-              className="h-4 w-auto gap-1 border-0 bg-transparent p-0 text-xs font-medium focus:ring-0 text-slate-700 dark:text-slate-200 hover:text-slate-900"
+              className="h-4 w-auto gap-1 border-0 bg-transparent p-0 text-[11px] font-bold focus:ring-0 text-stone-900 dark:text-stone-100"
               data-oid="-xztmsw"
             >
               <SelectValue data-oid="tlpqd7p" />
@@ -1576,28 +1562,31 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
           </Select>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 w-8 p-0 rounded-full border-dashed hidden md:flex shrink-0 hover:bg-slate-100 dark:hover:bg-slate-800"
+        <button
+          type="button"
           onClick={() => setIsPassageVisible(!isPassageVisible)}
           title={isPassageVisible ? 'Hide Passage' : 'Show Passage'}
+          className="hidden md:grid h-7 w-7 place-items-center rounded-md border border-dashed border-stone-300 dark:border-white/15 text-stone-500 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors shrink-0"
           data-oid="sp_2pb7"
         >
           {isPassageVisible ? (
-            <AlignLeft className="w-4 h-4 text-slate-500" data-oid="4mh-vw5" />
+            <AlignLeft className="w-3.5 h-3.5" data-oid="4mh-vw5" />
           ) : (
-            <BookOpen className="w-4 h-4 text-slate-500" data-oid="u53.ifd" />
+            <BookOpen className="w-3.5 h-3.5" data-oid="u53.ifd" />
           )}
-        </Button>
+        </button>
       </TestEditorHeader>
 
       {/* Content Split */}
-      <div ref={containerRef} className="flex-1 flex overflow-hidden relative" data-oid="bqx_a2:">
+      <div
+        ref={containerRef}
+        className="flex-1 flex overflow-hidden relative min-h-0"
+        data-oid="bqx_a2:"
+      >
         {/* Left: Passage Editor */}
         {isPassageVisible && (
           <div
-            className="flex flex-col z-10 shadow-xl border-r bg-white dark:bg-card dark:border-border h-full"
+            className="flex flex-col z-10 border-r border-stone-200/80 dark:border-white/[0.07] bg-white dark:bg-[#131315] h-full min-h-0"
             style={{ width: `${passageWidth}%` }}
             data-oid="mro4rtk"
           >
@@ -1608,35 +1597,29 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
               data-oid="w292-00"
             >
               <div
-                className={`p-4 border-b bg-gradient-to-r ${effectiveTheme.gradientLight} dark:border-slate-700 overflow-hidden`}
+                className="p-3 border-b border-stone-200/80 dark:border-white/[0.07]"
                 data-oid="t268v-z"
               >
                 <TabsList
-                  className={`w-full h-12 bg-gradient-to-r from-slate-50/90 to-blue-50/90 dark:from-slate-800/90 dark:to-blue-900/20 backdrop-blur-sm border ${effectiveTheme.border} rounded-xl p-1.5 shadow-sm overflow-hidden`}
+                  className={cn(ADMIN_TABS_LIST, 'w-full grid')}
+                  style={{ gridTemplateColumns: `repeat(${sections.length}, minmax(0, 1fr))` }}
                   data-oid="0l0urcb"
                 >
                   {sections.map((_, idx) => (
                     <TabsTrigger
                       key={idx}
                       value={String(idx)}
-                      className={`relative h-full flex-1 text-xs font-semibold rounded-lg transition-all duration-300 
-                                            data-[state=active]:bg-gradient-to-r ${effectiveTheme.gradient} data-[state=active]:text-white 
-                                            data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/25 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-700/50 group overflow-hidden`}
+                      className={ADMIN_TAB_TRIGGER}
                       data-oid="lc-e3b."
                     >
-                      <span className="flex items-center gap-2 z-10 relative" data-oid="vy::a6i">
+                      <span className="flex items-center gap-1.5 z-10 relative" data-oid="vy::a6i">
                         <span
-                          className={`flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold transition-all duration-300
-                                                data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=active]:shadow-sm
-                                                bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300
-                                                group-data-[state=inactive]:scale-95 group-data-[state=active]:scale-100`}
+                          className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-stone-300"
                           data-oid="hz302ht"
                         >
                           {idx + 1}
                         </span>
-                        <span className="font-medium" data-oid="u.getx1">
-                          Passage {idx + 1}
-                        </span>
+                        <span data-oid="u.getx1">Passage {idx + 1}</span>
                       </span>
                     </TabsTrigger>
                   ))}
@@ -1663,7 +1646,7 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                         setSections(n);
                       }}
                       placeholder="Passage Title"
-                      className="h-7 w-1/2 text-xs bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200"
+                      className="h-7 w-1/2 text-xs bg-white dark:bg-stone-900 dark:border-stone-700 dark:text-stone-200"
                       data-oid="x-gmzqe"
                     />
                   </div>
@@ -1675,7 +1658,7 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                         n[activeSectionIndex].content = val;
                         setSections(n);
                       }}
-                      className="min-h-full h-full bg-white dark:bg-slate-950 shadow-sm"
+                      className="min-h-full h-full bg-white dark:bg-stone-950 shadow-sm"
                       rows={40}
                       data-oid="g5dqr4r"
                     />
@@ -1689,12 +1672,12 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         {/* Resize Handle */}
         {isPassageVisible && (
           <div
-            className={`w-0.5 hover:w-1 cursor-col-resize flex items-center justify-center group transition-all relative z-50 bg-slate-200 dark:bg-slate-800 hover:${effectiveTheme.primary}`}
+            className="w-0.5 hover:w-1 cursor-col-resize flex items-center justify-center group transition-all relative z-50 bg-stone-200 dark:bg-white/10 hover:bg-stone-400 dark:hover:bg-white/20"
             onMouseDown={() => setIsResizing(true)}
             data-oid="pcf_5op"
           >
             <div
-              className={`w-4 h-8 rounded-full bg-white dark:bg-slate-700 shadow-sm border flex items-center justify-center transition-colors group-hover:border-${effectiveTheme.color}-300`}
+              className="w-4 h-8 rounded-full bg-white dark:bg-[#1b1b1e] shadow-sm border border-stone-200/80 dark:border-white/10 flex items-center justify-center transition-colors group-hover:border-stone-400 dark:group-hover:border-white/20"
               data-oid="agebkc0"
             >
               <GripVertical
@@ -1707,60 +1690,53 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
 
         {/* Right: Question Groups */}
         <div
-          className="flex flex-col bg-slate-50/50 dark:bg-slate-900/50 overflow-y-auto p-3 md:p-4"
+          className="flex flex-col h-full min-h-0 bg-stone-50 dark:bg-white/[0.015] overflow-y-auto p-3 md:p-4"
           style={{ width: isPassageVisible ? `${100 - passageWidth}%` : '100%' }}
           data-oid="34j-1tj"
         >
-          <div className="max-w-4xl mx-auto space-y-6 w-full" data-oid="47n62f:">
+          <div className="max-w-4xl mx-auto space-y-4 w-full" data-oid="47n62f:">
             <div
-              className={`flex flex-wrap justify-between items-center gap-4 mb-6 p-5 rounded-2xl border shadow-sm ${effectiveTheme.light} ${effectiveTheme.border}`}
+              className={cn(PANEL, 'flex flex-wrap justify-between items-center gap-4 p-4')}
               data-oid="w2ds3jg"
             >
               <div className="min-w-[200px]" data-oid="zf.oahq">
                 <h2
-                  className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2"
+                  className="text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50 flex items-center gap-2"
                   data-oid="9jslgqu"
                 >
                   Questions (Passage {activeSectionIndex + 1})
                 </h2>
-                <p className="text-slate-500 dark:text-slate-400 text-sm" data-oid="8s3oqtu">
+                <p className="text-stone-500 dark:text-stone-400 text-xs" data-oid="8s3oqtu">
                   Manage questions for this passage.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2" data-oid="eieprnh">
-                <Button
+                <AdminButton
                   onClick={() => setBulkImportConfig({ isOpen: true, mode: 'answers_only' })}
                   variant="outline"
-                  className="shadow-sm border bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
                   title="Import Answers Only"
                   data-oid="gr582.n"
                 >
-                  <List className="w-4 h-4 mr-2" data-oid="jlncz0j" /> Answers
-                </Button>
-                <Button
+                  <List className="w-3.5 h-3.5" data-oid="jlncz0j" /> Answers
+                </AdminButton>
+                <AdminButton
                   onClick={() => setBulkImportConfig({ isOpen: true, mode: 'full' })}
                   variant="outline"
-                  className="shadow-sm border bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
                   data-oid="19bserm"
                 >
-                  <FileText className="w-4 h-4 mr-2" data-oid="alezjg2" /> Questions
-                </Button>
-                <Button
+                  <FileText className="w-3.5 h-3.5" data-oid="alezjg2" /> Questions
+                </AdminButton>
+                <AdminButton
                   onClick={() => setShowExplanationImport(true)}
                   variant="outline"
-                  className="shadow-sm border bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/40 border-violet-200 dark:border-violet-800/40"
                   title="Import Paraphrase Detective Explanations"
                   data-oid="explanation-import-btn"
                 >
-                  <Sparkles className="w-4 h-4 mr-2" /> Explanations
-                </Button>
-                <Button
-                  onClick={addGroup}
-                  className="shadow-sm border bg-white dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700"
-                  data-oid="rsx-6m7"
-                >
-                  <Plus className="w-4 h-4 mr-2" data-oid="-p.y91_" /> Add Group
-                </Button>
+                  <Sparkles className="w-3.5 h-3.5" /> Explanations
+                </AdminButton>
+                <AdminButton onClick={addGroup} data-oid="rsx-6m7">
+                  <Plus className="w-3.5 h-3.5" data-oid="-p.y91_" /> Add Group
+                </AdminButton>
               </div>
             </div>
 
@@ -1791,41 +1767,41 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className={`text-center py-24 border-2 border-dashed rounded-3xl ${effectiveTheme.border} ${effectiveTheme.lighter}`}
+                className="text-center py-20 border-2 border-dashed border-stone-200 dark:border-white/10 rounded-2xl bg-stone-50/60 dark:bg-white/[0.02]"
                 data-oid="_4n8vck"
               >
-                <div className="flex flex-col items-center gap-4" data-oid="1m6dv61">
+                <div className="flex flex-col items-center gap-3" data-oid="1m6dv61">
                   <div
-                    className={`w-20 h-20 rounded-full ${effectiveTheme.light} flex items-center justify-center animate-pulse`}
+                    className="w-14 h-14 rounded-full bg-stone-100 dark:bg-white/[0.04] flex items-center justify-center"
                     data-oid="3vn-ppr"
                   >
                     <FileText
-                      className={`w-10 h-10 ${effectiveTheme.text} opacity-50`}
+                      className="w-6 h-6 text-stone-400 dark:text-stone-500"
                       data-oid="e3c1bq2"
                     />
                   </div>
                   <div data-oid="a7j130z">
                     <p
-                      className="text-slate-500 dark:text-slate-400 font-bold text-lg mb-1"
+                      className="text-stone-700 dark:text-stone-200 font-bold text-sm mb-1"
                       data-oid="2mpl.by"
                     >
                       No questions added yet
                     </p>
                     <p
-                      className="text-slate-400 dark:text-slate-500 text-sm max-w-xs mx-auto"
+                      className="text-stone-400 dark:text-stone-500 text-xs max-w-xs mx-auto"
                       data-oid="90-zer:"
                     >
                       Start by adding a question group to creating your test structure.
                     </p>
                   </div>
-                  <Button
+                  <AdminButton
                     onClick={addGroup}
                     variant="outline"
-                    className={`mt-4 border-dashed border-${effectiveTheme.color}-300 hover:bg-${effectiveTheme.color}-50 text-${effectiveTheme.color}-600`}
+                    className="mt-2"
                     data-oid="6z8nrmu"
                   >
                     Add First Group
-                  </Button>
+                  </AdminButton>
                 </div>
               </motion.div>
             )}
@@ -1924,6 +1900,19 @@ const QuestionGroupEditor = ({
   theme,
   dragControls,
 }) => {
+  // Local stone-based style tokens — QuestionGroupEditor concatenates these
+  // into class strings below, so the shape here matters more than the
+  // caller's `theme` prop (which only carries an `icon`, see BASE_THEME).
+  const t = {
+    ring: 'ring-stone-400/20',
+    color: 'stone',
+    lighter: 'bg-stone-50 dark:bg-white/[0.02]',
+    primary: 'bg-stone-800 dark:bg-stone-600',
+    text: 'text-stone-600 dark:text-stone-300',
+    border: 'border-stone-200/80 dark:border-white/[0.07]',
+    ...theme,
+  };
+
   const totalQuestions = group.questions.reduce((acc, q) => acc + getQuestionCount(q), 0);
   const endNum = startNum + Math.max(0, totalQuestions - 1);
   const rangeLabel =
@@ -1953,17 +1942,17 @@ const QuestionGroupEditor = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className={`bg-white dark:bg-slate-900 rounded-xl border shadow-sm transition-all hover:shadow-md ${group.isCollapsed ? 'border-border/50' : theme.ring + ' ring-1 border-' + theme.color + '-200 dark:border-' + theme.color + '-800'}`}
+      className={`bg-white dark:bg-[#131315] rounded-xl border shadow-sm transition-all hover:shadow-md ${group.isCollapsed ? 'border-stone-200/80 dark:border-white/[0.07]' : t.ring + ' ring-1 border-stone-300 dark:border-white/20'}`}
       data-oid="h64_h:t"
     >
       <div
-        className={`p-4 flex items-center justify-between cursor-pointer transition-colors rounded-t-xl ${group.isCollapsed ? 'hover:bg-slate-50 dark:hover:bg-slate-800/50' : theme.lighter}`}
+        className={`p-4 flex items-center justify-between cursor-pointer transition-colors rounded-t-xl ${group.isCollapsed ? 'hover:bg-stone-50 dark:hover:bg-white/5' : t.lighter}`}
         onClick={() => onUpdate({ ...group, isCollapsed: !group.isCollapsed })}
         data-oid="3bpybzb"
       >
         <div className="flex items-center gap-2" data-oid="8is8ba4">
           <div
-            className="cursor-grab active:cursor-grabbing p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+            className="cursor-grab active:cursor-grabbing p-1 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 transition-colors"
             onPointerDown={(e) => dragControls.start(e)}
             data-oid="0:7xd6x"
           >
@@ -1971,7 +1960,7 @@ const QuestionGroupEditor = ({
           </div>
           <div className="flex items-center gap-3" data-oid="c.q9alw">
             <div
-              className={`p-1.5 rounded-lg transition-transform duration-300 ${group.isCollapsed ? '-rotate-90 bg-slate-100 dark:bg-slate-800 text-slate-500' : 'rotate-0 ' + theme.primary + ' text-white'}`}
+              className={`p-1.5 rounded-lg transition-transform duration-300 ${group.isCollapsed ? '-rotate-90 bg-stone-100 dark:bg-[#18181b] text-stone-500 dark:text-stone-300 border border-stone-200/80 dark:border-white/10' : 'rotate-0 bg-stone-600 dark:bg-stone-600 text-white shadow-sm'}`}
               data-oid="e.ijww."
             >
               <ChevronDown className="w-4 h-4" data-oid="69gtvby" />
@@ -1983,7 +1972,7 @@ const QuestionGroupEditor = ({
                 </span>
                 <Badge
                   variant="secondary"
-                  className="text-[10px] font-medium bg-white/50 dark:bg-black/20 border-0"
+                  className="text-[9px] font-black bg-white dark:bg-stone-800 border-stone-100 dark:border-white/10 text-stone-600 dark:text-stone-300 shadow-sm uppercase tracking-widest px-2"
                   data-oid="tehx0q4"
                 >
                   {totalQuestions} questions
@@ -2000,7 +1989,7 @@ const QuestionGroupEditor = ({
               e.stopPropagation();
               onRemove();
             }}
-            className="h-8 w-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full transition-colors"
+            className="h-8 w-8 p-0 text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.06)] dark:hover:bg-[rgb(var(--signal-fault)/0.06)] rounded-full transition-colors"
             data-oid="0fj6yjb"
           >
             <Trash2 className="w-4 h-4" data-oid="fvjye0l" />
@@ -2021,11 +2010,11 @@ const QuestionGroupEditor = ({
             <div className="p-5 space-y-6" data-oid="9-szmdu">
               {/* Instructions Block */}
               <div
-                className="bg-slate-50/50 dark:bg-slate-800/50 rounded-lg p-3 border border-slate-100 dark:border-slate-800"
+                className="bg-stone-50/50 dark:bg-stone-800/50 rounded-lg p-3 border border-stone-100 dark:border-stone-800"
                 data-oid="dtwnn_j"
               >
                 <label
-                  className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1"
+                  className="text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-2 flex items-center gap-1"
                   data-oid="xv31c3m"
                 >
                   <List className="w-3 h-3" data-oid="bgd313_" /> Group Instructions
@@ -2035,7 +2024,7 @@ const QuestionGroupEditor = ({
                   onChange={(v) => onUpdate({ ...group, instructions: v })}
                   placeholder="e.g. Choose the correct letter, A, B, C or D."
                   rows={2}
-                  className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus-within:ring-0 focus-within:border-blue-400"
+                  className="bg-white dark:bg-stone-950 border-stone-200 dark:border-stone-800 focus-within:ring-0 focus-within:border-stone-400"
                   mode="simple"
                   data-oid="._a1g7:"
                 />
@@ -2046,14 +2035,14 @@ const QuestionGroupEditor = ({
                 {group.questions.map((q, qIdx) => (
                   <div
                     key={q.id}
-                    className="relative pl-4 border-l-2 border-slate-100 dark:border-slate-800 hover:border-blue-500/50 transition-colors group/item"
+                    className="relative pl-4 border-l-2 border-stone-100 dark:border-stone-800 hover:border-stone-500/50 transition-colors group/item"
                     data-oid="t0x14oz"
                   >
                     <div className="flex justify-between items-start mb-3" data-oid="aiav2az">
                       <div className="flex items-center gap-3" data-oid="shipgsj">
                         <Badge
                           variant="outline"
-                          className={`text-[10px] uppercase font-bold tracking-wider ${theme.text} ${theme.border} bg-white dark:bg-slate-900 shadow-sm`}
+                          className={`text-[10px] uppercase font-bold tracking-wider ${t.text} ${t.border} bg-white dark:bg-[#131315] shadow-sm`}
                           data-oid="gk1mwhe"
                         >
                           {q.type.replace(/_/g, ' ')}
@@ -2062,20 +2051,20 @@ const QuestionGroupEditor = ({
                         {/* Multi-Select Logic */}
                         {q.type === 'multiple_choice' && (
                           <div
-                            className="flex items-center gap-2 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900"
+                            className="flex items-center gap-2 px-2 py-0.5 rounded-md border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900"
                             data-oid="uws1qbl"
                           >
                             <Checkbox
                               id={`multi-${q.id}`}
                               checked={q.allow_multiple}
                               onCheckedChange={(c) => updateQuestion(qIdx, 'allow_multiple', c)}
-                              className="h-4 w-4 rounded-sm border-2 border-slate-300 dark:border-slate-600 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-blue-500 data-[state=checked]:to-blue-600 data-[state=checked]:border-blue-500 data-[state=checked]:text-white data-[state=checked]:shadow-sm data-[state=checked]:shadow-blue-500/25 transition-all duration-200"
+                              className="h-4 w-4 rounded-sm border-2 border-stone-300 dark:border-stone-600 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-stone-500 data-[state=checked]:to-stone-600 data-[state=checked]:border-stone-500 data-[state=checked]:text-white data-[state=checked]:shadow-sm data-[state=checked]: transition-all duration-200"
                               data-oid="gnzjjnp"
                             />
 
                             <label
                               htmlFor={`multi-${q.id}`}
-                              className="text-[10px] font-medium cursor-pointer whitespace-nowrap text-slate-600 dark:text-slate-400"
+                              className="text-[10px] font-medium cursor-pointer whitespace-nowrap text-stone-600 dark:text-stone-400"
                               data-oid="sp-jw4l"
                             >
                               Multi-Select
@@ -2098,7 +2087,7 @@ const QuestionGroupEditor = ({
                         variant="ghost"
                         size="icon"
                         onClick={() => removeQuestion(qIdx)}
-                        className="h-6 w-6 opacity-0 group-hover/item:opacity-100 text-slate-400 hover:text-red-500 transition-all"
+                        className="h-6 w-6 opacity-0 group-hover/item:opacity-100 text-stone-400 hover:text-[rgb(var(--signal-fault))] transition-all"
                         data-oid="h_3::gm"
                       >
                         <X className="w-3 h-3" data-oid="2xo4etb" />
@@ -2113,7 +2102,7 @@ const QuestionGroupEditor = ({
                             value={q.question_text}
                             onChange={(e) => updateQuestion(qIdx, 'question_text', e.target.value)}
                             placeholder="Type your question here..."
-                            className="font-medium bg-transparent border-0 border-b border-slate-200 dark:border-slate-800 rounded-none px-0 focus-visible:ring-0 focus-visible:border-blue-500 placeholder:text-slate-400"
+                            className="font-medium bg-transparent border-0 border-b border-stone-200 dark:border-stone-800 rounded-none px-0 focus-visible:ring-0 focus-visible:border-stone-500 placeholder:text-stone-400"
                             data-oid="n8or7:q"
                           />
 
@@ -2147,8 +2136,8 @@ const QuestionGroupEditor = ({
                                         ? q.correct_answer.includes(opt)
                                         : q.correct_answer === opt
                                     )
-                                      ? `${theme.primary} text-white border-transparent`
-                                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 hover:border-blue-400'
+                                      ? `${t.primary} text-white dark:text-stone-900 border-transparent`
+                                      : 'bg-white dark:bg-[#131315] border-stone-200 dark:border-white/10 text-stone-600 dark:text-stone-300 hover:border-stone-400 dark:hover:border-white/25'
                                   }`}
                                   data-oid="kgfkfqc"
                                 >
@@ -2162,7 +2151,7 @@ const QuestionGroupEditor = ({
                                       nO[oI] = e.target.value;
                                       updateQuestion(qIdx, 'options', nO);
                                     }}
-                                    className="h-8 text-sm bg-slate-50 dark:bg-slate-900/50 border-transparent focus:bg-white dark:focus:bg-slate-900 focus:border-slate-200 transition-all"
+                                    className="h-8 text-sm bg-stone-50 dark:bg-stone-900/50 border-transparent focus:bg-white dark:focus:bg-stone-900 focus:border-stone-200 transition-all"
                                     placeholder={`Option ${String.fromCharCode(65 + oI)}`}
                                     data-oid="maer:7:"
                                   />
@@ -2181,11 +2170,11 @@ const QuestionGroupEditor = ({
                           {/* Title Input (always show for short_answer/summary_completion) */}
                           {(q.type === 'short_answer' || q.type === 'summary_completion') && (
                             <div
-                              className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700"
+                              className="flex items-center gap-2 bg-stone-100 dark:bg-stone-800 p-2 rounded-lg border border-stone-200 dark:border-stone-700"
                               data-oid="kchsz1r"
                             >
                               <span
-                                className="text-[10px] font-bold uppercase text-slate-400 whitespace-nowrap"
+                                className="text-[10px] font-bold uppercase text-stone-400 whitespace-nowrap"
                                 data-oid="zd3oydl"
                               >
                                 Box Title:
@@ -2199,13 +2188,13 @@ const QuestionGroupEditor = ({
                                   })
                                 }
                                 placeholder="e.g. Why believe the 'light screen' hypothesis?"
-                                className="h-7 bg-white dark:bg-slate-900 border-0 focus-visible:ring-1 focus-visible:ring-blue-400 font-medium text-sm"
+                                className="h-7 bg-white dark:bg-stone-900 border-0 focus-visible:ring-1 focus-visible: font-medium text-sm"
                                 data-oid="92n3e-p"
                               />
                             </div>
                           )}
                           <div
-                            className="flex justify-between items-center bg-slate-50 dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800 focus-within:ring-1 focus-within:ring-blue-400"
+                            className="flex justify-between items-center bg-stone-50 dark:bg-stone-900 p-2 rounded-lg border border-stone-100 dark:border-stone-800 focus-within:ring-1 focus-within:"
                             data-oid="9xgdzas"
                           >
                             <Input
@@ -2256,7 +2245,7 @@ const QuestionGroupEditor = ({
                             </Button>
                           </div>
                           <div className="flex items-center gap-3" data-oid="wohuqd6">
-                            <span className="text-xs font-medium text-slate-500" data-oid="6kpx5ap">
+                            <span className="text-xs font-medium text-stone-500" data-oid="6kpx5ap">
                               Correct Answer:
                             </span>
                             <Input
@@ -2265,7 +2254,7 @@ const QuestionGroupEditor = ({
                                 updateQuestion(qIdx, 'correct_answer', e.target.value)
                               }
                               placeholder="Enter strict answer key"
-                              className="h-8 w-full max-w-sm font-mono text-sm border-emerald-200 bg-emerald-50/30 dark:bg-emerald-950/20 dark:border-emerald-900 text-emerald-700 dark:text-emerald-400"
+                              className="h-8 w-full max-w-sm font-mono text-sm border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)] bg-[rgb(var(--signal-ok)/0.06)] border-[rgb(var(--signal-ok)/0.3)] text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))]"
                               data-oid="xfqmmtv"
                             />
                           </div>
@@ -2277,11 +2266,11 @@ const QuestionGroupEditor = ({
                         <div className="grid grid-cols-1 gap-3" data-oid="29ssvpg">
                           {/* Title Input */}
                           <div
-                            className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700"
+                            className="flex items-center gap-2 bg-stone-100 dark:bg-stone-800 p-2 rounded-lg border border-stone-200 dark:border-stone-700"
                             data-oid=":2jw7sy"
                           >
                             <span
-                              className="text-[10px] font-bold uppercase text-slate-400 whitespace-nowrap"
+                              className="text-[10px] font-bold uppercase text-stone-400 whitespace-nowrap"
                               data-oid="yx-_n.0"
                             >
                               Title:
@@ -2295,7 +2284,7 @@ const QuestionGroupEditor = ({
                                 })
                               }
                               placeholder="e.g. Wildfires"
-                              className="h-7 bg-white dark:bg-slate-900 border-0 focus-visible:ring-1 focus-visible:ring-blue-400 font-medium text-sm"
+                              className="h-7 bg-white dark:bg-stone-900 border-0 focus-visible:ring-1 focus-visible: font-medium text-sm"
                               data-oid="28zravl"
                             />
                           </div>
@@ -2305,7 +2294,7 @@ const QuestionGroupEditor = ({
                             <div className="flex items-center justify-between" data-oid=".ty6:u5">
                               <div className="flex items-center gap-2" data-oid="notes-label-row">
                                 <span
-                                  className="text-xs font-medium text-slate-500"
+                                  className="text-xs font-medium text-stone-500"
                                   data-oid="2eq_owm"
                                 >
                                   Structured Notes Content:
@@ -2314,7 +2303,7 @@ const QuestionGroupEditor = ({
                                   type="button"
                                   variant="outline"
                                   size="xs"
-                                  className="h-5 text-[10px] px-2 py-0 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 transition-colors"
+                                  className="h-5 text-[10px] px-2 py-0 hover:bg-stone-50 dark:hover:bg-stone-900/20 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 transition-colors"
                                   onClick={() => {
                                     const text = q.gap_fill?.structured_text || '';
                                     const gaps = Array.from(text.matchAll(/\[(\d+)\]/g)).map((m) =>
@@ -2355,7 +2344,7 @@ const QuestionGroupEditor = ({
                               </div>
                               {q.gap_fill?.gap_count > 0 && (
                                 <span
-                                  className="text-xs text-blue-600 dark:text-blue-400 font-medium"
+                                  className="text-xs text-stone-600 dark:text-stone-400 font-medium"
                                   data-oid="ptugbf4"
                                 >
                                   {q.gap_fill.gap_count} gap(s) detected
@@ -2375,11 +2364,11 @@ const QuestionGroupEditor = ({
                                 });
                               }}
                               placeholder={`Use [N] for gaps, e.g.:\n● Characteristics of wildfires:\n– occurrence: more frequent\n– movement: [1] more unpredictably`}
-                              className="min-h-[200px] font-mono text-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+                              className="min-h-[200px] font-mono text-sm bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-700"
                               data-oid="w_647y2"
                             />
 
-                            <p className="text-[10px] text-slate-400" data-oid="56mwscv">
+                            <p className="text-[10px] text-stone-400" data-oid="56mwscv">
                               Use ● for main bullets, – for sub-bullets. Use [1], [2], etc. for gap
                               placeholders.
                             </p>
@@ -2388,12 +2377,12 @@ const QuestionGroupEditor = ({
                           {/* Answers Configuration */}
                           {q.gap_fill?.gap_count > 0 && (
                             <div
-                              className="bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 rounded-xl p-3 space-y-3"
+                              className="bg-stone-50/50 dark:bg-white/[0.02] border border-stone-200/80 dark:border-white/[0.07] rounded-xl p-3 space-y-3"
                               data-oid="8:kyuh1"
                             >
                               <div className="flex items-center justify-between" data-oid="dx.t:oy">
                                 <span
-                                  className="text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400 tracking-wider"
+                                  className="text-[10px] font-bold uppercase text-stone-600 dark:text-stone-300 tracking-wider"
                                   data-oid="90yibzj"
                                 >
                                   Answers Configuration
@@ -2418,7 +2407,7 @@ const QuestionGroupEditor = ({
                                     >
                                       <Badge
                                         variant="outline"
-                                        className="w-6 h-6 rounded-full p-0 flex items-center justify-center shrink-0 border-emerald-200 text-emerald-600 bg-white"
+                                        className="w-6 h-6 rounded-full p-0 flex items-center justify-center shrink-0 border-stone-200 dark:border-white/10 text-stone-600 dark:text-stone-300 bg-white dark:bg-[#18181b]"
                                         data-oid="w0ajnh0"
                                       >
                                         {num}
@@ -2434,7 +2423,7 @@ const QuestionGroupEditor = ({
                                           });
                                         }}
                                         placeholder="Correct answer"
-                                        className="h-8 text-xs border-emerald-100 bg-white/80 dark:bg-slate-900 focus-visible:ring-emerald-500"
+                                        className="h-8 text-xs border-stone-200 dark:border-white/10 bg-white dark:bg-[#18181b] text-stone-900 dark:text-stone-100 focus-visible:ring-1 focus-visible:ring-stone-400/30"
                                         data-oid="r4g1o02"
                                       />
                                     </div>
@@ -2457,7 +2446,7 @@ const QuestionGroupEditor = ({
                       {/* TFNG Types */}
                       {(q.type === 'true_false_not_given' || q.type === 'yes_no_not_given') && (
                         <div
-                          className="flex items-center gap-4 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800"
+                          className="flex items-center gap-4 p-2 bg-stone-50 dark:bg-stone-900/50 rounded-lg border border-stone-100 dark:border-stone-800"
                           data-oid="z25p19m"
                         >
                           <Input
@@ -2469,7 +2458,7 @@ const QuestionGroupEditor = ({
                           />
 
                           <div
-                            className="flex gap-1 bg-white dark:bg-slate-950 p-1 rounded-md border shadow-sm"
+                            className="flex gap-1 bg-white dark:bg-stone-950 p-1 rounded-md border shadow-sm"
                             data-oid="3:hajm3"
                           >
                             {(q.type === 'yes_no_not_given'
@@ -2479,7 +2468,7 @@ const QuestionGroupEditor = ({
                               <button
                                 key={o}
                                 onClick={() => updateQuestion(qIdx, 'correct_answer', o)}
-                                className={`px-3 py-1 text-[10px] font-bold rounded transition-colors ${q.correct_answer === o ? 'bg-slate-900 text-white dark:bg-slate-200 dark:text-slate-900' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                className={`px-3 py-1 text-[10px] font-bold rounded transition-colors ${q.correct_answer === o ? 'bg-stone-900 text-white dark:bg-stone-200 dark:text-stone-900' : 'text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800'}`}
                                 data-oid="bq3qxl."
                               >
                                 {o === 'NOT GIVEN' ? 'NG' : o.charAt(0)}
@@ -2523,7 +2512,7 @@ const QuestionGroupEditor = ({
 
               {/* Add Question Footer */}
               <div
-                className="flex flex-wrap items-center gap-3 pt-4 mt-6 border-t border-dashed border-slate-200 dark:border-slate-800"
+                className="flex flex-wrap items-center gap-3 pt-4 mt-6 border-t border-dashed border-stone-200 dark:border-stone-800"
                 data-oid="wre6fms"
               >
                 <DropdownMenu data-oid="-ytuila">
@@ -2531,16 +2520,16 @@ const QuestionGroupEditor = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-9 px-4 rounded-full border-dashed hover:border-solid hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-xs font-medium"
+                      className="h-9 px-4 rounded-full border-dashed hover:border-solid hover:bg-stone-50 dark:hover:bg-stone-800 transition-all text-xs font-medium"
                       data-oid="qft9hn."
                     >
-                      <Plus className="w-3.5 h-3.5 mr-2 text-slate-500" data-oid="3q3yhce" /> Add
+                      <Plus className="w-3.5 h-3.5 mr-2 text-stone-500" data-oid="3q3yhce" /> Add
                       Single Question
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-56 p-1" data-oid="nsiw_kp">
                     <div
-                      className="px-2 py-1.5 text-xs font-medium text-slate-400 uppercase tracking-wider"
+                      className="px-2 py-1.5 text-xs font-medium text-stone-400 uppercase tracking-wider"
                       data-oid="5ij3nke"
                     >
                       Basic Types
@@ -2567,7 +2556,7 @@ const QuestionGroupEditor = ({
                       Answer
                     </DropdownMenuItem>
                     <div
-                      className="px-2 py-1.5 text-xs font-medium text-slate-400 uppercase tracking-wider mt-2"
+                      className="px-2 py-1.5 text-xs font-medium text-stone-400 uppercase tracking-wider mt-2"
                       data-oid="zltq.j5"
                     >
                       Complex Types
@@ -2592,17 +2581,17 @@ const QuestionGroupEditor = ({
 
                 <div className="ml-auto flex items-center gap-2" data-oid="h84y89r">
                   <span
-                    className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mr-1"
+                    className="text-[10px] font-medium text-stone-400 uppercase tracking-wider mr-1"
                     data-oid="rre_698"
                   >
                     Quick Bulk Add
                   </span>
                   <div
-                    className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border dark:border-slate-700"
+                    className="flex items-center bg-stone-100 dark:bg-stone-800 rounded-lg p-0.5 border dark:border-stone-700"
                     data-oid=":3i5i5p"
                   >
                     <select
-                      className="h-7 bg-transparent text-xs border-0 focus:ring-0 text-slate-600 dark:text-slate-300 font-medium"
+                      className="h-7 bg-transparent text-xs border-0 focus:ring-0 text-stone-600 dark:text-stone-300 font-medium"
                       value={addType}
                       onChange={(e) => setAddType(e.target.value)}
                       data-oid="5lu7z-s"
@@ -2621,7 +2610,7 @@ const QuestionGroupEditor = ({
                       </option>
                     </select>
                     <div
-                      className="w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1"
+                      className="w-px h-4 bg-stone-300 dark:bg-stone-600 mx-1"
                       data-oid="dlm6neq"
                     />
 
@@ -2638,7 +2627,7 @@ const QuestionGroupEditor = ({
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-7 w-7 rounded-md hover:bg-white dark:hover:bg-slate-700 shadow-sm"
+                      className="h-7 w-7 rounded-md hover:bg-white dark:hover:bg-stone-700 shadow-sm"
                       onClick={() => onAddQuestion(addType, parseInt(addCount) || 1)}
                       data-oid="6jq:74p"
                     >

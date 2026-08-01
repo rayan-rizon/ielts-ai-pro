@@ -30,6 +30,8 @@ import {
   Megaphone,
   RefreshCcw,
   Sparkles,
+  X,
+  Smartphone,
 } from 'lucide-react';
 import { Notification } from '@/entities';
 import { toast } from 'sonner';
@@ -44,6 +46,13 @@ import {
   STAGGER_CONTAINER,
   FADE_UP,
 } from '../ui/primitives';
+import {
+  PANEL as USER_PANEL,
+  IconChip,
+  Pill as UserPill,
+  TITLE as USER_TITLE,
+  MUTED as USER_MUTED,
+} from '@/features/dashboard/components/primitives';
 
 const FIELD_INPUT =
   'h-9 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
@@ -54,22 +63,139 @@ const TYPE_META = {
     label: 'Info',
     icon: Info,
     cls: 'text-blue-600 dark:text-blue-400 border-blue-300/50 dark:border-blue-800/60 bg-blue-500/[0.06]',
+    userTone: 'sky',
   },
   success: {
     label: 'Success',
     icon: CheckCircle2,
     cls: 'text-emerald-600 dark:text-emerald-400 border-emerald-300/50 dark:border-emerald-800/60 bg-emerald-500/[0.06]',
+    userTone: 'emerald',
   },
   warning: {
     label: 'Alert',
     icon: AlertCircle,
     cls: 'text-amber-600 dark:text-amber-400 border-amber-300/50 dark:border-amber-800/60 bg-amber-500/[0.06]',
+    userTone: 'amber',
   },
   announcement: {
     label: 'Announce',
     icon: Megaphone,
     cls: 'text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-800/60 bg-violet-500/[0.06]',
+    userTone: 'accent',
   },
+};
+
+const AUDIENCE_LABEL = {
+  all: 'All Users',
+  free: 'Free Tier',
+  pro: 'Pro Users',
+  premium: 'Premium Users',
+};
+
+const TYPE_DESCRIPTION = {
+  info: 'Neutral, FYI',
+  success: 'Positive update',
+  warning: 'Needs attention',
+  announcement: 'Product-wide news',
+};
+
+/**
+ * Mocks the notification exactly as it will render inside the learner
+ * dashboard's notification list — same primitives, same tones — so admins
+ * aren't guessing at how a broadcast reads before it goes out.
+ */
+const NotificationUserPreview = ({ form }) => {
+  const meta = TYPE_META[form.type] || TYPE_META.info;
+  const Icon = meta.icon;
+  const title = form.title.trim() || 'Your notification title';
+  const message = form.message.trim() || 'Your message will appear here as you type…';
+  const isEmpty = !form.title.trim() && !form.message.trim();
+
+  return (
+    <div className={cn(PANEL, 'p-4 h-full flex flex-col')}>
+      <div className="flex items-center gap-1.5 mb-3">
+        <Smartphone className="w-3 h-3 text-stone-400 dark:text-stone-500" />
+        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+          Live preview — learner dashboard
+        </p>
+      </div>
+
+      {/* Mini "dashboard" swatch the card sits on, so it reads as a different surface */}
+      <div className="rounded-lg bg-[#f8f7fc] dark:bg-white/[0.04] p-4">
+        <div
+          className={cn(
+            USER_PANEL,
+            'p-3.5 flex items-start gap-3 shadow-sm transition-opacity duration-200',
+            isEmpty && 'opacity-60'
+          )}
+        >
+          <IconChip icon={Icon} tone={meta.userTone} size="md" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <p className={cn(USER_TITLE, 'break-words')}>{title}</p>
+              <X className="w-3.5 h-3.5 shrink-0 text-slate-300 dark:text-slate-600 mt-0.5" />
+            </div>
+            <p className="mt-1 text-[12px] leading-snug text-slate-600 dark:text-slate-300 break-words">
+              {message}
+            </p>
+            <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+              <UserPill tone={meta.userTone}>{meta.label}</UserPill>
+              <span className={cn(MICRO, USER_MUTED)}>Just now</span>
+              <span className={cn(MICRO, USER_MUTED)}>
+                · {AUDIENCE_LABEL[form.target_audience] || 'All Users'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p
+        className={cn(MICRO, 'text-stone-400 dark:text-stone-500 mt-3 normal-case tracking-normal')}
+      >
+        Visible for {form.expires_in_days || 0} day
+        {String(form.expires_in_days) === '1' ? '' : 's'} after sending, to{' '}
+        {(AUDIENCE_LABEL[form.target_audience] || 'All Users').toLowerCase()}.
+      </p>
+
+      {/* Type guide — fills the rest of the column with something genuinely useful:
+          what each type looks like, so admins pick the right one before sending. */}
+      <div className="mt-5 pt-4 border-t border-stone-200/80 dark:border-white/[0.07]">
+        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-2.5')}>Type guide</p>
+        <div className="space-y-1.5">
+          {Object.entries(TYPE_META).map(([key, t]) => {
+            const TIcon = t.icon;
+            const active = form.type === key;
+            return (
+              <div
+                key={key}
+                className={cn(
+                  'flex items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors',
+                  active
+                    ? 'bg-stone-100 dark:bg-white/[0.05]'
+                    : 'hover:bg-stone-50 dark:hover:bg-white/[0.02]'
+                )}
+              >
+                <IconChip icon={TIcon} tone={t.userTone} size="sm" />
+                <span
+                  className={cn(
+                    'text-xs font-bold',
+                    active
+                      ? 'text-stone-900 dark:text-stone-50'
+                      : 'text-stone-500 dark:text-stone-400'
+                  )}
+                >
+                  {t.label}
+                </span>
+                <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500 ml-auto')}>
+                  {TYPE_DESCRIPTION[key]}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const NotificationCenter = () => {
@@ -270,8 +396,15 @@ const NotificationCenter = () => {
           </div>
         </motion.div>
 
-        {/* History Table */}
+        {/* Live Preview */}
         <motion.div variants={FADE_UP} className="lg:col-span-8">
+          <NotificationUserPreview form={form} />
+        </motion.div>
+      </div>
+
+      {/* History Table */}
+      <div className="grid lg:grid-cols-12 gap-4">
+        <motion.div variants={FADE_UP} className="lg:col-span-12">
           <div className={cn(PANEL, 'overflow-hidden')}>
             {/* Mobile list */}
             <div className="md:hidden divide-y divide-stone-100 dark:divide-white/[0.05]">

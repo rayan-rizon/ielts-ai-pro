@@ -23,6 +23,7 @@ const StatBand = React.memo(({ stats, weeklyProgress, user }) => {
   const avg = Number(stats?.avgScore) || 0;
   const target = Number(stats?.targetScore) || 7;
   const totalTests = Number(stats?.totalTests) || 0;
+  const abandonedTests = Number(stats?.abandonedTests) || 0;
   const streak = Number(stats?.streak) || 0;
   const todayMinutes = Number(stats?.todayMinutes) || 0;
   const gap = avg > 0 ? Math.max(0, target - avg) : null;
@@ -41,18 +42,24 @@ const StatBand = React.memo(({ stats, weeklyProgress, user }) => {
   }, [daysToExam, weekTests]);
 
   return (
-    <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-1.5 lg:grid-cols-5">
       <Stat
         size="sm"
+        className="px-2.5 py-1.5"
         icon={Target}
         label="Band average"
         value={avg > 0 ? avg.toFixed(1) : '—'}
-        sub={totalTests > 0 ? `across ${totalTests} tests` : 'no tests yet'}
-        tip="Your mean band across every scored test."
+        sub={totalTests > 0 ? `across ${totalTests - abandonedTests} tests` : 'no tests yet'}
+        tip={
+          abandonedTests > 0
+            ? `Your mean band across every scored test. ${abandonedTests} left early and are excluded.`
+            : 'Your mean band across every scored test.'
+        }
       />
 
       <Stat
         size="sm"
+        className="px-2.5 py-1.5"
         icon={Flag}
         label="To target"
         value={gap != null ? gap.toFixed(1) : '—'}
@@ -63,6 +70,7 @@ const StatBand = React.memo(({ stats, weeklyProgress, user }) => {
 
       <Stat
         size="sm"
+        className="px-2.5 py-1.5"
         icon={Flame}
         tone="amber"
         label="Streak"
@@ -74,6 +82,7 @@ const StatBand = React.memo(({ stats, weeklyProgress, user }) => {
 
       <Stat
         size="sm"
+        className="px-2.5 py-1.5"
         icon={Zap}
         tone="emerald"
         label="This week"
@@ -85,6 +94,7 @@ const StatBand = React.memo(({ stats, weeklyProgress, user }) => {
 
       <Stat
         size="sm"
+        className="px-2.5 py-1.5"
         icon={CalendarClock}
         label="Exam"
         value={daysToExam != null && daysToExam >= 0 ? daysToExam : '—'}

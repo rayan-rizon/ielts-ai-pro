@@ -73,7 +73,7 @@ function KitsLibrary() {
       <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 dark:bg-[#0b0a10] dark:text-white">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+          className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
         />
         <div
           aria-hidden="true"
@@ -286,7 +286,7 @@ function KitDetail({ kit }) {
       <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 dark:bg-[#0b0a10] dark:text-white">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+          className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
         />
         <main
           ref={pageTopRef}
@@ -382,7 +382,7 @@ function MissingKit() {
     <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] px-4 py-20 dark:bg-[#0b0a10]">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.5px,transparent_1.5px)] bg-[size:24px_24px] opacity-[0.12] dark:opacity-[0.16]"
+        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
       />
       <section className={cn(PANEL, 'relative z-10 mx-auto max-w-xl p-8 text-center')}>
         <BookOpenText className="mx-auto h-8 w-8 text-[#5a63df]" />

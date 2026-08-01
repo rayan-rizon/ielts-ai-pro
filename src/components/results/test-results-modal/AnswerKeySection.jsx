@@ -68,7 +68,7 @@ export const AnswerKeySection = React.memo(
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.25 }}
-        className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] border border-[#dce0f5] dark:border-white/10 shadow-[0_10px_30px_-15px_rgba(86,97,233,0.12)] space-y-3 h-full flex flex-col justify-between"
+        className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs space-y-3 h-full flex flex-col justify-between"
       >
         {/* Header & Filter Tabs */}
         <div className="flex items-center justify-between flex-wrap gap-2">
@@ -77,7 +77,7 @@ export const AnswerKeySection = React.memo(
           </h3>
 
           {/* Filter Tab Pills */}
-          <div className="flex items-center gap-1 bg-[#eeeff8] dark:bg-[#101322] p-1 rounded-xl border border-[#dce0f5] dark:border-white/10 shadow-2xs relative">
+          <div className="flex items-center gap-1 bg-[#f4f3fb] dark:bg-white/[0.04] p-1 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs relative">
             {[
               { id: 'all', label: `All (${totalQuestions})` },
               { id: 'wrong', label: `Incorrect (${statusCounts.wrong})` },
@@ -101,7 +101,7 @@ export const AnswerKeySection = React.memo(
                       layoutId="answerKeyFilterTabPill"
                       initial={false}
                       transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                      className="absolute inset-0 bg-[#5661e9] rounded-lg shadow-2xs -z-10"
+                      className="absolute inset-0 bg-[#5a63df] rounded-lg shadow-2xs -z-10"
                     />
                   )}
                   {t.label}
@@ -131,7 +131,7 @@ export const AnswerKeySection = React.memo(
                   }}
                   className={cn(
                     'h-8 rounded-lg flex items-center justify-center text-xs font-black transition-all border shadow-2xs',
-                    'active:scale-95 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#5661e9]/50',
+                    'active:scale-95 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#5a63df]/50',
                     status === 'correct'
                       ? 'bg-emerald-50/90 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-800/60 hover:bg-emerald-100'
                       : status === 'wrong'
@@ -149,7 +149,7 @@ export const AnswerKeySection = React.memo(
         </div>
 
         {/* Status Dots Legend */}
-        <div className="flex flex-wrap items-center justify-center gap-5 pt-2.5 border-t border-[#dce0f5]/80 dark:border-white/10">
+        <div className="flex flex-wrap items-center justify-center gap-5 pt-2.5 border-t border-[#e4e2f0] dark:border-white/[0.07]">
           <div className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-2xs" />
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">

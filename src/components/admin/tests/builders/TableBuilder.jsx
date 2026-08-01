@@ -291,7 +291,7 @@ const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }
 
       {/* Editor Toolbar */}
       <div
-        className="flex items-center justify-between gap-3 p-3 bg-gradient-to-r from-slate-50/80 to-gray-50/80 dark:from-slate-800/50 dark:to-gray-800/50 rounded-xl border border-slate-200/60 dark:border-slate-700/50 shadow-sm shadow-slate-500/10 overflow-x-auto"
+        className="flex items-center justify-between gap-3 p-2.5 bg-stone-50 dark:bg-[#18181b] rounded-xl border border-stone-200 dark:border-white/10 overflow-x-auto"
         data-oid="wyde:xp"
       >
         <div className="flex items-center gap-2 flex-shrink-0" data-oid="lj-c:xe">
@@ -299,19 +299,19 @@ const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }
             variant="outline"
             size="sm"
             onClick={addColumn}
-            className="bg-white dark:bg-slate-900 border-slate-200/60 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition-all duration-200 whitespace-nowrap"
+            className="h-8 px-2.5 text-xs font-semibold bg-white dark:bg-[#131315] border-stone-200 dark:border-white/10 text-stone-800 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 shadow-2xs transition-all whitespace-nowrap"
             data-oid="atkqi_x"
           >
-            <Plus className="w-3 h-3 mr-1" data-oid="tp456l2" /> Add Column
+            <Plus className="w-3.5 h-3.5 mr-1 text-stone-500" data-oid="tp456l2" /> Add Column
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={addRow}
-            className="bg-white dark:bg-slate-900 border-slate-200/60 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition-all duration-200 whitespace-nowrap"
+            className="h-8 px-2.5 text-xs font-semibold bg-white dark:bg-[#131315] border-stone-200 dark:border-white/10 text-stone-800 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 shadow-2xs transition-all whitespace-nowrap"
             data-oid="tss3kdj"
           >
-            <Plus className="w-3 h-3 mr-1" data-oid="y52gg93" /> Add Row
+            <Plus className="w-3.5 h-3.5 mr-1 text-stone-500" data-oid="y52gg93" /> Add Row
           </Button>
           <Button
             variant="ghost"
@@ -546,16 +546,22 @@ const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }
 
       {/* Blanks Summary */}
       {tableData.blanks.length > 0 && (
-        <div className={`rounded-lg p-3 border ${t.light} ${t.border}`} data-oid="_ueyj62">
-          <div className="flex items-center gap-2 mb-2" data-oid="-hyilfe">
+        <div
+          className="rounded-xl p-4 border bg-stone-50/80 dark:bg-[#18181b]/80 border-stone-200 dark:border-white/10"
+          data-oid="_ueyj62"
+        >
+          <div className="flex items-center gap-2 mb-3" data-oid="-hyilfe">
             <Badge
               variant="outline"
-              className={`bg-background ${t.text} ${t.border}`}
+              className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/40 font-bold text-[10px]"
               data-oid="pgfr15w"
             >
               {tableData.blanks.length} Blanks
             </Badge>
-            <span className={`text-xs font-medium ${t.text}`} data-oid="1hx6x:s">
+            <span
+              className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400"
+              data-oid="1hx6x:s"
+            >
               Verify your answers below
             </span>
           </div>
@@ -565,11 +571,11 @@ const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }
               .map((b, i) => (
                 <div
                   key={i}
-                  className={`flex items-center gap-2 bg-background p-1.5 rounded-lg border shadow-sm ${t.border}`}
+                  className="flex items-center gap-2 bg-white dark:bg-[#131315] p-1.5 rounded-lg border border-stone-200 dark:border-white/10 shadow-2xs"
                   data-oid=":kml064"
                 >
                   <div
-                    className={`w-5 h-5 rounded-full ${t.light} ${t.text} flex items-center justify-center text-[10px] font-bold shrink-0`}
+                    className="w-5 h-5 rounded-full bg-stone-100 dark:bg-white/10 text-stone-700 dark:text-stone-200 flex items-center justify-center text-[10px] font-mono font-bold shrink-0"
                     data-oid="e91r-qj"
                   >
                     {b.blankNumber}
@@ -577,14 +583,14 @@ const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }
                   <Input
                     value={b.answer}
                     onChange={(e) => updateBlankAnswer(b.blankNumber, e.target.value)}
-                    className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent"
+                    className="h-6 text-xs border-0 p-0 focus-visible:ring-0 bg-transparent text-stone-900 dark:text-stone-100 font-medium placeholder:text-stone-400 dark:placeholder:text-stone-500"
                     placeholder="Answer..."
                     data-oid="s7q4:ii"
                   />
                 </div>
               ))}
           </div>
-          <p className="text-[10px] text-muted-foreground mt-2" data-oid="p_rsbw7">
+          <p className="text-[10px] text-stone-400 dark:text-stone-500 mt-2.5" data-oid="p_rsbw7">
             * Blanks are numbered in order of creation. Ensure placeholders match these numbers.
           </p>
         </div>

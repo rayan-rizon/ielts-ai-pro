@@ -76,7 +76,7 @@ export default function CookieConsent() {
 
   return (
     <div
-      className="fixed bottom-3 right-3 left-auto sm:bottom-4 sm:right-4 max-w-[calc(100vw-1.5rem)] xs:max-w-[290px] sm:max-w-[310px] z-[200] animate-in fade-in slide-in-from-bottom-3 duration-300"
+      className="fixed bottom-3 right-3 left-auto sm:bottom-4 sm:right-4 max-w-[calc(100vw-1.5rem)] min-[480px]:max-w-[290px] sm:max-w-[310px] z-[200] animate-in fade-in slide-in-from-bottom-3 duration-300"
       data-oid="h_5l9:v"
     >
       <div

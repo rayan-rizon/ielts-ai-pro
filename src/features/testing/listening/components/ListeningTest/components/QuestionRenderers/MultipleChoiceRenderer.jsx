@@ -52,7 +52,7 @@ const MultipleChoiceRenderer = ({
 
     if (!isFinished) {
       if (isSelected || isChecked) {
-        return `${baseStyle} bg-blue-50/90 border-blue-500/80 text-blue-950 dark:bg-blue-950/40 dark:border-blue-500/60 dark:text-blue-100 font-medium shadow-xs ring-1 ring-blue-500/20`;
+        return `${baseStyle} bg-[#5a63df]/10 border-[#5a63df]/60 text-[#3a3f9e] dark:bg-[#5a63df]/20 dark:border-[#5a63df]/50 dark:text-[#c9cdf3] font-medium shadow-xs ring-1 ring-[#5a63df]/20`;
       }
       return `${baseStyle} border-transparent bg-transparent text-slate-700 dark:text-slate-200 hover:bg-slate-100/70 dark:hover:bg-slate-800/50 hover:border-slate-200/60 dark:hover:border-slate-700/60`;
     }
@@ -170,10 +170,10 @@ const MultipleChoiceRenderer = ({
                       badgeClass +=
                         'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600';
                   } else if (isChecked) {
-                    badgeClass += 'bg-blue-600 text-white dark:bg-blue-500 shadow-xs scale-105';
+                    badgeClass += 'bg-[#5a63df] text-white shadow-xs scale-105';
                   } else {
                     badgeClass +=
-                      'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 group-hover:text-blue-700 dark:group-hover:text-blue-300';
+                      'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-[#5a63df]/15 dark:group-hover:bg-[#5a63df]/25 group-hover:text-[#5a63df] dark:group-hover:text-[#c9cdf3]';
                   }
 
                   return (
@@ -196,7 +196,7 @@ const MultipleChoiceRenderer = ({
                         data-oid="gy78z.3"
                       />
 
-                      <span className={badgeClass} data-oid="mcq-badge">
+                      <span className={`mcq-option-badge ${badgeClass}`} data-oid="mcq-badge">
                         {letter}
                       </span>
 
@@ -231,10 +231,10 @@ const MultipleChoiceRenderer = ({
                       badgeClass +=
                         'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600';
                   } else if (isSelected) {
-                    badgeClass += 'bg-blue-600 text-white dark:bg-blue-500 shadow-xs scale-105';
+                    badgeClass += 'bg-[#5a63df] text-white shadow-xs scale-105';
                   } else {
                     badgeClass +=
-                      'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 group-hover:text-blue-700 dark:group-hover:text-blue-300';
+                      'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-[#5a63df]/15 dark:group-hover:bg-[#5a63df]/25 group-hover:text-[#5a63df] dark:group-hover:text-[#c9cdf3]';
                   }
 
                   return (
@@ -255,7 +255,7 @@ const MultipleChoiceRenderer = ({
                         className="sr-only"
                         data-oid="zuduu96"
                       />
-                      <span className={badgeClass} data-oid="mcq-badge">
+                      <span className={`mcq-option-badge ${badgeClass}`} data-oid="mcq-badge">
                         {letter}
                       </span>
                       <span

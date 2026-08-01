@@ -148,12 +148,12 @@ function FAQSection({ faqs, viewport, handlePrimaryCta }) {
   return (
     <SoftSection
       id="faq"
-      className="scroll-mt-24 bg-white dark:bg-[#070a16] py-16 md:py-24 relative overflow-hidden"
+      className="scroll-mt-24 bg-white dark:bg-[#0b0a10] py-16 md:py-24 relative overflow-hidden"
       data-oid="_3z_paz"
     >
       {/* Dark mode background glow accents */}
-      <div className="pointer-events-none absolute left-1/4 top-1/3 -translate-y-1/2 h-96 w-96 rounded-full bg-violet-600/10 blur-[120px] dark:block hidden" />
-      <div className="pointer-events-none absolute right-1/4 bottom-10 h-80 w-80 rounded-full bg-indigo-600/10 blur-[100px] dark:block hidden" />
+      <div className="pointer-events-none absolute left-1/4 top-1/3 -translate-y-1/2 h-96 w-96 rounded-full bg-violet-600/10 blur-[120px] dark:block hidden dark:bg-[#5a63df]/10" />
+      <div className="pointer-events-none absolute right-1/4 bottom-10 h-80 w-80 rounded-full bg-indigo-600/10 blur-[100px] dark:block hidden dark:bg-[#5a63df]/[0.08]" />
 
       <div className="relative z-10 mx-auto max-w-[1380px] px-5 md:px-8">
         <m.div

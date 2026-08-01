@@ -35,7 +35,7 @@ const NavItem = memo(({ item, isActive }) => {
       <SidebarMenuButton
         asChild
         className={cn(
-          'group relative mb-0.5 rounded-lg border border-transparent transition-colors duration-150',
+          'group relative mb-0.5 rounded-lg border border-transparent transition-all duration-200 ease-sidebar',
           isActive ? ACCENT_ACTIVE : cn('text-slate-600 dark:text-slate-300', ACCENT_HOVER)
         )}
         tooltip={item.title}
@@ -47,11 +47,17 @@ const NavItem = memo(({ item, isActive }) => {
             if (isMobile) setOpenMobile(false);
           }}
         >
-          {isActive && (
-            <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-[#5a63df]" />
-          )}
+          <span
+            className={cn(
+              'absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-[#5a63df] transition-all duration-200 ease-sidebar',
+              isActive ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0'
+            )}
+          />
 
-          <item.icon className="h-4 w-4 shrink-0" strokeWidth={2} />
+          <item.icon
+            className="h-4 w-4 shrink-0 transition-colors duration-200 ease-sidebar"
+            strokeWidth={2}
+          />
 
           <span className="truncate font-semibold group-data-[collapsible=icon]:hidden">
             {item.title}
@@ -159,7 +165,7 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
         <div className="space-y-1.5">
           <div className="mb-1 flex justify-center">
             <SidebarTrigger
-              className="text-slate-400 transition-colors hover:text-[#5a63df] dark:text-slate-500"
+              className="text-slate-400 transition-colors duration-200 ease-sidebar hover:text-[#5a63df] dark:text-slate-500"
               aria-label="Toggle sidebar"
             />
           </div>
@@ -176,7 +182,7 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
                 if (isMobile) setOpenMobile(false);
               }}
             >
-              <div className="flex items-center gap-2.5 rounded-lg border border-[#5a63df]/20 bg-[#5a63df]/[0.06] px-3 py-2.5 transition-colors hover:bg-[#5a63df]/[0.1] dark:border-[#5a63df]/25 dark:bg-[#5a63df]/[0.12] dark:hover:bg-[#5a63df]/[0.18]">
+              <div className="flex items-center gap-2.5 rounded-lg border border-[#5a63df]/20 bg-[#5a63df]/[0.06] px-3 py-2.5 transition-colors duration-200 ease-sidebar hover:bg-[#5a63df]/[0.1] dark:border-[#5a63df]/25 dark:bg-[#5a63df]/[0.12] dark:hover:bg-[#5a63df]/[0.18]">
                 <Crown className="h-4 w-4 shrink-0 text-[#5a63df]" strokeWidth={2} />
                 <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
                   <p className="text-[12px] font-bold leading-tight text-[#4a52c9] dark:text-[#c3c7ff]">
@@ -197,7 +203,7 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
               if (isMobile) setOpenMobile(false);
             }}
           >
-            <div className="flex items-center gap-2.5 rounded-lg border border-transparent px-2 py-2 transition-colors hover:border-slate-100 hover:bg-slate-50 group-data-[collapsible=icon]:justify-center dark:hover:border-white/[0.06] dark:hover:bg-white/[0.04]">
+            <div className="flex items-center gap-2.5 rounded-lg border border-transparent px-2 py-2 transition-colors duration-200 ease-sidebar hover:border-slate-100 hover:bg-slate-50 group-data-[collapsible=icon]:justify-center dark:hover:border-white/[0.06] dark:hover:bg-white/[0.04]">
               <div className="h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
                 <img
                   src={
@@ -235,7 +241,7 @@ export const UserSidebar = memo(({ user, location, handleLogout }) => {
               if (isMobile) setOpenMobile(false);
               handleLogout();
             }}
-            className="w-full justify-start gap-2.5 rounded-lg px-3 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+            className="w-full justify-start gap-2.5 rounded-lg px-3 text-slate-500 transition-colors duration-200 ease-sidebar hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-400"
           >
             <LogOut className="h-4 w-4" strokeWidth={2} />
             <span className="text-[13px] font-semibold group-data-[collapsible=icon]:hidden">

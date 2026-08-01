@@ -804,7 +804,7 @@ function ReadingTestContent() {
   if (error) {
     return (
       <div
-        className="p-6 md:p-8 min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-slate-950 dark:via-gray-900 dark:to-slate-900 flex items-center justify-center"
+        className="p-6 md:p-8 min-h-screen bg-[#f8f8fb] dark:bg-[#0b0a10] flex items-center justify-center"
         data-oid="29w.h8c"
       >
         <Card className="max-w-md w-full" data-oid="egxywnt">
@@ -974,7 +974,7 @@ function ReadingTestContent() {
 
             {/* Questions Sidebar - Resizable */}
             <div
-              className="flex flex-col bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm md:border-l border-border h-full"
+              className="flex flex-col bg-[#f8f8fb] dark:bg-[#0b0a10] md:border-l md:border-[#e4e2f0] md:dark:border-white/[0.07] h-full"
               style={{
                 width: isMobile ? '100%' : `${100 - passageWidth}%`,
                 height: isMobile ? '50%' : '100%',

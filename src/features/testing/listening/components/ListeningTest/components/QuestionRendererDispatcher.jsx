@@ -32,7 +32,7 @@ export default function QuestionRendererDispatcher({
     isInsideMergedCard,
     cardClass: isInsideMergedCard
       ? 'mb-2.5 bg-transparent p-0 border-0 shadow-none'
-      : 'mb-3.5 border border-slate-200/80 dark:border-slate-800 shadow-2xs bg-white dark:bg-slate-900 rounded-xl overflow-hidden',
+      : 'mb-3.5 border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] rounded-xl overflow-hidden',
   };
 
   return (
@@ -40,7 +40,7 @@ export default function QuestionRendererDispatcher({
       <Suspense
         fallback={
           <div className="p-4 flex justify-center" data-oid="w2itdlr">
-            <Loader2 className="animate-spin h-5 w-5 text-blue-500" data-oid="62j.nqg" />
+            <Loader2 className="animate-spin h-5 w-5 text-[#5a63df]" data-oid="62j.nqg" />
           </div>
         }
         data-oid="0p03x66"

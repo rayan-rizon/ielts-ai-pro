@@ -38,7 +38,7 @@ export default function ReadingTestSheetDrawer({
           'bg-card border-l border-border flex flex-col overflow-hidden',
           isInline
             ? 'relative z-40 h-full flex-shrink-0 shadow-none border-t-0 rounded-none w-80 max-w-[320px]'
-            : 'fixed right-0 top-[76px] h-[calc(100vh-76px)] w-full sm:w-80 border-t shadow-2xl z-[100] rounded-tl-2xl'
+            : 'fixed right-0 top-[76px] h-[calc(100vh-76px)] w-full sm:w-80 border-t shadow-lg z-[100] rounded-tl-2xl'
         )}
         data-oid="fwsy8kw"
       >

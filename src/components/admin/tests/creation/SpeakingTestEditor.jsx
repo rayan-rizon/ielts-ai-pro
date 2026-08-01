@@ -1,54 +1,16 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Loader2,
-  Save,
-  X,
-  Mic,
-  Plus,
-  Trash2,
-  Clock,
-  ArrowLeft,
-  Undo2,
-  Redo2,
-  Info,
-  ChevronUp,
-  ShieldCheck,
-} from 'lucide-react';
+import { Mic, Plus, Trash2, Clock, Undo2, Redo2, Info, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { cn } from '@/lib/cn';
 import TestEditorHeader from './TestEditorHeader';
+import { AdminButton, PANEL, MICRO, PILL_BASE, pillTone, SectionLabel } from '../../ui/primitives';
 
 const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
-  // Use Rose theme if not provided
-  const effectiveTheme = theme || {
-    color: 'rose',
-    primary: 'bg-rose-600',
-    primaryHover: 'hover:bg-rose-700',
-    text: 'text-rose-600',
-    light: 'bg-rose-50 dark:bg-rose-950/40',
-    lighter: 'bg-rose-50/50 dark:bg-rose-950/20',
-    border: 'border-rose-200 dark:border-rose-900',
-    hover: 'hover:bg-rose-50',
-    icon: Mic,
-    gradient: 'from-rose-500 to-pink-500',
-    ring: 'ring-rose-500/20',
-  };
+  const effectiveTheme = theme || { icon: Mic };
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -252,11 +214,7 @@ const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
   };
 
   return (
-    <div
-      className="flex flex-col h-screen bg-slate-50 dark:bg-background text-foreground rounded-xl overflow-hidden"
-      data-oid="a2-9aeg"
-    >
-      {/* Premium Header */}
+    <div className="flex flex-col h-screen bg-stone-100 dark:bg-[#08080a] text-stone-900 dark:text-stone-50 overflow-hidden">
       <TestEditorHeader
         title={formData.title}
         theme={effectiveTheme}
@@ -266,158 +224,113 @@ const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         onSave={handleSave}
         onCancel={onCancel}
         isSaving={loading}
-        lastSaved={null}
+        lastSaved={lastSaved}
         showActiveToggle={true}
         leftActions={
           <>
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
+              type="button"
               onClick={handleUndo}
               disabled={historyIndex <= 0}
-              className="h-7 w-7 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 disabled:opacity-30"
-              data-oid="pmyrgy-"
+              className="h-6 w-6 grid place-items-center rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 disabled:opacity-30 disabled:pointer-events-none transition-colors"
             >
-              <Undo2 className="w-4 h-4" data-oid="zms:9eu" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
+              <Undo2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
               onClick={handleRedo}
               disabled={historyIndex >= history.length - 1}
-              className="h-7 w-7 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 disabled:opacity-30"
-              data-oid="f85ozhj"
+              className="h-6 w-6 grid place-items-center rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 disabled:opacity-30 disabled:pointer-events-none transition-colors"
             >
-              <Redo2 className="w-4 h-4" data-oid="maqmor:" />
-            </Button>
+              <Redo2 className="w-3.5 h-3.5" />
+            </button>
           </>
         }
-        data-oid="3l:ec6a"
       />
 
       {error && (
-        <Alert variant="destructive" className="m-4" data-oid=":bgn.vn">
-          <AlertDescription data-oid=".0iu9a7">{error}</AlertDescription>
-        </Alert>
+        <div className="mx-4 sm:mx-6 mt-4 flex items-center gap-2 rounded-lg border border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)] px-3 py-2 text-xs font-semibold text-[rgb(var(--signal-fault))]">
+          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+          {error}
+        </div>
       )}
 
       {/* Main Content */}
-      <div
-        className="flex-1 overflow-y-auto p-4 md:p-8 bg-muted/10 dark:bg-card/20"
-        data-oid="0yar6.6"
-      >
-        <div className="max-w-4xl mx-auto space-y-6" data-oid="6h7p0yt">
+      <div className="flex-1 overflow-y-auto p-4 md:p-8">
+        <div className="max-w-4xl mx-auto space-y-4">
           {/* Description */}
-          <Card className="border shadow-none bg-background" data-oid="bby4g25">
-            <CardHeader className="py-3 px-4 border-b bg-muted/10" data-oid="ry5_ebk">
-              <CardTitle className="text-sm font-medium text-muted-foreground" data-oid="_v2:30h">
-                Test Description
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4" data-oid="9c32frz">
-              <Textarea
-                value={formData.description || ''}
-                onChange={(e) => updateFormData('description', e.target.value)}
-                placeholder="Enter a brief description for this test..."
-                className="resize-none border-0 shadow-none focus-visible:ring-0 p-0 text-sm min-h-[60px]"
-                data-oid="p5k2sfq"
-              />
-            </CardContent>
-          </Card>
-
-          <div className="flex items-center justify-between" data-oid="n07dff_">
-            <h2 className="text-xl font-bold flex items-center gap-2" data-oid="em14up4">
-              <Mic className={`w-5 h-5 ${effectiveTheme.text}`} data-oid="s8gx4iu" /> Speaking Parts
-            </h2>
-            <Button
-              onClick={addPart}
-              variant="outline"
-              size="sm"
-              className={`${effectiveTheme.border} ${effectiveTheme.text} hover:${effectiveTheme.light}`}
-              data-oid="g:fbk1v"
-            >
-              <Plus className="w-4 h-4 mr-2" data-oid="gx36ui." /> Add Part
-            </Button>
+          <div className={cn(PANEL, 'p-4')}>
+            <SectionLabel className="mb-2">Test Description</SectionLabel>
+            <Textarea
+              value={formData.description || ''}
+              onChange={(e) => updateFormData('description', e.target.value)}
+              placeholder="Enter a brief description for this test..."
+              className="resize-none border-0 shadow-none focus-visible:ring-0 p-0 text-sm min-h-[50px] bg-transparent"
+            />
           </div>
 
-          <div className="space-y-4" data-oid="ck2f0_1">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-extrabold tracking-tight flex items-center gap-2 text-stone-900 dark:text-stone-50">
+              <Mic className="w-4 h-4 text-stone-400 dark:text-stone-500" /> Speaking Parts
+            </h2>
+            <AdminButton variant="outline" size="sm" onClick={addPart}>
+              <Plus className="w-3.5 h-3.5" /> Add Part
+            </AdminButton>
+          </div>
+
+          <div className="space-y-3">
             {parts.map((part, index) => (
-              <Card
-                key={index}
-                className="border-border shadow-sm overflow-hidden group hover:border-rose-300 transition-colors"
-                data-oid="4rw0gcw"
-              >
-                <CardHeader
-                  className={`py-3 px-4 border-b flex flex-row items-center justify-between bg-muted/10`}
-                  data-oid="3op-yif"
-                >
-                  <div className="flex items-center gap-3" data-oid="lkhfmg9">
-                    <Badge variant="outline" className="bg-background" data-oid="vyp0upo">
+              <div key={index} className={cn(PANEL, 'overflow-hidden group')}>
+                <div className="py-2.5 px-4 border-b border-stone-200/80 dark:border-white/[0.07] flex items-center justify-between bg-stone-50/60 dark:bg-white/[0.02]">
+                  <div className="flex items-center gap-3">
+                    <span className={cn(PILL_BASE, pillTone('neutral'))}>
                       Part {part.part_number}
-                    </Badge>
+                    </span>
                     <Input
                       value={part.title}
                       onChange={(e) => handlePartChange(index, 'title', e.target.value)}
-                      className="h-7 w-64 font-semibold bg-transparent border-transparent hover:border-border focus-visible:ring-0 px-2"
+                      className="h-7 w-64 font-bold bg-transparent border-transparent hover:border-stone-200 dark:hover:border-white/10 focus-visible:ring-0 px-2 text-stone-900 dark:text-stone-100"
                       placeholder="Part Title"
-                      data-oid="xoafmju"
                     />
                   </div>
-                  <div className="flex items-center gap-2" data-oid="ic58j:4">
-                    <div
-                      className="flex items-center gap-1 bg-background px-2 py-1 rounded border"
-                      data-oid=".1qj12e"
-                    >
-                      <Clock className="w-3 h-3 text-muted-foreground" data-oid="wh1vs9." />
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 bg-white dark:bg-[#131315] px-2 py-1 rounded-md border border-stone-200/80 dark:border-white/[0.07]">
+                      <Clock className="w-3 h-3 text-stone-400 dark:text-stone-500" />
                       <Input
                         type="number"
                         value={part.duration_minutes}
                         onChange={(e) =>
                           handlePartChange(index, 'duration_minutes', parseInt(e.target.value))
                         }
-                        className="h-5 w-10 text-xs border-0 p-0 text-center focus-visible:ring-0"
-                        data-oid="izzpiv9"
+                        className="h-5 w-10 text-xs border-0 p-0 text-center focus-visible:ring-0 bg-transparent"
                       />
-
-                      <span className="text-[10px] text-muted-foreground" data-oid=":mdm2ut">
-                        min
-                      </span>
+                      <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>min</span>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
+                    <button
+                      type="button"
                       onClick={() => removePart(index)}
-                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                      data-oid="tyxr29i"
+                      className="h-7 w-7 grid place-items-center rounded-md text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors active:scale-90"
                     >
-                      <Trash2 className="w-4 h-4" data-oid="f:8h2ke" />
-                    </Button>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                </CardHeader>
-                <CardContent className="p-4" data-oid="69eg5nt">
-                  <Label
-                    className="text-xs font-semibold text-muted-foreground mb-2 block uppercase tracking-wider"
-                    data-oid="olck5cc"
-                  >
+                </div>
+                <div className="p-4">
+                  <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-2 block')}>
                     Examiner Script (AI Prompt)
                   </Label>
                   <Textarea
                     value={part.prompt}
                     onChange={(e) => handlePartChange(index, 'prompt', e.target.value)}
                     placeholder={`Enter questions split by newlines.\nExample:\nWhat is your full name?\nDo you work or are you a student?`}
-                    className="font-sans text-sm min-h-[120px] resize-y bg-muted/10 border-border/50 focus-visible:ring-rose-500/20"
-                    data-oid="nnr:pam"
+                    className="font-sans text-sm min-h-[120px] resize-y bg-stone-50 dark:bg-white/[0.02] border-stone-200/80 dark:border-white/[0.07] focus-visible:ring-stone-400/20"
                   />
-
-                  <p
-                    className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1"
-                    data-oid="ojol6pj"
-                  >
-                    <Info className="w-3 h-3" data-oid="aiink1v" /> The AI examiner will read these
-                    questions one by one. Text in [brackets] is ignored (instructions).
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-2 flex items-center gap-1">
+                    <Info className="w-3 h-3" /> The AI examiner will read these questions one by
+                    one. Text in [brackets] is ignored (instructions).
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </div>

@@ -191,11 +191,11 @@ const AudioPlayer = React.forwardRef(
 
     return (
       <div
-        className="bg-white/80 dark:bg-slate-900/80 rounded-xl shadow-2xs border border-slate-200/70 dark:border-slate-800 p-3 sm:p-3.5 backdrop-blur-md relative overflow-hidden transition-all duration-300"
+        className="bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] rounded-xl shadow-2xs border border-[#e4e2f0] dark:border-white/[0.07] p-3 sm:p-3.5 relative overflow-hidden transition-all duration-300"
         data-oid="gf2zoyb"
       >
         <div
-          className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-purple-500/5 dark:from-blue-500/10 dark:to-purple-500/10 opacity-100 pointer-events-none"
+          className="absolute inset-0 bg-gradient-to-r from-[#5a63df]/[0.04] via-transparent to-[#5a63df]/[0.04] dark:from-[#5a63df]/10 dark:to-[#5a63df]/10 opacity-100 pointer-events-none"
           data-oid="_gx.skv"
         />
 
@@ -214,7 +214,7 @@ const AudioPlayer = React.forwardRef(
                 <div className="flex items-center gap-2 sm:gap-4" data-oid="play-controls">
                   <Button
                     size="icon"
-                    className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 rounded-full bg-blue-600 dark:bg-blue-600 text-white shadow-lg shadow-blue-500/25 hover:bg-blue-500 hover:scale-105 active:scale-95 hover:shadow-blue-500/40 transition-all duration-300 border-none relative z-10"
+                    className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 rounded-full bg-[#5a63df] text-white hover:bg-[#4a52c9] hover:scale-105 active:scale-95 transition-all duration-300 border-none relative z-10"
                     onClick={togglePlay}
                     data-oid="91.6o0_"
                   >
@@ -233,7 +233,7 @@ const AudioPlayer = React.forwardRef(
                       variant="ghost"
                       size="icon"
                       onClick={() => skipTime(-10)}
-                      className="h-8 w-8 sm:h-9 sm:w-9 text-slate-400 hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-full transition-colors"
+                      className="h-8 w-8 sm:h-9 sm:w-9 text-slate-400 hover:text-[#5a63df] dark:text-slate-500 dark:hover:text-[#a9afff] hover:bg-[#5a63df]/10 dark:hover:bg-[#5a63df]/10 rounded-full transition-colors"
                       title="Back 10s"
                       data-oid="kd-tqao"
                     >
@@ -243,7 +243,7 @@ const AudioPlayer = React.forwardRef(
                       variant="ghost"
                       size="icon"
                       onClick={() => skipTime(10)}
-                      className="h-8 w-8 sm:h-9 sm:w-9 text-slate-400 hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-full transition-colors"
+                      className="h-8 w-8 sm:h-9 sm:w-9 text-slate-400 hover:text-[#5a63df] dark:text-slate-500 dark:hover:text-[#a9afff] hover:bg-[#5a63df]/10 dark:hover:bg-[#5a63df]/10 rounded-full transition-colors"
                       title="Forward 10s"
                       data-oid=".xod8v7"
                     >
@@ -264,12 +264,12 @@ const AudioPlayer = React.forwardRef(
                           .then(() => setIsPlaying(true))
                           .catch(() => {});
                       }}
-                      className="rounded-full bg-blue-600 px-4 text-[10px] font-black uppercase tracking-wider text-white hover:bg-blue-700"
+                      className="rounded-full bg-[#5a63df] px-4 text-[10px] font-black uppercase tracking-wider text-white hover:bg-[#4a52c9]"
                     >
                       Start audio
                     </Button>
                   ) : (
-                    <div className="rounded-full bg-blue-50 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+                    <div className="rounded-full bg-[#5a63df]/10 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-[#5a63df] dark:bg-[#5a63df]/15 dark:text-[#a9afff]">
                       {examReview ? 'Audio complete' : 'Playing once'}
                     </div>
                   )}
@@ -278,7 +278,7 @@ const AudioPlayer = React.forwardRef(
 
               {!examMode ? (
                 <div className="flex sm:hidden items-center" data-oid="mobile-rate">
-                  <div className="bg-slate-100/80 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-lg flex items-center px-2 py-1 transition-colors">
+                  <div className="bg-[#f4f3fb] dark:bg-white/[0.04] border border-[#e4e2f0] dark:border-white/[0.07] rounded-lg flex items-center px-2 py-1 transition-colors">
                     <select
                       className="text-[10px] bg-transparent border-none focus:ring-0 p-0 text-slate-600 dark:text-slate-300 font-bold cursor-pointer outline-none w-10"
                       value={playbackRate}
@@ -301,7 +301,7 @@ const AudioPlayer = React.forwardRef(
             <div className="flex-1 space-y-1 sm:space-y-1.5" data-oid="pf-:w_v">
               {examMode ? (
                 <div
-                  className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800"
+                  className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10"
                   role="progressbar"
                   aria-label="Audio progress"
                   aria-valuemin={0}
@@ -309,7 +309,7 @@ const AudioPlayer = React.forwardRef(
                   aria-valuenow={currentTime}
                 >
                   <div
-                    className="h-full bg-blue-600 transition-[width] duration-300"
+                    className="h-full bg-[#5a63df] transition-[width] duration-300"
                     style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
                   />
                 </div>
@@ -335,7 +335,7 @@ const AudioPlayer = React.forwardRef(
 
             <div className="flex items-center" data-oid="1dl5ed9">
               <div
-                className="bg-slate-100/80 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-lg flex items-center px-2.5 py-1.5 transition-colors hover:border-blue-200 dark:hover:border-blue-500/30"
+                className="bg-[#f4f3fb] dark:bg-white/[0.04] border border-[#e4e2f0] dark:border-white/[0.07] rounded-lg flex items-center px-2.5 py-1.5 transition-colors hover:border-[#5a63df]/30 dark:hover:border-[#5a63df]/30"
                 data-oid="2ht8gpv"
               >
                 <Volume2
@@ -356,7 +356,7 @@ const AudioPlayer = React.forwardRef(
                       setVolume(nextVolume);
                       if (audioRef.current) audioRef.current.volume = nextVolume;
                     }}
-                    className="w-20 accent-blue-600"
+                    className="w-20 accent-[#5a63df]"
                   />
                 ) : (
                   <select

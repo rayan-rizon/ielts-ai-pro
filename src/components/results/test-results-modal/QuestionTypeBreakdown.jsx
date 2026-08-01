@@ -33,12 +33,8 @@ const TYPE_ICONS = {
 
 const TYPE_COLORS = [
   {
-    bg: 'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300',
-    bar: 'bg-gradient-to-r from-[#5661e9] to-[#7c86ff]',
-  },
-  {
-    bg: 'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300',
-    bar: 'bg-gradient-to-r from-[#5661e9] to-[#7c86ff]',
+    bg: 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff]',
+    bar: 'bg-[#5a63df]',
   },
 ];
 
@@ -73,7 +69,7 @@ export function QuestionTypeBreakdown({ testResults }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.15 }}
-      className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] border border-[#dce0f5] dark:border-white/10 shadow-[0_10px_30px_-15px_rgba(86,97,233,0.12)] space-y-3"
+      className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs space-y-3"
     >
       <h3 className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-wider">
         Question Type Breakdown
@@ -87,7 +83,7 @@ export function QuestionTypeBreakdown({ testResults }) {
           return (
             <div
               key={item.type}
-              className="p-3 rounded-xl bg-white/90 dark:bg-white/5 border border-[#e2e5f6] dark:border-white/10 flex flex-col justify-between space-y-2.5 transition-all shadow-2xs hover:border-[#5661e9]/60 hover:shadow-xs"
+              className="p-3 rounded-xl bg-white/90 dark:bg-white/5 border border-[#e4e2f0] dark:border-white/[0.07] flex flex-col justify-between space-y-2.5 transition-all shadow-2xs hover:border-[#5a63df]/50 hover:shadow-xs"
             >
               <div className="flex items-center gap-2.5">
                 <div
@@ -109,7 +105,7 @@ export function QuestionTypeBreakdown({ testResults }) {
                     / {item.total}
                   </span>
                 </p>
-                <span className="text-xs font-black text-[#5661e9] dark:text-indigo-400">
+                <span className="text-xs font-black text-[#5a63df] dark:text-[#a9afff]">
                   {item.accuracy}%
                 </span>
               </div>

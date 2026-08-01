@@ -65,11 +65,11 @@ const HighlightMenu = memo(function HighlightMenu({
       {isExistingHighlight && (
         <button
           onClick={onEdit}
-          className="w-6 h-6 flex items-center justify-center rounded-md bg-blue-100/80 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-800/60 hover:scale-110 active:scale-90 transition-all duration-200"
+          className="w-6 h-6 flex items-center justify-center rounded-md bg-[#5a63df]/10 dark:bg-[#5a63df]/20 hover:bg-[#5a63df]/20 dark:hover:bg-[#5a63df]/30 hover:scale-110 active:scale-90 transition-all duration-200"
           title="Change Color"
           data-oid="bqhmu9s"
         >
-          <Edit3 className="w-3 h-3 text-blue-600 dark:text-blue-400" data-oid="08i-649" />
+          <Edit3 className="w-3 h-3 text-[#5a63df] dark:text-[#a9afff]" data-oid="08i-649" />
         </button>
       )}
 

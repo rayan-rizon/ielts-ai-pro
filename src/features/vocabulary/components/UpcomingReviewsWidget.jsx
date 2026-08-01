@@ -1,7 +1,7 @@
 import React from 'react';
 import { Calendar, Clock, AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { IconChip, MICRO, PANEL, Pill, TILE } from '@/features/dashboard/components/primitives';
+import { IconChip, PANEL, Pill, TILE } from '@/features/dashboard/components/primitives';
 
 export default function UpcomingReviewsWidget({
   dueForReview = [],
@@ -16,21 +16,44 @@ export default function UpcomingReviewsWidget({
     return diff > 86400000;
   }).length;
 
-  const tomorrowCount = Math.max(0, Math.round(allVocabulary.length * 0.12));
-  const next7DaysCount = Math.max(0, Math.round(allVocabulary.length * 0.35));
+  // Read from each word's real next_review_date instead of a made-up percentage
+  // of the total — a learner shouldn't see a "Tomorrow: 12" that has no relation
+  // to their actual spaced-repetition schedule. Buckets are mutually exclusive
+  // (today / tomorrow / the following 6 days) so the three counts never overlap.
+  const DAY_MS = 86400000;
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const startOfTomorrow = startOfToday.getTime() + DAY_MS;
+  const startOfDayAfterTomorrow = startOfTomorrow + DAY_MS;
+  const startOfWeekAfterNext = startOfToday.getTime() + 8 * DAY_MS;
+
+  const tomorrowCount = allVocabulary.filter((item) => {
+    if (!item.next_review_date) return false;
+    const dueAt = new Date(item.next_review_date).getTime();
+    return dueAt >= startOfTomorrow && dueAt < startOfDayAfterTomorrow;
+  }).length;
+
+  const next7DaysCount = allVocabulary.filter((item) => {
+    if (!item.next_review_date) return false;
+    const dueAt = new Date(item.next_review_date).getTime();
+    return dueAt >= startOfDayAfterTomorrow && dueAt < startOfWeekAfterNext;
+  }).length;
 
   const items = [
     {
+      // Words due today are the routine, expected state — this is what the app
+      // is for, not a problem. Amber ("something to act on"), not rose ("wrong").
       label: 'Due Today',
       count: dueToday,
       icon: Clock,
       badge: dueToday > 0 ? 'Ready' : 'Completed',
       isActionable: dueToday > 0,
-      tone: dueToday > 0 ? 'rose' : 'neutral',
-      pillTone: dueToday > 0 ? 'rose' : 'ok',
+      tone: dueToday > 0 ? 'amber' : 'neutral',
+      pillTone: dueToday > 0 ? 'amber' : 'ok',
+      arrowClass: 'text-amber-500',
       tileClass:
         dueToday > 0
-          ? 'border-rose-200/80 bg-rose-50/50 hover:border-rose-300 dark:border-rose-900/40 dark:bg-rose-950/20'
+          ? 'border-amber-200/80 bg-amber-50/50 hover:border-amber-300 dark:border-amber-900/40 dark:bg-amber-950/20'
           : '',
     },
     {
@@ -51,6 +74,8 @@ export default function UpcomingReviewsWidget({
       tone: 'accent',
       pillTone: 'accent',
     },
+    // Overdue stays rose: it's a genuine escalation past "Due Today" — these
+    // words have gone longer without review and carry real forgetting risk.
     ...(overdueCount > 0
       ? [
           {
@@ -61,6 +86,7 @@ export default function UpcomingReviewsWidget({
             isActionable: true,
             tone: 'rose',
             pillTone: 'rose',
+            arrowClass: 'text-rose-500',
             tileClass:
               'border-rose-200/80 bg-rose-50/50 hover:border-rose-300 dark:border-rose-900/40 dark:bg-rose-950/20',
           },
@@ -78,7 +104,7 @@ export default function UpcomingReviewsWidget({
           <span className="truncate">Review Schedule</span>
         </h3>
         {dueToday > 0 && (
-          <Pill tone="rose" className="shrink-0 text-[8.5px]">
+          <Pill tone="amber" className="shrink-0 text-[8.5px]">
             {dueToday} due
           </Pill>
         )}
@@ -118,7 +144,12 @@ export default function UpcomingReviewsWidget({
                 words
               </span>
               {item.isActionable && (
-                <ArrowRight className="h-3.5 w-3.5 text-rose-500 transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight
+                  className={cn(
+                    'h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5',
+                    item.arrowClass
+                  )}
+                />
               )}
             </div>
           </div>

@@ -236,12 +236,12 @@ const PassagePanel = memo(function PassagePanel({
           }
           ${
             paperTheme === 'dark'
-              ? 'prose-invert text-slate-200 prose-headings:text-white prose-p:text-slate-200 prose-strong:text-slate-100 prose-a:text-blue-400 selection:bg-blue-500/60 selection:text-white'
+              ? 'prose-invert text-slate-200 prose-headings:text-white prose-p:text-slate-200 prose-strong:text-slate-100 prose-a:text-[#a9afff] selection:bg-[#5a63df]/60 selection:text-white'
               : ''
           }
           ${
             paperTheme === 'light'
-              ? 'text-slate-900 prose-headings:text-slate-900 prose-p:text-slate-800 prose-strong:text-slate-900 prose-a:text-blue-600 selection:bg-blue-200 selection:text-blue-900 dark:text-slate-100 dark:prose-headings:text-white dark:prose-p:text-slate-300 dark:prose-strong:text-white dark:prose-a:text-blue-400 dark:selection:bg-blue-500/50 dark:selection:text-white'
+              ? 'text-slate-900 prose-headings:text-slate-900 prose-p:text-slate-800 prose-strong:text-slate-900 prose-a:text-[#5a63df] selection:bg-[#5a63df]/20 selection:text-[#3a3f9e] dark:text-slate-100 dark:prose-headings:text-white dark:prose-p:text-slate-300 dark:prose-strong:text-white dark:prose-a:text-[#a9afff] dark:selection:bg-[#5a63df]/50 dark:selection:text-white'
               : ''
           }
         `}
@@ -254,7 +254,7 @@ const PassagePanel = memo(function PassagePanel({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute pointer-events-none rounded-lg bg-blue-100/30 border border-blue-200 dark:border-blue-700/50"
+            className="absolute pointer-events-none rounded-lg bg-[#5a63df]/10 border border-[#5a63df]/25 dark:border-[#5a63df]/30"
             style={{
               top: hoveredWordRect.top - 2,
               left: hoveredWordRect.left - 4,

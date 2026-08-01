@@ -61,9 +61,9 @@ export function ArchScoreGauge({ score }) {
               y2="154"
               gradientUnits="userSpaceOnUse"
             >
-              <stop offset="0%" stopColor="#5661e9" />
-              <stop offset="55%" stopColor="#4853d6" />
-              <stop offset="100%" stopColor="#3b42c4" />
+              <stop offset="0%" stopColor="#5a63df" />
+              <stop offset="55%" stopColor="#4a52c9" />
+              <stop offset="100%" stopColor="#3d44a8" />
             </linearGradient>
             <filter id={glowId} x="-25%" y="-25%" width="150%" height="150%">
               <feGaussianBlur stdDeviation="2.5" result="blur" />
@@ -92,7 +92,7 @@ export function ArchScoreGauge({ score }) {
             cx={endX}
             cy={endY}
             r="8"
-            fill="#2563EB"
+            fill="#5a63df"
             stroke="white"
             strokeWidth="4"
             className="dark:stroke-slate-950"
@@ -121,7 +121,7 @@ export function ArchScoreGauge({ score }) {
           <span className="text-[52px] xl:text-6xl font-black tracking-[-0.06em] text-slate-950 dark:text-white leading-none mb-2">
             {bandText}
           </span>
-          <span className="px-3 py-1 rounded-lg text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+          <span className="px-3 py-1 rounded-lg text-[10px] font-bold bg-[#5a63df]/10 dark:bg-[#5a63df]/20 text-[#5a63df] dark:text-[#a9afff] border border-[#5a63df]/20 dark:border-[#5a63df]/30">
             {descriptor}
           </span>
         </div>

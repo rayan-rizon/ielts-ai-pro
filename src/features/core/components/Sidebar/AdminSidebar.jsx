@@ -76,7 +76,7 @@ const AdminSidebarHeader = memo(() => (
   <SidebarHeader className="border-b border-stone-200/70 dark:border-white/[0.06] p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
     <div className="flex items-center justify-between w-full group-data-[collapsible=icon]:justify-center">
       <Link
-        to="/admin"
+        to={createPageUrl('AdminPanel')}
         className="flex items-center gap-3 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-auto"
       >
         <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center shrink-0 w-8 h-8 mx-auto">

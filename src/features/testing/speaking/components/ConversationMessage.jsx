@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AudioLines, Pause, Radio, Sparkles } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { cn } from '@/lib/cn';
+import { MICRO, MUTED } from '@/features/dashboard/components/primitives';
 
 function cleanMessageText(text = '') {
   return String(text)
@@ -36,10 +38,10 @@ function getBubbleClass(entry) {
   // Examiner live / speaking — light rose blush
   if (entry.speaker !== 'user') {
     if (entry.isExaminerLive) {
-      return 'rounded-2xl rounded-tl-sm border border-rose-100 bg-gradient-to-br from-rose-50 to-pink-50/70 text-left font-medium text-foreground shadow-sm dark:border-rose-500/15 dark:from-rose-950/30 dark:via-zinc-900/80 dark:to-pink-950/20';
+      return 'rounded-2xl rounded-tl-sm border border-rose-100 bg-gradient-to-br from-rose-50 to-pink-50/70 text-left font-medium text-slate-800 shadow-sm dark:border-rose-500/15 dark:from-rose-500/[0.08] dark:via-[#141319] dark:to-rose-500/[0.04] dark:text-slate-100';
     }
-    // Regular examiner — clean white card
-    return 'rounded-2xl rounded-tl-sm border border-slate-100 bg-white text-left font-medium text-foreground shadow-[0_1px_6px_-2px_hsl(220_15%_50%/0.10)] dark:border-white/[0.06] dark:bg-zinc-800/70';
+    // Regular examiner — quiet panel tile
+    return 'rounded-2xl rounded-tl-sm border border-[#ebeaf7] bg-[#fbfbfe] text-left font-medium text-slate-800 shadow-[0_1px_6px_-2px_hsl(220_15%_50%/0.10)] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100';
   }
 
   // User error
@@ -49,11 +51,11 @@ function getBubbleClass(entry) {
 
   // User live/draft transcript — soft lavender
   if (entry.isLive || entry.isTranscriptDraft) {
-    return 'rounded-2xl rounded-tr-sm border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-violet-50/60 text-left font-medium text-foreground shadow-sm dark:border-violet-500/20 dark:from-violet-950/40 dark:via-zinc-900/80 dark:to-indigo-950/25';
+    return 'rounded-2xl rounded-tr-sm border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-violet-50/60 text-left font-medium text-slate-800 shadow-sm dark:border-violet-500/20 dark:from-violet-500/[0.10] dark:via-[#141319] dark:to-indigo-500/[0.08] dark:text-slate-100';
   }
 
   // Completed user message — soft indigo/lavender pastel
-  return 'rounded-2xl rounded-tr-sm border border-indigo-100/80 bg-gradient-to-br from-indigo-50 via-violet-50 to-purple-50/80 text-left font-medium text-indigo-900 shadow-sm dark:border-indigo-500/20 dark:from-indigo-950/50 dark:via-violet-950/40 dark:to-purple-950/30 dark:text-indigo-100';
+  return 'rounded-2xl rounded-tr-sm border border-indigo-100/80 bg-gradient-to-br from-indigo-50 via-violet-50 to-purple-50/80 text-left font-medium text-indigo-900 shadow-sm dark:border-indigo-500/20 dark:from-indigo-500/[0.12] dark:via-violet-500/[0.10] dark:to-purple-500/[0.08] dark:text-indigo-100';
 }
 
 function LoadingText({ speaker }) {
@@ -62,13 +64,11 @@ function LoadingText({ speaker }) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex gap-1">
-        <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0ms]" />
-        <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:150ms]" />
-        <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:300ms]" />
+        <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-bounce [animation-delay:0ms]" />
+        <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-bounce [animation-delay:150ms]" />
+        <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-bounce [animation-delay:300ms]" />
       </div>
-      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground animate-pulse">
-        {label}
-      </span>
+      <span className={cn(MICRO, MUTED, 'tracking-widest animate-pulse')}>{label}</span>
     </div>
   );
 }
@@ -282,11 +282,11 @@ const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
         <div
           className={`flex items-center gap-1.5 px-1 ${isUserMessage ? 'flex-row-reverse' : ''}`}
         >
-          <span className="truncate text-[9px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground sm:text-[10px]">
+          <span className={cn(MICRO, MUTED, 'truncate sm:text-[10px]')}>
             {entry.speaker === 'ai' ? 'Examiner' : authUser?.full_name || 'Candidate'}
           </span>
           {entry.timestamp && (
-            <span className="flex-shrink-0 font-mono text-[9px] text-muted-foreground/40 sm:text-[10px]">
+            <span className="flex-shrink-0 font-mono text-[9px] text-slate-400/70 dark:text-slate-500/50 sm:text-[10px]">
               {entry.timestamp}
             </span>
           )}

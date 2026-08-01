@@ -271,7 +271,7 @@ function WritingViewModeToggle({ viewMode, setViewMode }) {
                 type="button"
                 onClick={() => setViewMode(tab.id)}
                 className={cn(
-                  'group relative px-2.5 xs:px-3.5 sm:px-5 py-1.5 text-[11px] xs:text-xs sm:text-sm font-extrabold rounded-full transition-colors duration-200 flex-1 sm:flex-none text-center z-10 flex items-center justify-center',
+                  'group relative px-2.5 min-[480px]:px-3.5 sm:px-5 py-1.5 text-[11px] min-[480px]:text-xs sm:text-sm font-extrabold rounded-full transition-colors duration-200 flex-1 sm:flex-none text-center z-10 flex items-center justify-center',
                   isActive
                     ? 'text-[#5661e9] dark:text-white'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'

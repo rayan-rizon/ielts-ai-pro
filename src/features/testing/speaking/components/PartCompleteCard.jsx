@@ -44,10 +44,10 @@ const PartCompleteCard = React.memo(
                   <span className="inline-flex items-center rounded-full border border-rose-300/60 bg-rose-100/80 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-rose-600 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-400">
                     Section complete
                   </span>
-                  <h2 className="text-xl font-black tracking-tight text-foreground md:text-2xl">
+                  <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-50 md:text-2xl">
                     Part {currentPartNumber} Finished
                   </h2>
-                  <p className="mx-auto max-w-[26rem] text-xs font-medium leading-relaxed text-muted-foreground md:text-sm">
+                  <p className="mx-auto max-w-[26rem] text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-400 md:text-sm">
                     {hasNextPart
                       ? `You have completed this part. Tap below to start Part ${currentPartNumber + 1}.`
                       : 'Your test is complete. Your report is being generated automatically.'}

@@ -13,6 +13,7 @@ import {
   PanelFootnote,
   PanelTitle,
   Ring,
+  TILE,
 } from './primitives';
 
 /**
@@ -52,24 +53,27 @@ const VocabularyCard = React.memo(({ vocabStats }) => {
         <div className="flex flex-1 items-center gap-4">
           <Ring value={pct} label={`${pct}%`} sublabel="known" />
 
-          <div className="min-w-0 flex-1 space-y-2.5">
-            <div>
+          {/* Was two stacked lines next to a fixed 64px ring — on a wide card that
+              left the whole right half empty. TILE tiles in a 2-col grid actually
+              use the space the flex-1 wrapper already claims. */}
+          <div className="grid min-w-0 flex-1 grid-cols-2 gap-2.5">
+            <div className={cn(TILE, 'p-2.5')}>
               <p className={cn(MICRO, MUTED)}>In deck</p>
               <p
                 className={cn(
                   NUM,
-                  'text-lg font-extrabold leading-none text-slate-900 dark:text-slate-50'
+                  'mt-0.5 text-lg font-extrabold leading-none text-slate-900 dark:text-slate-50'
                 )}
               >
                 {total}
               </p>
             </div>
-            <div>
+            <div className={cn(TILE, 'p-2.5')}>
               <p className={cn(MICRO, MUTED)}>Mastered</p>
               <p
                 className={cn(
                   NUM,
-                  'text-lg font-extrabold leading-none text-slate-900 dark:text-slate-50'
+                  'mt-0.5 text-lg font-extrabold leading-none text-slate-900 dark:text-slate-50'
                 )}
               >
                 {mastered}

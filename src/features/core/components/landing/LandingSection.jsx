@@ -92,13 +92,13 @@ export const SoftSection = React.forwardRef(function SoftSection(
     <section
       ref={ref}
       className={cn(
-        'relative overflow-hidden bg-[#fcfdff] py-20 dark:bg-[#070b17] md:py-28',
+        'relative overflow-hidden bg-[#fcfdff] py-20 dark:bg-[#0b0a10] md:py-28',
         className
       )}
       {...props}
     >
-      <div className="pointer-events-none absolute left-[-12rem] top-12 h-96 w-96 rounded-full bg-[#c9f3eb]/45 blur-[100px] dark:bg-emerald-500/10" />
-      <div className="pointer-events-none absolute right-[-10rem] top-1/3 h-[28rem] w-[28rem] rounded-full bg-[#d8ddff]/55 blur-[110px] dark:bg-indigo-500/10" />
+      <div className="pointer-events-none absolute left-[-12rem] top-12 h-96 w-96 rounded-full bg-[#c9f3eb]/45 blur-[100px] dark:bg-[#5a63df]/[0.08]" />
+      <div className="pointer-events-none absolute right-[-10rem] top-1/3 h-[28rem] w-[28rem] rounded-full bg-[#d8ddff]/55 blur-[110px] dark:bg-[#5a63df]/10" />
       {children}
     </section>
   );

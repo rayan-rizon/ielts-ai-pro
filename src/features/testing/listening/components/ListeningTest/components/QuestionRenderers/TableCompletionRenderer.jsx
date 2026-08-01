@@ -87,7 +87,7 @@ const TableCompletionRenderer = ({
       return cn(
         baseStyle,
         'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground',
-        'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/40 focus-visible:border-blue-500/50',
+        'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50',
         'hover:border-slate-400/80 dark:hover:border-slate-600/80 shadow-sm'
       );
     }
@@ -211,7 +211,6 @@ const TableCompletionRenderer = ({
                                 isFlagged={flaggedQuestions.has(answerKey)}
                                 onClick={() => toggleFlag(answerKey)}
                                 status={circleStatus}
-                                size="md"
                                 className="shrink-0"
                                 data-oid="jcnpne0"
                               />
@@ -349,19 +348,19 @@ const TableCompletionRenderer = ({
         <div className="flex gap-4 items-start" data-oid="saux43h">
           <div className="flex-1 w-full overflow-hidden" data-oid="1027k.z">
             <div
-              className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800"
+              className="overflow-x-auto rounded-xl border border-[#e4e2f0] dark:border-white/[0.07]"
               data-oid="pwzgsjf"
             >
               <table className="w-full text-[15px] text-left border-collapse" data-oid=":j3mju6">
                 <thead data-oid="h6c:cr2">
                   <tr
-                    className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700"
+                    className="bg-[#f4f3fb] dark:bg-white/[0.04] border-b border-[#e4e2f0] dark:border-white/[0.07]"
                     data-oid="25_-8cm"
                   >
                     {tableHeaders.map((h, i) => (
                       <th
                         key={i}
-                        className="px-2 py-2 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide text-sm md:text-[15px] border-r border-slate-200 dark:border-slate-700 last:border-0"
+                        className="px-2 py-2 font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide text-sm md:text-[15px] border-r border-[#e4e2f0] dark:border-white/[0.07] last:border-0"
                         data-oid="2ncd:42"
                       >
                         <span
@@ -373,15 +372,15 @@ const TableCompletionRenderer = ({
                   </tr>
                 </thead>
                 <tbody
-                  className="divide-y divide-slate-100 dark:divide-slate-800"
+                  className="divide-y divide-slate-100 dark:divide-white/[0.06]"
                   data-oid="gomp5ms"
                 >
                   {tableRows.map((row, rIdx) => (
-                    <tr key={rIdx} className="bg-white dark:bg-slate-900 group" data-oid="-68lsay">
+                    <tr key={rIdx} className="bg-white dark:bg-[#141319] group" data-oid="-68lsay">
                       {row.map((cell, cIdx) => (
                         <td
                           key={cIdx}
-                          className="px-2 py-2 border-r border-slate-100 dark:border-slate-800 last:border-0 align-top text-[15px]"
+                          className="px-2 py-2 border-r border-slate-100 dark:border-white/[0.06] last:border-0 align-top text-[15px]"
                           data-oid=".:-leog"
                         >
                           {renderCellWithGaps(cell, rIdx, cIdx)}

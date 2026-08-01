@@ -317,9 +317,20 @@ const AdminOverview = () => {
   const actions = data?.actions || [];
   const modules = data?.modules || [];
   const trend = data?.trend || [];
-  const hourly = data?.hourly || [];
+  // The RPC buckets sessions by UTC hour; shift to Asia/Dhaka (UTC+6, no DST)
+  // for display since that's the team's operating timezone.
+  const BD_OFFSET_HOURS = 6;
+  const hourly = (data?.hourly || [])
+    .map((h) => ({ ...h, utcHour: h.hour, hour: (h.hour + BD_OFFSET_HOURS) % 24 }))
+    .sort((a, b) => a.hour - b.hour);
   const maxHourly = hourly.reduce((max, h) => Math.max(max, h.sessions), 0);
   const peakHour = maxHourly ? (hourly.find((h) => h.sessions === maxHourly)?.hour ?? null) : null;
+  const formatHour12 = (h) => {
+    if (h === null || h === undefined) return '—';
+    const period = h < 12 ? 'AM' : 'PM';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:00 ${period}`;
+  };
 
   return (
     <m.div
@@ -768,16 +779,17 @@ const AdminOverview = () => {
                   Activity by hour · last 30 days
                 </h3>
                 <InfoTip>
-                  Test sessions grouped by hour of day (UTC). Use the quiet hours for deploys,
-                  migrations and maintenance mode, and make sure support covers the busy ones.
+                  Test sessions grouped by hour of day (Bangladesh time, GMT+6). Use the quiet hours
+                  for deploys, migrations and maintenance mode, and make sure support covers the
+                  busy ones.
                 </InfoTip>
               </div>
               <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                 peak{' '}
                 <span className={cn(NUM, 'text-stone-700 dark:text-stone-200')}>
-                  {peakHour === null ? '—' : `${String(peakHour).padStart(2, '0')}:00`}
+                  {formatHour12(peakHour)}
                 </span>{' '}
-                UTC
+                BDT
               </span>
             </div>
             {/* No items-end here: children need to stretch to h-32 so the bars'
@@ -790,7 +802,7 @@ const AdminOverview = () => {
                 return (
                   <Tip
                     key={h.hour}
-                    content={`${String(h.hour).padStart(2, '0')}:00 UTC — ${h.sessions} session${h.sessions === 1 ? '' : 's'}`}
+                    content={`${formatHour12(h.hour)} BDT — ${h.sessions} session${h.sessions === 1 ? '' : 's'}`}
                   >
                     <div className="flex-1 flex flex-col items-center gap-1 group cursor-default">
                       <div className="w-full flex-1 flex items-end">

@@ -18,16 +18,16 @@ export default function QuestionGroupCard({
   return (
     <div className="mb-3" data-oid=".ffofwm">
       <div
-        className="relative bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl shadow-2xs overflow-hidden transition-all duration-200"
+        className="relative bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] border border-[#e4e2f0] dark:border-white/[0.07] rounded-xl shadow-2xs overflow-hidden transition-all duration-200"
         data-oid="yfsdv5u"
       >
         {hasInstructions && (
           <div
-            className="px-3.5 py-2.5 bg-blue-50/50 dark:bg-blue-950/25 border-b border-blue-100/70 dark:border-blue-900/30 flex items-start gap-2.5"
+            className="px-3.5 py-2.5 bg-[#5a63df]/[0.06] dark:bg-[#5a63df]/10 border-b border-[#5a63df]/15 dark:border-[#5a63df]/20 flex items-start gap-2.5"
             data-oid="6dw9uti"
           >
             <Lightbulb
-              className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0"
+              className="w-4 h-4 text-[#5a63df] dark:text-[#a9afff] mt-0.5 shrink-0"
               data-oid="3h83xkd"
             />
             <div
@@ -70,7 +70,7 @@ export default function QuestionGroupCard({
             <div className="mb-2" data-oid="jh.-gh7">
               <div className="flex items-center gap-3 mb-1.5" data-oid=".vlkfrk">
                 <div
-                  className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20"
+                  className="w-7 h-7 rounded-lg bg-[#5a63df] flex items-center justify-center shrink-0"
                   data-oid="1_4q4.x"
                 >
                   <Lightbulb className="w-3.5 h-3.5 text-white" data-oid=":cg-0hu" />

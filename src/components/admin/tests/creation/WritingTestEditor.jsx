@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -12,29 +9,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Loader2,
-  Save,
-  X,
   PenTool,
-  Clock,
   FileText,
   Sparkles,
   ImageIcon,
   Trash2,
   Info,
-  ArrowLeft,
   Undo2,
   Redo2,
-  ChevronUp,
-  ChevronDown,
   ShieldCheck,
   Link2,
   Upload,
+  X,
 } from 'lucide-react';
 import TestEditorHeader from './TestEditorHeader';
 import {
@@ -49,11 +38,16 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { uploadToR2 } from '@/lib/r2';
-
-// ... (Rest of imports and components remain unchanged)
-
-// Inside WritingTestEditor render:
-
+import { cn } from '@/lib/cn';
+import {
+  AdminButton,
+  PANEL,
+  MICRO,
+  PILL_BASE,
+  pillTone,
+  ADMIN_TABS_LIST,
+  ADMIN_TAB_TRIGGER,
+} from '../../ui/primitives';
 import { sanitizeHtml } from '@/lib/security';
 
 // Reusing RichTextEditor with Theme Support (for prompts - uses ReactQuill)
@@ -73,113 +67,63 @@ const RichTextEditor = ({ value, onChange, placeholder, rows = 10, className = '
 
   return (
     <div
-      className={`
-            bg-gradient-to-br from-white via-orange-50/30 to-amber-50/20 
-            dark:from-slate-900 dark:via-orange-950/10 dark:to-amber-950/5 
-            border border-orange-200/40 dark:border-orange-800/30 
-            rounded-xl shadow-sm shadow-orange-500/5 dark:shadow-orange-900/10 
-            hover:shadow-md hover:shadow-orange-500/10 
-            transition-all duration-300 
-            ${className} 
-            ${theme?.border ? `border-${theme.border.split('-')[1]}` : ''}
-        `}
-      data-oid="lvo51.m"
+      className={cn(
+        'bg-white dark:bg-[#131315] border border-stone-200/80 dark:border-white/[0.07] rounded-xl transition-colors duration-150',
+        className
+      )}
     >
-      <style data-oid="min-xbk">{`
-        .ql-toolbar {
-          background: linear-gradient(to right, rgba(254, 240, 138, 0.3), rgba(251, 191, 36, 0.2));
-          border: none;
-          border-bottom: 1px solid rgba(251, 146, 60, 0.3);
+      <style>{`
+        .ql-toolbar.ql-snow {
+          background: transparent;
+          border: 0;
+          border-bottom: 1px solid rgb(231 229 228 / 1);
           border-radius: 0.75rem 0.75rem 0 0;
-          padding: 12px 16px;
+          padding: 8px 12px;
         }
-        .dark .ql-toolbar {
-          background: linear-gradient(to right, rgba(154, 52, 18, 0.2), rgba(124, 45, 18, 0.3));
-          border-bottom: 1px solid rgba(251, 146, 60, 0.2);
+        .dark .ql-toolbar.ql-snow {
+          border: 0;
+          border-bottom: 1px solid rgb(255 255 255 / 0.07);
         }
         .ql-toolbar button {
-          background: rgba(255, 255, 255, 0.6);
-          border: 1px solid rgba(251, 146, 60, 0.2);
-          border-radius: 6px;
-          margin: 2px;
-          width: 32px;
-          height: 32px;
-          transition: all 0.2s ease;
+          border-radius: 4px;
+          margin: 1px;
+          width: 28px;
+          height: 28px;
+          transition: background-color 0.15s ease;
         }
-        .dark .ql-toolbar button {
-          background: rgba(30, 41, 59, 0.8);
-          border: 1px solid rgba(251, 146, 60, 0.3);
-        }
-        .ql-toolbar button:hover {
-          background: linear-gradient(135deg, rgba(251, 146, 60, 0.15), rgba(254, 215, 170, 0.2));
-          border-color: rgba(251, 146, 60, 0.3);
-          transform: scale(1.05);
-          box-shadow: 0 1px 4px rgba(251, 146, 60, 0.15);
-        }
-        .dark .ql-toolbar button:hover {
-          background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(254, 215, 170, 0.15));
-          border-color: rgba(251, 146, 60, 0.4);
-        }
-        .ql-toolbar button.ql-active {
-          background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(254, 215, 170, 0.3));
-          border-color: rgba(251, 146, 60, 0.4);
-          box-shadow: 0 1px 6px rgba(251, 146, 60, 0.2);
-        }
-        .dark .ql-toolbar button.ql-active {
-          background: linear-gradient(135deg, rgba(251, 146, 60, 0.3), rgba(254, 215, 170, 0.2));
-          border-color: rgba(251, 146, 60, 0.5);
-        }
-        .ql-toolbar .ql-picker {
-          background: rgba(255, 255, 255, 0.6);
-          border: 1px solid rgba(251, 146, 60, 0.2);
-          border-radius: 6px;
-        }
-        .dark .ql-toolbar .ql-picker {
-          background: rgba(30, 41, 59, 0.8);
-          border: 1px solid rgba(251, 146, 60, 0.3);
-        }
+        .dark .ql-toolbar button { filter: invert(0.75); }
+        .ql-toolbar button:hover,
         .ql-toolbar .ql-picker:hover {
-          background: linear-gradient(135deg, rgba(251, 146, 60, 0.15), rgba(254, 215, 170, 0.2));
-          border-color: rgba(251, 146, 60, 0.3);
+          background: rgb(245 245 244 / 1);
         }
+        .dark .ql-toolbar button:hover,
+        .dark .ql-toolbar .ql-picker:hover {
+          background: rgb(255 255 255 / 0.06);
+        }
+        .ql-toolbar button.ql-active,
         .ql-toolbar .ql-picker.ql-active {
-          background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(254, 215, 170, 0.3));
-          border-color: rgba(251, 146, 60, 0.4);
+          background: rgb(231 229 228 / 1);
         }
-        .ql-container {
+        .dark .ql-toolbar button.ql-active,
+        .dark .ql-toolbar .ql-picker.ql-active {
+          background: rgb(255 255 255 / 0.1);
+        }
+        .ql-container.ql-snow {
           background: transparent;
-          border: none;
-          font-size: 16px;
+          border: 0;
+          font-size: 15px;
           border-radius: 0 0 0.75rem 0.75rem;
         }
         .ql-editor {
-          background: rgba(255, 255, 255, 0.3);
-          backdrop-filter: blur(4px);
-          border-radius: 0 0 0.75rem 0.75rem;
-          padding: 20px;
+          padding: 16px;
           min-height: 150px;
-          transition: all 0.3s ease;
         }
-        .dark .ql-editor {
-          background: rgba(30, 41, 59, 0.3);
-          backdrop-filter: blur(4px);
-        }
-        .ql-editor:focus {
-          outline: none;
-          background: rgba(255, 255, 255, 0.5);
-          box-shadow: inset 0 0 0 1px rgba(251, 146, 60, 0.15);
-        }
-        .dark .ql-editor:focus {
-          background: rgba(30, 41, 59, 0.5);
-          box-shadow: inset 0 0 0 1px rgba(251, 146, 60, 0.2);
-        }
+        .ql-editor:focus { outline: none; }
         .ql-editor.ql-blank::before {
-          color: rgba(251, 146, 60, 0.5);
+          color: rgb(168 162 158 / 1);
           font-style: italic;
         }
-        .dark .ql-editor.ql-blank::before {
-          color: rgba(251, 146, 60, 0.4);
-        }
+        .dark .ql-editor.ql-blank::before { color: rgb(120 113 108 / 1); }
       `}</style>
       <ReactQuill
         theme="snow"
@@ -188,7 +132,6 @@ const RichTextEditor = ({ value, onChange, placeholder, rows = 10, className = '
         modules={quillModules}
         className="h-full min-h-[150px]"
         placeholder={placeholder}
-        data-oid="ly.f:7q"
       />
     </div>
   );
@@ -212,92 +155,43 @@ const SampleAnswerEditor = ({ value, onChange, placeholder }) => {
   };
 
   return (
-    <div
-      className="border rounded-xl bg-gradient-to-br from-white via-amber-50/30 to-orange-50/20 dark:from-slate-900 dark:via-amber-950/10 dark:to-orange-950/5 border-amber-200/40 dark:border-amber-800/30 shadow-sm overflow-hidden"
-      data-oid="vjvl-4i"
-    >
-      <style data-oid="yh1.8ah">{`
+    <div className="border border-stone-200/80 dark:border-white/[0.07] rounded-xl bg-white dark:bg-[#131315] overflow-hidden">
+      <style>{`
         .sample-answer-editor .ql-toolbar {
-          background: linear-gradient(to right, rgba(251, 191, 36, 0.15), rgba(249, 115, 22, 0.1));
-          border: none;
-          border-bottom: 1px solid rgba(251, 191, 36, 0.2);
-          padding: 8px 12px;
-        }
-        .dark .sample-answer-editor .ql-toolbar {
-          background: linear-gradient(to right, rgba(180, 83, 9, 0.2), rgba(154, 52, 18, 0.15));
-          border-bottom: 1px solid rgba(251, 191, 36, 0.15);
-        }
-        .sample-answer-editor .ql-toolbar button {
-          background: rgba(255, 255, 255, 0.7);
-          border: 1px solid rgba(251, 191, 36, 0.2);
-          border-radius: 4px;
-          margin: 1px;
-          width: 28px;
-          height: 28px;
-          transition: all 0.2s ease;
-        }
-        .dark .sample-answer-editor .ql-toolbar button {
-          background: rgba(30, 41, 59, 0.8);
-          border: 1px solid rgba(251, 191, 36, 0.25);
-        }
-        .sample-answer-editor .ql-toolbar button:hover {
-          background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(249, 115, 22, 0.15));
-          border-color: rgba(251, 191, 36, 0.4);
-          transform: scale(1.05);
-        }
-        .sample-answer-editor .ql-toolbar button.ql-active {
-          background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(249, 115, 22, 0.2));
-          border-color: rgba(251, 191, 36, 0.5);
-        }
-        .sample-answer-editor .ql-toolbar .ql-picker {
-          background: rgba(255, 255, 255, 0.7);
-          border: 1px solid rgba(251, 191, 36, 0.2);
-          border-radius: 4px;
-        }
-        .dark .sample-answer-editor .ql-toolbar .ql-picker {
-          background: rgba(30, 41, 59, 0.8);
-          border: 1px solid rgba(251, 191, 36, 0.25);
-        }
-        .sample-answer-editor .ql-container {
           background: transparent;
           border: none;
-          font-size: 15px;
+          border-bottom: 1px solid rgb(231 229 228 / 1);
+          padding: 6px 10px;
         }
+        .dark .sample-answer-editor .ql-toolbar { border-bottom: 1px solid rgb(255 255 255 / 0.07); }
+        .sample-answer-editor .ql-toolbar button { border-radius: 4px; margin: 1px; width: 26px; height: 26px; }
+        .dark .sample-answer-editor .ql-toolbar button { filter: invert(0.75); }
+        .sample-answer-editor .ql-toolbar button:hover,
+        .sample-answer-editor .ql-toolbar .ql-picker:hover { background: rgb(245 245 244 / 1); }
+        .dark .sample-answer-editor .ql-toolbar button:hover,
+        .dark .sample-answer-editor .ql-toolbar .ql-picker:hover { background: rgb(255 255 255 / 0.06); }
+        .sample-answer-editor .ql-toolbar button.ql-active { background: rgb(231 229 228 / 1); }
+        .dark .sample-answer-editor .ql-toolbar button.ql-active { background: rgb(255 255 255 / 0.1); }
+        .sample-answer-editor .ql-container { background: transparent; border: none; font-size: 14px; }
         .sample-answer-editor .ql-editor {
-          background: rgba(255, 255, 255, 0.4);
-          backdrop-filter: blur(4px);
           padding: 16px;
           min-height: 150px;
           max-height: 400px;
           overflow-y: auto;
           line-height: 1.7;
         }
-        .dark .sample-answer-editor .ql-editor {
-          background: rgba(30, 41, 59, 0.3);
-        }
-        .sample-answer-editor .ql-editor:focus {
-          outline: none;
-          background: rgba(255, 255, 255, 0.6);
-          box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.2);
-        }
-        .dark .sample-answer-editor .ql-editor:focus {
-          background: rgba(30, 41, 59, 0.5);
-        }
+        .sample-answer-editor .ql-editor:focus { outline: none; }
         .sample-answer-editor .ql-editor.ql-blank::before {
-          color: rgba(251, 191, 36, 0.5);
+          color: rgb(168 162 158 / 1);
           font-style: italic;
         }
-        .sample-answer-editor .ql-editor p {
-          margin-bottom: 1em;
-        }
+        .dark .sample-answer-editor .ql-editor.ql-blank::before { color: rgb(120 113 108 / 1); }
+        .sample-answer-editor .ql-editor p { margin-bottom: 1em; }
         .sample-answer-editor .ql-editor h1,
         .sample-answer-editor .ql-editor h2,
-        .sample-answer-editor .ql-editor h3 {
-          font-weight: 700;
-          margin-bottom: 0.75em;
-        }
+        .sample-answer-editor .ql-editor h3 { font-weight: 700; margin-bottom: 0.75em; }
       `}</style>
-      <div className="sample-answer-editor" data-oid="yr08836">
+      <div className="sample-answer-editor">
         <ReactQuill
           theme="snow"
           value={value || ''}
@@ -307,14 +201,15 @@ const SampleAnswerEditor = ({ value, onChange, placeholder }) => {
             placeholder ||
             'Paste or type the sample answer here. Formatting (bold, headings, paragraphs) will be preserved.'
           }
-          data-oid="uuak9rv"
         />
       </div>
       <div
-        className="px-3 py-1.5 border-t border-amber-200/30 dark:border-amber-800/20 bg-amber-50/50 dark:bg-amber-950/20 text-[10px] text-amber-600 dark:text-amber-400"
-        data-oid="_1ilrbf"
+        className={cn(
+          MICRO,
+          'px-3 py-1.5 border-t border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.02] text-stone-400 dark:text-stone-500 normal-case tracking-normal font-medium'
+        )}
       >
-        Tip: Paste formatted text directly - bold, headings, and paragraphs are preserved
+        Tip: Paste formatted text directly — bold, headings, and paragraphs are preserved
         automatically.
       </div>
     </div>
@@ -426,83 +321,52 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
   };
 
   return (
-    <div
-      className="border rounded-lg bg-white dark:bg-slate-900 dark:border-slate-700 shadow-sm overflow-hidden"
-      data-oid=":.mac04"
-    >
-      <div
-        className="flex items-center justify-between px-2 py-1.5 border-b bg-gray-50 dark:bg-slate-800 dark:border-slate-700"
-        data-oid="h.dt_ux"
-      >
-        <div className="flex items-center gap-1" data-oid=":bg3sax">
-          <div
-            className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mr-2"
-            data-oid="fi46rn-"
-          >
-            Instructions
-          </div>
+    <div className="border border-stone-200/80 dark:border-white/[0.07] rounded-lg bg-white dark:bg-[#131315] overflow-hidden">
+      <div className="flex items-center justify-between px-2 py-1.5 border-b border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.02]">
+        <div className="flex items-center gap-1">
+          <div className={cn(MICRO, 'text-stone-400 dark:text-stone-500 mr-2')}>Instructions</div>
           {!isPreview && (
-            <div
-              className="flex items-center border-l pl-2 gap-1 border-slate-200 dark:border-slate-700"
-              data-oid="zz_fakw"
-            >
-              <Button
+            <div className="flex items-center border-l border-stone-200 dark:border-white/10 pl-2 gap-1">
+              <button
                 type="button"
-                variant="ghost"
-                size="sm"
                 onClick={() => handleFormat('bold')}
-                className="h-6 w-6 p-0 hover:bg-slate-200 dark:hover:bg-slate-700"
+                className="h-6 w-6 grid place-items-center rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-200 dark:hover:bg-white/10 transition-colors"
                 title="Bold"
-                data-oid="tewl7a."
               >
-                <span className="font-bold text-xs" data-oid="iwqq8-r">
-                  B
-                </span>
-              </Button>
-              <Button
+                <span className="font-bold text-xs">B</span>
+              </button>
+              <button
                 type="button"
-                variant="ghost"
-                size="sm"
                 onClick={() => handleFormat('italic')}
-                className="h-6 w-6 p-0 hover:bg-slate-200 dark:hover:bg-slate-700"
+                className="h-6 w-6 grid place-items-center rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-200 dark:hover:bg-white/10 transition-colors"
                 title="Italic"
-                data-oid="wws55wb"
               >
-                <span className="italic text-xs" data-oid="8h06b2r">
-                  I
-                </span>
-              </Button>
-              <Button
+                <span className="italic text-xs">I</span>
+              </button>
+              <button
                 type="button"
-                variant="ghost"
-                size="sm"
                 onClick={() => setShowImageUrlModal(true)}
-                className="h-6 w-6 p-0 hover:bg-slate-200 dark:hover:bg-slate-700"
+                className="h-6 w-6 grid place-items-center rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-200 dark:hover:bg-white/10 transition-colors"
                 title="Insert Image URL"
-                data-oid="yii.2xm"
               >
-                <Link2 className="w-3 h-3" data-oid="4m3ozjg" />
-              </Button>
+                <Link2 className="w-3 h-3" />
+              </button>
             </div>
           )}
         </div>
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="sm"
           onClick={() => setIsPreview(!isPreview)}
-          className="text-xs h-6 px-2 dark:text-slate-300 dark:hover:bg-slate-700"
-          data-oid="8lwq64a"
+          className="text-[11px] font-bold h-6 px-2 rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-200 dark:hover:bg-white/10 transition-colors"
         >
           {isPreview ? 'Edit' : 'Preview'}
-        </Button>
+        </button>
       </div>
-      <div className="relative" data-oid="pmmt8h:">
+      <div className="relative">
         {isPreview ? (
           <div
-            className="bg-white dark:bg-slate-900 overflow-y-auto min-h-[60px] p-2"
+            className="bg-white dark:bg-[#131315] overflow-y-auto min-h-[60px] p-2"
             style={{ whiteSpace: 'pre-wrap' }}
-            data-oid="rbj-q:6"
           >
             {renderSimplePreview(value || '')}
           </div>
@@ -513,9 +377,8 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             rows={3}
-            className="w-full border-0 rounded-none rounded-b-lg resize-none focus:ring-0 text-sm bg-white dark:bg-slate-950 dark:text-slate-200 font-mono min-h-[60px] p-3"
+            className="w-full border-0 rounded-none rounded-b-lg resize-none focus:ring-0 text-sm bg-white dark:bg-[#0c0c0d] text-stone-700 dark:text-stone-200 font-mono min-h-[60px] p-3"
             style={{ whiteSpace: 'pre-wrap', overflow: 'hidden' }}
-            data-oid="s5x3-0f"
           />
         )}
       </div>
@@ -545,7 +408,7 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
 
             {imageUrlInput && (
               <div
-                className="border rounded-lg p-2 bg-slate-50 dark:bg-slate-900 overflow-hidden text-center"
+                className="border rounded-lg p-2 bg-stone-50 dark:bg-stone-900 overflow-hidden text-center"
                 data-oid="a82d.wp"
               >
                 <p
@@ -570,7 +433,7 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleInsertImageUrl}
-              className="bg-orange-600 hover:bg-orange-700 text-white"
+              className="bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 hover:bg-stone-700 dark:hover:bg-stone-200"
               disabled={!imageUrlInput}
               data-oid="3ursd:t"
             >
@@ -598,60 +461,37 @@ const ImagePreview = ({ imageUrl, onClear }) => {
 
   if (!imageUrl) {
     return (
-      <div
-        className="rounded-xl border border-dashed border-orange-300/40 dark:border-orange-700/30 bg-orange-50/30 dark:bg-orange-950/10 p-8 flex flex-col items-center justify-center text-center gap-2 text-orange-400/60 dark:text-orange-600/40"
-        data-oid="nl3bn15"
-      >
-        <ImageIcon className="w-8 h-8 opacity-50" data-oid="6n7kbws" />
-        <span className="text-xs font-medium" data-oid="blxk9jt">
-          No image provided
-        </span>
+      <div className="rounded-xl border border-dashed border-stone-300 dark:border-white/[0.12] bg-stone-50 dark:bg-white/[0.02] p-8 flex flex-col items-center justify-center text-center gap-2 text-stone-400 dark:text-stone-600">
+        <ImageIcon className="w-8 h-8 opacity-50" />
+        <span className="text-xs font-medium">No image provided</span>
       </div>
     );
   }
 
   if (hasError) {
     return (
-      <div
-        className="rounded-xl border border-amber-200/50 dark:border-amber-800/30 bg-amber-50/50 dark:bg-amber-950/20 p-6 flex flex-col items-center justify-center text-center gap-3"
-        data-oid=":8s.de9"
-      >
-        <div className="flex items-center gap-2 text-amber-500" data-oid=".scbi.f">
-          <X className="w-5 h-5" data-oid="bgm6c4p" />
-          <span className="text-sm font-medium" data-oid="obbc9p_">
-            Image could not be loaded
-          </span>
+      <div className="rounded-xl border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] p-6 flex flex-col items-center justify-center text-center gap-3">
+        <div className="flex items-center gap-2 text-[rgb(var(--signal-warn))]">
+          <X className="w-5 h-5" />
+          <span className="text-sm font-medium">Image could not be loaded</span>
         </div>
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="sm"
           onClick={onClear}
-          className="text-xs h-7 text-red-600 hover:text-red-700 hover:bg-red-100"
-          data-oid="e_et_5w"
+          className="text-xs font-bold h-7 px-2 rounded text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors flex items-center gap-1"
         >
-          <Trash2 className="w-3 h-3 mr-1" data-oid="hhy9bzy" />
+          <Trash2 className="w-3 h-3" />
           Clear URL
-        </Button>
+        </button>
       </div>
     );
   }
 
   return (
-    <div
-      className="relative rounded-xl overflow-hidden border border-orange-200/40 dark:border-orange-800/30 bg-slate-100 dark:bg-slate-950/50 aspect-video flex items-center justify-center group"
-      data-oid="wenfh-0"
-    >
-      <div
-        className="absolute inset-0 bg-checkerboard opacity-10 pointer-events-none"
-        data-oid="68svsfu"
-      ></div>
+    <div className="relative rounded-xl overflow-hidden border border-stone-200/80 dark:border-white/[0.07] bg-stone-100 dark:bg-white/[0.03] aspect-video flex items-center justify-center group">
       {isLoading && (
-        <div
-          className="absolute inset-0 flex items-center justify-center bg-slate-200/50 dark:bg-slate-800/50 z-20"
-          data-oid="b1y3suc"
-        >
-          <Loader2 className="w-6 h-6 text-orange-500 animate-spin" data-oid="1-2k-go" />
+        <div className="absolute inset-0 flex items-center justify-center bg-stone-100/60 dark:bg-white/[0.04] z-20">
+          <Loader2 className="w-6 h-6 text-stone-400 animate-spin" />
         </div>
       )}
       <img
@@ -671,22 +511,7 @@ const ImagePreview = ({ imageUrl, onClear }) => {
 };
 
 const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
-  // Use Orange theme if not provided
-  // Use Orange theme if not provided
-  const effectiveTheme = theme || {
-    color: 'orange',
-    primary: 'bg-orange-600',
-    primaryHover: 'hover:bg-orange-700',
-    light: 'bg-orange-50 dark:bg-orange-950/40',
-    lighter: 'bg-orange-50/50 dark:bg-orange-950/20',
-    border: 'border-orange-100 dark:border-orange-900',
-    text: 'text-orange-700 dark:text-orange-300',
-    icon: PenTool,
-    gradient: 'from-orange-500 to-red-500',
-    ring: 'ring-orange-500/20',
-  };
-  const ThemeIcon = effectiveTheme.icon || PenTool;
-  const themeColor = effectiveTheme.color || 'orange';
+  const effectiveTheme = theme || { icon: PenTool };
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -920,326 +745,86 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     return () => clearTimeout(timer);
   }, [tasks, meta]);
 
-  const years = Array.from({ length: 15 }, (_, i) => new Date().getFullYear() - i + 1);
-
   return (
-    <div
-      className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-amber-50/20 dark:from-background dark:via-orange-950/10 dark:to-amber-950/5 text-foreground rounded-xl overflow-hidden border border-orange-100/50 dark:border-orange-900/20"
-      data-oid="xsm8q8:"
-    >
-      {/* Premium Header */}
-      <div
-        className={`px-6 py-4 bg-gradient-to-r from-white via-orange-50/80 to-amber-50/60 dark:from-slate-900/95 dark:via-orange-950/40 dark:to-amber-950/30 backdrop-blur-xl border-b border-orange-200/30 dark:border-orange-800/20 flex flex-col md:flex-row justify-between items-center shadow-sm shadow-orange-500/5 dark:shadow-orange-900/10 z-20 gap-4 ${effectiveTheme.border}`}
-        data-oid="j7yn9hn"
-      >
-        <div className="flex items-center gap-4 flex-1 w-full overflow-x-auto" data-oid="19vxjkn">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onCancel}
-            className="mr-2 shrink-0 rounded-full hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-all duration-200 hover:scale-105"
-            data-oid="julyjzw"
-          >
-            <ChevronUp className="h-5 w-5 -rotate-90 text-slate-500" data-oid="ww16tz_" />
-          </Button>
-
-          <div
-            className={`p-2.5 rounded-xl shrink-0 bg-gradient-to-br ${effectiveTheme.light} ${effectiveTheme.text} shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105`}
-            data-oid="ea1wcd0"
-          >
-            <effectiveTheme.icon className="w-5 h-5" data-oid="2:mti8c" />
-          </div>
-
-          <div className="flex flex-col gap-1.5 w-full max-w-3xl min-w-[300px]" data-oid="7djgqoa">
-            <div className="flex gap-3 items-center" data-oid=".s.jg5j">
-              <Input
-                value={meta.title}
-                onChange={(e) => setMeta({ ...meta, title: e.target.value })}
-                className="font-bold text-xl border-transparent px-3 py-1.5 hover:border-orange-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all h-9 flex-1 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm dark:text-white dark:placeholder-slate-500 placeholder:text-slate-400 tracking-tight rounded-lg shadow-sm hover:shadow-md"
-                placeholder="Untitled Writing Test"
-                data-oid="48a4d3t"
-              />
-
-              {/* Metadata Pills */}
-              <div className="flex items-center gap-2" data-oid=".:5cw:.">
-                {/* Format Pill */}
-                <div
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm hover:shadow-md transition-all duration-200 ${effectiveTheme.light} ${effectiveTheme.border} hover:scale-105`}
-                  data-oid="c451f.k"
-                >
-                  <span
-                    className={`text-[10px] uppercase font-bold tracking-wider ${effectiveTheme.text}`}
-                    data-oid="i:9yv54"
-                  >
-                    Format
-                  </span>
-                  <Select
-                    value={meta.test_format}
-                    onValueChange={(v) => setMeta({ ...meta, test_format: v })}
-                    data-oid=":_jhlf5"
-                  >
-                    <SelectTrigger
-                      className="h-4 w-auto gap-1 border-0 bg-transparent p-0 text-xs font-medium focus:ring-0 text-slate-700 dark:text-slate-200 hover:text-slate-900"
-                      data-oid="8zedc7s"
-                    >
-                      <SelectValue data-oid="jceup9-" />
-                    </SelectTrigger>
-                    <SelectContent data-oid="1:z_j:l">
-                      <SelectItem value="Academic" data-oid="h4_s7pf">
-                        Academic
-                      </SelectItem>
-                      <SelectItem value="General" data-oid="v.wp63.">
-                        General
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Access Pill */}
-                <div
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-orange-200/40 dark:border-orange-800/30 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
-                  data-oid="jayvf31"
-                >
-                  <span
-                    className="text-[10px] uppercase font-bold tracking-wider text-slate-500"
-                    data-oid="w4m_2c_"
-                  >
-                    Access
-                  </span>
-                  <Select
-                    value={meta.access_tier}
-                    onValueChange={(v) => setMeta({ ...meta, access_tier: v })}
-                    data-oid="7r6wtjd"
-                  >
-                    <SelectTrigger
-                      className="h-4 w-auto gap-1 border-0 bg-transparent p-0 text-xs font-medium focus:ring-0 text-slate-700 dark:text-slate-200 hover:text-slate-900"
-                      data-oid="edtqrnk"
-                    >
-                      <SelectValue data-oid="f2kr6ik" />
-                    </SelectTrigger>
-                    <SelectContent data-oid="mzh59ut">
-                      <SelectItem value="free" data-oid="41bg0ci">
-                        Free
-                      </SelectItem>
-                      <SelectItem value="pro" data-oid="sh3y--j">
-                        Pro
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Official Pill */}
-                <div
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm hover:shadow-md transition-all duration-200 ${meta.is_official_cambridge ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-300 dark:from-amber-900/30 dark:to-orange-900/30 dark:border-amber-700 hover:from-amber-100 hover:to-orange-100' : 'bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-orange-200/40 dark:border-orange-800/30 hover:border-orange-300'} hover:scale-105`}
-                  data-oid="qdkw6qi"
-                >
-                  <div className="flex items-center gap-1.5" data-oid="qu3gdxm">
-                    <ShieldCheck
-                      className={`w-3.5 h-3.5 ${meta.is_official_cambridge ? 'text-amber-500' : 'text-slate-400'}`}
-                      data-oid="7ub-jhl"
-                    />
-
-                    <span
-                      className={`text-xs font-medium ${meta.is_official_cambridge ? 'text-amber-700 dark:text-amber-300' : 'text-slate-500'}`}
-                      data-oid="vpt3:td"
-                    >
-                      Official
-                    </span>
-                  </div>
-                  <Checkbox
-                    checked={meta.is_official_cambridge}
-                    onCheckedChange={(c) => setMeta({ ...meta, is_official_cambridge: c })}
-                    className={`h-4 w-4 rounded-full ${meta.is_official_cambridge ? 'data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500' : ''}`}
-                    data-oid="nmigtgc"
-                  />
-                </div>
-
-                {meta.is_official_cambridge && (
-                  <div
-                    className="flex gap-2 animate-in fade-in slide-in-from-left-2 shrink-0"
-                    data-oid="0nqum_w"
-                  >
-                    <Select
-                      value={String(meta.cambridge_year)}
-                      onValueChange={(v) => setMeta({ ...meta, cambridge_year: parseInt(v) })}
-                      data-oid="7yxrb7q"
-                    >
-                      <SelectTrigger
-                        className="h-8 rounded-full border-amber-200 bg-amber-50/50 text-xs font-medium text-amber-900"
-                        data-oid="rty-xsy"
-                      >
-                        <SelectValue placeholder="Year" data-oid="8x-q5be" />
-                      </SelectTrigger>
-                      <SelectContent data-oid="3g.a:41">
-                        {years.map((year) => (
-                          <SelectItem key={year} value={String(year)} data-oid="9sz5ae.">
-                            {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select
-                      value={String(meta.cambridge_test_number)}
-                      onValueChange={(v) =>
-                        setMeta({ ...meta, cambridge_test_number: parseInt(v) })
-                      }
-                      data-oid="s:.xffj"
-                    >
-                      <SelectTrigger
-                        className="h-8 rounded-full border-amber-200 bg-amber-50/50 text-xs font-medium text-amber-900"
-                        data-oid="3lqbktu"
-                      >
-                        <SelectValue placeholder="Test #" data-oid="x7eywhh" />
-                      </SelectTrigger>
-                      <SelectContent data-oid="-u4prwg">
-                        {[1, 2, 3, 4].map((num) => (
-                          <SelectItem key={num} value={String(num)} data-oid="f:rzdbw">
-                            Test {num}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 shrink-0 ml-auto" data-oid="ee1fog7">
-          <div
-            className="flex items-center gap-1 mr-2 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/20 dark:to-amber-900/20 p-1 rounded-lg shadow-sm"
-            data-oid="cndgdl3"
-          >
-            <Button
-              variant="ghost"
-              size="icon"
+    <div className="flex flex-col h-screen bg-stone-100 dark:bg-[#08080a] text-stone-900 dark:text-stone-50 overflow-hidden">
+      <TestEditorHeader
+        title={meta.title}
+        theme={effectiveTheme}
+        metadata={meta}
+        onMetadataChange={setMeta}
+        onTitleChange={(t) => updateMeta('title', t)}
+        onSave={handleSave}
+        onCancel={onCancel}
+        isSaving={loading}
+        lastSaved={lastSaved}
+        leftActions={
+          <>
+            <button
+              type="button"
               onClick={handleUndo}
               disabled={historyIndex <= 0}
-              className="h-7 w-7 text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-200 hover:bg-orange-200/50 dark:hover:bg-orange-800/30 disabled:opacity-30 transition-all duration-200"
-              data-oid=":luzncx"
+              className="h-6 w-6 grid place-items-center rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 disabled:opacity-30 disabled:pointer-events-none transition-colors"
             >
-              <Undo2 className="w-4 h-4" data-oid="27id.os" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
+              <Undo2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
               onClick={handleRedo}
               disabled={historyIndex >= history.length - 1}
-              className="h-7 w-7 text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-200 hover:bg-orange-200/50 dark:hover:bg-orange-800/30 disabled:opacity-30 transition-all duration-200"
-              data-oid=".h.tmvs"
+              className="h-6 w-6 grid place-items-center rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 disabled:opacity-30 disabled:pointer-events-none transition-colors"
             >
-              <Redo2 className="w-4 h-4" data-oid=".hoez18" />
-            </Button>
-          </div>
-
-          <Button
-            variant="ghost"
-            onClick={onCancel}
-            className="hidden md:flex hover:bg-orange-100 dark:hover:bg-orange-900/30 text-orange-600 dark:text-orange-400 transition-all duration-200"
-            data-oid="au5tvxe"
+              <Redo2 className="w-3.5 h-3.5" />
+            </button>
+          </>
+        }
+      >
+        {/* Format Pill */}
+        <div className="flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.03] shrink-0">
+          <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>Format</span>
+          <Select
+            value={meta.test_format}
+            onValueChange={(v) => setMeta({ ...meta, test_format: v })}
           >
-            Cancel
-          </Button>
-          <Button
-            onClick={() => handleSave(false)}
-            disabled={loading}
-            className={`shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 ${effectiveTheme.primary} ${effectiveTheme.primaryHover} text-white w-full md:w-auto h-9`}
-            data-oid="tfwz:et"
-          >
-            {loading ? 'Saving...' : 'Save Changes'}
-          </Button>
+            <SelectTrigger className="h-4 w-auto gap-1 border-0 bg-transparent p-0 text-[11px] font-bold focus:ring-0 text-stone-900 dark:text-stone-100">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Academic">Academic</SelectItem>
+              <SelectItem value="General">General</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      </div>
+      </TestEditorHeader>
 
       {error && (
-        <Alert variant="destructive" className="m-4" data-oid="hyq5wv:">
-          <AlertDescription data-oid="nt6ojvq">{error}</AlertDescription>
-        </Alert>
+        <div className="mx-4 sm:mx-6 mt-4 flex items-center gap-2 rounded-lg border border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)] px-3 py-2 text-xs font-semibold text-[rgb(var(--signal-fault))]">
+          {error}
+        </div>
       )}
 
       {/* Main Content Area */}
-      <div
-        className="flex-1 overflow-y-auto p-4 bg-gradient-to-br from-white/40 via-orange-50/20 to-amber-50/10 dark:from-slate-900/40 dark:via-orange-950/10 dark:to-amber-950/5 backdrop-blur-sm"
-        data-oid="96xhrye"
-      >
-        <div className="w-full max-w-[1800px] mx-auto" data-oid="4:6nw0x">
-          <Tabs
-            value={activeTask}
-            onValueChange={setActiveTask}
-            className="w-full space-y-4"
-            data-oid="-tkhi1n"
-          >
-            {/* Enhanced Tabs UI */}
-            <TabsList
-              className="h-14 bg-gradient-to-br from-white via-orange-50/60 to-amber-50/40 dark:from-slate-900 dark:via-orange-950/30 dark:to-amber-950/20 backdrop-blur-2xl border border-orange-200/30 dark:border-orange-800/25 rounded-3xl p-3 shadow-xl shadow-orange-500/8 dark:shadow-orange-900/15 grid w-full grid-cols-2 max-w-lg mx-auto mb-10 relative overflow-hidden group gap-2"
-              data-oid="yc2flwg"
-            >
-              {/* Decorative gradient overlay */}
-              <div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                data-oid="isxhf8l"
-              ></div>
-
-              {/* Active tab indicator */}
-              <div
-                className={`absolute top-3 left-3 right-3 h-8 bg-gradient-to-r from-orange-500/10 to-amber-500/10 dark:from-orange-400/10 dark:to-amber-400/10 rounded-2xl transition-all duration-300 pointer-events-none`}
-                style={{
-                  transform:
-                    activeTask === 'Task 1' ? 'translateX(0)' : 'translateX(calc(100% + 12px))',
-                  width: 'calc(50% - 12px)',
-                }}
-                data-oid="w7ydwl2"
-              ></div>
-
-              <TabsTrigger
-                value="Task 1"
-                className="relative text-xs font-semibold rounded-2xl transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:shadow-orange-500/25 data-[state=active]:border-orange-400 data-[state=inactive]:text-orange-700 dark:data-[state=inactive]:text-orange-300 data-[state=inactive]:hover:text-orange-900 dark:data-[state=inactive]:hover:text-orange-100 data-[state=inactive]:hover:bg-orange-200/50 dark:data-[state=inactive]:hover:bg-orange-800/30 group hover:scale-105 z-10 mx-1"
-                data-oid="w2i80b."
-              >
-                <span className="flex items-center gap-2" data-oid="1r64-b6">
-                  <span
-                    className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold transition-all duration-300 data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=active]:shadow-sm bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 group-data-[state=inactive]:scale-95 group-data-[state=active]:scale-100"
-                    data-oid="---.ltc"
-                  >
+      <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="w-full max-w-[1800px] mx-auto">
+          <Tabs value={activeTask} onValueChange={setActiveTask} className="w-full space-y-4">
+            <TabsList className={cn(ADMIN_TABS_LIST, 'mx-auto mb-6')}>
+              <TabsTrigger value="Task 1" className={ADMIN_TAB_TRIGGER}>
+                <span className="flex items-center gap-2">
+                  <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-stone-300">
                     1
                   </span>
-                  <div className="flex flex-col items-start" data-oid="vwd8fxq">
-                    <span className="font-semibold text-xs leading-tight" data-oid="4iv:8jf">
-                      Task 1
-                    </span>
-                    <span
-                      className="text-[10px] opacity-70 leading-tight hidden sm:inline"
-                      data-oid="7phm:6t"
-                    >
-                      Report/Letter
-                    </span>
-                  </div>
+                  Task 1
+                  <span className="text-[10px] font-normal opacity-60 hidden sm:inline">
+                    Report/Letter
+                  </span>
                 </span>
               </TabsTrigger>
-              <TabsTrigger
-                value="Task 2"
-                className="relative text-xs font-semibold rounded-2xl transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:shadow-orange-500/25 data-[state=active]:border-orange-400 data-[state=inactive]:text-orange-700 dark:data-[state=inactive]:text-orange-300 data-[state=inactive]:hover:text-orange-900 dark:data-[state=inactive]:hover:text-orange-100 data-[state=inactive]:hover:bg-orange-200/50 dark:data-[state=inactive]:hover:bg-orange-800/30 group hover:scale-105 z-10 mx-1"
-                data-oid="ok6t:5c"
-              >
-                <span className="flex items-center gap-2" data-oid="sw2xde6">
-                  <span
-                    className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold transition-all duration-300 data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=active]:shadow-sm bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 group-data-[state=inactive]:scale-95 group-data-[state=active]:scale-100"
-                    data-oid="i_7uam."
-                  >
+              <TabsTrigger value="Task 2" className={ADMIN_TAB_TRIGGER}>
+                <span className="flex items-center gap-2">
+                  <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-stone-300">
                     2
                   </span>
-                  <div className="flex flex-col items-start" data-oid="es-_i05">
-                    <span className="font-semibold text-xs leading-tight" data-oid="0q819:s">
-                      Task 2
-                    </span>
-                    <span
-                      className="text-[10px] opacity-70 leading-tight hidden sm:inline"
-                      data-oid="ucipevq"
-                    >
-                      Essay
-                    </span>
-                  </div>
+                  Task 2
+                  <span className="text-[10px] font-normal opacity-60 hidden sm:inline">Essay</span>
                 </span>
               </TabsTrigger>
             </TabsList>
@@ -1248,100 +833,69 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
               <TabsContent
                 key={taskType}
                 value={taskType}
-                className="space-y-0 h-full animate-in fade-in slide-in-from-bottom-2 duration-300"
-                data-oid="4-.ams-"
+                className="space-y-0 h-full animate-in fade-in slide-in-from-bottom-2 duration-200"
               >
-                <div
-                  className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start h-full"
-                  data-oid="poz5ap9"
-                >
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start h-full">
                   {/* Left Column: Instructions & Prompt - Takes 7/12 width */}
-                  <div className="lg:col-span-7 space-y-4 flex flex-col" data-oid="ejnfktw">
+                  <div className="lg:col-span-7 space-y-4 flex flex-col">
                     {/* Instructions */}
-                    <div
-                      className="bg-white/50 dark:bg-slate-900/50 border border-orange-200/40 dark:border-orange-800/30 rounded-2xl shadow-md shadow-orange-500/5 backdrop-blur-sm p-5 relative group transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/10"
-                      data-oid="_b7prj-"
-                    >
-                      <div className="flex items-center justify-between mb-3" data-oid="ot:uqrr">
+                    <div className={cn(PANEL, 'p-4')}>
+                      <div className="flex items-center justify-between mb-3">
                         <h3
-                          className="text-xs font-bold flex items-center gap-2 text-orange-700 dark:text-orange-300 uppercase tracking-widest"
-                          data-oid="udphzmz"
+                          className={cn(
+                            MICRO,
+                            'text-stone-500 dark:text-stone-400 flex items-center gap-1.5'
+                          )}
                         >
-                          <Info className="w-3.5 h-3.5" data-oid="sz5_mdu" /> Instructions
+                          <Info className="w-3.5 h-3.5" /> Instructions
                         </h3>
                         {tasks[taskType].instructions && (
-                          <div
-                            className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-                            data-oid="8cq:d4v"
-                          ></div>
+                          <span className="h-1.5 w-1.5 rounded-full bg-[rgb(var(--signal-ok))]" />
                         )}
                       </div>
-                      <div className="relative" data-oid="mqx7sb:">
-                        <InstructionEditor
-                          value={tasks[taskType].instructions}
-                          onChange={(val) => updateTaskField(taskType, 'instructions', val)}
-                          placeholder="Enter brief instructions about time and word count..."
-                          data-oid="0uhkwnl"
-                        />
-                      </div>
+                      <InstructionEditor
+                        value={tasks[taskType].instructions}
+                        onChange={(val) => updateTaskField(taskType, 'instructions', val)}
+                        placeholder="Enter brief instructions about time and word count..."
+                      />
                     </div>
 
                     {/* Prompt */}
-                    <div
-                      className="bg-white dark:bg-slate-900 border border-orange-200/40 dark:border-orange-800/30 rounded-2xl shadow-lg shadow-orange-500/10 p-1 flex flex-col min-h-fit"
-                      data-oid="nxb:zc2"
-                    >
-                      <div
-                        className="p-4 pb-2 flex items-center justify-between border-b border-orange-100/50 dark:border-orange-900/20 mb-1"
-                        data-oid="2s-oiw:"
-                      >
-                        <h3
-                          className="text-sm font-bold flex items-center gap-2 text-orange-700 dark:text-orange-300"
-                          data-oid="0re0f3h"
-                        >
-                          <PenTool className="w-4 h-4" data-oid="xy46itw" /> Task Prompt
+                    <div className={cn(PANEL, 'p-1 flex flex-col min-h-fit')}>
+                      <div className="p-3 pb-2 flex items-center justify-between border-b border-stone-200/80 dark:border-white/[0.07] mb-1">
+                        <h3 className="text-xs font-extrabold flex items-center gap-1.5 text-stone-700 dark:text-stone-200">
+                          <PenTool className="w-3.5 h-3.5 text-stone-400" /> Task Prompt
                         </h3>
-                        <Badge
-                          variant="outline"
-                          className="bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-950/20 dark:text-orange-400 dark:border-orange-900/40 text-[10px] uppercase"
-                          data-oid="mxjb4ml"
-                        >
-                          Required
-                        </Badge>
+                        <span className={cn(PILL_BASE, pillTone('neutral'))}>Required</span>
                       </div>
-                      <div className="flex-1 p-2" data-oid=":wy77xs">
+                      <div className="flex-1 p-2">
                         <RichTextEditor
                           theme={effectiveTheme}
                           value={tasks[taskType].prompt}
                           onChange={(val) => updateTaskField(taskType, 'prompt', val)}
-                          className="border-0 shadow-none !bg-transparent min-h-[150px]"
+                          className="border-0 !bg-transparent min-h-[150px]"
                           placeholder={`Write the ${taskType} question here...`}
-                          data-oid="bpbs8i8"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Right Column: Image & Sample Answer - Takes 5/12 width */}
-                  <div className="lg:col-span-5 space-y-4 flex flex-col h-full" data-oid="hipp.xx">
+                  <div className="lg:col-span-5 space-y-4 flex flex-col h-full">
                     {/* Task 1 Image or Task 2 Spacer/Info */}
                     {taskType === 'Task 1' ? (
-                      <div
-                        className="bg-white/50 dark:bg-slate-900/50 border border-orange-200/40 dark:border-orange-800/30 rounded-2xl shadow-md shadow-orange-500/5 backdrop-blur-sm p-5 transition-all duration-300"
-                        data-oid="e0fhafr"
-                      >
-                        <div className="flex items-center justify-between mb-4" data-oid="fjejsi6">
+                      <div className={cn(PANEL, 'p-4')}>
+                        <div className="flex items-center justify-between mb-3">
                           <h3
-                            className="text-xs font-bold flex items-center gap-2 text-orange-700 dark:text-orange-300 uppercase tracking-widest"
-                            data-oid="gnt7_8s"
+                            className={cn(
+                              MICRO,
+                              'text-stone-500 dark:text-stone-400 flex items-center gap-1.5'
+                            )}
                           >
-                            <ImageIcon className="w-3.5 h-3.5" data-oid="d-dm1wd" /> Reference Image
+                            <ImageIcon className="w-3.5 h-3.5" /> Reference Image
                           </h3>
                           {tasks[taskType].image_url && (
-                            <div
-                              className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-                              data-oid="1r21eyo"
-                            ></div>
+                            <span className="h-1.5 w-1.5 rounded-full bg-[rgb(var(--signal-ok))]" />
                           )}
                         </div>
                         <div className="flex gap-2 mb-3">
@@ -1349,16 +903,10 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                             placeholder="Paste Image URL here..."
                             value={tasks[taskType].image_url}
                             onChange={(e) => updateTaskField(taskType, 'image_url', e.target.value)}
-                            className="bg-white/80 dark:bg-slate-950/50 border-orange-200/50 dark:border-orange-800/40 focus:ring-orange-500/20"
-                            data-oid="sq_n1tn"
                           />
-                          <div className="relative">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="group shrink-0 border-orange-200/50 dark:border-orange-800/40 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                            >
-                              <Upload className="h-4 w-4 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform" />
+                          <div className="relative shrink-0">
+                            <AdminButton variant="outline" className="group h-9 w-9 p-0">
+                              <Upload className="h-3.5 w-3.5 text-stone-500 group-hover:scale-110 transition-transform" />
                               <input
                                 type="file"
                                 className="absolute inset-0 opacity-0 cursor-pointer"
@@ -1381,39 +929,26 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                                   }
                                 }}
                               />
-                            </Button>
+                            </AdminButton>
                           </div>
                         </div>
 
                         <ImagePreview
                           imageUrl={tasks[taskType].image_url}
                           onClear={() => updateTaskField(taskType, 'image_url', '')}
-                          data-oid="jb-rua-"
                         />
                       </div>
                     ) : (
-                      <div
-                        className="bg-gradient-to-br from-indigo-50/50 to-blue-50/30 dark:from-indigo-950/20 dark:to-blue-950/10 border border-indigo-100/50 dark:border-indigo-800/30 rounded-2xl p-5 shadow-sm"
-                        data-oid="0bpukf6"
-                      >
-                        <div className="flex gap-3" data-oid="-bff0mq">
-                          <div
-                            className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg h-fit text-indigo-600 dark:text-indigo-400"
-                            data-oid="0:p7tx8"
-                          >
-                            <Sparkles className="w-5 h-5" data-oid="bnm::pq" />
+                      <div className={cn(PANEL, 'p-4')}>
+                        <div className="flex gap-3">
+                          <div className="w-8 h-8 rounded-md grid place-items-center shrink-0 bg-stone-100 dark:bg-white/[0.04] text-stone-500 dark:text-stone-400">
+                            <Sparkles className="w-4 h-4" />
                           </div>
-                          <div data-oid="r09mhzi">
-                            <h4
-                              className="font-semibold text-sm text-indigo-800 dark:text-indigo-300 mb-1"
-                              data-oid="_jq2yzn"
-                            >
+                          <div>
+                            <h4 className="font-extrabold text-xs text-stone-800 dark:text-stone-100 mb-1">
                               Essay Writing Tips
                             </h4>
-                            <p
-                              className="text-xs text-indigo-600/80 dark:text-indigo-400/80 leading-relaxed"
-                              data-oid="slelgm9"
-                            >
+                            <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed">
                               For Task 2, providing a detailed sample answer helps students
                               understand the structure of a high-scoring essay. Focus on clear
                               arguments, logical paragraphing, and advanced vocabulary.
@@ -1424,33 +959,19 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                     )}
 
                     {/* Sample Answer */}
-                    <div
-                      className="bg-white dark:bg-slate-900 border border-orange-200/40 dark:border-orange-800/30 rounded-2xl shadow-lg shadow-orange-500/10 flex-1 flex flex-col min-h-[400px]"
-                      data-oid=".prf.8b"
-                    >
-                      <div
-                        className="p-4 pb-2 flex items-center justify-between border-b border-orange-100/50 dark:border-orange-900/20 mb-1"
-                        data-oid="pvqv89i"
-                      >
-                        <h3
-                          className="text-sm font-bold flex items-center gap-2 text-orange-700 dark:text-orange-300"
-                          data-oid="o:736o-"
-                        >
-                          <FileText className="w-4 h-4" data-oid="7s--kot" /> Model Answer
+                    <div className={cn(PANEL, 'flex-1 flex flex-col min-h-[400px]')}>
+                      <div className="p-3 pb-2 flex items-center justify-between border-b border-stone-200/80 dark:border-white/[0.07] mb-1">
+                        <h3 className="text-xs font-extrabold flex items-center gap-1.5 text-stone-700 dark:text-stone-200">
+                          <FileText className="w-3.5 h-3.5 text-stone-400" /> Model Answer
                         </h3>
                         {tasks[taskType].sample_answer && (
-                          <Badge
-                            variant="outline"
-                            className="bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/40 text-[10px] uppercase flex items-center gap-1"
-                            data-oid="8ftziqm"
-                          >
-                            <ShieldCheck className="w-3 h-3" data-oid="ndh9nf8" /> Band 9
-                          </Badge>
+                          <span className={cn(PILL_BASE, pillTone('ok'), 'gap-1')}>
+                            <ShieldCheck className="w-2.5 h-2.5" /> Band 9
+                          </span>
                         )}
                       </div>
-                      <div className="flex-1 p-0 overflow-hidden rounded-b-2xl" data-oid="a1do7tx">
-                        <style jsx data-oid="-jgpff8">{`
-                          /* Override styles specifically for this instance to fit the container better */
+                      <div className="flex-1 p-0 overflow-hidden rounded-b-xl">
+                        <style>{`
                           .sample-answer-editor-wrapper .ql-toolbar {
                             border-top: none;
                             border-left: none;
@@ -1458,21 +979,18 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                             background: transparent;
                             padding: 8px 12px;
                           }
-                          .sample-answer-editor-wrapper .ql-container {
-                            font-size: 14px;
-                          }
+                          .sample-answer-editor-wrapper .ql-container { font-size: 14px; }
                           .sample-answer-editor-wrapper .ql-editor {
                             min-height: 250px;
                             padding: 20px;
                             background: transparent;
                           }
                         `}</style>
-                        <div className="sample-answer-editor-wrapper h-full" data-oid="hnxk:q_">
+                        <div className="sample-answer-editor-wrapper h-full">
                           <SampleAnswerEditor
                             value={tasks[taskType].sample_answer}
                             onChange={(val) => updateTaskField(taskType, 'sample_answer', val)}
                             placeholder="Write or paste the model answer here..."
-                            data-oid="koxbb8u"
                           />
                         </div>
                       </div>

@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -11,7 +9,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Save, X } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Redo2, Save, Undo2, X } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import { AdminButton, PANEL, MICRO, SectionLabel } from '../../ui/primitives';
 
 // --- History Hook ---
 const useHistory = (initialState) => {
@@ -128,177 +129,126 @@ const GenericTestCreator = ({ initialData, onSave, onCancel, testType }) => {
   };
 
   return (
-    <div className="space-y-6" data-oid="ecj:gto">
-      <div className="flex items-center justify-between" data-oid="lmuakyi">
-        <h2 className="text-2xl font-bold capitalize text-foreground" data-oid="58:.u0h">
+    <div className="p-4 sm:p-6 space-y-4 max-w-3xl mx-auto">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50 capitalize">
           {testType} Test Editor
         </h2>
-        <div className="flex gap-2" data-oid="80lj2q_">
-          <div className="flex items-center gap-1 mr-2 bg-muted p-1 rounded-lg" data-oid="noy8rmt">
-            <Button
-              variant="ghost"
-              size="icon"
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-stone-100 dark:bg-white/[0.04] p-1 rounded-md">
+            <button
+              type="button"
               onClick={undo}
               disabled={!canUndo}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              data-oid="p95s3fs"
+              className="h-6 w-6 grid place-items-center rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-white dark:hover:bg-white/5 disabled:opacity-40 disabled:pointer-events-none transition-colors"
             >
-              <span className="text-lg" data-oid="tq09civ">
-                ↺
-              </span>{' '}
-              {/* Fallback icon */}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
+              <Undo2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
               onClick={redo}
               disabled={!canRedo}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              data-oid="wl5x0pu"
+              className="h-6 w-6 grid place-items-center rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-white dark:hover:bg-white/5 disabled:opacity-40 disabled:pointer-events-none transition-colors"
             >
-              <span className="text-lg transform scale-x-[-1] inline-block" data-oid="je930ox">
-                ↺
-              </span>{' '}
-              {/* Fallback for Redo */}
-            </Button>
+              <Redo2 className="w-3.5 h-3.5" />
+            </button>
           </div>
-          <Button variant="outline" onClick={onCancel} data-oid="q5z6d3l">
-            <X className="w-4 h-4 mr-2" data-oid="qy28ifm" /> Cancel
-          </Button>
-          <Button onClick={handleSave} data-oid="_lus4p6">
-            <Save className="w-4 h-4 mr-2" data-oid=":l:1_2t" /> Save
-          </Button>
+          <AdminButton variant="outline" onClick={onCancel}>
+            <X className="w-3.5 h-3.5" /> Cancel
+          </AdminButton>
+          <AdminButton onClick={handleSave}>
+            <Save className="w-3.5 h-3.5" /> Save
+          </AdminButton>
         </div>
       </div>
 
-      <Card data-oid="r378d.-">
-        <CardHeader data-oid="nl_w25v">
-          <CardTitle data-oid="wv_:.nw">Test Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4" data-oid="5.daor2">
-          <div className="grid gap-2" data-oid="7z748qr">
-            <Label data-oid="489yi5q">Title</Label>
-            <Input
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="e.g. Cambridge 15 Test 1"
-              data-oid="hni5hbu"
+      <div className={cn(PANEL, 'p-4 space-y-4')}>
+        <SectionLabel>Test Details</SectionLabel>
+
+        <div className="grid gap-1.5">
+          <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Title</Label>
+          <Input
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="e.g. Cambridge 15 Test 1"
+          />
+        </div>
+
+        <div className="grid gap-1.5">
+          <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Access Tier</Label>
+          <Select
+            value={formData.access_tier}
+            onValueChange={(val) => setFormData((prev) => ({ ...prev, access_tier: val }))}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="free">Free</SelectItem>
+              <SelectItem value="pro">Pro</SelectItem>
+              <SelectItem value="premium">Premium</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid gap-2">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <Checkbox
+              checked={formData.is_official_cambridge}
+              onCheckedChange={(c) => setFormData({ ...formData, is_official_cambridge: !!c })}
             />
-          </div>
+            <span className="text-xs font-bold text-stone-700 dark:text-stone-200">
+              Official Cambridge Test
+            </span>
+          </label>
 
-          <div className="grid gap-2" data-oid="qms9goc">
-            <Label data-oid="j4_mogk">Access Tier</Label>
-            <Select
-              value={formData.access_tier}
-              onValueChange={(val) => setFormData((prev) => ({ ...prev, access_tier: val }))}
-              data-oid="f5ivro4"
-            >
-              <SelectTrigger data-oid="xiq9rxi">
-                <SelectValue data-oid="b99ye5e" />
-              </SelectTrigger>
-              <SelectContent data-oid="tlmm.5o">
-                <SelectItem value="free" data-oid="4g-_cvd">
-                  Free
-                </SelectItem>
-                <SelectItem value="pro" data-oid="d3rj4m-">
-                  Pro
-                </SelectItem>
-                <SelectItem value="premium" data-oid="o:i6dsv">
-                  Premium
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid gap-2" data-oid=".w-3l5t">
-            <Label className="flex items-center gap-2 cursor-pointer" data-oid="b87sxfh">
-              <input
-                type="checkbox"
-                checked={formData.is_official_cambridge}
-                onChange={(e) =>
-                  setFormData({ ...formData, is_official_cambridge: e.target.checked })
-                }
-                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
-                data-oid="t6_7gae"
-              />
-
-              <span data-oid="sod5fke">Official Cambridge Test</span>
-            </Label>
-
-            {formData.is_official_cambridge && (
-              <div
-                className="flex items-center gap-4 animate-in fade-in slide-in-from-left-2 duration-300 p-3 bg-muted/30 rounded-lg border border-dashed"
-                data-oid="bi2etcs"
-              >
-                <div className="grid gap-1.5 flex-1" data-oid="e75eri_">
-                  <Label data-oid="75kcje1">Year</Label>
-                  <Input
-                    type="number"
-                    min="2000"
-                    max="2030"
-                    value={formData.cambridge_year}
-                    onChange={(e) =>
-                      setFormData({ ...formData, cambridge_year: parseInt(e.target.value) })
-                    }
-                    data-oid="rgxrnky"
-                  />
-                </div>
-                <div className="grid gap-1.5 flex-1" data-oid="i0x7-1l">
-                  <Label data-oid="fbw7zqo">Test Number</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={formData.cambridge_test_number}
-                    onChange={(e) =>
-                      setFormData({ ...formData, cambridge_test_number: parseInt(e.target.value) })
-                    }
-                    data-oid="iqgt9x3"
-                  />
-                </div>
+          {formData.is_official_cambridge && (
+            <div className="flex items-center gap-4 animate-in fade-in slide-in-from-left-2 duration-200 p-3 rounded-lg border border-dashed border-stone-200 dark:border-white/[0.1] bg-stone-50 dark:bg-white/[0.02]">
+              <div className="grid gap-1.5 flex-1">
+                <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Year</Label>
+                <Input
+                  type="number"
+                  min="2000"
+                  max="2030"
+                  value={formData.cambridge_year}
+                  onChange={(e) =>
+                    setFormData({ ...formData, cambridge_year: parseInt(e.target.value) })
+                  }
+                />
               </div>
-            )}
-          </div>
+              <div className="grid gap-1.5 flex-1">
+                <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  Test Number
+                </Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={formData.cambridge_test_number}
+                  onChange={(e) =>
+                    setFormData({ ...formData, cambridge_test_number: parseInt(e.target.value) })
+                  }
+                />
+              </div>
+            </div>
+          )}
+        </div>
 
-          <div className="grid gap-2" data-oid="_yv5u5.">
-            <Label data-oid="m0cecb4">Access Tier</Label>
-            <Select
-              value={formData.access_tier}
-              onValueChange={(v) => setFormData({ ...formData, access_tier: v })}
-              data-oid="gnwj76z"
-            >
-              <SelectTrigger data-oid="x9x07k6">
-                <SelectValue data-oid="cqh-sxp" />
-              </SelectTrigger>
-              <SelectContent data-oid="f6-d6u4">
-                <SelectItem value="free" data-oid="o:8je9-">
-                  Free
-                </SelectItem>
-                <SelectItem value="premium" data-oid="mwrjv4t">
-                  Premium
-                </SelectItem>
-                <SelectItem value="platinum" data-oid="o_s3dfh">
-                  Platinum
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2" data-oid="l:yelaa">
-            <Label data-oid="5rwzwwu">Test Data (JSON Configuration)</Label>
-            <Textarea
-              className="font-mono h-96"
-              value={formData.raw_data}
-              onChange={(e) => setFormData({ ...formData, raw_data: e.target.value })}
-              data-oid="603fm7k"
-            />
-
-            <p className="text-xs text-muted-foreground" data-oid="j4.ov8q">
-              Configure {testType} specific sections here (sections, tasks, prompts). Validation
-              will be applied on save.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="grid gap-1.5">
+          <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+            Test Data (JSON Configuration)
+          </Label>
+          <Textarea
+            className="font-mono text-xs h-96"
+            value={formData.raw_data}
+            onChange={(e) => setFormData({ ...formData, raw_data: e.target.value })}
+          />
+          <p className="text-[11px] text-stone-500 dark:text-stone-400">
+            Configure {testType} specific sections here (sections, tasks, prompts). Validation will
+            be applied on save.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

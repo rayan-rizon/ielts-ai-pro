@@ -169,7 +169,7 @@ export const AdminPageHeader = ({ title, description, tip, children }) => (
  */
 const ADMIN_BUTTON_VARIANTS = {
   primary:
-    'bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 hover:bg-stone-700 dark:hover:bg-stone-200',
+    'bg-stone-600 dark:bg-stone-600 text-white dark:text-white hover:bg-stone-700 dark:hover:bg-stone-500',
   outline:
     'border border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5',
   ghost:
@@ -208,7 +208,7 @@ AdminButton.displayName = 'AdminButton';
 export const ADMIN_TABS_LIST =
   'inline-flex h-auto items-center justify-start gap-1 p-1 bg-stone-100 dark:bg-white/[0.04] border border-stone-200/80 dark:border-white/[0.07] rounded-lg shrink-0';
 export const ADMIN_TAB_TRIGGER =
-  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-stone-500 dark:text-stone-400 data-[state=active]:bg-white dark:data-[state=active]:bg-[#131315] data-[state=active]:text-stone-900 dark:data-[state=active]:text-stone-50 data-[state=active]:shadow-2xs transition-all duration-150 active:scale-[0.96] shrink-0';
+  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-stone-500 dark:text-stone-400 data-[state=active]:bg-white dark:data-[state=active]:bg-[#131315] data-[state=active]:text-stone-900 dark:data-[state=active]:text-stone-50 data-[state=active]:shadow-2xs transition-all duration-200 ease-out active:scale-[0.96] shrink-0';
 
 /**
  * Shared enter animation for admin pages/panels — a quiet staggered fade+rise

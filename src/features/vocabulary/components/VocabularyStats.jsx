@@ -10,7 +10,9 @@ export default function VocabularyStats({ stats, wordLimit, dueCount = 0, classN
   const statItems = [
     { icon: BookOpen, value: displayLimit, label: 'Saved', tone: 'accent' },
     { icon: Target, value: stats.masteredWords, label: 'Mastered', tone: 'emerald' },
-    { icon: Clock, value: dueCount, label: 'Due today', tone: dueCount > 0 ? 'rose' : 'neutral' },
+    // Amber, not rose: words due for review are the routine, expected state —
+    // this is what the app is for, not a problem to be alarmed about.
+    { icon: Clock, value: dueCount, label: 'Due today', tone: dueCount > 0 ? 'amber' : 'neutral' },
     { icon: Flame, value: `${stats.streak}d`, label: 'Streak', tone: 'amber' },
     { icon: Trophy, value: '8.0+', label: 'Goal', tone: 'sky' },
   ];
@@ -18,7 +20,12 @@ export default function VocabularyStats({ stats, wordLimit, dueCount = 0, classN
   return (
     <div
       className={cn(
-        'grid w-full grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 items-stretch gap-1.5 sm:gap-2 xl:w-auto xl:flex xl:flex-nowrap',
+        // `xs:` isn't a real Tailwind breakpoint in this project (no `screens.xs` in
+        // tailwind.config.js), so it silently compiled to nothing — the grid was
+        // stuck at 2 columns from 0 to 640px, leaving the 5th tile orphaned alone
+        // in its own row. `min-[480px]:` is an arbitrary-value variant Tailwind
+        // supports natively, so it actually renders.
+        'grid w-full grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-5 items-stretch gap-1.5 sm:gap-2 xl:w-auto xl:flex xl:flex-nowrap',
         className
       )}
     >

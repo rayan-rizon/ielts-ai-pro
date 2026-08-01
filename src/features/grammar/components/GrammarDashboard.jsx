@@ -51,7 +51,7 @@ export default function GrammarDashboard({
     <div className="space-y-4">
       {/* Hero + Learning Path */}
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(350px,0.75fr)]">
-        <div className={cn(surface, 'relative min-h-[248px] overflow-hidden bg-[#f4f1fb]')}>
+        <div className={cn(surface, 'relative min-h-[248px] overflow-hidden')}>
           <GrammarHeroPanel
             primaryTitle={primaryTitle}
             primaryDescription={primaryDescription}

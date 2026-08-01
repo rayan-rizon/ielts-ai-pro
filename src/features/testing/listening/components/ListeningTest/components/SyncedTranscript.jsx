@@ -95,7 +95,7 @@ const SyncedTranscript = memo(function SyncedTranscript({
           {group.speaker && (
             <div className="flex items-center gap-2 mb-1.5 opacity-90" data-oid="ojv9t6c">
               <div
-                className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                className="w-1.5 h-1.5 rounded-full bg-[#5a63df] shadow-[0_0_8px_rgba(90,99,223,0.5)]"
                 data-oid="lu6b1xk"
               />
 

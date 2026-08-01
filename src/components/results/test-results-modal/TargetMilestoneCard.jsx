@@ -83,13 +83,13 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className="p-4 xl:p-5 rounded-2xl bg-gradient-to-br from-white via-[#fbfaff] to-[#f0eeff] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] border border-[#dce0f5] dark:border-white/10 shadow-[0_10px_30px_-15px_rgba(86,97,233,0.15)] hover:shadow-[0_16px_36px_-18px_rgba(86,97,233,0.22)] transition-all duration-300 flex flex-col h-full gap-4 relative overflow-hidden"
+      className="p-4 xl:p-5 rounded-2xl bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs transition-all duration-300 flex flex-col h-full gap-4 relative overflow-hidden"
     >
-      <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#5661e9]/10 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#5a63df]/10 dark:bg-[#5a63df]/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="flex items-center justify-between gap-3 z-10">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-white text-[#5661e9] shadow-xs dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#d2d7f8] dark:border-indigo-500/30 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-white text-[#5a63df] shadow-xs dark:bg-[#5a63df]/20 dark:text-[#a9afff] border border-[#5a63df]/20 dark:border-[#5a63df]/30 flex items-center justify-center">
             <Target className="w-4 h-4" />
           </div>
           <div>
@@ -102,7 +102,7 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
           </div>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-black tracking-tight text-[#5661e9] dark:text-indigo-300">
+          <p className="text-2xl font-black tracking-tight text-[#5a63df] dark:text-[#c9cdf3]">
             +{answersNeeded}
           </p>
           <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
@@ -114,7 +114,7 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
       <div className="space-y-1.5 z-10">
         <div className="flex items-center justify-between text-xs font-bold">
           <span className="text-slate-500 dark:text-slate-400">Milestone progress</span>
-          <span className="text-xs font-black text-[#5661e9] dark:text-indigo-400">
+          <span className="text-xs font-black text-[#5a63df] dark:text-[#a9afff]">
             {progressPct}%
           </span>
         </div>
@@ -123,7 +123,7 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
             initial={{ width: 0 }}
             animate={{ width: `${progressPct}%` }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="h-full bg-gradient-to-r from-[#5661e9] to-[#7c86ff] rounded-full"
+            className="h-full bg-[#5a63df] rounded-full"
           />
         </div>
       </div>
@@ -131,7 +131,7 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
       <button
         type="button"
         onClick={onReviewAnswers}
-        className="w-full mt-auto p-3.5 rounded-xl bg-[#5661e9] hover:bg-[#4853d6] text-white flex items-center gap-3 transition-all text-left group z-10 shadow-sm"
+        className="w-full mt-auto p-3.5 rounded-xl bg-[#5a63df] hover:bg-[#4a52c9] text-white flex items-center gap-3 transition-all text-left group z-10 shadow-sm"
       >
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-bold text-indigo-100">Best place to start</p>

@@ -179,6 +179,8 @@ export default function useDashboardData(authUser, authLoading) {
         radarData: [],
         stats: {
           totalTests: 0,
+          measuredTests: 0,
+          abandonedTests: 0,
           avgScore: '0.0',
           targetScore: Number(user?.target_band_score || authUser?.target_band_score || 7.0),
           todayMinutes: 0,
@@ -216,6 +218,10 @@ export default function useDashboardData(authUser, authLoading) {
       radarData,
       stats: {
         totalTests: serverStats.totalTests || 0,
+        // Sessions actually sat, not walked away from within minutes at band
+        // 0 — see is_abandoned_test_session in the get_dashboard_stats RPC.
+        measuredTests: serverStats.measuredTests ?? serverStats.totalTests ?? 0,
+        abandonedTests: serverStats.abandonedTests || 0,
         avgScore: formatBand(serverStats.avgScore || 0),
         targetScore: Number(user?.target_band_score || authUser?.target_band_score || 7.0),
         todayMinutes: serverStats.todayMinutes || 0,

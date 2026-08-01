@@ -9,7 +9,7 @@ const PART_CONFIGS = [
     icon: MessageSquare,
     bgGradient: 'from-[#fdfcff] to-[#f3efff] dark:from-[#101322] dark:to-[#16192d]',
     cardBorder:
-      'border-[#eaecf6] hover:border-violet-200/80 dark:border-white/10 dark:hover:border-indigo-500/30',
+      'border-[#e4e2f0] hover:border-violet-200/80 dark:border-white/[0.07] dark:hover:border-indigo-500/30',
     iconBg:
       'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#d2d7f8]/60 dark:border-indigo-500/30',
     dot: 'bg-[#5661e9]',
@@ -23,7 +23,7 @@ const PART_CONFIGS = [
     icon: Mic,
     bgGradient: 'from-[#fffdfc] to-[#fff5ee] dark:from-[#15121c] dark:to-[#1e1726]',
     cardBorder:
-      'border-[#eaecf6] hover:border-amber-200/80 dark:border-white/10 dark:hover:border-amber-500/30',
+      'border-[#e4e2f0] hover:border-amber-200/80 dark:border-white/[0.07] dark:hover:border-amber-500/30',
     iconBg:
       'bg-[#fff1e7] text-[#df7437] dark:bg-amber-500/20 dark:text-amber-300 border border-[#fcdbc8]/60 dark:border-amber-500/30',
     dot: 'bg-[#df7437]',
@@ -37,7 +37,7 @@ const PART_CONFIGS = [
     icon: Users,
     bgGradient: 'from-[#fffdfd] to-[#fff0f5] dark:from-[#181119] dark:to-[#221422]',
     cardBorder:
-      'border-[#eaecf6] hover:border-rose-200/80 dark:border-white/10 dark:hover:border-rose-500/30',
+      'border-[#e4e2f0] hover:border-rose-200/80 dark:border-white/[0.07] dark:hover:border-rose-500/30',
     iconBg:
       'bg-[#ffeef3] text-[#e11d48] dark:bg-rose-500/20 dark:text-rose-300 border border-[#fccedb]/60 dark:border-rose-500/30',
     dot: 'bg-[#e11d48]',
@@ -55,7 +55,7 @@ function PartCard({ part, data }) {
   return (
     <article
       className={cn(
-        'group flex h-full flex-col justify-between rounded-2xl border bg-gradient-to-br p-4 shadow-[0_10px_30px_-18px_rgba(43,53,128,0.1)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md',
+        'group flex h-full flex-col justify-between rounded-2xl border bg-gradient-to-br p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md',
         part.bgGradient,
         part.cardBorder
       )}

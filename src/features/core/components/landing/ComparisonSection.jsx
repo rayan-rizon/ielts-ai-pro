@@ -187,7 +187,7 @@ export default function ComparisonSection({ viewport, handlePrimaryCta }) {
   return (
     <SoftSection
       id="comparison"
-      className="scroll-mt-24 py-16 lg:py-24 bg-[#faf9ff] dark:bg-[#070914] relative overflow-hidden"
+      className="scroll-mt-24 py-16 lg:py-24 bg-[#faf9ff] dark:bg-[#0b0a10] relative overflow-hidden"
     >
       <div className="relative z-10 mx-auto max-w-[1300px] px-5 md:px-8">
         <SectionHeading

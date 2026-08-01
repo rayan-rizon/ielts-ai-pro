@@ -54,11 +54,11 @@ const TrueFalseRenderer = memo(function TrueFalseRenderer({
         } else {
           if (isSelected) {
             optionClass +=
-              'bg-blue-50/90 border-blue-500/80 text-blue-950 dark:bg-blue-950/40 dark:border-blue-500/60 dark:text-blue-100 font-semibold shadow-xs ring-1 ring-blue-500/20';
-            dotClass += 'border-blue-600 bg-blue-600 dark:border-blue-500 dark:bg-blue-500';
+              'bg-[#5a63df]/10 border-[#5a63df]/60 text-[#3a3f9e] dark:bg-[#5a63df]/20 dark:border-[#5a63df]/50 dark:text-[#c9cdf3] font-semibold shadow-xs ring-1 ring-[#5a63df]/20';
+            dotClass += 'border-[#5a63df] bg-[#5a63df]';
           } else {
             optionClass +=
-              'bg-white/80 border-slate-200/90 text-slate-700 dark:bg-slate-900/70 dark:border-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:border-blue-300 dark:hover:border-blue-700';
+              'bg-white/80 border-slate-200/90 text-slate-700 dark:bg-slate-900/70 dark:border-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:border-[#5a63df]/40 dark:hover:border-[#5a63df]/40';
             dotClass += 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900';
           }
         }

@@ -12,7 +12,7 @@ import { cn } from '@/lib/cn';
  * @param {string} className - Additional CSS classes
  */
 const QuestionNumberCircle = React.memo(
-  ({ number, isFlagged, onClick, status = 'default', size = 'md', className = '' }) => {
+  ({ number, isFlagged, onClick, status = 'default', size = 'sm', className = '' }) => {
     const sizeClasses = {
       sm: 'min-w-[1.25rem] h-5 p-[4px] text-[12px] border-1.5',
       md: 'min-w-[1.5rem] h-6 p-[4px] text-[12px] border-2',
@@ -39,7 +39,7 @@ const QuestionNumberCircle = React.memo(
                   ? 'bg-rose-500 text-white border-rose-500 shadow-sm'
                   : status === 'unanswered'
                     ? 'bg-amber-400 text-amber-900 border-amber-500 shadow-sm'
-                    : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 hover:border-orange-300 dark:hover:border-orange-500/50',
+                    : 'bg-[#5a63df]/10 dark:bg-[#5a63df]/20 text-[#5a63df] dark:text-[#a9afff] border-[#5a63df]/25 dark:border-[#5a63df]/30 hover:border-orange-300 dark:hover:border-orange-500/50',
           className
         )}
         title={isFlagged ? 'Uncheck to unflag' : 'Click to flag for review'}

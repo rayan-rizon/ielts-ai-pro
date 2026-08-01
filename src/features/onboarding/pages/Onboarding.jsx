@@ -1,10 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { trackAppEvent } from '@/lib/tracking';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { User } from '@/entities';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { addWeeks } from 'date-fns';
 import {
   CalendarIcon,
@@ -16,9 +14,11 @@ import {
   Rocket,
   Zap,
 } from 'lucide-react';
+import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 import { generateAdaptiveLearningPath } from '@/utils/api';
 import { toast } from 'sonner';
+import { IconChip, MICRO, MUTED, PANEL } from '@/features/dashboard/components/primitives';
 import {
   getWeeklyCapacity,
   normalizeStudyAvailability,
@@ -308,100 +308,83 @@ export default function Onboarding() {
 
   if (isCheckingStatus) {
     return (
-      <div
-        className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-blue-950/20 dark:to-indigo-950/20 flex items-center justify-center"
-        data-oid="tasraut"
-      >
-        <div className="text-center space-y-4" data-oid=".bepr3z">
-          <div
-            className="w-12 h-12 mx-auto border-4 border-primary/30 border-t-primary rounded-full animate-spin"
-            data-oid="95lmq19"
-          />
-          <p className="text-muted-foreground" data-oid="lq0pz8c">
-            Loading...
-          </p>
+      <div className="flex min-h-screen items-center justify-center bg-[#f8f8fb] dark:bg-[#0b0a10]">
+        <div className="space-y-3 text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#5a63df]/25 border-t-[#5a63df]" />
+          <p className={cn(MICRO, MUTED)}>Loading</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-blue-950/20 dark:to-indigo-950/20 flex items-start sm:items-center justify-center p-4 pt-16 pb-8 sm:py-4 relative overflow-y-auto"
-      data-oid=":mui1d4"
-    >
-      {/* Ambient background effects */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden" data-oid="6nf1ex9">
-        <div
-          className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] rounded-full bg-primary/5 blur-[120px]"
-          data-oid=":.va2gg"
-        />
-        <div
-          className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] rounded-full bg-violet-500/5 blur-[120px]"
-          data-oid="ir:4v7s"
-        />
-      </div>
+    <div className="relative flex min-h-screen items-start justify-center overflow-y-auto bg-[#f8f8fb] p-4 pb-8 pt-16 dark:bg-[#0b0a10] sm:items-center sm:py-4">
+      {/* Same dot-grid + glow language as every other authenticated page. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-24 -left-24 -z-0 h-[24rem] w-[24rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.4),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.12),transparent_70%)]"
+      />
 
-      <Card
-        className="w-full max-w-xl relative z-10 shadow-2xl border-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl overflow-hidden"
-        data-oid="ia3ge0f"
-      >
-        {/* Progress bar */}
-        <div className="h-1.5 bg-slate-100 dark:bg-slate-800 w-full" data-oid="wsoeduj">
-          <motion.div
-            className="h-full bg-gradient-to-r from-primary to-violet-600"
-            initial={{ width: 0 }}
-            animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-            data-oid="he83hba"
-          />
+      <div className={cn(PANEL, 'relative z-10 w-full max-w-xl overflow-hidden')}>
+        {/* Step rail — one segment per step, filled up to the current one. A
+            plain percentage bar doesn't tell you how many steps remain; six
+            discrete segments do at a glance. */}
+        <div className="flex gap-1 p-4 pb-0 sm:p-6 sm:pb-0">
+          {steps.map((step, index) => (
+            <span
+              key={step.id}
+              aria-hidden="true"
+              className={cn(
+                'h-1 flex-1 rounded-full transition-colors duration-300',
+                index <= currentStep ? 'bg-[#5a63df]' : 'bg-[#eceafa] dark:bg-white/[0.07]'
+              )}
+            />
+          ))}
         </div>
 
-        {/* Step indicator */}
-        <div
-          className="px-4 sm:px-8 pt-4 sm:pt-6 pb-2 flex items-center justify-between"
-          data-oid="fau3crn"
-        >
-          <div className="flex items-center gap-3" data-oid="r6uj4un">
-            <div
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center"
-              data-oid="9hsnwbn"
-            >
-              <StepIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" data-oid="5zdz3xy" />
-            </div>
-            <div data-oid="8he7spd">
-              <div
-                className="text-[10px] sm:text-xs text-muted-foreground dark:text-slate-400 font-medium uppercase tracking-wider"
-                data-oid="ibcc962"
-              >
-                Step {currentStep + 1} of {steps.length}
-              </div>
-            </div>
+        <div className="flex items-center justify-between px-4 pt-3 sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <IconChip icon={StepIcon} tone="accent" size="md" />
+            <span className={cn(MICRO, MUTED)}>
+              Step {currentStep + 1} of {steps.length}
+            </span>
           </div>
+          {currentStep < steps.length - 1 && (
+            <button
+              type="button"
+              onClick={skipOnboarding}
+              disabled={isLoading}
+              className={cn(
+                MICRO,
+                'text-slate-400 transition-colors hover:text-slate-600 disabled:opacity-50 dark:text-slate-500 dark:hover:text-slate-300'
+              )}
+            >
+              Skip for now
+            </button>
+          )}
         </div>
 
-        <CardContent className="px-4 sm:px-8 pb-6 sm:pb-8 pt-2" data-oid="mqkrm2y">
-          <div className="mb-4" data-oid=":6odu3j">
-            <h1
-              className="text-xl font-black tracking-tight mb-1 text-foreground dark:text-white"
-              data-oid="6n:j:1i"
-            >
+        <div className="px-4 pb-6 pt-3 sm:px-6 sm:pb-7">
+          <div className="mb-4">
+            <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
               {steps[currentStep].title}
             </h1>
-            <p
-              className="text-sm text-muted-foreground dark:text-slate-300 font-medium"
-              data-oid="jxfmair"
-            >
+            <p className={cn('mt-1 text-[13px] font-medium', MUTED)}>
               {steps[currentStep].description}
             </p>
           </div>
 
-          <div
-            className="min-h-[200px] sm:min-h-[260px] flex flex-col justify-center"
-            data-oid="uruh-9o"
-          >
-            <AnimatePresence mode="wait" custom={direction} data-oid="6blz-2r">
-              <motion.div
+          <div className="flex min-h-[220px] flex-col justify-center sm:min-h-[260px]">
+            <AnimatePresence mode="wait" custom={direction}>
+              <m.div
                 key={currentStep}
                 custom={direction}
                 variants={stepVariants}
@@ -410,75 +393,54 @@ export default function Onboarding() {
                 exit="exit"
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 className="w-full"
-                data-oid="bdstzta"
               >
                 {renderStepContent()}
-              </motion.div>
+              </m.div>
             </AnimatePresence>
           </div>
 
-          <div
-            className="flex flex-col sm:flex-row gap-4 sm:gap-0 justify-between items-center mt-4 pt-4 border-t border-slate-100 dark:border-slate-800"
-            data-oid="cw.jk3p"
-          >
+          <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#eceafa] pt-4 dark:border-white/[0.07] sm:flex-row">
             {currentStep > 0 ? (
-              <Button
-                variant="ghost"
+              <button
+                type="button"
                 onClick={goBack}
                 disabled={isLoading || currentStep === steps.length - 1}
-                className="gap-2 text-muted-foreground dark:text-slate-400 hover:text-foreground dark:hover:text-white hover:bg-secondary/80 dark:hover:bg-slate-800 transition-all font-semibold px-2 sm:px-4"
-                data-oid=".hqw.mw"
+                className="inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-[13px] font-bold text-slate-500 transition-colors hover:text-slate-800 disabled:opacity-40 dark:text-slate-400 dark:hover:text-white"
               >
-                <ChevronLeft className="w-4 h-4" data-oid="06h_scg" />
+                <ChevronLeft className="h-4 w-4" />
                 Back
-              </Button>
+              </button>
             ) : (
-              <div data-oid="4zf6a21" />
+              <div />
             )}
 
-            <div
-              className="flex items-center gap-2 w-full sm:w-auto justify-end sm:justify-start"
-              data-oid="6j3trvp"
-            >
-              {currentStep < steps.length - 1 && (
-                <Button
-                  variant="ghost"
-                  onClick={skipOnboarding}
-                  className="text-muted-foreground dark:text-slate-400 font-bold hover:text-foreground dark:hover:text-white hover:bg-secondary/50 dark:hover:bg-slate-800 transition-all text-[10px] uppercase tracking-widest px-2"
-                  disabled={isLoading}
-                  data-oid="gfe4zem"
-                >
-                  Skip for now
-                </Button>
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={!canProceed() || isLoading}
+              className={cn(
+                'inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg px-7 text-sm font-bold text-white transition-all duration-150',
+                'bg-[#5a63df] hover:bg-[#4a52c9] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50',
+                'sm:w-auto'
               )}
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed() || isLoading}
-                size="lg"
-                className="rounded-xl px-6 sm:px-8 shadow-lg shadow-primary/25 bg-primary hover:bg-primary/90 text-white font-bold h-10 sm:h-12 text-sm sm:text-base"
-                data-oid="xj:91xs"
-              >
-                {isLoading ? (
-                  <>
-                    <div
-                      className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
-                      data-oid="a-9:ia:"
-                    />
-                    Creating Plan...
-                  </>
-                ) : currentStep === steps.length - 1 ? (
-                  'Finish'
-                ) : (
-                  <>
-                    Continue
-                    <ChevronRight className="w-4 h-4" data-oid="9qcooki" />
-                  </>
-                )}
-              </Button>
-            </div>
+            >
+              {isLoading ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Creating plan…
+                </>
+              ) : currentStep === steps.length - 1 ? (
+                'Finish'
+              ) : (
+                <>
+                  Continue
+                  <ChevronRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

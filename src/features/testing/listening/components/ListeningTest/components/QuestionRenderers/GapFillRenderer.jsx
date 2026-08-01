@@ -19,7 +19,7 @@ const GapFillRenderer = ({
       <div className={isInsideMergedCard ? 'px-0' : 'p-2'} data-oid="40tq17b">
         {question.gap_fill?.box_title && (
           <div
-            className={`bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 dark:from-slate-800/80 dark:via-slate-800/60 dark:to-slate-800/80 py-2 px-3 ${isInsideMergedCard ? '-mx-2 -mt-2 rounded-t-lg' : '-mx-2 -mt-2 rounded-t-xl'} mb-3 border-b border-slate-200/60 dark:border-slate-700/50`}
+            className={`bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 dark:from-white/[0.05] dark:via-white/[0.03] dark:to-white/[0.05] py-2 px-3 ${isInsideMergedCard ? 'rounded-lg' : '-mx-2 -mt-2 rounded-t-xl'} mb-3 border-b border-slate-200/60 dark:border-white/[0.07]`}
             data-oid="yv67yft"
           >
             <h4

@@ -152,7 +152,7 @@ export default function CTABanner({ handlePrimaryCta, viewport }) {
   const reduceMotion = useReducedMotion();
 
   return (
-    <SoftSection className="bg-gradient-to-b from-[#f4f7fc] to-[#eef2f8] dark:from-[#080c1b] dark:to-[#04060e] py-8 md:py-12 lg:py-14">
+    <SoftSection className="bg-gradient-to-b from-[#f4f7fc] to-[#eef2f8] dark:from-[#0b0a10] dark:to-[#0b0a10] py-8 md:py-12 lg:py-14">
       <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-5 md:px-8">
         <m.div
           initial={{ opacity: 0, y: reduceMotion ? 0 : 20 }}

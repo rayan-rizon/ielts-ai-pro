@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 export function DeepDiveHeader({ detailedFeedback, isAllExpanded, onToggleExpandAll }) {
   return (
-    <div className="mb-5 flex items-center justify-between border-b border-slate-200/80 pb-4 dark:border-white/10">
+    <div className="mb-5 flex items-center justify-between border-b border-slate-200/80 pb-4 dark:border-white/[0.07]">
       <h3 className="flex items-center gap-3 text-lg font-black text-slate-900 dark:text-white md:text-xl">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 dark:border-rose-500/20 dark:bg-rose-500/10">
           <Bot className="h-5 w-5 text-rose-600 dark:text-rose-400" />

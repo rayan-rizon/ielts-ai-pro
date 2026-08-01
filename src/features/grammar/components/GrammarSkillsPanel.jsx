@@ -7,28 +7,28 @@ import SkillVisual from './SkillVisual';
 
 const SKILL_VISUALS = {
   grammar_sentence_boundaries: {
-    panelClass: 'from-[#fdfcff] to-[#f3efff]',
-    cardClass: 'hover:border-violet-200',
+    panelClass: 'from-[#fdfcff] to-[#f3efff] dark:from-[#141319] dark:to-[#100f15]',
+    cardClass: 'hover:border-violet-200 dark:hover:border-violet-400/30',
   },
   grammar_verb_forms: {
-    panelClass: 'from-[#fcfeff] to-[#edf5ff]',
-    cardClass: 'hover:border-blue-200',
+    panelClass: 'from-[#fcfeff] to-[#edf5ff] dark:from-[#141319] dark:to-[#100f15]',
+    cardClass: 'hover:border-blue-200 dark:hover:border-blue-400/30',
   },
   grammar_agreement_number: {
-    panelClass: 'from-[#fcfffd] to-[#edf9f3]',
-    cardClass: 'hover:border-emerald-200',
+    panelClass: 'from-[#fcfffd] to-[#edf9f3] dark:from-[#141319] dark:to-[#100f15]',
+    cardClass: 'hover:border-emerald-200 dark:hover:border-emerald-400/30',
   },
   grammar_articles_determiners: {
-    panelClass: 'from-[#fffefd] to-[#fff3e9]',
-    cardClass: 'hover:border-orange-200',
+    panelClass: 'from-[#fffefd] to-[#fff3e9] dark:from-[#141319] dark:to-[#100f15]',
+    cardClass: 'hover:border-orange-200 dark:hover:border-orange-400/30',
   },
   grammar_clause_control: {
-    panelClass: 'from-[#fcfeff] to-[#eaf8fb]',
-    cardClass: 'hover:border-cyan-200',
+    panelClass: 'from-[#fcfeff] to-[#eaf8fb] dark:from-[#141319] dark:to-[#100f15]',
+    cardClass: 'hover:border-cyan-200 dark:hover:border-cyan-400/30',
   },
   grammar_word_forms: {
-    panelClass: 'from-[#fffdfd] to-[#fff0f8]',
-    cardClass: 'hover:border-pink-200',
+    panelClass: 'from-[#fffdfd] to-[#fff0f8] dark:from-[#141319] dark:to-[#100f15]',
+    cardClass: 'hover:border-pink-200 dark:hover:border-pink-400/30',
   },
 };
 

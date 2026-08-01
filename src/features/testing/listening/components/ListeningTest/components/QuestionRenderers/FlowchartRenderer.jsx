@@ -29,7 +29,7 @@ const FlowchartRenderer = ({
       >
         {/* External Options Box */}
         {flowchart.answer_mode === 'dropdown' && flowchart.options?.length > 0 && (
-          <div className="mb-3 border border-slate-200 dark:border-slate-800 p-3 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl inline-block min-w-[200px] shadow-sm">
+          <div className="mb-3 border border-[#e4e2f0] dark:border-white/[0.07] p-3 bg-[#f4f3fb] dark:bg-white/[0.04] rounded-xl inline-block min-w-[200px] shadow-sm">
             <ul className="space-y-1">
               {flowchart.options.map((opt, idx) => {
                 const label = String.fromCharCode(65 + idx);
@@ -48,7 +48,7 @@ const FlowchartRenderer = ({
         )}
 
         {/* Flowchart Outer Border Box */}
-        <div className="border border-slate-200/80 dark:border-slate-800 p-2 sm:p-3 rounded-2xl bg-slate-50/40 dark:bg-slate-900/30 w-full shadow-xs backdrop-blur-xs">
+        <div className="border border-[#e4e2f0] dark:border-white/[0.07] p-2 sm:p-3 rounded-2xl bg-[#f4f3fb]/60 dark:bg-white/[0.03] w-full shadow-xs">
           {/* Flowchart Title */}
           {flowchart.box_title && (
             <div className="mb-2 text-center">
@@ -70,7 +70,7 @@ const FlowchartRenderer = ({
                 const result = (
                   <React.Fragment key={step.id}>
                     {/* Step Box */}
-                    <div className="w-full bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800/90 px-3 py-2 sm:px-3.5 sm:py-2.5 flex items-center rounded-xl shadow-xs hover:border-blue-400/40 dark:hover:border-blue-500/40 transition-all duration-200 relative">
+                    <div className="w-full bg-white dark:bg-[#141319] border border-[#e4e2f0] dark:border-white/[0.07] px-3 py-2 sm:px-3.5 sm:py-2.5 flex items-center rounded-xl shadow-xs hover:border-[#5a63df]/40 dark:hover:border-[#5a63df]/40 transition-all duration-200 relative">
                       <div className="w-full text-[14.5px] font-medium leading-normal text-slate-800 dark:text-slate-200">
                         <GapFillContent
                           question={{
@@ -97,7 +97,7 @@ const FlowchartRenderer = ({
                     {idx < flowchart.steps.length - 1 && (
                       <div className="py-0 flex justify-center">
                         <ArrowDown
-                          className="w-4 h-4 text-blue-500/70 dark:text-blue-400/70 animate-pulse"
+                          className="w-4 h-4 text-[#5a63df]/70 dark:text-[#a9afff]/70 animate-pulse"
                           aria-hidden="true"
                         />
                       </div>

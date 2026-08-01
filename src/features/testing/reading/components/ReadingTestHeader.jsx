@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Pill } from '@/features/dashboard/components/primitives';
 import {
   ArrowLeft,
   AlertTriangle,
@@ -196,7 +196,7 @@ const ReadingTestHeader = ({
       data-oid="lp5gz86"
     >
       <div
-        className="w-full rounded-2xl flex items-center justify-between py-1 px-2.5 sm:py-1.5 sm:px-3.5 border border-slate-200/50 dark:border-white/10 bg-white/80 dark:bg-[#0B0C1A]/95 backdrop-blur-2xl shadow-[0_8px_32px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] ring-1 ring-transparent dark:ring-white/5 transition-all duration-300"
+        className="w-full rounded-2xl flex items-center justify-between py-1 px-2.5 sm:py-1.5 sm:px-3.5 border border-[#e4e2f0] dark:border-white/[0.07] bg-white/85 dark:bg-[#141319]/95 backdrop-blur-md shadow-sm dark:shadow-none transition-all duration-300"
         data-oid="1i74cg9"
       >
         <div className="flex items-center gap-2 sm:gap-3 shrink-0" data-oid="8kvko2h">
@@ -210,7 +210,7 @@ const ReadingTestHeader = ({
                 onExit();
               }
             }}
-            className="group relative flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-xl border border-[#d2d7f8] bg-gradient-to-r from-white to-[#f4f3ff] text-slate-700 shadow-2xs transition-all duration-200 hover:border-[#5661e9] hover:text-[#5661e9] hover:shadow-xs active:scale-95 dark:border-white/10 dark:from-white/10 dark:to-white/5 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300 p-0"
+            className="group relative flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-xl border border-[#e4e2f0] bg-gradient-to-r from-white to-[#faf9ff] text-slate-700 shadow-2xs transition-all duration-200 hover:border-[#5a63df] hover:text-[#5a63df] hover:shadow-xs active:scale-95 dark:border-white/10 dark:from-white/10 dark:to-white/5 dark:text-slate-200 dark:hover:border-[#a9afff] dark:hover:text-[#a9afff] p-0"
             data-oid="ibxe.t4"
           >
             <ArrowLeft
@@ -259,7 +259,7 @@ const ReadingTestHeader = ({
           <div className="flex items-center gap-2 sm:gap-3" data-oid="crpg:ah">
             {/* Title & Badge */}
             <div
-              className="flex flex-col min-w-0 max-w-[160px] xs:max-w-[220px] sm:max-w-[320px] md:max-w-[420px] lg:max-w-[550px]"
+              className="flex flex-col min-w-0 max-w-[160px] min-[480px]:max-w-[220px] sm:max-w-[320px] md:max-w-[420px] lg:max-w-[550px]"
               data-oid="q6130ue"
             >
               <h1
@@ -289,12 +289,9 @@ const ReadingTestHeader = ({
                   </span>
                 )}
                 {!isAwaitingStart ? (
-                  <Badge
-                    variant="outline"
-                    className="h-4 rounded-full px-1.5 text-[8px] font-black uppercase tracking-wide"
-                  >
+                  <Pill tone={testMode === 'exam' ? 'accent' : 'neutral'}>
                     {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
-                  </Badge>
+                  </Pill>
                 ) : null}
               </div>
             </div>
@@ -319,7 +316,7 @@ const ReadingTestHeader = ({
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${progressPercentage}%` }}
-                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
+                      className="absolute top-0 left-0 h-full bg-[#5a63df] rounded-full"
                       data-oid="1.xgg-m"
                     />
                   </div>
@@ -334,19 +331,19 @@ const ReadingTestHeader = ({
                 return (
                   <div key={result.idx} className="flex-1 group relative" data-oid="if7889p">
                     <div
-                      className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
+                      className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden"
                       data-oid="pen735_"
                     >
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${cappedPct}%` }}
-                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
+                        className="h-full bg-[#5a63df] rounded-full"
                         data-oid=".py.anb"
                       />
                     </div>
                     {/* Tooltip */}
                     <div
-                      className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-500 whitespace-nowrap bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded shadow-sm z-10 pointer-events-none"
+                      className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-500 whitespace-nowrap bg-white dark:bg-[#141319] border border-slate-200 dark:border-white/[0.1] px-2 py-1 rounded shadow-sm z-10 pointer-events-none"
                       data-oid="b0s:ryj"
                     >
                       Passage {result.idx + 1}: {result.sAnswered}/{result.sQCount}
@@ -400,7 +397,7 @@ const ReadingTestHeader = ({
                 data-oid="jev398y"
               >
                 {isSaving ? (
-                  <Loader2 className="w-3 h-3 text-indigo-500 animate-spin" data-oid="4osmwi5" />
+                  <Loader2 className="w-3 h-3 text-[#5a63df] animate-spin" data-oid="4osmwi5" />
                 ) : (
                   <div
                     className={`w-1.5 h-1.5 rounded-full transition-colors ${lastSaved ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300 dark:bg-slate-600'}`}
@@ -502,8 +499,8 @@ const ReadingTestHeader = ({
                   className={cn(
                     'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 h-7.5 rounded-full transition-all duration-200 font-bold text-[9.5px] sm:text-[10px] uppercase tracking-wider select-none hover:scale-105 active:scale-95',
                     showAnswerSheet
-                      ? 'bg-indigo-600 text-white hover:bg-indigo-700 hover:text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:bg-indigo-500/20 dark:hover:text-indigo-300'
+                      ? 'bg-[#5a63df] text-white hover:bg-[#4a52c9] hover:text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-[#5a63df]/10 hover:text-[#5a63df] dark:hover:bg-[#5a63df]/20 dark:hover:text-[#a9afff]'
                   )}
                   data-oid="_55gaum"
                 >

@@ -34,7 +34,7 @@ function getMotivationalText(score) {
 const StatIcon = ({ tone = 'slate', children }) => {
   const tones = {
     indigo:
-      'bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#d2d7f8]/80 dark:border-indigo-500/40',
+      'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff] border border-[#5a63df]/20 dark:border-[#5a63df]/30',
     rose: 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/40',
     amber:
       'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/40',
@@ -71,21 +71,21 @@ export function HeroScoreCard({ testResults }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.25 }}
-      className="h-full min-h-[304px] grid grid-cols-1 md:grid-cols-[minmax(270px,1.15fr)_1px_minmax(220px,0.85fr)] items-center gap-4 p-4 xl:p-5 rounded-2xl bg-gradient-to-br from-white via-[#fcfbff] to-[#f3f2ff] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] border border-[#dce0f5] dark:border-white/10 shadow-[0_10px_30px_-15px_rgba(86,97,233,0.15)] hover:shadow-[0_16px_36px_-18px_rgba(86,97,233,0.22)] transition-all duration-300 relative overflow-hidden"
+      className="h-full min-h-[304px] grid grid-cols-1 md:grid-cols-[minmax(270px,1.15fr)_1px_minmax(220px,0.85fr)] items-center gap-4 p-4 xl:p-5 rounded-2xl bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs transition-all duration-300 relative overflow-hidden"
     >
-      <div className="absolute -left-20 -top-20 w-64 h-64 rounded-full bg-[#5661e9]/10 dark:bg-indigo-500/10 blur-3xl pointer-events-none" />
+      <div className="absolute -left-20 -top-20 w-64 h-64 rounded-full bg-[#5a63df]/10 dark:bg-[#5a63df]/10 blur-3xl pointer-events-none" />
 
       <div className="relative min-w-0 flex justify-center">
         <ArchScoreGauge score={score} />
       </div>
 
-      <div className="hidden md:block w-px h-[210px] bg-[#dce0f5] dark:bg-white/10" />
+      <div className="hidden md:block w-px h-[210px] bg-[#e4e2f0] dark:bg-white/[0.07]" />
 
       <div className="relative min-w-0 space-y-3">
         <div>
           <h3 className="text-base font-black text-slate-950 dark:text-white tracking-tight">
             {motivational.title}
-            <span className="ml-1 text-[#5661e9]">✦</span>
+            <span className="ml-1 text-[#5a63df]">✦</span>
           </h3>
           <p className="mt-1 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
             {motivational.subtitle}
@@ -93,7 +93,7 @@ export function HeroScoreCard({ testResults }) {
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-[#e2e5f6] dark:border-white/10 bg-white/90 dark:bg-white/5 px-3.5 py-2.5 shadow-2xs">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-white/90 dark:bg-white/5 px-3.5 py-2.5 shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0">
               <StatIcon tone="indigo">
                 <Check className="w-4 h-4 stroke-[2.5]" />
@@ -111,13 +111,13 @@ export function HeroScoreCard({ testResults }) {
               </div>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-sm font-black text-[#5661e9] dark:text-indigo-400">{accuracy}%</p>
+              <p className="text-sm font-black text-[#5a63df] dark:text-[#a9afff]">{accuracy}%</p>
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Accuracy</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <div className="flex items-center gap-2.5 rounded-xl border border-[#e2e5f6] dark:border-white/10 bg-white/90 dark:bg-white/5 px-3.5 py-2.5 shadow-2xs">
+            <div className="flex items-center gap-2.5 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-white/90 dark:bg-white/5 px-3.5 py-2.5 shadow-2xs">
               <StatIcon tone="rose">
                 <X className="w-4 h-4 stroke-[2.5]" />
               </StatIcon>
@@ -130,7 +130,7 @@ export function HeroScoreCard({ testResults }) {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2.5 rounded-xl border border-[#e2e5f6] dark:border-white/10 bg-white/90 dark:bg-white/5 px-3.5 py-2.5 shadow-2xs">
+            <div className="flex items-center gap-2.5 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-white/90 dark:bg-white/5 px-3.5 py-2.5 shadow-2xs">
               <StatIcon tone="amber">
                 <Minus className="w-4 h-4 stroke-[2.5]" />
               </StatIcon>
@@ -145,7 +145,7 @@ export function HeroScoreCard({ testResults }) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-[#e2e5f6] dark:border-white/10 bg-white/90 dark:bg-white/5 px-3.5 py-2.5 shadow-2xs">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-white/90 dark:bg-white/5 px-3.5 py-2.5 shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0">
               <StatIcon tone="slate">
                 <Clock className="w-4 h-4" />

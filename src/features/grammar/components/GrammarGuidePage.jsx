@@ -488,20 +488,20 @@ export default function GrammarGuidePage({
         <ArrowLeft className="h-4 w-4" /> Grammar Lab
       </button>
 
-      <section className={cn(PANEL, 'relative overflow-hidden px-6 py-7 sm:px-8 sm:py-9')}>
+      <section className={cn(PANEL, 'relative overflow-hidden px-6 py-4 sm:px-8 sm:py-5')}>
         <div className="absolute inset-y-0 right-0 hidden w-[42%] bg-[radial-gradient(circle_at_70%_40%,rgba(90,99,223,0.14),transparent_55%)] lg:block" />
         <div className="relative max-w-3xl">
           <Pill tone="accent">
             <BookOpenText className="h-3 w-3" />
             {skillLabel(resource.skill_code)}
           </Pill>
-          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+          <h1 className="mt-2.5 text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
             {resource.title}
           </h1>
-          <p className={cn('mt-3 max-w-2xl text-base font-medium leading-7', MUTED)}>
+          <p className={cn('mt-2 max-w-2xl text-sm font-medium leading-6', MUTED)}>
             {resource.summary}
           </p>
-          <div className="mt-5 flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f4f3fb] px-3 py-1.5 dark:bg-white/5">
               <Clock3 className="h-3.5 w-3.5 text-[#5a63df]" />
               {resource.estimated_minutes} minute guide

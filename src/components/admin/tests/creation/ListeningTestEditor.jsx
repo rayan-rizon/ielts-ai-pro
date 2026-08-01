@@ -14,6 +14,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { sanitizeHtml } from '@/lib/security';
+import { cn } from '@/lib/cn';
+import { ADMIN_TABS_LIST, ADMIN_TAB_TRIGGER } from '../../ui/primitives';
 import {
   Plus,
   Trash2,
@@ -115,24 +117,24 @@ const AudioUploader = ({ url, onUrlChange }) => {
       <div
         className={`relative overflow-hidden border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center transition-all duration-300 gap-4 text-center group ${
           error
-            ? 'border-rose-300 bg-rose-50/30 dark:bg-rose-950/20'
+            ? 'border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)] bg-[rgb(var(--signal-fault)/0.06)]'
             : url
-              ? 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/10 dark:bg-emerald-950/20'
-              : 'bg-indigo-50/20 hover:bg-indigo-50/40 dark:bg-slate-900/40 dark:hover:bg-slate-900/60 border-indigo-200/50 hover:border-indigo-400 dark:border-slate-800'
+              ? 'border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)] bg-[rgb(var(--signal-ok)/0.06)]'
+              : 'bg-stone-50/20 hover:bg-stone-50/40 dark:bg-stone-900/40 dark:hover:bg-stone-900/60 border-stone-200/50 hover:border-stone-400 dark:border-stone-800'
         }`}
         data-oid="hcz2wjn"
       >
         {/* Background Sparkle Effect */}
-        <div className="absolute top-0 right-0 -mr-8 -mt-8 w-16 h-16 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 blur-2xl rounded-full" />
+        <div className="absolute top-0 right-0 -mr-8 -mt-8 w-16 h-16 bg-gradient-to-br from-stone-500/10 to-stone-500/10 blur-2xl rounded-full" />
 
         {uploading ? (
           <div className="py-8 flex flex-col items-center" data-oid="_25-_87">
             <div
-              className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4 shadow-lg shadow-indigo-500/20"
+              className="w-12 h-12 border-4 border-stone-600 border-t-transparent rounded-full animate-spin mb-4 shadow-lg "
               data-oid=".8vmtev"
             ></div>
             <p
-              className="text-sm font-black text-indigo-700 uppercase tracking-widest"
+              className="text-sm font-black text-stone-700 uppercase tracking-widest"
               data-oid="lhdws_d"
             >
               Uploading...
@@ -148,14 +150,14 @@ const AudioUploader = ({ url, onUrlChange }) => {
           >
             <div className="flex items-center justify-center gap-4 mb-5" data-oid="0tdptmj">
               <div
-                className="p-3.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl shadow-sm border border-emerald-200/50 dark:border-emerald-800/50"
+                className="p-3.5 bg-[rgb(var(--signal-ok)/0.06)] bg-[rgb(var(--signal-ok)/0.06)] text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] rounded-2xl shadow-sm border border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)]"
                 data-oid=".fwvxt1"
               >
                 <CheckCircle2 className="w-6 h-6" data-oid="cb5ggb6" />
               </div>
               <div className="text-left" data-oid=".g7:9by">
                 <span
-                  className="text-sm font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-tight block"
+                  className="text-sm font-black text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] uppercase tracking-tight block"
                   data-oid="-sv_elv"
                 >
                   Source Active
@@ -170,7 +172,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
             </div>
 
             <div
-              className="bg-slate-100/50 dark:bg-slate-950/80 backdrop-blur-xl rounded-xl p-3 border border-slate-200/50 dark:border-slate-800/80 shadow-inner mb-4"
+              className="bg-stone-100/50 dark:bg-stone-950/80 backdrop-blur-xl rounded-xl p-3 border border-stone-200/50 dark:border-stone-800/80 shadow-inner mb-4"
               data-oid="eznl0al"
             >
               <audio
@@ -187,7 +189,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
                 variant="outline"
                 size="sm"
                 onClick={() => document.getElementById('audio-upload-input').click()}
-                className="text-[10px] uppercase font-black tracking-widest h-9 rounded-xl border-emerald-200/50 dark:border-emerald-800 bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all shadow-sm"
+                className="text-[10px] uppercase font-black tracking-widest h-9 rounded-xl border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] bg-white dark:bg-stone-900 text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] hover:bg-[rgb(var(--signal-ok)/0.06)] dark:hover:bg-[rgb(var(--signal-ok)/0.06)] hover:border-[rgb(var(--signal-ok)/0.3)] dark:hover:border-[rgb(var(--signal-ok)/0.3)] transition-all shadow-sm"
                 data-oid="fs3z4d:"
               >
                 <Upload className="w-3.5 h-3.5 mr-2" data-oid=".4v0reb" /> Replace
@@ -196,7 +198,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
                 variant="destructive"
                 size="sm"
                 onClick={() => onUrlChange('')}
-                className="text-[10px] uppercase font-black tracking-widest h-9 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-all shadow-sm"
+                className="text-[10px] uppercase font-black tracking-widest h-9 rounded-xl bg-[rgb(var(--signal-fault)/0.06)] bg-[rgb(var(--signal-fault)/0.06)] text-[rgb(var(--signal-fault))] text-[rgb(var(--signal-fault))] border border-[rgb(var(--signal-fault)/0.3)] border-[rgb(var(--signal-fault)/0.3)] hover:bg-[rgb(var(--signal-fault)/0.06)] dark:hover:bg-[rgb(var(--signal-fault)/0.06)] transition-all shadow-sm"
                 data-oid="3-p_z_w"
               >
                 <Trash2 className="w-3.5 h-3.5 mr-2" data-oid="7rdr9i9" /> Remove
@@ -208,8 +210,8 @@ const AudioUploader = ({ url, onUrlChange }) => {
             <div
               className={`p-5 rounded-2xl mb-1 shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${
                 error
-                  ? 'bg-rose-100 text-rose-500 border border-rose-200'
-                  : 'bg-indigo-50 text-indigo-600 border border-indigo-100'
+                  ? 'bg-[rgb(var(--signal-fault)/0.06)] text-[rgb(var(--signal-fault))] border border-[rgb(var(--signal-fault)/0.3)]'
+                  : 'bg-stone-50 text-stone-600 border border-stone-100'
               }`}
               data-oid="i0ivri2"
             >
@@ -221,13 +223,13 @@ const AudioUploader = ({ url, onUrlChange }) => {
             </div>
             <div data-oid="8c49j2b">
               <p
-                className="text-sm font-black text-slate-800 dark:text-slate-100 uppercase tracking-tight"
+                className="text-sm font-black text-stone-800 dark:text-stone-100 uppercase tracking-tight"
                 data-oid="px9ifsi"
               >
                 Audio Source
               </p>
               <p
-                className="text-[10px] text-slate-500 font-medium mt-1 tracking-wide"
+                className="text-[10px] text-stone-500 font-medium mt-1 tracking-wide"
                 data-oid="u2k4bff"
               >
                 DRAG FILES OR CLICK BROWSE
@@ -236,7 +238,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
 
             {error && (
               <div
-                className="text-[10px] text-rose-600 font-bold bg-rose-50 px-3 py-1 rounded-full border border-rose-100 animate-bounce"
+                className="text-[10px] text-[rgb(var(--signal-fault))] font-bold bg-[rgb(var(--signal-fault)/0.06)] px-3 py-1 rounded-full border border-[rgb(var(--signal-fault)/0.3)] animate-bounce"
                 data-oid=":_n5-49"
               >
                 {error}
@@ -247,7 +249,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
               variant="default"
               size="sm"
               onClick={() => document.getElementById('audio-upload-input').click()}
-              className="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-widest px-6 h-9 rounded-xl shadow-lg shadow-indigo-500/30 transition-all active:scale-95"
+              className="mt-2 bg-stone-600 hover:bg-stone-700 text-white font-black text-[10px] uppercase tracking-widest px-6 h-9 rounded-xl shadow-lg transition-all active:scale-95"
               data-oid="d1mrrwb"
             >
               Select MP3/WAV
@@ -274,7 +276,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
             data-oid="3__p8vg"
           >
             <span
-              className="text-[10px] font-black text-indigo-400 uppercase tracking-widest"
+              className="text-[10px] font-black text-stone-400 uppercase tracking-widest"
               data-oid="u7zugbg"
             >
               URL
@@ -284,7 +286,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
             placeholder="https://source-link.mp3"
             value={url}
             onChange={(e) => onUrlChange(e.target.value)}
-            className="pl-12 text-[11px] font-mono h-10 bg-white/40 border-slate-200/50 hover:border-indigo-300 transition-all rounded-xl focus:bg-white"
+            className="pl-12 text-[11px] font-mono h-10 bg-white dark:bg-[#131315] text-stone-800 dark:text-stone-200 border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 placeholder:text-stone-400 dark:placeholder:text-stone-500 transition-all rounded-xl focus:bg-white dark:focus:bg-[#18181b]"
             data-oid="1rjoqe0"
           />
         </div>
@@ -400,23 +402,23 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
 
   return (
     <div
-      className="border rounded-2xl bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm overflow-hidden transition-all hover:shadow-md"
+      className="border border-stone-200/80 dark:border-white/[0.07] rounded-2xl bg-white dark:bg-stone-900 shadow-sm overflow-hidden transition-all hover:shadow-md"
       data-oid="rx8pzb:"
     >
       <div
-        className="flex items-center justify-between px-3 py-2 border-b bg-slate-50/50 dark:bg-slate-800/50 dark:border-slate-800"
+        className="flex items-center justify-between px-3 py-2 border-b border-stone-200/80 dark:border-white/[0.07] bg-stone-50/50 dark:bg-white/[0.02]"
         data-oid="nd2jlqp"
       >
         <div className="flex items-center gap-2" data-oid=":87yj1b">
           <div
-            className="text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest mr-2"
+            className="text-[10px] text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest mr-2"
             data-oid="vtw9hy8"
           >
             Instructions
           </div>
           {!isPreview && (
             <div
-              className="flex items-center border-l pl-3 gap-1.5 border-slate-200 dark:border-slate-700"
+              className="flex items-center border-l pl-3 gap-1.5 border-stone-200 dark:border-stone-700"
               data-oid="skw9dsd"
             >
               <Button
@@ -424,7 +426,7 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
                 variant="ghost"
                 size="sm"
                 onClick={() => handleFormat('bold')}
-                className="h-7 w-7 p-0 hover:bg-white dark:hover:bg-slate-700 shadow-sm border border-transparent hover:border-slate-200"
+                className="h-7 w-7 p-0 hover:bg-white dark:hover:bg-stone-700 shadow-sm border border-transparent hover:border-stone-200"
                 title="Bold"
                 data-oid="8ch--_k"
               >
@@ -435,7 +437,7 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
                 variant="ghost"
                 size="sm"
                 onClick={() => handleFormat('italic')}
-                className="h-7 w-7 p-0 hover:bg-white dark:hover:bg-slate-700 shadow-sm border border-transparent hover:border-slate-200"
+                className="h-7 w-7 p-0 hover:bg-white dark:hover:bg-stone-700 shadow-sm border border-transparent hover:border-stone-200"
                 title="Italic"
                 data-oid="t5tovpa"
               >
@@ -446,7 +448,7 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowImageUrlModal(true)}
-                className="h-7 w-7 p-0 hover:bg-white dark:hover:bg-slate-700 shadow-sm border border-transparent hover:border-slate-200"
+                className="h-7 w-7 p-0 hover:bg-white dark:hover:bg-stone-700 shadow-sm border border-transparent hover:border-stone-200"
                 title="Insert Image URL"
                 data-oid="de12h3k"
               >
@@ -462,8 +464,8 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
           onClick={() => setIsPreview(!isPreview)}
           className={`text-[10px] h-7 px-3 rounded-lg font-black uppercase tracking-widest transition-all ${
             isPreview
-              ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-500/20'
-              : 'bg-white text-indigo-600 hover:bg-indigo-50 border border-slate-200 shadow-sm'
+              ? 'bg-stone-600 text-white hover:bg-stone-700 shadow-md'
+              : 'bg-white dark:bg-[#18181b] text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-white/8 border border-stone-200 dark:border-white/10 shadow-sm'
           }`}
           data-oid="n1_hor9"
         >
@@ -478,7 +480,7 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
       <div className="relative" data-oid="xnciqeo">
         {isPreview ? (
           <div
-            className="bg-white dark:bg-slate-900 overflow-y-auto min-h-[60px] p-2"
+            className="bg-white dark:bg-stone-900 overflow-y-auto min-h-[60px] p-2"
             style={{ whiteSpace: 'pre-wrap' }}
             data-oid="hl-5od."
           >
@@ -491,7 +493,7 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             rows={3}
-            className="border-0 rounded-none rounded-b-lg resize-none focus:ring-0 text-sm bg-white dark:bg-slate-950 dark:text-slate-200 font-mono min-h-[60px]"
+            className="border-0 rounded-none rounded-b-lg resize-none focus:ring-0 text-sm bg-white dark:bg-stone-950 dark:text-stone-200 font-mono min-h-[60px]"
             style={{ whiteSpace: 'pre-wrap', overflow: 'hidden' }}
             data-oid="oedrp2a"
           />
@@ -523,7 +525,7 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
 
             {imageUrlInput && (
               <div
-                className="border rounded-lg p-2 bg-slate-50 dark:bg-slate-900 overflow-hidden text-center"
+                className="border rounded-lg p-2 bg-stone-50 dark:bg-stone-900 overflow-hidden text-center"
                 data-oid="ej3p:_m"
               >
                 <p
@@ -548,7 +550,7 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleInsertImageUrl}
-              className="bg-violet-600 hover:bg-violet-700"
+              className="bg-stone-600 hover:bg-stone-700"
               disabled={!imageUrlInput}
               data-oid="z_y480v"
             >
@@ -614,20 +616,7 @@ const getQuestionCount = (q) => {
 };
 
 const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
-  // Fallback theme
-  const effectiveTheme = theme || {
-    color: 'violet',
-    primary: 'bg-violet-600',
-    primaryHover: 'hover:bg-violet-700',
-    light: 'bg-violet-50 dark:bg-violet-950/40',
-    lighter: 'bg-violet-50/50 dark:bg-violet-950/20',
-    border: 'border-violet-100 dark:border-violet-900',
-    text: 'text-violet-700 dark:text-violet-300',
-    icon: Headphones,
-    gradient: 'from-violet-500 to-purple-500',
-    gradientLight: 'from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30',
-    ring: 'ring-violet-500/20',
-  };
+  const effectiveTheme = theme || { icon: Headphones };
   // --- History Hook ---
   const useHistory = (initialState) => {
     const [state, setState] = useState(initialState);
@@ -1174,7 +1163,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-100 dark:bg-background text-foreground overflow-hidden">
+    <div className="flex flex-col h-full bg-stone-100 dark:bg-[#08080a] text-stone-900 dark:text-stone-50 overflow-hidden">
       <TestEditorHeader
         title={meta.title}
         theme={effectiveTheme}
@@ -1189,14 +1178,14 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         <Button
           variant="outline"
           size="sm"
-          className="ml-auto h-8 w-8 p-0 rounded-full border-dashed hidden md:flex shrink-0 hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="ml-auto h-8 w-8 p-0 rounded-full border-dashed hidden md:flex shrink-0 hover:bg-stone-100 dark:hover:bg-stone-800"
           onClick={() => setShowSidebar(!showSidebar)}
           title={showSidebar ? 'Hide Audio' : 'Show Audio'}
         >
           {showSidebar ? (
-            <Minimize2 className="w-4 h-4 text-slate-500" />
+            <Minimize2 className="w-4 h-4 text-stone-500" />
           ) : (
-            <Maximize2 className="w-4 h-4 text-slate-500" />
+            <Maximize2 className="w-4 h-4 text-stone-500" />
           )}
         </Button>
       </TestEditorHeader>
@@ -1209,37 +1198,22 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
               initial={{ width: 0, opacity: 0 }}
               animate={{ width: 400, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
-              className="w-full md:w-[400px] h-full bg-white dark:bg-card border-r dark:border-border flex flex-col z-10 shadow-xl"
+              className="w-full md:w-[400px] h-full bg-white dark:bg-[#131315] border-r border-stone-200/80 dark:border-white/[0.07] flex flex-col z-10"
             >
               <Tabs
                 value={activeTab}
                 onValueChange={setActiveTab}
                 className="flex-1 flex flex-col min-h-0"
               >
-                <div
-                  className={`p-2 md:p-4 border-b bg-gradient-to-r ${effectiveTheme.gradientLight || 'from-slate-50 to-slate-100'} dark:border-border`}
-                >
-                  <TabsList
-                    className={`w-full h-10 bg-gradient-to-r from-slate-50/90 to-violet-50/90 dark:from-slate-800/90 dark:to-violet-900/20 backdrop-blur-sm border ${effectiveTheme.border} rounded-xl p-1 shadow-sm grid grid-cols-4`}
-                  >
+                <div className="p-2 md:p-4 border-b border-stone-200/80 dark:border-white/[0.07]">
+                  <TabsList className={cn(ADMIN_TABS_LIST, 'w-full grid grid-cols-4 h-10')}>
                     {sections.map((_, i) => (
-                      <TabsTrigger
-                        key={i}
-                        value={String(i)}
-                        className={`relative text-xs font-semibold rounded-lg transition-all duration-300 
-                                                data-[state=active]:bg-gradient-to-r ${effectiveTheme.gradient} data-[state=active]:text-white 
-                                                data-[state=active]:shadow-md data-[state=active]:shadow-violet-500/25 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-700/50 group`}
-                      >
-                        <span className="flex items-center gap-2 z-10 relative">
-                          <span
-                            className={`flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold transition-all duration-300
-                                                    data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=active]:shadow-sm
-                                                    bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300
-                                                    group-data-[state=inactive]:scale-95 group-data-[state=active]:scale-100`}
-                          >
+                      <TabsTrigger key={i} value={String(i)} className={ADMIN_TAB_TRIGGER}>
+                        <span className="flex items-center gap-1.5">
+                          <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-stone-300">
                             {i + 1}
                           </span>
-                          <span className="font-medium">Part {i + 1}</span>
+                          Part {i + 1}
                         </span>
                       </TabsTrigger>
                     ))}
@@ -1252,10 +1226,10 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                   {/* Audio Section */}
                   <div className="shrink-0 space-y-3">
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-indigo-100 dark:bg-indigo-950/40 rounded-lg text-indigo-600 dark:text-indigo-400">
+                      <div className="p-1.5 bg-stone-100 dark:bg-stone-950/40 rounded-lg text-stone-600 dark:text-stone-400">
                         <Music className="w-4 h-4" />
                       </div>
-                      <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                      <h3 className="text-[11px] font-black text-stone-500 uppercase tracking-widest">
                         Audio Source
                       </h3>
                     </div>
@@ -1266,13 +1240,13 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                   </div>
 
                   {/* Audioscript Section */}
-                  <div className="flex-1 flex flex-col min-h-0 space-y-3 pt-4 border-t border-slate-200/60 dark:border-slate-800">
+                  <div className="flex-1 flex flex-col min-h-0 space-y-3 pt-4 border-t border-stone-200/60 dark:border-stone-800">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-violet-100 dark:bg-violet-950/40 rounded-lg text-violet-600 dark:text-violet-400">
+                        <div className="p-1.5 bg-stone-100 dark:bg-stone-950/40 rounded-lg text-stone-600 dark:text-stone-400">
                           <FileText className="w-4 h-4" />
                         </div>
-                        <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                        <h3 className="text-[11px] font-black text-stone-500 uppercase tracking-widest">
                           Audioscript
                         </h3>
                       </div>
@@ -1280,7 +1254,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                         onClick={handleAutoTranscribe}
                         disabled={!sections[activeTab].audio_url || transcribing}
                         size="sm"
-                        className="h-7 px-3 rounded-full bg-violet-600 hover:bg-violet-700 text-white font-black text-[9px] uppercase tracking-widest shadow-md shadow-violet-500/20 disabled:opacity-50"
+                        className="h-7 px-3 rounded-full bg-stone-600 hover:bg-stone-700 text-white font-black text-[9px] uppercase tracking-widest shadow-md disabled:opacity-50"
                       >
                         {transcribing ? (
                           <>
@@ -1297,7 +1271,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                     </div>
 
                     <div className="relative flex-1 flex flex-col">
-                      <p className="text-[10px] text-slate-400 mb-2 font-medium">
+                      <p className="text-[10px] text-stone-400 mb-2 font-medium">
                         SRT subtitle format recommended for syncing.
                       </p>
                       <Textarea
@@ -1306,19 +1280,19 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                           updateSection(Number(activeTab), 'srt_content', e.target.value)
                         }
                         placeholder={`1\n00:00:00,000 --> 00:00:05,000\nSPEAKER 1: Welcome...`}
-                        className="flex-1 font-mono text-xs min-h-[200px] bg-white dark:bg-slate-950 rounded-xl border-slate-200/60 dark:border-slate-800 focus:border-violet-500 focus:ring-violet-500/20 transition-all resize-none"
+                        className="flex-1 font-mono text-xs min-h-[200px] bg-white dark:bg-stone-950 rounded-xl border-stone-200/60 dark:border-stone-800 focus:border-stone-500 focus: transition-all resize-none"
                       />
                     </div>
 
                     {/* Quick Tip */}
-                    <div className="p-4 bg-gradient-to-br from-indigo-50/50 to-violet-50/50 dark:from-slate-800/50 dark:to-slate-900/50 rounded-2xl border border-indigo-100/50 dark:border-slate-800">
+                    <div className="p-4 bg-gradient-to-br from-stone-50/50 to-stone-50/50 dark:from-stone-800/50 dark:to-stone-900/50 rounded-2xl border border-stone-100/50 dark:border-stone-800">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-                        <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+                        <div className="h-2 w-2 rounded-full bg-stone-500 animate-pulse" />
+                        <span className="text-[10px] font-black text-stone-600 dark:text-stone-400 uppercase tracking-widest">
                           Quick Tip
                         </span>
                       </div>
-                      <p className="text-[10px] text-slate-500 leading-relaxed font-medium">
+                      <p className="text-[10px] text-stone-500 leading-relaxed font-medium">
                         Paste SRT subtitle content or use AI transcription. Format: Number →
                         Timestamp → Speaker: Text
                       </p>
@@ -1331,39 +1305,39 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         </AnimatePresence>
 
         {/* Main Question Builder Area */}
-        <div className="flex-1 flex flex-col bg-white dark:bg-slate-950 overflow-hidden">
+        <div className="flex-1 flex flex-col bg-white dark:bg-stone-950 overflow-hidden">
           {/* Sub-header with Tabs and Actions */}
-          <div className="px-4 sm:px-6 py-4 border-b bg-white dark:bg-slate-950 sticky top-0 z-10">
+          <div className="px-4 sm:px-6 py-4 border-b bg-white dark:bg-stone-950 sticky top-0 z-10">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center flex-wrap gap-4 overflow-hidden">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowSidebar(!showSidebar)}
-                  className={`h-9 w-9 shrink-0 rounded-xl border transition-all ${showSidebar ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : 'bg-white border-slate-200 text-slate-400'}`}
+                  className={`h-9 w-9 shrink-0 rounded-xl border transition-all ${showSidebar ? 'bg-stone-50 dark:bg-white/8 border-stone-200 dark:border-white/15 text-stone-700 dark:text-stone-200' : 'bg-white dark:bg-[#18181b] border-stone-200 dark:border-white/10 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300'}`}
                   title={showSidebar ? 'Hide Settings' : 'Show Settings'}
                 >
                   <LayoutGrid className="w-4 h-4" />
                 </Button>
 
-                <div className="flex items-center gap-3 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-xl border dark:border-slate-800 shrink-0">
+                <div className="flex items-center gap-3 px-3 py-1.5 bg-stone-50 dark:bg-stone-900/50 rounded-xl border dark:border-stone-800 shrink-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-black text-indigo-600">
+                    <span className="text-[10px] font-black text-stone-600">
                       {sections[activeTab]?.groups.length || 0}
                     </span>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">
                       groups
                     </span>
                   </div>
-                  <div className="w-px h-3 bg-slate-200 dark:bg-slate-800" />
+                  <div className="w-px h-3 bg-stone-200 dark:bg-stone-800" />
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-black text-indigo-600">
+                    <span className="text-[10px] font-black text-stone-600">
                       {sections[activeTab]?.groups.reduce(
                         (acc, g) => acc + g.questions.length,
                         0
                       ) || 0}
                     </span>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">
                       items
                     </span>
                   </div>
@@ -1371,12 +1345,12 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
               </div>
 
               <div className="flex items-center flex-wrap md:justify-end gap-2">
-                <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1 border dark:border-slate-800">
+                <div className="flex items-center bg-stone-100 dark:bg-stone-900 rounded-xl p-1 border dark:border-stone-800">
                   <Button
                     onClick={() => setBulkImportConfig({ isOpen: true, mode: 'answers_only' })}
                     variant="ghost"
                     size="sm"
-                    className="h-8 px-2 sm:px-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-indigo-600 font-black text-[9px] uppercase tracking-widest transition-all"
+                    className="h-8 px-2 sm:px-3 rounded-lg text-stone-600 dark:text-stone-400 hover:bg-white dark:hover:bg-stone-800 hover:text-stone-600 font-black text-[9px] uppercase tracking-widest transition-all"
                   >
                     <ListChecks className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
                     <span className="hidden sm:inline">Answers</span>
@@ -1385,9 +1359,9 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                     onClick={() => setBulkImportConfig({ isOpen: true, mode: 'full' })}
                     variant="ghost"
                     size="sm"
-                    className="h-8 px-2 sm:px-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-indigo-600 font-black text-[9px] uppercase tracking-widest transition-all"
+                    className="h-8 px-2 sm:px-3 rounded-lg text-stone-600 dark:text-stone-400 hover:bg-white dark:hover:bg-stone-800 hover:text-stone-600 font-black text-[9px] uppercase tracking-widest transition-all"
                   >
-                    <Sparkles className="w-3.5 h-3.5 mr-1 sm:mr-1.5 text-blue-500" />
+                    <Sparkles className="w-3.5 h-3.5 mr-1 sm:mr-1.5 text-stone-500" />
                     <span className="hidden sm:inline">Questions</span>
                   </Button>
                 </div>
@@ -1395,7 +1369,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                 <Button
                   onClick={() => addGroup(Number(activeTab))}
                   size="sm"
-                  className="h-9 px-4 sm:px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 shrink-0"
+                  className="h-9 px-4 sm:px-5 rounded-xl bg-stone-600 hover:bg-stone-700 text-white font-black text-[10px] uppercase tracking-widest shadow-lg transition-all hover:-translate-y-0.5 shrink-0"
                 >
                   <Plus className="w-4 h-4 mr-1 sm:mr-1.5" />
                   Add Group
@@ -1405,7 +1379,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
           </div>
 
           {/* Questions List/Editor Area */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar bg-slate-50/30 dark:bg-slate-950">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar bg-stone-50/30 dark:bg-stone-950">
             <div className="max-w-4xl mx-auto">
               <Reorder.Group
                 axis="y"
@@ -1435,12 +1409,12 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                   animate={{ opacity: 1, y: 0 }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-violet-50/30 dark:from-indigo-950/20 dark:to-violet-950/10 rounded-2xl -z-10" />
-                  <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border border-indigo-200/50 dark:border-indigo-800/30 rounded-2xl p-12 text-center shadow-lg shadow-indigo-500/5">
-                    <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mx-auto mb-4 border border-indigo-100 dark:border-indigo-800">
-                      <FileText className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-stone-50/50 to-stone-50/30 dark:from-stone-950/20 dark:to-stone-950/10 rounded-2xl -z-10" />
+                  <div className="bg-white/70 dark:bg-stone-900/70 backdrop-blur-sm border border-stone-200/50 dark:border-stone-800/30 rounded-2xl p-12 text-center shadow-lg ">
+                    <div className="w-16 h-16 rounded-2xl bg-stone-50 dark:bg-stone-900/30 flex items-center justify-center mx-auto mb-4 border border-stone-100 dark:border-stone-800">
+                      <FileText className="w-8 h-8 text-stone-600 dark:text-stone-400" />
                     </div>
-                    <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                    <h3 className="text-lg font-black text-stone-800 dark:text-white uppercase tracking-tight">
                       Build your test context
                     </h3>
                     <p className="text-xs text-muted-foreground mb-6 max-w-sm mx-auto font-medium">
@@ -1449,7 +1423,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                     </p>
                     <Button
                       onClick={() => addGroup(Number(activeTab))}
-                      className="h-10 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
+                      className="h-10 px-8 rounded-xl bg-stone-600 hover:bg-stone-700 text-white font-black text-[11px] uppercase tracking-widest shadow-lg transition-all active:scale-95"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Add First Group
@@ -1553,17 +1527,17 @@ const QuestionGroupEditor = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm transition-all duration-300 overflow-hidden ${group.isCollapsed ? 'border-slate-200 dark:border-slate-800' : 'ring-2 ring-indigo-500/10 border-indigo-200 dark:border-indigo-900 shadow-xl shadow-indigo-500/5'}`}
+      className={`bg-white dark:bg-stone-900 rounded-2xl border shadow-sm transition-all duration-300 overflow-hidden ${group.isCollapsed ? 'border-stone-200 dark:border-stone-800' : 'ring-2 border-stone-200 dark:border-stone-900 shadow-xl '}`}
       data-oid="x:by8mt"
     >
       <div
-        className={`p-4 sm:p-5 flex items-center justify-between cursor-pointer transition-all ${group.isCollapsed ? 'hover:bg-slate-50 dark:hover:bg-slate-800/50' : 'bg-gradient-to-r from-indigo-50/50 to-indigo-100/30 dark:from-slate-800 dark:to-slate-800/50'}`}
+        className={`p-4 sm:p-5 flex items-center justify-between cursor-pointer transition-all ${group.isCollapsed ? 'hover:bg-stone-50 dark:hover:bg-stone-800/50' : 'bg-gradient-to-r from-stone-50/50 to-stone-100/30 dark:from-stone-800 dark:to-stone-800/50'}`}
         onClick={() => onUpdate({ ...group, isCollapsed: !group.isCollapsed })}
         data-oid="epf.1ci"
       >
         <div className="flex items-center gap-3" data-oid="hf_a7sv">
           <div
-            className="cursor-grab active:cursor-grabbing p-1.5 text-slate-300 hover:text-indigo-500 transition-colors rounded-lg hover:bg-white dark:hover:bg-slate-800 shadow-sm"
+            className="cursor-grab active:cursor-grabbing p-1.5 text-stone-300 hover:text-stone-500 transition-colors rounded-lg hover:bg-white dark:hover:bg-stone-800 shadow-sm"
             onPointerDown={(e) => dragControls.start(e)}
             data-oid="u02_7na"
           >
@@ -1571,7 +1545,7 @@ const QuestionGroupEditor = ({
           </div>
           <div className="flex items-center gap-4" data-oid="j.nzbzg">
             <div
-              className={`p-2 rounded-xl transition-all duration-500 ${group.isCollapsed ? '-rotate-90 bg-slate-100 dark:bg-slate-800 text-slate-500 shadow-inner' : 'rotate-0 bg-indigo-600 text-white shadow-lg shadow-indigo-500/40'}`}
+              className={`p-2 rounded-xl transition-all duration-500 ${group.isCollapsed ? '-rotate-90 bg-stone-100 dark:bg-[#18181b] text-stone-500 dark:text-stone-300 border border-stone-200/80 dark:border-white/10 shadow-inner' : 'rotate-0 bg-stone-600 text-white shadow-lg '}`}
               data-oid="z:5qfsa"
             >
               <ChevronDown className="w-4 h-4" data-oid="qx4e2ao" />
@@ -1579,14 +1553,14 @@ const QuestionGroupEditor = ({
             <div className="flex flex-col gap-0.5" data-oid="uf0d.3n">
               <div className="flex items-center gap-2" data-oid="zepkzhf">
                 <span
-                  className="font-black text-xs sm:text-sm text-slate-900 dark:text-white uppercase tracking-tight"
+                  className="font-black text-xs sm:text-sm text-stone-900 dark:text-white uppercase tracking-tight"
                   data-oid="dmc_h:d"
                 >
                   {rangeLabel}
                 </span>
                 <Badge
                   variant="secondary"
-                  className="text-[9px] font-black bg-white dark:bg-slate-800 border-indigo-100 dark:border-indigo-900 text-indigo-600 shadow-sm uppercase tracking-widest px-2"
+                  className="text-[9px] font-black bg-white dark:bg-stone-800 border-stone-100 dark:border-white/10 text-stone-600 dark:text-stone-300 shadow-sm uppercase tracking-widest px-2"
                   data-oid="v21rl6e"
                 >
                   {group.questions.length} {group.questions.length === 1 ? 'Element' : 'Elements'}
@@ -1594,7 +1568,7 @@ const QuestionGroupEditor = ({
               </div>
               {group.title && group.isCollapsed && (
                 <span
-                  className="text-[10px] text-slate-500 font-medium truncate max-w-[200px] sm:max-w-md"
+                  className="text-[10px] text-stone-500 font-medium truncate max-w-[200px] sm:max-w-md"
                   data-oid="group-title-preview"
                 >
                   {group.title}
@@ -1611,7 +1585,7 @@ const QuestionGroupEditor = ({
               e.stopPropagation();
               onRemove();
             }}
-            className="h-8 w-8 p-0 text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-all"
+            className="h-8 w-8 p-0 text-stone-300 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.06)] dark:hover:bg-[rgb(var(--signal-fault)/0.06)] rounded-xl transition-all"
             data-oid="nr57-s_"
           >
             <Trash2 className="w-4 h-4" data-oid="b3ji38." />
@@ -1657,21 +1631,21 @@ const QuestionGroupEditor = ({
                 {group.questions.map((q, qIdx) => (
                   <div
                     key={q.id}
-                    className="relative pl-4 border-l-2 border-slate-100 dark:border-slate-800 hover:border-violet-500/50 transition-colors group/item"
+                    className="relative pl-4 border-l-2 border-stone-100 dark:border-stone-800 hover:border-stone-500/50 transition-colors group/item"
                     data-oid="b6gw-kd"
                   >
                     <div className="flex justify-between items-start mb-3" data-oid="wrt-yb-">
                       <div className="flex items-center gap-3" data-oid="c--10l:">
                         <Badge
                           variant="outline"
-                          className={`text-[10px] uppercase font-bold tracking-wider ${theme.text} ${theme.border} bg-white dark:bg-slate-900 shadow-sm`}
+                          className={`text-[10px] uppercase font-bold tracking-wider ${theme.text} ${theme.border} bg-white dark:bg-stone-900 shadow-sm`}
                           data-oid="tcudf81"
                         >
                           {q.type.replace(/_/g, ' ')}
                         </Badge>
                         {q.type === 'multiple_choice' && (
                           <div
-                            className="flex items-center gap-2 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900"
+                            className="flex items-center gap-2 px-2 py-0.5 rounded-md border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900"
                             data-oid="wym-d67"
                           >
                             <Checkbox
@@ -1686,13 +1660,13 @@ const QuestionGroupEditor = ({
                                 n.questions[qIdx] = { ...n.questions[qIdx], ...updates };
                                 onUpdate(n);
                               }}
-                              className="h-4 w-4 rounded-sm border-2 border-slate-300 dark:border-slate-600 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-violet-500 data-[state=checked]:to-violet-600 data-[state=checked]:border-violet-500 data-[state=checked]:text-white data-[state=checked]:shadow-sm data-[state=checked]:shadow-violet-500/25 transition-all duration-200"
+                              className="h-4 w-4 rounded-sm border-2 border-stone-300 dark:border-stone-600 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-stone-500 data-[state=checked]:to-stone-600 data-[state=checked]:border-stone-500 data-[state=checked]:text-white data-[state=checked]:shadow-sm data-[state=checked]: transition-all duration-200"
                               data-oid="afwihim"
                             />
 
                             <label
                               htmlFor={`multi-${q.id}`}
-                              className="text-[10px] font-medium cursor-pointer whitespace-nowrap text-slate-600 dark:text-slate-400"
+                              className="text-[10px] font-medium cursor-pointer whitespace-nowrap text-stone-600 dark:text-stone-400"
                               data-oid="1zzm66x"
                             >
                               Multi-Select
@@ -1702,7 +1676,7 @@ const QuestionGroupEditor = ({
                                 type="number"
                                 min="2"
                                 max="10"
-                                className="w-10 h-5 text-[10px] p-0 pl-1 text-center border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+                                className="w-10 h-5 text-[10px] p-0 pl-1 text-center border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900"
                                 value={q.question_count || 2}
                                 onChange={(e) =>
                                   updateQuestion(
@@ -1721,7 +1695,7 @@ const QuestionGroupEditor = ({
                         variant="ghost"
                         size="icon"
                         onClick={() => removeQuestion(qIdx)}
-                        className="h-6 w-6 opacity-0 group-hover/item:opacity-100 text-slate-400 hover:text-red-500 transition-all"
+                        className="h-6 w-6 opacity-0 group-hover/item:opacity-100 text-stone-400 hover:text-[rgb(var(--signal-fault))] transition-all"
                         data-oid="l7m-3de"
                       >
                         <X className="w-3 h-3" data-oid="u:mqr.t" />
@@ -1736,7 +1710,7 @@ const QuestionGroupEditor = ({
                             value={q.question_text}
                             onChange={(e) => updateQuestion(qIdx, 'question_text', e.target.value)}
                             placeholder="Question Text..."
-                            className="font-medium bg-transparent border-0 border-b border-slate-200 dark:border-slate-800 rounded-none px-0 focus-visible:ring-0 focus-visible:border-violet-500 placeholder:text-slate-400"
+                            className="font-medium bg-transparent border-0 border-b border-stone-200 dark:border-stone-800 rounded-none px-0 focus-visible:ring-0 focus-visible:border-stone-500 placeholder:text-stone-400"
                             data-oid="-i68.m."
                           />
 
@@ -1770,8 +1744,8 @@ const QuestionGroupEditor = ({
                                         ? q.correct_answer.includes(opt)
                                         : q.correct_answer === opt
                                     )
-                                      ? `${theme.primary} text-white border-transparent`
-                                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 hover:border-violet-400'
+                                      ? `${theme.primary} text-white dark:text-stone-900 border-transparent`
+                                      : 'bg-white dark:bg-[#18181b] border-stone-200 dark:border-white/12 text-stone-600 dark:text-stone-300 hover:border-stone-400 dark:hover:border-white/25'
                                   }`}
                                   data-oid="vul97u0"
                                 >
@@ -1785,7 +1759,7 @@ const QuestionGroupEditor = ({
                                       nO[oI] = e.target.value;
                                       updateQuestion(qIdx, 'options', nO);
                                     }}
-                                    className="h-8 text-sm bg-slate-50 dark:bg-slate-900/50 border-transparent focus:bg-white dark:focus:bg-slate-900 focus:border-slate-200 transition-all"
+                                    className="h-8 text-sm bg-stone-50 dark:bg-stone-900/50 border-transparent focus:bg-white dark:focus:bg-stone-900 focus:border-stone-200 transition-all"
                                     placeholder={`Option ${String.fromCharCode(65 + oI)}`}
                                     data-oid=".rdmbcc"
                                   />
@@ -1807,7 +1781,7 @@ const QuestionGroupEditor = ({
                                       } else if (q.correct_answer === opt)
                                         updateQuestion(qIdx, 'correct_answer', '');
                                     }}
-                                    className="absolute right-1 top-0 h-8 w-8 text-slate-400 hover:text-red-500 opacity-0 group-hover/option:opacity-100 transition-opacity"
+                                    className="absolute right-1 top-0 h-8 w-8 text-stone-400 hover:text-[rgb(var(--signal-fault))] opacity-0 group-hover/option:opacity-100 transition-opacity"
                                     disabled={q.options.length <= 2}
                                     data-oid="w:ad_d7"
                                   >
@@ -1823,7 +1797,7 @@ const QuestionGroupEditor = ({
                                 const nO = [...q.options, ''];
                                 updateQuestion(qIdx, 'options', nO);
                               }}
-                              className="self-start mt-1 text-xs h-8 border-dashed col-span-full border-slate-300 hover:border-violet-400 hover:text-violet-600 hover:bg-violet-50"
+                              className="self-start mt-1 text-xs h-8 border-dashed col-span-full border-stone-300 dark:border-white/15 text-stone-500 dark:text-stone-400 hover:border-stone-400 dark:hover:border-white/30 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 bg-transparent dark:bg-transparent transition-all"
                               data-oid="5msw6xt"
                             >
                               <Plus className="w-3 h-3 mr-1" data-oid="jj_:gou" /> Add Option
@@ -1837,12 +1811,12 @@ const QuestionGroupEditor = ({
                             value={q.question_text}
                             onChange={(e) => updateQuestion(qIdx, 'question_text', e.target.value)}
                             placeholder="Question text (use _____ for blanks)"
-                            className="min-h-[60px] text-sm resize-y bg-slate-50 dark:bg-slate-900 dark:text-slate-200 border-0 focus-visible:ring-1 focus-visible:ring-violet-400"
+                            className="min-h-[60px] text-sm resize-y bg-stone-50 dark:bg-stone-900 dark:text-stone-200 border-0 focus-visible:ring-1 focus-visible:"
                             data-oid="jc8:my5"
                           />
 
                           <div className="flex items-center gap-3" data-oid="yb_s_s0">
-                            <span className="text-xs font-medium text-slate-500" data-oid="4n:2fji">
+                            <span className="text-xs font-medium text-stone-500" data-oid="4n:2fji">
                               Correct Answer:
                             </span>
                             <Input
@@ -1851,7 +1825,7 @@ const QuestionGroupEditor = ({
                                 updateQuestion(qIdx, 'correct_answer', e.target.value)
                               }
                               placeholder="Enter strict answer key"
-                              className="h-8 w-full max-w-sm font-mono text-sm border-emerald-200 bg-emerald-50/30 dark:bg-emerald-950/20 dark:border-emerald-900 text-emerald-700 dark:text-emerald-400"
+                              className="h-8 w-full max-w-sm font-mono text-sm border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)] bg-[rgb(var(--signal-ok)/0.06)] border-[rgb(var(--signal-ok)/0.3)] text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))]"
                               data-oid="rqvzb_k"
                             />
                           </div>
@@ -1906,7 +1880,7 @@ const QuestionGroupEditor = ({
 
               {/* Add Question Footer */}
               <div
-                className="flex flex-col md:flex-row items-start md:items-center gap-4 pt-6 mt-6 border-t border-dashed border-gray-200 flex-wrap"
+                className="flex flex-col md:flex-row items-start md:items-center gap-4 pt-6 mt-6 border-t border-dashed border-stone-200 dark:border-white/10 flex-wrap"
                 data-oid="2rc.gbh"
               >
                 <DropdownMenu data-oid="mq:_7z2">
@@ -1914,16 +1888,16 @@ const QuestionGroupEditor = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-9 px-4 rounded-full border-dashed hover:border-solid hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-xs font-medium"
+                      className="h-9 px-4 rounded-full border-dashed hover:border-solid hover:bg-stone-50 dark:hover:bg-stone-800 transition-all text-xs font-medium"
                       data-oid="cc06:s_"
                     >
-                      <Plus className="w-3.5 h-3.5 mr-2 text-slate-500" data-oid="pg6khke" /> Add
+                      <Plus className="w-3.5 h-3.5 mr-2 text-stone-500" data-oid="pg6khke" /> Add
                       Single Question
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="start"
-                    className="w-64 bg-white dark:bg-slate-800 z-50"
+                    className="w-64 bg-white dark:bg-stone-800 z-50"
                     data-oid="wumrzdq"
                   >
                     <div
@@ -1945,7 +1919,7 @@ const QuestionGroupEditor = ({
                       Short Answer
                     </DropdownMenuItem>
 
-                    <div className="h-px bg-slate-100 my-1" data-oid="38teo__" />
+                    <div className="h-px bg-stone-100 my-1" data-oid="38teo__" />
                     <div
                       className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
                       data-oid="llirss."
@@ -1983,7 +1957,7 @@ const QuestionGroupEditor = ({
                       Matching Features
                     </DropdownMenuItem>
 
-                    <div className="h-px bg-slate-100 my-1" data-oid="__8e7c5" />
+                    <div className="h-px bg-stone-100 my-1" data-oid="__8e7c5" />
                     <div
                       className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
                       data-oid=".0o:blo"
@@ -2001,17 +1975,17 @@ const QuestionGroupEditor = ({
 
                 <div className="ml-auto flex items-center gap-2" data-oid="k.bq:7.">
                   <span
-                    className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mr-1"
+                    className="text-[10px] font-medium text-stone-400 uppercase tracking-wider mr-1"
                     data-oid="n4s6x14"
                   >
                     Quick Bulk Add
                   </span>
                   <div
-                    className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border dark:border-slate-700"
+                    className="flex items-center bg-stone-100 dark:bg-stone-800 rounded-lg p-0.5 border dark:border-stone-700"
                     data-oid="ffe:rz8"
                   >
                     <select
-                      className="h-7 bg-transparent text-xs border-0 focus:ring-0 text-slate-600 dark:text-slate-300 font-medium max-w-[120px]"
+                      className="h-7 bg-transparent text-xs border-0 focus:ring-0 text-stone-600 dark:text-stone-300 font-medium max-w-[120px]"
                       value={addType}
                       onChange={(e) => setAddType(e.target.value)}
                       data-oid="5unr8ea"
@@ -2039,7 +2013,7 @@ const QuestionGroupEditor = ({
                       </option>
                     </select>
                     <div
-                      className="w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1"
+                      className="w-px h-4 bg-stone-300 dark:bg-stone-600 mx-1"
                       data-oid="rp45:fz"
                     />
 
@@ -2047,7 +2021,7 @@ const QuestionGroupEditor = ({
                       type="number"
                       min="1"
                       max="20"
-                      className="w-12 h-7 text-center border-0 p-0 text-xs focus-visible:ring-0 bg-transparent dark:text-slate-200"
+                      className="w-12 h-7 text-center border-0 p-0 text-xs focus-visible:ring-0 bg-transparent dark:text-stone-200"
                       value={addCount}
                       onChange={(e) => setAddCount(e.target.value)}
                       data-oid="imp34tg"
@@ -2056,7 +2030,7 @@ const QuestionGroupEditor = ({
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-7 w-7 rounded-md hover:bg-white dark:hover:bg-slate-700 shadow-sm"
+                      className="h-7 w-7 rounded-md hover:bg-white dark:hover:bg-stone-700 shadow-sm"
                       onClick={() => onAddQuestion(addType, parseInt(addCount) || 1)}
                       data-oid="bdd4wwu"
                     >

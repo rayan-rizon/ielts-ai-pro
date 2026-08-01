@@ -634,11 +634,19 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
         })}
       </section>
 
-      {/* Error log + operations */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+      {/* Diagnostics — still health telemetry, so it keeps the same eyebrow
+          pattern as "Needs attention" / "All services" above. Full width: a
+          squeezed half-column just wrapped every message onto three lines. */}
+      <section className="space-y-2.5">
+        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
+          <span className="w-4 h-px bg-stone-300 dark:bg-stone-700" />
+          Recent errors
+        </h3>
         <div className={cn(PANEL, 'p-4')}>
           <div className="flex items-center justify-between mb-3">
-            <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Error log</h3>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+              Provider-level failures in this window
+            </p>
             <span className={cn(NUM, 'text-[11px] font-bold text-stone-500 dark:text-stone-400')}>
               {incidents.length}
             </span>
@@ -648,7 +656,7 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
               No provider errors in this window.
             </p>
           ) : (
-            <div className="space-y-px max-h-[250px] overflow-y-auto">
+            <div className="space-y-px max-h-[280px] overflow-y-auto">
               {incidents.map((incident, i) => (
                 <div
                   key={`${incident.service}-${i}`}
@@ -676,10 +684,21 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
             </div>
           )}
         </div>
+      </section>
 
-        <div className="space-y-3">
+      {/* Activity & controls — deliberately set apart from the fault/status
+          telemetry above with its own divider: these aren't health signals,
+          they're general product activity and an admin-facing switch. */}
+      <section className="space-y-2.5 pt-1 border-t border-stone-200/80 dark:border-white/[0.07]">
+        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
+          <span className="w-4 h-px bg-stone-300 dark:bg-stone-700" />
+          Activity &amp; controls
+        </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div className={cn(PANEL, 'p-4')}>
-            <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-3')}>Activity</h3>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-3')}>
+              Platform activity in this window
+            </p>
             <div className="grid grid-cols-3 gap-3">
               {[
                 { label: 'Signups', value: health?.activity?.signups },
@@ -704,15 +723,15 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
           </div>
 
           <div className={cn(PANEL, 'p-4')}>
-            <h3
+            <p
               className={cn(
                 MICRO,
                 'text-stone-500 dark:text-stone-400 mb-3 flex items-center gap-1.5'
               )}
             >
               <ShieldCheck className="w-3 h-3" />
-              Operations
-            </h3>
+              Maintenance
+            </p>
             <div className="flex items-center justify-between gap-4">
               <div className="space-y-0.5 min-w-0">
                 <Label className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
@@ -735,7 +754,7 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

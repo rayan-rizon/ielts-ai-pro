@@ -10,14 +10,14 @@ function SingleMatchingItem({ question, answers, onAnswerChange, isFinished, val
   const validation = validationMap?.[question.id];
   const isCorrect = validation?.isCorrect === true;
   const baseStyle =
-    'bg-white/70 dark:bg-slate-950/40 border-slate-300/70 dark:border-slate-700/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/40 focus-visible:border-blue-500/50 hover:border-slate-400/80 dark:hover:border-slate-600/80 transition-all shadow-sm ';
+    'bg-white/70 dark:bg-slate-950/40 border-slate-300/70 dark:border-slate-700/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-slate-600/80 transition-all shadow-sm ';
   const inputStyle = getValidationInputStyle(isFinished, value, isCorrect, baseStyle);
 
   return (
     <div className="space-y-1.5" data-oid="ilfhrc9">
       <div className="grid gap-1.5" data-oid="la-vhft">
         <div
-          className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800"
+          className="p-3 bg-[#5a63df]/[0.06] dark:bg-[#5a63df]/10 rounded border border-[#5a63df]/20 dark:border-[#5a63df]/25"
           data-oid="b1grdjf"
         >
           <DebouncedInput
@@ -109,7 +109,7 @@ const GenericMatchingRenderer = memo(function GenericMatchingRenderer(props) {
   }
 
   const baseInputStyle =
-    'w-20 h-7 text-center text-sm border rounded-md transition-colors bg-white/70 dark:bg-slate-950/40 border-slate-300/70 dark:border-slate-700/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/40 focus-visible:border-blue-500/50 hover:border-slate-400/80 dark:hover:border-slate-600/80 transition-all shadow-sm';
+    'w-20 h-7 text-center text-sm border rounded-md transition-colors bg-white/70 dark:bg-slate-950/40 border-slate-300/70 dark:border-slate-700/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-slate-600/80 transition-all shadow-sm';
 
   return (
     <div className="space-y-1.5" data-oid="ilfhrc9">

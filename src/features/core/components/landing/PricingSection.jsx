@@ -362,7 +362,7 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
     <SoftSection
       ref={sectionRef}
       id="pricing"
-      className="scroll-mt-24 bg-white dark:bg-[#070912] border-t border-slate-200/60 dark:border-white/5 py-10 lg:py-14"
+      className="scroll-mt-24 bg-white dark:bg-[#0b0a10] border-t border-slate-200/60 dark:border-white/5 py-10 lg:py-14"
     >
       <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000_20%,transparent_100%)]" />
 

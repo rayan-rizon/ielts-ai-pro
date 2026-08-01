@@ -12,7 +12,6 @@ import {
 import ConfettiCelebration from '@/components/ConfettiCelebration';
 import XPNotification from '@/components/XPNotification';
 import TestResultsModal from '@/components/results/TestResultsModal';
-import ListeningTestSheet from '../../ListeningTestSheet';
 
 export default function ListeningTestOverlays({
   showConfetti,
@@ -30,18 +29,8 @@ export default function ListeningTestOverlays({
   session,
   dispatch,
   ACTIONS,
-  showAnswerSheet,
   setShowAnswerSheet,
   handleNavigateToQuestion,
-  activePart,
-  displaySections,
-  questionsWithNumbers,
-  answers,
-  handleAnswerChange,
-  isFinished,
-  correctAnswersMap,
-  stats,
-  isMobile,
 }) {
   return (
     <>
@@ -118,25 +107,6 @@ export default function ListeningTestOverlays({
         testType="listening"
         testMode={session?.test_mode === 'mock' ? 'exam' : 'practice'}
         data-oid="m431y0n"
-      />
-
-      <ListeningTestSheet
-        showAnswerSheet={showAnswerSheet}
-        setShowAnswerSheet={setShowAnswerSheet}
-        activePart={activePart}
-        displaySections={displaySections}
-        questionsWithComputedNumbers={questionsWithNumbers}
-        answers={answers}
-        handleAnswerChange={handleAnswerChange}
-        isFinished={isFinished}
-        correctAnswersMap={correctAnswersMap}
-        solvedCount={stats.totalAns}
-        isMobile={isMobile}
-        onQuestionClick={(key) => {
-          const el = document.getElementById(`question-${key}`);
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }}
-        data-oid="w185x.k"
       />
     </>
   );

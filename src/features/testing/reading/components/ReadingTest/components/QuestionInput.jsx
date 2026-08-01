@@ -53,7 +53,7 @@ const QuestionInput = memo(function QuestionInput({
 
           let circleStatus = 'default';
           let inputClass =
-            'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground hover:border-slate-400/80 dark:hover:border-slate-600/80 focus-visible:ring-blue-500/40 focus-visible:border-blue-500/50';
+            'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground hover:border-slate-400/80 dark:hover:border-slate-600/80 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50';
 
           if (disabled) {
             inputClass =

@@ -430,20 +430,10 @@ const PromoManagement = () => {
                         transition={{ delay: Math.min(idx, 8) * 0.02 }}
                         className={cn(
                           PANEL,
-                          'relative overflow-hidden p-3 space-y-2.5',
+                          'p-3 space-y-2.5',
                           (!promo.is_active || isExpired) && 'opacity-60'
                         )}
                       >
-                        <span
-                          className={cn(
-                            'absolute left-0 top-0 h-full w-[2px]',
-                            status === 'active'
-                              ? 'bg-[rgb(var(--signal-ok))]'
-                              : status === 'paused'
-                                ? 'bg-[rgb(var(--signal-warn))]'
-                                : 'bg-[rgb(var(--signal-fault))]'
-                          )}
-                        />
                         <div className="flex items-center justify-between gap-1">
                           <span
                             className={cn(

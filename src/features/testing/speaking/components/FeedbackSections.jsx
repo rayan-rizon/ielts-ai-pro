@@ -38,7 +38,7 @@ export function StrengthsSection({ conciseStrengths }) {
   if (conciseStrengths.length === 0) return null;
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-2xl border border-[#eaecf6] bg-gradient-to-br from-[#fcfffd] to-[#edf9f3] p-4 sm:p-5 shadow-[0_10px_30px_-18px_rgba(43,53,128,0.1)] transition-all duration-300 hover:border-emerald-200/80 dark:border-white/10 dark:from-[#101915] dark:to-[#12231c]">
+    <div className="flex h-full flex-col justify-between rounded-2xl border border-[#e4e2f0] bg-gradient-to-br from-[#fcfffd] to-[#edf9f3] p-4 sm:p-5 transition-all duration-300 hover:border-emerald-200/80 dark:border-white/[0.07] dark:from-[#101915] dark:to-[#12231c]">
       <div>
         <div className="mb-3 flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaf9f1] text-[#159669] border border-[#c4eee0]/60 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-500/30">
@@ -68,7 +68,7 @@ export function ImprovementsSection({ conciseImprovements }) {
   if (conciseImprovements.length === 0) return null;
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-2xl border border-[#eaecf6] bg-gradient-to-br from-[#fffdfd] to-[#fff0f5] p-4 sm:p-5 shadow-[0_10px_30px_-18px_rgba(43,53,128,0.1)] transition-all duration-300 hover:border-rose-200/80 dark:border-white/10 dark:from-[#1a1114] dark:to-[#241318]">
+    <div className="flex h-full flex-col justify-between rounded-2xl border border-[#e4e2f0] bg-gradient-to-br from-[#fffdfd] to-[#fff0f5] p-4 sm:p-5 transition-all duration-300 hover:border-rose-200/80 dark:border-white/[0.07] dark:from-[#1a1114] dark:to-[#241318]">
       <div>
         <div className="mb-3 flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#ffeef3] text-[#e11d48] border border-[#fccedb]/60 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-500/30">
@@ -209,7 +209,7 @@ export function PronunciationBreakdownSection({ pronunciationBreakdown }) {
   const hasProblematicSounds = problematicSounds.length > 0;
 
   return (
-    <div className="space-y-3.5 rounded-2xl border border-[#eaecf6] bg-gradient-to-br from-[#fffdfd] via-white to-[#fff0f5] p-4 sm:p-5 shadow-[0_10px_30px_-18px_rgba(43,53,128,0.1)] transition-all duration-300 hover:border-rose-200/80 dark:border-white/10 dark:from-[#181119] dark:to-[#221422]">
+    <div className="space-y-3.5 rounded-2xl border border-[#e4e2f0] bg-gradient-to-br from-[#fffdfd] via-white to-[#fff0f5] p-4 sm:p-5 transition-all duration-300 hover:border-rose-200/80 dark:border-white/[0.07] dark:from-[#181119] dark:to-[#221422]">
       <div className="flex items-center gap-2.5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/10 dark:bg-rose-500/20">
           <Mic2 className="h-4 w-4 text-rose-600 dark:text-rose-400" />

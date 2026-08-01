@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { m } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import {
   Plus,
@@ -37,7 +37,15 @@ import TestTable from './list/TestTable';
 import DeleteTestModal from './list/DeleteTestModal';
 import BulkDeleteModal from './list/BulkDeleteModal';
 import PaginationControls from '../shared/PaginationControls';
-import { MICRO, PANEL, Kpi, AdminButton, AdminPageHeader } from '../ui/primitives';
+import {
+  MICRO,
+  PANEL,
+  Kpi,
+  AdminButton,
+  AdminPageHeader,
+  STAGGER_CONTAINER,
+  FADE_UP,
+} from '../ui/primitives';
 
 import { useSearchParams } from 'react-router-dom';
 
@@ -196,22 +204,37 @@ const TestManagement = () => {
 
   if (isCreatingTest || editingTest) {
     return (
-      <TestCreator
-        initialData={editingTest}
-        onSave={onSaveTest}
-        onCancel={() => {
-          const wasCreating = isCreatingTest;
-          setIsCreatingTest(false);
-          setEditingTest(null);
-          fetchAllData(getApiFilters(), wasCreating ? 1 : pagination.page, pagination.pageSize);
-        }}
-        testType={editingTest ? editingTest.test_type : selectedTestType}
-      />
+      <AnimatePresence mode="wait">
+        <m.div
+          key="test-creator"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -15 }}
+          transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+        >
+          <TestCreator
+            initialData={editingTest}
+            onSave={onSaveTest}
+            onCancel={() => {
+              const wasCreating = isCreatingTest;
+              setIsCreatingTest(false);
+              setEditingTest(null);
+              fetchAllData(getApiFilters(), wasCreating ? 1 : pagination.page, pagination.pageSize);
+            }}
+            testType={editingTest ? editingTest.test_type : selectedTestType}
+          />
+        </m.div>
+      </AnimatePresence>
     );
   }
 
   return (
-    <div className="space-y-4 pb-6 pt-12 md:pt-0">
+    <m.div
+      variants={STAGGER_CONTAINER}
+      initial="hidden"
+      animate="visible"
+      className="space-y-4 pb-6 pt-12 md:pt-0"
+    >
       <DeleteTestModal
         test={testToDelete}
         isOpen={!!testToDelete}
@@ -225,49 +248,54 @@ const TestManagement = () => {
         onConfirm={handleBulkDeleteConfirm}
       />
 
-      <AdminPageHeader
-        title="Test Management"
-        description="Create, filter, and manage your IELTS test content library"
-        tip="Every test lives here regardless of module. Switch tabs below to filter by Reading, Listening, Writing or Speaking."
-      >
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <AdminButton variant="outline">
-              <MoreVertical className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
-              Actions
-            </AdminButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem onClick={handleImportClick}>
-              <ArrowDownCircle className="w-4 h-4 mr-2 text-stone-500" />
-              Import data
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleBulkExport} disabled={selectedIds.length === 0}>
-              <Download className="w-4 h-4 mr-2 text-stone-500" />
-              Export selected ({selectedIds.length})
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setIsCreatingTest(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              New test
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <AdminButton onClick={() => setIsCreatingTest(true)}>
-          <Plus className="w-3.5 h-3.5" />
-          Create test
-        </AdminButton>
-      </AdminPageHeader>
+      <m.div variants={FADE_UP}>
+        <AdminPageHeader
+          title="Test Management"
+          description="Create, filter, and manage your IELTS test content library"
+          tip="Every test lives here regardless of module. Switch tabs below to filter by Reading, Listening, Writing or Speaking."
+        >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <AdminButton variant="outline">
+                <MoreVertical className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
+                Actions
+              </AdminButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={handleImportClick}>
+                <ArrowDownCircle className="w-4 h-4 mr-2 text-stone-500" />
+                Import data
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleBulkExport} disabled={selectedIds.length === 0}>
+                <Download className="w-4 h-4 mr-2 text-stone-500" />
+                Export selected ({selectedIds.length})
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setIsCreatingTest(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                New test
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <AdminButton onClick={() => setIsCreatingTest(true)}>
+            <Plus className="w-3.5 h-3.5" />
+            Create test
+          </AdminButton>
+        </AdminPageHeader>
+      </m.div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <m.div variants={FADE_UP} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Kpi label="Total tests" value={stats.total.toLocaleString()} />
         <Kpi label="Active" value={stats.active.toLocaleString()} />
         <Kpi label="Drafts" value={stats.draft.toLocaleString()} />
         <Kpi label="Total usage" value={stats.totalUsage.toLocaleString()} sub="sessions started" />
-      </div>
+      </m.div>
 
       {/* Module tabs */}
-      <div className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-white/[0.04] rounded-lg border border-stone-200/80 dark:border-white/[0.07] w-full sm:w-fit overflow-x-auto no-scrollbar">
+      <m.div
+        variants={FADE_UP}
+        className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-white/[0.04] rounded-lg border border-stone-200/80 dark:border-white/[0.07] w-full sm:w-fit overflow-x-auto no-scrollbar"
+      >
         {TEST_STRUCTURES.map((typeInfo) => {
           const isActive = selectedTestType === typeInfo.key;
           const Icon = typeInfo.icon;
@@ -276,7 +304,7 @@ const TestManagement = () => {
               key={typeInfo.key}
               onClick={() => handleTestTypeChange(typeInfo.key)}
               className={cn(
-                'relative h-8 px-3.5 rounded-md font-bold text-xs flex items-center gap-1.5 whitespace-nowrap transition-transform active:scale-[0.96]',
+                'relative h-8 px-3.5 rounded-md font-bold text-xs flex items-center gap-1.5 whitespace-nowrap transition-colors active:scale-[0.96]',
                 isActive
                   ? 'text-stone-900 dark:text-stone-50'
                   : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
@@ -286,17 +314,22 @@ const TestManagement = () => {
                 <m.span
                   layoutId="testTypeActivePill"
                   className="absolute inset-0 bg-white dark:bg-[#131315] rounded-md shadow-2xs"
-                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
-              <Icon className={cn('relative w-3.5 h-3.5', isActive && typeInfo.accent)} />
-              <span className="relative">{typeInfo.name}</span>
+              <Icon
+                className={cn(
+                  'relative z-10 w-3.5 h-3.5 transition-colors',
+                  isActive && typeInfo.accent
+                )}
+              />
+              <span className="relative z-10">{typeInfo.name}</span>
             </button>
           );
         })}
-      </div>
+      </m.div>
 
-      <div className={cn(PANEL, 'overflow-hidden')}>
+      <m.div variants={FADE_UP} className={cn(PANEL, 'overflow-hidden')}>
         {/* Toolbar */}
         <div className="flex flex-col xl:flex-row gap-2.5 items-center p-3 border-b border-stone-100 dark:border-white/[0.06]">
           <div className="relative flex-1 w-full">
@@ -418,18 +451,28 @@ const TestManagement = () => {
           )}
         </div>
 
-        <TestTable
-          tests={filteredTests}
-          questions={questions}
-          onEdit={setEditingTest}
-          onDelete={setTestToDelete}
-          onDuplicate={handleDuplicate}
-          selectedIds={selectedIds}
-          onSelectionChange={setSelectedIds}
-          onSort={handleSort}
-          sortConfig={sortConfig}
-          onExport={exportTest}
-        />
+        <AnimatePresence mode="wait">
+          <m.div
+            key={selectedTestType}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+          >
+            <TestTable
+              tests={filteredTests}
+              questions={questions}
+              onEdit={setEditingTest}
+              onDelete={setTestToDelete}
+              onDuplicate={handleDuplicate}
+              selectedIds={selectedIds}
+              onSelectionChange={setSelectedIds}
+              onSort={handleSort}
+              sortConfig={sortConfig}
+              onExport={exportTest}
+            />
+          </m.div>
+        </AnimatePresence>
 
         <div className="px-4 py-3 border-t border-stone-100 dark:border-white/[0.06]">
           <PaginationControls
@@ -442,8 +485,8 @@ const TestManagement = () => {
             itemName="tests"
           />
         </div>
-      </div>
-    </div>
+      </m.div>
+    </m.div>
   );
 };
 

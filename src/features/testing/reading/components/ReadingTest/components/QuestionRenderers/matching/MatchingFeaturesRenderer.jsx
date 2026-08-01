@@ -29,7 +29,7 @@ function FeaturesBox({ matchingFeatures }) {
             return (
               <div key={idx} className="flex gap-4 items-baseline px-4 py-0.5" data-oid="i:xgxfb">
                 <span
-                  className="font-bold text-blue-600 dark:text-blue-400 min-w-[1.5rem] text-[15px] text-right"
+                  className="font-bold text-[#5a63df] dark:text-[#a9afff] min-w-[1.5rem] text-[15px] text-right"
                   data-oid="z25a8kq"
                 >
                   {label}.

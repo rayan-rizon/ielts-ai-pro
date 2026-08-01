@@ -13,6 +13,8 @@ import {
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { Button } from '@/components/ui/button';
+import { MICRO, MUTED } from '@/features/dashboard/components/primitives';
+import { cn } from '@/lib/cn';
 
 function MicrophoneError({ message }) {
   if (!message) return null;
@@ -35,7 +37,7 @@ function ExaminerStatus({ isProcessing, processingStatus }) {
     return (
       <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-        <span className="text-[10px] font-extrabold uppercase tracking-[0.16em]">
+        <span className={cn(MICRO, 'tracking-[0.16em]')}>
           {processingStatus || 'Preparing the next question...'}
         </span>
       </div>
@@ -82,7 +84,7 @@ const RecordingControls = React.memo(
             <PlayCircle className="h-4 w-4" aria-hidden="true" />
             Begin test
           </Button>
-          <p className="text-[10px] leading-relaxed text-muted-foreground">
+          <p className={cn(MUTED, 'text-[10px] leading-relaxed')}>
             Your progress is saved automatically.
           </p>
         </motion.div>
@@ -97,9 +99,9 @@ const RecordingControls = React.memo(
             className="flex min-h-8 items-center justify-center"
           >
             {isListening ? (
-              <div className="flex items-center gap-2 text-primary">
+              <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
                 <AudioLines className="h-4 w-4 animate-pulse" aria-hidden="true" />
-                <span className="text-[10px] font-extrabold uppercase tracking-[0.16em]">
+                <span className={cn(MICRO, 'tracking-[0.16em]')}>
                   {autoSubmitPaused ? 'Auto-send paused' : 'Transcript streaming in chat'}
                 </span>
               </div>
@@ -107,7 +109,7 @@ const RecordingControls = React.memo(
               <>
                 <ExaminerStatus isProcessing={isProcessing} processingStatus={processingStatus} />
                 {!isProcessing && !isTTSLoading && !isSpeaking && (
-                  <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-muted-foreground">
+                  <p className={cn(MICRO, MUTED, 'tracking-[0.16em]')}>
                     {handsFreeEnabled ? 'Microphone starting' : 'Ready for your answer'}
                   </p>
                 )}
@@ -130,7 +132,7 @@ const RecordingControls = React.memo(
                 className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-all sm:h-14 sm:w-14 ${
                   autoSubmitPaused
                     ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 shadow-sm dark:text-amber-300'
-                    : 'border-border bg-card text-muted-foreground shadow-sm hover:border-amber-500/30 hover:bg-amber-500/[0.06] hover:text-amber-700'
+                    : 'border-[#e4e2f0] bg-white text-slate-500 shadow-sm hover:border-amber-500/30 hover:bg-amber-500/[0.06] hover:text-amber-700 dark:border-white/[0.07] dark:bg-white/[0.03] dark:text-slate-400'
                 }`}
               >
                 {autoSubmitPaused ? (
@@ -147,10 +149,10 @@ const RecordingControls = React.memo(
               aria-label={isListening ? 'Finish and send answer' : 'Start recording answer'}
               className={`group relative flex h-12 min-w-[190px] items-center justify-center gap-2.5 rounded-2xl border px-5 text-sm font-extrabold transition-all sm:h-14 ${
                 isProcessing || isSpeaking || isTTSLoading
-                  ? 'cursor-not-allowed border-border bg-muted text-muted-foreground opacity-60'
+                  ? 'cursor-not-allowed border-[#e4e2f0] bg-[#f4f3fb] text-slate-500 opacity-60 dark:border-white/[0.07] dark:bg-white/[0.04] dark:text-slate-400'
                   : isListening
                     ? 'border-rose-500 bg-rose-500 text-white shadow-lg shadow-rose-500/20 hover:bg-rose-600'
-                    : 'border-rose-500/20 bg-card text-rose-600 shadow-md shadow-rose-500/10 hover:-translate-y-0.5 hover:border-rose-500/35 hover:bg-rose-500/[0.04]'
+                    : 'border-rose-500/20 bg-white text-rose-600 shadow-md shadow-rose-500/10 hover:-translate-y-0.5 hover:border-rose-500/35 hover:bg-rose-500/[0.04] dark:bg-white/[0.03] dark:text-rose-400'
               }`}
             >
               {isProcessing ? (
@@ -170,7 +172,7 @@ const RecordingControls = React.memo(
           </div>
 
           {!isProcessing && !isSpeaking && !isTTSLoading && (
-            <p className="flex items-center gap-1.5 text-center text-[10px] text-muted-foreground">
+            <p className={cn(MUTED, 'flex items-center gap-1.5 text-center text-[10px]')}>
               {isListening ? (
                 <>
                   <Volume2 className="h-3.5 w-3.5" aria-hidden="true" />

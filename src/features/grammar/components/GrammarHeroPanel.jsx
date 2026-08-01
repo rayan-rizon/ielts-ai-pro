@@ -31,7 +31,7 @@ export default function GrammarHeroPanel({
   onStart,
 }) {
   return (
-    <div className="relative min-h-[248px] overflow-hidden bg-[#f4f1fb] px-5 py-6 sm:px-7 sm:py-7">
+    <div className="relative h-full min-h-[248px] overflow-hidden bg-[#f4f1fb] px-5 py-6 dark:bg-[#100f15] sm:px-7 sm:py-7">
       <img
         src="/images/grammar/grammar-lab-study-hero.webp"
         alt=""

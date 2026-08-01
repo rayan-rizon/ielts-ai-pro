@@ -13,7 +13,7 @@ export default function ListeningPartTabs({
 }) {
   return (
     <div
-      className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 px-2 sm:px-4 py-2 shrink-0 relative z-20 shadow-sm transition-all duration-300 w-full overflow-x-auto"
+      className="relative bg-white/90 dark:bg-[#100f15]/90 backdrop-blur-xl border-b border-[#e4e2f0] dark:border-white/[0.07] px-2 sm:px-4 py-2 shrink-0 relative z-20 shadow-sm transition-all duration-300 w-full overflow-x-auto"
       style={{ scrollbarWidth: 'none' }}
       data-oid="v0bnih8"
     >
@@ -22,7 +22,7 @@ export default function ListeningPartTabs({
         data-oid="ujg4x08"
       >
         <div
-          className="inline-flex p-1 bg-slate-100/50 dark:bg-slate-950/50 rounded-xl sm:rounded-2xl border border-slate-200/50 dark:border-white/5 relative z-0 backdrop-blur-sm"
+          className="inline-flex p-1 bg-[#f4f3fb] dark:bg-white/[0.04] rounded-xl sm:rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] relative z-0 backdrop-blur-sm"
           data-oid="2eggma3"
         >
           {displaySections.map((section, idx) => {
@@ -42,7 +42,7 @@ export default function ListeningPartTabs({
                     ? 'text-white'
                     : locked
                       ? 'cursor-not-allowed text-slate-300 dark:text-slate-700'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white'
                 )}
                 data-oid="hag248p"
               >
@@ -50,7 +50,7 @@ export default function ListeningPartTabs({
                 {isActive && (
                   <motion.div
                     layoutId="activeTabBackground"
-                    className="absolute inset-0 bg-blue-600 dark:bg-blue-600 shadow-[0_4px_12px_-2px_rgba(37,99,235,0.4)] dark:shadow-[0_4px_12px_-2px_rgba(37,99,235,0.6)] rounded-lg sm:rounded-xl -z-10"
+                    className="absolute inset-0 bg-[#5a63df] rounded-lg sm:rounded-xl -z-10"
                     initial={false}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                     data-oid="egxwqa:"
@@ -65,19 +65,19 @@ export default function ListeningPartTabs({
                 {/* Status Indicator / Number */}
                 <span
                   className={cn(
-                    'w-4 h-4 sm:w-5 sm:h-5 shrink-0 rounded-md flex items-center justify-center text-[9px] sm:text-[10px] font-black transition-colors duration-200 relative',
+                    'w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 rounded-md flex items-center justify-center text-[9px] font-black transition-colors duration-200 relative',
                     isActive
                       ? 'bg-white/20 text-white'
                       : isCompleted
                         ? 'bg-emerald-500 text-white shadow-sm'
                         : answeredInPart
-                          ? 'bg-blue-500 text-white shadow-sm'
-                          : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-300 dark:group-hover:bg-slate-700'
+                          ? 'bg-[#5a63df] text-white shadow-sm'
+                          : 'bg-slate-200 dark:bg-white/[0.08] text-slate-500 dark:text-slate-400 group-hover:bg-slate-300 dark:group-hover:bg-white/[0.14]'
                   )}
                   data-oid="86c.5ck"
                 >
                   {isCompleted && !isActive ? (
-                    <CheckCircle className="w-3 h-3" data-oid="d-aicsk" />
+                    <CheckCircle className="w-2.5 h-2.5" data-oid="d-aicsk" />
                   ) : (
                     idx + 1
                   )}
