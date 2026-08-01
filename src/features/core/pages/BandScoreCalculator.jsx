@@ -175,13 +175,13 @@ export default function BandScoreCalculator() {
   const handlePricing = () => navigate(createPageUrl('Pricing'));
 
   return (
-    <div className="min-h-screen bg-[#fcfdff] dark:bg-[#070912] text-foreground transition-colors duration-300 overflow-x-hidden">
+    <div className="min-h-screen bg-[#fcfdff] dark:bg-[#08080a] text-foreground transition-colors duration-300 overflow-x-hidden">
       <BandScoreCalculatorHead faqs={faqs} />
 
       {/* Ambient Decorative Lighting */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 top-12 h-[34rem] w-[34rem] rounded-full bg-blue-200/20 blur-[130px] dark:bg-blue-600/10" />
-        <div className="absolute -right-40 top-8 h-[38rem] w-[38rem] rounded-full bg-indigo-500/10 blur-[140px] dark:bg-violet-600/10" />
+        <div className="absolute -left-40 top-12 h-[34rem] w-[34rem] rounded-full bg-blue-200/20 blur-[130px] dark:bg-[#5a63df]/10" />
+        <div className="absolute -right-40 top-8 h-[38rem] w-[38rem] rounded-full bg-indigo-500/10 blur-[140px] dark:bg-[#5a63df]/[0.08]" />
       </div>
 
       <Navbar
@@ -245,7 +245,7 @@ function BandScoreCalculatorFaq({ faqs }) {
   };
 
   return (
-    <section className="py-16 md:py-24 px-6 relative border-t border-slate-200/60 dark:border-slate-800/60 bg-slate-50/50 dark:bg-[#070912]/40 mt-16">
+    <section className="py-16 md:py-24 px-6 relative border-t border-slate-200/60 dark:border-white/[0.07] bg-slate-50/50 dark:bg-white/[0.02] mt-16">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-10 space-y-3">
           <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
@@ -260,13 +260,13 @@ function BandScoreCalculatorFaq({ faqs }) {
           </p>
         </div>
 
-        <div className="bg-white/80 dark:bg-slate-950/80 border border-slate-200/80 dark:border-slate-800 rounded-[28px] p-6 md:p-8 shadow-sm backdrop-blur-md">
+        <div className="bg-white/80 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] border border-slate-200/80 dark:border-white/10 rounded-[28px] p-6 md:p-8 shadow-sm dark:shadow-none backdrop-blur-md dark:backdrop-blur-none">
           {faqs.map((faq, index) => {
             const isOpen = openFaqIndex === index;
             return (
               <div
                 key={faq.q}
-                className="border-b border-slate-200/60 dark:border-slate-800/80 py-4 last:border-none"
+                className="border-b border-slate-200/60 dark:border-white/10 py-4 last:border-none"
               >
                 <button
                   type="button"

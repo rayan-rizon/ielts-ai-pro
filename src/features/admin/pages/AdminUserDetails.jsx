@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { User, TestSession } from '@/entities';
-import { useAuth } from '@/features/auth/context/AuthContext';
 import { sendEmail } from '@/utils/api';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,10 +38,8 @@ import {
   User as UserIcon,
   Target,
   BookOpen,
-  Brain,
   MessageSquare,
   Send,
-  Crown,
   Loader2,
   Mail,
   TrendingUp,
@@ -51,8 +48,6 @@ import {
 } from 'lucide-react';
 import { m } from 'framer-motion';
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
   XAxis,
@@ -61,6 +56,47 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+
+const calculatePerformanceData = (sessions) => {
+  const completedSessions = sessions.filter((session) => session.is_completed && session.score);
+  if (completedSessions.length === 0) {
+    return { overallAverage: 0, totalCompleted: 0, moduleBreakdown: {}, recentTrend: [] };
+  }
+
+  const overallAverage =
+    completedSessions.reduce((total, session) => total + session.score, 0) /
+    completedSessions.length;
+  const moduleBreakdown = completedSessions.reduce((breakdown, session) => {
+    const module = session.test_type;
+    if (!breakdown[module]) breakdown[module] = { scores: [], total: 0, best: 0 };
+    breakdown[module].scores.push(session.score);
+    breakdown[module].total += 1;
+    breakdown[module].best = Math.max(breakdown[module].best, session.score);
+    return breakdown;
+  }, {});
+
+  Object.values(moduleBreakdown).forEach((module) => {
+    module.average =
+      module.scores.reduce((total, score) => total + score, 0) / module.scores.length;
+  });
+  const recentTrend = [...completedSessions]
+    .sort((left, right) => new Date(right.completed_at) - new Date(left.completed_at))
+    .slice(0, 10)
+    .reverse()
+    .map((session, index) => ({
+      session: index + 1,
+      score: session.score,
+      date: new Date(session.completed_at).toLocaleDateString(),
+      module: session.test_type,
+    }));
+
+  return {
+    overallAverage: overallAverage.toFixed(1),
+    totalCompleted: completedSessions.length,
+    moduleBreakdown,
+    recentTrend,
+  };
+};
 
 export default function AdminUserDetails() {
   const [searchParams] = useSearchParams();
@@ -78,15 +114,7 @@ export default function AdminUserDetails() {
   const [emailBody, setEmailBody] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
-  useEffect(() => {
-    if (!userId) {
-      navigate(createPageUrl('AdminPanel') + '?tab=users');
-      return;
-    }
-    loadUserData();
-  }, [userId, navigate]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       setIsLoading(true);
       const userData = await User.getById(userId);
@@ -102,66 +130,22 @@ export default function AdminUserDetails() {
       const sessions = await TestSession.list({ user_id: userData.id });
       setTestSessions(sessions);
 
-      processPerformanceData(sessions);
+      setPerformanceData(calculatePerformanceData(sessions));
     } catch (error) {
       console.error('Error loading user data:', error);
       setUser(null);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId]);
 
-  const processPerformanceData = (sessions) => {
-    const completedSessions = sessions.filter((s) => s.is_completed && s.score);
-
-    if (completedSessions.length === 0) {
-      setPerformanceData({
-        overallAverage: 0,
-        totalCompleted: 0,
-        moduleBreakdown: {},
-        recentTrend: [],
-      });
+  useEffect(() => {
+    if (!userId) {
+      navigate(createPageUrl('AdminPanel') + '?tab=users');
       return;
     }
-
-    const overallAverage =
-      completedSessions.reduce((acc, s) => acc + s.score, 0) / completedSessions.length;
-
-    const moduleBreakdown = completedSessions.reduce((acc, session) => {
-      const module = session.test_type;
-      if (!acc[module]) {
-        acc[module] = { scores: [], total: 0, best: 0 };
-      }
-      acc[module].scores.push(session.score);
-      acc[module].total += 1;
-      acc[module].best = Math.max(acc[module].best, session.score);
-      return acc;
-    }, {});
-
-    Object.keys(moduleBreakdown).forEach((module) => {
-      const data = moduleBreakdown[module];
-      data.average = data.scores.reduce((a, b) => a + b, 0) / data.scores.length;
-    });
-
-    const recentSessions = completedSessions
-      .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))
-      .slice(0, 10)
-      .reverse();
-
-    const recentTrend = recentSessions.map((session, index) => ({
-      session: index + 1,
-      score: session.score,
-      date: new Date(session.completed_at).toLocaleDateString(),
-      module: session.test_type,
-    }));
-
-    setPerformanceData({
-      overallAverage: overallAverage.toFixed(1),
-      totalCompleted: completedSessions.length,
-      moduleBreakdown,
-      recentTrend,
-    });
-  };
+    loadUserData();
+  }, [userId, navigate, loadUserData]);
 
   const handleSubscriptionChange = async (newTier) => {
     try {

@@ -129,7 +129,7 @@ describe('Grammar evidence in the Learning Path', () => {
     expect(readiness.missing_diagnostics).toEqual(['writing', 'listening', 'speaking']);
   });
 
-  it('caps Grammar at 20% and inserts transfer after two repair activities', () => {
+  it('caps Grammar at 20% and schedules an existing scored test after two repairs', () => {
     const availability = normalizeStudyAvailability(
       {
         version: 1,
@@ -172,23 +172,26 @@ describe('Grammar evidence in the Learning Path', () => {
       now
     );
     const result = buildSevenDaySchedule({ availability, evidence, readiness, now });
-    const grammarTasks = Object.values(result.schedule)
-      .flat()
-      .filter((task) => task.module === 'grammar');
+    const scheduledTasks = Object.values(result.schedule).flat();
+    const grammarTasks = scheduledTasks.filter((task) => task.module === 'grammar');
+    const checkpointIndex = scheduledTasks.findIndex((task) =>
+      task.evidence_key?.startsWith('grammar-retest:')
+    );
+    const checkpoint = scheduledTasks[checkpointIndex];
 
     expect(result.grammar_minutes).toBeLessThanOrEqual(result.grammar_cap_minutes);
     expect(result.grammar_minutes).toBeLessThanOrEqual(result.weekly_planned_minutes * 0.2);
-    expect(grammarTasks.map((task) => task.activity_type)).toEqual([
-      'targeted_drill',
-      'targeted_drill',
-      'grammar_transfer',
-    ]);
+    expect(grammarTasks.every((task) => task.activity_type === 'targeted_drill')).toBe(true);
     expect(
-      grammarTasks.find((task) => task.activity_type === 'grammar_transfer')?.routing
-    ).toMatchObject({
-      route: 'grammar',
-      mode: 'transfer',
-      transferTarget: 'speaking',
+      scheduledTasks
+        .slice(0, checkpointIndex)
+        .filter((task) => task.module === 'grammar' && task.activity_type === 'targeted_drill')
+    ).toHaveLength(2);
+    expect(checkpoint).toMatchObject({
+      title: 'Speaking grammar checkpoint',
+      module: 'speaking',
+      activity_type: 'timed_assessment',
+      routing: { route: 'speaking', mode: 'practice' },
     });
   });
 

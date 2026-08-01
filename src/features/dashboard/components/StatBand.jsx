@@ -1,107 +1,23 @@
 import React, { useMemo } from 'react';
-import { CalendarClock, Flag, Flame, Target, Zap } from 'lucide-react';
-import { calculateDaysUntilExam } from '@/services/adaptiveLearningService';
 import { Stat } from './primitives';
+import { buildStatBandModel } from './statBandModel';
 
-/**
- * The five numbers worth knowing before anything else on the page.
- *
- * Every value is derived from real practice data — where a number isn't
- * available yet the tile shows an em dash and says why, rather than a zero that
- * looks like a measurement.
- */
+/** The five measured numbers worth knowing before anything else on the page. */
 const StatBand = React.memo(({ stats, weeklyProgress, user }) => {
-  const weekTests = useMemo(
-    () =>
-      (Array.isArray(weeklyProgress) ? weeklyProgress : []).reduce(
-        (sum, day) => sum + (Number(day?.tests) || 0),
-        0
-      ),
-    [weeklyProgress]
+  const tiles = useMemo(
+    () => buildStatBandModel(stats, weeklyProgress, user),
+    [stats, weeklyProgress, user]
   );
 
-  const avg = Number(stats?.avgScore) || 0;
-  const target = Number(stats?.targetScore) || 7;
-  const totalTests = Number(stats?.totalTests) || 0;
-  const abandonedTests = Number(stats?.abandonedTests) || 0;
-  const streak = Number(stats?.streak) || 0;
-  const todayMinutes = Number(stats?.todayMinutes) || 0;
-  const gap = avg > 0 ? Math.max(0, target - avg) : null;
-  const daysToExam = user?.test_date ? calculateDaysUntilExam(user.test_date) : null;
-
-  // Both halves are measured, not projected: weeks actually left, and the rate
-  // this student is actually practising at. The dashboard states the two facts
-  // and lets the student draw the conclusion.
-  const examSub = useMemo(() => {
-    if (daysToExam == null) return 'no date set';
-    if (daysToExam < 0) return 'test date passed';
-    if (daysToExam === 0) return 'test is today';
-    const weeks = Math.floor(daysToExam / 7);
-    const pace = weekTests > 0 ? `${weekTests}/wk now` : 'no tests this week';
-    return weeks >= 1 ? `${weeks} wk left · ${pace}` : `${pace}`;
-  }, [daysToExam, weekTests]);
-
   return (
-    <div className="grid grid-cols-2 gap-1.5 lg:grid-cols-5">
-      <Stat
-        size="sm"
-        className="px-2.5 py-1.5"
-        icon={Target}
-        label="Band average"
-        value={avg > 0 ? avg.toFixed(1) : '—'}
-        sub={totalTests > 0 ? `across ${totalTests - abandonedTests} tests` : 'no tests yet'}
-        tip={
-          abandonedTests > 0
-            ? `Your mean band across every scored test. ${abandonedTests} left early and are excluded.`
-            : 'Your mean band across every scored test.'
-        }
-      />
-
-      <Stat
-        size="sm"
-        className="px-2.5 py-1.5"
-        icon={Flag}
-        label="To target"
-        value={gap != null ? gap.toFixed(1) : '—'}
-        unit={gap != null ? 'bands' : null}
-        sub={`target ${target.toFixed(1)}`}
-        tip="Gap between your average and target band."
-      />
-
-      <Stat
-        size="sm"
-        className="px-2.5 py-1.5"
-        icon={Flame}
-        tone="amber"
-        label="Streak"
-        value={streak}
-        unit={streak === 1 ? 'day' : 'days'}
-        sub={todayMinutes > 0 ? `${todayMinutes} min today` : 'nothing today'}
-        tip="Consecutive days with a practice session."
-      />
-
-      <Stat
-        size="sm"
-        className="px-2.5 py-1.5"
-        icon={Zap}
-        tone="emerald"
-        label="This week"
-        value={weekTests}
-        unit={weekTests === 1 ? 'test' : 'tests'}
-        sub="last 7 days"
-        tip="Tests completed in the last 7 days."
-      />
-
-      <Stat
-        size="sm"
-        className="px-2.5 py-1.5"
-        icon={CalendarClock}
-        label="Exam"
-        value={daysToExam != null && daysToExam >= 0 ? daysToExam : '—'}
-        unit={daysToExam != null && daysToExam >= 0 ? 'days' : null}
-        sub={examSub}
-        tip="Days until the test date on your profile, with the rate you're practising at now."
-      />
+    // 5 tiles into 2 columns (mobile/tablet, below `lg`) always strands the
+    // fifth tile alone with an empty cell beside it. Spanning the last child
+    // to the full row width below `lg` closes that gap instead of leaving a
+    // half-empty row; at `lg` the grid is exactly 5-wide so it reverts to 1.
+    <div className="grid grid-cols-2 gap-1.5 [&>*:last-child]:col-span-2 lg:grid-cols-5 lg:[&>*:last-child]:col-span-1">
+      {tiles.map(({ key, ...tile }) => (
+        <Stat key={key} size="sm" className="px-2.5 py-1.5" {...tile} />
+      ))}
     </div>
   );
 });

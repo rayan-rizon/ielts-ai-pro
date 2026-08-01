@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { m } from 'framer-motion';
-import { BookOpen, Headphones, Mic, PenTool } from 'lucide-react';
+import { AlertTriangle, BookOpen, Headphones, Mic, PenTool } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { createPageUrl } from '@/utils';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -69,7 +69,7 @@ function determineRecommendedModule(stats) {
     if (!isNumber) {
       return false;
     }
-    return val > 0;
+    return val >= 0;
   });
 
   let weakest = 'reading';
@@ -100,9 +100,10 @@ export default function Dashboard() {
     cambridgeTests,
     weakestSkill,
     skillProficiency,
-    vocabStats,
     studyResources,
     resourcesLoading,
+    hasError,
+    retry,
   } = useDashboardData(authUser, authLoading);
 
   const {
@@ -128,10 +129,31 @@ export default function Dashboard() {
 
   if (isLoading) return <DashboardSkeleton data-oid=":binn6-" />;
 
+  if (hasError) {
+    return (
+      <main className="grid min-h-full place-items-center bg-[#f8f8fb] px-4 py-16 text-slate-950 dark:bg-[#08080a] dark:text-white">
+        <section className="w-full max-w-lg rounded-xl border border-rose-200 bg-white p-6 text-center dark:border-rose-400/20 dark:bg-[#18181c]">
+          <AlertTriangle className="mx-auto h-6 w-6 text-rose-600 dark:text-rose-300" />
+          <h1 className="mt-3 text-lg font-extrabold">Dashboard data could not be loaded</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Your saved results are unchanged. Retry before relying on the numbers shown here.
+          </p>
+          <button
+            type="button"
+            onClick={() => retry?.()}
+            className="mt-4 h-9 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white hover:bg-[#4a52c9]"
+          >
+            Retry dashboard
+          </button>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <TooltipProvider delayDuration={150}>
       <main
-        className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#0b0a10] dark:text-white sm:px-4 md:px-5 md:py-5"
+        className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5"
         data-oid="ht.2yi4"
       >
         {/* Dot grid runs the full page + two soft washes top-right / bottom-left for balance */}
@@ -173,7 +195,6 @@ export default function Dashboard() {
             cambridgeTests={cambridgeTests}
             weakestSkill={weakestSkill}
             skillProficiency={skillProficiency}
-            vocabStats={vocabStats}
             studyResources={studyResources}
             resourcesLoading={resourcesLoading}
             recommended={recommended}

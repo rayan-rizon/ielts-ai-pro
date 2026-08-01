@@ -8,7 +8,9 @@ import { FADE_UP, MICRO, MUTED, NUM, Pill } from './primitives';
 const DashboardHeader = React.memo(({ dateLabel, greeting, user, stats, recommended }) => {
   const firstName = user?.full_name?.split(' ')[0] || user?.username || 'there';
   const avg = Number(stats?.avgScore) || 0;
-  const target = Number(stats?.targetScore) || 7;
+  const hasMeasuredScore = Number(stats?.measuredTests) > 0;
+  const parsedTarget = Number(stats?.targetScore);
+  const target = Number.isFinite(parsedTarget) && parsedTarget > 0 ? parsedTarget : null;
   const tier = user?.subscription_tier;
 
   return (
@@ -27,16 +29,23 @@ const DashboardHeader = React.memo(({ dateLabel, greeting, user, stats, recommen
         </h1>
 
         <p className={cn('mt-1 text-xs font-medium', MUTED)}>
-          {avg > 0 ? (
+          {hasMeasuredScore ? (
             <>
               Band{' '}
               <span className={cn(NUM, 'font-bold text-slate-700 dark:text-slate-200')}>
                 {avg.toFixed(1)}
               </span>{' '}
-              average, targeting{' '}
-              <span className={cn(NUM, 'font-bold text-slate-700 dark:text-slate-200')}>
-                {target.toFixed(1)}
-              </span>
+              average
+              {target != null ? (
+                <>
+                  , targeting{' '}
+                  <span className={cn(NUM, 'font-bold text-slate-700 dark:text-slate-200')}>
+                    {target.toFixed(1)}
+                  </span>
+                </>
+              ) : (
+                <> · set a target band to track your gap</>
+              )}
             </>
           ) : (
             <>No scored tests yet — one test sets your baseline</>
@@ -46,7 +55,7 @@ const DashboardHeader = React.memo(({ dateLabel, greeting, user, stats, recommen
 
       <Link
         to={recommended.href}
-        className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-xs font-bold text-white transition-all duration-150 hover:bg-[#4a52c9] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0b0a10]"
+        className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-xs font-bold text-white transition-all duration-150 hover:bg-[#4a52c9] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]"
       >
         Practise {recommended.title}
         <ArrowRight className="h-3 w-3" />

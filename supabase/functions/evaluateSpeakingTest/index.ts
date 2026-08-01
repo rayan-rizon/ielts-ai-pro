@@ -10,6 +10,7 @@ import {
   getBurstLimitConfig,
   checkTierAccess,
   reserveDatabaseQuota,
+  finalizeApiUsage,
   quotaExceededResponse,
 } from '../_shared/security.ts';
 import { generateEvaluationPrompt } from '../_shared/bandDescriptors.ts';
@@ -40,6 +41,8 @@ serve(async (req: Request) => {
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
+  let quotaReservationId: string | undefined;
+  let authenticatedUserId: string | undefined;
 
   try {
     // Authenticate user
@@ -55,6 +58,7 @@ serve(async (req: Request) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    authenticatedUserId = user.id;
 
     // Rate limiting
     const { data: userProfile } = await supabase
@@ -138,6 +142,7 @@ serve(async (req: Request) => {
     if (!quotaReservation.allowed) {
       return quotaExceededResponse(quotaReservation, corsHeaders);
     }
+    quotaReservationId = quotaReservation.reservationId;
 
     // SECURITY: Cap transcript size to prevent token-draining attacks
     const MAX_TRANSCRIPT_CHARS = 20000; // ~3500 spoken words — well above any IELTS test
@@ -146,6 +151,24 @@ serve(async (req: Request) => {
       JSON.stringify(partContexts).length +
       JSON.stringify(allPartsPronunciation || {}).length;
     if (transcriptSize > MAX_TRANSCRIPT_CHARS) {
+      await finalizeApiUsage(
+        supabase,
+        quotaReservationId,
+        0,
+        false,
+        { testId, speakingSessionId, failureReason: 'Transcript exceeds maximum size' },
+        'failed'
+      );
+      await logApiUsage(supabase, user.id, 'evaluateSpeakingTest', false, tokensUsed, {
+        testId,
+        speakingSessionId,
+        reservationStatus: 'failed',
+        failureReason: 'evaluation_parse_failed',
+        promptTokens,
+        outputTokens,
+        providerCalls,
+      });
+      quotaReservationId = undefined;
       return new Response(
         JSON.stringify({ error: `Conversation transcript exceeds maximum allowed size.` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -259,10 +282,10 @@ serve(async (req: Request) => {
 
     const requestGeminiEvaluation = async (temperature: number) => {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiApiKey },
           body: JSON.stringify({
             contents: [{ parts: [{ text: evaluationPrompt }] }],
             generationConfig: {
@@ -331,6 +354,23 @@ serve(async (req: Request) => {
         finishReason: providerResult.data?.candidates?.[0]?.finishReason || 'unknown',
       });
 
+      await finalizeApiUsage(
+        supabase,
+        quotaReservationId,
+        tokensUsed,
+        false,
+        {
+          testId,
+          speakingSessionId,
+          failureReason: 'evaluation_parse_failed',
+          promptTokens,
+          outputTokens,
+          providerCalls,
+        },
+        'failed'
+      );
+      quotaReservationId = undefined;
+
       return new Response(
         JSON.stringify({
           success: false,
@@ -348,6 +388,15 @@ serve(async (req: Request) => {
 
     // Log successful usage
     const estimatedProviderCostUsd = promptTokens * 0.0000003 + outputTokens * 0.0000025;
+    await finalizeApiUsage(supabase, quotaReservationId, tokensUsed, false, {
+      testId,
+      speakingSessionId,
+      promptTokens,
+      outputTokens,
+      providerCalls,
+      estimatedProviderCostUsd,
+    });
+    quotaReservationId = undefined;
     await logApiUsage(supabase, user.id, 'evaluateSpeakingTest', false, tokensUsed, {
       testId,
       speakingSessionId,
@@ -368,6 +417,22 @@ serve(async (req: Request) => {
     );
   } catch (error: any) {
     console.error('Error in evaluateSpeakingTest:', error);
+    if (quotaReservationId) {
+      await finalizeApiUsage(
+        supabase,
+        quotaReservationId,
+        0,
+        false,
+        { failureReason: error?.message || 'Internal server error' },
+        'failed'
+      );
+    }
+    if (authenticatedUserId) {
+      await logApiUsage(supabase, authenticatedUserId, 'evaluateSpeakingTest', false, 0, {
+        reservationStatus: 'failed',
+        failureReason: error?.message || 'Internal server error',
+      });
+    }
     const corsHeaders = getCorsHeaders(req);
     return new Response(
       JSON.stringify({ error: error.message || 'Internal server error', success: false }),

@@ -191,7 +191,7 @@ const AudioPlayer = React.forwardRef(
 
     return (
       <div
-        className="bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] rounded-xl shadow-2xs border border-[#e4e2f0] dark:border-white/[0.07] p-3 sm:p-3.5 relative overflow-hidden transition-all duration-300"
+        className="bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] rounded-xl shadow-2xs border border-[#e4e2f0] dark:border-white/[0.07] p-3 sm:p-3.5 relative overflow-hidden transition-all duration-300"
         data-oid="gf2zoyb"
       >
         <div

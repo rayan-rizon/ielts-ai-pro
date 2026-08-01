@@ -137,7 +137,7 @@ const MapLabelingRenderer = ({
     <div
       key={question.id}
       id={`question-${question.id}`}
-      className="mb-0 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] shadow-md p-4"
+      className="mb-0 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] shadow-md p-4"
       data-oid="u3ei-ba"
     >
       {/* Map Image */}

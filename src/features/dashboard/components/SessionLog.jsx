@@ -12,6 +12,8 @@ import {
   PANEL,
   PanelFootnote,
   PanelTitle,
+  ROW_CHEVRON,
+  ROW_HOVER,
   WELL,
 } from './primitives';
 
@@ -44,11 +46,15 @@ const SessionLog = React.memo(({ recentTests }) => {
     const mapped = scored.slice(0, VISIBLE).map((test) => {
       const module = String(test.test_type || '').toLowerCase();
       const route = RESULT_ROUTE[module];
+      const durationSeconds = Number(test.duration_seconds);
       return {
         id: test.id,
         module,
         score: Number(test.score),
-        minutes: Number(test.duration_minutes) || null,
+        minutes:
+          Number.isFinite(durationSeconds) && durationSeconds > 0
+            ? Math.max(1, Math.round(durationSeconds / 60))
+            : null,
         title: test.passage?.title || null,
         dateLabel: test.completed_at
           ? new Date(test.completed_at).toLocaleDateString(undefined, {
@@ -56,14 +62,19 @@ const SessionLog = React.memo(({ recentTests }) => {
               day: 'numeric',
             })
           : null,
-        href: route ? `/${route}/${test.id}?view-results=true` : null,
+        href:
+          module === 'writing'
+            ? `/writing-task?sessionId=${test.id}&view=true`
+            : route
+              ? `/${route}/${test.id}?view-results=true`
+              : null,
       };
     });
 
     return {
       rows: mapped,
-      average: scored.length
-        ? scored.reduce((sum, test) => sum + Number(test.score), 0) / scored.length
+      average: mapped.length
+        ? mapped.reduce((sum, test) => sum + Number(test.score), 0) / mapped.length
         : null,
     };
   }, [recentTests]);
@@ -113,9 +124,7 @@ const SessionLog = React.memo(({ recentTests }) => {
                   </p>
                 </div>
 
-                {row.href ? (
-                  <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-300 transition-colors group-hover:text-[#5a63df] dark:text-slate-600" />
-                ) : null}
+                {row.href ? <ChevronRight className={cn('h-3.5 w-3.5', ROW_CHEVRON)} /> : null}
               </>
             );
 
@@ -125,14 +134,7 @@ const SessionLog = React.memo(({ recentTests }) => {
             // A session whose module has no results route still lists — it just
             // isn't a link, rather than a link that goes nowhere.
             return row.href ? (
-              <Link
-                key={row.id}
-                to={row.href}
-                className={cn(
-                  className,
-                  'hover:border-[#e4e2f0] hover:bg-[#f7f6fd] active:scale-[0.99] dark:hover:border-white/[0.07] dark:hover:bg-white/[0.03]'
-                )}
-              >
+              <Link key={row.id} to={row.href} className={cn(className, ROW_HOVER)}>
                 {body}
               </Link>
             ) : (

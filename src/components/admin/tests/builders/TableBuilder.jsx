@@ -1,33 +1,12 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Plus,
-  Minus,
-  RotateCcw,
-  Eye,
-  EyeOff,
-  Grid3X3,
-  Eraser,
-  AlignCenter,
-  Type,
-} from 'lucide-react';
+import { Plus, Minus, RotateCcw, Eye, EyeOff, Type } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }) => {
-  // Default theme fallback
   const t = theme || {
     primary: 'bg-primary',
     text: 'text-primary',
@@ -270,7 +249,6 @@ const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }
     }));
   };
 
-  const hasBlank = (r, c) => tableData.blanks.some((b) => b.row === r && b.col === c);
   const getBlanksInCell = (r, c) => tableData.blanks.filter((b) => b.row === r && b.col === c);
 
   return (

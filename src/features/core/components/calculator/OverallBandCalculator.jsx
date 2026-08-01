@@ -15,7 +15,7 @@ const TARGET_OPTIONS = ['6.0', '6.5', '7.0', '7.5', '8.0', '8.5', '9.0'];
 
 function BandSliderRow({ name, value, set, icon: Icon, color, description }) {
   return (
-    <div className="group flex h-full flex-col justify-between rounded-[22px] border border-slate-200/90 bg-white/90 p-5 shadow-[0_10px_35px_-12px_rgba(15,23,42,0.04)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400/40 hover:shadow-xl dark:border-white/10 dark:bg-slate-950/85 dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] relative overflow-hidden">
+    <div className="group flex h-full flex-col justify-between rounded-[22px] border border-slate-200/90 bg-white/90 p-5 shadow-[0_10px_35px_-12px_rgba(15,23,42,0.04)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400/40 hover:shadow-xl dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:shadow-none dark:hover:border-white/[0.15] relative overflow-hidden">
       <div className="space-y-3.5 relative z-10">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -47,7 +47,7 @@ function BandSliderRow({ name, value, set, icon: Icon, color, description }) {
             value={value}
             aria-label={`${name} band score`}
             onChange={(e) => set(parseFloat(e.target.value))}
-            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-100 accent-indigo-600 dark:bg-slate-800"
+            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-100 accent-indigo-600 dark:bg-white/[0.08]"
             style={{
               background: `linear-gradient(to right, #5262ef 0%, #5262ef ${((value - 4) / 5) * 100}%, #e2e8f0 ${((value - 4) / 5) * 100}%)`,
             }}
@@ -122,7 +122,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
         ))}
 
         {/* Target band tracker */}
-        <div className="flex h-full flex-col justify-between rounded-[22px] border border-slate-200/90 bg-white/90 p-5 shadow-[0_10px_35px_-12px_rgba(15,23,42,0.04)] backdrop-blur-xl transition-all duration-300 hover:border-indigo-400/40 dark:border-white/10 dark:bg-slate-950/85 dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] sm:col-span-2 relative overflow-hidden">
+        <div className="flex h-full flex-col justify-between rounded-[22px] border border-slate-200/90 bg-white/90 p-5 shadow-[0_10px_35px_-12px_rgba(15,23,42,0.04)] backdrop-blur-xl transition-all duration-300 hover:border-indigo-400/40 dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:shadow-none dark:hover:border-white/[0.15] sm:col-span-2 relative overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-3.5">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0 shadow-2xs">
@@ -146,7 +146,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
                   className={`h-9 min-w-[42px] rounded-xl px-2.5 text-xs font-black transition-all duration-200 hover:scale-105 active:scale-95 ${
                     target === option
                       ? 'bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25'
-                      : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'
+                      : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200 dark:bg-white/[0.05] dark:text-slate-400 dark:hover:bg-white/[0.1]'
                   }`}
                 >
                   {option}
@@ -194,15 +194,15 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
 
       {/* Result card */}
       <div className="lg:col-span-5">
-        <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-[28px] md:rounded-[32px] border border-slate-200/80 bg-white/80 p-6 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] sm:p-8">
-          <div className="pointer-events-none absolute -right-24 -top-24 h-48 w-48 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-[28px] md:rounded-[32px] border border-slate-200/80 bg-white/80 p-6 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:shadow-none sm:p-8">
+          <div className="pointer-events-none absolute -right-24 -top-24 h-48 w-48 rounded-full bg-indigo-500/10 dark:bg-[#5a63df]/10 blur-3xl" />
 
           <div className="relative z-10 flex flex-col items-center text-center">
-            <span className="mb-4 block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+            <span className="mb-4 block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
               Estimated Overall Band
             </span>
 
-            <div className="relative mb-5 flex h-36 w-36 items-center justify-center rounded-full border border-slate-200/80 bg-white/90 shadow-md dark:border-slate-800 dark:bg-slate-900">
+            <div className="relative mb-5 flex h-36 w-36 items-center justify-center rounded-full border border-slate-200/80 bg-white/90 shadow-md dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none">
               <svg className="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 100 100">
                 <circle
                   cx="50"
@@ -211,7 +211,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
                   fill="none"
                   stroke="#f1f5f9"
                   strokeWidth="6"
-                  className="dark:stroke-slate-800"
+                  className="dark:stroke-white/10"
                 />
                 <m.circle
                   cx="50"
@@ -230,7 +230,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
                 <strong className="block text-[46px] font-black leading-none tracking-tight text-slate-950 dark:text-white">
                   {overallBand.toFixed(1)}
                 </strong>
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
                   avg {average.toFixed(2)}
                 </span>
               </div>
@@ -246,13 +246,13 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
             </p>
           </div>
 
-          <div className="relative z-10 mt-6 space-y-3.5 border-t border-slate-200/60 pt-6 text-left dark:border-slate-800/80">
-            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 transition-all hover:bg-slate-100/80 dark:border-slate-800 dark:bg-slate-900/50 dark:hover:bg-slate-900">
+          <div className="relative z-10 mt-6 space-y-3.5 border-t border-slate-200/60 pt-6 text-left dark:border-white/10">
+            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 transition-all hover:bg-slate-100/80 dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.05]">
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
                   <Target className="h-3.5 w-3.5" />
                 </span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
                   Priority Focus Area
                 </span>
               </div>
@@ -261,12 +261,12 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 transition-all hover:bg-slate-100/80 dark:border-slate-800 dark:bg-slate-900/50 dark:hover:bg-slate-900">
+            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 transition-all hover:bg-slate-100/80 dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.05]">
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
                   <Clock className="h-3.5 w-3.5" />
                 </span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
                   Recommended Study Time
                 </span>
               </div>

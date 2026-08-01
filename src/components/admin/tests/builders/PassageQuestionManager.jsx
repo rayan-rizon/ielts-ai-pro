@@ -567,7 +567,7 @@ const PassageQuestionManager = ({
         </CardHeader>
         <CardContent data-oid="giijj2_">
           <div className="space-y-4" data-oid="qf2_rb1">
-            {questionsForSelectedPassage.map((question, index) => (
+            {questionsForSelectedPassage.map((question) => (
               <div
                 key={question.id}
                 className="border border-border rounded-lg p-4 bg-muted/30"

@@ -95,10 +95,9 @@ export default function BandScoreJourney({
     () => buildBandProgressView({ tab: activeTab, moduleHistory, overallProgress }),
     [activeTab, moduleHistory, overallProgress]
   );
-  const targetAchieved =
-    view.current != null &&
-    Number.isFinite(Number(targetScore)) &&
-    view.current >= Number(targetScore);
+  const parsedTarget = Number(targetScore);
+  const hasTarget = Number.isFinite(parsedTarget) && parsedTarget > 0;
+  const targetAchieved = view.current != null && hasTarget && view.current >= parsedTarget;
 
   const onKeyDown = (event) => {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
@@ -184,7 +183,7 @@ export default function BandScoreJourney({
             <>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <ChangeBadge change={view.change} hasTrend={view.hasTrend} />
-                {Number.isFinite(Number(targetScore)) ? (
+                {hasTarget ? (
                   <Pill tone={targetAchieved ? 'ok' : 'amber'}>
                     <Flag className="h-3 w-3" />
                     <span>
@@ -210,9 +209,9 @@ export default function BandScoreJourney({
                       axisLine={false}
                     />
                     <Tooltip content={<BandTip />} cursor={CURSOR} />
-                    {Number.isFinite(Number(targetScore)) ? (
+                    {hasTarget ? (
                       <ReferenceLine
-                        y={Number(targetScore)}
+                        y={parsedTarget}
                         stroke="currentColor"
                         className="text-[rgb(var(--signal-warn))]"
                         strokeDasharray="4 4"

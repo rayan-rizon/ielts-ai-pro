@@ -78,6 +78,7 @@ serve(async (req: Request) => {
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
+  let quotaReservationId: string | undefined;
 
   try {
     // Authenticate user
@@ -230,6 +231,7 @@ serve(async (req: Request) => {
     if (!quotaReservation.allowed) {
       return quotaExceededResponse(quotaReservation, corsHeaders);
     }
+    quotaReservationId = quotaReservation.reservationId;
 
     console.log(`Audio ready. Size: ${Math.round(base64Audio.length / 1024)}KB, MIME: ${mimeType}`);
 
@@ -288,10 +290,10 @@ serve(async (req: Request) => {
 
     console.log('Calling Gemini API...');
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiApiKey },
         body: JSON.stringify(requestBody),
       }
     );
@@ -325,6 +327,7 @@ serve(async (req: Request) => {
       mimeType: mimeType,
       transcriptLength: cleanTranscript.length,
     });
+    quotaReservationId = undefined;
 
     return new Response(
       JSON.stringify({
@@ -335,6 +338,16 @@ serve(async (req: Request) => {
     );
   } catch (error: any) {
     console.error('Error in transcribeAudio:', error);
+    if (quotaReservationId) {
+      await finalizeApiUsage(
+        supabase,
+        quotaReservationId,
+        0,
+        false,
+        { transcriptionError: error?.message || 'Internal server error' },
+        'failed'
+      );
+    }
     const corsHeaders = getCorsHeaders(req);
     return new Response(
       JSON.stringify({

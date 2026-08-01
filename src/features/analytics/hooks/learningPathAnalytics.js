@@ -1,38 +1,68 @@
+const MODULE_PREFIXES = new Set([
+  'reading',
+  'writing',
+  'listening',
+  'speaking',
+  'grammar',
+  'vocabulary',
+]);
+
+const CONFIDENCE_LABELS = {
+  high: 'Reliable scores',
+  moderate: 'Some scores',
+  developing: 'Some scores',
+  diagnostic: 'Needs more results',
+  low: 'Needs more results',
+};
+
+const arrayOrEmpty = (value) => (Array.isArray(value) ? value : []);
+const countOrZero = (value) => {
+  const count = Number(value);
+  return Number.isFinite(count) && count > 0 ? count : 0;
+};
+
 function humanizeSkillCode(skillCode) {
-  const parts = String(skillCode || '')
+  const parts = String(skillCode ?? '')
     .split('_')
     .filter(Boolean);
-  const withoutModule =
-    parts.length > 1 &&
-    ['reading', 'writing', 'listening', 'speaking', 'grammar', 'vocabulary'].includes(parts[0])
-      ? parts.slice(1)
-      : parts;
-
-  return withoutModule
+  const labelParts = parts.length > 1 && MODULE_PREFIXES.has(parts[0]) ? parts.slice(1) : parts;
+  return labelParts
     .join(' ')
     .replace(/\b\w/g, (letter) => letter.toUpperCase())
     .trim();
 }
 
 function normalizeEvidenceItem(item, fallbackClass) {
-  const observations = Math.max(0, Number(item?.observations) || 0);
-  const correctCount = Math.max(0, Number(item?.correct_count) || 0);
-  const evidenceClass = item?.evidence_class || fallbackClass;
-  const label = humanizeSkillCode(item?.skill_code) || 'IELTS fundamentals';
-  const isMeasured = evidenceClass === 'measured_priority';
+  const source = item ?? {};
+  const evidenceClass = source.evidence_class ?? fallbackClass;
+  const observations = countOrZero(source.observations);
+  const correctCount = countOrZero(source.correct_count);
+  const measured = evidenceClass === 'measured_priority';
+  const observationLabel = observations === 1 ? 'answer' : 'answers';
 
   return {
-    module: label,
-    strategy: isMeasured
-      ? `${correctCount} correct across ${observations} graded answers.`
-      : `${observations} graded answer${observations === 1 ? '' : 's'}; keep measuring before treating this as a recurring weakness.`,
+    module: humanizeSkillCode(source.skill_code) || 'IELTS fundamentals',
+    strategy: evidenceStrategy({ measured, correctCount, observations, observationLabel }),
     evidenceClass,
     observations,
-    skillCode: item?.skill_code || null,
-    skillModule: item?.module || null,
-    mastery: Number.isFinite(Number(item?.mastery)) ? Number(item.mastery) : null,
+    skillCode: source.skill_code ?? null,
+    skillModule: source.module ?? null,
+    mastery: validMastery(source.mastery),
   };
 }
+
+const evidenceStrategy = ({ measured, correctCount, observations, observationLabel }) =>
+  measured
+    ? `${correctCount} correct across ${observations} graded answers.`
+    : `${observations} graded ${observationLabel}; keep measuring before treating this as a recurring weakness.`;
+
+const validMastery = (value) => {
+  const mastery = Number(value);
+  return Number.isFinite(mastery) ? mastery : null;
+};
+
+const normalizeEvidenceList = (items, fallbackClass) =>
+  arrayOrEmpty(items).map((item) => normalizeEvidenceItem(item, fallbackClass));
 
 function coachOverview(coachSummary) {
   if (typeof coachSummary === 'string') return coachSummary;
@@ -40,56 +70,63 @@ function coachOverview(coachSummary) {
   return [coachSummary.headline, coachSummary.explanation].filter(Boolean).join(' ');
 }
 
+const findLatestTransfer = (attempts) =>
+  arrayOrEmpty(attempts).find(
+    (attempt) => attempt?.mode === 'transfer' && attempt?.transfer_outcome
+  );
+
+const buildCriterionSignals = (signals) =>
+  arrayOrEmpty(signals).map((item) => ({
+    source: item?.skill_code === 'speaking_grammar' ? 'Speaking' : 'Writing',
+    observations: countOrZero(item?.observations),
+    evidenceClass: item?.evidence_class ?? 'diagnostic',
+    provenance: item?.provenance ?? null,
+  }));
+
+function buildGrammarSummary(path, measuredPriorities, earlySignals) {
+  const grammarEvidence = path?.grammar_evidence ?? {};
+  const latestTransfer = findLatestTransfer(grammarEvidence.recent_attempts);
+  return {
+    measuredPriorities: measuredPriorities.filter((item) => item.skillModule === 'grammar'),
+    earlySignals: earlySignals.filter((item) => item.skillModule === 'grammar'),
+    criterionSignals: buildCriterionSignals(grammarEvidence.criterion_signals),
+    dueReviews: arrayOrEmpty(grammarEvidence.due_reviews).length,
+    latestTransferOutcome: latestTransfer?.transfer_outcome ?? null,
+  };
+}
+
+const buildCounts = (evidence, earlySignals) => ({
+  measured: countOrZero(evidence?.counts?.measured),
+  early: countOrZero(evidence?.counts?.early) || earlySignals.length,
+  diagnostic: countOrZero(evidence?.counts?.diagnostic),
+});
+
+const buildAiSuggestions = (path, recommendedFocusAreas) => ({
+  learning_path_overview:
+    coachOverview(path.coach_summary) ??
+    'Complete scored practice so your plan can confirm which skills need attention.',
+  recommended_focus_areas: recommendedFocusAreas,
+});
+
 export function buildLearningPathAnalytics(path) {
   const evidence = path?.evidence_summary;
   if (!evidence || typeof evidence !== 'object') return null;
 
-  const measuredPriorities = (evidence.measured_priorities || []).map((item) =>
-    normalizeEvidenceItem(item, 'measured_priority')
+  const measuredPriorities = normalizeEvidenceList(
+    evidence.measured_priorities,
+    'measured_priority'
   );
-  const earlySignals = (evidence.early_signals || evidence.unmeasured_priorities || []).map(
-    (item) => normalizeEvidenceItem(item, 'early_signal')
-  );
+  const earlySource = evidence.early_signals ?? evidence.unmeasured_priorities;
+  const earlySignals = normalizeEvidenceList(earlySource, 'early_signal');
   const recommendedFocusAreas = [...measuredPriorities, ...earlySignals].slice(0, 3);
-  const latestTransfer = (path?.grammar_evidence?.recent_attempts || []).find(
-    (attempt) => attempt?.mode === 'transfer' && attempt?.transfer_outcome
-  );
-  const grammarDueReviews = path?.grammar_evidence?.due_reviews || [];
 
   return {
-    fingerprint: path.input_fingerprint || null,
-    confidenceLabel:
-      {
-        high: 'Reliable scores',
-        moderate: 'Some scores',
-        developing: 'Some scores',
-        diagnostic: 'Needs more results',
-        low: 'Needs more results',
-      }[evidence.confidence_label] || 'Needs more results',
-    counts: {
-      measured: Number(evidence.counts?.measured) || 0,
-      early: Number(evidence.counts?.early) || earlySignals.length,
-      diagnostic: Number(evidence.counts?.diagnostic) || 0,
-    },
+    fingerprint: path.input_fingerprint ?? null,
+    confidenceLabel: CONFIDENCE_LABELS[evidence.confidence_label] ?? 'Needs more results',
+    counts: buildCounts(evidence, earlySignals),
     measuredPriorities,
     earlySignals,
-    grammar: {
-      measuredPriorities: measuredPriorities.filter((item) => item.skillModule === 'grammar'),
-      earlySignals: earlySignals.filter((item) => item.skillModule === 'grammar'),
-      criterionSignals: (path?.grammar_evidence?.criterion_signals || []).map((item) => ({
-        source: item?.skill_code === 'speaking_grammar' ? 'Speaking' : 'Writing',
-        observations: Math.max(0, Number(item?.observations) || 0),
-        evidenceClass: item?.evidence_class || 'diagnostic',
-        provenance: item?.provenance || null,
-      })),
-      dueReviews: grammarDueReviews.length,
-      latestTransferOutcome: latestTransfer?.transfer_outcome || null,
-    },
-    aiSuggestions: {
-      learning_path_overview:
-        coachOverview(path.coach_summary) ||
-        'Complete scored practice so your plan can confirm which skills need attention.',
-      recommended_focus_areas: recommendedFocusAreas,
-    },
+    grammar: buildGrammarSummary(path, measuredPriorities, earlySignals),
+    aiSuggestions: buildAiSuggestions(path, recommendedFocusAreas),
   };
 }

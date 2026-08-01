@@ -71,8 +71,8 @@ export default function ComparisonSection() {
           </div>
 
           {/* IELTS AI Pro Way */}
-          <div className="rounded-[28px] border border-indigo-500/30 bg-gradient-to-br from-white via-indigo-50/40 to-slate-50 dark:from-slate-900 dark:via-indigo-950/30 dark:to-slate-950 p-6 sm:p-7 shadow-[0_15px_45px_-15px_rgba(79,70,229,0.15)] relative overflow-hidden group">
-            <div className="absolute -right-20 -top-20 h-44 w-44 rounded-full bg-indigo-500/15 blur-3xl" />
+          <div className="rounded-[28px] border border-indigo-500/30 bg-gradient-to-br from-white via-indigo-50/40 to-slate-50 dark:border-[#5a63df]/25 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] p-6 sm:p-7 shadow-[0_15px_45px_-15px_rgba(79,70,229,0.15)] dark:shadow-none relative overflow-hidden group">
+            <div className="absolute -right-20 -top-20 h-44 w-44 rounded-full bg-indigo-500/15 dark:bg-[#5a63df]/10 blur-3xl" />
 
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 text-xs font-extrabold mb-5 border border-indigo-500/20">
               <Sparkles className="w-3.5 h-3.5 text-indigo-500" />

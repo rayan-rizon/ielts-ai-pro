@@ -1,5 +1,4 @@
 import { supabase } from '@/lib/supabase';
-import { getCsrfHeaders } from '@/lib/csrf';
 
 function unwrapRpc(data, error) {
   if (error) {
@@ -128,35 +127,4 @@ export async function completeGrammarAttempt(attemptId) {
     p_attempt_id: attemptId,
   });
   return unwrapRpc(data, error);
-}
-
-export async function getRecentSpeakingTransfers(userId) {
-  if (!userId) return [];
-  const { data, error } = await supabase
-    .from('test_sessions')
-    .select('id, completed_at, created_at, passage:passages(title, cambridge_title)')
-    .eq('user_id', userId)
-    .eq('test_type', 'speaking')
-    .eq('is_completed', true)
-    .order('completed_at', { ascending: false })
-    .limit(8);
-  if (error) throw error;
-  return data || [];
-}
-
-export async function evaluateGrammarTransfer(payload) {
-  const { data, error } = await supabase.functions.invoke('evaluateGrammarTransfer', {
-    body: payload,
-    headers: getCsrfHeaders(),
-  });
-  if (error) {
-    const next = new Error(
-      data?.error || error?.context?.body?.error || error.message || 'Transfer evaluation failed'
-    );
-    next.status = error?.context?.status;
-    next.rateLimitType = data?.rateLimitType;
-    throw next;
-  }
-  if (!data?.success) throw new Error(data?.error || 'Transfer evaluation failed');
-  return data.data;
 }

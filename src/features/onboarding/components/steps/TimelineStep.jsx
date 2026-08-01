@@ -90,7 +90,7 @@ function SpecificDatePicker({ timelineType, testDate, onChangeTimeline }) {
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="z-[100] w-auto overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-[#141319]"
+        className="z-[100] w-auto overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-[#131315]"
         align="center"
         side="bottom"
         sideOffset={8}

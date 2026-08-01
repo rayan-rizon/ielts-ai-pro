@@ -114,10 +114,10 @@ export function TestCardMetaBar({
 }
 
 const PRIMARY_BTN =
-  'inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all active:scale-[0.98]';
+  'inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all active:scale-[0.98]';
 const OUTLINE_ICON_BTN = cn(
   TILE,
-  'flex h-10 w-10 shrink-0 items-center justify-center text-slate-500 transition-all hover:-translate-y-0.5 hover:border-[#5a63df]/30 hover:text-[#5a63df] hover:shadow-sm active:scale-[0.98] dark:text-slate-400 dark:hover:border-[#5a63df]/40 dark:hover:text-[#a9afff]'
+  'flex h-9 w-9 shrink-0 items-center justify-center text-slate-500 transition-all hover:-translate-y-0.5 hover:border-[#5a63df]/30 hover:text-[#5a63df] hover:shadow-sm active:scale-[0.98] dark:text-slate-400 dark:hover:border-[#5a63df]/40 dark:hover:text-[#a9afff]'
 );
 
 export function TestCardActions({
@@ -146,7 +146,7 @@ export function TestCardActions({
         <Link to={`/listening-test/${session.id}`} className="flex-1">
           <button
             type="button"
-            className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#4a52c9]')}
+            className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
           >
             Resume Test <Play className="h-3.5 w-3.5 fill-current" />
           </button>
@@ -167,7 +167,7 @@ export function TestCardActions({
             type="button"
             className={cn(
               TILE,
-              'flex h-10 w-full items-center justify-center gap-1.5 text-xs font-bold text-slate-700 transition-all hover:-translate-y-0.5 hover:shadow-sm active:scale-[0.98] dark:text-slate-200 dark:hover:border-white/[0.12]'
+              'flex h-9 w-full items-center justify-center gap-1.5 text-xs font-bold text-slate-700 transition-all hover:-translate-y-0.5 hover:shadow-sm active:scale-[0.98] dark:text-slate-200 dark:hover:border-white/[0.12]'
             )}
           >
             View Results <ArrowRight className="h-4 w-4" />
@@ -185,7 +185,7 @@ export function TestCardActions({
     <Link to={withLearningActivity(`/listening-test?test-id=${test.id}`)} className="block">
       <button
         type="button"
-        className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#4a52c9]')}
+        className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
       >
         Start Practice <ChevronRight className="h-4 w-4" />
       </button>
@@ -297,7 +297,7 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
         <Link to={`/listening-test/${testSession.id}`}>
           <button
             type="button"
-            className={cn(ROW_PRIMARY_BTN, 'bg-[#5a63df] text-white hover:bg-[#4a52c9]')}
+            className={cn(ROW_PRIMARY_BTN, 'bg-[#5a63df] text-white hover:bg-[#484FB2]')}
           >
             Resume <Play className="h-3 w-3 fill-current" />
           </button>
@@ -337,7 +337,7 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
       <Link to={withLearningActivity(`/listening-test?test-id=${test.id}`)}>
         <button
           type="button"
-          className={cn(ROW_PRIMARY_BTN, 'bg-[#5a63df] text-white hover:bg-[#4a52c9]')}
+          className={cn(ROW_PRIMARY_BTN, 'bg-[#5a63df] text-white hover:bg-[#484FB2]')}
         >
           Start <ChevronRight className="h-3.5 w-3.5" />
         </button>

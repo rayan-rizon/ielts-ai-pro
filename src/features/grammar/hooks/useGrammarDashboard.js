@@ -6,7 +6,7 @@ import { skillLabel } from '../constants';
 function derivePrimaryTitle({ inProgressAttempt, primaryMode, shouldDiagnose, recommended }) {
   if (inProgressAttempt) return `Continue your ${String(inProgressAttempt.mode).toLowerCase()}`;
   if (primaryMode === 'review') return 'Review what needs another look';
-  if (primaryMode === 'transfer') return 'Apply grammar in IELTS production';
+  if (primaryMode === 'retest') return 'Check your progress in a real IELTS response';
   if (shouldDiagnose) return 'Build your six-skill baseline';
   return `Strengthen ${String(recommended?.label || skillLabel(recommended?.skillCode)).toLowerCase()}`;
 }
@@ -15,22 +15,22 @@ function derivePrimaryDescription({ inProgressAttempt, primaryMode, shouldDiagno
   if (inProgressAttempt) {
     return `${inProgressAttempt.totalQuestions} IELTS-focused questions are already saved in this attempt. Pick up where you stopped without using another allowance.`;
   }
-  if (primaryMode === 'transfer')
-    return 'Use a short Academic Writing paragraph or an existing Speaking transcript.';
+  if (primaryMode === 'retest')
+    return 'Your next scored Writing or Speaking response will update Grammar evidence and refresh your AI Learning Path automatically.';
   if (shouldDiagnose)
     return 'Answer 24 short questions across six grammar skills. Each one uses a realistic Writing or Speaking sentence.';
   return `Practise one useful pattern from ${recommended?.observations || 0} saved observations, then apply it in Writing or Speaking.`;
 }
 
 function deriveActivePathStage(mode) {
-  if (mode === 'transfer') return 'apply';
+  if (mode === 'retest') return 'retest';
   if (mode === 'diagnostic') return 'diagnose';
   return 'practice';
 }
 
 function derivePathStatus(activePathStage, inProgressAttempt) {
   if (activePathStage === 'diagnose') return 'Now: build your six-skill baseline';
-  if (activePathStage === 'apply') return 'Now: apply the target in IELTS';
+  if (activePathStage === 'retest') return 'Now: take one scored test to measure progress';
   if (inProgressAttempt) return 'Now: finish your active practice set';
   return 'Now: repair one useful grammar pattern';
 }
@@ -46,6 +46,7 @@ export function useGrammarDashboard({
   defaultMode,
   defaultSkill,
   onStart,
+  onRetest,
   onResume,
 }) {
   const access = dashboard?.access || {};
@@ -57,12 +58,31 @@ export function useGrammarDashboard({
     (a) => a.completionState === 'in_progress' && a.mode !== 'transfer'
   );
 
+  const latestCriterionAt = Math.max(
+    0,
+    ...criterionEvidence.map((signal) => new Date(signal.lastPracticedAt || 0).getTime() || 0)
+  );
+  const repairsSinceLastTest = (dashboard?.recentAttempts || []).filter((attempt) => {
+    const completedAt = new Date(attempt.completedAt || 0).getTime() || 0;
+    return (
+      attempt.completionState === 'completed' &&
+      ['practice', 'review'].includes(attempt.mode) &&
+      completedAt > latestCriterionAt
+    );
+  }).length;
+  const retestTarget =
+    [...criterionEvidence]
+      .filter((signal) => Number(signal.observations || 0) > 0)
+      .sort((a, b) => Number(a.mastery || 0) - Number(b.mastery || 0))[0]?.source || 'writing';
+
   const shouldDiagnose =
     defaultMode === 'diagnostic' ||
     criterionDiagnosticNeeded ||
     !skills.some((s) => s.observations > 0);
 
-  const primaryMode = defaultMode || (shouldDiagnose ? 'diagnostic' : 'practice');
+  const primaryMode =
+    defaultMode ||
+    (shouldDiagnose ? 'diagnostic' : repairsSinceLastTest >= 2 ? 'retest' : 'practice');
 
   const dailyLimitReached =
     !access.isPaid &&
@@ -91,6 +111,10 @@ export function useGrammarDashboard({
       onResume(inProgressAttempt.id);
       return;
     }
+    if (primaryMode === 'retest') {
+      onRetest(retestTarget);
+      return;
+    }
     onStart({
       mode: primaryMode,
       targetSkills:
@@ -100,11 +124,8 @@ export function useGrammarDashboard({
   };
 
   const startPathStage = (stage) => {
-    if (stage === 'apply') {
-      onStart({
-        mode: 'transfer',
-        targetSkills: recommended?.skillCode ? [recommended.skillCode] : null,
-      });
+    if (stage === 'retest') {
+      onRetest(retestTarget);
       return;
     }
     const resumeMatches =
@@ -136,6 +157,8 @@ export function useGrammarDashboard({
     primaryDescription,
     activePathStage,
     pathStatus,
+    retestTarget,
+    repairsSinceLastTest,
     startPrimary,
     startPathStage,
   };

@@ -53,10 +53,7 @@ const DailyUsageChart = ({ dailyStats, dateRange }) => (
         <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
           Request volume · {dateRange}d
         </h3>
-        <InfoTip>
-          Daily AI requests. The gap between the two lines is requests that never delivered —
-          failed, cached-out, or still pending.
-        </InfoTip>
+        <InfoTip>Daily AI requests. The gap shows calls not yet delivered.</InfoTip>
       </div>
       <div className="flex items-center gap-3">
         <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>

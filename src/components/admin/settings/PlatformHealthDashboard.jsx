@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -19,6 +19,7 @@ import {
   Database,
   Library,
   Loader2,
+  Mail,
   Moon,
   RefreshCw,
   ShieldCheck,
@@ -78,7 +79,13 @@ const SIGNAL = {
 
 const FAULT_TEXT = 'text-[rgb(var(--signal-fault))]';
 
-const CATEGORY_ICON = { ai: Cpu, payments: CreditCard, content: Library, platform: Database };
+const CATEGORY_ICON = {
+  ai: Cpu,
+  payments: CreditCard,
+  content: Library,
+  communications: Mail,
+  platform: Database,
+};
 
 const METRIC_LABEL = {
   attempts: 'Attempts',
@@ -92,46 +99,121 @@ const METRIC_LABEL = {
   completionRate: 'Completion',
   credentialErrors: 'Cred. errors',
   cacheHits: 'Cache hits',
+  inFlight: 'In flight',
   stuck: 'Stuck',
+  usersAffected: 'Learners',
+  oldestStuckMinutes: 'Oldest',
   webhookEvents: 'Webhooks',
+  processedEvents: 'Processed',
+  failedEvents: 'Failed',
+  eventFailureRate: 'Failure rate',
   recordedPayments: 'Recorded',
   recordedAmount: 'Amount',
   pending: 'Pending',
   approvedInWindow: 'Approved',
   oldestPendingHours: 'Oldest',
   activePassages: 'Active tests',
+  readyPassages: 'Ready tests',
+  brokenPassages: 'Broken tests',
   sessionsInWindow: 'Sessions',
   size: 'Size',
   connections: 'Conns',
+  maxConnections: 'Max conns',
+  connectionUtilization: 'Conn. usage',
+  authAccountsInWindow: 'New Auth accounts',
+  profilesInWindow: 'New profiles',
+  orphanProfiles: 'Historical accounts',
+  actionableProfileGaps: 'Actionable gaps',
+  unactivatedAccounts: 'Unactivated',
+  oldestOrphanHours: 'Oldest',
+  oldestActionableHours: 'Oldest actionable',
+  completedSessions: 'Completed tests',
+  failedEvaluations: 'Failed results',
+  stuckEvaluations: 'Stalled results',
+  accepted: 'Accepted',
+  failedDispatches: 'Failed',
+  skipped: 'Disabled',
+  dispatchFailureRate: 'Failure rate',
+  cronActive: 'Cron active',
+  lastCronStatus: 'Latest cron',
+  lastRunRecorded: 'App run recorded',
+  lastRunAgeHours: 'Last app run',
+  lastRunAccepted: 'Accepted',
+  lastRunFailed: 'Failed',
+  openrouterCalls: 'OpenRouter calls',
+  directDeepseekCalls: 'Direct DeepSeek',
+  geminiCalls: 'Gemini calls',
+  unknownProviderCalls: 'Unknown provider',
+  estimatedCostUsd: 'Est. cost',
 };
 
-const ALARM_KEYS = new Set(['errors', 'unrecoverable', 'credentialErrors', 'stuck']);
+const ALARM_KEYS = new Set([
+  'errors',
+  'unrecoverable',
+  'credentialErrors',
+  'stuck',
+  'failedEvents',
+  'brokenPassages',
+  'actionableProfileGaps',
+  'failedEvaluations',
+  'stuckEvaluations',
+  'failedDispatches',
+  'lastRunFailed',
+]);
+
+const PERCENT_METRICS = new Set([
+  'errorRate',
+  'completionRate',
+  'eventFailureRate',
+  'dispatchFailureRate',
+  'connectionUtilization',
+]);
+const HOUR_METRICS = new Set(['oldestPendingHours', 'oldestOrphanHours', 'oldestActionableHours']);
+
+const formatMinutes = (value) => {
+  const minutes = Number(value);
+  return minutes >= 60 ? `${(minutes / 60).toFixed(1)}h` : `${minutes}m`;
+};
+
+const METRIC_FORMATTERS = {
+  p95LatencyMs: (value) => `${(Number(value) / 1000).toFixed(1)}s`,
+  lastRunAgeHours: (value) => `${value}h ago`,
+  oldestStuckMinutes: formatMinutes,
+  estimatedCostUsd: (value) => `$${Number(value).toFixed(6)}`,
+};
 
 const fmt = (key, value) => {
-  if (value === null || value === undefined) return '—';
-  if (key === 'p95LatencyMs') return `${(Number(value) / 1000).toFixed(1)}s`;
-  if (key === 'errorRate' || key === 'completionRate') return `${value}%`;
-  if (key === 'oldestPendingHours') return `${value}h`;
-  if (typeof value === 'number') return value.toLocaleString();
-  return String(value);
+  if (value === null || value === undefined) {
+    return key === 'lastRunAgeHours' ? 'No recorded run' : '—';
+  }
+  if (PERCENT_METRICS.has(key)) return `${value}%`;
+  if (HOUR_METRICS.has(key)) return `${value}h`;
+  if (METRIC_FORMATTERS[key]) return METRIC_FORMATTERS[key](value);
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  return typeof value === 'number' ? value.toLocaleString() : String(value);
 };
 
 const HEADLINE_KEY = {
   speech_transcription: 'errorRate',
   pronunciation_assessment: 'completionRate',
   ai_feedback: 'errorRate',
+  ai_text_providers: 'openrouterCalls',
   ai_quota_reservations: 'stuck',
-  speech_synthesis: 'attempts',
-  payments_stripe: 'recordedPayments',
+  speech_synthesis: 'errorRate',
+  payments_stripe: 'eventFailureRate',
   payments_manual: 'pending',
-  database: 'size',
+  database: 'connectionUtilization',
+  auth_provisioning: 'actionableProfileGaps',
+  test_result_delivery: 'failedEvaluations',
+  email_dispatch: 'dispatchFailureRate',
+  scheduled_automation: 'lastCronStatus',
 };
 
 const headlineFor = (service) => {
   const m = service.metrics || {};
   const key =
     HEADLINE_KEY[service.key] ||
-    (service.key?.startsWith('content_') ? 'activePassages' : Object.keys(m)[0]);
+    (service.key?.startsWith('content_') ? 'readyPassages' : Object.keys(m)[0]);
   return { label: METRIC_LABEL[key] || key || '', value: fmt(key, m[key]) };
 };
 
@@ -153,6 +235,12 @@ const REPAIRS = {
   pronunciation_assessment: {
     how: 'Set AZURE_SPEECH_KEY and AZURE_SPEECH_REGION in the Supabase edge function secrets, then redeploy processSpeakingSession. Until then speaking tests silently return without a pronunciation score.',
   },
+  speech_synthesis: {
+    how: 'Inspect the TTS incident message first. Authentication errors require the Google TTS key to be corrected; transient provider failures already fall back to browser speech and should be monitored for recurrence.',
+  },
+  ai_feedback: {
+    how: 'Use the incident list to separate rate limits, provider authentication, malformed output and application errors. Restore the failing dependency, then run one real learner-shaped scoring request before considering the service recovered.',
+  },
   speech_transcription: {
     how: 'Cloudflare Whisper is rejecting the audio rather than being down — check the recorder’s encoding, sample rate and minimum clip length before blaming the provider. Every failure here falls through to the slower Gemini path, and when that fails too the learner gets no score at all.',
   },
@@ -162,6 +250,31 @@ const REPAIRS = {
   payments_manual: {
     how: 'Approve or reject the waiting requests in the Payments tab. Each one is a learner who has paid but is still on the free tier.',
   },
+  database: {
+    how: 'Connection pressure is calculated against Postgres max_connections. Find long-lived or duplicate clients before raising the limit; verify pooling and close leaked connections, then refresh this view.',
+  },
+  auth_provisioning: {
+    how: 'Compare the affected Auth IDs with public.users. Backfill only accounts that still exist and should have a learner profile, then inspect the signup trigger and profile-upsert logs before removing any abandoned accounts.',
+  },
+  test_result_delivery: {
+    how: 'Open the affected sessions in Test Management and inspect their evaluation_status. Retry provider failures only when the saved answers and prompt are intact; do not fabricate a score for incomplete submissions.',
+  },
+  email_dispatch: {
+    how: 'Use the incident message to distinguish a missing Resend key, provider rejection, or disabled template. Verify the sender domain and run one admin test email after correcting the configuration.',
+  },
+  scheduled_automation: {
+    how: 'Inspect the latest cron incident first. Store the project URL and scheduler credential in Supabase Vault, update the cron command to read those Vault secrets instead of public system_settings, and verify that scheduled-emails writes a completed scheduled_email_runs row within 36 hours.',
+  },
+};
+
+const repairFor = (service) => {
+  if (REPAIRS[service.key]) return REPAIRS[service.key];
+  if (service.key?.startsWith('content_')) {
+    return {
+      how: 'Open the affected tests in Content Management and supply the missing questions or required listening audio. The card only counts tests that are actually learner-ready.',
+    };
+  }
+  return null;
 };
 
 const RepairButton = ({ repair, onRepaired }) => {
@@ -251,7 +364,7 @@ const ProblemPanel = ({ service, index, onRepaired }) => {
   const metrics = Object.entries(service.metrics || {}).filter(
     ([, v]) => v !== null && v !== undefined
   );
-  const repair = REPAIRS[service.key];
+  const repair = repairFor(service);
 
   return (
     <div
@@ -284,6 +397,11 @@ const ProblemPanel = ({ service, index, onRepaired }) => {
         <p className="text-xs font-medium text-stone-600 dark:text-stone-300 leading-relaxed mt-3">
           {service.impact}
         </p>
+        {service.source && (
+          <p className={cn(MICRO, 'text-stone-400 dark:text-stone-500 mt-1.5')}>
+            Evidence: {service.source}
+          </p>
+        )}
 
         <div className="mt-4 pt-3 border-t border-dashed border-stone-200 dark:border-white/[0.07] grid grid-cols-3 gap-x-4 gap-y-3">
           {metrics.map(([key, value]) => (
@@ -328,7 +446,9 @@ const ServiceTile = ({ service }) => {
   const alarming = service.status === 'down' || service.status === 'unconfigured';
 
   return (
-    <Tip content={service.impact}>
+    <Tip
+      content={service.source ? `${service.impact} Evidence: ${service.source}.` : service.impact}
+    >
       <div
         className={cn(
           PANEL,
@@ -369,35 +489,56 @@ const ServiceTile = ({ service }) => {
   );
 };
 
-const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdating }) => {
+const PlatformHealthDashboard = ({
+  maintenanceMode,
+  onToggleMaintenance,
+  isUpdating,
+  onLoadingChange,
+}) => {
   const [hours, setHours] = useState(24);
   const [health, setHealth] = useState(null);
   const [incidents, setIncidents] = useState([]);
+  const [incidentsError, setIncidentsError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const requestId = useRef(0);
 
   const load = useCallback(
     async ({ silent = false } = {}) => {
+      const currentRequest = ++requestId.current;
       try {
         if (silent) setRefreshing(true);
         else setLoading(true);
         setError(null);
 
-        const [healthData, incidentData] = await Promise.all([
+        const [healthData, incidentResult] = await Promise.all([
           PlatformHealth.get(hours),
-          PlatformHealth.incidents(hours).catch(() => []),
+          PlatformHealth.incidents(hours)
+            .then((data) => ({ data, error: null }))
+            .catch((incidentError) => ({ data: [], error: incidentError })),
         ]);
+        if (currentRequest !== requestId.current) return;
+
+        if (incidentResult.error) {
+          console.error('Failed to load platform incidents:', incidentResult.error);
+          setIncidentsError(incidentResult.error.message || 'Unable to load incident details');
+        } else {
+          setIncidentsError(null);
+        }
 
         setHealth(healthData);
-        setIncidents(incidentData);
+        setIncidents(incidentResult.data);
       } catch (err) {
+        if (currentRequest !== requestId.current) return;
         console.error('Failed to load platform health:', err);
         setError(err.message || 'Unable to load platform health');
         if (silent) toast.error('Could not refresh platform health');
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (currentRequest === requestId.current) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [hours]
@@ -407,13 +548,24 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
     load();
   }, [load]);
 
-  // Poll while the tab is open so a live outage surfaces without a manual refresh.
   useEffect(() => {
-    const interval = setInterval(() => load({ silent: true }), 60000);
-    return () => clearInterval(interval);
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
+
+  // Poll only while the document is visible; refresh immediately when the admin returns.
+  useEffect(() => {
+    const refreshIfVisible = () => {
+      if (document.visibilityState === 'visible') load({ silent: true });
+    };
+    const interval = setInterval(refreshIfVisible, 60000);
+    document.addEventListener('visibilitychange', refreshIfVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', refreshIfVisible);
+    };
   }, [load]);
 
-  const { problems, grouped, counts, total } = useMemo(() => {
+  const { problems, grouped, counts, total, serviceLabels } = useMemo(() => {
     const services = health?.services || [];
     const bucket = { down: 0, degraded: 0, operational: 0, idle: 0 };
 
@@ -432,6 +584,7 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
       }, {}),
       counts: bucket,
       total: services.length,
+      serviceLabels: Object.fromEntries(services.map((service) => [service.key, service.label])),
     };
   }, [health]);
 
@@ -519,7 +672,7 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
                   <span className={cn(NUM, 'text-xs font-bold text-stone-500 dark:text-stone-300')}>
                     {total}
                   </span>
-                  {' healthy'}
+                  {' operational'}
                 </span>
               </div>
               <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-2">
@@ -645,15 +798,21 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
         <div className={cn(PANEL, 'p-4')}>
           <div className="flex items-center justify-between mb-3">
             <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-              Provider-level failures in this window
+              Persisted operational incidents in this window
             </p>
             <span className={cn(NUM, 'text-[11px] font-bold text-stone-500 dark:text-stone-400')}>
               {incidents.length}
             </span>
           </div>
-          {incidents.length === 0 ? (
+          {incidentsError ? (
+            <div className="rounded-md border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] px-3 py-2.5">
+              <p className="text-xs font-semibold text-stone-700 dark:text-stone-200">
+                Health status loaded, but incident details did not: {incidentsError}
+              </p>
+            </div>
+          ) : incidents.length === 0 ? (
             <p className="text-xs font-medium text-stone-500 dark:text-stone-400 py-8 text-center">
-              No provider errors in this window.
+              No recorded incidents in this window.
             </p>
           ) : (
             <div className="space-y-px max-h-[280px] overflow-y-auto">
@@ -668,7 +827,8 @@ const PlatformHealthDashboard = ({ maintenanceMode, onToggleMaintenance, isUpdat
                       {incident.message}
                     </p>
                     <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1')}>
-                      {incident.service} · {new Date(incident.last_seen).toLocaleString()}
+                      {serviceLabels[incident.service] || incident.service} ·{' '}
+                      {new Date(incident.last_seen).toLocaleString()}
                     </p>
                   </div>
                   <span

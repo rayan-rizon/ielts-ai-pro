@@ -21,7 +21,7 @@ export default function Contact() {
   const handlePricing = () => navigate(createPageUrl('Pricing'));
 
   return (
-    <div className="min-h-screen bg-[#fcfdff] dark:bg-[#070912] text-foreground transition-colors duration-300 overflow-x-hidden">
+    <div className="min-h-screen bg-[#fcfdff] dark:bg-[#08080a] text-foreground transition-colors duration-300 overflow-x-hidden">
       <DocumentHead
         title="Contact Support & Help Desk - IELTS Ai Pro"
         description="Need assistance with your IELTS preparation, Writing/Speaking AI grading, or subscription account? Contact our team at mail@ieltsai.pro or check our student FAQ."
@@ -51,8 +51,8 @@ export default function Contact() {
 
       {/* Ambient Decorative Lighting */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 top-12 h-[34rem] w-[34rem] rounded-full bg-blue-200/20 blur-[130px] dark:bg-blue-600/10" />
-        <div className="absolute -right-40 top-8 h-[38rem] w-[38rem] rounded-full bg-indigo-500/10 blur-[140px] dark:bg-violet-600/10" />
+        <div className="absolute -left-40 top-12 h-[34rem] w-[34rem] rounded-full bg-blue-200/20 blur-[130px] dark:bg-[#5a63df]/10" />
+        <div className="absolute -right-40 top-8 h-[38rem] w-[38rem] rounded-full bg-indigo-500/10 blur-[140px] dark:bg-[#5a63df]/[0.08]" />
       </div>
 
       <Navbar

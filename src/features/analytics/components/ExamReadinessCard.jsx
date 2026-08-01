@@ -28,14 +28,20 @@ import { ITEM_VARIANTS } from '../constants';
  * are examiner judgment calls this app has no authority to forecast, which is
  * why the copy says "Nearly there", never "You will score a 7".
  */
-export default function ExamReadinessCard({ readiness }) {
+export default function ExamReadinessCard({ readiness, targetScore, modulesWithData = 0 }) {
   if (!readiness) {
+    const hasTarget = Number.isFinite(Number(targetScore)) && Number(targetScore) > 0;
+    const emptyCopy = !hasTarget
+      ? 'Set your target band to calculate readiness.'
+      : modulesWithData < 4
+        ? 'Score a test in each module to see a readiness check here.'
+        : 'Complete another measured test to calculate readiness.';
     return (
       <m.div variants={ITEM_VARIANTS} className="h-full">
         <section className={cn(PANEL, 'flex h-full flex-col p-4')}>
           <PanelTitle label="Exam readiness" accent />
           <Empty icon={Gauge} className="flex-1 content-center">
-            Score a test in each module to see a readiness check here.
+            {emptyCopy}
           </Empty>
         </section>
       </m.div>

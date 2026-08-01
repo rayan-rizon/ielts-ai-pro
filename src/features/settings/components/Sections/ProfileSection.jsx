@@ -92,7 +92,7 @@ export default function ProfileSection({ formData, setFormData, avatars, theme, 
                   className={cn(
                     'relative h-14 w-14 overflow-hidden rounded-lg transition-all duration-200 active:scale-95 sm:h-16 sm:w-16',
                     isSelected
-                      ? 'ring-2 ring-[#5a63df] ring-offset-2 dark:ring-offset-[#141319]'
+                      ? 'ring-2 ring-[#5a63df] ring-offset-2 dark:ring-offset-[#131315]'
                       : 'border border-[#e4e2f0] opacity-50 hover:opacity-100 dark:border-white/10'
                   )}
                 >

@@ -1,9 +1,49 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import useLearningPathData from '@/features/learning/hooks/useLearningPathData';
 import LearningPathDashboard from '@/features/learning/components/dashboard/LearningPathDashboard';
 import DocumentHead from '@/components/shared/DocumentHead';
+import { cn } from '@/lib/cn';
+import { MUTED, PANEL } from '@/features/dashboard/components/primitives';
+
+const PAGE_SHELL =
+  'relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5';
+
+const LearningPathBackdrop = () => (
+  <>
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+    />
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+    />
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute -bottom-24 -left-24 -z-0 h-[24rem] w-[24rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.4),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.12),transparent_70%)]"
+    />
+  </>
+);
+
+const LearningPathError = ({ onRetry }) => (
+  <section className={cn(PANEL, 'mx-auto w-full max-w-lg p-6 text-center')}>
+    <AlertTriangle className="mx-auto h-6 w-6 text-rose-600 dark:text-rose-300" />
+    <h1 className="mt-3 text-lg font-extrabold">Learning Path could not be loaded</h1>
+    <p className={cn('mt-1 text-sm', MUTED)}>
+      Your saved plan and completed activities are unchanged. Retry before updating the plan.
+    </p>
+    <button
+      type="button"
+      onClick={onRetry}
+      className="mt-4 h-9 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white hover:bg-[#4a52c9]"
+    >
+      Retry Learning Path
+    </button>
+  </section>
+);
 
 export default function LearningPath() {
   const { user } = useAuth();
@@ -16,7 +56,9 @@ export default function LearningPath() {
     activityByKey,
     toggleActivity,
     rescheduleActivity,
-  } = useLearningPathData(true);
+    hasError,
+    retry,
+  } = useLearningPathData();
 
   return (
     <>
@@ -24,31 +66,29 @@ export default function LearningPath() {
         title="Personalized AI Learning Path | IELTS Ai Pro"
         description="An evidence-aware IELTS roadmap and realistic seven-day study schedule based on your exam date and availability."
       />
-      <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#0b0a10] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5">
+      <main className={PAGE_SHELL}>
+        <LearningPathBackdrop />
         <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-24 -left-24 -z-0 h-[24rem] w-[24rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.4),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.12),transparent_70%)]"
-        />
-        <div className="relative z-10 mx-auto max-w-[1440px]">
-          <LearningPathDashboard
-            user={user}
-            learningPath={learningPath}
-            stats={stats}
-            skillMap={skillMap}
-            activityByKey={activityByKey}
-            toggleActivity={toggleActivity}
-            rescheduleActivity={rescheduleActivity}
-            isLoading={isLoading}
-            navigate={navigate}
-          />
+          className={cn(
+            'relative z-10 mx-auto max-w-[1440px]',
+            hasError && 'grid min-h-[70vh] place-items-center'
+          )}
+        >
+          {hasError ? (
+            <LearningPathError onRetry={() => retry()} />
+          ) : (
+            <LearningPathDashboard
+              user={user}
+              learningPath={learningPath}
+              stats={stats}
+              skillMap={skillMap}
+              activityByKey={activityByKey}
+              toggleActivity={toggleActivity}
+              rescheduleActivity={rescheduleActivity}
+              isLoading={isLoading}
+              navigate={navigate}
+            />
+          )}
         </div>
       </main>
     </>

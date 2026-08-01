@@ -5,7 +5,7 @@ import { LogoIcon } from '@/components/shared/Logo';
 /**
  * Global route-transition / initial-load fallback — the first thing a user
  * sees on nearly every navigation, so it uses the same page shell as every
- * other screen (dot-grid + soft glow on `#f8f8fb` / `#0b0a10`) rather than a
+ * other screen (dot-grid + soft glow on `#f8f8fb` / `#08080a`) rather than a
  * one-off backdrop-blur overlay. Pure CSS animation only — this sits on the
  * Suspense critical path, before framer-motion or any primitive bundle has
  * necessarily loaded.
@@ -18,7 +18,7 @@ const PremiumLoading = ({ message = 'Loading', fullScreen = true, className }) =
   return (
     <div
       className={cn(
-        'relative flex flex-col items-center justify-center bg-[#f8f8fb] dark:bg-[#0b0a10]',
+        'relative flex flex-col items-center justify-center bg-[#f8f8fb] dark:bg-[#08080a]',
         fullScreen ? 'fixed inset-0 z-[100] h-full w-full' : 'min-h-[60vh] w-full flex-1 py-12',
         className
       )}

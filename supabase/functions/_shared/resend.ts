@@ -22,9 +22,67 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+type DispatchStatus = 'accepted' | 'failed' | 'skipped';
+
+async function hashRecipient(recipient: string): Promise<string | null> {
+  try {
+    const bytes = new TextEncoder().encode(recipient.trim().toLowerCase());
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest))
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('');
+  } catch {
+    return null;
+  }
+}
+
+async function recordDispatch({
+  to,
+  type,
+  status,
+  providerMessageId,
+  errorMessage,
+}: {
+  to: string;
+  type: EmailType;
+  status: DispatchStatus;
+  providerMessageId?: string;
+  errorMessage?: string;
+}) {
+  try {
+    const { error } = await supabase.from('email_delivery_events').insert({
+      email_type: type,
+      recipient_hash: await hashRecipient(to),
+      status,
+      provider_message_id: providerMessageId || null,
+      error_message: errorMessage?.slice(0, 500) || null,
+    });
+
+    // Delivery telemetry must never turn a successful provider dispatch into a
+    // learner-facing failure. During migration rollouts the table may briefly be
+    // unavailable, so report the instrumentation gap without retrying the email.
+    if (error) console.warn('[email-health] Could not persist dispatch outcome:', error.message);
+  } catch (error) {
+    console.warn(
+      '[email-health] Dispatch succeeded but telemetry could not be persisted:',
+      error instanceof Error ? error.message : error
+    );
+  }
+}
+
+function providerErrorMessage(result: unknown): string {
+  if (!result || typeof result !== 'object') return 'Resend rejected the email dispatch';
+  const candidate = result as Record<string, unknown>;
+  return String(candidate.message || candidate.name || 'Resend rejected the email dispatch').slice(
+    0,
+    500
+  );
+}
+
 export async function sendEmail({ to, subject, html, type }: SendEmailParams) {
   if (!resendApiKey) {
     console.error('Missing RESEND_API_KEY');
+    await recordDispatch({ to, type, status: 'failed', errorMessage: 'RESEND_API_KEY is missing' });
     return { error: 'Missing RESEND_API_KEY' };
   }
 
@@ -46,6 +104,7 @@ export async function sendEmail({ to, subject, html, type }: SendEmailParams) {
       // If explicitly turned off, skip sending
       if (preferences[type] === false) {
         console.log(`Email '${type}' is disabled via Admin Settings. Skipping send to ${to}.`);
+        await recordDispatch({ to, type, status: 'skipped' });
         return { success: true, skipped: true };
       }
     }
@@ -76,13 +135,31 @@ export async function sendEmail({ to, subject, html, type }: SendEmailParams) {
 
     if (response.ok) {
       console.log(`Successfully sent '${type}' email to ${to}:`, result.id);
+      await recordDispatch({
+        to,
+        type,
+        status: 'accepted',
+        providerMessageId: typeof result.id === 'string' ? result.id : undefined,
+      });
       return { success: true, id: result.id };
     } else {
       console.error(`Resend API Error sending '${type}' email:`, result);
+      await recordDispatch({
+        to,
+        type,
+        status: 'failed',
+        errorMessage: providerErrorMessage(result),
+      });
       return { error: result };
     }
   } catch (err) {
     console.error('Unexpected error in sendEmail:', err);
+    await recordDispatch({
+      to,
+      type,
+      status: 'failed',
+      errorMessage: err instanceof Error ? err.message : 'Unexpected email dispatch error',
+    });
     return { error: err };
   }
 }

@@ -5,10 +5,8 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 import { generateAdaptiveLearningPath } from '@/utils/api';
 import {
   completeGrammarAttempt,
-  evaluateGrammarTransfer,
   getGrammarAttempt,
   getGrammarDashboard,
-  getRecentSpeakingTransfers,
   setGrammarGuideCompletion,
   startGrammarAttempt,
   submitGrammarResponse,
@@ -30,13 +28,6 @@ export function useGrammarLab() {
     enabled: Boolean(user?.id),
     staleTime: 60_000,
     retry: 1,
-  });
-
-  const speakingQuery = useQuery({
-    queryKey: ['grammarLab', 'speakingTransfers', user?.id],
-    queryFn: () => getRecentSpeakingTransfers(user?.id),
-    enabled: Boolean(user?.id && isPaid),
-    staleTime: 5 * 60_000,
   });
 
   const refreshConsumers = useCallback(
@@ -108,21 +99,6 @@ export function useGrammarLab() {
     },
   });
 
-  const transferMutation = useMutation({
-    mutationFn: evaluateGrammarTransfer,
-    onSuccess: async (data, variables) => {
-      setResult({
-        type: 'transfer',
-        attemptId: variables.attemptId,
-        evaluation: data,
-      });
-      await refreshConsumers(variables.attemptId);
-    },
-    onError: (error) => {
-      toast.error('Could not evaluate the transfer task', { description: error.message });
-    },
-  });
-
   const guideCompletionMutation = useMutation({
     mutationFn: ({ guideSlug, completed }) =>
       setGrammarGuideCompletion({ userId: user?.id, guideSlug, completed }),
@@ -163,7 +139,6 @@ export function useGrammarLab() {
     isLoading: dashboardQuery.isLoading,
     error: dashboardQuery.error,
     refetch: dashboardQuery.refetch,
-    recentSpeakingSessions: speakingQuery.data || [],
     recommendedSkill,
     criterionDiagnosticNeeded,
     activeAttempt,
@@ -174,12 +149,10 @@ export function useGrammarLab() {
     resumeAttempt: resumeMutation.mutateAsync,
     submitResponse: responseMutation.mutateAsync,
     completeAttempt: completeMutation.mutateAsync,
-    evaluateTransfer: transferMutation.mutateAsync,
     isStarting: startMutation.isPending,
     isResuming: resumeMutation.isPending,
     isSubmitting: responseMutation.isPending,
     isCompleting: completeMutation.isPending,
-    isEvaluating: transferMutation.isPending,
     setGuideCompletion: guideCompletionMutation.mutateAsync,
     isUpdatingGuideCompletion: guideCompletionMutation.isPending,
   };

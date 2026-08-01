@@ -96,7 +96,7 @@ const PageHeader = ({ stats, user }) => (
 );
 
 const LoadingSkeleton = () => (
-  <div className="min-h-screen space-y-4 bg-[#f8f8fb] p-4 dark:bg-[#0b0a10] sm:p-6 md:p-8">
+  <div className="min-h-screen space-y-4 bg-[#f8f8fb] p-4 dark:bg-[#08080a] sm:p-6 md:p-8">
     <div className="mx-auto max-w-[1600px] space-y-4">
       <div className="flex items-start justify-between gap-6">
         <div className="space-y-3">
@@ -121,7 +121,7 @@ const LoadingSkeleton = () => (
 
 const AlertDialog = ({ config, setConfig }) => (
   <Dialog open={config.open} onOpenChange={(open) => setConfig((prev) => ({ ...prev, open }))}>
-    <DialogContent className="max-w-md rounded-xl border-[#e2e5f2] bg-white p-6 dark:border-white/10 dark:bg-[#131218]">
+    <DialogContent className="max-w-md rounded-xl border-[#e2e5f2] bg-white p-6 dark:border-white/10 dark:bg-[#131315]">
       <div className="flex flex-col items-center gap-3 text-center">
         <IconChip icon={AlertCircle} tone="amber" size="lg" />
         <div className="space-y-1">
@@ -221,7 +221,7 @@ const PersonalWordBank = ({
                   initial={{ opacity: 0, y: 8, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                  className="absolute right-0 top-full z-50 mt-1.5 w-44 overflow-hidden rounded-lg border border-[#e2e5f2] bg-white p-1 shadow-lg dark:border-white/10 dark:bg-[#131218]"
+                  className="absolute right-0 top-full z-50 mt-1.5 w-44 overflow-hidden rounded-lg border border-[#e2e5f2] bg-white p-1 shadow-lg dark:border-white/10 dark:bg-[#131315]"
                 >
                   <button
                     onClick={handleExportWords}
@@ -454,7 +454,7 @@ export default function Vocabulary() {
   if (isLoading && !allVocabulary.length) return <LoadingSkeleton />;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 transition-colors duration-300 dark:bg-[#0b0a10] dark:text-white">
+    <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 transition-colors duration-300 dark:bg-[#08080a] dark:text-white">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"

@@ -95,11 +95,11 @@ export const VocabularyControlBar = ({
       <div className="flex w-full flex-wrap items-center justify-between gap-2 border-t border-[#eeedf7] pt-2 dark:border-white/[0.07] lg:w-auto lg:justify-end lg:border-t-0 lg:pt-0">
         <div className="flex flex-1 items-center gap-1.5 sm:flex-none">
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="h-8.5 w-auto min-w-[130px] flex-1 shrink-0 gap-1.5 rounded-lg border border-[#e2e5f2] bg-white px-2.5 text-xs font-bold text-slate-800 transition-all hover:border-[#c9cdf3] dark:border-white/10 dark:bg-[#131218] dark:text-slate-200 sm:w-[140px] sm:flex-none">
+            <SelectTrigger className="h-8.5 w-auto min-w-[130px] flex-1 shrink-0 gap-1.5 rounded-lg border border-[#e2e5f2] bg-white px-2.5 text-xs font-bold text-slate-800 transition-all hover:border-[#c9cdf3] dark:border-white/10 dark:bg-[#131315] dark:text-slate-200 sm:w-[140px] sm:flex-none">
               <Filter className="h-3.5 w-3.5 shrink-0 text-[#5a63df]" />
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
-            <SelectContent className="rounded-lg border border-[#e2e5f2] bg-white p-1 shadow-lg dark:border-white/10 dark:bg-[#131218]">
+            <SelectContent className="rounded-lg border border-[#e2e5f2] bg-white p-1 shadow-lg dark:border-white/10 dark:bg-[#131315]">
               <SelectItem value="all" className="rounded-md text-xs font-semibold">
                 All Categories
               </SelectItem>
@@ -119,11 +119,11 @@ export const VocabularyControlBar = ({
           </Select>
 
           <Select value={sortOption} onValueChange={setSortOption}>
-            <SelectTrigger className="h-8.5 w-auto min-w-[110px] flex-1 shrink-0 gap-1.5 rounded-lg border border-[#e2e5f2] bg-white px-2.5 text-xs font-bold text-slate-800 transition-all hover:border-[#c9cdf3] dark:border-white/10 dark:bg-[#131218] dark:text-slate-200 sm:w-[120px] sm:flex-none">
+            <SelectTrigger className="h-8.5 w-auto min-w-[110px] flex-1 shrink-0 gap-1.5 rounded-lg border border-[#e2e5f2] bg-white px-2.5 text-xs font-bold text-slate-800 transition-all hover:border-[#c9cdf3] dark:border-white/10 dark:bg-[#131315] dark:text-slate-200 sm:w-[120px] sm:flex-none">
               <ArrowUpDown className="h-3.5 w-3.5 shrink-0 text-[#5a63df]" />
               <SelectValue placeholder="Recent" />
             </SelectTrigger>
-            <SelectContent className="rounded-lg border border-[#e2e5f2] bg-white p-1 shadow-lg dark:border-white/10 dark:bg-[#131218]">
+            <SelectContent className="rounded-lg border border-[#e2e5f2] bg-white p-1 shadow-lg dark:border-white/10 dark:bg-[#131315]">
               <SelectItem value="recent" className="rounded-md text-xs font-semibold">
                 Recent
               </SelectItem>

@@ -10,8 +10,11 @@ import {
   MUTED,
   NUM,
   PANEL,
+  PANEL_LINK,
   PanelFootnote,
   PanelTitle,
+  SIGNAL_FILL,
+  SIGNAL_TEXT,
   Tip,
   WELL,
 } from './primitives';
@@ -23,18 +26,6 @@ function toneFor(pct) {
   if (pct < 70) return 'warn';
   return 'ok';
 }
-
-const FILL = {
-  fault: 'bg-[rgb(var(--signal-fault)/0.18)]',
-  warn: 'bg-[rgb(var(--signal-warn)/0.18)]',
-  ok: 'bg-[rgb(var(--signal-ok)/0.18)]',
-};
-
-const TEXT = {
-  fault: 'text-[rgb(var(--signal-fault))]',
-  warn: 'text-[rgb(var(--signal-warn))]',
-  ok: 'text-[rgb(var(--signal-ok))]',
-};
 
 const VISIBLE = 5;
 
@@ -59,9 +50,12 @@ const SkillMasteryPanel = React.memo(({ skillProficiency }) => {
         label: stripModulePrefix(formatSkill(skill.skill_code), skill.module),
         module: skill.module,
         pct,
-        // A 1%-mastered skill draws no bar at all and reads as "unmeasured", so
-        // the fill gets a floor. The number beside it stays exact.
-        barPct: Math.max(pct, 3),
+        // A 1%-mastered skill at a 3%-wide floor was a 14px sliver — enough to
+        // be technically colored but not enough to actually read as a color,
+        // so several low rows all looked like the same blank track. Wide
+        // enough now to register as a clear tone; the number beside it stays
+        // the exact value regardless.
+        barPct: Math.max(pct, 14),
         tone: toneFor(pct),
         attempts: Number(skill.practice_count) || 0,
         correct: Number(skill.correct_count) || 0,
@@ -82,13 +76,7 @@ const SkillMasteryPanel = React.memo(({ skillProficiency }) => {
         accent
         tip="Mastery per IELTS question type, weakest first. Estimated from your answer history."
         action={
-          <Link
-            to={createPageUrl('Analytics')}
-            className={cn(
-              MICRO,
-              'inline-flex items-center gap-0.5 text-slate-500 transition-colors hover:text-[#5a63df] dark:text-slate-400'
-            )}
-          >
+          <Link to={createPageUrl('Analytics')} className={cn(MICRO, PANEL_LINK)}>
             All skills <ChevronRight className="h-3 w-3" />
           </Link>
         }
@@ -110,7 +98,7 @@ const SkillMasteryPanel = React.memo(({ skillProficiency }) => {
                   <div
                     className={cn(
                       'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700',
-                      FILL[row.tone]
+                      SIGNAL_FILL[row.tone]
                     )}
                     style={{ width: `${row.barPct}%` }}
                   />
@@ -122,9 +110,13 @@ const SkillMasteryPanel = React.memo(({ skillProficiency }) => {
                   </div>
                 </div>
                 <span
-                  className={cn(NUM, 'w-9 shrink-0 text-right text-sm font-bold', TEXT[row.tone])}
+                  className={cn(
+                    NUM,
+                    'w-9 shrink-0 text-right text-sm font-bold',
+                    SIGNAL_TEXT[row.tone]
+                  )}
                 >
-                  {row.pct}
+                  {row.pct}%
                 </span>
               </Link>
             </Tip>

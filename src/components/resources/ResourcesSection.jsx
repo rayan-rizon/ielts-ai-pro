@@ -446,7 +446,7 @@ const ControlsBar = ({ searchQuery, setSearchQuery, filterType, handleTypeChange
           placeholder="Search resources..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#131218]"
+          className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#131315]"
         />
         {searchQuery && (
           <button

@@ -220,7 +220,7 @@ export default function QuickAddCard({
                 initial={{ opacity: 0, y: -6, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-[#e2e5f2] bg-white py-1 shadow-lg dark:border-white/10 dark:bg-[#131218]"
+                className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-[#e2e5f2] bg-white py-1 shadow-lg dark:border-white/10 dark:bg-[#131315]"
               >
                 {suggestions.map((sug, index) => (
                   <div

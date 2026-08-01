@@ -4,10 +4,10 @@ import { ArrowRight, BookOpen, Check, Headphones, Sparkles, TrendingUp } from 'l
 import { SectionHeading, SoftSection } from './LandingSection';
 
 const cardClass =
-  'group relative flex h-full flex-col justify-between rounded-[26px] border border-[#e2e5fa] bg-white/95 p-5 sm:p-6 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-[#6256ef]/40 hover:shadow-[0_30px_65px_-24px_rgba(82,98,239,0.38)] dark:border-white/10 dark:bg-[#0d1020]/95 dark:hover:border-violet-500/35';
+  'group relative flex h-full flex-col justify-between rounded-[26px] border border-[#e2e5fa] bg-white/95 p-5 sm:p-6 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-[#6256ef]/40 hover:shadow-[0_30px_65px_-24px_rgba(82,98,239,0.38)] dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:hover:border-violet-500/35';
 
 const canvasClass =
-  'relative mt-4 flex flex-1 flex-col justify-center overflow-hidden rounded-[18px] border border-[#e7e4fb] bg-gradient-to-b from-[#fcfbff] via-[#faf9ff] to-[#f4f2ff] p-3.5 sm:p-4 dark:border-white/10 dark:from-[#0d1020] dark:via-[#0a0c1a] dark:to-[#070914]';
+  'relative mt-4 flex flex-1 flex-col justify-center overflow-hidden rounded-[18px] border border-[#e7e4fb] bg-gradient-to-b from-[#fcfbff] via-[#faf9ff] to-[#f4f2ff] p-3.5 sm:p-4 dark:border-white/10 dark:bg-white/[0.03] dark:bg-none';
 
 const smoothLoop = { ease: [0.45, 0, 0.55, 1] };
 
@@ -266,7 +266,7 @@ export default function HowItWorksSection({ viewport }) {
   return (
     <SoftSection
       id="how-it-works"
-      className="scroll-mt-24 bg-[#faf9ff] dark:bg-[#0b0a10] py-16 lg:py-24"
+      className="scroll-mt-24 bg-[#faf9ff] dark:bg-[#08080a] py-16 lg:py-24"
     >
       <div className="relative z-10 mx-auto max-w-[1450px] px-5 md:px-8 space-y-10">
         <SectionHeading

@@ -42,4 +42,12 @@ describe('Analytics score labels', () => {
     expect(screen.getByText('4.5 bands to target')).toBeInTheDocument();
     expect(screen.queryByText(/Gap: -/)).not.toBeInTheDocument();
   });
+
+  it('shows an unset goal honestly instead of fabricating Band 7', () => {
+    render(<StatCards stats={{ ...baseStats, targetScore: null, modulesWithData: 4 }} />);
+
+    expect(screen.getByText('Set your target band')).toBeInTheDocument();
+    expect(screen.getByText('Target not set')).toBeInTheDocument();
+    expect(screen.queryByText('Target 7.0')).not.toBeInTheDocument();
+  });
 });

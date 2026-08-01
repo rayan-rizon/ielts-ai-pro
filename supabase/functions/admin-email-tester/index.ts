@@ -37,7 +37,7 @@ serve(async (req) => {
     // Check if user is admin
     const { data: profile } = await supabaseClient
       .from('users')
-      .select('role')
+      .select('role, full_name')
       .eq('auth_id', user.id)
       .single();
 
@@ -58,7 +58,9 @@ serve(async (req) => {
       });
     }
 
-    // Mock data for preview/test
+    // A preview has no learner selected, so dates must remain explicit sample
+    // data. Production sends inject the recipient's real subscription/expiry
+    // dates at the event source.
     const mockData = {
       full_name: profile.full_name || user.email?.split('@')[0] || 'Admin Tester',
       subscription_end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -72,6 +74,12 @@ serve(async (req) => {
         JSON.stringify({
           subject: template.subject,
           html: template.html,
+          preview_context: {
+            recipient_name: mockData.full_name,
+            subscription_renewal_date: mockData.subscription_end_date,
+            bonus_expiry_date: mockData.referral_bonus_expires_at,
+            is_sample_data: true,
+          },
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

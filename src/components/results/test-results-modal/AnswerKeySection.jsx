@@ -68,7 +68,7 @@ export const AnswerKeySection = React.memo(
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.25 }}
-        className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs space-y-3 h-full flex flex-col justify-between"
+        className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs space-y-3 h-full flex flex-col justify-between"
       >
         {/* Header & Filter Tabs */}
         <div className="flex items-center justify-between flex-wrap gap-2">

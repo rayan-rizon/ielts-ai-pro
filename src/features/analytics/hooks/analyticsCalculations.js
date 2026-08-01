@@ -10,10 +10,13 @@ export const PACING_BENCHMARK_MINUTES = {
   speaking: 15,
 };
 
+const isMissingValue = (value) => value === null || value === undefined || value === '';
+const isBandNumber = (value) => Number.isFinite(value) && value >= 0 && value <= 9;
+
 export function isValidBandScore(score) {
-  if (score === null || score === undefined || score === '') return false;
+  if (isMissingValue(score)) return false;
   const value = Number(score);
-  return Number.isFinite(value) && value >= 0 && value <= 9;
+  return isBandNumber(value);
 }
 
 export function toValidBandScore(score) {
@@ -86,18 +89,25 @@ export function getRecordedDurationSeconds(session) {
   const metricDuration = extractDurationFromMetrics(session);
   if (metricDuration !== null) return metricDuration;
 
-  const type = String(session.test_type || '').toLowerCase();
-  const benchmarkMinutes = PACING_BENCHMARK_MINUTES[type];
-  const remaining = Number(session.content_data?.time_remaining);
-  if (benchmarkMinutes && Number.isFinite(remaining) && remaining >= 0) {
-    const elapsed = benchmarkMinutes * 60 - remaining;
-    if (isValidDuration(elapsed)) return elapsed;
-  }
+  const elapsed = getElapsedFromRemainingTime(session);
+  if (elapsed !== null) return elapsed;
 
   // duration_minutes is also set when a session starts, so it may be the time
   // allowance rather than time the learner actually used.
   return null;
 }
+
+function getElapsedFromRemainingTime(session) {
+  const type = String(session.test_type ?? '').toLowerCase();
+  const benchmarkMinutes = PACING_BENCHMARK_MINUTES[type];
+  const remaining = Number(session.content_data?.time_remaining);
+  if (!isValidRemainingTime(benchmarkMinutes, remaining)) return null;
+  const elapsed = benchmarkMinutes * 60 - remaining;
+  return isValidDuration(elapsed) ? elapsed : null;
+}
+
+const isValidRemainingTime = (benchmarkMinutes, remaining) =>
+  Boolean(benchmarkMinutes) && Number.isFinite(remaining) && remaining >= 0;
 
 export function filterSessionsByTimeframe(rawSessions, selectedTimeframe) {
   const now = new Date();
@@ -157,6 +167,29 @@ function getLatestModuleScores(scoredSessions) {
   }).filter((s) => s !== null);
 }
 
+const averageScore = (sessions) => {
+  if (sessions.length === 0) return 0;
+  return sessions.reduce((sum, session) => sum + Number(session.score), 0) / sessions.length;
+};
+
+const getStudyHoursTrend = (studyHours, previousStudyHours) => {
+  if (previousStudyHours > 0) {
+    return Math.round(((studyHours - previousStudyHours) / previousStudyHours) * 100);
+  }
+  return studyHours > 0 ? 100 : 0;
+};
+
+const normalizeTargetScore = (value) => {
+  const target = Number(value);
+  return Number.isFinite(target) && target > 0 && target <= 9 ? target : null;
+};
+
+const computeOverallEstimate = (moduleLatestScores) => {
+  if (moduleLatestScores.length !== MODULES.length) return null;
+  const average = moduleLatestScores.reduce((sum, score) => sum + score, 0) / MODULES.length;
+  return Math.round(average * 2) / 2;
+};
+
 export function computeStats(filteredSessions, previousSessions, authUser, vocabCount) {
   const totalTests = filteredSessions.length;
   const scoredSessions = filteredSessions.filter((s) => isValidBandScore(s.score));
@@ -165,36 +198,24 @@ export function computeStats(filteredSessions, previousSessions, authUser, vocab
   // every scored session so the two numbers can be reconciled on screen.
   const measuredScored = scoredSessions.filter((s) => !isAbandonedSession(s));
 
-  const avgScoreNum =
-    measuredScored.length > 0
-      ? measuredScored.reduce((sum, s) => sum + Number(s.score), 0) / measuredScored.length
-      : 0;
+  const avgScoreNum = averageScore(measuredScored);
 
   const studyTime = calculateStudyTime(filteredSessions);
   const previousStudyTime = calculateStudyTime(previousSessions);
   const studyHours = studyTime.hours;
   const prevStudyHours = previousStudyTime.hours;
 
-  let studyHoursTrend = 0;
-  if (prevStudyHours > 0) {
-    studyHoursTrend = Math.round(((studyHours - prevStudyHours) / prevStudyHours) * 100);
-  } else if (studyHours > 0) {
-    studyHoursTrend = 100;
-  }
+  const studyHoursTrend = getStudyHoursTrend(studyHours, prevStudyHours);
 
   const improvement = calculateImprovement(measuredScored);
   const moduleLatestScores = getLatestModuleScores(measuredScored);
 
-  const overallEstimate =
-    moduleLatestScores.length === MODULES.length
-      ? Math.round(
-          (moduleLatestScores.reduce((sum, s) => sum + s, 0) / moduleLatestScores.length) * 2
-        ) / 2
-      : null;
+  const overallEstimate = computeOverallEstimate(moduleLatestScores);
+  const targetScore = normalizeTargetScore(authUser?.target_band_score);
 
   return {
     avgScore: formatBand(avgScoreNum),
-    targetScore: authUser?.target_band_score || 7.0,
+    targetScore,
     totalTests,
     scoredTests: scoredSessions.length,
     measuredTests: measuredScored.length,
@@ -219,6 +240,22 @@ export function computeStats(filteredSessions, previousSessions, authUser, vocab
  * produce the same headline number and very different exam results.
  */
 export function computePracticeRhythm(sessions, now = Date.now()) {
+  const { days, latest } = collectPracticeDays(sessions);
+  const activeDays = days.size;
+  const spanDays = getObservedSpanDays(days);
+  const daysSinceLast = latest === null ? null : Math.floor((now - latest) / DAY_MS);
+
+  return {
+    activeDays,
+    spanDays,
+    daysSinceLast,
+    consistency: spanDays > 0 ? Math.round((activeDays / spanDays) * 100) : 0,
+  };
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function collectPracticeDays(sessions) {
   const days = new Set();
   let latest = null;
 
@@ -230,30 +267,15 @@ export function computePracticeRhythm(sessions, now = Date.now()) {
     if (latest === null || time > latest) latest = time;
   });
 
-  const activeDays = days.size;
-  const daysSinceLast = latest === null ? null : Math.floor((now - latest) / (24 * 60 * 60 * 1000));
+  return { days, latest };
+}
 
-  // Spread over the observed window rather than the timeframe length, so a
-  // learner who joined last week is not marked down for the weeks before that.
+function getObservedSpanDays(days) {
   const sorted = [...days].sort();
-  const spanDays =
-    sorted.length < 2
-      ? sorted.length
-      : Math.max(
-          1,
-          Math.round(
-            (new Date(sorted[sorted.length - 1]).getTime() - new Date(sorted[0]).getTime()) /
-              (24 * 60 * 60 * 1000)
-          ) + 1
-        );
-
-  return {
-    activeDays,
-    spanDays,
-    daysSinceLast,
-    // Share of days in the practised window that actually had a session.
-    consistency: spanDays > 0 ? Math.round((activeDays / spanDays) * 100) : 0,
-  };
+  if (sorted.length < 2) return sorted.length;
+  const first = new Date(sorted[0]).getTime();
+  const last = new Date(sorted.at(-1)).getTime();
+  return Math.max(1, Math.round((last - first) / DAY_MS) + 1);
 }
 
 export function computeModuleStats(filteredSessions) {
@@ -322,32 +344,37 @@ function processSectionStats(content, aggState, module) {
   const passageTimes = content.passageTimes || {};
 
   content.sectionStats.forEach((secStats, idx) => {
-    const moduleLabel = String(module || 'Test').replace(/\b\w/g, (letter) => letter.toUpperCase());
-    const secKey = `${moduleLabel} ${sectionUnitLabel(module)} ${idx + 1}`;
-    if (!aggState.allSectionStats[secKey]) {
-      aggState.allSectionStats[secKey] = {
-        correct: 0,
-        total: 0,
-        module: module || 'unknown',
-        position: idx + 1,
-        attempts: 0,
-        seconds: 0,
-        timedAttempts: 0,
-      };
-    }
-    const bucket = aggState.allSectionStats[secKey];
+    const bucket = getSectionBucket(aggState, module, idx);
     bucket.correct += secStats.correct || 0;
     bucket.total += secStats.total || 0;
     bucket.attempts += 1;
-
-    // Passage/part timing lets the panel say *where* the clock ran out, not just
-    // that it did — reading candidates almost always lose it on the last passage.
-    const seconds = Number(passageTimes[idx] ?? passageTimes[String(idx)]);
-    if (Number.isFinite(seconds) && seconds > 0) {
-      bucket.seconds += seconds;
-      bucket.timedAttempts += 1;
-    }
+    addSectionTiming(bucket, passageTimes, idx);
   });
+}
+
+function getSectionBucket(aggState, module, index) {
+  const moduleLabel = String(module || 'Test').replace(/\b\w/g, (letter) => letter.toUpperCase());
+  const key = `${moduleLabel} ${sectionUnitLabel(module)} ${index + 1}`;
+  const existing = aggState.allSectionStats[key];
+  if (existing) return existing;
+  const bucket = {
+    correct: 0,
+    total: 0,
+    module: module || 'unknown',
+    position: index + 1,
+    attempts: 0,
+    seconds: 0,
+    timedAttempts: 0,
+  };
+  aggState.allSectionStats[key] = bucket;
+  return bucket;
+}
+
+function addSectionTiming(bucket, passageTimes, index) {
+  const seconds = Number(passageTimes[index] ?? passageTimes[String(index)]);
+  if (!Number.isFinite(seconds) || seconds <= 0) return;
+  bucket.seconds += seconds;
+  bucket.timedAttempts += 1;
 }
 
 /**
@@ -367,40 +394,33 @@ function processQuestionTiming(content, aggState, sessionBrief) {
   const answers = content.correctAnswersMap;
   if (!times || !answers) return;
 
-  let rushedHere = 0;
-  let overanalysedHere = 0;
-
-  Object.entries(times).forEach(([questionId, rawSeconds]) => {
-    const seconds = Number(rawSeconds);
-    const record = answers[questionId];
-    if (!record || !Number.isFinite(seconds) || seconds <= 0) return;
-    // isCorrect === null means never answered; blanks are counted separately.
-    if (record.isCorrect !== false) return;
-
-    if (seconds <= RUSHED_MAX_SECONDS) {
-      rushedHere += 1;
-    } else if (seconds >= OVERANALYSED_MIN_SECONDS) {
-      overanalysedHere += 1;
-    }
-  });
+  const { rushed: rushedHere, overanalysed: overanalysedHere } = countTimingErrors(times, answers);
 
   aggState.behaviourAgg.rushed += rushedHere;
   aggState.behaviourAgg.overanalysed += overanalysedHere;
 
-  // Mirrors processErrorPatterns below — the drilldown modal needs a session
-  // list per category, not just the aggregate count.
-  if (rushedHere > 0) {
-    aggState.enhancedMetricsAgg.sessionReferences.rushed.push({
-      ...sessionBrief,
-      count: rushedHere,
-    });
-  }
-  if (overanalysedHere > 0) {
-    aggState.enhancedMetricsAgg.sessionReferences.overanalyzed.push({
-      ...sessionBrief,
-      count: overanalysedHere,
-    });
-  }
+  addTimingReference(aggState, 'rushed', rushedHere, sessionBrief);
+  addTimingReference(aggState, 'overanalyzed', overanalysedHere, sessionBrief);
+}
+
+function countTimingErrors(times, answers) {
+  const result = { rushed: 0, overanalysed: 0 };
+  Object.entries(times).forEach(([questionId, rawSeconds]) => {
+    const seconds = Number(rawSeconds);
+    const record = answers[questionId];
+    if (!isTimedIncorrectAnswer(record, seconds)) return;
+    if (seconds <= RUSHED_MAX_SECONDS) result.rushed += 1;
+    if (seconds >= OVERANALYSED_MIN_SECONDS) result.overanalysed += 1;
+  });
+  return result;
+}
+
+const isTimedIncorrectAnswer = (record, seconds) =>
+  record?.isCorrect === false && Number.isFinite(seconds) && seconds > 0;
+
+function addTimingReference(aggState, category, count, sessionBrief) {
+  if (count <= 0) return;
+  aggState.enhancedMetricsAgg.sessionReferences[category].push({ ...sessionBrief, count });
 }
 
 /**
@@ -417,13 +437,16 @@ function processAnswerChanges(content, aggState) {
   if (!changes || !answers) return;
 
   Object.entries(answers).forEach(([questionId, record]) => {
-    if (!record || record.isCorrect === null || record.isCorrect === undefined) return;
+    if (!hasRecordedAnswer(record)) return;
     const changed = Number(changes[questionId]) > 0;
     const bucket = changed ? aggState.behaviourAgg.revised : aggState.behaviourAgg.firstAnswer;
     bucket.total += 1;
     if (record.isCorrect === true) bucket.correct += 1;
   });
 }
+
+const hasRecordedAnswer = (record) =>
+  Boolean(record) && record.isCorrect !== null && record.isCorrect !== undefined;
 
 /*
  * NOTE: `content_data.skillGaps` (scanningEfficiency, globalComprehension, …)
@@ -510,9 +533,9 @@ function getFeedbackScores(fbs, taskName) {
 
 function firstPresentScore(...values) {
   for (const value of values) {
-    if (value === null || value === undefined || value === '') continue;
+    if (isMissingValue(value)) continue;
     const score = Number(value);
-    if (Number.isFinite(score) && score >= 0 && score <= 9) return score;
+    if (isBandNumber(score)) return score;
   }
   return null;
 }
@@ -550,7 +573,16 @@ function processWritingCriteria(content, aggState) {
 
   updateAgg(
     'taskAchievement',
-    extractFinalWritingScore(ctx, 'taskAchievement', 'TaskAchievement', 'task_achievement')
+    firstPresentScore(
+      ctx.cs.taskResponse,
+      ctx.cs.taskAchievement,
+      ctx.t2.TaskResponse,
+      ctx.t2.task_response,
+      ctx.t2.TaskAchievement,
+      ctx.t2.task_achievement,
+      ctx.t1.TaskAchievement,
+      ctx.t1.task_achievement
+    )
   );
   updateAgg(
     'coherence',
@@ -598,14 +630,13 @@ function processCriteriaScores(s, aggState) {
   const content = s.content_data || {};
   const type = String(s.test_type || '').toLowerCase();
   const version = s.evaluation_version || content.evaluationVersion;
-  if (version !== CURRENT_EVALUATION_VERSION || s.evaluation_status !== 'complete') return;
-
-  if (type === 'writing') {
-    processWritingCriteria(content, aggState);
-  } else if (type === 'speaking') {
-    processSpeakingCriteria(content, aggState);
-  }
+  if (!hasCurrentCompletedEvaluation(version, s.evaluation_status)) return;
+  const processors = { writing: processWritingCriteria, speaking: processSpeakingCriteria };
+  processors[type]?.(content, aggState);
 }
+
+const hasCurrentCompletedEvaluation = (version, status) =>
+  version === CURRENT_EVALUATION_VERSION && status === 'complete';
 
 function buildInitialAggState() {
   return {
@@ -708,11 +739,12 @@ export function getSessionAccuracy(content) {
   const c = content || {};
   const correct = Number(c.correct ?? c.correctAnswers);
   const total = Number(c.total ?? c.totalQuestions);
-  if (!Number.isFinite(correct) || !Number.isFinite(total) || total <= 0 || correct < 0) {
-    return null;
-  }
+  if (!hasValidAccuracyCounts(correct, total)) return null;
   return Math.round((Math.min(correct, total) / total) * 100);
 }
+
+const hasValidAccuracyCounts = (correct, total) =>
+  Number.isFinite(correct) && Number.isFinite(total) && total > 0 && correct >= 0;
 
 export function buildPacingSummary(efficiency = {}) {
   // Reading is the only module where the learner controls the full test pace.
@@ -944,19 +976,29 @@ function computeOverallProgress(moduleHistory) {
 }
 
 function getPracticeTitle(session) {
-  const relation = session.passage || session.passages;
+  const relation = session.passage ?? session.passages;
   const relatedPassage = Array.isArray(relation) ? relation[0] : relation;
   const content = session.content_data || {};
-  const title =
-    relatedPassage?.title ||
-    relatedPassage?.cambridge_title ||
-    content.title ||
-    content.testTitle ||
-    content.topic;
-  if (typeof title === 'string' && title.trim()) return title.trim();
-  const type = String(session.test_type || 'Practice').toLowerCase();
-  return `${type.charAt(0).toUpperCase() + type.slice(1)} practice`;
+  const title = firstNonEmptyTitle([
+    relatedPassage?.title,
+    relatedPassage?.cambridge_title,
+    content.title,
+    content.testTitle,
+    content.topic,
+  ]);
+  if (title) return title;
+  return `${capitalizePracticeType(session.test_type)} practice`;
 }
+
+const firstNonEmptyTitle = (values) => {
+  const title = values.find((value) => typeof value === 'string' && value.trim());
+  return title?.trim() ?? null;
+};
+
+const capitalizePracticeType = (testType) => {
+  const type = String(testType || 'Practice').toLowerCase();
+  return type.charAt(0).toUpperCase() + type.slice(1);
+};
 
 export function computeRecentPractice(filteredSessions) {
   return filteredSessions.map((session) => {
@@ -1025,53 +1067,69 @@ export const READINESS_FACTORS = [
 ];
 
 export function computeExamReadiness(stats, moduleStats = []) {
-  const target = Number(stats?.targetScore) || 7;
+  const target = Number(stats?.targetScore);
   const scored = moduleStats.filter((m) => m.count > 0);
   const measured = Number(stats?.measuredTests) || 0;
 
-  if (measured === 0) return null;
-
-  const coverage = Math.round((scored.length / MODULES.length) * 100);
-
-  const current = Number(stats?.overallEstimate ?? stats?.avgScore);
-  const gap = Number.isFinite(current) ? target - current : null;
-  // At target or above scores 100; a full band short scores 0. Linear between.
-  const proximity = gap === null ? 0 : Math.round(Math.max(0, Math.min(1, 1 - gap / 1.0)) * 100);
-
-  const consistency = Math.min(100, Number(stats?.practiceRhythm?.consistency) || 0);
-
-  const volatilities = scored.map((m) => m.volatility).filter((v) => v != null);
-  // A 2-band swing scores 0, a flat result scores 100.
-  const stability = volatilities.length
-    ? Math.round(
-        Math.max(
-          0,
-          Math.min(1, 1 - volatilities.reduce((a, b) => a + b, 0) / volatilities.length / 2)
-        ) * 100
-      )
-    : null;
-
-  const factors = { coverage, proximity, consistency, stability };
-  const known = Object.values(factors).filter((v) => v != null);
-  const score = Math.round(known.reduce((a, b) => a + b, 0) / known.length);
+  if (!hasReadinessEvidence(target, measured, scored)) return null;
+  const factors = buildReadinessFactors(stats, scored, target);
+  const score = averageKnownFactors(factors);
 
   return {
     score,
     factors,
-    // Named so the panel never has to invent copy for the state it is in.
-    verdict:
-      score >= 80
-        ? 'Exam ready'
-        : score >= 60
-          ? 'Nearly there'
-          : score >= 35
-            ? 'Building up'
-            : 'Early days',
-    tone: score >= 80 ? 'ok' : score >= 60 ? 'accent' : score >= 35 ? 'warn' : 'fault',
+    verdict: readinessVerdict(score),
+    tone: readinessTone(score),
     missingModules: MODULES.filter((type) => !scored.some((m) => m.type === type)),
     measuredTests: measured,
   };
 }
+
+const hasReadinessEvidence = (target, measured, scored) =>
+  Number.isFinite(target) && target > 0 && measured > 0 && scored.length === MODULES.length;
+
+const toPercentage = (ratio) => Math.round(Math.max(0, Math.min(1, ratio)) * 100);
+
+function buildReadinessFactors(stats, scored, target) {
+  const proximity = getTargetProximity(stats, target);
+  const consistency = getPracticeConsistency(stats);
+  const volatilities = scored.map((module) => module.volatility).filter((value) => value != null);
+  const averageVolatility = averageOrNull(volatilities);
+  const stability = averageVolatility == null ? null : toPercentage(1 - averageVolatility / 2);
+  return { coverage: 100, proximity, consistency, stability };
+}
+
+const getTargetProximity = (stats, target) => {
+  const current = Number(stats?.overallEstimate ?? stats?.avgScore);
+  return Number.isFinite(current) ? toPercentage(1 - (target - current)) : 0;
+};
+
+const getPracticeConsistency = (stats) =>
+  Math.min(100, Number(stats?.practiceRhythm?.consistency) || 0);
+
+const averageOrNull = (values) => {
+  if (values.length === 0) return null;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+};
+
+const averageKnownFactors = (factors) => {
+  const known = Object.values(factors).filter((value) => value != null);
+  return Math.round(known.reduce((sum, value) => sum + value, 0) / known.length);
+};
+
+const readinessVerdict = (score) => {
+  if (score >= 80) return 'Exam ready';
+  if (score >= 60) return 'Nearly there';
+  if (score >= 35) return 'Building up';
+  return 'Early days';
+};
+
+const readinessTone = (score) => {
+  if (score >= 80) return 'ok';
+  if (score >= 60) return 'accent';
+  if (score >= 35) return 'warn';
+  return 'fault';
+};
 
 export function computeChartData(filteredSessions, moduleStats) {
   // Walk-aways are excluded here too — the per-module trend line otherwise

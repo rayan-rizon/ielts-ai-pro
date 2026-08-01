@@ -199,7 +199,7 @@ export default function RecentPracticeHistory({ sessions = [], user }) {
       </m.div>
 
       <Dialog open={showAll} onOpenChange={setShowAll}>
-        <DialogContent className="max-h-[90vh] w-[calc(100%-1.5rem)] max-w-3xl gap-0 overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-0 dark:border-white/10 dark:bg-[#141319]">
+        <DialogContent className="max-h-[90vh] w-[calc(100%-1.5rem)] max-w-3xl gap-0 overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-0 dark:border-white/10 dark:bg-[#131315]">
           <DialogHeader className="border-b border-[#eceafa] px-5 py-4 pr-14 text-left dark:border-white/[0.07]">
             <DialogTitle className="text-[15px] font-extrabold tracking-tight text-slate-900 dark:text-white">
               Practice log

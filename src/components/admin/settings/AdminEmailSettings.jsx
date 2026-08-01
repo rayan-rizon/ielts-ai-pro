@@ -19,6 +19,9 @@ import {
   Zap,
   Eye,
   MailOpen,
+  Monitor,
+  Smartphone,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   Dialog,
@@ -44,13 +47,13 @@ const ADMIN_EMAIL_TESTER_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v
 const EMAIL_TRIGGERS = [
   {
     id: 'welcome',
-    label: 'Welcome (registration)',
-    description: 'Sent when a user signs up successfully.',
+    label: 'Subscription activated',
+    description: 'Sent after a paid Pro or Premium subscription starts.',
   },
   {
     id: 'renewal_confirmation',
-    label: 'Subscription renewal',
-    description: "Sent when a user's subscription renews and is paid.",
+    label: 'Subscription renewed',
+    description: "Sent after a user's paid subscription renewal succeeds.",
   },
   {
     id: 'payment_failed',
@@ -87,6 +90,7 @@ export default function AdminEmailSettings() {
   const [loadingStats, setLoadingStats] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewing, setPreviewing] = useState(null);
+  const [previewViewport, setPreviewViewport] = useState('desktop');
   const [testEmail, setTestEmail] = useState('');
   const [sendingTest, setSendingTest] = useState(null);
 
@@ -154,6 +158,7 @@ export default function AdminEmailSettings() {
 
   const handlePreview = async (trigger) => {
     try {
+      setPreviewViewport('desktop');
       setPreviewing({ ...trigger, loading: true });
       const {
         data: { session },
@@ -176,8 +181,8 @@ export default function AdminEmailSettings() {
     }
   };
 
-  const handleSendTest = async (triggerId) => {
-    if (!testEmail || !testEmail.includes('@'))
+  const handleSendTest = async (triggerId, recipient = testEmail) => {
+    if (!recipient || !recipient.includes('@'))
       return toast.error('Please enter a valid test email address');
     try {
       setSendingTest(triggerId);
@@ -190,10 +195,10 @@ export default function AdminEmailSettings() {
           Authorization: `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ type: triggerId, action: 'send', test_email: testEmail }),
+        body: JSON.stringify({ type: triggerId, action: 'send', test_email: recipient }),
       });
       if (!res.ok) throw new Error(await res.text());
-      toast.success('Test email sent');
+      toast.success(`Test email sent to ${recipient}`);
     } catch (err) {
       console.error('Test send failed:', err);
       toast.error('Failed to send test email');
@@ -251,7 +256,7 @@ export default function AdminEmailSettings() {
               <Kpi
                 label="Total sent"
                 value={(stats?.total || 0).toLocaleString()}
-                tip="Emails Resend attempted to send in the sample."
+                tip="Emails Resend attempted to send."
               />
               <div className="rounded-md border border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)] p-4">
                 <span className={cn(MICRO, 'text-[rgb(var(--signal-ok))] flex items-center gap-1')}>
@@ -279,17 +284,21 @@ export default function AdminEmailSettings() {
 
       {/* Triggers */}
       <m.div variants={FADE_UP} className={cn(PANEL, 'overflow-hidden')}>
-        <div className="p-4 border-b border-stone-100 dark:border-white/[0.06] flex items-center gap-2.5">
+        <div className="p-4 border-b border-stone-100 dark:border-white/[0.06] flex items-start justify-between gap-3">
           <div className="p-1.5 rounded-md bg-stone-100 dark:bg-white/[0.06] text-stone-500 dark:text-stone-300">
             <Zap className="w-3.5 h-3.5" />
           </div>
-          <div>
+          <div className="flex-1">
             <h3 className="text-sm font-extrabold text-stone-900 dark:text-stone-50">
-              Email triggers
+              Email studio
             </h3>
             <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
-              Toggle automated lifecycle emails
+              Review, test, and control each learner lifecycle email
             </p>
+          </div>
+          <div className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-[rgb(var(--signal-ok)/0.25)] bg-[rgb(var(--signal-ok)/0.06)] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[rgb(var(--signal-ok))]">
+            <ShieldCheck className="w-3 h-3" />
+            Brand checked
           </div>
         </div>
         {loadingConfig ? (
@@ -327,8 +336,9 @@ export default function AdminEmailSettings() {
                     </button>
                     <button
                       onClick={() => {
-                        setTestEmail(session?.user?.email || '');
-                        handleSendTest(trigger.id);
+                        const recipient = session?.user?.email || '';
+                        setTestEmail(recipient);
+                        handleSendTest(trigger.id, recipient);
                       }}
                       disabled={sendingTest === trigger.id}
                       className={cn(
@@ -361,25 +371,52 @@ export default function AdminEmailSettings() {
 
       {/* Preview dialog */}
       <Dialog open={!!previewing} onOpenChange={() => setPreviewing(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
-          <DialogHeader className="p-5 border-b border-stone-100 dark:border-white/[0.06]">
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-md bg-stone-100 dark:bg-white/[0.06] text-stone-500 dark:text-stone-300">
-                <MailOpen className="w-4 h-4" />
+        <DialogContent className="max-w-5xl max-h-[92vh] flex flex-col p-0 overflow-hidden border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-[#111113]">
+          <DialogHeader className="p-5 border-b border-stone-200 dark:border-white/[0.08] bg-white dark:bg-[#161618]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pr-8">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-[#6c4cff]/10 text-[#6c4cff]">
+                  <MailOpen className="w-4 h-4" />
+                </div>
+                <div>
+                  <DialogTitle className="text-base">{previewing?.label}</DialogTitle>
+                  <DialogDescription className="mt-0.5">
+                    {previewing?.preview_context?.is_sample_data
+                      ? `Preview for ${previewing.preview_context.recipient_name}; dates are illustrative.`
+                      : 'Live rendering of the message a learner receives.'}
+                  </DialogDescription>
+                </div>
               </div>
-              <div>
-                <DialogTitle>Preview: {previewing?.label}</DialogTitle>
-                <DialogDescription>
-                  Subject:{' '}
-                  <span className="text-stone-700 dark:text-stone-200 font-medium">
-                    {previewing?.subject || '(loading…)'}
-                  </span>
-                </DialogDescription>
+              <div className="flex items-center rounded-lg border border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-white/[0.04] p-1">
+                <button
+                  type="button"
+                  onClick={() => setPreviewViewport('desktop')}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors',
+                    previewViewport === 'desktop'
+                      ? 'bg-white dark:bg-white/10 text-stone-900 dark:text-stone-50 shadow-sm'
+                      : 'text-stone-500 dark:text-stone-400'
+                  )}
+                >
+                  <Monitor className="w-3.5 h-3.5" /> Desktop
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewViewport('mobile')}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors',
+                    previewViewport === 'mobile'
+                      ? 'bg-white dark:bg-white/10 text-stone-900 dark:text-stone-50 shadow-sm'
+                      : 'text-stone-500 dark:text-stone-400'
+                  )}
+                >
+                  <Smartphone className="w-3.5 h-3.5" /> Mobile
+                </button>
               </div>
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-5 bg-stone-50 dark:bg-white/[0.02]">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[radial-gradient(circle_at_top,_rgba(108,76,255,0.12),transparent_34%),#f4f3f1] dark:bg-[radial-gradient(circle_at_top,_rgba(108,76,255,0.14),transparent_32%),#0d0d0f]">
             {previewing?.loading ? (
               <div className="flex flex-col items-center justify-center h-56 gap-2.5">
                 <Loader2 className="w-5 h-5 animate-spin text-stone-500 dark:text-stone-400" />
@@ -389,9 +426,26 @@ export default function AdminEmailSettings() {
               </div>
             ) : (
               <div
-                className="bg-white rounded-md border border-stone-200 max-w-lg mx-auto overflow-hidden min-h-[380px]"
-                dangerouslySetInnerHTML={{ __html: previewing?.html }}
-              />
+                className={cn(
+                  'mx-auto overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_20px_50px_rgba(24,24,27,0.16)] transition-[max-width] duration-300',
+                  previewViewport === 'mobile' ? 'max-w-[390px]' : 'max-w-[640px]'
+                )}
+              >
+                <div className="flex items-center gap-1.5 border-b border-stone-100 bg-stone-50 px-3 py-2">
+                  <span className="h-2 w-2 rounded-full bg-stone-300" />
+                  <span className="h-2 w-2 rounded-full bg-stone-300" />
+                  <span className="h-2 w-2 rounded-full bg-stone-300" />
+                  <span className="ml-2 truncate text-[10px] font-medium text-stone-500">
+                    {previewing?.subject}
+                  </span>
+                </div>
+                <iframe
+                  title={`${previewing?.label || 'Email'} preview`}
+                  sandbox=""
+                  srcDoc={previewing?.html || ''}
+                  className="h-[560px] w-full border-0 bg-white"
+                />
+              </div>
             )}
           </div>
 

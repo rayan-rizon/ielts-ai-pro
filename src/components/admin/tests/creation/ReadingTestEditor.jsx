@@ -1,7 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,12 +16,9 @@ import { toast } from 'sonner';
 import {
   Plus,
   Trash2,
-  Save,
   X,
-  ChevronUp,
   ChevronDown,
   GripVertical,
-  Copy,
   Bold,
   Italic,
   Type,
@@ -36,7 +30,6 @@ import {
   Eye,
   EyeOff,
   Hash,
-  Loader2,
   FileText,
   BookOpen,
   ShieldCheck,
@@ -44,10 +37,8 @@ import {
   CheckSquare,
   PenTool,
   LayoutGrid,
-  ListFilter,
   Sparkles,
 } from 'lucide-react';
-import { uploadFile } from '@/lib/supabase';
 import { uploadToR2 } from '@/lib/r2';
 import { sanitizeHtml } from '@/lib/security';
 import { cn } from '@/lib/cn';
@@ -75,22 +66,36 @@ const RichTextEditor = ({
   className = '',
   mode = 'full',
 }) => {
+  const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [isPreview, setIsPreview] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [showAnswers, setShowAnswers] = useState(true);
+  const [showImageUrlModal, setShowImageUrlModal] = useState(false);
+  const [imageUrlInput, setImageUrlInput] = useState('');
+  const [floatingMenu, setFloatingMenu] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    text: '',
+    start: 0,
+    end: 0,
+  });
+  const [qNumInput, setQNumInput] = useState('');
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea || isPreview) return;
+
+    const parent = textarea.parentElement?.closest('.overflow-y-auto');
+    const scrollTop = parent ? parent.scrollTop : 0;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${Math.max(mode === 'simple' ? 60 : rows * 24, textarea.scrollHeight)}px`;
+    if (parent) parent.scrollTop = scrollTop;
+  }, [value, rows, isPreview, mode]);
+
   // Use plain textarea for simple mode (Instructions) to preserve exact formatting
   if (mode === 'simple') {
-    const [isPreview, setIsPreview] = useState(false);
-    const [showImageUrlModal, setShowImageUrlModal] = useState(false);
-    const [imageUrlInput, setImageUrlInput] = useState('');
-    const textareaRef = useRef(null);
-
-    // Auto-resize textarea
-    useEffect(() => {
-      const textarea = textareaRef.current;
-      if (textarea && !isPreview) {
-        textarea.style.height = 'auto';
-        textarea.style.height = Math.max(60, textarea.scrollHeight) + 'px';
-      }
-    }, [value, isPreview]);
-
     const renderSimplePreview = (text) => {
       if (!text)
         return (
@@ -401,34 +406,6 @@ const RichTextEditor = ({
   }
 
   // --- Legacy Custom Editor for Passage / Full Mode (Handles [answer] tags) ---
-  const textareaRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const [isPreview, setIsPreview] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [showAnswers, setShowAnswers] = useState(true);
-  const [showImageUrlModal, setShowImageUrlModal] = useState(false);
-  const [imageUrlInput, setImageUrlInput] = useState('');
-
-  // Auto-adjust textarea height based on content
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea && !isPreview) {
-      // Save current scroll position of the parent container if possible
-      const parent = textarea.parentElement?.closest('.overflow-y-auto');
-      const scrollTop = parent ? parent.scrollTop : 0;
-
-      textarea.style.height = 'auto'; // Reset to get correct scrollHeight
-      const minHeight = rows * 24;
-      const newHeight = Math.max(minHeight, textarea.scrollHeight);
-      textarea.style.height = `${newHeight}px`;
-
-      // Restore scroll position to prevent jumping
-      if (parent) {
-        parent.scrollTop = scrollTop;
-      }
-    }
-  }, [value, rows, isPreview]);
-
   // Handle paste to preserve formatting from HTML sources (Word, web, etc.)
   const handlePaste = (e) => {
     const clipboardData = e.clipboardData;
@@ -507,17 +484,6 @@ const RichTextEditor = ({
     }
     // If no HTML, let the default paste behavior handle plain text
   };
-
-  // Floating Menu State
-  const [floatingMenu, setFloatingMenu] = useState({
-    visible: false,
-    x: 0,
-    y: 0,
-    text: '',
-    start: 0,
-    end: 0,
-  });
-  const [qNumInput, setQNumInput] = useState('');
 
   const insertFormatting = (before, after = '') => {
     const textarea = textareaRef.current;
@@ -1033,62 +999,53 @@ const RichTextEditor = ({
   );
 };
 
-const getQuestionCount = (q) => {
-  if (q.type === 'map_labeling' && q.map_labeling?.questions)
-    return q.map_labeling?.questions.length || 0;
-
-  if (q.type === 'matching_features') {
-    if (!q.matching_features) return 0;
-
-    if (q.matching_features.mode === 'paragraph') {
-      // Use regex to count placeholders [N] in text for accurate sequencing
-      const placeholders = (q.matching_features.text || '').match(/\[(\d+)\]/g);
-      return placeholders ? placeholders.length : 0;
-    } else if (q.matching_features.questions) {
-      return q.matching_features.questions.length || 0;
-    }
-    return 0;
-  }
-
-  if (q.type === 'table_completion') {
-    if (q.table_data?.blank_positions) return q.table_data.blank_positions.length;
-    if (q.table_data?.blanks) return q.table_data.blanks.length;
-    if (typeof q.table_data?.blanks_count === 'number') return q.table_data.blanks_count;
-    return 0;
-  }
-
-  if (q.type === 'matching_headings') {
-    if (q.matching_data?.paragraphs) return q.matching_data.paragraphs.length;
-    if (q.questions) return q.questions.length;
-    if (q.options) return q.options.length;
-    return 1;
-  }
-
-  if ((q.type === 'flowchart' || q.type === 'flow_chart_completion') && q.flowchart?.steps) {
-    return q.flowchart.steps.reduce(
-      (total, step) => total + (step.text?.match(/\[gap\]/g) || []).length,
-      0
-    );
-  }
-
-  if (
-    q.type === 'notes_completion' ||
-    q.type === 'note_completion' ||
-    q.type === 'summary_completion' ||
-    q.type === 'sentence_completion' ||
-    q.type === 'flowchart_completion' ||
-    q.type === 'diagram_completion'
-  ) {
-    return (
-      q.gap_fill?.gap_count || (q.gap_fill?.structured_text?.match(/\[\d+\]/g) || []).length || 1
-    );
-  }
-
-  if (q.type === 'multiple_choice' && q.allow_multiple) return parseInt(q.question_count || 1);
-
-  // Standard single Question types
-  return 1;
+const countMatchingFeatures = ({ matching_features: feature }) => {
+  if (!feature) return 0;
+  if (feature.mode === 'paragraph') return (feature.text || '').match(/\[(\d+)\]/g)?.length || 0;
+  return feature.questions?.length || 0;
 };
+
+const countTableBlanks = ({ table_data: table }) =>
+  table?.blank_positions?.length ??
+  table?.blanks?.length ??
+  (typeof table?.blanks_count === 'number' ? table.blanks_count : 0);
+
+const countMatchingHeadings = (question) =>
+  question.matching_data?.paragraphs?.length ??
+  question.questions?.length ??
+  question.options?.length ??
+  1;
+
+const countFlowchartGaps = ({ flowchart }) =>
+  flowchart?.steps
+    ? flowchart.steps.reduce(
+        (total, step) => total + (step.text?.match(/\[gap\]/g) || []).length,
+        0
+      )
+    : 1;
+
+const countGapFill = ({ gap_fill: gapFill }) =>
+  gapFill?.gap_count || (gapFill?.structured_text?.match(/\[\d+\]/g) || []).length || 1;
+
+const QUESTION_COUNTERS = {
+  map_labeling: (question) =>
+    question.map_labeling?.questions ? question.map_labeling.questions.length : 1,
+  matching_features: countMatchingFeatures,
+  table_completion: countTableBlanks,
+  matching_headings: countMatchingHeadings,
+  flowchart: countFlowchartGaps,
+  flow_chart_completion: countFlowchartGaps,
+  notes_completion: countGapFill,
+  note_completion: countGapFill,
+  summary_completion: countGapFill,
+  sentence_completion: countGapFill,
+  flowchart_completion: countGapFill,
+  diagram_completion: countGapFill,
+  multiple_choice: (question) =>
+    question.allow_multiple ? Number.parseInt(question.question_count || 1, 10) : 1,
+};
+
+const getQuestionCount = (question) => QUESTION_COUNTERS[question.type]?.(question) ?? 1;
 
 // --- Main Editor ---
 const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
@@ -1345,8 +1302,6 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
   };
 
   const handleBulkAnswerImport = (updatedQuestions, _targetSectionIndex) => {
-    console.log('Bulk Answer Import Started', { count: updatedQuestions.length });
-
     const newSections = [...sections];
 
     // Flatten updated questions for easy lookup by ID
@@ -1354,8 +1309,6 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     updatedQuestions.forEach((q) => {
       answersMap[q.id] = q;
     });
-
-    console.log('Answers Map Created', Object.keys(answersMap).length);
 
     let updateCount = 0;
 
@@ -1395,7 +1348,6 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
 
     setSections(newSections);
 
-    console.log('Bulk Answer Import Complete', { updateCount });
     toast.success(`Updated answers for ${updateCount} questions across all sections.`);
   };
 

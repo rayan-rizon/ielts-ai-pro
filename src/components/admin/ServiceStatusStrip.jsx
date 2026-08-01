@@ -41,6 +41,7 @@ const DOT = {
 const ServiceStatusStrip = () => {
   const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   // Collapsed, never fully hidden — silently dropping a live fault would be
   // worse than a strip taking a bit of room. Resets on remount by design, so
   // a dismissed outage from an earlier visit doesn't stay hidden forever.
@@ -51,7 +52,10 @@ const ServiceStatusStrip = () => {
 
     PlatformHealth.get(24)
       .then((data) => active && setHealth(data))
-      .catch((err) => console.error('Service status unavailable:', err))
+      .catch((err) => {
+        console.error('Service status unavailable:', err);
+        if (active) setError(err);
+      })
       .finally(() => active && setLoading(false));
 
     return () => {
@@ -68,7 +72,29 @@ const ServiceStatusStrip = () => {
     );
   }
 
-  if (!health) return null;
+  if (error || !health) {
+    return (
+      <div className="rounded-xl border border-[rgb(var(--signal-warn)/0.35)] bg-white dark:bg-[#131315] px-4 py-3 flex items-center gap-2.5">
+        <AlertTriangle className="w-4 h-4 text-[rgb(var(--signal-warn))] shrink-0" />
+        <div className="min-w-0">
+          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Platform status</p>
+          <p className="text-[12px] font-extrabold text-stone-900 dark:text-stone-50">
+            Status unavailable — service health could not be verified
+          </p>
+        </div>
+        <Link
+          to={`${createPageUrl('AdminPanel')}?tab=settings&section=general`}
+          className={cn(
+            MICRO,
+            'ml-auto inline-flex items-center gap-0.5 px-2 py-1 text-stone-500 hover:text-stone-900 dark:hover:text-white transition-colors whitespace-nowrap'
+          )}
+        >
+          Details
+          <ChevronRight className="w-3 h-3" />
+        </Link>
+      </div>
+    );
+  }
 
   const services = health.services || [];
   const broken = services.filter((s) => s.status === 'down' || s.status === 'unconfigured');

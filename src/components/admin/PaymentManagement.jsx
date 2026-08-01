@@ -190,7 +190,7 @@ export default function PaymentManagement() {
       <AdminPageHeader
         title="Payments"
         description="Review and approve manual subscription payments"
-        tip="Manual bKash/Nagad transfers land here as pending requests. Approving one triggers the database rule that upgrades the learner's plan — until you do, they have paid but are still on the free tier."
+        tip="Pending manual payments. Approving one upgrades the learner's plan."
       >
         <div className="relative w-full sm:w-56">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
@@ -209,7 +209,7 @@ export default function PaymentManagement() {
           label="Awaiting review"
           value={stats.pending}
           sub={stats.pending ? `oldest ${stats.oldestHours}h ago` : 'queue is clear'}
-          tip="Payments a learner has submitted but nobody has approved yet. Every hour here is a paying user stuck on the free tier."
+          tip="Submitted payments awaiting approval."
         />
         <Kpi label="Approved" value={stats.approved} sub="upgrades applied" />
         <Kpi label="Rejected" value={stats.rejected} sub="declined transfers" />

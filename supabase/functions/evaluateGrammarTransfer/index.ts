@@ -17,10 +17,10 @@ import {
   validateCsrfProtection,
 } from '../_shared/security.ts';
 import { buildSpeakingTranscript } from '../_shared/evaluationUtils.ts';
+import { requestJsonWithGeminiFallback, TextAiProviderError } from '../_shared/textAiProvider.ts';
 
 declare const Deno: any;
 
-const MODEL = 'gemini-2.5-flash-lite';
 const VALID_TRANSFER_TYPES = new Set(['writing', 'speaking']);
 const VALID_SKILLS = new Set([
   'grammar_sentence_boundaries',
@@ -33,11 +33,6 @@ const VALID_SKILLS = new Set([
 
 const compactText = (value: unknown, maxLength: number) =>
   typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, maxLength) : '';
-
-function parseProviderJson(value: string) {
-  const stripped = value.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-  return JSON.parse(stripped);
-}
 
 function normalizeEvaluation(raw: any, sourceText: string, transferType: string, skills: string[]) {
   const groundedExamples = (Array.isArray(raw?.groundedExamples) ? raw.groundedExamples : [])
@@ -251,8 +246,10 @@ serve(async (req: Request) => {
     if (!quota.allowed) return quotaExceededResponse(quota, corsHeaders);
     reservationId = quota.reservationId;
 
-    const apiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!apiKey) {
+    const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
+    const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!openRouterApiKey && !deepseekApiKey && !geminiApiKey) {
       await finalizeApiUsage(
         serviceClient,
         quota.reservationId,
@@ -300,49 +297,26 @@ ${taskContext || 'Academic IELTS grammar transfer'}
 SOURCE TEXT:
 ${sourceText}`;
 
-    const providerResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 2200,
-            responseMimeType: 'application/json',
-            thinkingConfig: { thinkingBudget: 0 },
-          },
-        }),
-      }
-    );
-    if (!providerResponse.ok) {
-      await finalizeApiUsage(
-        serviceClient,
-        quota.reservationId,
-        0,
-        false,
-        { providerStatus: providerResponse.status },
-        'failed'
-      );
-      usageFinalized = true;
-      return errorResponse(
-        'Grammar transfer evaluation is temporarily unavailable',
-        502,
-        corsHeaders
-      );
-    }
-
-    const providerData = await providerResponse.json();
-    const providerText = providerData.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!providerText) throw new Error('Grammar transfer evaluator returned no content');
+    const providerResult = await requestJsonWithGeminiFallback({
+      prompt,
+      openRouterApiKey,
+      deepseekApiKey,
+      geminiApiKey,
+      temperature: 0.1,
+      maxOutputTokens: 2200,
+      validateJson: (value) =>
+        ['pass', 'needs_repair'].includes(String(value?.outcome || '')) &&
+        Array.isArray(value?.groundedExamples) &&
+        Array.isArray(value?.observations) &&
+        typeof value?.explanation === 'string',
+    });
     const evaluation = normalizeEvaluation(
-      parseProviderJson(providerText),
+      providerResult.parsed,
       sourceText,
       transferType,
       targetSkills
     );
-    const tokensUsed = Number(providerData.usageMetadata?.totalTokenCount || 0);
+    const tokensUsed = providerResult.usage.tokensUsed;
 
     const { data: updatedAttempt, error: updateError } = await serviceClient
       .from('grammar_attempts')
@@ -398,6 +372,15 @@ ${sourceText}`;
       transferType,
       outcome: evaluation.outcome,
       targetSkillCount: targetSkills.length,
+      provider: providerResult.provider,
+      model: providerResult.model,
+      mode: providerResult.mode,
+      fallbackUsed: providerResult.fallbackUsed,
+      fallbackReason: providerResult.fallbackReason,
+      promptTokens: providerResult.usage.promptTokens,
+      cachedPromptTokens: providerResult.usage.cachedPromptTokens,
+      outputTokens: providerResult.usage.outputTokens,
+      estimatedProviderCostUsd: providerResult.usage.estimatedProviderCostUsd,
     });
     usageFinalized = true;
 
@@ -406,19 +389,26 @@ ${sourceText}`;
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
+    const providerError = error instanceof TextAiProviderError;
     if (reservedClient && reservationId && !usageFinalized) {
       await finalizeApiUsage(
         reservedClient,
         reservationId,
         0,
         false,
-        { failure: 'unexpected_evaluator_error' },
+        {
+          failure: providerError ? error.code : 'unexpected_evaluator_error',
+          provider: providerError ? error.provider : null,
+          providerStatus: providerError ? error.status : null,
+        },
         'failed'
       );
     }
     return errorResponse(
-      error?.message || 'Grammar transfer evaluation failed',
-      500,
+      providerError
+        ? 'Grammar transfer evaluation is temporarily unavailable'
+        : error?.message || 'Grammar transfer evaluation failed',
+      providerError ? 502 : 500,
       getCorsHeaders(req)
     );
   }

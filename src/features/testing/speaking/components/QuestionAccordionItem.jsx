@@ -11,7 +11,7 @@ export default function QuestionAccordionItem({ item, localIdx, globalIdx, isExp
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: globalIdx * 0.05 }}
       className={cn(
-        'group/card bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] border border-[#e4e2f0] dark:border-white/[0.07] hover:border-rose-200/70 dark:hover:border-rose-500/25 rounded-xl overflow-hidden transition-all duration-300',
+        'group/card bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border border-[#e4e2f0] dark:border-white/[0.07] hover:border-rose-200/70 dark:hover:border-rose-500/25 rounded-xl overflow-hidden transition-all duration-300',
         isExpanded ? 'shadow-xl shadow-rose-500/5 ring-1 ring-rose-500/20' : 'shadow-sm'
       )}
     >
@@ -58,7 +58,7 @@ export default function QuestionAccordionItem({ item, localIdx, globalIdx, isExp
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
-            className="overflow-hidden bg-gradient-to-b from-[#f4f3fb]/60 to-white dark:from-white/[0.03] dark:to-[#100f15]"
+            className="overflow-hidden bg-gradient-to-b from-[#f4f3fb]/60 to-white dark:from-white/[0.03] dark:to-[#131315]"
           >
             <DeepDiveQuestionContent item={item} />
           </motion.div>

@@ -13,7 +13,7 @@ export default function ListeningPartTabs({
 }) {
   return (
     <div
-      className="relative bg-white/90 dark:bg-[#100f15]/90 backdrop-blur-xl border-b border-[#e4e2f0] dark:border-white/[0.07] px-2 sm:px-4 py-2 shrink-0 relative z-20 shadow-sm transition-all duration-300 w-full overflow-x-auto"
+      className="relative bg-white/90 dark:bg-[#131315]/90 backdrop-blur-xl border-b border-[#e4e2f0] dark:border-white/[0.07] px-2 sm:px-4 py-2 shrink-0 relative z-20 shadow-sm transition-all duration-300 w-full overflow-x-auto"
       style={{ scrollbarWidth: 'none' }}
       data-oid="v0bnih8"
     >

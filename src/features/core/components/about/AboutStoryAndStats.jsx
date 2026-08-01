@@ -76,7 +76,7 @@ function FeatureList() {
       {FEATURE_ITEMS.map((item, i) => (
         <li
           key={i}
-          className="group relative flex items-start gap-4 rounded-2xl border border-slate-200/70 bg-gradient-to-r from-white via-slate-50/50 to-white dark:border-slate-800 dark:from-slate-900/90 dark:via-slate-900/60 dark:to-slate-950/80 p-4 transition-all duration-300 hover:scale-[1.015] hover:shadow-md hover:border-indigo-500/30 backdrop-blur-md"
+          className="group relative flex items-start gap-4 rounded-2xl border border-slate-200/70 bg-gradient-to-r from-white via-slate-50/50 to-white dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] p-4 transition-all duration-300 hover:scale-[1.015] hover:shadow-md dark:hover:shadow-none hover:border-indigo-500/30 dark:hover:border-[#5a63df]/30 backdrop-blur-md dark:backdrop-blur-none"
         >
           <div
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${item.color} group-hover:scale-110 transition-transform duration-300 shadow-sm`}
@@ -88,7 +88,7 @@ function FeatureList() {
               <h3 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
                 {item.title}
               </h3>
-              <span className="text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700 shrink-0">
+              <span className="text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/10 shrink-0">
                 {item.tag}
               </span>
             </div>
@@ -112,9 +112,9 @@ function StatsGrid() {
       className="grid grid-cols-1 sm:grid-cols-2 gap-4"
     >
       {/* Card 1: Reach */}
-      <div className="col-span-1 sm:col-span-2 rounded-[24px] border border-indigo-200/70 bg-gradient-to-br from-white via-indigo-50/30 to-slate-50 dark:border-indigo-500/20 dark:from-slate-900/90 dark:via-slate-950/80 dark:to-indigo-950/30 p-6 shadow-sm backdrop-blur-xl hover:scale-[1.015] transition-all duration-300 relative overflow-hidden group">
+      <div className="col-span-1 sm:col-span-2 rounded-[24px] border border-indigo-200/70 bg-gradient-to-br from-white via-indigo-50/30 to-slate-50 dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] p-6 shadow-sm dark:shadow-none backdrop-blur-xl dark:backdrop-blur-none hover:scale-[1.015] transition-all duration-300 relative overflow-hidden group">
         <CardGridBackground />
-        <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-indigo-500/10 blur-3xl group-hover:bg-indigo-500/20 transition-all duration-500" />
+        <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-indigo-500/10 blur-3xl dark:bg-[#5a63df]/10 group-hover:bg-indigo-500/20 dark:group-hover:bg-[#5a63df]/15 transition-all duration-500" />
 
         <div className="flex items-center justify-between mb-3 relative z-10">
           <div className="flex items-center gap-2">
@@ -149,7 +149,7 @@ function StatsGrid() {
       </div>
 
       {/* Card 2: Impact */}
-      <div className="rounded-[24px] border border-emerald-200/70 bg-gradient-to-br from-white via-emerald-50/25 to-slate-50 dark:border-emerald-500/20 dark:from-slate-900/90 dark:via-slate-950/80 dark:to-emerald-950/20 p-5 shadow-sm backdrop-blur-xl hover:scale-[1.015] transition-all duration-300 relative overflow-hidden group">
+      <div className="rounded-[24px] border border-emerald-200/70 bg-gradient-to-br from-white via-emerald-50/25 to-slate-50 dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] p-5 shadow-sm dark:shadow-none backdrop-blur-xl dark:backdrop-blur-none hover:scale-[1.015] transition-all duration-300 relative overflow-hidden group">
         <CardGridBackground />
         <div className="absolute -right-12 -top-12 h-28 w-28 rounded-full bg-emerald-500/10 blur-2xl group-hover:bg-emerald-500/20 transition-all duration-500" />
 
@@ -178,8 +178,8 @@ function StatsGrid() {
             </span>
           </div>
 
-          <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
-            <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+          <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-white/10 flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300">
               Band 6.0
             </span>
             <ArrowRight className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
@@ -191,7 +191,7 @@ function StatsGrid() {
       </div>
 
       {/* Card 3: Accuracy */}
-      <div className="rounded-[24px] border border-violet-200/70 bg-gradient-to-br from-white via-violet-50/25 to-slate-50 dark:border-violet-500/20 dark:from-slate-900/90 dark:via-slate-950/80 dark:to-violet-950/20 p-5 shadow-sm backdrop-blur-xl hover:scale-[1.015] transition-all duration-300 relative overflow-hidden group">
+      <div className="rounded-[24px] border border-violet-200/70 bg-gradient-to-br from-white via-violet-50/25 to-slate-50 dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] p-5 shadow-sm dark:shadow-none backdrop-blur-xl dark:backdrop-blur-none hover:scale-[1.015] transition-all duration-300 relative overflow-hidden group">
         <CardGridBackground />
         <div className="absolute -right-12 -top-12 h-28 w-28 rounded-full bg-violet-500/10 blur-2xl group-hover:bg-violet-500/20 transition-all duration-500" />
 
@@ -220,7 +220,7 @@ function StatsGrid() {
             </span>
           </div>
 
-          <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-white/10 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
             <Shield className="w-3.5 h-3.5 text-violet-500" />
             <span>Official Cambridge rubric aligned</span>
           </div>
@@ -232,7 +232,7 @@ function StatsGrid() {
 
 export default function AboutStoryAndStats() {
   return (
-    <section className="py-12 md:py-20 px-6 relative border-y border-slate-200/60 dark:border-slate-800/60 bg-slate-50/50 dark:bg-[#070912]/60">
+    <section className="py-12 md:py-20 px-6 relative border-y border-slate-200/60 dark:border-white/[0.07] bg-slate-50/50 dark:bg-white/[0.02]">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 items-center relative z-10">
         <m.div
           initial={{ opacity: 0, x: -25 }}

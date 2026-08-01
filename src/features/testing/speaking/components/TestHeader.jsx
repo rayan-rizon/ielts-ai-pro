@@ -59,10 +59,7 @@ const TestHeader = React.memo(
             variant="ghost"
             onClick={onShowExitDialog}
             aria-label="Back to Speaking"
-            className={cn(
-              PANEL,
-              'group relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-slate-700 shadow-2xs transition-all duration-200 hover:border-rose-500/40 hover:text-rose-600 hover:shadow-xs active:scale-95 dark:text-slate-200 dark:hover:border-rose-400/50 dark:hover:text-rose-300 sm:h-9 sm:w-auto sm:px-3'
-            )}
+            className="group relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-rose-400 hover:bg-rose-50 hover:text-rose-600 active:scale-95 dark:border-white/20 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-rose-400/60 dark:hover:bg-slate-700 dark:hover:text-rose-300 sm:h-9 sm:w-auto sm:px-3"
           >
             <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5 stroke-[2.5] sm:mr-2 sm:h-4.5 sm:w-4.5" />
             <span className="hidden text-xs font-bold sm:inline">Back to Speaking</span>

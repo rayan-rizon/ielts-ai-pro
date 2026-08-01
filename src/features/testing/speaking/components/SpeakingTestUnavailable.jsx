@@ -8,7 +8,7 @@ import { MUTED, PANEL } from '@/features/dashboard/components/primitives';
 
 export default function SpeakingTestUnavailable({ error }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f7f6fd] p-6 dark:bg-[#0b0a0f]">
+    <div className="flex min-h-screen items-center justify-center bg-[#f7f6fd] p-6 dark:bg-[#08080a]">
       <div className={cn(PANEL, 'w-full max-w-md rounded-2xl p-8 text-center')}>
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-rose-500/10">
           <AlertTriangle className="h-8 w-8 text-rose-600 dark:text-rose-400" />

@@ -11,8 +11,12 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
+  AudioLines,
+  BadgeCheck,
   Calendar,
+  CalendarDays,
   Edit3,
+  FilePenLine,
   Gift,
   Mic,
   PenLine,
@@ -34,11 +38,14 @@ const FIELD_LABEL = cn(
 const FIELD_INPUT =
   'h-9 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
 
-const TIER_BADGE = (Icon, tone, label) => (
+const RewardChip = ({ Icon, tone, label }) => (
   <span
-    className={cn('inline-flex items-center rounded-md border px-1.5 py-0.5 gap-1', MICRO, tone)}
+    className={cn(
+      'inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-extrabold tracking-[0.08em] uppercase whitespace-nowrap',
+      tone
+    )}
   >
-    <Icon className="w-2.5 h-2.5" />
+    <Icon className="w-3 h-3" />
     {label}
   </span>
 );
@@ -174,7 +181,7 @@ export default function ReferralManagement() {
       <AdminPageHeader
         title="Referrals"
         description="Milestone rewards, bonus evaluation credits, and top advocates"
-        tip="Tiers unlock automatically when a user's referral count hits the target. Deactivating a tier keeps existing rewards intact but stops new ones."
+        tip="Tiers unlock at the referral target. Deactivation stops new rewards."
       >
         <AdminButton onClick={openAddModal}>
           <Plus className="w-3.5 h-3.5" />
@@ -182,7 +189,7 @@ export default function ReferralManagement() {
         </AdminButton>
       </AdminPageHeader>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Kpi label="Total referrals" value={(stats?.totalReferrals || 0).toLocaleString()} />
         <Kpi
           label="Active tiers"
@@ -197,72 +204,90 @@ export default function ReferralManagement() {
       </div>
 
       {/* Reward tiers */}
-      <div className={cn(PANEL, 'p-4')}>
-        <div className="mb-3">
-          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-            Milestone reward rules
-          </h3>
+      <div className={cn(PANEL, 'overflow-hidden')}>
+        <div className="flex flex-col justify-between gap-3 border-b border-stone-100 px-4 py-4 dark:border-white/[0.06] sm:flex-row sm:items-center sm:px-5">
+          <div className="flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-violet-500/[0.10] text-violet-600 dark:text-violet-300">
+              <Gift className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
+                Milestone rewards
+              </h3>
+              <p className={cn(MICRO, 'mt-0.5 text-stone-500 dark:text-stone-400')}>
+                Rewards unlock once a learner reaches each referral target.
+              </p>
+            </div>
+          </div>
+          <div className="inline-flex items-center gap-1.5 self-start rounded-full border border-[rgb(var(--signal-ok)/0.24)] bg-[rgb(var(--signal-ok)/0.06)] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[rgb(var(--signal-ok))] sm:self-auto">
+            <BadgeCheck className="h-3.5 w-3.5" />
+            {tiers.filter((tier) => tier.is_active).length} live
+          </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 p-3 sm:p-4">
           {tiers.map((tier) => (
             <div
               key={tier.id}
               className={cn(
-                'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-lg border',
+                'group relative flex flex-col gap-3 overflow-hidden rounded-lg border p-3.5 transition-all duration-200 sm:flex-row sm:items-center sm:justify-between',
                 tier.is_active
-                  ? 'border-stone-200 dark:border-white/[0.07] bg-stone-50/50 dark:bg-white/[0.02]'
-                  : 'border-stone-100 dark:border-white/[0.04] opacity-50'
+                  ? 'border-stone-200 bg-white shadow-[0_1px_0_rgba(28,25,23,0.03)] hover:border-violet-200 hover:shadow-[0_10px_28px_rgba(109,76,255,0.08)] dark:border-white/[0.08] dark:bg-white/[0.025] dark:hover:border-violet-400/30'
+                  : 'border-stone-100 bg-stone-50/60 opacity-60 dark:border-white/[0.04] dark:bg-white/[0.015]'
               )}
             >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="flex min-w-0 flex-1 items-center gap-3">
                 <div
                   className={cn(
                     NUM,
-                    'w-9 h-9 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center font-black text-sm text-stone-700 dark:text-stone-200 shrink-0'
+                    'grid h-10 w-10 shrink-0 place-items-center rounded-lg border text-sm font-black',
+                    tier.is_active
+                      ? 'border-violet-200 bg-violet-500/[0.08] text-violet-700 dark:border-violet-400/20 dark:bg-violet-400/[0.10] dark:text-violet-200'
+                      : 'border-stone-200 bg-stone-100 text-stone-500 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-stone-400'
                   )}
                 >
                   {tier.referrals_required}
                 </div>
-                <div className="min-w-0 flex-1 space-y-1">
-                  <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
-                    {tier.referrals_required} referral{tier.referrals_required > 1 ? 's' : ''}{' '}
-                    target
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+                  <p className="mr-1 text-xs font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
+                    {tier.referrals_required} referral
+                    {tier.referrals_required === 1 ? '' : 's'} target
                   </p>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {tier.extra_days > 0 &&
-                      TIER_BADGE(
-                        Calendar,
-                        'text-stone-600 dark:text-stone-300 border-stone-200 dark:border-white/10',
-                        `+${tier.extra_days}d`
-                      )}
-                    {tier.writing_credits > 0 &&
-                      TIER_BADGE(
-                        PenLine,
-                        'text-indigo-600 dark:text-indigo-400 border-indigo-300/50 dark:border-indigo-800/60 bg-indigo-500/[0.06]',
-                        `+${tier.writing_credits} writing`
-                      )}
-                    {tier.speaking_credits > 0 &&
-                      TIER_BADGE(
-                        Mic,
-                        'text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-800/60 bg-violet-500/[0.06]',
-                        `+${tier.speaking_credits} speaking`
-                      )}
-                  </div>
+                  {tier.extra_days > 0 && (
+                    <RewardChip
+                      Icon={CalendarDays}
+                      tone="border-stone-200 bg-stone-50 text-stone-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-stone-300"
+                      label={`+${tier.extra_days} days`}
+                    />
+                  )}
+                  {tier.writing_credits > 0 && (
+                    <RewardChip
+                      Icon={FilePenLine}
+                      tone="border-indigo-200/80 bg-indigo-500/[0.05] text-indigo-600 dark:border-indigo-400/25 dark:bg-indigo-400/[0.08] dark:text-indigo-300"
+                      label={`+${tier.writing_credits} Writing`}
+                    />
+                  )}
+                  {tier.speaking_credits > 0 && (
+                    <RewardChip
+                      Icon={AudioLines}
+                      tone="border-indigo-200/80 bg-indigo-500/[0.05] text-indigo-600 dark:border-indigo-400/25 dark:bg-indigo-400/[0.08] dark:text-indigo-300"
+                      label={`+${tier.speaking_credits} Speaking`}
+                    />
+                  )}
                 </div>
               </div>
 
-              <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100 dark:border-white/[0.05]">
-                <div className="flex items-center gap-2">
-                  <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 sm:hidden')}>
-                    Active
+              <div className="flex shrink-0 items-center justify-between gap-2 border-t border-stone-100 pt-2 dark:border-white/[0.06] sm:border-t-0 sm:pt-0">
+                <div className="flex items-center gap-2.5">
+                  <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                    {tier.is_active ? 'Live' : 'Paused'}
                   </span>
                   <Switch
                     checked={tier.is_active}
                     onCheckedChange={() => handleToggleActive(tier)}
                   />
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 rounded-lg border border-stone-200 bg-stone-50 p-0.5 dark:border-white/[0.08] dark:bg-white/[0.04]">
                   <button
                     onClick={() => openEditModal(tier)}
                     className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors"

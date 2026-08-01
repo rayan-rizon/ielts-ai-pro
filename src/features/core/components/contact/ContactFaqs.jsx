@@ -4,7 +4,7 @@ import { HelpCircle, ChevronDown } from 'lucide-react';
 
 function FaqAccordionItem({ question, answer, isOpen, onClick }) {
   return (
-    <div className="border-b border-slate-200/70 dark:border-slate-800 last:border-0 py-4.5 transition-colors">
+    <div className="border-b border-slate-200/70 dark:border-white/10 last:border-0 py-4.5 transition-colors">
       <button
         onClick={onClick}
         className="w-full flex items-center justify-between text-left gap-4 group focus:outline-none"
@@ -16,7 +16,7 @@ function FaqAccordionItem({ question, answer, isOpen, onClick }) {
           className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-transform duration-200 ${
             isOpen
               ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rotate-180'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
+              : 'bg-slate-100 dark:bg-white/[0.06] text-slate-400'
           }`}
         >
           <ChevronDown className="w-4 h-4" />
@@ -70,7 +70,7 @@ export default function ContactFaqs() {
   };
 
   return (
-    <section className="py-16 md:py-24 px-6 relative border-t border-slate-200/60 dark:border-slate-800/60 bg-slate-50/50 dark:bg-[#070912]/40">
+    <section className="py-16 md:py-24 px-6 relative border-t border-slate-200/60 dark:border-white/[0.07] bg-slate-50/50 dark:bg-white/[0.02]">
       <m.div
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -90,7 +90,7 @@ export default function ContactFaqs() {
           </p>
         </div>
 
-        <div className="bg-white/80 dark:bg-slate-950/80 border border-slate-200/80 dark:border-slate-800 rounded-[28px] p-6 md:p-8 shadow-sm backdrop-blur-md">
+        <div className="bg-white/80 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] border border-slate-200/80 dark:border-white/10 rounded-[28px] p-6 md:p-8 shadow-sm dark:shadow-none backdrop-blur-md dark:backdrop-blur-none">
           {FAQS_DATA.map((faq, index) => (
             <FaqAccordionItem
               key={index}

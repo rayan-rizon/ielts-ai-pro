@@ -62,6 +62,7 @@ const dashboard = {
 describe('GrammarDashboard', () => {
   it('shows a functional grammar process without inventing completed steps', () => {
     const onStart = vi.fn();
+    const onRetest = vi.fn();
     const onResume = vi.fn();
 
     render(
@@ -75,6 +76,7 @@ describe('GrammarDashboard', () => {
           isStarting={false}
           isResuming={false}
           onStart={onStart}
+          onRetest={onRetest}
           onResume={onResume}
         />
       </MemoryRouter>
@@ -82,25 +84,80 @@ describe('GrammarDashboard', () => {
 
     expect(screen.getByRole('heading', { name: 'Grammar Learning Path' })).toBeInTheDocument();
     expect(screen.getByText('Now: finish your active practice set')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Finish this practice set\. Your next step is one normal scored Speaking test/i
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/^Retest opens/i)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Practise' })).toHaveAttribute(
       'aria-current',
       'step'
     );
-    expect(screen.getByRole('button', { name: 'Diagnose' })).not.toHaveAttribute('aria-current');
-    expect(screen.getByRole('button', { name: 'Diagnose' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Check' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: 'Check' })).toBeDisabled();
     expect(screen.queryByText(/completed/i)).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /View AI Learning Path/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /View full AI Learning Path/i })).toHaveAttribute(
       'href',
       '/learning-path'
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
-    expect(onStart).toHaveBeenCalledWith({
-      mode: 'transfer',
-      targetSkills: [dashboard.skills[0].skillCode],
-    });
+    expect(screen.getByRole('button', { name: 'Retest' })).toBeDisabled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Practise' }));
     expect(onResume).toHaveBeenCalledWith('attempt-in-progress');
+  });
+
+  it('retests through the existing scored module after two focused repairs', () => {
+    const onRetest = vi.fn();
+    const retestDashboard = {
+      ...dashboard,
+      recentAttempts: [
+        {
+          id: 'repair-2',
+          mode: 'practice',
+          completionState: 'completed',
+          completedAt: '2026-08-02T12:00:00.000Z',
+        },
+        {
+          id: 'repair-1',
+          mode: 'review',
+          completionState: 'completed',
+          completedAt: '2026-08-01T12:00:00.000Z',
+        },
+      ],
+      skills: dashboard.skills.map((skill, index) => ({
+        ...skill,
+        observations: 5,
+        correctCount: index ? 4 : 2,
+        mastery: index ? 0.8 : 0.4,
+      })),
+      criterionEvidence: dashboard.criterionEvidence.map((signal, index) => ({
+        ...signal,
+        mastery: index ? 0.7 : 0.5,
+        lastPracticedAt: '2026-07-30T12:00:00.000Z',
+      })),
+    };
+
+    render(
+      <MemoryRouter>
+        <GrammarDashboard
+          dashboard={retestDashboard}
+          recommendedSkill={retestDashboard.skills[0]}
+          criterionDiagnosticNeeded={false}
+          defaultMode={null}
+          defaultSkill={null}
+          isStarting={false}
+          isResuming={false}
+          onStart={vi.fn()}
+          onRetest={onRetest}
+          onResume={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('button', { name: 'Retest' })).toHaveAttribute('aria-current', 'step');
+    fireEvent.click(screen.getByRole('button', { name: 'Take a Speaking test' }));
+    expect(onRetest).toHaveBeenCalledWith('speaking');
   });
 });

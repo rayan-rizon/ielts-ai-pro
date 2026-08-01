@@ -308,7 +308,7 @@ export default function Onboarding() {
 
   if (isCheckingStatus) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f8f8fb] dark:bg-[#0b0a10]">
+      <div className="flex min-h-screen items-center justify-center bg-[#f8f8fb] dark:bg-[#08080a]">
         <div className="space-y-3 text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#5a63df]/25 border-t-[#5a63df]" />
           <p className={cn(MICRO, MUTED)}>Loading</p>
@@ -318,7 +318,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-start justify-center overflow-y-auto bg-[#f8f8fb] p-4 pb-8 pt-16 dark:bg-[#0b0a10] sm:items-center sm:py-4">
+    <div className="relative flex min-h-screen items-start justify-center overflow-y-auto bg-[#f8f8fb] p-4 pb-8 pt-16 dark:bg-[#08080a] sm:items-center sm:py-4">
       {/* Same dot-grid + glow language as every other authenticated page. */}
       <div
         aria-hidden="true"

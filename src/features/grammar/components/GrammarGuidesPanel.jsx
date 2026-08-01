@@ -43,13 +43,14 @@ export default function GrammarGuidesPanel({
   resourcesUnavailable,
   user,
   completedGuideSlugs = [],
+  recommendedSkill,
 }) {
   const [category, setCategory] = useState('All guides');
   const [query, setQuery] = useState('');
   const visibleGuides = useMemo(() => {
     const sourceGuides = GRAMMAR_GUIDES.length ? GRAMMAR_GUIDES : resources || [];
     const normalizedQuery = query.trim().toLowerCase();
-    return sourceGuides.filter((resource) => {
+    const filtered = sourceGuides.filter((resource) => {
       const categoryMatches = category === 'All guides' || resource.kit === category;
       const queryMatches =
         !normalizedQuery ||
@@ -58,7 +59,15 @@ export default function GrammarGuidesPanel({
           .includes(normalizedQuery);
       return categoryMatches && queryMatches;
     });
-  }, [category, query, resources]);
+    if (category !== 'All guides' || normalizedQuery || !recommendedSkill?.skillCode) {
+      return filtered;
+    }
+    return [...filtered].sort(
+      (a, b) =>
+        Number(b.skill_code === recommendedSkill.skillCode) -
+        Number(a.skill_code === recommendedSkill.skillCode)
+    );
+  }, [category, query, recommendedSkill?.skillCode, resources]);
 
   return (
     <section id="grammar-guides" className="scroll-mt-6 p-4 sm:p-5">
@@ -72,7 +81,9 @@ export default function GrammarGuidesPanel({
             IELTS grammar guides
           </h2>
           <p className={cn('mt-1 max-w-2xl text-xs font-medium leading-5', MUTED)}>
-            Follow all 18 units in order, or choose the exact rule you need before a practice set.
+            {recommendedSkill?.skillCode
+              ? `Guides for ${skillLabel(recommendedSkill.skillCode).toLowerCase()} appear first, based on your saved evidence.`
+              : 'Follow all 18 units in order, or choose the exact rule you need before a practice set.'}
           </p>
         </div>
         <div className="text-right">
@@ -141,6 +152,7 @@ export default function GrammarGuidesPanel({
             const visual = SKILL_VISUALS[resource.skill_code] || SKILL_VISUALS.grammar_word_forms;
             const isLocked = !hasContentAccess(user, resource.access_tier);
             const isCompleted = completedGuideSlugs.includes(resource.slug);
+            const isRecommended = resource.skill_code === recommendedSkill?.skillCode;
             return (
               <Link
                 key={resource.id}
@@ -166,6 +178,7 @@ export default function GrammarGuidesPanel({
                     />
                   </div>
                   <div className="mt-2.5 text-[9px] font-extrabold uppercase tracking-[0.1em] text-[#5a63df]">
+                    {isRecommended ? 'Recommended · ' : ''}
                     {skillLabel(resource.skill_code)}
                   </div>
                   <h3 className="mt-1 text-xs font-extrabold leading-4 text-slate-900 dark:text-white">

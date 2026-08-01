@@ -2,15 +2,7 @@ import React from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-const StaticTextBuilder = ({ initialData, onChange, theme }) => {
-  // Default theme fallback
-  const t = theme || {
-    primary: 'bg-primary',
-    text: 'text-primary',
-    light: 'bg-muted/30',
-    border: 'border-border',
-  };
-
+const StaticTextBuilder = ({ initialData, onChange }) => {
   // Structure: { text: "HTML Content" }
   const data = {
     text: initialData?.text || '',

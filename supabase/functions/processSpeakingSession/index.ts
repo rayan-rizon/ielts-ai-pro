@@ -132,6 +132,7 @@ serve(async (req: Request) => {
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
+  let sessionReservationId: string | undefined;
   let activeReservationId: string | undefined;
 
   try {
@@ -275,12 +276,19 @@ serve(async (req: Request) => {
       { testId, speakingSessionId }
     );
     if (!sessionReservation.allowed) return quotaExceededResponse(sessionReservation, corsHeaders);
+    sessionReservationId = sessionReservation.reservationId;
 
     const userTurnsInHistory = conversationHistory.filter(
       (entry: { speaker?: string }) => entry?.speaker === 'user'
     ).length;
     const maxForThisPart = MAX_TURNS_PER_PART[partNumber] || 8;
     if (userTurnsInHistory >= maxForThisPart || userTurnsInHistory >= MAX_TOTAL_TURNS) {
+      await finalizeApiUsage(supabase, sessionReservationId, 0, false, {
+        testId,
+        speakingSessionId,
+        sessionStarted: true,
+      });
+      sessionReservationId = undefined;
       return jsonResponse(
         {
           error: 'Turn limit reached',
@@ -305,6 +313,15 @@ serve(async (req: Request) => {
     let questions = parseSpeakingQuestions(questionRows || [], partNumber);
     if (partNumber === 2 && questions.length > 1) questions = [questions[0]];
     if (questions.length === 0) {
+      await finalizeApiUsage(
+        supabase,
+        sessionReservationId,
+        0,
+        false,
+        { testId, speakingSessionId, failureReason: 'No questions found for this test part' },
+        'failed'
+      );
+      sessionReservationId = undefined;
       return jsonResponse({ error: 'No questions found for this test part' }, 404, corsHeaders);
     }
 
@@ -520,6 +537,16 @@ serve(async (req: Request) => {
     });
     activeReservationId = undefined;
 
+    // The session-level row is the single quota charge for starting a speaking
+    // test. It must be completed on the first successful turn; leaving it in
+    // `reserved` state makes a normal test look stranded after one hour.
+    await finalizeApiUsage(supabase, sessionReservationId, 0, false, {
+      testId,
+      speakingSessionId,
+      sessionStarted: true,
+    });
+    sessionReservationId = undefined;
+
     return jsonResponse(
       {
         success: true,
@@ -548,6 +575,16 @@ serve(async (req: Request) => {
       await finalizeApiUsage(
         supabase,
         activeReservationId,
+        0,
+        false,
+        { failureReason: error?.message || 'Internal server error' },
+        'failed'
+      );
+    }
+    if (sessionReservationId) {
+      await finalizeApiUsage(
+        supabase,
+        sessionReservationId,
         0,
         false,
         { failureReason: error?.message || 'Internal server error' },

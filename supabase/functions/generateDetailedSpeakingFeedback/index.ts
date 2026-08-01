@@ -10,6 +10,7 @@ import {
   getBurstLimitConfig,
   checkTierAccess,
   reserveDatabaseQuota,
+  finalizeApiUsage,
   quotaExceededResponse,
 } from '../_shared/security.ts';
 import {
@@ -32,6 +33,8 @@ serve(async (req: Request) => {
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
+  let quotaReservationId: string | undefined;
+  let authenticatedUserId: string | undefined;
 
   try {
     // Authenticate user
@@ -47,6 +50,7 @@ serve(async (req: Request) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    authenticatedUserId = user.id;
 
     // Rate limiting and Tier Checks
     const { data: userProfile } = await supabase
@@ -125,12 +129,22 @@ serve(async (req: Request) => {
     if (!quotaReservation.allowed) {
       return quotaExceededResponse(quotaReservation, corsHeaders);
     }
+    quotaReservationId = quotaReservation.reservationId;
 
     // SECURITY: Cap transcript size to prevent token-draining attacks
     const MAX_TRANSCRIPT_CHARS = 20000; // ~3500 spoken words — well above any IELTS test
     const transcriptSize =
       JSON.stringify(allPartsConversation).length + JSON.stringify(partContexts).length;
     if (transcriptSize > MAX_TRANSCRIPT_CHARS) {
+      await finalizeApiUsage(
+        supabase,
+        quotaReservationId,
+        0,
+        false,
+        { testId, speakingSessionId, failureReason: 'Transcript exceeds maximum size' },
+        'failed'
+      );
+      quotaReservationId = undefined;
       return new Response(
         JSON.stringify({ error: `Conversation transcript exceeds maximum allowed size.` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -249,10 +263,10 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
     };
 
     const evalResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiApiKey },
         body: JSON.stringify({
           contents: [{ parts: [{ text: promptText }] }],
           generationConfig: {
@@ -311,6 +325,13 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
     }
 
     // Log successful usage
+    await finalizeApiUsage(supabase, quotaReservationId, tokensUsed, false, {
+      testId,
+      speakingSessionId,
+      partsAnalyzed: [1, 2, 3].filter((p) => !!allPartsConversation[p]).length,
+      model: 'gemini-2.5-flash',
+    });
+    quotaReservationId = undefined;
     await logApiUsage(supabase, user.id, 'generateDetailedSpeakingFeedback', false, tokensUsed, {
       testId,
       partsAnalyzed: [1, 2, 3].filter((p) => !!allPartsConversation[p]).length,
@@ -325,6 +346,29 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
     );
   } catch (error: any) {
     console.error('Error in generateDetailedSpeakingFeedback:', error);
+    if (quotaReservationId) {
+      await finalizeApiUsage(
+        supabase,
+        quotaReservationId,
+        0,
+        false,
+        { failureReason: error?.message || 'Internal server error' },
+        'failed'
+      );
+    }
+    if (authenticatedUserId) {
+      await logApiUsage(
+        supabase,
+        authenticatedUserId,
+        'generateDetailedSpeakingFeedback',
+        false,
+        0,
+        {
+          reservationStatus: 'failed',
+          failureReason: error?.message || 'Internal server error',
+        }
+      );
+    }
     const corsHeaders = getCorsHeaders(req);
     return new Response(
       JSON.stringify({ error: error.message || 'Internal server error', success: false }),

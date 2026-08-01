@@ -18,7 +18,7 @@ export default function QuestionGroupCard({
   return (
     <div className="mb-3" data-oid=".ffofwm">
       <div
-        className="relative bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] border border-[#e4e2f0] dark:border-white/[0.07] rounded-xl shadow-2xs overflow-hidden transition-all duration-200"
+        className="relative bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border border-[#e4e2f0] dark:border-white/[0.07] rounded-xl shadow-2xs overflow-hidden transition-all duration-200"
         data-oid="yfsdv5u"
       >
         {hasInstructions && (

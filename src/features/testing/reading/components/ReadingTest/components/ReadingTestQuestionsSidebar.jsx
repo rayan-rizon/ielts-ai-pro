@@ -354,7 +354,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                         key={question.id}
                         id={`question-${question.id}`}
                         className={cn(
-                          'relative px-3.5 py-3 sm:px-4 sm:py-3 rounded-xl border transition-all duration-200 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] shadow-2xs hover:shadow-sm',
+                          'relative px-3.5 py-3 sm:px-4 sm:py-3 rounded-xl border transition-all duration-200 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] shadow-2xs hover:shadow-sm',
                           isFlagged
                             ? 'border-amber-300 dark:border-amber-800/80 ring-1 ring-amber-400/20 bg-amber-50/20 dark:bg-amber-950/10'
                             : 'border-[#e4e2f0] dark:border-white/[0.07] hover:border-[#c9cdf3] dark:hover:border-white/[0.15]',

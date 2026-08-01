@@ -19,6 +19,7 @@ import { createPageUrl } from '@/utils';
 import { adminNavigationItems, analyticsNavigationItems } from './navigationItems';
 import { ThemeToggle } from './ThemeToggle';
 import { supabase } from '@/lib/supabase';
+import { getAuthUserId } from '@/features/auth/utils/adminAccess';
 
 /*
  * Same instrument-panel language as the rest of the admin area: graphite
@@ -27,49 +28,61 @@ import { supabase } from '@/lib/supabase';
  */
 const MICRO = 'text-[9px] font-bold uppercase tracking-[0.14em]';
 
-const AdminNavItem = memo(({ item, isActive, pendingCount = 0 }) => {
-  const { isMobile, setOpenMobile } = useSidebar();
+const AdminNavItem = memo(
+  ({ item, isActive, pendingCount = 0, stripePaymentCount = 0, stripeFailureCount = 0 }) => {
+    const { isMobile, setOpenMobile } = useSidebar();
+    const isPaymentsItem = item.title === 'Payments';
+    const isNotificationsItem = item.title === 'Notifications';
+    const badgeCount = pendingCount + stripePaymentCount + stripeFailureCount;
+    const showBadge = (isPaymentsItem || isNotificationsItem) && badgeCount > 0;
 
-  const handleLinkClick = useCallback(() => {
-    if (isMobile) setOpenMobile(false);
-  }, [isMobile, setOpenMobile]);
+    const handleLinkClick = useCallback(() => {
+      if (isMobile) setOpenMobile(false);
+    }, [isMobile, setOpenMobile]);
 
-  const btnClasses = `group transition-colors rounded-md mb-0.5 relative overflow-hidden ${
-    isActive
-      ? 'bg-stone-900 hover:bg-stone-800 text-white hover:text-white dark:bg-white/10 dark:hover:bg-white/15 dark:text-stone-50 dark:hover:text-stone-50 font-bold'
-      : 'text-stone-700 dark:text-stone-200 font-medium hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'
-  }`;
+    const btnClasses = `group transition-colors rounded-md mb-0.5 relative overflow-hidden ${
+      isActive
+        ? 'bg-stone-900 hover:bg-stone-800 text-white hover:text-white dark:bg-white/10 dark:hover:bg-white/15 dark:text-stone-50 dark:hover:text-stone-50 font-bold'
+        : 'text-stone-700 dark:text-stone-200 font-medium hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'
+    }`;
 
-  const iconClasses = `w-4 h-4 transition-colors ${
-    isActive
-      ? 'text-white dark:text-stone-50'
-      : 'text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100'
-  }`;
+    const iconClasses = `w-4 h-4 transition-colors ${
+      isActive
+        ? 'text-white dark:text-stone-50'
+        : 'text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100'
+    }`;
 
-  return (
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild className={btnClasses} tooltip={item.title}>
-        <Link
-          to={item.url}
-          className="flex items-center gap-3 px-3 py-2 text-[13px] relative z-10"
-          onClick={handleLinkClick}
-        >
-          <item.icon className={iconClasses} />
-          <span className="truncate group-data-[collapsible=icon]:hidden">{item.title}</span>
-          {item.title === 'Payments' && pendingCount > 0 && (
-            <span
-              className={`ml-auto h-4.5 px-1.5 min-w-[18px] rounded-full grid place-items-center shrink-0 ${MICRO} ${
-                isActive ? 'bg-white/20 text-white' : 'bg-[rgb(var(--signal-warn))] text-white'
-              }`}
-            >
-              {pendingCount}
-            </span>
-          )}
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  );
-});
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild className={btnClasses} tooltip={item.title}>
+          <Link
+            to={item.url}
+            className="flex items-center gap-3 px-3 py-2 text-[13px] relative z-10"
+            onClick={handleLinkClick}
+          >
+            <item.icon className={iconClasses} />
+            <span className="truncate group-data-[collapsible=icon]:hidden">{item.title}</span>
+            {showBadge && (
+              <span
+                role="status"
+                aria-label={
+                  isNotificationsItem
+                    ? `${pendingCount} pending payment approval${pendingCount === 1 ? '' : 's'}, ${stripePaymentCount} new Stripe payment${stripePaymentCount === 1 ? '' : 's'}, and ${stripeFailureCount} Stripe payment failure${stripeFailureCount === 1 ? '' : 's'}`
+                    : `${badgeCount} payment alert${badgeCount === 1 ? '' : 's'}`
+                }
+                className={`ml-auto h-4.5 px-1.5 min-w-[18px] rounded-full grid place-items-center shrink-0 ${MICRO} ${
+                  isActive ? 'bg-white/20 text-white' : 'bg-[rgb(var(--signal-warn))] text-white'
+                }`}
+              >
+                {badgeCount > 99 ? '99+' : badgeCount}
+              </span>
+            )}
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  }
+);
 AdminNavItem.displayName = 'AdminNavItem';
 
 const AdminSidebarHeader = memo(() => (
@@ -200,13 +213,28 @@ AdminSidebarFooter.displayName = 'AdminSidebarFooter';
 export const AdminSidebar = memo(({ user, location, handleLogout }) => {
   const { isMobile, setOpenMobile } = useSidebar();
   const [pendingCount, setPendingCount] = useState(0);
+  const [stripePaymentCount, setStripePaymentCount] = useState(0);
+  const [stripeFailureCount, setStripeFailureCount] = useState(0);
 
   const currentPath = location.pathname;
   const currentSearch = location.search || '';
   const isOnPaymentsTab = currentSearch.includes('tab=payments');
+  const stripeSeenKey = `admin_stripe_payments_seen_at:${getAuthUserId(user) || 'admin'}`;
 
   useEffect(() => {
     let mounted = true;
+    let stripeSeenAt = new Date().toISOString();
+
+    try {
+      const storedSeenAt = window.localStorage.getItem(stripeSeenKey);
+      if (storedSeenAt) {
+        stripeSeenAt = storedSeenAt;
+      } else {
+        window.localStorage.setItem(stripeSeenKey, stripeSeenAt);
+      }
+    } catch {
+      // Storage can be unavailable in private mode; realtime still covers this session.
+    }
 
     const fetchPendingCount = async () => {
       const { count, error } = await supabase
@@ -218,15 +246,51 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
       setPendingCount(count || 0);
     };
 
+    const fetchStripePaymentCount = async () => {
+      if (isOnPaymentsTab) {
+        if (mounted) setStripePaymentCount(0);
+        return;
+      }
+
+      const { count, error } = await supabase
+        .from('payment_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('payment_method', 'stripe')
+        .eq('status', 'approved')
+        .gt('created_at', stripeSeenAt);
+
+      if (!mounted || error) return;
+      setStripePaymentCount(count || 0);
+    };
+
+    const fetchStripeFailureCount = async () => {
+      const { count, error } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true })
+        .not('payment_failed_at', 'is', null);
+
+      if (!mounted || error) return;
+      setStripeFailureCount(count || 0);
+    };
+
     fetchPendingCount();
+    fetchStripePaymentCount();
+    fetchStripeFailureCount();
+    const stripeFailureRefresh = window.setInterval(fetchStripeFailureCount, 60_000);
 
     let channel;
     if (typeof window !== 'undefined' && window.WebSocket) {
       try {
         channel = supabase
           .channel('payment_updates')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'payment_requests' }, () =>
-            fetchPendingCount()
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'payment_requests' },
+            () => {
+              fetchPendingCount();
+              fetchStripePaymentCount();
+              fetchStripeFailureCount();
+            }
           )
           .subscribe((status) => {
             if (status === 'CHANNEL_ERROR') {
@@ -242,17 +306,24 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
 
     return () => {
       mounted = false;
+      window.clearInterval(stripeFailureRefresh);
       if (channel) {
         supabase.removeChannel(channel);
       }
     };
-  }, [isOnPaymentsTab]);
+  }, [isOnPaymentsTab, stripeSeenKey]);
 
   useEffect(() => {
     if (isOnPaymentsTab) {
       setPendingCount(0);
+      setStripePaymentCount(0);
+      try {
+        window.localStorage.setItem(stripeSeenKey, new Date().toISOString());
+      } catch {
+        // Storage can be unavailable in private mode.
+      }
     }
-  }, [isOnPaymentsTab]);
+  }, [isOnPaymentsTab, stripeSeenKey]);
 
   const isActiveAdminRoute = useMemo(
     () => (itemUrl) => {
@@ -286,6 +357,8 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
                   item={item}
                   isActive={isActiveAdminRoute(item.url)}
                   pendingCount={pendingCount}
+                  stripePaymentCount={stripePaymentCount}
+                  stripeFailureCount={stripeFailureCount}
                 />
               ))}
             </SidebarMenu>

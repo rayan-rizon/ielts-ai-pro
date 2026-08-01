@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { m, AnimatePresence } from 'framer-motion';
 import {
-  Loader2,
   LayoutDashboard,
   Users,
   Tag,
@@ -14,10 +13,9 @@ import {
   CreditCard,
   Gift,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { createPageUrl } from '@/utils';
-// Button, Card, CardContent removed as unused
+import DashboardSkeleton from '@/features/dashboard/components/DashboardSkeleton';
 
 // Lazy load admin components
 const AdminOverview = lazy(() => import('@/components/admin/AdminOverview'));
@@ -25,9 +23,6 @@ const TestManagement = lazy(() => import('@/components/admin/tests'));
 const UserManagement = lazy(() => import('@/components/admin/UserManagement'));
 const PromoCodeManagement = lazy(() => import('@/components/admin/PromoManagement'));
 const ResourceManagement = lazy(() => import('@/components/admin/ResourceManagement'));
-const PassageQuestionManager = lazy(
-  () => import('@/components/admin/tests/builders/PassageQuestionManager')
-);
 const UserAnalytics = lazy(() => import('@/components/admin/UserAnalytics'));
 const RevenueAnalytics = lazy(() => import('@/components/admin/RevenueAnalytics'));
 const GlobalSettings = lazy(() => import('@/components/admin/settings/GlobalSettings'));
@@ -39,16 +34,16 @@ const AIUsageManagement = lazy(() => import('@/components/admin/AIUsageManagemen
 const ReferralManagement = lazy(() => import('@/components/admin/ReferralManagement'));
 
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: LayoutDashboard, component: AdminOverview },
-  { id: 'users', label: 'Users', icon: Users, component: UserManagement },
-  { id: 'tests', label: 'Tests', icon: FileText, component: TestManagement },
-  { id: 'resources', label: 'Resources', icon: Library, component: ResourceManagement },
-  { id: 'ai-usage', label: 'AI Usage', icon: Cpu, component: AIUsageManagement },
-  { id: 'promo', label: 'Promos', icon: Tag, component: PromoCodeManagement },
-  { id: 'referrals', label: 'Referrals', icon: Gift, component: ReferralManagement },
-  { id: 'payments', label: 'Payments', icon: CreditCard, component: PaymentManagement },
-  { id: 'notifications', label: 'Notifications', icon: Bell, component: NotificationCenter },
-  { id: 'settings', label: 'Settings', icon: Settings, component: GlobalSettings },
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'users', label: 'Users', icon: Users },
+  { id: 'tests', label: 'Tests', icon: FileText },
+  { id: 'resources', label: 'Resources', icon: Library },
+  { id: 'ai-usage', label: 'AI Usage', icon: Cpu },
+  { id: 'promo', label: 'Promos', icon: Tag },
+  { id: 'referrals', label: 'Referrals', icon: Gift },
+  { id: 'payments', label: 'Payments', icon: CreditCard },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 import { AnalyticsService } from '@/features/admin/services/AnalyticsService';
@@ -195,11 +190,6 @@ export default function AdminPanel() {
   // Modal and form states
   const [isAddingPromo, setIsAddingPromo] = useState(false);
 
-  // Question management states (for PassageQuestionManager)
-  const [editingQuestion, setEditingQuestion] = useState(null);
-  // eslint-disable-next-line no-unused-vars
-  const [selectedContent, setSelectedContent] = useState(null);
-
   // Test management states
   const [isCreatingTest, setIsCreatingTest] = useState(false);
   const [editingTest, setEditingTest] = useState(null);
@@ -207,14 +197,6 @@ export default function AdminPanel() {
   const { user: currentUser, loading, isAdmin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-
-  const showToast = (title, description, variant = 'default') => {
-    if (variant === 'destructive') {
-      toast.error(title, { description });
-    } else {
-      toast.success(title, { description });
-    }
-  };
 
   useEffect(() => {
     if (loading) return;
@@ -235,11 +217,7 @@ export default function AdminPanel() {
     const tab = params.get('tab');
     const action = params.get('action');
 
-    const allowedTabs = TABS.map((t) => t.id).concat([
-      'passage_questions',
-      'user-analytics',
-      'revenue-analytics',
-    ]);
+    const allowedTabs = TABS.map((t) => t.id).concat(['user-analytics', 'revenue-analytics']);
     if (tab && allowedTabs.includes(tab)) {
       setActiveTab(tab);
     } else {
@@ -269,22 +247,6 @@ export default function AdminPanel() {
             editingTest={editingTest}
             setEditingTest={setEditingTest}
             data-oid="pky1zr_"
-          />
-        );
-
-      case 'passage_questions':
-        if (!selectedContent) {
-          setActiveTab('tests');
-          return null;
-        }
-        return (
-          <PassageQuestionManager
-            selectedContent={selectedContent}
-            showToast={showToast}
-            setEditingQuestion={setEditingQuestion}
-            editingQuestion={editingQuestion}
-            setActiveTab={setActiveTab}
-            data-oid="jyd9n.j"
           />
         );
 
@@ -322,26 +284,7 @@ export default function AdminPanel() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-background" data-oid="dx1vtaz">
-        <div className="text-center" data-oid="2v.c.7g">
-          <m.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-            className="w-16 h-16 bg-gradient-to-r from-violet-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xl"
-            data-oid="kt7sm:n"
-          >
-            <Loader2 className="w-8 h-8 text-white" data-oid="7v1c4.o" />
-          </m.div>
-          <p className="text-xl font-semibold text-foreground" data-oid="6fcv0ai">
-            Loading Dashboard...
-          </p>
-          <p className="text-muted-foreground mt-2" data-oid="dv0skih">
-            Preparing your analytics
-          </p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton data-oid="admin-dashboard-skeleton" />;
   }
 
   return (

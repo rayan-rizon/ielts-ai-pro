@@ -270,7 +270,7 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
 
   return (
     <section
-      className="relative bg-gradient-to-b from-[#f8f5fe]/80 via-[#fcfaff] to-white dark:from-[#0b0a10] dark:to-[#0b0a10] pb-12 pt-24 sm:pb-16 sm:pt-28 lg:pb-20 lg:pt-32 overflow-hidden"
+      className="relative bg-gradient-to-b from-[#f8f5fe]/80 via-[#fcfaff] to-white dark:from-[#08080a] dark:to-[#08080a] pb-12 pt-24 sm:pb-16 sm:pt-28 lg:pb-20 lg:pt-32 overflow-hidden"
       aria-label="Hero"
       data-hero-root
     >
@@ -287,7 +287,7 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
         <div className="absolute -left-32 top-6 h-[38rem] w-[38rem] rounded-full bg-violet-200/20 blur-[140px] dark:bg-[#5a63df]/10 transform-gpu" />
         <div className="absolute -right-32 top-2 h-[42rem] w-[42rem] rounded-full bg-purple-200/15 blur-[150px] dark:bg-[#5a63df]/[0.08] transform-gpu" />
         <div className="absolute left-1/3 top-1/4 h-[24rem] w-[24rem] rounded-full bg-fuchsia-100/15 blur-[130px] dark:bg-transparent transform-gpu" />
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white to-transparent dark:from-[#0b0a10]" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white to-transparent dark:from-[#08080a]" />
       </div>
 
       <div className="relative mx-auto grid max-w-[1540px] items-center gap-10 sm:gap-12 px-5 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-8 xl:px-12 2xl:px-16">

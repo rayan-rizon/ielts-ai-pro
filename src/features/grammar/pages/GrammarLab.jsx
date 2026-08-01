@@ -15,7 +15,6 @@ import GrammarAttempt from '../components/GrammarAttempt';
 import GrammarDashboard from '../components/GrammarDashboard';
 import GrammarGuidePage from '../components/GrammarGuidePage';
 import GrammarResults from '../components/GrammarResults';
-import GrammarTransfer from '../components/GrammarTransfer';
 import { getGrammarGuide } from '../data/grammarGuideCatalog';
 import { useGrammarLab } from '../hooks/useGrammarLab';
 import {
@@ -121,19 +120,19 @@ export default function GrammarLab() {
   const navigate = useNavigate();
   const { guideSlug } = useParams();
   const grammar = useGrammarLab();
-  const requestedMode = searchParams.get('mode');
+  const rawRequestedMode = searchParams.get('mode');
+  const requestedMode = ['diagnostic', 'practice', 'review'].includes(rawRequestedMode)
+    ? rawRequestedMode
+    : null;
   const requestedSkill = searchParams.get('skill');
   const requestedActivityId = searchParams.get('activityId');
-  const requestedTransfer = searchParams.get('transfer');
   const screen = guideSlug
     ? 'guide'
     : grammar.result
       ? 'result'
-      : requestedMode === 'transfer'
-        ? 'transfer'
-        : grammar.activeAttempt
-          ? 'attempt'
-          : 'dashboard';
+      : grammar.activeAttempt
+        ? 'attempt'
+        : 'dashboard';
 
   const recommendedSkill = useMemo(() => {
     return (
@@ -149,6 +148,12 @@ export default function GrammarLab() {
   );
 
   useEffect(() => {
+    if (rawRequestedMode === 'transfer') {
+      navigate('/grammar', { replace: true });
+    }
+  }, [navigate, rawRequestedMode]);
+
+  useEffect(() => {
     scrollGrammarPageToTop(pageTopRef.current);
     const frame = window.requestAnimationFrame(() => scrollGrammarPageToTop(pageTopRef.current));
     return () => window.cancelAnimationFrame(frame);
@@ -159,12 +164,10 @@ export default function GrammarLab() {
       ...options,
       learningPathActivityId: requestedActivityId || undefined,
     });
-    if (options.mode !== 'transfer') {
-      const next = new URLSearchParams(searchParams);
-      next.set('mode', options.mode);
-      if (options.targetSkills?.[0]) next.set('skill', options.targetSkills[0]);
-      navigate(`/grammar?${next.toString()}`, { replace: true });
-    }
+    const next = new URLSearchParams(searchParams);
+    next.set('mode', options.mode);
+    if (options.targetSkills?.[0]) next.set('skill', options.targetSkills[0]);
+    navigate(`/grammar?${next.toString()}`, { replace: true });
     return data;
   };
 
@@ -174,13 +177,8 @@ export default function GrammarLab() {
     navigate('/grammar', { replace: true });
   };
 
-  const showTransfer = () => {
-    grammar.setActiveAttempt(null);
-    grammar.setResult(null);
-    const next = new URLSearchParams();
-    next.set('mode', 'transfer');
-    if (recommendedSkill?.skillCode) next.set('skill', recommendedSkill.skillCode);
-    navigate(`/grammar?${next.toString()}`);
+  const showRetest = (target = 'writing') => {
+    navigate(target === 'speaking' ? '/speaking?mode=practice' : '/writing?mode=practice');
   };
 
   return (
@@ -191,7 +189,7 @@ export default function GrammarLab() {
       />
       <main
         ref={pageTopRef}
-        className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#0b0a10] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5"
+        className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5"
       >
         <div
           aria-hidden="true"
@@ -291,19 +289,6 @@ export default function GrammarLab() {
                   questionCount: 5,
                 })
               }
-              onTransfer={showTransfer}
-            />
-          ) : screen === 'transfer' ? (
-            <GrammarTransfer
-              isPaid={grammar.isPaid}
-              recommendedSkill={recommendedSkill}
-              requestedTarget={requestedTransfer}
-              recentSpeakingSessions={grammar.recentSpeakingSessions}
-              isStarting={grammar.isStarting}
-              isEvaluating={grammar.isEvaluating}
-              onStart={startAttempt}
-              onEvaluate={grammar.evaluateTransfer}
-              onExit={showDashboard}
             />
           ) : screen === 'attempt' ? (
             <GrammarAttempt
@@ -324,9 +309,8 @@ export default function GrammarLab() {
               defaultSkill={requestedSkill}
               isStarting={grammar.isStarting}
               isResuming={grammar.isResuming}
-              onStart={(options) =>
-                options.mode === 'transfer' ? showTransfer() : startAttempt(options)
-              }
+              onStart={startAttempt}
+              onRetest={showRetest}
               onResume={grammar.resumeAttempt}
             />
           )}

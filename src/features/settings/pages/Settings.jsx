@@ -279,7 +279,7 @@ export default function Settings() {
 
   if (isUserLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f8f8fb] dark:bg-[#0b0a10]">
+      <div className="flex min-h-screen items-center justify-center bg-[#f8f8fb] dark:bg-[#08080a]">
         <Clock className="h-8 w-8 animate-spin text-[#5a63df]" />
       </div>
     );
@@ -298,7 +298,7 @@ export default function Settings() {
   };
 
   return (
-    <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#0b0a10] dark:text-white sm:px-4 md:px-5 md:py-5">
+    <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
@@ -463,7 +463,7 @@ export default function Settings() {
             }
           }}
         >
-          <DialogContent className="rounded-xl border-[#e4e2f0] bg-white p-5 dark:border-white/10 dark:bg-[#131218] sm:max-w-[380px]">
+          <DialogContent className="rounded-xl border-[#e4e2f0] bg-white p-5 dark:border-white/10 dark:bg-[#131315] sm:max-w-[380px]">
             <DialogHeader className="space-y-2">
               <DialogTitle className="flex items-center gap-2 text-lg font-extrabold text-[rgb(var(--signal-fault))]">
                 <Trash2 className="h-5 w-5" />

@@ -41,7 +41,31 @@ export const CATEGORY_LABEL = {
   ai: 'AI & Speech',
   payments: 'Payments',
   content: 'Test Content',
+  communications: 'Communications',
   platform: 'Platform',
+};
+
+const VALID_STATUSES = new Set(Object.keys(STATUS_SEVERITY));
+
+const normalizeHours = (hours) => Math.min(Math.max(Number(hours) || 24, 1), 24 * 90);
+
+const assertHealthPayload = (data) => {
+  if (!data || !Array.isArray(data.services)) {
+    throw new Error('Platform health returned an invalid payload');
+  }
+  for (const service of data.services) {
+    if (!service?.key || !service?.label || !VALID_STATUSES.has(service.status)) {
+      throw new Error('Platform health returned an invalid service contract');
+    }
+  }
+};
+
+const normalizeProviderHealth = (data) => {
+  const service = data?.service;
+  if (!service?.key || !service?.label || !VALID_STATUSES.has(service.status)) {
+    throw new Error('AI provider health returned an invalid service contract');
+  }
+  return service;
 };
 
 export const PlatformHealth = {
@@ -50,8 +74,20 @@ export const PlatformHealth = {
    * @returns {Promise<{generatedAt: string, windowHours: number, services: Array, activity: Object, summary: Object}>}
    */
   async get(hours = 24) {
-    const { data, error } = await supabase.rpc('get_platform_health', { p_hours: hours });
+    const normalizedHours = normalizeHours(hours);
+    const loadProviderHealth = async () => {
+      try {
+        return await supabase.rpc('get_ai_provider_health', { p_hours: normalizedHours });
+      } catch (providerError) {
+        return { data: null, error: providerError };
+      }
+    };
+    const [{ data, error }, providerResult] = await Promise.all([
+      supabase.rpc('get_platform_health', { p_hours: normalizedHours }),
+      loadProviderHealth(),
+    ]);
     if (error) throw error;
+    assertHealthPayload(data);
 
     const services = [...(data?.services || [])].sort(
       (a, b) =>
@@ -59,7 +95,29 @@ export const PlatformHealth = {
         a.label.localeCompare(b.label)
     );
 
-    return { ...data, services };
+    let providerService;
+    if (providerResult?.error) {
+      providerService = {
+        key: 'ai_text_providers',
+        label: 'Text AI Providers',
+        category: 'ai',
+        provider: 'Provider telemetry unavailable',
+        status: 'attention',
+        source: 'get_ai_provider_health RPC',
+        metrics: { attempts: 0, errors: 0 },
+        impact:
+          'Provider routing telemetry could not be loaded; verify the latest health migration and admin RPC access.',
+      };
+    } else {
+      providerService = normalizeProviderHealth(providerResult?.data);
+    }
+
+    const allServices = [...services, providerService].sort(
+      (a, b) =>
+        (STATUS_SEVERITY[a.status] ?? 99) - (STATUS_SEVERITY[b.status] ?? 99) ||
+        a.label.localeCompare(b.label)
+    );
+    return { ...data, services: allServices };
   },
 
   /**
@@ -85,10 +143,11 @@ export const PlatformHealth = {
    */
   async incidents(hours = 24, limit = 50) {
     const { data, error } = await supabase.rpc('get_platform_health_incidents', {
-      p_hours: hours,
-      p_limit: limit,
+      p_hours: normalizeHours(hours),
+      p_limit: Math.min(Math.max(Number(limit) || 50, 1), 200),
     });
     if (error) throw error;
-    return data || [];
+    if (!Array.isArray(data)) throw new Error('Platform incidents returned an invalid payload');
+    return data;
   },
 };

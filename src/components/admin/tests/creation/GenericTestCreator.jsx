@@ -93,7 +93,9 @@ const GenericTestCreator = ({ initialData, onSave, onCancel, testType }) => {
           if (parsed.formData && parsed.formData.testType === testType) {
             setFormData(parsed.formData);
           }
-        } catch (e) {}
+        } catch {
+          // Ignore malformed drafts and start with a clean form.
+        }
       }
     }
   }, []);
@@ -112,7 +114,7 @@ const GenericTestCreator = ({ initialData, onSave, onCancel, testType }) => {
 
   const handleSave = () => {
     try {
-      const parsedData = JSON.parse(formData.raw_data);
+      JSON.parse(formData.raw_data);
       onSave({
         ...initialData,
         title: formData.title,

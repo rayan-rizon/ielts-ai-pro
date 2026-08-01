@@ -114,7 +114,7 @@ export default function SpeakingReport({
   return (
     <div
       data-testid="speaking-report-scroll"
-      className="custom-scrollbar relative isolate h-full min-h-0 overflow-y-auto overscroll-contain bg-[#f7f6fd] px-4 py-4 dark:bg-[#0b0a0f] sm:px-6 sm:py-6 lg:px-8 lg:py-8"
+      className="custom-scrollbar relative isolate h-full min-h-0 overflow-y-auto overscroll-contain bg-[#f7f6fd] px-4 py-4 dark:bg-[#08080a] sm:px-6 sm:py-6 lg:px-8 lg:py-8"
     >
       {showConfetti && (
         <Confetti
@@ -143,7 +143,7 @@ export default function SpeakingReport({
         key="report"
         className="relative mx-auto w-full max-w-[1280px]"
       >
-        <section className="overflow-hidden rounded-2xl border border-[#e4e2f0] bg-gradient-to-b from-white to-[#faf9ff] shadow-xl shadow-rose-950/5 dark:border-white/[0.07] dark:from-[#141319] dark:to-[#100f15]">
+        <section className="overflow-hidden rounded-2xl border border-[#e4e2f0] bg-gradient-to-b from-white to-[#faf9ff] shadow-xl shadow-rose-950/5 dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315]">
           {/* Header Banner */}
           <header className="relative overflow-hidden bg-gradient-to-r from-rose-500 via-rose-500 to-rose-600 px-5 pb-5 pt-4 text-white sm:px-8 lg:px-10 lg:pb-6 lg:pt-5">
             <HeaderWaveBackground />

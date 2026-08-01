@@ -55,7 +55,7 @@ export default function ListeningTestMainContent({
         {/* Left Panel: Transcript */}
         <div
           className={cn(
-            'shrink-0 bg-white dark:bg-[#0b0a10] border-r border-slate-200 dark:border-white/[0.07] flex flex-col h-full overflow-hidden transition-[width,transform] duration-300 ease-in-out absolute md:relative z-30 md:z-auto',
+            'shrink-0 bg-white dark:bg-[#08080a] border-r border-slate-200 dark:border-white/[0.07] flex flex-col h-full overflow-hidden transition-[width,transform] duration-300 ease-in-out absolute md:relative z-30 md:z-auto',
             isMobile && leftPanelWidth === 0 && '-translate-x-full',
             isMobile && leftPanelWidth === 100 && 'w-full translate-x-0'
           )}
@@ -115,7 +115,7 @@ export default function ListeningTestMainContent({
         {/* Right Panel: Questions */}
         <div
           className={cn(
-            'flex-1 flex flex-col min-h-0 bg-[#f8f8fb] dark:bg-[#0b0a10] relative overflow-hidden transition-all duration-300',
+            'flex-1 flex flex-col min-h-0 bg-[#f8f8fb] dark:bg-[#08080a] relative overflow-hidden transition-all duration-300',
             isMobile && leftPanelWidth === 100 && 'hidden'
           )}
           style={{ width: isMobile ? '100%' : `${100 - leftPanelWidth}%` }}

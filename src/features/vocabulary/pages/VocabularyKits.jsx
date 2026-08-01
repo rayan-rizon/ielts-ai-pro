@@ -70,7 +70,7 @@ function KitsLibrary() {
         description="Study curated IELTS vocabulary kits for Speaking, Reading, Writing, target bands, and common exam topics."
       />
 
-      <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 dark:bg-[#0b0a10] dark:text-white">
+      <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 dark:bg-[#08080a] dark:text-white">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
@@ -283,7 +283,7 @@ function KitDetail({ kit }) {
   return (
     <>
       <DocumentHead title={`${kit.title} | IELTS Ai Pro`} description={kit.description} />
-      <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 dark:bg-[#0b0a10] dark:text-white">
+      <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 dark:bg-[#08080a] dark:text-white">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
@@ -379,7 +379,7 @@ function KitDetail({ kit }) {
 
 function MissingKit() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] px-4 py-20 dark:bg-[#0b0a10]">
+    <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] px-4 py-20 dark:bg-[#08080a]">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"

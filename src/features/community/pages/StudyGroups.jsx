@@ -135,11 +135,11 @@ function GroupPreviewCard({ name, members, type, difficulty, isFull }) {
             <img
               key={i}
               src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}-${i}`}
-              className="h-6 w-6 rounded-full border-2 border-white bg-slate-100 object-cover dark:border-[#141319] dark:bg-slate-800"
+              className="h-6 w-6 rounded-full border-2 border-white bg-slate-100 object-cover dark:border-[#131315] dark:bg-slate-800"
               alt=""
             />
           ))}
-          <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[#5a63df] text-[9px] font-black text-white dark:border-[#141319]">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[#5a63df] text-[9px] font-black text-white dark:border-[#131315]">
             +{members}
           </div>
         </div>
@@ -177,7 +177,7 @@ function GroupPreviewCard({ name, members, type, difficulty, isFull }) {
 
 export default function StudyGroups() {
   return (
-    <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#0b0a10] dark:text-white sm:px-4 md:px-5 md:py-5">
+    <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"

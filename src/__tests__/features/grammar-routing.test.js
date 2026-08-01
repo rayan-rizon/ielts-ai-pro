@@ -16,19 +16,14 @@ describe('explicit Learning Path activity routing', () => {
     ).toBe('/grammar?mode=review&skill=grammar_articles_determiners&activityId=activity-1');
   });
 
-  it('routes Grammar transfer provenance and keeps the requested IELTS test mode', () => {
+  it('routes a Grammar checkpoint through the existing scored IELTS test', () => {
     expect(
       buildActivityUrl({
-        module: 'grammar',
-        routing: { route: 'grammar', mode: 'transfer', transferTarget: 'speaking' },
-      })
-    ).toBe('/grammar?mode=transfer&transfer=speaking');
-    expect(
-      buildActivityUrl({
+        id: 'checkpoint-1',
         module: 'writing',
         routing: { route: 'writing', mode: 'practice' },
       })
-    ).toBe('/writing?mode=practice');
+    ).toBe('/writing?mode=practice&activityId=checkpoint-1');
   });
 
   it('does not infer an unknown activity as Reading', () => {

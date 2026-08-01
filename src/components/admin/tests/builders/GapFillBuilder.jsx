@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import ReactQuill, { Quill } from 'react-quill';
+import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { Plus, Type, ScanLine, Info, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ScanLine } from 'lucide-react';
 
 // Custom button for inserting gaps in Quill
-const ToolBar = ({ id, theme }) => {
+const ToolBar = ({ id }) => {
   return (
     <div
       id={id}
@@ -45,7 +43,7 @@ const ToolBar = ({ id, theme }) => {
   );
 };
 
-const GapFillBuilder = ({ initialData, onChange, theme }) => {
+const GapFillBuilder = ({ initialData, onChange }) => {
   const [content, setContent] = useState(initialData?.text || '');
   const [answers, setAnswers] = useState(initialData?.answers || {});
   const [boxTitle, setBoxTitle] = useState(initialData?.box_title || '');
@@ -105,7 +103,7 @@ const GapFillBuilder = ({ initialData, onChange, theme }) => {
       </div>
 
       <div className="bg-white dark:bg-[#131315] rounded-xl border border-stone-200 dark:border-white/10 shadow-2xs overflow-hidden">
-        <ToolBar id={toolbarId} theme={theme} />
+        <ToolBar id={toolbarId} />
         <ReactQuill
           theme="snow"
           value={content}

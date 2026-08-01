@@ -51,7 +51,7 @@ import {
 import { sanitizeHtml } from '@/lib/security';
 
 // Reusing RichTextEditor with Theme Support (for prompts - uses ReactQuill)
-const RichTextEditor = ({ value, onChange, placeholder, rows = 10, className = '', theme }) => {
+const RichTextEditor = ({ value, onChange, placeholder, className = '' }) => {
   const quillModules = {
     toolbar: [
       [{ header: [1, 2, 3, false] }],
@@ -550,18 +550,6 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
 
   const [activeTask, setActiveTask] = useState('Task 1');
 
-  // Collapsible sections state
-  const [collapsedSections, setCollapsedSections] = useState({
-    instructions: false,
-    prompt: false,
-    sampleAnswer: false,
-    image: false,
-  });
-
-  const toggleSection = (section) => {
-    setCollapsedSections((prev) => ({ ...prev, [section]: !prev[section] }));
-  };
-
   // Initialize
   useEffect(() => {
     if (initialData) {
@@ -586,7 +574,7 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
             },
           };
         }
-      } catch (e) {
+      } catch {
         const taskType = initialData.task_type || 'Task 1';
         parsedTasks = {
           ...tasks,

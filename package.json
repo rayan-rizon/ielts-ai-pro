@@ -26,6 +26,7 @@
     "perf:lighthouse:desktop": "lhci collect --settings.emulatedFormFactor=desktop",
     "perf:lighthouse:assert": "lhci assert",
     "precache-tts": "node scripts/pre-cache-tts.mjs",
+    "compare:text-ai": "node --experimental-strip-types scripts/compare-text-ai-providers.mjs",
     "prepare": "if [ -d .git ]; then husky; fi"
   },
   "dependencies": {

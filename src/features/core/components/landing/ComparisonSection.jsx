@@ -86,7 +86,7 @@ function DesktopComparisonTable({ categoriesList, reduceMotion }) {
                   <span>{item.genericAi}</span>
                 </div>
               </td>
-              <td className="border-x border-[#ded9ff]/80 bg-[#f2f0ff]/40 px-4 sm:px-6 py-4 transition-colors group-hover/row:bg-[#eae5ff]/60 dark:border-violet-500/20 dark:bg-violet-950/20">
+              <td className="border-x border-[#ded9ff]/80 bg-[#f2f0ff]/40 px-4 sm:px-6 py-4 transition-colors group-hover/row:bg-[#eae5ff]/60 dark:border-violet-500/20 dark:bg-violet-950/20 dark:group-hover/row:bg-violet-950/35">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#6256ef] text-white shadow-2xs dark:bg-violet-500">
                     <Check className="h-2.5 w-2.5 stroke-[2.5]" />
@@ -118,7 +118,7 @@ function MobileComparisonTable({ categoriesList, reduceMotion }) {
             'flex-1 py-2 px-3 rounded-lg text-[11px] font-bold transition-all text-center flex items-center justify-center gap-1.5',
             compareTarget === 'traditional'
               ? 'bg-white text-[#5e50ee] shadow-sm dark:bg-violet-950 dark:text-violet-300'
-              : 'text-[#737d9b] hover:text-[#101836] dark:text-slate-400'
+              : 'text-[#737d9b] hover:text-[#101836] dark:text-slate-400 dark:hover:text-white'
           )}
         >
           <Building2 className="w-3.5 h-3.5 shrink-0" />
@@ -131,7 +131,7 @@ function MobileComparisonTable({ categoriesList, reduceMotion }) {
             'flex-1 py-2 px-3 rounded-lg text-[11px] font-bold transition-all text-center flex items-center justify-center gap-1.5',
             compareTarget === 'genericAi'
               ? 'bg-white text-[#5e50ee] shadow-sm dark:bg-violet-950 dark:text-violet-300'
-              : 'text-[#737d9b] hover:text-[#101836] dark:text-slate-400'
+              : 'text-[#737d9b] hover:text-[#101836] dark:text-slate-400 dark:hover:text-white'
           )}
         >
           <Bot className="w-3.5 h-3.5 shrink-0" />
@@ -187,7 +187,7 @@ export default function ComparisonSection({ viewport, handlePrimaryCta }) {
   return (
     <SoftSection
       id="comparison"
-      className="scroll-mt-24 py-16 lg:py-24 bg-[#faf9ff] dark:bg-[#0b0a10] relative overflow-hidden"
+      className="scroll-mt-24 py-16 lg:py-24 bg-[#faf9ff] dark:bg-[#08080a] relative overflow-hidden"
     >
       <div className="relative z-10 mx-auto max-w-[1300px] px-5 md:px-8">
         <SectionHeading
@@ -204,7 +204,7 @@ export default function ComparisonSection({ viewport, handlePrimaryCta }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewport}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-8 rounded-[26px] border border-[#e2e5fa] bg-white/95 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md dark:border-white/10 dark:bg-[#0d1020]/95 overflow-hidden"
+          className="mt-8 rounded-[26px] border border-[#e2e5fa] bg-white/95 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none overflow-hidden"
         >
           {/* Mobile View Toggle */}
           <MobileComparisonTable categoriesList={categories} reduceMotion={reduceMotion} />
@@ -221,7 +221,7 @@ export default function ComparisonSection({ viewport, handlePrimaryCta }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewport}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="mt-6 rounded-[22px] border border-[#e2e5fa] bg-gradient-to-r from-white/95 via-[#faf9ff] to-[#f4f2ff] p-5 sm:p-6 shadow-[0_18px_40px_-22px_rgba(79,66,220,0.20)] backdrop-blur-md dark:border-white/10 dark:from-[#0d1020] dark:via-[#0a0c1a] dark:to-[#070914] flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left justify-between"
+          className="mt-6 rounded-[22px] border border-[#e2e5fa] bg-gradient-to-r from-white/95 via-[#faf9ff] to-[#f4f2ff] p-5 sm:p-6 shadow-[0_18px_40px_-22px_rgba(79,66,220,0.20)] backdrop-blur-md dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left justify-between"
         >
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#ded9ff] bg-[#f2f0ff] text-[#6256ef] shadow-sm dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300">

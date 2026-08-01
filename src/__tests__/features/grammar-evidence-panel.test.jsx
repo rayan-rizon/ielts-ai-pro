@@ -34,11 +34,14 @@ describe('GrammarEvidencePanel', () => {
     expect(
       screen.getByRole('progressbar', { name: 'Writing grammar estimated grammar control' })
     ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Open Writing' })).toHaveAttribute('href', '/writing');
+    expect(screen.getByRole('link', { name: 'Take a Writing test' })).toHaveAttribute(
+      'href',
+      '/writing'
+    );
 
     fireEvent.click(screen.getByRole('tab', { name: 'Speaking' }));
     expect(screen.getByText('Not connected')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Open Speaking' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Take a Speaking test' })).toHaveAttribute(
       'href',
       '/speaking'
     );

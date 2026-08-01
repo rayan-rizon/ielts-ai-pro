@@ -32,7 +32,7 @@ export default function QuestionRendererDispatcher({
     isInsideMergedCard,
     cardClass: isInsideMergedCard
       ? 'mb-2.5 bg-transparent p-0 border-0 shadow-none'
-      : 'mb-3.5 border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] rounded-xl overflow-hidden',
+      : 'mb-3.5 border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] rounded-xl overflow-hidden',
   };
 
   return (

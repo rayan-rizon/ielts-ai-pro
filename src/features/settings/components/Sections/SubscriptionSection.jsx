@@ -198,7 +198,7 @@ export default function SubscriptionSection({
       )}
 
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent className="rounded-2xl border-[#e2e5f2] bg-white p-6 dark:border-white/10 dark:bg-[#131218] sm:max-w-[420px]">
+        <DialogContent className="rounded-2xl border-[#e2e5f2] bg-white p-6 dark:border-white/10 dark:bg-[#131315] sm:max-w-[420px]">
           <DialogHeader className="space-y-2.5">
             <DialogTitle className="flex items-center gap-2.5 text-lg font-extrabold text-[rgb(var(--signal-fault))]">
               <AlertTriangle className="h-5 w-5 shrink-0" />

@@ -15,69 +15,67 @@ import { cn } from '@/lib/cn';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const ANNOTATION_CONFIG = {
-  grammar: {
-    icon: AlertCircle,
-    color: 'rose',
-    bgClass: 'bg-rose-50/80 dark:bg-rose-500/10',
-    borderClass: 'border-rose-200/80 dark:border-rose-500/30',
-    textClass: 'text-rose-700 dark:text-rose-300',
-    underlineClass: 'decoration-rose-400 decoration-wavy',
-    label: 'Grammar',
+// Type only carries icon + label. Colour is driven by severity (below) so the
+// palette stays the app's 3-signal system (fault/warn/ok) plus one brand accent
+// for actionable suggestions — never a colour-per-category rainbow.
+const TYPE_META = {
+  grammar: { icon: AlertCircle, label: 'Grammar' },
+  spelling: { icon: AlertCircle, label: 'Spelling' },
+  style: { icon: AlertTriangle, label: 'Style' },
+  vocabulary: { icon: BookOpen, label: 'Vocabulary' },
+  clarity: { icon: Lightbulb, label: 'Clarity' },
+  positive: { icon: CheckCircle2, label: 'Good' },
+};
+
+// rgb(var(--signal-*)) already resolves to the correct shade per theme, so no
+// separate dark: class is needed for those three.
+const SEVERITY_STYLES = {
+  error: {
+    bgClass: 'bg-[rgb(var(--signal-fault)/0.08)]',
+    borderClass: 'border-[rgb(var(--signal-fault)/0.3)]',
+    textClass: 'text-[rgb(var(--signal-fault))]',
+    underlineClass: 'decoration-[rgb(var(--signal-fault))] decoration-wavy',
+    applyClass: 'bg-[rgb(var(--signal-fault))] hover:opacity-90 text-white',
   },
-  spelling: {
-    icon: AlertCircle,
-    color: 'rose',
-    bgClass: 'bg-rose-50/80 dark:bg-rose-500/10',
-    borderClass: 'border-rose-200/80 dark:border-rose-500/30',
-    textClass: 'text-rose-700 dark:text-rose-300',
-    underlineClass: 'decoration-rose-400 decoration-wavy',
-    label: 'Spelling',
+  warning: {
+    bgClass: 'bg-[rgb(var(--signal-warn)/0.08)]',
+    borderClass: 'border-[rgb(var(--signal-warn)/0.3)]',
+    textClass: 'text-[rgb(var(--signal-warn))]',
+    underlineClass: 'decoration-[rgb(var(--signal-warn))] decoration-wavy',
+    applyClass: 'bg-[rgb(var(--signal-warn))] hover:opacity-90 text-white',
   },
-  style: {
-    icon: AlertTriangle,
-    color: 'orange',
-    bgClass: 'bg-orange-50/80 dark:bg-orange-500/10',
-    borderClass: 'border-orange-200/80 dark:border-orange-500/30',
-    textClass: 'text-orange-700 dark:text-orange-300',
-    underlineClass: 'decoration-orange-400 decoration-wavy',
-    label: 'Style',
-  },
-  vocabulary: {
-    icon: BookOpen,
-    color: 'indigo',
-    bgClass: 'bg-indigo-50/80 dark:bg-indigo-500/10',
-    borderClass: 'border-indigo-200/80 dark:border-indigo-500/30',
-    textClass: 'text-indigo-700 dark:text-indigo-300',
-    underlineClass: 'decoration-indigo-400 decoration-dashed',
-    label: 'Vocabulary',
-  },
-  clarity: {
-    icon: Lightbulb,
-    color: 'sky',
-    bgClass: 'bg-sky-50/80 dark:bg-sky-500/10',
-    borderClass: 'border-sky-200/80 dark:border-sky-500/30',
-    textClass: 'text-sky-700 dark:text-sky-300',
-    underlineClass: 'decoration-sky-400 decoration-dotted',
-    label: 'Clarity',
+  suggestion: {
+    bgClass: 'bg-[#efedff] dark:bg-indigo-500/10',
+    borderClass: 'border-[#d2d7f8] dark:border-indigo-500/30',
+    textClass: 'text-[#5661e9] dark:text-indigo-300',
+    underlineClass: 'decoration-[#5661e9] decoration-dashed',
+    applyClass: 'bg-[#5661e9] hover:bg-[#4853d6] text-white',
   },
   positive: {
-    icon: CheckCircle2,
-    color: 'teal',
-    bgClass: 'bg-teal-50/80 dark:bg-teal-500/10',
-    borderClass: 'border-teal-200/80 dark:border-teal-500/30',
-    textClass: 'text-teal-700 dark:text-teal-300',
-    underlineClass: 'decoration-teal-400 decoration-double',
-    label: 'Good',
+    bgClass: 'bg-[rgb(var(--signal-ok)/0.08)]',
+    borderClass: 'border-[rgb(var(--signal-ok)/0.3)]',
+    textClass: 'text-[rgb(var(--signal-ok))]',
+    underlineClass: 'decoration-[rgb(var(--signal-ok))] decoration-double',
+    applyClass: 'bg-[rgb(var(--signal-ok))] hover:opacity-90 text-white',
   },
 };
 
-const APPLY_BUTTON_COLORS = {
-  rose: 'bg-rose-500 hover:bg-rose-600 text-white',
-  orange: 'bg-orange-500 hover:bg-orange-600 text-white',
-  indigo: 'bg-indigo-600 hover:bg-indigo-700 text-white',
-  sky: 'bg-sky-500 hover:bg-sky-600 text-white',
+const SEVERITY_FALLBACK_BY_TYPE = {
+  grammar: 'error',
+  spelling: 'error',
+  style: 'warning',
+  vocabulary: 'suggestion',
+  clarity: 'suggestion',
+  positive: 'positive',
 };
+
+function resolveSeverity(annotation) {
+  return (
+    (SEVERITY_STYLES[annotation.severity] ? annotation.severity : null) ||
+    SEVERITY_FALLBACK_BY_TYPE[annotation.type] ||
+    'suggestion'
+  );
+}
 
 // ─── Custom Hooks ─────────────────────────────────────────────────────────────
 
@@ -170,41 +168,37 @@ function useAnnotatedSegments(plainText, filteredAnnotations) {
 
 // ─── Tooltip Sub-components ───────────────────────────────────────────────────
 
-const SEVERITY_BADGE_STYLES = {
-  error:
-    'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-950/60 dark:text-rose-400 dark:border-rose-800/60',
-  warning:
-    'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/60 dark:text-amber-400 dark:border-amber-800/60',
-  suggestion:
-    'bg-[#efedff] text-[#5661e9] border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30',
-  positive:
-    'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800/60',
-};
-
-const TooltipHeader = ({ annotation, config, onClose }) => {
-  const Icon = config.icon;
-  const severityStyle =
-    SEVERITY_BADGE_STYLES[annotation.severity] || SEVERITY_BADGE_STYLES.suggestion;
+const TooltipHeader = ({ typeMeta, severityStyle, severity, onClose }) => {
+  const Icon = typeMeta.icon;
 
   return (
     <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-[#e2e5f6] dark:border-white/10">
       <div className="flex items-center gap-2 min-w-0">
-        <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 shadow-2xs shrink-0">
+        <span
+          className={cn(
+            'flex h-7 w-7 items-center justify-center rounded-xl border shadow-2xs shrink-0',
+            severityStyle.bgClass,
+            severityStyle.borderClass,
+            severityStyle.textClass
+          )}
+        >
           <Icon className="w-3.5 h-3.5 stroke-[2.5]" />
         </span>
         <span className="text-xs font-black uppercase tracking-wider text-slate-950 dark:text-white truncate">
-          {config.label}
+          {typeMeta.label}
         </span>
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
-        {annotation.severity !== 'positive' && (
+        {severity !== 'positive' && (
           <span
             className={cn(
               'inline-flex h-6 items-center px-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider border leading-none shadow-2xs',
-              severityStyle
+              severityStyle.bgClass,
+              severityStyle.borderClass,
+              severityStyle.textClass
             )}
           >
-            {annotation.severity}
+            {severity}
           </span>
         )}
         <button
@@ -228,30 +222,33 @@ const TooltipCorrectionBlock = ({ annotation }) => (
       <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
         Original
       </span>
-      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 line-through decoration-rose-400/80 decoration-2">
+      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 line-through decoration-[rgb(var(--signal-fault)/0.8)] decoration-2">
         {annotation.originalText}
       </span>
     </div>
     <div className="h-px bg-[#e2e5f6]/80 dark:bg-white/10" />
     <div className="flex flex-col gap-0.5">
-      <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+      <span className="text-[9px] font-black text-[rgb(var(--signal-ok))] uppercase tracking-wider">
         Correction
       </span>
-      <span className="text-sm font-black text-emerald-700 dark:text-emerald-300 leading-snug">
+      <span className="text-sm font-black text-[rgb(var(--signal-ok))] leading-snug">
         {annotation.suggestion}
       </span>
     </div>
   </div>
 );
 
-const TooltipActions = ({ config, onApply, onIgnore }) => (
+const TooltipActions = ({ severityStyle, onApply, onIgnore }) => (
   <div className="grid grid-cols-2 gap-2 pt-0.5">
     <Button
       onClick={(e) => {
         e.stopPropagation();
         onApply();
       }}
-      className="h-8.5 text-xs font-black rounded-xl bg-gradient-to-r from-[#5661e9] to-[#4853d6] hover:from-[#4853d6] hover:to-[#3b42c4] text-white shadow-2xs hover:shadow-xs transition-all active:scale-95 border-0"
+      className={cn(
+        'h-8.5 text-xs font-black rounded-xl shadow-2xs hover:shadow-xs transition-all active:scale-95 border-0',
+        severityStyle.applyClass
+      )}
     >
       Apply Correction
     </Button>
@@ -261,7 +258,7 @@ const TooltipActions = ({ config, onApply, onIgnore }) => (
         e.stopPropagation();
         onIgnore();
       }}
-      className="h-8.5 text-xs font-black text-[#5661e9] hover:text-[#4853d6] dark:text-slate-200 bg-gradient-to-r from-[#f8f9ff] to-[#f4f5fe] hover:bg-slate-100/80 dark:bg-white/10 dark:hover:bg-white/15 border-[#d2d7f8] dark:border-white/10 rounded-xl active:scale-95 shadow-2xs"
+      className="h-8.5 text-xs font-black text-slate-600 hover:text-slate-900 dark:text-slate-300 bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 border-slate-200 dark:border-white/10 rounded-xl active:scale-95 shadow-2xs"
     >
       Dismiss
     </Button>
@@ -270,9 +267,18 @@ const TooltipActions = ({ config, onApply, onIgnore }) => (
 
 // ─── Tooltip ──────────────────────────────────────────────────────────────────
 
-const AnnotationTooltip = ({ annotation, onApply, onIgnore, onClose, config, containerRef }) => {
+const AnnotationTooltip = ({
+  annotation,
+  onApply,
+  onIgnore,
+  onClose,
+  typeMeta,
+  severityStyle,
+  severity,
+  containerRef,
+}) => {
   const { tooltipRef, offsets } = useAnnotationPositioning(containerRef);
-  const isPositive = annotation.severity === 'positive';
+  const isPositive = severity === 'positive';
 
   return (
     <motion.div
@@ -296,7 +302,13 @@ const AnnotationTooltip = ({ annotation, onApply, onIgnore, onClose, config, con
       />
 
       <div className="pt-2 pb-2.5 px-3 relative">
-        <TooltipHeader annotation={annotation} config={config} onClose={onClose} />
+        <TooltipHeader
+          annotation={annotation}
+          typeMeta={typeMeta}
+          severityStyle={severityStyle}
+          severity={severity}
+          onClose={onClose}
+        />
 
         {!isPositive && <TooltipCorrectionBlock annotation={annotation} />}
 
@@ -305,7 +317,7 @@ const AnnotationTooltip = ({ annotation, onApply, onIgnore, onClose, config, con
         </p>
 
         {!isPositive && onApply && (
-          <TooltipActions config={config} onApply={onApply} onIgnore={onIgnore} />
+          <TooltipActions severityStyle={severityStyle} onApply={onApply} onIgnore={onIgnore} />
         )}
       </div>
     </motion.div>
@@ -317,23 +329,23 @@ const AnnotationTooltip = ({ annotation, onApply, onIgnore, onClose, config, con
 const FILTER_PILL_CONFIG = {
   error: {
     active:
-      'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-500/20 dark:border-rose-500/40 dark:text-rose-200',
-    dot: 'bg-rose-600',
+      'bg-[rgb(var(--signal-fault)/0.1)] border-[rgb(var(--signal-fault)/0.35)] text-[rgb(var(--signal-fault))]',
+    dot: 'bg-[rgb(var(--signal-fault))]',
   },
   warning: {
     active:
-      'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-500/20 dark:border-amber-500/40 dark:text-amber-200',
-    dot: 'bg-amber-600',
+      'bg-[rgb(var(--signal-warn)/0.1)] border-[rgb(var(--signal-warn)/0.35)] text-[rgb(var(--signal-warn))]',
+    dot: 'bg-[rgb(var(--signal-warn))]',
   },
   suggestion: {
     active:
-      'bg-sky-50 border-sky-200 text-sky-800 dark:bg-sky-500/20 dark:border-sky-500/40 dark:text-sky-200',
-    dot: 'bg-sky-600',
+      'bg-[#efedff] border-[#d2d7f8] text-[#5661e9] dark:bg-indigo-500/20 dark:border-indigo-500/40 dark:text-indigo-200',
+    dot: 'bg-[#5661e9] dark:bg-indigo-400',
   },
   positive: {
     active:
-      'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:text-emerald-200',
-    dot: 'bg-emerald-600',
+      'bg-[rgb(var(--signal-ok)/0.1)] border-[rgb(var(--signal-ok)/0.35)] text-[rgb(var(--signal-ok))]',
+    dot: 'bg-[rgb(var(--signal-ok))]',
   },
 };
 
@@ -347,7 +359,7 @@ const FilterPill = ({ type, count, isActive, onToggle, label }) => {
     <button
       onClick={() => onToggle(type)}
       className={cn(
-        'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border shadow-2xs',
+        'flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold transition-all border shadow-2xs',
         isActive ? cfg.active : INACTIVE_PILL
       )}
     >
@@ -401,16 +413,16 @@ const AnnotationSummary = ({ annotations, filters, onFilterToggle, onSelectAll }
         onClick={onSelectAll}
         title={isAllActive ? 'Click to hide all highlights' : 'Click to show all highlights'}
         className={cn(
-          'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all border shadow-2xs cursor-pointer hover:scale-105 active:scale-95',
+          'flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold transition-all border shadow-2xs cursor-pointer hover:scale-105 active:scale-95',
           isAllActive
-            ? 'bg-amber-500/15 border-amber-500/30 text-amber-800 dark:text-amber-200'
+            ? 'bg-[#efedff] border-[#d2d7f8] text-[#5661e9] dark:bg-indigo-500/15 dark:border-indigo-500/30 dark:text-indigo-200'
             : 'bg-slate-100/80 border-slate-200/60 text-slate-700 dark:bg-white/5 dark:border-white/10 dark:text-slate-300'
         )}
       >
         <span
           className={cn(
             'w-1.5 h-1.5 rounded-full',
-            isAllActive ? 'bg-amber-500 animate-pulse' : 'bg-slate-400'
+            isAllActive ? 'bg-[#5661e9] dark:bg-indigo-400 animate-pulse' : 'bg-slate-400'
           )}
         />
         <span>{annotations.length} Highlights</span>
@@ -422,9 +434,9 @@ const AnnotationSummary = ({ annotations, filters, onFilterToggle, onSelectAll }
 // ─── Annotated Segment ────────────────────────────────────────────────────────
 
 const AnnotatedSegment = ({ segment, isActive, onActivate, onApply, onIgnore, containerRef }) => {
-  const config = ANNOTATION_CONFIG[segment.annotation.type] || ANNOTATION_CONFIG.grammar;
-  const effectiveConfig =
-    segment.annotation.severity === 'error' ? ANNOTATION_CONFIG.grammar : config;
+  const typeMeta = TYPE_META[segment.annotation.type] || TYPE_META.grammar;
+  const severity = resolveSeverity(segment.annotation);
+  const severityStyle = SEVERITY_STYLES[severity];
   const annotationRef = useRef(null);
 
   useEffect(() => {
@@ -445,17 +457,15 @@ const AnnotatedSegment = ({ segment, isActive, onActivate, onApply, onIgnore, co
         className={cn(
           'cursor-pointer px-2 py-0.5 rounded-lg mx-0.5 transition-all duration-200 border shadow-[0_1px_2px_rgba(0,0,0,0.02)]',
           'inline [box-decoration-break:clone] [-webkit-box-decoration-break:clone]',
-          effectiveConfig.borderClass,
-          effectiveConfig.bgClass,
+          severityStyle.borderClass,
+          severityStyle.bgClass,
           isActive &&
             cn(
-              'ring-2 ring-indigo-500/40 bg-indigo-100/30 dark:bg-indigo-500/20 z-10 relative shadow-md scale-[1.01]'
+              'ring-2 ring-[#5661e9]/40 bg-[#5661e9]/[0.08] dark:bg-[#5661e9]/20 z-10 relative shadow-md scale-[1.01]'
             )
         )}
       >
-        <span
-          className={cn(effectiveConfig.textClass, 'font-medium transition-colors duration-200')}
-        >
+        <span className={cn(severityStyle.textClass, 'font-medium transition-colors duration-200')}>
           {segment.text}
         </span>
       </motion.span>
@@ -464,7 +474,9 @@ const AnnotatedSegment = ({ segment, isActive, onActivate, onApply, onIgnore, co
         {isActive && (
           <AnnotationTooltip
             annotation={segment.annotation}
-            config={config}
+            typeMeta={typeMeta}
+            severityStyle={severityStyle}
+            severity={severity}
             onApply={onApply}
             onIgnore={onIgnore}
             onClose={() => onActivate(true)}
@@ -489,15 +501,15 @@ const VocabularyCard = ({ enhancement }) => {
       layout
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] border border-[#dce0f5] dark:border-white/10 hover:border-[#5661e9]/60 dark:hover:border-indigo-500/40 shadow-2xs hover:shadow-xs transition-all duration-300 p-2.5 sm:p-3 space-y-2"
+      className="group relative rounded-xl bg-[#fbfbfe] dark:bg-white/[0.03] border border-[#ebeaf7] dark:border-white/10 hover:border-[#5661e9]/40 dark:hover:border-indigo-500/30 transition-colors duration-200 p-2.5 sm:p-3 space-y-2"
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <div className="p-1.5 rounded-xl bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#d2d7f8] dark:border-indigo-500/30 shrink-0 shadow-2xs">
+          <div className="p-1.5 rounded-lg bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/15 dark:text-indigo-300 shrink-0">
             <BookOpen className="w-3.5 h-3.5" />
           </div>
           <div className="flex flex-col min-w-0 flex-1">
-            <span className="text-[9px] font-black text-[#5661e9] dark:text-indigo-400 uppercase tracking-wider leading-none mb-0.5">
+            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-0.5">
               Original Phrase
             </span>
             <span className="text-xs font-black text-slate-950 dark:text-white leading-snug break-words">
@@ -509,7 +521,7 @@ const VocabularyCard = ({ enhancement }) => {
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100/80 text-slate-500 hover:bg-slate-200 hover:text-slate-900 border border-slate-200/60 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/20 dark:hover:text-white dark:border-white/10 transition-all active:scale-95 shadow-2xs"
+            className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100/80 text-slate-500 hover:bg-slate-200 hover:text-slate-900 border border-slate-200/60 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/20 dark:hover:text-white dark:border-white/10 transition-all active:scale-95"
             title="Toggle Details"
           >
             <ChevronDown
@@ -530,14 +542,14 @@ const VocabularyCard = ({ enhancement }) => {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden space-y-2 pt-1 border-t border-[#e2e5f6] dark:border-white/10"
           >
-            <p className="text-xs text-slate-600 dark:text-slate-300 italic border-l-2 border-[#5661e9] pl-2.5 py-0.5 font-medium">
+            <p className="text-xs text-slate-600 dark:text-slate-300 italic border-l-2 border-[#5661e9] dark:border-indigo-500 pl-2.5 py-0.5 font-medium">
               "{enhancement.context}"
             </p>
             <div className="flex flex-wrap gap-1.5 pt-1">
               {alternatives.map((alt, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#efedff] text-xs font-bold text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-200 border border-[#d2d7f8] dark:border-indigo-500/30 shadow-2xs"
+                  className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#efedff] text-xs font-bold text-[#5661e9] dark:bg-indigo-500/15 dark:text-indigo-200 border border-[#d2d7f8] dark:border-indigo-500/30"
                 >
                   {alt}
                 </span>
@@ -555,7 +567,7 @@ const VocabularyCard = ({ enhancement }) => {
           {preview.map((alt, i) => (
             <span
               key={i}
-              className="text-[11px] font-bold text-[#5661e9] dark:text-indigo-300 bg-[#efedff]/80 dark:bg-indigo-500/15 px-2.5 py-0.5 rounded-full border border-[#d2d7f8] dark:border-indigo-500/30 shadow-2xs leading-normal truncate max-w-[240px]"
+              className="text-[11px] font-bold text-[#5661e9] dark:text-indigo-300 bg-[#efedff]/80 dark:bg-indigo-500/15 px-2.5 py-0.5 rounded-full border border-[#d2d7f8] dark:border-indigo-500/30 leading-normal truncate max-w-[240px]"
             >
               {alt}
             </span>
@@ -735,6 +747,7 @@ export default function AnnotatedText({
   onIgnoreAnnotation,
   focusAnnotation,
   className,
+  cardClassName,
 }) {
   const {
     activeAnnotation,
@@ -765,7 +778,10 @@ export default function AnnotatedText({
     <div className={cn('space-y-3', className)}>
       <div
         ref={containerRef}
-        className="relative p-3.5 sm:p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-visible"
+        className={cn(
+          'relative p-3.5 sm:p-5 bg-white dark:bg-[#131315] rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] shadow-sm overflow-visible',
+          cardClassName
+        )}
       >
         <AnnotatedTextHeader
           annotations={annotations}
@@ -786,7 +802,7 @@ export default function AnnotatedText({
       {vocabularyEnhancements?.length > 0 && (
         <div className="space-y-2 pt-2">
           <div className="flex items-center gap-2 px-1">
-            <BookOpen className="w-4 h-4 text-indigo-500" />
+            <BookOpen className="w-4 h-4 text-[#5661e9] dark:text-indigo-400" />
             <h3 className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">
               Vocabulary Upgrade
             </h3>

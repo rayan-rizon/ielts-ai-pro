@@ -3,13 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
@@ -19,36 +12,26 @@ import { ADMIN_TABS_LIST, ADMIN_TAB_TRIGGER } from '../../ui/primitives';
 import {
   Plus,
   Trash2,
-  Save,
   X,
-  ChevronUp,
   ChevronDown,
   Bold,
   Italic,
-  List,
-  Image as ImageIcon,
   Link2,
   Edit3,
   Eye,
   Music,
   Upload,
-  FileAudio,
   LayoutGrid,
-  Type,
   FileText,
   ListChecks,
-  CheckSquare,
-  AlignLeft,
-  ShieldCheck,
   Minimize2,
   Maximize2,
   CheckCircle2,
-  ArrowLeft,
   Headphones,
   Sparkles,
   GripVertical,
 } from 'lucide-react';
-import { uploadFile, supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { uploadToR2 } from '@/lib/r2';
 import { normalizeSrtContent } from '@/utils/parseSrt';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
@@ -60,8 +43,6 @@ import GapFillBuilder from '../builders/GapFillBuilder';
 import StaticTextBuilder from '../builders/StaticTextBuilder';
 import FlowchartBuilder from '../builders/FlowchartBuilder';
 import BulkImportModal from '../BulkImportModal';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -681,7 +662,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
       }));
   };
 
-  const [sections, setSections, undo, redo, canUndo, canRedo] = useHistory(initialSectionsState());
+  const [sections, setSections] = useHistory(initialSectionsState());
 
   const [activeTab, setActiveTab] = useState('0');
   const [meta, setMeta] = useState(() => {
@@ -752,8 +733,8 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     if (bulkImportConfig.mode !== 'answers_only') return [];
 
     let currentNum = 1;
-    return sections.flatMap((section, sIdx) =>
-      section.groups.flatMap((group, gIdx) =>
+    return sections.flatMap((section) =>
+      section.groups.flatMap((group) =>
         group.questions.map((q) => {
           const qWithNum = { ...q, question_number: currentNum };
           currentNum += getQuestionCount(q);
@@ -801,17 +782,6 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
             if (q === g.questions[0] && g.title) {
               questionData.mcq_title = g.title;
             }
-
-            // DEBUG: Log what's being saved for each question
-            console.log(
-              `[handleSave Q${qCounter}] type: ${q.type}`,
-              'gap_fill:',
-              q.gap_fill,
-              'table_data:',
-              q.table_data,
-              'full questionData:',
-              questionData
-            );
 
             allQuestions.push(questionData);
             qCounter += count;
@@ -876,7 +846,6 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
 
       try {
         // Client-side fetch prevents network isolation issues (container vs localhost)
-        console.log('Fetching audio client-side...');
         const response = await fetch(currentSection.audio_url);
         if (response.ok) {
           const blob = await response.blob();
@@ -892,9 +861,6 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
               audioBase64: base64,
               mimeType: blob.type,
             };
-            console.log('Using client-side base64 payload', blob.size, blob.type);
-          } else {
-            console.log('File too large (>6MB), falling back to server-side URL fetch');
           }
         }
       } catch (e) {

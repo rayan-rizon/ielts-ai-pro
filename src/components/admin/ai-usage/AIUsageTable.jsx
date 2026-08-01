@@ -33,9 +33,7 @@ const AIUsageTable = ({
     <div className="flex items-center justify-between px-4 py-3 border-b border-stone-100 dark:border-white/[0.06]">
       <div className="flex items-center gap-1.5">
         <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Usage per user</h3>
-        <InfoTip>
-          Every user with at least one AI call in this window. Click a column header to sort.
-        </InfoTip>
+        <InfoTip>Users with AI calls in this window. Click a header to sort.</InfoTip>
       </div>
     </div>
     <div className="overflow-x-auto">

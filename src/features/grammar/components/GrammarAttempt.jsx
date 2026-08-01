@@ -151,7 +151,7 @@ export default function GrammarAttempt({
       <button
         type="button"
         onClick={onExit}
-        className="group mb-4 inline-flex items-center gap-2.5 rounded-full border border-[#e2e5f2] bg-white px-3.5 py-1.5 text-xs font-extrabold text-slate-700 transition-all duration-200 hover:border-[#c9cdf3] hover:text-[#5a63df] dark:border-white/10 dark:bg-[#141319] dark:text-slate-300 dark:hover:border-indigo-500/30 dark:hover:text-indigo-300"
+        className="group mb-4 inline-flex items-center gap-2.5 rounded-full border border-[#e2e5f2] bg-white px-3.5 py-1.5 text-xs font-extrabold text-slate-700 transition-all duration-200 hover:border-[#c9cdf3] hover:text-[#5a63df] dark:border-white/10 dark:bg-[#131315] dark:text-slate-300 dark:hover:border-indigo-500/30 dark:hover:text-indigo-300"
       >
         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors duration-200 group-hover:bg-[#5a63df]/10 group-hover:text-[#5a63df] dark:bg-white/10 dark:text-slate-400 dark:group-hover:bg-indigo-500/20 dark:group-hover:text-indigo-300">
           <ArrowLeft className="h-3 w-3 transition-transform duration-200 group-hover:-translate-x-0.5" />

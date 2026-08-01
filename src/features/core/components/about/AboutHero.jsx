@@ -12,7 +12,7 @@ export default function AboutHero() {
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="space-y-6"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-gradient-to-r from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-indigo-600 shadow-sm backdrop-blur-xl dark:border-indigo-500/20 dark:from-indigo-950/40 dark:via-purple-950/30 dark:to-slate-900/50 dark:text-indigo-300">
+          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-gradient-to-r from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-indigo-600 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.04] dark:bg-none dark:text-indigo-300">
             <Sparkles className="h-3.5 w-3.5 text-indigo-500 animate-pulse" />
             <span>Smart IELTS Preparation</span>
           </div>
@@ -52,7 +52,7 @@ export default function AboutHero() {
             ].map((chip, idx) => (
               <span
                 key={idx}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/80 dark:border-slate-800 dark:bg-slate-900/80 px-3 py-1.5 shadow-sm backdrop-blur-md transition-all hover:scale-105"
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/80 dark:border-white/10 dark:bg-white/[0.04] px-3 py-1.5 shadow-sm dark:shadow-none backdrop-blur-md dark:backdrop-blur-none transition-all hover:scale-105"
               >
                 <chip.icon className="h-3.5 w-3.5 text-indigo-500" />
                 {chip.text}

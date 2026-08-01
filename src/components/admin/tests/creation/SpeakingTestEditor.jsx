@@ -176,7 +176,7 @@ const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     if (!silent) setLoading(true);
     setError(null);
     try {
-      const { speaking_parts, questions, ...cleanFormData } = formData;
+      const { speaking_parts: _speakingParts, questions: _questions, ...cleanFormData } = formData;
       const isActive = !!formData.is_active;
       const payload = { ...cleanFormData, is_active: isActive };
       const savedPassage = await onSave(payload, !isActive);

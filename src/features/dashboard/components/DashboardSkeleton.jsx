@@ -12,7 +12,7 @@ const Block = ({ className }) => (
  */
 export default function DashboardSkeleton() {
   return (
-    <main className="min-h-full bg-[radial-gradient(circle_at_82%_-4%,rgba(224,220,255,0.42),transparent_34%),#f8f8fc] px-3 py-4 pb-10 dark:bg-[#0b0a10] sm:px-4 md:px-5 md:py-5">
+    <main className="min-h-full bg-[radial-gradient(circle_at_82%_-4%,rgba(224,220,255,0.42),transparent_34%),#f8f8fc] px-3 py-4 pb-10 dark:bg-[#08080a] sm:px-4 md:px-5 md:py-5">
       <div className="mx-auto max-w-[1440px] space-y-4">
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

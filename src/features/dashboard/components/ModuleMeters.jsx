@@ -4,6 +4,8 @@ import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 import {
+  ACCENT_FILL,
+  ACCENT_FILL_HOVER,
   Delta,
   Empty,
   FootNum,
@@ -11,6 +13,7 @@ import {
   MUTED,
   NUM,
   PANEL,
+  PANEL_LINK,
   PanelFootnote,
   PanelTitle,
   Tip,
@@ -47,8 +50,9 @@ const ModuleMeters = React.memo(({ stats, recentTests, quickLaunchRef, onboardin
   const latest = useMemo(() => latestByModule(recentTests), [recentTests]);
 
   const rows = MODULES.map((module) => {
+    const hasAverage = Object.prototype.hasOwnProperty.call(averages, module.key);
     const raw = Number(averages[module.key]);
-    const avg = Number.isFinite(raw) && raw > 0 ? raw : null;
+    const avg = hasAverage && Number.isFinite(raw) && raw >= 0 ? raw : null;
     const latestScore = latest[module.key]?.score != null ? Number(latest[module.key].score) : null;
     return {
       ...module,
@@ -71,7 +75,7 @@ const ModuleMeters = React.memo(({ stats, recentTests, quickLaunchRef, onboardin
         PANEL,
         'flex h-full flex-col p-4',
         onboardingHighlight === 'quick' &&
-          'ring-2 ring-[#5a63df] ring-offset-2 dark:ring-offset-[#0b0a10]'
+          'ring-2 ring-[#5a63df] ring-offset-2 dark:ring-offset-[#08080a]'
       )}
     >
       <PanelTitle
@@ -79,13 +83,7 @@ const ModuleMeters = React.memo(({ stats, recentTests, quickLaunchRef, onboardin
         accent
         tip="Your average band per module, out of 9."
         action={
-          <Link
-            to={createPageUrl('Analytics')}
-            className={cn(
-              MICRO,
-              'inline-flex items-center gap-0.5 text-slate-500 transition-colors hover:text-[#5a63df] dark:text-slate-400'
-            )}
-          >
+          <Link to={createPageUrl('Analytics')} className={cn(MICRO, PANEL_LINK)}>
             Analytics <ChevronRight className="h-3 w-3" />
           </Link>
         }
@@ -111,7 +109,11 @@ const ModuleMeters = React.memo(({ stats, recentTests, quickLaunchRef, onboardin
               <Link to={createPageUrl(row.page)} className="group flex items-center gap-2.5">
                 <div className={cn('relative h-8 flex-1 overflow-hidden rounded-md', WELL)}>
                   <div
-                    className="absolute inset-y-0 left-0 rounded-md bg-[#5a63df]/[0.16] transition-all duration-700 group-hover:bg-[#5a63df]/[0.26]"
+                    className={cn(
+                      'absolute inset-y-0 left-0 rounded-md transition-all duration-700',
+                      ACCENT_FILL,
+                      ACCENT_FILL_HOVER
+                    )}
                     style={{ width: `${row.avg != null ? (row.avg / 9) * 100 : 0}%` }}
                   />
                   <div className="relative flex h-full items-center justify-between px-3">

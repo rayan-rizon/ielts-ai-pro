@@ -16,7 +16,7 @@ export default function RawScoreConverter() {
   return (
     <div className="grid items-stretch gap-6 lg:grid-cols-12">
       <div className="lg:col-span-7">
-        <div className="h-full rounded-[24px] border border-slate-200/90 bg-white/90 p-5 sm:p-6 shadow-[0_12px_35px_-12px_rgba(15,23,42,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/85 dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]">
+        <div className="h-full rounded-[24px] border border-slate-200/90 bg-white/90 p-5 sm:p-6 shadow-[0_12px_35px_-12px_rgba(15,23,42,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:shadow-none">
           {/* Test selector */}
           <div
             className="flex flex-wrap gap-2.5"
@@ -31,7 +31,7 @@ export default function RawScoreConverter() {
                 className={`h-10 rounded-xl px-4 text-xs font-black transition-all duration-200 hover:scale-105 active:scale-95 ${
                   testKey === key
                     ? 'bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25'
-                    : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'
+                    : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200 dark:bg-white/[0.05] dark:text-slate-400 dark:hover:bg-white/[0.1]'
                 }`}
               >
                 {RAW_SCORE_TABLES[key].label}
@@ -49,7 +49,7 @@ export default function RawScoreConverter() {
               </label>
               <span className="text-2xl font-black text-slate-950 dark:text-white">
                 {raw}
-                <span className="text-sm font-bold text-slate-400"> / 40</span>
+                <span className="text-sm font-bold text-slate-400 dark:text-slate-500"> / 40</span>
               </span>
             </div>
             <input
@@ -60,12 +60,12 @@ export default function RawScoreConverter() {
               step="1"
               value={raw}
               onChange={(e) => setRaw(parseInt(e.target.value, 10))}
-              className="h-2.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-100 accent-indigo-600 dark:bg-slate-800"
+              className="h-2.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-100 accent-indigo-600 dark:bg-white/[0.08]"
               style={{
                 background: `linear-gradient(to right, #5262ef 0%, #5262ef ${(raw / 40) * 100}%, #e2e8f0 ${(raw / 40) * 100}%)`,
               }}
             />
-            <div className="mt-2.5 flex justify-between px-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <div className="mt-2.5 flex justify-between px-1 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
               <span>0</span>
               <span>20</span>
               <span>40</span>
@@ -89,7 +89,7 @@ export default function RawScoreConverter() {
             </div>
           </div>
 
-          <p className="mt-5 flex items-start gap-2 text-xs font-semibold leading-relaxed text-slate-400 dark:text-slate-500">
+          <p className="mt-5 flex items-start gap-2 text-xs font-semibold leading-relaxed text-slate-500 dark:text-slate-500">
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
             {active.note} Conversion tables are typical values; exact thresholds vary slightly
             between test versions.
@@ -99,7 +99,7 @@ export default function RawScoreConverter() {
 
       {/* Reference table */}
       <div className="lg:col-span-5">
-        <div className="h-full rounded-[24px] border border-slate-200/90 bg-white/90 p-5 sm:p-6 shadow-[0_12px_35px_-12px_rgba(15,23,42,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/85 dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]">
+        <div className="h-full rounded-[24px] border border-slate-200/90 bg-white/90 p-5 sm:p-6 shadow-[0_12px_35px_-12px_rgba(15,23,42,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:shadow-none">
           <h3 className="text-[15px] font-extrabold text-slate-950 dark:text-white">
             {active.label}: score to band
           </h3>
@@ -112,7 +112,7 @@ export default function RawScoreConverter() {
                   className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs sm:text-[13px] font-extrabold transition-all duration-200 ${
                     isActive
                       ? 'bg-gradient-to-r from-indigo-500/15 to-purple-500/15 border border-indigo-500/30 text-indigo-600 dark:text-indigo-300'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.05]'
                   }`}
                 >
                   <span className="tabular-nums">{row.range}</span>

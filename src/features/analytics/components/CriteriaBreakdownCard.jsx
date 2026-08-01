@@ -23,6 +23,7 @@ const MODULE_CONFIG = {
 const CRITERION_EXPLANATIONS = {
   'Task Achievement': 'How fully and accurately you answer Task 1',
   'Task Response': 'How fully and clearly you develop your Task 2 answer',
+  'Task Response / Achievement': 'How fully you answer Task 1 or develop your Task 2 response',
   'Coherence & Cohesion': 'How clearly your ideas connect and flow',
   'Lexical Resource': 'Your range and accuracy of vocabulary',
   'Grammatical Range & Accuracy': 'Your range and accuracy of sentence structures',

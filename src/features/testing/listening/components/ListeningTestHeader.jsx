@@ -73,7 +73,7 @@ const ListeningTestHeader = ({
       data-oid="ao4wuv7"
     >
       <div
-        className="w-full rounded-2xl flex items-center justify-between py-1 px-2.5 sm:py-1.5 sm:px-3.5 border border-[#e4e2f0] dark:border-white/[0.07] bg-white/85 dark:bg-[#141319]/95 backdrop-blur-md shadow-sm dark:shadow-none transition-all duration-300"
+        className="w-full rounded-2xl flex items-center justify-between py-1 px-2.5 sm:py-1.5 sm:px-3.5 border border-[#e4e2f0] dark:border-white/[0.07] bg-white/85 dark:bg-[#131315]/95 backdrop-blur-md shadow-sm dark:shadow-none transition-all duration-300"
         data-oid="btq_4pq"
       >
         <div className="flex items-center gap-2 shrink-0" data-oid="246o-4l">
@@ -87,7 +87,7 @@ const ListeningTestHeader = ({
                 onExit();
               }
             }}
-            className="group relative flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-xl border border-[#e4e2f0] bg-gradient-to-r from-white to-[#faf9ff] text-slate-700 shadow-2xs transition-all duration-200 hover:border-[#5a63df] hover:text-[#5a63df] hover:shadow-xs active:scale-95 dark:border-white/10 dark:from-white/10 dark:to-white/5 dark:text-slate-200 dark:hover:border-[#a9afff] dark:hover:text-[#a9afff] p-0"
+            className="group relative flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-[#5a63df] hover:bg-[#eef0fd] hover:text-[#5a63df] active:scale-95 dark:border-white/20 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-indigo-400/60 dark:hover:bg-slate-700 dark:hover:text-indigo-300 p-0"
             data-oid="g_mhami"
           >
             <ArrowLeft
@@ -206,7 +206,7 @@ const ListeningTestHeader = ({
                   </div>
                   {/* Tooltip */}
                   <div
-                    className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-500 whitespace-nowrap bg-white dark:bg-[#141319] border border-slate-200 dark:border-white/[0.1] px-2 py-1 rounded shadow-sm z-10"
+                    className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-500 whitespace-nowrap bg-white dark:bg-[#131315] border border-slate-200 dark:border-white/[0.1] px-2 py-1 rounded shadow-sm z-10"
                     data-oid="ic4_:7-"
                   >
                     Part {partIndex + 1}: {partAnswered}/{partTotal}

@@ -100,7 +100,7 @@ const MatchingFeaturesRenderer = ({
 
       {/* Questions List */}
       <div
-        className="flex flex-col rounded-xl overflow-hidden border border-[#e4e2f0] dark:border-white/[0.07] bg-white dark:bg-[#141319] shadow-xs"
+        className="flex flex-col rounded-xl overflow-hidden border border-[#e4e2f0] dark:border-white/[0.07] bg-white dark:bg-[#131315] shadow-xs"
         data-oid="1s2u7h4"
       >
         {question.matching_features?.questions_title && (

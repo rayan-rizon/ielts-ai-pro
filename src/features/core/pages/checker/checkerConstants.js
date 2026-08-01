@@ -99,40 +99,40 @@ export const getSampleCriteria = (taskType) => [
 export const CRITERION_DETAILS = {
   'Task Achievement': {
     icon: Target,
-    bgColor: 'bg-rose-50',
-    iconColor: 'text-rose-600',
+    bgColor: 'bg-rose-50 dark:bg-rose-500/15',
+    iconColor: 'text-rose-600 dark:text-rose-400',
     barColor: 'from-rose-500 to-pink-500',
   },
   'Task Response': {
     icon: Target,
-    bgColor: 'bg-rose-50',
-    iconColor: 'text-rose-600',
+    bgColor: 'bg-rose-50 dark:bg-rose-500/15',
+    iconColor: 'text-rose-600 dark:text-rose-400',
     barColor: 'from-rose-500 to-pink-500',
   },
   'Coherence & Cohesion': {
     icon: BarChart3,
-    bgColor: 'bg-indigo-50',
-    iconColor: 'text-indigo-600',
+    bgColor: 'bg-indigo-50 dark:bg-indigo-500/15',
+    iconColor: 'text-indigo-600 dark:text-indigo-400',
     barColor: 'from-indigo-500 to-violet-500',
   },
   'Lexical Resource': {
     icon: Sparkles,
-    bgColor: 'bg-violet-50',
-    iconColor: 'text-violet-600',
+    bgColor: 'bg-violet-50 dark:bg-violet-500/15',
+    iconColor: 'text-violet-600 dark:text-violet-400',
     barColor: 'from-violet-500 to-purple-500',
   },
   'Grammatical Range & Accuracy': {
     icon: ShieldCheck,
-    bgColor: 'bg-emerald-50',
-    iconColor: 'text-emerald-600',
+    bgColor: 'bg-emerald-50 dark:bg-emerald-500/15',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
     barColor: 'from-emerald-500 to-teal-500',
   },
 };
 
 const DEFAULT_CRITERION_DETAIL = {
   icon: Target,
-  bgColor: 'bg-indigo-50',
-  iconColor: 'text-indigo-600',
+  bgColor: 'bg-indigo-50 dark:bg-indigo-500/15',
+  iconColor: 'text-indigo-600 dark:text-indigo-400',
   barColor: 'from-indigo-500 to-violet-500',
 };
 

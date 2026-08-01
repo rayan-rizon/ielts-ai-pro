@@ -60,7 +60,7 @@ const FEATURES = [
  */
 const Upgrade = () => {
   return (
-    <div className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-6 dark:bg-[#0b0a10] sm:px-4 sm:py-10">
+    <div className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-6 dark:bg-[#08080a] sm:px-4 sm:py-10">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"

@@ -28,10 +28,11 @@ export default function GrammarHeroPanel({
   dailyLimitReached,
   access,
   dueReviews,
+  retestTarget,
   onStart,
 }) {
   return (
-    <div className="relative h-full min-h-[248px] overflow-hidden bg-[#f4f1fb] px-5 py-6 dark:bg-[#100f15] sm:px-7 sm:py-7">
+    <div className="relative h-full min-h-[248px] overflow-hidden bg-[#f4f1fb] px-5 py-6 dark:bg-[#131315] sm:px-7 sm:py-7">
       <img
         src="/images/grammar/grammar-lab-study-hero.webp"
         alt=""
@@ -77,15 +78,17 @@ export default function GrammarHeroPanel({
             )}
             {inProgressAttempt
               ? 'Resume attempt'
-              : primaryMode === 'diagnostic'
-                ? access.diagnosticAvailable
-                  ? 'Start level check'
-                  : 'Level check used this month'
-                : dailyLimitReached
-                  ? 'Daily practice used'
-                  : primaryMode === 'review'
-                    ? 'Start review'
-                    : 'Start 5-question practice'}
+              : primaryMode === 'retest'
+                ? `Take a ${retestTarget === 'speaking' ? 'Speaking' : 'Writing'} test`
+                : primaryMode === 'diagnostic'
+                  ? access.diagnosticAvailable
+                    ? 'Start level check'
+                    : 'Level check used this month'
+                  : dailyLimitReached
+                    ? 'Daily practice used'
+                    : primaryMode === 'review'
+                      ? 'Start review'
+                      : 'Start 5-question practice'}
           </Button>
           <div className="flex items-center gap-2 rounded-lg border border-[#e2e5f2] bg-white/80 px-3 py-1.5 text-[11px] font-bold text-slate-600 backdrop-blur dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
             {access.isPaid ? (

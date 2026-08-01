@@ -7,12 +7,16 @@ export const AnalyticsService = {
    * trip, aggregated in Postgres rather than by pulling every row to the client.
    */
   async getOverview(days = 7) {
-    const { data, error } = await supabase.rpc('get_admin_overview', { p_days: days });
-    if (error) {
+    const [overviewResult, actionResult] = await Promise.all([
+      supabase.rpc('get_admin_overview', { p_days: days }),
+      supabase.rpc('get_admin_overview_actions'),
+    ]);
+    if (overviewResult.error || actionResult.error) {
+      const error = overviewResult.error || actionResult.error;
       console.error('Error fetching admin overview:', error);
       throw error;
     }
-    return data;
+    return { ...overviewResult.data, actions: actionResult.data || [] };
   },
 
   /**

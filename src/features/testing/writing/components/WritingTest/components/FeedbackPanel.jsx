@@ -293,9 +293,9 @@ function AnalyzingState({ loadingMessage }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="flex min-h-[520px] flex-1 items-center justify-center bg-slate-50 p-6 dark:bg-slate-950"
+      className="flex min-h-[520px] flex-1 items-center justify-center bg-[#f7f6fd] p-6 dark:bg-[#08080a]"
     >
-      <div className="w-full max-w-sm rounded-2xl border border-[#dce0f5] bg-white p-7 text-center shadow-md dark:border-white/10 dark:bg-slate-900">
+      <div className="w-full max-w-sm rounded-2xl border border-[#dce0f5] bg-white p-7 text-center shadow-md dark:border-white/10 dark:bg-[#131315]">
         <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center">
           <motion.div
             animate={{ rotate: 360 }}
@@ -341,7 +341,7 @@ function ErrorState({ feedbackError, handleGetFeedback }) {
       animate={{ opacity: 1, y: 0 }}
       className="flex min-h-[480px] flex-1 items-center justify-center p-6 text-center"
     >
-      <div className="max-w-sm rounded-2xl border border-rose-200 bg-white p-7 shadow-sm dark:border-rose-500/20 dark:bg-slate-900">
+      <div className="max-w-sm rounded-2xl border border-rose-200 bg-white p-7 shadow-sm dark:border-rose-500/20 dark:bg-[#131315]">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 dark:bg-rose-500/10">
           <AlertTriangle className="h-6 w-6" />
         </div>
@@ -364,32 +364,32 @@ function ErrorState({ feedbackError, handleGetFeedback }) {
 
 function CriteriaGrid({ criteria }) {
   return (
-    <div className="grid grid-cols-2 gap-2 sm:gap-2.5 border-t border-[#d2d7f8] bg-gradient-to-r from-[#f4f5fe] via-[#ebedfd] to-[#e4e7fc] p-2.5 sm:p-3.5 dark:border-white/10 dark:from-[#0a0d18] dark:via-[#0c0f1c] dark:to-[#0a0d18] lg:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2 sm:gap-2.5 border-t border-[#ebeaf7] p-2.5 dark:border-white/10 sm:p-3.5 lg:grid-cols-2 xl:grid-cols-4">
       {criteria.map((item) => (
         <div
           key={item.short}
-          className="group relative flex flex-col justify-between rounded-xl border border-[#dce0f5] bg-gradient-to-br from-white via-[#fcfbff] to-[#f2f1fe] p-2.5 transition-all duration-200 hover:border-[#5661e9]/70 hover:shadow-xs dark:border-white/10 dark:from-[#161a2e] dark:via-[#111425] dark:to-[#0e111d] dark:hover:border-indigo-400/50 sm:p-3"
+          className="flex flex-col justify-between rounded-lg bg-[#f7f7fc] p-2.5 dark:bg-white/[0.03] sm:p-3"
         >
           <div className="flex items-center justify-between gap-1">
-            <span className="rounded-md bg-[#efedff] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 shadow-2xs">
+            <span className="text-[9px] font-black uppercase tracking-wider text-[#5661e9] dark:text-indigo-400">
               {item.short}
             </span>
-            <span className="text-lg font-black tracking-tight text-slate-950 transition-colors group-hover:text-[#5661e9] dark:text-white dark:group-hover:text-indigo-300 sm:text-xl">
+            <span className="text-lg font-black tracking-tight text-slate-950 dark:text-white sm:text-xl">
               {item.score.toFixed(1)}
             </span>
           </div>
           <div
-            className="mt-2 min-h-[26px] text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-200 text-left leading-tight"
+            className="mt-2 min-h-[26px] text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wide text-slate-600 dark:text-slate-300 text-left leading-tight"
             title={item.label}
           >
             {item.label}
           </div>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#efedff] dark:bg-white/10 border border-[#d2d7f8]/60 dark:border-white/10">
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white dark:bg-white/10">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${(item.score / 9) * 100}%` }}
               transition={{ delay: 0.15, duration: 0.6 }}
-              className="h-full rounded-full bg-gradient-to-r from-[#5661e9] to-[#7c86ff]"
+              className="h-full rounded-full bg-[#5661e9] dark:bg-indigo-400"
             />
           </div>
         </div>
@@ -407,7 +407,7 @@ function AssessmentBanner({
   handleDownloadPdf,
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-[#d2d7f8] bg-gradient-to-br from-[#ffffff] via-[#f2f4fe] to-[#e6e9fc] text-slate-950 shadow-[0_12px_32px_-18px_rgba(86,97,233,0.25)] dark:border-white/10 dark:from-[#0e111d] dark:via-[#121629] dark:to-[#181d36] dark:text-white">
+    <section className="overflow-hidden rounded-2xl border border-[#e4e2f0] bg-gradient-to-b from-white to-[#faf9ff] text-slate-950 shadow-sm dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315] dark:text-white">
       <div className="relative overflow-hidden p-4 sm:p-5">
         <div className="relative flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-[0.12em] text-slate-800 dark:text-white">
@@ -471,10 +471,10 @@ function AssessmentBanner({
 
 function CombinedBandBanner({ combinedBand }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-[#d2d7f8] bg-gradient-to-r from-[#efedff]/80 via-[#f0f2fe] to-[#e6e9fc] px-3 py-2 dark:border-indigo-500/30 dark:from-indigo-950/40 dark:via-indigo-900/30 dark:to-indigo-950/40 shadow-2xs">
-      <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-indigo-200">
+    <div className="flex items-center justify-between rounded-xl border border-[#e4e2f0] bg-[#f7f7fc] px-3 py-2 dark:border-white/10 dark:bg-white/[0.03]">
+      <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-slate-100">
         <TrendingUp className="h-3.5 w-3.5 text-[#5661e9] dark:text-indigo-400" /> Writing estimate{' '}
-        <span className="hidden text-[10px] font-medium text-slate-500 sm:inline dark:text-indigo-300/70">
+        <span className="hidden text-[10px] font-medium text-slate-500 sm:inline dark:text-slate-400">
           Task 1 × ⅓ + Task 2 × ⅔
         </span>
       </div>
@@ -533,7 +533,7 @@ function StrengthItem({ strength, index, isExpanded, onToggle }) {
 
 function StrengthsCard({ strengths, expandedItems, onToggleExpand }) {
   return (
-    <section className="rounded-2xl border border-[#dce0f5] bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] p-3.5 sm:p-4 dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] shadow-2xs">
+    <section className="rounded-2xl border border-[#e4e2f0] bg-gradient-to-b from-white to-[#faf9ff] p-3.5 sm:p-4 dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315]">
       <div className="mb-3 flex items-center gap-2 border-b border-[#e2e5f6] pb-2 dark:border-white/10">
         <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/70 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 shadow-2xs">
           <CheckCircle2 className="h-3.5 w-3.5" />
@@ -597,10 +597,10 @@ function PriorityItem({ priority, index, isExpanded, onToggleExpand, onShowInEss
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
-        <span className="inline-flex h-5 w-5 min-w-[20px] shrink-0 items-center justify-center rounded-md bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/30 dark:text-indigo-200 dark:border-indigo-400/40 font-black text-[11px] leading-none shadow-2xs">
+        <span className="inline-flex h-5 w-5 min-w-[20px] shrink-0 items-center justify-center rounded-md bg-[rgb(var(--signal-warn)/0.1)] text-[rgb(var(--signal-warn))] font-black text-[11px] leading-none">
           {index + 1}
         </span>
-        <span className="text-[9px] font-black uppercase tracking-wider text-[#5661e9] dark:text-indigo-400">
+        <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
           {priority.criterion}
         </span>
       </div>
@@ -609,7 +609,7 @@ function PriorityItem({ priority, index, isExpanded, onToggleExpand, onShowInEss
           {isExpanded ? priority.issue.full : priority.issue.preview}
         </p>
         <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 pl-7 leading-relaxed">
-          <strong className="text-[#5661e9] dark:text-indigo-400 font-black mr-1.5 uppercase tracking-wider text-[9px]">
+          <strong className="text-[rgb(var(--signal-warn))] font-black mr-1.5 uppercase tracking-wider text-[9px]">
             DO:
           </strong>
           {isExpanded ? priority.action.full : priority.action.preview}
@@ -628,7 +628,7 @@ function PriorityItem({ priority, index, isExpanded, onToggleExpand, onShowInEss
 
 function PrioritiesCard({ priorities, expandedItems, onToggleExpand, onShowInEssay }) {
   return (
-    <section className="rounded-2xl border border-[#dce0f5] bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] p-3.5 sm:p-4 dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] shadow-2xs">
+    <section className="rounded-2xl border border-[#e4e2f0] bg-gradient-to-b from-white to-[#faf9ff] p-3.5 sm:p-4 dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315]">
       <div className="mb-3 flex items-center gap-2 border-b border-[#e2e5f6] pb-2 dark:border-white/10">
         <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/40 shadow-2xs">
           <Target className="h-3.5 w-3.5" />
@@ -690,7 +690,7 @@ function ImprovementsCard({ improvements, visibleImprovements, showAll, onToggle
       : 'All clear';
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-[#e2e5f6] bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] shadow-2xs dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829]">
+    <section className="overflow-hidden rounded-2xl border border-[#e4e2f0] bg-gradient-to-b from-white to-[#faf9ff] dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315]">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e2e5f6] dark:border-white/10 px-3.5 py-2.5 bg-slate-50/50 dark:bg-white/[0.02]">
         <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
           <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/40">
@@ -758,7 +758,7 @@ export function FeedbackPanel({
   return (
     <div
       id="feedback-section"
-      className="flex h-full min-h-0 flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white"
+      className="flex h-full min-h-0 flex-col bg-[#f7f6fd] text-slate-900 dark:bg-[#08080a] dark:text-white"
     >
       <AnimatePresence mode="wait">
         {isAnalyzing && <AnalyzingState loadingMessage={loadingMessage} />}

@@ -26,11 +26,11 @@ const reveal = {
 
 function TrustedLearnersCard() {
   return (
-    <GlassPanel className="relative overflow-hidden isolate transform-gpu [mask-image:linear-gradient(white,white)] rounded-[22px] p-4 sm:p-4.5 border border-violet-200/80 bg-gradient-to-br from-white via-violet-50/30 to-purple-50/40 dark:border-violet-500/30 dark:bg-gradient-to-br dark:from-slate-900/95 dark:via-indigo-950/40 dark:to-slate-900/95 shadow-[0_12px_32px_-15px_rgba(109,85,238,0.12)] dark:shadow-[0_16px_40px_-12px_rgba(109,85,238,0.22)] backdrop-blur-xl transition-all duration-300 hover:border-violet-300 hover:shadow-[0_16px_38px_-12px_rgba(109,85,238,0.18)] dark:hover:border-violet-400/50">
-      <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-full bg-violet-400/10 blur-2xl dark:bg-violet-500/20" />
+    <GlassPanel className="relative overflow-hidden isolate transform-gpu [mask-image:linear-gradient(white,white)] rounded-[22px] p-4 sm:p-4.5 border border-violet-200/80 bg-gradient-to-br from-white via-violet-50/30 to-purple-50/40 dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] shadow-[0_12px_32px_-15px_rgba(109,85,238,0.12)] dark:shadow-none backdrop-blur-xl dark:backdrop-blur-none transition-all duration-300 hover:border-violet-300 hover:shadow-[0_16px_38px_-12px_rgba(109,85,238,0.18)] dark:hover:border-violet-400/40">
+      <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-full bg-violet-400/10 blur-2xl dark:bg-[#5a63df]/10" />
 
       <div className="relative z-10 flex items-center gap-3">
-        <span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#6d55e8] to-[#8b5cf6] text-white shadow-sm shadow-violet-500/30 dark:shadow-violet-500/50">
+        <span className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#6d55e8] to-[#8b5cf6] text-white shadow-sm shadow-violet-500/30 dark:shadow-none">
           <Globe className="h-4.5 w-4.5" />
         </span>
         <h4 className="text-xs sm:text-sm font-extrabold tracking-tight text-[#0f172a] dark:text-slate-100">
@@ -38,7 +38,7 @@ function TrustedLearnersCard() {
         </h4>
       </div>
 
-      <div className="relative z-10 mt-3 grid grid-cols-2 gap-3 rounded-xl bg-white/90 dark:bg-slate-950/80 p-2.5 px-3.5 border border-violet-100 dark:border-violet-500/30 shadow-xs dark:shadow-inner backdrop-blur-md">
+      <div className="relative z-10 mt-3 grid grid-cols-2 gap-3 rounded-xl bg-white/90 dark:bg-white/[0.04] p-2.5 px-3.5 border border-violet-100 dark:border-white/10 shadow-xs dark:shadow-none backdrop-blur-md dark:backdrop-blur-none">
         <div className="pr-2">
           <b className="block text-xl sm:text-2xl font-black tracking-tight text-[#6d55e8] dark:text-violet-300">
             Four
@@ -70,7 +70,7 @@ function TrustedLearnersCard() {
 function StillNeedHelpCard({ handlePrimaryCta }) {
   return (
     <div className="relative pb-2">
-      <GlassPanel className="relative overflow-hidden isolate rounded-[24px] border border-[#e2e5fa] bg-white/95 p-5 sm:p-6 pr-28 sm:pr-36 shadow-[0_18px_45px_-22px_rgba(79,66,220,0.20)] backdrop-blur-md transition-all duration-300 dark:border-white/10 dark:bg-[#0d1020]/95">
+      <GlassPanel className="relative overflow-hidden isolate rounded-[24px] border border-[#e2e5fa] bg-white/95 p-5 sm:p-6 pr-28 sm:pr-36 shadow-[0_18px_45px_-22px_rgba(79,66,220,0.20)] backdrop-blur-md transition-all duration-300 dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none">
         <div className="flex gap-4 items-start">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#ded9ff] bg-[#f2f0ff] text-[#6256ef] shadow-sm dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300">
             <Headphones className="h-5.5 w-5.5 stroke-[2.2]" />
@@ -124,7 +124,7 @@ function FAQAccordionItem({ faq, index }) {
   return (
     <AccordionItem
       value={`item-${index}`}
-      className="group overflow-hidden rounded-[20px] border border-[#e1e5f1] bg-white/72 px-5 shadow-[0_16px_45px_-34px_rgba(38,50,105,.6)] backdrop-blur-2xl transition-all duration-300 data-[state=open]:border-[#bdb7ff] data-[state=open]:bg-white/82 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-violet-500/40 dark:hover:bg-slate-900/80 dark:data-[state=open]:border-violet-500/60 dark:data-[state=open]:bg-slate-900/95 dark:data-[state=open]:shadow-[0_12px_35px_-10px_rgba(109,85,238,0.22)] sm:px-6"
+      className="group overflow-hidden rounded-[20px] border border-[#e1e5f1] bg-white/72 px-5 shadow-[0_16px_45px_-34px_rgba(38,50,105,.6)] backdrop-blur-2xl transition-all duration-300 data-[state=open]:border-[#bdb7ff] data-[state=open]:bg-white/82 dark:border-white/10 dark:bg-white/[0.03] dark:backdrop-blur-none dark:hover:border-violet-500/30 dark:hover:bg-white/[0.05] dark:data-[state=open]:border-violet-500/40 dark:data-[state=open]:bg-white/[0.06] dark:data-[state=open]:shadow-none sm:px-6"
     >
       <AccordionTrigger className="group py-5 text-left text-[15px] font-extrabold tracking-[-.02em] text-[#14213b] hover:no-underline dark:text-slate-100 sm:text-base [&>svg]:text-[#938fe3] dark:[&>svg]:text-violet-400">
         <span className="flex items-center gap-4 pr-4">
@@ -148,7 +148,7 @@ function FAQSection({ faqs, viewport, handlePrimaryCta }) {
   return (
     <SoftSection
       id="faq"
-      className="scroll-mt-24 bg-white dark:bg-[#0b0a10] py-16 md:py-24 relative overflow-hidden"
+      className="scroll-mt-24 bg-white dark:bg-[#08080a] py-16 md:py-24 relative overflow-hidden"
       data-oid="_3z_paz"
     >
       {/* Dark mode background glow accents */}

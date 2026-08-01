@@ -324,58 +324,90 @@ export function getPrioritiesList(evidence) {
 }
 
 export function rankBestNextTask(days = [], context = {}) {
-  const targetBand = Number(context.targetBand || 0);
-  const daysLeft = Number(context.daysLeft);
-  const readiness = context.readiness?.modules || context.readiness || {};
+  const rankingContext = buildTaskRankingContext(context);
+  const ranked = days
+    .flatMap((day, dayIndex) =>
+      (day.tasks || []).map((task, taskIndex) => ({ ...task, day, dayIndex, taskIndex }))
+    )
+    .filter((task) => !task.is_completed)
+    .map((task) => ({ task, score: scoreNextTask(task, rankingContext) }))
+    .sort(compareRankedTasks);
+  return ranked[0]?.task ?? null;
+}
+
+function buildTaskRankingContext(context) {
   const evidence = context.evidence || {};
-  const confirmed = new Set(
-    (evidence.measured_priorities || []).flatMap((item) => [
-      String(item.module || '').toLowerCase(),
-      String(item.skill_code || '').toLowerCase(),
+  return {
+    targetBand: Number(context.targetBand || 0),
+    daysLeft: Number(context.daysLeft),
+    readiness: context.readiness?.modules || context.readiness || {},
+    confirmed: buildConfirmedPrioritySet(evidence.measured_priorities),
+    due: buildDueReviewSet(evidence.due_reviews),
+    nowKey: new Date().toISOString().slice(0, 10),
+  };
+}
+
+const normalizeEvidenceKey = (value) => String(value || '').toLowerCase();
+
+const buildConfirmedPrioritySet = (priorities = []) =>
+  new Set(
+    priorities.flatMap((item) => [
+      normalizeEvidenceKey(item.module),
+      normalizeEvidenceKey(item.skill_code),
     ])
   );
-  const due = new Set(
-    (evidence.due_reviews || []).map((item) => String(item.skill_code || '').toLowerCase())
-  );
-  const nowKey = new Date().toISOString().slice(0, 10);
 
+const buildDueReviewSet = (reviews = []) =>
+  new Set(reviews.map((item) => normalizeEvidenceKey(item.skill_code)));
+
+const priorityScore = (priority) => (priority === 'high' ? 50 : priority === 'medium' ? 25 : 5);
+
+const aiRankScore = (rank) => {
+  const value = Number(rank);
+  return Number.isFinite(value) ? Math.max(0, 45 - value * 3) : 0;
+};
+
+const targetGapScore = (task, context) => {
+  const module = String(task.module || '').toLowerCase();
+  const moduleReadiness = context.readiness?.[module] || {};
+  const moduleBand = Number(moduleReadiness.latest ?? moduleReadiness.band);
+  if (context.targetBand <= 0 || !Number.isFinite(moduleBand)) return 0;
+  return Math.max(0, context.targetBand - moduleBand) * 10;
+};
+
+function scoreNextTask(task, context) {
+  const module = String(task.module || '').toLowerCase();
+  const skills = (task.skill_targets || []).map((skill) => String(skill).toLowerCase());
+  const estimated = Number(task.estimated_time || task.estimated_minutes || 30);
+  const capacity = Number(task.day?.capacity || 0);
   return (
-    days
-      .flatMap((day, dayIndex) =>
-        (day.tasks || []).map((task, taskIndex) => ({ ...task, day, dayIndex, taskIndex }))
-      )
-      .filter((task) => !task.is_completed)
-      .map((task) => {
-        const module = String(task.module || '').toLowerCase();
-        const skills = (task.skill_targets || []).map((skill) => String(skill).toLowerCase());
-        const moduleBand = Number(readiness?.[module]?.latest ?? readiness?.[module]?.band);
-        const targetGap =
-          targetBand > 0 && Number.isFinite(moduleBand) ? Math.max(0, targetBand - moduleBand) : 0;
-        const estimated = Number(task.estimated_time || task.estimated_minutes || 30);
-        const capacity = Number(task.day?.capacity || 0);
-        const score =
-          (Number.isFinite(Number(task.ai_rank)) ? Math.max(0, 45 - Number(task.ai_rank) * 3) : 0) +
-          (task.priority === 'high' ? 50 : task.priority === 'medium' ? 25 : 5) +
-          targetGap * 10 +
-          (skills.some((skill) => due.has(skill)) ? 35 : 0) +
-          (confirmed.has(module) || skills.some((skill) => confirmed.has(skill)) ? 20 : 0) +
-          (task.scheduled_date && task.scheduled_date < nowKey ? 30 : 0) +
-          (capacity > 0 && estimated <= capacity ? 10 : 0) +
-          (Number.isFinite(daysLeft) &&
-          daysLeft <= 30 &&
-          /timed|mock|exam/i.test(task.activity_type || task.title)
-            ? 15
-            : 0);
-        return { task, score };
-      })
-      .sort(
-        (a, b) =>
-          b.score - a.score ||
-          String(a.task.scheduled_date || '').localeCompare(String(b.task.scheduled_date || '')) ||
-          String(a.task.activity_key || '').localeCompare(String(b.task.activity_key || ''))
-      )[0]?.task || null
+    aiRankScore(task.ai_rank) +
+    priorityScore(task.priority) +
+    targetGapScore(task, context) +
+    evidencePriorityScore(module, skills, context) +
+    schedulePriorityScore(task, estimated, capacity, context)
   );
 }
+
+const evidencePriorityScore = (module, skills, context) => {
+  const dueScore = skills.some((skill) => context.due.has(skill)) ? 35 : 0;
+  const confirmed =
+    context.confirmed.has(module) || skills.some((skill) => context.confirmed.has(skill));
+  return dueScore + (confirmed ? 20 : 0);
+};
+
+const schedulePriorityScore = (task, estimated, capacity, context) => {
+  const overdue = Boolean(task.scheduled_date && task.scheduled_date < context.nowKey);
+  const fitsCapacity = capacity > 0 && estimated <= capacity;
+  const nearDeadline = Number.isFinite(context.daysLeft) && context.daysLeft <= 30;
+  const examTask = /timed|mock|exam/i.test(task.activity_type || task.title);
+  return (overdue ? 30 : 0) + (fitsCapacity ? 10 : 0) + (nearDeadline && examTask ? 15 : 0);
+};
+
+const compareRankedTasks = (left, right) =>
+  right.score - left.score ||
+  String(left.task.scheduled_date || '').localeCompare(String(right.task.scheduled_date || '')) ||
+  String(left.task.activity_key || '').localeCompare(String(right.task.activity_key || ''));
 
 export function getFriendlyPlanText(text = '') {
   if (!text) return '';
@@ -422,85 +454,120 @@ export function buildDashboardDays(days = []) {
 
 export function computeEvidence(path, skillMap = {}) {
   const savedEvidence = path?.evidence_summary;
-  if (savedEvidence && typeof savedEvidence === 'object') {
-    return {
-      ...savedEvidence,
-      measured_priorities: savedEvidence.measured_priorities || [],
-      early_signals: savedEvidence.early_signals || savedEvidence.unmeasured_priorities || [],
-      diagnostics: savedEvidence.diagnostics || [],
-      due_reviews: savedEvidence.due_reviews || [],
-      maintenance: savedEvidence.maintenance || [],
-    };
-  }
+  if (savedEvidence && typeof savedEvidence === 'object')
+    return normalizeSavedEvidence(savedEvidence);
 
   const skills = Object.values(skillMap?.byModule || {})
     .flat()
-    .map((skill) => ({
-      ...skill,
-      mastery_probability: skill?.mastery_probability ?? skill?.mastery,
-      confidence_level: skill?.confidence_level ?? skill?.confidence,
-    }));
+    .map(normalizeSkillEvidence);
 
   return summarizeEvidence(skills);
 }
 
+const normalizeSavedEvidence = (evidence) => ({
+  ...evidence,
+  measured_priorities: evidence.measured_priorities || [],
+  early_signals: evidence.early_signals || evidence.unmeasured_priorities || [],
+  diagnostics: evidence.diagnostics || [],
+  due_reviews: evidence.due_reviews || [],
+  maintenance: evidence.maintenance || [],
+});
+
+const normalizeSkillEvidence = (skill) => ({
+  ...skill,
+  mastery_probability: skill?.mastery_probability ?? skill?.mastery,
+  confidence_level: skill?.confidence_level ?? skill?.confidence,
+});
+
 export function computeSevenDays(path, activityByKey = {}, availability = {}) {
   const schedule = path?.weekly_schedule || path?.schedule || path?.daily_schedule || {};
+  const tasksBySchedule = groupTasksBySchedule(schedule, activityByKey);
   const today = new Date();
   today.setHours(12, 0, 0, 0);
 
-  return Array.from({ length: 7 }, (_, offset) => {
-    const date = new Date(today);
-    date.setDate(date.getDate() + offset);
-    const scheduledDate = dateKey(date);
-    const dayName = STUDY_DAYS[(date.getDay() + 6) % 7];
-    const allPlanTasks = Array.isArray(schedule)
-      ? schedule
-      : Object.values(schedule || {}).flatMap((tasks) => (Array.isArray(tasks) ? tasks : []));
-    const knownKeys = new Set(allPlanTasks.map((task) => task?.activity_key).filter(Boolean));
-    const allTasks = [
-      ...allPlanTasks,
-      ...Object.values(activityByKey || {}).filter(
-        (activity) => activity?.activity_key && !knownKeys.has(activity.activity_key)
-      ),
-    ];
-    const tasks = allTasks
-      .map((task) => {
-        const activity = activityByKey?.[task.activity_key] || {};
-        const merged = {
-          ...task,
-          ...activity,
-          activity_key: task.activity_key || activity.activity_key,
-          scheduled_day: activity.scheduled_day || task.scheduled_day || dayName,
-          scheduled_date: activity.scheduled_date || task.scheduled_date || scheduledDate,
-          estimated_time:
-            activity.estimated_minutes || task.estimated_time || task.estimated_minutes || 0,
-          is_completed: Boolean(activity.is_completed ?? task.is_completed),
-        };
-        return merged;
-      })
-      .filter((task) => String(task.scheduled_date || '').slice(0, 10) === scheduledDate)
-      .sort((first, second) => Number(first.is_optional) - Number(second.is_optional));
+  return Array.from({ length: 7 }, (_, offset) =>
+    buildUpcomingDay({ today, offset, tasksBySchedule, availability })
+  );
+}
 
-    return {
-      dateKey: scheduledDate,
-      date,
-      dayName,
-      capacity: Number(availability?.days?.[dayName] || 0),
-      tasks,
-    };
-  });
+function buildUpcomingDay({ today, offset, tasksBySchedule, availability }) {
+  const date = new Date(today);
+  date.setDate(date.getDate() + offset);
+  const scheduledDate = dateKey(date);
+  const dayName = STUDY_DAYS[(date.getDay() + 6) % 7];
+  return {
+    dateKey: scheduledDate,
+    date,
+    dayName,
+    capacity: Number(availability?.days?.[dayName] || 0),
+    tasks: getTasksForDay(tasksBySchedule, scheduledDate, dayName),
+  };
+}
+
+const getTasksForDay = (groups, scheduledDate, dayName) =>
+  [...(groups.get(`date:${scheduledDate}`) || []), ...(groups.get(`day:${dayName}`) || [])].map(
+    (task) => ({
+      ...task,
+      scheduled_day: task.scheduled_day || dayName,
+      scheduled_date: task.scheduled_date || scheduledDate,
+    })
+  );
+
+const getScheduledTasks = (schedule) =>
+  Array.isArray(schedule)
+    ? schedule
+    : Object.values(schedule || {}).flatMap((tasks) => (Array.isArray(tasks) ? tasks : []));
+
+function mergeActivity(task, activityByKey) {
+  const source = task || {};
+  const activity = activityByKey?.[source.activity_key] || {};
+  return {
+    ...source,
+    ...activity,
+    activity_key: source.activity_key || activity.activity_key,
+    scheduled_day: activity.scheduled_day || source.scheduled_day,
+    scheduled_date: activity.scheduled_date || source.scheduled_date,
+    estimated_time: getMergedEstimate(activity, source),
+    is_completed: Boolean(activity.is_completed ?? source.is_completed),
+  };
+}
+
+const getMergedEstimate = (activity, task) =>
+  activity.estimated_minutes || task.estimated_time || task.estimated_minutes || 0;
+
+const getScheduleGroupKey = (task) => {
+  const scheduledDate = String(task.scheduled_date || '').slice(0, 10);
+  if (scheduledDate) return `date:${scheduledDate}`;
+  const scheduledDay = String(task.scheduled_day || '').toLowerCase();
+  return scheduledDay ? `day:${scheduledDay}` : null;
+};
+
+const addTaskToGroup = (groups, task) => {
+  const groupKey = getScheduleGroupKey(task);
+  if (!groupKey) return;
+  const tasks = groups.get(groupKey) || [];
+  tasks.push(task);
+  tasks.sort((first, second) => Number(first.is_optional) - Number(second.is_optional));
+  groups.set(groupKey, tasks);
+};
+
+function groupTasksBySchedule(schedule, activityByKey) {
+  const planTasks = getScheduledTasks(schedule);
+  const knownKeys = new Set(planTasks.map((task) => task?.activity_key).filter(Boolean));
+  const persistedOnly = Object.values(activityByKey || {}).filter(
+    (activity) => activity?.activity_key && !knownKeys.has(activity.activity_key)
+  );
+  const groups = new Map();
+  [...planTasks, ...persistedOnly]
+    .map((task) => mergeActivity(task, activityByKey))
+    .forEach((task) => addTaskToGroup(groups, task));
+  return groups;
 }
 
 export function getDaySummaryMeta(day = {}, primaryTask = null) {
   const tasks = Array.isArray(day.tasks) ? day.tasks : [];
   const primary = primaryTask || tasks[0] || null;
-  const plannedMinutes = tasks.reduce(
-    (total, task) => total + Number(task?.estimated_time || task?.estimated_minutes || 0),
-    0
-  );
-  const primaryMinutes = Number(primary?.estimated_time || primary?.estimated_minutes || 0);
-  const totalMinutes = plannedMinutes || primaryMinutes;
+  const totalMinutes = getPlannedMinutes(tasks, primary);
   const capacity = Number(day.capacity || 0);
 
   if (!primary) {
@@ -519,6 +586,13 @@ export function getDaySummaryMeta(day = {}, primaryTask = null) {
     additionalTasks: Math.max(0, tasks.length - 1),
   };
 }
+
+const getTaskMinutes = (task) => Number(task?.estimated_time || task?.estimated_minutes || 0);
+
+const getPlannedMinutes = (tasks, primary) => {
+  const planned = tasks.reduce((total, task) => total + getTaskMinutes(task), 0);
+  return planned || getTaskMinutes(primary);
+};
 
 function isPhaseInProgress(index, actual, isLegacyPlan) {
   if (actual?.status === 'in_progress') return true;
@@ -639,8 +713,7 @@ const formatRoadmapRange = (phase) => {
 
 const PHASE_TASK_MATCHERS = {
   foundation: (type, title) => type === 'diagnostic' || title.includes('diagnostic'),
-  repair: (type) =>
-    ['targeted_drill', 'spaced_review', 'grammar_transfer', 'vocabulary_review'].includes(type),
+  repair: (type) => ['targeted_drill', 'spaced_review', 'vocabulary_review'].includes(type),
   integration: (type, title) =>
     type === 'timed_assessment' || (title.includes('timed') && type !== 'exam_assessment'),
   readiness: (type, title) =>
@@ -796,30 +869,42 @@ function buildReadinessPhase(readiness = {}, targetBand = 7, tasks = []) {
   const moduleItems = Object.values(readiness.modules || {});
   const measured = moduleItems.filter(hasEnoughModuleEvidence);
   const targetScore = Number(targetBand || 7);
-  const examReadyModules = moduleItems.filter(
-    (item) =>
-      Number(item?.mode_counts?.exam || 0) > 0 &&
-      Number.isFinite(Number(item?.latest_exam_score)) &&
-      Number(item.latest_exam_score) >= targetScore
-  );
+  const examReadyModules = moduleItems.filter((item) => isModuleExamReady(item, targetScore));
   const examTasks = tasks.filter((task) => taskMatchesPhase(task, 'readiness'));
   const completedExamTasks = examTasks.filter(isVerifiedCompletion).length;
-  const count = examReadyModules.length;
-  const labelText = `${examReadyModules.length} of 4 Exam Mode scores at target`;
 
   return {
-    progressPercent: clampPercent((count / 4) * 100),
-    progressLabel: labelText,
-    checklist: [
-      { label: 'Recent scores ready in all 4 subjects', done: measured.length === 4 },
-      { label: getMockChecklistLabel(examTasks.length > 0), done: examTasks.length > 0 },
-      {
-        label: getScoreTargetChecklistLabel(examReadyModules.length, targetScore),
-        done: completedExamTasks > 0 && examReadyModules.length > 0,
-      },
-    ],
+    progressPercent: clampPercent((examReadyModules.length / 4) * 100),
+    progressLabel: `${examReadyModules.length} of 4 Exam Mode scores at target`,
+    checklist: buildReadinessChecklist({
+      measuredCount: measured.length,
+      examTaskCount: examTasks.length,
+      completedExamTasks,
+      examReadyCount: examReadyModules.length,
+      targetScore,
+    }),
   };
 }
+
+const isModuleExamReady = (item, targetScore) => {
+  const score = Number(item?.latest_exam_score);
+  return Number(item?.mode_counts?.exam || 0) > 0 && Number.isFinite(score) && score >= targetScore;
+};
+
+const buildReadinessChecklist = ({
+  measuredCount,
+  examTaskCount,
+  completedExamTasks,
+  examReadyCount,
+  targetScore,
+}) => [
+  { label: 'Recent scores ready in all 4 subjects', done: measuredCount === 4 },
+  { label: getMockChecklistLabel(examTaskCount > 0), done: examTaskCount > 0 },
+  {
+    label: getScoreTargetChecklistLabel(examReadyCount, targetScore),
+    done: completedExamTasks > 0 && examReadyCount > 0,
+  },
+];
 
 const PHASE_BUILDERS = {
   foundation: ({ readiness, tasks }) => buildFoundationPhase(readiness, tasks),
@@ -947,13 +1032,29 @@ export function computeDashboardSnapshot(path, user = {}, stats = {}) {
   const currentExamDate = normalizeGoalDate(examDate);
   const daysLeft = getExamDaysLeft(examDate);
   const examDatePassed = isExamDatePassed(examDate);
-  const roadmap =
-    examDatePassed || currentExamDate !== savedExamDate
-      ? buildRoadmap(examDate)
-      : getSnapshotRoadmap(path?.roadmap, user.test_date);
+  const roadmap = resolveSnapshotRoadmap({
+    path,
+    user,
+    examDate,
+    examDatePassed,
+    currentExamDate,
+    savedExamDate,
+  });
 
   return { readiness, roadmap, targetBand, examDate, daysLeft, examDatePassed };
 }
+
+const resolveSnapshotRoadmap = ({
+  path,
+  user,
+  examDate,
+  examDatePassed,
+  currentExamDate,
+  savedExamDate,
+}) =>
+  examDatePassed || currentExamDate !== savedExamDate
+    ? buildRoadmap(examDate)
+    : getSnapshotRoadmap(path?.roadmap, user.test_date);
 
 const normalizeGoalDate = (value) => (value ? String(value).slice(0, 10) : '');
 

@@ -89,7 +89,7 @@ export default function GoalsSection({ formData, setFormData }) {
               </button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-auto overflow-hidden rounded-xl border-[#e2e5f2] bg-white p-0 dark:border-white/10 dark:bg-[#131218]"
+              className="w-auto overflow-hidden rounded-xl border-[#e2e5f2] bg-white p-0 dark:border-white/10 dark:bg-[#131315]"
               align="start"
             >
               <CalendarComponent

@@ -99,7 +99,7 @@ export default function IeltsWritingChecker() {
   const structuredData = useStructuredData();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-[#08080a] transition-colors duration-300">
       <DocumentHead
         title="Free IELTS Writing Checker – Task 1 & 2 Band Score & Feedback"
         description="Paste your Academic IELTS Task 1 or Task 2 response and instantly receive an estimated band score with detailed feedback on all four writing criteria."

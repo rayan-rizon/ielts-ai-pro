@@ -55,7 +55,7 @@ const EndpointBreakdownChart = ({ endpointStats, dateRange }) => {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
           <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Workload by endpoint</h3>
-          <InfoTip>Which AI feature is generating the most delivered requests.</InfoTip>
+          <InfoTip>AI features ranked by delivered requests.</InfoTip>
         </div>
         {totalDelivered > 0 && (
           <span className={cn(NUM, 'text-[11px] font-bold text-stone-500')}>

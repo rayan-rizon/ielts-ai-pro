@@ -61,7 +61,7 @@ const TranscriptPanel = ({
       {/* Synchronized Transcript Section - Integrated Panel */}
       {!examMode ? (
         <div
-          className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] overflow-hidden shadow-2xs"
+          className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] overflow-hidden shadow-2xs"
           data-oid="qpvv9b:"
         >
           {/* Header */}

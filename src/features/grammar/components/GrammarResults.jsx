@@ -1,82 +1,11 @@
-import { ArrowRight, CheckCircle2, RefreshCw, XCircle } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { grammarContextPresentation, grammarQuestionPresentation, skillLabel } from '../constants';
-import { MUTED, PANEL, Pill, TILE } from '@/features/dashboard/components/primitives';
+import { MUTED, PANEL, TILE } from '@/features/dashboard/components/primitives';
 
-export default function GrammarResults({ result, onDashboard, onPracticeAgain, onTransfer }) {
+export default function GrammarResults({ result, onDashboard, onPracticeAgain }) {
   if (!result) return null;
-
-  if (result.type === 'transfer') {
-    const evaluation = result.evaluation || {};
-    const needsRepair = evaluation.outcome === 'needs_repair';
-    return (
-      <div className="mx-auto max-w-5xl space-y-3">
-        <section className={cn(PANEL, 'p-6')}>
-          <Pill tone={needsRepair ? 'amber' : 'ok'}>
-            {needsRepair ? <XCircle className="h-3 w-3" /> : <CheckCircle2 className="h-3 w-3" />}
-            {needsRepair ? 'Needs repair' : 'Target demonstrated'}
-          </Pill>
-          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            IELTS grammar transfer feedback
-          </h1>
-          <p className={cn('mt-2 max-w-3xl text-sm font-medium leading-6', MUTED)}>
-            {evaluation.explanation}
-          </p>
-          {evaluation.transcriptCaveat && (
-            <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold leading-5 text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-200">
-              {evaluation.transcriptCaveat}
-            </div>
-          )}
-        </section>
-
-        {evaluation.groundedExamples?.length > 0 && (
-          <section className={cn(PANEL, 'p-5')}>
-            <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
-              Exact grounded examples
-            </h2>
-            <div className="mt-4 space-y-3">
-              {evaluation.groundedExamples.map((example, index) => (
-                <div key={`${example.quote}-${index}`} className={cn(TILE, 'p-4')}>
-                  <div className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#5a63df]">
-                    {skillLabel(example.targetSkill)}
-                  </div>
-                  <blockquote className="mt-2 border-l-2 border-amber-400 pl-3 text-sm font-bold text-slate-800 dark:text-slate-100">
-                    Your wording: “{example.quote}”
-                  </blockquote>
-                  <p className={cn('mt-2 text-xs font-medium', MUTED)}>{example.issue}</p>
-                  <p className="mt-2 text-sm font-extrabold text-emerald-700 dark:text-emerald-300">
-                    Better version: {example.correction}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section className={cn(PANEL, 'p-5')}>
-          <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
-            Corrected version
-          </h2>
-          <p className="mt-3 whitespace-pre-wrap text-sm font-medium leading-7 text-slate-700 dark:text-slate-200">
-            {evaluation.correctedVersion}
-          </p>
-        </section>
-
-        <div className="flex flex-wrap gap-3">
-          <Button onClick={onDashboard} variant="outline" className="rounded-lg font-bold">
-            Back to Grammar Lab
-          </Button>
-          <Button
-            onClick={onTransfer}
-            className="rounded-lg bg-[#5a63df] font-bold text-white hover:bg-[#4a52c9]"
-          >
-            Try another transfer <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   const accuracy = Number(result.accuracy || 0);
   const incorrect = (result.results || []).filter((item) => !item.isCorrect);
@@ -201,9 +130,6 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain, o
           className="rounded-lg bg-[#5a63df] font-bold text-white hover:bg-[#4a52c9]"
         >
           <RefreshCw className="mr-2 h-4 w-4" /> Practice again
-        </Button>
-        <Button onClick={onTransfer} variant="outline" className="rounded-lg font-bold">
-          Apply in Writing or Speaking <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </div>

@@ -21,7 +21,7 @@ const SOURCES = [
     title: 'Writing grammar',
     description: 'From your scored Writing responses.',
     route: '/writing',
-    action: 'Open Writing',
+    action: 'Take a Writing test',
     icon: FilePenLine,
     accent: 'indigo',
   },
@@ -30,7 +30,7 @@ const SOURCES = [
     title: 'Speaking grammar',
     description: 'From your scored Speaking transcripts.',
     route: '/speaking',
-    action: 'Open Speaking',
+    action: 'Take a Speaking test',
     icon: Mic2,
     accent: 'emerald',
   },
@@ -194,7 +194,7 @@ export default function GrammarEvidencePanel({
               Grammar from your tests
             </h2>
             <p className={cn('mt-0.5 text-[11px] font-medium leading-4', MUTED)}>
-              Your Writing and Speaking results, in one place.
+              Evaluated Writing and Speaking tests update this automatically.
             </p>
           </div>
         </div>
@@ -261,10 +261,10 @@ export default function GrammarEvidencePanel({
           <ScanSearch className="h-4.5 w-4.5 shrink-0 text-[#5a63df]" />
           <div>
             <div className="text-xs font-extrabold text-slate-900 dark:text-white">
-              Turn this result into a target
+              Find the exact skill to practise
             </div>
             <p className={cn('mt-0.5 text-[11px] font-medium leading-4', MUTED)}>
-              A level check finds which of the six skills needs practice.
+              If test evidence is broad, one level check selects the right practice and guides.
             </p>
           </div>
         </div>

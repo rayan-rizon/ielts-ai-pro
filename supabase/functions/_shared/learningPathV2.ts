@@ -212,7 +212,7 @@ export function summarizeEvidence(skills: SkillSignal[], now: Date | string = ne
     criterion_signals,
     grammar_diagnostic_requested: Boolean(grammarCriterion && !hasGranularGrammarEvidence),
     grammar_diagnostic_source: grammarCriterion?.skill_code || null,
-    grammar_transfer_preference:
+    grammar_retest_preference:
       criterion_signals[0]?.skill_code === 'speaking_grammar' ? 'speaking' : 'writing',
   };
 }
@@ -452,7 +452,6 @@ type GeneratedActivity = {
   routing: {
     route: string;
     mode: string;
-    transferTarget?: string;
   };
 };
 
@@ -631,7 +630,7 @@ export function buildSevenDaySchedule({
   );
   let assignedMinutes = 0;
   let grammarMinutes = 0;
-  let grammarRepairsSinceTransfer = 0;
+  let grammarRepairsSinceRetest = 0;
 
   const schedule: Record<string, any[]> = {};
   let taskCursor = 0;
@@ -665,41 +664,37 @@ export function buildSevenDaySchedule({
         return deficitB - deficitA;
       })[0];
       let base = activityForCategory(category, evidence, readiness, taskCursor);
-      const grammarRepairsBeforeBlock = grammarRepairsSinceTransfer;
+      const grammarRepairsBeforeBlock = grammarRepairsSinceRetest;
       if (base.module === 'grammar' && base.activity_type === 'targeted_drill') {
-        if (grammarRepairsSinceTransfer >= 2) {
-          const transferTarget = evidence.grammar_transfer_preference || 'writing';
+        if (grammarRepairsSinceRetest >= 2) {
+          const retestTarget = evidence.grammar_retest_preference || 'writing';
           base = {
-            title: `${transferTarget === 'speaking' ? 'Speaking' : 'Writing'} grammar transfer`,
-            module: 'grammar',
-            activity_type: 'grammar_transfer',
+            title: `${retestTarget === 'speaking' ? 'Speaking' : 'Writing'} grammar checkpoint`,
+            module: retestTarget,
+            activity_type: 'timed_assessment',
             priority: 'high',
             skill_targets: base.skill_targets,
             reason:
-              'Two focused Grammar Lab repairs are complete in the sequence; now apply the target in IELTS production.',
-            success_criterion:
-              transferTarget === 'speaking'
-                ? 'Record a short response and review only transcript-grounded grammar observations.'
-                : 'Write a short Academic IELTS paragraph and review exact text-grounded grammar observations.',
+              'Two focused Grammar Lab repairs are complete. Use one scored IELTS response so its existing evaluation can measure progress without a separate AI call.',
+            success_criterion: `Complete one scored ${retestTarget === 'speaking' ? 'Speaking' : 'Writing'} test and review the updated Grammar evidence.`,
             evidence: base.evidence,
-            stage_key: 'repair',
+            stage_key: 'integration',
             completion_policy: 'verified',
             requested_mode: 'practice',
-            evidence_key: `grammar-transfer:${base.skill_targets[0] || 'general'}:${transferTarget}`,
+            evidence_key: `grammar-retest:${base.skill_targets[0] || 'general'}:${retestTarget}`,
             routing: {
-              route: 'grammar',
-              mode: 'transfer',
-              transferTarget,
+              route: retestTarget,
+              mode: 'practice',
             },
           };
-          grammarRepairsSinceTransfer = 0;
+          grammarRepairsSinceRetest = 0;
         } else {
-          grammarRepairsSinceTransfer += 1;
+          grammarRepairsSinceRetest += 1;
         }
       }
 
       if (base.module === 'grammar' && grammarMinutes + minutes > grammarBudgetMinutes) {
-        grammarRepairsSinceTransfer = grammarRepairsBeforeBlock;
+        grammarRepairsSinceRetest = grammarRepairsBeforeBlock;
         const fallbackModule =
           readiness.missing_diagnostics[0] ||
           IELTS_MODULES[(taskCursor + block) % IELTS_MODULES.length];

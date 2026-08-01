@@ -23,13 +23,17 @@ import {
   PanelTitle,
 } from './primitives';
 
-const AXIS_TICK = { fontSize: 10, fontWeight: 700, fill: '#94a3b8' };
+// A literal SVG fill, not a Tailwind class — recharts writes this straight onto
+// the tick <text> element, so a CSS var is the only way to have it track theme.
+// The old hardcoded #94a3b8 read at ~2.8:1 on the dark panel, under the 3:1 floor
+// for non-text UI.
+const AXIS_TICK = { fontSize: 10, fontWeight: 700, fill: 'rgb(var(--chart-axis))' };
 
 function ChartTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-lg border border-[#e4e2f0] bg-white px-2.5 py-1.5 shadow-lg dark:border-white/10 dark:bg-[#1b1a22]">
+    <div className="rounded-lg border border-[#e4e2f0] bg-white px-2.5 py-1.5 shadow-lg dark:border-white/[0.14] dark:bg-[#242427]">
       <p className={cn(MICRO, MUTED, 'capitalize')}>
         {point.module || 'Test'} · {point.dateLabel}
       </p>
@@ -50,7 +54,8 @@ function ChartTooltip({ active, payload }) {
  * predict an exam-day band it cannot know.
  */
 const BandTrajectoryChart = React.memo(({ recentTests, stats }) => {
-  const target = Number(stats?.targetScore) || 7;
+  const parsedTarget = Number(stats?.targetScore);
+  const target = Number.isFinite(parsedTarget) && parsedTarget > 0 ? parsedTarget : null;
 
   const { data, change } = useMemo(() => {
     const scored = (Array.isArray(recentTests) ? recentTests : [])
@@ -74,14 +79,14 @@ const BandTrajectoryChart = React.memo(({ recentTests, stats }) => {
   }, [recentTests]);
 
   const latest = data.length ? data[data.length - 1].score : null;
-  const domainFloor = Math.max(
-    0,
-    Math.floor(Math.min(target, ...data.map((point) => point.score)) - 0.5)
-  );
-  const domainCeil = Math.min(
-    9,
-    Math.ceil(Math.max(target, ...data.map((point) => point.score)) + 0.5)
-  );
+  const scaleValues = data.map((point) => point.score);
+  if (target != null) scaleValues.push(target);
+  const domainFloor = scaleValues.length
+    ? Math.max(0, Math.floor(Math.min(...scaleValues) - 0.5))
+    : 0;
+  const domainCeil = scaleValues.length
+    ? Math.min(9, Math.ceil(Math.max(...scaleValues) + 0.5))
+    : 9;
 
   return (
     <div className={cn(PANEL, 'flex h-full flex-col p-4')}>
@@ -111,7 +116,7 @@ const BandTrajectoryChart = React.memo(({ recentTests, stats }) => {
               <CartesianGrid
                 vertical={false}
                 stroke="currentColor"
-                className="text-[#eceafa] dark:text-white/[0.07]"
+                className="text-[#eceafa] dark:text-white/[0.11]"
               />
               <XAxis
                 dataKey="dateLabel"
@@ -136,20 +141,22 @@ const BandTrajectoryChart = React.memo(({ recentTests, stats }) => {
                 content={<ChartTooltip />}
                 cursor={{ stroke: ACCENT, strokeWidth: 1, strokeDasharray: '3 3', opacity: 0.6 }}
               />
-              <ReferenceLine
-                y={target}
-                stroke="currentColor"
-                className="text-[rgb(var(--signal-ok))]"
-                strokeDasharray="4 4"
-                strokeWidth={1.5}
-                label={{
-                  value: `target ${target.toFixed(1)}`,
-                  position: 'insideTopRight',
-                  fontSize: 9,
-                  fontWeight: 800,
-                  fill: '#94a3b8',
-                }}
-              />
+              {target != null ? (
+                <ReferenceLine
+                  y={target}
+                  stroke="currentColor"
+                  className="text-[rgb(var(--signal-ok))]"
+                  strokeDasharray="4 4"
+                  strokeWidth={1.5}
+                  label={{
+                    value: `target ${target.toFixed(1)}`,
+                    position: 'insideTopRight',
+                    fontSize: 9,
+                    fontWeight: 800,
+                    fill: 'rgb(var(--chart-axis))',
+                  }}
+                />
+              ) : null}
               <Line
                 type="monotone"
                 dataKey="score"

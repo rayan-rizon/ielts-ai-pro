@@ -27,7 +27,7 @@ const AIUsageStatsCards = ({ totals, loading }) => {
         label="Requests"
         value={totalRequests.toLocaleString()}
         sub={`${completedCalls.toLocaleString()} delivered`}
-        tip="Every AI call recorded in the selected window, including ones still in flight or that never finished."
+        tip="All AI calls recorded in the selected window."
       />
       <Kpi
         label="Provider cost"
@@ -39,7 +39,7 @@ const AIUsageStatsCards = ({ totals, loading }) => {
               ? `${totals.unpricedCompletedCalls.toLocaleString()} unpriced`
               : 'full coverage'
         }
-        tip="What the AI providers actually billed, summed from calls that reported a price. Calls without a price aren't included, so treat this as a floor."
+        tip="Reported provider cost. Unpriced calls are excluded."
       />
       <Kpi
         label="Tokens"
@@ -51,19 +51,19 @@ const AIUsageStatsCards = ({ totals, loading }) => {
               : (totals.totalTokens || 0).toLocaleString()
         }
         sub="input + output"
-        tip="Total tokens processed across delivered calls. A rough proxy for load on the model provider."
+        tip="Tokens processed across delivered calls."
       />
       <Kpi
         label="Cache hits"
         value={(totals.totalCachedCalls || 0).toLocaleString()}
         sub={`${cacheRate.toFixed(0)}% of delivered`}
-        tip="Requests served from cache instead of hitting the provider — free and instant. Higher is better for both cost and speed."
+        tip="Requests served from cache. Higher is better."
       />
       <Kpi
         label="Active users"
         value={(totals.uniqueUsers || 0).toLocaleString()}
         sub={`${(totals.totalUsers || 0).toLocaleString()} registered`}
-        tip="Distinct users who made at least one AI call in this window, against the total registered base."
+        tip="Users who made at least one AI call in this window."
       />
       <Kpi
         label={
@@ -83,7 +83,7 @@ const AIUsageStatsCards = ({ totals, loading }) => {
               ? `${totals.failedCalls || 0} failed`
               : `${coverageRate.toFixed(0)}% cost coverage`
         }
-        tip="Calls still reserved but not yet finalised. If this stays non-zero, quota is being held without being returned — see Platform Health."
+        tip="Calls reserved but not yet finalised. Check Platform Health if non-zero."
       />
     </div>
   );

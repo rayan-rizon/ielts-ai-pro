@@ -95,7 +95,7 @@ describe('Learning Path main page composition', () => {
     expect(dashboard).toContain('md:grid-cols-2');
     expect(dashboard).toContain('2xl:grid-cols-[1.08fr_1fr_0.9fr]');
     expect(dashboard).toContain('items-stretch');
-    expect(hero).toContain('lg:min-h-[238px]');
+    expect(hero).toContain('min-h-[260px]');
     expect(hero).toContain('grid-cols-2');
     expect(hero).toContain('sm:grid-cols-4');
     expect(readiness).toContain('grid-cols-2');
@@ -108,9 +108,8 @@ describe('Learning Path main page composition', () => {
     expect(app).not.toContain('LearningPathPreview');
   });
 
-  it('makes the roadmap rail keyboard-operable and names its current and next states', () => {
-    expect(roadmap).toContain('Current stage path');
-    expect(roadmap).toContain('Next stage path');
+  it('makes the roadmap rail keyboard-operable and gives every stage a descriptive name', () => {
+    expect(roadmap).toContain('aria-label={`Open stage ${index + 1}');
     expect(roadmap).toContain("event.key === 'Enter'");
     expect(roadmap).toContain("event.key === ' '");
     expect(roadmap).toContain('aria-pressed={selectedIndex === index}');
@@ -209,6 +208,30 @@ describe('Learning Path main page composition', () => {
       activity_key: activityKey,
       is_completed: true,
       estimated_time: 40,
+    });
+  });
+
+  it('keeps legacy weekday-only tasks without repeating schedule work for every day', () => {
+    const current = new Date();
+    current.setHours(12, 0, 0, 0);
+    const dayName = current.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    const days = computeSevenDays({
+      weekly_schedule: {
+        [dayName]: [
+          {
+            activity_key: 'legacy:weekday-task',
+            scheduled_day: dayName,
+            title: 'Reading diagnostic',
+            module: 'reading',
+          },
+        ],
+      },
+    });
+
+    expect(days[0].tasks[0]).toMatchObject({
+      activity_key: 'legacy:weekday-task',
+      scheduled_day: dayName,
+      scheduled_date: dateKey(current),
     });
   });
 
@@ -376,7 +399,7 @@ describe('Learning Path main page composition', () => {
 
   it('shows interactive evidence stages and a cost-safe update action', () => {
     expect(roadmap).toContain('InteractiveStageRail');
-    expect(roadmap).toContain('Current stage path');
+    expect(roadmap).toContain('Open stage ${index + 1}');
     expect(roadmap).toContain("Planned: 'Planned'");
     expect(roadmap).not.toContain("Locked: 'Locked'");
     expect(roadmap).toContain('item.done');
@@ -386,11 +409,10 @@ describe('Learning Path main page composition', () => {
     expect(dashboard).toContain('items-stretch');
   });
 
-  it('retries the activity query when scheduled_date is not deployed yet', () => {
-    expect(hook).toContain(
-      '/scheduled_date|stage_key|completion_policy|requested_mode|evidence_key/i.test('
-    );
-    expect(hook).toContain('V1 column set');
+  it('loads the path, activities, evidence, and proficiency through one combined RPC', () => {
+    expect(hook).toContain("supabase.rpc('get_learning_path_data')");
+    expect(hook).not.toContain("from('learning_path_activities')");
+    expect(hook).not.toContain("from('skill_proficiency')");
   });
 
   it('uses a compatibility write when newer activity metadata has not been deployed yet', () => {

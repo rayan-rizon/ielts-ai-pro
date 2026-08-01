@@ -65,7 +65,9 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
                 <span
                   key={step}
                   className="h-2.5 w-2.5 rounded-[3px]"
-                  style={{ backgroundColor: `rgb(90 99 223 / ${opacityFor(step)})` }}
+                  style={{
+                    backgroundColor: `rgb(var(--panel-accent-tint) / ${opacityFor(step)})`,
+                  }}
                 />
               ))}
             </div>
@@ -103,7 +105,9 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
                   >
                     <span
                       className="aspect-square w-full cursor-default rounded-[3px] transition-transform duration-150 hover:scale-[1.2]"
-                      style={{ backgroundColor: `rgb(90 99 223 / ${opacityFor(day.count)})` }}
+                      style={{
+                        backgroundColor: `rgb(var(--panel-accent-tint) / ${opacityFor(day.count)})`,
+                      }}
                     />
                   </Tip>
                 );

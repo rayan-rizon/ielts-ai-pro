@@ -103,7 +103,7 @@ function CTABannerActionCard({ handlePrimaryCta, reduceMotion }) {
       <button
         type="button"
         onClick={handlePrimaryCta}
-        className="group relative block w-full max-w-full sm:max-w-[350px] lg:max-w-[365px] overflow-hidden rounded-[24px] border border-slate-200/90 dark:border-violet-400/30 bg-white dark:bg-[#0c1020] text-left shadow-[0_20px_45px_-10px_rgba(82,98,239,0.22)] dark:shadow-[0_25px_50px_-10px_rgba(0,0,0,0.8)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_25px_50px_-8px_rgba(82,98,239,0.35)] dark:hover:shadow-[0_25px_50px_-5px_rgba(109,85,232,0.4)] hover:border-slate-300 dark:hover:border-violet-400/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#7664f2]/30 transform-gpu"
+        className="group relative block w-full max-w-full sm:max-w-[350px] lg:max-w-[365px] overflow-hidden rounded-[24px] border border-slate-200/90 dark:border-violet-400/25 bg-white dark:bg-[#131315] text-left shadow-[0_20px_45px_-10px_rgba(82,98,239,0.22)] dark:shadow-none transition duration-300 hover:-translate-y-1 hover:shadow-[0_25px_50px_-8px_rgba(82,98,239,0.35)] dark:hover:shadow-sm hover:border-slate-300 dark:hover:border-violet-400/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#7664f2]/30 transform-gpu"
       >
         <span className="relative flex items-center justify-between overflow-hidden bg-[#6256ef] px-5 sm:px-6 py-5 text-white">
           <span className="pointer-events-none absolute -right-14 -top-20 h-52 w-52 rounded-full bg-white/15 blur-2xl" />
@@ -135,7 +135,7 @@ function CTABannerActionCard({ handlePrimaryCta, reduceMotion }) {
           </span>
         </span>
 
-        <span className="flex items-center gap-3 bg-slate-50 dark:bg-[#080b16] px-5 sm:px-6 py-3 border-t border-slate-200/60 dark:border-white/10">
+        <span className="flex items-center gap-3 bg-slate-50 dark:bg-[#131315] px-5 sm:px-6 py-3 border-t border-slate-200/60 dark:border-white/10">
           <SkillBadgeStack size="sm" variant="avatars" />
           <span className="text-xs font-bold leading-tight text-slate-800 dark:text-white">
             Reading, Listening, Writing, and Speaking practice
@@ -152,7 +152,7 @@ export default function CTABanner({ handlePrimaryCta, viewport }) {
   const reduceMotion = useReducedMotion();
 
   return (
-    <SoftSection className="bg-gradient-to-b from-[#f4f7fc] to-[#eef2f8] dark:from-[#0b0a10] dark:to-[#0b0a10] py-8 md:py-12 lg:py-14">
+    <SoftSection className="bg-gradient-to-b from-[#f4f7fc] to-[#eef2f8] dark:from-[#08080a] dark:to-[#08080a] py-8 md:py-12 lg:py-14">
       <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-5 md:px-8">
         <m.div
           initial={{ opacity: 0, y: reduceMotion ? 0 : 20 }}
@@ -160,10 +160,10 @@ export default function CTABanner({ handlePrimaryCta, viewport }) {
           viewport={viewport}
           transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="relative overflow-hidden rounded-[24px] border border-slate-200/90 dark:border-violet-500/25 bg-white/90 dark:bg-gradient-to-b dark:from-[#11162b]/95 dark:via-[#0e1224]/95 dark:to-[#0a0d1a]/95 px-5 py-6 text-left sm:px-7 sm:py-7 md:rounded-[32px] md:px-8 lg:px-10 lg:py-8 shadow-2xl dark:shadow-[0_30px_70px_-15px_rgba(109,85,232,0.3)] backdrop-blur-2xl">
-            <div className="pointer-events-none absolute -left-24 -top-32 h-80 w-80 rounded-full bg-indigo-400/20 dark:bg-violet-600/25 blur-[90px]" />
-            <div className="pointer-events-none absolute -bottom-36 right-[8%] h-[28rem] w-[28rem] rounded-full bg-purple-400/20 dark:bg-indigo-600/25 blur-[100px]" />
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,.3),transparent_48%,rgba(130,112,255,.05))] dark:bg-[linear-gradient(115deg,rgba(255,255,255,.03),transparent_48%,rgba(130,112,255,.08))]" />
+          <div className="relative overflow-hidden rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white/90 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] px-5 py-6 text-left sm:px-7 sm:py-7 md:rounded-[32px] md:px-8 lg:px-10 lg:py-8 shadow-2xl dark:shadow-none backdrop-blur-2xl dark:backdrop-blur-none">
+            <div className="pointer-events-none absolute -left-24 -top-32 h-80 w-80 rounded-full bg-indigo-400/20 dark:bg-[#5a63df]/10 blur-[90px]" />
+            <div className="pointer-events-none absolute -bottom-36 right-[8%] h-[28rem] w-[28rem] rounded-full bg-purple-400/20 dark:bg-[#5a63df]/[0.08] blur-[100px]" />
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,.3),transparent_48%,rgba(130,112,255,.05))] dark:bg-none" />
 
             <div className="relative z-10 grid items-center gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 xl:gap-10">
               <div className="space-y-4">

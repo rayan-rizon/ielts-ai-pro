@@ -8,22 +8,14 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-function getJwtRole(req: Request): string | null {
-  const authHeader = req.headers.get('Authorization') || '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : '';
-  const payload = token.split('.')[1];
-  if (!payload) return null;
+async function isAuthorizedScheduler(req: Request): Promise<boolean> {
+  const token = req.headers.get('X-Scheduler-Secret');
+  if (!token) return false;
 
-  try {
-    const normalized = payload
-      .replace(/-/g, '+')
-      .replace(/_/g, '/')
-      .padEnd(Math.ceil(payload.length / 4) * 4, '=');
-    const decoded = JSON.parse(atob(normalized));
-    return decoded?.role || null;
-  } catch {
-    return null;
-  }
+  const { data, error } = await supabase.rpc('verify_scheduled_email_token', {
+    p_token: token,
+  });
+  return !error && data === true;
 }
 
 serve(async (req) => {
@@ -32,17 +24,50 @@ serve(async (req) => {
     return new Response('Method not allowed', { status: 405 });
   }
 
-  // Supabase validates the JWT at the gateway. Only the scheduled service-role
-  // caller should be allowed to run this service-role email job.
-  if (getJwtRole(req) !== 'service_role') {
+  // The database scheduler uses an opaque, dedicated Vault secret. This keeps
+  // the service-role key out of cron SQL and prevents public callers from
+  // triggering a privileged bulk-email job.
+  if (!(await isAuthorizedScheduler(req))) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
       status: 403,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
+  const requestBody = await req.json().catch(() => ({}));
+  if (requestBody?.healthCheck === true) {
+    return new Response(JSON.stringify({ success: true, mode: 'health-check' }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  let runId: string | null = null;
+  let candidates = 0;
+  let accepted = 0;
+  let skipped = 0;
+  let failed = 0;
+
+  const captureDispatch = (result: Awaited<ReturnType<typeof sendEmail>>) => {
+    candidates += 1;
+    if ('error' in result && result.error) failed += 1;
+    else if ('skipped' in result && result.skipped) skipped += 1;
+    else accepted += 1;
+  };
+
   try {
     console.log('Starting scheduled-emails processing...');
+
+    const { data: run, error: runError } = await supabase
+      .from('scheduled_email_runs')
+      .insert({ status: 'running' })
+      .select('id')
+      .single();
+    if (runError || !run) {
+      throw new Error(
+        `Could not start scheduled email telemetry: ${runError?.message || 'no run id'}`
+      );
+    }
+    runId = run.id;
 
     const today = new Date();
     const dates = {
@@ -57,12 +82,14 @@ serve(async (req) => {
 
     // 1. Renewal Reminders (7 Days Before)
     console.log(`Checking renewals ending around ${dates.renewalTarget}`);
-    const { data: renewals } = await supabase
+    const { data: renewals, error: renewalsError } = await supabase
       .from('users')
       .select('id, email, full_name, subscription_end_date')
       .neq('subscription_tier', 'free')
       .gte('subscription_end_date', `${dates.renewalTarget}T00:00:00Z`)
       .lte('subscription_end_date', `${dates.renewalTarget}T23:59:59Z`);
+    if (renewalsError)
+      throw new Error(`Could not load renewal reminders: ${renewalsError.message}`);
 
     if (renewals && renewals.length > 0) {
       for (const user of renewals) {
@@ -71,22 +98,25 @@ serve(async (req) => {
           full_name: user.full_name,
           subscription_end_date: user.subscription_end_date,
         });
-        await sendEmail({
-          to: user.email,
-          subject: template.subject,
-          type: 'renewal_reminder',
-          html: template.html,
-        });
+        captureDispatch(
+          await sendEmail({
+            to: user.email,
+            subject: template.subject,
+            type: 'renewal_reminder',
+            html: template.html,
+          })
+        );
       }
     }
 
     // 2. Trial / Referral Bonus Expiry (3 Days Before)
     console.log(`Checking trial/bonus ending around ${dates.trialTarget}`);
-    const { data: trials } = await supabase
+    const { data: trials, error: trialsError } = await supabase
       .from('users')
       .select('id, email, full_name, referral_bonus_expires_at')
       .gte('referral_bonus_expires_at', `${dates.trialTarget}T00:00:00Z`)
       .lte('referral_bonus_expires_at', `${dates.trialTarget}T23:59:59Z`);
+    if (trialsError) throw new Error(`Could not load trial reminders: ${trialsError.message}`);
 
     if (trials && trials.length > 0) {
       for (const user of trials) {
@@ -95,41 +125,97 @@ serve(async (req) => {
           full_name: user.full_name,
           referral_bonus_expires_at: user.referral_bonus_expires_at,
         });
-        await sendEmail({
-          to: user.email,
-          subject: template.subject,
-          type: 'trial_expiry',
-          html: template.html,
-        });
+        captureDispatch(
+          await sendEmail({
+            to: user.email,
+            subject: template.subject,
+            type: 'trial_expiry',
+            html: template.html,
+          })
+        );
       }
     }
 
     // 3. Inactivity Warning (7 Days Inactive)
     console.log(`Checking users last active around ${dates.inactiveTarget}`);
-    const { data: inactiveUsers } = await supabase
+    const { data: inactiveUsers, error: inactiveError } = await supabase
       .from('users')
       .select('id, email, full_name, last_active')
       .gte('last_active', `${dates.inactiveTarget}T00:00:00Z`)
       .lte('last_active', `${dates.inactiveTarget}T23:59:59Z`);
+    if (inactiveError)
+      throw new Error(`Could not load inactivity reminders: ${inactiveError.message}`);
 
     if (inactiveUsers && inactiveUsers.length > 0) {
       for (const user of inactiveUsers) {
         if (!user.email) continue;
         const template = getEmailTemplate('inactivity_warning', { full_name: user.full_name });
-        await sendEmail({
-          to: user.email,
-          subject: template.subject,
-          type: 'inactivity_warning',
-          html: template.html,
-        });
+        captureDispatch(
+          await sendEmail({
+            to: user.email,
+            subject: template.subject,
+            type: 'inactivity_warning',
+            html: template.html,
+          })
+        );
       }
     }
 
-    return new Response(JSON.stringify({ success: true, message: 'Scheduled tasks executed.' }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const runStatus = failed > 0 ? 'failed' : 'completed';
+    const { error: completeError } = await supabase
+      .from('scheduled_email_runs')
+      .update({
+        status: runStatus,
+        completed_at: new Date().toISOString(),
+        candidates,
+        accepted,
+        skipped,
+        failed,
+        error_message: failed > 0 ? `${failed} email dispatch(es) failed` : null,
+      })
+      .eq('id', runId);
+    if (completeError)
+      throw new Error(`Could not finalize scheduled email telemetry: ${completeError.message}`);
+
+    if (failed > 0) {
+      return new Response(
+        JSON.stringify({
+          error: 'One or more scheduled emails failed',
+          candidates,
+          accepted,
+          skipped,
+          failed,
+        }),
+        { status: 502, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Scheduled tasks executed.',
+        candidates,
+        accepted,
+        skipped,
+      }),
+      { headers: { 'Content-Type': 'application/json' } }
+    );
   } catch (err: any) {
     console.error('Scheduled Tasks Error:', err);
+    if (runId) {
+      await supabase
+        .from('scheduled_email_runs')
+        .update({
+          status: 'failed',
+          completed_at: new Date().toISOString(),
+          candidates,
+          accepted,
+          skipped,
+          failed: Math.max(failed, 1),
+          error_message: String(err?.message || err).slice(0, 500),
+        })
+        .eq('id', runId);
+    }
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

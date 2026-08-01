@@ -13,13 +13,13 @@ import { Empty, MICRO, MUTED, NUM, PANEL, PanelTitle } from './primitives';
 
 const ACCENT = '#5a63df';
 
-const AXIS_TICK = { fontSize: 10, fontWeight: 700, fill: '#94a3b8' };
+const AXIS_TICK = { fontSize: 10, fontWeight: 700, fill: 'rgb(var(--chart-axis))' };
 
 function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   const count = payload[0].value;
   return (
-    <div className="rounded-lg border border-[#e4e2f0] bg-white px-2.5 py-1.5 shadow-lg dark:border-white/10 dark:bg-[#1b1a22]">
+    <div className="rounded-lg border border-[#e4e2f0] bg-white px-2.5 py-1.5 shadow-lg dark:border-white/[0.14] dark:bg-[#242427]">
       <p className={cn(MICRO, MUTED)}>{label}</p>
       <p className={cn(NUM, 'mt-0.5 text-sm font-bold text-slate-900 dark:text-slate-50')}>
         {count} <span className={cn(MICRO, MUTED)}>{count === 1 ? 'test' : 'tests'}</span>
@@ -70,7 +70,7 @@ const WeeklyMomentumChart = React.memo(({ weeklyProgress }) => {
               <CartesianGrid
                 vertical={false}
                 stroke="currentColor"
-                className="text-[#eceafa] dark:text-white/[0.07]"
+                className="text-[#eceafa] dark:text-white/[0.11]"
               />
               <XAxis dataKey="day" axisLine={false} tickLine={false} tick={AXIS_TICK} dy={6} />
               <YAxis

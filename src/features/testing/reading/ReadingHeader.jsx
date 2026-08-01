@@ -32,7 +32,7 @@ function ReadingControls({
           placeholder="Find a reading passage..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#131218]"
+          className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#131315]"
         />
       </div>
 

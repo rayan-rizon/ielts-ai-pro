@@ -64,7 +64,7 @@ export default function WeekPulse({ days, weeklyCapacity, onCustomize }) {
           }}
           aria-label={`${completion}% of this week's plan completed`}
         >
-          <div className="flex h-14 w-14 flex-col items-center justify-center rounded-full bg-white dark:bg-[#131218]">
+          <div className="flex h-14 w-14 flex-col items-center justify-center rounded-full bg-white dark:bg-[#131315]">
             <span
               className={cn(NUM, 'text-base font-extrabold text-[#5a63df] dark:text-[#a9afff]')}
             >

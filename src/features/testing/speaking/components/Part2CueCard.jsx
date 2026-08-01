@@ -28,7 +28,7 @@ const Part2CueCard = React.memo(({ cueCardTopic }) => {
       className="mx-auto w-full max-w-2xl"
       aria-label="Part 2 topic card"
     >
-      <div className="overflow-hidden rounded-3xl border border-rose-500/20 bg-gradient-to-b from-white to-[#faf9ff] shadow-[0_22px_55px_-36px_hsl(350_80%_50%/0.45)] dark:from-[#141319] dark:to-[#100f15]">
+      <div className="overflow-hidden rounded-3xl border border-rose-500/20 bg-gradient-to-b from-white to-[#faf9ff] shadow-[0_22px_55px_-36px_hsl(350_80%_50%/0.45)] dark:from-[#131315] dark:to-[#131315]">
         <div className="flex items-center justify-between gap-4 border-b border-rose-500/10 bg-rose-500/[0.045] px-5 py-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500 text-white shadow-md shadow-rose-500/20">

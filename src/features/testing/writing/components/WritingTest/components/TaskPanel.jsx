@@ -131,7 +131,7 @@ export function TaskPanel({
       className={cn(
         'relative z-0 flex min-h-0 flex-col',
         !isInset
-          ? 'h-1/2 md:h-full w-full md:w-1/2 border-b md:border-b-0 md:border-r border-slate-200/60 dark:border-slate-800/60 bg-white/50 dark:bg-[#0a0a0a] backdrop-blur-sm'
+          ? 'h-1/2 md:h-full w-full md:w-1/2 border-b md:border-b-0 md:border-r border-[#e4e2f0] dark:border-white/[0.07] bg-white/50 dark:bg-[#131315] backdrop-blur-sm'
           : 'h-full w-full'
       )}
       data-oid="zit35s_"
@@ -142,12 +142,12 @@ export function TaskPanel({
       >
         {/* Unified Writing Task Card */}
         <div
-          className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-[#0D0E1A]/80 shadow-xs backdrop-blur-md overflow-hidden"
+          className="rounded-xl sm:rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] bg-white dark:bg-[#131315]/90 shadow-xs backdrop-blur-md overflow-hidden"
           data-oid="unified-card"
         >
           {/* Card Header & Parameters */}
           <div
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30"
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 border-b border-[#ebeaf7] dark:border-white/[0.07] bg-[#f4f3fb]/50 dark:bg-white/[0.03]"
             data-oid="card-header"
           >
             <div className="flex items-center gap-2">
@@ -190,7 +190,7 @@ export function TaskPanel({
 
           {/* Instructions Section */}
           {activeTask.instructions && (
-            <div className="px-3.5 py-2 bg-slate-50/20 dark:bg-transparent border-b border-slate-100 dark:border-slate-800/60">
+            <div className="px-3.5 py-2 bg-[#f4f3fb]/20 dark:bg-transparent border-b border-[#ebeaf7] dark:border-white/[0.07]">
               <h4 className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
                 Instructions
               </h4>
@@ -238,7 +238,7 @@ export function TaskPanel({
               className={`w-full justify-between items-center group h-auto py-3 px-4 rounded-2xl border transition-all duration-300 ${
                 showSample
                   ? 'bg-amber-500/[0.04] border-amber-200 dark:bg-amber-500/[0.02] dark:border-amber-500/20 shadow-sm'
-                  : 'bg-slate-500/[0.02] dark:bg-slate-500/[0.01] border-slate-200 dark:border-slate-800 hover:bg-amber-500/[0.02] hover:border-amber-500/30 dark:hover:bg-amber-500/[0.01] dark:hover:border-amber-500/20'
+                  : 'bg-slate-500/[0.02] dark:bg-white/[0.02] border-[#e4e2f0] dark:border-white/[0.07] hover:bg-amber-500/[0.02] hover:border-amber-500/30 dark:hover:bg-amber-500/[0.01] dark:hover:border-amber-500/20'
               }`}
               data-oid="4jmai9z"
             >

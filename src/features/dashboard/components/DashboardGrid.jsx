@@ -7,7 +7,7 @@ import BandTrajectoryChart from './BandTrajectoryChart';
 import NextUpPanel from './NextUpPanel';
 import SkillMasteryPanel from './SkillMasteryPanel';
 import WeeklyMomentumChart from './WeeklyMomentumChart';
-import VocabularyCard from './VocabularyCard';
+import OverallBandPanel from './OverallBandPanel';
 import SessionLog from './SessionLog';
 import EngagementWidget from './EngagementWidget';
 import CambridgeTestsCard from './CambridgeTestsCard';
@@ -21,7 +21,7 @@ import { FADE_UP } from './primitives';
  *   2. Where you stand (module bands) · whether it's moving (trajectory) · what
  *      to do next (queue)
  *   3. Why it isn't moving (question types) · how much work went in (volume) ·
- *      the daily lever (vocabulary)
+ *      the number on the certificate (overall band)
  *   4. What you already did (attempt log, practice history)
  *   5. Material to work through, then the reference library
  *
@@ -37,7 +37,6 @@ export default function DashboardGrid({
   cambridgeTests,
   weakestSkill,
   skillProficiency,
-  vocabStats,
   studyResources,
   resourcesLoading,
   recommended,
@@ -99,7 +98,7 @@ export default function DashboardGrid({
         </m.div>
 
         <m.div variants={FADE_UP} className="col-span-12 md:col-span-5 lg:col-span-3">
-          <VocabularyCard vocabStats={vocabStats} />
+          <OverallBandPanel stats={stats} />
         </m.div>
 
         {/* What already happened. The heat grid is only twelve columns wide by

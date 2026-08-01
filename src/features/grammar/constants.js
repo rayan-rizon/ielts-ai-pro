@@ -90,13 +90,6 @@ export const EVIDENCE_META = {
   },
 };
 
-export const TRANSFER_PROMPTS = {
-  writing:
-    'Write a 120–160 word Academic IELTS paragraph. For Task 1, compare two important features from a chart or process. For Task 2, state one position and support it with a reason and example.',
-  speaking:
-    'Choose one of your existing IELTS Speaking responses. Feedback will use only the saved transcript and the selected grammar targets.',
-};
-
 export function evidenceMeta(value) {
   return EVIDENCE_META[value] || EVIDENCE_META.diagnostic;
 }

@@ -47,7 +47,7 @@ function ContactFormSuccess({ onReset }) {
       <Button
         variant="secondary"
         onClick={onReset}
-        className="rounded-xl px-6 h-11 font-extrabold text-sm border border-slate-200 dark:border-slate-800 shadow-sm hover:scale-105 transition-all"
+        className="rounded-xl px-6 h-11 font-extrabold text-sm border border-slate-200 dark:border-white/10 shadow-sm hover:scale-105 transition-all"
       >
         Send Another Inquiry
       </Button>
@@ -81,7 +81,7 @@ function ContactFormFields({ onSubmit, isSubmitting }) {
             name="name"
             required
             placeholder="e.g., Sarah Jenkins"
-            className="h-11 bg-slate-50/50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium transition-all text-sm"
+            className="h-11 bg-slate-50/50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium transition-all text-sm"
           />
         </div>
         <div className="space-y-1.5">
@@ -93,7 +93,7 @@ function ContactFormFields({ onSubmit, isSubmitting }) {
             required
             type="email"
             placeholder="you@example.com"
-            className="h-11 bg-slate-50/50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium transition-all text-sm"
+            className="h-11 bg-slate-50/50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium transition-all text-sm"
           />
         </div>
       </div>
@@ -105,7 +105,7 @@ function ContactFormFields({ onSubmit, isSubmitting }) {
         <div className="relative">
           <select
             name="topic"
-            className="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium transition-all appearance-none cursor-pointer text-slate-900 dark:text-slate-100"
+            className="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.04] px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium transition-all appearance-none cursor-pointer text-slate-900 dark:text-slate-100"
           >
             <option>General Platform Question</option>
             <option>Writing & Speaking AI Evaluation Support</option>
@@ -128,7 +128,7 @@ function ContactFormFields({ onSubmit, isSubmitting }) {
           name="message"
           required
           placeholder="Please describe your question or feature request in detail..."
-          className="flex-1 min-h-[120px] bg-slate-50/50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium resize-none p-4 text-sm transition-all"
+          className="flex-1 min-h-[120px] bg-slate-50/50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium resize-none p-4 text-sm transition-all"
         />
       </div>
 
@@ -188,7 +188,7 @@ export default function ContactForm() {
     >
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-blue-500/10 blur-3xl -z-10 rounded-[3rem] opacity-70" />
 
-      <Card className="p-7 sm:p-8 md:p-10 border border-slate-200/80 bg-white/80 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] rounded-[28px] md:rounded-[32px] relative overflow-hidden group h-full flex flex-col justify-between">
+      <Card className="p-7 sm:p-8 md:p-10 border border-slate-200/80 bg-white/80 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:shadow-none dark:backdrop-blur-none rounded-[28px] md:rounded-[32px] relative overflow-hidden group h-full flex flex-col justify-between">
         <CardGridBackground />
         {isSubmitted ? (
           <ContactFormSuccess onReset={() => setIsSubmitted(false)} />

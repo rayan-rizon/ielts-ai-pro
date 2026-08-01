@@ -376,7 +376,7 @@ const TableCompletionRenderer = ({
                   data-oid="gomp5ms"
                 >
                   {tableRows.map((row, rIdx) => (
-                    <tr key={rIdx} className="bg-white dark:bg-[#141319] group" data-oid="-68lsay">
+                    <tr key={rIdx} className="bg-white dark:bg-[#131315] group" data-oid="-68lsay">
                       {row.map((cell, cIdx) => (
                         <td
                           key={cIdx}

@@ -67,19 +67,19 @@ const UserAnalytics = ({
           label="Total community"
           value={(stats.totalUsers || 0).toLocaleString()}
           sub="Registered learners"
-          tip="Everyone who has ever created an account, regardless of whether they're still active."
+          tip="All registered accounts, active or not."
         />
         <Kpi
           label="Premium conversion"
           value={(stats.premiumUsers || 0).toLocaleString()}
           sub={`${stats.conversionRate || 0}% of all users`}
-          tip="Users on a Pro or Premium plan, and what share of the total community that represents."
+          tip="Pro and Premium users as a share of all users."
         />
         <Kpi
           label="Completed sessions"
           value={(stats.completedTests || 0).toLocaleString()}
           sub="Finished test sessions"
-          tip="Test sessions marked complete — a volume metric, not a score. Where they scored isn't shown here."
+          tip="Completed test sessions, not scores."
         />
       </motion.div>
 

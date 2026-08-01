@@ -57,7 +57,7 @@ export function WritingHeader({
                 window.history.back();
               }
             }}
-            className="group relative flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-xl border border-[#d2d7f8] bg-gradient-to-r from-white to-[#f4f3ff] text-slate-700 shadow-2xs transition-all duration-200 hover:border-[#5661e9] hover:text-[#5661e9] hover:shadow-xs active:scale-95 dark:border-white/10 dark:from-white/10 dark:to-white/5 dark:text-slate-200 dark:hover:border-indigo-400 dark:hover:text-indigo-300 p-0"
+            className="group relative flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-[#5661e9] hover:bg-[#efedff] hover:text-[#5661e9] active:scale-95 dark:border-white/20 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-indigo-400/60 dark:hover:bg-slate-700 dark:hover:text-indigo-300 p-0"
             data-oid="hk29.7f"
           >
             <ArrowLeft
@@ -93,9 +93,14 @@ export function WritingHeader({
               {!isAwaitingStart ? (
                 <Badge
                   variant="outline"
-                  className="h-4 rounded-full px-1.5 text-[8px] font-black uppercase tracking-wide"
+                  className="h-4 shrink-0 whitespace-nowrap rounded-full px-1.5 text-[8px] font-black uppercase tracking-wide"
                 >
-                  {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
+                  <span className="hidden min-[420px]:inline">
+                    {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
+                  </span>
+                  <span className="min-[420px]:hidden">
+                    {testMode === 'exam' ? 'Exam' : 'Practice'}
+                  </span>
                 </Badge>
               ) : null}
             </div>
@@ -105,7 +110,7 @@ export function WritingHeader({
         {/* Center: Task Switcher (Desktop — md and above) */}
         {compositeTasks && Object.keys(compositeTasks).length > 1 && (
           <div
-            className="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-full border border-slate-200 dark:border-slate-700"
+            className="hidden md:flex items-center gap-1 bg-[#f4f3fb] dark:bg-white/[0.04] p-1 rounded-full border border-[#e4e2f0] dark:border-white/[0.07]"
             data-oid="edt:rn9"
           >
             {Object.keys(compositeTasks).map((type) => (
@@ -122,7 +127,7 @@ export function WritingHeader({
                 {activeType === type && (
                   <motion.div
                     layoutId="activeTaskTab"
-                    className="absolute inset-0 bg-slate-900 dark:bg-indigo-600 rounded-full -z-10"
+                    className="absolute inset-0 bg-slate-900 dark:bg-[#5661e9] rounded-full -z-10"
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                     data-oid="y6gfvnb"
                   />
@@ -136,7 +141,7 @@ export function WritingHeader({
         {/* Center: Task Switcher (Mobile — below md) */}
         {compositeTasks && Object.keys(compositeTasks).length > 1 && (
           <div
-            className="flex md:hidden items-center gap-0.5 bg-slate-100 dark:bg-slate-800/50 p-0.5 rounded-full border border-slate-200 dark:border-slate-700 mx-auto"
+            className="flex md:hidden items-center gap-0.5 bg-[#f4f3fb] dark:bg-white/[0.04] p-0.5 rounded-full border border-[#e4e2f0] dark:border-white/[0.07] mx-auto"
             data-oid="mobile-task-switcher"
           >
             {Object.keys(compositeTasks).map((type) => (
@@ -153,7 +158,7 @@ export function WritingHeader({
                 {activeType === type && (
                   <motion.div
                     layoutId="activeTaskTabMobile"
-                    className="absolute inset-0 bg-slate-900 dark:bg-indigo-600 rounded-full -z-10"
+                    className="absolute inset-0 bg-slate-900 dark:bg-[#5661e9] rounded-full -z-10"
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                     data-oid="mobile-active-bg"
                   />
@@ -179,11 +184,14 @@ export function WritingHeader({
             <>
               {/* Auto-save Status (Hidden on very small screens) */}
               <div
-                className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5"
+                className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f4f3fb] dark:bg-white/[0.04] border border-[#e4e2f0] dark:border-white/[0.07]"
                 data-oid="2y1asde"
               >
                 {isSaving ? (
-                  <Loader2 className="w-3 h-3 text-indigo-500 animate-spin" data-oid="grs.ci3" />
+                  <Loader2
+                    className="w-3 h-3 text-[#5661e9] dark:text-indigo-300 animate-spin"
+                    data-oid="grs.ci3"
+                  />
                 ) : (
                   <div
                     className={`w-1.5 h-1.5 rounded-full transition-colors ${lastSaved ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300 dark:bg-slate-600'}`}
@@ -199,7 +207,7 @@ export function WritingHeader({
               </div>
 
               <div
-                className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"
+                className="h-6 w-px bg-[#e4e2f0] dark:bg-white/[0.07] hidden sm:block"
                 data-oid="15qptnk"
               ></div>
 

@@ -83,7 +83,7 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className="p-4 xl:p-5 rounded-2xl bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs transition-all duration-300 flex flex-col h-full gap-4 relative overflow-hidden"
+      className="p-4 xl:p-5 rounded-2xl bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs transition-all duration-300 flex flex-col h-full gap-4 relative overflow-hidden"
     >
       <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#5a63df]/10 dark:bg-[#5a63df]/10 rounded-full blur-3xl pointer-events-none" />
 

@@ -29,7 +29,7 @@ const WordHeader = ({ viewingWord }) => {
   };
 
   return (
-    <div className="group relative overflow-hidden bg-[#5a63df] px-6 pb-5 pr-12 pt-6 text-white dark:bg-[#131218]">
+    <div className="group relative overflow-hidden bg-[#5a63df] px-6 pb-5 pr-12 pt-6 text-white dark:bg-[#131315]">
       <div className="relative z-10 max-w-[92%] space-y-2.5">
         <div className="flex flex-wrap items-center gap-1.5">
           <Badge className="rounded-md border-none bg-white/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white hover:bg-white/30">
@@ -218,7 +218,7 @@ export default function WordDetailDialog({
     <Dialog open={!!viewingWord} onOpenChange={(open) => !open && setViewingWord(null)}>
       <DialogContent
         hideClose
-        className="max-w-md overflow-hidden rounded-xl border border-[#e2e5f2] bg-white p-0 dark:border-white/10 dark:bg-[#131218]"
+        className="max-w-md overflow-hidden rounded-xl border border-[#e2e5f2] bg-white p-0 dark:border-white/10 dark:bg-[#131315]"
       >
         <DialogClose className="absolute right-3.5 top-3.5 z-50 rounded-full bg-black/15 p-1.5 text-white transition-colors hover:bg-black/25">
           <X className="h-3.5 w-3.5" />

@@ -54,6 +54,8 @@ function isTrustedImageUrl(rawUrl: string): boolean {
 
 serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
+  let quotaReservationId: string | undefined;
+  let serviceClient: any;
 
   if (req.method === 'OPTIONS') {
     return handleCorsPrelight(req);
@@ -72,6 +74,7 @@ serve(async (req: Request) => {
     console.log('Function Debug - URL:', !!supabaseUrl, 'Key:', !!supabaseKey);
 
     const supabase = createClient(supabaseUrl ?? '', supabaseKey ?? '');
+    serviceClient = supabase;
 
     const authHeader = req.headers.get('Authorization');
     console.log('Auth Header present:', !!authHeader);
@@ -475,6 +478,7 @@ Register and tone:
     if (!quotaReservation.allowed) {
       return quotaExceededResponse(quotaReservation, corsHeaders);
     }
+    quotaReservationId = quotaReservation.reservationId;
 
     const { data: cachedEntry } = await supabase
       .from('ai_feedback_cache')
@@ -487,6 +491,7 @@ Register and tone:
         taskType,
         cached: true,
       });
+      quotaReservationId = undefined;
       return new Response(
         JSON.stringify({ success: true, data: cachedEntry.feedback_json, cached: true }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -519,10 +524,10 @@ Register and tone:
       });
 
     let geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
         body: buildGeminiRequest(0),
       }
     );
@@ -545,6 +550,20 @@ Register and tone:
       }
 
       console.error(`Gemini API error: ${status} - ${providerMessage}`);
+
+      await finalizeApiUsage(
+        supabase,
+        quotaReservationId,
+        0,
+        false,
+        {
+          taskType,
+          providerStatus: status,
+          failureReason: providerMessage || 'Gemini provider request failed',
+        },
+        'failed'
+      );
+      quotaReservationId = undefined;
 
       if (status === 429) {
         return new Response(
@@ -594,10 +613,10 @@ Register and tone:
     } catch (parseError) {
       console.warn('Gemini returned invalid JSON; retrying once:', parseError);
       geminiResponse = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
           body: buildGeminiRequest(0.3),
         }
       );
@@ -620,6 +639,7 @@ Register and tone:
     await finalizeApiUsage(supabase, quotaReservation.reservationId, tokensUsed, false, {
       taskType,
     });
+    quotaReservationId = undefined;
 
     try {
       await supabase
@@ -639,6 +659,16 @@ Register and tone:
     });
   } catch (error: any) {
     console.error('Error in generateDetailedFeedback:', error);
+    if (quotaReservationId && serviceClient) {
+      await finalizeApiUsage(
+        serviceClient,
+        quotaReservationId,
+        0,
+        false,
+        { failureReason: error?.message || 'Internal server error' },
+        'failed'
+      );
+    }
     return new Response(
       JSON.stringify({ error: error.message || 'Internal server error', success: false }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

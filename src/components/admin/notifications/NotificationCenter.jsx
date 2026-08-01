@@ -289,7 +289,7 @@ const NotificationCenter = () => {
         <AdminPageHeader
           title="Notifications"
           description="Broadcast real-time communications to your user community"
-          tip="Notifications land in every targeted user's dashboard immediately and disappear on their own once expired — recalling one removes it early from everyone it reached."
+          tip="Notifications appear for targeted users and expire automatically."
         >
           <AdminButton variant="outline" onClick={fetchNotifications}>
             <RefreshCcw className={cn('w-3 h-3', loading && 'animate-spin')} />

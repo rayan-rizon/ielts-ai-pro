@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash2, ArrowDown, GripVertical, Settings2 } from 'lucide-react';
+import { Plus, Trash2, ArrowDown } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 
 const FlowchartBuilder = ({ initialData, onChange, theme }) => {

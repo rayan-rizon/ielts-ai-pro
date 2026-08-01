@@ -29,7 +29,9 @@ describe('Learning Path Edge Function safeguards', () => {
   it('falls back when quota, provider, or parsing is unavailable', () => {
     expect(source).toContain("fallbackReason: 'quota_unavailable'");
     expect(source).toContain('deterministicFallback: true');
-    expect(source).toContain("throw new Error('Malformed coach summary')");
+    expect(source).toContain('requestJsonWithGeminiFallback');
+    expect(source).toContain('validateJson: (value) =>');
+    expect(source).toContain("deepseekApiKey: Deno.env.get('DEEPSEEK_API_KEY')");
     expect(source).not.toContain('quotaExceededResponse');
   });
 
@@ -42,6 +44,9 @@ describe('Learning Path Edge Function safeguards', () => {
       'cacheStatus',
       'promptTokens',
       'outputTokens',
+      'cachedPromptTokens',
+      'fallbackUsed',
+      'estimatedProviderCostUsd',
       'deterministicFallback',
     ]) {
       expect(source).toContain(field);

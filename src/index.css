@@ -219,6 +219,25 @@
     --signal-warn: 186 124 26;
     --signal-fault: 201 60 52;
     --signal-idle: 168 162 158;
+
+    /*
+     * Chart furniture. Recharts takes literal fills rather than classes, so
+     * axis ticks and reference labels used to be hard-coded #94a3b8 in every
+     * chart — 2.8:1 on white, which fails at 10px. These tokens keep the same
+     * value in one place and let dark mode lift instead of dim.
+     */
+    --chart-axis: 100 116 139;
+    --chart-grid: 236 234 250;
+
+    /*
+     * Instrument-panel accent. The learner panels tint fills with the brand
+     * indigo; on near-black that hue disappears, so dark mode swaps in a
+     * lifted tint rather than turning up the opacity on a colour that has
+     * already gone muddy.
+     */
+    --panel-accent: 90 99 223;
+    --panel-accent-tint: 90 99 223;
+    --panel-accent-text: 90 99 223;
   }
 
   .dark {
@@ -227,6 +246,13 @@
     --signal-warn: 232 178 74;
     --signal-fault: 255 118 103;
     --signal-idle: 120 113 108;
+
+    --chart-axis: 154 161 181;
+    --chart-grid: 255 255 255;
+
+    --panel-accent: 122 131 242;
+    --panel-accent-tint: 143 151 255;
+    --panel-accent-text: 175 181 255;
 
     --background: 240 10% 2%;
     /* Deeper, true black for premium contrast */

@@ -42,7 +42,7 @@ const STEPS = [
 
 export default function TechSpotlightSection() {
   return (
-    <section className="py-16 md:py-24 px-6 relative border-t border-slate-200/60 dark:border-slate-800/60">
+    <section className="py-16 md:py-24 px-6 relative border-t border-slate-200/60 dark:border-white/[0.07]">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-14 space-y-2">
           <span className="text-[11px] font-black uppercase tracking-[0.15em] text-indigo-600 dark:text-indigo-400 block">
@@ -60,7 +60,7 @@ export default function TechSpotlightSection() {
           {STEPS.map((item, idx) => (
             <div
               key={idx}
-              className="group rounded-[24px] border border-slate-200/80 dark:border-slate-800 bg-gradient-to-br from-white via-slate-50/50 to-white dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 p-6 relative transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-indigo-500/30 overflow-hidden"
+              className="group rounded-[24px] border border-slate-200/80 dark:border-white/10 bg-gradient-to-br from-white via-slate-50/50 to-white dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] p-6 relative transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl dark:hover:shadow-none hover:border-indigo-500/30 dark:hover:border-[#5a63df]/30 overflow-hidden"
             >
               <div className="flex items-center justify-between mb-4">
                 <span className={`text-xs font-black px-2.5 py-1 rounded-lg ${item.badgeBg}`}>

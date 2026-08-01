@@ -84,7 +84,7 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[calc(100%-1.5rem)] overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-0 dark:border-white/10 dark:bg-[#141319] sm:max-w-[500px]">
+      <DialogContent className="w-[calc(100%-1.5rem)] overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-0 dark:border-white/10 dark:bg-[#131315] sm:max-w-[500px]">
         <DialogHeader className="border-b border-[#eceafa] px-4 py-3.5 text-left dark:border-white/[0.07] sm:px-5">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff]">

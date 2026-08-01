@@ -16,7 +16,7 @@ const ReactQuill = React.lazy(() =>
 // Loading fallback for the editor
 const EditorSkeleton = () => (
   <div
-    className="flex-1 flex min-h-[220px] flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-900/50 md:min-h-[260px] container-border"
+    className="flex-1 flex min-h-[220px] flex-col items-center justify-center rounded-xl bg-[#f4f3fb] dark:bg-white/[0.04] md:min-h-[260px] container-border"
     data-oid=".9ka2dl"
   >
     <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mb-4 opacity-50" data-oid="ndugygt" />
@@ -89,22 +89,22 @@ export function WritingEditor({
 
   return (
     <div
-      className={cn('h-full min-h-0 w-full bg-[#fcfcfc] p-2 pt-0 md:p-4 md:pt-0 dark:bg-[#050505]')}
+      className={cn('h-full min-h-0 w-full bg-[#fcfcfc] p-2 pt-0 md:p-4 md:pt-0 dark:bg-[#08080a]')}
       data-oid="d7m1g:5"
     >
       {/* Editor Card */}
       <div
         className={cn(
-          'relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 dark:bg-[#0D0E1A]',
+          'relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 dark:bg-[#131315]',
           isFocused
             ? 'border-indigo-400 dark:border-indigo-500/30 ring-4 ring-indigo-500/[0.04] dark:ring-indigo-500/[0.02]'
-            : 'border-slate-200/60 dark:border-white/5'
+            : 'border-[#e4e2f0] dark:border-white/[0.07]'
         )}
         data-oid="h1s38r1"
       >
         {/* Header - Matches Annotation Card Header */}
         <div
-          className="flex-none px-6 py-2.5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-white dark:bg-[#0D0E1A]"
+          className="flex-none px-6 py-2.5 border-b border-[#ebeaf7] dark:border-white/[0.07] flex items-center justify-between bg-white dark:bg-[#131315]"
           data-oid="h0d5wu9"
         >
           <div className="flex items-center gap-3" data-oid="oc:4-p.">
@@ -162,7 +162,7 @@ export function WritingEditor({
 
         {/* Editor Area */}
         <div
-          className="flex-1 flex flex-col relative bg-slate-50/[0.12] dark:bg-slate-950/20 min-h-0"
+          className="flex-1 flex flex-col relative bg-[#f4f3fb]/25 dark:bg-white/[0.015] min-h-0"
           data-oid="-xg5pl7"
         >
           <Suspense fallback={<EditorSkeleton data-oid=":m0npyd" />} data-oid="6d2awu9">
@@ -210,7 +210,7 @@ export function WritingEditor({
 
         {/* Editor Status Bar */}
         <div
-          className="flex-none px-6 py-2.5 border-t border-slate-100 dark:border-white/5 flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#0D0E1A] text-xs text-slate-400 font-medium"
+          className="flex-none px-6 py-2.5 border-t border-[#ebeaf7] dark:border-white/[0.07] flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#131315] text-xs text-slate-400 font-medium"
           data-oid="editor-status-bar"
         >
           <div className="flex items-center gap-2">

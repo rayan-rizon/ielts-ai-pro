@@ -40,7 +40,7 @@ function PodiumPlace({ user, place }) {
         </Avatar>
         <div
           className={cn(
-            'absolute -bottom-1.5 left-1/2 flex h-5 w-5 -translate-x-1/2 items-center justify-center rounded-full border-2 border-white text-[10px] font-black text-white dark:border-[#0b0a10]',
+            'absolute -bottom-1.5 left-1/2 flex h-5 w-5 -translate-x-1/2 items-center justify-center rounded-full border-2 border-white text-[10px] font-black text-white dark:border-[#08080a]',
             isFirst ? 'bg-[#5a63df]' : 'bg-slate-400 dark:bg-slate-600'
           )}
         >

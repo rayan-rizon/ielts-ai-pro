@@ -3,7 +3,15 @@ import { Link } from 'react-router-dom';
 import { CheckCircle2, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
-import { MUTED, NUM, PANEL, PanelFootnote, PanelTitle } from './primitives';
+import {
+  MUTED,
+  NUM,
+  PANEL,
+  PANEL_LINK,
+  PanelFootnote,
+  PanelTitle,
+  ROW_CHEVRON,
+} from './primitives';
 import { formatSkill, modulePage, stripModulePrefix } from './skillLabels';
 
 /** Priority rail colour. Reserved for genuine ranking, not decoration. */
@@ -93,7 +101,7 @@ const NextUpPanel = React.memo(({ recommended, stats, weakestSkill, aiFocus, use
             <Link
               key={action.key}
               to={action.to}
-              className="group -mx-1 flex items-start gap-2.5 rounded-lg p-2.5 transition-all duration-150 hover:translate-x-0.5 hover:bg-[#f7f6fd] active:scale-[0.99] dark:hover:bg-white/[0.03]"
+              className="group -mx-1 flex items-start gap-2.5 rounded-lg p-2.5 transition-all duration-150 hover:translate-x-0.5 hover:bg-[#f7f6fd] active:scale-[0.99] dark:hover:bg-white/[0.06]"
             >
               <span
                 className={cn('mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full', RANK[index] || RANK[2])}
@@ -115,14 +123,14 @@ const NextUpPanel = React.memo(({ recommended, stats, weakestSkill, aiFocus, use
                   {action.detail}
                 </p>
               </div>
-              <ChevronRight className="mt-1 h-3.5 w-3.5 shrink-0 text-slate-300 transition-colors group-hover:text-[#5a63df] dark:text-slate-600" />
+              <ChevronRight className={cn('mt-1 h-3.5 w-3.5', ROW_CHEVRON)} />
             </Link>
           ))}
         </div>
       )}
 
       <PanelFootnote>
-        <Link to={createPageUrl('Onboarding')} className="transition-colors hover:text-[#5a63df]">
+        <Link to={createPageUrl('Onboarding')} className={PANEL_LINK}>
           Update goals
         </Link>
       </PanelFootnote>

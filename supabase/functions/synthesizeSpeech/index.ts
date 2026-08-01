@@ -152,6 +152,7 @@ serve(async (req: Request) => {
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
+  let quotaReservationId: string | undefined;
 
   try {
     // Auth check (JWT required — synthesizeSpeech is for authenticated users only)
@@ -277,6 +278,7 @@ serve(async (req: Request) => {
     if (!quotaReservation.allowed) {
       return quotaExceededResponse(quotaReservation, corsHeaders);
     }
+    quotaReservationId = quotaReservation.reservationId;
 
     // ----------------------------------------------------------
     // 2. Cache miss — call Google Cloud TTS Neural2
@@ -291,6 +293,15 @@ serve(async (req: Request) => {
     if (!audioBuffer) {
       // TTS API failed — signal the client to fall back to Web Speech API
       console.warn('[TTS] Google TTS API failed:', ttsError);
+      await finalizeApiUsage(
+        supabase,
+        quotaReservationId,
+        0,
+        false,
+        { textLength: cleanText.length, voice: voiceName, ttsFallback: true, ttsError },
+        'failed'
+      );
+      quotaReservationId = undefined;
       return new Response(
         JSON.stringify({
           success: false,
@@ -345,6 +356,7 @@ serve(async (req: Request) => {
       billingUnit: 'characters',
       estimatedProviderCostUsd: cleanText.length * GOOGLE_NEURAL2_COST_PER_CHARACTER_USD,
     });
+    quotaReservationId = undefined;
 
     return new Response(
       JSON.stringify({
@@ -357,6 +369,16 @@ serve(async (req: Request) => {
     );
   } catch (error: any) {
     console.error('[TTS] Internal error:', error);
+    if (quotaReservationId) {
+      await finalizeApiUsage(
+        supabase,
+        quotaReservationId,
+        0,
+        false,
+        { ttsFallback: true, ttsError: error?.message || 'Internal server error' },
+        'failed'
+      );
+    }
     // Always respond 200 with fallback flag — never block the speaking test
     return new Response(JSON.stringify({ success: false, fallback: true, error: error.message }), {
       status: 200,

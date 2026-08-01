@@ -57,16 +57,18 @@ function getModuleInfo(item) {
 /** Compact target-progress ring, reusing the same Ring primitive as the dashboard. */
 function TargetRing({ targetScore, currentScore }) {
   const current = Number(currentScore) || 0;
-  const target = Number(targetScore) || 0;
-  const targetReached = target > 0 && current >= target;
-  const pct = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
+  const parsedTarget = Number(targetScore);
+  const hasTarget = Number.isFinite(parsedTarget) && parsedTarget > 0;
+  const target = hasTarget ? parsedTarget : null;
+  const targetReached = hasTarget && current >= target;
+  const pct = hasTarget ? Math.min(100, Math.round((current / target) * 100)) : 0;
 
   return (
     <div className={cn(TILE, 'flex items-center gap-3 p-2.5')}>
-      <Ring value={pct} size={44} stroke={5} label={`${pct}%`} />
+      <Ring value={pct} size={44} stroke={5} label={hasTarget ? `${pct}%` : '—'} />
       <div className="min-w-0">
         <p className={cn(MICRO, MUTED)}>
-          {targetReached ? 'Target reached' : 'Progress to target'}
+          {!hasTarget ? 'Target not set' : targetReached ? 'Target reached' : 'Progress to target'}
         </p>
         <p className="mt-0.5 flex items-baseline gap-1.5">
           <span className={cn(NUM, 'text-sm font-extrabold text-slate-900 dark:text-slate-50')}>
@@ -74,7 +76,7 @@ function TargetRing({ targetScore, currentScore }) {
           </span>
           <ChevronRight className="h-3 w-3 text-slate-300 dark:text-slate-600" />
           <span className={cn(NUM, 'text-sm font-extrabold text-[#5a63df] dark:text-[#a9afff]')}>
-            {target > 0 ? formatBand(target) : '—'}
+            {hasTarget ? formatBand(target) : '—'}
           </span>
         </p>
       </div>
@@ -192,7 +194,11 @@ export default function AIInsightsCard({ stats, aiLoading, isPremium }) {
               <>
                 <TargetRing
                   targetScore={stats?.targetScore}
-                  currentScore={stats?.avgScore || '0.0'}
+                  currentScore={
+                    stats?.overallEstimate != null && stats?.modulesWithData === 4
+                      ? stats.overallEstimate
+                      : stats?.avgScore || '0.0'
+                  }
                 />
 
                 <div className="space-y-2">

@@ -248,7 +248,7 @@ function InteractiveStageRail({ phases, selectedIndex, onSelect }) {
 function HowItWorksModal({ open, onOpenChange, phases }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg rounded-xl border-[#e4e2f0] bg-white dark:border-white/10 dark:bg-[#131218]">
+      <DialogContent className="max-w-lg rounded-xl border-[#e4e2f0] bg-white dark:border-white/10 dark:bg-[#131315]">
         <DialogHeader>
           <div className="flex items-center gap-2 text-[#5a63df]">
             <Compass className="h-5 w-5" />

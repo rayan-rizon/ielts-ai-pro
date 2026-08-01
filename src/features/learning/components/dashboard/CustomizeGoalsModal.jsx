@@ -33,7 +33,7 @@ export default function CustomizeGoalsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl border-[#e4e2f0] bg-white sm:max-w-2xl dark:border-white/10 dark:bg-[#131218]">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl border-[#e4e2f0] bg-white sm:max-w-2xl dark:border-white/10 dark:bg-[#131315]">
         <DialogHeader>
           <DialogTitle className="text-lg font-extrabold text-slate-900 dark:text-white">
             Customize your study plan

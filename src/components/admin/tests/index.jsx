@@ -252,7 +252,7 @@ const TestManagement = () => {
         <AdminPageHeader
           title="Test Management"
           description="Create, filter, and manage your IELTS test content library"
-          tip="Every test lives here regardless of module. Switch tabs below to filter by Reading, Listening, Writing or Speaking."
+          tip="All tests, filterable by module."
         >
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

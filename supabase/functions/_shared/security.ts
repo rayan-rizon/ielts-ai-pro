@@ -334,37 +334,20 @@ export async function finalizeApiUsage(
   if (!reservationId) return false;
 
   try {
-    const { data: existing, error: readError } = await supabase
-      .from('ai_api_usage')
-      .select('request_metadata')
-      .eq('id', reservationId)
-      .single();
-
-    if (readError) {
-      console.warn('Could not read AI usage reservation:', readError);
-      return false;
-    }
-
-    const { error } = await supabase
-      .from('ai_api_usage')
-      .update({
-        cached,
-        tokens_used: Math.max(0, Math.round(tokensUsed)),
-        request_metadata: {
-          ...(existing?.request_metadata || {}),
-          ...metadata,
-          reservationStatus: status,
-          finalizedAt: new Date().toISOString(),
-        },
-      })
-      .eq('id', reservationId);
+    const { data, error } = await supabase.rpc('finalize_ai_api_usage', {
+      p_reservation_id: reservationId,
+      p_tokens_used: Math.max(0, Math.round(tokensUsed)),
+      p_cached: cached,
+      p_metadata: metadata,
+      p_status: status,
+    });
 
     if (error) {
       console.warn('Failed to finalize AI usage reservation:', error);
       return false;
     }
 
-    return true;
+    return data === true;
   } catch (err) {
     console.warn('AI usage finalization exception:', err);
     return false;

@@ -63,7 +63,7 @@ export function WritingDialogs({ logic }) {
           <AlertDialogFooter className="gap-2" data-oid="r00rsa.">
             <AlertDialogCancel
               onClick={() => setShowExitDialog(false)}
-              className="w-full sm:w-auto rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200 px-6 font-semibold"
+              className="w-full sm:w-auto rounded-xl border-[#e4e2f0] dark:border-white/10 hover:bg-[#f4f3fb] dark:hover:bg-white/[0.06] transition-all duration-200 px-6 font-semibold"
               data-oid="7153k2u"
             >
               Continue Test
@@ -88,15 +88,18 @@ export function WritingDialogs({ logic }) {
       {/* Manual Submission Dialog */}
       <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog} data-oid="1jcn4qf">
         <AlertDialogContent
-          className="max-w-md bg-white dark:bg-slate-900 border-none shadow-2xl"
+          className="max-w-md bg-white dark:bg-[#131315] border-none shadow-2xl"
           data-oid="27i6yss"
         >
           <AlertDialogHeader data-oid="vownwlc">
             <div
-              className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              className="w-16 h-16 bg-[#efedff] dark:bg-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4"
               data-oid="p0di8cx"
             >
-              <Sparkles className="w-8 h-8 text-blue-600 dark:text-blue-400" data-oid="s:_7haz" />
+              <Sparkles
+                className="w-8 h-8 text-[#5661e9] dark:text-indigo-300"
+                data-oid="s:_7haz"
+              />
             </div>
             <AlertDialogTitle className="text-2xl font-black text-center" data-oid="elyl44v">
               Ready to submit?
@@ -134,7 +137,7 @@ export function WritingDialogs({ logic }) {
             <AlertDialogAction
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-none rounded-xl h-12 font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]"
+              className="flex-1 bg-gradient-to-r from-[#5661e9] to-indigo-600 hover:from-[#4853d6] hover:to-indigo-700 text-white border-none rounded-xl h-12 font-bold shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98]"
               data-oid="9wn7mk:"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Now'}
@@ -150,7 +153,7 @@ export function WritingDialogs({ logic }) {
         data-oid="yxae3w-"
       >
         <AlertDialogContent
-          className="max-w-md bg-white dark:bg-slate-900 border-none shadow-2xl"
+          className="max-w-md bg-white dark:bg-[#131315] border-none shadow-2xl"
           data-oid="ijws.ud"
         >
           <AlertDialogHeader data-oid="w0hr399">
@@ -198,7 +201,7 @@ export function WritingDialogs({ logic }) {
       {/* Upgrade Dialog */}
       <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog} data-oid="qq3k8bw">
         <AlertDialogContent
-          className="max-w-md bg-white dark:bg-slate-950 border-none shadow-2xl p-0 overflow-hidden rounded-3xl ring-1 ring-slate-900/5"
+          className="max-w-md bg-white dark:bg-[#131315] border-none shadow-2xl p-0 overflow-hidden rounded-3xl ring-1 ring-slate-900/5"
           data-oid=".jxz1rs"
         >
           {/* Header Section - Premium Dark */}
@@ -232,7 +235,7 @@ export function WritingDialogs({ logic }) {
             </div>
           </div>
 
-          <div className="p-8 space-y-8 bg-white dark:bg-slate-950" data-oid="uchlmwr">
+          <div className="p-8 space-y-8 bg-white dark:bg-[#131315]" data-oid="uchlmwr">
             {/* Features List */}
             <div className="grid grid-cols-1 gap-4" data-oid="_1vgdpa">
               {[
@@ -272,7 +275,7 @@ export function WritingDialogs({ logic }) {
               <Button
                 variant="ghost"
                 onClick={() => setShowUpgradeDialog(false)}
-                className="w-full h-12 rounded-2xl font-bold text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all"
+                className="w-full h-12 rounded-2xl font-bold text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-white/[0.06] transition-all"
                 data-oid="yn9j0-b"
               >
                 Maybe Later

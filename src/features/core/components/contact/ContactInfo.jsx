@@ -54,7 +54,7 @@ export default function ContactInfo() {
 
       <div className="grid gap-4 mt-auto">
         {/* Email Card */}
-        <Card className="p-6 flex items-start gap-5 bg-gradient-to-br from-white via-slate-50/60 to-indigo-50/50 border-slate-200/80 dark:from-slate-900 dark:via-slate-950 dark:to-indigo-950/30 dark:border-slate-800 shadow-[0_8px_30px_rgba(15,23,42,0.03)] hover:-translate-y-1 hover:shadow-xl hover:border-indigo-500/30 transition-all duration-300 group relative overflow-hidden rounded-[24px]">
+        <Card className="p-6 flex items-start gap-5 bg-gradient-to-br from-white via-slate-50/60 to-indigo-50/50 border-slate-200/80 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:border-white/10 shadow-[0_8px_30px_rgba(15,23,42,0.03)] dark:shadow-none hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-none hover:border-indigo-500/30 dark:hover:border-[#5a63df]/30 transition-all duration-300 group relative overflow-hidden rounded-[24px]">
           <CardGridBackground />
           <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-sm">
             <Mail className="w-6 h-6" />
@@ -82,7 +82,7 @@ export default function ContactInfo() {
         </Card>
 
         {/* Live Chat Card */}
-        <Card className="p-6 flex items-start gap-5 bg-gradient-to-br from-white via-slate-50/60 to-emerald-50/40 border-slate-200/80 dark:from-slate-900 dark:via-slate-950 dark:to-emerald-950/20 dark:border-slate-800 shadow-[0_8px_30px_rgba(15,23,42,0.03)] hover:-translate-y-1 hover:shadow-xl hover:border-emerald-500/30 transition-all duration-300 group relative overflow-hidden rounded-[24px]">
+        <Card className="p-6 flex items-start gap-5 bg-gradient-to-br from-white via-slate-50/60 to-emerald-50/40 border-slate-200/80 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:border-white/10 shadow-[0_8px_30px_rgba(15,23,42,0.03)] dark:shadow-none hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-none hover:border-emerald-500/30 dark:hover:border-emerald-500/25 transition-all duration-300 group relative overflow-hidden rounded-[24px]">
           <CardGridBackground />
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-sm">
             <MessageCircle className="w-6 h-6" />

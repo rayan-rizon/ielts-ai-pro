@@ -56,13 +56,29 @@ function PathStage({ icon: Icon, label, active, disabled, onClick }) {
   );
 }
 
+function getCurrentStepDescription({ activePathStage, inProgressAttempt, retestTarget }) {
+  const testName = retestTarget === 'speaking' ? 'Speaking' : 'Writing';
+
+  if (activePathStage === 'diagnose') {
+    return 'Take the short level check. It identifies the grammar skill to practise first.';
+  }
+  if (activePathStage === 'retest') {
+    return `Take one normal scored ${testName} test. Its result updates your Grammar evidence and AI Learning Path automatically.`;
+  }
+  if (inProgressAttempt) {
+    return `Finish this practice set. Your next step is one normal scored ${testName} test — no separate grammar submission.`;
+  }
+  return 'Practise the suggested grammar skill. After focused practice, confirm progress in a normal scored test.';
+}
+
 // ---------------------------------------------------------------------------
-// GrammarLearningPathCard — aside card with Diagnose/Practise/Apply stages.
+// GrammarLearningPathCard — aside card with evidence/practice/retest stages.
 // Extracted to its own file to resolve cc=12 warning on GrammarDashboard.
 // ---------------------------------------------------------------------------
 export default function GrammarLearningPathCard({
   activePathStage,
   pathStatus,
+  retestTarget,
   isStarting,
   isResuming,
   inProgressAttempt,
@@ -70,6 +86,12 @@ export default function GrammarLearningPathCard({
   dailyLimitReached,
   onStartPathStage,
 }) {
+  const currentStepDescription = getCurrentStepDescription({
+    activePathStage,
+    inProgressAttempt,
+    retestTarget,
+  });
+
   return (
     <motion.aside
       initial={{ opacity: 0, y: 10 }}
@@ -103,19 +125,10 @@ export default function GrammarLearningPathCard({
         </div>
       </div>
 
-      <div className="relative mt-5 flex items-start">
-        <div className="pointer-events-none absolute left-[16%] right-[16%] top-[22px] overflow-hidden">
-          <span className="block w-full border-t-2 border-dashed border-[#e2e5f2] dark:border-white/25" />
-          <motion.span
-            className="absolute top-0 left-0 h-[2px] w-1/3 bg-gradient-to-r from-transparent via-[#5a63df] to-transparent dark:via-indigo-400"
-            animate={{ x: ['-100%', '300%'] }}
-            transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        </div>
-
+      <div className="mt-5 flex items-start">
         <PathStage
           icon={ClipboardCheck}
-          label="Diagnose"
+          label="Check"
           active={activePathStage === 'diagnose'}
           onClick={() => onStartPathStage('diagnose')}
           disabled={
@@ -124,6 +137,10 @@ export default function GrammarLearningPathCard({
             (inProgressAttempt && inProgressAttempt.mode !== 'diagnostic') ||
             (!inProgressAttempt && !access.diagnosticAvailable)
           }
+        />
+        <span
+          aria-hidden="true"
+          className="mt-[22px] h-0 w-8 shrink-0 border-t-2 border-dashed border-[#e2e5f2] sm:w-14 dark:border-white/25"
         />
         <PathStage
           icon={Wrench}
@@ -137,12 +154,16 @@ export default function GrammarLearningPathCard({
             (!inProgressAttempt && dailyLimitReached)
           }
         />
+        <span
+          aria-hidden="true"
+          className="mt-[22px] h-0 w-8 shrink-0 border-t-2 border-dashed border-[#e2e5f2] sm:w-14 dark:border-white/25"
+        />
         <PathStage
           icon={Send}
-          label="Apply"
-          active={activePathStage === 'apply'}
-          onClick={() => onStartPathStage('apply')}
-          disabled={isStarting || isResuming}
+          label="Retest"
+          active={activePathStage === 'retest'}
+          onClick={() => onStartPathStage('retest')}
+          disabled={isStarting || isResuming || Boolean(inProgressAttempt)}
         />
       </div>
 
@@ -165,12 +186,21 @@ export default function GrammarLearningPathCard({
         </AnimatePresence>
       </div>
 
-      <motion.div whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}>
+      <div className="mt-3 rounded-xl border border-[#e2e5f2] bg-slate-50/70 px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.04]">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">
+          Current step
+        </p>
+        <p className="mt-1 text-center text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">
+          {currentStepDescription}
+        </p>
+      </div>
+
+      <motion.div className="mt-3" whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}>
         <Link
           to="/learning-path"
-          className="group mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#e2e5f2] bg-white/80 text-xs font-bold text-[#5a63df] transition hover:border-[#c9cdf3] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/10 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10"
+          className="group flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#e2e5f2] bg-white/80 text-xs font-bold text-[#5a63df] transition hover:border-[#c9cdf3] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/10 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10"
         >
-          View AI Learning Path{' '}
+          View full AI Learning Path{' '}
           <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" />
         </Link>
       </motion.div>

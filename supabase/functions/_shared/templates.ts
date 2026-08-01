@@ -17,63 +17,49 @@ const wrapTemplate = (content: string, preheader: string, baseUrl: string) => `
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${preheader}</title>
     <style>
-        body { margin: 0; padding: 0; min-width: 100%; font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; -webkit-font-smoothing: antialiased; color: #0f172a; line-height: 1.6; }
-        table { border-spacing: 0; width: 100%; }
+        body { margin: 0; padding: 0; min-width: 100%; font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background-color: #f6f5f3; -webkit-font-smoothing: antialiased; color: #18181b; line-height: 1.55; }
+        table { border-spacing: 0; width: 100%; border-collapse: collapse; }
         td { padding: 0; }
-        img { border: 0; max-width: 100%; }
-        
-        .wrapper { padding: 40px 16px; background-color: #f8fafc; }
-        .main { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        
-        .header { padding: 48px 40px 10px 40px; text-align: center; }
-        .logo-container { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; }
-        .logo-icon { background-color: #2563eb; color: #ffffff; width: 42px; height: 42px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
-        .logo-text { font-size: 24px; font-weight: 900; letter-spacing: -0.02em; color: #0f172a; text-decoration: none; font-family: sans-serif; }
-        .logo-text span { color: #2563eb; font-style: italic; }
-
-        .content { padding: 32px 40px 24px; }
-        .footer { padding: 32px 40px; background-color: #0f172a; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; }
-        
-        .footer-text { margin: 0 0 8px; font-size: 13px; font-weight: normal; color: #94a3b8; line-height: 1.6; }
-        .footer-links { margin: 0 0 20px; font-size: 13px; font-weight: 600; color: #e2e8f0; }
-        .footer-links a { color: #f8fafc !important; text-decoration: none !important; transition: color 0.2s; }
-        .footer-links a:hover { color: #ffffff !important; }
-        
-        h1 { margin: 0 0 20px; font-size: 22px; font-weight: 800; color: #0f172a; line-height: 1.3; }
-        p { margin: 0 0 20px; font-size: 16px; color: #334155; }
-        p.large { font-size: 18px; color: #1e293b; }
-        
+        img { border: 0; display: block; max-width: 100%; }
+        .wrapper { padding: 36px 16px; background-color: #f6f5f3; }
+        .main { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e9e7e3; }
+        .header { padding: 20px 40px; text-align: center; background: #111113; }
+        .brand { display: inline-block; text-decoration: none; }
+        .brand-logo { display: block; width: 176px; height: auto; margin: 0 auto; }
+        .content { padding: 36px 40px 28px; }
+        .footer { padding: 28px 40px 32px; background-color: #faf9f7; border-top: 1px solid #ebe9e5; text-align: center; }
+        h1 { margin: 0 0 16px; font-size: 26px; font-weight: 800; letter-spacing: -0.03em; color: #18181b; line-height: 1.22; }
+        h2 { margin: 26px 0 12px; font-size: 17px; font-weight: 750; color: #27272a; }
+        p { margin: 0 0 18px; font-size: 16px; color: #52525b; }
+        p.large { font-size: 18px; line-height: 1.5; color: #3f3f46; }
+        a { color: #6c4cff; font-weight: 700; text-decoration: underline; }
         ul { margin: 0 0 24px; padding: 0; list-style-type: none; }
-        li { margin-bottom: 12px; padding-left: 24px; position: relative; font-size: 15px; color: #475569; }
-        li:before { content: "•"; position: absolute; left: 0; color: #4f46e5; font-weight: bold; }
-        
-        .btn { display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); color: #ffffff !important; text-decoration: none !important; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2); }
-        .btn-secondary { background: #0f172a; color: #ffffff !important; }
-        
-        .divider { margin: 32px 0; border-top: 1px solid #e2e8f0; }
-        .highlight { font-weight: 600; color: #4f46e5; }
-        
-        .success-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 24px 0; color: #166534; font-size: 14px; }
-        .alert-box { background: #fffaf0; border: 1px solid #feebc8; border-radius: 8px; padding: 16px; margin: 24px 0; color: #c05621; font-size: 14px; }
-        
-        .footer-text { margin-bottom: 12px; font-size: 13px; color: #475569; line-height: 1.6; text-align: center; }
-        .footer-text:last-child { margin-bottom: 0; }
-        .footer a { color: #334155; text-decoration: none; font-weight: 600; }
-        
-        .footer-divider { margin: 16px 0; border-top: 1px solid #e2e8f0; }
-        .footer-links { margin-top: 12px; text-align: center; }
-        .footer-links a { display: inline-block; margin: 0 10px; font-size: 12px; color: #475569; text-decoration: none; }
-        
-        .reason-text { font-size: 12px; color: #64748b; margin: 14px 0 0 0; text-align: center; font-style: normal; }
-        
-        .cta-container { margin: 32px 0; text-align: center; }
+        ul li { margin-bottom: 11px; padding-left: 23px; position: relative; font-size: 15px; color: #52525b; }
+        ul li:before { content: "✓"; position: absolute; left: 0; color: #6c4cff; font-weight: 800; }
+        ol.steps { margin: 0 0 24px; padding: 0; list-style: none; counter-reset: step; }
+        ol.steps li { counter-increment: step; min-height: 26px; margin-bottom: 13px; padding: 1px 0 0 40px; position: relative; font-size: 15px; color: #52525b; }
+        ol.steps li:before { content: counter(step); position: absolute; top: 0; left: 0; width: 25px; height: 25px; border-radius: 50%; background: #f0edff; color: #6246d9; font-size: 13px; font-weight: 800; line-height: 25px; text-align: center; }
+        .btn { display: inline-block; padding: 13px 22px; background: #6c4cff; color: #ffffff !important; text-decoration: none !important; border-radius: 9px; font-weight: 800; font-size: 15px; }
+        .btn-secondary { background: #27272a; }
+        .divider { margin: 28px 0; border-top: 1px solid #ebe9e5; }
+        .highlight { font-weight: 800; color: #6c4cff; }
+        .success-box, .alert-box { border-radius: 10px; padding: 18px; margin: 24px 0; }
+        .success-box { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+        .alert-box { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; }
+        .status-eyebrow { margin: 0 0 6px; color: inherit; font-size: 11px; font-weight: 800; letter-spacing: 0.11em; line-height: 1.2; }
+        .status-title { margin: 0; color: inherit; font-size: 15px; font-weight: 650; line-height: 1.5; }
+        .footer-text { margin: 0 0 10px; font-size: 12px; color: #71717a; line-height: 1.6; text-align: center; }
+        .footer-links { margin: 0 0 16px; text-align: center; }
+        .footer-links a { display: inline-block; margin: 0 7px; font-size: 12px; color: #52525b !important; text-decoration: none; }
+        .reason-text { font-size: 12px; color: #71717a; margin: 14px 0 0; text-align: center; }
+        .cta-container { margin: 28px 0; text-align: center; }
         .cta-secondary { text-align: center; margin-top: 16px; font-size: 14px; }
-        
         @media only screen and (max-width: 600px) {
-            .wrapper { padding: 20px 12px; }
-            .content { padding: 28px 20px; }
-            .header { padding: 32px 20px 10px; }
-            .footer { padding: 24px 20px; }
+            .wrapper { padding: 16px 8px; }
+            .main { border-radius: 16px; }
+            .content { padding: 28px 22px; }
+            .header { padding: 18px 22px; }
+            .footer { padding: 24px 22px; }
             h1 { font-size: 24px !important; }
             .btn { display: block; text-align: center; }
         }
@@ -86,23 +72,10 @@ const wrapTemplate = (content: string, preheader: string, baseUrl: string) => `
             <td align="center" valign="top">
                 <table class="main" border="0" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td class="header">
-                            <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
-                                <tr>
-                                    <td align="center">
-                                        <div class="logo-container">
-                                            <div class="logo-icon">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block;">
-                                                    <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    <path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    <path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                </svg>
-                                            </div>
-                                            <div class="logo-text">IELTS <span>AI</span> Pro</div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
+                        <td class="header" style="background: #111113; padding: 20px 40px; text-align: center;">
+                            <a href="${baseUrl}" class="brand" aria-label="${BRAND_NAME}">
+                                <img class="brand-logo" src="${baseUrl}/footer.svg" width="176" height="42" alt="IELTS AI Pro" style="display: block; width: 176px; height: auto; margin: 0 auto; border: 0;" />
+                            </a>
                         </td>
                     </tr>
                     <tr>
@@ -112,21 +85,19 @@ const wrapTemplate = (content: string, preheader: string, baseUrl: string) => `
                     </tr>
                     <tr>
                         <td class="footer">
-                            <p class="footer-text" style="font-weight: 800; color: #ffffff; margin-bottom: 12px; font-size: 15px;">${BRAND_NAME}</p>
-                            
                             <div class="footer-links">
                                 <a href="${baseUrl}/settings?tab=subscription">Manage</a>
-                                <span style="color: #475569;">•</span>
+                                <span style="color: #a1a1aa;">•</span>
                                 <a href="${baseUrl}/privacy">Privacy</a>
-                                <span style="color: #475569;">•</span>
+                                <span style="color: #a1a1aa;">•</span>
                                 <a href="${baseUrl}/terms">Terms</a>
-                                <span style="color: #475569;">•</span>
+                                <span style="color: #a1a1aa;">•</span>
                                 <a href="${baseUrl}/settings?tab=preferences">Unsubscribe</a>
                             </div>
                             
-                            <p class="footer-text" style="margin-top: 16px; font-size: 11px; color: #64748b;">
-                                &copy; ${CURRENT_YEAR} ${BRAND_NAME} • 
-                                <a href="mailto:${SUPPORT_EMAIL}" style="color: #94a3b8; text-decoration: none; font-weight: normal;">${SUPPORT_EMAIL}</a>
+                            <p class="footer-text">You're receiving this because of activity on your IELTS AI Pro account.</p>
+                            <p class="footer-text" style="margin-top: 12px; font-size: 11px;">
+                                &copy; ${CURRENT_YEAR} ${BRAND_NAME} · <a href="mailto:${SUPPORT_EMAIL}" style="color: #71717a; text-decoration: none; font-weight: 600;">${SUPPORT_EMAIL}</a>
                             </p>
                         </td>
                     </tr>
@@ -149,45 +120,45 @@ export function getEmailTemplate(type: string, data: any): EmailTemplate {
 
   switch (type) {
     case 'welcome':
-      subject = 'Your Premium IELTS training starts now 🚀';
-      preheader = 'Unlimited AI feedback, priority processing, and personalized insights await.';
+      subject = 'Welcome to your IELTS AI Pro subscription';
+      preheader = 'Your practice tools and feedback are ready.';
       htmlContent = `
-                <h1>Welcome to Premium, ${sanitizedName}! 🎓</h1>
-                <p class="large">You've just unlocked everything you need to crush your target band score.</p>
+                <h1>Welcome, ${sanitizedName}</h1>
+                <p class="large">Your subscription is active and your practice tools are ready to use.</p>
                 
-                <p>Your <a href="${baseUrl}" style="color: #2563eb; text-decoration: none; font-weight: bold;">IELTS AI Pro</a> Premium subscription is now active. Here's what you can do right now:</p>
+                <p>Your <a href="${baseUrl}">IELTS AI Pro</a> subscription is active. Here are a few ways to make the most of it:</p>
                 
                 <ul>
-                    <li><strong>Up to 100 Speaking & 200 Writing evaluations</strong> each month</li>
-                    <li><strong>Full access to the Adaptive AI Learning Path</strong> tailored to your goals</li>
-                    <li><strong>Deep predictive insights</strong> to track your progress and target scores</li>
-                    <li><strong>Priority access</strong> to all new Cambridge practice tests and materials</li>
+                    <li><strong>Practice Speaking and Writing</strong> with feedback in your dashboard</li>
+                    <li><strong>Follow your Learning Path</strong> based on your goals and recent results</li>
+                    <li><strong>Review your progress</strong> to decide what to work on next</li>
                 </ul>
                 
-                <p>Consistent practice with professional feedback is the proven path to IELTS success. Let's get you there.</p>
+                <p>Choose your next practice task and use the feedback to focus your study time where it matters most.</p>
                 
                 <div class="cta-container">
                     <a href="${baseUrl}/dashboard" class="btn">Start Your First Practice</a>
                 </div>
                 
                 <p style="font-size: 14px; color: #64748b; border-left: 3px solid #e2e8f0; padding-left: 16px; margin-top: 24px;">
-                    <strong>Need help?</strong> Open your dashboard anytime for support, practice, and progress tracking.
+                    <strong>Need help?</strong> Reply to this email or visit your dashboard for practice and progress tracking.
                 </p>
             `;
       break;
 
     case 'renewal_confirmation':
-      subject = 'Your Premium subscription renewed successfully ✅';
-      preheader = 'Uninterrupted access to unlimited practice and expert feedback.';
+      subject = 'Your IELTS AI Pro subscription renewed';
+      preheader = 'Your subscription access continues without interruption.';
       htmlContent = `
-                <h1>Subscription Renewed Successfully</h1>
-                <p class="large">Your IELTS AI Pro Premium membership is continuing strong.</p>
+                <h1>Your subscription has renewed</h1>
+                <p class="large">Your IELTS AI Pro access continues without interruption.</p>
                 
                 <div class="success-box">
-                    <p>✓ Payment processed | ✓ Premium features unlocked | ✓ Ready to practice</p>
+                    <p class="status-eyebrow">PAYMENT CONFIRMED</p>
+                    <p class="status-title">Your subscription is active and ready for your next practice session.</p>
                 </div>
                 
-                <p>Thank you for your continued trust in <a href="${baseUrl}" style="color: #2563eb; text-decoration: none; font-weight: bold;">IELTS AI Pro</a>, ${sanitizedName}. Your subscription has been renewed and you now have unlimited access to:</p>
+                <p>Thank you for continuing with <a href="${baseUrl}">IELTS AI Pro</a>, ${sanitizedName}. Your subscription is active and your practice history remains available.</p>
                 
                 <ul>
                     <li>AI-powered Speaking and Writing evaluations</li>
@@ -207,21 +178,22 @@ export function getEmailTemplate(type: string, data: any): EmailTemplate {
       break;
 
     case 'payment_failed':
-      subject = '❌ Payment failed—update your payment method';
-      preheader = "We couldn't process your renewal. Here's how to fix it quickly.";
+      subject = 'Action needed: update your payment method';
+      preheader = "We couldn't process your subscription renewal.";
       htmlContent = `
-                <h1 style="color: #ef4444;">Payment Failed ⚠️</h1>
-                <p class="large">We tried to process your Premium subscription renewal, but it didn't go through.</p>
+                <h1 style="color: #dc2626;">Update your payment method</h1>
+                <p class="large">We couldn't process your subscription renewal.</p>
                 
                 <div class="alert-box" style="background: #fef2f2; border-color: #fecaca; color: #991b1b;">
-                    <p>⚠️ Your Premium access may be suspended if payment isn't updated soon. Don't lose access to your evaluations and practice history.</p>
+                    <p class="status-eyebrow">PAYMENT ACTION REQUIRED</p>
+                    <p class="status-title">Update your payment method to keep your subscription active. Your practice history is safely stored.</p>
                 </div>
                 
-                <h2 style="font-size: 18px; margin: 24px 0 12px 0; color: #1e293b; font-weight: 700;">Here's what to do:</h2>
-                <ol style="padding-left: 24px; margin: 0 0 24px 0; color: #475569;">
-                    <li style="margin-bottom: 12px;">Click the button below to update your billing information</li>
-                    <li style="margin-bottom: 12px;">Enter your current payment method</li>
-                    <li style="margin-bottom: 0;">We'll automatically retry the charge within 24 hours</li>
+                <h2>Update your details</h2>
+                <ol class="steps">
+                    <li>Open your subscription settings.</li>
+                    <li>Enter or select your current payment method.</li>
+                    <li>We'll retry the payment after your details are updated.</li>
                 </ol>
                 
                 <div class="cta-container">
@@ -229,33 +201,29 @@ export function getEmailTemplate(type: string, data: any): EmailTemplate {
                 </div>
                 
                 <p style="font-size: 14px; color: #64748b; margin-top: 24px;">
-                    <strong>Still having issues?</strong> Our support team is here to help. <a href="mailto:${SUPPORT_EMAIL}">Email us with your billing question</a>, and we'll resolve it ASAP.
+                    <strong>Need help?</strong> <a href="mailto:${SUPPORT_EMAIL}">Contact support</a> and include the email address on your account.
                 </p>
             `;
       break;
 
     case 'quota_conversion':
-      subject = "Upgrade now: You're down to your last evaluation 🎯";
-      preheader = 'Unlock unlimited practice before your free credits run out.';
+      subject = 'You have one practice evaluation remaining';
+      preheader = 'Use your final free evaluation or explore Premium practice.';
       htmlContent = `
-                <h1>You're Making Real Progress! 🔥</h1>
+                <h1>Your final free evaluation is ready</h1>
                 <p class="large">You have just <span class="highlight">1 evaluation remaining</span> in your free practice quota.</p>
                 
-                <p>The fact that you've used up your practice credits this quickly means you're putting in the work—and that dedication pays off. The fastest way to improve your IELTS band score is through <strong>consistent practice with professional feedback</strong>.</p>
+                <p>Use it for the task you want the most feedback on. Consistent practice and clear feedback can help you focus your next study session.</p>
                 
-                <h2 style="font-size: 18px; margin: 20px 0 14px 0; color: #1e293b; font-weight: 700;">Here's what's waiting for you with Premium:</h2>
+                <h2>With Premium, you can:</h2>
                 <ul>
-                    <li><strong>Unlock High-Quota Practice:</strong> Significantly increase your monthly limits with up to 100 Speaking & 200 Writing evaluations.</li>
+                    <li><strong>Increase practice capacity:</strong> Get higher monthly Speaking and Writing evaluation limits.</li>
                     <li><strong>Personalized Learning:</strong> Get an Adaptive Study Path that evolves with your performance.</li>
-                    <li><strong>Score Predictor:</strong> Use our advanced AI to predict your actual IELTS band score with high accuracy.</li>
+                    <li><strong>Progress insights:</strong> Track your practice trends and identify your next focus area.</li>
                 </ul>
                 
-                <p style="margin-top: 24px; font-size: 15px; background: #f0f9ff; padding: 16px; border-radius: 6px; border-left: 3px solid #0284c7; color: #0c4a6e;">
-                    <strong>Limited time offer:</strong> Premium starts at just a few dollars a month. One IELTS test costs far more—make this investment in your score.
-                </p>
-                
                 <div class="cta-container">
-                    <a href="${baseUrl}/pricing" class="btn btn-secondary">Upgrade to Premium</a>
+                    <a href="${baseUrl}/pricing" class="btn">Explore Premium</a>
                 </div>
                 
                 <div class="cta-secondary">
@@ -271,19 +239,19 @@ export function getEmailTemplate(type: string, data: any): EmailTemplate {
             day: 'numeric',
           })
         : 'next week';
-      subject = 'Reminder: Your Premium renewal is in 7 days';
+      subject = 'Your subscription renews in 7 days';
       preheader = 'Your subscription will automatically renew on ' + renewDate + '.';
       htmlContent = `
-                <h1>Subscription Renewal Reminder 📅</h1>
+                <h1>Your subscription renews soon</h1>
                 <p>Hi ${sanitizedName},</p>
                 
-                <p>Just a friendly heads-up: your <strong><a href="${baseUrl}" style="color: #2563eb; text-decoration: none;">IELTS AI Pro</a> Premium subscription</strong> will automatically renew in 7 days (on <span class="highlight">${renewDate}</span>).</p>
+                <p>Your <strong><a href="${baseUrl}">IELTS AI Pro</a> subscription</strong> will automatically renew on <span class="highlight">${renewDate}</span>.</p>
                 
                 <p>No action is required—your subscription will continue seamlessly so you won't miss any of your progress or practice history.</p>
                 
-                <div style="background: #f0fdf4; padding: 16px; border-radius: 6px; margin: 24px 0; border-left: 3px solid #22c55e;">
-                    <p style="margin: 0; color: #166534;" >✓ Your Premium features will remain active</p>
-                    <p style="margin: 8px 0 0 0; color: #166534;">✓ Your account data and progress are fully preserved</p>
+                <div class="success-box">
+                    <p class="status-eyebrow">NO ACTION NEEDED</p>
+                    <p class="status-title">Your subscription features and practice history will remain available.</p>
                 </div>
                 
                 <p style="font-weight: 500; margin-bottom: 12px; color: #1e293b;">Want to manage your subscription?</p>
@@ -304,15 +272,15 @@ export function getEmailTemplate(type: string, data: any): EmailTemplate {
             day: 'numeric',
           })
         : 'very soon';
-      subject = '⏳ 3 days left: Use your bonus credits before they expire';
+      subject = 'Use your bonus credits before they expire';
       preheader = 'Your referral bonus evaluations expire on ' + expiryDate + '.';
       htmlContent = `
-                <h1 style="color: #f59e0b;">Your Bonus Credits Expire Soon ⏳</h1>
-                <p class="large">You have <strong>3 days left</strong> to use your bonus evaluation credits!</p>
+                <h1>Your bonus credits expire soon</h1>
+                <p class="large">You have <strong>3 days left</strong> to use your bonus evaluation credits.</p>
                 
                 <p>They expire on <span class="highlight">${expiryDate}</span> and won't be available after that date.</p>
                 
-                <h2 style="font-size: 18px; margin: 20px 0 14px 0; color: #1e293b; font-weight: 700;">Don't let them go to waste!</h2>
+                <h2>Put your credits to work</h2>
                 <p>Complete a Speaking test or Writing task right now and get instant AI feedback on:</p>
                 <ul>
                     <li>Grammar, vocabulary, and sentence structure</li>
@@ -331,19 +299,19 @@ export function getEmailTemplate(type: string, data: any): EmailTemplate {
       break;
 
     case 'inactivity_warning':
-      subject = 'Come back: Your IELTS prep is waiting for you 👋';
+      subject = 'Ready for your next IELTS practice session?';
       preheader = 'Get back on track with a quick free practice session.';
       htmlContent = `
-                <h1>We Notice You've Been Away 👋</h1>
+                <h1>Pick up where you left off</h1>
                 <p class="large">It's been 7 days since your last practice session, ${sanitizedName}.</p>
                 
-                <p>We know life gets busy, but we wanted to remind you: <strong>consistent IELTS practice is the most reliable path to your target band score.</strong></p>
+                <p>Life gets busy. A focused practice session today can help you keep your preparation moving forward.</p>
                 
-                <h2 style="font-size: 18px; margin: 20px 0 14px 0; color: #1e293b; font-weight: 700;">Here's why coming back now matters:</h2>
+                <h2>A simple way to restart</h2>
                 <ul>
-                    <li><strong>Skills fade quickly.</strong> Just 5-10 minutes of practice today keeps your momentum going</li>
-                    <li><strong>Every session counts.</strong> Professional feedback on even one task helps you identify patterns</li>
-                    <li><strong>Progress compounds.</strong> Each week of practice makes a measurable difference in your band score</li>
+                    <li><strong>Start small.</strong> Spend 5–10 minutes reviewing one skill.</li>
+                    <li><strong>Practice with purpose.</strong> Use feedback from one task to spot a pattern.</li>
+                    <li><strong>Build a routine.</strong> Return when you are ready for the next session.</li>
                 </ul>
                 
                 <div class="cta-container">

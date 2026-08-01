@@ -38,7 +38,7 @@ function getBubbleClass(entry) {
   // Examiner live / speaking — light rose blush
   if (entry.speaker !== 'user') {
     if (entry.isExaminerLive) {
-      return 'rounded-2xl rounded-tl-sm border border-rose-100 bg-gradient-to-br from-rose-50 to-pink-50/70 text-left font-medium text-slate-800 shadow-sm dark:border-rose-500/15 dark:from-rose-500/[0.08] dark:via-[#141319] dark:to-rose-500/[0.04] dark:text-slate-100';
+      return 'rounded-2xl rounded-tl-sm border border-rose-100 bg-gradient-to-br from-rose-50 to-pink-50/70 text-left font-medium text-slate-800 shadow-sm dark:border-rose-500/15 dark:from-rose-500/[0.08] dark:via-[#131315] dark:to-rose-500/[0.04] dark:text-slate-100';
     }
     // Regular examiner — quiet panel tile
     return 'rounded-2xl rounded-tl-sm border border-[#ebeaf7] bg-[#fbfbfe] text-left font-medium text-slate-800 shadow-[0_1px_6px_-2px_hsl(220_15%_50%/0.10)] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100';
@@ -51,7 +51,7 @@ function getBubbleClass(entry) {
 
   // User live/draft transcript — soft lavender
   if (entry.isLive || entry.isTranscriptDraft) {
-    return 'rounded-2xl rounded-tr-sm border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-violet-50/60 text-left font-medium text-slate-800 shadow-sm dark:border-violet-500/20 dark:from-violet-500/[0.10] dark:via-[#141319] dark:to-indigo-500/[0.08] dark:text-slate-100';
+    return 'rounded-2xl rounded-tr-sm border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-violet-50/60 text-left font-medium text-slate-800 shadow-sm dark:border-violet-500/20 dark:from-violet-500/[0.10] dark:via-[#131315] dark:to-indigo-500/[0.08] dark:text-slate-100';
   }
 
   // Completed user message — soft indigo/lavender pastel

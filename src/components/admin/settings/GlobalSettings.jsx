@@ -19,8 +19,9 @@ import {
 } from './settingsHelpers';
 import { toast } from 'sonner';
 
-import { Loader2, Activity, CreditCard, Bell, HeartPulse, Gauge, Mail, Lock } from 'lucide-react';
+import { Activity, CreditCard, Bell, HeartPulse, Gauge, Mail, Lock } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/ui/primitives';
+import DashboardSkeleton from '@/features/dashboard/components/DashboardSkeleton';
 
 const SECTIONS = [
   { value: 'general', label: 'Health', icon: HeartPulse },
@@ -58,6 +59,7 @@ export default function GlobalSettings() {
   const activeSection = searchParams.get('section') || 'general';
 
   const [loading, setLoading] = useState(true);
+  const [healthLoading, setHealthLoading] = useState(activeSection === 'general');
   const [saving, setSaving] = useState(false);
 
   const [settings, setSettings] = useState({
@@ -197,128 +199,124 @@ export default function GlobalSettings() {
     visible: { opacity: 1, y: 0 },
   };
 
-  if (loading) {
-    return (
-      <div
-        className="min-h-[400px] flex flex-col items-center justify-center space-y-4"
-        data-oid="3jh:w6o"
-      >
-        <Loader2 className="h-10 w-10 text-primary animate-spin" data-oid="xpfvuac" />
-        <p className="text-sm font-medium text-muted-foreground" data-oid="wd51hwp">
-          Loading environment settings...
-        </p>
-      </div>
-    );
-  }
+  const isInitialLoad = loading || (activeSection === 'general' && healthLoading);
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6 pb-12 pt-12 md:pt-0 max-w-7xl mx-auto px-1 sm:px-2"
-      data-oid="_8_3dg3"
-    >
-      {/* Header Section */}
-      <motion.div variants={itemVariants} data-oid="kdpj5_b">
-        <AdminPageHeader
-          title="Settings"
-          description="Manage system configurations, environment parameters, and platform controls"
-        >
-          {saving && (
-            <div
-              className="flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-950/50 rounded-full border border-indigo-200/80 dark:border-indigo-800/60 shadow-2xs shrink-0"
-              data-oid="7n88hnp"
-            >
-              <Activity
-                className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 animate-pulse"
-                data-oid="yytghqi"
-              />
-              <span
-                className="text-[11px] sm:text-xs font-bold text-indigo-700 dark:text-indigo-300"
-                data-oid="57qqa9r"
-              >
-                Saving changes...
-              </span>
-            </div>
-          )}
-        </AdminPageHeader>
-      </motion.div>
-
-      <Tabs
-        value={activeSection}
-        onValueChange={handleSectionChange}
-        className="w-full space-y-6"
-        data-oid="bufrpat"
+    <>
+      {isInitialLoad && <DashboardSkeleton data-oid="settings-dashboard-skeleton" />}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        aria-busy={isInitialLoad}
+        className={cn(
+          'space-y-6 pb-12 pt-12 md:pt-0 max-w-7xl mx-auto px-1 sm:px-2',
+          isInitialLoad && 'hidden'
+        )}
+        data-oid="_8_3dg3"
       >
-        {/* Compact Segmented Tab Navigation */}
-        <div className="flex overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 pb-1">
-          <TabsList className={ADMIN_TABS_LIST} data-oid="ybobvet">
-            {SECTIONS.map((section) => (
-              <SectionTab
-                key={section.value}
-                section={section}
-                isActive={activeSection === section.value}
+        {/* Header Section */}
+        <motion.div variants={itemVariants} data-oid="kdpj5_b">
+          <AdminPageHeader
+            title="Settings"
+            description="Manage system configurations, environment parameters, and platform controls"
+          >
+            {saving && (
+              <div
+                className="flex items-center gap-2 px-3 py-1 bg-indigo-50 dark:bg-indigo-950/50 rounded-full border border-indigo-200/80 dark:border-indigo-800/60 shadow-2xs shrink-0"
+                data-oid="7n88hnp"
+              >
+                <Activity
+                  className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 animate-pulse"
+                  data-oid="yytghqi"
+                />
+                <span
+                  className="text-[11px] sm:text-xs font-bold text-indigo-700 dark:text-indigo-300"
+                  data-oid="57qqa9r"
+                >
+                  Saving changes...
+                </span>
+              </div>
+            )}
+          </AdminPageHeader>
+        </motion.div>
+
+        <Tabs
+          value={activeSection}
+          onValueChange={handleSectionChange}
+          className="w-full space-y-6"
+          data-oid="bufrpat"
+        >
+          {/* Compact Segmented Tab Navigation */}
+          <div className="flex overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 pb-1">
+            <TabsList className={ADMIN_TABS_LIST} data-oid="ybobvet">
+              {SECTIONS.map((section) => (
+                <SectionTab
+                  key={section.value}
+                  section={section}
+                  isActive={activeSection === section.value}
+                />
+              ))}
+            </TabsList>
+          </div>
+
+          <TabsContent value="general" className="space-y-6" data-oid="ziz8z.b">
+            <motion.div variants={itemVariants} data-oid="21cboft">
+              <PlatformHealthDashboard
+                maintenanceMode={settings.maintenance_mode}
+                onToggleMaintenance={(enabled) => handleSave('maintenance_mode', enabled)}
+                isUpdating={saving}
+                onLoadingChange={setHealthLoading}
+                data-oid="noan2.s"
               />
-            ))}
-          </TabsList>
-        </div>
+            </motion.div>
+          </TabsContent>
 
-        <TabsContent value="general" className="space-y-6" data-oid="ziz8z.b">
-          <motion.div variants={itemVariants} data-oid="21cboft">
-            <PlatformHealthDashboard
-              maintenanceMode={settings.maintenance_mode}
-              onToggleMaintenance={(enabled) => handleSave('maintenance_mode', enabled)}
-              isUpdating={saving}
-              data-oid="noan2.s"
+          <TabsContent value="announcements" className="space-y-6" data-oid="h6s19d0">
+            <AnnouncementsSettingsTab
+              announcement={settings.public_announcement}
+              saving={saving}
+              onSave={handleSave}
+              onChangeAnnouncement={(announcement) =>
+                setSettings((prev) => ({ ...prev, public_announcement: announcement }))
+              }
             />
-          </motion.div>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="announcements" className="space-y-6" data-oid="h6s19d0">
-          <AnnouncementsSettingsTab
-            announcement={settings.public_announcement}
-            saving={saving}
-            onSave={handleSave}
-            onChangeAnnouncement={(announcement) =>
-              setSettings((prev) => ({ ...prev, public_announcement: announcement }))
-            }
-          />
-        </TabsContent>
+          <TabsContent value="pricing" className="space-y-6" data-oid="irb46s8">
+            <PricingSettingsTab
+              pricingTiers={settings.pricing_tiers}
+              saving={saving}
+              onSave={handleSave}
+              onChangePricingTiers={(pricingTiers) =>
+                setSettings((prev) => ({ ...prev, pricing_tiers: pricingTiers }))
+              }
+              onRegionalUpdate={handleRegionalUpdate}
+            />
+          </TabsContent>
 
-        <TabsContent value="pricing" className="space-y-6" data-oid="irb46s8">
-          <PricingSettingsTab
-            pricingTiers={settings.pricing_tiers}
-            saving={saving}
-            onSave={handleSave}
-            onChangePricingTiers={(pricingTiers) =>
-              setSettings((prev) => ({ ...prev, pricing_tiers: pricingTiers }))
-            }
-            onRegionalUpdate={handleRegionalUpdate}
-          />
-        </TabsContent>
+          <TabsContent value="security" className="space-y-6" data-oid="vdpbpus">
+            <SecuritySettingsTab
+              passwordData={passwordData}
+              onChangePasswordData={setPasswordData}
+              changingPassword={changingPassword}
+              onPasswordChange={handlePasswordChange}
+            />
+          </TabsContent>
 
-        <TabsContent value="security" className="space-y-6" data-oid="vdpbpus">
-          <SecuritySettingsTab
-            passwordData={passwordData}
-            onChangePasswordData={setPasswordData}
-            changingPassword={changingPassword}
-            onPasswordChange={handlePasswordChange}
-          />
-        </TabsContent>
+          <TabsContent value="rate-limits" className="space-y-6" data-oid="v5d91or">
+            <motion.div variants={itemVariants} className="max-w-5xl" data-oid="7o46ze9">
+              <TierRateLimitsSettings data-oid="oe.xgq6" />
+            </motion.div>
+          </TabsContent>
 
-        <TabsContent value="rate-limits" className="space-y-6" data-oid="v5d91or">
-          <motion.div variants={itemVariants} className="max-w-5xl" data-oid="7o46ze9">
-            <TierRateLimitsSettings data-oid="oe.xgq6" />
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="emails" className="space-y-6">
-          <motion.div variants={itemVariants} className="max-w-5xl">
-            <AdminEmailSettings />
-          </motion.div>
-        </TabsContent>
-      </Tabs>
-    </motion.div>
+          <TabsContent value="emails" className="space-y-6">
+            <motion.div variants={itemVariants} className="max-w-5xl">
+              <AdminEmailSettings />
+            </motion.div>
+          </TabsContent>
+        </Tabs>
+      </motion.div>
+    </>
   );
 }

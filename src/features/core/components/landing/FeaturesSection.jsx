@@ -4,9 +4,9 @@ import { ArrowRight, BookOpen, FileText, Mic, PenTool, TrendingUp, Volume2 } fro
 import { SectionHeading, SoftSection, landingReveal, landingStagger } from './LandingSection';
 
 const cardClass =
-  'group relative flex h-full flex-col overflow-hidden rounded-[26px] border border-[#e2e5fa] bg-white/95 p-5 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-[#6256ef]/40 hover:shadow-[0_30px_65px_-24px_rgba(82,98,239,0.38)] dark:border-white/10 dark:bg-[#0d1020]/95 dark:hover:border-violet-500/35';
+  'group relative flex h-full flex-col overflow-hidden rounded-[26px] border border-[#e2e5fa] bg-white/95 p-5 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-[#6256ef]/40 hover:shadow-[0_30px_65px_-24px_rgba(82,98,239,0.38)] dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:hover:border-violet-500/35';
 const canvasClass =
-  'relative mt-5 min-h-[194px] overflow-hidden rounded-[18px] border border-[#e7e4fb] bg-gradient-to-b from-[#fcfbff] via-[#faf9ff] to-[#f4f2ff] dark:border-white/10 dark:from-[#0d1020] dark:via-[#0a0c1a] dark:to-[#070914]';
+  'relative mt-5 min-h-[194px] overflow-hidden rounded-[18px] border border-[#e7e4fb] bg-gradient-to-b from-[#fcfbff] via-[#faf9ff] to-[#f4f2ff] dark:border-white/10 dark:bg-white/[0.03] dark:bg-none';
 const smoothLoop = { ease: [0.45, 0, 0.55, 1] };
 
 function FeatureHeader({ icon: Icon, title, description }) {
@@ -42,9 +42,9 @@ function WritingCard({ reduceMotion }) {
       />
       <div className={`${canvasClass} min-h-[242px] flex-1 p-4 sm:p-5`}>
         <div className="grid grid-cols-[minmax(0,1fr)_92px] items-start gap-3 sm:grid-cols-[minmax(0,1fr)_104px]">
-          <p className="pt-1 text-[13px] font-medium leading-7 text-[#384469] sm:text-sm">
+          <p className="pt-1 text-[13px] font-medium leading-7 text-[#384469] dark:text-slate-300 sm:text-sm">
             Many people{' '}
-            <span className="relative font-bold text-[#b8344a]">
+            <span className="relative font-bold text-[#b8344a] dark:text-rose-400">
               believes
               <m.span
                 className="absolute -bottom-0.5 left-0 h-px w-full bg-[#e14d62]"
@@ -54,7 +54,7 @@ function WritingCard({ reduceMotion }) {
               />
             </span>{' '}
             that technology has made{' '}
-            <span className="relative font-bold text-[#4d46eb]">
+            <span className="relative font-bold text-[#4d46eb] dark:text-indigo-400">
               our life
               <m.span
                 className="absolute -bottom-0.5 left-0 h-px w-full bg-[#6256ef]"
@@ -72,7 +72,7 @@ function WritingCard({ reduceMotion }) {
             easier.
           </p>
           <m.div
-            className="rounded-xl border border-[#e5e2fa] bg-white px-3 py-2.5 shadow-[0_12px_22px_-18px_rgba(73,61,201,.6)] dark:border-white/10 dark:bg-slate-900"
+            className="rounded-xl border border-[#e5e2fa] bg-white px-3 py-2.5 shadow-[0_12px_22px_-18px_rgba(73,61,201,.6)] dark:border-white/10 dark:bg-white/[0.05] dark:shadow-none"
             animate={
               reduceMotion
                 ? undefined
@@ -87,22 +87,22 @@ function WritingCard({ reduceMotion }) {
             }
             transition={{ duration: 3.2, repeat: Infinity, ...smoothLoop }}
           >
-            <span className="block whitespace-nowrap text-[10px] font-bold text-[#59617b]">
+            <span className="block whitespace-nowrap text-[10px] font-bold text-[#59617b] dark:text-slate-400">
               Band Score
             </span>
             <m.strong
-              className="mt-0.5 block text-[28px] font-black leading-none tracking-[-.06em] text-[#6256ef]"
+              className="mt-0.5 block text-[28px] font-black leading-none tracking-[-.06em] text-[#6256ef] dark:text-indigo-400"
               animate={reduceMotion ? undefined : { scale: [1, 1.08, 1] }}
               transition={{ duration: 2.8, repeat: Infinity, ...smoothLoop }}
             >
               7.0
             </m.strong>
-            <span className="mt-1 inline-flex rounded bg-[#ecfaf5] px-1.5 py-0.5 text-[10px] font-extrabold text-[#168367]">
+            <span className="mt-1 inline-flex rounded bg-[#ecfaf5] px-1.5 py-0.5 text-[10px] font-extrabold text-[#168367] dark:bg-emerald-500/15 dark:text-emerald-300">
               ↑ 0.5
             </span>
           </m.div>
         </div>
-        <div className="mt-4 overflow-hidden rounded-xl border border-[#e7e8f3] bg-white/95 dark:border-white/10 dark:bg-slate-900/90">
+        <div className="mt-4 overflow-hidden rounded-xl border border-[#e7e8f3] bg-white/95 dark:border-white/10 dark:bg-white/[0.04]">
           {corrections.map(([from, to, color], index) => (
             <m.div
               key={from}
@@ -114,11 +114,13 @@ function WritingCard({ reduceMotion }) {
               <span
                 className={`h-2 w-2 shrink-0 rounded-full ${color === 'rose' ? 'bg-rose-500' : color === 'indigo' ? 'bg-indigo-500' : 'bg-violet-500'}`}
               />
-              <span className="min-w-0 flex-1 text-[11px] font-semibold text-[#354063]">
+              <span className="min-w-0 flex-1 text-[11px] font-semibold text-[#354063] dark:text-slate-500">
                 <s>{from}</s>
               </span>
-              <ArrowRight className="h-3.5 w-3.5 text-[#8b92ae]" />
-              <span className="min-w-0 flex-[1.4] text-[11px] font-bold text-[#243058]">{to}</span>
+              <ArrowRight className="h-3.5 w-3.5 text-[#8b92ae] dark:text-slate-500" />
+              <span className="min-w-0 flex-[1.4] text-[11px] font-bold text-[#243058] dark:text-slate-200">
+                {to}
+              </span>
             </m.div>
           ))}
         </div>
@@ -276,8 +278,8 @@ function TestsCard({ reduceMotion }) {
       />
       <div className={`${canvasClass} flex-1 p-3`}>
         <div className="mb-2 flex items-center justify-between border-b border-[#ededf5] px-1 pb-2 text-xs dark:border-white/10">
-          <span className="font-bold text-[#394260]">Recent Tests</span>
-          <span className="font-bold text-[#5d4df0]">View all</span>
+          <span className="font-bold text-[#394260] dark:text-slate-200">Recent Tests</span>
+          <span className="font-bold text-[#5d4df0] dark:text-indigo-400">View all</span>
         </div>
         <div className="relative h-[164px] overflow-hidden">
           <m.div
@@ -292,7 +294,7 @@ function TestsCard({ reduceMotion }) {
                 className="flex h-[43px] items-center gap-2.5 rounded-lg border border-transparent px-2 py-1.5 transition hover:border-[#e2ddff] hover:bg-[#faf9ff] dark:hover:bg-white/5"
               >
                 <m.div
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#f1efff] text-[#6256ef]"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#f1efff] text-[#6256ef] dark:bg-indigo-500/15 dark:text-indigo-300"
                   animate={reduceMotion ? undefined : { rotate: [0, -6, 0] }}
                   transition={{
                     duration: 2.6,
@@ -304,11 +306,15 @@ function TestsCard({ reduceMotion }) {
                   <FileText className="h-3.5 w-3.5" />
                 </m.div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[11px] font-bold text-[#283252]">{title}</p>
-                  <p className="text-[10px] font-medium text-[#77809d]">Completed just now</p>
+                  <p className="truncate text-[11px] font-bold text-[#283252] dark:text-slate-200">
+                    {title}
+                  </p>
+                  <p className="text-[10px] font-medium text-[#77809d] dark:text-slate-500">
+                    Completed just now
+                  </p>
                 </div>
                 <m.span
-                  className="rounded-lg bg-[#f3f1ff] px-2.5 py-1 text-xs font-black text-[#5d4df0]"
+                  className="rounded-lg bg-[#f3f1ff] px-2.5 py-1 text-xs font-black text-[#5d4df0] dark:bg-indigo-500/15 dark:text-indigo-300"
                   animate={reduceMotion ? undefined : { scale: [1, 1.05, 1] }}
                   transition={{
                     duration: 2.7,
@@ -322,8 +328,8 @@ function TestsCard({ reduceMotion }) {
               </div>
             ))}
           </m.div>
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-[#fbfbff] to-transparent dark:from-[#080b17]" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#fbfbff] to-transparent dark:from-[#080b17]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-[#fbfbff] to-transparent dark:from-[#131315]" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#fbfbff] to-transparent dark:from-[#131315]" />
         </div>
       </div>
     </article>
@@ -341,18 +347,20 @@ function AnalyticsCard({ reduceMotion }) {
       <div className={`${canvasClass} flex flex-1 items-center gap-3.5 p-4 sm:p-5`}>
         {/* Left Score Card Container */}
         <div className="flex flex-col justify-between self-stretch rounded-xl border border-[#e9e7fa] bg-white/80 p-3.5 shadow-sm dark:border-white/10 dark:bg-white/5 sm:p-4">
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#737d9b]">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#737d9b] dark:text-slate-400">
             Overall Band Score
           </span>
           <div>
-            <strong className="block text-[40px] font-black tracking-[-.07em] bg-clip-text text-transparent bg-gradient-to-br from-[#6256ef] via-[#7a6bff] to-[#5136f5] sm:text-[44px]">
+            <strong className="block text-[40px] font-black tracking-[-.07em] bg-clip-text text-transparent bg-gradient-to-br from-[#6256ef] via-[#7a6bff] to-[#5136f5] dark:from-[#8b7cff] dark:via-[#a08fff] dark:to-[#7a6bff] sm:text-[44px]">
               7.0
             </strong>
             <div className="mt-1 flex items-center gap-1.5">
               <span className="inline-flex items-center rounded-md border border-[#ded9ff] bg-[#f2f0ff] px-2 py-0.5 text-[10px] font-black text-[#5e50ee] dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300">
                 ↑ 0.5
               </span>
-              <span className="text-[10px] font-medium text-[#737d9b]">vs last month</span>
+              <span className="text-[10px] font-medium text-[#737d9b] dark:text-slate-400">
+                vs last month
+              </span>
             </div>
           </div>
         </div>
@@ -360,7 +368,7 @@ function AnalyticsCard({ reduceMotion }) {
         {/* Right Chart Inner Card Container */}
         <div className="relative flex flex-1 flex-col justify-between self-stretch rounded-xl border border-[#e9e7fa] bg-white/80 p-3.5 shadow-sm dark:border-white/10 dark:bg-white/5 sm:p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#737d9b]">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#737d9b] dark:text-slate-400">
               Band Improvement
             </span>
             <span className="rounded-md border border-[#ded9ff] bg-[#f2f0ff] px-2 py-0.5 text-[9px] font-black text-[#5e50ee] dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300">
@@ -386,7 +394,7 @@ function AnalyticsCard({ reduceMotion }) {
               y1="48"
               x2="307"
               y2="48"
-              stroke="#e8e5fa"
+              className="stroke-[#e8e5fa] dark:stroke-white/10"
               strokeDasharray="3 3"
               strokeWidth="1"
             />
@@ -395,7 +403,7 @@ function AnalyticsCard({ reduceMotion }) {
               y1="88"
               x2="307"
               y2="88"
-              stroke="#e8e5fa"
+              className="stroke-[#e8e5fa] dark:stroke-white/10"
               strokeDasharray="3 3"
               strokeWidth="1"
             />
@@ -446,7 +454,7 @@ function AnalyticsCard({ reduceMotion }) {
             ))}
           </svg>
 
-          <div className="flex justify-between text-[9px] font-semibold text-[#737d9b]">
+          <div className="flex justify-between text-[9px] font-semibold text-[#737d9b] dark:text-slate-500">
             <span>May 1</span>
             <span>May 15</span>
             <span>Jun 1</span>
@@ -595,7 +603,7 @@ function VocabularyCard({ reduceMotion }) {
             className="absolute z-20 w-[78%] rounded-2xl border border-[#e4e3f2] bg-white/95 p-4 shadow-[0_20px_45px_-16px_rgba(40,35,125,0.38)] backdrop-blur-md dark:border-white/10 dark:bg-slate-900/95 sm:w-[73%]"
           >
             <div className="flex items-start justify-between">
-              <span className="text-[10px] font-extrabold tracking-[.14em] text-[#5e50ee]">
+              <span className="text-[10px] font-extrabold tracking-[.14em] text-[#5e50ee] dark:text-violet-300">
                 WORD OF THE DAY
               </span>
               <button
@@ -617,7 +625,9 @@ function VocabularyCard({ reduceMotion }) {
             <h4 className="mt-1 text-[23px] font-black tracking-[-.055em] text-[#101836] dark:text-white">
               {current.word}
             </h4>
-            <p className="text-[11px] font-bold text-[#5e50ee]">{current.pos}</p>
+            <p className="text-[11px] font-bold text-[#5e50ee] dark:text-violet-300">
+              {current.pos}
+            </p>
             <p className="mt-1.5 text-xs font-medium leading-5 text-[#56617f] dark:text-slate-300">
               {current.definition}
             </p>
@@ -655,7 +665,7 @@ function VocabularyCard({ reduceMotion }) {
 export default function FeaturesSection({ viewport }) {
   const reduceMotion = useReducedMotion();
   return (
-    <SoftSection className="bg-[#faf9ff] py-16 dark:bg-[#0b0a10] lg:py-24">
+    <SoftSection className="bg-[#faf9ff] py-16 dark:bg-[#08080a] lg:py-24">
       <div className="relative z-10 mx-auto max-w-[1450px] px-5 md:px-8">
         <SectionHeading
           eyebrow="BUILT TO HELP YOU SCORE"

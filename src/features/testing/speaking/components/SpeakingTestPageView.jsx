@@ -51,7 +51,7 @@ export default function SpeakingTestPageView({
   } = shellProps;
 
   return (
-    <div className="relative min-h-full overflow-x-hidden bg-[#f7f6fd] transition-colors duration-500 dark:bg-[#0b0a0f]">
+    <div className="relative min-h-full overflow-x-hidden bg-[#f7f6fd] transition-colors duration-500 dark:bg-[#08080a]">
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute -left-32 top-[-12rem] h-[32rem] w-[32rem] rounded-full bg-rose-500/[0.05] blur-3xl dark:bg-rose-500/[0.07]" />
         <div className="absolute -right-40 bottom-[-14rem] h-[36rem] w-[36rem] rounded-full bg-rose-500/[0.045] blur-3xl dark:bg-rose-500/[0.06]" />

@@ -11,6 +11,7 @@ interface ListOptions {
   page?: number;
   filters?: {
     subscription?: string;
+    subscriptionStatus?: string;
     role?: string;
     inactiveDays?: string | number;
     search?: string;
@@ -669,6 +670,21 @@ export const User = {
     // Apply filters matching UserManagement logic (subscription, role)
     if (filters.subscription && filters.subscription !== 'all') {
       query = query.eq('subscription_tier', filters.subscription);
+    }
+    if (filters.subscriptionStatus === 'cancelling') {
+      // Only subscriptions whose current paid period has not ended are actionable.
+      query = query
+        .eq('cancel_at_period_end', true)
+        .gt('subscription_end_date', new Date().toISOString());
+    }
+    if (filters.subscriptionStatus === 'expiring') {
+      const now = new Date();
+      const sevenDaysFromNow = new Date(now);
+      sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+      query = query
+        .in('subscription_tier', ['pro', 'premium'])
+        .gt('subscription_end_date', now.toISOString())
+        .lte('subscription_end_date', sevenDaysFromNow.toISOString());
     }
     if (filters.role && filters.role !== 'all') {
       query = query.eq('role', filters.role);

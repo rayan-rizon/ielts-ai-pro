@@ -27,7 +27,9 @@ import {
 export default function StatCards({ stats, progressToTarget = 0 }) {
   if (!stats) return null;
 
-  const hasScoreData = (stats.scoredTests ?? stats.totalTests ?? 0) > 0;
+  const hasScoreData = (stats.measuredTests ?? stats.scoredTests ?? stats.totalTests ?? 0) > 0;
+  const parsedTarget = Number(stats.targetScore);
+  const hasTarget = Number.isFinite(parsedTarget) && parsedTarget > 0;
   const modulesWithData = stats.modulesWithData || 0;
   const hasOverallEstimate = stats.overallEstimate != null && modulesWithData === 4;
   const displayScore = !hasScoreData
@@ -39,7 +41,7 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
       : stats.avgScore;
 
   const currentLabel = hasScoreData ? getBandLabel(displayScore) : 'No score yet';
-  const targetLabel = getBandLabel(stats.targetScore);
+  const targetLabel = hasTarget ? getBandLabel(parsedTarget) : null;
   const efficiencyValues = Object.values(stats.efficiency || {}).filter(
     (value) => Number(value) > 0
   );
@@ -60,16 +62,18 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
   const scoreSubtitle = `${scoredText}${trendText}`;
 
   const scoreForGoal = hasOverallEstimate ? Number(stats.overallEstimate) : Number(stats.avgScore);
-  const gap = Number(stats.targetScore) - scoreForGoal;
-  const goalSubtitle = !hasScoreData
-    ? 'Awaiting test scores'
-    : gap <= 0
-      ? 'Target achieved!'
-      : `${formatBand(gap)} ${gap === 1 ? 'band' : 'bands'} to target`;
+  const gap = hasTarget ? parsedTarget - scoreForGoal : null;
+  const goalSubtitle = !hasTarget
+    ? 'Set your target band'
+    : !hasScoreData
+      ? 'Awaiting test scores'
+      : gap <= 0
+        ? 'Target achieved!'
+        : `${formatBand(gap)} ${gap === 1 ? 'band' : 'bands'} to target`;
 
   const studySubtitle = averageMinutes ? `${averageMinutes} min/test average` : 'No timing data';
   const trackPct = Math.max(0, Math.min(100, Number(progressToTarget) || 0));
-  const targetReached = hasScoreData && gap <= 0;
+  const targetReached = hasTarget && hasScoreData && gap <= 0;
 
   return (
     <m.section variants={ITEM_VARIANTS} className="grid grid-cols-12 items-start gap-3">
@@ -99,12 +103,16 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
         {/* Distance to target, drawn rather than described. */}
         <div className="mt-2.5 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
           <div className="flex items-center justify-between">
-            <span className={cn(MICRO, MUTED)}>Progress to target</span>
+            <span className={cn(MICRO, MUTED)}>
+              {hasTarget ? 'Progress to target' : 'Target not set'}
+            </span>
             <span className={cn(MICRO, targetReached ? 'text-[rgb(var(--signal-ok))]' : MUTED)}>
-              {hasScoreData ? (
+              {hasTarget && hasScoreData ? (
                 <>
                   <span className={cn(NUM, 'font-bold')}>{Math.round(trackPct)}</span>% of the way
                 </>
+              ) : !hasTarget ? (
+                'Set a target'
               ) : (
                 'Not started'
               )}
@@ -124,7 +132,10 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
               Now <span className={cn(NUM, 'font-bold')}>{displayScore}</span>
             </span>
             <span className={cn(MICRO, MUTED)}>
-              Target <span className={cn(NUM, 'font-bold')}>{formatBand(stats.targetScore)}</span>
+              Target{' '}
+              <span className={cn(NUM, 'font-bold')}>
+                {hasTarget ? formatBand(parsedTarget) : '—'}
+              </span>
             </span>
           </div>
         </div>
@@ -137,9 +148,9 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
           icon={Target}
           tone="accent"
           label="Your Goal"
-          value={formatBand(stats.targetScore)}
+          value={hasTarget ? formatBand(parsedTarget) : '—'}
           sub={goalSubtitle}
-          delta={<Pill tone="neutral">{targetLabel}</Pill>}
+          delta={targetLabel ? <Pill tone="neutral">{targetLabel}</Pill> : null}
         />
         <Stat
           size="sm"

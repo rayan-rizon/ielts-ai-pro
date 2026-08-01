@@ -54,13 +54,13 @@ function TaskDetails({ task, canReschedule, onReschedule }) {
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="h-8 min-w-0 flex-1 justify-start rounded-lg border-[#e2e5f2] bg-white px-2.5 text-[10px] font-bold hover:bg-slate-50 dark:border-white/10 dark:bg-[#131218] dark:hover:bg-white/5"
+                className="h-8 min-w-0 flex-1 justify-start rounded-lg border-[#e2e5f2] bg-white px-2.5 text-[10px] font-bold hover:bg-slate-50 dark:border-white/10 dark:bg-[#131315] dark:hover:bg-white/5"
               >
                 {selectedDate ? format(selectedDate, 'MMM dd, yyyy') : 'Select date'}
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-auto overflow-hidden rounded-xl border-[#e2e5f2] bg-white p-0 shadow-2xl dark:border-white/10 dark:bg-[#131218]"
+              className="w-auto overflow-hidden rounded-xl border-[#e2e5f2] bg-white p-0 shadow-2xl dark:border-white/10 dark:bg-[#131315]"
               align="start"
             >
               <CalendarComponent

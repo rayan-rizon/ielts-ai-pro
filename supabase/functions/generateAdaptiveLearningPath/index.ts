@@ -27,10 +27,15 @@ import {
   reserveDatabaseQuota,
   validateCsrfProtection,
 } from '../_shared/security.ts';
+import {
+  DEEPSEEK_TEXT_MODEL,
+  GEMINI_TEXT_FALLBACK_MODEL,
+  requestJsonWithGeminiFallback,
+} from '../_shared/textAiProvider.ts';
 
 declare const Deno: any;
 
-const MODEL = 'gemini-2.5-flash-lite';
+const MODEL = DEEPSEEK_TEXT_MODEL;
 const ALLOWED_TRIGGERS = new Set([
   'first_plan',
   'test_completed',
@@ -176,6 +181,8 @@ function mergeRecoveryTasks(schedule: Record<string, any[]>, previousPath: any, 
 }
 
 async function buildCoachSummary({
+  openRouterApiKey,
+  deepseekApiKey,
   geminiApiKey,
   supabase,
   authId,
@@ -191,6 +198,8 @@ async function buildCoachSummary({
     trigger,
     fingerprint,
     model: MODEL,
+    fallbackModel: GEMINI_TEXT_FALLBACK_MODEL,
+    providerStrategy: 'openrouter-deepseek-first-gemini-fallback',
     generatorVersion: LEARNING_PATH_GENERATOR_VERSION,
     cacheStatus: 'miss',
   };
@@ -205,7 +214,7 @@ async function buildCoachSummary({
     rankedActivityKeys: (candidates || []).map((candidate: any) => candidate.activity_key),
   };
 
-  if (!geminiApiKey) {
+  if (!openRouterApiKey && !deepseekApiKey && !geminiApiKey) {
     await logApiUsage(supabase, authId, 'generateAdaptiveLearningPath', false, 0, {
       ...metadata,
       deterministicFallback: true,
@@ -274,33 +283,20 @@ ${JSON.stringify({
 })}
 </aggregate_evidence>`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.25,
-            maxOutputTokens: 300,
-            responseMimeType: 'application/json',
-          },
-        }),
-      }
-    );
-    if (!response.ok) throw new Error(`Provider returned ${response.status}`);
-
-    const data = await response.json();
-    const usage = data.usageMetadata || {};
-    const promptTokens = Number(usage.promptTokenCount || 0);
-    const outputTokens =
-      Number(usage.candidatesTokenCount || 0) + Number(usage.thoughtsTokenCount || 0);
-    const tokensUsed = Number(usage.totalTokenCount || promptTokens + outputTokens);
-    const parsed = JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || '{}');
-    if (typeof parsed.headline !== 'string' || typeof parsed.explanation !== 'string') {
-      throw new Error('Malformed coach summary');
-    }
+    const providerResult = await requestJsonWithGeminiFallback({
+      prompt,
+      deepseekApiKey,
+      openRouterApiKey,
+      geminiApiKey,
+      temperature: 0.25,
+      maxOutputTokens: 300,
+      validateJson: (value) =>
+        typeof value?.headline === 'string' &&
+        typeof value?.explanation === 'string' &&
+        Array.isArray(value?.rankedActivityKeys),
+    });
+    const { promptTokens, cachedPromptTokens, outputTokens, tokensUsed } = providerResult.usage;
+    const parsed = providerResult.parsed;
     const allowedKeys = new Set((candidates || []).map((candidate: any) => candidate.activity_key));
     const rankedActivityKeys = Array.isArray(parsed.rankedActivityKeys)
       ? parsed.rankedActivityKeys.filter(
@@ -317,9 +313,15 @@ ${JSON.stringify({
 
     await finalizeApiUsage(supabase, reservation.reservationId, tokensUsed, false, {
       ...metadata,
+      provider: providerResult.provider,
+      model: providerResult.model,
+      mode: providerResult.mode,
+      fallbackUsed: providerResult.fallbackUsed,
+      fallbackReason: providerResult.fallbackReason,
       promptTokens,
+      cachedPromptTokens,
       outputTokens,
-      estimatedProviderCostUsd: promptTokens * 0.0000001 + outputTokens * 0.0000004,
+      estimatedProviderCostUsd: providerResult.usage.estimatedProviderCostUsd,
       deterministicFallback: false,
     });
     return {
@@ -567,6 +569,8 @@ serve(async (req: Request) => {
     };
     const candidateActivities = collectActivities(scheduleData.schedule).slice(0, 18);
     const coach = await buildCoachSummary({
+      openRouterApiKey: Deno.env.get('OPENROUTER_API_KEY'),
+      deepseekApiKey: Deno.env.get('DEEPSEEK_API_KEY'),
       geminiApiKey: Deno.env.get('GEMINI_API_KEY'),
       supabase,
       authId: authData.user.id,

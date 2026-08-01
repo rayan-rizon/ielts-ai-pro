@@ -20,6 +20,7 @@ export default function GrammarDashboard({
   isStarting,
   isResuming,
   onStart,
+  onRetest,
   onResume,
 }) {
   const {
@@ -35,6 +36,7 @@ export default function GrammarDashboard({
     primaryDescription,
     activePathStage,
     pathStatus,
+    retestTarget,
     startPrimary,
     startPathStage,
   } = useGrammarDashboard({
@@ -44,6 +46,7 @@ export default function GrammarDashboard({
     defaultMode,
     defaultSkill,
     onStart,
+    onRetest,
     onResume,
   });
 
@@ -62,12 +65,14 @@ export default function GrammarDashboard({
             dailyLimitReached={dailyLimitReached}
             access={access}
             dueReviews={dashboard?.dueReviews}
+            retestTarget={retestTarget}
             onStart={startPrimary}
           />
         </div>
         <GrammarLearningPathCard
           activePathStage={activePathStage}
           pathStatus={pathStatus}
+          retestTarget={retestTarget}
           isStarting={isStarting}
           isResuming={isResuming}
           inProgressAttempt={inProgressAttempt}
@@ -122,6 +127,7 @@ export default function GrammarDashboard({
           resourcesUnavailable={dashboard?.resourcesUnavailable}
           user={user}
           completedGuideSlugs={dashboard?.completedGuideSlugs}
+          recommendedSkill={recommended}
         />
       </div>
     </div>

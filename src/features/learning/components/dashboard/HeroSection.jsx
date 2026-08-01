@@ -115,7 +115,7 @@ function HeroBanner({
               type="button"
               onClick={() => primaryTask && startTask(primaryTask)}
               disabled={!primaryTask}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#5a63df] px-4 text-sm font-bold text-white transition-colors hover:bg-[#4a52c9] disabled:cursor-default disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#141319]"
+              className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#5a63df] px-4 text-sm font-bold text-white transition-colors hover:bg-[#4a52c9] disabled:cursor-default disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#131315]"
             >
               Continue learning <ArrowRight className="h-4 w-4" />
             </button>

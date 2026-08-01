@@ -5,7 +5,19 @@ import { ChevronDown, ChevronRight, Clock } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { formatTestTitle } from '@/lib/utils';
 import { createPageUrl } from '@/utils';
-import { Empty, MICRO, MUTED, NUM, PANEL, PanelTitle, Pill, WELL } from './primitives';
+import {
+  Empty,
+  MICRO,
+  MUTED,
+  NUM,
+  PANEL,
+  PANEL_LINK,
+  PanelTitle,
+  Pill,
+  ROW_CHEVRON,
+  ROW_HOVER,
+  WELL,
+} from './primitives';
 
 function volumeNumber(test, index) {
   return (
@@ -29,10 +41,7 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [] }) => {
           <div className="flex items-center gap-3">
             <Link
               to={createPageUrl('Reading')}
-              className={cn(
-                MICRO,
-                'hidden items-center gap-0.5 text-slate-500 transition-colors hover:text-[#5a63df] dark:text-slate-400 sm:inline-flex'
-              )}
+              className={cn(MICRO, PANEL_LINK, 'hidden sm:inline-flex')}
             >
               All tests <ChevronRight className="h-3 w-3" />
             </Link>
@@ -40,10 +49,7 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [] }) => {
               type="button"
               onClick={() => setExpanded((value) => !value)}
               aria-expanded={expanded}
-              className={cn(
-                MICRO,
-                'inline-flex items-center gap-1 text-slate-500 transition-colors hover:text-[#5a63df] dark:text-slate-400'
-              )}
+              className={cn(MICRO, PANEL_LINK, 'gap-1')}
             >
               {expanded ? 'Collapse' : `Expand · ${count}`}
               <ChevronDown
@@ -76,7 +82,8 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [] }) => {
                     key={test.id}
                     to={`/reading-test?test-id=${test.id}`}
                     className={cn(
-                      'group flex items-center gap-3 rounded-lg border border-transparent p-2.5 transition-all duration-150 hover:border-[#e4e2f0] hover:bg-[#f7f6fd] active:scale-[0.99] dark:hover:border-white/[0.07] dark:hover:bg-white/[0.03]'
+                      'group flex items-center gap-3 rounded-lg border border-transparent p-2.5 transition-all duration-150',
+                      ROW_HOVER
                     )}
                   >
                     <div
@@ -111,7 +118,7 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [] }) => {
                       </h4>
                     </div>
 
-                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-300 transition-colors group-hover:text-[#5a63df] dark:text-slate-600" />
+                    <ChevronRight className={cn('h-3.5 w-3.5', ROW_CHEVRON)} />
                   </Link>
                 ))}
               </div>

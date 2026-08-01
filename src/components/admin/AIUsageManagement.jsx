@@ -138,7 +138,7 @@ const AIUsageManagement = () => {
             ? `Last refreshed ${lastUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
             : 'Loading the latest usage records'
         }
-        tip="Operational view of AI request delivery, token volume, cache efficiency, and recorded provider spend. Live faults for these services are on the Health page in Global Settings."
+        tip="AI delivery, tokens, cache, and provider spend. See Global Settings for live faults."
       >
         <Select value={String(dateRange)} onValueChange={(value) => setDateRange(Number(value))}>
           <SelectTrigger
