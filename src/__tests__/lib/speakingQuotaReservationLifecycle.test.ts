@@ -6,15 +6,30 @@ const readFunction = (name: string) =>
   readFileSync(resolve(process.cwd(), `supabase/functions/${name}/index.ts`), 'utf8');
 
 describe('speaking quota reservation lifecycle', () => {
-  it('finalizes the session-start reservation after a successful speaking turn', () => {
+  it('finalizes the session-start reservation before per-turn provider work', () => {
     const source = readFunction('processSpeakingSession');
-    const successPath = source.slice(
-      source.indexOf('await finalizeApiUsage(supabase, activeReservationId')
+    const sessionFinalizationIndex = source.indexOf(
+      'await finalizeApiUsage(supabase, sessionReservationId'
+    );
+    const turnReservationIndex = source.indexOf(
+      'const turnReservation = await reserveDatabaseQuota'
     );
 
     expect(source).toContain('sessionReservationId = sessionReservation.reservationId');
-    expect(successPath).toContain('await finalizeApiUsage(supabase, sessionReservationId');
+    expect(sessionFinalizationIndex).toBeGreaterThan(-1);
+    expect(sessionFinalizationIndex).toBeLessThan(turnReservationIndex);
+    expect(source).toContain("throw new Error('Failed to finalize speaking session reservation')");
     expect(source).toContain("{ failureReason: error?.message || 'Internal server error' }");
+  });
+
+  it('retries transient reservation finalization failures', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'supabase/functions/_shared/security.ts'),
+      'utf8'
+    );
+
+    expect(source).toContain('for (let attempt = 1; attempt <= 3; attempt += 1)');
+    expect(source).toContain('await new Promise((resolve) => setTimeout(resolve, attempt * 50))');
   });
 
   it.each(['evaluateSpeakingTest', 'generateDetailedSpeakingFeedback'])(

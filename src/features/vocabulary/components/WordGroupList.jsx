@@ -20,22 +20,22 @@ export const KitVisual = ({ id, kit }) => {
 const THEMES = {
   indigo: {
     iconBg:
-      'bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200/70 dark:bg-indigo-500/15 dark:text-indigo-300 shadow-sm',
+      'bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200/70 shadow-sm dark:bg-indigo-500/15 dark:text-indigo-300 dark:ring-indigo-400/30',
     progressBar: 'bg-[#5661e9]',
   },
   emerald: {
     iconBg:
-      'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200/70 dark:bg-emerald-500/15 dark:text-emerald-300 shadow-sm',
+      'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200/70 shadow-sm dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/30',
     progressBar: 'bg-emerald-500',
   },
   sky: {
     iconBg:
-      'bg-sky-50 text-sky-600 ring-1 ring-sky-200/70 dark:bg-sky-500/15 dark:text-sky-300 shadow-sm',
+      'bg-sky-50 text-sky-600 ring-1 ring-sky-200/70 shadow-sm dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-400/30',
     progressBar: 'bg-sky-500',
   },
   violet: {
     iconBg:
-      'bg-violet-50 text-violet-600 ring-1 ring-violet-200/70 dark:bg-violet-500/15 dark:text-violet-300 shadow-sm',
+      'bg-violet-50 text-violet-600 ring-1 ring-violet-200/70 shadow-sm dark:bg-violet-500/15 dark:text-violet-300 dark:ring-violet-400/30',
     progressBar: 'bg-violet-500',
   },
 };

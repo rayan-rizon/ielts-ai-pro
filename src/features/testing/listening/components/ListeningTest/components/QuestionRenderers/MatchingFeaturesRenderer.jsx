@@ -9,6 +9,7 @@ import {
 import { cn } from '@/lib/cn';
 import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
 import { toRoman } from '../../utils/helpers';
+import { INPUT_DEFAULT } from '@/features/testing/shared/questionUiTokens';
 
 const MatchingFeaturesRenderer = ({
   question,
@@ -21,15 +22,10 @@ const MatchingFeaturesRenderer = ({
 }) => {
   // Get select trigger styling based on correctness
   const getSelectStyle = (qId) => {
-    const baseStyle = 'w-[110px] h-8 text-sm transition-all font-medium shadow-sm';
+    const baseStyle = 'w-[110px] h-7 text-sm transition-all font-medium';
 
     if (!isFinished) {
-      return cn(
-        baseStyle,
-        'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground',
-        'focus:ring-1 focus:ring-[#5a63df]/40 focus:border-[#5a63df]/50',
-        'hover:border-slate-400/80 dark:hover:border-slate-600/80 shadow-sm'
-      );
+      return cn(baseStyle, INPUT_DEFAULT);
     }
 
     // Review mode - check correctness
@@ -49,7 +45,7 @@ const MatchingFeaturesRenderer = ({
     } else {
       return cn(
         baseStyle,
-        'bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-foreground'
+        'bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-foreground'
       );
     }
   };

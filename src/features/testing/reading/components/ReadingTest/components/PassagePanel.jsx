@@ -92,11 +92,11 @@ const PassagePanel = memo(function PassagePanel({
             .replace(/\[center\](.*?)\[\/center\]/g, '<div class="text-center">$1</div>')
             .replace(
               /\[title\](.*?)\[\/title\]/g,
-              '<h2 class="text-2xl font-bold text-center mb-4 px-16 sm:px-24 md:px-28">$1</h2>'
+              '<h2 class="text-lg @sm:text-xl @md:text-2xl font-bold text-center mb-4 px-12 @sm:px-14 @md:px-16 @lg:px-20">$1</h2>'
             )
             .replace(
               /\[heading\](.*?)\[\/heading\]/g,
-              '<h3 class="text-xl font-semibold text-center mb-3 px-16 sm:px-24 md:px-28">$1</h3>'
+              '<h3 class="text-base @sm:text-lg @md:text-xl font-semibold text-center mb-3 px-12 @sm:px-14 @md:px-16 @lg:px-20">$1</h3>'
             )
             .replace(/\[image\](.*?)\[\/image\]/g, (match, url) => {
               // Sanitize URL by removing all spaces
@@ -267,7 +267,7 @@ const PassagePanel = memo(function PassagePanel({
         )}
 
         <h1
-          className="text-2xl sm:text-3xl text-center font-bold mb-4 pt-2 sm:pt-3 px-16 sm:px-24 md:px-28 text-foreground"
+          className="text-lg @sm:text-xl @md:text-2xl @lg:text-3xl leading-snug text-center font-bold mb-3 @md:mb-4 pt-2 @md:pt-3 px-12 @sm:px-14 @md:px-16 @lg:px-20 @xl:px-24 text-foreground"
           data-oid="q._2bvq"
         >
           {currentPassage.passage_name || currentPassage.title || `Passage ${passageIndex + 1}`}

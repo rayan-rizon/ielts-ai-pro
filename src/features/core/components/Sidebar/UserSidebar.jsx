@@ -24,6 +24,10 @@ const ACCENT_ACTIVE =
   'bg-[#5a63df]/[0.09] text-[#4a52c9] dark:bg-[#5a63df]/[0.22] dark:text-[#c3c7ff]';
 const ACCENT_HOVER =
   'hover:bg-[#5a63df]/[0.05] hover:text-[#4a52c9] dark:hover:bg-white/[0.05] dark:hover:text-slate-100';
+const AI_BADGE =
+  'border-[0.5px] border-[#c3c8f2]/80 bg-gradient-to-br from-[#f5f6ff] via-[#eef0ff] to-[#fbfaff] text-[#5b64c8] shadow-[0_1px_5px_rgba(86,97,233,0.08)] dark:border-[#7f87e2]/30 dark:bg-gradient-to-br dark:from-[#30366f]/85 dark:via-[#393474]/70 dark:to-[#2b355e]/85 dark:text-[#cbd0f5] dark:shadow-[0_1px_6px_rgba(86,97,233,0.12)]';
+const AI_BADGE_ACTIVE =
+  'border-[0.5px] border-[#bdc3f0]/90 bg-gradient-to-br from-[#edf0ff] via-[#e4e7ff] to-[#f5f2ff] text-[#4f58bb] shadow-[0_2px_7px_rgba(86,97,233,0.12)] dark:border-[#a0a7ed]/35 dark:bg-gradient-to-br dark:from-[#4a53a0] dark:via-[#4d438c] dark:to-[#3d4b89] dark:text-[#eef0ff] dark:shadow-[0_2px_8px_rgba(86,97,233,0.16)]';
 
 /** One nav row. Every item shares the same accent — the group label above it does the wayfinding. */
 const NavItem = memo(({ item, isActive }) => {
@@ -64,7 +68,12 @@ const NavItem = memo(({ item, isActive }) => {
           </span>
 
           {isNew && (
-            <span className="ml-auto shrink-0 rounded-full bg-[#5a63df]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[#5a63df] dark:bg-[#5a63df]/25 dark:text-[#c3c7ff] group-data-[collapsible=icon]:hidden">
+            <span
+              className={cn(
+                'ml-auto inline-flex h-6 min-w-9 shrink-0 items-center justify-center rounded-full px-2 text-[10px] font-bold uppercase tracking-[0.06em] group-data-[collapsible=icon]:hidden',
+                isActive ? AI_BADGE_ACTIVE : AI_BADGE
+              )}
+            >
               AI
             </span>
           )}

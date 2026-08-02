@@ -61,7 +61,14 @@ function TestCard({
 
         <div className={cn('mb-3', isLocked && 'select-none blur-[3px]')}>
           <ContainerLink {...linkProps} className="block">
-            <h3 className={cn(TITLE, 'mb-1 line-clamp-2 text-sm leading-snug')}>{displayTitle}</h3>
+            <h3
+              className={cn(
+                TITLE,
+                'mb-2 line-clamp-2 text-base font-bold leading-6 tracking-[0.01em]'
+              )}
+            >
+              {displayTitle}
+            </h3>
           </ContainerLink>
           <p className={cn('line-clamp-2 text-xs font-medium leading-relaxed', MUTED)}>
             {test.description || 'Authentic IELTS Listening practice with curated audio.'}

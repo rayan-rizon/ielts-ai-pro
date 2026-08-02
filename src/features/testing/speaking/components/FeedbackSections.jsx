@@ -38,13 +38,13 @@ export function StrengthsSection({ conciseStrengths }) {
   if (conciseStrengths.length === 0) return null;
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-2xl border border-[#e4e2f0] bg-gradient-to-br from-[#fcfffd] to-[#edf9f3] p-4 sm:p-5 transition-all duration-300 hover:border-emerald-200/80 dark:border-white/[0.07] dark:from-[#101915] dark:to-[#12231c]">
+    <div className="flex h-full flex-col justify-between rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-emerald-200/80 dark:border-white/[0.10] dark:bg-[#131515] sm:p-4">
       <div>
         <div className="mb-3 flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaf9f1] text-[#159669] border border-[#c4eee0]/60 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-500/30">
             <TrendingUp className="h-4 w-4" />
           </div>
-          <h3 className="text-sm font-black tracking-tight text-emerald-700 dark:text-emerald-400">
+          <h3 className="text-sm font-extrabold tracking-tight text-emerald-700 dark:text-emerald-400">
             Strengths
           </h3>
         </div>
@@ -68,13 +68,13 @@ export function ImprovementsSection({ conciseImprovements }) {
   if (conciseImprovements.length === 0) return null;
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-2xl border border-[#e4e2f0] bg-gradient-to-br from-[#fffdfd] to-[#fff0f5] p-4 sm:p-5 transition-all duration-300 hover:border-rose-200/80 dark:border-white/[0.07] dark:from-[#1a1114] dark:to-[#241318]">
+    <div className="flex h-full flex-col justify-between rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-rose-200/80 dark:border-white/[0.10] dark:bg-[#131315] sm:p-4">
       <div>
         <div className="mb-3 flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#ffeef3] text-[#e11d48] border border-[#fccedb]/60 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-500/30">
             <Target className="h-4 w-4" />
           </div>
-          <h3 className="text-sm font-black tracking-tight text-rose-700 dark:text-rose-400">
+          <h3 className="text-sm font-extrabold tracking-tight text-rose-700 dark:text-rose-400">
             Areas to Improve
           </h3>
         </div>
@@ -85,7 +85,7 @@ export function ImprovementsSection({ conciseImprovements }) {
               <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-rose-500" />
               <div>
                 {item.title && (
-                  <p className="text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                  <p className="text-xs font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-400">
                     {item.title}
                   </p>
                 )}
@@ -109,10 +109,10 @@ export function StudyRecommendationsSection() {
       buttonText: 'Practice Vocabulary',
       icon: BookOpen,
       color:
-        'bg-blue-50 text-blue-600 border-blue-200/80 dark:bg-blue-950/30 dark:border-blue-900/40',
-      iconBg: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300',
+        'bg-blue-50 text-blue-600 border-blue-200/80 dark:bg-[#131315] dark:border-white/[0.10]',
+      iconBg: 'bg-blue-100 text-blue-600 dark:bg-white/[0.07] dark:text-blue-300',
       btnBorder:
-        'border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-900 dark:text-blue-300',
+        'border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-white/[0.12] dark:text-blue-300',
     },
     {
       title: 'Develop Ideas',
@@ -120,10 +120,10 @@ export function StudyRecommendationsSection() {
       buttonText: 'See Example Answers',
       icon: Lightbulb,
       color:
-        'bg-orange-50 text-orange-600 border-orange-200/80 dark:bg-orange-950/30 dark:border-orange-900/40',
-      iconBg: 'bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-300',
+        'bg-orange-50 text-orange-600 border-orange-200/80 dark:bg-[#131315] dark:border-white/[0.10]',
+      iconBg: 'bg-orange-100 text-orange-600 dark:bg-white/[0.07] dark:text-orange-300',
       btnBorder:
-        'border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-900 dark:text-orange-300',
+        'border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-white/[0.12] dark:text-orange-300',
     },
     {
       title: 'Improve Grammar',
@@ -131,10 +131,10 @@ export function StudyRecommendationsSection() {
       buttonText: 'Grammar Guide',
       icon: Shapes,
       color:
-        'bg-purple-50 text-purple-600 border-purple-200/80 dark:bg-purple-950/30 dark:border-purple-900/40',
-      iconBg: 'bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300',
+        'bg-purple-50 text-purple-600 border-purple-200/80 dark:bg-[#131315] dark:border-white/[0.10]',
+      iconBg: 'bg-purple-100 text-purple-600 dark:bg-white/[0.07] dark:text-purple-300',
       btnBorder:
-        'border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-purple-900 dark:text-purple-300',
+        'border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-white/[0.12] dark:text-purple-300',
     },
     {
       title: 'Speak with Fluency',
@@ -142,16 +142,16 @@ export function StudyRecommendationsSection() {
       buttonText: 'Fluency Exercises',
       icon: Activity,
       color:
-        'bg-teal-50 text-teal-600 border-teal-200/80 dark:bg-teal-950/30 dark:border-teal-900/40',
-      iconBg: 'bg-teal-100 text-teal-600 dark:bg-teal-900/40 dark:text-teal-300',
+        'bg-teal-50 text-teal-600 border-teal-200/80 dark:bg-[#131315] dark:border-white/[0.10]',
+      iconBg: 'bg-teal-100 text-teal-600 dark:bg-white/[0.07] dark:text-teal-300',
       btnBorder:
-        'border-teal-200 text-teal-600 hover:bg-teal-50 dark:border-teal-900 dark:text-teal-300',
+        'border-teal-200 text-teal-600 hover:bg-teal-50 dark:border-white/[0.12] dark:text-teal-300',
     },
   ];
 
   return (
     <section className="space-y-4">
-      <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
+      <h3 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
         Study Recommendations
       </h3>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -161,7 +161,7 @@ export function StudyRecommendationsSection() {
             <div
               key={idx}
               className={cn(
-                'flex flex-col justify-between rounded-2xl border p-5 transition-all duration-300 hover:shadow-md dark:bg-zinc-950',
+                'flex flex-col justify-between rounded-xl border p-4 transition-all duration-200 hover:shadow-sm dark:bg-[#131315]',
                 item.color
               )}
             >
@@ -169,13 +169,13 @@ export function StudyRecommendationsSection() {
                 <div className="mb-3 flex items-center gap-3">
                   <div
                     className={cn(
-                      'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl',
+                      'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
                       item.iconBg
                     )}
                   >
                     <Icon className="h-5 w-5" />
                   </div>
-                  <h4 className="text-xs font-black text-slate-900 dark:text-white">
+                  <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">
                     {item.title}
                   </h4>
                 </div>
@@ -209,17 +209,17 @@ export function PronunciationBreakdownSection({ pronunciationBreakdown }) {
   const hasProblematicSounds = problematicSounds.length > 0;
 
   return (
-    <div className="space-y-3.5 rounded-2xl border border-[#e4e2f0] bg-gradient-to-br from-[#fffdfd] via-white to-[#fff0f5] p-4 sm:p-5 transition-all duration-300 hover:border-rose-200/80 dark:border-white/[0.07] dark:from-[#181119] dark:to-[#221422]">
+    <div className="space-y-3 rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-rose-200/80 dark:border-white/[0.10] dark:bg-[#131315] sm:p-4">
       <div className="flex items-center gap-2.5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/10 dark:bg-rose-500/20">
           <Mic2 className="h-4 w-4 text-rose-600 dark:text-rose-400" />
         </div>
-        <h3 className="text-xs font-black uppercase tracking-[0.25em] text-rose-600 dark:text-rose-400">
+        <h3 className="text-xs font-extrabold uppercase tracking-[0.25em] text-rose-600 dark:text-rose-400">
           Pronunciation Breakdown
         </h3>
         <Badge
           variant="outline"
-          className="ml-auto border-rose-500/30 text-[9px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400"
+          className="ml-auto border-rose-500/30 text-[9px] font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-400"
         >
           Enhanced Analysis
         </Badge>
@@ -227,7 +227,7 @@ export function PronunciationBreakdownSection({ pronunciationBreakdown }) {
 
       {hasProblematicSounds && (
         <div>
-          <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-400">
+          <p className="mb-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
             Problematic Sounds
           </p>
           <div className="flex flex-wrap gap-2">
@@ -245,7 +245,7 @@ export function PronunciationBreakdownSection({ pronunciationBreakdown }) {
 
       {wordIssues.length > 0 && (
         <div>
-          <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-400">
+          <p className="mb-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
             Word-Level Issues
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -269,7 +269,7 @@ export function PronunciationBreakdownSection({ pronunciationBreakdown }) {
 
       {hasProblematicSounds && (
         <div className="border-t border-rose-500/10 pt-3">
-          <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-400">
+          <p className="mb-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
             Practice Tip
           </p>
           <p className="text-xs font-medium leading-relaxed text-slate-600 dark:text-zinc-300">

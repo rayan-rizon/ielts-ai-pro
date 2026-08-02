@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Pill } from '@/features/dashboard/components/primitives';
 import {
   ArrowLeft,
-  AlertTriangle,
   Eye,
   EyeOff,
   FileText,
@@ -13,21 +12,25 @@ import {
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ConfirmExitDialog } from '@/shared/ui';
 import { motion } from 'framer-motion';
 import { getQuestionCount } from '@/lib/utils';
 import { useReadingTestTimer } from './ReadingTest/context/ReadingTestContext';
 import PacingIndicator from './ReadingTest/components/PacingIndicator';
 import TestModeHeaderControl from '@/features/testing/shared/components/TestModeHeaderControl';
+import {
+  TEST_HEADER_AUTOSAVE,
+  TEST_HEADER_BADGE,
+  TEST_HEADER_BACK,
+  TEST_HEADER_META,
+  TEST_HEADER_PROGRESS_FILL,
+  TEST_HEADER_PROGRESS_TRACK,
+  TEST_HEADER_SHELL,
+  TEST_HEADER_TIMER,
+  TEST_HEADER_TOOL,
+  TEST_HEADER_TOOL_ACTIVE,
+  TEST_HEADER_TOOL_GROUP,
+} from '@/features/testing/shared/components/testHeaderStyles';
 
 const ReadingTestHeader = ({
   testData,
@@ -196,7 +199,10 @@ const ReadingTestHeader = ({
       data-oid="lp5gz86"
     >
       <div
-        className="w-full rounded-2xl flex items-center justify-between py-1 px-2.5 sm:py-1.5 sm:px-3.5 border border-[#e4e2f0] dark:border-white/[0.07] bg-white/85 dark:bg-[#131315]/95 backdrop-blur-md shadow-sm dark:shadow-none transition-all duration-300"
+        className={cn(
+          TEST_HEADER_SHELL,
+          'flex items-center justify-between px-2.5 py-1 sm:px-3.5 sm:py-1.5'
+        )}
         data-oid="1i74cg9"
       >
         <div className="flex items-center gap-2 sm:gap-3 shrink-0" data-oid="8kvko2h">
@@ -210,7 +216,7 @@ const ReadingTestHeader = ({
                 onExit();
               }
             }}
-            className="group relative flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-[#5a63df] hover:bg-[#eef0fd] hover:text-[#5a63df] active:scale-95 dark:border-white/20 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-indigo-400/60 dark:hover:bg-slate-700 dark:hover:text-indigo-300 p-0"
+            className={TEST_HEADER_BACK}
             data-oid="ibxe.t4"
           >
             <ArrowLeft
@@ -219,42 +225,14 @@ const ReadingTestHeader = ({
             />
           </Button>
 
-          <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog} data-oid="36i5njv">
-            <AlertDialogContent data-oid="508da:y">
-              <AlertDialogHeader data-oid="75gq-4t">
-                <AlertDialogTitle
-                  className="flex items-center justify-center sm:justify-start gap-2 text-xl"
-                  data-oid="3totvev"
-                >
-                  <AlertTriangle className="w-5 h-5 text-amber-500" data-oid="vkcjw9a" />
-                  Exit Test?
-                </AlertDialogTitle>
-                <AlertDialogDescription
-                  className="text-sm text-slate-500 dark:text-slate-400"
-                  data-oid="loyx8xz"
-                >
-                  Your progress will be saved. You can resume this test later from the Reading
-                  Library.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter className="gap-2" data-oid="8ioe-lt">
-                <AlertDialogCancel
-                  onClick={onContinue}
-                  className="w-full sm:w-auto rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200 px-6 font-semibold"
-                  data-oid="53rqx6l"
-                >
-                  Continue Test
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={onExit}
-                  className="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-500/20 border-none px-8 rounded-xl hover:scale-105 active:scale-95 transition-all duration-200 font-bold"
-                  data-oid=".7fk5nn"
-                >
-                  Exit
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <ConfirmExitDialog
+            open={showExitDialog}
+            onOpenChange={setShowExitDialog}
+            onConfirm={onExit}
+            onCancel={onContinue}
+            title="Exit Test?"
+            description="Your progress will be saved. You can resume this test later from the Reading Library."
+          />
 
           <div className="flex items-center gap-2 sm:gap-3" data-oid="crpg:ah">
             {/* Title & Badge */}
@@ -269,10 +247,7 @@ const ReadingTestHeader = ({
               >
                 {testData?.title || 'Reading Test'}
               </h1>
-              <div
-                className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium"
-                data-oid="mhknypx"
-              >
+              <div className={TEST_HEADER_META} data-oid="mhknypx">
                 <span
                   className="opacity-80 dark:opacity-70 text-[9px] sm:text-xs whitespace-nowrap"
                   data-oid="bnopijl"
@@ -281,7 +256,10 @@ const ReadingTestHeader = ({
                 </span>
                 {testData?.is_official_cambridge && (
                   <span
-                    className="inline-flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500 text-[8px] sm:text-[10px] font-bold uppercase tracking-wide"
+                    className={cn(
+                      TEST_HEADER_BADGE,
+                      'border-amber-500/25 bg-amber-500/[0.08] text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300 sm:gap-1 sm:text-[9px]'
+                    )}
                     data-oid="x5luvaj"
                   >
                     <ShieldCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3" data-oid="39x-2_2" />{' '}
@@ -289,7 +267,10 @@ const ReadingTestHeader = ({
                   </span>
                 )}
                 {!isAwaitingStart ? (
-                  <Pill tone={testMode === 'exam' ? 'accent' : 'neutral'}>
+                  <Pill
+                    tone={testMode === 'exam' ? 'accent' : 'neutral'}
+                    className="h-4 rounded-md px-1.5 py-0 text-[8px] leading-none tracking-[0.08em] dark:bg-white/[0.055]"
+                  >
                     {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
                   </Pill>
                 ) : null}
@@ -309,14 +290,11 @@ const ReadingTestHeader = ({
               const sections = testData?.sections || testData?.passages || [];
               if (sections.length === 0) {
                 return (
-                  <div
-                    className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden relative"
-                    data-oid="icn7l9c"
-                  >
+                  <div className={cn(TEST_HEADER_PROGRESS_TRACK, 'relative')} data-oid="icn7l9c">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${progressPercentage}%` }}
-                      className="absolute top-0 left-0 h-full bg-[#5a63df] rounded-full"
+                      className={cn(TEST_HEADER_PROGRESS_FILL, 'absolute left-0 top-0')}
                       data-oid="1.xgg-m"
                     />
                   </div>
@@ -330,14 +308,11 @@ const ReadingTestHeader = ({
 
                 return (
                   <div key={result.idx} className="flex-1 group relative" data-oid="if7889p">
-                    <div
-                      className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden"
-                      data-oid="pen735_"
-                    >
+                    <div className={TEST_HEADER_PROGRESS_TRACK} data-oid="pen735_">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${cappedPct}%` }}
-                        className="h-full bg-[#5a63df] rounded-full"
+                        className={TEST_HEADER_PROGRESS_FILL}
                         data-oid=".py.anb"
                       />
                     </div>
@@ -392,10 +367,7 @@ const ReadingTestHeader = ({
           ) : (
             <>
               {/* Autosave Indicator */}
-              <div
-                className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5"
-                data-oid="jev398y"
-              >
+              <div className={TEST_HEADER_AUTOSAVE} data-oid="jev398y">
                 {isSaving ? (
                   <Loader2 className="w-3 h-3 text-[#5a63df] animate-spin" data-oid="4osmwi5" />
                 ) : (
@@ -405,16 +377,13 @@ const ReadingTestHeader = ({
                   />
                 )}
                 <span
-                  className="text-[9px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap"
+                  className="text-[8px] font-bold uppercase tracking-[0.08em] text-slate-400 whitespace-nowrap"
                   data-oid="yf9fje:"
                 >
                   {isSaving ? 'Saving' : lastSaved ? 'Saved' : 'Ready'}
                 </span>
               </div>
-              <div
-                className="flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/80 backdrop-blur-md p-1 rounded-full border border-slate-200/80 dark:border-white/10 shadow-xs"
-                data-oid="zjhsbll"
-              >
+              <div className={TEST_HEADER_TOOL_GROUP} data-oid="zjhsbll">
                 {/* Answer Toggle */}
                 {testMode !== 'exam' ? (
                   <Button
@@ -428,10 +397,10 @@ const ReadingTestHeader = ({
                       }
                     }}
                     className={cn(
-                      'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 h-7.5 rounded-full transition-all duration-200 font-bold text-[9.5px] sm:text-[10px] uppercase tracking-wider select-none hover:scale-105 active:scale-95',
+                      TEST_HEADER_TOOL,
                       highlightedAnswerQs === 'all'
-                        ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white shadow-xs'
-                        : 'text-slate-600 dark:text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-300'
+                        ? 'bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 hover:text-white'
+                        : 'hover:bg-emerald-500/10 hover:text-emerald-700 dark:hover:bg-emerald-400/[0.14] dark:hover:text-emerald-300'
                     )}
                     title="Toggle Correct Answers"
                     data-oid="k97.pn1"
@@ -460,10 +429,10 @@ const ReadingTestHeader = ({
                     if (next) setShowAnswerSheet(false);
                   }}
                   className={cn(
-                    'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 h-7.5 rounded-full transition-all duration-200 font-bold text-[9.5px] sm:text-[10px] uppercase tracking-wider select-none hover:scale-105 active:scale-95',
+                    TEST_HEADER_TOOL,
                     showNotes
-                      ? 'bg-amber-500 text-white hover:bg-amber-600 hover:text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-amber-500/10 hover:text-amber-600 dark:hover:bg-amber-500/20 dark:hover:text-amber-300'
+                      ? 'bg-amber-500 text-white shadow-sm hover:bg-amber-600 hover:text-white'
+                      : 'hover:bg-amber-500/10 hover:text-amber-700 dark:hover:bg-amber-400/[0.14] dark:hover:text-amber-300'
                   )}
                   data-oid="yq1l6l7"
                 >
@@ -474,7 +443,7 @@ const ReadingTestHeader = ({
                   {notes.length > 0 && (
                     <span
                       className={cn(
-                        'flex items-center justify-center px-1.5 py-0.2 rounded-full text-[8.5px] font-black min-w-[15px] text-center ml-0.5 transition-colors',
+                        'ml-0.5 flex min-w-[14px] items-center justify-center rounded-full px-1 py-0 text-[8px] font-bold leading-4 transition-colors',
                         showNotes
                           ? 'bg-white/20 text-white'
                           : 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
@@ -497,10 +466,10 @@ const ReadingTestHeader = ({
                     if (next) setShowNotes(false);
                   }}
                   className={cn(
-                    'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 h-7.5 rounded-full transition-all duration-200 font-bold text-[9.5px] sm:text-[10px] uppercase tracking-wider select-none hover:scale-105 active:scale-95',
+                    TEST_HEADER_TOOL,
                     showAnswerSheet
-                      ? 'bg-[#5a63df] text-white hover:bg-[#4a52c9] hover:text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-[#5a63df]/10 hover:text-[#5a63df] dark:hover:bg-[#5a63df]/20 dark:hover:text-[#a9afff]'
+                      ? TEST_HEADER_TOOL_ACTIVE
+                      : 'hover:bg-[#5a63df]/10 hover:text-[#5a63df] dark:hover:bg-[#8f97ff]/[0.14] dark:hover:text-[#afb5ff]'
                   )}
                   data-oid="_55gaum"
                 >
@@ -528,20 +497,21 @@ const ReadingTestClock = ({ formatTime }) => {
     <motion.div
       animate={timeRemaining < 300 ? { scale: [1, 1.02, 1] } : {}}
       transition={timeRemaining < 300 ? { repeat: Infinity, duration: 1, ease: 'easeInOut' } : {}}
-      className={`flex items-center gap-1 sm:gap-2 px-1.5 py-1 sm:px-3 sm:py-2 rounded-xl border shadow-sm transition-all duration-300 ${
+      className={cn(
+        TEST_HEADER_TIMER,
         timeRemaining < 300
-          ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800'
-          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
-      }`}
+          ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-400/30 dark:bg-rose-400/[0.12] dark:text-rose-300'
+          : 'border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 dark:border-white/[0.10] dark:bg-white/[0.055] dark:text-slate-200'
+      )}
       data-oid="kg5lrzg"
     >
       <Clock
-        className={`w-3.5 h-3.5 ${timeRemaining < 300 ? 'text-rose-500' : 'text-slate-400'}`}
+        className={`h-4 w-4 ${timeRemaining < 300 ? 'text-rose-500' : 'text-slate-400'}`}
         data-oid="nc9lz.n"
       />
 
       <span
-        className={`text-xs font-black tabular-nums ${timeRemaining < 300 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-slate-200'}`}
+        className={`text-sm font-bold tabular-nums ${timeRemaining < 300 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-slate-200'}`}
         data-oid="6hk45y2"
       >
         {formatTime(timeRemaining)}

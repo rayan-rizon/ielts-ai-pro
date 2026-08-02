@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { PlayCircle, Timer } from 'lucide-react';
+import { Activity, Mic2, PlayCircle, Radio, Timer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/cn';
-import { MICRO, MUTED, NUM, PANEL } from '@/features/dashboard/components/primitives';
+import { MICRO, MUTED, NUM, PANEL, TITLE } from '@/features/dashboard/components/primitives';
 
 import ConversationMessage from './ConversationMessage';
 import InitialWelcomeScreen from './InitialWelcomeScreen';
@@ -180,17 +180,59 @@ export default function SpeakingConversationPanel({
     (isListening || isProcessing) &&
     (!finalCandidateMessage || finalCandidateMessage.text !== liveTranscript);
 
+  const roomStatus = !testStarted
+    ? 'Ready when you are'
+    : isPart2Prep
+      ? 'Preparation window'
+      : isListening
+        ? 'Listening live'
+        : isProcessing
+          ? 'Processing response'
+          : isSpeaking || isTTSLoading
+            ? 'Examiner speaking'
+            : 'Your turn';
+
+  const roomStatusIsActive =
+    testStarted && (isListening || isProcessing || isSpeaking || isTTSLoading || isPart2Prep);
+
   return (
     <div
       className={cn(
         PANEL,
-        'isolate flex h-[calc(100dvh-14rem)] max-h-[740px] min-h-[420px] transform-gpu flex-col overflow-hidden rounded-2xl sm:h-[calc(100dvh-15rem)] sm:min-h-[480px] sm:rounded-3xl xl:h-[calc(100vh-13.25rem)] xl:min-h-[500px]'
+        'isolate flex h-[calc(100dvh-14rem)] max-h-[740px] min-h-[420px] transform-gpu flex-col overflow-hidden rounded-xl sm:h-[calc(100dvh-15rem)] sm:min-h-[480px] xl:h-[calc(100vh-13.25rem)] xl:min-h-[500px]'
       )}
     >
       <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#e4e2f0] bg-white px-3.5 py-2.5 dark:border-white/[0.07] dark:bg-[#131315] sm:px-5 sm:py-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/[0.10] text-rose-500">
+              <Mic2 className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className={cn(MICRO, 'text-rose-600 dark:text-rose-400')}>Conversation room</p>
+              <p className={cn(TITLE, 'truncate text-xs sm:text-sm')}>AI examiner chat</p>
+            </div>
+          </div>
+
+          <div
+            className="flex shrink-0 items-center gap-1.5 rounded-full border border-rose-500/15 bg-rose-500/[0.055] px-2.5 py-1.5 dark:border-rose-400/20 dark:bg-rose-400/[0.08]"
+            role="status"
+            aria-live="polite"
+          >
+            {roomStatusIsActive ? (
+              <Activity className="h-3.5 w-3.5 animate-pulse text-rose-500" aria-hidden="true" />
+            ) : (
+              <Radio className="h-3.5 w-3.5 text-rose-500/70" aria-hidden="true" />
+            )}
+            <span className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-rose-600 dark:text-rose-300 sm:text-[10px]">
+              {roomStatus}
+            </span>
+          </div>
+        </div>
+
         <div
           ref={conversationContainerRef}
-          className="custom-scrollbar flex-1 space-y-4 overflow-y-auto scroll-smooth p-3.5 sm:space-y-5 sm:p-6 md:p-7"
+          className="custom-scrollbar flex-1 space-y-3 overflow-y-auto scroll-smooth p-3 sm:space-y-4 sm:p-4 md:p-5"
           aria-live="polite"
           aria-label="Conversation with the AI examiner"
         >

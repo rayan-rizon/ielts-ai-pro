@@ -1,5 +1,7 @@
 import React, { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import { PANEL_CARD } from '@/features/testing/shared/questionUiTokens';
 
 import GapFillRenderer from './QuestionRenderers/GapFillRenderer';
 import TableCompletionRenderer from './QuestionRenderers/TableCompletionRenderer';
@@ -32,7 +34,7 @@ export default function QuestionRendererDispatcher({
     isInsideMergedCard,
     cardClass: isInsideMergedCard
       ? 'mb-2.5 bg-transparent p-0 border-0 shadow-none'
-      : 'mb-3.5 border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] rounded-xl overflow-hidden',
+      : cn(PANEL_CARD, 'mb-3.5 shadow-2xs overflow-hidden'),
   };
 
   return (

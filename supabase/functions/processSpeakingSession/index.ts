@@ -96,6 +96,14 @@ function isFailedTranscript(value: string): boolean {
   );
 }
 
+function canRecoverFromBrowserTranscript(
+  hint: { transcript: string; confidence: number } | null
+): hint is { transcript: string; confidence: number } {
+  return Boolean(
+    hint && hint.confidence >= 0.82 && hint.transcript.trim().split(/\s+/).length >= 3
+  );
+}
+
 async function runPronunciationAssessment(params: {
   endpoint: string;
   apiKey: string;
@@ -278,17 +286,22 @@ serve(async (req: Request) => {
     if (!sessionReservation.allowed) return quotaExceededResponse(sessionReservation, corsHeaders);
     sessionReservationId = sessionReservation.reservationId;
 
+    // This row charges the session start, not the provider work for an answer.
+    // Settle it immediately so a slow transcription or a later early return
+    // cannot leave the learner's session reservation stranded.
+    const sessionFinalized = await finalizeApiUsage(supabase, sessionReservationId, 0, false, {
+      testId,
+      speakingSessionId,
+      sessionStarted: true,
+    });
+    if (!sessionFinalized) throw new Error('Failed to finalize speaking session reservation');
+    sessionReservationId = undefined;
+
     const userTurnsInHistory = conversationHistory.filter(
       (entry: { speaker?: string }) => entry?.speaker === 'user'
     ).length;
     const maxForThisPart = MAX_TURNS_PER_PART[partNumber] || 8;
     if (userTurnsInHistory >= maxForThisPart || userTurnsInHistory >= MAX_TOTAL_TURNS) {
-      await finalizeApiUsage(supabase, sessionReservationId, 0, false, {
-        testId,
-        speakingSessionId,
-        sessionStarted: true,
-      });
-      sessionReservationId = undefined;
       return jsonResponse(
         {
           error: 'Turn limit reached',
@@ -313,15 +326,6 @@ serve(async (req: Request) => {
     let questions = parseSpeakingQuestions(questionRows || [], partNumber);
     if (partNumber === 2 && questions.length > 1) questions = [questions[0]];
     if (questions.length === 0) {
-      await finalizeApiUsage(
-        supabase,
-        sessionReservationId,
-        0,
-        false,
-        { testId, speakingSessionId, failureReason: 'No questions found for this test part' },
-        'failed'
-      );
-      sessionReservationId = undefined;
       return jsonResponse({ error: 'No questions found for this test part' }, 404, corsHeaders);
     }
 
@@ -360,6 +364,9 @@ serve(async (req: Request) => {
     let transcriptionVerificationCompleted = false;
     let transcriptionVerificationError: string | null = null;
     let cloudflareTranscriptionCompleted = false;
+    let cloudflareTranscriptionAttempts = 0;
+    let cloudflareRecoveredByVadRetry = false;
+    let browserTranscriptRecovered = false;
     const browserTranscriptHint = buildBrowserTranscriptHint(speechConfidence);
     const pronunciationDuration = Number(pronunciationDurationMs);
     const pronunciationEligible =
@@ -407,6 +414,8 @@ serve(async (req: Request) => {
         transcriptionModel = result.model;
         transcriptionLatencyMs = result.latencyMs;
         cloudflareTranscriptionCompleted = true;
+        cloudflareTranscriptionAttempts = result.attempts;
+        cloudflareRecoveredByVadRetry = result.recoveredByVadRetry;
 
         transcriptionVerificationReason = getTranscriptVerificationReason({
           cloudflareTranscript: transcript,
@@ -468,6 +477,13 @@ serve(async (req: Request) => {
       }
     }
 
+    if (isFailedTranscript(transcript) && canRecoverFromBrowserTranscript(browserTranscriptHint)) {
+      transcript = browserTranscriptHint.transcript;
+      transcriptionProvider = 'browser-recovery';
+      transcriptionModel = 'web-speech-api';
+      browserTranscriptRecovered = true;
+    }
+
     const transcriptionFailed = isFailedTranscript(transcript);
     if (transcriptionFailed) transcript = '(Inaudible)';
 
@@ -503,12 +519,14 @@ serve(async (req: Request) => {
         });
     const normalizedAudioDurationMs = Math.max(0, Number(audioDurationMs) || 0);
     const transcriptionCostUsd = cloudflareTranscriptionCompleted
-      ? (normalizedAudioDurationMs / 60000) * CLOUDFLARE_COST_PER_AUDIO_MINUTE_USD
+      ? (normalizedAudioDurationMs / 60000) *
+        CLOUDFLARE_COST_PER_AUDIO_MINUTE_USD *
+        Math.max(1, cloudflareTranscriptionAttempts)
       : 0;
     const pronunciationCostUsd = Number(pronunciationData?.estimatedCostUsd) || 0;
     const estimatedProviderCostUsd = transcriptionCostUsd + pronunciationCostUsd;
 
-    await finalizeApiUsage(supabase, activeReservationId, tokensUsed, false, {
+    const turnFinalized = await finalizeApiUsage(supabase, activeReservationId, tokensUsed, false, {
       part: partNumber,
       isPartComplete: isLastQuestion && !transcriptionFailed,
       hasAudio: Boolean(audioBase64),
@@ -519,10 +537,14 @@ serve(async (req: Request) => {
       transcriptionLatencyMs,
       transcriptionCostUsd,
       transcriptionError,
+      audioMimeType,
+      cloudflareTranscriptionAttempts,
+      cloudflareRecoveredByVadRetry,
       transcriptionVerificationReason,
       transcriptionVerificationCompleted,
       transcriptionVerificationError,
       browserTranscriptHintUsed: Boolean(browserTranscriptHint),
+      browserTranscriptRecovered,
       pronunciationRequested: requestPronunciation === true,
       pronunciationCompleted: Boolean(pronunciationData),
       pronunciationProvider: pronunciationData?.provider || null,
@@ -535,17 +557,8 @@ serve(async (req: Request) => {
       examinerVoice: 'en-GB-Neural2-B',
       speakingSessionId,
     });
+    if (!turnFinalized) throw new Error('Failed to finalize speaking turn reservation');
     activeReservationId = undefined;
-
-    // The session-level row is the single quota charge for starting a speaking
-    // test. It must be completed on the first successful turn; leaving it in
-    // `reserved` state makes a normal test look stranded after one hour.
-    await finalizeApiUsage(supabase, sessionReservationId, 0, false, {
-      testId,
-      speakingSessionId,
-      sessionStarted: true,
-    });
-    sessionReservationId = undefined;
 
     return jsonResponse(
       {

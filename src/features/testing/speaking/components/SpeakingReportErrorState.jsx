@@ -10,7 +10,9 @@ export default function SpeakingReportErrorState({ evaluationError, onRetryEvalu
         <AlertCircle className="w-10 h-10 text-rose-500" />
       </div>
       <div className="space-y-2">
-        <h2 className="text-2xl font-black text-slate-900 dark:text-slate-50">Analysis Failed</h2>
+        <h2 className="text-2xl font-extrabold text-slate-900 dark:text-slate-50">
+          Analysis Failed
+        </h2>
         <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xs mx-auto">
           We encountered an error while processing your speaking test. {evaluationError}
         </p>

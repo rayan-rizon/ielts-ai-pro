@@ -178,17 +178,20 @@ const suite = process.argv.includes('--suite')
 if (
   suite === 'difficult' ||
   suite === 'difficult-scoring' ||
+  suite === 'difficult-writing' ||
   suite === 'difficult-grammar' ||
   suite === 'difficult-learning'
 ) {
   const cases =
     suite === 'difficult-scoring'
       ? difficultCases.slice(0, 2)
-      : suite === 'difficult-grammar'
-        ? difficultCases.slice(3, 4)
-        : suite === 'difficult-learning'
-          ? difficultCases.slice(2, 3)
-          : difficultCases;
+      : suite === 'difficult-writing'
+        ? difficultCases.slice(0, 1)
+        : suite === 'difficult-grammar'
+          ? difficultCases.slice(3, 4)
+          : suite === 'difficult-learning'
+            ? difficultCases.slice(2, 3)
+            : difficultCases;
   for (const testCase of cases) await runComparison(testCase);
 } else {
   await runComparison({

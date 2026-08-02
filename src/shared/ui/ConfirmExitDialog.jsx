@@ -10,6 +10,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { AlertTriangle } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import { IconChip, MUTED, PANEL } from '@/features/dashboard/components/primitives';
 
 /**
  * Shared confirmation dialog for exiting tests.
@@ -28,8 +30,11 @@ const ConfirmExitDialog = memo(function ConfirmExitDialog({
   onOpenChange,
   onConfirm,
   onCancel,
-  title = 'Leave this test?',
+  title = 'Exit Test?',
   description = 'Your progress will be saved, but the timer will continue. Are you sure you want to leave?',
+  confirmLabel = 'Exit',
+  confirmingLabel = 'Saving…',
+  isConfirming = false,
 }) {
   const handleConfirm = () => {
     onConfirm?.();
@@ -43,38 +48,42 @@ const ConfirmExitDialog = memo(function ConfirmExitDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange} data-oid="8hmt4j5">
-      <AlertDialogContent className="max-w-md" data-oid="domudzj">
+      <AlertDialogContent
+        className={cn(PANEL, 'max-w-md gap-4 p-4 shadow-xl sm:p-5')}
+        data-oid="domudzj"
+      >
         <AlertDialogHeader data-oid="n5wn28f">
-          <div className="flex items-center gap-3" data-oid="a4iwy3u">
-            <div
-              className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center"
-              data-oid="pmupejb"
+          <div className="flex items-center gap-2.5" data-oid="a4iwy3u">
+            <IconChip icon={AlertTriangle} tone="amber" size="sm" data-oid="pmupejb" />
+            <AlertDialogTitle
+              className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-xl"
+              data-oid=":p:j7l3"
             >
-              <AlertTriangle
-                className="w-6 h-6 text-amber-600 dark:text-amber-400"
-                data-oid="-p1t6-:"
-              />
-            </div>
-            <div data-oid="br3-.03">
-              <AlertDialogTitle className="text-lg" data-oid=":p:j7l3">
-                {title}
-              </AlertDialogTitle>
-            </div>
+              {title}
+            </AlertDialogTitle>
           </div>
-          <AlertDialogDescription className="mt-4 text-muted-foreground" data-oid=".hqje.j">
+          <AlertDialogDescription
+            className={cn('mt-0.5 text-left text-sm leading-relaxed', MUTED)}
+            data-oid=".hqje.j"
+          >
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="mt-6" data-oid="lw6291v">
-          <AlertDialogCancel onClick={handleCancel} data-oid=".1y4tu2">
+        <AlertDialogFooter className="gap-2 sm:justify-end sm:space-x-0" data-oid="lw6291v">
+          <AlertDialogCancel
+            onClick={handleCancel}
+            className="h-10 w-full rounded-lg border-[#e4e2f0] bg-[#fbfbfe] px-4 text-sm font-semibold text-slate-700 shadow-none transition-colors hover:bg-[#f4f3fb] dark:border-white/[0.11] dark:bg-white/[0.055] dark:text-slate-200 dark:hover:bg-white/[0.09] sm:w-auto"
+            data-oid=".1y4tu2"
+          >
             Continue Test
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            disabled={isConfirming}
+            className="h-10 w-full rounded-lg border-0 bg-rose-600 px-4 text-sm font-bold text-white shadow-sm shadow-rose-600/20 transition-colors hover:bg-rose-700 active:scale-[0.99] dark:bg-rose-500 dark:hover:bg-rose-400 sm:w-auto"
             data-oid="kqyb333"
           >
-            Leave Test
+            {isConfirming ? confirmingLabel : confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

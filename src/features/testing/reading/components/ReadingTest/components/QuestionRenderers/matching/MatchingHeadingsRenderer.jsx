@@ -13,7 +13,10 @@ import { getCircleStatus, getValidationInputStyle } from './helpers';
 
 function HeadingsHeaderList({ question }) {
   return (
-    <div className="border border-border rounded-md p-2.5 bg-muted/30 mb-2" data-oid="b549_35">
+    <div
+      className="rounded-lg border border-[#ebeaf7] dark:border-white/[0.08] bg-[#fbfbfe] dark:bg-white/[0.03] p-2.5 mb-2"
+      data-oid="b549_35"
+    >
       <h4 className="font-semibold text-foreground mb-2 text-center text-sm" data-oid="830zuyo">
         List of Headings
       </h4>
@@ -62,7 +65,7 @@ function HeadingRowItem({
   setOpenDeepDive,
   questionType,
   selectOptions,
-  selectStyleBase = 'w-20 h-7 text-sm bg-white/70 dark:bg-slate-950/40',
+  selectStyleBase = 'w-20 h-7 text-sm bg-white/70 dark:bg-white/[0.04]',
   dataOidDiv = '7bb_yx1',
   dataOidCircle = 'olak0o0',
   dataOidSpan = 'ulad_p_',
@@ -75,7 +78,7 @@ function HeadingRowItem({
 
   return (
     <div
-      className="flex items-center justify-start gap-2 p-1.5 pl-2 bg-white/60 dark:bg-slate-950/30 rounded-md border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-50/60 dark:hover:bg-slate-950/40 transition-colors duration-150"
+      className="flex items-center justify-start gap-2 p-1.5 pl-2 bg-[#fbfbfe] dark:bg-white/[0.03] rounded-md border border-[#ebeaf7] dark:border-white/[0.08] hover:bg-[#f7f6fd] dark:hover:bg-white/[0.06] transition-colors duration-150"
       data-oid={dataOidDiv}
     >
       <QuestionNumberCircle
@@ -171,7 +174,7 @@ const MatchingHeadingsRenderer = memo(function MatchingHeadingsRenderer(props) {
                 label={`Paragraph ${para.label}`}
                 questionNumber={qNum}
                 selectOptions={selectOptions}
-                selectStyleBase="w-20 bg-white/70 dark:bg-slate-950/40"
+                selectStyleBase="w-20 bg-white/70 dark:bg-white/[0.04]"
                 questionType={question.type}
                 dataOidDiv="po6145x"
                 dataOidCircle="btuyk5u"
@@ -197,7 +200,7 @@ const MatchingHeadingsRenderer = memo(function MatchingHeadingsRenderer(props) {
                     label={`Paragraph ${String.fromCharCode(65 + i)}`}
                     questionNumber={globalNum}
                     selectOptions={selectOptions}
-                    selectStyleBase="w-20 bg-white/70 dark:bg-slate-950/40"
+                    selectStyleBase="w-20 bg-white/70 dark:bg-white/[0.04]"
                     questionType={question.type}
                     dataOidDiv="_k645p2"
                     dataOidCircle="p29ef43"

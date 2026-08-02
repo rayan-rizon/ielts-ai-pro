@@ -92,33 +92,41 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [] }) => {
                         'flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-md'
                       )}
                     >
-                      <span className={cn(MICRO, 'text-[8px] leading-none text-[#5a63df]')}>
-                        Vol
+                      <span
+                        className={cn(
+                          MICRO,
+                          'text-[9px] font-extrabold uppercase tracking-wider leading-none text-[#5a63df]'
+                        )}
+                      >
+                        VOL
                       </span>
                       <span
                         className={cn(
                           NUM,
-                          'text-base font-bold leading-none text-slate-900 dark:text-slate-50'
+                          'mt-0.5 text-base font-bold leading-none text-slate-900 dark:text-slate-50'
                         )}
                       >
                         {volumeNumber(test, index)}
                       </span>
                     </div>
 
-                    <div className="min-w-0 flex-1">
+                    <div className="flex min-w-0 flex-1 flex-col justify-center">
                       <div className="flex items-center gap-1.5">
                         <Pill tone="accent">Official</Pill>
                         <span className={cn(MICRO, MUTED, 'flex items-center gap-1')}>
-                          <Clock className="h-2.5 w-2.5" />
+                          <Clock className="h-2.5 w-2.5 shrink-0" />
                           60m
                         </span>
                       </div>
-                      <h4 className="mt-1 truncate text-[12px] font-extrabold leading-tight text-slate-800 dark:text-slate-100">
+                      <h4
+                        className="mt-1 truncate text-[12px] font-extrabold leading-tight text-slate-800 transition-colors group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#afb5ff]"
+                        title={formatTestTitle(test)}
+                      >
                         {formatTestTitle(test)}
                       </h4>
                     </div>
 
-                    <ChevronRight className={cn('h-3.5 w-3.5', ROW_CHEVRON)} />
+                    <ChevronRight className={cn('h-3.5 w-3.5 shrink-0', ROW_CHEVRON)} />
                   </Link>
                 ))}
               </div>

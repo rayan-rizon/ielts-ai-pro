@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/u
 import { sanitizeHtml } from '@/lib/security';
 import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
 import { cn } from '@/lib/cn';
+import { INPUT_DEFAULT, ACCENT_TEXT } from '@/features/testing/shared/questionUiTokens';
 
 function ensureListState(targetType, listState, processedLines) {
   if (listState.inList && listState.listType !== targetType) {
@@ -161,16 +162,11 @@ const GapFillContent = memo(function GapFillContent({
   const getInputStyle = (answerKey) => {
     const baseStyle =
       variant === 'flowchart'
-        ? 'h-8 w-[70px] px-2 py-0.5 text-center text-sm rounded-lg transition-all duration-200 border'
-        : 'h-8 w-32 px-2 py-1 text-center text-[15px] rounded-lg transition-all duration-200 shadow-sm';
+        ? 'h-7 w-[70px] px-2 py-0.5 text-center text-sm rounded-lg transition-all duration-200 border'
+        : 'h-7 w-28 px-2 py-0.5 text-center text-[15px] rounded-lg transition-all duration-200';
 
     if (!isFinished) {
-      return cn(
-        baseStyle,
-        'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground',
-        'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50',
-        'hover:border-slate-400/80 dark:hover:border-slate-600/80 shadow-sm'
-      );
+      return cn(baseStyle, INPUT_DEFAULT);
     }
 
     const validation = correctAnswersMap[answerKey];
@@ -183,7 +179,7 @@ const GapFillContent = memo(function GapFillContent({
         ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
         : value
           ? 'border-rose-500 bg-rose-50/70 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300'
-          : 'bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-foreground'
+          : 'bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-foreground'
     );
   };
 
@@ -257,11 +253,14 @@ const GapFillContent = memo(function GapFillContent({
                 disabled={isFinished}
               >
                 <SelectTrigger
-                  className={cn(getInputStyle(answerKey), 'flex bg-white dark:bg-slate-950 px-3')}
+                  className={cn(
+                    getInputStyle(answerKey),
+                    'flex bg-white dark:bg-white/[0.04] px-3'
+                  )}
                 >
                   {/* flex-1 and text-center ensures the letter is centered while the icon stays on the right */}
                   <div className="flex-1 text-center pr-2">
-                    <span className="font-bold text-primary">{value}</span>
+                    <span className={cn('font-bold', ACCENT_TEXT)}>{value}</span>
                   </div>
                 </SelectTrigger>
                 <SelectContent className="z-[9999] min-w-[4rem]">
@@ -274,7 +273,7 @@ const GapFillContent = memo(function GapFillContent({
                         textValue={label}
                         className="py-1.5 justify-center"
                       >
-                        <span className="font-bold text-primary">{label}</span>
+                        <span className={cn('font-bold', ACCENT_TEXT)}>{label}</span>
                       </SelectItem>
                     );
                   })}

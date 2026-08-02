@@ -938,7 +938,7 @@ function ReadingTestContent() {
           >
             {/* Passage Content - Resizable */}
             <div
-              className="flex flex-col overflow-hidden border-b md:border-b-0 md:border-r border-border"
+              className="@container flex flex-col overflow-hidden border-b md:border-b-0 md:border-r border-border"
               style={{
                 width: isMobile ? '100%' : `${passageWidth}%`,
                 height: isMobile ? '50%' : '100%',

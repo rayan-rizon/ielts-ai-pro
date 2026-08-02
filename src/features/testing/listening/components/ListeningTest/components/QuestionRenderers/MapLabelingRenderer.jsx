@@ -9,6 +9,7 @@ import {
 import { getProxiedImageUrl } from '@/lib/utils';
 import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
 import { cn } from '@/lib/cn';
+import { PANEL_CARD, INPUT_DEFAULT } from '@/features/testing/shared/questionUiTokens';
 
 const MapLabelingRenderer = ({
   question,
@@ -34,15 +35,10 @@ const MapLabelingRenderer = ({
 
   // Get select trigger styling based on correctness
   const getSelectStyle = (qId) => {
-    const baseStyle = 'w-[110px] h-8 text-sm transition-all font-medium shadow-sm';
+    const baseStyle = 'w-[110px] h-7 text-sm transition-all font-medium';
 
     if (!isFinished) {
-      return cn(
-        baseStyle,
-        'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground',
-        'focus:ring-1 focus:ring-[#5a63df]/40 focus:border-[#5a63df]/50',
-        'hover:border-slate-400/80 dark:hover:border-slate-600/80 shadow-sm'
-      );
+      return cn(baseStyle, INPUT_DEFAULT);
     }
 
     // Review mode - check correctness
@@ -62,7 +58,7 @@ const MapLabelingRenderer = ({
     } else {
       return cn(
         baseStyle,
-        'bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-foreground'
+        'bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-foreground'
       );
     }
   };
@@ -137,7 +133,7 @@ const MapLabelingRenderer = ({
     <div
       key={question.id}
       id={`question-${question.id}`}
-      className="mb-0 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] shadow-md p-4"
+      className={cn(PANEL_CARD, 'mb-0 shadow-2xs p-4')}
       data-oid="u3ei-ba"
     >
       {/* Map Image */}
@@ -172,7 +168,7 @@ const MapLabelingRenderer = ({
             <div
               key={q.id || idx}
               id={`question-${qId}`}
-              className="flex items-center gap-4 py-1 px-3 rounded-xl bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] transition-all duration-200"
+              className="flex items-center gap-4 py-1 px-3 rounded-xl bg-[#fbfbfe] dark:bg-white/[0.03] border border-[#ebeaf7] dark:border-white/[0.06] transition-all duration-200"
               data-oid="eff4q00"
             >
               {/* Question Number */}

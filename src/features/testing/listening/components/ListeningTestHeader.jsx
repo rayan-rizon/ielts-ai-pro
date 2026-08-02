@@ -1,30 +1,27 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  ArrowLeft,
-  AlertTriangle,
-  ShieldCheck,
-  CheckCircle,
-  Loader2,
-  ClipboardList,
-} from 'lucide-react';
+import { ArrowLeft, ShieldCheck, CheckCircle, Loader2, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Pill } from '@/features/dashboard/components/primitives';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ConfirmExitDialog } from '@/shared/ui';
 import { motion } from 'framer-motion';
 
 // Isolated Clock Component imported
 import ListeningTestClock from './ListeningTest/components/ListeningTestClock';
 import TestModeHeaderControl from '@/features/testing/shared/components/TestModeHeaderControl';
+import {
+  TEST_HEADER_AUTOSAVE,
+  TEST_HEADER_BADGE,
+  TEST_HEADER_BACK,
+  TEST_HEADER_META,
+  TEST_HEADER_PRIMARY_ACTION,
+  TEST_HEADER_PROGRESS_FILL,
+  TEST_HEADER_PROGRESS_TRACK,
+  TEST_HEADER_SHELL,
+  TEST_HEADER_TOOL,
+  TEST_HEADER_TOOL_ACTIVE,
+  TEST_HEADER_TOOL_GROUP,
+} from '@/features/testing/shared/components/testHeaderStyles';
 
 const ListeningTestHeader = ({
   testData,
@@ -73,7 +70,10 @@ const ListeningTestHeader = ({
       data-oid="ao4wuv7"
     >
       <div
-        className="w-full rounded-2xl flex items-center justify-between py-1 px-2.5 sm:py-1.5 sm:px-3.5 border border-[#e4e2f0] dark:border-white/[0.07] bg-white/85 dark:bg-[#131315]/95 backdrop-blur-md shadow-sm dark:shadow-none transition-all duration-300"
+        className={cn(
+          TEST_HEADER_SHELL,
+          'flex items-center justify-between px-2.5 py-1 sm:px-3.5 sm:py-1.5'
+        )}
         data-oid="btq_4pq"
       >
         <div className="flex items-center gap-2 shrink-0" data-oid="246o-4l">
@@ -87,7 +87,7 @@ const ListeningTestHeader = ({
                 onExit();
               }
             }}
-            className="group relative flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-[#5a63df] hover:bg-[#eef0fd] hover:text-[#5a63df] active:scale-95 dark:border-white/20 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-indigo-400/60 dark:hover:bg-slate-700 dark:hover:text-indigo-300 p-0"
+            className={TEST_HEADER_BACK}
             data-oid="g_mhami"
           >
             <ArrowLeft
@@ -96,42 +96,14 @@ const ListeningTestHeader = ({
             />
           </Button>
 
-          <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog} data-oid="dycq7pd">
-            <AlertDialogContent data-oid="g.5v_d6">
-              <AlertDialogHeader data-oid="hhfcvdm">
-                <AlertDialogTitle
-                  className="flex items-center justify-center sm:justify-start gap-2 text-xl"
-                  data-oid="q9f5vy:"
-                >
-                  <AlertTriangle className="w-5 h-5 text-amber-500" data-oid="n.0oj9v" />
-                  Exit Test?
-                </AlertDialogTitle>
-                <AlertDialogDescription
-                  className="text-sm text-slate-500 dark:text-slate-400"
-                  data-oid="dzl96dq"
-                >
-                  Your progress will be saved, but the timer will continue running if you return
-                  later.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter className="gap-2" data-oid="filfr6k">
-                <AlertDialogCancel
-                  onClick={onContinue}
-                  className="w-full sm:w-auto rounded-xl border-slate-200 dark:border-white/[0.1] hover:bg-slate-50 dark:hover:bg-white/[0.06] transition-all duration-200 px-6 font-semibold"
-                  data-oid="8n7gz33"
-                >
-                  Continue Test
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={onExit}
-                  className="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-500/20 border-none px-8 rounded-xl hover:scale-105 active:scale-95 transition-all duration-200 font-bold"
-                  data-oid="ebadsvb"
-                >
-                  Exit
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <ConfirmExitDialog
+            open={showExitDialog}
+            onOpenChange={setShowExitDialog}
+            onConfirm={onExit}
+            onCancel={onContinue}
+            title="Exit Test?"
+            description="Your progress will be saved, but the timer will continue running if you return later."
+          />
 
           <div className="flex items-center gap-2 sm:gap-3" data-oid=".:xhcj4">
             {/* Title & Badge */}
@@ -146,23 +118,26 @@ const ListeningTestHeader = ({
               >
                 {testData?.title || 'Listening Test'}
               </h1>
-              <div
-                className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium"
-                data-oid="mhh.zk2"
-              >
+              <div className={TEST_HEADER_META} data-oid="mhh.zk2">
                 <span className="opacity-80 dark:opacity-70 truncate" data-oid="0wm6-is">
                   Part {activePart + 1}/{displaySections.length}
                 </span>
                 {testData?.is_official_cambridge && (
                   <span
-                    className="inline-flex items-center gap-1 px-1 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-wide shrink-0"
+                    className={cn(
+                      TEST_HEADER_BADGE,
+                      'border-amber-500/25 bg-amber-500/[0.08] text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300 sm:text-[9px]'
+                    )}
                     data-oid="i8fhv98"
                   >
                     <ShieldCheck className="w-2.5 h-2.5 sm:w-3 h-3" data-oid="f3411fp" /> Official
                   </span>
                 )}
                 {!isAwaitingStart ? (
-                  <Pill tone={testMode === 'exam' ? 'accent' : 'neutral'}>
+                  <Pill
+                    tone={testMode === 'exam' ? 'accent' : 'neutral'}
+                    className="h-4 rounded-md px-1.5 py-0 text-[8px] leading-none tracking-[0.08em] dark:bg-white/[0.055]"
+                  >
                     {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
                   </Pill>
                 ) : null}
@@ -186,14 +161,11 @@ const ListeningTestHeader = ({
               const partIndex = result.sectionIndex ?? result.idx ?? index;
               return (
                 <div key={`part-${index}`} className="flex-1 group relative" data-oid="2u66tdr">
-                  <div
-                    className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden relative border border-black/5 dark:border-white/5"
-                    data-oid="rb5.1oh"
-                  >
+                  <div className={cn(TEST_HEADER_PROGRESS_TRACK, 'relative')} data-oid="rb5.1oh">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${cappedPct}%` }}
-                      className="h-full bg-[#5a63df] rounded-full relative overflow-hidden"
+                      className={cn(TEST_HEADER_PROGRESS_FILL, 'relative overflow-hidden')}
                       data-oid="tz_f3fi"
                     >
                       <motion.div
@@ -242,10 +214,7 @@ const ListeningTestHeader = ({
             <>
               {/* Autosave Indicator */}
               {/* Auto-save Status */}
-              <div
-                className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5"
-                data-oid="via037s"
-              >
+              <div className={TEST_HEADER_AUTOSAVE} data-oid="via037s">
                 {isSaving ? (
                   <Loader2 className="w-3 h-3 text-[#5a63df] animate-spin" data-oid="vjxneul" />
                 ) : (
@@ -255,27 +224,24 @@ const ListeningTestHeader = ({
                   />
                 )}
                 <span
-                  className="text-[9px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap"
+                  className="text-[8px] font-bold uppercase tracking-[0.08em] text-slate-400 whitespace-nowrap"
                   data-oid="0z8bsbi"
                 >
                   {isSaving ? 'Saving' : lastSaved ? 'Saved' : 'Ready'}
                 </span>
               </div>
 
-              <div
-                className="flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/80 backdrop-blur-md p-1 rounded-full border border-slate-200/80 dark:border-white/10 shadow-xs"
-                data-oid="hu9uhtj"
-              >
+              <div className={TEST_HEADER_TOOL_GROUP} data-oid="hu9uhtj">
                 <Button
                   id="answer-sheet-toggle"
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowAnswerSheet(!showAnswerSheet)}
                   className={cn(
-                    'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 h-7.5 rounded-full transition-all duration-200 font-bold text-[9.5px] sm:text-[10px] uppercase tracking-wider select-none hover:scale-105 active:scale-95',
+                    TEST_HEADER_TOOL,
                     showAnswerSheet
-                      ? 'bg-[#5a63df] text-white hover:bg-[#4a52c9] hover:text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-[#5a63df]/10 hover:text-[#5a63df] dark:hover:bg-[#5a63df]/20 dark:hover:text-[#a9afff]'
+                      ? TEST_HEADER_TOOL_ACTIVE
+                      : 'hover:bg-[#5a63df]/10 hover:text-[#5a63df] dark:hover:bg-[#8f97ff]/[0.14] dark:hover:text-[#afb5ff]'
                   )}
                   data-oid="6kj0gdx"
                 >
@@ -299,7 +265,10 @@ const ListeningTestHeader = ({
                   <Button
                     onClick={onSubmit}
                     disabled={isSubmitting}
-                    className="h-9 rounded-xl bg-[#5a63df] px-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-[#4a52c9]"
+                    className={cn(
+                      TEST_HEADER_PRIMARY_ACTION,
+                      'bg-[#5a63df] text-white hover:bg-[#4f58d2]'
+                    )}
                   >
                     {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Finish review'}
                   </Button>
@@ -307,7 +276,10 @@ const ListeningTestHeader = ({
                   !isLastPart ? (
                     <Button
                       onClick={onNextPart}
-                      className="bg-slate-900 dark:bg-[#5a63df] text-white hover:bg-slate-800 dark:hover:bg-[#4a52c9] font-black rounded-xl px-4 sm:px-6 h-9 sm:h-10 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap text-[10px] sm:text-xs uppercase tracking-widest"
+                      className={cn(
+                        TEST_HEADER_PRIMARY_ACTION,
+                        'bg-[#5a63df] text-white hover:bg-[#4f58d2]'
+                      )}
                       data-oid="y5kko0z"
                     >
                       Next
@@ -316,7 +288,10 @@ const ListeningTestHeader = ({
                     <Button
                       onClick={onSubmit}
                       disabled={isSubmitting}
-                      className="bg-slate-900 dark:bg-[#5a63df] text-white hover:bg-slate-800 dark:hover:bg-[#4a52c9] font-black rounded-xl px-4 sm:px-6 h-9 sm:h-10 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap text-[10px] sm:text-xs uppercase tracking-widest"
+                      className={cn(
+                        TEST_HEADER_PRIMARY_ACTION,
+                        'bg-[#5a63df] text-white hover:bg-[#4f58d2]'
+                      )}
                       data-oid="848h706"
                     >
                       {isSubmitting ? (
@@ -329,7 +304,10 @@ const ListeningTestHeader = ({
                 ) : (
                   <Button
                     onClick={onViewResults}
-                    className="bg-[#5a63df] hover:bg-[#4a52c9] text-white font-bold px-3 sm:px-4 h-9 sm:h-10 rounded-xl border-none transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5 sm:gap-2"
+                    className={cn(
+                      TEST_HEADER_PRIMARY_ACTION,
+                      'flex items-center gap-1.5 border-0 bg-[#5a63df] text-white hover:bg-[#4f58d2] sm:gap-2'
+                    )}
                     data-oid="5snr9gv"
                   >
                     <CheckCircle className="w-3.5 h-3.5 sm:w-4 h-4" data-oid="rmlelv3" />

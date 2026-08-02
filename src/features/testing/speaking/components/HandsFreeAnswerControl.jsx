@@ -10,7 +10,7 @@ export default function HandsFreeAnswerControl({ enabled, onChange, compact = fa
     <section
       className={cn(
         'border-t border-[#e4e2f0] bg-gradient-to-br from-rose-500/[0.045] via-transparent to-rose-500/[0.045] dark:border-white/[0.07]',
-        compact ? 'px-3 py-3 sm:px-4' : 'px-5 py-5 sm:px-6'
+        compact ? 'px-3 py-3 sm:px-4' : 'px-4 py-3.5 sm:px-5'
       )}
     >
       <div className="flex items-center justify-between gap-4">
@@ -25,7 +25,7 @@ export default function HandsFreeAnswerControl({ enabled, onChange, compact = fa
               </p>
               <span
                 className={cn(
-                  'rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.13em]',
+                  'rounded-full px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.13em]',
                   enabled
                     ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                     : 'bg-[#f4f3fb] text-slate-500 dark:bg-white/[0.04] dark:text-slate-400'

@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { FileEdit, Star, Award, Sparkles } from 'lucide-react';
+import { NUM } from '@/features/dashboard/components/primitives';
 import { formatBandScore } from '../utils/speakingReportSummary';
 
 const CRITERIA_STYLES = {
@@ -11,19 +12,19 @@ const CRITERIA_STYLES = {
     text: 'text-rose-600 dark:text-rose-400',
   },
   lexical: {
-    bar: 'from-amber-500 to-orange-500',
-    dot: 'bg-amber-500',
-    text: 'text-amber-600 dark:text-amber-400',
+    bar: 'from-red-500 to-rose-500',
+    dot: 'bg-red-500',
+    text: 'text-red-600 dark:text-red-300',
   },
   grammar: {
-    bar: 'from-indigo-500 to-violet-500',
-    dot: 'bg-indigo-500',
-    text: 'text-indigo-600 dark:text-indigo-400',
+    bar: 'from-rose-500 to-pink-500',
+    dot: 'bg-rose-500',
+    text: 'text-rose-600 dark:text-rose-300',
   },
   pronunciation: {
-    bar: 'from-emerald-500 to-teal-500',
-    dot: 'bg-emerald-500',
-    text: 'text-emerald-600 dark:text-emerald-400',
+    bar: 'from-red-600 to-rose-400',
+    dot: 'bg-red-600',
+    text: 'text-red-700 dark:text-red-300',
   },
 };
 
@@ -38,11 +39,11 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
   const scoreDisplay = formatBandScore(overallScore);
 
   return (
-    <div className="group relative flex min-h-[260px] flex-col items-center justify-between overflow-hidden rounded-2xl border border-[#e4e2f0] bg-gradient-to-br from-[#fdfcff] via-white to-[#f4f6fc] p-4 sm:p-5 text-center transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-200/80 hover:shadow-md dark:border-white/[0.07] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] lg:col-span-4">
+    <div className="group relative flex min-h-[230px] flex-col items-center justify-between overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-3.5 text-center transition-all duration-200 hover:border-rose-200/80 hover:shadow-sm dark:border-white/[0.10] dark:bg-[#131315] sm:p-4 lg:col-span-4">
       {/* Ambient Glow */}
       <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-rose-500/5 blur-2xl transition-opacity duration-500 group-hover:opacity-100 dark:bg-rose-500/10" />
 
-      <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
+      <h3 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
         Overall Band Score
       </h3>
 
@@ -94,7 +95,10 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
             initial={{ opacity: 0, scale: 0.6 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.5, duration: 0.4 }}
-            className="bg-gradient-to-br from-slate-900 to-slate-700 bg-clip-text text-4xl font-black leading-none tracking-tight text-transparent dark:from-white dark:to-zinc-200"
+            className={cn(
+              NUM,
+              'bg-gradient-to-br from-slate-900 to-slate-700 bg-clip-text text-4xl font-extrabold leading-none tracking-tight text-transparent dark:from-white dark:to-zinc-200'
+            )}
           >
             {scoreDisplay}
           </motion.span>
@@ -105,7 +109,7 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
       </div>
 
       <div className="space-y-1">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffeef3] px-3.5 py-0.5 text-xs font-black text-[#e11d48] border border-[#fccedb]/60 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-500/30">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffeef3] px-3.5 py-0.5 text-xs font-extrabold text-[#e11d48] border border-[#fccedb]/60 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-500/30">
           <Award className="h-3.5 w-3.5 text-rose-500" />
           {bandInfo.label}
         </span>
@@ -119,13 +123,13 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
 
 export function CoachSummaryCard({ conciseFeedback, conciseTargetTip, showTargetTip }) {
   return (
-    <div className="group relative flex min-h-[260px] flex-col justify-between overflow-hidden rounded-2xl border border-[#e4e2f0] bg-gradient-to-br from-[#fffdfd] via-white to-[#fff5f2] p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-200/80 hover:shadow-md dark:border-white/[0.07] dark:from-[#181119] dark:via-[#13111d] dark:to-[#1f1618] lg:col-span-4">
+    <div className="group relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-rose-200/80 hover:shadow-sm dark:border-white/[0.10] dark:bg-[#131315] sm:p-4 lg:col-span-4">
       <div>
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
+          <h3 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
             Coach Summary
           </h3>
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#ffeef3] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#e11d48] border border-[#fccedb]/60 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-500/30">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#ffeef3] px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-[#e11d48] border border-[#fccedb]/60 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-500/30">
             <Sparkles className="h-3 w-3 text-rose-500" />
             AI Coach
           </span>
@@ -143,10 +147,10 @@ export function CoachSummaryCard({ conciseFeedback, conciseTargetTip, showTarget
       </div>
 
       {showTargetTip && (
-        <div className="mt-3 rounded-xl border border-[#fcdbc8]/60 bg-[#fff5ee]/70 p-3 dark:border-amber-900/40 dark:bg-amber-950/25">
-          <div className="mb-1 flex items-center gap-1.5 text-[#df7437] dark:text-amber-400">
-            <Star className="h-3.5 w-3.5 fill-[#df7437] text-[#df7437]" />
-            <p className="text-[10px] font-black uppercase tracking-wider">Focus Area</p>
+        <div className="mt-3 rounded-xl border border-rose-200/60 bg-rose-50/70 p-3 dark:border-rose-500/20 dark:bg-rose-950/20">
+          <div className="mb-1 flex items-center gap-1.5 text-rose-600 dark:text-rose-300">
+            <Star className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />
+            <p className="text-[10px] font-extrabold uppercase tracking-wider">Focus Area</p>
           </div>
           <p className="text-xs font-semibold leading-relaxed text-slate-700 dark:text-zinc-300">
             {conciseTargetTip}
@@ -167,8 +171,8 @@ export function PerformanceMetricsPanel({ criteria }) {
       : null;
 
   return (
-    <div className="group relative flex min-h-[260px] flex-col justify-between overflow-hidden rounded-2xl border border-[#e4e2f0] bg-gradient-to-br from-[#fcfdff] via-white to-[#f4f6fc] p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:border-white/[0.07] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829] lg:col-span-4">
-      <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
+    <div className="group relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-slate-300/80 hover:shadow-sm dark:border-white/[0.10] dark:bg-[#131315] sm:p-4 lg:col-span-4">
+      <h3 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
         Performance at a Glance
       </h3>
 
@@ -187,7 +191,7 @@ export function PerformanceMetricsPanel({ criteria }) {
                     {criterion.label}
                   </p>
                 </div>
-                <span className="text-sm font-black text-slate-900 dark:text-white">
+                <span className={cn(NUM, 'text-sm font-extrabold text-slate-900 dark:text-white')}>
                   {hasScore ? formatBandScore(scoreVal) : '—'}
                 </span>
               </div>
@@ -208,10 +212,12 @@ export function PerformanceMetricsPanel({ criteria }) {
 
       {avgScore && (
         <div className="flex items-center justify-between rounded-xl border border-[#e4e2f0] bg-[#f4f6fc]/80 px-3.5 py-1.5 dark:border-white/[0.07] dark:bg-zinc-900/60">
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
             Average
           </span>
-          <span className="text-sm font-black text-slate-900 dark:text-white">{avgScore}</span>
+          <span className={cn(NUM, 'text-sm font-extrabold text-slate-900 dark:text-white')}>
+            {avgScore}
+          </span>
         </div>
       )}
     </div>

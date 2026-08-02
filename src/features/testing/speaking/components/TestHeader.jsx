@@ -1,10 +1,14 @@
 import React from 'react';
-import { ArrowLeft, Clock3, Headphones, MessageCircle, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, Clock3, MessageCircle, Mic2, Volume2, VolumeX } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { MICRO, MUTED, NUM, PANEL, TITLE } from '@/features/dashboard/components/primitives';
+import {
+  TEST_HEADER_BACK,
+  TEST_HEADER_BADGE,
+} from '@/features/testing/shared/components/testHeaderStyles';
 
 import { getQuestionLines } from '../utils/speakingTestUtils';
 
@@ -19,7 +23,7 @@ function StatusSection({ label, children, className }) {
   return (
     <section
       className={cn(
-        'min-w-0 border-[#e4e2f0] px-4 py-3.5 dark:border-white/[0.07] sm:px-5 xl:border-l xl:py-4',
+        'min-w-0 border-[#e4e2f0] px-3.5 py-3 dark:border-white/[0.07] sm:px-4 xl:border-l xl:py-3.5',
         className
       )}
     >
@@ -53,24 +57,45 @@ const TestHeader = React.memo(
     const progressLabel = `${Math.round(partProgress)}%`;
 
     return (
-      <header className="relative z-40 mb-2.5 sm:mb-3">
+      <header className="relative z-40 mb-2 sm:mb-2.5">
         <div className="mb-1 flex h-8 items-center justify-between sm:mb-2">
           <Button
             variant="ghost"
             onClick={onShowExitDialog}
             aria-label="Back to Speaking"
-            className="group relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-rose-400 hover:bg-rose-50 hover:text-rose-600 active:scale-95 dark:border-white/20 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-rose-400/60 dark:hover:bg-slate-700 dark:hover:text-rose-300 sm:h-9 sm:w-auto sm:px-3"
+            className={cn(
+              TEST_HEADER_BACK,
+              'hover:border-rose-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:border-rose-400/60 dark:hover:bg-rose-400/[0.12] dark:hover:text-rose-300 sm:w-auto sm:px-3'
+            )}
           >
             <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5 stroke-[2.5] sm:mr-2 sm:h-4.5 sm:w-4.5" />
             <span className="hidden text-xs font-bold sm:inline">Back to Speaking</span>
           </Button>
+
+          <div className="hidden items-center gap-2.5 sm:flex">
+            <span
+              className={cn(
+                TEST_HEADER_BADGE,
+                'border-rose-500/15 bg-rose-500/[0.06] text-rose-600 dark:border-rose-400/20 dark:bg-rose-400/[0.10] dark:text-rose-300'
+              )}
+            >
+              <span
+                className="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-500"
+                aria-hidden="true"
+              />
+              Practice room
+            </span>
+            <span className={cn(MICRO, MUTED, 'tracking-[0.11em]')}>
+              Your responses are saved automatically
+            </span>
+          </div>
         </div>
 
-        <div className={cn(PANEL, 'overflow-hidden rounded-2xl sm:rounded-3xl')}>
+        <div className={cn(PANEL, 'overflow-hidden rounded-xl')}>
           <div className="xl:hidden">
-            <section className="flex min-w-0 items-center gap-3 py-2.5 pl-16 pr-3 sm:px-4 sm:py-3">
-              <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-500/[0.09] text-rose-500 sm:flex">
-                <Headphones className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+            <section className="flex min-w-0 items-center gap-2.5 py-2.5 pl-16 pr-3 sm:px-4 sm:py-3">
+              <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/[0.09] text-rose-500 sm:flex">
+                <Mic2 className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
               </span>
               <div className="min-w-0 flex-1">
                 <p className={cn(MICRO, 'text-rose-500')}>Speaking practice</p>
@@ -96,7 +121,7 @@ const TestHeader = React.memo(
                 <div
                   className={cn(
                     NUM,
-                    'mt-0.5 flex items-center gap-1 text-sm font-black',
+                    'mt-0.5 flex items-center gap-1 text-sm font-extrabold',
                     timeLeft < 60 ? 'text-red-500' : 'text-rose-500'
                   )}
                   aria-label={`${formatTime(timeLeft)} remaining`}
@@ -115,7 +140,7 @@ const TestHeader = React.memo(
                   size="icon"
                   onClick={() => setIsMuted(!isMuted)}
                   aria-label={isMuted ? 'Unmute examiner audio' : 'Mute examiner audio'}
-                  className="h-9 w-9 rounded-xl bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
+                  className="h-9 w-9 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:border-white/[0.10] dark:bg-white/[0.055] dark:text-slate-200 dark:hover:bg-white/[0.09]"
                 >
                   {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 </Button>
@@ -152,7 +177,7 @@ const TestHeader = React.memo(
                 <div
                   className={cn(
                     NUM,
-                    'mt-1 flex items-center gap-1.5 text-base font-black sm:text-lg',
+                    'mt-1 flex items-center gap-1.5 text-base font-extrabold sm:text-lg',
                     timeLeft < 60 ? 'text-red-500' : 'text-rose-500'
                   )}
                   aria-label={`${formatTime(timeLeft)} remaining`}
@@ -172,7 +197,7 @@ const TestHeader = React.memo(
                     className="h-3.5 w-3.5 shrink-0 text-rose-500"
                     aria-hidden="true"
                   />
-                  <p className="truncate text-sm font-black text-slate-800 dark:text-slate-100 sm:text-base">
+                  <p className="truncate text-sm font-extrabold text-slate-800 dark:text-slate-100 sm:text-base">
                     {questionValue}
                   </p>
                 </div>
@@ -184,7 +209,7 @@ const TestHeader = React.memo(
                   size="icon"
                   onClick={() => setIsMuted(!isMuted)}
                   aria-label={isMuted ? 'Unmute examiner audio' : 'Mute examiner audio'}
-                  className="h-10 w-10 rounded-xl bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
+                  className="h-10 w-10 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:border-white/[0.10] dark:bg-white/[0.055] dark:text-slate-200 dark:hover:bg-white/[0.09]"
                 >
                   {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 </Button>
@@ -193,9 +218,9 @@ const TestHeader = React.memo(
           </div>
 
           <div className="hidden xl:grid xl:grid-cols-[minmax(16rem,1.4fr)_minmax(8rem,0.7fr)_minmax(11rem,0.9fr)_minmax(7rem,0.6fr)_4.5rem_minmax(7rem,0.6fr)]">
-            <section className="col-span-2 flex min-w-0 items-center gap-3 border-b border-[#e4e2f0] px-4 py-3.5 dark:border-white/[0.07] sm:px-5 xl:col-span-1 xl:border-b-0 xl:py-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-500/[0.09] text-rose-500">
-                <Headphones className="h-5 w-5" aria-hidden="true" />
+            <section className="col-span-2 flex min-w-0 items-center gap-3 border-b border-[#e4e2f0] px-3.5 py-3 dark:border-white/[0.07] sm:px-4 xl:col-span-1 xl:border-b-0 xl:py-3.5">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/[0.09] text-rose-500">
+                <Mic2 className="h-5 w-5" aria-hidden="true" />
               </span>
               <div className="min-w-0">
                 <p className={cn(MICRO, 'text-rose-500')}>Speaking practice</p>
@@ -206,7 +231,7 @@ const TestHeader = React.memo(
 
             <StatusSection label="Part" className="border-b xl:border-b-0">
               <p className="flex items-baseline gap-1.5 text-slate-800 dark:text-slate-100">
-                <span className={cn(NUM, 'text-2xl font-black leading-none text-rose-500')}>
+                <span className={cn(NUM, 'text-2xl font-extrabold leading-none text-rose-500')}>
                   {currentPartNumber}
                 </span>
                 <span className="text-base font-extrabold">of {totalParts}</span>
@@ -234,7 +259,7 @@ const TestHeader = React.memo(
               <div
                 className={cn(
                   NUM,
-                  'flex items-center gap-2 text-xl font-black',
+                  'flex items-center gap-2 text-xl font-extrabold',
                   timeLeft < 60 ? 'text-red-500' : 'text-rose-500'
                 )}
                 aria-label={`${formatTime(timeLeft)} remaining`}
@@ -253,7 +278,7 @@ const TestHeader = React.memo(
                 size="icon"
                 onClick={() => setIsMuted(!isMuted)}
                 aria-label={isMuted ? 'Unmute examiner audio' : 'Mute examiner audio'}
-                className="h-11 w-11 rounded-2xl bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
+                className="h-11 w-11 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:border-white/[0.10] dark:bg-white/[0.055] dark:text-slate-200 dark:hover:bg-white/[0.09]"
               >
                 {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
               </Button>
@@ -262,7 +287,7 @@ const TestHeader = React.memo(
             <StatusSection label={isLongTurn ? 'Task' : 'Question'}>
               <div className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4 text-rose-500" aria-hidden="true" />
-                <p className="truncate text-base font-black text-slate-800 dark:text-slate-100">
+                <p className="truncate text-base font-extrabold text-slate-800 dark:text-slate-100">
                   {questionValue}
                 </p>
               </div>

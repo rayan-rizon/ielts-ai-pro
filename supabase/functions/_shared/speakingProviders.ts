@@ -8,6 +8,8 @@ interface TranscriptionResult {
   model: string;
   latencyMs: number;
   tokensUsed: number;
+  attempts: number;
+  recoveredByVadRetry: boolean;
 }
 
 function compactTranscript(value: unknown): string {
@@ -113,33 +115,51 @@ export async function transcribeWithCloudflare(params: {
   audioBase64: string;
 }): Promise<TranscriptionResult> {
   const startedAt = Date.now();
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${params.accountId}/ai/run/${CLOUDFLARE_WHISPER_MODEL}`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${params.apiToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        audio: params.audioBase64,
-        language: 'en',
-        vad_filter: true,
-        condition_on_previous_text: false,
-        beam_size: 5,
-      }),
-    }
-  );
+  const requestTranscription = async (vadFilter: boolean, noSpeechThreshold?: number) => {
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${params.accountId}/ai/run/${CLOUDFLARE_WHISPER_MODEL}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${params.apiToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          audio: params.audioBase64,
+          language: 'en',
+          vad_filter: vadFilter,
+          ...(noSpeechThreshold ? { no_speech_threshold: noSpeechThreshold } : {}),
+          condition_on_previous_text: false,
+          beam_size: 5,
+        }),
+      }
+    );
 
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Cloudflare transcription failed (${response.status}): ${body.slice(0, 300)}`);
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(
+        `Cloudflare transcription failed (${response.status}): ${body.slice(0, 300)}`
+      );
+    }
+
+    const payload = await response.json();
+    return payload?.success ? compactTranscript(payload?.result?.text) : '';
+  };
+
+  let transcript = await requestTranscription(true);
+  let attempts = 1;
+  let recoveredByVadRetry = false;
+
+  // Whisper's VAD can classify quiet learner speech as silence. Retry only
+  // empty successful responses without VAD before paying for another provider.
+  if (!transcript) {
+    attempts = 2;
+    transcript = await requestTranscription(false, 0.8);
+    recoveredByVadRetry = Boolean(transcript);
   }
 
-  const payload = await response.json();
-  const transcript = compactTranscript(payload?.result?.text);
-  if (!payload?.success || !transcript) {
-    throw new Error('Cloudflare transcription returned no intelligible speech');
+  if (!transcript) {
+    throw new Error('Cloudflare transcription returned no intelligible speech after VAD retry');
   }
 
   return {
@@ -148,6 +168,8 @@ export async function transcribeWithCloudflare(params: {
     model: CLOUDFLARE_WHISPER_MODEL,
     latencyMs: Date.now() - startedAt,
     tokensUsed: 0,
+    attempts,
+    recoveredByVadRetry,
   };
 }
 
@@ -199,6 +221,8 @@ export async function transcribeWithGeminiFallback(params: {
     model,
     latencyMs: Date.now() - startedAt,
     tokensUsed: Number(payload?.usageMetadata?.totalTokenCount) || 0,
+    attempts: 1,
+    recoveredByVadRetry: false,
   };
 }
 

@@ -26,7 +26,7 @@ function MessageAvatar({ entry, authUser }) {
   }
 
   return (
-    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-md shadow-indigo-500/25 ring-2 ring-white/80 dark:ring-white/10 sm:h-9 sm:w-9">
+    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25 ring-2 ring-white/80 dark:ring-white/10 sm:h-9 sm:w-9">
       <span className="text-xs font-bold">
         {(authUser?.full_name || 'C').charAt(0).toUpperCase()}
       </span>
@@ -38,7 +38,7 @@ function getBubbleClass(entry) {
   // Examiner live / speaking — light rose blush
   if (entry.speaker !== 'user') {
     if (entry.isExaminerLive) {
-      return 'rounded-2xl rounded-tl-sm border border-rose-100 bg-gradient-to-br from-rose-50 to-pink-50/70 text-left font-medium text-slate-800 shadow-sm dark:border-rose-500/15 dark:from-rose-500/[0.08] dark:via-[#131315] dark:to-rose-500/[0.04] dark:text-slate-100';
+      return 'rounded-2xl rounded-tl-sm border border-rose-100 bg-gradient-to-br from-rose-50 to-pink-50/70 text-left font-medium text-slate-800 shadow-sm dark:border-rose-500/20 dark:from-[#161516] dark:via-[#131315] dark:to-[#161516] dark:text-slate-100';
     }
     // Regular examiner — quiet panel tile
     return 'rounded-2xl rounded-tl-sm border border-[#ebeaf7] bg-[#fbfbfe] text-left font-medium text-slate-800 shadow-[0_1px_6px_-2px_hsl(220_15%_50%/0.10)] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100';
@@ -51,11 +51,11 @@ function getBubbleClass(entry) {
 
   // User live/draft transcript — soft lavender
   if (entry.isLive || entry.isTranscriptDraft) {
-    return 'rounded-2xl rounded-tr-sm border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-violet-50/60 text-left font-medium text-slate-800 shadow-sm dark:border-violet-500/20 dark:from-violet-500/[0.10] dark:via-[#131315] dark:to-indigo-500/[0.08] dark:text-slate-100';
+    return 'rounded-2xl rounded-tr-sm border border-rose-100 bg-gradient-to-br from-rose-50 via-white to-red-50/60 text-left font-medium text-slate-800 shadow-sm dark:border-rose-500/20 dark:from-[#171416] dark:via-[#131315] dark:to-[#171416] dark:text-slate-100';
   }
 
-  // Completed user message — soft indigo/lavender pastel
-  return 'rounded-2xl rounded-tr-sm border border-indigo-100/80 bg-gradient-to-br from-indigo-50 via-violet-50 to-purple-50/80 text-left font-medium text-indigo-900 shadow-sm dark:border-indigo-500/20 dark:from-indigo-500/[0.12] dark:via-violet-500/[0.10] dark:to-purple-500/[0.08] dark:text-indigo-100';
+  // Completed user message — soft red pastel
+  return 'rounded-2xl rounded-tr-sm border border-rose-100/80 bg-gradient-to-br from-rose-50 via-pink-50 to-red-50/80 text-left font-medium text-rose-950 shadow-sm dark:border-rose-500/20 dark:from-[#191416] dark:via-[#151315] dark:to-[#191416] dark:text-rose-100';
 }
 
 function LoadingText({ speaker }) {
@@ -76,8 +76,7 @@ function LoadingText({ speaker }) {
 const LiveWaveform = React.memo(function LiveWaveform({ active, tone }) {
   const colors = {
     rose: 'bg-gradient-to-t from-rose-500 to-pink-400',
-    violet: 'bg-gradient-to-t from-violet-500 to-indigo-400',
-    sky: 'bg-sky-500',
+    red: 'bg-gradient-to-t from-red-600 to-rose-400',
   };
 
   return (
@@ -88,7 +87,7 @@ const LiveWaveform = React.memo(function LiveWaveform({ active, tone }) {
       {[3, 7, 11, 7, 5, 9, 3].map((h, bar) => (
         <span
           key={bar}
-          className={`w-[2px] rounded-full ${colors[tone] || colors.sky} transition-all duration-150`}
+          className={`w-[2px] rounded-full ${colors[tone] || colors.rose} transition-all duration-150`}
           style={{
             height: active ? `${h}px` : '3px',
             animationDelay: `${bar * 60}ms`,
@@ -112,8 +111,8 @@ function DraftTranscript({ entry }) {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3 border-b border-violet-400/15 pb-1.5">
-        <span className="flex items-center gap-1.5 text-[8.5px] font-black uppercase tracking-[0.14em] text-violet-600 dark:text-violet-300">
+      <div className="flex items-center justify-between gap-3 border-b border-rose-400/15 pb-1.5">
+        <span className="flex items-center gap-1.5 text-[8.5px] font-extrabold uppercase tracking-[0.14em] text-rose-600 dark:text-rose-300">
           {isPaused ? (
             <Pause className="h-3 w-3 fill-current" aria-hidden="true" />
           ) : isLive ? (
@@ -123,7 +122,7 @@ function DraftTranscript({ entry }) {
           )}
           {status}
         </span>
-        <LiveWaveform active={isLive && !isPaused} tone="violet" />
+        <LiveWaveform active={isLive && !isPaused} tone="rose" />
       </div>
       <p className="whitespace-pre-wrap text-[12.5px] leading-relaxed text-foreground/90 sm:text-[13px]">
         {cleanMessageText(entry.text) ||
@@ -131,7 +130,7 @@ function DraftTranscript({ entry }) {
         {isLive && entry.text && (
           <span
             aria-hidden="true"
-            className="ml-0.5 inline-block h-[14px] w-0.5 translate-y-0.5 animate-pulse rounded-full bg-violet-500"
+            className="ml-0.5 inline-block h-[14px] w-0.5 translate-y-0.5 animate-pulse rounded-full bg-rose-500"
           />
         )}
       </p>
@@ -215,7 +214,7 @@ function ExaminerLiveTranscript({ entry }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-3 border-b border-rose-400/15 pb-1.5">
-        <span className="flex items-center gap-1.5 text-[8.5px] font-black uppercase tracking-[0.14em] text-rose-600 dark:text-rose-300">
+        <span className="flex items-center gap-1.5 text-[8.5px] font-extrabold uppercase tracking-[0.14em] text-rose-600 dark:text-rose-300">
           {entry.isExaminerSpeaking ? (
             <AudioLines className="h-3.5 w-3.5 animate-pulse" aria-hidden="true" />
           ) : (

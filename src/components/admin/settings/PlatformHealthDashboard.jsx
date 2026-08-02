@@ -9,19 +9,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Activity,
   AlertTriangle,
   AlertOctagon,
   CheckCircle2,
+  ChevronDown,
   Clock,
-  Cpu,
-  CreditCard,
-  Database,
-  Library,
   Loader2,
-  Mail,
   Moon,
   RefreshCw,
+  Search,
   ShieldCheck,
   SlidersHorizontal,
   Wrench,
@@ -34,7 +30,6 @@ import {
   STATUS_LABEL,
   CATEGORY_LABEL,
 } from '@/features/admin/services/PlatformHealth';
-import { Tip } from '@/components/admin/ui/primitives';
 
 /*
  * Instrument-panel treatment: graphite surfaces, hairline rules, and exactly
@@ -79,13 +74,23 @@ const SIGNAL = {
 
 const FAULT_TEXT = 'text-[rgb(var(--signal-fault))]';
 
-const CATEGORY_ICON = {
-  ai: Cpu,
-  payments: CreditCard,
-  content: Library,
-  communications: Mail,
-  platform: Database,
+const SERVICE_OWNER = {
+  ai: 'AI runtime',
+  payments: 'Billing operations',
+  content: 'Content operations',
+  communications: 'Messaging operations',
+  platform: 'Platform operations',
 };
+
+const SERVICE_FILTERS = [
+  { key: 'all', label: 'All' },
+  { key: 'attention', label: 'Needs action' },
+  { key: 'ai', label: 'AI & Speech' },
+  { key: 'payments', label: 'Payments' },
+  { key: 'content', label: 'Content' },
+  { key: 'communications', label: 'Communications' },
+  { key: 'platform', label: 'Platform' },
+];
 
 const METRIC_LABEL = {
   attempts: 'Attempts',
@@ -217,6 +222,99 @@ const headlineFor = (service) => {
   return { label: METRIC_LABEL[key] || key || '', value: fmt(key, m[key]) };
 };
 
+const metricsFor = (service) =>
+  Object.entries(service.metrics || {}).filter(
+    ([, value]) => value !== null && value !== undefined
+  );
+
+const ownerFor = (service) => SERVICE_OWNER[service.category] || 'Platform operations';
+const evidenceFor = (service) => service.source || 'Service telemetry';
+const providerFor = (service) => service.provider || ownerFor(service);
+const incidentLabel = (count) => `${count} incident${count === 1 ? '' : 's'}`;
+const statusBucketFor = (status) => {
+  if (status === 'down' || status === 'unconfigured') return 'down';
+  if (status === 'degraded' || status === 'attention') return 'degraded';
+  return status === 'idle' ? 'idle' : 'operational';
+};
+const occurrenceCount = (incident) => Number(incident.occurrences || 1);
+
+const summarizeHealth = (health, incidents) => {
+  const services = health?.services || [];
+  const counts = { down: 0, degraded: 0, operational: 0, idle: 0 };
+
+  services.forEach((service) => {
+    counts[statusBucketFor(service.status)] += 1;
+  });
+
+  const incidentCounts = {};
+  incidents.forEach((incident) => {
+    incidentCounts[incident.service] =
+      (incidentCounts[incident.service] || 0) + occurrenceCount(incident);
+  });
+
+  return {
+    services,
+    problems: services.filter(
+      (service) => service.status !== 'operational' && service.status !== 'idle'
+    ),
+    counts,
+    total: services.length,
+    serviceLabels: Object.fromEntries(services.map((service) => [service.key, service.label])),
+    incidentCounts,
+  };
+};
+
+const filterServices = (services, activeFilter, rawQuery) => {
+  const query = rawQuery.trim().toLowerCase();
+  return services.filter((service) => {
+    const isAttention = service.status !== 'operational' && service.status !== 'idle';
+    const matchesFilter =
+      activeFilter === 'all' ||
+      (activeFilter === 'attention' && isAttention) ||
+      service.category === activeFilter;
+    if (!matchesFilter) return false;
+    if (!query) return true;
+    return [
+      service.label,
+      service.provider,
+      service.impact,
+      service.source,
+      service.key,
+      CATEGORY_LABEL[service.category],
+    ]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query));
+  });
+};
+
+const filterIncidents = (incidents, services) => {
+  const visibleKeys = new Set(services.map((service) => service.key));
+  return incidents.filter((incident) => visibleKeys.has(incident.service));
+};
+
+const overviewFor = (counts, total) => {
+  const allClear = counts.down === 0 && counts.degraded === 0;
+  const headline = allClear ? 'Nominal' : counts.down > 0 ? 'Fault' : 'Degraded';
+  const accent =
+    counts.down > 0
+      ? 'text-[rgb(var(--signal-fault))]'
+      : counts.degraded > 0
+        ? 'text-[rgb(var(--signal-warn))]'
+        : 'text-[rgb(var(--signal-ok))]';
+  return {
+    allClear,
+    headline,
+    accent,
+    pct: (value) => (total > 0 ? (value / total) * 100 : 0),
+    legend: [
+      { label: 'Fault', n: counts.down, cls: FAULT_BG },
+      { label: 'Degraded', n: counts.degraded, cls: WARN_BG },
+      { label: 'Nominal', n: counts.operational, cls: OK_BG },
+      { label: 'Idle', n: counts.idle, cls: IDLE_BG },
+    ],
+  };
+};
+
 /*
  * Remediation guidance per service. Only faults with a safe, self-contained
  * server-side repair get a button; the rest explain what to change, because a
@@ -242,7 +340,7 @@ const REPAIRS = {
     how: 'Use the incident list to separate rate limits, provider authentication, malformed output and application errors. Restore the failing dependency, then run one real learner-shaped scoring request before considering the service recovered.',
   },
   speech_transcription: {
-    how: 'Cloudflare Whisper is rejecting the audio rather than being down — check the recorder’s encoding, sample rate and minimum clip length before blaming the provider. Every failure here falls through to the slower Gemini path, and when that fails too the learner gets no score at all.',
+    how: 'Cloudflare returned no speech for some valid clips. Speaking tests now retry Whisper without voice-activity detection before using Gemini, then preserve a reliable browser transcript when both providers reject the clip. If fallback use stays high, inspect the recorded audio type, attempt count and recovery flags, then test the learner’s microphone input. Any “Lost” count above zero is a scoring failure that needs immediate investigation.',
   },
   payments_stripe: {
     how: 'Webhook events are arriving but no payment row is being written. Confirm STRIPE_WEBHOOK_SECRET matches the endpoint and that handle_stripe_event is reaching its payment_requests insert.',
@@ -357,14 +455,14 @@ const RepairButton = ({ repair, onRepaired }) => {
   );
 };
 
-/* Expanded read-out, shown only for services that need the admin to act. */
-const ProblemPanel = ({ service, index, onRepaired }) => {
+/* Prioritised read-out, shown only for services that need the admin to act. */
+const ProblemPanel = ({ service, index, incidentCount = 0, onRepaired }) => {
   const signal = SIGNAL[service.status] || SIGNAL.idle;
   const { Icon } = signal;
-  const metrics = Object.entries(service.metrics || {}).filter(
-    ([, v]) => v !== null && v !== undefined
-  );
+  const metrics = metricsFor(service);
   const repair = repairFor(service);
+  const repairInstructions =
+    repair?.how || 'Review the incident evidence and restore the failing dependency.';
 
   return (
     <div
@@ -375,7 +473,7 @@ const ProblemPanel = ({ service, index, onRepaired }) => {
       <div className="p-4 pl-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h4 className="text-[13px] font-extrabold tracking-tight text-stone-900 dark:text-stone-50 truncate">
+            <h4 className="text-sm font-extrabold tracking-tight text-stone-900 dark:text-stone-50 truncate">
               {service.label}
             </h4>
             <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1 truncate')}>
@@ -394,17 +492,13 @@ const ProblemPanel = ({ service, index, onRepaired }) => {
           </span>
         </div>
 
-        <p className="text-xs font-medium text-stone-600 dark:text-stone-300 leading-relaxed mt-3">
+        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-3 mb-1')}>Learner impact</p>
+        <p className="text-[11px] font-medium text-stone-700 dark:text-stone-200 leading-relaxed">
           {service.impact}
         </p>
-        {service.source && (
-          <p className={cn(MICRO, 'text-stone-400 dark:text-stone-500 mt-1.5')}>
-            Evidence: {service.source}
-          </p>
-        )}
 
-        <div className="mt-4 pt-3 border-t border-dashed border-stone-200 dark:border-white/[0.07] grid grid-cols-3 gap-x-4 gap-y-3">
-          {metrics.map(([key, value]) => (
+        <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 rounded-lg border border-stone-200 dark:border-white/[0.07] bg-stone-50/70 dark:bg-black/10 p-2.5">
+          {metrics.slice(0, 4).map(([key, value]) => (
             <div key={key} className="min-w-0">
               <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>
                 {METRIC_LABEL[key] || key}
@@ -412,7 +506,7 @@ const ProblemPanel = ({ service, index, onRepaired }) => {
               <p
                 className={cn(
                   NUM,
-                  'text-base font-bold mt-0.5',
+                  'text-sm font-bold mt-0.5',
                   ALARM_KEYS.has(key) && Number(value) > 0
                     ? FAULT_TEXT
                     : 'text-stone-900 dark:text-stone-50'
@@ -424,70 +518,207 @@ const ProblemPanel = ({ service, index, onRepaired }) => {
           ))}
         </div>
 
-        {/* How to actually clear this fault */}
-        {repair && (
-          <div className="mt-3 pt-3 border-t border-dashed border-stone-200 dark:border-white/[0.07]">
-            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5')}>How to fix</p>
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-dashed border-stone-200 dark:border-white/[0.07] pt-2.5">
+          <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+            Owner{' '}
+            <strong className="text-stone-700 dark:text-stone-200">{ownerFor(service)}</strong>
+          </span>
+          <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+            {incidentLabel(incidentCount)}
+          </span>
+          <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>
+            Evidence {evidenceFor(service)}
+          </span>
+        </div>
+
+        <details className="group mt-2.5 rounded-md border border-stone-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.02]">
+          <summary
+            className={cn(
+              MICRO,
+              'flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-stone-700 dark:text-stone-200'
+            )}
+          >
+            Repair steps
+            <ChevronDown className="h-3.5 w-3.5 text-stone-400 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="border-t border-stone-200 dark:border-white/[0.07] px-3 pb-3 pt-2.5">
             <p className="text-[11px] font-medium text-stone-600 dark:text-stone-300 leading-relaxed">
-              {repair.how}
+              {repairInstructions}
             </p>
-            {repair.action && <RepairButton repair={repair} onRepaired={onRepaired} />}
+            {repair?.action && <RepairButton repair={repair} onRepaired={onRepaired} />}
           </div>
-        )}
+        </details>
       </div>
     </div>
   );
 };
 
-/* Dense read-out so all services stay on one screen. */
-const ServiceTile = ({ service }) => {
+const ServiceDetails = ({ service, metrics }) => (
+  <div className="border-t border-stone-200 dark:border-white/[0.07] bg-stone-50/50 dark:bg-black/10 px-4 py-4">
+    <p className="sm:hidden text-[11px] font-medium text-stone-600 dark:text-stone-300 leading-relaxed mb-3">
+      {service.impact}
+    </p>
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {metrics.map(([key, value]) => (
+          <div key={key}>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+              {METRIC_LABEL[key] || key}
+            </p>
+            <p className={cn(NUM, 'mt-1 text-sm font-bold text-stone-900 dark:text-stone-50')}>
+              {fmt(key, value)}
+            </p>
+          </div>
+        ))}
+      </div>
+      <div className="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed lg:border-l lg:border-stone-200 lg:dark:border-white/[0.07] lg:pl-4">
+        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1')}>Evidence</p>
+        <p className="font-semibold break-words">{evidenceFor(service)}</p>
+        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-3 mb-1')}>Owner</p>
+        <p className="font-semibold">{ownerFor(service)}</p>
+      </div>
+    </div>
+  </div>
+);
+
+const ServiceRow = ({ service }) => {
+  const [expanded, setExpanded] = useState(false);
   const signal = SIGNAL[service.status] || SIGNAL.idle;
+  const { Icon } = signal;
   const headline = headlineFor(service);
-  const alarming = service.status === 'down' || service.status === 'unconfigured';
+  const metrics = metricsFor(service);
 
   return (
-    <Tip
-      content={service.source ? `${service.impact} Evidence: ${service.source}.` : service.impact}
-    >
-      <div
+    <div className={cn(PANEL, 'relative overflow-hidden')}>
+      <span className={cn('absolute left-0 top-0 h-full w-[2px]', signal.rail)} />
+      <button
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((value) => !value)}
         className={cn(
-          PANEL,
-          'relative overflow-hidden flex items-center gap-3 px-3.5 py-3 transition-all duration-150 hover:-translate-y-0.5 hover:border-stone-300 dark:hover:border-white/20 hover:shadow-sm cursor-default'
+          'w-full grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(220px,0.9fr)_minmax(260px,1.4fr)_auto] items-center gap-3 px-4 py-3.5 text-left',
+          'hover:bg-stone-50/80 dark:hover:bg-white/[0.025] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-stone-400'
         )}
       >
-        <span className={cn('absolute left-0 top-0 h-full w-[2px]', signal.rail)} />
-        <span className="relative flex h-1.5 w-1.5 shrink-0 ml-0.5">
-          {alarming && (
-            <span
-              className={cn(
-                'absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping',
-                signal.dot
-              )}
-            />
-          )}
-          <span className={cn('relative inline-flex h-1.5 w-1.5 rounded-full', signal.dot)} />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-extrabold tracking-tight text-stone-900 dark:text-stone-50 truncate leading-tight">
-            {service.label}
-          </p>
-          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate mt-0.5')}>
-            {headline.label}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', signal.dot)} />
+            <p className="text-xs font-extrabold tracking-tight text-stone-900 dark:text-stone-50 truncate">
+              {service.label}
+            </p>
+          </div>
+          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate mt-1 ml-3.5')}>
+            {providerFor(service)}
           </p>
         </div>
-        <span
-          className={cn(
-            NUM,
-            'text-sm font-bold shrink-0',
-            alarming ? FAULT_TEXT : 'text-stone-900 dark:text-stone-50'
-          )}
-        >
-          {headline.value}
-        </span>
-      </div>
-    </Tip>
+        <p className="hidden sm:block min-w-0 text-[11px] font-medium text-stone-600 dark:text-stone-300 truncate">
+          {service.impact}
+        </p>
+        <div className="flex items-center justify-end gap-3 shrink-0">
+          <div className="text-right">
+            <p className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}>
+              {headline.value}
+            </p>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
+              {headline.label}
+            </p>
+          </div>
+          <span
+            className={cn(
+              'hidden md:inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5',
+              MICRO,
+              signal.pill
+            )}
+          >
+            <Icon className="w-2.5 h-2.5" />
+            {STATUS_LABEL[service.status]}
+          </span>
+          <ChevronDown
+            className={cn('h-4 w-4 text-stone-400 transition-transform', expanded && 'rotate-180')}
+          />
+        </div>
+      </button>
+
+      {expanded && <ServiceDetails service={service} metrics={metrics} />}
+    </div>
   );
 };
+
+const filterCountFor = (filterKey, total, problems, services) => {
+  if (filterKey === 'all') return total;
+  if (filterKey === 'attention') return problems.length;
+  return services.filter((service) => service.category === filterKey).length;
+};
+
+const ServiceDirectory = ({
+  services,
+  problems,
+  total,
+  serviceFilter,
+  serviceQuery,
+  filteredServices,
+  onFilterChange,
+  onQueryChange,
+}) => (
+  <section className="space-y-3 xl:order-1">
+    <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3">
+      <div>
+        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
+          <span className="w-4 h-px bg-stone-300 dark:bg-stone-700" />
+          Service directory
+        </h3>
+        <p className="mt-1.5 text-xs font-medium text-stone-600 dark:text-stone-300">
+          Find any AI provider, API, payment, content, or platform dependency.
+        </p>
+      </div>
+      <label className="relative block w-full lg:w-72">
+        <span className="sr-only">Search services</span>
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-stone-400" />
+        <input
+          type="search"
+          value={serviceQuery}
+          onChange={(event) => onQueryChange(event.target.value)}
+          placeholder="Search provider or service"
+          className="h-9 w-full rounded-md border border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] pl-9 pr-3 text-xs font-medium text-stone-800 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-400/50"
+        />
+      </label>
+    </div>
+
+    <div className="flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Filter services">
+      {SERVICE_FILTERS.map((filter) => (
+        <button
+          key={filter.key}
+          type="button"
+          aria-pressed={serviceFilter === filter.key}
+          onClick={() => onFilterChange(filter.key)}
+          className={cn(
+            MICRO,
+            'shrink-0 rounded-md border px-2.5 py-1.5 transition-colors',
+            serviceFilter === filter.key
+              ? 'border-stone-800 bg-stone-900 text-white dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950'
+              : 'border-stone-300 bg-white text-stone-600 hover:text-stone-900 dark:border-white/15 dark:bg-[#131315] dark:text-stone-300 dark:hover:text-white'
+          )}
+        >
+          {filter.label}{' '}
+          <span className={NUM}>{filterCountFor(filter.key, total, problems, services)}</span>
+        </button>
+      ))}
+    </div>
+
+    <div className="space-y-2">
+      {filteredServices.length > 0 ? (
+        filteredServices.map((service) => <ServiceRow key={service.key} service={service} />)
+      ) : (
+        <div className={cn(PANEL, 'px-4 py-10 text-center')}>
+          <p className="text-xs font-bold text-stone-700 dark:text-stone-200">No services match</p>
+          <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
+            Clear the search or choose another category.
+          </p>
+        </div>
+      )}
+    </div>
+  </section>
+);
 
 const PlatformHealthDashboard = ({
   maintenanceMode,
@@ -502,6 +733,8 @@ const PlatformHealthDashboard = ({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [serviceFilter, setServiceFilter] = useState('all');
+  const [serviceQuery, setServiceQuery] = useState('');
   const requestId = useRef(0);
 
   const load = useCallback(
@@ -565,28 +798,18 @@ const PlatformHealthDashboard = ({
     };
   }, [load]);
 
-  const { problems, grouped, counts, total, serviceLabels } = useMemo(() => {
-    const services = health?.services || [];
-    const bucket = { down: 0, degraded: 0, operational: 0, idle: 0 };
-
-    services.forEach((s) => {
-      if (s.status === 'down' || s.status === 'unconfigured') bucket.down += 1;
-      else if (s.status === 'degraded' || s.status === 'attention') bucket.degraded += 1;
-      else if (s.status === 'idle') bucket.idle += 1;
-      else bucket.operational += 1;
-    });
-
-    return {
-      problems: services.filter((s) => s.status !== 'operational' && s.status !== 'idle'),
-      grouped: services.reduce((acc, s) => {
-        (acc[s.category] ||= []).push(s);
-        return acc;
-      }, {}),
-      counts: bucket,
-      total: services.length,
-      serviceLabels: Object.fromEntries(services.map((service) => [service.key, service.label])),
-    };
-  }, [health]);
+  const { services, problems, counts, total, serviceLabels, incidentCounts } = useMemo(
+    () => summarizeHealth(health, incidents),
+    [health, incidents]
+  );
+  const filteredServices = useMemo(
+    () => filterServices(services, serviceFilter, serviceQuery),
+    [serviceFilter, serviceQuery, services]
+  );
+  const filteredIncidents = useMemo(
+    () => filterIncidents(incidents, filteredServices),
+    [filteredServices, incidents]
+  );
 
   if (loading) {
     return (
@@ -623,22 +846,7 @@ const PlatformHealthDashboard = ({
     );
   }
 
-  const allClear = counts.down === 0 && counts.degraded === 0;
-  const headline = allClear ? 'Nominal' : counts.down > 0 ? 'Fault' : 'Degraded';
-  const accent =
-    counts.down > 0
-      ? 'text-[rgb(var(--signal-fault))]'
-      : counts.degraded > 0
-        ? 'text-[rgb(var(--signal-warn))]'
-        : 'text-[rgb(var(--signal-ok))]';
-  const pct = (n) => (total > 0 ? (n / total) * 100 : 0);
-
-  const legend = [
-    { label: 'Fault', n: counts.down, cls: FAULT_BG },
-    { label: 'Degraded', n: counts.degraded, cls: WARN_BG },
-    { label: 'Nominal', n: counts.operational, cls: OK_BG },
-    { label: 'Idle', n: counts.idle, cls: IDLE_BG },
-  ];
+  const { allClear, headline, accent, pct, legend } = overviewFor(counts, total);
 
   return (
     <div className="space-y-5">
@@ -678,7 +886,7 @@ const PlatformHealthDashboard = ({
               <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-2">
                 {allClear
                   ? 'No user-facing failures detected in this window.'
-                  : problems.map((p) => p.label).join(' · ')}
+                  : `${problems.length} service${problems.length === 1 ? '' : 's'} need admin action. Start with learner-blocking faults, then reduce degraded fallbacks.`}
               </p>
             </div>
 
@@ -737,63 +945,83 @@ const PlatformHealthDashboard = ({
               {health?.generatedAt && new Date(health.generatedAt).toLocaleTimeString()}
             </span>
           </div>
+
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-lg border border-stone-200 dark:border-white/[0.07] bg-stone-200 dark:bg-white/[0.07]">
+            {[
+              { label: 'Blocking', value: counts.down, note: 'Unavailable or unconfigured' },
+              { label: 'Needs action', value: counts.degraded, note: 'Degraded or delayed' },
+              { label: 'Healthy', value: counts.operational, note: 'Operating normally' },
+              { label: 'No traffic', value: counts.idle, note: 'No requests in window' },
+            ].map((item) => (
+              <div key={item.label} className="bg-white/90 dark:bg-[#131315] px-3.5 py-3">
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{item.label}</p>
+                <p className={cn(NUM, 'mt-1 text-xl font-bold text-stone-900 dark:text-stone-50')}>
+                  {item.value}
+                </p>
+                <p className="mt-1 text-[10px] font-medium text-stone-500 dark:text-stone-400 leading-snug">
+                  {item.note}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Needs attention */}
-      {problems.length > 0 && (
-        <section className="space-y-2.5">
-          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
-            <span className={cn('w-4 h-px', FAULT_BG)} />
-            Needs attention
-          </h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {problems.map((service, i) => (
-              <ProblemPanel
-                key={service.key}
-                service={service}
-                index={i}
-                onRepaired={() => load({ silent: true })}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* All services */}
-      <section className="space-y-3.5">
-        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
-          <span className="w-4 h-px bg-stone-300 dark:bg-stone-700" />
-          All services
-        </h3>
-        {Object.entries(grouped).map(([category, services]) => {
-          const CatIcon = CATEGORY_ICON[category] || Activity;
-          return (
-            <div key={category} className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <CatIcon className="w-3 h-3 text-stone-500 dark:text-stone-400" />
-                <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-                  {CATEGORY_LABEL[category] || category}
-                </span>
-                <span className="flex-1 h-px bg-stone-200 dark:bg-white/[0.06]" />
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+        {/* Prioritised action queue stays visible without taking over the page. */}
+        {problems.length > 0 && (
+          <section className="space-y-3 xl:order-2 xl:sticky xl:top-4">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1">
+              <div>
+                <h3
+                  className={cn(
+                    MICRO,
+                    'text-stone-500 dark:text-stone-400 flex items-center gap-1.5'
+                  )}
+                >
+                  <span className={cn('w-4 h-px', FAULT_BG)} />
+                  Action queue
+                </h3>
+                <p className="mt-1.5 text-xs font-medium text-stone-600 dark:text-stone-300">
+                  Ordered by severity. Each item shows learner impact, evidence, owner, and a repair
+                  path.
+                </p>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2">
-                {services.map((service) => (
-                  <ServiceTile key={service.key} service={service} />
-                ))}
-              </div>
+              <span className={cn(NUM, 'text-xs font-bold text-stone-500 dark:text-stone-400')}>
+                {problems.length} open
+              </span>
             </div>
-          );
-        })}
-      </section>
+            <div className="space-y-2.5 xl:max-h-[760px] xl:overflow-y-auto xl:pr-1">
+              {problems.map((service, i) => (
+                <ProblemPanel
+                  key={service.key}
+                  service={service}
+                  index={i}
+                  incidentCount={incidentCounts[service.key] || 0}
+                  onRepaired={() => load({ silent: true })}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
-      {/* Diagnostics — still health telemetry, so it keeps the same eyebrow
-          pattern as "Needs attention" / "All services" above. Full width: a
-          squeezed half-column just wrapped every message onto three lines. */}
+        <ServiceDirectory
+          services={services}
+          problems={problems}
+          total={total}
+          serviceFilter={serviceFilter}
+          serviceQuery={serviceQuery}
+          filteredServices={filteredServices}
+          onFilterChange={setServiceFilter}
+          onQueryChange={setServiceQuery}
+        />
+      </div>
+
+      {/* Persisted incident evidence follows the same service filters. */}
       <section className="space-y-2.5">
         <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
           <span className="w-4 h-px bg-stone-300 dark:bg-stone-700" />
-          Recent errors
+          Incident evidence
         </h3>
         <div className={cn(PANEL, 'p-4')}>
           <div className="flex items-center justify-between mb-3">
@@ -801,7 +1029,7 @@ const PlatformHealthDashboard = ({
               Persisted operational incidents in this window
             </p>
             <span className={cn(NUM, 'text-[11px] font-bold text-stone-500 dark:text-stone-400')}>
-              {incidents.length}
+              {filteredIncidents.length}
             </span>
           </div>
           {incidentsError ? (
@@ -810,13 +1038,13 @@ const PlatformHealthDashboard = ({
                 Health status loaded, but incident details did not: {incidentsError}
               </p>
             </div>
-          ) : incidents.length === 0 ? (
+          ) : filteredIncidents.length === 0 ? (
             <p className="text-xs font-medium text-stone-500 dark:text-stone-400 py-8 text-center">
-              No recorded incidents in this window.
+              No recorded incidents match this service view.
             </p>
           ) : (
             <div className="space-y-px max-h-[280px] overflow-y-auto">
-              {incidents.map((incident, i) => (
+              {filteredIncidents.map((incident, i) => (
                 <div
                   key={`${incident.service}-${i}`}
                   className="flex items-start gap-2.5 py-2.5 border-b border-stone-100 dark:border-white/[0.05] last:border-0"

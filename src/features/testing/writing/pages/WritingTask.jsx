@@ -263,7 +263,7 @@ function WritingViewModeToggle({ viewMode, setViewMode }) {
   return (
     <div className="sticky top-0 z-40 bg-white/80 dark:bg-[#08080a]/85 backdrop-blur-md border-b border-[#e4e2f0] dark:border-white/[0.07] px-3 py-1.5 sm:px-4">
       <div className="flex items-center justify-center w-full">
-        <div className="flex items-center p-1 bg-[#f4f3fb] dark:bg-white/[0.04] rounded-full border border-[#e4e2f0] dark:border-white/[0.07] shadow-xs">
+        <div className="flex items-center rounded-full border border-[#e4e2f0] bg-[#f4f3fb] p-1 shadow-xs dark:border-white/[0.07] dark:bg-white/[0.04]">
           {tabs.map((tab) => {
             const isActive = viewMode === tab.id;
             return (
@@ -272,7 +272,7 @@ function WritingViewModeToggle({ viewMode, setViewMode }) {
                 type="button"
                 onClick={() => setViewMode(tab.id)}
                 className={cn(
-                  'group relative px-3 min-[480px]:px-3.5 sm:px-4.5 py-1.5 text-[11px] min-[480px]:text-xs sm:text-sm font-extrabold rounded-full transition-colors duration-200 flex-1 sm:flex-none text-center z-10 flex items-center justify-center',
+                  'group relative z-10 flex flex-1 items-center justify-center rounded-full px-3 py-1.5 text-[11px] font-extrabold text-center transition-colors duration-200 min-[480px]:px-3.5 min-[480px]:text-xs sm:px-4.5 sm:text-sm sm:flex-none',
                   isActive
                     ? 'text-[#5661e9] dark:text-white'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
@@ -281,7 +281,7 @@ function WritingViewModeToggle({ viewMode, setViewMode }) {
                 {isActive && (
                   <motion.div
                     layoutId="activeWritingTab"
-                    className="absolute inset-0 bg-white dark:bg-indigo-600 rounded-full shadow-xs border border-[#d2d7f8] dark:border-indigo-500/30 pointer-events-none -z-10"
+                    className="pointer-events-none absolute inset-0 -z-10 rounded-full border border-[#d2d7f8] bg-white shadow-xs dark:border-indigo-500/30 dark:bg-indigo-600"
                     transition={{ type: 'spring', stiffness: 450, damping: 35 }}
                   />
                 )}
@@ -305,7 +305,7 @@ function AnnotatedReviewPane({ feedback, writing, setWriting, focusAnnotation })
   );
 
   return (
-    <div className="px-1 pt-2 pb-6 sm:px-2 sm:pt-2.5" data-oid="j1tntdm">
+    <div className="px-1 pb-6 sm:px-2" data-oid="j1tntdm">
       <AnnotatedText
         text={feedback.originalSource || writing}
         annotations={feedback.annotations || []}
@@ -354,22 +354,8 @@ function WritingPaneBody({
   const isQuestionMode = hasFeedback && viewMode === 'question';
   const contentKey = isReviewMode ? 'review' : isQuestionMode ? 'question' : 'editor';
 
-  const [activeKey, setActiveKey] = useState(contentKey);
-  const [isFading, setIsFading] = useState(false);
-
-  useEffect(() => {
-    if (contentKey !== activeKey) {
-      setIsFading(true);
-      const timer = setTimeout(() => {
-        setActiveKey(contentKey);
-        setIsFading(false);
-      }, 150);
-      return () => clearTimeout(timer);
-    }
-  }, [contentKey, activeKey]);
-
-  const showReview = activeKey === 'review' && hasFeedback && Boolean(currentFeedback);
-  const showQuestion = activeKey === 'question' && hasFeedback;
+  const showReview = contentKey === 'review' && hasFeedback && Boolean(currentFeedback);
+  const showQuestion = contentKey === 'question' && hasFeedback;
 
   let content;
   if (showReview) {
@@ -406,13 +392,19 @@ function WritingPaneBody({
   }
 
   return (
-    <div
-      className={cn(
-        'flex flex-1 min-h-0 flex-col transition-opacity duration-150 ease-in-out',
-        isFading ? 'opacity-0' : 'opacity-100'
-      )}
-    >
-      {content}
+    <div className="flex min-h-0 flex-1 flex-col px-1 pt-2 pb-6 sm:px-2 sm:pt-2.5">
+      <AnimatePresence initial={false} mode="wait">
+        <motion.div
+          key={contentKey}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          {content}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

@@ -12,8 +12,8 @@ export default function SpeakingReportSummary({ finalEvaluation, pronunciationBr
   const summary = useMemo(() => buildSpeakingReportSummary(finalEvaluation), [finalEvaluation]);
 
   return (
-    <div className="animate-in space-y-4 fade-in slide-in-from-bottom-5 duration-700">
-      <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-12 sm:gap-4">
+    <div className="animate-in space-y-3 fade-in slide-in-from-bottom-5 duration-700">
+      <div className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-12 sm:gap-3">
         <OverallScoreRing
           overallScore={summary.overallScore}
           bandInfo={summary.bandInfo}
@@ -29,7 +29,7 @@ export default function SpeakingReportSummary({ finalEvaluation, pronunciationBr
 
       <PartByPartSection parts={summary.parts} />
 
-      <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2 sm:gap-5">
+      <div className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-2 sm:gap-3">
         <StrengthsSection conciseStrengths={summary.strengths} />
         <ImprovementsSection conciseImprovements={summary.improvements} />
       </div>

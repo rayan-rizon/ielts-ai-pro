@@ -1,20 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { m } from 'framer-motion';
-import { Flame, Search, Sparkles, Clock, Trophy, X } from 'lucide-react';
+import { Flame, Search, Sparkles, Clock, X } from 'lucide-react';
 import { useLeaderboard } from '@/features/gamification/hooks/useLeaderboard';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Empty,
-  IconChip,
-  MICRO,
-  MUTED,
-  NUM,
-  PANEL,
-  Pill,
-} from '@/features/dashboard/components/primitives';
+import { Empty, MICRO, MUTED, NUM, PANEL, Pill } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
 import Podium from '../components/Podium';
 import LeaderboardRow from '../components/LeaderboardRow';
@@ -88,19 +80,16 @@ export default function Leaderboard() {
           variants={FADE_UP}
           className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
         >
-          <div className="flex items-center gap-3">
-            <IconChip icon={Trophy} tone="amber" size="lg" />
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-                  Global leaderboard
-                </h1>
-                <Pill tone="amber">Top learners</Pill>
-              </div>
-              <p className={cn('mt-0.5 text-sm font-medium', MUTED)}>
-                Compete with IELTS performers worldwide and rise through the ranks.
-              </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                Global leaderboard
+              </h1>
+              <Pill tone="amber">Top learners</Pill>
             </div>
+            <p className={cn('mt-0.5 text-sm font-medium', MUTED)}>
+              Compete with IELTS performers worldwide and rise through the ranks.
+            </p>
           </div>
 
           <div className="inline-flex items-center gap-1 rounded-full border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-white/[0.04]">

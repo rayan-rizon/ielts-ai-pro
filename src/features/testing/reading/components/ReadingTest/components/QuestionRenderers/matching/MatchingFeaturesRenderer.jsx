@@ -11,12 +11,12 @@ function FeaturesBox({ matchingFeatures }) {
 
   return (
     <div
-      className="border border-slate-200 dark:border-slate-800 py-4 px-6 bg-white dark:bg-slate-900/40 mb-6 rounded-xl shadow-sm w-full max-w-3xl mx-auto relative overflow-hidden"
+      className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] dark:border-white/[0.08] dark:bg-white/[0.03] py-3.5 px-5 mb-3 w-full max-w-3xl mx-auto"
       data-oid="9j48.ng"
     >
       {boxTitle !== '' && (
         <h4
-          className="font-bold text-center mb-3 text-foreground text-lg tracking-tight border-b border-slate-100 dark:border-slate-800 pb-2 uppercase"
+          className="font-bold text-center mb-2.5 text-foreground text-sm tracking-tight border-b border-[#ebeaf7] dark:border-white/[0.08] pb-2 uppercase"
           data-oid="tk5xf46"
         >
           {boxTitle || 'List of Features'}

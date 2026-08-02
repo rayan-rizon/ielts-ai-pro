@@ -25,7 +25,7 @@ export default function DeepDiveQuestionContent({ item }) {
       <div className="space-y-2.5">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+          <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
             Your Response
           </span>
         </div>
@@ -39,11 +39,11 @@ export default function DeepDiveQuestionContent({ item }) {
         <div className="space-y-2.5 relative group/drift mt-4">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">
               Topic Drift Detected
             </span>
           </div>
-          <div className="bg-amber-50/50 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-500/20 dark:border-amber-500/20">
+          <div className="bg-amber-50/50 dark:bg-[#171719] p-4 rounded-xl border border-amber-500/20 dark:border-white/[0.10]">
             <p className="text-[13px] text-amber-900 dark:text-amber-100 font-medium leading-relaxed">
               {item.topicDrift}
             </p>
@@ -56,7 +56,7 @@ export default function DeepDiveQuestionContent({ item }) {
         <div className="space-y-3 mt-4">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-600 dark:text-rose-400">
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-rose-600 dark:text-rose-400">
               Grammar & Vocabulary Errors ({item.grammaticalErrors.length})
             </span>
           </div>
@@ -73,11 +73,11 @@ export default function DeepDiveQuestionContent({ item }) {
         <div className="space-y-2.5 relative group/suggest">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
               Improved sample response
             </span>
           </div>
-          <div className="bg-emerald-50/50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-500/20 dark:border-emerald-500/20 relative group-hover/suggest:border-emerald-500/40 transition-colors">
+          <div className="bg-emerald-50/50 dark:bg-[#171719] p-4 rounded-xl border border-emerald-500/20 dark:border-white/[0.10] relative group-hover/suggest:border-emerald-500/40 transition-colors">
             <p className="text-[13px] md:text-[14px] text-emerald-950 dark:text-emerald-50 font-semibold leading-relaxed">
               {item.suggestedAnswer}
             </p>
@@ -87,11 +87,11 @@ export default function DeepDiveQuestionContent({ item }) {
         <div className="space-y-2.5 relative group/feedback">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-600 dark:text-rose-400">
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-rose-600 dark:text-rose-400">
               Examiner Feedback
             </span>
           </div>
-          <div className="bg-rose-50/70 dark:bg-rose-950/30 p-4 rounded-xl border border-rose-200/80 dark:border-rose-900/40 relative group-hover/feedback:border-rose-400 transition-colors">
+          <div className="bg-rose-50/70 dark:bg-[#191416] p-4 rounded-xl border border-rose-200/80 dark:border-rose-500/20 relative group-hover/feedback:border-rose-400 transition-colors">
             <p className="text-[13px] md:text-[14px] text-slate-800 dark:text-zinc-100 font-semibold leading-relaxed">
               {item.feedback}
             </p>

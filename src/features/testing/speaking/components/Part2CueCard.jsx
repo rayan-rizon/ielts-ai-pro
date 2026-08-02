@@ -28,8 +28,8 @@ const Part2CueCard = React.memo(({ cueCardTopic }) => {
       className="mx-auto w-full max-w-2xl"
       aria-label="Part 2 topic card"
     >
-      <div className="overflow-hidden rounded-3xl border border-rose-500/20 bg-gradient-to-b from-white to-[#faf9ff] shadow-[0_22px_55px_-36px_hsl(350_80%_50%/0.45)] dark:from-[#131315] dark:to-[#131315]">
-        <div className="flex items-center justify-between gap-4 border-b border-rose-500/10 bg-rose-500/[0.045] px-5 py-4 sm:px-6">
+      <div className="overflow-hidden rounded-xl border border-rose-500/20 bg-white shadow-sm dark:bg-[#131315]">
+        <div className="flex items-center justify-between gap-4 border-b border-rose-500/10 bg-rose-500/[0.045] px-4 py-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500 text-white shadow-md shadow-rose-500/20">
               <FileText className="h-5 w-5" aria-hidden="true" />
@@ -44,7 +44,7 @@ const Part2CueCard = React.memo(({ cueCardTopic }) => {
           </Badge>
         </div>
 
-        <div className="space-y-5 p-5 sm:p-6">
+        <div className="space-y-4 p-4 sm:p-5">
           <div>
             <p className={cn(MICRO, MUTED, 'mb-2')}>Describe</p>
             <p className="text-lg font-extrabold leading-7 tracking-tight text-slate-900 dark:text-slate-50 sm:text-xl">
@@ -53,8 +53,8 @@ const Part2CueCard = React.memo(({ cueCardTopic }) => {
           </div>
 
           {talkingPoints.length > 0 && (
-            <div className="border-t border-[#e4e2f0] pt-4 dark:border-white/[0.07]">
-              <div className="mb-3 flex items-center gap-2">
+            <div className="border-t border-[#e4e2f0] pt-3.5 dark:border-white/[0.07]">
+              <div className="mb-2.5 flex items-center gap-2">
                 <ListChecks className="h-4 w-4 text-rose-500" aria-hidden="true" />
                 <p className={cn(MICRO, MUTED)}>You should say</p>
               </div>

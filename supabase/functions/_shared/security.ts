@@ -333,25 +333,28 @@ export async function finalizeApiUsage(
 ): Promise<boolean> {
   if (!reservationId) return false;
 
-  try {
-    const { data, error } = await supabase.rpc('finalize_ai_api_usage', {
-      p_reservation_id: reservationId,
-      p_tokens_used: Math.max(0, Math.round(tokensUsed)),
-      p_cached: cached,
-      p_metadata: metadata,
-      p_status: status,
-    });
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      const { data, error } = await supabase.rpc('finalize_ai_api_usage', {
+        p_reservation_id: reservationId,
+        p_tokens_used: Math.max(0, Math.round(tokensUsed)),
+        p_cached: cached,
+        p_metadata: metadata,
+        p_status: status,
+      });
 
-    if (error) {
-      console.warn('Failed to finalize AI usage reservation:', error);
-      return false;
+      if (!error && data === true) return true;
+      console.warn(`Failed to finalize AI usage reservation (attempt ${attempt}/3):`, error);
+    } catch (err) {
+      console.warn(`AI usage finalization exception (attempt ${attempt}/3):`, err);
     }
 
-    return data === true;
-  } catch (err) {
-    console.warn('AI usage finalization exception:', err);
-    return false;
+    if (attempt < 3) {
+      await new Promise((resolve) => setTimeout(resolve, attempt * 50));
+    }
   }
+
+  return false;
 }
 
 /**

@@ -1,6 +1,12 @@
 import React from 'react';
 import { Lightbulb } from 'lucide-react';
 import { formatInstructionHTML } from '@/lib/utils';
+import { cn } from '@/lib/cn';
+import {
+  PANEL_CARD,
+  INSTRUCTION_RAIL,
+  INSTRUCTION_ICON_CHIP,
+} from '@/features/testing/shared/questionUiTokens';
 import QuestionRendererDispatcher from './QuestionRendererDispatcher';
 
 export default function QuestionGroupCard({
@@ -18,18 +24,21 @@ export default function QuestionGroupCard({
   return (
     <div className="mb-3" data-oid=".ffofwm">
       <div
-        className="relative bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border border-[#e4e2f0] dark:border-white/[0.07] rounded-xl shadow-2xs overflow-hidden transition-all duration-200"
+        className={cn(
+          PANEL_CARD,
+          'relative shadow-2xs overflow-hidden transition-all duration-200'
+        )}
         data-oid="yfsdv5u"
       >
         {hasInstructions && (
           <div
-            className="px-3.5 py-2.5 bg-[#5a63df]/[0.06] dark:bg-[#5a63df]/10 border-b border-[#5a63df]/15 dark:border-[#5a63df]/20 flex items-start gap-2.5"
+            className="relative px-3.5 py-2.5 bg-[#5a63df]/[0.05] dark:bg-[#131315] border-b border-[#5a63df]/10 dark:border-[#5a63df]/25 flex items-start gap-2.5"
             data-oid="6dw9uti"
           >
-            <Lightbulb
-              className="w-4 h-4 text-[#5a63df] dark:text-[#a9afff] mt-0.5 shrink-0"
-              data-oid="3h83xkd"
-            />
+            <span className={INSTRUCTION_RAIL} aria-hidden="true" />
+            <div className={cn('p-1 rounded-lg shrink-0 mt-0.5', INSTRUCTION_ICON_CHIP)}>
+              <Lightbulb className="w-3.5 h-3.5" data-oid="3h83xkd" />
+            </div>
             <div
               className="text-[14px] font-medium text-slate-700 dark:text-slate-300 leading-relaxed"
               dangerouslySetInnerHTML={{
@@ -44,7 +53,7 @@ export default function QuestionGroupCard({
           <div className="px-2.5 pt-2" data-oid="z15c3c.">
             <div className="flex items-center justify-center gap-3 mb-2" data-oid="1n1k.e1">
               <div
-                className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"
+                className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-white/[0.10] to-transparent"
                 data-oid="nhsoa0s"
               />
 
@@ -55,7 +64,7 @@ export default function QuestionGroupCard({
                 {group.mcq_title}
               </h3>
               <div
-                className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"
+                className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-white/[0.10] to-transparent"
                 data-oid="nu3tn.2"
               />
             </div>

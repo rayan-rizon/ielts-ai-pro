@@ -28,7 +28,7 @@ const NotesCompletionRenderer = React.memo(
     // Helper for input styles
     const getInputStyles = (isCorrect, value) => {
       let styles =
-        'inline-flex w-32 h-8 px-2 py-1 text-center border rounded-md transition-colors text-[15px]';
+        'inline-flex w-28 h-7 px-2 py-0.5 text-center border rounded-md transition-colors text-[15px]';
       const showValidation = disabled && value?.trim() !== '';
 
       if (disabled) {
@@ -36,18 +36,18 @@ const NotesCompletionRenderer = React.memo(
         if (showValidation) {
           if (isCorrect) {
             styles +=
-              ' bg-green-100 dark:bg-green-900/30 border-green-500 text-green-800 dark:text-green-300 font-semibold';
+              ' bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-500 dark:border-emerald-500/70 text-emerald-950 dark:text-emerald-200 font-semibold';
           } else {
             styles +=
-              ' bg-red-100 dark:bg-red-900/30 border-red-500 text-red-800 dark:text-red-300 font-semibold';
+              ' bg-rose-50/90 dark:bg-rose-950/40 border-rose-500 dark:border-rose-500/70 text-rose-950 dark:text-rose-200 font-semibold';
           }
         } else {
           styles +=
-            ' bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-muted-foreground';
+            ' bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-muted-foreground';
         }
       } else {
         styles +=
-          ' bg-white/70 dark:bg-slate-950/40 border-slate-300/70 dark:border-slate-700/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-slate-600/80';
+          ' bg-white/70 dark:bg-white/[0.04] border-slate-300/70 dark:border-white/[0.08] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-white/[0.14]';
       }
       return styles;
     };

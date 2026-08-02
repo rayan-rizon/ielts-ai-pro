@@ -53,11 +53,11 @@ const QuestionInput = memo(function QuestionInput({
 
           let circleStatus = 'default';
           let inputClass =
-            'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground hover:border-slate-400/80 dark:hover:border-slate-600/80 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50';
+            'bg-white/70 dark:bg-white/[0.04] border border-slate-300/70 dark:border-white/[0.08] text-foreground hover:border-slate-400/80 dark:hover:border-white/[0.14] focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50';
 
           if (disabled) {
             inputClass =
-              'bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-foreground'; // fallback
+              'bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-foreground'; // fallback
             if (validation) {
               if (validation.isCorrect === true) {
                 circleStatus = 'correct';
@@ -94,7 +94,7 @@ const QuestionInput = memo(function QuestionInput({
                 disabled={disabled}
                 placeholder="answer"
                 className={cn(
-                  'w-32 h-8 px-2 py-1 text-center text-[15px] rounded-lg transition-all duration-200 shadow-sm',
+                  'w-28 h-7 px-2 py-0.5 text-center text-[15px] rounded-lg transition-all duration-200 shadow-sm',
                   inputClass,
                   'focus-visible:outline-none focus-visible:ring-1'
                 )}

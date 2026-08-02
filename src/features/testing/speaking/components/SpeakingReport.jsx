@@ -114,7 +114,7 @@ export default function SpeakingReport({
   return (
     <div
       data-testid="speaking-report-scroll"
-      className="custom-scrollbar relative isolate h-full min-h-0 overflow-y-auto overscroll-contain bg-[#f7f6fd] px-4 py-4 dark:bg-[#08080a] sm:px-6 sm:py-6 lg:px-8 lg:py-8"
+      className="custom-scrollbar relative isolate h-full min-h-0 overflow-y-auto overscroll-contain bg-[#f8f8fb] px-3 py-3 dark:bg-[#08080a] sm:px-4 sm:py-4 lg:px-5 lg:py-5"
     >
       {showConfetti && (
         <Confetti
@@ -143,12 +143,12 @@ export default function SpeakingReport({
         key="report"
         className="relative mx-auto w-full max-w-[1280px]"
       >
-        <section className="overflow-hidden rounded-2xl border border-[#e4e2f0] bg-gradient-to-b from-white to-[#faf9ff] shadow-xl shadow-rose-950/5 dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315]">
+        <section className="overflow-hidden rounded-xl border border-[#e4e2f0] bg-white shadow-lg shadow-rose-950/5 dark:border-white/[0.10] dark:bg-[#131315]">
           {/* Header Banner */}
-          <header className="relative overflow-hidden bg-gradient-to-r from-rose-500 via-rose-500 to-rose-600 px-5 pb-5 pt-4 text-white sm:px-8 lg:px-10 lg:pb-6 lg:pt-5">
+          <header className="relative overflow-hidden bg-gradient-to-r from-rose-500 via-rose-500 to-rose-600 px-4 pb-4 pt-3 text-white sm:px-6 sm:pb-5 lg:px-7 lg:pb-5 lg:pt-4">
             <HeaderWaveBackground />
 
-            <div className="relative mb-3 flex items-center justify-between gap-4">
+            <div className="relative mb-2.5 flex items-center justify-between gap-4">
               <Button
                 asChild
                 variant="ghost"
@@ -164,7 +164,7 @@ export default function SpeakingReport({
                 type="button"
                 onClick={handleDownloadPdf}
                 disabled={isDownloadingPdf}
-                className="h-9 rounded-xl border border-white/30 bg-white/95 px-3.5 text-xs font-black text-rose-700 shadow-lg shadow-rose-950/20 hover:bg-white hover:scale-105 active:scale-95 disabled:opacity-70 transition-all sm:px-4.5"
+                className="h-9 rounded-xl border border-white/30 bg-white/95 px-3.5 text-xs font-extrabold text-rose-700 shadow-lg shadow-rose-950/20 hover:bg-white hover:scale-105 active:scale-95 disabled:opacity-70 transition-all sm:px-4.5"
               >
                 {isDownloadingPdf ? (
                   <LoaderCircle className="mr-2 h-3.5 w-3.5 animate-spin" />
@@ -178,12 +178,12 @@ export default function SpeakingReport({
               </Button>
             </div>
 
-            <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1fr)_13rem] lg:items-end">
+            <div className="relative grid gap-3 lg:grid-cols-[minmax(0,1fr)_13rem] lg:items-end">
               <div>
-                <h1 className="text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
+                <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
                   Speaking Report
                 </h1>
-                <div className="mt-4 flex flex-wrap items-center gap-3.5">
+                <div className="mt-3 flex flex-wrap items-center gap-2.5">
                   <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-4 py-1.5 text-xs font-bold backdrop-blur-md shadow-sm">
                     <GraduationCap className="h-4 w-4 text-white" />
                     {testTitle || 'IELTS Academic'}
@@ -201,7 +201,7 @@ export default function SpeakingReport({
           </header>
 
           {/* Main Content Area */}
-          <div className="space-y-4 p-4 sm:p-5 lg:p-6">
+          <div className="space-y-3 p-3 sm:p-4 lg:p-5">
             <SpeakingReportSummary
               finalEvaluation={finalEvaluation}
               pronunciationBreakdown={pronunciationBreakdown}
@@ -215,11 +215,11 @@ export default function SpeakingReport({
             />
 
             {/* Bottom Footer Actions Bar */}
-            <div className="flex flex-col justify-between gap-4 border-t border-[#e4e2f0] pt-6 dark:border-white/[0.07] sm:flex-row sm:items-center">
+            <div className="flex flex-col justify-between gap-3 border-t border-[#e4e2f0] pt-4 dark:border-white/[0.07] sm:flex-row sm:items-center">
               <Button
                 asChild
                 variant="outline"
-                className="h-11 rounded-xl border-[#e4e2f0] px-6 text-xs font-black uppercase tracking-wider hover:bg-[#f4f3fb] dark:border-white/[0.07] dark:hover:bg-white/[0.06] transition-all"
+                className="h-11 rounded-xl border-[#e4e2f0] px-6 text-xs font-extrabold uppercase tracking-wider hover:bg-[#f4f3fb] dark:border-white/[0.07] dark:hover:bg-white/[0.06] transition-all"
               >
                 <Link to="/speaking">
                   <BookOpen className="mr-2.5 h-4 w-4" />
@@ -228,7 +228,7 @@ export default function SpeakingReport({
               </Button>
               <Button
                 asChild
-                className="h-11 rounded-xl bg-rose-600 px-8 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-rose-600/25 hover:bg-rose-700 hover:scale-105 active:scale-95 transition-all"
+                className="h-11 rounded-xl bg-rose-600 px-8 text-xs font-extrabold uppercase tracking-wider text-white shadow-lg shadow-rose-600/25 hover:bg-rose-700 hover:scale-105 active:scale-95 transition-all"
               >
                 <Link to="/dashboard">
                   <Home className="mr-2.5 h-4 w-4" />

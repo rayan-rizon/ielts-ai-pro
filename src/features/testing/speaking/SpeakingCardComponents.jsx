@@ -225,7 +225,7 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, score }) {
       <span
         className={cn(
           NUM,
-          'shrink-0 rounded bg-[rgb(var(--signal-ok)/0.08)] px-1.5 py-0.5 text-[10px] font-black text-[rgb(var(--signal-ok))]'
+          'shrink-0 rounded bg-[rgb(var(--signal-ok)/0.08)] px-1.5 py-0.5 text-[10px] font-extrabold text-[rgb(var(--signal-ok))]'
         )}
       >
         Band {typeof score === 'number' ? score.toFixed(1) : score}
@@ -234,7 +234,7 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, score }) {
   }
   if (isResuming) {
     return (
-      <span className="shrink-0 rounded bg-[#5a63df]/[0.08] px-1.5 py-0.5 text-[10px] font-black text-[#5a63df] dark:text-[#a9afff]">
+      <span className="shrink-0 rounded bg-[#5a63df]/[0.08] px-1.5 py-0.5 text-[10px] font-extrabold text-[#5a63df] dark:text-[#a9afff]">
         In Progress
       </span>
     );

@@ -35,6 +35,8 @@ import {
 
 declare const Deno: any;
 
+// Provider routing revision: latency-sorted OpenRouter with reasoning disabled.
+
 const MODEL = DEEPSEEK_TEXT_MODEL;
 const ALLOWED_TRIGGERS = new Set([
   'first_plan',

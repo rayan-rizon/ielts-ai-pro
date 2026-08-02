@@ -10,7 +10,7 @@ function SingleMatchingItem({ question, answers, onAnswerChange, isFinished, val
   const validation = validationMap?.[question.id];
   const isCorrect = validation?.isCorrect === true;
   const baseStyle =
-    'bg-white/70 dark:bg-slate-950/40 border-slate-300/70 dark:border-slate-700/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-slate-600/80 transition-all shadow-sm ';
+    'bg-white/70 dark:bg-white/[0.04] border-slate-300/70 dark:border-white/[0.08] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-white/[0.14] transition-all ';
   const inputStyle = getValidationInputStyle(isFinished, value, isCorrect, baseStyle);
 
   return (
@@ -65,7 +65,7 @@ function GenericMatchingOptionItem({
 
   return (
     <div
-      className="flex items-center gap-2 px-2 py-1.5 bg-white/60 dark:bg-slate-950/30 rounded-md border border-slate-200/60 dark:border-slate-700/60 hover:border-slate-300/70 dark:hover:border-slate-600/80 transition-colors duration-150"
+      className="flex items-center gap-2 px-2 py-1.5 bg-[#fbfbfe] dark:bg-white/[0.03] rounded-md border border-[#ebeaf7] dark:border-white/[0.08] hover:border-slate-300/70 dark:hover:border-white/[0.14] transition-colors duration-150"
       data-oid="gey:do2"
     >
       <QuestionNumberCircle
@@ -109,7 +109,7 @@ const GenericMatchingRenderer = memo(function GenericMatchingRenderer(props) {
   }
 
   const baseInputStyle =
-    'w-20 h-7 text-center text-sm border rounded-md transition-colors bg-white/70 dark:bg-slate-950/40 border-slate-300/70 dark:border-slate-700/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-slate-600/80 transition-all shadow-sm';
+    'w-20 h-7 text-center text-sm border rounded-md transition-colors bg-white/70 dark:bg-white/[0.04] border-slate-300/70 dark:border-white/[0.08] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-white/[0.14] transition-all';
 
   return (
     <div className="space-y-1.5" data-oid="ilfhrc9">

@@ -28,7 +28,7 @@ const ReadingTestAppearance = ({ textSize, setTextSize, theme, setTheme }) => {
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 shadow-md shadow-slate-900/10 dark:shadow-black/40 text-slate-800 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500 dark:hover:border-indigo-400 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center cursor-pointer"
+          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-white text-slate-800 shadow-md shadow-slate-900/10 transition-all duration-200 hover:scale-105 hover:border-indigo-500 hover:text-indigo-600 active:scale-95 dark:border-white/[0.14] dark:bg-white/[0.05] dark:text-slate-200 dark:shadow-black/40 dark:hover:border-[#8f97ff]/60 dark:hover:bg-[#8f97ff]/[0.1] dark:hover:text-[#cdd1ff] sm:h-10 sm:w-10"
           title="Appearance Settings"
           data-oid="h34scq9"
         >
@@ -37,16 +37,16 @@ const ReadingTestAppearance = ({ textSize, setTextSize, theme, setTheme }) => {
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-72 sm:w-76 p-3 rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#0B0C1A]/95 backdrop-blur-2xl shadow-xl shadow-slate-900/10 dark:shadow-black/60 mr-2 sm:mr-3 z-50 transition-all"
+        className="z-50 mr-2 w-72 rounded-xl border border-slate-200/80 bg-white/95 p-3 shadow-xl shadow-slate-900/10 backdrop-blur-2xl transition-all dark:border-white/[0.12] dark:bg-[#131315]/95 dark:shadow-black/60 sm:mr-3 sm:w-76"
         align="end"
         onOpenAutoFocus={(e) => e.preventDefault()}
         data-oid="dcyo2lz"
       >
         <div className="space-y-3" onClick={(e) => e.stopPropagation()} data-oid="z9fnmwb">
           {/* Header */}
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800/80">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2 dark:border-white/[0.1]">
             <div className="flex items-center gap-2">
-              <div className="p-1 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40 shrink-0">
+              <div className="shrink-0 rounded-md border border-indigo-100 bg-indigo-50 p-1 text-indigo-600 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.12] dark:text-[#afb5ff]">
                 <Type className="w-3.5 h-3.5" />
               </div>
               <h4 className="font-bold text-xs text-slate-900 dark:text-white leading-none">
@@ -66,7 +66,7 @@ const ReadingTestAppearance = ({ textSize, setTextSize, theme, setTheme }) => {
                   type="button"
                   onClick={handleDecreaseSize}
                   disabled={textSize === 'text-[15px]'}
-                  className="p-0.5 rounded text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition-colors"
+                  className="rounded p-0.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-indigo-600 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-[#afb5ff]"
                   title="Decrease size"
                 >
                   <Minus className="w-3 h-3" />
@@ -75,7 +75,7 @@ const ReadingTestAppearance = ({ textSize, setTextSize, theme, setTheme }) => {
                   type="button"
                   onClick={handleIncreaseSize}
                   disabled={textSize === 'text-lg'}
-                  className="p-0.5 rounded text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition-colors"
+                  className="rounded p-0.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-indigo-600 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-[#afb5ff]"
                   title="Increase size"
                 >
                   <Plus className="w-3 h-3" />
@@ -84,7 +84,7 @@ const ReadingTestAppearance = ({ textSize, setTextSize, theme, setTheme }) => {
             </div>
 
             {/* Segmented Control */}
-            <div className="grid grid-cols-3 gap-1 p-0.5 bg-slate-100/80 dark:bg-slate-800/60 rounded-lg border border-slate-200/60 dark:border-slate-700/50">
+            <div className="grid grid-cols-3 gap-1 rounded-lg border border-slate-200/60 bg-slate-100/80 p-0.5 dark:border-white/[0.1] dark:bg-white/[0.06]">
               {sizeOptions.map((option) => {
                 const isActive = textSize === option.key;
                 return (
@@ -93,10 +93,10 @@ const ReadingTestAppearance = ({ textSize, setTextSize, theme, setTheme }) => {
                     type="button"
                     onClick={() => setTextSize(option.key)}
                     className={cn(
-                      'flex flex-col items-center justify-center py-1 px-1 rounded-md text-[11px] font-semibold transition-all duration-200 select-none',
+                      'flex select-none flex-col items-center justify-center rounded-md px-1 py-1 text-[11px] font-semibold transition-all duration-200',
                       isActive
-                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-2xs border border-slate-200/80 dark:border-slate-600'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                        ? 'border border-slate-200/80 bg-white text-indigo-600 shadow-2xs dark:border-white/[0.14] dark:bg-white/[0.12] dark:text-[#cdd1ff]'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.05] dark:hover:text-white'
                     )}
                   >
                     <span
@@ -127,8 +127,8 @@ const ReadingTestAppearance = ({ textSize, setTextSize, theme, setTheme }) => {
                 className={cn(
                   'flex flex-col items-center gap-1 p-1.5 rounded-lg border transition-all duration-200 relative group cursor-pointer',
                   theme === 'light'
-                    ? 'border-indigo-500 bg-indigo-50/40 dark:bg-indigo-950/30 ring-1 ring-indigo-500/20 shadow-2xs'
-                    : 'border-slate-200 dark:border-slate-700/70 hover:border-slate-300 dark:hover:border-slate-600 hover:scale-[1.02]'
+                    ? 'border-indigo-500 bg-indigo-50/40 dark:border-[#8f97ff] dark:bg-[#8f97ff]/[0.1] dark:ring-1 dark:ring-[#8f97ff]/25 shadow-2xs'
+                    : 'border-slate-200 hover:scale-[1.02] dark:border-white/[0.12] dark:hover:border-[#8f97ff]/35'
                 )}
               >
                 {theme === 'light' && (
@@ -156,7 +156,7 @@ const ReadingTestAppearance = ({ textSize, setTextSize, theme, setTheme }) => {
                   'flex flex-col items-center gap-1 p-1.5 rounded-lg border transition-all duration-200 relative group cursor-pointer',
                   theme === 'sepia'
                     ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-950/30 ring-1 ring-amber-500/20 shadow-2xs'
-                    : 'border-slate-200 dark:border-slate-700/70 hover:border-slate-300 dark:hover:border-slate-600 hover:scale-[1.02]'
+                    : 'border-slate-200 hover:scale-[1.02] dark:border-white/[0.12] dark:hover:border-amber-400/35'
                 )}
               >
                 {theme === 'sepia' && (
@@ -183,8 +183,8 @@ const ReadingTestAppearance = ({ textSize, setTextSize, theme, setTheme }) => {
                 className={cn(
                   'flex flex-col items-center gap-1 p-1.5 rounded-lg border transition-all duration-200 relative group cursor-pointer',
                   theme === 'dark'
-                    ? 'border-indigo-500 bg-slate-800/80 ring-1 ring-indigo-500/20 shadow-2xs'
-                    : 'border-slate-200 dark:border-slate-700/70 hover:border-slate-300 dark:hover:border-slate-600 hover:scale-[1.02]'
+                    ? 'border-indigo-500 bg-slate-800/80 shadow-2xs dark:border-[#8f97ff] dark:bg-[#8f97ff]/[0.1] dark:ring-1 dark:ring-[#8f97ff]/25'
+                    : 'border-slate-200 hover:scale-[1.02] dark:border-white/[0.12] dark:hover:border-[#8f97ff]/35'
                 )}
               >
                 {theme === 'dark' && (
@@ -192,7 +192,7 @@ const ReadingTestAppearance = ({ textSize, setTextSize, theme, setTheme }) => {
                     <Check className="w-2 h-2 stroke-[3]" />
                   </span>
                 )}
-                <div className="w-full h-7 bg-[#0f172a] border border-slate-700 rounded-md shadow-2xs flex flex-col justify-center px-1.5 gap-0.5 overflow-hidden">
+                <div className="flex w-full flex-col justify-center gap-0.5 overflow-hidden rounded-md border border-white/[0.14] bg-[#0f1118] px-1.5 shadow-2xs dark:border-white/[0.16]">
                   <div className="h-0.5 w-full bg-slate-600/80 rounded-full" />
                   <div className="h-0.5 w-3/4 bg-slate-700 rounded-full" />
                 </div>

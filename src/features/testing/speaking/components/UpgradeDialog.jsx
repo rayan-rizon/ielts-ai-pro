@@ -29,7 +29,7 @@ const UpgradeDialog = React.memo(({ open, onOpenChange, authUser, isExitingRef }
           </div>
 
           <div className="relative space-y-2 z-10">
-            <AlertDialogTitle className="text-2xl font-black tracking-tight text-white">
+            <AlertDialogTitle className="text-2xl font-extrabold tracking-tight text-white">
               Speaking Limit Reached
             </AlertDialogTitle>
             <AlertDialogDescription className="text-rose-200 text-sm font-medium px-4 leading-relaxed">

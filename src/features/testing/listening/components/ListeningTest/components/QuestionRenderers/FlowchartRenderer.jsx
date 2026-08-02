@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowDown } from 'lucide-react';
 import GapFillContent from '../GapFillContent';
 import { cn } from '@/lib/cn';
+import { ACCENT_TEXT } from '@/features/testing/shared/questionUiTokens';
 
 const FlowchartRenderer = ({
   question,
@@ -38,7 +39,7 @@ const FlowchartRenderer = ({
                     key={idx}
                     className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 flex gap-2 items-baseline"
                   >
-                    <span className="shrink-0 w-4 font-bold text-primary">{label}.</span>
+                    <span className={cn('shrink-0 w-4 font-bold', ACCENT_TEXT)}>{label}.</span>
                     <span>{opt}</span>
                   </li>
                 );

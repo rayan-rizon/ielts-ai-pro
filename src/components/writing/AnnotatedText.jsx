@@ -172,27 +172,27 @@ const TooltipHeader = ({ typeMeta, severityStyle, severity, onClose }) => {
   const Icon = typeMeta.icon;
 
   return (
-    <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-[#e2e5f6] dark:border-white/10">
+    <div className="mb-2 flex items-center justify-between gap-1.5 border-b border-[#e2e5f6] pb-2 dark:border-white/[0.1]">
       <div className="flex items-center gap-2 min-w-0">
         <span
           className={cn(
-            'flex h-7 w-7 items-center justify-center rounded-xl border shadow-2xs shrink-0',
+            'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border shadow-2xs',
             severityStyle.bgClass,
             severityStyle.borderClass,
             severityStyle.textClass
           )}
         >
-          <Icon className="w-3.5 h-3.5 stroke-[2.5]" />
+          <Icon className="h-4 w-4 stroke-[2.5]" />
         </span>
-        <span className="text-xs font-black uppercase tracking-wider text-slate-950 dark:text-white truncate">
+        <span className="truncate text-sm font-extrabold uppercase tracking-[0.08em] text-slate-950 dark:text-white">
           {typeMeta.label}
         </span>
       </div>
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex shrink-0 items-center gap-1">
         {severity !== 'positive' && (
           <span
             className={cn(
-              'inline-flex h-6 items-center px-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider border leading-none shadow-2xs',
+              'inline-flex h-6 items-center rounded-lg border px-2 text-[10px] font-extrabold uppercase tracking-[0.08em] leading-none shadow-2xs',
               severityStyle.bgClass,
               severityStyle.borderClass,
               severityStyle.textClass
@@ -206,10 +206,10 @@ const TooltipHeader = ({ typeMeta, severityStyle, severity, onClose }) => {
             e.stopPropagation();
             onClose();
           }}
-          className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100/80 text-slate-500 hover:bg-slate-200 hover:text-slate-900 border border-slate-200/60 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/20 dark:hover:text-white dark:border-white/10 transition-all active:scale-95 shadow-2xs"
+          className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200/70 bg-slate-100/80 text-slate-500 shadow-2xs transition-all hover:bg-slate-200 hover:text-slate-900 active:scale-95 dark:border-white/[0.1] dark:bg-white/[0.06] dark:text-slate-300 dark:hover:bg-white/[0.12] dark:hover:text-white"
           title="Close"
         >
-          <X className="w-3.5 h-3.5 stroke-[2.5]" />
+          <X className="h-4 w-4 stroke-[2.5]" />
         </button>
       </div>
     </div>
@@ -217,7 +217,7 @@ const TooltipHeader = ({ typeMeta, severityStyle, severity, onClose }) => {
 };
 
 const TooltipCorrectionBlock = ({ annotation }) => (
-  <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-[#fafbff] via-[#f5f6fe] to-[#eff1fe] dark:from-slate-900/60 dark:via-slate-900/30 dark:to-slate-950/60 border border-[#e2e5f6] dark:border-white/10 mb-2 space-y-2 shadow-2xs">
+  <div className="mb-2 space-y-1.5 rounded-xl border border-[#e2e5f6] bg-[#f8f9ff] p-2 shadow-2xs sm:p-2.5 dark:border-white/[0.1] dark:bg-white/[0.035]">
     <div className="flex flex-col gap-0.5">
       <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
         Original
@@ -226,7 +226,7 @@ const TooltipCorrectionBlock = ({ annotation }) => (
         {annotation.originalText}
       </span>
     </div>
-    <div className="h-px bg-[#e2e5f6]/80 dark:bg-white/10" />
+    <div className="h-px bg-[#e2e5f6]/80 dark:bg-white/[0.1]" />
     <div className="flex flex-col gap-0.5">
       <span className="text-[9px] font-black text-[rgb(var(--signal-ok))] uppercase tracking-wider">
         Correction
@@ -239,14 +239,14 @@ const TooltipCorrectionBlock = ({ annotation }) => (
 );
 
 const TooltipActions = ({ severityStyle, onApply, onIgnore }) => (
-  <div className="grid grid-cols-2 gap-2 pt-0.5">
+  <div className="grid grid-cols-2 gap-1.5 pt-0.5">
     <Button
       onClick={(e) => {
         e.stopPropagation();
         onApply();
       }}
       className={cn(
-        'h-8.5 text-xs font-black rounded-xl shadow-2xs hover:shadow-xs transition-all active:scale-95 border-0',
+        'h-8 rounded-lg border-0 text-xs font-extrabold shadow-2xs transition-all hover:shadow-xs active:scale-95',
         severityStyle.applyClass
       )}
     >
@@ -258,7 +258,7 @@ const TooltipActions = ({ severityStyle, onApply, onIgnore }) => (
         e.stopPropagation();
         onIgnore();
       }}
-      className="h-8.5 text-xs font-black text-slate-600 hover:text-slate-900 dark:text-slate-300 bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 border-slate-200 dark:border-white/10 rounded-xl active:scale-95 shadow-2xs"
+      className="h-8 rounded-lg border-slate-200 bg-slate-50 text-xs font-extrabold text-slate-600 shadow-2xs active:scale-95 hover:bg-slate-100 hover:text-slate-900 dark:border-white/[0.1] dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.1] dark:hover:text-white"
     >
       Dismiss
     </Button>
@@ -289,19 +289,17 @@ const AnnotationTooltip = ({
       transition={{ duration: 0.15, ease: 'easeOut' }}
       style={{ left: '50%', translateX: '-50%' }}
       className={cn(
-        'absolute z-[9999] w-[calc(100vw-36px)] max-w-[328px] rounded-2xl shadow-[0_12px_32px_-16px_rgba(86,97,233,0.18)] overflow-hidden',
-        'bg-gradient-to-br from-white via-[#fafbff] to-[#f5f6fe] dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829]',
-        'border border-[#e2e5f6] dark:border-white/10',
+        'absolute z-[9999] w-[calc(100vw-36px)] max-w-[340px] overflow-hidden rounded-xl border border-[#e2e5f6] bg-white/95 shadow-[0_16px_40px_-20px_rgba(86,97,233,0.28)] dark:border-white/[0.12] dark:bg-[#131315]/95 dark:shadow-[0_18px_42px_-20px_rgba(0,0,0,0.7)]',
         'mt-1.5'
       )}
     >
       {/* Pointer Arrow */}
       <div
-        className="absolute -top-1.5 left-1/2 w-3 h-3 rotate-45 border-l border-t border-[#dce0f5] dark:border-white/10 bg-inherit origin-center"
+        className="absolute -top-1.5 left-1/2 h-3 w-3 origin-center rotate-45 border-l border-t border-[#dce0f5] bg-inherit dark:border-white/[0.12]"
         style={{ marginLeft: '-6px', transform: `translateX(${offsets.arrowX}px) rotate(45deg)` }}
       />
 
-      <div className="pt-2 pb-2.5 px-3 relative">
+      <div className="relative px-2.5 py-2.5 sm:px-3">
         <TooltipHeader
           annotation={annotation}
           typeMeta={typeMeta}
@@ -312,7 +310,7 @@ const AnnotationTooltip = ({
 
         {!isPositive && <TooltipCorrectionBlock annotation={annotation} />}
 
-        <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed mb-2 px-0.5 font-medium opacity-95">
+        <p className="mb-2 px-0.5 text-xs font-medium leading-relaxed text-slate-700 opacity-95 dark:text-slate-200">
           "{annotation.explanation}"
         </p>
 
@@ -461,7 +459,7 @@ const AnnotatedSegment = ({ segment, isActive, onActivate, onApply, onIgnore, co
           severityStyle.bgClass,
           isActive &&
             cn(
-              'ring-2 ring-[#5661e9]/40 bg-[#5661e9]/[0.08] dark:bg-[#5661e9]/20 z-10 relative shadow-md scale-[1.01]'
+              'relative z-10 scale-[1.002] border-[0.5px] border-[#8f97ff]/55 bg-[#8f97ff]/[0.05] shadow-[0_1px_4px_rgba(86,97,233,0.1)] dark:border-[#aeb4ff]/45 dark:bg-[#8f97ff]/[0.1]'
             )
         )}
       >
@@ -498,10 +496,10 @@ const VocabularyCard = ({ enhancement }) => {
 
   return (
     <motion.div
-      layout
+      layout="position"
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="group relative rounded-xl bg-[#fbfbfe] dark:bg-white/[0.03] border border-[#ebeaf7] dark:border-white/10 hover:border-[#5661e9]/40 dark:hover:border-indigo-500/30 transition-colors duration-200 p-2.5 sm:p-3 space-y-2"
+      className="group relative space-y-2 rounded-xl border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 transition-shadow duration-200 hover:shadow-sm dark:border-white/10 dark:bg-white/[0.03] sm:p-3"
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -534,50 +532,49 @@ const VocabularyCard = ({ enhancement }) => {
         </div>
       </div>
 
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden space-y-2 pt-1 border-t border-[#e2e5f6] dark:border-white/10"
-          >
-            <p className="text-xs text-slate-600 dark:text-slate-300 italic border-l-2 border-[#5661e9] dark:border-indigo-500 pl-2.5 py-0.5 font-medium">
-              "{enhancement.context}"
-            </p>
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {alternatives.map((alt, i) => (
+      {alternatives.length > 0 && (
+        <motion.div
+          layout
+          transition={{ layout: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } }}
+          className="space-y-2 overflow-hidden border-t border-[#e2e5f6] pt-1 dark:border-white/10"
+        >
+          {isExpanded ? (
+            <>
+              <p className="border-l-2 border-[#5661e9] py-0.5 pl-2.5 text-xs font-medium italic text-slate-600 dark:border-indigo-500 dark:text-slate-300">
+                "{enhancement.context}"
+              </p>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {alternatives.map((alt, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center rounded-full border border-[#d2d7f8] bg-[#efedff] px-2.5 py-1 text-xs font-bold text-[#5661e9] dark:border-indigo-500/30 dark:bg-indigo-500/15 dark:text-indigo-200"
+                  >
+                    {alt}
+                  </span>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+              <span className="mr-0.5 text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                Try:
+              </span>
+              {preview.map((alt, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#efedff] text-xs font-bold text-[#5661e9] dark:bg-indigo-500/15 dark:text-indigo-200 border border-[#d2d7f8] dark:border-indigo-500/30"
+                  className="max-w-[240px] truncate rounded-full border border-[#d2d7f8] bg-[#efedff]/80 px-2.5 py-0.5 text-[11px] font-bold leading-normal text-[#5661e9] dark:border-indigo-500/30 dark:bg-indigo-500/15 dark:text-indigo-300"
                 >
                   {alt}
                 </span>
               ))}
+              {overflow > 0 && (
+                <span className="py-0.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  +{overflow} more
+                </span>
+              )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {!isExpanded && alternatives.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-[#e2e5f6] dark:border-white/10">
-          <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-0.5">
-            Try:
-          </span>
-          {preview.map((alt, i) => (
-            <span
-              key={i}
-              className="text-[11px] font-bold text-[#5661e9] dark:text-indigo-300 bg-[#efedff]/80 dark:bg-indigo-500/15 px-2.5 py-0.5 rounded-full border border-[#d2d7f8] dark:border-indigo-500/30 leading-normal truncate max-w-[240px]"
-            >
-              {alt}
-            </span>
-          ))}
-          {overflow > 0 && (
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 py-0.5">
-              +{overflow} more
-            </span>
           )}
-        </div>
+        </motion.div>
       )}
     </motion.div>
   );

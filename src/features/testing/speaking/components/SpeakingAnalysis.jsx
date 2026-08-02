@@ -55,7 +55,7 @@ export default function SpeakingAnalysis({ loadingMessage }) {
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-rose-500/10 dark:bg-rose-500/5 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-orange-500/10 dark:bg-orange-500/5 rounded-full blur-[80px] animate-pulse [animation-delay:1s]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-red-500/10 dark:bg-red-500/5 rounded-full blur-[80px] animate-pulse [animation-delay:1s]" />
         </div>
       </div>
 
@@ -73,11 +73,11 @@ export default function SpeakingAnalysis({ loadingMessage }) {
           <motion.div
             animate={{ rotate: -360 }}
             transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
-            className="absolute inset-3 rounded-full border-r-2 border-l-2 border-orange-500/40 dark:border-orange-400/30"
+            className="absolute inset-3 rounded-full border-r-2 border-l-2 border-red-500/40 dark:border-red-400/30"
           />
 
           {/* Central Glowing Orb */}
-          <div className="absolute inset-7 rounded-full bg-gradient-to-br from-rose-500/20 to-orange-500/20 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-[0_0_40px_rgba(244,63,94,0.3)]">
+          <div className="absolute inset-7 rounded-full bg-gradient-to-br from-rose-500/20 to-red-500/20 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-[0_0_40px_rgba(244,63,94,0.3)]">
             <div className="relative">
               <Bot className="w-10 h-10 text-rose-500 dark:text-rose-400 animate-pulse" />
               <motion.div
@@ -97,7 +97,7 @@ export default function SpeakingAnalysis({ loadingMessage }) {
               className="absolute inset-0"
             >
               <div
-                className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.8)]"
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.8)]"
                 style={{ transformOrigin: 'center 80px' }}
               />
             </motion.div>
@@ -109,10 +109,10 @@ export default function SpeakingAnalysis({ loadingMessage }) {
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-black text-slate-900 dark:text-white tracking-tight"
+            className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"
           >
             Analyzing Your{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-orange-600 dark:from-rose-400 dark:to-orange-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-red-600 dark:from-rose-400 dark:to-red-400">
               Speaking
             </span>{' '}
             Performance
@@ -125,7 +125,7 @@ export default function SpeakingAnalysis({ loadingMessage }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em]"
+                className="text-sm font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em]"
               >
                 {completedSteps.size === analysisSteps.length
                   ? 'Calculating your results...'
@@ -174,7 +174,7 @@ export default function SpeakingAnalysis({ loadingMessage }) {
                 </div>
                 <span
                   className={cn(
-                    'text-xs font-black tracking-widest uppercase',
+                    'text-xs font-extrabold tracking-widest uppercase',
                     status === 'completed'
                       ? 'text-emerald-700 dark:text-emerald-400'
                       : status === 'current'
@@ -204,7 +204,7 @@ export default function SpeakingAnalysis({ loadingMessage }) {
         <div className="w-full space-y-3 pt-6 border-t border-dashed border-border/60 px-4">
           <div className="w-full h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden p-0.5 border border-border/40">
             <motion.div
-              className="h-full bg-gradient-to-r from-rose-500 via-orange-500 to-rose-500 rounded-full"
+              className="h-full bg-gradient-to-r from-rose-500 via-red-500 to-rose-500 rounded-full"
               animate={{
                 width: ['5%', '95%'],
                 backgroundPosition: ['0% 50%', '100% 50%'],
@@ -215,10 +215,10 @@ export default function SpeakingAnalysis({ loadingMessage }) {
               }}
             />
           </div>
-          <div className="flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
+          <div className="flex justify-between items-center text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">
             <span>EST. TIME: ~10–15s</span>
             <div className="flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-orange-400" />
+              <Sparkles className="w-3 h-3 text-rose-400" />
               <span>AI POWERED ANALYSIS</span>
             </div>
           </div>

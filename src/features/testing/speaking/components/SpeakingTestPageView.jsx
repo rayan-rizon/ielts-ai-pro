@@ -51,17 +51,20 @@ export default function SpeakingTestPageView({
   } = shellProps;
 
   return (
-    <div className="relative min-h-full overflow-x-hidden bg-[#f7f6fd] transition-colors duration-500 dark:bg-[#08080a]">
+    <div
+      data-testid="speaking-test-page"
+      className="relative min-h-full overflow-x-hidden bg-[#f8f8fb] transition-colors duration-500 dark:bg-[#08080a]"
+    >
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -left-32 top-[-12rem] h-[32rem] w-[32rem] rounded-full bg-rose-500/[0.05] blur-3xl dark:bg-rose-500/[0.07]" />
-        <div className="absolute -right-40 bottom-[-14rem] h-[36rem] w-[36rem] rounded-full bg-rose-500/[0.045] blur-3xl dark:bg-rose-500/[0.06]" />
-        <div className="absolute inset-0 bg-grid-slate-100/60 [mask-image:linear-gradient(to_bottom,black,transparent_72%)] dark:bg-grid-white/[0.025]" />
+        <div className="absolute -left-32 top-[-12rem] h-[32rem] w-[32rem] rounded-full bg-rose-500/[0.06] blur-3xl dark:bg-rose-500/[0.08]" />
+        <div className="absolute -right-40 bottom-[-14rem] h-[36rem] w-[36rem] rounded-full bg-red-500/[0.045] blur-3xl dark:bg-red-500/[0.06]" />
+        <div className="absolute inset-0 bg-[radial-gradient(#e11d48_0.8px,transparent_0.8px)] bg-[size:22px_22px] opacity-[0.055] [mask-image:linear-gradient(to_bottom,black,transparent_72%)] dark:opacity-[0.08]" />
       </div>
 
       <ExitDialog open={showExitDialog} blocker={blocker} {...exitDialogProps} />
 
       {/* Page Wrapper */}
-      <div className="relative mx-auto w-full max-w-[1500px] px-3 pb-3 pt-0 sm:px-4 sm:pb-4 sm:pt-1 lg:px-5">
+      <div className="relative mx-auto w-full max-w-[1540px] px-3 pb-3 pt-0 sm:px-4 sm:pb-4 sm:pt-1 lg:px-5">
         <TestHeader
           currentPartNumber={currentPartNumber}
           currentPart={currentPart}

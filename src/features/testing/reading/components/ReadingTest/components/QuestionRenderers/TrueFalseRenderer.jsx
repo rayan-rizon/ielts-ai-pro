@@ -26,9 +26,9 @@ const TrueFalseRenderer = memo(function TrueFalseRenderer({
           isFinished && validation && isAnswerCorrect(option, validation.correctAnswer);
 
         let optionClass =
-          'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm sm:text-[15px] font-medium transition-all duration-150 select-none cursor-pointer ';
+          'flex items-center gap-2 px-2.5 py-1 rounded-lg border text-sm sm:text-[15px] font-medium transition-all duration-150 select-none cursor-pointer ';
         let dotClass =
-          'w-3.5 h-3.5 rounded-full border transition-all shrink-0 flex items-center justify-center ';
+          'w-3 h-3 rounded-full border transition-all shrink-0 flex items-center justify-center ';
 
         if (isFinished) {
           optionClass += 'cursor-not-allowed opacity-100 ';
@@ -48,18 +48,18 @@ const TrueFalseRenderer = memo(function TrueFalseRenderer({
             dotClass += 'border-emerald-500/60 bg-emerald-500/20';
           } else {
             optionClass +=
-              'bg-slate-50/50 border-slate-200/50 dark:bg-slate-900/30 dark:border-slate-800/80 text-slate-400 dark:text-slate-500';
-            dotClass += 'border-slate-300 dark:border-slate-700 bg-transparent';
+              'bg-slate-50/50 border-slate-200/50 dark:bg-white/[0.02] dark:border-white/[0.06] text-slate-400 dark:text-slate-500';
+            dotClass += 'border-slate-300 dark:border-white/[0.14] bg-transparent';
           }
         } else {
           if (isSelected) {
             optionClass +=
-              'bg-[#5a63df]/10 border-[#5a63df]/60 text-[#3a3f9e] dark:bg-[#5a63df]/20 dark:border-[#5a63df]/50 dark:text-[#c9cdf3] font-semibold shadow-xs ring-1 ring-[#5a63df]/20';
+              'bg-[#5a63df]/[0.08] border-[#5a63df]/35 text-[#3a3f9e] dark:bg-[#5a63df]/[0.14] dark:border-[#5a63df]/30 dark:text-[#c9cdf3] font-semibold ring-1 ring-[#5a63df]/15';
             dotClass += 'border-[#5a63df] bg-[#5a63df]';
           } else {
             optionClass +=
-              'bg-white/80 border-slate-200/90 text-slate-700 dark:bg-slate-900/70 dark:border-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:border-[#5a63df]/40 dark:hover:border-[#5a63df]/40';
-            dotClass += 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900';
+              'bg-[#fbfbfe] border-[#ebeaf7] text-slate-700 dark:bg-white/[0.02] dark:border-white/[0.06] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.06] hover:border-[#5a63df]/25 dark:hover:border-[#5a63df]/25';
+            dotClass += 'border-slate-300 dark:border-white/[0.16] bg-white dark:bg-white/[0.04]';
           }
         }
 

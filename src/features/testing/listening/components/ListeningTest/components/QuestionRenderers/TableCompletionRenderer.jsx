@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
 import { sanitizeHtml } from '@/lib/security';
 import { cn } from '@/lib/cn';
+import { INPUT_DEFAULT } from '@/features/testing/shared/questionUiTokens';
 
 const TableCompletionRenderer = ({
   question,
@@ -81,15 +82,10 @@ const TableCompletionRenderer = ({
   // Get input styling based on correctness
   const getInputStyle = (answerKey) => {
     const baseStyle =
-      'w-32 h-8 px-2 py-1 text-center text-[15px] rounded-lg transition-all duration-200 shadow-sm';
+      'w-28 h-7 px-2 py-0.5 text-center text-[15px] rounded-lg transition-all duration-200';
 
     if (!isFinished) {
-      return cn(
-        baseStyle,
-        'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground',
-        'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50',
-        'hover:border-slate-400/80 dark:hover:border-slate-600/80 shadow-sm'
-      );
+      return cn(baseStyle, INPUT_DEFAULT);
     }
 
     // Review mode - check correctness
@@ -103,7 +99,7 @@ const TableCompletionRenderer = ({
         ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
         : value
           ? 'border-rose-500 bg-rose-50/70 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300'
-          : 'bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-foreground'
+          : 'bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-foreground'
     );
   };
 
@@ -117,7 +113,7 @@ const TableCompletionRenderer = ({
     if (cellGaps.length === 0) {
       return (
         <span
-          className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed"
+          className="text-foreground font-medium leading-relaxed"
           dangerouslySetInnerHTML={{ __html: formatCellContent(cell) }}
           data-oid="qc9i-uj"
         />
@@ -147,13 +143,10 @@ const TableCompletionRenderer = ({
               return (
                 <li
                   key={lineIdx}
-                  className="flex items-start gap-1 text-slate-600 dark:text-slate-400"
+                  className="flex items-start gap-1 text-foreground"
                   data-oid=".cb11kw"
                 >
-                  <span
-                    className="mr-1 text-slate-600 dark:text-slate-400 select-none mt-1"
-                    data-oid="2sg6wsk"
-                  >
+                  <span className="mr-1 text-foreground select-none mt-1" data-oid="2sg6wsk">
                     •
                   </span>
                   <div
@@ -238,13 +231,10 @@ const TableCompletionRenderer = ({
             return (
               <li
                 key={lineIdx}
-                className="flex items-start gap-1 text-slate-600 dark:text-slate-400"
+                className="flex items-start gap-1 text-foreground"
                 data-oid="fog8484"
               >
-                <span
-                  className="mr-1 text-slate-600 dark:text-slate-400 select-none mt-1"
-                  data-oid="258uj3f"
-                >
+                <span className="mr-1 text-foreground select-none mt-1" data-oid="258uj3f">
                   •
                 </span>
                 <span className="font-medium flex-1 py-1" data-oid="z0ksxxx">
@@ -270,7 +260,7 @@ const TableCompletionRenderer = ({
     const parts = cell.split(/\[gap\]|__BLANK__|__BLANK_\d+__/gi);
     return (
       <div
-        className="flex flex-wrap items-center gap-x-2 gap-y-3 py-1 text-slate-600 dark:text-slate-400 font-medium"
+        className="flex flex-wrap items-center gap-x-2 gap-y-3 py-1 text-foreground font-medium"
         data-oid="dn3twzm"
       >
         {parts.map((part, pIdx) => {
@@ -348,7 +338,10 @@ const TableCompletionRenderer = ({
         <div className="flex gap-4 items-start" data-oid="saux43h">
           <div className="flex-1 w-full overflow-hidden" data-oid="1027k.z">
             <div
-              className="overflow-x-auto rounded-xl border border-[#e4e2f0] dark:border-white/[0.07]"
+              className={cn(
+                'overflow-x-auto rounded-xl',
+                !isInsideMergedCard && 'border border-[#e4e2f0] dark:border-white/[0.07]'
+              )}
               data-oid="pwzgsjf"
             >
               <table className="w-full text-[15px] text-left border-collapse" data-oid=":j3mju6">

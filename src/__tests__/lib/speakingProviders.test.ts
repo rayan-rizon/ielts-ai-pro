@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   buildBrowserTranscriptHint,
   buildAzurePronunciationUrl,
@@ -8,7 +8,10 @@ import {
   getTranscriptVerificationReason,
   mapAzureScoreToProvisionalIeltsBand,
   resolveAzurePronunciationAssessment,
+  transcribeWithCloudflare,
 } from '../../../supabase/functions/_shared/speakingProviders';
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe('speaking provider helpers', () => {
   it('builds the documented regional Azure Speech recognition URL', () => {
@@ -119,5 +122,32 @@ describe('speaking provider helpers', () => {
         reason: 'high-confidence-disagreement',
       })
     ).toBe('gemini-fallback');
+  });
+
+  it('retries a quiet clip without VAD before falling back to Gemini', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ success: true, result: { text: '' } }), { status: 200 })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ success: true, result: { text: 'I live in Dhaka.' } }), {
+          status: 200,
+        })
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      transcribeWithCloudflare({ accountId: 'account', apiToken: 'token', audioBase64: 'audio' })
+    ).resolves.toMatchObject({
+      transcript: 'I live in Dhaka.',
+      attempts: 2,
+      recoveredByVadRetry: true,
+    });
+
+    const firstBody = JSON.parse(fetchMock.mock.calls[0][1].body);
+    const retryBody = JSON.parse(fetchMock.mock.calls[1][1].body);
+    expect(firstBody.vad_filter).toBe(true);
+    expect(retryBody).toMatchObject({ vad_filter: false, no_speech_threshold: 0.8 });
   });
 });

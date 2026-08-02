@@ -3,6 +3,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
+import { TILE_SURFACE } from '@/features/testing/shared/questionUiTokens';
 
 const MultipleChoiceRenderer = ({
   question,
@@ -23,7 +24,7 @@ const MultipleChoiceRenderer = ({
     customCardClass ||
     (isInsideMergedCard
       ? 'bg-transparent border-0 shadow-none my-0 py-0'
-      : 'bg-white/70 dark:bg-slate-900/55 border border-slate-200/60 dark:border-slate-700/60 rounded-lg shadow-sm p-2 sm:p-2.5');
+      : `${TILE_SURFACE} p-2 sm:p-2.5`);
 
   const currentAnswer = answers[question.id];
 
@@ -48,13 +49,13 @@ const MultipleChoiceRenderer = ({
   // Get label style based on state
   const getLabelStyle = (opt, isSelected, isChecked, isActualCorrect = false) => {
     const baseStyle =
-      'flex items-start gap-2.5 px-2 py-1 rounded-md border cursor-pointer transition-all duration-150 select-none group';
+      'flex items-start gap-2.5 px-2 py-0.5 rounded-md border cursor-pointer transition-all duration-150 select-none group';
 
     if (!isFinished) {
       if (isSelected || isChecked) {
-        return `${baseStyle} bg-[#5a63df]/10 border-[#5a63df]/60 text-[#3a3f9e] dark:bg-[#5a63df]/20 dark:border-[#5a63df]/50 dark:text-[#c9cdf3] font-medium shadow-xs ring-1 ring-[#5a63df]/20`;
+        return `${baseStyle} bg-[#5a63df]/[0.08] border-[#5a63df]/35 text-[#3a3f9e] dark:bg-[#5a63df]/[0.14] dark:border-[#5a63df]/30 dark:text-[#c9cdf3] font-medium ring-1 ring-[#5a63df]/15`;
       }
-      return `${baseStyle} border-transparent bg-transparent text-slate-700 dark:text-slate-200 hover:bg-slate-100/70 dark:hover:bg-slate-800/50 hover:border-slate-200/60 dark:hover:border-slate-700/60`;
+      return `${baseStyle} border-[#ebeaf7] dark:border-white/[0.06] bg-[#fbfbfe]/70 dark:bg-white/[0.02] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] hover:border-[#5a63df]/25 dark:hover:border-[#5a63df]/25`;
     }
 
     // Review mode
@@ -168,12 +169,12 @@ const MultipleChoiceRenderer = ({
                         'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
                     else
                       badgeClass +=
-                        'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600';
+                        'bg-slate-100 text-slate-400 dark:bg-white/[0.06] dark:text-slate-600';
                   } else if (isChecked) {
                     badgeClass += 'bg-[#5a63df] text-white shadow-xs scale-105';
                   } else {
                     badgeClass +=
-                      'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-[#5a63df]/15 dark:group-hover:bg-[#5a63df]/25 group-hover:text-[#5a63df] dark:group-hover:text-[#c9cdf3]';
+                      'bg-slate-100 text-slate-600 dark:bg-white/[0.07] dark:text-slate-300 group-hover:bg-[#5a63df]/15 dark:group-hover:bg-[#5a63df]/25 group-hover:text-[#5a63df] dark:group-hover:text-[#c9cdf3]';
                   }
 
                   return (
@@ -229,12 +230,12 @@ const MultipleChoiceRenderer = ({
                         'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
                     else
                       badgeClass +=
-                        'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600';
+                        'bg-slate-100 text-slate-400 dark:bg-white/[0.06] dark:text-slate-600';
                   } else if (isSelected) {
                     badgeClass += 'bg-[#5a63df] text-white shadow-xs scale-105';
                   } else {
                     badgeClass +=
-                      'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-[#5a63df]/15 dark:group-hover:bg-[#5a63df]/25 group-hover:text-[#5a63df] dark:group-hover:text-[#c9cdf3]';
+                      'bg-slate-100 text-slate-600 dark:bg-white/[0.07] dark:text-slate-300 group-hover:bg-[#5a63df]/15 dark:group-hover:bg-[#5a63df]/25 group-hover:text-[#5a63df] dark:group-hover:text-[#c9cdf3]';
                   }
 
                   return (

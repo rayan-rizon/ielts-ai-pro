@@ -234,7 +234,6 @@ export async function requestOpenRouterDeepSeekJson(
   request: ProviderRequest
 ): Promise<TextAiResult> {
   const fetchImpl = request.fetchImpl || fetch;
-  const reasoningBudget = Math.min(256, Math.max(64, Math.floor(request.maxOutputTokens * 0.25)));
   try {
     const response = await fetchWithTimeout(
       fetchImpl,
@@ -250,13 +249,18 @@ export async function requestOpenRouterDeepSeekJson(
           model: OPENROUTER_DEEPSEEK_MODEL,
           messages: [{ role: 'user', content: request.prompt }],
           response_format: { type: 'json_object' },
-          // OpenRouter exposes no true none level for this model. Cap hidden reasoning
-          // so it cannot consume the entire JSON response budget.
-          reasoning: { max_tokens: reasoningBudget, exclude: true },
+          // This endpoint supports an explicit no-reasoning mode. Using a token cap
+          // alone is not reliable: the model can still consume the entire completion
+          // budget with hidden reasoning and return no JSON content.
+          reasoning: { effort: 'none', exclude: true },
+          // OpenRouter defaults to price-weighted load balancing. Sort by its
+          // rolling latency metrics so user-facing evaluations use the fastest
+          // currently healthy endpoint, while retaining provider fallbacks.
+          provider: { sort: 'latency', require_parameters: true },
           temperature: request.temperature ?? 0.2,
-          // The gateway counts hidden reasoning inside max_tokens, so leave extra
-          // headroom for the requested JSON body.
-          max_tokens: request.maxOutputTokens + reasoningBudget + 256,
+          // With reasoning disabled, keep the completion budget aligned with the
+          // requested JSON size instead of paying for unused hidden tokens.
+          max_tokens: request.maxOutputTokens,
           stream: false,
         }),
       },
@@ -288,7 +292,7 @@ export async function requestOpenRouterDeepSeekJson(
       text,
       provider: 'openrouter-deepseek',
       model: data?.model || OPENROUTER_DEEPSEEK_MODEL,
-      mode: 'low-reasoning',
+      mode: 'non-thinking',
       fallbackUsed: false,
       fallbackReason: null,
       usage: {

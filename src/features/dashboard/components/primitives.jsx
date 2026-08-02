@@ -97,12 +97,16 @@ export const pillTone = (tone) =>
 /**
  * Tinted fill for a meter track. Brand indigo at 16% simply vanishes on a
  * near-black panel, so dark mode swaps hue *and* opacity rather than only
- * turning the opacity up on a colour that has already gone muddy.
+ * turning the opacity up on a colour that has already gone muddy. 0.26 still
+ * read as barely-there next to the WELL track underneath it — close enough
+ * to the panel's own near-black that "band by module" bars looked like one
+ * flat slab instead of four legible fills. Lifted further, short of the
+ * hover state's intensity.
  */
 export const ACCENT_FILL =
-  'bg-[rgb(var(--panel-accent-tint)/0.16)] dark:bg-[rgb(var(--panel-accent-tint)/0.26)]';
+  'bg-[rgb(var(--panel-accent-tint)/0.16)] dark:bg-[rgb(var(--panel-accent-tint)/0.36)]';
 export const ACCENT_FILL_HOVER =
-  'group-hover:bg-[rgb(var(--panel-accent-tint)/0.26)] dark:group-hover:bg-[rgb(var(--panel-accent-tint)/0.38)]';
+  'group-hover:bg-[rgb(var(--panel-accent-tint)/0.26)] dark:group-hover:bg-[rgb(var(--panel-accent-tint)/0.48)]';
 
 /** Signal-coded meter fills. Same lift as ACCENT_FILL, per signal. */
 /**

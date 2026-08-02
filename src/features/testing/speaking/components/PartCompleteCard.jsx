@@ -18,14 +18,14 @@ const PartCompleteCard = React.memo(
             className="w-full"
           >
             {/* Card */}
-            <div className="relative overflow-hidden rounded-2xl border border-rose-200/60 bg-gradient-to-br from-rose-50 via-pink-50/60 to-orange-50/40 shadow-[0_4px_24px_-8px_hsl(350_80%_60%/0.18)] dark:border-rose-500/15 dark:from-rose-950/40 dark:via-pink-950/20 dark:to-orange-950/15">
+            <div className="relative overflow-hidden rounded-xl border border-rose-200/60 bg-gradient-to-br from-rose-50 via-pink-50/60 to-rose-50/40 shadow-sm dark:border-rose-500/20 dark:from-[#151415] dark:via-[#131315] dark:to-[#151415]">
               {/* Subtle radial glow at top-centre */}
               <div
                 className="pointer-events-none absolute -top-10 left-1/2 h-40 w-56 -translate-x-1/2 rounded-full bg-rose-400/20 blur-3xl dark:bg-rose-500/15"
                 aria-hidden="true"
               />
 
-              <div className="relative flex flex-col items-center gap-3.5 px-5 py-5 text-center md:py-6">
+              <div className="relative flex flex-col items-center gap-3 px-4 py-4 text-center md:py-5">
                 {/* Icon */}
                 <motion.div
                   className="relative"
@@ -34,17 +34,17 @@ const PartCompleteCard = React.memo(
                 >
                   {/* Glow ring */}
                   <div className="absolute inset-0 rounded-2xl bg-rose-400/25 blur-lg" />
-                  <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-400 to-rose-600 shadow-lg shadow-rose-500/30">
+                  <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-rose-400 to-rose-600 shadow-md shadow-rose-500/30">
                     <CheckCircle2 className="h-6 w-6 text-white drop-shadow-sm" />
                   </div>
                 </motion.div>
 
                 {/* Text */}
                 <div className="space-y-1.5">
-                  <span className="inline-flex items-center rounded-full border border-rose-300/60 bg-rose-100/80 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-rose-600 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-400">
+                  <span className="inline-flex items-center rounded-full border border-rose-300/60 bg-rose-100/80 px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.18em] text-rose-600 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-400">
                     Section complete
                   </span>
-                  <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-50 md:text-2xl">
+                  <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 md:text-2xl">
                     Part {currentPartNumber} Finished
                   </h2>
                   <p className="mx-auto max-w-[26rem] text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-400 md:text-sm">
@@ -59,7 +59,7 @@ const PartCompleteCard = React.memo(
                   <div className="pt-0.5">
                     <Button
                       onClick={onMoveToNext}
-                      className="group relative h-11 overflow-hidden rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 px-8 text-[11px] font-black uppercase tracking-[0.18em] text-white shadow-md shadow-rose-500/30 transition-all duration-200 hover:from-rose-600 hover:to-rose-700 hover:shadow-rose-500/45 active:scale-95"
+                      className="group relative h-11 overflow-hidden rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 px-8 text-[11px] font-extrabold uppercase tracking-[0.18em] text-white shadow-md shadow-rose-500/30 transition-all duration-200 hover:from-rose-600 hover:to-rose-700 hover:shadow-rose-500/45 active:scale-95"
                     >
                       <span className="flex items-center gap-2">
                         Proceed to Part {currentPartNumber + 1}
@@ -77,7 +77,7 @@ const PartCompleteCard = React.memo(
                       className="h-3.5 w-3.5 animate-spin text-rose-500"
                       aria-hidden="true"
                     />
-                    <p className="text-[9px] font-black uppercase tracking-[0.16em] text-rose-600 dark:text-rose-400">
+                    <p className="text-[9px] font-extrabold uppercase tracking-[0.16em] text-rose-600 dark:text-rose-400">
                       Analysing your performance
                     </p>
                   </div>

@@ -13,7 +13,7 @@ export default function ListeningPartTabs({
 }) {
   return (
     <div
-      className="relative bg-white/90 dark:bg-[#131315]/90 backdrop-blur-xl border-b border-[#e4e2f0] dark:border-white/[0.07] px-2 sm:px-4 py-2 shrink-0 relative z-20 shadow-sm transition-all duration-300 w-full overflow-x-auto"
+      className="relative bg-white/90 dark:bg-[#131315]/90 backdrop-blur-xl border-b border-[#e4e2f0] dark:border-white/[0.07] px-2 sm:px-4 py-1.5 sm:py-2 shrink-0 relative z-20 shadow-2xs transition-all duration-300 w-full overflow-x-auto"
       style={{ scrollbarWidth: 'none' }}
       data-oid="v0bnih8"
     >
@@ -37,7 +37,7 @@ export default function ListeningPartTabs({
                 disabled={locked && !isActive}
                 onClick={() => dispatch({ type: ACTIONS.SET_ACTIVE_PART, payload: idx })}
                 className={cn(
-                  'relative px-3 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl transition-colors duration-200 ease-out flex items-center justify-center gap-1.5 sm:gap-2.5 z-10 select-none whitespace-nowrap',
+                  'relative px-2.5 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl transition-colors duration-200 ease-out flex items-center justify-center gap-1.5 sm:gap-2.5 z-10 select-none whitespace-nowrap',
                   isActive
                     ? 'text-white'
                     : locked
@@ -69,9 +69,9 @@ export default function ListeningPartTabs({
                     isActive
                       ? 'bg-white/20 text-white'
                       : isCompleted
-                        ? 'bg-emerald-500 text-white shadow-sm'
+                        ? 'bg-emerald-500 text-white shadow-2xs'
                         : answeredInPart
-                          ? 'bg-[#5a63df] text-white shadow-sm'
+                          ? 'bg-[#5a63df] text-white shadow-2xs'
                           : 'bg-slate-200 dark:bg-white/[0.08] text-slate-500 dark:text-slate-400 group-hover:bg-slate-300 dark:group-hover:bg-white/[0.14]'
                   )}
                   data-oid="86c.5ck"

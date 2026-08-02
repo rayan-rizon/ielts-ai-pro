@@ -47,7 +47,7 @@ export default function DeepDivePartSection({
         >
           <ThemeIcon className={`w-4 h-4 ${theme.color}`} />
         </div>
-        <h4 className={`text-[11px] font-black uppercase tracking-[0.3em] ${theme.color}`}>
+        <h4 className={`text-[11px] font-extrabold uppercase tracking-[0.3em] ${theme.color}`}>
           {theme.name}
         </h4>
         <div className="flex-1 h-px bg-gradient-to-r from-border/60 to-transparent ml-2" />

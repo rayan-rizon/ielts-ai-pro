@@ -142,8 +142,8 @@ const SyncedTranscript = memo(function SyncedTranscript({
                       cursor-pointer box-decoration-clone py-0.5 rounded-md transition-all duration-300 inline select-none touch-none tap-highlight-transparent
                       ${
                         isActive
-                          ? 'bg-yellow-200/95 dark:bg-yellow-500/20 text-slate-900 dark:text-yellow-50 shadow-[0_2px_12px_-3px_rgba(234,179,8,0.4)] font-bold ring-1 ring-yellow-400/50 dark:ring-yellow-500/40 px-1.5'
-                          : 'hover:bg-slate-200 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-100 px-0'
+                          ? 'bg-yellow-200/95 dark:bg-amber-400/90 text-slate-900 dark:text-slate-900 shadow-[0_2px_12px_-3px_rgba(234,179,8,0.4)] dark:shadow-[0_2px_14px_-3px_rgba(251,191,36,0.35)] font-bold ring-1 ring-yellow-400/50 dark:ring-amber-300/60 px-1.5'
+                          : 'hover:bg-slate-200 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-slate-100 px-0'
                       }
                     `}
                     data-oid="8m8j6d2"

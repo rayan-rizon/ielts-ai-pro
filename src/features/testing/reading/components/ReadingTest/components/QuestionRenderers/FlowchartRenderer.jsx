@@ -19,9 +19,9 @@ function getFlowchartInputStyle(disabled, validation, value) {
     return 'border-rose-500 bg-rose-50/70 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 font-bold';
   }
   if (disabled) {
-    return 'bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-foreground';
+    return 'bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-foreground';
   }
-  return 'bg-white/70 dark:bg-slate-950/40 border border-slate-300/70 dark:border-slate-700/70 text-foreground hover:border-slate-400/80 dark:hover:border-slate-600/80 focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50';
+  return 'bg-white/70 dark:bg-white/[0.04] border border-slate-300/70 dark:border-white/[0.08] text-foreground hover:border-slate-400/80 dark:hover:border-white/[0.14] focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50';
 }
 
 function FlowchartDeepDive({
@@ -90,7 +90,7 @@ function FlowchartStepGap({
           disabled={disabled}
           placeholder={disabled ? '' : 'answer'}
           className={cn(
-            'w-32 h-8 px-2 py-1 text-center text-[15px] rounded-lg transition-all duration-200 shadow-sm font-medium focus-visible:outline-none focus-visible:ring-1',
+            'w-28 h-7 px-2 py-0.5 text-center text-[15px] rounded-lg transition-all duration-200 shadow-sm font-medium focus-visible:outline-none focus-visible:ring-1',
             inputStyle
           )}
         />
@@ -157,7 +157,7 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
 
   return (
     <div
-      className="w-full bg-slate-50/40 dark:bg-slate-900/30 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-2.5 sm:p-3 shadow-xs backdrop-blur-xs my-1.5"
+      className="w-full bg-[#f4f3fb] dark:bg-white/[0.03] rounded-xl p-2.5 sm:p-3 my-1"
       data-testid="reading-flowchart"
     >
       {flowchart.box_title && (
@@ -179,7 +179,7 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
           <React.Fragment key={step.id || stepIndex}>
             <div
               data-testid="flowchart-step"
-              className="w-full bg-white/80 dark:bg-slate-950/70 border border-slate-200/90 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-[15px] text-slate-800 dark:text-slate-200 leading-relaxed shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+              className="w-full rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] dark:border-white/[0.08] dark:bg-white/[0.055] px-3.5 py-2.5 text-[15px] text-slate-800 dark:text-slate-200 leading-relaxed hover:border-slate-300 dark:hover:border-white/[0.14] transition-colors"
             >
               {renderStep(step)}
             </div>

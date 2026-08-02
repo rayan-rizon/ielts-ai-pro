@@ -46,14 +46,14 @@ function ReadinessCard({ device, icon: Icon, status, onClick }) {
       onClick={onClick}
       disabled={isTesting}
       whileTap={isTesting ? undefined : { scale: 0.985 }}
-      className={`flex min-w-0 items-center gap-2 rounded-xl border p-2 text-left transition-colors sm:gap-3 sm:rounded-2xl sm:p-3 ${toneClass}`}
+      className={`flex min-w-0 items-center gap-2 rounded-xl border p-2 text-left transition-colors sm:gap-3 sm:p-3 ${toneClass}`}
       aria-label={label}
     >
       <span
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg sm:h-9 sm:w-9 sm:rounded-xl ${
           device === 'microphone'
             ? 'bg-emerald-500/[0.08] text-emerald-600 dark:text-emerald-400'
-            : 'bg-blue-500/[0.08] text-blue-600 dark:text-blue-400'
+            : 'bg-rose-500/[0.08] text-rose-600 dark:text-rose-400'
         }`}
       >
         {isTesting ? (
@@ -89,14 +89,14 @@ const InitialWelcomeScreen = ({ partNumber, title }) => {
     useSpeakingDeviceChecks();
 
   return (
-    <div className="flex h-full min-h-[280px] items-center justify-center px-0 py-1 sm:min-h-[390px] sm:px-5 sm:py-3 xl:min-h-0 xl:py-1 2xl:py-4">
+    <div className="flex h-full min-h-[240px] items-center justify-center px-0 py-1 sm:min-h-[320px] sm:px-4 sm:py-2 xl:min-h-0 xl:py-1 2xl:py-2">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
         className="flex w-full max-w-3xl flex-col items-center text-center"
       >
-        <div className="relative w-full max-w-[12rem] sm:max-w-[16rem] 2xl:max-w-[21rem]">
+        <div className="relative w-full max-w-[11rem] sm:max-w-[14rem] 2xl:max-w-[18rem]">
           <img
             src="/speaking-assets/examiner-welcome-v1.png"
             alt="AI speaking examiner wearing a headset"
@@ -109,7 +109,7 @@ const InitialWelcomeScreen = ({ partNumber, title }) => {
           />
         </div>
 
-        <h2 className="mt-0.5 text-xl font-black tracking-[-0.035em] text-slate-900 dark:text-slate-50 sm:text-3xl">
+        <h2 className="mt-0.5 text-xl font-extrabold tracking-[-0.035em] text-slate-900 dark:text-slate-50 sm:text-3xl">
           Ready to start Part {partNumber}?
         </h2>
         <p className="mt-1 text-xs font-bold text-rose-500 sm:text-sm">{title}</p>
@@ -118,7 +118,7 @@ const InitialWelcomeScreen = ({ partNumber, title }) => {
           <br className="hidden sm:block" /> Answer naturally and speak clearly.
         </p>
 
-        <div className="mt-3 grid w-full max-w-lg grid-cols-2 gap-2">
+        <div className="mt-2.5 grid w-full max-w-lg grid-cols-2 gap-2">
           <ReadinessCard
             device="microphone"
             icon={Mic2}

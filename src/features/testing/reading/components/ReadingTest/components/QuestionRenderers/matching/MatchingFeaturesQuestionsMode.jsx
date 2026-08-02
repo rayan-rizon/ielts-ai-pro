@@ -37,12 +37,12 @@ function FeatureQuestionRowItem({
     isFinished,
     value,
     isCorrect,
-    'bg-white dark:bg-slate-950/40'
+    'bg-white dark:bg-white/[0.04]'
   );
 
   return (
     <div
-      className="flex items-center gap-3 p-2 bg-white/60 dark:bg-slate-950/30 rounded-lg border border-slate-200/60 dark:border-slate-700/60 w-full"
+      className="flex items-center gap-3 p-2 bg-[#fbfbfe] dark:bg-white/[0.03] rounded-lg border border-[#ebeaf7] dark:border-white/[0.08] w-full"
       data-oid="o37jbrr"
     >
       <div className="flex-shrink-0" data-oid="59dx2qp">
@@ -68,7 +68,7 @@ function FeatureQuestionRowItem({
         >
           <SelectTrigger
             className={cn(
-              'h-8 w-[100px] flex-shrink-0 text-sm transition-all shadow-sm border-slate-300/50',
+              'h-7 w-[100px] flex-shrink-0 text-sm transition-all border-slate-300/50 dark:border-white/[0.08]',
               selectStyle,
               !value && 'text-slate-400'
             )}

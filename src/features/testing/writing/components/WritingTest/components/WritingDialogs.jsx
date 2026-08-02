@@ -11,8 +11,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Lock, Sparkles, XCircle, AlertTriangle } from 'lucide-react';
+import { Lock, Sparkles, XCircle } from 'lucide-react';
 import { useWritingTestDispatch } from '../context/WritingTestContext';
+import { ConfirmExitDialog } from '@/shared/ui';
 
 /**
  * WritingDialogs
@@ -43,47 +44,20 @@ export function WritingDialogs({ logic }) {
   return (
     <>
       {/* Exit Confirmation Dialog */}
-      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog} data-oid="mneno71">
-        <AlertDialogContent data-oid="fsn1dmt">
-          <AlertDialogHeader data-oid="abg192e">
-            <AlertDialogTitle
-              className="flex items-center justify-center sm:justify-start gap-2 text-xl"
-              data-oid="rp2tdtf"
-            >
-              <AlertTriangle className="w-5 h-5 text-amber-500" data-oid="0m._8ua" />
-              Exit Test?
-            </AlertDialogTitle>
-            <AlertDialogDescription
-              className="text-sm text-slate-500 dark:text-slate-400"
-              data-oid="d1ci:r-"
-            >
-              Your progress will be saved. You can resume this test later from your dashboard.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2" data-oid="r00rsa.">
-            <AlertDialogCancel
-              onClick={() => setShowExitDialog(false)}
-              className="w-full sm:w-auto rounded-xl border-[#e4e2f0] dark:border-white/10 hover:bg-[#f4f3fb] dark:hover:bg-white/[0.06] transition-all duration-200 px-6 font-semibold"
-              data-oid="7153k2u"
-            >
-              Continue Test
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                // Save progress before exiting
-                await saveNow();
-                isExiting.current = true;
-                setShowExitDialog(false);
-                navigate('/writing');
-              }}
-              className="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-500/20 border-none px-8 rounded-xl hover:scale-105 active:scale-95 transition-all duration-200 font-bold"
-              data-oid="anoee7g"
-            >
-              Exit
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmExitDialog
+        open={showExitDialog}
+        onOpenChange={setShowExitDialog}
+        onCancel={() => setShowExitDialog(false)}
+        onConfirm={async () => {
+          // Save progress before exiting
+          await saveNow();
+          isExiting.current = true;
+          setShowExitDialog(false);
+          navigate('/writing');
+        }}
+        title="Exit Test?"
+        description="Your progress will be saved. You can resume this test later from your dashboard."
+      />
 
       {/* Manual Submission Dialog */}
       <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog} data-oid="1jcn4qf">

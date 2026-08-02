@@ -7,6 +7,13 @@ import { useWritingTestStore } from '@/features/testing/writing/store/useWriting
 import WritingTestClock from './WritingTestClock';
 import { Badge } from '@/components/ui/badge';
 import TestModeHeaderControl from '@/features/testing/shared/components/TestModeHeaderControl';
+import {
+  TEST_HEADER_AUTOSAVE,
+  TEST_HEADER_BADGE,
+  TEST_HEADER_BACK,
+  TEST_HEADER_META,
+  TEST_HEADER_SHELL,
+} from '@/features/testing/shared/components/testHeaderStyles';
 
 /**
  * WritingHeader
@@ -38,7 +45,10 @@ export function WritingHeader({
   return (
     <div className="sticky top-0 z-50 w-full px-2 py-0.5 sm:px-3 sm:py-1" data-oid=":8ypqdh">
       <div
-        className="w-full rounded-2xl flex items-center justify-between py-1 px-2.5 sm:py-1.5 sm:px-3.5 border border-slate-200/50 dark:border-white/10 bg-white/80 dark:bg-[#0B0C1A]/95 backdrop-blur-2xl shadow-[0_8px_32px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] ring-1 ring-transparent dark:ring-white/5 transition-all duration-300 gap-2"
+        className={cn(
+          TEST_HEADER_SHELL,
+          'flex items-center justify-between gap-2 px-2.5 py-1 sm:px-3.5 sm:py-1.5'
+        )}
         data-oid="djy-d0b"
       >
         {/* Left: Navigation & Info */}
@@ -57,7 +67,7 @@ export function WritingHeader({
                 window.history.back();
               }
             }}
-            className="group relative flex h-9 w-9 sm:h-9.5 sm:w-9.5 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-[#5661e9] hover:bg-[#efedff] hover:text-[#5661e9] active:scale-95 dark:border-white/20 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-indigo-400/60 dark:hover:bg-slate-700 dark:hover:text-indigo-300 p-0"
+            className={TEST_HEADER_BACK}
             data-oid="hk29.7f"
           >
             <ArrowLeft
@@ -74,16 +84,16 @@ export function WritingHeader({
             >
               {task?.title || 'Writing Task'}
             </h1>
-            <div
-              className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium"
-              data-oid="qtfjfp2"
-            >
+            <div className={TEST_HEADER_META} data-oid="qtfjfp2">
               <span className="opacity-80 dark:opacity-70 truncate" data-oid="y3ia:a_">
                 {activeType || 'Writing'}
               </span>
               {task?.is_official_cambridge && (
                 <span
-                  className="inline-flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500 text-[8px] sm:text-[10px] font-bold uppercase tracking-wide whitespace-nowrap"
+                  className={cn(
+                    TEST_HEADER_BADGE,
+                    'border-amber-500/25 bg-amber-500/[0.08] text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300 sm:gap-1 sm:text-[9px]'
+                  )}
                   data-oid="h9rc23x"
                 >
                   <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" data-oid="s_:7hbv" />
@@ -93,7 +103,7 @@ export function WritingHeader({
               {!isAwaitingStart ? (
                 <Badge
                   variant="outline"
-                  className="h-4 shrink-0 whitespace-nowrap rounded-full px-1.5 text-[8px] font-black uppercase tracking-wide"
+                  className="h-4 shrink-0 whitespace-nowrap rounded-md border-[#e4e2f0] bg-[#f4f3fb] px-1.5 py-0 text-[8px] font-bold uppercase leading-none tracking-[0.08em] text-slate-600 dark:border-white/[0.10] dark:bg-white/[0.055] dark:text-slate-300"
                 >
                   <span className="hidden min-[420px]:inline">
                     {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
@@ -110,24 +120,24 @@ export function WritingHeader({
         {/* Center: Task Switcher (Desktop — md and above) */}
         {compositeTasks && Object.keys(compositeTasks).length > 1 && (
           <div
-            className="hidden md:flex items-center gap-1 bg-[#f4f3fb] dark:bg-white/[0.04] p-1 rounded-full border border-[#e4e2f0] dark:border-white/[0.07]"
+            className="hidden items-center gap-0.5 rounded-full border border-[#d8d9f0] bg-[#f1f1fb] p-0.5 dark:border-white/[0.12] dark:bg-white/[0.07] md:flex"
             data-oid="edt:rn9"
           >
             {Object.keys(compositeTasks).map((type) => (
               <button
                 key={type}
                 onClick={() => handleSwitchTask(type)}
-                className={`relative px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 z-10 ${
+                className={`relative z-10 inline-flex h-8 items-center justify-center rounded-full px-3.5 text-sm font-semibold transition-all duration-200 ${
                   activeType === type
-                    ? 'text-white shadow-md'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'text-white dark:text-[#17182a]'
+                    : 'text-[#606a83] hover:bg-white/70 hover:text-[#4f58c8] dark:text-[#aeb7ce] dark:hover:bg-white/[0.08] dark:hover:text-[#e3e5ff]'
                 }`}
                 data-oid="yghl_mz"
               >
                 {activeType === type && (
                   <motion.div
                     layoutId="activeTaskTab"
-                    className="absolute inset-0 bg-slate-900 dark:bg-[#5661e9] rounded-full -z-10"
+                    className="absolute inset-0 -z-10 rounded-full bg-[#6366d9] dark:bg-[#8f97ff]"
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                     data-oid="y6gfvnb"
                   />
@@ -141,24 +151,24 @@ export function WritingHeader({
         {/* Center: Task Switcher (Mobile — below md) */}
         {compositeTasks && Object.keys(compositeTasks).length > 1 && (
           <div
-            className="flex md:hidden items-center gap-0.5 bg-[#f4f3fb] dark:bg-white/[0.04] p-0.5 rounded-full border border-[#e4e2f0] dark:border-white/[0.07] mx-auto"
+            className="mx-auto flex items-center gap-0.5 rounded-full border border-[#d8d9f0] bg-[#f1f1fb] p-0.5 dark:border-white/[0.12] dark:bg-white/[0.07] md:hidden"
             data-oid="mobile-task-switcher"
           >
             {Object.keys(compositeTasks).map((type) => (
               <button
                 key={type}
                 onClick={() => handleSwitchTask(type)}
-                className={`relative px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all duration-300 z-10 ${
+                className={`relative z-10 inline-flex h-8 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 sm:px-3.5 ${
                   activeType === type
-                    ? 'text-white shadow-md'
-                    : 'text-slate-500 dark:text-slate-400'
+                    ? 'text-white dark:text-[#17182a]'
+                    : 'text-[#606a83] hover:bg-white/70 hover:text-[#4f58c8] dark:text-[#aeb7ce] dark:hover:bg-white/[0.08] dark:hover:text-[#e3e5ff]'
                 }`}
                 data-oid="mobile-task-tab"
               >
                 {activeType === type && (
                   <motion.div
                     layoutId="activeTaskTabMobile"
-                    className="absolute inset-0 bg-slate-900 dark:bg-[#5661e9] rounded-full -z-10"
+                    className="absolute inset-0 -z-10 rounded-full bg-[#6366d9] dark:bg-[#8f97ff]"
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                     data-oid="mobile-active-bg"
                   />
@@ -183,10 +193,7 @@ export function WritingHeader({
           ) : (
             <>
               {/* Auto-save Status (Hidden on very small screens) */}
-              <div
-                className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f4f3fb] dark:bg-white/[0.04] border border-[#e4e2f0] dark:border-white/[0.07]"
-                data-oid="2y1asde"
-              >
+              <div className={cn(TEST_HEADER_AUTOSAVE, 'lg:flex')} data-oid="2y1asde">
                 {isSaving ? (
                   <Loader2
                     className="w-3 h-3 text-[#5661e9] dark:text-indigo-300 animate-spin"

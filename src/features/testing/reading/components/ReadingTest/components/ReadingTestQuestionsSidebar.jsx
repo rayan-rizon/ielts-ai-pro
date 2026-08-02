@@ -113,11 +113,15 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
               <div key={instruction} className="mb-3 space-y-1.5" data-oid="8jksp:y">
                 {displayInstruction.trim() && (
                   <div
-                    className="flex items-start gap-2.5 p-3 rounded-xl bg-[#5a63df]/[0.06] dark:bg-[#5a63df]/10 border border-[#5a63df]/15 dark:border-[#5a63df]/20 text-slate-800 dark:text-slate-200 mb-1.5 shadow-2xs"
+                    className="relative flex items-start gap-2.5 p-3 pl-3.5 rounded-xl overflow-hidden bg-[#5a63df]/[0.05] dark:bg-[#131315] border border-[#5a63df]/10 dark:border-[#5a63df]/25 text-slate-800 dark:text-slate-100 mb-1.5"
                     data-oid="6dw9uti"
                   >
+                    <span
+                      className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#5a63df] dark:bg-[#8f97ff]"
+                      aria-hidden="true"
+                    />
                     <div
-                      className="p-1 rounded-lg bg-[#5a63df]/10 dark:bg-[#5a63df]/20 text-[#5a63df] dark:text-[#a9afff] shrink-0 mt-0.5"
+                      className="p-1 rounded-lg bg-[#5a63df]/10 dark:bg-[#8f97ff]/[0.16] text-[#5a63df] dark:text-[#afb5ff] shrink-0 mt-0.5"
                       data-oid="ip7:at9"
                     >
                       <Lightbulb className="w-4 h-4" data-oid="3h83xkd" />
@@ -462,17 +466,17 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
 
       {/* Premium Navigation bar */}
       <div
-        className="p-3 border-t border-border bg-background/80 backdrop-blur-xl flex-shrink-0 relative z-30"
+        className="px-2.5 py-2 sm:px-3 sm:py-2.5 border-t border-[#e4e2f0] dark:border-white/[0.07] bg-background/80 backdrop-blur-xl flex-shrink-0 relative z-30"
         data-oid="r0rcfur"
       >
-        <div className="flex items-center justify-between gap-2" data-oid="3is3g04">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2" data-oid="3is3g04">
           {/* Previous Button */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setCurrentPassageIndex(Math.max(0, currentPassageIndex - 1))}
             disabled={currentPassageIndex === 0}
-            className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 group disabled:opacity-30 rounded-lg px-7 py-2"
+            className="flex items-center gap-1.5 h-8 sm:h-9 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all duration-300 group disabled:opacity-30 rounded-lg px-2.5 sm:px-4"
             data-oid="ay15_bx"
           >
             <ChevronLeft
@@ -486,8 +490,8 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
           </Button>
 
           {/* Center Progress Indicator */}
-          <div className="flex flex-col items-center gap-1.5 px-2 sm:px-4" data-oid=":5twpd-">
-            <div className="flex items-center gap-2" data-oid="jxd:chz">
+          <div className="flex flex-col items-center gap-1 px-1 sm:px-4 min-w-0" data-oid=":5twpd-">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0" data-oid="jxd:chz">
               <div className="hidden sm:flex items-center gap-1" data-oid="t-wb_a5">
                 {[...Array(testData.sections.length)].map((_, i) => (
                   <div
@@ -497,15 +501,15 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                         ? 'w-6 bg-[#5a63df]'
                         : i < currentPassageIndex
                           ? 'w-1.5 bg-[#5a63df]/30 dark:bg-[#5a63df]/40'
-                          : 'w-1.5 bg-slate-200 dark:bg-slate-800'
+                          : 'w-1.5 bg-slate-200 dark:bg-white/[0.10]'
                     }`}
                     data-oid="jh9w00e"
                   />
                 ))}
               </div>
-              <div className="flex gap-2" data-oid="bthfqv0">
+              <div className="flex gap-1.5 min-w-0" data-oid="bthfqv0">
                 <div
-                  className="flex items-center gap-1.5 bg-[#5a63df]/10 dark:bg-[#5a63df]/20 px-2 py-0.5 rounded-full border border-[#5a63df]/20 dark:border-[#5a63df]/25"
+                  className="flex items-center gap-1 bg-[#5a63df]/10 dark:bg-[#5a63df]/[0.14] px-2 py-1 rounded-full border border-[#5a63df]/15 dark:border-[#5a63df]/20 whitespace-nowrap"
                   data-oid="2bzt1bp"
                 >
                   <span
@@ -529,7 +533,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                   </span>
                 </div>
                 <div
-                  className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 whitespace-nowrap"
+                  className="flex items-center gap-1 bg-slate-100 dark:bg-white/[0.06] px-2 py-1 rounded-full border border-[#ebeaf7] dark:border-white/[0.08] whitespace-nowrap"
                   data-oid="ikburca"
                 >
                   <span
@@ -556,7 +560,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                 (Object.keys(answers).length === 0 && !isFinished && !session?.is_completed)
               }
               className={cn(
-                'font-bold px-4 h-11 rounded-xl transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2 border-none',
+                'font-bold px-3.5 sm:px-4 h-8 sm:h-9 rounded-lg transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5 border-none shrink-0',
                 isFinished || (session && session.is_completed)
                   ? 'bg-[#5a63df] hover:bg-[#4a52c9] text-white'
                   : 'bg-slate-900 dark:bg-[#5a63df] text-white hover:bg-slate-800 dark:hover:bg-[#4a52c9]'
@@ -596,14 +600,14 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                   Math.min(testData.sections.length - 1, currentPassageIndex + 1)
                 )
               }
-              className="bg-slate-900 dark:bg-[#5a63df] text-white hover:bg-slate-800 dark:hover:bg-[#4a52c9] font-bold rounded-xl px-10 h-11 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+              className="bg-slate-900 dark:bg-[#5a63df] text-white hover:bg-slate-800 dark:hover:bg-[#4a52c9] font-bold rounded-lg px-4 sm:px-6 h-8 sm:h-9 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 shrink-0"
               data-oid="z674zld"
             >
-              <div className="flex items-center gap-2" data-oid="m6u07y5">
-                <span className="font-bold" data-oid="gx3v-uf">
+              <div className="flex items-center gap-1.5" data-oid="m6u07y5">
+                <span className="font-bold text-sm" data-oid="gx3v-uf">
                   Next
                 </span>
-                <ChevronRight className="w-5 h-5 flex-shrink-0" data-oid="esyua1r" />
+                <ChevronRight className="w-4 h-4 flex-shrink-0" data-oid="esyua1r" />
               </div>
             </Button>
           )}

@@ -49,9 +49,9 @@ function TestRoadmap({ allParts, currentPartNumber }) {
     .sort((a, b) => a - b);
 
   return (
-    <section className="px-5 py-4 sm:px-6">
+    <section className="px-4 py-3.5 sm:px-5">
       <h2 className={cn(MICRO, MUTED)}>Test roadmap</h2>
-      <ol className="mt-3 space-y-1">
+      <ol className="mt-2.5 space-y-1">
         {partNumbers.map((partNumber, index) => {
           const detail = PART_DETAILS[partNumber] || {
             title: allParts[partNumber]?.title || 'Speaking section',
@@ -61,7 +61,7 @@ function TestRoadmap({ allParts, currentPartNumber }) {
           const isCurrent = partNumber === currentPartNumber;
 
           return (
-            <li key={partNumber} className="relative flex gap-3.5 pb-5 last:pb-0">
+            <li key={partNumber} className="relative flex gap-3.5 pb-4 last:pb-0">
               {index < partNumbers.length - 1 && (
                 <span
                   className={cn(
@@ -73,7 +73,7 @@ function TestRoadmap({ allParts, currentPartNumber }) {
               )}
               <span
                 className={cn(
-                  'relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-black',
+                  'relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-extrabold',
                   isComplete && 'border-rose-500 bg-rose-500 text-white',
                   isCurrent &&
                     'border-rose-500 bg-rose-500 text-white shadow-md shadow-rose-500/20',
@@ -116,7 +116,7 @@ function SessionReadiness({ testStarted, isPart2Prep, currentPartNumber }) {
     const detail = PART_DETAILS[currentPartNumber] || PART_DETAILS[1];
 
     return (
-      <section className="border-t border-[#e4e2f0] px-5 py-4 dark:border-white/[0.07] sm:px-6">
+      <section className="border-t border-[#e4e2f0] px-4 py-3.5 dark:border-white/[0.07] sm:px-5">
         <p className={cn(MICRO, MUTED)}>{isPart2Prep ? 'Preparation focus' : 'Current focus'}</p>
         <div className="mt-3 flex gap-3">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/[0.09] text-rose-500">
@@ -142,7 +142,7 @@ function SessionReadiness({ testStarted, isPart2Prep, currentPartNumber }) {
   }
 
   return (
-    <section className="border-t border-[#e4e2f0] px-5 py-4 dark:border-white/[0.07] sm:px-6">
+    <section className="border-t border-[#e4e2f0] px-4 py-3.5 dark:border-white/[0.07] sm:px-5">
       <p className={cn(MICRO, MUTED)}>Before you begin</p>
       <div className="mt-3 space-y-3">
         <div className="flex gap-3">
@@ -176,7 +176,7 @@ function SessionReadiness({ testStarted, isPart2Prep, currentPartNumber }) {
 
 function UsefulTip({ currentPartNumber }) {
   return (
-    <section className="border-t border-[#e4e2f0] px-5 py-4 dark:border-white/[0.07] sm:px-6">
+    <section className="border-t border-[#e4e2f0] px-4 py-3.5 dark:border-white/[0.07] sm:px-5">
       <div className="flex items-center gap-2">
         <Lightbulb className="h-4 w-4 text-amber-500" aria-hidden="true" />
         <p className={cn(MICRO, MUTED)}>One useful tip</p>
@@ -225,7 +225,7 @@ function MobileProgressStrip({ allParts, currentPartNumber, handsFreeEnabled, on
               <li className="flex flex-col items-center gap-1">
                 <span
                   className={cn(
-                    'flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-black transition-all duration-200',
+                    'flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-extrabold transition-all duration-200',
                     isComplete && 'border-rose-500 bg-rose-500 text-white',
                     isCurrent &&
                       'border-rose-500 bg-rose-500 text-white shadow-sm shadow-rose-500/40',
@@ -260,6 +260,14 @@ function MobileProgressStrip({ allParts, currentPartNumber, handsFreeEnabled, on
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex shrink-0 items-center gap-1.5 cursor-default">
+              <div className="hidden min-[360px]:flex flex-col items-end gap-0.5">
+                <span className="text-[8px] font-extrabold leading-none text-slate-700 dark:text-slate-200">
+                  Hands-free answers
+                </span>
+                <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-rose-600 dark:text-rose-300">
+                  {handsFreeEnabled ? 'Auto' : 'Manual'}
+                </span>
+              </div>
               <AudioWaveform className="h-3.5 w-3.5 text-rose-500/70" aria-hidden="true" />
               <Switch
                 checked={handsFreeEnabled}
@@ -305,7 +313,7 @@ export default function SpeakingSessionRail({
 
       {/* ── Desktop xl+: sticky full sidebar ── */}
       <aside
-        className={cn(PANEL, 'hidden overflow-hidden rounded-2xl xl:sticky xl:top-4 xl:block')}
+        className={cn(PANEL, 'hidden overflow-hidden rounded-xl xl:sticky xl:top-4 xl:block')}
         aria-label="Speaking test guidance"
       >
         <TestRoadmap allParts={allParts} currentPartNumber={currentPartNumber} />

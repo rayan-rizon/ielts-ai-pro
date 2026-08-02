@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const MODES = [
@@ -49,7 +49,7 @@ export default function TestModeHeaderControl({
       <div className="relative flex items-center gap-1.5 sm:gap-2">
         {/* Mode Selector Radio Group */}
         <div
-          className="relative flex items-center rounded-full border border-slate-200/90 bg-slate-100/90 p-0.5 dark:border-white/10 dark:bg-slate-800/80 shadow-xs backdrop-blur-md"
+          className="relative flex items-center rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] p-1 dark:border-white/[0.10] dark:bg-white/[0.055]"
           role="radiogroup"
           aria-label="Test mode"
         >
@@ -69,17 +69,17 @@ export default function TestModeHeaderControl({
                 disabled={disabled || isStarting}
                 onClick={() => onModeChange(id)}
                 className={cn(
-                  'relative z-10 flex h-7 items-center gap-1.5 rounded-full px-2.5 sm:px-3 text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer select-none',
+                  'relative z-10 flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-[9px] font-bold uppercase tracking-[0.10em] transition-colors cursor-pointer select-none sm:px-3 sm:text-[10px]',
                   selected
-                    ? 'text-[#3b44b8] dark:text-white'
-                    : 'text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white',
+                    ? 'text-white dark:text-[#10111a]'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100',
                   disabled && 'cursor-not-allowed opacity-40'
                 )}
               >
                 {selected && (
                   <motion.div
                     layoutId="testModeControlPill"
-                    className="absolute inset-0 bg-white dark:bg-[#5661e9] rounded-full shadow-xs -z-10"
+                    className="absolute inset-0 -z-10 rounded-lg bg-[#5a63df] dark:bg-[#8f97ff]"
                     transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                   />
                 )}
@@ -87,8 +87,8 @@ export default function TestModeHeaderControl({
                   className={cn(
                     'h-3.5 w-3.5 stroke-[2.5]',
                     selected
-                      ? 'text-[#3b44b8] dark:text-white'
-                      : 'text-slate-700 dark:text-slate-300'
+                      ? 'text-white dark:text-[#10111a]'
+                      : 'text-slate-500 dark:text-slate-400'
                   )}
                 />
                 <span className={cn(id === 'practice' && 'hidden sm:inline')}>{label}</span>
@@ -103,7 +103,7 @@ export default function TestModeHeaderControl({
             <button
               type="button"
               aria-label="Mode Guide"
-              className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200/80 bg-white/80 text-slate-500 hover:text-slate-900 hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors shadow-xs cursor-pointer"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-[#e4e2f0] bg-white text-slate-500 transition-colors hover:bg-white hover:text-slate-900 dark:border-white/[0.10] dark:bg-white/[0.055] dark:text-slate-400 dark:hover:bg-white/[0.09] dark:hover:text-slate-100"
             >
               <HelpCircle className="h-3.5 w-3.5" />
             </button>
@@ -111,7 +111,7 @@ export default function TestModeHeaderControl({
           <PopoverContent
             side="bottom"
             align="end"
-            className="w-80 p-4 border border-slate-200 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl rounded-2xl z-50"
+            className="z-50 w-80 rounded-xl border border-[#e4e2f0] bg-white p-4 shadow-xl dark:border-white/[0.12] dark:bg-[#131315]"
           >
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-2.5 mb-3">
               <div className="flex items-center gap-2">
@@ -131,7 +131,7 @@ export default function TestModeHeaderControl({
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="rounded-xl p-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-white/5">
+              <div className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 dark:border-white/[0.10] dark:bg-white/[0.055]">
                 <div className="flex items-center gap-1.5 font-bold text-indigo-600 dark:text-indigo-400 mb-1">
                   <Sparkles className="h-3.5 w-3.5" />
                   <span>Practice Mode</span>
@@ -143,7 +143,7 @@ export default function TestModeHeaderControl({
                 </ul>
               </div>
 
-              <div className="rounded-xl p-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-white/5">
+              <div className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 dark:border-white/[0.10] dark:bg-white/[0.055]">
                 <div className="flex items-center gap-1.5 font-bold text-indigo-600 dark:text-indigo-400 mb-1">
                   <GraduationCap className="h-3.5 w-3.5" />
                   <span>Exam Mode</span>

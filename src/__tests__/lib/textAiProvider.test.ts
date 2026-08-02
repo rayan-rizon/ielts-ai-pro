@@ -14,7 +14,7 @@ function jsonResponse(body: any, status = 200) {
 }
 
 describe('text AI provider routing', () => {
-  it('uses OpenRouter DeepSeek V4 Flash 0731 first with low reasoning and no exposed reasoning text', async () => {
+  it('uses OpenRouter DeepSeek V4 Flash 0731 first with reasoning disabled and no exposed reasoning text', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(
       jsonResponse({
         model: OPENROUTER_DEEPSEEK_MODEL,
@@ -39,13 +39,14 @@ describe('text AI provider routing', () => {
     expect(JSON.parse(init.body)).toMatchObject({
       model: OPENROUTER_DEEPSEEK_MODEL,
       response_format: { type: 'json_object' },
-      reasoning: { max_tokens: 75, exclude: true },
-      max_tokens: 631,
+      reasoning: { effort: 'none', exclude: true },
+      provider: { sort: 'latency', require_parameters: true },
+      max_tokens: 300,
     });
     expect(result).toMatchObject({
       provider: 'openrouter-deepseek',
       model: OPENROUTER_DEEPSEEK_MODEL,
-      mode: 'low-reasoning',
+      mode: 'non-thinking',
       fallbackUsed: false,
       parsed: { headline: 'OpenRouter route' },
     });

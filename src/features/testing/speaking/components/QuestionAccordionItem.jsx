@@ -21,7 +21,7 @@ export default function QuestionAccordionItem({ item, localIdx, globalIdx, isExp
       >
         <div
           className={cn(
-            'w-9 h-9 rounded-xl font-black flex items-center justify-center shrink-0 mt-0.5 shadow-sm border transition-all duration-500',
+            'w-9 h-9 rounded-xl font-extrabold flex items-center justify-center shrink-0 mt-0.5 shadow-sm border transition-all duration-500',
             isExpanded
               ? 'bg-rose-600 text-white border-rose-500 scale-110 shadow-lg shadow-rose-500/20'
               : 'bg-[#f4f3fb] dark:bg-white/[0.04] text-slate-400 dark:text-slate-600 border-[#e4e2f0] dark:border-white/[0.07]'

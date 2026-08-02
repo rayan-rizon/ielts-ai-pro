@@ -108,9 +108,9 @@ const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({
           isFinished && correctAnswersList.some((ans) => isAnswerCorrect(letter, ans));
 
         let labelClass =
-          'flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg border transition-all duration-150 relative overflow-hidden select-none group ';
+          'flex items-center gap-2.5 px-2.5 py-1 rounded-lg border transition-all duration-150 relative overflow-hidden select-none group ';
         let badgeClass =
-          'w-5 h-5 min-w-[20px] rounded-full flex items-center justify-center text-[11px] font-bold transition-all shrink-0 ';
+          'w-[18px] h-[18px] min-w-[18px] rounded-full flex items-center justify-center text-[11px] font-bold transition-all shrink-0 ';
 
         if (isFinished) {
           labelClass += 'cursor-not-allowed opacity-100 ';
@@ -121,33 +121,34 @@ const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({
 
             if (isCorrectSelection) {
               labelClass +=
-                'bg-emerald-50/90 border-emerald-500 text-emerald-950 dark:bg-emerald-950/40 dark:border-emerald-500/70 dark:text-emerald-200 font-semibold shadow-2xs';
+                'bg-emerald-50/80 border-emerald-500/60 text-emerald-950 dark:bg-emerald-950/30 dark:border-emerald-500/40 dark:text-emerald-200 font-semibold';
               badgeClass += 'bg-emerald-600 text-white dark:bg-emerald-500';
             } else {
               labelClass +=
-                'bg-rose-50/90 border-rose-500 text-rose-950 dark:bg-rose-950/40 dark:border-rose-500/70 dark:text-rose-200 font-semibold shadow-2xs';
+                'bg-rose-50/80 border-rose-500/60 text-rose-950 dark:bg-rose-950/30 dark:border-rose-500/40 dark:text-rose-200 font-semibold';
               badgeClass += 'bg-rose-600 text-white dark:bg-rose-500';
             }
           } else if (isActualCorrect) {
             labelClass +=
-              'bg-emerald-50/40 border-emerald-400/70 border-dashed text-emerald-800 dark:bg-emerald-950/20 dark:border-emerald-500/50 dark:text-emerald-300 font-medium';
+              'bg-emerald-50/30 border-emerald-400/50 border-dashed text-emerald-800 dark:bg-emerald-950/15 dark:border-emerald-500/35 dark:text-emerald-300 font-medium';
             badgeClass +=
               'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
           } else {
-            labelClass += 'border-transparent bg-transparent text-slate-400 dark:text-slate-500';
-            badgeClass += 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600';
+            labelClass +=
+              'border-[#ebeaf7] dark:border-white/[0.05] bg-transparent text-slate-400 dark:text-slate-500';
+            badgeClass += 'bg-slate-100 text-slate-400 dark:bg-white/[0.06] dark:text-slate-600';
           }
         } else {
           labelClass += 'cursor-pointer ';
           if (isSelected) {
             labelClass +=
-              'bg-[#5a63df]/10 border-[#5a63df]/60 text-[#3a3f9e] dark:bg-[#5a63df]/20 dark:border-[#5a63df]/50 dark:text-[#c9cdf3] font-medium shadow-2xs ring-1 ring-[#5a63df]/20';
+              'bg-[#5a63df]/[0.08] border-[#5a63df]/35 text-[#3a3f9e] dark:bg-[#5a63df]/[0.14] dark:border-[#5a63df]/30 dark:text-[#c9cdf3] font-medium ring-1 ring-[#5a63df]/15';
             badgeClass += 'bg-[#5a63df] text-white shadow-2xs scale-105';
           } else {
             labelClass +=
-              'border-transparent bg-transparent text-slate-700 dark:text-slate-200 hover:bg-slate-100/70 dark:hover:bg-slate-800/50 hover:border-slate-200/60 dark:hover:border-slate-700/60';
+              'border-[#ebeaf7] dark:border-white/[0.06] bg-[#fbfbfe]/70 dark:bg-white/[0.02] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] hover:border-[#5a63df]/25 dark:hover:border-[#5a63df]/25';
             badgeClass +=
-              'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-[#5a63df]/15 dark:group-hover:bg-[#5a63df]/25 group-hover:text-[#5a63df] dark:group-hover:text-[#c9cdf3]';
+              'bg-slate-100 text-slate-600 dark:bg-white/[0.07] dark:text-slate-300 group-hover:bg-[#5a63df]/15 dark:group-hover:bg-[#5a63df]/25 group-hover:text-[#5a63df] dark:group-hover:text-[#c9cdf3]';
           }
         }
 

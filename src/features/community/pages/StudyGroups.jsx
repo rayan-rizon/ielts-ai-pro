@@ -1,7 +1,6 @@
 import React from 'react';
 import { m } from 'framer-motion';
 import {
-  Users,
   Video,
   MessageSquare,
   Crown,
@@ -197,19 +196,16 @@ export default function StudyGroups() {
           variants={FADE_UP}
           className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
         >
-          <div className="flex items-center gap-3">
-            <IconChip icon={Users} size="lg" />
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-                  Study groups
-                </h1>
-                <Pill tone="accent">Peer community</Pill>
-              </div>
-              <p className={cn('mt-0.5 text-sm font-medium', MUTED)}>
-                Collaborative practice rooms & live peer learning communities.
-              </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                Study groups
+              </h1>
+              <Pill tone="accent">Peer community</Pill>
             </div>
+            <p className={cn('mt-0.5 text-sm font-medium', MUTED)}>
+              Collaborative practice rooms & live peer learning communities.
+            </p>
           </div>
 
           <div className="flex items-center gap-2">
