@@ -111,7 +111,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
         {uploading ? (
           <div className="py-8 flex flex-col items-center" data-oid="_25-_87">
             <div
-              className="w-12 h-12 border-4 border-stone-600 border-t-transparent rounded-full animate-spin mb-4 shadow-lg "
+              className="w-12 h-12 border-4 border-stone-600 border-t-transparent rounded-full animate-spin mb-4"
               data-oid=".8vmtev"
             ></div>
             <p
@@ -153,7 +153,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
             </div>
 
             <div
-              className="bg-stone-100/50 dark:bg-stone-950/80 backdrop-blur-xl rounded-xl p-3 border border-stone-200/50 dark:border-stone-800/80 shadow-inner mb-4"
+              className="bg-stone-100/50 dark:bg-stone-950/80 rounded-xl p-3 border border-stone-200/50 dark:border-stone-800/80 shadow-inner mb-4"
               data-oid="eznl0al"
             >
               <audio
@@ -230,7 +230,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
               variant="default"
               size="sm"
               onClick={() => document.getElementById('audio-upload-input').click()}
-              className="mt-2 bg-stone-600 hover:bg-stone-700 text-white font-black text-[10px] uppercase tracking-widest px-6 h-9 rounded-xl shadow-lg transition-all active:scale-95"
+              className="mt-2 bg-stone-600 hover:bg-stone-700 text-white font-black text-[10px] uppercase tracking-widest px-6 h-9 rounded-xl transition-all active:scale-95"
               data-oid="d1mrrwb"
             >
               Select MP3/WAV
@@ -1335,7 +1335,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                 <Button
                   onClick={() => addGroup(Number(activeTab))}
                   size="sm"
-                  className="h-9 px-4 sm:px-5 rounded-xl bg-stone-600 hover:bg-stone-700 text-white font-black text-[10px] uppercase tracking-widest shadow-lg transition-all hover:-translate-y-0.5 shrink-0"
+                  className="h-9 px-4 sm:px-5 rounded-xl bg-stone-600 hover:bg-stone-700 text-white font-black text-[10px] uppercase tracking-widest transition-all hover:-translate-y-0.5 shrink-0"
                 >
                   <Plus className="w-4 h-4 mr-1 sm:mr-1.5" />
                   Add Group
@@ -1376,7 +1376,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                   className="relative"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-stone-50/50 to-stone-50/30 dark:from-stone-950/20 dark:to-stone-950/10 rounded-2xl -z-10" />
-                  <div className="bg-white/70 dark:bg-stone-900/70 backdrop-blur-sm border border-stone-200/50 dark:border-stone-800/30 rounded-2xl p-12 text-center shadow-lg ">
+                  <div className="bg-white/70 dark:bg-stone-900/70 border border-stone-200/50 dark:border-stone-800/30 rounded-2xl p-12 text-center">
                     <div className="w-16 h-16 rounded-2xl bg-stone-50 dark:bg-stone-900/30 flex items-center justify-center mx-auto mb-4 border border-stone-100 dark:border-stone-800">
                       <FileText className="w-8 h-8 text-stone-600 dark:text-stone-400" />
                     </div>
@@ -1389,7 +1389,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                     </p>
                     <Button
                       onClick={() => addGroup(Number(activeTab))}
-                      className="h-10 px-8 rounded-xl bg-stone-600 hover:bg-stone-700 text-white font-black text-[11px] uppercase tracking-widest shadow-lg transition-all active:scale-95"
+                      className="h-10 px-8 rounded-xl bg-stone-600 hover:bg-stone-700 text-white font-black text-[11px] uppercase tracking-widest transition-all active:scale-95"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Add First Group
@@ -1511,7 +1511,7 @@ const QuestionGroupEditor = ({
           </div>
           <div className="flex items-center gap-4" data-oid="j.nzbzg">
             <div
-              className={`p-2 rounded-xl transition-all duration-500 ${group.isCollapsed ? '-rotate-90 bg-stone-100 dark:bg-[#18181b] text-stone-500 dark:text-stone-300 border border-stone-200/80 dark:border-white/10 shadow-inner' : 'rotate-0 bg-stone-600 text-white shadow-lg '}`}
+              className={`p-2 rounded-xl transition-all duration-500 ${group.isCollapsed ? '-rotate-90 bg-stone-100 dark:bg-[#18181b] text-stone-500 dark:text-stone-300 border border-stone-200/80 dark:border-white/10 shadow-inner' : 'rotate-0 bg-stone-600 text-white'}`}
               data-oid="z:5qfsa"
             >
               <ChevronDown className="w-4 h-4" data-oid="qx4e2ao" />

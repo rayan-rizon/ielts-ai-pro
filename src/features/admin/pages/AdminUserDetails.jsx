@@ -1,11 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { m } from 'framer-motion';
+import { toast } from 'sonner';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { User, TestSession } from '@/entities';
 import { sendEmail } from '@/utils/api';
 import { createPageUrl } from '@/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/cn';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,36 +35,36 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   ArrowLeft,
   User as UserIcon,
   Target,
   BookOpen,
   MessageSquare,
   Send,
-  Loader2,
   Mail,
   TrendingUp,
   PenTool,
   Headphones,
 } from 'lucide-react';
-import { m } from 'framer-motion';
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+  NUM,
+  MICRO,
+  PANEL,
+  Kpi,
+  AdminPageHeader,
+  AdminButton,
+  AdminPageSkeleton,
+  PILL_BASE,
+  pillTone,
+  STAGGER_CONTAINER,
+  FADE_UP,
+} from '@/components/admin/ui/primitives';
+
+const FIELD_INPUT =
+  'h-9 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
+const FIELD_LABEL = cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5 block');
+
+const TIER_TONE = { pro: 'accent', premium: 'accent', free: 'neutral' };
 
 const calculatePerformanceData = (sessions) => {
   const completedSessions = sessions.filter((session) => session.is_completed && session.score);
@@ -98,6 +107,32 @@ const calculatePerformanceData = (sessions) => {
   };
 };
 
+const getModuleIcon = (module) => {
+  switch (module?.toLowerCase()) {
+    case 'reading':
+      return BookOpen;
+    case 'writing':
+      return PenTool;
+    case 'listening':
+      return Headphones;
+    case 'speaking':
+      return MessageSquare;
+    default:
+      return Target;
+  }
+};
+
+const Field = ({ label, children }) => (
+  <div>
+    <p className={FIELD_LABEL}>{label}</p>
+    {typeof children === 'string' || typeof children === 'number' ? (
+      <p className="text-sm font-semibold text-stone-800 dark:text-stone-100">{children}</p>
+    ) : (
+      children
+    )}
+  </div>
+);
+
 export default function AdminUserDetails() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -108,7 +143,6 @@ export default function AdminUserDetails() {
   const [testSessions, setTestSessions] = useState([]);
   const [performanceData, setPerformanceData] = useState({});
 
-  // Email dialog state
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
@@ -149,19 +183,20 @@ export default function AdminUserDetails() {
 
   const handleSubscriptionChange = async (newTier) => {
     try {
-      // Use adminUpdateUser to call Edge Function with service role permissions
       await User.adminUpdateUser(userId, { subscription_tier: newTier });
       setUser((prev) => ({ ...prev, subscription_tier: newTier }));
-      alert('Subscription tier updated successfully!');
+      toast.success('Subscription tier updated');
     } catch (error) {
       console.error('Error updating subscription:', error);
-      alert('Failed to update subscription tier: ' + (error.message || 'Unknown error'));
+      toast.error('Failed to update subscription tier', {
+        description: error.message || 'Unknown error',
+      });
     }
   };
 
   const handleSendEmail = async () => {
     if (!emailSubject.trim() || !emailBody.trim()) {
-      alert('Please fill in both subject and message');
+      toast.error('Subject and message are required');
       return;
     }
 
@@ -177,590 +212,325 @@ export default function AdminUserDetails() {
       setIsEmailDialogOpen(false);
       setEmailSubject('');
       setEmailBody('');
-      alert('Email sent successfully!');
+      toast.success('Email sent');
     } catch (error) {
       console.error('Error sending email:', error);
-      alert('Failed to send email');
+      toast.error('Failed to send email');
     } finally {
       setIsSendingEmail(false);
     }
   };
 
-  const getSubscriptionColor = (tier) => {
-    switch (tier?.toLowerCase()) {
-      case 'pro':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'premium':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
-      default:
-        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
-    }
-  };
-
-  const getModuleIcon = (module) => {
-    switch (module?.toLowerCase()) {
-      case 'reading':
-        return BookOpen;
-      case 'writing':
-        return PenTool;
-      case 'listening':
-        return Headphones;
-      case 'speaking':
-        return MessageSquare;
-      default:
-        return Target;
-    }
-  };
-
   if (isLoading) {
-    return (
-      <div
-        className="min-h-screen bg-background flex items-center justify-center"
-        data-oid="nd_ytol"
-      >
-        <div className="text-center" data-oid="bz0oj8.">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" data-oid="u5hmwa4" />
-          <p className="text-muted-foreground" data-oid="pcmzds9">
-            Loading user details...
-          </p>
-        </div>
-      </div>
-    );
+    return <AdminPageSkeleton kpis={3} panels={2} />;
   }
 
   if (!user) {
     return (
-      <div
-        className="min-h-screen bg-background flex items-center justify-center"
-        data-oid="i7kb_5q"
-      >
-        <Card className="bg-card border p-8 text-center" data-oid="nk5h6_f">
-          <h2 className="text-xl font-semibold text-foreground mb-2" data-oid="ru32hr4">
-            User Not Found
-          </h2>
-          <p className="text-muted-foreground mb-4" data-oid="m527ymq">
-            The requested user could not be found.
-          </p>
-          <Button
-            onClick={() => navigate(createPageUrl('AdminPanel') + '?tab=users')}
-            data-oid="6vs2cm4"
-          >
-            Back to User Management
-          </Button>
-        </Card>
+      <div className={cn(PANEL, 'p-8 text-center max-w-md mx-auto mt-12')}>
+        <p className="text-sm font-extrabold text-stone-900 dark:text-stone-50">User not found</p>
+        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1')}>
+          The requested user could not be found.
+        </p>
+        <AdminButton
+          className="mt-4"
+          onClick={() => navigate(createPageUrl('AdminPanel') + '?tab=users')}
+        >
+          Back to user management
+        </AdminButton>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background" data-oid="d2i-xvb">
-      <div className="p-6 md:p-8" data-oid="bwtu0.2">
-        <div className="max-w-7xl mx-auto space-y-8" data-oid=".j20ayb">
-          {/* Header */}
-          <m.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
-            data-oid="k2fnuvg"
-          >
-            <div className="flex items-center gap-4" data-oid="m4h9_e_">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate(createPageUrl('AdminPanel') + '?tab=users')}
-                className="hover:bg-muted"
-                data-oid="mvxdf6a"
-              >
-                <ArrowLeft className="w-5 h-5" data-oid="45r:.x-" />
-              </Button>
-              <div
-                className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg"
-                data-oid="14u1d9i"
-              >
-                <UserIcon className="w-8 h-8 text-white" data-oid="zzzfj7d" />
+    <m.div
+      variants={STAGGER_CONTAINER}
+      initial="hidden"
+      animate="visible"
+      className="space-y-4 pb-6 pt-12 md:pt-0"
+    >
+      <m.div variants={FADE_UP}>
+        <button
+          onClick={() => navigate(createPageUrl('AdminPanel') + '?tab=users')}
+          className={cn(
+            MICRO,
+            'inline-flex items-center gap-1 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 transition-colors mb-2'
+          )}
+        >
+          <ArrowLeft className="w-3 h-3" />
+          Back to users
+        </button>
+        <AdminPageHeader title={user.full_name || 'User profile'} description={user.email}>
+          <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+            <DialogTrigger asChild>
+              <AdminButton>
+                <Mail className="w-3.5 h-3.5" />
+                Send email
+              </AdminButton>
+            </DialogTrigger>
+            <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10">
+              <DialogHeader className="space-y-0.5">
+                <DialogTitle className="text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
+                  Send email to {user.full_name || user.email}
+                </DialogTitle>
+                <DialogDescription className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  Compose an email to send to this user.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 py-2">
+                <div>
+                  <Label className={FIELD_LABEL}>Subject</Label>
+                  <Input
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    placeholder="Email subject…"
+                    className={FIELD_INPUT}
+                  />
+                </div>
+                <div>
+                  <Label className={FIELD_LABEL}>Message</Label>
+                  <Textarea
+                    value={emailBody}
+                    onChange={(e) => setEmailBody(e.target.value)}
+                    placeholder="Your message…"
+                    rows={6}
+                    className="rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium"
+                  />
+                </div>
               </div>
-              <div data-oid="bfgf9ky">
-                <h1 className="text-3xl font-bold text-foreground" data-oid="41q0x94">
-                  {user.full_name || 'User Profile'}
-                </h1>
-                <p className="text-muted-foreground" data-oid="os0m31l">
-                  {user.email}
+              <DialogFooter className="gap-2 flex-col sm:flex-row">
+                <AdminButton variant="outline" onClick={() => setIsEmailDialogOpen(false)}>
+                  Cancel
+                </AdminButton>
+                <AdminButton onClick={handleSendEmail} loading={isSendingEmail}>
+                  <Send className="w-3.5 h-3.5" />
+                  {isSendingEmail ? 'Sending…' : 'Send email'}
+                </AdminButton>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </AdminPageHeader>
+      </m.div>
+
+      <m.div variants={FADE_UP} className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        <Kpi label="Overall average" value={`${performanceData.overallAverage}/9.0`} />
+        <Kpi label="Tests completed" value={performanceData.totalCompleted} />
+        <Kpi label="Subscription" value={user.subscription_tier || 'Free'} sub="edit below" />
+      </m.div>
+
+      <m.div variants={FADE_UP} className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {/* User details */}
+        <div className={cn(PANEL, 'p-4 space-y-3')}>
+          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
+            <UserIcon className="w-3.5 h-3.5" />
+            User details
+          </h3>
+          <Field label="Full name">{user.full_name || 'Not provided'}</Field>
+          <Field label="Email">{user.email}</Field>
+          <Field label="Joined">{new Date(user.created_at).toLocaleDateString()}</Field>
+          <Field label="Subscription">
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  PILL_BASE,
+                  pillTone(TIER_TONE[user.subscription_tier?.toLowerCase()] || 'neutral')
+                )}
+              >
+                {user.subscription_tier || 'Free'}
+              </span>
+              <Select
+                onValueChange={handleSubscriptionChange}
+                value={user.subscription_tier || 'free'}
+              >
+                <SelectTrigger className={cn(FIELD_INPUT, 'w-28 h-8')}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="pro">Pro</SelectItem>
+                  <SelectItem value="premium">Premium</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </Field>
+          <Field label="Last active">
+            {user.last_active ? new Date(user.last_active).toLocaleString() : 'Never'}
+          </Field>
+        </div>
+
+        {/* Goals & preferences */}
+        <div className={cn(PANEL, 'p-4 space-y-3')}>
+          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
+            <Target className="w-3.5 h-3.5" />
+            Goals & preferences
+          </h3>
+          <Field label="Target band score">{user.target_band_score || 'Not set'}</Field>
+          <Field label="Current level">{user.current_level || 'Not set'}</Field>
+          <Field label="Study hours goal">{user.study_hours_goal || 0} hours/week</Field>
+          <Field label="Test date">
+            {user.test_date ? new Date(user.test_date).toLocaleDateString() : 'Not set'}
+          </Field>
+          <Field label="Weaknesses">
+            <div className="flex flex-wrap gap-1 mt-1">
+              {user.weaknesses && user.weaknesses.length > 0 ? (
+                user.weaknesses.map((weakness) => (
+                  <span key={weakness} className={cn(PILL_BASE, pillTone('fault'))}>
+                    {weakness}
+                  </span>
+                ))
+              ) : (
+                <p className="text-xs font-medium text-stone-500 dark:text-stone-400">
+                  None specified
                 </p>
-              </div>
+              )}
             </div>
-            <div className="flex gap-3" data-oid="v.iq-4o">
-              <Dialog
-                open={isEmailDialogOpen}
-                onOpenChange={setIsEmailDialogOpen}
-                data-oid="iysss.g"
-              >
-                <DialogTrigger asChild data-oid=".o0es4-">
-                  <Button className="bg-primary hover:bg-primary/90" data-oid="ojtepst">
-                    <Mail className="w-4 h-4 mr-2" data-oid="359vq:x" />
-                    Send Email
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-card border" data-oid="r8613wx">
-                  <DialogHeader data-oid="p71hy11">
-                    <DialogTitle className="text-foreground" data-oid="gtrg-hh">
-                      Send Email to {user.full_name || user.email}
-                    </DialogTitle>
-                    <DialogDescription className="text-muted-foreground" data-oid="3a65icu">
-                      Compose an email to send to this user.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4" data-oid="8hsecmi">
-                    <div data-oid="30b6h42">
-                      <Label className="text-foreground" data-oid="58k9:r4">
-                        Subject
-                      </Label>
-                      <Input
-                        value={emailSubject}
-                        onChange={(e) => setEmailSubject(e.target.value)}
-                        placeholder="Email subject..."
-                        className="bg-input border text-foreground"
-                        data-oid="sgrom1f"
-                      />
+          </Field>
+        </div>
+
+        {/* Performance summary */}
+        <div className={cn(PANEL, 'p-4 space-y-3')}>
+          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
+            <TrendingUp className="w-3.5 h-3.5" />
+            Performance summary
+          </h3>
+          <div className="space-y-2">
+            <p className={FIELD_LABEL}>Module breakdown</p>
+            {Object.entries(performanceData.moduleBreakdown || {}).length > 0 ? (
+              Object.entries(performanceData.moduleBreakdown).map(([module, data]) => {
+                const ModuleIcon = getModuleIcon(module);
+                return (
+                  <div
+                    key={module}
+                    className="flex items-center justify-between p-2 rounded-lg bg-stone-50 dark:bg-white/[0.03] border border-stone-200/70 dark:border-white/[0.06]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ModuleIcon className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
+                      <span className="text-xs font-bold text-stone-800 dark:text-stone-100 capitalize">
+                        {module}
+                      </span>
                     </div>
-                    <div data-oid="47_rhed">
-                      <Label className="text-foreground" data-oid="0hmma2v">
-                        Message
-                      </Label>
-                      <Textarea
-                        value={emailBody}
-                        onChange={(e) => setEmailBody(e.target.value)}
-                        placeholder="Your message..."
-                        rows={6}
-                        className="bg-input border text-foreground"
-                        data-oid="41f0u3e"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter data-oid="vz.ie9i">
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsEmailDialogOpen(false)}
-                      data-oid="kvcmbm2"
+                    <span
+                      className={cn(NUM, 'text-xs font-bold text-stone-800 dark:text-stone-100')}
                     >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSendEmail} disabled={isSendingEmail} data-oid=":k73pe3">
-                      {isSendingEmail ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" data-oid="2kbgf-7" />
-                          Sending...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4 mr-2" data-oid="_whs39a" />
-                          Send Email
-                        </>
-                      )}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </m.div>
-
-          {/* Main Content */}
-          <div className="space-y-8" data-oid="geh6gq.">
-            <m.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-              data-oid="rn3-z5l"
-            >
-              {/* User Details Card */}
-              <Card className="bg-card border shadow-lg" data-oid="_7_5cvg">
-                <CardHeader
-                  className="flex flex-row items-center space-y-0 pb-2"
-                  data-oid="dg4wsg7"
-                >
-                  <UserIcon className="w-5 h-5 text-primary mr-2" data-oid="p_6atzq" />
-                  <CardTitle className="text-lg text-foreground" data-oid="x6r_1dl">
-                    User Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-4" data-oid="2s-ahfd">
-                  <div data-oid="di-0wr8">
-                    <Label className="text-sm font-medium text-muted-foreground" data-oid="b-3ghvd">
-                      Full Name
-                    </Label>
-                    <p className="text-foreground" data-oid="gzwrmm5">
-                      {user.full_name || 'Not provided'}
-                    </p>
+                      {data.average.toFixed(1)}/9.0
+                    </span>
                   </div>
-                  <div data-oid="khgs05g">
-                    <Label className="text-sm font-medium text-muted-foreground" data-oid="gqvqw2t">
-                      Email
-                    </Label>
-                    <p className="text-foreground" data-oid="w7.-csz">
-                      {user.email}
-                    </p>
-                  </div>
-                  <div data-oid="rqhhukq">
-                    <Label className="text-sm font-medium text-muted-foreground" data-oid="qwxxr:m">
-                      Joined
-                    </Label>
-                    <p className="text-foreground" data-oid=":mx9dy1">
-                      {new Date(user.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div data-oid=".dwws0b">
-                    <Label className="text-sm font-medium text-muted-foreground" data-oid="-rz939_">
-                      Subscription
-                    </Label>
-                    <div className="flex items-center gap-2 mt-1" data-oid="5_ne433">
-                      <Badge
-                        className={getSubscriptionColor(user.subscription_tier)}
-                        data-oid="4y4k8im"
-                      >
-                        {user.subscription_tier || 'Free'}
-                      </Badge>
-                      <Select
-                        onValueChange={handleSubscriptionChange}
-                        value={user.subscription_tier || 'free'}
-                        data-oid="o878g-m"
-                      >
-                        <SelectTrigger className="w-28 h-8 bg-input border" data-oid="b.ulw72">
-                          <SelectValue data-oid="b4xzlxw" />
-                        </SelectTrigger>
-                        <SelectContent data-oid="yjso0gh">
-                          <SelectItem value="free" data-oid="rhzutjt">
-                            Free
-                          </SelectItem>
-                          <SelectItem value="pro" data-oid=":yhjmdo">
-                            Pro
-                          </SelectItem>
-                          <SelectItem value="premium" data-oid="xo5rxq7">
-                            Premium
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div data-oid="09jcyz2">
-                    <Label className="text-sm font-medium text-muted-foreground" data-oid="77.p8sh">
-                      Last Active
-                    </Label>
-                    <p className="text-foreground" data-oid="8bjs3:c">
-                      {user.last_active ? new Date(user.last_active).toLocaleString() : 'Never'}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Goals & Preferences Card */}
-              <Card className="bg-card border shadow-lg" data-oid="5lome9:">
-                <CardHeader
-                  className="flex flex-row items-center space-y-0 pb-2"
-                  data-oid="b4det0u"
-                >
-                  <Target className="w-5 h-5 text-primary mr-2" data-oid="2ho2-xx" />
-                  <CardTitle className="text-lg text-foreground" data-oid="tk4vbim">
-                    Goals & Preferences
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-4" data-oid="_kk:as7">
-                  <div data-oid="edypbjq">
-                    <Label className="text-sm font-medium text-muted-foreground" data-oid="zi6i7_u">
-                      Target Band Score
-                    </Label>
-                    <p className="text-foreground" data-oid=":2kpq03">
-                      {user.target_band_score || 'Not set'}
-                    </p>
-                  </div>
-                  <div data-oid="uxrrozi">
-                    <Label className="text-sm font-medium text-muted-foreground" data-oid=":7dv09l">
-                      Current Level
-                    </Label>
-                    <p className="text-foreground" data-oid="taw8x6a">
-                      {user.current_level || 'Not set'}
-                    </p>
-                  </div>
-                  <div data-oid="3erdxyh">
-                    <Label className="text-sm font-medium text-muted-foreground" data-oid=":iug8sb">
-                      Study Hours Goal
-                    </Label>
-                    <p className="text-foreground" data-oid="pk___i7">
-                      {user.study_hours_goal || 0} hours/week
-                    </p>
-                  </div>
-                  <div data-oid=":0-z-sh">
-                    <Label className="text-sm font-medium text-muted-foreground" data-oid="p8ih9md">
-                      Test Date
-                    </Label>
-                    <p className="text-foreground" data-oid="xrhe4w6">
-                      {user.test_date ? new Date(user.test_date).toLocaleDateString() : 'Not set'}
-                    </p>
-                  </div>
-                  <div data-oid="-imsdt:">
-                    <Label className="text-sm font-medium text-muted-foreground" data-oid="exxp.dr">
-                      Weaknesses
-                    </Label>
-                    <div className="flex flex-wrap gap-1 mt-1" data-oid="xw9odyr">
-                      {user.weaknesses && user.weaknesses.length > 0 ? (
-                        user.weaknesses.map((weakness) => (
-                          <Badge
-                            key={weakness}
-                            variant="destructive"
-                            className="text-xs"
-                            data-oid="vjj.929"
-                          >
-                            {weakness}
-                          </Badge>
-                        ))
-                      ) : (
-                        <p className="text-muted-foreground text-sm" data-oid="jomaf_-">
-                          None specified
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Performance Summary Card */}
-              <Card className="bg-card border shadow-lg" data-oid="0en4.hh">
-                <CardHeader
-                  className="flex flex-row items-center space-y-0 pb-2"
-                  data-oid="227772n"
-                >
-                  <TrendingUp className="w-5 h-5 text-primary mr-2" data-oid="0s0-sge" />
-                  <CardTitle className="text-lg text-foreground" data-oid="kpmexoq">
-                    Performance Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-4" data-oid="3i1_43n">
-                  <div data-oid="bc2goav">
-                    <Label className="text-sm font-medium text-muted-foreground" data-oid="4nqo4gh">
-                      Overall Average
-                    </Label>
-                    <p className="text-2xl font-bold text-foreground" data-oid="34dn19k">
-                      {performanceData.overallAverage}/9.0
-                    </p>
-                  </div>
-                  <div data-oid="v43wzv7">
-                    <Label className="text-sm font-medium text-muted-foreground" data-oid="97fnayo">
-                      Tests Completed
-                    </Label>
-                    <p className="text-foreground" data-oid="c0xg873">
-                      {performanceData.totalCompleted}
-                    </p>
-                  </div>
-                  <div className="space-y-2" data-oid="d:k0812">
-                    <Label className="text-sm font-medium text-muted-foreground" data-oid="2y76shm">
-                      Module Breakdown
-                    </Label>
-                    {Object.entries(performanceData.moduleBreakdown || {}).length > 0 ? (
-                      Object.entries(performanceData.moduleBreakdown).map(([module, data]) => {
-                        const ModuleIcon = getModuleIcon(module);
-                        return (
-                          <div
-                            key={module}
-                            className="flex items-center justify-between p-2 bg-muted rounded"
-                            data-oid="ixvw9j."
-                          >
-                            <div className="flex items-center gap-2" data-oid="h8i.08_">
-                              <ModuleIcon className="w-4 h-4 text-primary" data-oid="qv:efja" />
-                              <span
-                                className="text-sm text-foreground capitalize"
-                                data-oid="vc7jtp7"
-                              >
-                                {module}
-                              </span>
-                            </div>
-                            <Badge variant="outline" className="text-xs" data-oid="p:e_o9a">
-                              {data.average.toFixed(1)}/9.0
-                            </Badge>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <p className="text-muted-foreground text-sm" data-oid="yfwllx8">
-                        No tests completed yet.
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </m.div>
-
-            {/* Performance Trend Chart */}
-            {performanceData.recentTrend && performanceData.recentTrend.length > 0 && (
-              <m.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                data-oid=".crhmsp"
-              >
-                <Card className="bg-card border shadow-lg" data-oid="7q9spq3">
-                  <CardHeader data-oid="vbneah6">
-                    <CardTitle className="text-foreground" data-oid="86dsaf2">
-                      Recent Performance Trend
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent data-oid="cnwdxdy">
-                    <div className="h-64" data-oid="okbmmog">
-                      <ResponsiveContainer width="100%" height="100%" data-oid="t88orfv">
-                        <AreaChart data={performanceData.recentTrend} data-oid="r:-sp5m">
-                          <defs data-oid="r9:1id7">
-                            <linearGradient
-                              id="scoreGradient"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                              data-oid="ewv8ajb"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="#3B82F6"
-                                stopOpacity={0.3}
-                                data-oid="y1pgdfe"
-                              />
-
-                              <stop
-                                offset="95%"
-                                stopColor="#3B82F6"
-                                stopOpacity={0.05}
-                                data-oid="8878ejo"
-                              />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="hsl(var(--border))"
-                            data-oid="adtyehi"
-                          />
-
-                          <XAxis
-                            dataKey="session"
-                            stroke="hsl(var(--muted-foreground))"
-                            fontSize={12}
-                            data-oid="lxn2bns"
-                          />
-
-                          <YAxis
-                            domain={[0, 9]}
-                            stroke="hsl(var(--muted-foreground))"
-                            fontSize={12}
-                            data-oid="lynojak"
-                          />
-
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: 'hsl(var(--card))',
-                              border: '1px solid hsl(var(--border))',
-                              borderRadius: '8px',
-                            }}
-                            data-oid="w9e81hn"
-                          />
-
-                          <Area
-                            type="monotone"
-                            dataKey="score"
-                            stroke="#3B82F6"
-                            strokeWidth={3}
-                            fill="url(#scoreGradient)"
-                            dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-                            data-oid=":g9hf35"
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </m.div>
+                );
+              })
+            ) : (
+              <p className="text-xs font-medium text-stone-500 dark:text-stone-400">
+                No tests completed yet.
+              </p>
             )}
-
-            {/* Test History Table */}
-            <m.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              data-oid="c4kf6pg"
-            >
-              <Card className="bg-card border shadow-lg" data-oid="fwoda0p">
-                <CardHeader data-oid="qnr1k9a">
-                  <CardTitle className="text-foreground" data-oid="l9-3t7u">
-                    Test History
-                  </CardTitle>
-                </CardHeader>
-                <CardContent data-oid="2kgdepx">
-                  <Table data-oid="2gc67m6">
-                    <TableHeader data-oid=".vbtcem">
-                      <TableRow
-                        className="border-b border-border hover:bg-transparent"
-                        data-oid="0twt_f_"
-                      >
-                        <TableHead className="text-foreground" data-oid="m.xp0.8">
-                          Test Type
-                        </TableHead>
-                        <TableHead className="text-foreground" data-oid=".kd66ok">
-                          Score
-                        </TableHead>
-                        <TableHead className="text-foreground" data-oid="a-z_.s3">
-                          Completed
-                        </TableHead>
-                        <TableHead className="text-foreground" data-oid="p_w3xj3">
-                          Status
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody data-oid="y3jcr6_">
-                      {testSessions.length > 0 ? (
-                        testSessions.map((session) => (
-                          <TableRow
-                            key={session.id}
-                            className="border-b-0 hover:bg-muted/50"
-                            data-oid="hw66p-2"
-                          >
-                            <TableCell
-                              className="font-medium text-foreground capitalize"
-                              data-oid="b697op9"
-                            >
-                              {session.test_type}
-                            </TableCell>
-                            <TableCell className="text-foreground" data-oid="feafir1">
-                              {session.score ? `${session.score}/9.0` : 'N/A'}
-                            </TableCell>
-                            <TableCell className="text-muted-foreground" data-oid="vmaqpn6">
-                              {session.completed_at
-                                ? new Date(session.completed_at).toLocaleDateString()
-                                : 'In Progress'}
-                            </TableCell>
-                            <TableCell data-oid="wtajj6q">
-                              <Badge
-                                variant={session.is_completed ? 'default' : 'secondary'}
-                                data-oid="t_uy1xj"
-                              >
-                                {session.is_completed ? 'Completed' : 'In Progress'}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow data-oid="k.fb_ds">
-                          <TableCell
-                            colSpan="4"
-                            className="text-center py-8 text-muted-foreground"
-                            data-oid="ahvao56"
-                          >
-                            No tests completed yet.
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </m.div>
           </div>
         </div>
-      </div>
-    </div>
+      </m.div>
+
+      {/* Performance trend chart */}
+      {performanceData.recentTrend && performanceData.recentTrend.length > 0 && (
+        <m.div variants={FADE_UP} className={cn(PANEL, 'p-4')}>
+          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-3')}>
+            Recent performance trend
+          </h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={performanceData.recentTrend}>
+                <defs>
+                  <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#5a63df" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#5a63df" stopOpacity={0.05} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-stone-200 dark:stroke-white/10"
+                />
+                <XAxis
+                  dataKey="session"
+                  className="fill-stone-500 dark:fill-stone-400"
+                  fontSize={11}
+                />
+                <YAxis
+                  domain={[0, 9]}
+                  className="fill-stone-500 dark:fill-stone-400"
+                  fontSize={11}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--tw-prose-body, #131315)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="score"
+                  stroke="#5a63df"
+                  strokeWidth={2}
+                  fill="url(#scoreGradient)"
+                  dot={{ fill: '#5a63df', strokeWidth: 2, r: 3 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </m.div>
+      )}
+
+      {/* Test history */}
+      <m.div variants={FADE_UP} className={cn(PANEL, 'overflow-hidden')}>
+        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 p-4 pb-0')}>Test history</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-left border-collapse">
+            <thead>
+              <tr className="border-b border-stone-200 dark:border-white/[0.07]">
+                {['Test type', 'Score', 'Completed', 'Status'].map((h) => (
+                  <th
+                    key={h}
+                    className={cn(MICRO, 'px-4 py-3 text-stone-500 dark:text-stone-400 font-bold')}
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-stone-100 dark:divide-white/[0.05]">
+              {testSessions.length > 0 ? (
+                testSessions.map((session) => (
+                  <tr key={session.id}>
+                    <td className="px-4 py-3 text-xs font-bold text-stone-800 dark:text-stone-100 capitalize">
+                      {session.test_type}
+                    </td>
+                    <td className={cn(NUM, 'px-4 py-3 text-xs text-stone-800 dark:text-stone-100')}>
+                      {session.score ? `${session.score}/9.0` : 'N/A'}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-stone-500 dark:text-stone-400">
+                      {session.completed_at
+                        ? new Date(session.completed_at).toLocaleDateString()
+                        : 'In progress'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={cn(PILL_BASE, pillTone(session.is_completed ? 'ok' : 'warn'))}
+                      >
+                        {session.is_completed ? 'Completed' : 'In progress'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="px-4 py-10 text-center">
+                    <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                      No tests completed yet.
+                    </span>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </m.div>
+    </m.div>
   );
 }

@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash2, Upload, ImageIcon } from 'lucide-react';
+import { Plus, Trash2, Upload, ImageIcon, Loader2 } from 'lucide-react';
 
 const MapLabelingBuilder = ({ initialData, onChange, theme }) => {
   // Default theme fallback
@@ -128,10 +128,7 @@ const MapLabelingBuilder = ({ initialData, onChange, theme }) => {
             ) : (
               <>
                 {uploading ? (
-                  <div
-                    className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"
-                    data-oid="sawyu:j"
-                  />
+                  <Loader2 className="w-6 h-6 animate-spin text-stone-500 dark:text-stone-400" />
                 ) : (
                   <>
                     <ImageIcon className="w-8 h-8 mb-2 opacity-50" data-oid=":o671k." />

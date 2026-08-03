@@ -175,7 +175,7 @@ export function BlogEditorThumbnail({ formData, onThumbnailUpload }) {
               <label
                 className={cn(
                   MICRO,
-                  'cursor-pointer px-3 py-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-md text-white transition-colors border border-white/20'
+                  'cursor-pointer px-3 py-1.5 bg-white/90 hover:bg-white rounded-md text-stone-900 transition-colors border border-white/20'
                 )}
               >
                 Replace image

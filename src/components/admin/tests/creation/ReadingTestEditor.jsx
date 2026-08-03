@@ -201,7 +201,7 @@ const RichTextEditor = ({
         data-oid="h5f73vi"
       >
         <div
-          className="flex items-center justify-between px-2 py-1.5 border-b bg-gray-50 dark:bg-stone-800 dark:border-stone-700 sticky top-0 z-10 backdrop-blur-sm bg-gray-50/90 dark:bg-stone-800/90"
+          className="flex items-center justify-between px-2 py-1.5 border-b bg-gray-50 dark:bg-stone-800 dark:border-stone-700 sticky top-0 z-10"
           data-oid="0r8vcd8"
         >
           <div className="flex items-center gap-1" data-oid="7uoc5ns">

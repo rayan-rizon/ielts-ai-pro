@@ -330,10 +330,7 @@ const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }
       </div>
 
       {/* Main Grid */}
-      <div
-        className="border rounded-xl overflow-hidden bg-background shadow-lg ring-1 ring-slate-900/10 dark:ring-slate-100/10"
-        data-oid="p6lf5rd"
-      >
+      <div className="border rounded-xl overflow-hidden bg-background" data-oid="p6lf5rd">
         <div className="overflow-x-auto max-w-full" data-oid="qi-s316">
           <table className="w-full text-sm border-collapse" data-oid="c_18e_d">
             <thead data-oid="-.p6.0t">

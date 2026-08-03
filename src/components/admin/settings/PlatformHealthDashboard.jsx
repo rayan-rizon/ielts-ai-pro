@@ -36,6 +36,7 @@ import {
   normalizeMaintenance,
   relativeTime,
 } from '@/lib/communications';
+import { AdminPageSkeleton } from '@/components/admin/ui/primitives';
 
 /*
  * Instrument-panel treatment: graphite surfaces, hairline rules, and exactly
@@ -861,12 +862,7 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
   );
 
   if (loading) {
-    return (
-      <div className="min-h-[320px] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-7 h-7 text-stone-500 dark:text-stone-400 animate-spin" />
-        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Polling services</p>
-      </div>
-    );
+    return <AdminPageSkeleton kpis={4} panels={2} />;
   }
 
   if (error) {
