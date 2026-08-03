@@ -95,25 +95,25 @@ function CategoryChip({ category, size = 'default' }) {
 
 function ArticleMeta({ article, compact = false }) {
   return (
-    <div className="flex items-center shrink-0 whitespace-nowrap gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+    <div className="flex items-center shrink-0 whitespace-nowrap gap-2 text-[11px] font-mono tabular-nums tracking-tight text-slate-500 dark:text-slate-400">
       {!compact && (
         <>
-          <span className="inline-flex items-center gap-1">
-            <CalendarDays className="h-3 w-3" />
+          <span className="inline-flex items-center gap-1 font-sans">
+            <CalendarDays className="h-3 w-3 text-slate-400" />
             {formatDate(article.published_at || article.created_at)}
           </span>
           <span className="text-slate-300 dark:text-slate-700">•</span>
         </>
       )}
       <span className="inline-flex items-center gap-1">
-        <Clock3 className="h-3 w-3" /> {article.reading_minutes || 6} min read
+        <Clock3 className="h-3 w-3 text-slate-400" /> {article.reading_minutes || 6} min read
       </span>
       <span className="text-slate-300 dark:text-slate-700">•</span>
       <span
         className="inline-flex items-center gap-1"
         title={`${Number(article.view_count) || 0} reads`}
       >
-        <Eye className="h-3 w-3" /> {formatReadCount(article.view_count)}
+        <Eye className="h-3 w-3 text-slate-400" /> {formatReadCount(article.view_count)}
       </span>
     </div>
   );
@@ -125,19 +125,19 @@ function ArticleVisual({ article }) {
 
   if (article.thumbnail_url) {
     return (
-      <div className="relative h-40 overflow-hidden bg-indigo-50">
+      <div className="relative h-44 overflow-hidden bg-slate-100 dark:bg-white/[0.03]">
         <img
           src={article.thumbnail_url}
           alt={getBlogCoverAlt(article)}
           width={BLOG_COVER_WIDTH}
           height={BLOG_COVER_HEIGHT}
-          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/20 via-transparent to-transparent" />
-        <div className="absolute bottom-4 left-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/70 bg-white/90 text-indigo-700 shadow-lg backdrop-blur">
-          <Icon className="h-5 w-5" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#141319]/40 via-transparent to-transparent" />
+        <div className="absolute bottom-3 left-3 flex h-8 w-8 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/20 bg-white/90 dark:bg-[#141319]/90 text-[#5a63df] dark:text-[#a9afff] shadow-sm">
+          <Icon className="h-4 w-4" />
         </div>
       </div>
     );
@@ -146,16 +146,15 @@ function ArticleVisual({ article }) {
   return (
     <div
       className={cn(
-        'relative h-40 overflow-hidden bg-gradient-to-br transition-transform duration-500 group-hover:scale-[1.02]',
+        'relative h-44 overflow-hidden bg-gradient-to-br transition-transform duration-500 group-hover:scale-[1.02]',
         config.visual
       )}
     >
-      <div className="absolute inset-0 opacity-50 [background-image:radial-gradient(circle_at_2px_2px,currentColor_1px,transparent_0)] [background-size:18px_18px]" />
-      <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/55 blur-2xl" />
-      <div className="absolute bottom-4 left-5 flex h-14 w-14 rotate-[-4deg] items-center justify-center rounded-2xl border border-white/70 bg-white/80 shadow-lg shadow-slate-400/10 backdrop-blur">
-        <Icon className="h-7 w-7" />
+      <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(circle_at_2px_2px,currentColor_1px,transparent_0)] [background-size:16px_16px]" />
+      <div className="absolute bottom-3 left-4 flex h-10 w-10 rotate-[-4deg] items-center justify-center rounded-xl border border-white/60 bg-white/90 text-[#5a63df] shadow-sm">
+        <Icon className="h-5 w-5" />
       </div>
-      <div className="absolute bottom-5 right-5 rounded-lg bg-white/75 px-3 py-2 text-[10px] font-bold uppercase tracking-[.14em] text-slate-600 shadow-sm backdrop-blur">
+      <div className="absolute bottom-3 right-4 rounded-md border border-white/50 bg-white/85 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-700 shadow-xs">
         IELTS field note
       </div>
     </div>
@@ -165,11 +164,11 @@ function ArticleVisual({ article }) {
 function ArticleCard({ article, index }) {
   return (
     <motion.article
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -16 }}
-      transition={{ duration: 0.35, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] }}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_12px_35px_-28px_rgba(15,23,42,.35)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-indigo-300 hover:shadow-xl dark:border-white/10 dark:bg-slate-900 dark:hover:border-indigo-500/30"
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.3, delay: index * 0.03, ease: [0.16, 1, 0.3, 1] }}
+      className="group flex flex-col overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200 hover:-translate-y-1 hover:border-[#5a63df]/40 dark:hover:border-white/20"
     >
       <Link to={`/blog/${article.slug}`} aria-label={`Read ${article.title}`}>
         <ArticleVisual article={article} />
@@ -178,25 +177,25 @@ function ArticleCard({ article, index }) {
         <div>
           <CategoryChip category={article.category} size="sm" />
         </div>
-        <h2 className="mt-3 text-lg font-bold leading-snug tracking-[-0.02em] text-slate-950 dark:text-white">
+        <h2 className="mt-3 text-base font-extrabold leading-snug tracking-tight text-slate-800 dark:text-slate-100">
           <Link
             to={`/blog/${article.slug}`}
-            className="transition-colors duration-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-300"
+            className="transition-colors duration-200 group-hover:text-[#5a63df] dark:group-hover:text-[#8f97ff]"
           >
             {article.title}
           </Link>
         </h2>
-        <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+        <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400 font-medium">
           {article.description}
         </p>
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 mt-5 dark:border-white/5">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[#eceafa] dark:border-white/[0.07] pt-3.5 mt-4">
           <ArticleMeta article={article} compact />
           <Link
             to={`/blog/${article.slug}`}
-            className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 transition-colors duration-200 dark:text-indigo-300 group-hover:text-indigo-600 shrink-0"
+            className="inline-flex items-center gap-1 text-xs font-bold text-[#5a63df] dark:text-[#a9afff] transition-colors duration-200 hover:text-[#4850c8] shrink-0"
           >
             <span>Read guide</span>
-            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 ease-out group-hover:translate-x-1" />
+            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </Link>
         </div>
       </div>
@@ -226,18 +225,24 @@ function ArticlePagination({ currentPage, totalPages, totalArticles, onPageChang
 
   return (
     <nav
-      className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl border border-slate-200/90 bg-white/75 px-4 py-4 shadow-[0_12px_35px_-28px_rgba(15,23,42,.25)] backdrop-blur sm:flex-row sm:px-5 dark:border-white/10 dark:bg-slate-900/70"
+      className="mt-8 flex flex-col items-center justify-between gap-4 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] px-4 py-3.5 sm:flex-row sm:px-5"
       aria-label="Blog article pagination"
     >
-      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-        Showing {firstArticle}–{lastArticle} of {totalArticles} guides
+      <p className="text-xs font-medium text-slate-500 dark:text-slate-400 font-mono tabular-nums">
+        Showing{' '}
+        <span className="font-extrabold text-slate-700 dark:text-slate-200">
+          {firstArticle}–{lastArticle}
+        </span>{' '}
+        of{' '}
+        <span className="font-extrabold text-slate-700 dark:text-slate-200">{totalArticles}</span>{' '}
+        guides
       </p>
       <div className="flex items-center gap-1.5">
         <button
           type="button"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="inline-flex h-9 items-center gap-1 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-200 dark:hover:border-indigo-400/30 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-200"
+          className="inline-flex h-8 items-center gap-1 rounded-lg border border-[#e4e2f0] dark:border-white/10 px-3 text-xs font-bold text-slate-700 dark:text-slate-200 transition hover:border-[#5a63df]/30 hover:bg-[#5a63df]/[0.08] hover:text-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ChevronLeft className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Previous</span>
@@ -252,23 +257,23 @@ function ArticlePagination({ currentPage, totalPages, totalArticles, onPageChang
                 aria-current={item === currentPage ? 'page' : undefined}
                 aria-label={`Page ${item}`}
                 className={cn(
-                  'relative flex h-9 min-w-9 items-center justify-center rounded-xl px-2 text-xs font-extrabold transition-colors duration-200',
+                  'relative flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-xs font-mono tabular-nums font-bold transition-colors duration-200',
                   item === currentPage
                     ? 'text-white'
-                    : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 dark:text-slate-300 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-200'
+                    : 'text-slate-600 hover:bg-[#5a63df]/10 hover:text-[#5a63df] dark:text-slate-300 dark:hover:bg-white/[0.05]'
                 )}
               >
                 {item === currentPage && (
                   <motion.div
                     layoutId="activeBlogPageBadge"
-                    className="absolute inset-0 rounded-xl bg-indigo-600 shadow-md shadow-indigo-500/25"
+                    className="absolute inset-0 rounded-lg bg-[#5a63df]"
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
                 )}
                 <span className="relative z-10">{item}</span>
               </button>
             ) : (
-              <span key={item} className="px-1 text-sm font-bold text-slate-400" aria-hidden="true">
+              <span key={item} className="px-1 text-xs font-bold text-slate-400" aria-hidden="true">
                 …
               </span>
             )
@@ -278,7 +283,7 @@ function ArticlePagination({ currentPage, totalPages, totalArticles, onPageChang
           type="button"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="inline-flex h-9 items-center gap-1 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-200 dark:hover:border-indigo-400/30 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-200"
+          className="inline-flex h-8 items-center gap-1 rounded-lg border border-[#e4e2f0] dark:border-white/10 px-3 text-xs font-bold text-slate-700 dark:text-slate-200 transition hover:border-[#5a63df]/30 hover:bg-[#5a63df]/[0.08] hover:text-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <span className="hidden sm:inline">Next</span>
           <ChevronRight className="h-3.5 w-3.5" />
@@ -290,43 +295,32 @@ function ArticlePagination({ currentPage, totalPages, totalArticles, onPageChang
 
 function BlogHeroSection() {
   return (
-    <section className="relative overflow-hidden border-b border-indigo-100 bg-white dark:border-white/10 dark:bg-[#0b0f18]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(99,102,241,.09),transparent_27%),radial-gradient(circle_at_88%_12%,rgba(45,212,191,.09),transparent_24%)]" />
-      <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-12 sm:px-6 lg:grid-cols-[.95fr_1.05fr] lg:py-16">
-        <motion.div initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }}>
-          <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300">
-            <BookOpen className="h-3.5 w-3.5" /> {BLOG_LIBRARY_COPY.heroEyebrow}
+    <section className="relative overflow-hidden border-b border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white via-[#faf9ff] to-white dark:from-[#090b13] dark:via-[#0e111c] dark:to-[#090b13]">
+      <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-10 sm:px-6 lg:grid-cols-[.95fr_1.05fr] lg:py-14">
+        <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#5a63df]/30 bg-[#5a63df]/15 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[#5a63df] dark:border-[#8f97ff]/40 dark:bg-[#8f97ff]/20 dark:text-[#a9afff]">
+            <BookOpen className="h-3 w-3" /> {BLOG_LIBRARY_COPY.heroEyebrow}
           </span>
-          <h1 className="mt-5 max-w-2xl text-4xl font-extrabold leading-[1.08] tracking-[-0.045em] sm:text-5xl lg:text-[3.45rem] dark:text-white">
+          <h1 className="mt-4 max-w-2xl text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-[3.1rem] text-slate-900 dark:text-white">
             {BLOG_LIBRARY_COPY.heroTitle}
           </h1>
-          <p className="font-handwritten mt-3 text-3xl leading-tight text-indigo-600 sm:text-4xl dark:text-indigo-300">
-            {BLOG_LIBRARY_COPY.heroScript}
-          </p>
-          <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300">
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-600 dark:text-slate-300 font-medium">
             {BLOG_LIBRARY_COPY.heroDescription}
           </p>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
+          initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           className="relative mx-auto w-full max-w-2xl"
         >
-          <div className="absolute -left-3 top-10 z-10 hidden rotate-[-6deg] rounded-md bg-violet-100 px-4 py-3 text-xs font-semibold text-violet-800 shadow-lg sm:block">
-            Consistency builds excellence
-          </div>
-          <div className="absolute -right-2 bottom-10 z-10 hidden rotate-[5deg] rounded-md bg-emerald-100 px-4 py-3 text-xs font-semibold text-emerald-800 shadow-lg sm:block">
-            Plan · Practise · Progress
-          </div>
-          <div className="overflow-hidden rounded-[2rem] border border-indigo-100 bg-indigo-50 p-2 shadow-[0_25px_70px_-38px_rgba(79,70,229,.45)] dark:border-white/10 dark:bg-white/[.04]">
+          <div className="overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.08] bg-white dark:bg-[#131315] p-2 shadow-sm">
             <img
               src="/ielts-hero-student.webp"
               alt="IELTS learner studying with a laptop and notebook"
-              className="aspect-[16/10] w-full rounded-[1.55rem] object-cover"
+              className="aspect-[16/10] w-full rounded-lg object-cover"
             />
           </div>
-          <Sparkles className="absolute -top-3 right-8 h-8 w-8 rotate-12 text-indigo-400" />
         </motion.div>
       </div>
     </section>
@@ -412,21 +406,18 @@ function BlogCategoryBar({ categories, category, setCategory, setCurrentPage }) 
 
 const slideVariants = {
   enter: (direction) => ({
-    x: direction > 0 ? 60 : direction < 0 ? -60 : 0,
+    x: direction > 0 ? 40 : direction < 0 ? -40 : 0,
     opacity: 0,
-    scale: 0.98,
   }),
   center: {
     zIndex: 1,
     x: 0,
     opacity: 1,
-    scale: 1,
   },
   exit: (direction) => ({
     zIndex: 0,
-    x: direction < 0 ? 60 : direction > 0 ? -60 : 0,
+    x: direction < 0 ? 40 : direction > 0 ? -40 : 0,
     opacity: 0,
-    scale: 0.98,
   }),
 };
 
@@ -473,56 +464,30 @@ function BlogFeaturedCarousel({ featuredArticles }) {
     <div
       className="relative group/carousel mb-5 w-full"
       role="region"
-      aria-roledescription="carousel"
       aria-label="Featured IELTS articles"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      onFocusCapture={() => setIsPaused(true)}
-      onBlurCapture={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setIsPaused(false);
-      }}
-      onKeyDown={(event) => {
-        if (event.key === 'ArrowLeft') {
-          event.preventDefault();
-          paginate(-1);
-        }
-        if (event.key === 'ArrowRight') {
-          event.preventDefault();
-          paginate(1);
-        }
-      }}
-      onTouchStart={(event) => {
-        touchStartX.current = event.touches[0]?.clientX ?? null;
-      }}
-      onTouchEnd={(event) => {
-        const startX = touchStartX.current;
-        const endX = event.changedTouches[0]?.clientX;
-        touchStartX.current = null;
-        if (startX === null || typeof endX !== 'number' || Math.abs(startX - endX) < 48) return;
-        if (startX > endX) paginate(1);
-        else paginate(-1);
-      }}
     >
       {/* Navigation Buttons */}
       <button
         type="button"
         onClick={handlePrev}
-        className="absolute left-[-12px] top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-md transition-all duration-200 hover:scale-110 hover:bg-slate-50 hover:shadow-lg active:scale-95 sm:left-[-22px] sm:h-11 sm:w-11 dark:border-white/10 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+        className="absolute left-[-10px] top-1/2 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:scale-105 hover:bg-slate-50 dark:bg-[#141319] dark:text-slate-200 dark:hover:bg-slate-800"
         aria-label="Previous featured article"
       >
-        <ChevronLeft className="h-5 w-5 transition-transform duration-200 group-hover:-translate-x-0.5" />
+        <ChevronLeft className="h-4 w-4" />
       </button>
       <button
         type="button"
         onClick={handleNext}
-        className="absolute right-[-12px] top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-md transition-all duration-200 hover:scale-110 hover:bg-slate-50 hover:shadow-lg active:scale-95 sm:right-[-22px] sm:h-11 sm:w-11 dark:border-white/10 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+        className="absolute right-[-10px] top-1/2 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:scale-105 hover:bg-slate-50 dark:bg-[#141319] dark:text-slate-200 dark:hover:bg-slate-800"
         aria-label="Next featured article"
       >
-        <ChevronRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-0.5" />
+        <ChevronRight className="h-4 w-4" />
       </button>
 
       {/* Main Card */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-[0_16px_48px_-16px_rgba(15,23,42,0.05)] dark:border-white/10 dark:bg-slate-950/75 transition-all duration-300">
+      <div className="relative overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200">
         <AnimatePresence mode="wait" custom={direction} initial={false}>
           <motion.div
             key={page}
@@ -532,108 +497,62 @@ function BlogFeaturedCarousel({ featuredArticles }) {
             animate="center"
             exit="exit"
             transition={{
-              x: { type: 'spring', stiffness: 320, damping: 32 },
-              opacity: { duration: 0.25 },
-              scale: { duration: 0.25 },
+              x: { type: 'spring', stiffness: 350, damping: 30 },
+              opacity: { duration: 0.2 },
             }}
-            className="grid gap-6 p-4 md:grid-cols-[1.05fr_1.25fr] lg:p-5"
+            className="grid gap-5 p-4 md:grid-cols-[1fr_1.2fr]"
             aria-live="polite"
           >
             {/* Image Container */}
             <Link
               to={`/blog/${article.slug}`}
-              className="relative aspect-[16/10] md:aspect-auto md:h-full w-full overflow-hidden rounded-xl group block"
+              className="relative aspect-[16/10] md:aspect-auto md:h-full w-full overflow-hidden rounded-lg group block"
             >
               <img
                 src={article.thumbnail_url || '/ielts-hero-student.webp'}
                 alt={getBlogCoverAlt(article)}
-                className="h-full min-h-[220px] md:min-h-[280px] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                className="h-full min-h-[200px] md:min-h-[240px] w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
               />
-              <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-indigo-600/90 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-md backdrop-blur-md">
-                <Sparkles className="h-3 w-3 fill-amber-300 text-amber-300" /> Featured
+              <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-md border border-[#5a63df]/30 bg-[#5a63df] px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-white shadow-xs">
+                <Sparkles className="h-3 w-3" /> Featured
               </span>
             </Link>
 
             {/* Text/Content Container */}
-            <div className="flex flex-col justify-between py-2 sm:pl-2 sm:pr-4">
-              <div className="space-y-4">
-                {/* Category & Reading Time */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <CategoryChip category={article.category} />
-                  <span className="text-xs font-bold text-slate-400 dark:text-slate-500">
+            <div className="flex flex-col justify-between py-1 sm:pr-2">
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <CategoryChip category={article.category} size="sm" />
+                  <span className="text-[11px] font-mono tabular-nums text-slate-500 dark:text-slate-400">
                     {article.reading_minutes || 6} min read
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-400 dark:text-slate-500">
-                    <Eye className="h-3.5 w-3.5" /> {formatReadCount(article.view_count)}
                   </span>
                 </div>
 
-                {/* Title */}
-                <h2 className="text-xl sm:text-2xl lg:text-[2rem] font-black leading-[1.12] tracking-[-0.035em] text-slate-950 dark:text-white mt-3">
+                <h2 className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-800 dark:text-slate-100 mt-2">
                   <Link
                     to={`/blog/${article.slug}`}
-                    className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200"
+                    className="hover:text-[#5a63df] dark:hover:text-[#a9afff] transition-colors duration-200"
                   >
                     {article.title}
                   </Link>
                 </h2>
 
-                {/* Description */}
-                <p className="text-sm md:text-[15px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed line-clamp-3">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed line-clamp-3">
                   {article.description}
                 </p>
               </div>
 
-              {/* Author details & Published Date */}
-              <div className="flex items-center justify-between gap-4 border-t border-slate-100 dark:border-white/5 pt-5 mt-6">
-                <span className="text-xs font-semibold text-slate-500">
-                  IELTS Ai Pro editorial team
+              <div className="flex items-center justify-between gap-4 border-t border-[#eceafa] dark:border-white/[0.07] pt-3.5 mt-4">
+                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                  IELTS Ai Pro editorial
                 </span>
-                <span className="text-xs font-bold text-slate-400 dark:text-slate-500">
+                <span className="text-[11px] font-mono tabular-nums text-slate-400 dark:text-slate-500">
                   {formatDate(article.published_at)}
                 </span>
               </div>
             </div>
           </motion.div>
         </AnimatePresence>
-      </div>
-
-      <div className="mt-2.5 flex items-center justify-center gap-3">
-        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
-          {activeIndex + 1} of {articleCount}
-        </span>
-        {/* Circle point indicators */}
-        <div className="flex items-center justify-center gap-1.5">
-          {featuredArticles.map((_, idx) => {
-            const isActive = idx === activeIndex;
-            return (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => {
-                  const dir = idx > activeIndex ? 1 : idx < activeIndex ? -1 : 0;
-                  setPage([idx, dir]);
-                }}
-                className="relative flex h-3 items-center justify-center p-0.5 focus:outline-none"
-                aria-label={`Go to slide ${idx + 1}`}
-                aria-current={isActive ? 'true' : undefined}
-              >
-                <motion.div
-                  className={cn(
-                    'h-2 rounded-full',
-                    isActive
-                      ? 'bg-[#5262ef]'
-                      : 'bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700'
-                  )}
-                  animate={{
-                    width: isActive ? 20 : 8,
-                  }}
-                  transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-                />
-              </button>
-            );
-          })}
-        </div>
       </div>
     </div>
   );
@@ -654,29 +573,31 @@ function BlogSidebar({ articles, popularTags, setQuery, setCurrentPage }) {
   );
 
   return (
-    <aside className="space-y-5 lg:sticky lg:top-36">
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_15px_40px_-32px_rgba(15,23,42,.3)] dark:border-white/10 dark:bg-slate-900">
+    <aside className="space-y-4 lg:sticky lg:top-36">
+      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
         <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
-            <TrendingUp className="h-4 w-4" />
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#5a63df]/30 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/15 dark:text-[#a9afff]">
+            <TrendingUp className="h-3.5 w-3.5" />
           </span>
-          <h2 className="text-base font-extrabold">Trending now</h2>
+          <h2 className="text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
+            Trending now
+          </h2>
         </div>
-        <div className="mt-4 space-y-1">
+        <div className="mt-3 space-y-1">
           {trendingArticles.map((article, index) => (
             <Link
               key={article.id}
               to={`/blog/${article.slug}`}
-              className="group flex gap-3 rounded-xl p-2 transition-colors hover:bg-slate-50 dark:hover:bg-white/[.04]"
+              className="group flex gap-2.5 rounded-lg p-2 transition-colors hover:bg-[#f4f3fb] dark:hover:bg-white/[0.04]"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-extrabold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-[#5a63df]/20 bg-[#5a63df]/10 text-[11px] font-mono tabular-nums font-bold text-[#5a63df] dark:border-[#8f97ff]/20 dark:bg-[#8f97ff]/15 dark:text-[#a9afff]">
                 {String(index + 1).padStart(2, '0')}
               </span>
-              <span>
-                <span className="line-clamp-2 text-xs font-bold leading-5 text-slate-800 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-300">
+              <span className="min-w-0 flex-1">
+                <span className="line-clamp-2 text-xs font-bold leading-snug text-slate-800 group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#a9afff]">
                   {article.title}
                 </span>
-                <span className="mt-1 block text-[10px] text-slate-500">
+                <span className="mt-1 block text-[10px] font-mono tabular-nums text-slate-500">
                   {formatReadCount(article.view_count)} · {article.reading_minutes || 6} min read
                 </span>
               </span>
@@ -685,12 +606,14 @@ function BlogSidebar({ articles, popularTags, setQuery, setCurrentPage }) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-slate-900">
+      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
         <div className="flex items-center gap-2">
-          <Star className="h-4 w-4 text-indigo-600" />
-          <h2 className="text-base font-extrabold">Popular topics</h2>
+          <Star className="h-3.5 w-3.5 text-[#5a63df] dark:text-[#8f97ff]" />
+          <h2 className="text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
+            Popular topics
+          </h2>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-1.5">
           {popularTags.map((tag) => (
             <button
               key={tag}
@@ -698,7 +621,7 @@ function BlogSidebar({ articles, popularTags, setQuery, setCurrentPage }) {
                 setQuery(tag);
                 setCurrentPage(1);
               }}
-              className="rounded-full border border-indigo-100 bg-indigo-50/60 px-2.5 py-1.5 text-[10px] font-semibold text-indigo-700 transition-colors hover:bg-indigo-100 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300"
+              className="rounded-full border border-[#5a63df]/25 bg-[#5a63df]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#5a63df] dark:border-[#8f97ff]/35 dark:bg-[#8f97ff]/20 dark:text-[#c7cbff] transition-all hover:bg-[#5a63df] hover:text-white dark:hover:bg-[#8f97ff] dark:hover:text-[#090b13]"
             >
               {tag}
             </button>
@@ -1071,24 +994,24 @@ export default function BlogIndex() {
                 </h2>
               </div>
               <div className="relative w-full sm:max-w-sm">
-                <div className="group relative flex items-center rounded-2xl border border-slate-200/80 bg-white/90 p-1 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] backdrop-blur-xl transition-all duration-300 hover:border-indigo-400/50 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10 dark:border-white/10 dark:bg-slate-900/90 dark:hover:border-indigo-500/30">
-                  <Search className="ml-3.5 h-4.5 w-4.5 shrink-0 text-slate-400 transition-colors duration-200 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400" />
+                <div className="group relative flex items-center rounded-full border border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#141319] p-1 transition-all duration-200 focus-within:border-[#5a63df] dark:focus-within:border-[#8f97ff] focus-within:ring-2 focus-within:ring-[#5a63df]/20 dark:focus-within:ring-[#8f97ff]/20">
+                  <Search className="ml-3.5 h-4 w-4 shrink-0 text-slate-400 transition-colors duration-200 group-focus-within:text-[#5a63df] dark:group-focus-within:text-[#8f97ff]" />
                   <input
                     type="text"
                     value={query}
                     onChange={(event) => updateQuery(event.target.value)}
                     placeholder={BLOG_LIBRARY_COPY.searchPlaceholder}
                     aria-label="Search IELTS articles"
-                    className="w-full bg-transparent px-3 py-2 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-medium focus:outline-none dark:text-white"
+                    className="w-full bg-transparent px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 dark:text-white !border-none !outline-none focus:!outline-none focus-visible:!outline-none focus-visible:!ring-0 !shadow-none !ring-0 [outline:none!important] [border:none!important]"
                   />
                   {query && (
                     <button
                       type="button"
                       onClick={() => updateQuery('')}
-                      className="mr-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200 transition-colors"
+                      className="mr-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:bg-white/10 dark:text-slate-400 dark:hover:bg-white/20 dark:hover:text-slate-200 transition-colors"
                       aria-label="Clear search query"
                     >
-                      <X className="h-3.5 w-3.5" />
+                      <X className="h-3 w-3" />
                     </button>
                   )}
                 </div>

@@ -371,9 +371,9 @@
   }
 
   /* Enhanced focus management for accessibility */
-  .dark input:focus-visible,
-  .dark button:focus-visible,
-  .dark textarea:focus-visible {
+  .dark input:focus-visible:not([class*='outline-none']),
+  .dark button:focus-visible:not([class*='outline-none']),
+  .dark textarea:focus-visible:not([class*='outline-none']) {
     outline: 2px solid hsl(var(--primary) / 0.4);
     outline-offset: 0px;
   }

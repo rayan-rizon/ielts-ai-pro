@@ -2,8 +2,9 @@
 
 ## 1. Atmosphere & Identity
 
-IELTS Ai Pro is a premium, high-energy learning command center. It balances technical precision with educational approachability. The interface feels alive, responsive, and tactile.
-The signature is **Atmospheric Glow & Glassmorphism** — dark-mode surfaces use multi-layered backdrops, saturation filters, and neon-indigo glowing backlights. Light-mode surfaces are clean, card-based layouts with precise border outlines, subtle tonal elevations, and smooth spring-based micro-interactions.
+IELTS Ai Pro is a premium, high-energy learning command center built on a **compact, high-density instrument-panel design system** (see `.claude/skills/learner-panel-design/SKILL.md`). It balances technical precision with educational approachability.
+
+The system relies on clean surface elevation, hairline borders, tabular numerals, and signal color coding. Glassmorphism, heavy backdrop blurs, and saturated glowing drop shadows are strictly avoided in favor of crisp panel surfaces (`PANEL`, `WELL`, `TILE`) and precise micro-interactions.
 
 ## 2. Color
 
@@ -133,8 +134,9 @@ All spacing is based on a **4px** unit.
 
 ### Strategy
 
-We use a **mixed** depth strategy:
+We use a **zero-heavy-shadow surface elevation strategy**:
 
-- Cards at rest use subtle shadows and borders: `shadow-sm border border-border/50`.
-- Elevated panels use overlays with heavy blur saturation and light borders: `glass-card-premium shadow-2xl backdrop-blur-3xl border border-white/10 dark:border-white/5`.
-- Backdrop filters (`backdrop-blur-xl`) are paired with transparent colored overlays (`bg-white/80` or `bg-zinc-950/80`) to guarantee high-contrast readability.
+- **PANEL Shell**: Base card container bounded by subtle hairline rules (`border-[#e4e2f0]` in light / `dark:border-white/[0.07]` in dark mode) over smooth gradient surfaces (`from-white to-[#faf9ff]` / `from-[#141319] to-[#100f15]`).
+- **WELL Surface**: Inset surfaces for meter tracks, nested rows, and empty wells (`bg-[#f4f3fb]` / `dark:bg-white/[0.04]`).
+- **TILE Surface**: Nested tiles inside cards (`border-[#ebeaf7] bg-[#fbfbfe]` / `dark:border-white/10 dark:bg-white/[0.03]`).
+- **Zero Glassmorphism**: Glassmorphism overlays and heavy drop shadows (`backdrop-blur-3xl`, `shadow-2xl`) are strictly disallowed. Elevation and hierarchy are achieved purely via hairline rules, subtle surface shifts, and tabular metric focus.

@@ -94,134 +94,89 @@ const AudioUploader = ({ url, onUrlChange }) => {
   };
 
   return (
-    <div className="space-y-4" data-oid="6k.dci:">
+    <div className="space-y-3">
       <div
-        className={`relative overflow-hidden border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center transition-all duration-300 gap-4 text-center group ${
+        className={cn(
+          'relative overflow-hidden rounded-xl border p-5 flex flex-col items-center justify-center transition-all duration-200 gap-3 text-center group',
           error
-            ? 'border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)] bg-[rgb(var(--signal-fault)/0.06)]'
+            ? 'border-rose-500/30 bg-rose-500/[0.06] dark:border-rose-400/30 dark:bg-rose-950/20'
             : url
-              ? 'border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)] bg-[rgb(var(--signal-ok)/0.06)]'
-              : 'bg-stone-50/20 hover:bg-stone-50/40 dark:bg-stone-900/40 dark:hover:bg-stone-900/60 border-stone-200/50 hover:border-stone-400 dark:border-stone-800'
-        }`}
-        data-oid="hcz2wjn"
+              ? 'border-[#5a63df]/30 bg-gradient-to-b from-white to-[#faf9ff] dark:border-white/[0.08] dark:from-[#141319] dark:to-[#100f15]'
+              : 'border-dashed border-[#e4e2f0] dark:border-white/[0.10] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] hover:border-[#5a63df]/40'
+        )}
       >
-        {/* Background Sparkle Effect */}
-        <div className="absolute top-0 right-0 -mr-8 -mt-8 w-16 h-16 bg-gradient-to-br from-stone-500/10 to-stone-500/10 blur-2xl rounded-full" />
-
         {uploading ? (
-          <div className="py-8 flex flex-col items-center" data-oid="_25-_87">
-            <div
-              className="w-12 h-12 border-4 border-stone-600 border-t-transparent rounded-full animate-spin mb-4"
-              data-oid=".8vmtev"
-            ></div>
-            <p
-              className="text-sm font-black text-stone-700 uppercase tracking-widest"
-              data-oid="lhdws_d"
-            >
+          <div className="py-6 flex flex-col items-center">
+            <div className="w-10 h-10 border-3 border-[#5a63df] border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest">
               Uploading...
             </p>
-            <p className="text-[10px] text-muted-foreground font-medium mt-1" data-oid="e3se.-o">
-              Preparing your listening source
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-1">
+              Preparing listening audio source
             </p>
           </div>
         ) : url ? (
-          <div
-            className="w-full relative animate-in fade-in zoom-in-95 duration-500"
-            data-oid="b5r57-t"
-          >
-            <div className="flex items-center justify-center gap-4 mb-5" data-oid="0tdptmj">
-              <div
-                className="p-3.5 bg-[rgb(var(--signal-ok)/0.06)] bg-[rgb(var(--signal-ok)/0.06)] text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] rounded-2xl shadow-sm border border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)]"
-                data-oid=".fwvxt1"
-              >
-                <CheckCircle2 className="w-6 h-6" data-oid="cb5ggb6" />
+          <div className="w-full relative animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#5a63df]/30 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/15 dark:text-[#a9afff]">
+                <CheckCircle2 className="w-5 h-5" />
               </div>
-              <div className="text-left" data-oid=".g7:9by">
-                <span
-                  className="text-sm font-black text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] uppercase tracking-tight block"
-                  data-oid="-sv_elv"
-                >
+              <div className="text-left">
+                <span className="text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100 uppercase block">
                   Source Active
                 </span>
-                <span
-                  className="text-[10px] font-mono text-muted-foreground truncate max-w-[180px] block opacity-70"
-                  data-oid="3y2vl0t"
-                >
+                <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate max-w-[200px] block font-medium">
                   {url.split('/').pop()}
                 </span>
               </div>
             </div>
 
-            <div
-              className="bg-stone-100/50 dark:bg-stone-950/80 rounded-xl p-3 border border-stone-200/50 dark:border-stone-800/80 shadow-inner mb-4"
-              data-oid="eznl0al"
-            >
-              <audio
-                key={url}
-                controls
-                src={url}
-                className="w-full h-10 filter dark:invert dark:hue-rotate-180 brightness-110"
-                data-oid="hle72:f"
-              />
+            <div className="bg-[#f4f3fb] dark:bg-white/[0.04] rounded-xl p-2.5 border border-[#ebeaf7] dark:border-white/10 mb-4">
+              <audio key={url} controls src={url} className="w-full h-9 rounded-lg" />
             </div>
 
-            <div className="flex gap-2 justify-center" data-oid="9kr1b:j">
+            <div className="flex gap-2 justify-center">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => document.getElementById('audio-upload-input').click()}
-                className="text-[10px] uppercase font-black tracking-widest h-9 rounded-xl border-[rgb(var(--signal-ok)/0.3)] border-[rgb(var(--signal-ok)/0.3)] bg-white dark:bg-stone-900 text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] hover:bg-[rgb(var(--signal-ok)/0.06)] dark:hover:bg-[rgb(var(--signal-ok)/0.06)] hover:border-[rgb(var(--signal-ok)/0.3)] dark:hover:border-[rgb(var(--signal-ok)/0.3)] transition-all shadow-sm"
-                data-oid="fs3z4d:"
+                className="text-[10px] uppercase font-extrabold tracking-wider h-8 px-3 rounded-lg border-[#5a63df]/30 bg-[#5a63df]/[0.08] text-[#5a63df] hover:bg-[#5a63df] hover:text-white dark:text-[#a9afff] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/[0.15] dark:hover:bg-[#8f97ff] dark:hover:text-[#0b0c10] transition-all shadow-sm"
               >
-                <Upload className="w-3.5 h-3.5 mr-2" data-oid=".4v0reb" /> Replace
+                <Upload className="w-3.5 h-3.5 mr-1.5" /> Replace
               </Button>
               <Button
                 variant="destructive"
                 size="sm"
                 onClick={() => onUrlChange('')}
-                className="text-[10px] uppercase font-black tracking-widest h-9 rounded-xl bg-[rgb(var(--signal-fault)/0.06)] bg-[rgb(var(--signal-fault)/0.06)] text-[rgb(var(--signal-fault))] text-[rgb(var(--signal-fault))] border border-[rgb(var(--signal-fault)/0.3)] border-[rgb(var(--signal-fault)/0.3)] hover:bg-[rgb(var(--signal-fault)/0.06)] dark:hover:bg-[rgb(var(--signal-fault)/0.06)] transition-all shadow-sm"
-                data-oid="3-p_z_w"
+                className="text-[10px] uppercase font-extrabold tracking-wider h-8 px-3 rounded-lg border border-rose-500/30 bg-rose-500/[0.08] text-rose-600 dark:text-rose-300 dark:border-rose-400/30 dark:bg-rose-400/[0.15] hover:bg-rose-600 hover:text-white transition-all shadow-sm"
               >
-                <Trash2 className="w-3.5 h-3.5 mr-2" data-oid="7rdr9i9" /> Remove
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Remove
               </Button>
             </div>
           </div>
         ) : (
           <>
             <div
-              className={`p-5 rounded-2xl mb-1 shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${
+              className={cn(
+                'p-4 rounded-xl mb-0.5 transition-all duration-200 group-hover:scale-105',
                 error
-                  ? 'bg-[rgb(var(--signal-fault)/0.06)] text-[rgb(var(--signal-fault))] border border-[rgb(var(--signal-fault)/0.3)]'
-                  : 'bg-stone-50 text-stone-600 border border-stone-100'
-              }`}
-              data-oid="i0ivri2"
-            >
-              {error ? (
-                <X className="w-8 h-8" data-oid="px7q3t9" />
-              ) : (
-                <Music className="w-8 h-8" data-oid="6v4dp:f" />
+                  ? 'bg-rose-500/10 text-rose-600 border border-rose-500/30'
+                  : 'border border-[#5a63df]/25 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/15 dark:text-[#a9afff]'
               )}
+            >
+              {error ? <X className="w-7 h-7" /> : <Music className="w-7 h-7" />}
             </div>
-            <div data-oid="8c49j2b">
-              <p
-                className="text-sm font-black text-stone-800 dark:text-stone-100 uppercase tracking-tight"
-                data-oid="px9ifsi"
-              >
+            <div>
+              <p className="text-[13px] font-extrabold text-slate-800 dark:text-slate-100 uppercase tracking-tight">
                 Audio Source
               </p>
-              <p
-                className="text-[10px] text-stone-500 font-medium mt-1 tracking-wide"
-                data-oid="u2k4bff"
-              >
-                DRAG FILES OR CLICK BROWSE
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-[0.14em] mt-0.5">
+                Drag files or click browse
               </p>
             </div>
 
             {error && (
-              <div
-                className="text-[10px] text-[rgb(var(--signal-fault))] font-bold bg-[rgb(var(--signal-fault)/0.06)] px-3 py-1 rounded-full border border-[rgb(var(--signal-fault)/0.3)] animate-bounce"
-                data-oid=":_n5-49"
-              >
+              <div className="text-[10px] text-rose-600 dark:text-rose-400 font-bold bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/30 animate-bounce">
                 {error}
               </div>
             )}
@@ -230,10 +185,9 @@ const AudioUploader = ({ url, onUrlChange }) => {
               variant="default"
               size="sm"
               onClick={() => document.getElementById('audio-upload-input').click()}
-              className="mt-2 bg-stone-600 hover:bg-stone-700 text-white font-black text-[10px] uppercase tracking-widest px-6 h-9 rounded-xl transition-all active:scale-95"
-              data-oid="d1mrrwb"
+              className="mt-1 bg-[#5a63df] hover:bg-[#4850c8] text-white font-extrabold text-[10px] uppercase tracking-wider px-5 h-8 rounded-lg transition-all active:scale-95 shadow-sm"
             >
-              Select MP3/WAV
+              <Upload className="w-3.5 h-3.5 mr-1.5" /> Select MP3 / WAV
             </Button>
           </>
         )}
@@ -245,21 +199,14 @@ const AudioUploader = ({ url, onUrlChange }) => {
           accept="audio/*"
           className="hidden"
           onChange={handleFile}
-          data-oid="4ucopu:"
         />
       </div>
 
       {/* Fallback URL Input */}
       {!uploading && (
-        <div className="relative group" data-oid="g_wn.vu">
-          <div
-            className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-            data-oid="3__p8vg"
-          >
-            <span
-              className="text-[10px] font-black text-stone-400 uppercase tracking-widest"
-              data-oid="u7zugbg"
-            >
+        <div className="relative group">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
               URL
             </span>
           </div>
@@ -267,8 +214,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
             placeholder="https://source-link.mp3"
             value={url}
             onChange={(e) => onUrlChange(e.target.value)}
-            className="pl-12 text-[11px] font-mono h-10 bg-white dark:bg-[#131315] text-stone-800 dark:text-stone-200 border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 placeholder:text-stone-400 dark:placeholder:text-stone-500 transition-all rounded-xl focus:bg-white dark:focus:bg-[#18181b]"
-            data-oid="1rjoqe0"
+            className="pl-12 text-[11px] font-mono h-9 bg-white dark:bg-[#131315] text-slate-800 dark:text-slate-200 border-[#e4e2f0] dark:border-white/[0.08] hover:border-[#5a63df]/30 dark:hover:border-white/20 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all rounded-lg"
           />
         </div>
       )}
