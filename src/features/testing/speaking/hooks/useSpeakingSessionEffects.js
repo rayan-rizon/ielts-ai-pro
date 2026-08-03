@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { callEdgeFunction } from '@/utils/api';
 
+import useConversationAutoScroll from './useConversationAutoScroll';
+
 export default function useSpeakingSessionEffects({
   testId,
   cancelCurrentAudio,
@@ -48,63 +50,25 @@ export default function useSpeakingSessionEffects({
     isProcessingRef.current = isProcessing;
   }, [isProcessing, isProcessingRef]);
 
+  // The container watches itself for growth, so the transcript follows the
+  // draft bubble and the examiner's reply after Finish — moments when the
+  // `conversation` array itself never changes.
+  const { scrollToLatest } = useConversationAutoScroll(conversationContainerRef);
+
+  // Re-follow on every new entry even if the learner had scrolled back to read.
   useEffect(() => {
-    const container = conversationContainerRef.current;
-    if (!container) return;
-
-    const scroll = () => {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: 'smooth',
-      });
-    };
-
-    // Scroll immediately when conversation array updates
-    scroll();
-
-    // Fire again as animation is completing to ensure it stays pinned
-    const t1 = setTimeout(scroll, 100);
-    const t2 = setTimeout(scroll, 250);
-    const t3 = setTimeout(scroll, 450);
-
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-    };
-  }, [conversation, conversationContainerRef]);
+    if (conversation.length > 0) scrollToLatest('smooth');
+  }, [conversation, scrollToLatest]);
 
   useEffect(() => {
-    if (!isPartComplete) return;
+    if (!isPartComplete) return undefined;
 
-    setTimeout(() => {
+    const revealTransition = setTimeout(() => {
       transitionCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      scrollToLatest('smooth');
     }, 100);
-  }, [isPartComplete, transitionCardRef]);
-
-  useEffect(() => {
-    if (!isPartComplete) return;
-
-    const container = conversationContainerRef.current;
-    if (!container) return;
-
-    const scroll = () => {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: 'smooth',
-      });
-    };
-
-    const firstScroll = setTimeout(scroll, 100);
-    const secondScroll = setTimeout(scroll, 500);
-    const finalScroll = setTimeout(scroll, 1000);
-
-    return () => {
-      clearTimeout(firstScroll);
-      clearTimeout(secondScroll);
-      clearTimeout(finalScroll);
-    };
-  }, [isPartComplete, conversationContainerRef]);
+    return () => clearTimeout(revealTransition);
+  }, [isPartComplete, scrollToLatest, transitionCardRef]);
 
   useEffect(() => {
     const pendingTimers = pendingTimersRef.current;

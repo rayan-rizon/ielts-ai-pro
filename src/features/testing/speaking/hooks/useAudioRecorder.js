@@ -5,6 +5,7 @@ import {
   MIN_VOICE_THRESHOLD,
   startRecorderCapture,
   stopRecorderCapture,
+  unlockCaptureAudioContext,
 } from '../utils/audioRecorderRuntime';
 import { getSpeakingCaptureConfig } from '../utils/speakingCaptureUtils';
 
@@ -25,9 +26,12 @@ function useRecorderRefs(partNumber, handsFreeEnabled) {
     liveTranscript: useRef(''),
     audioContext: useRef(null),
     analyser: useRef(null),
-    animationFrame: useRef(null),
+    analyserSource: useRef(null),
+    analyserReady: useRef(false),
+    analysisTimer: useRef(null),
     silenceMonitor: useRef(null),
     noiseFloor: useRef(MIN_VOICE_THRESHOLD / 2),
+    noiseWindow: useRef([]),
     voiceFrames: useRef(0),
     speechDetected: useRef(false),
     lastVoiceAt: useRef(0),
@@ -127,6 +131,19 @@ export default function useAudioRecorder({
       currentRuntime.refs.lastVoiceAt.current = Date.now();
     }
   }, [handsFreeEnabled]);
+
+  // Hands-free reopens the microphone without a click, so the analyser's audio
+  // context must be resumed while the page still has a user activation.
+  useEffect(() => {
+    const unlock = () => unlockCaptureAudioContext();
+    const events = ['pointerdown', 'touchend', 'keydown'];
+    events.forEach((event) =>
+      window.addEventListener(event, unlock, { capture: true, once: true, passive: true })
+    );
+    return () => {
+      events.forEach((event) => window.removeEventListener(event, unlock, { capture: true }));
+    };
+  }, []);
 
   useEffect(() => cancelListening, [cancelListening]);
 

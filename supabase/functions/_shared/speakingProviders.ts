@@ -83,17 +83,47 @@ export function getTranscriptVerificationReason(params: {
   return null;
 }
 
+// Nobody sustains more than ~4 words per second, and IELTS candidates sit far
+// below that. A transcript that outruns its own audio was not heard — it was
+// invented, which is how learners ended up reading fluent answers they never
+// gave. Sub-second clips are exempt: the ratio is meaningless at that length.
+export const MAX_PLAUSIBLE_WORDS_PER_SECOND = 4;
+
+export function isImplausiblyFastTranscript(transcript: string, audioDurationMs?: number | null) {
+  const durationSeconds = Math.max(0, Number(audioDurationMs) || 0) / 1000;
+  if (durationSeconds < 1) return false;
+
+  const words = transcriptTokens(transcript).length;
+  return words / durationSeconds > MAX_PLAUSIBLE_WORDS_PER_SECOND;
+}
+
 export function chooseVerifiedTranscript(params: {
   cloudflareTranscript: string;
   geminiTranscript: string;
   browserHint?: { transcript: string; confidence: number } | null;
   reason: 'unexpectedly-short' | 'high-confidence-disagreement';
+  audioDurationMs?: number | null;
 }): 'cloudflare' | 'gemini-fallback' {
   const cloudflareWords = transcriptTokens(params.cloudflareTranscript).length;
   const geminiWords = transcriptTokens(params.geminiTranscript).length;
 
+  // A verifier that returns more words than the clip can hold is hallucinating,
+  // never a better reading of the audio.
+  if (isImplausiblyFastTranscript(params.geminiTranscript, params.audioDurationMs)) {
+    return 'cloudflare';
+  }
+
   if (params.reason === 'unexpectedly-short') {
-    return geminiWords > cloudflareWords ? 'gemini-fallback' : 'cloudflare';
+    // Whisper reporting near-nothing is usually right. Only overrule it when
+    // the live captions independently heard the learner speaking too, so a
+    // long answer conjured from silence can never win on word count alone.
+    const hintWords = params.browserHint
+      ? transcriptTokens(params.browserHint.transcript).length
+      : 0;
+    const corroborated =
+      hintWords >= 3 &&
+      transcriptSimilarity(params.geminiTranscript, params.browserHint!.transcript) >= 0.3;
+    return corroborated && geminiWords > cloudflareWords ? 'gemini-fallback' : 'cloudflare';
   }
 
   if (!params.browserHint) return 'cloudflare';
@@ -113,6 +143,7 @@ export async function transcribeWithCloudflare(params: {
   accountId: string;
   apiToken: string;
   audioBase64: string;
+  audioDurationMs?: number | null;
 }): Promise<TranscriptionResult> {
   const startedAt = Date.now();
   const requestTranscription = async (vadFilter: boolean, noSpeechThreshold?: number) => {
@@ -155,6 +186,9 @@ export async function transcribeWithCloudflare(params: {
   if (!transcript) {
     attempts = 2;
     transcript = await requestTranscription(false, 0.8);
+    // Whisper invents text when its voice filter is off and the clip is quiet.
+    // Discard anything the audio could not physically have contained.
+    if (isImplausiblyFastTranscript(transcript, params.audioDurationMs)) transcript = '';
     recoveredByVadRetry = Boolean(transcript);
   }
 
@@ -177,8 +211,8 @@ export async function transcribeWithGeminiFallback(params: {
   apiKey: string;
   audioBase64: string;
   audioMimeType: string;
-  questionContext?: string;
   browserTranscriptHint?: string;
+  audioDurationMs?: number | null;
 }): Promise<TranscriptionResult> {
   const model = 'gemini-2.5-flash-lite';
   const startedAt = Date.now();
@@ -215,6 +249,10 @@ export async function transcribeWithGeminiFallback(params: {
   const payload = await response.json();
   const transcript = readGeminiTranscript(payload);
 
+  if (isImplausiblyFastTranscript(transcript, params.audioDurationMs)) {
+    throw new Error('Gemini transcription fallback returned more speech than the audio contains');
+  }
+
   return {
     transcript,
     provider: 'gemini-fallback',
@@ -226,23 +264,18 @@ export async function transcribeWithGeminiFallback(params: {
   };
 }
 
-function buildGeminiTranscriptionPrompt(params: {
-  questionContext?: string;
-  browserTranscriptHint?: string;
-}): string {
-  const context = compactTranscript(params.questionContext).slice(0, 500);
+function buildGeminiTranscriptionPrompt(params: { browserTranscriptHint?: string }): string {
+  // The examiner's question is deliberately NOT supplied. Given the question
+  // and a silent or unintelligible clip, the model composes a fluent answer to
+  // it and returns that as the "transcript" — learners saw whole paragraphs
+  // they never spoke. Only the live-caption preview is passed now, because it
+  // is itself derived from the learner's audio rather than from the prompt.
   const browserHint = compactTranscript(params.browserTranscriptHint).slice(0, 1000);
-  const supportingContext = [
-    context ? `The examiner's question was: ${context}` : '',
-    browserHint ? `A fallible live-caption preview was: ${browserHint}` : '',
-  ]
-    .filter(Boolean)
-    .join('\n');
   const instruction =
-    "Transcribe this English speaking-test answer accurately. Return only the words actually spoken, with ordinary punctuation. Preserve the learner's wording and grammatical mistakes. Use the context below only to resolve genuinely unclear sounds; never add words merely because they appear in the context. If there is no intelligible speech, return (Inaudible).";
+    "Transcribe this English speaking-test answer verbatim. Return only the words actually spoken, with ordinary punctuation. Preserve the learner's wording and grammatical mistakes. Never guess at, complete, or compose an answer: if the audio is silent, noise-only, or otherwise unintelligible, return exactly (Inaudible).";
 
-  return supportingContext
-    ? `${instruction}\n\nSupporting context:\n${supportingContext}`
+  return browserHint
+    ? `${instruction}\n\nA fallible live-caption preview of the same audio was: ${browserHint}\nUse it only to resolve unclear sounds; ignore it entirely if it disagrees with what you hear.`
     : instruction;
 }
 

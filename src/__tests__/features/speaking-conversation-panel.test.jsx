@@ -107,6 +107,39 @@ describe('speaking conversation panel examiner streaming', () => {
     expect(screen.getByText(instruction)).toBeInTheDocument();
   });
 
+  it('does not replay a delivered question when a placeholder shifts the indices', async () => {
+    vi.useFakeTimers();
+    // The examiner speaks, the learner answers, and the loading placeholder is
+    // dropped when the transcript arrives — renumbering every later entry.
+    const withPlaceholder = [
+      { speaker: 'ai', text: examinerQuestion },
+      { speaker: 'user', text: '', isLoading: true },
+    ];
+    const { rerender } = render(
+      <SpeakingConversationPanel {...buildProps({ conversation: withPlaceholder })} />
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+    expect(screen.queryByText('British examiner · live')).not.toBeInTheDocument();
+
+    rerender(
+      <SpeakingConversationPanel
+        {...buildProps({
+          conversation: [
+            { speaker: 'user', text: 'I like the parks.' },
+            { speaker: 'ai', text: examinerQuestion },
+          ],
+        })}
+      />
+    );
+
+    // Same text, new position: it must stay a settled message, not stream again.
+    expect(screen.queryByText('British examiner · live')).not.toBeInTheDocument();
+    expect(screen.getByText(examinerQuestion)).toBeInTheDocument();
+  });
+
   it('renders an existing examiner message normally when no utterance is active', () => {
     vi.useFakeTimers();
     render(<SpeakingConversationPanel {...buildProps()} />);

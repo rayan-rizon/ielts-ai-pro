@@ -2,6 +2,60 @@ import { getAutoFinishCountdown } from './speakingCaptureUtils';
 
 export const MAX_RECORDING_DURATION = 120000;
 export const MIN_VOICE_THRESHOLD = 0.018;
+// Ceiling on the learned threshold, so an extreme room can still be spoken over.
+export const MAX_VOICE_THRESHOLD = 0.12;
+const ANALYSIS_INTERVAL_MS = 50;
+// Three seconds of history: long enough that every natural pause in speech
+// lands inside it, short enough to follow a fan being switched on or off.
+const NOISE_WINDOW_FRAMES = 60;
+const MAX_NOISE_FLOOR = 0.06;
+// The quietest frame slightly understates steady noise; lift it a little so a
+// dip between fan revolutions does not read as the true floor.
+const NOISE_FLOOR_BIAS = 1.15;
+
+// ── Shared capture AudioContext ──────────────────────────────────────────────
+// Safari starts every AudioContext constructed outside a user gesture in the
+// `suspended` state, and resume() only succeeds from a gesture. Hands-free mode
+// opens the microphone automatically — with no gesture — so a per-capture
+// context stayed suspended, the analyser only ever read silence, smart finish
+// never armed, and the answer sat there until the 2-minute safety cap.
+// One context, unlocked on the learner's first interaction, is reused instead.
+let sharedCaptureContext = null;
+
+function getCaptureAudioContext() {
+  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextCtor) return null;
+
+  if (!sharedCaptureContext || sharedCaptureContext.state === 'closed') {
+    try {
+      sharedCaptureContext = new AudioContextCtor();
+    } catch {
+      return null;
+    }
+  }
+  return sharedCaptureContext;
+}
+
+/** Call synchronously from a user gesture so hands-free captures can analyse. */
+export function unlockCaptureAudioContext() {
+  const audioContext = getCaptureAudioContext();
+  if (audioContext?.state === 'suspended') audioContext.resume().catch(() => {});
+}
+
+/** Test seam — drops the shared context between specs. */
+export function resetCaptureAudioContextForTests() {
+  sharedCaptureContext = null;
+}
+
+/** Test seam — exposes the loudness classifier without a live microphone. */
+export const __testing = {
+  detectVoice: (rms, noiseFloor) => detectVoice(rms, noiseFloor),
+  measureNoiseFloor: (samples) => {
+    const refs = { noiseWindow: { current: [] }, noiseFloor: { current: 0 } };
+    samples.forEach((rms) => updateNoiseFloor(refs, rms));
+    return refs.noiseFloor.current;
+  },
+};
 
 function calculateRms(samples) {
   let sum = 0;
@@ -12,19 +66,40 @@ function calculateRms(samples) {
   return Math.sqrt(sum / samples.length);
 }
 
-function updateNoiseFloor(refs, rms, elapsedMs) {
-  if (elapsedMs >= 1200) return;
-  if (refs.speechDetected.current) return;
-  if (rms >= MIN_VOICE_THRESHOLD * 1.4) return;
+/**
+ * Estimates room noise as the quietest moment in the last few seconds.
+ *
+ * The previous estimator could not represent a noisy room at all: it clamped
+ * the floor to MIN_VOICE_THRESHOLD, refused to learn from any frame above it,
+ * and stopped adapting after 1.2s. A running fan sits above that ceiling, so
+ * the floor stayed at its quiet-room default, every single frame classified as
+ * speech, `lastVoiceAt` was refreshed forever, and the grace countdown could
+ * never start — the answer only ended at the 2-minute cap. Switching the fan
+ * off made it work, which is exactly the shape of that bug.
+ *
+ * A rolling minimum tracks steady noise correctly: continuous sound sets the
+ * minimum, while speech — which is louder and always has gaps — never does.
+ */
+function updateNoiseFloor(refs, rms) {
+  const samples = refs.noiseWindow.current;
+  samples.push(rms);
+  if (samples.length > NOISE_WINDOW_FRAMES) samples.shift();
 
-  refs.noiseFloor.current = Math.min(
-    MIN_VOICE_THRESHOLD,
-    refs.noiseFloor.current * 0.88 + rms * 0.12
-  );
+  let quietest = Infinity;
+  for (let index = 0; index < samples.length; index += 1) {
+    if (samples[index] < quietest) quietest = samples[index];
+  }
+
+  refs.noiseFloor.current = Math.min(MAX_NOISE_FLOOR, quietest * NOISE_FLOOR_BIAS);
 }
 
 function detectVoice(rms, noiseFloor) {
-  const threshold = Math.max(MIN_VOICE_THRESHOLD, Math.min(0.05, noiseFloor * 1.7 + 0.005));
+  // Enough headroom to clear steady noise, but not so much that a soft speaker
+  // in a noisy room stops registering.
+  const threshold = Math.max(
+    MIN_VOICE_THRESHOLD,
+    Math.min(MAX_VOICE_THRESHOLD, noiseFloor * 1.6 + 0.005)
+  );
   return rms > threshold;
 }
 
@@ -37,6 +112,19 @@ function markVoiceDetected(runtime, now) {
     actions.setHasDetectedSpeech(true);
   }
   actions.setAutoFinishCountdown(null);
+}
+
+/**
+ * Whether we have grounds to believe the learner has actually spoken.
+ *
+ * Either signal alone is sufficient, and deliberately so. Recognised words are
+ * direct proof of speech, so they count even when the loudness analyser is
+ * running — in a noisy room the learned threshold can sit above a soft voice,
+ * and requiring the analyser to agree would leave the answer hanging until the
+ * safety cap, which is the failure this whole path exists to prevent.
+ */
+function hasSpeechEvidence(refs) {
+  return refs.speechDetected.current || Boolean(refs.liveTranscript.current);
 }
 
 function shouldFinishAfterSilence(runtime, now, elapsedMs) {
@@ -57,15 +145,20 @@ function shouldFinishAfterSilence(runtime, now, elapsedMs) {
 }
 
 function createAnalysisLoop(runtime, samples) {
-  const analyze = () => {
+  return () => {
     const { refs } = runtime;
     if (!refs.isListening.current || !refs.analyser.current) return;
 
     refs.analyser.current.getByteTimeDomainData(samples);
     const now = Date.now();
-    const elapsedMs = now - refs.startTime.current;
     const rms = calculateRms(samples);
-    updateNoiseFloor(refs, rms, elapsedMs);
+
+    // A context that never leaves `suspended` yields perfectly flat frames.
+    // Treat the analyser as usable only once it delivers real signal, so the
+    // silence monitor knows whether it can trust the absence of voice.
+    if (!refs.analyserReady.current && rms > 0) refs.analyserReady.current = true;
+
+    updateNoiseFloor(refs, rms);
 
     if (detectVoice(rms, refs.noiseFloor.current)) {
       refs.voiceFrames.current += 1;
@@ -73,28 +166,31 @@ function createAnalysisLoop(runtime, samples) {
     } else {
       refs.voiceFrames.current = 0;
     }
-
-    refs.animationFrame.current = requestAnimationFrame(analyze);
   };
-  return analyze;
 }
 
 function startAudioAnalysis(runtime, stream) {
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
+  const audioContext = getCaptureAudioContext();
+  if (!audioContext) return;
 
   try {
-    const audioContext = new AudioContext();
     const analyser = audioContext.createAnalyser();
     analyser.fftSize = 512;
     analyser.smoothingTimeConstant = 0.72;
-    audioContext.createMediaStreamSource(stream).connect(analyser);
+    const source = audioContext.createMediaStreamSource(stream);
+    source.connect(analyser);
     runtime.refs.audioContext.current = audioContext;
     runtime.refs.analyser.current = analyser;
-    audioContext.resume().catch(() => {});
+    runtime.refs.analyserSource.current = source;
 
+    // Hands-free opens the mic without a gesture, so this resume can be
+    // refused; unlockCaptureAudioContext already ran on first interaction.
+    if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
+
+    // A timer, not requestAnimationFrame: rAF is throttled to a standstill in
+    // a backgrounded tab, which froze `lastVoiceAt` and stalled smart finish.
     const analyze = createAnalysisLoop(runtime, new Uint8Array(analyser.fftSize));
-    runtime.refs.animationFrame.current = requestAnimationFrame(analyze);
+    runtime.refs.analysisTimer.current = setInterval(analyze, ANALYSIS_INTERVAL_MS);
   } catch {
     // Smart finish is progressive enhancement. Manual finish remains available.
   }
@@ -123,9 +219,15 @@ function updateLiveRecognition(runtime, event) {
     .replace(/\s+/g, ' ')
     .trim();
   if (runtime.refs.speechConfidence) runtime.refs.speechConfidence.current = confidence;
+  const previousPreview = runtime.refs.liveTranscript?.current || '';
   if (runtime.refs.liveTranscript) runtime.refs.liveTranscript.current = preview;
   runtime.actions.setLiveTranscript(preview);
-  if (preview) markVoiceDetected(runtime, Date.now());
+
+  // Only *new* words are evidence of ongoing speech. `preview` always carries
+  // the accumulated base transcript, so treating any non-empty value as voice
+  // refreshed the silence clock on every restart of the recogniser and the
+  // grace countdown could never run out.
+  if (preview && preview !== previousPreview) markVoiceDetected(runtime, Date.now());
 }
 
 function collectRecognitionResult(result, output) {
@@ -150,7 +252,7 @@ function startSilenceMonitor(runtime) {
     if (!refs.isListening.current) return;
     if (!refs.smartFinishEnabled.current) return;
     if (refs.autoSubmitPaused.current) return;
-    if (!refs.speechDetected.current) return;
+    if (!hasSpeechEvidence(refs)) return;
 
     const now = Date.now();
     const elapsedMs = now - refs.startTime.current;
@@ -213,15 +315,21 @@ function restartRecognitionIfActive(runtime, recognition) {
 
 function cleanupAudioAnalysis(runtime) {
   const { refs } = runtime;
-  if (refs.animationFrame.current) {
-    cancelAnimationFrame(refs.animationFrame.current);
-    refs.animationFrame.current = null;
+  if (refs.analysisTimer.current) {
+    clearInterval(refs.analysisTimer.current);
+    refs.analysisTimer.current = null;
   }
-  if (refs.audioContext.current?.state !== 'closed') {
-    refs.audioContext.current?.close().catch(() => {});
+  // Disconnect this capture's nodes but leave the shared context open — it is
+  // unlocked once per page and closing it would re-suspend the next capture.
+  try {
+    refs.analyserSource.current?.disconnect();
+  } catch {
+    // Already torn down with the media stream.
   }
+  refs.analyserSource.current = null;
   refs.audioContext.current = null;
   refs.analyser.current = null;
+  refs.analyserReady.current = false;
   if (refs.silenceMonitor.current) {
     clearInterval(refs.silenceMonitor.current);
     refs.silenceMonitor.current = null;
@@ -285,11 +393,13 @@ export function resetRecorderCapture(runtime) {
   if (refs.recognitionSessionFinal) refs.recognitionSessionFinal.current = '';
   if (refs.speechConfidence) refs.speechConfidence.current = [];
   if (refs.speechDetected) refs.speechDetected.current = false;
+  if (refs.analyserReady) refs.analyserReady.current = false;
   if (refs.voiceFrames) refs.voiceFrames.current = 0;
   if (refs.lastVoiceAt) refs.lastVoiceAt.current = 0;
   if (refs.graceStartedAt) refs.graceStartedAt.current = null;
   if (refs.autoSubmitPaused) refs.autoSubmitPaused.current = false;
   if (refs.noiseFloor) refs.noiseFloor.current = MIN_VOICE_THRESHOLD / 2;
+  if (refs.noiseWindow) refs.noiseWindow.current = [];
   actions.setLiveTranscript('');
   actions.setRecordingStartedAt(null);
   actions.setAutoFinishCountdown(null);
@@ -311,6 +421,9 @@ function buildRecordingMetadata(runtime, duration) {
     speechConfidence:
       refs.speechConfidence.current.length > 0 ? [...refs.speechConfidence.current] : null,
     liveTranscript: refs.liveTranscript.current || null,
+    // Lets the server refuse to invent a transcript for a clip the client is
+    // confident contains no speech at all.
+    speechDetected: refs.speechDetected.current || Boolean(refs.liveTranscript.current),
     stopReason: refs.stopReason.current,
   };
 }

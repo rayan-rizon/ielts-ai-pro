@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  MAX_VOICE_THRESHOLD,
   MIN_VOICE_THRESHOLD,
   startRecorderCapture,
   stopRecorderCapture,
+  __testing,
 } from './audioRecorderRuntime';
 import { getSpeakingCaptureConfig } from './speakingCaptureUtils';
 
@@ -61,9 +63,12 @@ function buildRuntime(processRecording) {
       liveTranscript: ref(''),
       audioContext: ref(null),
       analyser: ref(null),
-      animationFrame: ref(null),
+      analyserSource: ref(null),
+      analyserReady: ref(false),
+      analysisTimer: ref(null),
       silenceMonitor: ref(null),
       noiseFloor: ref(MIN_VOICE_THRESHOLD / 2),
+      noiseWindow: ref([]),
       voiceFrames: ref(0),
       speechDetected: ref(false),
       lastVoiceAt: ref(0),
@@ -185,6 +190,33 @@ describe('audioRecorderRuntime hands-free silence detection', () => {
 
     expect(processRecording).toHaveBeenCalledOnce();
     expect(processRecording.mock.calls[0][1].stopReason).toBe('smart-finish');
+  });
+
+  it('hears a pause through steady background noise such as a fan', () => {
+    // A fan holds the room at ~0.03 RMS; the learner peaks well above it.
+    const fanOnly = Array.from({ length: 60 }, (_, index) => 0.029 + (index % 3) * 0.001);
+    const noisyFloor = __testing.measureNoiseFloor(fanOnly);
+
+    // The old estimator clamped the floor to MIN_VOICE_THRESHOLD, so the fan
+    // itself registered as speech and the silence window never opened.
+    expect(noisyFloor).toBeGreaterThan(MIN_VOICE_THRESHOLD);
+    expect(__testing.detectVoice(0.03, noisyFloor)).toBe(false);
+    expect(__testing.detectVoice(0.11, noisyFloor)).toBe(true);
+  });
+
+  it('stays sensitive to a quiet voice in a silent room', () => {
+    const quietRoom = Array.from({ length: 60 }, () => 0.0015);
+    const quietFloor = __testing.measureNoiseFloor(quietRoom);
+
+    expect(__testing.detectVoice(0.002, quietFloor)).toBe(false);
+    expect(__testing.detectVoice(0.025, quietFloor)).toBe(true);
+  });
+
+  it('never learns a threshold the learner cannot speak over', () => {
+    const roaring = Array.from({ length: 60 }, () => 0.4);
+    expect(
+      __testing.detectVoice(MAX_VOICE_THRESHOLD + 0.01, __testing.measureNoiseFloor(roaring))
+    ).toBe(true);
   });
 
   it('keeps completed caption text when browser recognition restarts', async () => {

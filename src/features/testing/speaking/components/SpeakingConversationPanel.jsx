@@ -93,40 +93,48 @@ export default function SpeakingConversationPanel({
     return () => clearTimeout(delayedScroll);
   }, [conversationContainerRef, isPart2Prep]);
 
-  useEffect(() => {
-    if (!isListening || !conversationContainerRef.current) return;
-    conversationContainerRef.current.scrollTo({
-      top: conversationContainerRef.current.scrollHeight,
-      behavior: liveTranscript ? 'smooth' : 'auto',
-    });
-  }, [conversationContainerRef, isListening, liveTranscript]);
+  // Following the live transcript is handled by useConversationAutoScroll,
+  // which keeps working after Finish — this effect stopped the instant
+  // `isListening` went false and left the newest bubble below the fold.
 
   const finalCandidateMessage = conversation.findLast((entry) => entry.speaker === 'user');
   const latestExaminerIndex = conversation.findLastIndex((entry) => entry.speaker === 'ai');
   const latestExaminerMessage = latestExaminerIndex >= 0 ? conversation[latestExaminerIndex] : null;
-  const latestExaminerKey = latestExaminerMessage
-    ? `${latestExaminerIndex}:${latestExaminerMessage.text}`
-    : null;
+
+  // Identity is the spoken text, never the array position. Keying on the index
+  // meant that dropping a loading placeholder — which happens every time an
+  // answer is submitted — renumbered the examiner's last message, and an
+  // already-delivered question replayed its typing animation underneath the
+  // learner's new reply.
+  const latestExaminerKey = latestExaminerMessage?.text?.trim() || null;
   const activeExaminerIndex = activeSpeechText
     ? conversation.findLastIndex(
         (entry) => entry.speaker === 'ai' && entry.text?.trim() === activeSpeechText
       )
     : -1;
   const activeExaminerKey =
-    activeExaminerIndex >= 0
-      ? `${activeExaminerIndex}:${conversation[activeExaminerIndex].text}`
-      : null;
+    activeExaminerIndex >= 0 ? conversation[activeExaminerIndex].text?.trim() || null : null;
   const [examinerStream, setExaminerStream] = useState({
     key: null,
     phase: 'finished',
   });
+  // Texts that have already run their stream once, so a re-render can never
+  // send the same examiner turn back through the "LIVE" treatment.
+  const streamedKeysRef = useRef(new Set());
 
   useLayoutEffect(() => {
     if (!latestExaminerKey) return;
+    if (streamedKeysRef.current.has(latestExaminerKey)) return;
+    streamedKeysRef.current.add(latestExaminerKey);
     setExaminerStream((current) =>
       current.key === latestExaminerKey ? current : { key: latestExaminerKey, phase: 'queued' }
     );
   }, [latestExaminerKey]);
+
+  // Each part starts a fresh transcript, so the streamed history resets with it.
+  useEffect(() => {
+    if (conversation.length === 0) streamedKeysRef.current.clear();
+  }, [conversation.length]);
 
   useEffect(() => {
     if (!activeExaminerKey || examinerStream.key !== activeExaminerKey) return;

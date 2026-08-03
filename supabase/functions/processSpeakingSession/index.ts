@@ -196,6 +196,7 @@ serve(async (req: Request) => {
       currentQuestionIndex = 0,
       questionContext = '',
       speechConfidence = null,
+      speechDetected = null,
       pronunciationAudioBase64 = null,
       pronunciationDurationMs = null,
       requestPronunciation = false,
@@ -368,6 +369,11 @@ serve(async (req: Request) => {
     let cloudflareRecoveredByVadRetry = false;
     let browserTranscriptRecovered = false;
     const browserTranscriptHint = buildBrowserTranscriptHint(speechConfidence);
+    // The recorder watches microphone loudness and live captions throughout the
+    // answer. When it saw neither, a second transcription provider has nothing
+    // real to recover and can only make something up, so we do not ask it.
+    // `null` means an older client that never reported — assume speech.
+    const learnerSpokeThisTurn = speechDetected !== false || Boolean(browserTranscriptHint);
     const pronunciationDuration = Number(pronunciationDurationMs);
     const pronunciationEligible =
       requestPronunciation === true &&
@@ -408,6 +414,7 @@ serve(async (req: Request) => {
           accountId: Deno.env.get('CLOUDFLARE_ACCOUNT_ID') || '',
           apiToken: Deno.env.get('CLOUDFLARE_AI_API_TOKEN') || '',
           audioBase64,
+          audioDurationMs,
         });
         transcript = result.transcript;
         transcriptionProvider = result.provider;
@@ -423,14 +430,14 @@ serve(async (req: Request) => {
           audioDurationMs,
         });
 
-        if (transcriptionVerificationReason && geminiApiKey) {
+        if (transcriptionVerificationReason && geminiApiKey && learnerSpokeThisTurn) {
           try {
             const verification = await transcribeWithGeminiFallback({
               apiKey: geminiApiKey,
               audioBase64,
               audioMimeType,
-              questionContext,
               browserTranscriptHint: browserTranscriptHint?.transcript,
+              audioDurationMs,
             });
             transcriptionLatencyMs += verification.latencyMs;
             tokensUsed += verification.tokensUsed;
@@ -441,6 +448,7 @@ serve(async (req: Request) => {
               geminiTranscript: verification.transcript,
               browserHint: browserTranscriptHint,
               reason: transcriptionVerificationReason,
+              audioDurationMs,
             });
             if (selectedProvider === 'gemini-fallback') {
               transcript = verification.transcript;
@@ -456,14 +464,14 @@ serve(async (req: Request) => {
       } catch (cloudflareError: any) {
         transcriptionError = cloudflareError?.message || 'Cloudflare transcription failed';
         console.warn(transcriptionError);
-        if (geminiApiKey) {
+        if (geminiApiKey && learnerSpokeThisTurn) {
           try {
             const fallback = await transcribeWithGeminiFallback({
               apiKey: geminiApiKey,
               audioBase64,
               audioMimeType,
-              questionContext,
               browserTranscriptHint: browserTranscriptHint?.transcript,
+              audioDurationMs,
             });
             transcript = fallback.transcript;
             transcriptionProvider = fallback.provider;

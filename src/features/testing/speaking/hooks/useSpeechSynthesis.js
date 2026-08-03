@@ -1,6 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
+import {
+  getPlaybackAudio,
+  releasePlaybackAudio,
+  unlockSpeechPlayback,
+} from '../utils/speechPlayback';
+
 /**
  * useSpeechSynthesis
  *
@@ -11,6 +17,9 @@ import { supabase } from '@/lib/supabase';
  *  - Audio now STOPS immediately when the component unmounts (navigating away).
  *  - Web Speech fallback no longer fires when Google TTS explicitly signals fallback.
  *  - Stale response guards correctly prevent race conditions.
+ *  - Safari/iOS: playback goes through one element unlocked on the learner's
+ *    first interaction, because WebKit rejects play() once the awaited TTS
+ *    request has consumed the page's user activation (see utils/speechPlayback).
  *
  * Public API also exposes the exact active utterance and playback state so the
  * conversation UI never has to guess which queued message is being spoken.
@@ -117,6 +126,21 @@ export default function useSpeechSynthesis() {
     };
   }, []);
 
+  // ── Safari: unlock playback on the learner's first interaction ────────────
+  // WebKit only grants playback to an element that has already played from
+  // inside a gesture. Every later utterance arrives after an awaited fetch,
+  // by which point the activation is gone — so unlock eagerly, once.
+  useEffect(() => {
+    const unlock = () => unlockSpeechPlayback();
+    const events = ['pointerdown', 'touchend', 'keydown'];
+    events.forEach((event) =>
+      window.addEventListener(event, unlock, { capture: true, once: true, passive: true })
+    );
+    return () => {
+      events.forEach((event) => window.removeEventListener(event, unlock, { capture: true }));
+    };
+  }, []);
+
   // ── CRITICAL: Stop ALL audio immediately on unmount (e.g. navigating away) ──
   useEffect(() => {
     isMountedRef.current = true;
@@ -127,8 +151,7 @@ export default function useSpeechSynthesis() {
       requestIdRef.current += 1;
       // Stop any playing HTML Audio element
       if (currentAudioRef.current) {
-        currentAudioRef.current.pause();
-        currentAudioRef.current.src = '';
+        releasePlaybackAudio();
         currentAudioRef.current = null;
       }
       // Stop Web Speech API
@@ -145,8 +168,7 @@ export default function useSpeechSynthesis() {
   const cancelCurrentAudio = useCallback(() => {
     requestIdRef.current += 1;
     if (currentAudioRef.current) {
-      currentAudioRef.current.pause();
-      currentAudioRef.current.src = '';
+      releasePlaybackAudio();
       currentAudioRef.current = null;
     }
     if ('speechSynthesis' in window) {
@@ -214,8 +236,16 @@ export default function useSpeechSynthesis() {
           // ── 2a. Play Google TTS audio ──────────────────────────────────────
           googleTTSSucceeded = true;
           await new Promise((resolve, reject) => {
-            const audio = new Audio(data.audioUrl);
-            audio.preload = 'auto';
+            // Reuse the gesture-unlocked element. Constructing a new Audio()
+            // here would be blocked by WebKit, because awaiting the edge
+            // function above already consumed the user activation.
+            const audio = getPlaybackAudio();
+            if (!audio) {
+              reject(new Error('audio-element-error'));
+              return;
+            }
+            audio.src = data.audioUrl;
+            audio.currentTime = 0;
             currentAudioRef.current = audio;
 
             audio.onplay = () => {
@@ -251,9 +281,9 @@ export default function useSpeechSynthesis() {
               reject(new Error('audio-element-error'));
             };
 
-            if (isMutedRef.current) {
-              audio.volume = 0;
-            }
+            // Always reassign — the element is shared, so a previously muted
+            // utterance would otherwise leave every later one silent.
+            audio.volume = isMutedRef.current ? 0 : 1;
             audio.play().catch(reject);
           });
         } else if (data?.fallback) {
@@ -314,6 +344,7 @@ export default function useSpeechSynthesis() {
   return {
     speakText,
     cancelCurrentAudio,
+    unlockSpeechPlayback,
     isSpeaking,
     isTTSLoading,
     activeSpeechText,

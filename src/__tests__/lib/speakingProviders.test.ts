@@ -6,6 +6,7 @@ import {
   chooseVerifiedTranscript,
   cleanSpeakingQuestion,
   getTranscriptVerificationReason,
+  isImplausiblyFastTranscript,
   mapAzureScoreToProvisionalIeltsBand,
   resolveAzurePronunciationAssessment,
   transcribeWithCloudflare,
@@ -122,6 +123,65 @@ describe('speaking provider helpers', () => {
         reason: 'high-confidence-disagreement',
       })
     ).toBe('gemini-fallback');
+  });
+
+  it('flags a transcript containing more speech than the clip can hold', () => {
+    expect(isImplausiblyFastTranscript('one two three four five six seven eight', 1500)).toBe(true);
+    expect(isImplausiblyFastTranscript('I live in Dhaka with my family.', 4000)).toBe(false);
+  });
+
+  it('keeps the silent reading when the verifier invents an answer nobody spoke', () => {
+    const hallucinated =
+      'Yes, I think so. Sometimes adults might not tell the truth to children because they want to protect them from bad news that might scare them.';
+
+    expect(
+      chooseVerifiedTranscript({
+        cloudflareTranscript: '',
+        geminiTranscript: hallucinated,
+        browserHint: null,
+        reason: 'unexpectedly-short',
+        audioDurationMs: 7000,
+      })
+    ).toBe('cloudflare');
+  });
+
+  it('still rescues a genuinely quiet answer the live captions also heard', () => {
+    expect(
+      chooseVerifiedTranscript({
+        cloudflareTranscript: 'Yes.',
+        geminiTranscript: 'Yes, I go to the market with my mother every weekend.',
+        browserHint: { transcript: 'I go to the market with my mother', confidence: 0.87 },
+        reason: 'unexpectedly-short',
+        audioDurationMs: 9000,
+      })
+    ).toBe('gemini-fallback');
+  });
+
+  it('discards a no-VAD retry that outruns the audio instead of trusting it', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ success: true, result: { text: '' } }), { status: 200 })
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            success: true,
+            result: { text: 'thank you for watching please subscribe to the channel today' },
+          }),
+          { status: 200 }
+        )
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      transcribeWithCloudflare({
+        accountId: 'account',
+        apiToken: 'token',
+        audioBase64: 'audio',
+        audioDurationMs: 2000,
+      })
+    ).rejects.toThrow(/no intelligible speech/);
   });
 
   it('retries a quiet clip without VAD before falling back to Gemini', async () => {
