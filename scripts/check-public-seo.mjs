@@ -71,6 +71,9 @@ const robots = readFileSync(path.join(root, 'public/robots.txt'), 'utf8');
 const vercel = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8'));
 const appSource = readFileSync(path.join(root, 'src/App.jsx'), 'utf8');
 const indexHtml = readFileSync(path.join(root, 'index.html'), 'utf8');
+const notFoundPath = path.join(root, 'public/404.html');
+if (!existsSync(notFoundPath)) fail('public/404.html is missing');
+const notFoundHtml = readFileSync(notFoundPath, 'utf8');
 const generatedSeoPages = {
   '/ielts-writing-checker': {
     path: path.join(root, 'dist/ielts-writing-checker/index.html'),
@@ -128,13 +131,22 @@ for (const crawler of ['OAI-SearchBot', 'Claude-SearchBot', 'PerplexityBot']) {
 const title = indexHtml.match(/<title>([^<]+)<\/title>/)?.[1]?.trim();
 const description = indexHtml.match(/<meta\s+name="description"\s+content="([^"]+)"/)?.[1]?.trim();
 const canonical = indexHtml.match(/<link\s+rel="canonical"\s+href="([^"]+)"/)?.[1];
-if (!title || title.length < 30 || title.length > 65) {
-  fail('homepage title must be between 30 and 65 characters');
+if (!title || title.length < 30 || title.length > 60) {
+  fail('homepage title must be between 30 and 60 characters');
 }
 if (!description || description.length < 120 || description.length > 170) {
   fail('homepage description must be between 120 and 170 characters');
 }
 if (canonical !== `${siteUrl}/`) fail('homepage canonical is missing or incorrect');
+if (!indexHtml.includes('<h1>IELTS Practice. Smarter with AI.</h1>')) {
+  fail('homepage static H1 is missing or does not match the visible search intent');
+}
+if (!notFoundHtml.includes('<meta name="robots" content="noindex, follow"')) {
+  fail('custom 404 page must be noindex, follow');
+}
+if (!notFoundHtml.includes('<h1>Page not found</h1>')) {
+  fail('custom 404 page is missing a clear H1');
+}
 
 const staticJsonLd = indexHtml.match(
   /<script[^>]*data-static-seo[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/
@@ -189,14 +201,30 @@ for (const [source, destination] of Object.entries(requiredRewrites)) {
   }
 }
 
+const catchAllSources = new Set(['/:path*', '/(.*)', '/:path(.*)']);
+for (const source of catchAllSources) {
+  if (rewrites.has(source)) {
+    fail(`catch-all SPA rewrite ${source} creates soft 404 responses`);
+  }
+}
+
+const appRoutes = Array.from(appSource.matchAll(/\bpath:\s*'([^']+)'/g), (match) => match[1]);
+for (const route of appRoutes) {
+  if (route === '/' || route === '*') continue;
+  if (!rewrites.has(route) && !redirects.has(route)) {
+    fail(`React route ${route} has no direct-request rewrite or redirect`);
+  }
+}
+
 for (const rewrite of vercel.rewrites || []) {
   if (Object.hasOwn(retiredRoutes, rewrite.source))
     fail(`retired route ${rewrite.source} still rewrites`);
   if (
     rewrite.destination.includes('/index.html') &&
-    !['/:path*', '/(.*)', '/:path(.*)', ...Object.keys(generatedSeoPages)].includes(rewrite.source)
+    !appRoutes.includes(rewrite.source) &&
+    !Object.keys(generatedSeoPages).includes(rewrite.source)
   ) {
-    fail(`standalone static rewrite remains for ${rewrite.source}`);
+    fail(`index rewrite ${rewrite.source} does not correspond to a React route`);
   }
 }
 

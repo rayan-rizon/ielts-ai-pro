@@ -3,6 +3,7 @@ import { signUpSchema } from '@/lib/validations';
 import { UserProfile } from '@/types';
 import { getCsrfHeaders } from '@/lib/csrf';
 import { trackSignupCompleted } from '@/lib/tracking';
+import { getSignupAttribution } from '@/lib/attribution';
 
 // Admin list options interface
 interface ListOptions {
@@ -175,6 +176,7 @@ export const User = {
       role: 'user',
       subscription_tier: 'free',
       onboarding_completed: false,
+      ...getSignupAttribution(),
     };
 
     const { data: insertedProfile, error: insertError } = await supabase
@@ -210,6 +212,7 @@ export const User = {
       userId: insertedProfile?.id || user.id,
       method: user.app_metadata?.provider || 'email',
       email: user.email || null,
+      channel: insertedProfile?.signup_channel || defaultProfile.signup_channel,
     });
 
     // IF this is a new profile and we have a referral code, process it
@@ -275,6 +278,7 @@ export const User = {
           full_name: username || u.user_metadata?.full_name || u.email,
           role: 'user',
           subscription_tier: 'free',
+          ...getSignupAttribution(),
         };
 
         // Note: referred_by is set by the process_referral RPC, not here

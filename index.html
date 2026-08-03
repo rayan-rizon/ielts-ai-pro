@@ -80,6 +80,46 @@
 
         captureClickId();
 
+        // First-touch marketing attribution (which channel a signup came
+        // from: paid search, paid social, organic, referral, direct).
+        // Captured here for the same reason as _fbc above: the SPA router
+        // strips ?utm_*=... from the URL before any React code can read it,
+        // so by the time a signup happens the source is already gone unless
+        // it is persisted on first paint. Written once per browser — later
+        // visits (e.g. a returning user clicking a direct bookmark) must not
+        // overwrite the touch that actually brought them in.
+        var captureAttribution = function () {
+          try {
+            if (window.localStorage.getItem('attribution_first_touch')) return;
+
+            var params = new URLSearchParams(window.location.search);
+            var fbclidMatch = window.location.search.match(/[?&]fbclid=([^&#]+)/);
+            var attribution = {
+              utm_source: params.get('utm_source') || null,
+              utm_medium: params.get('utm_medium') || null,
+              utm_campaign: params.get('utm_campaign') || null,
+              utm_content: params.get('utm_content') || null,
+              utm_term: params.get('utm_term') || null,
+              gclid: params.get('gclid') || null,
+              fbclid: fbclidMatch ? decodeURIComponent(fbclidMatch[1]) : null,
+              referrer: document.referrer || null,
+              landing_page: window.location.pathname + window.location.search,
+              captured_at: new Date().toISOString(),
+            };
+
+            var hasSignal = Object.keys(attribution).some(function (key) {
+              return key !== 'landing_page' && key !== 'captured_at' && attribution[key];
+            });
+            if (!hasSignal) return;
+
+            window.localStorage.setItem('attribution_first_touch', JSON.stringify(attribution));
+          } catch (e) {
+            /* attribution is best-effort and must never break the page */
+          }
+        };
+
+        captureAttribution();
+
         var scheduleGtm = function () {
           if (window.__gtmLoaded || window.__gtmScheduled) return;
           window.__gtmScheduled = true;
@@ -165,7 +205,7 @@
     <meta name="author" content="IELTS Ai Pro" />
     <meta name="theme-color" content="#4f46e5" />
     <meta name="facebook-domain-verification" content="ai2z71gngx36yw9iakgr8eb1stpon1" />
-    <title>Free AI IELTS Practice, Band Scores & Mock Tests | IELTS Ai Pro</title>
+    <title>Free AI IELTS Practice & Mock Tests | IELTS Ai Pro</title>
     <meta
       name="description"
       content="Get instant AI band scores for IELTS Writing & Speaking, plus free Cambridge-style Reading and Listening mock tests. Track progress and start free today."
@@ -187,10 +227,7 @@
       title="IELTS Ai Pro for language models"
       href="https://www.ieltsai.pro/llms.txt"
     />
-    <meta
-      property="og:title"
-      content="Free AI IELTS Practice, Band Scores & Mock Tests | IELTS Ai Pro"
-    />
+    <meta property="og:title" content="Free AI IELTS Practice & Mock Tests | IELTS Ai Pro" />
     <meta
       property="og:description"
       content="Get instant AI band scores for IELTS Writing & Speaking, plus free Cambridge-style Reading and Listening mock tests. Track progress and start free today."
@@ -205,10 +242,7 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="IELTS Ai Pro - AI-powered IELTS practice platform" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:title"
-      content="Free AI IELTS Practice, Band Scores & Mock Tests | IELTS Ai Pro"
-    />
+    <meta name="twitter:title" content="Free AI IELTS Practice & Mock Tests | IELTS Ai Pro" />
     <meta
       name="twitter:description"
       content="Get instant AI band scores for IELTS Writing & Speaking, plus free Cambridge-style Reading and Listening mock tests. Start free today."
@@ -356,7 +390,7 @@
     <main id="root" class="min-h-screen">
       <!-- Pre-rendered static semantic content for SEO crawlers and LLM readability -->
       <article id="static-prerender-content" class="sr-only">
-        <h1>AI-Powered IELTS Practice for a Higher Band Score</h1>
+        <h1>IELTS Practice. Smarter with AI.</h1>
         <p>
           Practice Reading, Listening, Writing, and Speaking in one workspace. Review estimated band
           feedback, track recurring weaknesses, and follow a study plan based on the work you
@@ -447,9 +481,9 @@
             <dt>How does the IELTS Writing feedback work?</dt>
             <dd>
               After a practice task, IELTS Ai Pro returns an estimated practice band with feedback
-              across Task Achievement or Task Response, Coherence and Cohesion, Lexical Resource, and
-              Grammatical Range and Accuracy. The report also highlights specific corrections and
-              next steps.
+              across Task Achievement or Task Response, Coherence and Cohesion, Lexical Resource,
+              and Grammatical Range and Accuracy. The report also highlights specific corrections
+              and next steps.
             </dd>
             <dt>What does the Speaking report assess?</dt>
             <dd>
@@ -460,9 +494,9 @@
             </dd>
             <dt>Are AI band scores official IELTS results?</dt>
             <dd>
-              No. AI band scores are practice estimates designed to help you find patterns and choose
-              what to improve next. Official IELTS results are issued only by authorized IELTS test
-              providers and trained examiners.
+              No. AI band scores are practice estimates designed to help you find patterns and
+              choose what to improve next. Official IELTS results are issued only by authorized
+              IELTS test providers and trained examiners.
             </dd>
             <dt>How is the AI learning path personalized?</dt>
             <dd>
@@ -472,9 +506,9 @@
             </dd>
             <dt>Does IELTS Ai Pro cover all four IELTS skills?</dt>
             <dd>
-              Yes. The app includes Reading, Listening, Writing, and Speaking practice, plus Cambridge
-              test sets, vocabulary review, study resources, progress analytics, and an adaptive
-              learning path for eligible plans.
+              Yes. The app includes Reading, Listening, Writing, and Speaking practice, plus
+              Cambridge test sets, vocabulary review, study resources, progress analytics, and an
+              adaptive learning path for eligible plans.
             </dd>
           </dl>
         </section>

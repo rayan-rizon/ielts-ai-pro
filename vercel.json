@@ -228,7 +228,187 @@
       "destination": "/cambridge-ielts-practice-tests/index.html"
     },
     {
-      "source": "/:path*",
+      "source": "/landing-v2",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/ielts-band-score-calculator",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/signup",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/register",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/forgot-password",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/update-password",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/login",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/panel",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/settings",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/user/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/cambridge-tests",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/listening",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/listening-test",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/listening-test/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/reading",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/reading-test",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/reading-test/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/settings",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/vocabulary",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/vocabulary/kits",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/vocabulary/kits/:kitSlug",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/grammar",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/grammar/guides/:guideSlug",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/speaking",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/speaking-test",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/speaking-test/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/study-groups",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/writing",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/writing-task",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/writing-task/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/pricing",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/upgrade",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/subscription/success",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/analytics",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/leaderboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/learning-path",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/learning-path-preview",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/resources",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/onboarding",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/500",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/privacy",
       "destination": "/index.html"
     }
   ]

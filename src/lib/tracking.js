@@ -344,7 +344,12 @@ export const trackAppEvent = (eventName, payload = {}) => {
  * user returns from the verification link and the profile is created — which
  * is the point a registration is actually real.
  */
-export const trackSignupCompleted = ({ userId = null, method = 'unknown', email = null } = {}) => {
+export const trackSignupCompleted = ({
+  userId = null,
+  method = 'unknown',
+  email = null,
+  channel = null,
+} = {}) => {
   if (!isBrowser()) return false;
 
   // A profile insert can be retried after a transient failure, and the auth
@@ -358,6 +363,7 @@ export const trackSignupCompleted = ({ userId = null, method = 'unknown', email 
     method,
     user_id: userId || null,
     email: email || null,
+    channel: channel || 'direct',
     path: window.location?.pathname || '/',
   });
 

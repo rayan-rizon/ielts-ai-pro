@@ -53,6 +53,20 @@ src/
 └── utils/            # Helper utilities
 ```
 
+## Documentation (`docs/`)
+
+```
+docs/
+├── audits/           # Source audit reports and historical expert reviews
+├── plans/            # Approved design and implementation plans
+├── reports/          # Dated operational, SEO, and research reports
+└── *.md              # Maintained project reference guides
+```
+
+Keep dated third-party audit exports in `docs/audits/` and derived analysis in
+`docs/reports/`. Generated test output and build artifacts should remain ignored rather than being
+stored with maintained documentation.
+
 ## Supabase (`supabase/`)
 
 ```

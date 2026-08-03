@@ -10,11 +10,11 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 const footerAppDestinations = {
   'Band Score Calculator': '/ielts-band-score-calculator',
   'Writing Task Evaluator': '/ielts-writing-checker',
-  'Speaking Test Simulator': '/speaking',
-  'Listening Practice Hub': '/listening',
-  'Reading Comprehension': '/reading',
+  'Speaking Test Simulator': '/ielts-speaking-practice-ai',
+  'Listening Practice Hub': '/cambridge-ielts-practice-tests#listening',
+  'Reading Comprehension': '/cambridge-ielts-practice-tests#reading',
   'IELTS Prep Blog & Guides': '/blog',
-  'Cambridge Practice Material': '/resources',
+  'Cambridge Practice Material': '/cambridge-ielts-practice-tests',
 };
 
 test.describe('SEO - Title Tags', () => {
@@ -138,14 +138,11 @@ test.describe('SEO - Semantic HTML', () => {
     await page.goto(BASE_URL);
     await page.waitForLoadState('domcontentloaded');
 
-    // Check that links have text or aria-labels
+    // Check the computed accessible name. Image-only logo links derive their
+    // name from the logo alt text, so textContent alone is not sufficient.
     const links = await page.locator('a').all();
     for (const link of links.slice(0, 10)) {
-      // Check first 10 links
-      const text = await link.textContent();
-      const ariaLabel = await link.getAttribute('aria-label');
-      const hasAccessibleName = (text && text.trim().length > 0) || ariaLabel;
-      expect(hasAccessibleName).toBeTruthy();
+      await expect(link).toHaveAccessibleName(/\S/);
     }
   });
 

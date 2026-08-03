@@ -1,15 +1,11 @@
 import React from 'react';
 import ArrowRight from 'lucide-react/icons/arrow-right';
-import CalendarDays from 'lucide-react/icons/calendar-days';
 import Check from 'lucide-react/icons/check';
 import CirclePlay from 'lucide-react/icons/circle-play';
 import Mic from 'lucide-react/icons/mic';
-import PenLine from 'lucide-react/icons/pen-line';
 import Quote from 'lucide-react/icons/quote';
 import Sparkles from 'lucide-react/icons/sparkles';
 import Star from 'lucide-react/icons/star';
-import Target from 'lucide-react/icons/target';
-import TrendingUp from 'lucide-react/icons/trending-up';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import {
@@ -301,13 +297,12 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
             </span>
           </div>
 
-          <h1 className="mt-5 text-[2.45rem] min-[480px]:text-[2.75rem] sm:text-[3.2rem] lg:text-[3.1rem] xl:text-[3.6rem] 2xl:text-[4rem] font-extrabold leading-[1.05] sm:leading-[1.04] tracking-[-0.045em] text-[#07142f] dark:text-white">
-            <span className="block">AI-Powered</span>
-            <span className="block">IELTS Practice</span>
-            <span className="font-handwritten relative mt-2 sm:mt-2.5 inline-block w-fit max-w-full whitespace-nowrap text-[0.82em] min-[480px]:text-[0.88em] sm:text-[0.94em] lg:text-[0.95em] xl:text-[1.02em] leading-[1.08] tracking-[-0.03em] text-[#6d55e8] pr-6 sm:pr-7">
-              for a higher band score.
+          <h1 className="mt-5 text-[2.65rem] min-[480px]:text-[3rem] sm:text-[3.5rem] lg:text-[3.45rem] xl:text-[4rem] 2xl:text-[4.4rem] font-extrabold leading-[1.02] tracking-[-0.05em] text-[#07142f] dark:text-white">
+            <span className="block">IELTS Practice.</span>
+            <span className="font-handwritten relative mt-2.5 sm:mt-3 inline-block w-fit max-w-full whitespace-nowrap text-[0.8em] min-[480px]:text-[0.86em] sm:text-[0.9em] lg:text-[0.88em] xl:text-[0.92em] leading-[1.08] tracking-[-0.035em] text-[#6d55e8] pr-6 sm:pr-7">
+              Smarter with AI.
               <svg
-                className="absolute -bottom-2 sm:-bottom-2.5 left-[32%] sm:left-[35%] h-2.5 sm:h-3 w-[42%] text-[#b89eff]"
+                className="absolute -bottom-2 sm:-bottom-2.5 left-[24%] h-2.5 sm:h-3 w-[52%] text-[#b89eff]"
                 viewBox="0 0 180 16"
                 fill="none"
                 aria-hidden="true"

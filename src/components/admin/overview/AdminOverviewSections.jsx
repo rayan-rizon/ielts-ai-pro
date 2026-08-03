@@ -829,6 +829,95 @@ const ModuleEngagementPanel = ({ modules }) => (
   </m.div>
 );
 
+const CHANNEL_LABELS = {
+  paid_social: 'Paid social (Meta ads)',
+  paid_search: 'Paid search (Google ads)',
+  organic_search: 'Organic search',
+  organic_social: 'Organic social',
+  referral: 'Referral',
+  email: 'Email',
+  direct: 'Direct',
+  other: 'Other',
+  unknown: 'Unknown',
+};
+
+const CHANNEL_COLORS = {
+  paid_social: 'bg-[#1877F2]',
+  paid_search: 'bg-[rgb(var(--signal-ok))]',
+  organic_search: 'bg-[rgb(var(--signal-ok))]',
+  organic_social: 'bg-[#1877F2]',
+  referral: 'bg-[rgb(var(--signal-warn))]',
+  email: 'bg-stone-400',
+  direct: 'bg-stone-400',
+  other: 'bg-stone-300',
+  unknown: 'bg-stone-200 dark:bg-white/10',
+};
+
+const SignupChannelsPanel = ({ channels, displayDays }) => {
+  const total = channels.reduce((sum, row) => sum + (row.signups || 0), 0);
+  const max = channels.reduce((peak, row) => Math.max(peak, row.signups || 0), 0);
+
+  return (
+    <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
+      <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
+        <div className="flex items-baseline justify-between mb-3">
+          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+            Signups by channel · last {displayDays}d
+          </h3>
+          <InfoTip>
+            First-touch channel captured from UTM params, Google/Meta click ids, and referrer at
+            landing. "Unknown" is signups from before this was tracked.
+          </InfoTip>
+        </div>
+        <div className="space-y-1">
+          {channels.map((row) => {
+            const key = row.channel || 'unknown';
+            const share = total > 0 ? Math.round((100 * (row.signups || 0)) / total) : 0;
+            const width = max > 0 ? Math.max(4, Math.round((100 * (row.signups || 0)) / max)) : 0;
+            return (
+              <div
+                key={key}
+                className="grid grid-cols-12 items-center gap-3 py-2.5 px-1.5 -mx-1.5 rounded-md border-b border-stone-100 dark:border-white/[0.05] last:border-0 hover:bg-stone-50 dark:hover:bg-white/[0.03] transition-colors"
+              >
+                <span className="col-span-5 sm:col-span-4 text-[11px] font-extrabold text-stone-900 dark:text-stone-50 truncate">
+                  {CHANNEL_LABELS[key] || key}
+                </span>
+                <div className="col-span-12 sm:col-span-5 order-last sm:order-none">
+                  <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
+                    <div
+                      className={cn(
+                        'h-full rounded-full transition-[width] duration-700 ease-out',
+                        CHANNEL_COLORS[key] || 'bg-stone-300'
+                      )}
+                      style={{ width: `${width}%` }}
+                    />
+                  </div>
+                </div>
+                <span className={cn(NUM, 'col-span-4 sm:col-span-2 text-[11px] text-stone-500')}>
+                  {row.signups} signups
+                </span>
+                <span
+                  className={cn(
+                    NUM,
+                    'col-span-3 sm:col-span-1 text-[11px] font-bold text-right text-stone-900 dark:text-stone-50'
+                  )}
+                >
+                  {share}%
+                </span>
+              </div>
+            );
+          })}
+          {channels.length === 0 && (
+            <p className="text-xs text-stone-500 dark:text-stone-400 py-6 text-center font-medium">
+              No signups in this window.
+            </p>
+          )}
+        </div>
+      </div>
+    </m.div>
+  );
+};
+
 const objectOrEmpty = (value) => value || {};
 const arrayOrEmpty = (value) => value || [];
 const windowOrFallback = (value, fallback) => value ?? fallback;
@@ -878,6 +967,7 @@ export const AdminOverviewSections = ({
         <EngagementPanel engagement={engagement} economics={economics} displayDays={displayDays} />
         <HourlyActivityPanel hourly={hourly} maxHourly={maxHourly} peakHour={peakHour} />
         <ModuleEngagementPanel modules={arrayOrEmpty(data.modules)} />
+        <SignupChannelsPanel channels={arrayOrEmpty(data.channels)} displayDays={displayDays} />
       </div>
     </m.div>
   );

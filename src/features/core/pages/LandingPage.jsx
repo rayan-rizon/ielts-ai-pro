@@ -231,7 +231,7 @@ export default function LandingPage() {
   return (
     <>
       <DocumentHead
-        title="Free AI IELTS Practice, Band Scores & Mock Tests | IELTS Ai Pro"
+        title="Free AI IELTS Practice & Mock Tests | IELTS Ai Pro"
         description="Get instant AI band scores for IELTS Writing & Speaking, plus free Cambridge-style Reading and Listening mock tests. Track progress and start free today."
         canonicalUrl="https://www.ieltsai.pro/"
         keywords="AI IELTS preparation, IELTS writing checker, IELTS speaking practice AI, IELTS mock test online, IELTS band score feedback, free IELTS practice tests"
