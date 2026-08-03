@@ -898,7 +898,7 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
   const { allClear, headline, accent, pct, legend } = overviewFor(counts, total);
 
   return (
-    <div className="space-y-5">
+    <div className="animate-panel-in space-y-5">
       {/* Console header */}
       <div
         className={cn(

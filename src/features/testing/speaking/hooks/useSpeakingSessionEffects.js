@@ -3,8 +3,6 @@ import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { callEdgeFunction } from '@/utils/api';
 
-import useConversationAutoScroll from './useConversationAutoScroll';
-
 export default function useSpeakingSessionEffects({
   testId,
   cancelCurrentAudio,
@@ -13,7 +11,6 @@ export default function useSpeakingSessionEffects({
   timeLeft,
   isProcessing,
   isPartComplete,
-  conversationContainerRef,
   transitionCardRef,
   conversationRef,
   questionIndexRef,
@@ -50,25 +47,18 @@ export default function useSpeakingSessionEffects({
     isProcessingRef.current = isProcessing;
   }, [isProcessing, isProcessingRef]);
 
-  // The container watches itself for growth, so the transcript follows the
-  // draft bubble and the examiner's reply after Finish — moments when the
-  // `conversation` array itself never changes.
-  const { scrollToLatest } = useConversationAutoScroll(conversationContainerRef);
-
-  // Re-follow on every new entry even if the learner had scrolled back to read.
-  useEffect(() => {
-    if (conversation.length > 0) scrollToLatest('smooth');
-  }, [conversation, scrollToLatest]);
-
+  // Transcript auto-scroll lives in SpeakingConversationPanel, which owns the
+  // scroll container. Observing it from here could not work: the page renders
+  // a loader until the session loads, so this hook's mount effect ran while
+  // the container ref was still null and never re-ran to catch it appearing.
   useEffect(() => {
     if (!isPartComplete) return undefined;
 
     const revealTransition = setTimeout(() => {
       transitionCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      scrollToLatest('smooth');
     }, 100);
     return () => clearTimeout(revealTransition);
-  }, [isPartComplete, scrollToLatest, transitionCardRef]);
+  }, [isPartComplete, transitionCardRef]);
 
   useEffect(() => {
     const pendingTimers = pendingTimersRef.current;

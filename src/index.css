@@ -612,6 +612,29 @@
     animation: fade-in 0.5s ease-out 0.2s both;
   }
 
+  /*
+   * Micro entrance for a loading-state → content swap (spinner unmounts,
+   * real content mounts in the same spot). No delay and a short duration —
+   * this exists to soften an instant DOM swap, not to be noticed as an
+   * animation. Keep new loading→content transitions in the admin panel on
+   * this class rather than `.animate-fade-in`, which is tuned for hero/CTA
+   * reveals and reads as sluggish on a state swap.
+   */
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-panel-in {
+    animation: panel-in 0.22s ease-out both;
+  }
+
   /* Respect prefers-reduced-motion */
   @media (prefers-reduced-motion: reduce) {
     .animate-float,
@@ -621,7 +644,8 @@
     .animate-spin-slow,
     .animate-pulse-subtle,
     .animate-bounce-subtle,
-    .animate-fade-in {
+    .animate-fade-in,
+    .animate-panel-in {
       animation: none !important;
     }
   }

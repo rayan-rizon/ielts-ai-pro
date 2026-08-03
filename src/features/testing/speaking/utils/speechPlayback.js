@@ -20,6 +20,22 @@ const SILENT_WAV =
 
 let playbackAudio = null;
 let unlocked = false;
+const unlockListeners = new Set();
+
+/**
+ * Runs `listener` as soon as playback is permitted — immediately if it already
+ * is. Resuming a session speaks the examiner's last question during page load,
+ * before any gesture exists, so that first utterance has to wait rather than
+ * be thrown away silently.
+ */
+export function onSpeechPlaybackUnlocked(listener) {
+  if (unlocked) {
+    listener();
+    return () => {};
+  }
+  unlockListeners.add(listener);
+  return () => unlockListeners.delete(listener);
+}
 
 /** The one element every examiner utterance plays through. */
 export function getPlaybackAudio() {
@@ -69,6 +85,10 @@ export function unlockSpeechPlayback() {
   }
 
   primeSpeechSynthesis();
+
+  const waiting = Array.from(unlockListeners);
+  unlockListeners.clear();
+  waiting.forEach((listener) => listener());
 }
 
 /**
@@ -110,4 +130,5 @@ export function releasePlaybackAudio() {
 export function resetSpeechPlaybackForTests() {
   playbackAudio = null;
   unlocked = false;
+  unlockListeners.clear();
 }

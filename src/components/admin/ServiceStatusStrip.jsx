@@ -131,7 +131,7 @@ const ServiceStatusStrip = () => {
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-xl border bg-white dark:bg-[#131315]',
+        'animate-panel-in relative overflow-hidden rounded-xl border bg-white dark:bg-[#131315]',
         broken.length > 0
           ? 'border-[rgb(var(--signal-fault)/0.35)]'
           : warning.length > 0

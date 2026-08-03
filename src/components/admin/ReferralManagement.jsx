@@ -177,7 +177,7 @@ export default function ReferralManagement() {
   }
 
   return (
-    <div className="space-y-4 pb-10 pt-12 md:pt-0">
+    <div className="animate-panel-in space-y-4 pb-10 pt-12 md:pt-0">
       <AdminPageHeader
         title="Referrals"
         description="Milestone rewards, bonus evaluation credits, and top advocates"

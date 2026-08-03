@@ -252,7 +252,7 @@ export default function PaymentManagement() {
             </div>
           ) : (
             filteredRequests.map((request) => (
-              <div key={request.id} className="p-4 space-y-3 relative">
+              <div key={request.id} className="animate-panel-in p-4 space-y-3 relative">
                 {request.status === 'pending' && (
                   <span className="absolute left-0 top-0 h-full w-[2px] bg-[rgb(var(--signal-warn))]" />
                 )}

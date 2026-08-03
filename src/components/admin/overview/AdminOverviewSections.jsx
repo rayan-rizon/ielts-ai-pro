@@ -606,24 +606,29 @@ const RetentionPanel = ({ cohorts }) => (
 
 const EngagementBar = ({ label, value, total }) => {
   const share = total ? (value / total) * 100 : 0;
+  const pct = Math.round(share);
   return (
-    <div className="flex items-center gap-3">
-      <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 w-28 shrink-0')}>{label}</span>
-      <div className="flex-1 h-1.5 rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
-        <div
-          className="h-full rounded-full bg-[rgb(var(--signal-ok))]"
-          style={{ width: `${Math.max(share, 1)}%` }}
-        />
+    <Tip content={`${label} — ${value} user${value === 1 ? '' : 's'} (${pct}% of test takers)`}>
+      <div className="flex items-center gap-3 cursor-default group">
+        <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 w-28 shrink-0')}>
+          {label}
+        </span>
+        <div className="flex-1 h-1.5 rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
+          <div
+            className="h-full rounded-full bg-[rgb(var(--signal-ok))] group-hover:brightness-125 transition-all duration-200"
+            style={{ width: `${Math.max(share, 1)}%` }}
+          />
+        </div>
+        <span
+          className={cn(
+            NUM,
+            'text-[11px] font-bold text-stone-700 dark:text-stone-200 w-8 text-right'
+          )}
+        >
+          {value}
+        </span>
       </div>
-      <span
-        className={cn(
-          NUM,
-          'text-[11px] font-bold text-stone-700 dark:text-stone-200 w-8 text-right'
-        )}
-      >
-        {value}
-      </span>
-    </div>
+    </Tip>
   );
 };
 
@@ -722,7 +727,7 @@ const formatHour12 = (hour) => {
 };
 
 const HourlyActivityPanel = ({ hourly, maxHourly, peakHour }) => (
-  <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
+  <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
     <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
       <div className="flex items-baseline justify-between mb-3">
         <div className="flex items-center gap-1.5">
@@ -739,7 +744,7 @@ const HourlyActivityPanel = ({ hourly, maxHourly, peakHour }) => (
           BDT
         </span>
       </div>
-      <div className="flex gap-[3px] h-32 pt-4">
+      <div className="flex gap-[2px] sm:gap-[3px] h-32 pt-4">
         {hourly.map((entry, index) => {
           const share = maxHourly ? (entry.sessions / maxHourly) * 100 : 0;
           return (
@@ -776,8 +781,8 @@ const HourlyActivityPanel = ({ hourly, maxHourly, peakHour }) => (
 );
 
 const ModuleEngagementPanel = ({ modules }) => (
-  <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
-    <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
+  <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
+    <div className={cn(PANEL, 'p-4 h-full flex flex-col')}>
       <div className="flex items-baseline justify-between mb-3">
         <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Module engagement</h3>
         <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
@@ -788,40 +793,46 @@ const ModuleEngagementPanel = ({ modules }) => (
         {modules.map((module) => {
           const isWeak = module.completion < 50;
           return (
-            <div
+            <Tip
               key={module.module}
-              className="grid grid-cols-12 items-center gap-3 py-2.5 px-1.5 -mx-1.5 rounded-md border-b border-stone-100 dark:border-white/[0.05] last:border-0 hover:bg-stone-50 dark:hover:bg-white/[0.03] transition-colors"
+              content={`${module.module} Module — ${module.completion}% completion rate (${module.users} users, ${module.sessions} sessions finished)`}
             >
-              <span className="col-span-3 sm:col-span-2 text-[11px] font-extrabold text-stone-900 dark:text-stone-50">
-                {module.module}
-              </span>
-              <span className={cn(NUM, 'col-span-3 sm:col-span-2 text-[11px] text-stone-500')}>
-                {module.users} users
-              </span>
-              <span className={cn(NUM, 'col-span-3 sm:col-span-2 text-[11px] text-stone-500')}>
-                {module.sessions} sessions
-              </span>
-              <div className="col-span-12 sm:col-span-5 order-last sm:order-none">
-                <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
-                  <div
-                    className={cn(
-                      'h-full rounded-full transition-[width] duration-700 ease-out',
-                      isWeak ? 'bg-[rgb(var(--signal-warn))]' : 'bg-[rgb(var(--signal-ok))]'
-                    )}
-                    style={{ width: `${module.completion}%` }}
-                  />
+              <div className="flex items-center gap-2 py-2 px-1 -mx-1 rounded-md border-b border-stone-100 dark:border-white/[0.05] last:border-0 hover:bg-stone-50 dark:hover:bg-white/[0.03] transition-colors text-[11px] cursor-default group">
+                <span className="w-16 shrink-0 font-extrabold text-stone-900 dark:text-stone-50 truncate">
+                  {module.module}
+                </span>
+                <span
+                  className={cn(NUM, 'w-16 shrink-0 text-stone-500 text-right whitespace-nowrap')}
+                >
+                  {module.users} users
+                </span>
+                <span
+                  className={cn(NUM, 'w-20 shrink-0 text-stone-500 text-right whitespace-nowrap')}
+                >
+                  {module.sessions} sessions
+                </span>
+                <div className="flex-1 min-w-[40px]">
+                  <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
+                    <div
+                      className={cn(
+                        'h-full rounded-full transition-[width] duration-700 ease-out group-hover:brightness-125',
+                        isWeak ? 'bg-[rgb(var(--signal-warn))]' : 'bg-[rgb(var(--signal-ok))]'
+                      )}
+                      style={{ width: `${module.completion}%` }}
+                    />
+                  </div>
                 </div>
+                <span
+                  className={cn(
+                    NUM,
+                    'w-10 shrink-0 font-bold text-right whitespace-nowrap',
+                    isWeak ? 'text-[rgb(var(--signal-warn))]' : 'text-stone-900 dark:text-stone-50'
+                  )}
+                >
+                  {module.completion}%
+                </span>
               </div>
-              <span
-                className={cn(
-                  NUM,
-                  'col-span-3 sm:col-span-1 text-[11px] font-bold text-right',
-                  isWeak ? 'text-[rgb(var(--signal-warn))]' : 'text-stone-900 dark:text-stone-50'
-                )}
-              >
-                {module.completion}%
-              </span>
-            </div>
+            </Tip>
           );
         })}
       </div>
@@ -858,8 +869,8 @@ const SignupChannelsPanel = ({ channels, displayDays }) => {
   const max = channels.reduce((peak, row) => Math.max(peak, row.signups || 0), 0);
 
   return (
-    <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
-      <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
+    <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
+      <div className={cn(PANEL, 'p-4 h-full flex flex-col')}>
         <div className="flex items-baseline justify-between mb-3">
           <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
             Signups by channel · last {displayDays}d
@@ -875,36 +886,40 @@ const SignupChannelsPanel = ({ channels, displayDays }) => {
             const share = total > 0 ? Math.round((100 * (row.signups || 0)) / total) : 0;
             const width = max > 0 ? Math.max(4, Math.round((100 * (row.signups || 0)) / max)) : 0;
             return (
-              <div
+              <Tip
                 key={key}
-                className="grid grid-cols-12 items-center gap-3 py-2.5 px-1.5 -mx-1.5 rounded-md border-b border-stone-100 dark:border-white/[0.05] last:border-0 hover:bg-stone-50 dark:hover:bg-white/[0.03] transition-colors"
+                content={`${CHANNEL_LABELS[key] || key} — ${row.signups} signups (${share}% of total signups)`}
               >
-                <span className="col-span-5 sm:col-span-4 text-[11px] font-extrabold text-stone-900 dark:text-stone-50 truncate">
-                  {CHANNEL_LABELS[key] || key}
-                </span>
-                <div className="col-span-12 sm:col-span-5 order-last sm:order-none">
-                  <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
-                    <div
-                      className={cn(
-                        'h-full rounded-full transition-[width] duration-700 ease-out',
-                        CHANNEL_COLORS[key] || 'bg-stone-300'
-                      )}
-                      style={{ width: `${width}%` }}
-                    />
+                <div className="flex items-center gap-2 py-2 px-1 -mx-1 rounded-md border-b border-stone-100 dark:border-white/[0.05] last:border-0 hover:bg-stone-50 dark:hover:bg-white/[0.03] transition-colors text-[11px] cursor-default group">
+                  <span className="w-24 shrink-0 font-extrabold text-stone-900 dark:text-stone-50 truncate">
+                    {CHANNEL_LABELS[key] || key}
+                  </span>
+                  <div className="flex-1 min-w-[40px]">
+                    <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
+                      <div
+                        className={cn(
+                          'h-full rounded-full transition-[width] duration-700 ease-out group-hover:brightness-125',
+                          CHANNEL_COLORS[key] || 'bg-stone-300'
+                        )}
+                        style={{ width: `${width}%` }}
+                      />
+                    </div>
                   </div>
+                  <span
+                    className={cn(NUM, 'w-20 shrink-0 text-stone-500 text-right whitespace-nowrap')}
+                  >
+                    {row.signups} signups
+                  </span>
+                  <span
+                    className={cn(
+                      NUM,
+                      'w-10 shrink-0 font-bold text-right text-stone-900 dark:text-stone-50 whitespace-nowrap'
+                    )}
+                  >
+                    {share}%
+                  </span>
                 </div>
-                <span className={cn(NUM, 'col-span-4 sm:col-span-2 text-[11px] text-stone-500')}>
-                  {row.signups} signups
-                </span>
-                <span
-                  className={cn(
-                    NUM,
-                    'col-span-3 sm:col-span-1 text-[11px] font-bold text-right text-stone-900 dark:text-stone-50'
-                  )}
-                >
-                  {share}%
-                </span>
-              </div>
+              </Tip>
             );
           })}
           {channels.length === 0 && (

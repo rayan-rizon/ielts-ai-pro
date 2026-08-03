@@ -106,16 +106,18 @@ const AdminOverview = () => {
   if (error) return <ErrorState error={error} onRetry={load} />;
 
   return (
-    <AdminOverviewSections
-      data={data || {}}
-      days={days}
-      dateLabel={dateLabel}
-      greeting={greeting}
-      onDaysChange={handleDaysChange}
-      hourly={hourly}
-      maxHourly={maxHourly}
-      peakHour={peakHour}
-    />
+    <div className="animate-panel-in">
+      <AdminOverviewSections
+        data={data || {}}
+        days={days}
+        dateLabel={dateLabel}
+        greeting={greeting}
+        onDaysChange={handleDaysChange}
+        hourly={hourly}
+        maxHourly={maxHourly}
+        peakHour={peakHour}
+      />
+    </div>
   );
 };
 

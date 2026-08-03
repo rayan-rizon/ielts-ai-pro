@@ -144,7 +144,6 @@ export default function SpeakingTest() {
     timeLeft,
     isProcessing,
     isPartComplete,
-    conversationContainerRef,
     transitionCardRef,
     conversationRef,
     questionIndexRef,

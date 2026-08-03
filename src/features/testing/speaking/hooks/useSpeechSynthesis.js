@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase';
 
 import {
   getPlaybackAudio,
+  isSpeechPlaybackUnlocked,
+  onSpeechPlaybackUnlocked,
   releasePlaybackAudio,
   unlockSpeechPlayback,
 } from '../utils/speechPlayback';
@@ -195,6 +197,18 @@ export default function useSpeechSynthesis() {
   const speakText = useCallback(
     async (text, options = { cancel: true }) => {
       if (!text || isMutedRef.current || !isMountedRef.current) return;
+
+      // Resuming a session speaks the examiner's last question while the page
+      // is still loading, before the learner has touched anything — so no
+      // playback permission exists yet and the audio was simply discarded.
+      // Wait for the first interaction instead of losing the turn, which is
+      // why the examiner only found its voice after the learner spoke.
+      if (!isSpeechPlaybackUnlocked()) {
+        await new Promise((resolve) => {
+          onSpeechPlaybackUnlocked(resolve);
+        });
+        if (!isMountedRef.current || isMutedRef.current) return;
+      }
 
       // Cancel previous audio if requested
       if (options.cancel) {

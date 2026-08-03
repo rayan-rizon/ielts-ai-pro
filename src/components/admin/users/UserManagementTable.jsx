@@ -60,7 +60,7 @@ const UserRow = ({ user, selected, onToggle, onEdit, onDelete }) => {
   return (
     <tr
       className={cn(
-        'border-b border-stone-100 dark:border-white/[0.05] hover:bg-stone-50/70 dark:hover:bg-white/[0.02] transition-colors last:border-0',
+        'animate-panel-in border-b border-stone-100 dark:border-white/[0.05] hover:bg-stone-50/70 dark:hover:bg-white/[0.02] transition-colors last:border-0',
         selected && 'bg-stone-50 dark:bg-white/[0.02]'
       )}
     >

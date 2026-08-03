@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AudioLines, Pause, Radio, Sparkles } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/cn';
@@ -252,12 +252,37 @@ function MessageBody({ entry }) {
   return <p className="whitespace-pre-wrap">{cleanMessageText(entry.text)}</p>;
 }
 
+/**
+ * Holds a live bubble at its tallest so far.
+ *
+ * Web Speech revises its interim guess constantly, and a shorter revision
+ * shrinks the bubble — which pushes everything below it up and undoes the
+ * scroll position mid-sentence. Growing is fine; shrinking is what reads as a
+ * glitch. The floor is released once the turn is no longer live.
+ */
+function useMonotonicHeight(elementRef, isLive, text) {
+  const [minHeight, setMinHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    if (!isLive) {
+      setMinHeight((current) => (current === 0 ? current : 0));
+      return;
+    }
+    const measured = elementRef.current?.getBoundingClientRect().height ?? 0;
+    setMinHeight((current) => (measured > current ? measured : current));
+  }, [elementRef, isLive, text]);
+
+  return isLive ? minHeight : 0;
+}
+
 const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
+  const bubbleRef = useRef(null);
   const isCompactTranscript = entry.speaker === 'user' && (entry.isLive || entry.isTranscriptDraft);
   const isExaminerTranscript = entry.speaker === 'ai' && entry.isExaminerLive;
   const isExaminerMessage = entry.speaker === 'ai';
   const isUserMessage = entry.speaker === 'user';
   const prefersReducedMotion = useReducedMotion();
+  const liveMinHeight = useMonotonicHeight(bubbleRef, isCompactTranscript, entry.text);
 
   return (
     <motion.div
@@ -293,9 +318,13 @@ const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
 
         {/* Bubble */}
         <motion.div
-          layout={
-            !prefersReducedMotion && (isCompactTranscript || isExaminerTranscript) ? 'size' : false
-          }
+          ref={bubbleRef}
+          style={liveMinHeight ? { minHeight: liveMinHeight } : undefined}
+          // Size is animated for the examiner's stream, which only ever grows.
+          // The candidate's live captions are revised several times a second
+          // and routinely get shorter, so animating them meant the bubble was
+          // permanently mid-transition — the "glitchy" grow/shrink.
+          layout={!prefersReducedMotion && isExaminerTranscript ? 'size' : false}
           transition={{ layout: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } }}
           className={`overflow-hidden text-left tracking-normal ${
             isCompactTranscript || isExaminerTranscript

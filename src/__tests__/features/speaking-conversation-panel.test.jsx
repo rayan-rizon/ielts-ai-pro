@@ -140,6 +140,35 @@ describe('speaking conversation panel examiner streaming', () => {
     expect(screen.getByText(examinerQuestion)).toBeInTheDocument();
   });
 
+  it('follows the transcript from inside the panel that owns the scroll container', () => {
+    vi.useFakeTimers();
+    // Driving this from the page could not work: the page renders a loader
+    // until the session loads, so the container ref was still null when its
+    // mount effect ran and the observers were never attached.
+    const containerRef = { current: null };
+    const { rerender } = render(
+      <SpeakingConversationPanel {...buildProps({ conversationContainerRef: containerRef })} />
+    );
+
+    // The regression itself: the panel must hand the live element to the hook.
+    expect(containerRef.current).not.toBeNull();
+    const scrollTop = vi.spyOn(containerRef.current, 'scrollTop', 'set');
+
+    rerender(
+      <SpeakingConversationPanel
+        {...buildProps({
+          conversationContainerRef: containerRef,
+          conversation: [
+            { speaker: 'ai', text: examinerQuestion },
+            { speaker: 'user', text: 'The parks, mostly.' },
+          ],
+        })}
+      />
+    );
+
+    expect(scrollTop).toHaveBeenCalled();
+  });
+
   it('renders an existing examiner message normally when no utterance is active', () => {
     vi.useFakeTimers();
     render(<SpeakingConversationPanel {...buildProps()} />);

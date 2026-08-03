@@ -17,6 +17,14 @@ import { useEffect, useRef } from 'react';
 
 // Generous enough to survive sub-pixel rounding and an in-flight smooth scroll.
 const PINNED_THRESHOLD_PX = 120;
+// Not every environment implements the smooth-scroll API (jsdom, older WebKit).
+function scrollElementToBottom(container, behavior) {
+  if (typeof container.scrollTo === 'function') {
+    container.scrollTo({ top: container.scrollHeight, behavior });
+    return;
+  }
+  container.scrollTop = container.scrollHeight;
+}
 // How long after a wheel/touch/key press its resulting scroll may unpin.
 const USER_INTENT_WINDOW_MS = 600;
 
@@ -32,7 +40,7 @@ export default function useConversationAutoScroll(containerRef, { enabled = true
 
     const scrollToBottom = (behavior) => {
       if (!pinnedRef.current) return;
-      container.scrollTo({ top: container.scrollHeight, behavior });
+      scrollElementToBottom(container, behavior);
     };
 
     // A plain `scroll` listener cannot tell the learner apart from our own
@@ -101,7 +109,7 @@ export default function useConversationAutoScroll(containerRef, { enabled = true
     const container = containerRef?.current;
     if (!container) return;
     pinnedRef.current = true;
-    container.scrollTo({ top: container.scrollHeight, behavior });
+    scrollElementToBottom(container, behavior);
   }).current;
 
   return { scrollToLatest };

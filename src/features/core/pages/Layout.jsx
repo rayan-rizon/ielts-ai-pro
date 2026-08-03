@@ -279,7 +279,26 @@ export default function Layout({ children, currentPageName }) {
                 )}
                 data-oid="at8d7y7"
               >
-                {children}
+                {isTestPage ? (
+                  children
+                ) : (
+                  // Timed test flows stay instant (excluded above) — everywhere
+                  // else a route swap used to be a hard cut with no transition
+                  // at all, which read as a flash. Keyed on pathname so every
+                  // navigation (not just admin) gets the same quick settle.
+                  // Plain CSS, not framer-motion: this sits above the
+                  // MotionProvider/LazyMotion boundary (that's mounted one
+                  // level deeper, inside LazyPage in App.jsx), so an `m.div`
+                  // here has no animation engine attached and silently
+                  // freezes at its `initial` style instead of animating.
+                  <div
+                    key={location.pathname}
+                    className="animate-panel-in min-h-full"
+                    data-oid="page-transition"
+                  >
+                    {children}
+                  </div>
+                )}
               </div>
             </main>
           </div>

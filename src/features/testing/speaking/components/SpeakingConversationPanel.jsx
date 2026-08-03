@@ -5,6 +5,7 @@ import { AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { MICRO, MUTED, NUM, PANEL, TITLE } from '@/features/dashboard/components/primitives';
 
+import useConversationAutoScroll from '../hooks/useConversationAutoScroll';
 import ConversationMessage from './ConversationMessage';
 import InitialWelcomeScreen from './InitialWelcomeScreen';
 import Part2CueCard from './Part2CueCard';
@@ -93,9 +94,21 @@ export default function SpeakingConversationPanel({
     return () => clearTimeout(delayedScroll);
   }, [conversationContainerRef, isPart2Prep]);
 
-  // Following the live transcript is handled by useConversationAutoScroll,
-  // which keeps working after Finish — this effect stopped the instant
-  // `isListening` went false and left the newest bubble below the fold.
+  // Owned here, not by the page: this component renders the scroll container,
+  // so the observers attach the moment it exists. Driving it from the page
+  // silently did nothing, because the page shows a loader until the session
+  // has loaded and the ref was still null when its effect ran.
+  const { scrollToLatest } = useConversationAutoScroll(conversationContainerRef);
+
+  // Re-follow on a new message or a completed part, even if the learner had
+  // scrolled back to reread something.
+  useEffect(() => {
+    if (conversation.length > 0) scrollToLatest('smooth');
+  }, [conversation, scrollToLatest]);
+
+  useEffect(() => {
+    if (isPartComplete) scrollToLatest('smooth');
+  }, [isPartComplete, scrollToLatest]);
 
   const finalCandidateMessage = conversation.findLast((entry) => entry.speaker === 'user');
   const latestExaminerIndex = conversation.findLastIndex((entry) => entry.speaker === 'ai');

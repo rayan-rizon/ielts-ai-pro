@@ -104,14 +104,16 @@ const UserAnalyticsWrapper = () => {
   }
 
   return (
-    <UserAnalytics
-      stats={stats}
-      analyticsData={analyticsData}
-      selectedRange={selectedRange}
-      onRangeChange={setSelectedRange}
-      isDataLoading={loading}
-      data-oid="89vr.cy"
-    />
+    <div className="animate-panel-in">
+      <UserAnalytics
+        stats={stats}
+        analyticsData={analyticsData}
+        selectedRange={selectedRange}
+        onRangeChange={setSelectedRange}
+        isDataLoading={loading}
+        data-oid="89vr.cy"
+      />
+    </div>
   );
 };
 
@@ -173,12 +175,14 @@ const RevenueAnalyticsWrapper = () => {
   }
 
   return (
-    <RevenueAnalytics
-      analyticsData={analyticsData}
-      stats={stats}
-      recentTransactions={recentTransactions}
-      data-oid="i8.:9ec"
-    />
+    <div className="animate-panel-in">
+      <RevenueAnalytics
+        analyticsData={analyticsData}
+        stats={stats}
+        recentTransactions={recentTransactions}
+        data-oid="i8.:9ec"
+      />
+    </div>
   );
 };
 

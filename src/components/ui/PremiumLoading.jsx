@@ -34,7 +34,7 @@ const PremiumLoading = ({ message = 'Loading', fullScreen = true, className }) =
   const content = (
     <div
       className={cn(
-        'relative flex flex-col items-center justify-center bg-[#f8f8fb] dark:bg-[#08080a]',
+        'animate-panel-in relative flex flex-col items-center justify-center bg-[#f8f8fb] dark:bg-[#08080a]',
         fullScreen ? 'fixed inset-0 z-[100] h-full w-full' : 'min-h-screen w-full flex-1 py-12',
         className
       )}
