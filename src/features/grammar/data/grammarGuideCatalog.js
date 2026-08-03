@@ -1,4 +1,4 @@
-import grammarWorkbookMarkdown from '../../../../IELTS Essential Grammar — Complete Guide & Practice.md?raw';
+import grammarWorkbookMarkdown from '../../../content/IELTS Essential Grammar — Complete Guide & Practice.md?raw';
 
 const UNIT_META = [
   {

@@ -683,13 +683,13 @@ Do not memorise long “Band 9” sentences. Examiners assess average performanc
 
 Before a gap, predict the required form.
 
-- _a/an + \_\_\__ → likely singular countable noun or adjective + noun
-- _many/several + \_\_\__ → plural countable noun
-- _much/less + \_\_\__ → uncountable noun
-- _to + \_\_\__ → base verb
-- _preposition + \_\_\__ → noun or -ing form
-- _has/have + \_\_\__ → past participle
-- _is/are + \_\_\__ → adjective, noun, -ing form or past participle depending on meaning
+- \_a/an + \_\_\_\_ → likely singular countable noun or adjective + noun
+- \_many/several + \_\_\_\_ → plural countable noun
+- \_much/less + \_\_\_\_ → uncountable noun
+- \_to + \_\_\_\_ → base verb
+- \_preposition + \_\_\_\_ → noun or -ing form
+- \_has/have + \_\_\_\_ → past participle
+- \_is/are + \_\_\_\_ → adjective, noun, -ing form or past participle depending on meaning
 
 Always obey the word limit and copy spelling accurately.
 

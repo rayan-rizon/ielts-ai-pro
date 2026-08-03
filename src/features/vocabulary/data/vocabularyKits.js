@@ -1,5 +1,5 @@
-import skillsVocabularyMarkdown from '../../../../IELTS Vocabulary for Speaking, Reading & Writing .md?raw';
-import masterVocabularyMarkdown from '../../../../IELTS Vocabulary Master List .md?raw';
+import skillsVocabularyMarkdown from '../../../content/IELTS Vocabulary for Speaking, Reading & Writing .md?raw';
+import masterVocabularyMarkdown from '../../../content/IELTS Vocabulary Master List .md?raw';
 
 const CREATED_AT = '2026-07-29T00:00:00.000Z';
 

@@ -42,11 +42,9 @@ Desktop.ini
 .env*.local
 
 # --- Database and Backups ---
-# supabase/backups/ is used for sensitivity - ensure any local json backups are also handled if needed
-backups/*.json
-supabase/backups/*.sql
-supabase/backups/*.sql.gz
-supabase/backups/*.dump
+# Backups may contain real user PII (emails, names) - never track any file in these dirs
+backups/
+supabase/backups/
 supabase/.temp/
 
 # --- CI and Tooling ---

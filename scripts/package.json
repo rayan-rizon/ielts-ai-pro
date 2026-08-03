@@ -4,11 +4,7 @@
   "type": "module",
   "description": "Scripts for IELTS Ai Pro",
   "scripts": {
-    "create-admin": "node create-admin-user.js",
-    "test-admin": "node test-admin-login.js",
     "test-passage": "node test-passage-creation.js",
-    "check-admin": "node check-admin-user.js",
-    "reset-db": "node reset-database.js",
     "backup-db": "node backup-database.js",
     "restore-db": "node restore-database.js",
     "db-manager": "node database-manager.js",
