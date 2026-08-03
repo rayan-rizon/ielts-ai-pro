@@ -274,7 +274,7 @@ export default function Layout({ children, currentPageName }) {
               <div
                 ref={mainContentRef}
                 className={cn(
-                  'flex-1 bg-slate-50 dark:bg-[#070913]',
+                  'flex-1 bg-[#f8f8fb] dark:bg-[#08080a]',
                   isTestPage ? 'flex flex-col h-full min-h-0 overflow-hidden' : 'overflow-auto'
                 )}
                 data-oid="at8d7y7"

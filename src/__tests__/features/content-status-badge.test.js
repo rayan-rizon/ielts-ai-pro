@@ -14,6 +14,12 @@ describe('content status badges', () => {
     ).toMatchObject({ label: 'Premium', tone: 'locked' });
     expect(
       getContentStatus({
+        user: { subscription_tier: 'free', role: 'admin' },
+        requiredTier: 'pro',
+      })
+    ).toMatchObject({ label: 'Pro', tone: 'locked' });
+    expect(
+      getContentStatus({
         user: { subscription_tier: 'premium' },
         requiredTier: 'premium',
         completed: true,

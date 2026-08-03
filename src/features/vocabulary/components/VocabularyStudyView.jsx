@@ -4,27 +4,54 @@ import { Check, ListPlus, LoaderCircle, Lock, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { contentTierLabel, hasContentAccess } from '@/features/subscription/config/contentAccess';
-import { IconChip, MUTED, Pill, TILE } from '@/features/dashboard/components/primitives';
+import { MICRO, MUTED, Pill, TILE } from '@/features/dashboard/components/primitives';
 
-const LockedContent = ({ resource }) => (
-  <div className="mx-auto max-w-lg space-y-4 p-8 text-center sm:p-10">
-    <IconChip icon={Lock} size="lg" className="mx-auto" />
-    <div className="space-y-2">
-      <h2 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
-        {contentTierLabel(resource.access_tier)} vocabulary kit
+const LOCKED_BENEFITS = ['Every entry in this kit unlocked', 'Save words straight to your bank'];
+
+const LockedContent = ({ resource }) => {
+  const tier = contentTierLabel(resource.access_tier);
+  return (
+    <div className={cn(TILE, 'mx-auto my-6 max-w-lg border-dashed p-8 text-center sm:p-10')}>
+      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-[#5a63df]/20 bg-[#5a63df]/10 text-[#5a63df] ring-4 ring-[#5a63df]/[0.06] dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.14] dark:text-[#afb5ff] dark:ring-[#8f97ff]/[0.08]">
+        <Lock className="h-5 w-5" strokeWidth={2.25} />
+      </span>
+
+      <Pill tone="accent" className="mx-auto mt-4 w-fit">
+        {tier}
+      </Pill>
+
+      <h2 className="mt-3 text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
+        {tier} vocabulary kit
       </h2>
-      <p className={cn('mx-auto max-w-sm text-sm font-medium leading-6', MUTED)}>
-        Upgrade to {contentTierLabel(resource.access_tier)} to study this kit and save its words.
+      <p className={cn('mx-auto mt-1.5 max-w-sm text-sm font-medium leading-6', MUTED)}>
+        Upgrade to {tier} to study this kit and save its words.
       </p>
+
+      <ul className="mx-auto mt-4 flex w-fit flex-col gap-1.5 text-left">
+        {LOCKED_BENEFITS.map((benefit) => (
+          <li
+            key={benefit}
+            className="flex items-center gap-2 text-[11.5px] font-semibold text-slate-600 dark:text-slate-300"
+          >
+            <Check
+              className="h-3.5 w-3.5 shrink-0 text-[rgb(var(--signal-ok))]"
+              strokeWidth={2.75}
+            />
+            {benefit}
+          </li>
+        ))}
+      </ul>
+
+      <Button
+        onClick={() => (window.location.href = '/pricing')}
+        className="mt-6 h-11 rounded-lg bg-[#5a63df] px-7 text-xs font-bold text-white hover:bg-[#4a52c9]"
+      >
+        View plans
+      </Button>
+      <p className={cn(MICRO, MUTED, 'mt-3')}>Included in Pro and Premium</p>
     </div>
-    <Button
-      onClick={() => (window.location.href = '/pricing')}
-      className="h-11 rounded-lg bg-[#5a63df] px-7 text-xs font-bold text-white hover:bg-[#4a52c9]"
-    >
-      View plans
-    </Button>
-  </div>
-);
+  );
+};
 
 function CompactWordCard({ item, index, isAdded, isAdding, onAdd }) {
   return (

@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { AnalyticsService } from '@/features/admin/services/AnalyticsService';
 import { AdminOverviewSections } from './overview/AdminOverviewSections';
 import { MICRO, PANEL } from './ui/primitives';
+import PremiumLoading from '@/components/ui/PremiumLoading';
 
 const BANGLADESH_UTC_OFFSET_HOURS = 6;
 
@@ -18,12 +18,15 @@ const normalizeHourlyActivity = (data) =>
     }))
     .sort((left, right) => left.hour - right.hour);
 
-const LoadingState = () => (
-  <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
-    <Loader2 className="w-7 h-7 text-stone-500 dark:text-stone-400 animate-spin" />
-    <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Loading overview</p>
-  </div>
-);
+// Same PremiumLoading component every other loading state in the admin nav
+// path uses now, rather than its own one-off spinner+text — a fresh admin
+// nav used to flash through five visually different loaders in sequence
+// before this data landed. `fullScreen` (not `false`) matters here too: the
+// inline mode centers within the normal document flow, which shifts with
+// whatever's stacked above it (the announcement banner, scroll position);
+// `fixed` positioning is viewport-anchored and immune to that, which is the
+// only way every stage in the sequence lands at the same pixel.
+const LoadingState = () => <PremiumLoading />;
 
 const ErrorState = ({ error, onRetry }) => (
   <div className={cn(PANEL, 'p-6 max-w-md')}>

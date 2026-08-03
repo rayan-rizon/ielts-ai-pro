@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/cn';
 import { LogoIcon } from '@/components/shared/Logo';
 
@@ -13,13 +14,28 @@ import { LogoIcon } from '@/components/shared/Logo';
  * The mark itself carries the motion (see LogoIcon's built-in float/breathe
  * keyframes); a thin accent ring supplies the actual "this is loading"
  * affordance the logo's subtle animation doesn't read as on its own.
+ *
+ * `fullScreen` is portaled straight to `document.body` — not just given
+ * `position: fixed` in place. `fixed` is only viewport-anchored when *no*
+ * ancestor has a `transform`/`filter`/`perspective`/`will-change: transform`;
+ * several call sites render this fallback inside an animated framer-motion
+ * `m.div` (e.g. AdminPanel's tab-switch Suspense boundary), and Motion sets
+ * an inline `transform` on the elements it animates. That silently turns
+ * `fixed` into `absolute`-relative-to-that-ancestor, so the mark centered
+ * correctly everywhere else but jumped to the top of that one animated
+ * wrapper's (much shorter) box. A portal renders outside the whole React
+ * tree's DOM position, so no ancestor — animated or not — can ever hijack
+ * its containing block again. This is the standard fix full-screen
+ * overlays use (Radix/Headless UI dialogs do the same) precisely because
+ * `position: fixed` alone can't be trusted to stay viewport-relative in an
+ * app that animates its layout.
  */
 const PremiumLoading = ({ message = 'Loading', fullScreen = true, className }) => {
-  return (
+  const content = (
     <div
       className={cn(
         'relative flex flex-col items-center justify-center bg-[#f8f8fb] dark:bg-[#08080a]',
-        fullScreen ? 'fixed inset-0 z-[100] h-full w-full' : 'min-h-[60vh] w-full flex-1 py-12',
+        fullScreen ? 'fixed inset-0 z-[100] h-full w-full' : 'min-h-screen w-full flex-1 py-12',
         className
       )}
     >
@@ -48,6 +64,9 @@ const PremiumLoading = ({ message = 'Loading', fullScreen = true, className }) =
       </div>
     </div>
   );
+
+  if (!fullScreen || typeof document === 'undefined') return content;
+  return createPortal(content, document.body);
 };
 
 export default PremiumLoading;

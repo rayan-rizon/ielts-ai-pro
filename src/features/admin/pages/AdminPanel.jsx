@@ -13,11 +13,8 @@ import {
   CreditCard,
   Gift,
 } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { createPageUrl } from '@/utils';
-import { cn } from '@/lib/cn';
-import { MICRO } from '@/components/admin/ui/primitives';
 import PremiumLoading from '@/components/ui/PremiumLoading';
 
 // Lazy load admin components
@@ -286,9 +283,7 @@ export default function AdminPanel() {
   };
 
   if (isLoading) {
-    return (
-      <PremiumLoading message="Loading..." fullScreen={false} data-oid="admin-dashboard-skeleton" />
-    );
+    return <PremiumLoading message="Loading..." data-oid="admin-dashboard-skeleton" />;
   }
 
   return (
@@ -322,20 +317,7 @@ export default function AdminPanel() {
             className="w-full"
             data-oid="7js.n-c"
           >
-            <Suspense
-              fallback={
-                <div
-                  className="flex flex-col items-center justify-center h-[60vh] gap-3"
-                  data-oid="a4-w0ma"
-                >
-                  <Loader2 className="w-7 h-7 text-stone-500 dark:text-stone-400 animate-spin" />
-                  <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-                    Loading {activeTab}
-                  </p>
-                </div>
-              }
-              data-oid="91_p4e8"
-            >
+            <Suspense fallback={<PremiumLoading data-oid="a4-w0ma" />} data-oid="91_p4e8">
               {renderContent()}
             </Suspense>
           </m.div>

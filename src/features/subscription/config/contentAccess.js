@@ -11,15 +11,14 @@ export function normalizeSubscriptionTier(tier) {
 }
 
 export function hasContentAccess(user, requiredTier = 'free') {
-  if (String(user?.role || '').toLowerCase() === 'admin') return true;
   const userTier = normalizeSubscriptionTier(user?.subscription_tier);
   const minimumTier = normalizeSubscriptionTier(requiredTier);
   return CONTENT_TIER_ORDER[userTier] >= CONTENT_TIER_ORDER[minimumTier];
 }
 
 export function hasPaidAccess(user) {
-  // Learner monetisation follows the purchased tier only. An admin role grants
-  // operational permissions through hasContentAccess, but must not make a free
+  // Learner monetisation follows the purchased tier only. Admin permissions
+  // are enforced separately by protected admin routes and must not make a free
   // account render Pro badges or paid learner features.
   const subscriptionTier = normalizeSubscriptionTier(user?.subscription_tier);
   return CONTENT_TIER_ORDER[subscriptionTier] >= CONTENT_TIER_ORDER.pro;

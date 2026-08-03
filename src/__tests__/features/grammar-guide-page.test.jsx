@@ -139,4 +139,21 @@ describe('GrammarGuidePage', () => {
     expect(screen.getByRole('link', { name: 'View plans' })).toHaveAttribute('href', '/pricing');
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
+
+  it('does not treat an admin role as a paid learner subscription', () => {
+    render(
+      <MemoryRouter>
+        <GrammarGuidePage
+          resource={getGrammarGuide('essential-tense-control')}
+          user={{ subscription_tier: 'free', role: 'admin' }}
+          isStarting={false}
+          onBack={vi.fn()}
+          onPractice={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('heading', { name: 'Pro grammar guide' })).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
 });

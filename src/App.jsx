@@ -12,7 +12,6 @@ import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import MaintenanceGate from '@/components/shared/MaintenanceGate';
 import PremiumLoading from '@/components/ui/PremiumLoading';
 import LandingPage from '@/features/core/pages/LandingPage.jsx';
-import AnnotationPreview from '@/__devpreview__/AnnotationPreview.jsx';
 
 const LazySonnerToaster = lazy(() =>
   import('@/components/ui/sonner').then((module) => ({ default: module.Toaster }))
@@ -299,10 +298,6 @@ const router = createBrowserRouter(
           <LandingPage data-oid="seo-feedback-comp" />
         </LazyPage>
       ),
-    },
-    {
-      path: '/__devpreview-annotations',
-      element: <AnnotationPreview />,
     },
     {
       path: '/login',

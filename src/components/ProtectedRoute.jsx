@@ -1,9 +1,9 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
-import { Loader2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { getAuthUserId, hasAdminAccess } from '@/features/auth/utils/adminAccess';
+import PremiumLoading from '@/components/ui/PremiumLoading';
 
 /**
  * ProtectedRoute component that handles:
@@ -24,19 +24,11 @@ const ProtectedRoute = ({
   // Wait for auth check to complete — show loading spinner to prevent
   // rendering protected content before Supabase verifies the session
   if (loading || !authCheckComplete) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <PremiumLoading fullScreen />;
   }
 
   if (adminOnly && user && !adminCheckComplete) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <PremiumLoading fullScreen />;
   }
 
   // 1. Authentication check

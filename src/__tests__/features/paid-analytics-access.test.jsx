@@ -14,7 +14,7 @@ describe('paid analytics entitlements', () => {
     expect(hasPaidAccess({ subscription_tier: 'pro' })).toBe(true);
     expect(hasPaidAccess({ subscription_tier: 'premium' })).toBe(true);
     expect(hasPaidAccess({ subscription_tier: 'free', role: 'admin' })).toBe(false);
-    expect(hasContentAccess({ subscription_tier: 'free', role: 'admin' }, 'premium')).toBe(true);
+    expect(hasContentAccess({ subscription_tier: 'free', role: 'admin' }, 'premium')).toBe(false);
     expect(hasContentAccess({ subscription_tier: 'pro' }, 'premium')).toBe(false);
   });
 

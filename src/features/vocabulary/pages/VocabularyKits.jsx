@@ -299,17 +299,17 @@ function KitDetail({ kit }) {
             <ArrowLeft className="h-4 w-4" /> All Vocabulary Kits
           </Link>
 
-          <section className={cn(PANEL, 'relative mt-3 overflow-hidden p-5 sm:p-6')}>
+          <section className={cn(PANEL, 'relative mt-3 overflow-hidden p-4 sm:p-5')}>
             <div className="absolute inset-y-0 right-0 hidden w-[42%] bg-[radial-gradient(circle_at_70%_40%,rgba(90,99,223,0.14),transparent_55%)] lg:block" />
             <div className="relative max-w-3xl">
               <Pill tone="accent">{kit.category}</Pill>
-              <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+              <h1 className="mt-2 text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
                 {kit.title}
               </h1>
-              <p className={cn('mt-2 max-w-2xl text-sm font-medium leading-6', MUTED)}>
+              <p className={cn('mt-1.5 max-w-2xl text-[13px] font-medium leading-5', MUTED)}>
                 {kit.description}
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 <Pill tone="neutral">
                   <Layers3 className="h-3 w-3 text-[#5a63df]" />
                   {kit.word_count} entries
