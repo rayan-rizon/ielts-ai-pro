@@ -16,6 +16,7 @@ import {
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { createPageUrl } from '@/utils';
 import PremiumLoading from '@/components/ui/PremiumLoading';
+import { AdminPageSkeleton } from '@/components/admin/ui/primitives';
 
 // Lazy load admin components
 const AdminOverview = lazy(() => import('@/components/admin/AdminOverview'));
@@ -88,19 +89,7 @@ const UserAnalyticsWrapper = () => {
   }, [selectedRange, loadAnalyticsData]);
 
   if (loading && !Object.keys(stats).length) {
-    return (
-      <div className="flex items-center justify-center h-64" data-oid="my23qeg">
-        <div className="text-center" data-oid="4arauko">
-          <div
-            className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"
-            data-oid="::govpt"
-          ></div>
-          <p className="text-muted-foreground" data-oid="7nmda9p">
-            Loading expert insights...
-          </p>
-        </div>
-      </div>
-    );
+    return <AdminPageSkeleton kpis={3} panels={1} />;
   }
 
   return (
@@ -159,19 +148,7 @@ const RevenueAnalyticsWrapper = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64" data-oid="zmsuw94">
-        <div className="text-center" data-oid="_o2yjtq">
-          <div
-            className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"
-            data-oid="1yettxw"
-          ></div>
-          <p className="text-muted-foreground" data-oid=".iahg7_">
-            Loading revenue analytics...
-          </p>
-        </div>
-      </div>
-    );
+    return <AdminPageSkeleton kpis={3} panels={1} />;
   }
 
   return (

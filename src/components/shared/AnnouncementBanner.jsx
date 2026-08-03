@@ -8,68 +8,70 @@ import {
   CheckCircle2,
   Copy,
   Info,
+  Sparkles,
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { announcementSignature, normalizeAnnouncement } from '@/lib/communications';
-import { IconChip } from '@/features/dashboard/components/primitives';
 
 const DISMISS_STORAGE_KEY = 'dismissed_announcements';
 const COPY_RESET_MS = 1600;
 
 /**
- * Every tone is fully color-coordinated (surface + title + body + icon +
- * accent). `success`/`warning`/`critical` use the tinted-card convention most
- * alert components use (bg-{tone}-50 / text-{tone}-800 / text-{tone}-700).
- *
- * `info` — the default, general-announcement tone — is deliberately a solid,
- * high-contrast fill instead of a soft tint: a pastel card is easy to miss at
- * the top of the page, and it explicitly must not read as indigo/purple (that
- * hue is reserved for the brand accent elsewhere in the app, e.g. the
- * sidebar's "Upgrade to Pro" card), so it uses a true blue instead. `solid:
- * true` tells the component below to render white-on-color chip/dismiss
- * styling rather than the tinted-card treatment the other tones use.
+ * Premium tone theme definitions with enhanced typography, contrast, and glassmorphic gradients.
  */
 const TONE = {
   info: {
-    chip: 'accent',
-    icon: Info,
-    solid: true,
-    surface: 'border-blue-800 bg-blue-600 dark:border-blue-800 dark:bg-blue-600',
-    title: 'text-white',
-    body: 'text-white/90',
+    icon: Sparkles,
+    surface:
+      'border-b border-[#5a63df]/25 bg-gradient-to-r from-[#5a63df]/[0.09] via-[#8b5cf6]/[0.06] to-[#5a63df]/[0.09] dark:border-[#8f97ff]/25 dark:from-[#5a63df]/20 dark:via-[#7c3aed]/16 dark:to-[#5a63df]/20 bg-white/95 dark:bg-[#090a12]/95 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(90,99,223,0.12)]',
+    chipBg:
+      'border-[#5a63df]/30 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#8f97ff]/35 dark:bg-[#8f97ff]/20 dark:text-[#a9afff] shadow-[0_0_6px_rgba(90,99,223,0.14)]',
+    title: 'text-slate-950 dark:text-white',
+    body: 'text-slate-700 dark:text-slate-200/90',
     accent:
-      'text-white border-white/30 bg-white/15 hover:bg-white/25 dark:text-white dark:border-white/30 dark:bg-white/15 dark:hover:bg-white/25',
+      'text-[#5a63df] border-[#5a63df]/35 bg-[#5a63df]/[0.10] hover:bg-[#5a63df] hover:text-white dark:text-[#c4c8ff] dark:border-[#8f97ff]/40 dark:bg-[#8f97ff]/[0.18] dark:hover:bg-[#8f97ff] dark:hover:text-[#0b0c10]',
     dismiss:
-      'border-white/25 text-white/75 hover:border-white/40 hover:bg-white/15 hover:text-white dark:border-white/25 dark:text-white/75 dark:hover:border-white/40 dark:hover:bg-white/15 dark:hover:text-white',
+      'border-slate-200 text-slate-400 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:text-slate-400 dark:hover:border-white/20 dark:hover:bg-white/10 dark:hover:text-white',
   },
   success: {
-    chip: 'emerald',
     icon: CheckCircle2,
     surface:
-      'border-emerald-100 bg-emerald-50 dark:border-emerald-800/30 dark:bg-emerald-500/[0.08]',
-    title: 'text-emerald-900 dark:text-emerald-100',
-    body: 'text-emerald-700 dark:text-emerald-300/90',
+      'border-b border-emerald-500/25 bg-gradient-to-r from-emerald-500/[0.09] via-teal-500/[0.06] to-emerald-500/[0.09] dark:border-emerald-500/25 dark:from-emerald-950/45 dark:via-teal-950/35 dark:to-emerald-950/45 bg-white/95 dark:bg-[#07110e]/95 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(16,185,129,0.12)]',
+    chipBg:
+      'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:border-emerald-400/35 dark:bg-emerald-400/20 dark:text-emerald-300 shadow-[0_0_6px_rgba(16,185,129,0.14)]',
+    title: 'text-emerald-950 dark:text-emerald-50',
+    body: 'text-emerald-800 dark:text-emerald-200/90',
     accent:
-      'text-emerald-600 border-emerald-300/50 bg-emerald-500/[0.08] hover:bg-emerald-500/[0.14] dark:text-emerald-400 dark:border-emerald-800/60 dark:bg-emerald-400/[0.14] dark:hover:bg-emerald-400/[0.2]',
+      'text-emerald-700 border-emerald-500/35 bg-emerald-500/[0.10] hover:bg-emerald-600 hover:text-white dark:text-emerald-300 dark:border-emerald-400/40 dark:bg-emerald-400/[0.18] dark:hover:bg-emerald-400 dark:hover:text-[#0b0c10]',
+    dismiss:
+      'border-emerald-200 text-emerald-600/70 hover:border-emerald-300 hover:bg-emerald-100/60 hover:text-emerald-900 dark:border-emerald-800/40 dark:text-emerald-400/70 dark:hover:border-emerald-700/60 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-200',
   },
   warning: {
-    chip: 'amber',
     icon: AlertTriangle,
-    surface: 'border-amber-100 bg-amber-50 dark:border-amber-800/30 dark:bg-amber-500/[0.08]',
-    title: 'text-amber-900 dark:text-amber-100',
-    body: 'text-amber-700 dark:text-amber-300/90',
+    surface:
+      'border-b border-amber-500/25 bg-gradient-to-r from-amber-500/[0.09] via-orange-500/[0.06] to-amber-500/[0.09] dark:border-amber-500/25 dark:from-amber-950/45 dark:via-orange-950/35 dark:to-amber-950/45 bg-white/95 dark:bg-[#120e06]/95 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(245,158,11,0.12)]',
+    chipBg:
+      'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:border-amber-400/35 dark:bg-amber-400/20 dark:text-amber-300 shadow-[0_0_6px_rgba(245,158,11,0.14)]',
+    title: 'text-amber-950 dark:text-amber-50',
+    body: 'text-amber-800 dark:text-amber-200/90',
     accent:
-      'text-amber-600 border-amber-300/50 bg-amber-500/[0.08] hover:bg-amber-500/[0.14] dark:text-amber-400 dark:border-amber-800/60 dark:bg-amber-400/[0.14] dark:hover:bg-amber-400/[0.2]',
+      'text-amber-700 border-amber-500/35 bg-amber-500/[0.10] hover:bg-amber-600 hover:text-white dark:text-amber-300 dark:border-amber-400/40 dark:bg-amber-400/[0.18] dark:hover:bg-amber-400 dark:hover:text-[#0b0c10]',
+    dismiss:
+      'border-amber-200 text-amber-600/70 hover:border-amber-300 hover:bg-amber-100/60 hover:text-amber-900 dark:border-amber-800/40 dark:text-amber-400/70 dark:hover:border-amber-700/60 dark:hover:bg-amber-500/20 dark:hover:text-amber-200',
   },
   critical: {
-    chip: 'rose',
     icon: AlertOctagon,
-    surface: 'border-rose-100 bg-rose-50 dark:border-rose-800/30 dark:bg-rose-500/[0.08]',
-    title: 'text-rose-900 dark:text-rose-100',
-    body: 'text-rose-700 dark:text-rose-300/90',
+    surface:
+      'border-b border-rose-500/25 bg-gradient-to-r from-rose-500/[0.09] via-pink-500/[0.06] to-rose-500/[0.09] dark:border-rose-500/25 dark:from-rose-950/45 dark:via-pink-950/35 dark:to-rose-950/45 bg-white/95 dark:bg-[#13070a]/95 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(244,63,94,0.12)]',
+    chipBg:
+      'border-rose-500/30 bg-rose-500/10 text-rose-600 dark:border-rose-400/35 dark:bg-rose-400/20 dark:text-rose-300 shadow-[0_0_6px_rgba(244,63,94,0.14)]',
+    title: 'text-rose-950 dark:text-rose-50',
+    body: 'text-rose-800 dark:text-rose-200/90',
     accent:
-      'text-rose-600 border-rose-300/50 bg-rose-500/[0.08] hover:bg-rose-500/[0.14] dark:text-rose-400 dark:border-rose-800/60 dark:bg-rose-400/[0.14] dark:hover:bg-rose-400/[0.2]',
+      'text-rose-700 border-rose-500/35 bg-rose-500/[0.10] hover:bg-rose-600 hover:text-white dark:text-rose-300 dark:border-rose-400/40 dark:bg-rose-400/[0.18] dark:hover:bg-rose-400 dark:hover:text-[#0b0c10]',
+    dismiss:
+      'border-rose-200 text-rose-600/70 hover:border-rose-300 hover:bg-rose-100/60 hover:text-rose-900 dark:border-rose-800/40 dark:text-rose-400/70 dark:hover:border-rose-700/60 dark:hover:bg-rose-500/20 dark:hover:text-rose-200',
   },
 };
 
@@ -111,8 +113,7 @@ const copyToClipboard = async (text) => {
 };
 
 /**
- * Promo code chip. Its own component so the "copied" state resets on a timer
- * without re-running that timer every time the parent banner re-renders.
+ * Promo code chip.
  */
 const PromoCodeChip = ({ code, tone }) => {
   const [copied, setCopied] = useState(false);
@@ -133,43 +134,19 @@ const PromoCodeChip = ({ code, tone }) => {
       type="button"
       onClick={handleCopy}
       className={cn(
-        'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-dashed px-2 py-0.5 font-mono text-[11px] font-bold tracking-wider transition-colors',
+        'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-dashed px-2.5 py-0.5 font-mono text-[11px] font-bold tracking-wider transition-colors',
         tone
       )}
       title="Copy promo code"
     >
       {code}
-      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+      {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
     </button>
   );
 };
 
 /**
  * Site-wide announcement banner.
- *
- * A single truncated line — icon, title + message run together, then an
- * optional promo code and CTA — instead of a stacked title/message block.
- * The stacked version could grow to three lines on longer copy; a top-of-app
- * strip should never compete with the page for vertical space, so length is
- * bounded by an ellipsis rather than by wrapping. The centered group's own
- * max-width is generous (max-w-7xl, the same cap most page containers in this
- * app use) rather than a tight one — a narrow cap was truncating text on
- * screens that plainly had the room to show it in full.
- *
- * Every severity is fully color-coordinated (tinted surface + matching title
- * and body text), not just the icon — a neutral white/graphite card read as
- * washed out in light mode, where it barely differed from the page behind it.
- *
- * The banner spans the full shell width, above the sidebar, so its content
- * is centered as one inline group rather than left-anchored to the strip's
- * edge — the standard layout for a top-of-app announcement bar (Stripe,
- * Intercom, GitHub all do this). Dismiss is pinned to the corner
- * independently so it never skews that center.
- *
- * Dismissal is keyed to a signature of the banner's *content* (including the
- * promo code), so closing one announcement does not swallow the next one,
- * and editing the copy brings the banner back for everyone who had already
- * dismissed the previous wording.
  */
 const AnnouncementBanner = ({ announcement, preview = false }) => {
   const config = normalizeAnnouncement(announcement);
@@ -177,8 +154,6 @@ const AnnouncementBanner = ({ announcement, preview = false }) => {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    // In the admin preview the banner must always render, and closing it must
-    // not persist a dismissal for the admin's own session.
     setDismissed(!preview && config.dismissible && readDismissed().includes(signature));
   }, [signature, config.dismissible, preview]);
 
@@ -208,22 +183,35 @@ const AnnouncementBanner = ({ announcement, preview = false }) => {
         exit={{ height: 0, opacity: 0 }}
         transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
         role="status"
-        className={cn('relative z-[100] w-full overflow-hidden border-b', tone.surface)}
+        className={cn(
+          'group relative z-[100] w-full overflow-hidden transition-all duration-300',
+          tone.surface
+        )}
       >
-        {/* One line, capped: title + message never push the strip past a
-            single row of text, regardless of copy length. */}
-        <div className="mx-auto flex max-w-7xl items-center justify-center gap-2.5 px-10 py-2 sm:px-14">
-          {tone.solid ? (
-            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-white/20">
-              <Icon className="h-3 w-3 text-white" strokeWidth={2.25} />
-            </span>
-          ) : (
-            <IconChip icon={Icon} tone={tone.chip} size="sm" className="shrink-0" />
-          )}
+        {/* Subtle glowing accent highlight line across top border */}
+        <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#5a63df]/40 to-transparent dark:via-[#8f97ff]/45" />
 
-          <p className="min-w-0 truncate text-[12.5px] leading-none">
-            {title && <span className={cn('font-extrabold', tone.title)}>{title}</span>}
-            {title && body && <span className={cn('opacity-40', tone.body)}> &middot; </span>}
+        <div className="mx-auto flex max-w-7xl items-center justify-center gap-3 px-10 py-2.5 sm:px-14">
+          {/* Subtle Icon Chip */}
+          <span
+            className={cn(
+              'relative flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-transform duration-200 group-hover:scale-105',
+              tone.chipBg
+            )}
+          >
+            <Icon
+              className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-[6deg]"
+              strokeWidth={2.25}
+            />
+          </span>
+
+          <p className="min-w-0 truncate text-xs sm:text-[13px] leading-snug">
+            {title && (
+              <span className={cn('font-black tracking-tight mr-1.5', tone.title)}>{title}</span>
+            )}
+            {title && body && (
+              <span className="inline-block h-1 w-1 rounded-full bg-slate-300 dark:bg-white/20 mx-1.5 align-middle shrink-0" />
+            )}
             {body && <span className={cn('font-medium', tone.body)}>{body}</span>}
           </p>
 
@@ -235,12 +223,12 @@ const AnnouncementBanner = ({ announcement, preview = false }) => {
               target={config.link_url.startsWith('http') ? '_blank' : undefined}
               rel="noopener noreferrer"
               className={cn(
-                'hidden shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-bold transition-colors sm:inline-flex',
+                'hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-1 text-[11px] font-extrabold tracking-wide transition-all duration-200 hover:scale-[1.03] active:scale-95 sm:inline-flex shadow-sm',
                 tone.accent
               )}
             >
               {config.link_label || 'Learn more'}
-              <ArrowRight className="h-3 w-3" />
+              <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-0.5" />
             </a>
           )}
         </div>
@@ -252,11 +240,14 @@ const AnnouncementBanner = ({ announcement, preview = false }) => {
             aria-label="Dismiss announcement"
             title="Dismiss"
             className={cn(
-              'absolute right-2.5 top-1/2 grid h-6 w-6 shrink-0 -translate-y-1/2 place-items-center rounded-full border transition-colors sm:right-3.5',
+              'absolute right-2.5 top-1/2 grid h-6 w-6 shrink-0 -translate-y-1/2 place-items-center rounded-full border transition-all duration-200 active:scale-95 sm:right-3.5',
               tone.dismiss || DEFAULT_DISMISS
             )}
           >
-            <X className="h-3.5 w-3.5" strokeWidth={2.25} />
+            <X
+              className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-90"
+              strokeWidth={2.25}
+            />
           </button>
         )}
       </motion.div>

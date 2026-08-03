@@ -8,7 +8,6 @@ import {
   Headphones,
   PenTool,
   Mic,
-  Loader2,
   GraduationCap,
   ArrowDownCircle,
   Download,
@@ -45,6 +44,7 @@ import {
   AdminPageHeader,
   STAGGER_CONTAINER,
   FADE_UP,
+  AdminPageSkeleton,
 } from '../ui/primitives';
 
 import { useSearchParams } from 'react-router-dom';
@@ -194,12 +194,7 @@ const TestManagement = () => {
     searchQuery || statusFilter !== 'all' || tierFilter !== 'all' || cambridgeFilter !== 'all';
 
   if (loading && passages.length === 0) {
-    return (
-      <div className="flex flex-col justify-center items-center h-96 gap-3">
-        <Loader2 className="w-7 h-7 animate-spin text-stone-500 dark:text-stone-400" />
-        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Loading tests</p>
-      </div>
-    );
+    return <AdminPageSkeleton kpis={4} panels={0} rows={6} />;
   }
 
   if (isCreatingTest || editingTest) {

@@ -230,3 +230,72 @@ export const COLLAPSE = {
   visible: { opacity: 1, height: 'auto', transition: { duration: 0.25, ease: [0.23, 1, 0.32, 1] } },
   exit: { opacity: 0, height: 0, transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] } },
 };
+
+/**
+ * Instrument-panel skeleton vocabulary — shape-matched placeholders for a
+ * page's initial data fetch. These stand in for AdminPageHeader/Kpi/PANEL
+ * *before* that real content mounts, so the loading state already reads as
+ * "this page, not yet loaded" instead of a generic spinner, and the eventual
+ * swap (paired with `.animate-panel-in` from index.css) is a quiet fade into
+ * the same layout rather than a shape change. Pure CSS `animate-pulse` —
+ * no framer-motion — so it's safe on the Suspense/first-paint critical path.
+ */
+export const SkeletonBlock = ({ className }) => (
+  <div
+    className={cn(
+      'rounded-xl border border-stone-200/80 dark:border-white/[0.07] bg-stone-100 dark:bg-white/[0.04] animate-pulse',
+      className
+    )}
+  />
+);
+
+export const SkeletonHeader = () => (
+  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 w-full">
+    <div className="space-y-2">
+      <div className="h-6 w-40 rounded-md bg-stone-200 dark:bg-white/[0.08] animate-pulse" />
+      <div className="h-3 w-64 rounded bg-stone-100 dark:bg-white/[0.05] animate-pulse" />
+    </div>
+  </div>
+);
+
+export const SkeletonKpiRow = ({ count = 3, className }) => (
+  <div className={cn('grid grid-cols-2 sm:grid-cols-3 gap-3', className)}>
+    {Array.from({ length: count }).map((_, i) => (
+      <SkeletonBlock key={i} className="h-[70px]" />
+    ))}
+  </div>
+);
+
+export const SkeletonRows = ({ count = 5, className }) => (
+  <div className={cn('space-y-2', className)}>
+    {Array.from({ length: count }).map((_, i) => (
+      <div
+        key={i}
+        className="h-11 rounded-lg bg-stone-100 dark:bg-white/[0.04] animate-pulse"
+        style={{ animationDelay: `${i * 40}ms` }}
+      />
+    ))}
+  </div>
+);
+
+/**
+ * Composite loading state for a whole admin page: header + KPI row +
+ * chart/content panels, in this system's proportions. `panels` controls
+ * how many chart-shaped blocks render (first one spans 2 columns on large
+ * screens, matching the "one big chart, one side panel" layout most admin
+ * pages use); pass `rows` for pages whose body is a list/table instead.
+ */
+export const AdminPageSkeleton = ({ kpis = 3, panels = 1, rows = 0, className }) => (
+  <div className={cn('animate-panel-in space-y-4 pb-6 pt-12 md:pt-0', className)}>
+    <SkeletonHeader />
+    <SkeletonKpiRow count={kpis} />
+    {panels > 0 && (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {Array.from({ length: panels }).map((_, i) => (
+          <SkeletonBlock key={i} className={cn('h-64', i === 0 && panels > 1 && 'lg:col-span-2')} />
+        ))}
+      </div>
+    )}
+    {rows > 0 && <SkeletonRows count={rows} />}
+  </div>
+);
