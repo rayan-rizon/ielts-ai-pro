@@ -95,13 +95,13 @@ function formatReadCount(value) {
 function practicePath(category) {
   return (
     {
-      Writing: '/writing',
-      Speaking: '/speaking',
-      Reading: '/reading',
-      Listening: '/listening',
-      'Study Planning': '/cambridge-tests',
-      'Exam Updates': '/cambridge-tests',
-      'Mock Tests': '/cambridge-tests',
+      Writing: '/ielts-writing-checker',
+      Speaking: '/ielts-speaking-practice-ai',
+      Reading: '/cambridge-ielts-practice-tests#reading',
+      Listening: '/cambridge-ielts-practice-tests#listening',
+      'Study Planning': '/cambridge-ielts-practice-tests',
+      'Exam Updates': '/cambridge-ielts-practice-tests',
+      'Mock Tests': '/cambridge-ielts-practice-tests',
     }[category] || '/signup'
   );
 }
@@ -536,7 +536,9 @@ function layout({
   structuredData,
   image = DEFAULT_IMAGE,
 }) {
-  const fullTitle = title.includes('IELTS Ai Pro') ? title : `${title} | IELTS Ai Pro`;
+  const brandedTitle = `${title} | IELTS Ai Pro`;
+  const fullTitle =
+    title.includes('IELTS Ai Pro') || brandedTitle.length > 65 ? title : brandedTitle;
   return `<!doctype html>
 <html lang="en"><head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">

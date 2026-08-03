@@ -1,5 +1,6 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useEffect, useState } from 'react';
 import { Info } from 'lucide-react';
+import { useReducedMotion, useSpring } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/cn';
 
@@ -352,6 +353,51 @@ export const Delta = ({ value, digits = 1, suffix = '' }) => {
     >
       {good ? '+' : '−'}
       {Math.abs(n).toFixed(digits)}
+      {suffix}
+    </span>
+  );
+};
+
+/**
+ * A number that counts up to its value instead of appearing already-finished.
+ *
+ * Every headline figure on the learner panels — band scores, mistake counts,
+ * readiness — used to snap straight to its final value on mount, which read as
+ * inert next to the bars and rings beside it already animating in. This drives
+ * a spring rather than a fixed-duration tween so it settles at the same relaxed
+ * pace as everything else in the system, and it re-fires the same way on any
+ * later value change (a timeframe switch, a new test scored), not just on
+ * mount. Non-numeric values (`'—'`, `'--'`) pass through untouched.
+ */
+export const AnimatedNumber = ({ value, decimals = 1, prefix = '', suffix = '', className }) => {
+  const numeric = Number(value);
+  const isValid = Number.isFinite(numeric);
+  const reduceMotion = useReducedMotion();
+  const spring = useSpring(reduceMotion || !isValid ? numeric || 0 : 0, {
+    stiffness: 140,
+    damping: 22,
+    mass: 0.6,
+  });
+  const [display, setDisplay] = useState(() =>
+    (reduceMotion || !isValid ? numeric || 0 : 0).toFixed(decimals)
+  );
+
+  useEffect(() => {
+    if (isValid) spring.set(numeric);
+  }, [isValid, numeric, spring]);
+
+  useEffect(() => {
+    const unsubscribe = spring.on('change', (latest) => setDisplay(latest.toFixed(decimals)));
+    return unsubscribe;
+  }, [spring, decimals]);
+
+  if (!isValid) {
+    return <span className={className}>{value}</span>;
+  }
+  return (
+    <span className={className}>
+      {prefix}
+      {display}
       {suffix}
     </span>
   );

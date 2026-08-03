@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
 
@@ -33,11 +34,11 @@ function getAssessmentMessage(score) {
 }
 
 function calculateCelebrationParams(score) {
-  if (score >= 8.0) return { count: 150, theme: 'gold' };
-  if (score >= 7.0) return { count: 100, theme: 'default' };
-  if (score >= 6.0) return { count: 60, theme: 'default' };
-  if (score >= 5.0) return { count: 40, theme: 'silver' };
-  if (score >= 4.0) return { count: 25, theme: 'bronze' };
+  if (score >= 8.0) return { count: 110, theme: 'gold' };
+  if (score >= 7.0) return { count: 78, theme: 'default' };
+  if (score >= 6.0) return { count: 54, theme: 'default' };
+  if (score >= 5.0) return { count: 36, theme: 'silver' };
+  if (score >= 4.0) return { count: 24, theme: 'bronze' };
   return { count: 0, theme: 'default' };
 }
 
@@ -184,18 +185,26 @@ function useCelebration(showResults, testResults, celebrate) {
   const [showCelebration, setShowCelebration] = React.useState(false);
   const [particleCount, setParticleCount] = React.useState(0);
   const [celebrationTheme, setCelebrationTheme] = React.useState('default');
+  const hasCelebrated = React.useRef(false);
+  const score = Number.parseFloat(testResults?.bandScore);
 
   React.useEffect(() => {
-    if (celebrate && showResults && testResults?.bandScore) {
-      const score = parseFloat(testResults.bandScore);
-      const { count, theme } = calculateCelebrationParams(score);
-      if (count > 0) {
-        setParticleCount(count);
-        setCelebrationTheme(theme);
-        setShowCelebration(true);
-      }
+    if (!showResults) {
+      hasCelebrated.current = false;
+      setShowCelebration(false);
+      return;
     }
-  }, [celebrate, showResults, testResults]);
+
+    if (!celebrate || hasCelebrated.current || !Number.isFinite(score)) return;
+
+    hasCelebrated.current = true;
+    const { count, theme } = calculateCelebrationParams(score);
+    if (count > 0) {
+      setParticleCount(count);
+      setCelebrationTheme(theme);
+      setShowCelebration(true);
+    }
+  }, [celebrate, score, showResults]);
 
   return { showCelebration, particleCount, celebrationTheme, setShowCelebration };
 }
@@ -226,76 +235,89 @@ const ModalContent = React.memo(
     onDownloadPdf,
     isDownloadingPdf,
   }) => (
-    <motion.div
-      initial={{ scale: 0.96, opacity: 0, y: 20 }}
-      animate={{ scale: 1, opacity: 1, y: 0 }}
-      exit={{ scale: 0.96, opacity: 0, y: 20 }}
-      transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-      className="relative bg-white dark:bg-slate-950 border border-[#e4e2f0] dark:border-white/[0.07] rounded-[22px] shadow-lg w-full max-w-[1480px] max-h-[96vh] flex flex-col overflow-hidden"
-    >
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onClose}
-        className="absolute top-3 right-4 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-300 hover:text-slate-950 hover:bg-slate-100 dark:hover:text-white dark:hover:bg-slate-800 rounded-xl transition-colors shadow-sm h-8 w-8"
+    // The app has no global TooltipProvider (the dashboard mounts its own), so
+    // the modal supplies one — the panel primitives used inside render Radix
+    // tooltips for their metric explainers and throw without it.
+    <TooltipProvider delayDuration={150}>
+      <motion.div
+        initial={{ scale: 0.96, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.96, opacity: 0, y: 20 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+        className="relative bg-white dark:bg-slate-950 border border-[#e4e2f0] dark:border-white/[0.07] rounded-[22px] shadow-lg w-full max-w-[1480px] max-h-[96vh] flex flex-col overflow-hidden"
       >
-        <X className="w-4 h-4" />
-      </Button>
-
-      <div className="relative flex-1 overflow-hidden bg-[#f8f8fb] dark:bg-[#08080a] flex flex-col">
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="flex-1 flex flex-col overflow-hidden"
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="absolute top-3 right-4 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-300 hover:text-slate-950 hover:bg-slate-100 dark:hover:text-white dark:hover:bg-slate-800 rounded-xl transition-colors shadow-sm h-8 w-8"
         >
-          <ModalHeader testType={testType} testMode={testMode}>
-            <TabsNav activeTab={activeTab} setActiveTab={setActiveTab} />
-          </ModalHeader>
+          <X className="w-4 h-4" />
+        </Button>
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            <AnimatePresence mode="wait">
-              {activeTab === 'overview' && (
-                <TabsContent value="overview" forceMount className="m-0 focus-visible:outline-none">
-                  <OverviewTab
-                    testResults={testResults}
-                    isLocked={!isPremium}
-                    onUpgrade={handleUpgrade}
-                    getAssessmentMessage={getAssessmentMessage}
-                    onReviewAnswers={onReviewAnswers}
-                    onNavigateToQuestion={onNavigateToQuestion}
-                    testType={testType}
-                  />
-                </TabsContent>
-              )}
-              {activeTab === 'analysis' && (
-                <TabsContent value="analysis" forceMount className="m-0 focus-visible:outline-none">
-                  <DetailedAnalysisTab
-                    testResults={testResults}
-                    testData={testData}
-                    userId={userId}
-                    sessionId={sessionId}
-                    targetBand={targetBand}
-                    onUpgrade={handleUpgrade}
-                    isPremium={isPremium}
-                    testType={testType}
-                    onReviewQuestion={onReviewQuestion}
-                  />
-                </TabsContent>
-              )}
-            </AnimatePresence>
-          </div>
-        </Tabs>
-      </div>
+        <div className="relative flex-1 overflow-hidden bg-[#f8f8fb] dark:bg-[#08080a] flex flex-col">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="flex-1 flex flex-col overflow-hidden"
+          >
+            <ModalHeader testType={testType} testMode={testMode}>
+              <TabsNav activeTab={activeTab} setActiveTab={setActiveTab} />
+            </ModalHeader>
 
-      <ModalFooter
-        isPremium={isPremium}
-        handleUpgrade={handleUpgrade}
-        onReviewAnswers={onReviewAnswers}
-        onClose={onClose}
-        onDownloadPdf={onDownloadPdf}
-        isDownloadingPdf={isDownloadingPdf}
-      />
-    </motion.div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <AnimatePresence mode="wait">
+                {activeTab === 'overview' && (
+                  <TabsContent
+                    value="overview"
+                    forceMount
+                    className="m-0 focus-visible:outline-none"
+                  >
+                    <OverviewTab
+                      testResults={testResults}
+                      isLocked={!isPremium}
+                      onUpgrade={handleUpgrade}
+                      getAssessmentMessage={getAssessmentMessage}
+                      onReviewAnswers={onReviewAnswers}
+                      onNavigateToQuestion={onNavigateToQuestion}
+                      testType={testType}
+                    />
+                  </TabsContent>
+                )}
+                {activeTab === 'analysis' && (
+                  <TabsContent
+                    value="analysis"
+                    forceMount
+                    className="m-0 focus-visible:outline-none"
+                  >
+                    <DetailedAnalysisTab
+                      testResults={testResults}
+                      testData={testData}
+                      userId={userId}
+                      sessionId={sessionId}
+                      targetBand={targetBand}
+                      onUpgrade={handleUpgrade}
+                      isPremium={isPremium}
+                      testType={testType}
+                      onReviewQuestion={onReviewQuestion}
+                    />
+                  </TabsContent>
+                )}
+              </AnimatePresence>
+            </div>
+          </Tabs>
+        </div>
+
+        <ModalFooter
+          isPremium={isPremium}
+          handleUpgrade={handleUpgrade}
+          onReviewAnswers={onReviewAnswers}
+          onClose={onClose}
+          onDownloadPdf={onDownloadPdf}
+          isDownloadingPdf={isDownloadingPdf}
+        />
+      </motion.div>
+    </TooltipProvider>
   )
 );
 

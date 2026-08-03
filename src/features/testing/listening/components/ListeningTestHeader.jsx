@@ -178,7 +178,7 @@ const ListeningTestHeader = ({
                   </div>
                   {/* Tooltip */}
                   <div
-                    className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-500 whitespace-nowrap bg-white dark:bg-[#131315] border border-slate-200 dark:border-white/[0.1] px-2 py-1 rounded shadow-sm z-10"
+                    className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-600 dark:text-slate-200 whitespace-nowrap bg-white dark:bg-[#131315] border border-slate-200 dark:border-white/[0.1] px-2 py-1 rounded shadow-sm z-10"
                     data-oid="ic4_:7-"
                   >
                     Part {partIndex + 1}: {partAnswered}/{partTotal}

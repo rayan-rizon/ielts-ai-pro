@@ -16,6 +16,7 @@ import { cn } from '@/lib/cn';
 import {
   Empty,
   IconChip,
+  InfoTip,
   MICRO,
   MUTED,
   NUM,
@@ -23,14 +24,21 @@ import {
   PanelFootnote,
   PanelTitle,
   Pill,
-  Ring,
   TILE,
+  Tip,
 } from '@/features/dashboard/components/primitives';
 import { ITEM_VARIANTS, MODULE_META } from '../constants';
 import { createPageUrl } from '@/utils';
-import { formatBand } from '../utils';
-import LockedFeature from './PerformanceTrends/LockedFeature';
+import LockedFeature from './LockedFeature';
 
+/**
+ * Trims the boilerplate the recommendation text arrives wrapped in.
+ *
+ * It no longer hard-truncates at 54 characters: this card sits in a narrow
+ * column, so a mid-word ellipsis on top of the CSS clamp below meant the
+ * advice was being cut twice and often finished as "…from …". The clamp owns
+ * overflow now; this only strips the filler.
+ */
 function compactRecommendation(text, fallback) {
   const cleaned = String(text || '')
     .replace(/^Try\s+/i, '')
@@ -38,8 +46,7 @@ function compactRecommendation(text, fallback) {
     .replace(/\s+/g, ' ')
     .trim();
 
-  if (!cleaned) return fallback;
-  return cleaned.length > 54 ? `${cleaned.slice(0, 51).trim()}…` : cleaned;
+  return cleaned || fallback;
 }
 
 const MODULE_ICON = { listening: Headphones, reading: BookOpen, writing: PenTool, speaking: Mic2 };
@@ -54,37 +61,13 @@ function getModuleInfo(item) {
   };
 }
 
-/** Compact target-progress ring, reusing the same Ring primitive as the dashboard. */
-function TargetRing({ targetScore, currentScore }) {
-  const current = Number(currentScore) || 0;
-  const parsedTarget = Number(targetScore);
-  const hasTarget = Number.isFinite(parsedTarget) && parsedTarget > 0;
-  const target = hasTarget ? parsedTarget : null;
-  const targetReached = hasTarget && current >= target;
-  const pct = hasTarget ? Math.min(100, Math.round((current / target) * 100)) : 0;
-
-  return (
-    <div className={cn(TILE, 'flex items-center gap-3 p-2.5')}>
-      <Ring value={pct} size={44} stroke={5} label={hasTarget ? `${pct}%` : '—'} />
-      <div className="min-w-0">
-        <p className={cn(MICRO, MUTED)}>
-          {!hasTarget ? 'Target not set' : targetReached ? 'Target reached' : 'Progress to target'}
-        </p>
-        <p className="mt-0.5 flex items-baseline gap-1.5">
-          <span className={cn(NUM, 'text-sm font-extrabold text-slate-900 dark:text-slate-50')}>
-            {currentScore || '0.0'}
-          </span>
-          <ChevronRight className="h-3 w-3 text-slate-300 dark:text-slate-600" />
-          <span className={cn(NUM, 'text-sm font-extrabold text-[#5a63df] dark:text-[#a9afff]')}>
-            {hasTarget ? formatBand(target) : '—'}
-          </span>
-        </p>
-      </div>
-    </div>
-  );
-}
-
-/** Confirmed / provisional / not-checked split, as a single segmented bar. */
+/**
+ * Confirmed / provisional / not-checked split, as a single segmented bar.
+ *
+ * This is the only place the evidence counts appear now. A second panel used to
+ * print the same three numbers as three mini tiles further down the page, which
+ * made a learner scrolling past believe there were two separate measurements.
+ */
 function EvidenceSummary({ counts }) {
   const measured = counts?.measured || 0;
   const early = counts?.early || 0;
@@ -99,6 +82,10 @@ function EvidenceSummary({ counts }) {
         <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
           <ShieldCheck className="h-3 w-3 text-[#5a63df] dark:text-[#a9afff]" />
           Evidence quality
+          <InfoTip>
+            How much of your skill data comes from enough graded answers to trust, versus an early
+            hunch or a skill not touched yet.
+          </InfoTip>
         </span>
         <span className={cn(NUM, 'text-[10px] font-bold text-[#5a63df] dark:text-[#a9afff]')}>
           {measuredPct}% confirmed
@@ -116,16 +103,30 @@ function EvidenceSummary({ counts }) {
       </div>
       <div className="grid grid-cols-3 gap-1.5">
         {[
-          { label: 'Confirmed', value: measured },
-          { label: 'Provisional', value: early },
-          { label: 'Not checked', value: diagnostic },
+          {
+            label: 'Confirmed',
+            value: measured,
+            hint: 'Enough graded answers on this skill to act on with confidence.',
+          },
+          {
+            label: 'Provisional',
+            value: early,
+            hint: 'A few graded answers so far — an early signal, not yet a confirmed priority.',
+          },
+          {
+            label: 'Not checked',
+            value: diagnostic,
+            hint: 'No graded answers on this skill yet — a diagnostic guess, not measured.',
+          },
         ].map((item) => (
-          <div key={item.label} className="text-center">
-            <p className={cn(NUM, 'text-xs font-extrabold text-slate-900 dark:text-slate-50')}>
-              {item.value}
-            </p>
-            <p className={cn(MICRO, MUTED, 'truncate')}>{item.label}</p>
-          </div>
+          <Tip key={item.label} content={item.hint}>
+            <div className="text-center">
+              <p className={cn(NUM, 'text-xs font-extrabold text-slate-900 dark:text-slate-50')}>
+                {item.value}
+              </p>
+              <p className={cn(MICRO, MUTED, 'truncate')}>{item.label}</p>
+            </div>
+          </Tip>
         ))}
       </div>
     </div>
@@ -138,34 +139,43 @@ function FocusAreaLink({ to, icon: Icon, title, tag, tagTone = 'accent', subtitl
       to={to}
       className={cn(
         TILE,
-        'group flex items-center justify-between gap-2.5 p-2.5',
+        'group flex items-start justify-between gap-2 p-2.5',
         'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/[0.12]'
       )}
     >
-      <div className="flex min-w-0 items-center gap-2.5">
-        <IconChip icon={Icon} tone="accent" size="md" />
+      {/* The title used to share one line with the tag pill and be `truncate`d,
+          which in this narrow column left every entry reading "Reading — Matchi…".
+          The pill and the mastery figure moved to their own row underneath, so
+          the title gets the full width and wraps to a second line if it needs it. */}
+      <div className="flex min-w-0 items-start gap-2.5">
+        <IconChip icon={Icon} tone="accent" size="md" className="mt-0.5" />
         <div className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="truncate text-[11px] font-extrabold text-slate-800 dark:text-slate-100">
-              {title}
-            </span>
+          <p className="line-clamp-2 text-[11px] font-extrabold leading-snug text-slate-800 dark:text-slate-100">
+            {title}
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
             <Pill tone={tagTone}>{tag}</Pill>
+            {mastery != null ? (
+              <span className={cn(NUM, 'text-[10px] font-bold text-[#5a63df] dark:text-[#a9afff]')}>
+                {mastery}% mastery
+              </span>
+            ) : null}
           </div>
-          <p className={cn(MICRO, MUTED, 'mt-0.5 truncate')}>{subtitle}</p>
+          <p className={cn(MICRO, MUTED, 'mt-1 line-clamp-2 leading-snug')}>{subtitle}</p>
         </div>
       </div>
-      <div className="flex shrink-0 items-center gap-1.5">
-        {mastery != null ? (
-          <span className={cn(NUM, 'text-xs font-bold text-[#5a63df] dark:text-[#a9afff]')}>
-            {mastery}%
-          </span>
-        ) : null}
-        <ChevronRight className="h-3.5 w-3.5 text-slate-300 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-[#5a63df] dark:text-slate-600" />
-      </div>
+      <ChevronRight className="mt-1 h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-[#5a63df] dark:text-slate-500" />
     </Link>
   );
 }
 
+/**
+ * What to practise next, and how much evidence is behind that call.
+ *
+ * The target-progress ring that used to head this card drew the same
+ * current-versus-target ratio as the meter in the headline band tile, two rows
+ * above it. It is gone; the card now only carries what nothing else does.
+ */
 export default function AIInsightsCard({ stats, aiLoading, isPremium }) {
   const suggestions = stats?.insights?.aiSuggestions;
   const primaryFocus = suggestions?.recommended_focus_areas?.[0];
@@ -174,13 +184,13 @@ export default function AIInsightsCard({ stats, aiLoading, isPremium }) {
     stats?.evidenceSummary?.grammar?.earlySignals?.length > 0 ||
     stats?.evidenceSummary?.grammar?.criterionSignals?.length > 0;
   const moduleRec = stats?.insights?.recommendations?.[0];
-  const moduleRecMeta = moduleRec ? MODULE_META.find((m) => m.key === moduleRec.type) : null;
+  const moduleRecMeta = moduleRec ? MODULE_META.find((item) => item.key === moduleRec.type) : null;
 
   return (
     <m.div variants={ITEM_VARIANTS} className="h-full w-full">
       <section className={cn(PANEL, 'flex h-full flex-col p-4')}>
         <PanelTitle
-          label="Your next study focus"
+          label="Practise next"
           accent
           tip="Personalised from your saved results, weighted toward skills with the most evidence behind them."
           action={!isPremium ? <Pill tone="amber">Pro</Pill> : <Pill tone="ok">Active</Pill>}
@@ -192,15 +202,6 @@ export default function AIInsightsCard({ stats, aiLoading, isPremium }) {
               <InsightsLoadingSkeleton />
             ) : suggestions ? (
               <>
-                <TargetRing
-                  targetScore={stats?.targetScore}
-                  currentScore={
-                    stats?.overallEstimate != null && stats?.modulesWithData === 4
-                      ? stats.overallEstimate
-                      : stats?.avgScore || '0.0'
-                  }
-                />
-
                 <div className="space-y-2">
                   {primaryFocus
                     ? (() => {
@@ -274,9 +275,9 @@ export default function AIInsightsCard({ stats, aiLoading, isPremium }) {
 function InsightsLoadingSkeleton() {
   return (
     <div className="w-full animate-pulse space-y-2.5">
-      <div className={cn(TILE, 'h-[60px] p-2.5')} />
       <div className={cn(TILE, 'h-[52px] p-2.5')} />
       <div className={cn(TILE, 'h-[52px] p-2.5')} />
+      <div className={cn(TILE, 'h-[76px] p-2.5')} />
     </div>
   );
 }

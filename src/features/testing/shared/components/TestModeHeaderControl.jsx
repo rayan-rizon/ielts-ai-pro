@@ -115,7 +115,7 @@ export default function TestModeHeaderControl({
           >
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-2.5 mb-3">
               <div className="flex items-center gap-2">
-                <Info className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <Info className="h-4 w-4 text-indigo-600 dark:text-slate-200" />
                 <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                   Test Mode Guide
                 </h4>
@@ -132,7 +132,7 @@ export default function TestModeHeaderControl({
 
             <div className="space-y-3 text-xs">
               <div className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 dark:border-white/[0.10] dark:bg-white/[0.055]">
-                <div className="flex items-center gap-1.5 font-bold text-indigo-600 dark:text-indigo-400 mb-1">
+                <div className="flex items-center gap-1.5 font-bold text-indigo-600 dark:text-slate-200 mb-1">
                   <Sparkles className="h-3.5 w-3.5" />
                   <span>Practice Mode</span>
                 </div>
@@ -144,7 +144,7 @@ export default function TestModeHeaderControl({
               </div>
 
               <div className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 dark:border-white/[0.10] dark:bg-white/[0.055]">
-                <div className="flex items-center gap-1.5 font-bold text-indigo-600 dark:text-indigo-400 mb-1">
+                <div className="flex items-center gap-1.5 font-bold text-indigo-600 dark:text-slate-200 mb-1">
                   <GraduationCap className="h-3.5 w-3.5" />
                   <span>Exam Mode</span>
                 </div>
@@ -158,7 +158,7 @@ export default function TestModeHeaderControl({
 
             <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/10 text-[11px] text-center font-medium text-slate-500 dark:text-slate-400">
               Select your mode above and click{' '}
-              <span className="font-bold text-indigo-600 dark:text-indigo-400">Start Test</span> to
+              <span className="font-bold text-indigo-600 dark:text-slate-200">Start Test</span> to
               begin.
             </div>
           </PopoverContent>
@@ -191,18 +191,18 @@ export default function TestModeHeaderControl({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.96 }}
               transition={{ duration: 0.15 }}
-              className="absolute left-0 top-full mt-2.5 z-50 w-[calc(100vw-2rem)] max-w-xs sm:w-76 rounded-[22px] border border-[#dce0f2] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f2f0ff] dark:from-[#10131f] dark:via-[#141829] dark:to-[#10131f] p-3.5 text-left shadow-[0_20px_50px_-25px_rgba(48,58,128,0.35)] dark:shadow-black/60 backdrop-blur-xl"
+              className="absolute left-0 top-full mt-2.5 z-50 w-[calc(100vw-2rem)] max-w-xs sm:w-76 rounded-[22px] border border-[#dce0f2] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f2f0ff] dark:from-[#111214] dark:via-[#191b1f] dark:to-[#111214] p-3.5 text-left shadow-[0_20px_50px_-25px_rgba(15,23,42,0.35)] dark:shadow-black/60 backdrop-blur-xl"
             >
               {/* Arrow dynamically pointing up to active mode toggle pill (Practice vs Exam) */}
               <div
                 className={cn(
-                  'absolute -top-1.5 h-3 w-3 rotate-45 border-l border-t border-[#dce0f2] bg-white dark:border-white/10 dark:bg-[#10131f] transition-all duration-300',
+                  'absolute -top-1.5 h-3 w-3 rotate-45 border-l border-t border-[#dce0f2] bg-white dark:border-white/10 dark:bg-[#111214] transition-all duration-300',
                   selectedMode === 'exam' ? 'left-[92px] sm:left-[112px]' : 'left-7 sm:left-9'
                 )}
               />
 
               <div className="flex items-center gap-2 relative z-10 border-b border-slate-100 dark:border-white/10 pb-2 mb-2.5">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 text-xs font-bold shrink-0">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 dark:bg-white/10 dark:text-slate-100 text-xs font-bold shrink-0">
                   💡
                 </span>
                 <div>
@@ -220,11 +220,11 @@ export default function TestModeHeaderControl({
                   className={cn(
                     'flex items-start gap-1.5 p-1.5 rounded-xl transition-all duration-200',
                     selectedMode === 'practice'
-                      ? 'bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-950 dark:text-indigo-100 font-medium border border-indigo-500/20 shadow-xs'
+                      ? 'bg-indigo-500/10 dark:bg-white/[0.08] text-indigo-950 dark:text-slate-100 font-medium border border-indigo-500/20 dark:border-white/[0.14] shadow-xs'
                       : 'opacity-70'
                   )}
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-indigo-500 shrink-0 mt-0.5" />
+                  <Sparkles className="h-3.5 w-3.5 text-indigo-500 dark:text-slate-300 shrink-0 mt-0.5" />
                   <div>
                     <strong className="text-slate-900 dark:text-white">Practice:</strong> Untimed
                     practice with instant answer checks & detailed hints.
@@ -235,11 +235,11 @@ export default function TestModeHeaderControl({
                   className={cn(
                     'flex items-start gap-1.5 p-1.5 rounded-xl transition-all duration-200',
                     selectedMode === 'exam'
-                      ? 'bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-950 dark:text-indigo-100 font-medium border border-indigo-500/20 shadow-xs'
+                      ? 'bg-indigo-500/10 dark:bg-white/[0.08] text-indigo-950 dark:text-slate-100 font-medium border border-indigo-500/20 dark:border-white/[0.14] shadow-xs'
                       : 'opacity-70'
                   )}
                 >
-                  <GraduationCap className="h-3.5 w-3.5 text-indigo-500 shrink-0 mt-0.5" />
+                  <GraduationCap className="h-3.5 w-3.5 text-indigo-500 dark:text-slate-300 shrink-0 mt-0.5" />
                   <div>
                     <strong className="text-slate-900 dark:text-white">Exam:</strong> Strict IELTS
                     timed test simulation & official score recording.
@@ -256,7 +256,7 @@ export default function TestModeHeaderControl({
 
               <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-white/10 text-[10px] text-center font-medium text-slate-500 dark:text-slate-400">
                 Click{' '}
-                <span className="font-bold text-indigo-600 dark:text-indigo-400">Start Test</span>{' '}
+                <span className="font-bold text-indigo-600 dark:text-slate-200">Start Test</span>{' '}
                 when you are ready to begin.
               </div>
             </motion.div>

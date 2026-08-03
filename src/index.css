@@ -627,7 +627,15 @@
   }
 
   .hover-lift {
-    @apply transition-transform duration-300 hover:-translate-y-1 active:scale-95;
+    @apply transition-transform duration-300 ease-sidebar hover:-translate-y-1 active:scale-95;
+  }
+
+  /* Press feedback for anything clickable that isn't the shared Button —
+     icon-only controls, custom rows, feature-local buttons. Same curve as
+     the sidebar's active state and the shared Button/Toggle/Switch
+     components, so a press feels the same everywhere on the site. */
+  .tap-scale {
+    @apply transition-transform duration-150 ease-sidebar active:scale-95;
   }
 
   .border-gradient {

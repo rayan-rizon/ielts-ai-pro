@@ -48,6 +48,8 @@ describe('AI and feed discovery routes', () => {
 
     expect(llms).toContain('# IELTS Ai Pro');
     expect(llms).toContain('AI feedback and band scores are practice estimates');
+    expect(llms).toContain('https://www.ieltsai.pro/ielts-speaking-practice-ai');
+    expect(llms).toContain('https://www.ieltsai.pro/cambridge-ielts-practice-tests');
     expect(llms).toContain('https://www.ieltsai.pro/blog/ielts-speaking-part-2-structure');
     expect(llms).toContain('https://www.ieltsai.pro/blog/feed.xml');
   });

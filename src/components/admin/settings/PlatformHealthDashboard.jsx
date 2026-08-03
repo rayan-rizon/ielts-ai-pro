@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { Link } from 'react-router-dom';
 import {
   Select,
   SelectContent,
@@ -30,6 +29,13 @@ import {
   STATUS_LABEL,
   CATEGORY_LABEL,
 } from '@/features/admin/services/PlatformHealth';
+import { createPageUrl } from '@/utils';
+import {
+  isMaintenanceActive,
+  isMaintenanceScheduled,
+  normalizeMaintenance,
+  relativeTime,
+} from '@/lib/communications';
 
 /*
  * Instrument-panel treatment: graphite surfaces, hairline rules, and exactly
@@ -720,12 +726,55 @@ const ServiceDirectory = ({
   </section>
 );
 
-const PlatformHealthDashboard = ({
-  maintenanceMode,
-  onToggleMaintenance,
-  isUpdating,
-  onLoadingChange,
-}) => {
+/**
+ * Read-only mirror of maintenance mode.
+ *
+ * The switch itself moved to Admin → Communications → Maintenance, where it
+ * sits with its message, window and bypass allowlist. Two switches writing the
+ * same setting from two screens is how the old boolean-only version stayed
+ * quietly broken; this reports state and links to the one control.
+ */
+const MaintenanceStatusCard = ({ maintenance }) => {
+  const config = normalizeMaintenance(maintenance);
+  const active = isMaintenanceActive(config);
+  const scheduled = isMaintenanceScheduled(config);
+  const dot = active ? FAULT_BG : scheduled ? WARN_BG : OK_BG;
+
+  return (
+    <div className={cn(PANEL, 'p-4')}>
+      <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-3 flex items-center gap-1.5')}>
+        <ShieldCheck className="w-3 h-3" />
+        Maintenance
+      </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 space-y-1">
+          <div className="flex items-center gap-2">
+            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', dot)} />
+            <span className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
+              {active ? 'Site offline' : scheduled ? 'Scheduled' : 'Site online'}
+            </span>
+          </div>
+          <p className="text-[11px] text-stone-500 dark:text-stone-400 font-medium leading-snug">
+            {active
+              ? 'Non-admin users are seeing the maintenance page.'
+              : scheduled
+                ? `Window opens ${relativeTime(config.starts_at)}.`
+                : 'All users have access.'}
+          </p>
+        </div>
+        <Link
+          to={`${createPageUrl('AdminPanel')}?tab=notifications&view=maintenance`}
+          className="shrink-0 inline-flex items-center gap-1 rounded-md border border-stone-300 dark:border-white/15 px-2.5 h-8 text-xs font-bold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors"
+        >
+          <Wrench className="w-3 h-3" />
+          Configure
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
   const [hours, setHours] = useState(24);
   const [health, setHealth] = useState(null);
   const [incidents, setIncidents] = useState([]);
@@ -1110,37 +1159,7 @@ const PlatformHealthDashboard = ({
             </div>
           </div>
 
-          <div className={cn(PANEL, 'p-4')}>
-            <p
-              className={cn(
-                MICRO,
-                'text-stone-500 dark:text-stone-400 mb-3 flex items-center gap-1.5'
-              )}
-            >
-              <ShieldCheck className="w-3 h-3" />
-              Maintenance
-            </p>
-            <div className="flex items-center justify-between gap-4">
-              <div className="space-y-0.5 min-w-0">
-                <Label className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
-                  Maintenance Mode
-                </Label>
-                <p className="text-[11px] text-stone-500 dark:text-stone-400 font-medium leading-snug">
-                  Restrict access for non-admin users.
-                </p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                {isUpdating && (
-                  <Loader2 className="w-4 h-4 animate-spin text-stone-500 dark:text-stone-400" />
-                )}
-                <Switch
-                  checked={maintenanceMode}
-                  onCheckedChange={onToggleMaintenance}
-                  disabled={isUpdating}
-                />
-              </div>
-            </div>
-          </div>
+          <MaintenanceStatusCard maintenance={maintenance} />
         </div>
       </section>
     </div>

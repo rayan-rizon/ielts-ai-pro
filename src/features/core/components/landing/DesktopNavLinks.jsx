@@ -1,11 +1,18 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-/** Desktop navigation pill bar with hover-following highlight. */
+/**
+ * Desktop navigation pill bar with hover-following highlight.
+ *
+ * The hover pill used to be a three-stop indigo→violet→indigo gradient with
+ * its own colour-glow shadow — a different purple than the brand's `#5a63df`,
+ * layered under a second `backdrop-blur` on top of the navbar's own blur.
+ * One flat brand-tint fill and one blur layer does the same job.
+ */
 export default function DesktopNavLinks({ links, hoveredLink, onHover }) {
   return (
     <div
-      className="hidden items-center gap-1 lg:flex bg-slate-100/80 dark:bg-slate-900/75 p-1 rounded-full border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-2xl shadow-xs hover:border-indigo-500/25 dark:hover:border-indigo-400/30 transition-colors duration-300 relative"
+      className="relative hidden items-center gap-1 rounded-full border border-[#e4e2f0] bg-[#f4f3fb] p-1 transition-colors duration-300 dark:border-white/[0.08] dark:bg-white/[0.04] lg:flex"
       data-oid="_3ruemn"
     >
       {links.map((link) => (
@@ -14,7 +21,7 @@ export default function DesktopNavLinks({ links, hoveredLink, onHover }) {
           href={link.href}
           onMouseEnter={() => onHover(link.label)}
           onMouseLeave={() => onHover(null)}
-          className="relative px-4 py-1.5 rounded-full text-[13px] md:text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-300 transition-colors duration-200 hover:text-indigo-600 dark:hover:text-indigo-300 z-10"
+          className="relative z-10 rounded-full px-4 py-1.5 text-[13px] font-semibold tracking-tight text-slate-600 transition-colors duration-200 hover:text-[#5a63df] dark:text-slate-300 dark:hover:text-[#a9afff] md:text-sm"
           data-oid="b41jq1v"
         >
           <AnimatePresence>
@@ -30,7 +37,7 @@ export default function DesktopNavLinks({ links, hoveredLink, onHover }) {
                   damping: 30,
                   opacity: { duration: 0.15 },
                 }}
-                className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-indigo-500/10 dark:from-indigo-400/15 dark:via-violet-400/15 dark:to-indigo-400/15 border border-indigo-500/20 dark:border-indigo-400/25 shadow-[0_2px_8px_-2px_rgba(99,102,241,0.14)] pointer-events-none"
+                className="absolute inset-0 rounded-full border border-[#5a63df]/20 bg-[#5a63df]/[0.08] pointer-events-none dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.14]"
                 data-oid="hover-pill-bg"
               />
             )}

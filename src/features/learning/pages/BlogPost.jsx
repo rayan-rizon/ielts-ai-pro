@@ -39,13 +39,13 @@ import { supabase } from '@/lib/supabase';
 import { SidebarPracticeCard } from '@/features/learning/components/SidebarPracticeCard';
 
 const PRACTICE_LINKS = {
-  Writing: '/writing',
-  Speaking: '/speaking',
-  Reading: '/reading',
-  Listening: '/listening',
-  'Study Planning': '/cambridge-tests',
-  'Exam Updates': '/cambridge-tests',
-  'Mock Tests': '/cambridge-tests',
+  Writing: '/ielts-writing-checker',
+  Speaking: '/ielts-speaking-practice-ai',
+  Reading: '/cambridge-ielts-practice-tests#reading',
+  Listening: '/cambridge-ielts-practice-tests#listening',
+  'Study Planning': '/cambridge-ielts-practice-tests',
+  'Exam Updates': '/cambridge-ielts-practice-tests',
+  'Mock Tests': '/cambridge-ielts-practice-tests',
 };
 
 const PRACTICE_LABELS = {

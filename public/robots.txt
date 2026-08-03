@@ -1,5 +1,5 @@
 # IELTS Ai Pro - robots.txt
-# Last updated: 2026-07-27
+# Last updated: 2026-08-03
 
 # This policy applies to search and AI discovery crawlers, including:
 # Googlebot, Bingbot, OAI-SearchBot, GPTBot, ChatGPT-User,
@@ -9,6 +9,8 @@
 User-agent: *
 Allow: /
 Allow: /ielts-writing-checker
+Allow: /ielts-speaking-practice-ai
+Allow: /cambridge-ielts-practice-tests
 
 # Private/authenticated routes
 Disallow: /dashboard/

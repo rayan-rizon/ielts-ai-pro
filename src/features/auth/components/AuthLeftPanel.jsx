@@ -11,6 +11,17 @@ const studentImages = [
   'https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?w=100&h=100&fit=crop&crop=face',
 ];
 
+/**
+ * The marketing side of the login card. Deliberately a permanent dark surface
+ * (the Logo's `variant="dark"` forces the light logotype for exactly this
+ * case) regardless of site theme — a fixed brand panel next to a
+ * theme-aware form is a normal pattern. What changed is the palette: this
+ * used to run generic blue/indigo-500 with blurred rainbow orbs and a grain
+ * texture, none of which exist anywhere else in the app. It now uses the
+ * app's own dark card token (`#131315` on `#070913`-adjacent `#0d0e1a`) and
+ * a neutral monochrome accent (white/slate, no brand color), with the same quiet dot-grid backdrop
+ * the admin panel and dashboard already use instead of the mesh-orb glow.
+ */
 export function AuthLeftPanel() {
   const [animationStep, setAnimationStep] = useState(0);
 
@@ -24,68 +35,67 @@ export function AuthLeftPanel() {
 
   return (
     <motion.div
-      className="hidden lg:flex flex-col h-full bg-gradient-to-br from-[#030712] via-[#0b0f19] to-[#0f172a] p-12 lg:col-span-3 justify-between relative overflow-hidden"
+      className="relative hidden h-full flex-col justify-between overflow-hidden bg-[#0d0e1a] p-8 lg:col-span-3 lg:flex"
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.8 }}
       data-oid="auth-left-panel"
     >
-      {/* Decorative Glows */}
-      <div className="absolute top-[-10%] right-[-10%] w-[550px] h-[550px] bg-blue-600/10 blur-[130px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-15%] left-[-10%] w-[450px] h-[450px] bg-indigo-600/10 blur-[110px] rounded-full pointer-events-none" />
+      {/* Quiet instrument-panel backdrop — the same dot grid used behind the
+          admin console, rather than a blurred rainbow mesh. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-40 [background-size:22px_22px] bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.06)_1px,transparent_0)]"
+      />
+      <div className="pointer-events-none absolute -right-24 -top-24 h-[26rem] w-[26rem] rounded-full bg-white/[0.06] blur-[120px]" />
 
-      {/* Grid Pattern overlay for tech aesthetic */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808005_1px,transparent_1px),linear-gradient(to_bottom,#80808005_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
-
-      <div className="space-y-8 relative z-20">
+      <div className="relative z-20 space-y-6">
         {/* Brand Logo Integration */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Logo size="lg" iconOnly={false} variant="dark" />
+          <Logo size="md" iconOnly={false} variant="dark" />
         </motion.div>
 
         {/* Hero Title */}
-        <div className="space-y-4">
-          <h1 className="pb-1 text-[2.6rem] font-black tracking-tight text-white leading-[1.15]">
+        <div className="space-y-3">
+          <h1 className="pb-1 text-3xl font-extrabold leading-[1.15] tracking-tight text-white">
             Achieve Band 7.5+ with <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-indigo-300">
+            <span className="bg-gradient-to-r from-slate-300 to-white bg-clip-text text-transparent">
               Personalized AI Feedback
             </span>
           </h1>
-          <p className="text-sm text-slate-400 max-w-md leading-relaxed font-medium">
+          <p className="max-w-md text-sm font-medium leading-relaxed text-slate-400">
             Unlock instant IELTS assessment for Writing & Speaking. Practice with timed mock exams,
             track your specific skill gaps, and follow a customized roadmap to success.
           </p>
         </div>
 
         {/* Interactive Dashboard / Assessment Preview Sandbox */}
-        <div className="relative mt-2" data-oid="sandbox-container">
-          <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20 blur-lg opacity-75" />
-
-          <div className="relative bg-zinc-950/60 border border-white/10 rounded-2xl p-6 backdrop-blur-2xl shadow-[0_24px_50px_-12px_rgba(0,0,0,0.5)] min-h-[290px] flex flex-col justify-between">
+        <div className="relative mt-1" data-oid="sandbox-container">
+          <div className="relative flex h-[260px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.10] bg-[#131315] p-5 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.5)]">
             {/* Window header */}
-            <div className="flex items-center justify-between border-b border-white/5 pb-3.5 mb-4">
+            <div className="mb-3.5 flex items-center justify-between border-b border-white/[0.07] pb-3">
               <div className="flex items-center gap-2">
                 <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/40" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/40" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/40" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-rose-500/40" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-amber-500/40" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/40" />
                 </div>
-                <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase ml-2 flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3 text-blue-400 animate-pulse" />
+                <span className="ml-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                  <Sparkles className="h-3 w-3 animate-pulse text-slate-300" />
                   AI Writing Assistant v2.0
                 </span>
               </div>
-              <div className="text-[10px] font-bold text-slate-400 px-2 py-0.5 bg-white/5 border border-white/10 rounded-full">
+              <div className="rounded-full border border-white/10 bg-white/[0.05] px-2 py-0.5 text-[10px] font-bold text-slate-400">
                 Task 2 Essay
               </div>
             </div>
 
             {/* Content Switcher based on step */}
-            <div className="flex-1 flex flex-col justify-center">
+            <div className="flex flex-1 flex-col justify-center">
               <AnimatePresence mode="wait">
                 {animationStep === 0 && (
                   <motion.div
@@ -97,23 +107,23 @@ export function AuthLeftPanel() {
                     className="space-y-3"
                   >
                     <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
-                      <FileText className="w-4 h-4 text-blue-400" />
+                      <FileText className="h-4 w-4 text-slate-300" />
                       <span>Submitted Response:</span>
                     </div>
-                    <div className="bg-white/5 border border-white/5 rounded-xl p-3 text-xs text-slate-300 font-mono leading-relaxed relative">
+                    <div className="relative rounded-xl border border-white/[0.05] bg-white/[0.05] p-3 font-mono text-xs leading-relaxed text-slate-300">
                       "In my opinion, universities{' '}
-                      <span className="relative inline-block px-1 rounded bg-yellow-500/20 text-yellow-300 border-b border-yellow-400">
+                      <span className="relative inline-block rounded border-b border-amber-400 bg-amber-500/20 px-1 text-amber-300">
                         must focusing
                       </span>{' '}
                       on practical skills rather than academic theories only."
                       <motion.span
                         animate={{ opacity: [0, 1, 0] }}
                         transition={{ repeat: Infinity, duration: 0.8 }}
-                        className="inline-block w-1.5 h-3.5 bg-blue-400 ml-1.5 align-middle"
+                        className="ml-1.5 inline-block h-3.5 w-1.5 align-middle bg-slate-300"
                       />
                     </div>
-                    <div className="flex items-center gap-2 text-[11px] text-blue-400/90 font-semibold animate-pulse mt-2">
-                      <Brain className="w-3.5 h-3.5 animate-spin duration-3000" />
+                    <div className="mt-2 flex animate-pulse items-center gap-2 text-[11px] font-semibold text-slate-300">
+                      <Brain className="h-3.5 w-3.5" />
                       <span>AI running linguistic assessment...</span>
                     </div>
                   </motion.div>
@@ -129,21 +139,21 @@ export function AuthLeftPanel() {
                     className="space-y-3.5"
                   >
                     <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
-                      <MessageSquare className="w-4 h-4 text-indigo-400" />
+                      <MessageSquare className="h-4 w-4 text-slate-300" />
                       <span>Grammar Analysis:</span>
                     </div>
 
                     <div className="space-y-2">
-                      <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-xs text-red-300 flex items-start gap-2.5">
-                        <span className="text-red-400 font-bold mt-0.5">Original:</span>
-                        <p className="line-through opacity-70">"...must focusing..."</p>
+                      <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs text-rose-300">
+                        <span className="mt-0.5 font-bold text-rose-400">Original:</span>
+                        <p className="opacity-70 line-through">"...must focusing..."</p>
                       </div>
 
-                      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-xs text-emerald-300 flex items-start gap-2.5">
-                        <span className="text-emerald-400 font-bold mt-0.5">Suggested:</span>
+                      <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-300">
+                        <span className="mt-0.5 font-bold text-emerald-400">Suggested:</span>
                         <div className="space-y-1">
                           <p className="font-bold">"...must focus..."</p>
-                          <p className="text-[10px] text-slate-400 leading-normal font-sans">
+                          <p className="font-sans text-[10px] font-normal leading-normal text-slate-400">
                             The modal verb <strong>'must'</strong> should be followed by the base
                             form of the verb.
                           </p>
@@ -160,11 +170,11 @@ export function AuthLeftPanel() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                    className="grid grid-cols-5 gap-4 items-center"
+                    className="grid grid-cols-5 items-center gap-4"
                   >
                     {/* Radial progress ring */}
-                    <div className="col-span-2 flex flex-col items-center justify-center relative">
-                      <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 112 112">
+                    <div className="relative col-span-2 flex flex-col items-center justify-center">
+                      <svg className="h-28 w-28 -rotate-90 transform" viewBox="0 0 112 112">
                         <circle
                           cx="56"
                           cy="56"
@@ -193,8 +203,8 @@ export function AuthLeftPanel() {
                             x2="100%"
                             y2="100%"
                           >
-                            <stop offset="0%" stopColor="#3B82F6" />
-                            <stop offset="100%" stopColor="#818CF8" />
+                            <stop offset="0%" stopColor="#94a3b8" />
+                            <stop offset="100%" stopColor="#e2e8f0" />
                           </linearGradient>
                         </defs>
                       </svg>
@@ -203,11 +213,11 @@ export function AuthLeftPanel() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: 0.4 }}
-                          className="text-2xl font-black text-white leading-none"
+                          className="text-2xl font-extrabold leading-none text-white"
                         >
                           8.5
                         </motion.span>
-                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mt-1">
+                        <span className="mt-1 text-[8px] font-bold uppercase leading-none tracking-widest text-slate-500">
                           Band Score
                         </span>
                       </div>
@@ -217,15 +227,15 @@ export function AuthLeftPanel() {
                     <div className="col-span-3 space-y-2">
                       {[
                         { label: 'Grammar Accuracy', score: 8.5, color: 'bg-emerald-500' },
-                        { label: 'Lexical Resource', score: 8.0, color: 'bg-blue-500' },
-                        { label: 'Coherence/Cohesion', score: 8.5, color: 'bg-indigo-500' },
+                        { label: 'Lexical Resource', score: 8.0, color: 'bg-slate-400' },
+                        { label: 'Coherence/Cohesion', score: 8.5, color: 'bg-slate-300' },
                       ].map((item, index) => (
                         <div key={index} className="space-y-1">
                           <div className="flex justify-between text-[10px] font-bold text-slate-400">
                             <span>{item.label}</span>
                             <span className="text-white">{item.score}</span>
                           </div>
-                          <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                          <div className="h-1 w-full overflow-hidden rounded-full bg-white/[0.05]">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${(item.score / 9) * 100}%` }}
@@ -242,14 +252,14 @@ export function AuthLeftPanel() {
             </div>
 
             {/* Dots navigation to represent steps */}
-            <div className="flex justify-center gap-1.5 border-t border-white/5 pt-3.5 mt-3">
+            <div className="mt-3 flex justify-center gap-1.5 border-t border-white/[0.05] pt-3.5">
               {[0, 1, 2].map((i) => (
                 <button
                   key={i}
                   onClick={() => setAnimationStep(i)}
                   className={cn(
-                    'w-1.5 h-1.5 rounded-full transition-all duration-300',
-                    animationStep === i ? 'bg-blue-500 w-3' : 'bg-slate-700 hover:bg-slate-600'
+                    'h-1.5 rounded-full transition-all duration-300',
+                    animationStep === i ? 'w-3 bg-white' : 'w-1.5 bg-slate-700 hover:bg-slate-600'
                   )}
                   aria-label={`Go to animation step ${i + 1}`}
                 />
@@ -264,7 +274,7 @@ export function AuthLeftPanel() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.9 }}
-        className="flex items-center justify-between pt-6 border-t border-white/10 relative z-20"
+        className="relative z-20 flex items-center justify-between border-t border-white/[0.10] pt-5"
       >
         <div className="flex items-center space-x-4">
           <div className="flex -space-x-2.5">
@@ -273,25 +283,25 @@ export function AuthLeftPanel() {
                 key={i}
                 src={src}
                 alt="student avatar"
-                className="w-9 h-9 rounded-full border-2 border-[#0f172a] shadow-lg ring-1 ring-white/10 object-cover"
+                className="h-9 w-9 rounded-full border-2 border-[#0d0e1a] object-cover shadow-lg ring-1 ring-white/10"
               />
             ))}
-            <div className="w-9 h-9 rounded-full border-2 border-[#0f172a] bg-blue-600/90 backdrop-blur-md flex items-center justify-center text-[9px] font-black text-white ring-1 ring-white/10 shadow-lg">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#0d0e1a] bg-slate-700/90 text-[9px] font-extrabold text-white shadow-lg ring-1 ring-white/10">
               +15k
             </div>
           </div>
           <div className="space-y-0.5">
-            <p className="text-white font-black text-xs tracking-wide">Trusted worldwide</p>
-            <div className="flex items-center text-slate-400 text-[9px] font-bold uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-              Live: <span className="text-slate-300 ml-1">1,248 active online</span>
+            <p className="text-xs font-extrabold tracking-wide text-white">Trusted worldwide</p>
+            <div className="flex items-center text-[9px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="mr-1.5 h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+              Live: <span className="ml-1 text-slate-300">1,248 active online</span>
             </div>
           </div>
         </div>
 
-        <div className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
+        <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-500">
           <span>Cambridge Standards</span>
-          <CheckCircle2 className="w-3.5 h-3.5 text-blue-500/80" />
+          <CheckCircle2 className="h-3.5 w-3.5 text-slate-400/80" />
         </div>
       </motion.div>
     </motion.div>

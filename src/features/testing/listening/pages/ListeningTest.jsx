@@ -21,6 +21,15 @@ import ListeningTestSheet from '../components/ListeningTestSheet';
 
 function ListeningTestInner() {
   const {
+    showConfetti,
+    showXPNotification,
+    earnedXP,
+    setShowXPNotification,
+    setShowConfetti,
+    awardXP,
+  } = useGamification();
+
+  const {
     audioPlayerRef,
     currentUser,
     toggleFlag,
@@ -36,7 +45,7 @@ function ListeningTestInner() {
     isAwaitingStart,
     isStarting,
     examReview,
-  } = useListeningTestLogic();
+  } = useListeningTestLogic({ awardXP });
 
   const state = useListeningTestState();
   const { dispatch, ACTIONS } = useListeningTestDispatch();
@@ -61,9 +70,6 @@ function ListeningTestInner() {
     showAnswerSheet,
     isFinished: state.isFinished,
   });
-
-  const { showConfetti, showXPNotification, earnedXP, setShowXPNotification, setShowConfetti } =
-    useGamification();
 
   const { showExitDialog, setShowExitDialog, handleExit } = useTestNavigation({
     session: state.session,

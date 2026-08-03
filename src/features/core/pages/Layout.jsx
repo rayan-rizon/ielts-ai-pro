@@ -10,9 +10,9 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
-import MaintenanceScreen from '@/components/shared/MaintenanceScreen';
 import AnnouncementBanner from '@/components/shared/AnnouncementBanner';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import { isAnnouncementLive } from '@/lib/communications';
 import { cn } from '@/lib/cn';
 
 // Modular Components
@@ -103,15 +103,7 @@ export default function Layout({ children, currentPageName }) {
     }
   }, [location.pathname, location.search, location.key]);
 
-  const {
-    user,
-    loading: authLoading,
-    signOut,
-    isAdmin,
-    authCheckComplete,
-    globalSettings,
-    settingsLoading,
-  } = useAuth();
+  const { user, loading: authLoading, signOut, authCheckComplete, announcement } = useAuth();
 
   const adminPages = ['AdminPanel', 'AdminLogin'];
   const testPages = [
@@ -125,6 +117,16 @@ export default function Layout({ children, currentPageName }) {
   const isAdminView = adminPages.includes(currentPageName);
   const isTestPage = testPages.includes(currentPageName);
   const isAdminLogin = currentPageName === 'AdminLogin';
+
+  // The site banner is learner/marketing copy, not an operational notice for
+  // whoever is running the platform — it never belongs in the admin console.
+  // This used to be missing entirely, so any live banner showed there too.
+  const showAnnouncement =
+    !isAdminView &&
+    isAnnouncementLive(announcement, {
+      isAuthenticated: Boolean(user),
+      tier: user?.subscription_tier,
+    });
 
   // 2. Public/Minimal layout for non-authenticated public pages
   const isPublicPage = [
@@ -149,10 +151,8 @@ export default function Layout({ children, currentPageName }) {
     navigate(isAdminView ? createPageUrl('AdminLogin') : createPageUrl('Index'));
   };
 
-  // 1. Maintenance Check (Early return)
-  if (!settingsLoading && globalSettings?.maintenance_mode && !isAdmin && !isAdminView) {
-    return <MaintenanceScreen data-oid="l1a::qm" />;
-  }
+  // Maintenance is enforced by <MaintenanceGate> around the router in App.jsx
+  // so that public routes — which never mount this Layout — are covered too.
 
   // If user is authenticated but on a public page, show spinner while redirecting
   if (isPublicPage && user && !isAdminLogin) {
@@ -202,13 +202,9 @@ export default function Layout({ children, currentPageName }) {
       >
         <OfflineBanner data-oid="-4d:8tg" />
 
-        {globalSettings?.public_announcement?.enabled && (
+        {showAnnouncement && (
           <div className="w-full shrink-0 relative z-[150]" data-oid="hm7p_sl">
-            <AnnouncementBanner
-              message={globalSettings.public_announcement.message}
-              type={globalSettings.public_announcement.type}
-              data-oid="z:9x0:g"
-            />
+            <AnnouncementBanner announcement={announcement} data-oid="z:9x0:g" />
           </div>
         )}
 

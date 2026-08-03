@@ -373,8 +373,8 @@ export default function Login() {
   // `authCheckComplete` can remain false if getSession() returns an error.
   if (isOAuthProcessing || loading || user) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] dark:bg-[#030712] flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+      <div className="flex min-h-screen items-center justify-center bg-[#f8f8fb] dark:bg-[#070913]">
+        <Loader2 className="h-9 w-9 animate-spin text-slate-400" />
       </div>
     );
   }
@@ -384,7 +384,7 @@ export default function Login() {
   return (
     <>
       <DocumentHead
-        title={isSignupMode ? 'Create IELTS Account' : 'Sign In to IELTS Ai Pro'}
+        title={isSignupMode ? 'Sign Up' : 'Login'}
         description={
           isSignupMode
             ? 'Create your IELTS Ai Pro account to access AI-powered IELTS practice, writing and speaking feedback, and progress analytics.'
@@ -399,47 +399,22 @@ export default function Login() {
       />
 
       <div
-        className="min-h-screen bg-[#f8fafc] dark:bg-[#030712] flex items-center justify-center p-4 relative overflow-hidden font-sans selection:bg-primary/30 transition-colors duration-500"
+        className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f8f8fb] p-4 font-sans transition-colors duration-500 selection:bg-slate-400/20 dark:bg-[#070913]"
         data-oid="14nvn2e"
       >
-        {/* Premium Motion Background */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden" data-oid="tvd0j8i">
-          {/* Animated Mesh Orbs */}
-          <motion.div
-            animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.1, 1] }}
-            transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute -top-[10%] -left-[5%] w-[45%] h-[45%] bg-blue-500/10 blur-[100px] rounded-full"
-            data-oid="3hs:b4w"
-          />
-
-          <motion.div
-            animate={{ x: [0, -50, 0], y: [0, 60, 0], scale: [1, 1.2, 1] }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-            className="absolute -bottom-[15%] -right-[5%] w-[50%] h-[50%] bg-indigo-500/10 blur-[120px] rounded-full"
-            data-oid="9gw-.8l"
-          />
-
-          <motion.div
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30%] h-[30%] bg-blue-400/5 blur-[80px] rounded-full"
-            data-oid="4c3a284"
-          />
-
-          {/* Architectural Grid Pattern */}
-          <div
-            className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 px-1"
-            data-oid="4_1h0bw"
-          />
-
-          <div
-            className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03] mix-blend-overlay pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"
-            data-oid="coccni9"
-          />
+        {/* Quiet instrument-panel backdrop — the same dot grid the admin
+            console and dashboard use, instead of blurred mesh orbs and a
+            grain texture that appear nowhere else in the app. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 overflow-hidden"
+          data-oid="tvd0j8i"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(168_162_158/0.25)_1px,transparent_0)] opacity-60 [background-size:22px_22px] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.06)_1px,transparent_0)] dark:opacity-30" />
         </div>
 
         <div
-          className="max-w-6xl w-full grid lg:grid-cols-5 gap-0 items-center relative z-10 glass-card-premium rounded-2xl border border-border dark:border-white/10 shadow-2xl overflow-hidden"
+          className="relative z-10 grid w-full max-w-5xl grid-cols-1 items-stretch gap-0 overflow-hidden rounded-2xl border border-[#e4e2f0] bg-white shadow-xl dark:border-white/[0.10] dark:bg-[#131315] lg:grid-cols-5"
           data-oid=":-4q___"
         >
           {/* Left Panel: Feature Highlights (3/5 width) */}
@@ -447,41 +422,41 @@ export default function Login() {
 
           {/* Right Panel: Auth Form (2/5 width) */}
           <div
-            className="lg:col-span-2 p-8 lg:p-10 relative flex flex-col justify-center bg-white/90 dark:bg-zinc-950/45 backdrop-blur-xl border-l border-slate-200/50 dark:border-white/5"
+            className="relative flex flex-col justify-center border-l border-[#e4e2f0] p-6 dark:border-white/[0.10] lg:col-span-2 lg:p-8"
             data-oid="d5v9mk6"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="w-full max-w-[340px] mx-auto"
+              className="mx-auto w-full max-w-[300px]"
               data-oid="uem-pj2"
             >
               {/* Navigation back */}
               <Link
                 to={createPageUrl('Index')}
-                className="inline-flex items-center gap-2 text-[10px] font-black text-muted-foreground hover:text-blue-500 transition-all mb-6 group uppercase tracking-[0.2em]"
+                className="group mb-4 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 transition-colors hover:text-slate-900 dark:text-slate-500 dark:hover:text-white"
                 data-oid="dh.ssa3"
               >
                 <ArrowLeft
-                  className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform"
+                  className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5"
                   data-oid="w9_yl9q"
                 />
-                Return Home
+                Return home
               </Link>
 
-              <div className="text-center lg:text-left mb-6" data-oid="30o1_of">
-                <div className="lg:hidden flex justify-center mb-6" data-oid="6j7gtso">
-                  <Logo iconOnly={false} size="xl" />
+              <div className="mb-5 text-center lg:text-left" data-oid="30o1_of">
+                <div className="mb-4 flex justify-center lg:hidden" data-oid="6j7gtso">
+                  <Logo iconOnly={false} size="lg" />
                 </div>
                 <h2
-                  className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white leading-tight"
+                  className="text-2xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-slate-50"
                   data-oid="xnuv4c-"
                 >
-                  {authMode === 'signin' ? 'Welcome Back' : 'Create Account'}
+                  {authMode === 'signin' ? 'Welcome back' : 'Create account'}
                 </h2>
                 <p
-                  className="text-slate-500 dark:text-slate-400 mt-2 text-xs font-medium leading-relaxed"
+                  className="mt-1.5 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400"
                   data-oid="0i_qno6"
                 >
                   {authMode === 'signin'
@@ -491,7 +466,7 @@ export default function Login() {
               </div>
 
               <LayoutGroup data-oid="e4.lytt">
-                <div className="space-y-6" data-oid="mo_ms5c">
+                <div className="space-y-4" data-oid="mo_ms5c">
                   <AnimatePresence mode="wait">
                     {!showVerification ? (
                       <motion.div
@@ -499,12 +474,12 @@ export default function Login() {
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 10 }}
-                        className="space-y-6"
+                        className="space-y-4"
                       >
                         {/* Social Login */}
                         <Button
                           variant="outline"
-                          className="w-full h-12 bg-white dark:bg-zinc-900/30 hover:bg-slate-50 dark:hover:bg-zinc-900/60 border border-slate-200 dark:border-white/5 shadow-sm hover:shadow hover:scale-[1.02] active:scale-[0.98] rounded-xl flex items-center justify-center gap-3 transition-all duration-300"
+                          className="flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-[#e4e2f0] bg-white transition-colors duration-200 hover:bg-[#f7f6fd] active:scale-[0.98] dark:border-white/10 dark:bg-[#131315] dark:hover:bg-white/[0.06]"
                           disabled={isLoading}
                           onClick={handleGoogleAuth}
                           type="button"
@@ -540,7 +515,7 @@ export default function Login() {
                             />
                           </svg>
                           <span
-                            className="font-bold text-sm tracking-wide dark:text-zinc-200"
+                            className="text-sm font-bold tracking-wide text-slate-700 dark:text-slate-200"
                             data-oid="-n2ge4o"
                           >
                             Continue with Google
@@ -549,22 +524,22 @@ export default function Login() {
 
                         <div className="relative" data-oid="grajcf5">
                           <div className="absolute inset-0 flex items-center" data-oid="ot59rl:">
-                            <Separator className="w-full bg-border/40" data-oid="5d_rny8" />
+                            <Separator
+                              className="w-full bg-[#e4e2f0] dark:bg-white/10"
+                              data-oid="5d_rny8"
+                            />
                           </div>
-                          <div
-                            className="relative flex justify-center text-xs uppercase"
-                            data-oid="k19y48v"
-                          >
+                          <div className="relative flex justify-center" data-oid="k19y48v">
                             <span
-                              className="bg-white dark:bg-zinc-950 px-4 font-black text-muted-foreground tracking-[0.25em] text-[10px] whitespace-nowrap transition-colors"
+                              className="whitespace-nowrap bg-white px-4 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400 transition-colors dark:bg-[#131315] dark:text-slate-500"
                               data-oid="rtcp3x_"
                             >
-                              Secure Email Login
+                              Or continue with email
                             </span>
                           </div>
                         </div>
 
-                        <form onSubmit={handleEmailAuth} className="space-y-4" data-oid="c8_-x0z">
+                        <form onSubmit={handleEmailAuth} className="space-y-3" data-oid="c8_-x0z">
                           <AnimatePresence mode="wait" data-oid="-_crrvk">
                             {error && (
                               <motion.div
@@ -573,11 +548,11 @@ export default function Login() {
                                 animate={{ opacity: 1, y: 0, height: 'auto' }}
                                 exit={{ opacity: 0, y: -10, height: 0 }}
                                 role="alert"
-                                className="p-3 rounded-xl border flex items-start gap-3 text-xs font-medium leading-relaxed bg-destructive/10 text-destructive border-destructive/20"
+                                className="flex items-start gap-3 rounded-lg border border-rose-100 bg-rose-50 p-3 text-xs font-medium leading-relaxed text-rose-900 dark:border-rose-800/30 dark:bg-rose-500/[0.08] dark:text-rose-100"
                                 data-oid="g-p0fth"
                               >
                                 <AlertCircle
-                                  className="w-4 h-4 flex-shrink-0 mt-0.5"
+                                  className="mt-0.5 h-4 w-4 shrink-0 text-rose-500 dark:text-rose-400"
                                   data-oid="m1mz93p"
                                 />
                                 <span data-oid="wg7u86l">{error}</span>
@@ -585,12 +560,12 @@ export default function Login() {
                             )}
                           </AnimatePresence>
 
-                          <div className="space-y-4" data-oid=".0y:ls2">
+                          <div className="space-y-3" data-oid=".0y:ls2">
                             {authMode === 'signup' && (
-                              <motion.div layout className="space-y-2" data-oid="zjc-3mz">
+                              <motion.div layout className="space-y-1.5" data-oid="zjc-3mz">
                                 <Label
                                   htmlFor="username"
-                                  className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+                                  className="ml-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400"
                                   data-oid="yx-bcrt"
                                 >
                                   Username
@@ -608,23 +583,23 @@ export default function Login() {
                                     }}
                                     onBlur={() => handleBlur('username')}
                                     className={cn(
-                                      'pl-11 h-12 bg-secondary/20 dark:bg-zinc-900/20 border border-slate-200 dark:border-white/10 rounded-xl transition-all duration-300 dark:text-zinc-100 dark:placeholder:text-slate-500 focus:border-primary/50 focus:bg-white dark:focus:bg-zinc-900/40 focus:ring-4 focus:ring-primary/10',
+                                      'h-10 rounded-lg border border-[#e4e2f0] bg-white pl-10 transition-colors duration-200 focus:border-slate-400 focus:ring-4 focus:ring-slate-400/10 dark:border-white/10 dark:bg-[#131315] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500',
                                       touched.username &&
                                         fieldErrors.username &&
-                                        'border-destructive focus:ring-destructive/10'
+                                        'border-rose-300 focus:ring-rose-500/10 dark:border-rose-800/60'
                                     )}
                                     data-oid="nx6_::y"
                                   />
 
                                   <UserIcon
-                                    className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 group-focus-within:text-primary transition-colors"
+                                    className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-slate-900 dark:text-slate-500 dark:group-focus-within:text-white"
                                     data-oid="gg:xg-t"
                                   />
                                 </div>
                                 {touched.username && fieldErrors.username && (
                                   <p
                                     role="alert"
-                                    className="text-[10px] text-destructive font-bold ml-1"
+                                    className="ml-1 text-[10px] font-bold text-rose-600 dark:text-rose-400"
                                     data-oid="u5vdrl2"
                                   >
                                     {fieldErrors.username}
@@ -636,10 +611,10 @@ export default function Login() {
                             <motion.div layout className="space-y-2" data-oid="9uyjebf">
                               <Label
                                 htmlFor="email"
-                                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+                                className="ml-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400"
                                 data-oid="7f3u2oz"
                               >
-                                Email Address
+                                Email address
                               </Label>
                               <div className="relative group" data-oid="1x4vykk">
                                 <Input
@@ -653,23 +628,23 @@ export default function Login() {
                                   }}
                                   onBlur={() => handleBlur('email')}
                                   className={cn(
-                                    'pl-11 h-12 bg-white/50 backdrop-blur-sm dark:bg-zinc-900/20 border border-slate-200 dark:border-white/10 rounded-xl transition-all duration-300 dark:text-zinc-100 dark:placeholder:text-slate-500 focus:border-primary/50 focus:bg-white dark:focus:bg-zinc-900/40 focus:ring-4 focus:ring-primary/10',
+                                    'h-10 rounded-lg border border-[#e4e2f0] bg-white pl-10 transition-colors duration-200 focus:border-slate-400 focus:ring-4 focus:ring-slate-400/10 dark:border-white/10 dark:bg-[#131315] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500',
                                     touched.email &&
                                       fieldErrors.email &&
-                                      'border-destructive focus:ring-destructive/10'
+                                      'border-rose-300 focus:ring-rose-500/10 dark:border-rose-800/60'
                                   )}
                                   data-oid="bkj3_um"
                                 />
 
                                 <Mail
-                                  className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 group-focus-within:text-primary transition-colors"
+                                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-slate-900 dark:text-slate-500 dark:group-focus-within:text-white"
                                   data-oid="awn_i.l"
                                 />
                               </div>
                               {touched.email && fieldErrors.email && (
                                 <p
                                   role="alert"
-                                  className="text-[10px] text-destructive font-bold ml-1"
+                                  className="ml-1 text-[10px] font-bold text-rose-600 dark:text-rose-400"
                                   data-oid="ld4hbc-"
                                 >
                                   {fieldErrors.email}
@@ -679,12 +654,12 @@ export default function Login() {
 
                             <motion.div layout className="space-y-2" data-oid="zo90:rt">
                               <div
-                                className="flex justify-between items-center ml-1"
+                                className="ml-1 flex items-center justify-between"
                                 data-oid="8q8u37o"
                               >
                                 <Label
                                   htmlFor="password"
-                                  className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+                                  className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400"
                                   data-oid="ngen74_"
                                 >
                                   Password
@@ -692,7 +667,7 @@ export default function Login() {
                                 {authMode === 'signin' && (
                                   <Link
                                     to={createPageUrl('ForgotPassword')}
-                                    className="text-[10px] font-black text-primary hover:text-primary/80 transition-colors uppercase tracking-widest"
+                                    className="text-[10px] font-bold text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                                     data-oid="3dw52e7"
                                   >
                                     Forgot?
@@ -706,12 +681,12 @@ export default function Login() {
                                   placeholder="Enter your password"
                                   value={password}
                                   onChange={(e) => setPassword(e.target.value)}
-                                  className="pl-11 pr-11 h-12 bg-secondary/20 dark:bg-zinc-900/20 border border-slate-200 dark:border-white/10 rounded-xl transition-all duration-300 dark:text-zinc-100 dark:placeholder:text-slate-500 focus:border-primary/50 focus:bg-white dark:focus:bg-zinc-900/40 focus:ring-4 focus:ring-primary/10"
+                                  className="h-10 rounded-lg border border-[#e4e2f0] bg-white pl-10 pr-10 transition-colors duration-200 focus:border-slate-400 focus:ring-4 focus:ring-slate-400/10 dark:border-white/10 dark:bg-[#131315] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500"
                                   data-oid="cr0:l26"
                                 />
 
                                 <Lock
-                                  className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 group-focus-within:text-primary transition-colors"
+                                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-slate-900 dark:text-slate-500 dark:group-focus-within:text-white"
                                   data-oid="9ccs3h2"
                                 />
 
@@ -719,13 +694,13 @@ export default function Login() {
                                   type="button"
                                   onClick={() => setShowPassword(!showPassword)}
                                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                  className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center text-muted-foreground/60 hover:text-primary transition-colors focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-md"
+                                  className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 transition-colors hover:text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-400/30 dark:text-slate-500 dark:hover:text-white"
                                   data-oid="2044ew0"
                                 >
                                   {showPassword ? (
-                                    <EyeOff className="w-4 h-4" data-oid="3l2xv1n" />
+                                    <EyeOff className="h-4 w-4" data-oid="3l2xv1n" />
                                   ) : (
-                                    <Eye className="w-4 h-4" data-oid="2vpgktn" />
+                                    <Eye className="h-4 w-4" data-oid="2vpgktn" />
                                   )}
                                 </button>
                               </div>
@@ -739,7 +714,7 @@ export default function Login() {
                               className="space-y-2 px-1 pt-1"
                               data-oid="kdu_tyw"
                             >
-                              <div className="flex gap-1.5 h-1" data-oid="2v-9kvj">
+                              <div className="flex h-1 gap-1.5" data-oid="2v-9kvj">
                                 {[0, 1, 2, 3, 4].map((i) => (
                                   <div
                                     key={i}
@@ -747,14 +722,14 @@ export default function Login() {
                                       'h-full flex-1 rounded-full transition-all duration-500',
                                       passwordStrength && i <= passwordStrength.score
                                         ? passwordStrength.color
-                                        : 'bg-secondary'
+                                        : 'bg-[#f4f3fb] dark:bg-white/[0.07]'
                                     )}
                                     data-oid="o15y.:6"
                                   />
                                 ))}
                               </div>
                               <div
-                                className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground/60"
+                                className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500"
                                 data-oid="eqyk5kc"
                               >
                                 {passwordStrength && (
@@ -776,17 +751,17 @@ export default function Login() {
                             </motion.div>
                           )}
 
-                          <motion.div layout className="pt-2" data-oid="y:9z1-7">
+                          <motion.div layout className="pt-1" data-oid="y:9z1-7">
                             <Button
                               type="submit"
                               disabled={isLoading}
-                              className="w-full h-12 bg-[#635BFF] hover:bg-[#524be3] text-white font-extrabold uppercase tracking-[0.1em] text-sm rounded-xl shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center group"
+                              className="group flex h-10 w-full items-center justify-center rounded-lg bg-slate-900 text-sm font-bold text-white transition-colors duration-200 hover:bg-slate-800 active:scale-[0.98] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
                               data-oid="ezeqau0"
                             >
                               {isLoading ? (
                                 <>
                                   <Loader2
-                                    className="w-4 h-4 mr-2 animate-spin"
+                                    className="mr-2 h-4 w-4 animate-spin"
                                     data-oid=":9jw-bw"
                                   />
                                   <span data-oid="ayu4f3p">Processing...</span>
@@ -794,10 +769,10 @@ export default function Login() {
                               ) : (
                                 <>
                                   <span data-oid="x4eyohv">
-                                    {authMode === 'signin' ? 'Sign In' : 'Create Account'}
+                                    {authMode === 'signin' ? 'Sign in' : 'Create account'}
                                   </span>
                                   <ChevronRight
-                                    className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
+                                    className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5"
                                     data-oid="xz_.pyg"
                                   />
                                 </>
@@ -806,9 +781,9 @@ export default function Login() {
                           </motion.div>
                         </form>
 
-                        <motion.div layout className="text-center pt-2" data-oid="l3-97_j">
+                        <motion.div layout className="pt-1 text-center" data-oid="l3-97_j">
                           <p
-                            className="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-widest"
+                            className="text-[12px] font-medium text-slate-500 dark:text-slate-400"
                             data-oid="mrd9y1a"
                           >
                             {authMode === 'signin'
@@ -816,10 +791,10 @@ export default function Login() {
                               : 'Already have an account?'}
                             <button
                               onClick={toggleAuthMode}
-                              className="ml-2 text-primary hover:text-primary/80 transition-colors"
+                              className="ml-1.5 font-bold text-slate-900 transition-colors hover:text-slate-600 dark:text-white dark:hover:text-slate-300"
                               data-oid="skov2p2"
                             >
-                              {authMode === 'signin' ? 'Sign Up' : 'Sign In'}
+                              {authMode === 'signin' ? 'Sign up' : 'Sign in'}
                             </button>
                           </p>
                         </motion.div>

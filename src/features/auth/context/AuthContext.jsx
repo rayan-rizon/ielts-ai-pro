@@ -1,6 +1,15 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
 import { pushUserIdentity, trackAppEvent } from '@/lib/tracking';
 import { clearAdminAccess } from '@/features/auth/utils/adminAccess';
+import { normalizeAnnouncement, normalizeMaintenance } from '@/lib/communications';
 
 const AuthContext = createContext();
 
@@ -46,7 +55,16 @@ const fallbackAuthContext = Object.freeze({
   checkIsAdmin: async () => false,
   globalSettings: null,
   settingsLoading: false,
+  refreshGlobalSettings: async () => null,
 });
+
+/**
+ * `system_settings` drives maintenance mode and the site-wide banner, so a
+ * value that only refreshes on a hard reload means an admin flipping the switch
+ * has no effect on anyone already sitting on a page. Re-read it periodically
+ * and whenever the tab regains focus. The query is three rows.
+ */
+const GLOBAL_SETTINGS_POLL_MS = 120_000;
 
 let hasWarnedMissingAuthProvider = false;
 
@@ -139,6 +157,33 @@ export const AuthProvider = ({ children }) => {
   const [globalSettings, setGlobalSettings] = useState(null);
   const [settingsLoading, setSettingsLoading] = useState(true);
   const isFetchingProfile = React.useRef(false);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  /**
+   * Re-reads `system_settings`. Exposed on the context so the admin panel can
+   * apply a maintenance/banner change to its own session immediately after
+   * saving instead of waiting for the poll.
+   */
+  const refreshGlobalSettings = useCallback(async () => {
+    try {
+      const SystemSetting = await loadSystemSettingService();
+      const settings = await SystemSetting.getAll();
+      if (isMountedRef.current) setGlobalSettings(settings);
+      return settings;
+    } catch (error) {
+      console.error('AuthContext: Failed to load system settings', error);
+      return null;
+    } finally {
+      if (isMountedRef.current) setSettingsLoading(false);
+    }
+  }, []);
   useEffect(() => {
     let isMounted = true;
     let authListener;
@@ -405,46 +450,76 @@ export const AuthProvider = ({ children }) => {
       authListener = data;
     };
 
-    const loadGlobalSettings = async () => {
-      try {
-        const SystemSetting = await loadSystemSettingService();
-        const settings = await SystemSetting.getAll();
-        if (isMounted) setGlobalSettings(settings);
-      } catch (e) {
-        console.error('AuthContext: Failed to load system settings', e);
-      } finally {
-        if (isMounted) setSettingsLoading(false);
-      }
-    };
-
     const initializeAuth = () => {
       getUser();
       setupAuthListener().catch((error) => {
         console.warn('Auth listener setup failed:', error);
       });
-      loadGlobalSettings();
+      refreshGlobalSettings();
     };
 
     const isAnonymousLanding =
       typeof window !== 'undefined' && window.location.pathname === '/' && !hasLocalSession;
 
+    let idleHandle;
     if (isAnonymousLanding) {
       // Anonymous visitors do not need Supabase to render or use the public
-      // landing page. Keep the auth bundle off the critical path, while still
-      // initializing it after the first viewport has settled.
+      // landing page, so keep the auth bundle off the critical path — but the
+      // deferred initialization below is not optional: without it
+      // `globalSettings` stays null forever on `/`, which silently disabled
+      // maintenance mode and the announcement banner for every first-time
+      // visitor.
       setLoading(false);
       setAuthCheckComplete(true);
       setAdminCheckComplete(true);
-      setSettingsLoading(false);
+
+      const startDeferred = () => {
+        if (!isMounted) return;
+        initializeAuth();
+      };
+
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        idleHandle = window.requestIdleCallback(startDeferred, { timeout: 2500 });
+      } else {
+        idleHandle = window.setTimeout(startDeferred, 1200);
+      }
     } else {
       initializeAuth();
     }
 
     return () => {
       isMounted = false;
+      if (idleHandle !== undefined) {
+        if (typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+          window.cancelIdleCallback?.(idleHandle);
+        }
+        window.clearTimeout?.(idleHandle);
+      }
       authListener?.subscription?.unsubscribe();
     };
-  }, []);
+  }, [refreshGlobalSettings]);
+
+  /**
+   * Keep maintenance mode and the banner current for sessions that are already
+   * open: poll on an interval and re-read whenever the tab comes back.
+   */
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') refreshGlobalSettings();
+    }, GLOBAL_SETTINGS_POLL_MS);
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refreshGlobalSettings();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [refreshGlobalSettings]);
 
   // Revalidate session when tab becomes visible
   // This ensures the session is still valid after returning from another tab
@@ -668,6 +743,13 @@ export const AuthProvider = ({ children }) => {
       checkIsAdmin,
       globalSettings,
       settingsLoading,
+      refreshGlobalSettings,
+      // Pre-normalised so no consumer has to remember that `maintenance_mode`
+      // may still be a bare boolean, or that the banner's old severity was
+      // `error`. `maintenance.enabled` is *not* the same as "show the screen" —
+      // use isMaintenanceActive() from lib/communications for that.
+      maintenance: normalizeMaintenance(globalSettings?.maintenance_mode),
+      announcement: normalizeAnnouncement(globalSettings?.public_announcement),
     };
   }, [
     user,
@@ -684,6 +766,7 @@ export const AuthProvider = ({ children }) => {
     checkIsAdmin,
     globalSettings,
     settingsLoading,
+    refreshGlobalSettings,
   ]);
 
   return (

@@ -24,26 +24,26 @@ const footerLinks = {
     links: [
       { label: 'Band Score Calculator', href: '/ielts-band-score-calculator' },
       { label: 'Writing Task Evaluator', href: '/ielts-writing-checker' },
-      { label: 'Speaking Test Simulator', href: '/speaking' },
-      { label: 'Listening Practice Hub', href: '/listening' },
-      { label: 'Reading Comprehension', href: '/reading' },
+      { label: 'Speaking Test Simulator', href: '/ielts-speaking-practice-ai' },
+      { label: 'Listening Practice Hub', href: '/cambridge-ielts-practice-tests#listening' },
+      { label: 'Reading Comprehension', href: '/cambridge-ielts-practice-tests#reading' },
     ],
   },
   'Test Prep': {
     icon: BookOpen,
     links: [
-      { label: 'Writing Band Score Criteria', href: '/writing' },
-      { label: 'Speaking Criteria Breakdown', href: '/speaking' },
+      { label: 'Writing Band Score Criteria', href: '/ielts-writing-checker' },
+      { label: 'Speaking Criteria Breakdown', href: '/ielts-speaking-practice-ai' },
       { label: 'Vocabulary Builder', href: '/vocabulary' },
-      { label: 'Mock Test Analytics', href: '/analytics' },
+      { label: 'Mock Test Analytics', href: '/cambridge-ielts-practice-tests' },
     ],
   },
   Resources: {
     icon: SparklesIcon,
     links: [
       { label: 'IELTS Prep Blog & Guides', href: '/blog' },
-      { label: 'Cambridge Practice Material', href: '/resources' },
-      { label: 'Pricing Plans & Access', href: '/pricing' },
+      { label: 'Cambridge Practice Material', href: '/cambridge-ielts-practice-tests' },
+      { label: 'Pricing Plans & Access', href: '/#pricing' },
     ],
   },
   Company: {

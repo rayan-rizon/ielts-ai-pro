@@ -7,10 +7,8 @@ import { renderSitemap } from '../api/sitemap.js';
 const root = process.cwd();
 const siteUrl = 'https://www.ieltsai.pro';
 const retiredRoutes = {
-  '/ielts-speaking-practice-ai': '/speaking',
-  '/ielts-mock-test-online': '/cambridge-tests',
-  '/cambridge-ielts-practice-tests': '/cambridge-tests',
-  '/free-ielts-practice-tests': '/cambridge-tests',
+  '/ielts-mock-test-online': '/cambridge-ielts-practice-tests',
+  '/free-ielts-practice-tests': '/cambridge-ielts-practice-tests',
   '/ai-ielts-preparation': '/signup',
   '/ielts-band-score-feedback': '/analytics',
 };
@@ -31,6 +29,8 @@ const removedStaticPagePaths = [
 const publicRoutes = [
   '/',
   '/ielts-writing-checker',
+  '/ielts-speaking-practice-ai',
+  '/cambridge-ielts-practice-tests',
   '/ielts-band-score-calculator',
   '/blog',
   '/about',
@@ -71,10 +71,23 @@ const robots = readFileSync(path.join(root, 'public/robots.txt'), 'utf8');
 const vercel = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8'));
 const appSource = readFileSync(path.join(root, 'src/App.jsx'), 'utf8');
 const indexHtml = readFileSync(path.join(root, 'index.html'), 'utf8');
-const generatedWritingCheckerPath = path.join(root, 'dist/ielts-writing-checker/index.html');
+const generatedSeoPages = {
+  '/ielts-writing-checker': {
+    path: path.join(root, 'dist/ielts-writing-checker/index.html'),
+    title: 'Free IELTS Writing Checker – Task 1 & 2 Feedback | IELTS Ai Pro',
+  },
+  '/ielts-speaking-practice-ai': {
+    path: path.join(root, 'dist/ielts-speaking-practice-ai/index.html'),
+    title: 'AI IELTS Speaking Practice with Feedback | IELTS Ai Pro',
+  },
+  '/cambridge-ielts-practice-tests': {
+    path: path.join(root, 'dist/cambridge-ielts-practice-tests/index.html'),
+    title: 'Cambridge IELTS Practice Tests Online | IELTS Ai Pro',
+  },
+};
 
-if (!appSource.includes("path: '/ielts-writing-checker'")) {
-  fail('the public writing checker React route is missing');
+for (const route of Object.keys(generatedSeoPages)) {
+  if (!appSource.includes(`path: '${route}'`)) fail(`the public React route ${route} is missing`);
 }
 
 for (const route of publicRoutes) {
@@ -167,6 +180,8 @@ const requiredRewrites = {
   '/blog': '/api/blog',
   '/blog/:slug': '/api/blog?slug=:slug',
   '/ielts-writing-checker': '/ielts-writing-checker/index.html',
+  '/ielts-speaking-practice-ai': '/ielts-speaking-practice-ai/index.html',
+  '/cambridge-ielts-practice-tests': '/cambridge-ielts-practice-tests/index.html',
 };
 for (const [source, destination] of Object.entries(requiredRewrites)) {
   if (rewrites.get(source) !== destination) {
@@ -179,19 +194,20 @@ for (const rewrite of vercel.rewrites || []) {
     fail(`retired route ${rewrite.source} still rewrites`);
   if (
     rewrite.destination.includes('/index.html') &&
-    !['/:path*', '/(.*)', '/:path(.*)', '/ielts-writing-checker'].includes(rewrite.source)
+    !['/:path*', '/(.*)', '/:path(.*)', ...Object.keys(generatedSeoPages)].includes(rewrite.source)
   ) {
     fail(`standalone static rewrite remains for ${rewrite.source}`);
   }
 }
 
-if (existsSync(generatedWritingCheckerPath)) {
-  const writingCheckerHtml = readFileSync(generatedWritingCheckerPath, 'utf8');
-  if (!writingCheckerHtml.includes('<title>Free IELTS Writing Checker – Task 1 & 2 Band Score & Feedback | IELTS Ai Pro</title>')) {
-    fail('generated writing checker page is missing its page-specific title');
+for (const [route, config] of Object.entries(generatedSeoPages)) {
+  if (!existsSync(config.path)) continue;
+  const html = readFileSync(config.path, 'utf8');
+  if (!html.includes(`<title>${config.title}</title>`)) {
+    fail(`generated ${route} page is missing its page-specific title`);
   }
-  if (!writingCheckerHtml.includes('href="https://www.ieltsai.pro/ielts-writing-checker"')) {
-    fail('generated writing checker page is missing its canonical URL');
+  if (!html.includes(`href="${siteUrl}${route}"`)) {
+    fail(`generated ${route} page is missing its canonical URL`);
   }
 }
 

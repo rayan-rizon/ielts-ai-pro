@@ -32,7 +32,9 @@ function getImageType(url) {
 
 /** Build the full page title, appending the site name when missing. */
 function buildTitle(title) {
-  return title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
+  if (title.includes(SITE_NAME)) return title;
+  const brandedTitle = `${title} | ${SITE_NAME}`;
+  return brandedTitle.length <= 65 ? brandedTitle : title;
 }
 
 /**

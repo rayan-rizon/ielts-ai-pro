@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import RecentPracticeHistory from '@/features/analytics/components/RecentPracticeHistory';
 
 const writingSession = {
@@ -23,10 +24,12 @@ function LocationProbe() {
 describe('Recent practice history results', () => {
   it('opens the full annotated Writing result instead of the generic summary dialog', () => {
     render(
-      <MemoryRouter initialEntries={['/analytics']}>
-        <LocationProbe />
-        <RecentPracticeHistory sessions={[writingSession]} user={{ id: 'learner-1' }} />
-      </MemoryRouter>
+      <TooltipProvider>
+        <MemoryRouter initialEntries={['/analytics']}>
+          <LocationProbe />
+          <RecentPracticeHistory sessions={[writingSession]} user={{ id: 'learner-1' }} />
+        </MemoryRouter>
+      </TooltipProvider>
     );
 
     fireEvent.click(

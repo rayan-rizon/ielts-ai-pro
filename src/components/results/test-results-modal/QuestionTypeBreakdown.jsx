@@ -1,127 +1,127 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/cn';
 import {
-  FileText,
-  Link,
-  CheckSquare,
-  ListOrdered,
-  HelpCircle,
-  MapPin,
-  Network,
-  Table2,
-} from 'lucide-react';
+  MICRO,
+  MUTED,
+  NUM,
+  PANEL,
+  PanelTitle,
+  SIGNAL_TEXT,
+  TILE,
+  Tip,
+  WELL,
+} from '@/features/dashboard/components/primitives';
 import { QUESTION_TYPE_LABELS } from './utils';
+import { accuracyTone } from './resultStats';
 
-const TYPE_ICONS = {
-  note_completion: FileText,
-  notes_completion: FileText,
-  sentence_completion: FileText,
-  summary_completion: FileText,
-  gap_fill: FileText,
-  matching: Link,
-  matching_features: Link,
-  matching_headings: Link,
-  true_false_not_given: CheckSquare,
-  yes_no_not_given: CheckSquare,
-  multiple_choice: ListOrdered,
-  map_labeling: MapPin,
-  flowchart: Network,
-  flow_chart_completion: Network,
-  diagram_completion: Network,
-  table_completion: Table2,
+/**
+ * Solid signal fills. The shared `SIGNAL_FILL` tokens sit at ~30% alpha, which
+ * is tuned for wide meter tracks; on a 6px bar they wash out against the WELL
+ * track, so these bars use the signal colour at full strength.
+ */
+const BAR_FILL = {
+  ok: 'bg-[rgb(var(--signal-ok))]',
+  warn: 'bg-[rgb(var(--signal-warn))]',
+  fault: 'bg-[rgb(var(--signal-fault))]',
 };
 
-const TYPE_COLORS = [
-  {
-    bg: 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff]',
-    bar: 'bg-[#5a63df]',
-  },
-];
+const TONE_LABEL = { ok: 'Strong', warn: 'Fair', fault: 'Needs work' };
 
 export function QuestionTypeBreakdown({ testResults }) {
   const typeStats = testResults?.typeStats;
 
-  const typeEntries = React.useMemo(() => {
+  /**
+   * Sorted weakest-first. The old grid used insertion order and painted every
+   * bar the same indigo, so nothing told the learner where to start — the one
+   * decision this card exists to support.
+   */
+  const entries = React.useMemo(() => {
     if (!typeStats) return [];
     return Object.entries(typeStats)
-      .filter(([, s]) => s.total > 0)
+      .filter(([, s]) => s?.total > 0)
       .map(([type, s]) => {
-        const accuracy = s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
-        const label =
-          QUESTION_TYPE_LABELS[type] ||
-          type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-        const Icon = TYPE_ICONS[type] || HelpCircle;
-        return { type, label, correct: s.correct, total: s.total, accuracy, Icon };
-      });
+        const accuracy = Math.round((s.correct / s.total) * 100);
+        return {
+          type,
+          label:
+            QUESTION_TYPE_LABELS[type] ||
+            type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+          correct: s.correct,
+          total: s.total,
+          accuracy,
+          tone: accuracyTone(accuracy),
+        };
+      })
+      .sort((a, b) => a.accuracy - b.accuracy || b.total - a.total);
   }, [typeStats]);
 
-  if (typeEntries.length === 0) return null;
+  if (entries.length === 0) return null;
 
-  const desktopColumns =
-    typeEntries.length >= 6
-      ? 'lg:grid-cols-6'
-      : typeEntries.length === 5
-        ? 'lg:grid-cols-5'
-        : 'lg:grid-cols-4';
+  const weakCount = entries.filter((e) => e.tone === 'fault').length;
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.15 }}
-      className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs space-y-3"
+      className={cn(PANEL, 'p-4')}
     >
-      <h3 className="text-sm font-black text-slate-950 dark:text-white uppercase tracking-wider">
-        Question Type Breakdown
-      </h3>
+      <PanelTitle
+        label="Accuracy by question type"
+        tip="Sorted weakest first. Colour marks where accuracy fell below 80% and 50%."
+        action={
+          weakCount > 0 ? (
+            <span className={cn(MICRO, SIGNAL_TEXT.fault)}>
+              <span className={NUM}>{weakCount}</span> weak {weakCount === 1 ? 'type' : 'types'}
+            </span>
+          ) : null
+        }
+      />
 
-      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${desktopColumns} gap-2.5`}>
-        {typeEntries.map((item, idx) => {
-          const colorTheme = TYPE_COLORS[idx % TYPE_COLORS.length];
-          const IconComponent = item.Icon;
-
-          return (
-            <div
-              key={item.type}
-              className="p-3 rounded-xl bg-white/90 dark:bg-white/5 border border-[#e4e2f0] dark:border-white/[0.07] flex flex-col justify-between space-y-2.5 transition-all shadow-2xs hover:border-[#5a63df]/50 hover:shadow-xs"
-            >
-              <div className="flex items-center gap-2.5">
-                <div
-                  className={`w-8 h-8 rounded-xl ${colorTheme.bg} flex items-center justify-center shrink-0 shadow-2xs border border-current/10`}
-                >
-                  <IconComponent className="w-3.5 h-3.5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="min-h-[24px] text-xs font-extrabold text-slate-950 dark:text-white leading-tight line-clamp-2">
-                    {item.label}
-                  </h4>
-                </div>
-              </div>
-
-              <div className="flex items-baseline justify-between pt-1">
-                <p className="text-xs font-black text-slate-950 dark:text-white leading-none">
-                  {item.correct}{' '}
-                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
-                    / {item.total}
-                  </span>
-                </p>
-                <span className="text-xs font-black text-[#5a63df] dark:text-[#a9afff]">
-                  {item.accuracy}%
+      <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
+        {entries.map((item, idx) => (
+          <Tip
+            key={item.type}
+            content={
+              <span className="space-y-0.5">
+                <span className="block font-bold">
+                  {item.correct}/{item.total} correct ·{' '}
+                  <span className={SIGNAL_TEXT[item.tone]}>{TONE_LABEL[item.tone]}</span>
                 </span>
+                <span className="block text-slate-300 dark:text-slate-400">
+                  {item.total - item.correct} missed in this type
+                </span>
+              </span>
+            }
+          >
+            <div className={cn(TILE, 'flex cursor-default items-center gap-2.5 px-2.5 py-2')}>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="truncate text-[11px] font-extrabold text-slate-800 dark:text-slate-100">
+                    {item.label}
+                  </span>
+                  <span
+                    className={cn(NUM, 'shrink-0 text-[11px] font-bold', SIGNAL_TEXT[item.tone])}
+                  >
+                    {item.accuracy}%
+                  </span>
+                </div>
+                <div className={cn('mt-1.5 h-1.5 w-full overflow-hidden rounded-full', WELL)}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${item.accuracy}%` }}
+                    transition={{ duration: 0.6, delay: 0.15 + idx * 0.03 }}
+                    className={cn('h-full rounded-full', BAR_FILL[item.tone])}
+                  />
+                </div>
               </div>
-
-              {/* Progress Bar */}
-              <div className="h-2 bg-slate-200/80 dark:bg-white/10 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${item.accuracy}%` }}
-                  transition={{ duration: 0.6, delay: 0.2 + idx * 0.05 }}
-                  className={`h-full rounded-full ${colorTheme.bar}`}
-                />
-              </div>
+              <span className={cn(NUM, MUTED, 'shrink-0 text-[11px] font-bold tabular-nums')}>
+                {item.correct}/{item.total}
+              </span>
             </div>
-          );
-        })}
+          </Tip>
+        ))}
       </div>
     </motion.div>
   );

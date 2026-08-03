@@ -6,16 +6,19 @@ import {
   Users,
   Tag,
   Settings,
-  Bell,
+  Megaphone,
   FileText,
   Library,
   Cpu,
   CreditCard,
   Gift,
 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { createPageUrl } from '@/utils';
-import DashboardSkeleton from '@/features/dashboard/components/DashboardSkeleton';
+import { cn } from '@/lib/cn';
+import { MICRO } from '@/components/admin/ui/primitives';
+import PremiumLoading from '@/components/ui/PremiumLoading';
 
 // Lazy load admin components
 const AdminOverview = lazy(() => import('@/components/admin/AdminOverview'));
@@ -27,9 +30,7 @@ const UserAnalytics = lazy(() => import('@/components/admin/UserAnalytics'));
 const RevenueAnalytics = lazy(() => import('@/components/admin/RevenueAnalytics'));
 const GlobalSettings = lazy(() => import('@/components/admin/settings/GlobalSettings'));
 const PaymentManagement = lazy(() => import('@/components/admin/PaymentManagement'));
-const NotificationCenter = lazy(
-  () => import('@/components/admin/notifications/NotificationCenter')
-);
+const CommunicationsCenter = lazy(() => import('@/components/admin/communications'));
 const AIUsageManagement = lazy(() => import('@/components/admin/AIUsageManagement'));
 const ReferralManagement = lazy(() => import('@/components/admin/ReferralManagement'));
 
@@ -42,7 +43,8 @@ const TABS = [
   { id: 'promo', label: 'Promos', icon: Tag },
   { id: 'referrals', label: 'Referrals', icon: Gift },
   { id: 'payments', label: 'Payments', icon: CreditCard },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
+  // Tab id stays `notifications` so existing bookmarks and deep links keep working.
+  { id: 'notifications', label: 'Communications', icon: Megaphone },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
@@ -266,7 +268,7 @@ export default function AdminPanel() {
       case 'payments':
         return <PaymentManagement data-oid="x4tt6sy" />;
       case 'notifications':
-        return <NotificationCenter data-oid="oh20dt3" />;
+        return <CommunicationsCenter data-oid="oh20dt3" />;
       case 'resources':
         return <ResourceManagement data-oid="5rqz_bi" />;
       case 'ai-usage':
@@ -284,7 +286,9 @@ export default function AdminPanel() {
   };
 
   if (isLoading) {
-    return <DashboardSkeleton data-oid="admin-dashboard-skeleton" />;
+    return (
+      <PremiumLoading message="Loading..." fullScreen={false} data-oid="admin-dashboard-skeleton" />
+    );
   }
 
   return (
@@ -321,30 +325,12 @@ export default function AdminPanel() {
             <Suspense
               fallback={
                 <div
-                  className="flex flex-col items-center justify-center h-[60vh]"
+                  className="flex flex-col items-center justify-center h-[60vh] gap-3"
                   data-oid="a4-w0ma"
                 >
-                  <div className="relative" data-oid="o987s6k">
-                    <div
-                      className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"
-                      data-oid="jfoorbe"
-                    />
-
-                    <div
-                      className="absolute inset-0 flex items-center justify-center"
-                      data-oid="-skvujs"
-                    >
-                      <div
-                        className="w-8 h-8 bg-primary/20 rounded-full animate-pulse"
-                        data-oid="44to_vz"
-                      />
-                    </div>
-                  </div>
-                  <p
-                    className="mt-4 text-sm font-medium text-muted-foreground animate-pulse"
-                    data-oid="f0k.-5t"
-                  >
-                    Loading {activeTab}...
+                  <Loader2 className="w-7 h-7 text-stone-500 dark:text-stone-400 animate-spin" />
+                  <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                    Loading {activeTab}
                   </p>
                 </div>
               }

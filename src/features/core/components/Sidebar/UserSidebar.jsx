@@ -21,9 +21,9 @@ import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/cn';
 
 const ACCENT_ACTIVE =
-  'bg-[#5a63df]/[0.09] text-[#4a52c9] dark:bg-[#5a63df]/[0.22] dark:text-[#c3c7ff]';
+  'bg-[#5a63df]/[0.09] text-[#4a52c9] border-[#5a63df]/15 dark:bg-[#5a63df]/[0.22] dark:text-[#c3c7ff] dark:border-[#5a63df]/25';
 const ACCENT_HOVER =
-  'hover:bg-[#5a63df]/[0.05] hover:text-[#4a52c9] dark:hover:bg-white/[0.05] dark:hover:text-slate-100';
+  'hover:bg-[#5a63df]/[0.07] hover:text-[#4a52c9] dark:hover:bg-white/[0.08] dark:hover:text-white';
 const AI_BADGE =
   'border-[0.5px] border-[#c3c8f2]/80 bg-gradient-to-br from-[#f5f6ff] via-[#eef0ff] to-[#fbfaff] text-[#5b64c8] shadow-[0_1px_5px_rgba(86,97,233,0.08)] dark:border-[#7f87e2]/30 dark:bg-gradient-to-br dark:from-[#30366f]/85 dark:via-[#393474]/70 dark:to-[#2b355e]/85 dark:text-[#cbd0f5] dark:shadow-[0_1px_6px_rgba(86,97,233,0.12)]';
 const AI_BADGE_ACTIVE =
@@ -117,7 +117,7 @@ const UserSidebarHeader = () => (
 
 const NavigationSection = ({ label, items, currentPath, className }) => (
   <SidebarGroup className={className}>
-    <SidebarGroupLabel className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 group-data-[collapsible=icon]:hidden dark:text-slate-500">
+    <SidebarGroupLabel className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 group-data-[collapsible=icon]:hidden dark:text-slate-400">
       {label}
     </SidebarGroupLabel>
     <SidebarGroupContent>
@@ -230,7 +230,7 @@ const UserSidebarFooter = ({ user, handleLogout }) => {
       <div className="space-y-1.5">
         <div className="mb-1 flex justify-center">
           <SidebarTrigger
-            className="text-slate-400 transition-colors duration-200 ease-sidebar hover:text-[#5a63df] dark:text-slate-500"
+            className="text-slate-500 transition-colors duration-200 ease-sidebar hover:text-[#5a63df] dark:text-slate-300 dark:hover:text-white"
             aria-label="Toggle sidebar"
           />
         </div>
@@ -241,7 +241,7 @@ const UserSidebarFooter = ({ user, handleLogout }) => {
         <UserProfileLink user={user} onNavigate={closeMobileSidebar} />
         <SidebarMenuButton
           onClick={signOut}
-          className="w-full justify-start gap-2.5 rounded-lg px-3 text-slate-500 transition-colors duration-200 ease-sidebar hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+          className="w-full justify-start gap-2.5 rounded-lg px-3 text-slate-600 transition-colors duration-200 ease-sidebar hover:bg-red-50 hover:text-red-600 dark:text-slate-300 dark:hover:bg-red-500/10 dark:hover:text-red-400"
         >
           <LogOut className="h-4 w-4" strokeWidth={2} />
           <span className="text-[13px] font-semibold group-data-[collapsible=icon]:hidden">

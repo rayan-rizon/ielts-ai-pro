@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
@@ -82,6 +83,10 @@ const health = {
   activity: { signups: 3, activeUsers: 14, testSessions: 8 },
 };
 
+// The maintenance status card links through to Admin -> Communications, so the
+// dashboard needs a router in scope.
+const render = (ui) => rtlRender(<MemoryRouter>{ui}</MemoryRouter>);
+
 describe('PlatformHealthDashboard operations console', () => {
   beforeEach(() => {
     mocks.get.mockReset().mockResolvedValue(health);
@@ -96,13 +101,7 @@ describe('PlatformHealthDashboard operations console', () => {
   });
 
   it('puts impact, resolution, ownership and evidence in the action queue', async () => {
-    render(
-      <PlatformHealthDashboard
-        maintenanceMode={false}
-        onToggleMaintenance={vi.fn()}
-        isUpdating={false}
-      />
-    );
+    render(<PlatformHealthDashboard />);
 
     expect(await screen.findByText('Action queue')).toBeInTheDocument();
     expect(screen.getAllByText('Speech-to-Text').length).toBeGreaterThan(0);
@@ -114,13 +113,7 @@ describe('PlatformHealthDashboard operations console', () => {
   });
 
   it('filters and searches the full provider directory without hiding incident context', async () => {
-    render(
-      <PlatformHealthDashboard
-        maintenanceMode={false}
-        onToggleMaintenance={vi.fn()}
-        isUpdating={false}
-      />
-    );
+    render(<PlatformHealthDashboard />);
 
     await screen.findByText('Service directory');
     fireEvent.click(screen.getByRole('button', { name: /Payments 1/i }));
@@ -137,14 +130,7 @@ describe('PlatformHealthDashboard operations console', () => {
 
   it('loads health and incident telemetry together and reports loading completion', async () => {
     const onLoadingChange = vi.fn();
-    render(
-      <PlatformHealthDashboard
-        maintenanceMode={false}
-        onToggleMaintenance={vi.fn()}
-        isUpdating={false}
-        onLoadingChange={onLoadingChange}
-      />
-    );
+    render(<PlatformHealthDashboard onLoadingChange={onLoadingChange} />);
 
     await waitFor(() => expect(mocks.get).toHaveBeenCalledWith(24));
     expect(mocks.incidents).toHaveBeenCalledWith(24);

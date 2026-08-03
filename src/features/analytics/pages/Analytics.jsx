@@ -34,29 +34,32 @@ const AnalyticsSkeleton = React.memo(function AnalyticsSkeleton() {
   return (
     <div className={PAGE_SHELL}>
       <PageBackdrop />
-      <div className="relative z-10 mx-auto max-w-[1600px] animate-pulse space-y-4">
-        <div className="space-y-2 border-b border-[#eeedf7] pb-4 dark:border-white/[0.07]">
-          <div className="h-4 w-32 rounded-full bg-slate-200 dark:bg-white/10" />
-          <div className="h-7 w-48 rounded-lg bg-slate-200 dark:bg-white/10" />
-          <div className="h-10 w-full rounded-lg bg-slate-100 dark:bg-white/5" />
+      <div className="relative z-10 mx-auto max-w-[1600px] animate-pulse space-y-3">
+        <div className="flex items-end justify-between gap-3 border-b border-[#eeedf7] pb-3 dark:border-white/[0.07]">
+          <div className="space-y-2">
+            <div className="h-4 w-32 rounded-full bg-slate-200 dark:bg-white/10" />
+            <div className="h-7 w-40 rounded-lg bg-slate-200 dark:bg-white/10" />
+          </div>
+          <div className="h-9 w-[260px] rounded-lg bg-slate-100 dark:bg-white/5" />
         </div>
-        <div className="grid grid-cols-12 gap-3">
-          <div className={cn(PANEL, 'col-span-12 h-[132px] lg:col-span-5')} />
+        <div className="grid grid-cols-12 items-start gap-3">
+          <div className={cn(PANEL, 'col-span-12 h-[148px] lg:col-span-5')} />
           <div className="col-span-12 grid grid-cols-1 gap-3 sm:grid-cols-3 lg:col-span-7">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className={cn(PANEL, 'h-[132px]')} />
+              <div key={index} className={cn(PANEL, 'h-[76px]')} />
             ))}
           </div>
         </div>
         <div className="grid grid-cols-12 gap-3">
-          <div className={cn(PANEL, 'col-span-12 h-[380px] xl:col-span-5')} />
-          <div className={cn(PANEL, 'col-span-12 h-[380px] md:col-span-6 xl:col-span-4')} />
-          <div className={cn(PANEL, 'col-span-12 h-[380px] md:col-span-6 xl:col-span-3')} />
-        </div>
-        <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className={cn(PANEL, 'h-[280px]')} />
-          ))}
+          <div className={cn(PANEL, 'col-span-12 h-[360px] xl:col-span-5')} />
+          <div className={cn(PANEL, 'col-span-12 h-[360px] md:col-span-7 xl:col-span-4')} />
+          <div className={cn(PANEL, 'col-span-12 h-[360px] md:col-span-5 xl:col-span-3')} />
+          <div className={cn(PANEL, 'col-span-12 h-[340px] xl:col-span-5')} />
+          <div className={cn(PANEL, 'col-span-12 h-[340px] md:col-span-7 xl:col-span-4')} />
+          <div className={cn(PANEL, 'col-span-12 h-[340px] md:col-span-5 xl:col-span-3')} />
+          <div className={cn(PANEL, 'col-span-12 h-[300px] lg:col-span-6')} />
+          <div className={cn(PANEL, 'col-span-12 h-[300px] lg:col-span-6')} />
+          <div className={cn(PANEL, 'col-span-12 h-[200px]')} />
         </div>
       </div>
     </div>

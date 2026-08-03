@@ -9,6 +9,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/cn';
 
 export function VerificationView({
   email,
@@ -25,62 +26,34 @@ export function VerificationView({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className="space-y-8"
+      className="space-y-6"
       data-oid="v-view"
     >
-      <div className="text-center space-y-4">
+      <div className="space-y-3 text-center">
         {/* Animated Icon Container */}
-        <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
+        <div className="relative mx-auto flex h-16 w-16 items-center justify-center">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', damping: 12, stiffness: 100, delay: 0.1 }}
-            className="absolute inset-0 bg-blue-500/10 rounded-[2.5rem] border border-blue-500/20 shadow-[inset_0_2px_10px_rgba(59,130,246,0.1)]"
+            className="absolute inset-0 rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/[0.06]"
           />
 
           <motion.div
-            animate={{
-              y: [0, -4, 0],
-              rotate: [0, -2, 2, -2, 0],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
+            animate={{ y: [0, -4, 0], rotate: [0, -2, 2, -2, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             className="relative z-10"
           >
-            <Mail className="w-12 h-12 text-blue-500 drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]" />
+            <Mail className="h-8 w-8 text-slate-700 dark:text-slate-200" />
           </motion.div>
-
-          {/* Particle Effects */}
-          {[...Array(3)].map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{
-                opacity: [0, 1, 0],
-                scale: [0, 1.5],
-                x: (i - 1) * 30,
-                y: -40 - i * 10,
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                delay: i * 0.6,
-                ease: 'easeOut',
-              }}
-              className="absolute w-1.5 h-1.5 bg-blue-400 rounded-full blur-[1px]"
-            />
-          ))}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <motion.h3
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-3xl font-black tracking-tight text-slate-900 dark:text-white"
+            className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50"
           >
             Check your inbox
           </motion.h3>
@@ -88,10 +61,10 @@ export function VerificationView({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed"
+            className="text-sm leading-relaxed text-slate-500 dark:text-slate-400"
           >
             We've sent a verification link to <br />
-            <span className="font-bold text-slate-900 dark:text-white break-all px-1.5 py-0.5 rounded-md bg-secondary/50 border border-border/50">
+            <span className="break-all rounded-md border border-[#e4e2f0] bg-[#f4f3fb] px-1.5 py-0.5 font-bold text-slate-900 dark:border-white/10 dark:bg-white/[0.07] dark:text-slate-50">
               {email}
             </span>
           </motion.p>
@@ -104,60 +77,55 @@ export function VerificationView({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-black items-start flex gap-3 shadow-lg shadow-emerald-500/5 transition-all duration-300"
+            className="flex items-start gap-3 rounded-lg border border-emerald-100 bg-emerald-50 p-3.5 text-[12px] font-semibold text-emerald-900 dark:border-emerald-800/30 dark:bg-emerald-500/[0.08] dark:text-emerald-100"
           >
-            <ShieldCheck className="w-5 h-5 mt-0.5 shrink-0 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
-            <span className="leading-relaxed tracking-tight">{info}</span>
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <span className="leading-relaxed">{info}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="space-y-3 pt-2">
+      <div className="space-y-2.5 pt-1">
         <Button
           onClick={onResend}
           disabled={isResending || resendTimer > 0}
-          className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-primary/20 hover-lift relative overflow-hidden group transition-all duration-300"
+          className="h-10 w-full rounded-lg bg-slate-900 text-sm font-bold text-white transition-colors hover:bg-slate-800 active:scale-[0.98] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
         >
           {isResending ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : resendTimer > 0 ? (
             <span className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-blue-300" />
+              <Zap className="h-3.5 w-3.5" />
               Resend in {resendTimer}s
             </span>
           ) : (
-            <span className="flex items-center gap-2">
-              Resend Link
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <span className="group flex items-center gap-1.5">
+              Resend link
+              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </span>
           )}
-
-          {/* Button Shine Effect */}
-          <motion.div
-            initial={{ x: '-100%' }}
-            animate={{ x: '200%' }}
-            transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
-            className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg]"
-          />
         </Button>
 
         <Button
           variant="ghost"
           onClick={onEdit}
-          className="w-full h-12 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-[10px] rounded-xl hover:bg-secondary/80 dark:hover:bg-zinc-900/80 hover:text-slate-900 dark:hover:text-white transition-all flex items-center justify-center gap-2"
+          className={cn(
+            'flex h-9 w-full items-center justify-center gap-2 rounded-lg text-[12px] font-bold text-slate-500 transition-colors',
+            'hover:bg-[#f7f6fd] hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-slate-100'
+          )}
         >
-          <UserIcon className="w-3.5 h-3.5" />
+          <UserIcon className="h-3.5 w-3.5" />
           Wrong email? Edit details
         </Button>
       </div>
 
-      <div className="pt-6 border-t border-slate-100 dark:border-white/5 text-center">
+      <div className="border-t border-[#ebeaf7] pt-5 text-center dark:border-white/[0.07]">
         <button
           onClick={onBackToSignIn}
-          className="group inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-primary transition-all"
+          className="group inline-flex items-center gap-1.5 text-[12px] font-bold text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
         >
-          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
-          Back to Sign In
+          <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+          Back to sign in
         </button>
       </div>
     </motion.div>

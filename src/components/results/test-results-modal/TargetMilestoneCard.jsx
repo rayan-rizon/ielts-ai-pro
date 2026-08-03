@@ -1,145 +1,210 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Target } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import {
+  Bar,
+  IconChip,
+  MICRO,
+  MUTED,
+  NUM,
+  PANEL,
+  PanelTitle,
+  Pill,
+} from '@/features/dashboard/components/primitives';
 import { QUESTION_TYPE_LABELS } from './utils';
 import { LISTENING_RAW_SCORE_THRESHOLDS, READING_RAW_SCORE_THRESHOLDS } from '@/lib/ieltsBandScore';
 
 const IMPROVEMENT_TIPS = {
-  note_completion:
-    'Work on scanning for key information, spelling accuracy, and concise note-taking.',
-  notes_completion:
-    'Work on scanning for key information, spelling accuracy, and concise note-taking.',
-  matching: 'Focus on identifying keywords in paragraph options and eliminating used headings.',
-  matching_headings: 'Read first and last sentences of paragraphs carefully to capture main ideas.',
-  true_false_not_given:
-    'Carefully distinguish explicit contradictions (False) from missing details (Not Given).',
-  yes_no_not_given:
-    "Analyze the author's precise perspective rather than general factual statements.",
-  multiple_choice: 'Identify distractors by cross-referencing synonyms in the passage context.',
-  summary_completion: 'Check word limits and ensure grammar fits accurately around the gaps.',
-  table_completion: 'Examine table column headers before searching for numerical or named details.',
-  short_answer: 'Keep answers strictly within stated word limits directly quoted from the text.',
-  map_labeling: 'Preview labels and use directional language to follow the map in order.',
-  flowchart: 'Follow the sequence carefully and predict the grammar of each missing answer.',
-  gap_fill: 'Use the surrounding words to predict the answer form before listening for the detail.',
+  note_completion: 'Scan for key information, watch spelling, keep notes concise.',
+  notes_completion: 'Scan for key information, watch spelling, keep notes concise.',
+  matching: 'Find keywords in each option and eliminate ones already used.',
+  matching_headings: 'Read the first and last sentence of each paragraph for the main idea.',
+  true_false_not_given: 'Separate explicit contradictions (False) from missing detail (Not Given).',
+  yes_no_not_given: "Track the author's stated view, not general facts.",
+  multiple_choice: 'Spot distractors by cross-checking synonyms against the passage.',
+  summary_completion: 'Respect the word limit and check the grammar fits the gap.',
+  table_completion: 'Read the column headers before hunting for the detail.',
+  short_answer: 'Stay inside the word limit, quoting directly from the text.',
+  map_labeling: 'Preview the labels and follow directional language in order.',
+  flowchart: 'Follow the sequence and predict the grammar of each missing answer.',
+  gap_fill: 'Use the surrounding words to predict the answer form before you listen.',
 };
 
-export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = 'reading' }) {
-  const currentBand = parseFloat(testResults?.bandScore) || 0;
-  const correct = testResults?.correctAnswers || 0;
-  const total = testResults?.totalQuestions || 40;
+/**
+ * Raw-score threshold for a band, scaled to this paper's question count.
+ * Returns null when the band is not in the table so the card can say so
+ * instead of the old `|| 40` fallback, which silently claimed a full-marks
+ * requirement whenever the lookup missed.
+ */
+function thresholdFor(thresholds, band, total) {
+  const raw = thresholds?.[band];
+  if (!Number.isFinite(raw)) return null;
+  return Math.min(total, Math.ceil((raw / 40) * total));
+}
 
-  // Find next band level
-  const thresholds =
-    testType === 'listening' ? LISTENING_RAW_SCORE_THRESHOLDS : READING_RAW_SCORE_THRESHOLDS;
-  const bandLevels = Object.keys(thresholds)
-    .map(Number)
-    .sort((a, b) => a - b);
-  const nextBand =
-    bandLevels.find((b) => b > currentBand) || (currentBand < 9 ? currentBand + 0.5 : 9.0);
+function useMilestone(testResults, testType) {
+  return React.useMemo(() => {
+    const currentBand = parseFloat(testResults?.bandScore) || 0;
+    const correct = Math.max(0, Number(testResults?.correctAnswers) || 0);
+    const total = Math.max(1, Number(testResults?.totalQuestions) || 40);
 
-  // Calculate progress % toward next milestone
-  const nextThreshold = Math.ceil(((thresholds[nextBand] || 40) / 40) * total);
-  const answersNeeded = Math.max(0, nextThreshold - correct);
-  const prevBand = [...bandLevels].reverse().find((b) => b <= currentBand);
-  const prevThreshold = prevBand ? Math.ceil(((thresholds[prevBand] || 0) / 40) * total) : 0;
-  const range = Math.max(1, nextThreshold - prevThreshold);
-  const progressPct =
-    currentBand >= 9.0
-      ? 100
-      : Math.min(100, Math.max(0, Math.round(((correct - prevThreshold) / range) * 100)));
+    const thresholds =
+      testType === 'listening' ? LISTENING_RAW_SCORE_THRESHOLDS : READING_RAW_SCORE_THRESHOLDS;
+    const bands = Object.keys(thresholds)
+      .map(Number)
+      .filter(Number.isFinite)
+      .sort((a, b) => a - b);
 
-  // Identify weakest question type
-  const weakestType = React.useMemo(() => {
-    if (!testResults?.typeStats) return null;
+    const nextBand = bands.find((b) => b > currentBand) ?? null;
+    if (nextBand === null || currentBand >= 9) {
+      return { atCeiling: true, currentBand };
+    }
+
+    const nextThreshold = thresholdFor(thresholds, nextBand, total);
+    if (nextThreshold === null) return { atCeiling: false, unknown: true, nextBand };
+
+    const prevBand = [...bands].reverse().find((b) => b <= currentBand);
+    const prevThreshold = prevBand ? (thresholdFor(thresholds, prevBand, total) ?? 0) : 0;
+    const span = Math.max(1, nextThreshold - prevThreshold);
+
+    return {
+      atCeiling: false,
+      nextBand,
+      answersNeeded: Math.max(0, nextThreshold - correct),
+      progressPct: Math.min(100, Math.max(0, Math.round(((correct - prevThreshold) / span) * 100))),
+    };
+  }, [testResults, testType]);
+}
+
+/** Lowest-accuracy question type, tie-broken by how many marks it cost. */
+function useWeakestType(typeStats) {
+  return React.useMemo(() => {
+    if (!typeStats) return null;
     let weakest = null;
-    Object.entries(testResults.typeStats).forEach(([type, stats]) => {
-      if (stats?.total > 0) {
-        const accuracy = (stats.correct / stats.total) * 100;
-        const missed = stats.total - stats.correct;
-        if (
-          !weakest ||
-          accuracy < weakest.accuracy ||
-          (accuracy === weakest.accuracy && missed > weakest.missed)
-        ) {
-          weakest = { type, accuracy, missed };
-        }
+    Object.entries(typeStats).forEach(([type, s]) => {
+      if (!s?.total) return;
+      const accuracy = (s.correct / s.total) * 100;
+      const missed = s.total - s.correct;
+      if (
+        !weakest ||
+        accuracy < weakest.accuracy ||
+        (accuracy === weakest.accuracy && missed > weakest.missed)
+      ) {
+        weakest = { type, accuracy, missed };
       }
     });
-    return weakest;
-  }, [testResults?.typeStats]);
+    // A type the learner got fully right is not a weakness worth pointing at.
+    return weakest && weakest.missed > 0 ? weakest : null;
+  }, [typeStats]);
+}
 
-  const weakestLabel = weakestType?.type
-    ? QUESTION_TYPE_LABELS[weakestType.type] || weakestType.type.replace(/_/g, ' ')
-    : 'Question Analysis';
+export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = 'reading' }) {
+  const milestone = useMilestone(testResults, testType);
+  const weakest = useWeakestType(testResults?.typeStats);
 
-  const tipText =
-    weakestType?.type && IMPROVEMENT_TIPS[weakestType.type]
-      ? IMPROVEMENT_TIPS[weakestType.type]
-      : 'Focus on scanning techniques, time allocation per passage, and vocabulary context.';
+  const weakestLabel = weakest
+    ? QUESTION_TYPE_LABELS[weakest.type] || weakest.type.replace(/_/g, ' ')
+    : null;
+  const tip = weakest
+    ? IMPROVEMENT_TIPS[weakest.type] || 'Review the passage evidence behind each missed answer.'
+    : 'Nothing stands out as a weak spot — re-read the answers you were unsure of.';
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className="p-4 xl:p-5 rounded-2xl bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border border-[#e4e2f0] dark:border-white/[0.07] shadow-2xs transition-all duration-300 flex flex-col h-full gap-4 relative overflow-hidden"
+      className={cn(PANEL, 'flex h-full flex-col gap-3 p-4')}
     >
-      <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#5a63df]/10 dark:bg-[#5a63df]/10 rounded-full blur-3xl pointer-events-none" />
+      <PanelTitle
+        label="Next milestone"
+        accent
+        tip="How many more correct answers this paper needed to reach the next band."
+      />
 
-      <div className="flex items-center justify-between gap-3 z-10">
+      {milestone.atCeiling ? (
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-white text-[#5a63df] shadow-xs dark:bg-[#5a63df]/20 dark:text-[#a9afff] border border-[#5a63df]/20 dark:border-[#5a63df]/30 flex items-center justify-center">
-            <Target className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-              Your next milestone
+          <IconChip icon={Target} tone="emerald" size="md" />
+          <div className="min-w-0">
+            <p
+              className={cn(
+                NUM,
+                'text-lg font-extrabold leading-none text-slate-900 dark:text-slate-50'
+              )}
+            >
+              Band 9.0
             </p>
-            <h3 className="text-base font-black tracking-tight text-slate-950 dark:text-white">
-              Band {nextBand.toFixed(1)}
-            </h3>
+            <p className={cn(MICRO, MUTED, 'mt-1')}>Top band reached on this paper</p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-2xl font-black tracking-tight text-[#5a63df] dark:text-[#c9cdf3]">
-            +{answersNeeded}
-          </p>
-          <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-            correct answer{answersNeeded === 1 ? '' : 's'} needed
-          </p>
-        </div>
-      </div>
+      ) : milestone.unknown ? (
+        <p className={cn(MICRO, MUTED)}>Band thresholds unavailable for this paper.</p>
+      ) : (
+        <>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <IconChip icon={Target} tone="accent" size="md" />
+              <div className="min-w-0">
+                <p className={cn(MICRO, MUTED)}>Target</p>
+                <p
+                  className={cn(
+                    NUM,
+                    'text-lg font-extrabold leading-none text-slate-900 dark:text-slate-50'
+                  )}
+                >
+                  Band {milestone.nextBand.toFixed(1)}
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0 text-right">
+              <p
+                className={cn(
+                  NUM,
+                  'text-2xl font-extrabold leading-none text-[#5a63df] dark:text-[#a9afff]'
+                )}
+              >
+                +{milestone.answersNeeded}
+              </p>
+              <p className={cn(MICRO, MUTED, 'mt-1')}>
+                answer{milestone.answersNeeded === 1 ? '' : 's'} needed
+              </p>
+            </div>
+          </div>
 
-      <div className="space-y-1.5 z-10">
-        <div className="flex items-center justify-between text-xs font-bold">
-          <span className="text-slate-500 dark:text-slate-400">Milestone progress</span>
-          <span className="text-xs font-black text-[#5a63df] dark:text-[#a9afff]">
-            {progressPct}%
-          </span>
-        </div>
-        <div className="h-2.5 bg-slate-200/80 dark:bg-white/10 rounded-full overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPct}%` }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="h-full bg-[#5a63df] rounded-full"
-          />
-        </div>
-      </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className={cn(MICRO, MUTED)}>Progress to band</span>
+              <span className={cn(NUM, 'text-xs font-bold text-[#5a63df] dark:text-[#a9afff]')}>
+                {milestone.progressPct}%
+              </span>
+            </div>
+            <Bar value={milestone.progressPct} />
+          </div>
+        </>
+      )}
 
       <button
         type="button"
         onClick={onReviewAnswers}
-        className="w-full mt-auto p-3.5 rounded-xl bg-[#5a63df] hover:bg-[#4a52c9] text-white flex items-center gap-3 transition-all text-left group z-10 shadow-sm"
+        className="group mt-auto flex items-center gap-3 rounded-lg bg-[#5a63df] p-3 text-left text-white transition-all hover:bg-[#4a52c9] active:scale-[0.99]"
       >
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold text-indigo-100">Best place to start</p>
-          <h4 className="text-sm font-black leading-tight">Review {weakestLabel}</h4>
-          <p className="text-[11px] text-indigo-100 line-clamp-2 mt-1">{tipText}</p>
+        <div className="min-w-0 flex-1">
+          <p className={cn(MICRO, 'text-white/70')}>Best place to start</p>
+          <h4 className="mt-0.5 truncate text-[13px] font-extrabold leading-tight">
+            {weakestLabel ? `Review ${weakestLabel}` : 'Review your answers'}
+          </h4>
+          <p className="mt-1 line-clamp-2 text-[11px] font-medium leading-snug text-white/75">
+            {tip}
+          </p>
         </div>
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 shrink-0 group-hover:translate-x-0.5 transition-transform">
-          <ArrowRight className="w-4 h-4" />
+        {weakest && (
+          <Pill tone="neutral" className="shrink-0 border-white/25 bg-white/15 text-white">
+            <span className={NUM}>{Math.round(weakest.accuracy)}%</span>
+          </Pill>
+        )}
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/15 transition-transform group-hover:translate-x-0.5">
+          <ArrowRight className="h-3.5 w-3.5" />
         </span>
       </button>
     </motion.div>

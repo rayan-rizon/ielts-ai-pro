@@ -9,6 +9,7 @@ import {
 import { trackAppEvent, trackPageView } from '@/lib/tracking';
 
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import MaintenanceGate from '@/components/shared/MaintenanceGate';
 import PremiumLoading from '@/components/ui/PremiumLoading';
 import LandingPage from '@/features/core/pages/LandingPage.jsx';
 
@@ -165,6 +166,7 @@ const BandScoreCalculator = lazyWithRetry(
 const IeltsWritingChecker = lazyWithRetry(
   () => import('@/features/core/pages/IeltsWritingChecker.jsx')
 );
+const IeltsSeoLanding = lazyWithRetry(() => import('@/features/core/pages/IeltsSeoLanding.jsx'));
 const SubscriptionSuccess = lazyWithRetry(
   () => import('@/features/subscription/pages/SubscriptionSuccess.jsx')
 );
@@ -259,31 +261,27 @@ const router = createBrowserRouter(
     },
     {
       path: '/cambridge-ielts-practice-tests',
-      element: <Navigate to="/cambridge-tests" replace />,
+      element: (
+        <LazyPage data-oid="seo-practice-page">
+          <IeltsSeoLanding data-oid="seo-practice-comp" />
+        </LazyPage>
+      ),
     },
     {
       path: '/ielts-speaking-practice-ai',
       element: (
         <LazyPage data-oid="seo-speaking-page">
-          <LandingPage data-oid="seo-speaking-comp" />
+          <IeltsSeoLanding data-oid="seo-speaking-comp" />
         </LazyPage>
       ),
     },
     {
       path: '/ielts-mock-test-online',
-      element: (
-        <LazyPage data-oid="seo-mock-page">
-          <LandingPage data-oid="seo-mock-comp" />
-        </LazyPage>
-      ),
+      element: <Navigate to="/cambridge-ielts-practice-tests" replace />,
     },
     {
       path: '/free-ielts-practice-tests',
-      element: (
-        <LazyPage data-oid="seo-free-page">
-          <LandingPage data-oid="seo-free-comp" />
-        </LazyPage>
-      ),
+      element: <Navigate to="/cambridge-ielts-practice-tests" replace />,
     },
     {
       path: '/ai-ielts-preparation',
@@ -870,11 +868,16 @@ function App() {
 
   return (
     <ErrorBoundary data-oid="wz-jyt7">
-      <Suspense
-        fallback={<RouteLoading message="Starting up..." fullScreen data-oid="router-fallback" />}
-      >
-        <RouterProvider router={router} data-oid="m-t-6xh" />
-      </Suspense>
+      {/* Wraps the router, not the app shell: public routes (landing, SEO
+          pages, blog, calculators) never render Layout, so a gate inside
+          Layout left them open during a maintenance window. */}
+      <MaintenanceGate>
+        <Suspense
+          fallback={<RouteLoading message="Starting up..." fullScreen data-oid="router-fallback" />}
+        >
+          <RouterProvider router={router} data-oid="m-t-6xh" />
+        </Suspense>
+      </MaintenanceGate>
       <IdleToaster />
     </ErrorBoundary>
   );

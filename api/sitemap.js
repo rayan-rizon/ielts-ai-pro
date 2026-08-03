@@ -5,7 +5,19 @@ const CORE_ROUTES = [
   { path: '/', lastmod: '2026-07-30', changefreq: 'weekly', priority: '1.0' },
   {
     path: '/ielts-writing-checker',
-    lastmod: '2026-07-26',
+    lastmod: '2026-08-03',
+    changefreq: 'weekly',
+    priority: '0.9',
+  },
+  {
+    path: '/ielts-speaking-practice-ai',
+    lastmod: '2026-08-03',
+    changefreq: 'weekly',
+    priority: '0.9',
+  },
+  {
+    path: '/cambridge-ielts-practice-tests',
+    lastmod: '2026-08-03',
     changefreq: 'weekly',
     priority: '0.9',
   },
@@ -54,7 +66,7 @@ function renderSitemap(posts = []) {
       path: `/blog/${encodeURIComponent(post.slug.trim())}`,
       lastmod: normalizeDate(
         post.updated_at || post.published_at || post.created_at,
-        CORE_ROUTES[3].lastmod
+        CORE_ROUTES[5].lastmod
       ),
       changefreq: 'monthly',
       priority: '0.7',

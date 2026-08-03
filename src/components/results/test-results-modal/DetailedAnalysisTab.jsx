@@ -18,12 +18,45 @@ import {
   TriangleAlert,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/cn';
 import { trackAppEvent } from '@/lib/tracking';
 import { fetchRecentResultSessions, saveResultFocusPlan } from '@/services/premiumAnalysisService';
+import {
+  Empty,
+  IconChip,
+  MICRO,
+  MUTED,
+  NUM,
+  PANEL,
+  Ring,
+  TILE,
+  WELL,
+} from '@/features/dashboard/components/primitives';
 import { buildPremiumAnalysis } from './premiumAnalysis';
+import { accuracyTone, deriveResultStats } from './resultStats';
 
-const CARD =
-  'min-w-0 rounded-2xl border border-[#dce0f5] bg-gradient-to-br from-white via-[#fafbff] to-[#f4f3ff] shadow-[0_10px_30px_-15px_rgba(86,97,233,0.12)] dark:border-white/10 dark:from-[#101322] dark:via-[#0e111d] dark:to-[#141829]';
+/**
+ * This tab used to carry its own design language: an off-brand `#5661e9`
+ * indigo, a second Tailwind `indigo-*` ramp, a third `#2563eb` blue for the
+ * trend chart, plus navy `#101322/#0e111d/#141829` dark surfaces that never
+ * matched the `#131315` panel used everywhere else. It is now on the shared
+ * panel primitives and the brand/signal palette.
+ */
+const CARD = cn(PANEL, 'min-w-0');
+
+const TONE_TEXT = {
+  ok: 'text-[rgb(var(--signal-ok))]',
+  warn: 'text-[rgb(var(--signal-warn))]',
+  fault: 'text-[rgb(var(--signal-fault))]',
+};
+
+/** Answer outcomes read the same here as on the Overview tab. */
+const OUTCOME = {
+  correct: { fill: 'bg-[rgb(var(--signal-ok))]', text: 'text-[rgb(var(--signal-ok))]' },
+  incorrect: { fill: 'bg-[rgb(var(--signal-fault))]', text: 'text-[rgb(var(--signal-fault))]' },
+  skipped: { fill: 'bg-[rgb(var(--signal-warn))]', text: 'text-[rgb(var(--signal-warn))]' },
+};
 
 function formatBand(value) {
   return Number(value || 0).toFixed(1);
@@ -38,19 +71,15 @@ function formatTime(seconds) {
 
 function SectionHeading({ icon: Icon, eyebrow, title, action }) {
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="mb-3 flex items-start justify-between gap-3">
       <div className="flex min-w-0 items-center gap-2.5">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#d2d7f8]/80 dark:border-indigo-500/30">
-          <Icon className="h-3.5 w-3.5" />
-        </span>
+        <IconChip icon={Icon} tone="accent" size="md" />
         <div className="min-w-0">
-          <h3 className="text-sm font-black tracking-tight text-slate-950 dark:text-white">
+          <h3 className="text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
             {title}
           </h3>
           {eyebrow && (
-            <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-              {eyebrow}
-            </p>
+            <p className={cn(MICRO, MUTED, 'mt-0.5 normal-case tracking-normal')}>{eyebrow}</p>
           )}
         </div>
       </div>
@@ -67,7 +96,7 @@ function FreeTeaser({ analysis, testType, onUpgrade }) {
   return (
     <div className="mx-auto max-w-5xl p-4 sm:p-5 lg:p-6">
       <section className={`${CARD} overflow-hidden`}>
-        <div className="border-b border-[#dce0f5] bg-gradient-to-r from-[#fafbff] via-white to-[#f4f3ff] px-4 py-4 dark:border-white/10">
+        <div className="border-b border-[#eceafa] px-4 py-4 dark:border-white/[0.07]">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
               <h2 className="mt-0.5 text-lg font-extrabold tracking-tight text-slate-950 dark:text-white">
@@ -79,17 +108,15 @@ function FreeTeaser({ analysis, testType, onUpgrade }) {
             </div>
             <Button
               onClick={onUpgrade}
-              className="h-9 rounded-xl bg-[#5661e9] px-4 text-xs font-bold text-white hover:bg-[#4853d6] transition-all shadow-xs"
+              className="h-9 rounded-xl bg-[#5a63df] px-4 text-xs font-bold text-white hover:bg-[#4a52c9] transition-all shadow-xs"
             >
               Unlock premium coaching <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
         <div className="grid gap-3 p-4 sm:grid-cols-2">
-          <div className="rounded-xl border border-rose-200/80 bg-rose-50/50 p-3.5 dark:border-rose-900/50 dark:bg-rose-950/20">
-            <p className="text-xs font-bold text-rose-600 dark:text-rose-400">
-              Your biggest score loss
-            </p>
+          <div className={cn(TILE, 'p-3.5')}>
+            <p className={cn(MICRO, OUTCOME.incorrect.text)}>Your biggest score loss</p>
             <p className="mt-1 text-base font-extrabold text-slate-900 dark:text-white">
               {largestLoss?.label || 'Not enough detail'}
             </p>
@@ -98,16 +125,16 @@ function FreeTeaser({ analysis, testType, onUpgrade }) {
                 ? `${largestLoss.lost} of ${largestLoss.total} points lost`
                 : 'Complete a scored question type to reveal this signal.'}
             </p>
-            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-rose-100 dark:bg-rose-950">
+            <div className={cn('mt-3 h-1.5 overflow-hidden rounded-full', WELL)}>
               <div
-                className="h-full rounded-full bg-rose-500"
+                className={cn('h-full rounded-full', OUTCOME.incorrect.fill)}
                 style={{ width: `${lossPercent}%` }}
                 aria-label={`${lossPercent}% of points lost in ${largestLoss?.label || 'this area'}`}
               />
             </div>
           </div>
-          <div className="rounded-xl border border-[#d2d7f8] bg-[#efedff]/50 p-3.5 dark:border-indigo-900/50 dark:bg-indigo-950/20">
-            <p className="text-xs font-bold text-[#5661e9] dark:text-indigo-400">
+          <div className={cn(TILE, 'p-3.5')}>
+            <p className={cn(MICRO, 'text-[#5a63df] dark:text-[#a9afff]')}>
               Answers needed for your next band
             </p>
             <p className="mt-1 text-base font-extrabold text-slate-900 dark:text-white">
@@ -120,7 +147,7 @@ function FreeTeaser({ analysis, testType, onUpgrade }) {
             </p>
           </div>
         </div>
-        <div className="mx-4 mb-4 flex items-center gap-2.5 rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-3.5 py-2.5 dark:border-slate-800 dark:bg-slate-900/50">
+        <div className={cn(WELL, 'mx-4 mb-4 flex items-center gap-2.5 rounded-xl px-3.5 py-2.5')}>
           <LockKeyhole className="h-3.5 w-3.5 shrink-0 text-slate-400" />
           <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
             Premium includes answer priorities, passage or part insights, score trends, and a saved
@@ -132,155 +159,152 @@ function FreeTeaser({ analysis, testType, onUpgrade }) {
   );
 }
 
-function RecoveryMap({ analysis, currentBand, selectedTarget, _onTargetChange }) {
+function RecoveryMap({ analysis, testResults, currentBand, selectedTarget, _onTargetChange }) {
   const totalLost = analysis.typeLosses.reduce((sum, entry) => sum + entry.lost, 0);
-  const totalCorrect = analysis.typeLosses.reduce((sum, entry) => sum + entry.correct, 0);
-  const totalQuestions = analysis.typeLosses.reduce((sum, entry) => sum + entry.total, 0);
-  const totalSkipped = analysis.typeLosses.reduce((sum, entry) => sum + entry.skipped, 0);
-  const totalIncorrect = analysis.typeLosses.reduce((sum, entry) => sum + entry.incorrect, 0);
-  const correctPct = totalQuestions ? (totalCorrect / totalQuestions) * 100 : 0;
-  const incorrectPct = totalQuestions ? (totalIncorrect / totalQuestions) * 100 : 0;
-  const skippedPct = Math.max(0, 100 - correctPct - incorrectPct);
+  // The paper-level mix comes from the same source the Overview tab uses.
+  // Re-summing `typeLosses` here produced a different total whenever a question
+  // carried no type label, so the two tabs disagreed on the same result.
+  const stats = React.useMemo(() => deriveResultStats(testResults), [testResults]);
+  const {
+    total: totalQuestions,
+    correct: totalCorrect,
+    wrong: totalIncorrect,
+    skipped: totalSkipped,
+  } = stats;
+  const correctPct = stats.accuracy;
   const largestLoss = analysis.typeLosses[0];
 
   return (
-    <section className={`${CARD} p-4 sm:p-5 space-y-4`}>
+    <section className={`${CARD} p-4`}>
       <SectionHeading
         icon={BarChart3}
         eyebrow="Compare the size of each loss before choosing what to practise."
         title="Where you lost marks"
         action={
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2.5 rounded-lg border border-slate-200/80 bg-slate-50/80 px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300">
-              <span className="flex items-center gap-1.5">
-                <i className="h-2 w-2 rounded-full bg-emerald-500" /> Correct
-              </span>
-              <span className="flex items-center gap-1.5">
-                <i className="h-2 w-2 rounded-full bg-[#5661e9]" /> Incorrect
-              </span>
-              <span className="flex items-center gap-1.5">
-                <i className="h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-600" /> Skipped
-              </span>
-            </div>
-            <span className="text-sm font-black text-rose-600 dark:text-rose-400">
-              {totalLost} lost
-            </span>
-          </div>
+          <span className={cn(NUM, 'shrink-0 text-sm font-extrabold', OUTCOME.incorrect.text)}>
+            {totalLost} lost
+          </span>
         }
       />
 
-      <div className="grid items-start gap-3 lg:grid-cols-[210px_minmax(0,1fr)_220px]">
-        <div className="rounded-2xl border border-[#d2d7f8] bg-[#efedff]/55 p-3 dark:border-indigo-900/50 dark:bg-indigo-950/25">
+      <div className="grid items-start gap-3 lg:grid-cols-[200px_minmax(0,1fr)_200px]">
+        {/* Standing — where the learner is and what the gap costs */}
+        <div className={cn(TILE, 'p-3')}>
           <div className="flex items-center justify-between gap-2">
-            <div>
-              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                Current band
-              </p>
-              <p className="text-2xl font-black tracking-tight text-slate-950 dark:text-white">
+            <div className="min-w-0">
+              <p className={cn(MICRO, MUTED)}>Current</p>
+              <p
+                className={cn(
+                  NUM,
+                  'text-xl font-extrabold leading-none text-slate-900 dark:text-slate-50'
+                )}
+              >
                 {formatBand(currentBand)}
               </p>
             </div>
-            <ArrowRight className="h-4 w-4 text-[#5661e9]" />
-            <div className="text-right">
-              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                Target band
-              </p>
-              <p className="text-2xl font-black tracking-tight text-[#5661e9] dark:text-indigo-300">
+            <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-500" />
+            <div className="min-w-0 text-right">
+              <p className={cn(MICRO, MUTED)}>Target</p>
+              <p
+                className={cn(
+                  NUM,
+                  'text-xl font-extrabold leading-none text-[#5a63df] dark:text-[#a9afff]'
+                )}
+              >
                 {formatBand(selectedTarget)}
               </p>
             </div>
           </div>
-          <div className="mt-2 border-t border-[#d2d7f8] pt-2 dark:border-white/10">
-            <p className="text-xl font-black text-[#5661e9] dark:text-indigo-300 leading-none">
+          <div className="mt-2.5 flex items-baseline gap-1.5 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
+            <span
+              className={cn(
+                NUM,
+                'text-lg font-extrabold leading-none text-[#5a63df] dark:text-[#a9afff]'
+              )}
+            >
               +{analysis.target.additionalCorrect}
-            </p>
-            <p className="mt-0.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300 leading-tight">
-              more correct answer{analysis.target.additionalCorrect === 1 ? '' : 's'} needed
-            </p>
+            </span>
+            <span className={cn(MICRO, MUTED)}>
+              answer{analysis.target.additionalCorrect === 1 ? '' : 's'} needed
+            </span>
           </div>
         </div>
 
-        <div className="grid auto-rows-fr gap-2.5 sm:grid-cols-2">
+        {/* Movement — per-type composition, signal-coded */}
+        <div className="grid auto-rows-min gap-1.5 sm:grid-cols-2">
           {analysis.typeLosses.length ? (
             analysis.typeLosses.map((entry) => (
-              <div
-                key={entry.type}
-                className="rounded-xl border border-[#e2e5f6] bg-white/80 p-3 dark:border-white/10 dark:bg-white/5"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-bold text-slate-800 dark:text-slate-200">
-                      {entry.label}
-                    </p>
-                    <p className="text-[10px] font-medium text-slate-400">
-                      {entry.correct}/{entry.total} correct
-                    </p>
-                  </div>
-                  <p className="shrink-0 text-xs font-black text-rose-600 dark:text-rose-400">
-                    {entry.lost} lost
+              <div key={entry.type} className={cn(TILE, 'p-2.5')}>
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="truncate text-[11px] font-extrabold text-slate-800 dark:text-slate-100">
+                    {entry.label}
+                  </p>
+                  <p className={cn(NUM, 'shrink-0 text-[11px] font-bold', OUTCOME.incorrect.text)}>
+                    −{entry.lost}
                   </p>
                 </div>
                 <div
-                  className="mt-2.5 flex h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+                  className={cn('mt-1.5 flex h-1.5 overflow-hidden rounded-full', WELL)}
                   aria-label={`${entry.label}: ${entry.correct} correct, ${entry.incorrect} incorrect and ${entry.skipped} skipped`}
                 >
-                  <div
-                    className="h-full bg-emerald-500"
-                    style={{ width: `${entry.total ? (entry.correct / entry.total) * 100 : 0}%` }}
-                  />
-                  <div
-                    className="h-full bg-[#5661e9]"
-                    style={{ width: `${entry.total ? (entry.incorrect / entry.total) * 100 : 0}%` }}
-                  />
-                  <div
-                    className="h-full bg-slate-300 dark:bg-slate-600"
-                    style={{ width: `${entry.total ? (entry.skipped / entry.total) * 100 : 0}%` }}
-                  />
+                  {[
+                    [entry.correct, OUTCOME.correct.fill],
+                    [entry.incorrect, OUTCOME.incorrect.fill],
+                    [entry.skipped, OUTCOME.skipped.fill],
+                  ].map(([value, fill], i) => (
+                    <span
+                      key={i}
+                      className={fill}
+                      style={{ width: `${entry.total ? (value / entry.total) * 100 : 0}%` }}
+                    />
+                  ))}
                 </div>
+                <p className={cn(NUM, MUTED, 'mt-1 text-[10px] font-bold')}>
+                  {entry.correct}/{entry.total} correct
+                </p>
               </div>
             ))
           ) : (
-            <div className="flex min-h-28 items-center justify-center rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 p-4 text-sm font-bold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:text-emerald-300 sm:col-span-2">
-              No lost marks in this result.
+            <div className="sm:col-span-2">
+              <Empty>No lost marks in this result.</Empty>
             </div>
           )}
         </div>
 
-        <div className="flex h-full flex-col justify-between rounded-2xl border border-[#e2e5f6] bg-white/80 p-3.5 dark:border-white/10 dark:bg-white/5">
+        {/* Summary ring — replaces a hand-rolled conic-gradient donut */}
+        <div className={cn(TILE, 'flex h-full flex-col justify-between p-3')}>
           <div className="flex items-center gap-3">
-            <div
-              className="relative h-14 w-14 shrink-0 rounded-full"
-              style={{
-                background: `conic-gradient(#10b981 0 ${correctPct}%, #5661e9 ${correctPct}% ${correctPct + incorrectPct}%, #cbd5e1 ${correctPct + incorrectPct}% ${correctPct + incorrectPct + skippedPct}%)`,
-              }}
-              aria-label={`${totalCorrect} correct, ${totalIncorrect} incorrect and ${totalSkipped} skipped overall`}
-            >
-              <div className="absolute inset-[6px] flex items-center justify-center rounded-full bg-white dark:bg-slate-950">
-                <span className="text-xs font-black text-slate-950 dark:text-white">
-                  {totalCorrect}/{totalQuestions || 0}
-                </span>
-              </div>
-            </div>
+            <Ring
+              value={correctPct}
+              size={52}
+              stroke={5}
+              label={`${totalQuestions ? Math.round(correctPct) : 0}%`}
+              tone="rgb(var(--signal-ok))"
+            />
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold text-slate-400">Answer mix</p>
-              <p className="text-sm font-black text-slate-900 dark:text-white">
-                {totalQuestions ? Math.round(correctPct) : 0}% correct
+              <p className={cn(MICRO, MUTED)}>Answer mix</p>
+              <p
+                className={cn(
+                  NUM,
+                  'mt-0.5 text-sm font-extrabold text-slate-900 dark:text-slate-50'
+                )}
+              >
+                {totalCorrect}/{totalQuestions || 0}
               </p>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                {totalSkipped} skipped · {totalIncorrect} incorrect
+              <p className={cn(MICRO, MUTED, 'mt-1')}>
+                <span className={OUTCOME.incorrect.text}>{totalIncorrect}</span> wrong ·{' '}
+                <span className={OUTCOME.skipped.text}>{totalSkipped}</span> skipped
               </p>
             </div>
           </div>
           {largestLoss && (
-            <div className="mt-3 border-t border-[#e2e5f6] pt-2.5 dark:border-white/10">
-              <p className="text-[10px] font-bold text-[#5661e9] dark:text-indigo-300">
-                Best recovery opportunity
-              </p>
-              <div className="mt-0.5 flex items-end justify-between gap-2">
-                <p className="truncate text-xs font-bold text-slate-800 dark:text-slate-200">
+            <div className="mt-3 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
+              <p className={cn(MICRO, MUTED)}>Best recovery opportunity</p>
+              <div className="mt-1 flex items-baseline justify-between gap-2">
+                <p className="truncate text-[11px] font-extrabold text-slate-800 dark:text-slate-100">
                   {largestLoss.label}
                 </p>
-                <p className="shrink-0 text-xs font-black text-rose-600 dark:text-rose-400">
+                <p className={cn(NUM, 'shrink-0 text-[11px] font-bold', OUTCOME.incorrect.text)}>
                   {largestLoss.lost} marks
                 </p>
               </div>
@@ -310,16 +334,16 @@ function MistakeQueue({ analysis, onReviewQuestion }) {
         </div>
       ) : analysis.mistakeQueue.length ? (
         <>
-          <div className="rounded-xl border border-[#e2e5f6] bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
+          <div className="rounded-xl border border-[#ebeaf7] bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
             <div
-              className="flex h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+              className="flex h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-white/[0.06]"
               aria-label={`${analysis.errorBuckets.nearMiss} near misses, ${analysis.errorBuckets.changedWrong} changed wrong, ${analysis.errorBuckets.skipped} skipped, and ${analysis.errorBuckets.otherWrong} other wrong answers`}
             >
               {[
-                [analysis.errorBuckets.nearMiss, 'bg-[#5661e9]'],
-                [analysis.errorBuckets.changedWrong, 'bg-violet-500'],
-                [analysis.errorBuckets.skipped, 'bg-slate-400'],
-                [analysis.errorBuckets.otherWrong, 'bg-rose-500'],
+                [analysis.errorBuckets.nearMiss, 'bg-[rgb(var(--signal-warn))]'],
+                [analysis.errorBuckets.changedWrong, 'bg-[#8f97ff]'],
+                [analysis.errorBuckets.skipped, 'bg-slate-400 dark:bg-slate-500'],
+                [analysis.errorBuckets.otherWrong, 'bg-[rgb(var(--signal-fault))]'],
               ].map(([value, color], index) => (
                 <span
                   key={index}
@@ -335,26 +359,26 @@ function MistakeQueue({ analysis, onReviewQuestion }) {
                 [
                   'Near miss',
                   analysis.errorBuckets.nearMiss,
-                  'text-[#5661e9] dark:text-indigo-400',
-                  'bg-[#5661e9]',
+                  'text-[rgb(var(--signal-warn))]',
+                  'bg-[rgb(var(--signal-warn))]',
                 ],
                 [
                   'Changed wrong',
                   analysis.errorBuckets.changedWrong,
-                  'text-purple-600 dark:text-purple-400',
-                  'bg-violet-500',
+                  'text-[#5a63df] dark:text-[#a9afff]',
+                  'bg-[#8f97ff]',
                 ],
                 [
                   'Skipped',
                   analysis.errorBuckets.skipped,
                   'text-slate-600 dark:text-slate-300',
-                  'bg-slate-400',
+                  'bg-slate-400 dark:bg-slate-500',
                 ],
                 [
                   'Other wrong',
                   analysis.errorBuckets.otherWrong,
-                  'text-rose-600 dark:text-rose-400',
-                  'bg-rose-500',
+                  'text-[rgb(var(--signal-fault))]',
+                  'bg-[rgb(var(--signal-fault))]',
                 ],
               ].map(([label, value, color, dot]) => (
                 <div key={label} className="flex items-center gap-2">
@@ -374,18 +398,18 @@ function MistakeQueue({ analysis, onReviewQuestion }) {
               return (
                 <div
                   key={`${item.questionId}-${item.questionNumber}`}
-                  className="p-3 rounded-xl border border-[#e2e5f6] bg-white/90 dark:border-white/10 dark:bg-white/5 transition-all hover:border-[#5661e9]/60 shadow-2xs group flex items-center justify-between gap-3"
+                  className="p-3 rounded-xl border border-[#ebeaf7] bg-white/90 dark:border-white/10 dark:bg-white/5 transition-all hover:border-[#5a63df]/60 shadow-2xs group flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#efedff] text-xs font-black text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 shadow-2xs shrink-0">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#5a63df]/10 text-xs font-extrabold text-[#5a63df] border border-[#5a63df]/20 dark:bg-[#8f97ff]/[0.16] dark:text-[#a9afff] dark:border-[#8f97ff]/30 shadow-2xs shrink-0">
                       Q{item.questionNumber}
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-xs sm:text-sm font-black text-slate-950 dark:text-white">
+                      <p className="truncate text-xs sm:text-sm font-extrabold text-slate-950 dark:text-white">
                         {item.reason}
                       </p>
                       <div className="flex items-center gap-2 mt-1 min-w-0">
-                        <span className="inline-block rounded-md bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/20 dark:text-indigo-300 border border-[#d2d7f8] dark:border-indigo-500/30 px-2 py-0.5 text-[10px] font-extrabold shrink-0">
+                        <span className="inline-block rounded-md bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/[0.16] dark:text-[#a9afff] border border-[#5a63df]/20 dark:border-[#8f97ff]/30 px-2 py-0.5 text-[10px] font-extrabold shrink-0">
                           {item.label}
                         </span>
                         <span className="truncate text-xs font-bold text-slate-500 dark:text-slate-400">
@@ -396,7 +420,7 @@ function MistakeQueue({ analysis, onReviewQuestion }) {
                   </div>
                   <Button
                     onClick={() => onReviewQuestion(item)}
-                    className="h-8.5 px-3.5 rounded-xl bg-[#5661e9] hover:bg-[#4853d6] text-white font-extrabold text-xs shadow-2xs hover:shadow-xs hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1 shrink-0"
+                    className="h-8.5 px-3.5 rounded-xl bg-[#5a63df] hover:bg-[#4a52c9] text-white font-extrabold text-xs shadow-2xs hover:shadow-xs hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1 shrink-0"
                   >
                     Review <ChevronRight className="h-3.5 w-3.5 stroke-[2.5]" />
                   </Button>
@@ -429,18 +453,18 @@ function SectionStrategy({ analysis, testType }) {
       />
       <div className="space-y-2.5">
         {analysis.sectionStrategy.length === 0 && (
-          <p className="rounded-xl bg-slate-50 p-3 text-xs font-semibold text-slate-500 dark:bg-slate-900">
+          <p className="rounded-xl bg-slate-50 p-3 text-xs font-semibold text-slate-500 dark:bg-white/[0.04]">
             Section-level scoring was not stored for this result.
           </p>
         )}
         {analysis.sectionStrategy.map((section) => (
           <div
             key={section.index}
-            className="p-3 rounded-xl border border-[#e2e5f6] bg-white/90 dark:border-white/10 dark:bg-white/5 shadow-2xs space-y-2 transition-all hover:border-[#5661e9]/60"
+            className="p-3 rounded-xl border border-[#ebeaf7] bg-white/90 dark:border-white/10 dark:bg-white/5 shadow-2xs space-y-2 transition-all hover:border-[#5a63df]/60"
           >
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs sm:text-sm font-black text-slate-950 dark:text-white">
+                <p className="text-xs sm:text-sm font-extrabold text-slate-950 dark:text-white">
                   {section.label}
                 </p>
                 <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -449,45 +473,54 @@ function SectionStrategy({ analysis, testType }) {
                 </p>
               </div>
               <span
-                className={`px-2.5 py-1 rounded-lg text-xs font-black border ${
-                  section.lost
-                    ? 'bg-rose-50 text-rose-600 border-rose-200/80 dark:bg-rose-950/50 dark:text-rose-400 dark:border-rose-900/50'
-                    : 'bg-emerald-50 text-emerald-600 border-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-900/50'
-                }`}
+                className={cn(
+                  NUM,
+                  'shrink-0 text-xs font-bold',
+                  TONE_TEXT[accuracyTone(section.accuracy)]
+                )}
               >
                 {section.correct}/{section.total}
               </span>
             </div>
 
             {/* Visual Accuracy Bar */}
-            <div className="h-1.5 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-800">
+            <div className="h-1.5 rounded-full overflow-hidden bg-slate-100 dark:bg-white/[0.06] border border-slate-200/50 dark:border-white/[0.07]">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  section.accuracy >= 70
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
-                    : section.accuracy >= 40
-                      ? 'bg-gradient-to-r from-amber-400 to-yellow-500'
-                      : 'bg-gradient-to-r from-rose-500 to-red-500'
+                  section.accuracy >= 80
+                    ? 'bg-[rgb(var(--signal-ok))]'
+                    : section.accuracy >= 50
+                      ? 'bg-[rgb(var(--signal-warn))]'
+                      : 'bg-[rgb(var(--signal-fault))]'
                 }`}
                 style={{ width: `${Math.max(5, section.accuracy)}%` }}
               />
             </div>
 
-            {isReading && (
-              <div className="flex items-center justify-between border-t border-[#dce0f5]/80 dark:border-white/10 pt-2 text-xs">
-                <span className="font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                  <Clock3 className="w-3.5 h-3.5 text-slate-400" />
-                  {formatTime(section.seconds)}
+            {/* Only rendered when timing was actually captured — every row
+                previously printed "Not recorded / Timing unavailable", which
+                was pure noise on results that never stored per-section time. */}
+            {isReading && section.seconds ? (
+              <div className="flex items-center justify-between border-t border-[#eceafa] pt-2 dark:border-white/[0.07]">
+                <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
+                  <Clock3 className="h-3 w-3" />
+                  <span className={NUM}>{formatTime(section.seconds)}</span>
                 </span>
-                <span className="bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 text-xs font-extrabold px-2.5 py-0.5 rounded-md">
-                  {section.paceDeltaSeconds == null
-                    ? 'Timing unavailable'
-                    : section.paceDeltaSeconds > 0
-                      ? `${Math.ceil(section.paceDeltaSeconds / 60)}m over benchmark`
-                      : `${Math.ceil(Math.abs(section.paceDeltaSeconds) / 60)}m available`}
-                </span>
+                {section.paceDeltaSeconds != null && (
+                  <span
+                    className={cn(
+                      MICRO,
+                      section.paceDeltaSeconds > 0 ? TONE_TEXT.warn : TONE_TEXT.ok
+                    )}
+                  >
+                    <span className={NUM}>
+                      {Math.ceil(Math.abs(section.paceDeltaSeconds) / 60)}m
+                    </span>{' '}
+                    {section.paceDeltaSeconds > 0 ? 'over benchmark' : 'available'}
+                  </span>
+                )}
               </div>
-            )}
+            ) : null}
           </div>
         ))}
       </div>
@@ -500,33 +533,48 @@ function SectionStrategy({ analysis, testType }) {
     </section>
   );
 }
+/** "2026-01-05T…" → "Jan 5"; the synthetic current-attempt entry has no real date. */
+function formatTrendDate(date) {
+  if (!date || date === 'current') return 'This attempt';
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return 'Earlier attempt';
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 function TrendSparkline({ scores }) {
   const values = scores.map((entry) => Number(entry.score) || 0);
   const minVal = Math.max(0, Math.min(...values) - 0.5);
   const maxVal = Math.min(9, Math.max(...values) + 0.5);
   const range = Math.max(1, maxVal - minVal);
 
-  const pointsArray = values.map((value, index) => {
+  const pointsArray = scores.map((entry, index) => {
+    const value = Number(entry.score) || 0;
     const x = values.length <= 1 ? 120 : 16 + (index / (values.length - 1)) * 208;
     const y = 64 - ((value - minVal) / range) * 44; // maps y between 20 and 64
-    return { x, y, value };
+    return { x, y, value, date: entry.date, isCurrent: index === scores.length - 1 };
   });
 
   const points = pointsArray.map((p) => `${p.x},${p.y}`).join(' ');
   const polygonPoints = `16,74 ${points} 224,74`;
 
   return (
-    <div className="relative w-full">
+    // `currentColor` drives the line, area fill and dot rings, so the chart
+    // follows the brand accent in both themes instead of the hardcoded blue.
+    // `preserveAspectRatio="none"` makes the SVG stretch to fill the container
+    // exactly, so the hit-target overlay below can use plain x/y percentages
+    // instead of guessing at the letterboxed render box.
+    <div className="relative w-full text-[#5a63df] dark:text-[#a9afff]">
       <svg
         viewBox="0 0 240 80"
-        className="w-full h-24 overflow-visible"
+        preserveAspectRatio="none"
+        className="h-24 w-full overflow-visible"
         role="img"
         aria-label="Recent band score trend"
       >
         <defs>
           <linearGradient id="sparklineGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.22" />
-            <stop offset="100%" stopColor="#2563eb" stopOpacity="0.0" />
+            <stop offset="0%" stopColor="currentColor" stopOpacity="0.20" />
+            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
           </linearGradient>
         </defs>
 
@@ -552,31 +600,55 @@ function TrendSparkline({ scores }) {
           <polyline
             points={points}
             fill="none"
-            stroke="#2563eb"
-            strokeWidth="3"
+            stroke="currentColor"
+            strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
           />
         )}
 
-        {/* Glowing Data Dots */}
+        {/* Data Dots — the current attempt reads as a solid, larger marker */}
         {pointsArray.map((p, index) => (
-          <g key={index}>
-            <circle cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#2563eb" strokeWidth="2.5" />
-            {/* Highlight current / last score value */}
-            {index === pointsArray.length - 1 && (
-              <text
-                x={p.x}
-                y={p.y - 7}
-                textAnchor="middle"
-                className="text-[10px] font-black fill-blue-600 dark:fill-blue-400"
-              >
-                {p.value.toFixed(1)}
-              </text>
-            )}
-          </g>
+          <circle
+            key={index}
+            cx={p.x}
+            cy={p.y}
+            r={p.isCurrent ? 4.5 : 3.5}
+            className={
+              p.isCurrent ? 'fill-current' : 'fill-white stroke-current dark:fill-[#131315]'
+            }
+            stroke="currentColor"
+            strokeWidth="2.5"
+          />
         ))}
       </svg>
+
+      {/* Invisible hit-targets over each dot, positioned by plain percentage
+          since the SVG above is stretched 1:1 to this box. Radix reads the
+          trigger's real DOM rect, so this works regardless of card width. */}
+      {pointsArray.map((p, index) => (
+        <Tooltip key={index}>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              tabIndex={-1}
+              aria-label={`${formatTrendDate(p.date)}: band ${p.value.toFixed(1)}`}
+              className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 cursor-default rounded-full"
+              style={{ left: `${(p.x / 240) * 100}%`, top: `${(p.y / 80) * 100}%` }}
+            />
+          </TooltipTrigger>
+          <TooltipContent
+            side="top"
+            className="rounded-lg border border-[#e4e2f0] bg-white px-2.5 py-1.5 text-slate-700 shadow-lg dark:border-white/[0.14] dark:bg-[#242427] dark:text-slate-100"
+          >
+            <p className="text-xs font-extrabold">Band {p.value.toFixed(1)}</p>
+            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+              {formatTrendDate(p.date)}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      ))}
     </div>
   );
 }
@@ -594,14 +666,14 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
         title="Your score trend"
       />
       {loading ? (
-        <div className="h-28 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-900" />
+        <div className="h-28 animate-pulse rounded-xl bg-slate-100 dark:bg-white/[0.04]" />
       ) : failed ? (
         <p className="rounded-xl bg-amber-50 p-3 text-xs font-medium text-amber-700 border border-amber-200/60 dark:bg-amber-950/30 dark:text-amber-300">
           History could not be loaded. Current-result analysis is unaffected.
         </p>
       ) : !analysis.history.scores.length ? (
-        <div className="flex items-center gap-3 rounded-xl border border-dashed border-blue-200 bg-blue-50/50 p-3.5 dark:border-blue-900/50 dark:bg-blue-950/20">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xs font-extrabold text-blue-600 shadow-2xs dark:bg-slate-900">
+        <div className="flex items-center gap-3 rounded-xl border border-dashed border-[#5a63df]/20 bg-[#5a63df]/[0.06] p-3.5 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.08]">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xs font-extrabold text-[#5a63df] shadow-2xs dark:bg-white/[0.04]">
             {formatBand(currentBand)}
           </span>
           <div>
@@ -613,11 +685,19 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
         </div>
       ) : (
         <>
-          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-b from-slate-50/90 to-white p-3 dark:border-slate-800 dark:from-slate-900/60 dark:to-slate-950 shadow-2xs">
+          {/* This card had no `dark:` background at all, so it stayed
+              `slate-50 → white` even in dark mode — a bright white box
+              sitting inside an otherwise near-black panel. */}
+          <div
+            className={cn(
+              WELL,
+              'rounded-xl border border-slate-200/70 p-3 dark:border-white/[0.07]'
+            )}
+          >
             <TrendSparkline scores={scores} />
-            <div className="flex justify-between items-center px-2 pt-2 text-[11px] font-bold text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800/80 mt-1">
+            <div className="flex justify-between items-center px-2 pt-2 text-[11px] font-bold text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-white/[0.07] mt-1">
               <span>Start: {formatBand(scores[0].score)}</span>
-              <span className="text-blue-600 dark:text-blue-400 font-extrabold">
+              <span className="text-[#5a63df] dark:text-[#a9afff] font-extrabold">
                 Current: Band {formatBand(currentBand)}
               </span>
             </div>
@@ -645,7 +725,7 @@ function RecoveryPlan({ analysis, canSave, saving, savedPathId, onSave, onViewPl
             <button
               type="button"
               onClick={() => setShowAllDays((visible) => !visible)}
-              className="flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-[#5661e9] hover:bg-[#efedff] dark:text-indigo-300 dark:hover:bg-white/5"
+              className="flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-[#5a63df] hover:bg-[#5a63df]/10 dark:text-[#a9afff] dark:hover:bg-white/5"
               aria-expanded={showAllDays}
             >
               {showAllDays ? 'Show first 3 days' : 'Show all 7 days'}
@@ -658,15 +738,15 @@ function RecoveryPlan({ analysis, canSave, saving, savedPathId, onSave, onViewPl
             <Button
               variant="outline"
               onClick={onViewPlan}
-              className="h-9 rounded-xl px-4 text-xs font-bold border-slate-200 dark:border-slate-800 shadow-2xs hover:bg-blue-50 dark:hover:bg-blue-950/50"
+              className="h-9 rounded-xl px-4 text-xs font-bold border-slate-200 dark:border-white/[0.07] shadow-2xs hover:bg-[#5a63df]/10 dark:hover:bg-[#8f97ff]/10"
             >
-              View saved plan <ArrowRight className="ml-1.5 h-3.5 w-3.5 text-blue-600" />
+              View saved plan <ArrowRight className="ml-1.5 h-3.5 w-3.5 text-[#5a63df]" />
             </Button>
           ) : (
             <Button
               onClick={onSave}
               disabled={!canSave || saving}
-              className="h-9 rounded-xl bg-[#5661e9] px-4 text-xs font-black text-white shadow-xs hover:bg-[#4853d6] active:scale-[0.98] disabled:opacity-55"
+              className="h-9 rounded-xl bg-[#5a63df] px-4 text-xs font-extrabold text-white shadow-xs hover:bg-[#4a52c9] active:scale-[0.98] disabled:opacity-55"
             >
               <Save className="mr-1.5 h-3.5 w-3.5" />
               {saving ? 'Saving…' : 'Save plan'}
@@ -682,9 +762,9 @@ function RecoveryPlan({ analysis, canSave, saving, savedPathId, onSave, onViewPl
         {visiblePlan.map((item) => (
           <div
             key={item.day}
-            className="flex min-w-0 items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white/80 p-2.5 dark:border-slate-800 dark:bg-white/5"
+            className="flex min-w-0 items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white/80 p-2.5 dark:border-white/[0.07] dark:bg-white/5"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#5661e9] text-[10px] font-black text-white">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#5a63df] text-[10px] font-extrabold text-white">
               D{item.day}
             </span>
             <div className="min-w-0 flex-1">
@@ -695,7 +775,7 @@ function RecoveryPlan({ analysis, canSave, saving, savedPathId, onSave, onViewPl
                 {item.skill}
               </p>
             </div>
-            <span className="shrink-0 text-[10px] font-black text-[#5661e9] dark:text-indigo-300">
+            <span className="shrink-0 text-[10px] font-extrabold text-[#5a63df] dark:text-[#a9afff]">
               {item.minutes}m
             </span>
           </div>
@@ -812,6 +892,7 @@ export function DetailedAnalysisTab({
       <div className="mx-auto max-w-[1400px] space-y-3">
         <RecoveryMap
           analysis={analysis}
+          testResults={testResults}
           currentBand={testResults.bandScore}
           selectedTarget={selectedTarget || analysis.target.targetBand}
           onTargetChange={setSelectedTarget}
@@ -839,8 +920,15 @@ export function DetailedAnalysisTab({
           onViewPlan={() => navigate('/learning-path')}
         />
       </div>
-      <div className="mx-auto mt-3 flex max-w-[1400px] items-center gap-2.5 rounded-xl border border-blue-200/80 bg-blue-50/70 px-4 py-3 text-xs font-semibold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300 shadow-xs">
-        <Lightbulb className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+      <div
+        className={cn(
+          WELL,
+          MICRO,
+          MUTED,
+          'mx-auto mt-3 flex max-w-[1400px] items-center gap-2.5 rounded-xl px-4 py-2.5 normal-case tracking-normal'
+        )}
+      >
+        <Lightbulb className="h-3.5 w-3.5 shrink-0 text-[#5a63df] dark:text-[#a9afff]" />
         Near-miss labels are review hints. They never change your official score.
       </div>
     </div>

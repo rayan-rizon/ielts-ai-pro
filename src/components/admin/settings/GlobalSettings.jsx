@@ -8,7 +8,6 @@ import { SystemSetting } from '@/features/admin/services/SystemSetting';
 import PlatformHealthDashboard from './PlatformHealthDashboard';
 import TierRateLimitsSettings from './TierRateLimitsSettings';
 import AdminEmailSettings from './AdminEmailSettings';
-import AnnouncementsSettingsTab from './AnnouncementsSettingsTab';
 import PricingSettingsTab from './PricingSettingsTab';
 import { ADMIN_TABS_LIST, ADMIN_TAB_TRIGGER } from '@/components/admin/ui/primitives';
 import SecuritySettingsTab from './SecuritySettingsTab';
@@ -19,13 +18,15 @@ import {
 } from './settingsHelpers';
 import { toast } from 'sonner';
 
-import { Activity, CreditCard, Bell, HeartPulse, Gauge, Mail, Lock } from 'lucide-react';
+import { Activity, CreditCard, HeartPulse, Gauge, Mail, Lock } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/ui/primitives';
 import DashboardSkeleton from '@/features/dashboard/components/DashboardSkeleton';
 
+// Announcements used to live here as its own tab. It moved to Admin →
+// Communications, alongside broadcasts and maintenance mode, so the three
+// global messaging surfaces are configured in one place.
 const SECTIONS = [
   { value: 'general', label: 'Health', icon: HeartPulse },
-  { value: 'announcements', label: 'Announcements', icon: Bell },
   { value: 'pricing', label: 'Pricing', icon: CreditCard },
   { value: 'security', label: 'Security', icon: Lock },
   { value: 'rate-limits', label: 'Rate Limits', icon: Gauge },
@@ -63,8 +64,7 @@ export default function GlobalSettings() {
   const [saving, setSaving] = useState(false);
 
   const [settings, setSettings] = useState({
-    maintenance_mode: false,
-    public_announcement: { enabled: false, message: '', type: 'info' },
+    maintenance_mode: null,
     pricing_tiers: {
       pro: { price: 9.99, originalPrice: 15, currency: 'USD' },
       premium: { price: 15.99, originalPrice: 25, currency: 'USD' },
@@ -91,7 +91,6 @@ export default function GlobalSettings() {
       setSettings((prev) => ({
         ...prev,
         ...data,
-        public_announcement: { ...prev.public_announcement, ...data.public_announcement },
         pricing_tiers: { ...prev.pricing_tiers, ...data.pricing_tiers },
       }));
     } catch (error) {
@@ -263,24 +262,11 @@ export default function GlobalSettings() {
           <TabsContent value="general" className="space-y-6" data-oid="ziz8z.b">
             <motion.div variants={itemVariants} data-oid="21cboft">
               <PlatformHealthDashboard
-                maintenanceMode={settings.maintenance_mode}
-                onToggleMaintenance={(enabled) => handleSave('maintenance_mode', enabled)}
-                isUpdating={saving}
+                maintenance={settings.maintenance_mode}
                 onLoadingChange={setHealthLoading}
                 data-oid="noan2.s"
               />
             </motion.div>
-          </TabsContent>
-
-          <TabsContent value="announcements" className="space-y-6" data-oid="h6s19d0">
-            <AnnouncementsSettingsTab
-              announcement={settings.public_announcement}
-              saving={saving}
-              onSave={handleSave}
-              onChangeAnnouncement={(announcement) =>
-                setSettings((prev) => ({ ...prev, public_announcement: announcement }))
-              }
-            />
           </TabsContent>
 
           <TabsContent value="pricing" className="space-y-6" data-oid="irb46s8">

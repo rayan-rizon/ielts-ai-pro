@@ -1,25 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-
-function getBandDescriptor(score) {
-  const num = parseFloat(score);
-  if (num >= 9.0) return 'Expert User';
-  if (num >= 8.0) return 'Very Good User';
-  if (num >= 7.0) return 'Good User';
-  if (num >= 6.0) return 'Competent User';
-  if (num >= 5.0) return 'Modest User';
-  if (num >= 4.0) return 'Limited User';
-  if (num >= 3.0) return 'Extremely Limited';
-  if (num >= 2.0) return 'Intermittent User';
-  return 'Initial Level';
-}
+import { cn } from '@/lib/cn';
+import { MICRO, NUM, Pill, Tip } from '@/features/dashboard/components/primitives';
+import { bandDescriptor } from './resultStats';
 
 export function ArchScoreGauge({ score }) {
   const gradientId = React.useId();
   const glowId = React.useId();
   const scoreNum = parseFloat(score) || 0;
   const bandText = scoreNum.toFixed(1);
-  const descriptor = getBandDescriptor(scoreNum);
+  const descriptor = bandDescriptor(scoreNum);
 
   // The SVG keeps the reference proportions while CSS scales it to the card.
   const width = 320;
@@ -65,8 +55,10 @@ export function ArchScoreGauge({ score }) {
               <stop offset="55%" stopColor="#4a52c9" />
               <stop offset="100%" stopColor="#3d44a8" />
             </linearGradient>
-            <filter id={glowId} x="-25%" y="-25%" width="150%" height="150%">
-              <feGaussianBlur stdDeviation="2.5" result="blur" />
+            {/* Kept as a no-op-ish soft edge; the panel system avoids glows,
+                so the blur radius is minimal rather than a halo. */}
+            <filter id={glowId} x="-10%" y="-10%" width="120%" height="120%">
+              <feGaussianBlur stdDeviation="0.4" result="blur" />
               <feComposite in="SourceGraphic" in2="blur" operator="over" />
             </filter>
           </defs>
@@ -97,6 +89,17 @@ export function ArchScoreGauge({ score }) {
             strokeWidth="4"
             className="dark:stroke-slate-950"
           />
+          {/* Invisible hit-target so the marker itself carries the tooltip,
+              matching how the trend chart's dots behave. */}
+          <Tip
+            content={
+              <span>
+                Band {bandText} of 9.0 — <span className="font-bold">{descriptor}</span>
+              </span>
+            }
+          >
+            <circle cx={endX} cy={endY} r="14" fill="transparent" className="cursor-default" />
+          </Tip>
 
           {/* Band Number Ticks (1 to 9) */}
           {bandTicks.map(({ band, x, y }) => (
@@ -115,15 +118,18 @@ export function ArchScoreGauge({ score }) {
 
         {/* Center Text inside the Arc */}
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-end text-center">
-          <span className="text-[9px] font-bold text-slate-400 dark:text-slate-400 leading-none mb-1 uppercase tracking-[0.18em]">
-            Your Band
+          <span className={cn(MICRO, 'mb-1 leading-none text-slate-500 dark:text-slate-400')}>
+            Band score
           </span>
-          <span className="text-[52px] xl:text-6xl font-black tracking-[-0.06em] text-slate-950 dark:text-white leading-none mb-2">
+          <span
+            className={cn(
+              NUM,
+              'mb-2 text-[46px] font-extrabold leading-none tracking-tight text-slate-900 dark:text-slate-50 xl:text-[54px]'
+            )}
+          >
             {bandText}
           </span>
-          <span className="px-3 py-1 rounded-lg text-[10px] font-bold bg-[#5a63df]/10 dark:bg-[#5a63df]/20 text-[#5a63df] dark:text-[#a9afff] border border-[#5a63df]/20 dark:border-[#5a63df]/30">
-            {descriptor}
-          </span>
+          <Pill tone="accent">{descriptor}</Pill>
         </div>
       </div>
     </div>

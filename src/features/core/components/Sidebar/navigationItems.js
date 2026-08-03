@@ -15,7 +15,7 @@ import {
   ClipboardList,
   Cpu,
   Crown,
-  Bell,
+  Megaphone,
   Settings,
   TrendingUp,
   Wallet,
@@ -56,7 +56,11 @@ export const adminNavigationItems = [
   { title: 'Promo Codes', url: createPageUrl('AdminPanel') + '?tab=promo', icon: Crown },
   { title: 'Referrals', url: createPageUrl('AdminPanel') + '?tab=referrals', icon: Gift },
   { title: 'Payments', url: createPageUrl('AdminPanel') + '?tab=payments', icon: CreditCard },
-  { title: 'Notifications', url: createPageUrl('AdminPanel') + '?tab=notifications', icon: Bell },
+  {
+    title: 'Communications',
+    url: createPageUrl('AdminPanel') + '?tab=notifications',
+    icon: Megaphone,
+  },
   { title: 'Settings', url: createPageUrl('AdminPanel') + '?tab=settings', icon: Settings },
 ];
 

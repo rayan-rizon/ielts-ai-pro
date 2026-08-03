@@ -31,6 +31,7 @@ import {
   PanelTitle,
   Pill,
   TILE,
+  Tip,
 } from '@/features/dashboard/components/primitives';
 import PracticeResultDialog from './PracticeResultDialog';
 
@@ -108,7 +109,11 @@ function PracticeSessionRow({ session, onViewResult }) {
 
       <div className="flex shrink-0 items-center gap-1.5">
         {session.abandoned ? (
-          <Pill tone="neutral">Not sat</Pill>
+          <Tip content="Left within the first 5 minutes — excluded from your band averages.">
+            <span>
+              <Pill tone="neutral">Not sat</Pill>
+            </span>
+          </Tip>
         ) : band != null ? (
           <span className={cn(NUM, 'text-sm font-bold text-slate-900 dark:text-slate-50')}>
             {band}
@@ -126,7 +131,9 @@ export default function RecentPracticeHistory({ sessions = [], user }) {
   const navigate = useNavigate();
   const [showAll, setShowAll] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
-  const recentSessions = sessions.slice(0, 4);
+  // Full-width row, so six attempts in two columns fill it instead of four
+  // stretched rows leaving half the panel blank.
+  const recentSessions = sessions.slice(0, 6);
   const abandonedCount = sessions.filter((session) => session.abandoned).length;
 
   const viewResult = (session) => {
@@ -168,7 +175,10 @@ export default function RecentPracticeHistory({ sessions = [], user }) {
           />
 
           {recentSessions.length ? (
-            <div className="space-y-2" data-testid="recent-practice-mobile-list">
+            <div
+              className="grid gap-2 md:grid-cols-2 xl:grid-cols-3"
+              data-testid="recent-practice-mobile-list"
+            >
               {recentSessions.map((session) => (
                 <PracticeSessionRow key={session.id} session={session} onViewResult={viewResult} />
               ))}
@@ -179,20 +189,14 @@ export default function RecentPracticeHistory({ sessions = [], user }) {
             </Empty>
           )}
 
-          {sessions.length ? (
+          {/* The attempt total is already the "Tests Counted" tile at the top of
+              the page, so this only carries what that tile cannot: which of
+              them were walk-aways and therefore kept out of every average. */}
+          {sessions.length > 0 && abandonedCount > 0 ? (
             <PanelFootnote>
-              {abandonedCount > 0 ? (
-                <>
-                  <span className={cn(NUM, 'font-bold')}>{abandonedCount}</span> of{' '}
-                  <span className={cn(NUM, 'font-bold')}>{sessions.length}</span> were left early
-                  and are excluded from your averages.
-                </>
-              ) : (
-                <>
-                  <span className={cn(NUM, 'font-bold')}>{sessions.length}</span> attempt
-                  {sessions.length === 1 ? '' : 's'} counted in this period.
-                </>
-              )}
+              <span className={cn(NUM, 'font-bold')}>{abandonedCount}</span> of{' '}
+              <span className={cn(NUM, 'font-bold')}>{sessions.length}</span> were left early and
+              are excluded from your averages.
             </PanelFootnote>
           ) : null}
         </section>

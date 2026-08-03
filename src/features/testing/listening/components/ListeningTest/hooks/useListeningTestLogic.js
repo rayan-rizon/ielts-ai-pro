@@ -11,7 +11,6 @@ import { computeQuestionNumbers } from '../utils/questionProcessing';
 import { calculateListeningTestResults } from '../utils/scoreCalculator';
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
 import { ANALYSIS_SCHEMA_VERSION } from '@/features/testing/shared/utils/resultEvidence';
-import { useGamification } from '@/hooks/useGamification';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useListeningTestStore } from '../../../store/useListeningTestStore';
 import {
@@ -45,7 +44,7 @@ function loadAudioDuration(src) {
   });
 }
 
-export const useListeningTestLogic = () => {
+export const useListeningTestLogic = ({ awardXP: awardXPFromPage } = {}) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { session, answers, testData, questions, questionsWithNumbers, isFinished, activePart } =
@@ -60,9 +59,7 @@ export const useListeningTestLogic = () => {
   const [isStarting, setIsStarting] = useState(false);
   const [examReview, setExamReview] = useState(false);
   const audioPlayerRef = useRef(null);
-
-  // Gamification
-  const { awardXP } = useGamification();
+  const awardXP = awardXPFromPage || (async () => ({ success: false }));
 
   // In-flight guard: prevents re-entrant init when currentUser ref changes mid-flight
   const initializingRef = useRef(false);

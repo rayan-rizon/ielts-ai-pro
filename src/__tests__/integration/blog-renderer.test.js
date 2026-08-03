@@ -141,7 +141,7 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('"url":"https://www.ieltsai.pro/about"');
     expect(response.body).toContain('Use evidence');
     expect(response.body).not.toContain('<script>alert(1)</script>');
-    expect(response.body).toContain('href="/reading"');
+    expect(response.body).toContain('href="/cambridge-ielts-practice-tests#reading"');
     expect(response.body).toContain(
       'src="/blog-images/ielts-reading-sentence-completion-four-checks.webp"'
     );
@@ -179,6 +179,30 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('aria-expanded');
     expect(response.body).toContain('html.dark .article table');
     expect(response.body).not.toContain('Turn the strategy into a score');
+    expect(response.body).toContain('<title>IELTS Reading Strategy | IELTS Ai Pro</title>');
+  });
+
+  it('keeps long article titles within the audit threshold', async () => {
+    const longTitleArticle = {
+      ...article,
+      title: 'IELTS Reading Multiple Choice: A Complete Evidence-Based Practice Guide',
+      slug: 'ielts-reading-multiple-choice-guide',
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: async () => [longTitleArticle] })
+    );
+    const response = createResponse();
+
+    await blogHandler({ query: { slug: longTitleArticle.slug } }, response);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toContain(
+      '<title>IELTS Reading Multiple Choice: A Complete Evidence-Based Practice Guide</title>'
+    );
+    expect(response.body).not.toContain(
+      '<title>IELTS Reading Multiple Choice: A Complete Evidence-Based Practice Guide | IELTS Ai Pro</title>'
+    );
   });
 
   it('provides descriptive cover alt text for each new daily guide', () => {

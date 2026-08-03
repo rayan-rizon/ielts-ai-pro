@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
-const PARTICLE_COUNT = 50;
+const CELEBRATION_DURATION_MS = 4600;
 
 const randomBetween = (min, max) => Math.random() * (max - min) + min;
 
@@ -9,18 +9,34 @@ const THEMES = {
   gold: ['#FFD700', '#FDB931', '#FF9505', '#FFE135', '#D4AF37'],
   silver: ['#C0C0C0', '#D3D3D3', '#E5E4E2', '#A9A9A9', '#71706E'],
   bronze: ['#CD7F32', '#804A00', '#A57164', '#B08D57', '#8C7853'],
-  default: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'],
+  // Neutral celebratory accents that stay legible over both light and dark surfaces.
+  default: ['#F8FAFC', '#FBBF24', '#34D399', '#F472B6', '#38BDF8', '#FB7185'],
 };
 
-const ConfettiParticle = ({ delay, theme = 'default' }) => {
+function createParticles(count, theme) {
   const palette = THEMES[theme] || THEMES.default;
-  const color = palette[Math.floor(Math.random() * palette.length)];
-  const startX = randomBetween(5, 95);
-  const endX = startX + randomBetween(-20, 20);
-  const rotation = randomBetween(0, 720);
-  const size = randomBetween(6, 12);
-  const shape =
-    Math.random() > 0.4 ? 'rounded-full' : Math.random() > 0.5 ? 'rounded-sm' : 'rotate-45';
+
+  return Array.from({ length: count }, (_, id) => {
+    const startX = randomBetween(5, 95);
+    const shape =
+      Math.random() > 0.4 ? 'rounded-full' : Math.random() > 0.5 ? 'rounded-sm' : 'rotate-45';
+
+    return {
+      id,
+      color: palette[Math.floor(Math.random() * palette.length)],
+      delay: randomBetween(0, 0.7),
+      duration: randomBetween(2.2, 3.7),
+      startX,
+      endX: startX + randomBetween(-20, 20),
+      rotation: randomBetween(360, 900),
+      size: randomBetween(5, 10),
+      shape,
+    };
+  });
+}
+
+const ConfettiParticle = ({ particle, theme = 'default' }) => {
+  const { color, delay, duration, endX, rotation, shape, size, startX } = particle;
 
   return (
     <motion.div
@@ -36,14 +52,14 @@ const ConfettiParticle = ({ delay, theme = 'default' }) => {
       }}
       initial={{ y: 0, x: 0, opacity: 1, rotate: 0, scale: 1 }}
       animate={{
-        y: [0, randomBetween(window.innerHeight * 0.4, window.innerHeight * 0.9)],
+        y: ['0vh', '100vh'],
         x: [0, endX - startX],
         opacity: [1, 1, 0.8, 0],
         rotate: rotation,
         scale: [1, 1.1, 0.7],
       }}
       transition={{
-        duration: randomBetween(2, 4),
+        duration,
         delay: delay,
         ease: 'easeOut',
       }}
@@ -59,34 +75,49 @@ export default function ConfettiCelebration({
   theme = 'default',
 }) {
   const [particles, setParticles] = useState([]);
+  const onCompleteRef = useRef(onComplete);
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
-    if (show) {
-      setParticles(
-        Array.from({ length: particleCount }, (_, i) => ({
-          id: i,
-          delay: randomBetween(0, 0.8),
-        }))
-      );
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
-      const timer = setTimeout(() => {
-        setParticles([]);
-        onComplete?.();
-      }, 5000);
-
-      return () => clearTimeout(timer);
+  useEffect(() => {
+    if (!show) {
+      setParticles([]);
+      return undefined;
     }
-  }, [show, onComplete, particleCount]);
+
+    if (shouldReduceMotion || particleCount <= 0) {
+      onCompleteRef.current?.();
+      return undefined;
+    }
+
+    setParticles(createParticles(particleCount, theme));
+    const timer = window.setTimeout(() => {
+      setParticles([]);
+      onCompleteRef.current?.();
+    }, CELEBRATION_DURATION_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [show, particleCount, theme, shouldReduceMotion]);
 
   return (
     <AnimatePresence data-oid="j7tlwaj">
       {show && particles.length > 0 && (
         <div
+          aria-hidden="true"
           className="fixed inset-0 pointer-events-none z-[200] overflow-hidden"
+          data-testid="confetti-celebration"
           data-oid="7f_0xgu"
         >
-          {particles.map((p) => (
-            <ConfettiParticle key={p.id} delay={p.delay} theme={theme} data-oid="8wveq_p" />
+          {particles.map((particle) => (
+            <ConfettiParticle
+              key={particle.id}
+              particle={particle}
+              theme={theme}
+              data-oid="8wveq_p"
+            />
           ))}
         </div>
       )}
