@@ -33,16 +33,18 @@ const FEATURES = [
   {
     icon: Target,
     tone: 'rose',
-    title: 'Target weak question types',
-    description: 'Finds the exact question types costing you marks and drills them until fixed.',
-    highlights: ['Weakness pattern tracking', 'Focused recovery drills'],
+    title: 'Find weak question types',
+    description:
+      'See which IELTS formats are costing marks and which ones should be practised next.',
+    highlights: ['Question-type ranking', 'Exact error drill-downs'],
   },
   {
     icon: Activity,
     tone: 'emerald',
-    title: 'Real practice score level',
-    description: 'A band range calculated from your actual practice results, not a guess.',
-    highlights: ['Verified band range', 'Grounded in graded evidence'],
+    title: 'Advanced progress analytics',
+    description:
+      'Go beyond basic score history with readiness, criteria, and test-position analysis.',
+    highlights: ['Readiness evidence', '90-day and all-time views'],
   },
   {
     icon: PenTool,
@@ -88,8 +90,8 @@ const Upgrade = () => {
             Unlock your learning path
           </h1>
           <p className={cn('mx-auto mt-2 max-w-lg text-[13px] font-medium leading-relaxed', MUTED)}>
-            Full access to your personalised roadmap, weakness tracking, real readiness scoring, and
-            official Cambridge test evaluations.
+            Keep basic progress tracking free, then unlock deeper diagnosis, personalised next
+            steps, and your adaptive study roadmap.
           </p>
         </div>
 

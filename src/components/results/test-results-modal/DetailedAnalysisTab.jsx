@@ -13,8 +13,9 @@ import {
   Headphones,
   History,
   Lightbulb,
-  LockKeyhole,
   Save,
+  TrendingDown,
+  TrendingUp,
   TriangleAlert,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ import {
 } from '@/features/dashboard/components/primitives';
 import { buildPremiumAnalysis } from './premiumAnalysis';
 import { accuracyTone, deriveResultStats } from './resultStats';
+import PaidFeatureGate from '@/features/subscription/components/PaidFeatureGate';
 
 /**
  * This tab used to carry its own design language: an off-brand `#5661e9`
@@ -88,77 +90,6 @@ function SectionHeading({ icon: Icon, eyebrow, title, action }) {
   );
 }
 
-function FreeTeaser({ analysis, testType, onUpgrade }) {
-  const largestLoss = analysis.typeLosses[0];
-  const lossPercent = largestLoss?.total
-    ? Math.round((largestLoss.lost / largestLoss.total) * 100)
-    : 0;
-  return (
-    <div className="mx-auto max-w-5xl p-4 sm:p-5 lg:p-6">
-      <section className={`${CARD} overflow-hidden`}>
-        <div className="border-b border-[#eceafa] px-4 py-4 dark:border-white/[0.07]">
-          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-            <div>
-              <h2 className="mt-0.5 text-lg font-extrabold tracking-tight text-slate-950 dark:text-white">
-                Understand your {testType} result
-              </h2>
-              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                Start with the two signals that matter most.
-              </p>
-            </div>
-            <Button
-              onClick={onUpgrade}
-              className="h-9 rounded-xl bg-[#5a63df] px-4 text-xs font-bold text-white hover:bg-[#4a52c9] transition-all shadow-xs"
-            >
-              Unlock premium coaching <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </div>
-        <div className="grid gap-3 p-4 sm:grid-cols-2">
-          <div className={cn(TILE, 'p-3.5')}>
-            <p className={cn(MICRO, OUTCOME.incorrect.text)}>Your biggest score loss</p>
-            <p className="mt-1 text-base font-extrabold text-slate-900 dark:text-white">
-              {largestLoss?.label || 'Not enough detail'}
-            </p>
-            <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
-              {largestLoss
-                ? `${largestLoss.lost} of ${largestLoss.total} points lost`
-                : 'Complete a scored question type to reveal this signal.'}
-            </p>
-            <div className={cn('mt-3 h-1.5 overflow-hidden rounded-full', WELL)}>
-              <div
-                className={cn('h-full rounded-full', OUTCOME.incorrect.fill)}
-                style={{ width: `${lossPercent}%` }}
-                aria-label={`${lossPercent}% of points lost in ${largestLoss?.label || 'this area'}`}
-              />
-            </div>
-          </div>
-          <div className={cn(TILE, 'p-3.5')}>
-            <p className={cn(MICRO, 'text-[#5a63df] dark:text-[#a9afff]')}>
-              Answers needed for your next band
-            </p>
-            <p className="mt-1 text-base font-extrabold text-slate-900 dark:text-white">
-              {analysis.target.additionalCorrect} more correct answer
-              {analysis.target.additionalCorrect === 1 ? '' : 's'}
-            </p>
-            <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
-              Reach Band {formatBand(analysis.target.nextBand)} at about {analysis.target.rawNeeded}
-              /{analysis.target.total || 40} correct.
-            </p>
-          </div>
-        </div>
-        <div className={cn(WELL, 'mx-4 mb-4 flex items-center gap-2.5 rounded-xl px-3.5 py-2.5')}>
-          <LockKeyhole className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-          <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
-            Premium includes answer priorities, passage or part insights, score trends, and a saved
-            seven-day plan.
-          </p>
-        </div>
-      </section>
-    </div>
-  );
-}
-
 function RecoveryMap({ analysis, testResults, currentBand, selectedTarget, _onTargetChange }) {
   const totalLost = analysis.typeLosses.reduce((sum, entry) => sum + entry.lost, 0);
   // The paper-level mix comes from the same source the Overview tab uses.
@@ -204,7 +135,7 @@ function RecoveryMap({ analysis, testResults, currentBand, selectedTarget, _onTa
             </div>
             <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-500" />
             <div className="min-w-0 text-right">
-              <p className={cn(MICRO, MUTED)}>Target</p>
+              <p className={cn(MICRO, MUTED)}>Target band</p>
               <p
                 className={cn(
                   NUM,
@@ -546,12 +477,19 @@ function TrendSparkline({ scores }) {
   const minVal = Math.max(0, Math.min(...values) - 0.5);
   const maxVal = Math.min(9, Math.max(...values) + 0.5);
   const range = Math.max(1, maxVal - minVal);
+  const gradientId = React.useId().replace(/:/g, '');
 
   const pointsArray = scores.map((entry, index) => {
     const value = Number(entry.score) || 0;
     const x = values.length <= 1 ? 120 : 16 + (index / (values.length - 1)) * 208;
     const y = 64 - ((value - minVal) / range) * 44; // maps y between 20 and 64
-    return { x, y, value, date: entry.date, isCurrent: index === scores.length - 1 };
+    return {
+      x,
+      y,
+      value,
+      date: entry.date,
+      isCurrent: index === scores.length - 1,
+    };
   });
 
   const points = pointsArray.map((p) => `${p.x},${p.y}`).join(' ');
@@ -572,13 +510,20 @@ function TrendSparkline({ scores }) {
         aria-label="Recent band score trend"
       >
         <defs>
-          <linearGradient id="sparklineGradient" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={`${gradientId}-area`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="currentColor" stopOpacity="0.20" />
             <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
           </linearGradient>
+          <filter id={`${gradientId}-glow`} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
 
-        {/* Dashed Grid Lines */}
+        {/* Quiet grid lines keep the score movement readable without competing with the line. */}
         {[20, 42, 64].map((y) => (
           <line
             key={y}
@@ -587,54 +532,51 @@ function TrendSparkline({ scores }) {
             y1={y}
             y2={y}
             stroke="currentColor"
-            className="text-slate-200 dark:text-slate-800/80"
-            strokeDasharray="4 4"
+            className="text-slate-200/80 dark:text-[#3d3a5d]"
+            strokeDasharray="1 5"
+            strokeLinecap="round"
           />
         ))}
 
-        {/* Area Gradient Fill */}
-        {values.length > 1 && <polygon points={polygonPoints} fill="url(#sparklineGradient)" />}
+        {/* Area fill gives the chart a little depth while preserving the flat dashboard surface. */}
+        {values.length > 1 && <polygon points={polygonPoints} fill={`url(#${gradientId}-area)`} />}
 
-        {/* Trend Line */}
         {values.length > 1 && (
           <polyline
             points={points}
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.5"
+            strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
+            filter={`url(#${gradientId}-glow)`}
           />
         )}
 
-        {/* Data Dots — the current attempt reads as a solid, larger marker */}
         {pointsArray.map((p, index) => (
           <circle
             key={index}
             cx={p.x}
             cy={p.y}
-            r={p.isCurrent ? 4.5 : 3.5}
+            r={p.isCurrent ? 5.5 : 4}
             className={
-              p.isCurrent ? 'fill-current' : 'fill-white stroke-current dark:fill-[#131315]'
+              p.isCurrent ? 'fill-current' : 'fill-white stroke-current dark:fill-[#242427]'
             }
             stroke="currentColor"
-            strokeWidth="2.5"
+            strokeWidth={p.isCurrent ? '2' : '2.5'}
           />
         ))}
       </svg>
 
-      {/* Invisible hit-targets over each dot, positioned by plain percentage
-          since the SVG above is stretched 1:1 to this box. Radix reads the
-          trigger's real DOM rect, so this works regardless of card width. */}
+      {/* Real point controls keep the chart hoverable and keyboard-focusable without adding click state. */}
       {pointsArray.map((p, index) => (
-        <Tooltip key={index}>
+        <Tooltip key={index} delayDuration={100}>
           <TooltipTrigger asChild>
             <button
               type="button"
-              tabIndex={-1}
               aria-label={`${formatTrendDate(p.date)}: band ${p.value.toFixed(1)}`}
-              className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 cursor-default rounded-full"
+              className="absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 cursor-help rounded-full transition-colors hover:bg-[#5a63df]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50 dark:hover:bg-[#a9afff]/10 dark:focus-visible:ring-[#a9afff]/55"
               style={{ left: `${(p.x / 240) * 100}%`, top: `${(p.y / 80) * 100}%` }}
             />
           </TooltipTrigger>
@@ -644,7 +586,7 @@ function TrendSparkline({ scores }) {
           >
             <p className="text-xs font-extrabold">Band {p.value.toFixed(1)}</p>
             <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
-              {formatTrendDate(p.date)}
+              {formatTrendDate(p.date)} · Hover for details
             </p>
           </TooltipContent>
         </Tooltip>
@@ -658,15 +600,34 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
     ...[...analysis.history.scores].reverse(),
     { score: currentBand, date: 'current' },
   ];
+  const firstScore = Number(scores[0]?.score) || 0;
+  const latestScore = Number(currentBand) || 0;
+  const trendDelta = latestScore - firstScore;
+  const trendDirection = trendDelta > 0.05 ? 'up' : trendDelta < -0.05 ? 'down' : 'steady';
+  const trendLabel =
+    trendDirection === 'steady'
+      ? 'Holding steady'
+      : `${trendDelta > 0 ? '+' : ''}${trendDelta.toFixed(1)} since first`;
+  const TrendIcon =
+    trendDirection === 'up' ? TrendingUp : trendDirection === 'down' ? TrendingDown : History;
+
   return (
-    <section className={`${CARD} h-full p-4 sm:p-5 space-y-3.5`}>
-      <SectionHeading
-        icon={History}
-        eyebrow="Your latest results in this test type."
-        title="Your score trend"
-      />
+    <section className={`${CARD} h-full space-y-3.5 p-4 sm:p-5`}>
+      <div className="flex items-start justify-between gap-3">
+        <SectionHeading
+          icon={History}
+          eyebrow="Your latest results in this test type."
+          title="Your score trend"
+        />
+        {!loading && !failed && analysis.history.scores.length > 0 && (
+          <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-[#5a63df]/20 bg-[#5a63df]/[0.07] px-2.5 py-1 text-[10px] font-extrabold text-[#5a63df] dark:border-[#a9afff]/20 dark:bg-[#a9afff]/[0.10] dark:text-[#b8bcff]">
+            <TrendIcon className="h-3 w-3" strokeWidth={2.5} />
+            <span>{trendLabel}</span>
+          </div>
+        )}
+      </div>
       {loading ? (
-        <div className="h-28 animate-pulse rounded-xl bg-slate-100 dark:bg-white/[0.04]" />
+        <div className="h-36 animate-pulse rounded-xl bg-slate-100 dark:bg-white/[0.04]" />
       ) : failed ? (
         <p className="rounded-xl bg-amber-50 p-3 text-xs font-medium text-amber-700 border border-amber-200/60 dark:bg-amber-950/30 dark:text-amber-300">
           History could not be loaded. Current-result analysis is unaffected.
@@ -685,21 +646,44 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
         </div>
       ) : (
         <>
-          {/* This card had no `dark:` background at all, so it stayed
-              `slate-50 → white` even in dark mode — a bright white box
-              sitting inside an otherwise near-black panel. */}
           <div
             className={cn(
               WELL,
-              'rounded-xl border border-slate-200/70 p-3 dark:border-white/[0.07]'
+              'rounded-xl border border-slate-200/70 p-3.5 dark:border-white/[0.08]'
             )}
           >
-            <TrendSparkline scores={scores} />
-            <div className="flex justify-between items-center px-2 pt-2 text-[11px] font-bold text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-white/[0.07] mt-1">
-              <span>Start: {formatBand(scores[0].score)}</span>
-              <span className="text-[#5a63df] dark:text-[#a9afff] font-extrabold">
-                Current: Band {formatBand(currentBand)}
+            <div className="flex items-start justify-between gap-4 px-1 pb-2">
+              <div>
+                <p className={cn(MICRO, MUTED)}>First attempt</p>
+                <p
+                  className={cn(
+                    NUM,
+                    'mt-0.5 text-sm font-extrabold text-slate-700 dark:text-slate-200'
+                  )}
+                >
+                  Band {formatBand(firstScore)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className={cn(MICRO, 'text-[#5a63df] dark:text-[#a9afff]')}>Latest result</p>
+                <p
+                  className={cn(
+                    NUM,
+                    'mt-0.5 text-sm font-extrabold text-[#5a63df] dark:text-[#b8bcff]'
+                  )}
+                >
+                  Band {formatBand(latestScore)}
+                </p>
+              </div>
+            </div>
+            <div className="relative rounded-lg border border-slate-200/70 bg-white/45 px-1.5 pt-1 dark:border-white/[0.06] dark:bg-[#0d0d12]/45">
+              <TrendSparkline scores={scores} />
+            </div>
+            <div className="mt-2 flex items-center justify-between border-t border-slate-200/70 px-1 pt-2 text-[10px] font-bold text-slate-400 dark:border-white/[0.07] dark:text-slate-500">
+              <span>
+                {scores.length} scored attempt{scores.length === 1 ? '' : 's'}
               </span>
+              <span className="text-slate-500 dark:text-slate-400">Hover a point for details</span>
             </div>
           </div>
         </>
@@ -883,10 +867,6 @@ export function DetailedAnalysisTab({
     onReviewQuestion?.(item.questionNumber);
   };
 
-  if (!isPremium) {
-    return <FreeTeaser analysis={analysis} testType={testType} onUpgrade={handleUpgrade} />;
-  }
-
   return (
     <div className="p-3 sm:p-4 lg:p-5">
       <div className="mx-auto max-w-[1400px] space-y-3">
@@ -903,22 +883,40 @@ export function DetailedAnalysisTab({
           </div>
           <div className="min-w-0 space-y-3 lg:col-span-5">
             <SectionStrategy analysis={analysis} testType={testType} />
-            <RecentPatterns
-              analysis={analysis}
-              loading={historyQuery.isLoading}
-              failed={historyQuery.isError}
-              currentBand={testResults.bandScore}
-            />
           </div>
         </div>
-        <RecoveryPlan
-          analysis={analysis}
-          canSave={Boolean(sessionId)}
-          saving={saveMutation.isPending}
-          savedPathId={savedPathId}
-          onSave={() => saveMutation.mutate()}
-          onViewPlan={() => navigate('/learning-path')}
-        />
+        {isPremium ? (
+          <div className="grid items-start gap-3 lg:grid-cols-12">
+            <div className="min-w-0 lg:col-span-5">
+              <RecentPatterns
+                analysis={analysis}
+                loading={historyQuery.isLoading}
+                failed={historyQuery.isError}
+                currentBand={testResults.bandScore}
+              />
+            </div>
+            <div className="min-w-0 lg:col-span-7">
+              <RecoveryPlan
+                analysis={analysis}
+                canSave={Boolean(sessionId)}
+                saving={saveMutation.isPending}
+                savedPathId={savedPathId}
+                onSave={() => saveMutation.mutate()}
+                onViewPlan={() => navigate('/learning-path')}
+              />
+            </div>
+          </div>
+        ) : (
+          <PaidFeatureGate
+            hasAccess={false}
+            label="Advanced coaching"
+            title="Turn this result into a longer-term plan"
+            description="Compare this score with recent attempts and get a personalised seven-day recovery plan you can save to your learning path."
+            benefits={['Cross-test score patterns', 'Saved seven-day practice plan']}
+            className="min-h-[210px]"
+            onUpgrade={handleUpgrade}
+          />
+        )}
       </div>
       <div
         className={cn(

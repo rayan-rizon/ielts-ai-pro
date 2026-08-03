@@ -3,8 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Resource } from '@/features/learning/services/Resource';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryClient';
-import { buildDashboardViewModel, isPremiumTier, normalizeTargetScore } from './dashboardDataUtils';
+import { buildDashboardViewModel, normalizeTargetScore } from './dashboardDataUtils';
 import { getTodaysFocus, createTodaysFocus } from '@/services/adaptiveLearningService';
+import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
 
 export { normalizeTargetScore };
 
@@ -21,21 +22,19 @@ const assertDashboardQueriesSucceeded = (queryResults) => {
 async function fetchDashboardStats(userId) {
   if (!userId) return null;
 
+  const skillProficiencyRequest = supabase
+    .from('skill_proficiency')
+    .select('skill_code, module, mastery_probability, practice_count, correct_count, streak_count')
+    .eq('user_id', userId)
+    .order('mastery_probability', { ascending: true })
+    .limit(24);
+
   const [statsResult, recentSessionsResult, cambridgeResult, skillProficiencyResult] =
     await Promise.all([
       supabase.rpc('get_dashboard_stats'),
       supabase.rpc('get_recent_sessions', { p_limit: 8 }),
       supabase.rpc('get_cambridge_tests', { p_limit: 4 }),
-      // Every tracked question type, weakest first — the dashboard shows a ranked
-      // breakdown, not just the single worst skill.
-      supabase
-        .from('skill_proficiency')
-        .select(
-          'skill_code, module, mastery_probability, practice_count, correct_count, streak_count'
-        )
-        .eq('user_id', userId)
-        .order('mastery_probability', { ascending: true })
-        .limit(24),
+      skillProficiencyRequest,
     ]);
 
   assertDashboardQueriesSucceeded([
@@ -133,7 +132,7 @@ export default function useDashboardData(authUser, authLoading) {
   const userId = authUser?.id;
   const user = authUser;
   const enabled = !authLoading && Boolean(userId);
-  const isPremium = isPremiumTier(user?.subscription_tier);
+  const isPremium = hasPaidAccess(user);
   const premiumEnabled = enabled && isPremium;
   const statsQuery = useDashboardStatsQuery(userId, enabled);
   const aiFocusQuery = useAiFocusQuery(userId, premiumEnabled);

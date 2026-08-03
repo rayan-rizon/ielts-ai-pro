@@ -29,7 +29,6 @@ import {
 } from '@/features/dashboard/components/primitives';
 import { ITEM_VARIANTS, MODULE_META } from '../constants';
 import { createPageUrl } from '@/utils';
-import LockedFeature from './LockedFeature';
 
 /**
  * Trims the boilerplate the recommendation text arrives wrapped in.
@@ -176,7 +175,7 @@ function FocusAreaLink({ to, icon: Icon, title, tag, tagTone = 'accent', subtitl
  * current-versus-target ratio as the meter in the headline band tile, two rows
  * above it. It is gone; the card now only carries what nothing else does.
  */
-export default function AIInsightsCard({ stats, aiLoading, isPremium }) {
+export default function AIInsightsCard({ stats, aiLoading }) {
   const suggestions = stats?.insights?.aiSuggestions;
   const primaryFocus = suggestions?.recommended_focus_areas?.[0];
   const grammarSignal =
@@ -193,78 +192,76 @@ export default function AIInsightsCard({ stats, aiLoading, isPremium }) {
           label="Practise next"
           accent
           tip="Personalised from your saved results, weighted toward skills with the most evidence behind them."
-          action={!isPremium ? <Pill tone="amber">Pro</Pill> : <Pill tone="ok">Active</Pill>}
+          action={<Pill tone="ok">Active</Pill>}
         />
 
-        <LockedFeature isLocked={!isPremium} compact className="flex-1">
-          <div className="flex h-full flex-col gap-2.5">
-            {aiLoading ? (
-              <InsightsLoadingSkeleton />
-            ) : suggestions ? (
-              <>
-                <div className="space-y-2">
-                  {primaryFocus
-                    ? (() => {
-                        const info = getModuleInfo(primaryFocus);
-                        const isMeasured = primaryFocus.evidenceClass === 'measured_priority';
-                        const raw = primaryFocus.module || 'Focus area';
-                        const title = !raw.toLowerCase().startsWith(info.name.toLowerCase())
-                          ? `${info.name} — ${raw}`
-                          : raw;
-                        const mastery = Number.isFinite(primaryFocus.mastery)
-                          ? Math.round(primaryFocus.mastery * 100)
-                          : null;
-                        return (
-                          <FocusAreaLink
-                            to={createPageUrl('LearningPath')}
-                            icon={info.icon}
-                            title={title}
-                            tag={isMeasured ? 'Confirmed' : 'Needs results'}
-                            tagTone={isMeasured ? 'ok' : 'neutral'}
-                            subtitle={`${Number(primaryFocus.observations || 0).toLocaleString()} graded answers`}
-                            mastery={mastery}
-                          />
-                        );
-                      })()
-                    : null}
+        <div className="flex h-full flex-1 flex-col gap-2.5">
+          {aiLoading ? (
+            <InsightsLoadingSkeleton />
+          ) : suggestions ? (
+            <>
+              <div className="space-y-2">
+                {primaryFocus
+                  ? (() => {
+                      const info = getModuleInfo(primaryFocus);
+                      const isMeasured = primaryFocus.evidenceClass === 'measured_priority';
+                      const raw = primaryFocus.module || 'Focus area';
+                      const title = !raw.toLowerCase().startsWith(info.name.toLowerCase())
+                        ? `${info.name} — ${raw}`
+                        : raw;
+                      const mastery = Number.isFinite(primaryFocus.mastery)
+                        ? Math.round(primaryFocus.mastery * 100)
+                        : null;
+                      return (
+                        <FocusAreaLink
+                          to={createPageUrl('LearningPath')}
+                          icon={info.icon}
+                          title={title}
+                          tag={isMeasured ? 'Confirmed' : 'Needs results'}
+                          tagTone={isMeasured ? 'ok' : 'neutral'}
+                          subtitle={`${Number(primaryFocus.observations || 0).toLocaleString()} graded answers`}
+                          mastery={mastery}
+                        />
+                      );
+                    })()
+                  : null}
 
-                  {grammarSignal ? (
-                    <FocusAreaLink
-                      to="/grammar"
-                      icon={BookCheck}
-                      title="Grammar & Vocabulary"
-                      tag="Diagnostic"
-                      tagTone="neutral"
-                      subtitle="Level check recommended"
-                    />
-                  ) : null}
+                {grammarSignal ? (
+                  <FocusAreaLink
+                    to="/grammar"
+                    icon={BookCheck}
+                    title="Grammar & Vocabulary"
+                    tag="Diagnostic"
+                    tagTone="neutral"
+                    subtitle="Level check recommended"
+                  />
+                ) : null}
 
-                  {moduleRec ? (
-                    <FocusAreaLink
-                      to={moduleRecMeta?.href || createPageUrl('Dashboard')}
-                      icon={moduleRecMeta?.icon || ChevronRight}
-                      title={moduleRecMeta?.title || 'Practice'}
-                      tag="Recommended"
-                      subtitle={compactRecommendation(moduleRec.text, 'Focused passage practice')}
-                    />
-                  ) : null}
-                </div>
+                {moduleRec ? (
+                  <FocusAreaLink
+                    to={moduleRecMeta?.href || createPageUrl('Dashboard')}
+                    icon={moduleRecMeta?.icon || ChevronRight}
+                    title={moduleRecMeta?.title || 'Practice'}
+                    tag="Recommended"
+                    subtitle={compactRecommendation(moduleRec.text, 'Focused passage practice')}
+                  />
+                ) : null}
+              </div>
 
-                <div className="mt-auto">
-                  <EvidenceSummary counts={stats?.evidenceSummary?.counts} />
-                </div>
-              </>
-            ) : stats?.avgScore > 0 ? (
-              <Empty icon={Sparkles} className="flex-1 content-center">
-                Complete a scored test to refresh these priorities.
-              </Empty>
-            ) : (
-              <Empty icon={Brain} className="flex-1 content-center">
-                Complete one practice test to see your first priorities.
-              </Empty>
-            )}
-          </div>
-        </LockedFeature>
+              <div className="mt-auto">
+                <EvidenceSummary counts={stats?.evidenceSummary?.counts} />
+              </div>
+            </>
+          ) : stats?.avgScore > 0 ? (
+            <Empty icon={Sparkles} className="flex-1 content-center">
+              Complete a scored test to refresh these priorities.
+            </Empty>
+          ) : (
+            <Empty icon={Brain} className="flex-1 content-center">
+              Complete one practice test to see your first priorities.
+            </Empty>
+          )}
+        </div>
 
         <PanelFootnote>Ranked by graded evidence, refreshed after every scored test.</PanelFootnote>
       </section>

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { m } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
@@ -133,10 +133,13 @@ const getProgressToTarget = (stats) => {
 export default function Analytics() {
   const [selectedTimeframe, setSelectedTimeframe] = useState('30d');
   const data = useAnalyticsData(selectedTimeframe);
-  const isPremium = useMemo(() => {
-    const tier = (data.user?.subscription_tier || '').toLowerCase();
-    return tier === 'pro' || tier === 'premium' || data.user?.role === 'admin';
-  }, [data.user?.subscription_tier, data.user?.role]);
+  const isPremium = data.hasAdvancedAccess;
+
+  useEffect(() => {
+    if (!isPremium && (selectedTimeframe === '90d' || selectedTimeframe === 'all')) {
+      setSelectedTimeframe('30d');
+    }
+  }, [isPremium, selectedTimeframe]);
 
   if (data.isLoading) return <AnalyticsSkeleton />;
   if (data.hasError) return <AnalyticsError retry={() => data.retry?.()} />;

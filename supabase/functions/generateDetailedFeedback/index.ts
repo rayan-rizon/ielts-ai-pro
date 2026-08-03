@@ -25,9 +25,104 @@ import {
 // @ts-ignore
 declare const Deno: any;
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const LUNA_MODEL = 'openai/gpt-5.6-luna';
 
 if (!GEMINI_API_KEY) {
   console.error('GEMINI_API_KEY environment variable is not configured');
+}
+
+function buildLunaMessageContent(
+  systemInstruction: string,
+  userContentParts: Array<{ text?: string; inline_data?: { mime_type: string; data: string } }>,
+  schemaText: string
+) {
+  const content: any[] = [{ type: 'text', text: `${systemInstruction}\n${schemaText}` }];
+  for (const part of userContentParts) {
+    if (part.text) content.push({ type: 'text', text: part.text });
+    if (part.inline_data) {
+      content.push({
+        type: 'image_url',
+        image_url: { url: `data:${part.inline_data.mime_type};base64,${part.inline_data.data}` },
+      });
+    }
+  }
+  return content;
+}
+
+// Primary writing-feedback provider. Luna is vision-capable (needed for Task 1
+// charts/maps) and has no responseSchema equivalent, so the JSON contract is
+// restated as text via schemaText. Any failure — HTTP error, empty content,
+// malformed JSON, or a response missing the required band scores — returns
+// null so the caller falls back to the existing Gemini path unchanged.
+async function requestLunaWritingFeedback(
+  systemInstruction: string,
+  userContentParts: Array<{ text?: string; inline_data?: { mime_type: string; data: string } }>,
+  schemaText: string,
+  requiredCriterionKey: string
+): Promise<{ parsedFeedback: Record<string, any>; tokensUsed: number } | null> {
+  if (!OPENROUTER_API_KEY) return null;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
+  try {
+    const response = await fetch(OPENROUTER_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'X-Title': 'IELTS Ai Pro',
+      },
+      body: JSON.stringify({
+        model: LUNA_MODEL,
+        messages: [
+          {
+            role: 'user',
+            content: buildLunaMessageContent(systemInstruction, userContentParts, schemaText),
+          },
+        ],
+        response_format: { type: 'json_object' },
+        // Luna has no plain temperature control; disable hidden reasoning so
+        // the full completion budget goes to the JSON payload, not thinking.
+        reasoning: { effort: 'none', exclude: true },
+        max_tokens: 4096,
+        provider: { sort: 'throughput', require_parameters: true },
+        stream: false,
+      }),
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      console.warn(`Luna writing request failed (HTTP ${response.status}); falling back to Gemini`);
+      return null;
+    }
+
+    const data = await response.json();
+    const text = data?.choices?.[0]?.message?.content;
+    if (!text) return null;
+
+    const parsedFeedback = parseStructuredJson(text);
+    const criteria = parsedFeedback?.criteriaScores;
+    const hasRequiredScores =
+      criteria &&
+      [
+        requiredCriterionKey,
+        'CoherenceAndCohesion',
+        'LexicalResource',
+        'GrammaticalRangeAndAccuracy',
+      ].every((key) => Number.isFinite(Number(criteria[key])));
+    if (!hasRequiredScores) {
+      console.warn('Luna writing response failed schema validation; falling back to Gemini');
+      return null;
+    }
+
+    return { parsedFeedback, tokensUsed: Number(data?.usage?.total_tokens) || 0 };
+  } catch (e) {
+    console.warn('Luna writing request threw; falling back to Gemini:', e);
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 function isTrustedImageUrl(rawUrl: string): boolean {
@@ -498,89 +593,130 @@ Register and tone:
       );
     }
 
-    // Use Gemini 2.5 Flash for all tasks (multimodal support included)
-    const model = 'gemini-2.5-flash';
+    // Primary: GPT-5.6 Luna via OpenRouter (vision-capable, fast). Falls back
+    // to Gemini 2.5 Flash below on any provider or validation failure.
+    const schemaText = `
+REQUIRED JSON SHAPE (all keys required):
+{
+  "criteriaScores": {"${taskCriterionKey}": number, "CoherenceAndCohesion": number, "LexicalResource": number, "GrammaticalRangeAndAccuracy": number},
+  "summary": string,
+  "annotations": [{"originalText": string, "type": "grammar"|"spelling"|"style"|"vocabulary"|"clarity"|"positive", "suggestion": string, "explanation": string, "severity": "error"|"warning"|"suggestion"|"positive"}],
+  "strengths": [string],
+  "priorities": [{"criterion": "${taskCriterionLabel}"|"Coherence & Cohesion"|"Lexical Resource"|"Grammar", "issue": string, "action": string, "evidenceText": string}],
+  "vocabularyEnhancements": [{"original": string, "alternatives": [string], "context": string}]
+}
+Output JSON only, matching this shape exactly. No markdown or bold markers.
+`;
 
-    console.log(`Using model: ${model} for task type: ${taskType}`);
+    let modelUsed = LUNA_MODEL;
+    let tokensUsed = 0;
+    let parsedFeedback: Record<string, any> | null = null;
 
-    const buildGeminiRequest = (temperature: number) =>
-      JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: systemInstruction }, ...userContentParts],
-          },
-        ],
-        generationConfig: {
-          temperature,
-          topP: 0.9,
-          // Thinking tokens count toward the output limit, so keep headroom above the
-          // ~1k-token feedback payload. 1024 thinking tokens ≈ +$0.003/eval at Flash rates.
-          maxOutputTokens: 4096,
-          responseMimeType: 'application/json',
-          responseSchema: writingResponseSchema,
-          thinkingConfig: { thinkingBudget: 1024 },
-        },
-      });
-
-    let geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
-        body: buildGeminiRequest(0),
-      }
+    const lunaResult = await requestLunaWritingFeedback(
+      systemInstruction,
+      userContentParts,
+      schemaText,
+      taskCriterionKey
     );
+    if (lunaResult) {
+      parsedFeedback = lunaResult.parsedFeedback;
+      tokensUsed = lunaResult.tokensUsed;
+      console.log(`Using model: ${modelUsed} for task type: ${taskType}`);
+    }
 
-    if (!geminiResponse.ok) {
-      const status = geminiResponse.status;
-      const retryAfter = geminiResponse.headers.get('retry-after');
-      const retryAfterSeconds = retryAfter ? Number.parseInt(retryAfter, 10) : null;
+    if (!parsedFeedback) {
+      // Gemini 2.5 Flash fallback (multimodal support included)
+      modelUsed = 'gemini-2.5-flash';
+      console.log(`Using fallback model: ${modelUsed} for task type: ${taskType}`);
 
-      let providerMessage = '';
-      try {
-        const errorJson = await geminiResponse.json();
-        providerMessage = errorJson?.error?.message || '';
-      } catch {
-        try {
-          providerMessage = await geminiResponse.text();
-        } catch {
-          providerMessage = '';
-        }
-      }
+      const buildGeminiRequest = (temperature: number) =>
+        JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: systemInstruction }, ...userContentParts],
+            },
+          ],
+          generationConfig: {
+            temperature,
+            topP: 0.9,
+            // Thinking tokens count toward the output limit, so keep headroom above the
+            // ~1k-token feedback payload. 1024 thinking tokens ≈ +$0.003/eval at Flash rates.
+            maxOutputTokens: 4096,
+            responseMimeType: 'application/json',
+            responseSchema: writingResponseSchema,
+            thinkingConfig: { thinkingBudget: 1024 },
+          },
+        });
 
-      console.error(`Gemini API error: ${status} - ${providerMessage}`);
-
-      await finalizeApiUsage(
-        supabase,
-        quotaReservationId,
-        0,
-        false,
+      let geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${modelUsed}:generateContent`,
         {
-          taskType,
-          providerStatus: status,
-          failureReason: providerMessage || 'Gemini provider request failed',
-        },
-        'failed'
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+          body: buildGeminiRequest(0),
+        }
       );
-      quotaReservationId = undefined;
 
-      if (status === 429) {
-        return new Response(
-          JSON.stringify({
-            error: 'AI is rate-limited right now. Please try again shortly.',
-            provider: 'gemini',
+      if (!geminiResponse.ok) {
+        const status = geminiResponse.status;
+        const retryAfter = geminiResponse.headers.get('retry-after');
+        const retryAfterSeconds = retryAfter ? Number.parseInt(retryAfter, 10) : null;
+
+        let providerMessage = '';
+        try {
+          const errorJson = await geminiResponse.json();
+          providerMessage = errorJson?.error?.message || '';
+        } catch {
+          try {
+            providerMessage = await geminiResponse.text();
+          } catch {
+            providerMessage = '';
+          }
+        }
+
+        console.error(`Gemini API error: ${status} - ${providerMessage}`);
+
+        await finalizeApiUsage(
+          supabase,
+          quotaReservationId,
+          0,
+          false,
+          {
+            taskType,
             providerStatus: status,
-            retryAfterSeconds: Number.isFinite(retryAfterSeconds) ? retryAfterSeconds : undefined,
-          }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            failureReason: providerMessage || 'Gemini provider request failed',
+          },
+          'failed'
         );
-      }
+        quotaReservationId = undefined;
 
-      if (status === 401 || status === 403) {
+        if (status === 429) {
+          return new Response(
+            JSON.stringify({
+              error: 'AI is rate-limited right now. Please try again shortly.',
+              provider: 'gemini',
+              providerStatus: status,
+              retryAfterSeconds: Number.isFinite(retryAfterSeconds) ? retryAfterSeconds : undefined,
+            }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (status === 401 || status === 403) {
+          return new Response(
+            JSON.stringify({
+              error: 'AI provider authentication failed. Check GEMINI_API_KEY.',
+              provider: 'gemini',
+              providerStatus: status,
+            }),
+            { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
         return new Response(
           JSON.stringify({
-            error: 'AI provider authentication failed. Check GEMINI_API_KEY.',
+            error: 'AI provider error. Please try again later.',
             provider: 'gemini',
             providerStatus: status,
           }),
@@ -588,56 +724,51 @@ Register and tone:
         );
       }
 
-      return new Response(
-        JSON.stringify({
-          error: 'AI provider error. Please try again later.',
-          provider: 'gemini',
-          providerStatus: status,
-        }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+      let geminiData = await geminiResponse.json();
+      tokensUsed = geminiData.usageMetadata?.totalTokenCount || 0;
+      let aiContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    let geminiData = await geminiResponse.json();
-    let tokensUsed = geminiData.usageMetadata?.totalTokenCount || 0;
-    let aiContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!aiContent) {
-      throw new Error('No content received from Gemini');
-    }
-
-    console.log('Raw AI content length:', aiContent.length);
-    let parsedFeedback: Record<string, any>;
-    try {
-      parsedFeedback = parseStructuredJson(aiContent);
-    } catch (parseError) {
-      console.warn('Gemini returned invalid JSON; retrying once:', parseError);
-      geminiResponse = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
-          body: buildGeminiRequest(0.3),
-        }
-      );
-      if (!geminiResponse.ok) {
-        throw new Error('AI returned malformed feedback and the retry failed');
+      if (!aiContent) {
+        throw new Error('No content received from Gemini');
       }
-      geminiData = await geminiResponse.json();
-      tokensUsed += geminiData.usageMetadata?.totalTokenCount || 0;
-      aiContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-      parsedFeedback = parseStructuredJson(aiContent);
+
+      console.log('Raw AI content length:', aiContent.length);
+      try {
+        parsedFeedback = parseStructuredJson(aiContent);
+      } catch (parseError) {
+        console.warn('Gemini returned invalid JSON; retrying once:', parseError);
+        geminiResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${modelUsed}:generateContent`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+            body: buildGeminiRequest(0.3),
+          }
+        );
+        if (!geminiResponse.ok) {
+          throw new Error('AI returned malformed feedback and the retry failed');
+        }
+        geminiData = await geminiResponse.json();
+        tokensUsed += geminiData.usageMetadata?.totalTokenCount || 0;
+        aiContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+        parsedFeedback = parseStructuredJson(aiContent);
+      }
+    }
+
+    if (!parsedFeedback) {
+      throw new Error('No feedback content received from any provider');
     }
 
     const feedbackData = {
       ...normalizeWritingEvaluation(parsedFeedback, taskType, writingText),
       sourceFingerprint: inputHash,
-      model,
+      model: modelUsed,
       generatedAt: new Date().toISOString(),
     };
 
     await finalizeApiUsage(supabase, quotaReservation.reservationId, tokensUsed, false, {
       taskType,
+      model: modelUsed,
     });
     quotaReservationId = undefined;
 

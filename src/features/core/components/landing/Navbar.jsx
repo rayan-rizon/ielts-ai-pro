@@ -182,17 +182,28 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
                 <ArrowRight className="ml-1.5 h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
               </Button>
 
-              {/* Mobile Menu Toggle */}
+              {/* Mobile Menu Toggle — same lift-and-press as the theme toggle
+                  beside it (was color-only, the one icon button on this bar
+                  with no press feedback at all), plus a hover cue on the
+                  glyph itself: the hamburger nudges larger to invite the tap,
+                  the X gets a quarter-turn so closing has the same bit of
+                  delight opening does. */}
               <button
-                className="lg:hidden h-8 w-8 flex items-center justify-center p-0 rounded-full bg-[#f4f3fb] dark:bg-white/[0.05] text-slate-700 dark:text-slate-200 border border-[#e4e2f0] dark:border-white/10 hover:bg-[#5a63df]/[0.08] dark:hover:bg-[#8f97ff]/[0.14] hover:text-[#5a63df] dark:hover:text-[#a9afff] hover:border-[#5a63df]/30 dark:hover:border-[#8f97ff]/30 transition-all duration-200 ease-sidebar"
+                className="group lg:hidden h-8 w-8 flex items-center justify-center p-0 rounded-full bg-[#f4f3fb] dark:bg-white/[0.05] text-slate-700 dark:text-slate-200 border border-[#e4e2f0] dark:border-white/10 hover:bg-[#5a63df]/[0.08] dark:hover:bg-[#8f97ff]/[0.14] hover:text-[#5a63df] dark:hover:text-[#a9afff] hover:border-[#5a63df]/30 dark:hover:border-[#8f97ff]/30 hover:-translate-y-0.5 hover:shadow-sm active:scale-95 transition-all duration-200 ease-sidebar"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
                 data-oid="bqhg9k2"
               >
                 {mobileMenuOpen ? (
-                  <X className="h-4.5 w-4.5" data-oid="h3.9c:4" />
+                  <X
+                    className="h-4.5 w-4.5 transition-transform duration-200 ease-sidebar group-hover:rotate-90"
+                    data-oid="h3.9c:4"
+                  />
                 ) : (
-                  <Menu className="h-4.5 w-4.5" data-oid="vli-0_y" />
+                  <Menu
+                    className="h-4.5 w-4.5 transition-transform duration-200 ease-sidebar group-hover:scale-110"
+                    data-oid="vli-0_y"
+                  />
                 )}
               </button>
             </div>

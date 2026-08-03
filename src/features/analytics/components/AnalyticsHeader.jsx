@@ -1,6 +1,7 @@
 import React from 'react';
 import { m } from 'framer-motion';
-import { BarChart2, Crown, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { BarChart2, Crown, LockKeyhole, Zap } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { MUTED, Pill } from '@/features/dashboard/components/primitives';
 
@@ -55,7 +56,7 @@ export default function AnalyticsHeader({
           role="group"
           aria-label="Analytics timeframe"
         >
-          {['7d', '30d', '90d', 'all'].map((tf) => {
+          {(isPremium ? ['7d', '30d', '90d', 'all'] : ['7d', '30d']).map((tf) => {
             const isActive = selectedTimeframe === tf;
             return (
               <m.button
@@ -82,6 +83,16 @@ export default function AnalyticsHeader({
               </m.button>
             );
           })}
+          {!isPremium ? (
+            <Link
+              to="/upgrade"
+              className="inline-flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-[#5a63df] transition-colors hover:bg-[#f2f1fb] dark:text-[#a9afff] dark:hover:bg-white/[0.07]"
+              aria-label="Unlock 90-day and all-time analytics with Pro"
+            >
+              <LockKeyhole className="h-3 w-3" />
+              90d + all
+            </Link>
+          ) : null}
         </div>
       </div>
     </header>

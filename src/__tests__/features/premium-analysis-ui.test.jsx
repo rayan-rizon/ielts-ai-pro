@@ -76,13 +76,19 @@ function renderAnalysis(props) {
 }
 
 describe('premium analysis UI', () => {
-  it('limits free users to the two approved teasers', () => {
-    renderAnalysis({ isPremium: false });
-    expect(screen.getByText('Your biggest score loss')).toBeInTheDocument();
-    expect(screen.getByText('Answers needed for your next band')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Unlock premium coaching/i })).toBeInTheDocument();
-    expect(screen.queryByText('Where you lost marks')).not.toBeInTheDocument();
-    expect(screen.queryByText('Review these answers first')).not.toBeInTheDocument();
+  it('keeps result diagnosis useful for free users and consolidates paid coaching', () => {
+    const onUpgrade = vi.fn();
+    renderAnalysis({ isPremium: false, onUpgrade });
+
+    expect(screen.getByText('Where you lost marks')).toBeInTheDocument();
+    expect(screen.getByText('Review these answers first')).toBeInTheDocument();
+    expect(screen.getByText('Passage performance')).toBeInTheDocument();
+    expect(screen.getByText('Turn this result into a longer-term plan')).toBeInTheDocument();
+    expect(screen.queryByText('Your score trend')).not.toBeInTheDocument();
+    expect(screen.queryByText('Your 7-day practice plan')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /See upgrade/i }));
+    expect(onUpgrade).toHaveBeenCalledOnce();
   });
 
   it('renders the paid coaching flow and routes mistake review', () => {

@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Logo, LogoIcon } from '@/components/shared/Logo';
-import { Crown, GraduationCap, LogOut, User as UserIcon } from 'lucide-react';
+import { Crown, GraduationCap, LogOut, User as UserIcon, ArrowRight, Sparkles } from 'lucide-react';
 import {
   SidebarHeader,
   SidebarContent,
@@ -163,17 +163,29 @@ const LearnerNavigation = ({ user, currentPath }) => {
 const UpgradeCard = ({ isFree, onNavigate }) => {
   if (!isFree) return null;
   return (
-    <Link to={createPageUrl('Pricing')} className="block" onClick={onNavigate}>
-      <div className="flex items-center gap-2.5 rounded-lg border border-[#5a63df]/20 bg-[#5a63df]/[0.06] px-3 py-2.5 transition-colors duration-200 ease-sidebar hover:bg-[#5a63df]/[0.1] dark:border-[#5a63df]/25 dark:bg-[#5a63df]/[0.12] dark:hover:bg-[#5a63df]/[0.18]">
-        <Crown className="h-4 w-4 shrink-0 text-[#5a63df]" strokeWidth={2} />
+    <Link
+      to={createPageUrl('Pricing')}
+      className="group relative block overflow-hidden rounded-xl border border-[#5a63df]/30 bg-gradient-to-r from-[#5a63df]/[0.08] via-[#7a82ed]/[0.14] to-[#5a63df]/[0.06] p-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#5a63df]/60 hover:shadow-[0_6px_20px_-4px_rgba(90,99,223,0.25)] active:scale-[0.98] dark:border-[#8f97ff]/30 dark:from-[#5a63df]/[0.22] dark:via-[#7a82ed]/[0.16] dark:to-[#5a63df]/[0.18] dark:hover:border-[#8f97ff]/60 dark:hover:shadow-[0_6px_20px_-4px_rgba(143,151,255,0.25)]"
+      onClick={onNavigate}
+    >
+      <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:justify-center">
+        {/* Crown Icon Chip */}
+        <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-tr from-[#5a63df] to-[#7880ed] text-white shadow-sm shadow-[#5a63df]/30 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 dark:from-[#6c74ec] dark:to-[#969dff]">
+          <Crown className="h-4 w-4 text-white" strokeWidth={2.2} />
+        </div>
+
+        {/* Text Details */}
         <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-          <p className="text-[12px] font-bold leading-tight text-[#4a52c9] dark:text-[#c3c7ff]">
+          <p className="text-[12px] font-extrabold leading-tight text-[#3c44c7] transition-colors duration-200 group-hover:text-[#2a31b0] dark:text-[#d4d7ff] dark:group-hover:text-white">
             Upgrade to Pro
           </p>
-          <p className="text-[10px] font-medium leading-tight text-[#5a63df]/70 dark:text-[#c3c7ff]/60">
+          <p className="mt-0.5 text-[10px] font-medium leading-tight text-slate-500 transition-colors duration-200 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-300">
             Unlock all features
           </p>
         </div>
+
+        {/* Action Nudge Arrow */}
+        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#5a63df] opacity-60 transition-all duration-200 group-hover:translate-x-1 group-hover:opacity-100 dark:text-[#a9afff] group-data-[collapsible=icon]:hidden" />
       </div>
     </Link>
   );
@@ -185,8 +197,8 @@ const getAvatarUrl = (user) =>
 
 const UserProfileLink = ({ user, onNavigate }) => (
   <Link to={createPageUrl('Settings')} className="block" onClick={onNavigate}>
-    <div className="flex items-center gap-2.5 rounded-lg border border-transparent px-2 py-2 transition-colors duration-200 ease-sidebar hover:border-slate-100 hover:bg-slate-50 group-data-[collapsible=icon]:justify-center dark:hover:border-white/[0.06] dark:hover:bg-white/[0.04]">
-      <div className="h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
+    <div className="flex items-center gap-2.5 rounded-xl border border-transparent px-2.5 py-2 transition-all duration-200 ease-sidebar hover:border-slate-200/80 hover:bg-slate-50/80 group-data-[collapsible=icon]:justify-center dark:hover:border-white/[0.08] dark:hover:bg-white/[0.05]">
+      <div className="h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-slate-100 ring-2 ring-slate-100 dark:bg-slate-800 dark:ring-slate-800">
         <img
           src={getAvatarUrl(user)}
           alt=""
@@ -200,16 +212,16 @@ const UserProfileLink = ({ user, onNavigate }) => (
         </p>
         <span
           className={cn(
-            'mt-0.5 inline-block rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide',
+            'mt-0.5 inline-block rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide border',
             isPremiumUser(user)
-              ? 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/25 dark:text-[#c3c7ff]'
-              : 'bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-400'
+              ? 'border-[#5a63df]/30 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#5a63df]/40 dark:bg-[#5a63df]/25 dark:text-[#c3c7ff]'
+              : 'border-slate-200 bg-slate-100 text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-300'
           )}
         >
           {user?.subscription_tier || 'Free'}
         </span>
       </div>
-      <UserIcon className="h-3.5 w-3.5 shrink-0 text-slate-400 group-data-[collapsible=icon]:hidden" />
+      <UserIcon className="h-3.5 w-3.5 shrink-0 text-slate-400 transition-colors duration-200 group-hover:text-slate-600 dark:group-hover:text-slate-300 group-data-[collapsible=icon]:hidden" />
     </div>
   </Link>
 );

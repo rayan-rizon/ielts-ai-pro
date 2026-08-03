@@ -11,6 +11,7 @@ import ModuleRankingCard from './ModuleRankingCard';
 import QuestionSuccessCard from './QuestionSuccessCard';
 import SectionBreakdownCard from './SectionBreakdownCard';
 import RecentPracticeHistory from './RecentPracticeHistory';
+import PaidFeatureGate from '@/features/subscription/components/PaidFeatureGate';
 
 const AIInsightsCard = React.lazy(() => import('./AIInsightsCard'));
 const BandScoreJourney = React.lazy(() => import('./BandScoreJourney'));
@@ -81,50 +82,98 @@ export default function AnalyticsReport({
           </div>
 
           <div className="col-span-12 md:col-span-5 xl:col-span-3">
-            <Suspense fallback={<ChartSkeleton />}>
-              <ExamReadinessCard
-                readiness={stats?.readiness}
-                targetScore={stats?.targetScore}
-                modulesWithData={stats?.modulesWithData}
-              />
-            </Suspense>
+            <PaidFeatureGate
+              hasAccess={isPremium}
+              label="Exam readiness"
+              title="Know when your evidence is exam-ready"
+              description="Combine coverage, consistency, target gap, and recent form into one readiness check."
+              benefits={['Four evidence signals', 'Clear gaps before test day']}
+            >
+              <Suspense fallback={<ChartSkeleton />}>
+                <ExamReadinessCard
+                  readiness={stats?.readiness}
+                  targetScore={stats?.targetScore}
+                  modulesWithData={stats?.modulesWithData}
+                />
+              </Suspense>
+            </PaidFeatureGate>
           </div>
 
           {/* Diagnosis: what leaks marks, why, and what to do about it */}
           <div className="col-span-12 xl:col-span-5">
-            <QuestionSuccessCard stats={stats} />
+            <PaidFeatureGate
+              hasAccess={isPremium}
+              label="Question types"
+              title="Find the formats costing you marks"
+              description="Rank every practised IELTS question type by lost marks, accuracy, and evidence volume."
+              benefits={['Weakest formats ranked first', 'Filtered to the selected period']}
+            >
+              <QuestionSuccessCard stats={stats} />
+            </PaidFeatureGate>
           </div>
 
           <div className="col-span-12 md:col-span-7 xl:col-span-4">
-            <Suspense fallback={<ChartSkeleton />}>
-              <ErrorAudit
-                data={stats?.enhancedMetrics?.errorAuditData}
-                sessionReferences={stats?.enhancedMetrics?.sessionReferences}
-                behaviour={stats?.enhancedMetrics?.behaviour}
-                onDrilldown={(category, data) => setDrilldown({ isOpen: true, category, data })}
-              />
-            </Suspense>
+            <PaidFeatureGate
+              hasAccess={isPremium}
+              label="Answer analysis"
+              title="Trace why each mark was lost"
+              description="Separate knowledge, timing, and behaviour patterns, then open the exact affected questions."
+              benefits={['Error-pattern diagnosis', 'Exact-question drill-down']}
+            >
+              <Suspense fallback={<ChartSkeleton />}>
+                <ErrorAudit
+                  data={stats?.enhancedMetrics?.errorAuditData}
+                  sessionReferences={stats?.enhancedMetrics?.sessionReferences}
+                  behaviour={stats?.enhancedMetrics?.behaviour}
+                  onDrilldown={(category, data) => setDrilldown({ isOpen: true, category, data })}
+                />
+              </Suspense>
+            </PaidFeatureGate>
           </div>
 
           <div className="col-span-12 md:col-span-5 xl:col-span-3">
-            <Suspense fallback={<ChartSkeleton />}>
-              <AIInsightsCard stats={stats} aiLoading={aiLoading} isPremium={isPremium} />
-            </Suspense>
+            <PaidFeatureGate
+              hasAccess={isPremium}
+              label="Practise next"
+              title="Turn evidence into a focused plan"
+              description="Get a ranked next step using your measured weaknesses and current learning-path evidence."
+              benefits={['Personalised focus areas', 'Refreshed after scored tests']}
+            >
+              <Suspense fallback={<ChartSkeleton />}>
+                <AIInsightsCard stats={stats} aiLoading={aiLoading} />
+              </Suspense>
+            </PaidFeatureGate>
           </div>
 
           {/* Detail: how it is marked, and where inside a test it goes wrong */}
           <div className="col-span-12 lg:col-span-6">
-            <CriteriaBreakdownCard
-              writingCriteria={stats?.writingCriteria}
-              speakingCriteria={stats?.speakingCriteria}
-            />
+            <PaidFeatureGate
+              hasAccess={isPremium}
+              label="Examiner criteria"
+              title="Track the criteria behind your band"
+              description="Compare Writing and Speaking criteria over time instead of relying on one overall score."
+              benefits={['Criterion-level averages', 'Writing and Speaking views']}
+            >
+              <CriteriaBreakdownCard
+                writingCriteria={stats?.writingCriteria}
+                speakingCriteria={stats?.speakingCriteria}
+              />
+            </PaidFeatureGate>
           </div>
 
           <div className="col-span-12 lg:col-span-6">
-            <SectionBreakdownCard
-              sectionPerformance={stats?.sectionPerformance || []}
-              efficiency={stats?.efficiency}
-            />
+            <PaidFeatureGate
+              hasAccess={isPremium}
+              label="Accuracy by position"
+              title="See where performance drops inside a test"
+              description="Compare passages and parts in sitting order to expose late-test accuracy and pacing problems."
+              benefits={['Position-by-position accuracy', 'Timing-efficiency context']}
+            >
+              <SectionBreakdownCard
+                sectionPerformance={stats?.sectionPerformance || []}
+                efficiency={stats?.efficiency}
+              />
+            </PaidFeatureGate>
           </div>
 
           {/* What already happened */}
@@ -133,14 +182,16 @@ export default function AnalyticsReport({
           </div>
         </div>
 
-        <Suspense fallback={null}>
-          <ErrorDrilldownModal
-            isOpen={drilldown.isOpen}
-            onClose={() => setDrilldown((previous) => ({ ...previous, isOpen: false }))}
-            category={drilldown.category}
-            data={drilldown.data}
-          />
-        </Suspense>
+        {isPremium ? (
+          <Suspense fallback={null}>
+            <ErrorDrilldownModal
+              isOpen={drilldown.isOpen}
+              onClose={() => setDrilldown((previous) => ({ ...previous, isOpen: false }))}
+              category={drilldown.category}
+              data={drilldown.data}
+            />
+          </Suspense>
+        ) : null}
       </m.div>
     </TooltipProvider>
   );

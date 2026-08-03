@@ -18,26 +18,30 @@ const DISMISS_STORAGE_KEY = 'dismissed_announcements';
 const COPY_RESET_MS = 1600;
 
 /**
- * Every tone is fully color-coordinated (surface tint + title + body + icon +
- * accent), matching the coordinated-severity convention most alert/banner
- * components use (bg-{tone}-50 / text-{tone}-800 / text-{tone}-700, etc.) —
- * a flat neutral card read as washed-out in light mode, where a white-ish
- * bg-white surface barely differs from the page behind it.
+ * Every tone is fully color-coordinated (surface + title + body + icon +
+ * accent). `success`/`warning`/`critical` use the tinted-card convention most
+ * alert components use (bg-{tone}-50 / text-{tone}-800 / text-{tone}-700).
  *
- * `info` reuses the exact tokens already on the sidebar's "Upgrade to Pro"
- * card (`border-[#5a63df]/20 bg-[#5a63df]/[0.06]`, `text-[#4a52c9]` /
- * `dark:text-[#c3c7ff]`) rather than inventing new brand-adjacent hex values.
+ * `info` — the default, general-announcement tone — is deliberately a solid,
+ * high-contrast fill instead of a soft tint: a pastel card is easy to miss at
+ * the top of the page, and it explicitly must not read as indigo/purple (that
+ * hue is reserved for the brand accent elsewhere in the app, e.g. the
+ * sidebar's "Upgrade to Pro" card), so it uses a true blue instead. `solid:
+ * true` tells the component below to render white-on-color chip/dismiss
+ * styling rather than the tinted-card treatment the other tones use.
  */
 const TONE = {
   info: {
     chip: 'accent',
     icon: Info,
-    surface:
-      'border-[#5a63df]/20 bg-[#5a63df]/[0.06] dark:border-[#5a63df]/25 dark:bg-[#5a63df]/[0.12]',
-    title: 'text-[#4a52c9] dark:text-[#c3c7ff]',
-    body: 'text-[#5a63df] dark:text-[#c3c7ff]/80',
+    solid: true,
+    surface: 'border-blue-800 bg-blue-600 dark:border-blue-800 dark:bg-blue-600',
+    title: 'text-white',
+    body: 'text-white/90',
     accent:
-      'text-[#5a63df] border-[#5a63df]/25 bg-[#5a63df]/[0.08] hover:bg-[#5a63df]/[0.14] dark:text-[#afb5ff] dark:border-[#5a63df]/30 dark:bg-[#5a63df]/[0.16] dark:hover:bg-[#5a63df]/[0.22]',
+      'text-white border-white/30 bg-white/15 hover:bg-white/25 dark:text-white dark:border-white/30 dark:bg-white/15 dark:hover:bg-white/25',
+    dismiss:
+      'border-white/25 text-white/75 hover:border-white/40 hover:bg-white/15 hover:text-white dark:border-white/25 dark:text-white/75 dark:hover:border-white/40 dark:hover:bg-white/15 dark:hover:text-white',
   },
   success: {
     chip: 'emerald',
@@ -68,6 +72,9 @@ const TONE = {
       'text-rose-600 border-rose-300/50 bg-rose-500/[0.08] hover:bg-rose-500/[0.14] dark:text-rose-400 dark:border-rose-800/60 dark:bg-rose-400/[0.14] dark:hover:bg-rose-400/[0.2]',
   },
 };
+
+const DEFAULT_DISMISS =
+  'border-black/10 text-slate-500/80 hover:border-black/20 hover:bg-black/5 hover:text-slate-700 dark:border-white/10 dark:text-slate-400/80 dark:hover:border-white/20 dark:hover:bg-white/10 dark:hover:text-slate-200';
 
 const readDismissed = () => {
   if (typeof window === 'undefined') return [];
@@ -206,7 +213,13 @@ const AnnouncementBanner = ({ announcement, preview = false }) => {
         {/* One line, capped: title + message never push the strip past a
             single row of text, regardless of copy length. */}
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-2.5 px-10 py-2 sm:px-14">
-          <IconChip icon={Icon} tone={tone.chip} size="sm" className="shrink-0" />
+          {tone.solid ? (
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-white/20">
+              <Icon className="h-3 w-3 text-white" strokeWidth={2.25} />
+            </span>
+          ) : (
+            <IconChip icon={Icon} tone={tone.chip} size="sm" className="shrink-0" />
+          )}
 
           <p className="min-w-0 truncate text-[12.5px] leading-none">
             {title && <span className={cn('font-extrabold', tone.title)}>{title}</span>}
@@ -238,7 +251,10 @@ const AnnouncementBanner = ({ announcement, preview = false }) => {
             onClick={dismiss}
             aria-label="Dismiss announcement"
             title="Dismiss"
-            className="absolute right-2.5 top-1/2 grid h-6 w-6 shrink-0 -translate-y-1/2 place-items-center rounded-full border border-black/10 text-slate-500/80 transition-colors hover:border-black/20 hover:bg-black/5 hover:text-slate-700 dark:border-white/10 dark:text-slate-400/80 dark:hover:border-white/20 dark:hover:bg-white/10 dark:hover:text-slate-200 sm:right-3.5"
+            className={cn(
+              'absolute right-2.5 top-1/2 grid h-6 w-6 shrink-0 -translate-y-1/2 place-items-center rounded-full border transition-colors sm:right-3.5',
+              tone.dismiss || DEFAULT_DISMISS
+            )}
           >
             <X className="h-3.5 w-3.5" strokeWidth={2.25} />
           </button>

@@ -13,6 +13,7 @@ import {
   ROW_CHEVRON,
 } from './primitives';
 import { formatSkill, modulePage, stripModulePrefix } from './skillLabels';
+import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
 
 /** Priority rail colour. Reserved for genuine ranking, not decoration. */
 const RANK = ['bg-[#5a63df]', 'bg-[#9a9fe8]', 'bg-slate-300 dark:bg-white/20'];
@@ -23,7 +24,7 @@ const RANK = ['bg-[#5a63df]', 'bg-[#9a9fe8]', 'bg-slate-300 dark:bg-white/20'];
  * learning-path card, each pointing somewhere different with equal weight.
  */
 const NextUpPanel = React.memo(({ recommended, stats, weakestSkill, aiFocus, user }) => {
-  const isPro = user?.subscription_tier === 'pro' || user?.subscription_tier === 'premium';
+  const isPro = hasPaidAccess(user);
 
   const actions = useMemo(() => {
     const list = [];

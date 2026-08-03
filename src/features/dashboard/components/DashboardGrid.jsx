@@ -14,6 +14,8 @@ import CambridgeTestsCard from './CambridgeTestsCard';
 import StudyResourcesHub from './StudyResourcesHub';
 import OnboardingCard from './OnboardingCard';
 import { FADE_UP } from './primitives';
+import PaidFeatureGate from '@/features/subscription/components/PaidFeatureGate';
+import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
 
 /**
  * Reading order is priority order, densest first:
@@ -46,6 +48,8 @@ export default function DashboardGrid({
   onboardingHighlight,
   quickLaunchRef,
 }) {
+  const canUseAdvancedInsights = hasPaidAccess(user);
+
   return (
     <div className="space-y-3">
       {showOnboarding && (
@@ -79,13 +83,21 @@ export default function DashboardGrid({
         </m.div>
 
         <m.div variants={FADE_UP} className="col-span-12 md:col-span-5 lg:col-span-3">
-          <NextUpPanel
-            recommended={recommended}
-            stats={stats}
-            weakestSkill={weakestSkill}
-            aiFocus={aiFocus}
-            user={user}
-          />
+          <PaidFeatureGate
+            hasAccess={canUseAdvancedInsights}
+            label="Next up"
+            title="Turn results into your next action"
+            description="Get a ranked practice queue built from your weakest module, question types, and current study plan."
+            benefits={['Evidence-ranked priorities', 'Updates after every scored test']}
+          >
+            <NextUpPanel
+              recommended={recommended}
+              stats={stats}
+              weakestSkill={weakestSkill}
+              aiFocus={aiFocus}
+              user={user}
+            />
+          </PaidFeatureGate>
         </m.div>
 
         {/* Diagnosis · effort · the ten-minute lever */}

@@ -8,10 +8,10 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 const SynonymSection = ({ synonymMap }) => {
   if (!synonymMap || synonymMap.length === 0) return null;
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-400">
-        <div className="w-6 h-6 rounded-lg bg-indigo-100/80 dark:bg-indigo-500/15 flex items-center justify-center shadow-sm border border-indigo-200/50 dark:border-indigo-500/20">
-          <Target className="w-3.5 h-3.5" />
+    <div className="space-y-2.5">
+      <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.16em] text-[#5a63df] dark:text-[#9da5ff]">
+        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-[#5a63df]/30 bg-[#5a63df]/[0.08] dark:border-[#8590ff]/45 dark:bg-[#8590ff]/[0.12]">
+          <Target className="h-3 w-3" strokeWidth={2.2} />
         </div>
         Keyword Mapping
       </div>
@@ -19,26 +19,26 @@ const SynonymSection = ({ synonymMap }) => {
         {synonymMap.map((sm, idx) => (
           <div
             key={idx}
-            className="relative flex flex-col p-3 rounded-xl bg-white/60 dark:bg-slate-900/40 border border-slate-200/60 dark:border-white/5 backdrop-blur-md hover:border-indigo-300/50 dark:hover:border-indigo-500/30 transition-all duration-500 group"
+            className="relative flex flex-col rounded-xl border border-[#ebeaf7] bg-[#fbfbfe] p-3 transition-all duration-200 hover:border-[#5a63df]/40 dark:border-white/[0.11] dark:bg-white/[0.055] dark:hover:border-[#8f97ff]/40"
           >
             <div className="relative space-y-2.5">
               {/* Question Keyword Row */}
-              <div className="flex items-start gap-2.5">
+              <div className="flex items-start gap-2">
                 <div className="flex flex-col items-center pt-1 shrink-0">
-                  <div className="w-3.5 h-3.5 rounded-full bg-indigo-500 text-white flex items-center justify-center shadow-md shadow-indigo-500/20 z-10 transition-transform">
-                    <Target className="w-2.5 h-2.5" />
+                  <div className="z-10 flex h-6 w-6 items-center justify-center rounded-full border border-[#7d88ff] bg-[#6570ed] text-white shadow-[0_0_10px_rgba(101,112,237,0.28)]">
+                    <Target className="h-3 w-3" strokeWidth={2.4} />
                   </div>
-                  <div className="w-[1px] h-full bg-gradient-to-b from-indigo-500/30 to-emerald-500/30 mt-1 min-h-[12px]" />
+                  <div className="mt-1 min-h-[12px] h-full w-px bg-gradient-to-b from-[#7580ff] to-[#17bd8a] opacity-45" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[8px] font-black uppercase tracking-wider text-indigo-500/70 dark:text-indigo-400/70 mb-0.5">
+                  <div className="mb-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-[#5a63df] dark:text-[#9da5ff]">
                     Question Keyword
                   </div>
-                  <p className="text-[12px] font-bold text-slate-800 dark:text-slate-100 leading-tight tracking-tight break-words">
+                  <p className="break-words text-[12px] font-extrabold leading-snug tracking-tight text-slate-800 dark:text-slate-100">
                     {sm.question_keyword}
                   </p>
                   {sm.connection && (
-                    <p className="text-[10.5px] text-slate-500 dark:text-slate-400 leading-snug italic font-medium mt-1 pl-1.5 border-l border-slate-200 dark:border-slate-800">
+                    <p className="mt-1 border-l border-slate-300 pl-1.5 text-[10px] font-medium italic leading-snug text-slate-500 dark:border-white/15 dark:text-slate-400">
                       {sm.connection}
                     </p>
                   )}
@@ -46,17 +46,17 @@ const SynonymSection = ({ synonymMap }) => {
               </div>
 
               {/* Passage Keyword Row */}
-              <div className="flex items-start gap-2.5">
+              <div className="flex items-start gap-2">
                 <div className="flex flex-col items-center pt-1 shrink-0">
-                  <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20 z-10">
-                    <ArrowRight className="w-2.5 h-2.5" />
+                  <div className="z-10 flex h-6 w-6 items-center justify-center rounded-full border border-[#24d5a1] bg-[#19b989] text-white shadow-[0_0_10px_rgba(25,185,137,0.22)]">
+                    <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[8px] font-black uppercase tracking-wider text-emerald-600/70 dark:text-emerald-400/70 mb-0.5">
+                  <div className="mb-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-emerald-600 dark:text-[#39d7a5]">
                     Passage Evidence
                   </div>
-                  <p className="text-[12px] font-bold text-emerald-800 dark:text-emerald-400 leading-tight tracking-tight break-words">
+                  <p className="break-words text-[12px] font-extrabold leading-snug tracking-tight text-emerald-700 dark:text-[#2bd29d]">
                     {sm.passage_keyword}
                   </p>
                 </div>
@@ -307,28 +307,28 @@ DeepDiveTrigger.displayName = 'DeepDiveTrigger';
 
 const DeepDiveBody = React.memo(
   ({ consolidatedSynonyms, individualEntries, isMultiBlank, sharedWhyWrong }) => (
-    <div className="max-h-[min(65vh,550px)] overflow-y-auto overflow-x-hidden p-3 sm:p-4 relative scrollbar-thin scrollbar-thumb-violet-200 dark:scrollbar-thumb-white/10">
-      <div className="space-y-4 relative z-10">
+    <div className="relative max-h-[min(62vh,500px)] overflow-y-auto overflow-x-hidden bg-white p-3 scrollbar-thin scrollbar-thumb-[#b9b9d8] dark:bg-[#131315] dark:scrollbar-thumb-white/10 sm:p-4">
+      <div className="relative z-10 space-y-3">
         {consolidatedSynonyms && consolidatedSynonyms.length > 0 && (
           <SynonymSection synonymMap={consolidatedSynonyms} />
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {individualEntries.map((entry, idx) => (
-            <div key={entry.key ?? idx} className="space-y-2.5">
+            <div key={entry.key ?? idx} className="space-y-2">
               {entry.synonymMap && <SynonymSection synonymMap={entry.synonymMap} />}
 
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-blue-600/80 dark:text-blue-400/80 px-1">
-                  <Lightbulb className="w-2.5 h-2.5" />
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 px-1 text-[9px] font-black uppercase tracking-[0.14em] text-[#4b80d6] dark:text-[#79a9ff]">
+                  <Lightbulb className="h-3 w-3" strokeWidth={2.2} />
                   {isMultiBlank ? `Reasoning for Q${entry.key}` : 'Why is this correct?'}
                 </div>
 
-                <div className="relative group overflow-hidden rounded-xl border border-blue-200/50 dark:border-blue-500/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-blue-900/10 dark:to-indigo-900/5 p-3 shadow-sm transition-all duration-300 hover:shadow-[0_8px_20px_-10px_rgba(59,130,246,0.12)] group-hover:border-blue-300/40 dark:group-hover:border-blue-500/30 backdrop-blur-md">
-                  <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-gradient-to-b from-blue-400/80 to-indigo-400/80 dark:from-blue-500/40 dark:to-indigo-500/40 opacity-70 group-hover:opacity-100 transition-opacity" />
-                  <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-blue-400/10 dark:bg-blue-400/20 rounded-full blur-xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+                <div className="group relative overflow-hidden rounded-xl border border-blue-200/70 bg-[#f5f8ff] p-3 shadow-sm transition-all duration-200 hover:border-blue-300 dark:border-white/[0.11] dark:bg-white/[0.055] dark:shadow-none">
+                  <div className="absolute bottom-0 left-0 top-0 w-1 bg-[#3973d5] dark:bg-[#2e64d2]" />
+                  <div className="pointer-events-none absolute -bottom-8 -right-6 h-20 w-20 rounded-full bg-blue-400/10 blur-2xl dark:bg-blue-400/10" />
 
-                  <p className="text-[11.5px] text-slate-700 dark:text-blue-50/90 leading-relaxed relative z-10 font-medium pl-2.5">
+                  <p className="relative z-10 pl-2 text-[12px] font-medium leading-relaxed text-slate-700 dark:text-slate-200">
                     {entry.data.why_correct}
                   </p>
                 </div>
@@ -413,11 +413,11 @@ const DeepDivePopover = ({
         align={inline ? 'end' : 'start'}
         sideOffset={inline ? 12 : 8}
         collisionPadding={24}
-        className="w-[calc(100vw-2rem)] sm:w-[420px] p-0 border border-violet-200/60 dark:border-white/10 shadow-2xl rounded-2xl overflow-hidden z-[100] backdrop-blur-xl bg-white/95 dark:bg-slate-950/95 flex flex-col relative"
+        className="relative z-[100] flex w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-0 shadow-xl backdrop-blur-xl dark:border-white/[0.10] dark:bg-[#131315] dark:shadow-[0_20px_55px_-26px_rgba(0,0,0,0.75)] sm:w-[390px]"
         data-oid="deep-dive-content"
       >
-        <div className="absolute -top-20 -right-20 w-48 h-48 bg-violet-500/10 dark:bg-violet-400/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-blue-500/5 dark:bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="pointer-events-none absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[#6674ee]/[0.06] blur-3xl dark:bg-[#6674ee]/[0.08]" />
+        <div className="pointer-events-none absolute -bottom-16 -left-16 h-32 w-32 rounded-full bg-blue-500/[0.04] blur-3xl dark:bg-blue-400/[0.05]" />
 
         <DeepDiveBody
           consolidatedSynonyms={consolidatedSynonyms}

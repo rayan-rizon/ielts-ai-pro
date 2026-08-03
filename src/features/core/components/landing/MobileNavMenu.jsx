@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChevronRight from 'lucide-react/icons/chevron-right';
@@ -7,89 +7,51 @@ import ArrowRight from 'lucide-react/icons/arrow-right';
 import { Button } from '@/components/ui/button';
 
 /**
- * Two compounding rendering bugs sat behind what should have been a one-line
- * "make the blur stronger" change, and both had to be fixed for the card's
- * glass background to actually render instead of showing the hero heading
- * through it at near-full strength:
+ * Solid, not frosted — same call every other panel in this app already makes
+ * (`PANEL`: `bg-white dark:bg-[#131315]`, no blur, no translucency). A
+ * translucent + blurred card chasing a glass look was two Chromium rendering
+ * edge cases deep (nested `backdrop-filter`, and `backdrop-filter` under an
+ * animated `transform`) for an effect nothing else on the site uses. Solid
+ * removes the class of bug outright and reads as the same product as the
+ * rest of the page instead of a different one glued on top of it.
  *
- * 1. This popover used to render inside the navbar's own "bar" element, which
- *    carries its own `backdrop-blur` for the frosted-navbar effect. A
- *    `backdrop-filter` element nested inside another `backdrop-filter`
- *    element is a genuine Chromium edge case — the inner one silently stops
- *    sampling the page behind it. Portalling to `document.body` removes it
- *    from that ancestor chain entirely.
- * 2. Framer Motion's slide-in (`y` + `scale`) is implemented as a CSS
- *    `transform`, and a `backdrop-filter` element under *any* transformed
- *    ancestor — including itself — hits the same sampling bug. The glass
- *    background and the animated content are two independent sibling layers
- *    below for exactly this reason: the background only ever animates
- *    `opacity` (never a transform), so it always has something stable to
- *    blur, while the content layer is free to slide and scale on top of it.
+ * Still portalled to `document.body` — not for blur-sampling reasons anymore,
+ * but because the navbar bar's own `backdrop-blur` redefines the containing
+ * block for `position: fixed` descendants per spec, which otherwise makes
+ * this popover position itself relative to the bar instead of the viewport.
  */
 export default function MobileNavMenu({ isOpen, onClose, links, isSignedIn, handlePrimaryCta }) {
-  // The background layer has no content of its own, so nothing gives it a
-  // height — it's measured off the content layer, since the links list
-  // length (and so the card's height) isn't fixed.
-  const contentRef = useRef(null);
-  const [cardHeight, setCardHeight] = useState(null);
-
-  useLayoutEffect(() => {
-    if (!isOpen || !contentRef.current) return undefined;
-    const el = contentRef.current;
-    const measure = () => setCardHeight(el.offsetHeight);
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [isOpen]);
-
   if (typeof document === 'undefined') return null;
 
   return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Darkened backdrop overlay starting below top navbar */}
+          {/* Darkened backdrop overlay starting below top navbar — a plain
+              dim, not a page-wide blur; nothing needs to be legible through
+              it, so there's nothing to blur. */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
-            className="fixed inset-0 top-14 sm:top-16 z-[90] bg-slate-950/70 backdrop-blur-xl lg:hidden"
+            className="fixed inset-0 top-14 sm:top-16 z-[90] bg-slate-950/60 lg:hidden"
             onClick={onClose}
           />
 
-          {/* Glass background — opacity-only, never transformed, so its blur
-              stays reliable regardless of how the content on top of it moves.
-              `cardHeight` (measured off the content layer) is what actually
-              sizes it; `min-h` only covers the one frame before that
-              measurement lands. */}
+          {/* Compact mobile navigation card. `top-16`/`top-[4.5rem]` reproduce
+              the old `top-full` + `mt-2` gap under the (unscrolled) navbar
+              height now that this sits outside the bar to measure against. */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            aria-hidden="true"
-            style={cardHeight ? { height: cardHeight } : undefined}
-            className="fixed left-3 right-3 top-16 z-[98] min-h-[320px] overflow-hidden rounded-2xl border border-[#e4e2f0] bg-white/80 shadow-xl shadow-black/[0.08] backdrop-blur-3xl dark:border-white/[0.10] dark:bg-[#131315]/80 dark:shadow-black/40 sm:top-[4.5rem] lg:hidden"
-          />
-
-          {/* Content — the slide/scale entrance lives here, on top of (not
-              inside) the glass layer above. `top-16`/`top-[4.5rem]`
-              reproduce the old `top-full` + `mt-2` gap under the
-              (unscrolled) navbar height now that this sits outside the bar
-              to measure against. */}
-          <motion.div
-            ref={contentRef}
             initial={{ opacity: 0, y: -12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.98 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed left-3 right-3 top-16 z-[99] rounded-2xl p-3.5 sm:top-[4.5rem] lg:hidden"
+            className="fixed left-3 right-3 top-16 z-[99] overflow-hidden rounded-2xl border border-[#e4e2f0] bg-white p-3.5 shadow-xl shadow-black/[0.08] dark:border-white/[0.10] dark:bg-[#131315] dark:shadow-black/40 sm:top-[4.5rem] lg:hidden"
           >
             {/* Top header bar */}
             <div className="flex items-center gap-1.5 border-b border-[#eceafa] pb-2.5 dark:border-white/[0.08]">
-              <span className="flex h-5 w-5 items-center justify-center rounded-md border border-[#5a63df]/20 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.14] dark:text-[#a9afff]">
+              <span className="flex h-5 w-5 items-center justify-center rounded-md border border-[#5a63df]/20 bg-[#5a63df]/10 text-[#5a63df] transition-transform duration-300 hover:rotate-12 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.14] dark:text-[#a9afff]">
                 <Sparkles className="h-3 w-3" />
               </span>
               <span className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
@@ -106,15 +68,21 @@ export default function MobileNavMenu({ isOpen, onClose, links, isSignedIn, hand
                     key={link.label}
                     href={link.href}
                     onClick={onClose}
-                    className="group flex items-center gap-3 rounded-xl px-3 py-2 transition-all duration-150 ease-sidebar hover:bg-[#5a63df]/[0.05] active:scale-[0.98] dark:hover:bg-white/[0.04]"
+                    className="group relative flex items-center gap-3 rounded-xl px-2.5 py-2 transition-all duration-200 ease-out hover:bg-[#5a63df]/[0.06] active:scale-[0.98] dark:hover:bg-white/[0.05]"
                   >
-                    <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg border border-[#5a63df]/15 bg-[#5a63df]/10 text-[#5a63df] transition-all duration-200 ease-sidebar group-hover:border-[#5a63df] group-hover:bg-[#5a63df] group-hover:text-white dark:border-[#8f97ff]/20 dark:bg-[#8f97ff]/[0.14] dark:text-[#a9afff] dark:group-hover:border-[#8f97ff] dark:group-hover:bg-[#8f97ff] dark:group-hover:text-[#131315]">
-                      {Icon ? <Icon className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                    {/* Compact Icon Chip with subtle soft glow shadow */}
+                    <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#5a63df]/20 bg-gradient-to-br from-[#5a63df]/10 to-[#5a63df]/[0.18] text-[#5a63df] transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:border-transparent group-hover:bg-[#5a63df] group-hover:text-white group-hover:shadow-[0_4px_10px_-2px_rgba(90,99,223,0.22)] dark:border-[#8f97ff]/25 dark:from-[#8f97ff]/[0.12] dark:to-[#8f97ff]/[0.22] dark:text-[#a9afff] dark:group-hover:border-transparent dark:group-hover:bg-[#8f97ff] dark:group-hover:text-[#0b0c10] dark:group-hover:shadow-[0_4px_10px_-2px_rgba(143,151,255,0.22)]">
+                      {/* Compact Icon glyph with gentle tilt interaction */}
+                      {Icon ? (
+                        <Icon className="relative z-10 h-4 w-4 transition-transform duration-200 ease-out group-hover:scale-105 group-hover:rotate-[6deg] group-active:scale-95" />
+                      ) : (
+                        <Sparkles className="relative z-10 h-4 w-4 transition-transform duration-200 ease-out group-hover:scale-105 group-hover:rotate-[6deg] group-active:scale-95" />
+                      )}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-extrabold text-slate-900 transition-colors group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#a9afff]">
+                        <span className="text-xs font-extrabold text-slate-900 transition-colors duration-200 group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#a9afff]">
                           {link.label}
                         </span>
                         {link.badge && (
@@ -124,13 +92,13 @@ export default function MobileNavMenu({ isOpen, onClose, links, isSignedIn, hand
                         )}
                       </div>
                       {link.description && (
-                        <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate">
+                        <p className="text-[10px] font-medium text-slate-400 transition-colors duration-200 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-400 truncate">
                           {link.description}
                         </p>
                       )}
                     </div>
 
-                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-300 transition-all duration-150 ease-sidebar group-hover:translate-x-0.5 group-hover:text-[#5a63df] dark:text-slate-600 dark:group-hover:text-[#a9afff]" />
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-300 transition-all duration-200 ease-out group-hover:translate-x-0.5 group-hover:text-[#5a63df] dark:text-slate-600 dark:group-hover:text-[#a9afff]" />
                   </a>
                 );
               })}

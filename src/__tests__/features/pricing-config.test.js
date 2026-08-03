@@ -16,6 +16,12 @@ describe('pricing plan configuration', () => {
     expect(catalog).toContain('Grammar Units 1–3 + 5 Questions/Day');
     expect(catalog).toContain('5 Vocabulary Starter Kits');
     expect(catalog).toContain('All Topic Kits + Band 8 & 9');
+    expect(DEFAULT_PRICING_PLANS.find(({ tier }) => tier === 'free').features).toContain(
+      'Basic 30-Day Progress Analytics'
+    );
+    expect(DEFAULT_PRICING_PLANS.find(({ tier }) => tier === 'pro').features).toContain(
+      'Advanced Weakness & Readiness Analytics'
+    );
   });
 
   it('applies the same admin limits to the shared pricing catalog', () => {

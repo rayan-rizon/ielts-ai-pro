@@ -29,33 +29,63 @@ const TYPE_META = {
 
 // rgb(var(--signal-*)) already resolves to the correct shade per theme, so no
 // separate dark: class is needed for those three.
+//
+// `textClass`/`borderClass`/`bgClass` are reserved for small, one-at-a-time
+// chrome (the tooltip's icon chip, severity badge, filter pills) — never for
+// the running paragraph text.
+//
+// Inline segments carry severity through the UNDERLINE ALONE, with no resting
+// background. This is the Grammarly / Google Docs model, and it is what keeps
+// a densely-annotated essay readable: dark mode's signal colors are
+// deliberately bright (--signal-fault is a bold coral, --signal-warn a bold
+// gold, --signal-ok a bright mint) so they read as clear accents at small
+// sizes, but a typical essay lights up all four severities at once, and any
+// persistent fill — even a 12% wash — multiplies that into full-height color
+// bands stacked down the whole page. A 2px underline carries the same
+// information across a fraction of the area.
+//
+// Background is therefore a *state*, not an identity: `hoverWash` on hover,
+// `activeWash` for the open annotation. Each severity stays on its own hue
+// for those so the highlight never contradicts the underline beneath it.
 const SEVERITY_STYLES = {
   error: {
     bgClass: 'bg-[rgb(var(--signal-fault)/0.08)]',
     borderClass: 'border-[rgb(var(--signal-fault)/0.3)]',
     textClass: 'text-[rgb(var(--signal-fault))]',
-    underlineClass: 'decoration-[rgb(var(--signal-fault))] decoration-wavy',
+    underlineClass: 'decoration-[rgb(var(--signal-fault)/0.8)] decoration-wavy',
+    hoverWash: 'hover:bg-[rgb(var(--signal-fault)/0.10)]',
+    activeWash: 'bg-[rgb(var(--signal-fault)/0.16)] decoration-[rgb(var(--signal-fault))]',
     applyClass: 'bg-[rgb(var(--signal-fault))] hover:opacity-90 text-white',
   },
   warning: {
     bgClass: 'bg-[rgb(var(--signal-warn)/0.08)]',
     borderClass: 'border-[rgb(var(--signal-warn)/0.3)]',
     textClass: 'text-[rgb(var(--signal-warn))]',
-    underlineClass: 'decoration-[rgb(var(--signal-warn))] decoration-wavy',
+    underlineClass: 'decoration-[rgb(var(--signal-warn)/0.8)] decoration-wavy',
+    hoverWash: 'hover:bg-[rgb(var(--signal-warn)/0.10)]',
+    activeWash: 'bg-[rgb(var(--signal-warn)/0.16)] decoration-[rgb(var(--signal-warn))]',
     applyClass: 'bg-[rgb(var(--signal-warn))] hover:opacity-90 text-white',
   },
   suggestion: {
     bgClass: 'bg-[#efedff] dark:bg-indigo-500/10',
     borderClass: 'border-[#d2d7f8] dark:border-indigo-500/30',
     textClass: 'text-[#5661e9] dark:text-indigo-300',
-    underlineClass: 'decoration-[#5661e9] decoration-dashed',
+    underlineClass: 'decoration-[#5661e9]/75 dark:decoration-indigo-400/75 decoration-dashed',
+    hoverWash: 'hover:bg-[#5661e9]/[0.09] dark:hover:bg-indigo-400/[0.10]',
+    activeWash:
+      'bg-[#5661e9]/[0.14] decoration-[#5661e9] dark:bg-indigo-400/[0.16] dark:decoration-indigo-300',
     applyClass: 'bg-[#5661e9] hover:bg-[#4853d6] text-white',
   },
+  // "Good" is praise, not a task — it never needs to compete with the
+  // actionable severities, so it gets the quietest mark: a plain solid rule
+  // rather than the attention-seeking `decoration-double` it used to carry.
   positive: {
     bgClass: 'bg-[rgb(var(--signal-ok)/0.08)]',
     borderClass: 'border-[rgb(var(--signal-ok)/0.3)]',
     textClass: 'text-[rgb(var(--signal-ok))]',
-    underlineClass: 'decoration-[rgb(var(--signal-ok))] decoration-double',
+    underlineClass: 'decoration-[rgb(var(--signal-ok)/0.55)] decoration-solid',
+    hoverWash: 'hover:bg-[rgb(var(--signal-ok)/0.10)]',
+    activeWash: 'bg-[rgb(var(--signal-ok)/0.16)] decoration-[rgb(var(--signal-ok))]',
     applyClass: 'bg-[rgb(var(--signal-ok))] hover:opacity-90 text-white',
   },
 };
@@ -451,19 +481,16 @@ const AnnotatedSegment = ({ segment, isActive, onActivate, onApply, onIgnore, co
           e.stopPropagation();
           onActivate();
         }}
-        whileHover={{ scale: 1.02 }}
         className={cn(
-          'cursor-pointer px-2 py-0.5 rounded-lg mx-0.5 transition-all duration-200 border shadow-[0_1px_2px_rgba(0,0,0,0.02)]',
-          'inline [box-decoration-break:clone] [-webkit-box-decoration-break:clone]',
-          severityStyle.borderClass,
-          severityStyle.bgClass,
-          isActive &&
-            cn(
-              'relative z-10 scale-[1.002] border-[0.5px] border-[#8f97ff]/55 bg-[#8f97ff]/[0.05] shadow-[0_1px_4px_rgba(86,97,233,0.1)] dark:border-[#aeb4ff]/45 dark:bg-[#8f97ff]/[0.1]'
-            )
+          'cursor-pointer rounded-[3px] px-0.5 py-0.5 -mx-0.5 transition-colors duration-150',
+          'inline underline decoration-2 underline-offset-[3px] [box-decoration-break:clone] [-webkit-box-decoration-break:clone]',
+          severityStyle.underlineClass,
+          // Background is a state, not an identity — nothing at rest, so a
+          // page full of annotations stays readable text rather than bands.
+          isActive ? cn('relative z-10', severityStyle.activeWash) : severityStyle.hoverWash
         )}
       >
-        <span className={cn(severityStyle.textClass, 'font-medium transition-colors duration-200')}>
+        <span className="font-medium text-slate-700 transition-colors duration-200 dark:text-slate-200">
           {segment.text}
         </span>
       </motion.span>

@@ -2,16 +2,20 @@ import { useMemo } from 'react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useAnalyticsQueries } from './analyticsQueries';
 import { buildAnalyticsViewModel } from './analyticsDataModel';
+import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
 
 export default function useAnalyticsData(selectedTimeframe) {
   const { user: authUser, loading: authLoading } = useAuth();
   const userId = authUser?.id;
-  const queries = useAnalyticsQueries(userId);
+  const hasAdvancedAccess = hasPaidAccess(authUser);
+  const queries = useAnalyticsQueries(userId, hasAdvancedAccess);
+  const effectiveTimeframe =
+    hasAdvancedAccess || selectedTimeframe === '7d' ? selectedTimeframe : '30d';
   const viewModel = useMemo(
     () =>
       buildAnalyticsViewModel({
         rawSessions: queries.rawSessions,
-        selectedTimeframe,
+        selectedTimeframe: effectiveTimeframe,
         authUser,
         vocabCount: queries.vocabCount,
         grammarAttempts: queries.grammarAttempts,
@@ -24,13 +28,14 @@ export default function useAnalyticsData(selectedTimeframe) {
       queries.grammarAttempts,
       queries.skillProficiency,
       queries.learningPathEvidence,
-      selectedTimeframe,
+      effectiveTimeframe,
       authUser,
     ]
   );
 
   return {
     user: authUser,
+    hasAdvancedAccess,
     isLoading: authLoading || (Boolean(userId) && queries.isLoading),
     rawSessions: queries.rawSessions,
     stats: viewModel.stats,

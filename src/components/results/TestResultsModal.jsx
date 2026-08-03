@@ -1,5 +1,4 @@
 import React from 'react';
-import { useAuth } from '@/features/auth/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -24,6 +23,7 @@ import ConfettiCelebration from '@/components/ConfettiCelebration';
 import { OverviewTab } from './test-results-modal/OverviewTab';
 import { DetailedAnalysisTab } from './test-results-modal/DetailedAnalysisTab';
 import { normalizeTestResults } from './test-results-modal/normalizeTestResults';
+import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
 
 function getAssessmentMessage(score) {
   if (score >= 8.5) return 'Unstoppable! You are mastering this exam.';
@@ -209,11 +209,6 @@ function useCelebration(showResults, testResults, celebrate) {
   return { showCelebration, particleCount, celebrationTheme, setShowCelebration };
 }
 
-function checkIsPremium(user, isAdmin) {
-  const subscriptionTier = (user?.subscription_tier || 'free').toLowerCase();
-  return subscriptionTier === 'premium' || subscriptionTier === 'pro' || isAdmin;
-}
-
 // Helper component to display inner modal content to keep complexity low
 const ModalContent = React.memo(
   ({
@@ -339,7 +334,6 @@ export default function TestResultsModal({
   _dashboardUrl = '/dashboard',
 }) {
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
   const [activeTab, setActiveTab] = React.useState('overview');
   const [isDownloadingPdf, setIsDownloadingPdf] = React.useState(false);
   const normalizedResults = React.useMemo(
@@ -347,7 +341,7 @@ export default function TestResultsModal({
     [testResults, testType]
   );
 
-  const isPremium = checkIsPremium(user, isAdmin);
+  const isPremium = hasPaidAccess(user);
 
   const handleUpgrade = React.useCallback(() => {
     navigate('/pricing');
