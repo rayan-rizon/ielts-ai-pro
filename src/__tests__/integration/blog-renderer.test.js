@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import process from 'node:process';
 import blogHandler from '../../../api/blog.js';
+import cssHandler, { BLOG_CSS, BLOG_CSS_VERSION } from '../../../api/blog-css.js';
 import { getBlogCoverAlt } from '../../features/learning/utils/blogCoverMeta.js';
 
 const article = {
@@ -82,13 +83,23 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain("localStorage.setItem('vite-ui-theme'");
     expect(response.body).toContain('data-practice-card');
     expect(response.body).toContain('side-card-title-icon');
-    expect(response.body).toContain('featured,.featured-copy,.featured-image{min-width:0}');
-    expect(response.body).toContain('html.dark .category-tabs');
-    expect(response.body).toContain('html.dark .category-tabs a.active');
-    expect(response.body).toContain('html.dark .library-search input');
-    expect(response.body).toContain('card:hover h2{color:#4f46e5}');
-    expect(response.body).toContain('card-read-icon');
-    expect(response.body).toContain('html.dark .card:hover h2');
+    expect(response.body).toContain(
+      `<link rel="stylesheet" href="/blog.css?v=${BLOG_CSS_VERSION}">`
+    );
+    expect(response.body).not.toContain('<style>');
+    // A single featured post lives in the carousel, so this fixture renders no grid
+    // cards; the card styles are asserted against the stylesheet that now serves them.
+    for (const rule of [
+      '.card-read-icon',
+      'featured,.featured-copy,.featured-image{min-width:0}',
+      'html.dark .category-tabs',
+      'html.dark .category-tabs a.active',
+      'html.dark .library-search input',
+      'card:hover h2{color:#4f46e5}',
+      'html.dark .card:hover h2',
+    ]) {
+      expect(BLOG_CSS).toContain(rule);
+    }
   });
 
   it('keeps headings unique and link anchors descriptive for crawlers', async () => {
@@ -137,6 +148,31 @@ describe('server-rendered IELTS blog', () => {
     expect(articleResponse.body.split('class="toc-title"').length - 1).toBe(2);
   });
 
+  it('serves icons from one sprite and the stylesheet from one cacheable URL', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [article] }));
+    const response = createResponse();
+
+    await blogHandler({ query: {} }, response);
+    const html = response.body;
+
+    // One sprite definition, and every icon is a reference into it rather than a
+    // repeated copy of its path data.
+    expect(html.match(/class="icon-sprite"/g)).toHaveLength(1);
+    const references = html.match(/<use href="#icon-[a-z0-9-]+"\/>/g) || [];
+    expect(references.length).toBeGreaterThan(20);
+    for (const reference of new Set(references)) {
+      const id = reference.match(/#(icon-[a-z0-9-]+)/)[1];
+      expect(html).toContain(`<symbol id="${id}"`);
+    }
+    // Path data must appear only inside the sprite.
+    const withoutSprite = html.replace(/<svg class="icon-sprite"[\s\S]*?<\/svg>/, '');
+    expect(withoutSprite).not.toContain('<path');
+
+    // The stylesheet is external, so it is cached rather than resent per page.
+    expect(html).toContain(`href="/blog.css?v=${BLOG_CSS_VERSION}"`);
+    expect(cssHandler).toBeTypeOf('function');
+  });
+
   it('gives every filtered library view its own metadata and canonical', async () => {
     const categories = ['Reading', 'Writing', 'Listening'];
     const posts = Array.from({ length: 30 }, (_, index) => ({
@@ -176,7 +212,7 @@ describe('server-rendered IELTS blog', () => {
     expect(canonicals[2]).toBe('https://www.ieltsai.pro/blog?category=Writing');
     // Internal search results are not listings worth indexing.
     expect(rendered[4]).toContain('<meta name="robots" content="noindex, follow">');
-    expect(rendered[0]).toContain('rel="nofollow" href="/blog?q=');
+    expect(rendered[0]).not.toContain('rel="nofollow"');
     // Blocked routes must not receive internal links from a crawlable page.
     for (const blocked of ['/analytics', '/pricing', '/resources', '/vocabulary']) {
       expect(rendered[0]).not.toContain(`href="${blocked}"`);
@@ -254,7 +290,7 @@ describe('server-rendered IELTS blog', () => {
       'width="1200" height="675" decoding="async" fetchpriority="high"'
     );
     expect(response.body).toContain('href="/ielts-writing-checker">Writing checker</a>');
-    expect(response.body).toContain('.article-photo img{height:auto;border-radius:22px}');
+    expect(BLOG_CSS).toContain('.article-photo img{height:auto;border-radius:22px}');
     expect(response.body).toContain('Plan · Practise · Review · Succeed');
     expect(response.body).toContain('Reviewed by the IELTS Ai Pro editorial team');
     expect(response.body).toContain('data-tone="reading"');
@@ -269,7 +305,7 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('data-toc-link');
     expect(response.body).toContain('IntersectionObserver');
     expect(response.body).toContain('aria-expanded');
-    expect(response.body).toContain('html.dark .article table');
+    expect(BLOG_CSS).toContain('html.dark .article table');
     expect(response.body).not.toContain('Turn the strategy into a score');
     expect(response.body).toContain('<title>IELTS Reading Strategy | IELTS Ai Pro</title>');
   });

@@ -175,20 +175,52 @@ const publicPages = [
         {
           heading: 'What we build',
           items: [
-            '<strong>Practice, not guesswork:</strong> timed Reading and Listening sets, Writing evaluation, and Speaking simulation with feedback tied to the four official criteria.',
-            '<strong>Honest labelling:</strong> AI band scores are presented as practice estimates, never as official IELTS results.',
-            '<strong>Independence:</strong> we are not affiliated with IELTS, IDP, Cambridge, or the British Council.',
+            '<strong>Practice, not guesswork:</strong> timed Reading and Listening question sets, Academic Writing Task 1 and Task 2 evaluation, and Speaking Parts 1 to 3 simulation, with every piece of feedback tied back to the four assessment criteria examiners actually use.',
+            '<strong>Feedback that names the next action:</strong> a report is only worth reading if it changes the next attempt, so each one separates what already works from the single change most likely to move a band.',
+            '<strong>Honest labelling:</strong> AI band scores are presented as practice estimates. Where the evidence is thin - for example pronunciation judged from a transcript rather than from audio - the product says so instead of quietly presenting a number.',
+            '<strong>Progress you can inspect:</strong> saved attempts, skill-level trends, and recurring error patterns, so improvement is visible over weeks rather than guessed at from a single score.',
+            '<strong>Independence:</strong> we are not affiliated with IELTS, IDP, Cambridge Assessment English, or the British Council, and we do not claim to predict an official result.',
+          ],
+        },
+        {
+          heading: 'Who IELTS Ai Pro is for',
+          items: [
+            '<strong>Learners without a tutor:</strong> the feedback loop replaces the part of tutoring that is hardest to self-serve - being told specifically why an answer lost marks.',
+            '<strong>Learners repeating the test:</strong> analytics and error logs make it clear whether a plateau is a knowledge gap, a timing problem, or a question-technique habit.',
+            '<strong>Learners short on time:</strong> focused drills built from your own weakest patterns are more efficient than repeating full mock tests every day.',
+          ],
+        },
+        {
+          heading: 'How the feedback works',
+          ordered: true,
+          items: [
+            '<strong>You complete a real task:</strong> a timed Reading or Listening section, an Academic Task 1 or Task 2 response, or a recorded Speaking answer.',
+            '<strong>The response is assessed against the criteria:</strong> Task Achievement or Task Response, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy for Writing; Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation for Speaking.',
+            '<strong>You get an estimate plus the reasoning:</strong> the report shows which specific sentences, answers, or habits drove the estimate, not just the number.',
+            '<strong>You practise one thing:</strong> the report ends in a concrete next drill, and the analytics track whether repeating it actually moved the pattern.',
           ],
         },
       ],
       faqs: [
         [
           'Is IELTS Ai Pro affiliated with the official IELTS test?',
-          'No. IELTS Ai Pro is an independent preparation platform. Official IELTS results are issued only by authorised test providers and trained examiners.',
+          'No. IELTS Ai Pro is an independent preparation platform and has no affiliation with IELTS, IDP, Cambridge Assessment English, or the British Council. Official IELTS results are issued only by authorised test providers and trained examiners, and nothing produced here is an official result or a prediction of one.',
+        ],
+        [
+          'How accurate are the AI band estimates?',
+          'They are useful for spotting patterns across several attempts and much less useful read one at a time. Treat a single estimate as a rough signal, and treat the criterion-level comments and the trend across attempts as the part worth acting on.',
+        ],
+        [
+          'Do I need to pay to use IELTS Ai Pro?',
+          'A free account covers Reading and Listening practice, a monthly allowance of Writing evaluation, vocabulary tools, and basic progress analytics. Paid plans raise the monthly Writing and Speaking evaluation limits and add features such as advanced analytics and an adaptive learning path. Current limits are always shown before you start a task.',
+        ],
+        [
+          'Which IELTS test does the platform target?',
+          'The practice material and Writing evaluation are built around Academic IELTS. Reading and Listening technique, Speaking practice, and study planning transfer to General Training, but Academic Task 1 report writing is specific to the Academic paper.',
         ],
         [
           'How do I contact the team?',
-          'Email mail@ieltsai.pro, or use the contact page for support, billing, and feedback enquiries.',
+          'Email mail@ieltsai.pro, or use the contact page for support, billing, and product feedback enquiries.',
         ],
       ],
     },
@@ -197,7 +229,7 @@ const publicPages = [
     path: 'contact',
     title: 'Contact Support & Help Desk - IELTS Ai Pro',
     description:
-      'Need assistance with your IELTS preparation, Writing/Speaking AI grading, or subscription account? Contact our team at mail@ieltsai.pro or check our student FAQ.',
+      'Get help with IELTS practice, Writing and Speaking AI feedback, or your subscription. Email mail@ieltsai.pro or use the contact form.',
     canonical: 'https://www.ieltsai.pro/contact',
     imageAlt: 'IELTS Ai Pro learner support desk',
     schemaType: 'ContactPage',
@@ -209,20 +241,52 @@ const publicPages = [
         {
           heading: 'What we can help with',
           items: [
-            '<strong>Practice and feedback:</strong> questions about Writing, Speaking, Reading, or Listening reports and how the estimates are produced.',
-            '<strong>Account and billing:</strong> plan limits, upgrades, invoices, and access problems.',
-            '<strong>Bugs and suggestions:</strong> anything that behaved unexpectedly, plus feature requests.',
+            '<strong>Practice and feedback:</strong> questions about a Writing, Speaking, Reading, or Listening report - how an estimate was produced, why a criterion was marked the way it was, or what a comment means in practice.',
+            '<strong>Account and billing:</strong> plan limits and allowances, upgrades and downgrades, invoices and receipts, payment failures, and problems signing in.',
+            '<strong>Data and privacy:</strong> requests to export, correct, or delete the personal data held on your account, handled under the GDPR and CCPA rights described in our privacy policy.',
+            '<strong>Bugs:</strong> anything that behaved unexpectedly - a task that would not submit, a report that failed to generate, audio that would not record, or a page that did not load.',
+            '<strong>Product feedback:</strong> feature requests, missing question types, and suggestions about how practice or reporting should work.',
+          ],
+        },
+        {
+          heading: 'How to get a faster answer',
+          ordered: true,
+          items: [
+            '<strong>Say which account you are writing from:</strong> use the email address the account is registered to, so we can look it up without a round trip.',
+            '<strong>Name the task or report:</strong> the skill, the question type, and roughly when you attempted it is usually enough to find the record.',
+            '<strong>Describe what you expected and what happened:</strong> for a bug, the exact wording of any error message matters more than a description of it.',
+            '<strong>Attach a screenshot where it helps:</strong> layout, billing, and report-rendering problems are far quicker to diagnose visually.',
+          ],
+        },
+        {
+          heading: 'What to expect',
+          items: [
+            '<strong>Email is the primary channel:</strong> mail@ieltsai.pro reaches the same team as the contact form on this page.',
+            '<strong>Support does not mark essays:</strong> evaluation happens inside the app so the report stays attached to your practice history and analytics.',
+            '<strong>We cannot change an official IELTS result:</strong> IELTS Ai Pro is an independent preparation platform, so scores, bookings, and certificates from a test centre have to go through that centre.',
           ],
         },
       ],
       faqs: [
         [
           'How do I reach IELTS Ai Pro?',
-          'Email mail@ieltsai.pro. It is the fastest route for support, billing, and account questions.',
+          'Email mail@ieltsai.pro, or send the form on this page - both reach the same team. It is the fastest route for support, billing, account, and data-privacy questions.',
         ],
         [
           'Can you review my IELTS essay by email?',
-          'Feedback is produced inside the app so the report stays tied to your practice history. Use the writing checker rather than sending essays to support.',
+          'No. Feedback is produced inside the app so the report stays tied to your practice history and progress analytics. Use the writing checker rather than sending essays to support, and write to us if the checker itself is not working.',
+        ],
+        [
+          'Can you help with booking or rescheduling an IELTS test?',
+          'No. IELTS Ai Pro is an independent preparation platform with no affiliation to IELTS, IDP, Cambridge, or the British Council. Bookings, test-day arrangements, and official results are handled only by your test centre.',
+        ],
+        [
+          'How do I cancel a subscription or request a refund?',
+          'Email mail@ieltsai.pro from the address on the account and say what you would like cancelled. Include the receipt or invoice reference if you have one, as it makes the payment easy to locate.',
+        ],
+        [
+          'How do I request deletion of my data?',
+          'Email mail@ieltsai.pro from your account address. Deletion, export, and correction requests are handled under the rights set out in our privacy policy.',
         ],
       ],
     },
@@ -231,7 +295,7 @@ const publicPages = [
     path: 'ielts-band-score-calculator',
     title: 'IELTS Band Score Calculator (Overall + Raw Score) | IELTS Ai Pro',
     description:
-      'Free IELTS band score calculator: get your overall band from Listening, Reading, Writing and Speaking scores, plus raw score to band conversion for Listening and Reading.',
+      'Free IELTS band score calculator: turn your Listening, Reading, Writing and Speaking scores into an overall band, plus raw score conversion.',
     canonical: 'https://www.ieltsai.pro/ielts-band-score-calculator',
     imageAlt: 'IELTS learner calculating an overall band score',
     prerender: {
@@ -243,9 +307,37 @@ const publicPages = [
           heading: 'How IELTS band scores are calculated',
           ordered: true,
           items: [
-            '<strong>Average the four skills:</strong> add your Listening, Reading, Writing, and Speaking bands and divide by four.',
-            '<strong>Round to the nearest half band:</strong> a 6.25 average rounds up to 6.5 and a 6.75 average rounds up to 7.0.',
-            '<strong>Convert raw scores separately:</strong> Listening and Academic Reading each map a number of correct answers out of 40 onto a band.',
+            '<strong>Average the four skills:</strong> add your Listening, Reading, Writing, and Speaking bands together and divide by four. Every skill carries equal weight, so a weak paper cannot be offset by weighting a strong one.',
+            '<strong>Round to the nearest half band:</strong> an average ending in .25 rounds up to the next half band and an average ending in .75 rounds up to the next whole band. A 6.25 average becomes 6.5, and a 6.75 average becomes 7.0.',
+            '<strong>Round down below the threshold:</strong> an average ending in .125 or .375 rounds down, which is why an average of 7.625 does not reach Band 8. Small differences either side of a threshold decide the reported band.',
+            '<strong>Convert raw scores separately:</strong> Listening and Reading are marked out of 40, and the number of correct answers maps onto a band before it enters the four-skill average.',
+          ],
+        },
+        {
+          heading: 'Worked examples',
+          items: [
+            '<strong>6.5, 6.5, 6.0, 6.0</strong> averages to 6.25, which rounds up to an overall <strong>Band 6.5</strong>.',
+            '<strong>7.0, 7.0, 6.5, 6.5</strong> averages to 6.75, which rounds up to an overall <strong>Band 7.0</strong>.',
+            '<strong>7.5, 7.5, 7.0, 8.5</strong> averages to 7.625, which rounds down to an overall <strong>Band 7.5</strong>.',
+            '<strong>8.0, 7.5, 6.5, 6.5</strong> averages to 7.125, which rounds down to an overall <strong>Band 7.0</strong> - a reminder that raising the weakest paper usually moves the overall band faster than polishing the strongest.',
+          ],
+        },
+        {
+          heading: 'Using the raw score converter',
+          items: [
+            '<strong>Listening:</strong> enter the number of correct answers out of 40 to see the band that score maps to.',
+            '<strong>Academic Reading:</strong> the same 40-question total maps onto a different curve, so an identical raw score does not produce an identical band across the two papers.',
+            '<strong>General Training Reading:</strong> the curve is more demanding, and a given band typically requires several more correct answers than Academic Reading.',
+            '<strong>Spelling and word limits count:</strong> a correct idea written outside the stated word limit or misspelled scores zero, so raw-score practice is worth reviewing answer by answer.',
+          ],
+        },
+        {
+          heading: 'Setting a realistic target',
+          ordered: true,
+          items: [
+            '<strong>Start from your current four bands:</strong> use recent timed practice rather than an estimate from memory.',
+            '<strong>Find the cheapest half band:</strong> work out which single paper needs the smallest improvement to move the rounded average across the next threshold.',
+            '<strong>Check the requirement, not the ambition:</strong> many universities and visa routes set a minimum in each skill as well as an overall band, and the per-skill minimum is often the binding constraint.',
           ],
         },
       ],
@@ -280,16 +372,54 @@ const publicPages = [
         {
           heading: 'What this policy covers',
           items: [
-            '<strong>Information collection:</strong> what we ask for when you register, subscribe, or submit a practice response.',
-            '<strong>Use and retention:</strong> how practice data supports feedback, analytics, and your study history.',
-            '<strong>Your rights:</strong> how to access, export, correct, or delete the data we hold about you.',
+            '<strong>Information collection:</strong> what we ask for when you register on the site, subscribe to a plan, respond to a survey, or fill out a form, and what is collected automatically as you use the application.',
+            '<strong>Lawful basis for processing:</strong> the GDPR Article 6 grounds we rely on for each category of processing, including contract, consent, and legitimate interests.',
+            '<strong>Data we process:</strong> account details, subscription and payment records, the practice responses you submit, and the derived feedback and analytics built from them.',
+            '<strong>Data security and encryption:</strong> the technical and organisational measures used to protect data in transit and at rest.',
+            '<strong>Your rights under GDPR and CCPA:</strong> access, portability, rectification, erasure, restriction, objection, and the right not to be discriminated against for exercising them.',
+            '<strong>Account deletion and data wiping:</strong> what happens to your practice history, reports, and account record when you ask for deletion.',
+            '<strong>Data breach notification:</strong> how and when affected users and regulators are informed.',
+            '<strong>International data transfers:</strong> the safeguards applied when data moves between jurisdictions.',
+            '<strong>Data retention:</strong> how long each category is kept and what triggers its removal.',
+            '<strong>Contact and Data Protection Officer:</strong> where to send a privacy request or a complaint.',
+          ],
+        },
+        {
+          heading: 'How practice data is used',
+          items: [
+            '<strong>To produce your feedback:</strong> a Writing response or Speaking recording has to be processed to return criterion-level comments and an estimated practice band.',
+            '<strong>To build your progress history:</strong> saved attempts are what make skill trends, error patterns, and the adaptive learning path possible.',
+            '<strong>To operate the service:</strong> authentication, plan limits, billing, and support all require a minimum of account data.',
+            '<strong>Not to sell:</strong> we do not sell personal information, and CCPA-covered users retain the right to direct that no sale takes place.',
+          ],
+        },
+        {
+          heading: 'Exercising your rights',
+          ordered: true,
+          items: [
+            '<strong>Write from your account address:</strong> email mail@ieltsai.pro from the address the account is registered to, which is the fastest way for us to verify the request.',
+            '<strong>Say what you want:</strong> a copy of your data, a correction, restriction of a particular processing activity, or full deletion of the account and its practice history.',
+            '<strong>We respond within the statutory period:</strong> requests are handled in line with the response deadlines set by the GDPR and the CCPA.',
+            '<strong>You can complain to a regulator:</strong> if you are not satisfied with the outcome, you may raise the matter with your local supervisory authority.',
           ],
         },
       ],
       faqs: [
         [
           'How do I request deletion of my data?',
-          'Email mail@ieltsai.pro from the address on your account and we will process the request in line with GDPR and CCPA requirements.',
+          'Email mail@ieltsai.pro from the address on your account and we will process the request in line with GDPR and CCPA requirements. Deletion removes the account record along with the practice responses, reports, and analytics derived from them.',
+        ],
+        [
+          'Are my practice essays and recordings used to train AI models?',
+          'Your submissions are processed to generate the feedback you asked for and to build your own progress history. Where any further use would require your consent, that consent is asked for separately rather than assumed.',
+        ],
+        [
+          'Does IELTS Ai Pro sell personal information?',
+          'No. We do not sell personal information. CCPA-covered users retain the right to direct that no sale takes place, and exercising any privacy right never results in a degraded service.',
+        ],
+        [
+          'How long is my data kept?',
+          'Each category has its own retention period, set out in the data retention section of the policy. Practice history is retained while the account is active so that progress tracking works, and is removed when the account is deleted.',
         ],
       ],
     },
@@ -298,7 +428,7 @@ const publicPages = [
     path: 'terms',
     title: 'Terms of Service & Usage Policy | IELTS Ai Pro',
     description:
-      'Review the terms of service for using IELTS Ai Pro, including licensing, disclaimers, and limitations of liability for our AI-powered IELTS preparation platform.',
+      'Review the IELTS Ai Pro terms of service: licensing, disclaimers, and limitations of liability for our AI-powered IELTS preparation platform.',
     canonical: 'https://www.ieltsai.pro/terms',
     imageAlt: 'IELTS Ai Pro terms of service',
     prerender: {
@@ -308,17 +438,42 @@ const publicPages = [
       sections: [
         {
           heading: 'Key terms',
+          ordered: true,
           items: [
-            '<strong>Acceptance:</strong> using the site means you agree to these terms and any posted guidelines for a particular service.',
-            '<strong>Use licence:</strong> materials are licensed for personal, non-commercial use; copying, resale, and reverse engineering are not permitted.',
-            '<strong>Practice estimates:</strong> AI band scores are estimates for preparation and are not official IELTS results.',
+            '<strong>Acceptance of terms:</strong> by accessing and using this website you agree to be bound by this agreement, and when using a particular service you are additionally subject to any guidelines or rules posted for that service.',
+            '<strong>Use licence:</strong> permission is granted to temporarily download one copy of the materials on the site for personal, non-commercial, transitory viewing only. This is a licence, not a transfer of title. You may not modify or copy the materials, use them for any commercial purpose or public display, or attempt to decompile or reverse engineer any software on the site.',
+            '<strong>Disclaimer:</strong> materials are provided on an "as is" basis, without warranties of any kind, express or implied, including warranties of merchantability, fitness for a particular purpose, and non-infringement of intellectual property.',
+            '<strong>Limitations:</strong> we are not liable for damages arising out of the use or inability to use the materials, to the fullest extent permitted by applicable law.',
+            '<strong>Revisions and errata:</strong> materials may include technical, typographical, or photographic errors, and we may change them at any time without notice. We do not warrant that any material is accurate, complete, or current.',
+          ],
+        },
+        {
+          heading: 'What these terms mean in practice',
+          items: [
+            '<strong>Practice estimates are not results:</strong> AI band scores, criterion feedback, and readiness indicators are preparation aids. Official IELTS results are issued only by authorised test providers and trained examiners.',
+            '<strong>No affiliation:</strong> IELTS Ai Pro is independent and is not associated with IELTS, IDP, Cambridge Assessment English, or the British Council. References to IELTS describe the test the platform prepares you for, not an endorsement.',
+            '<strong>No outcome guarantee:</strong> nothing on the platform guarantees a particular band, an admission decision, or a visa outcome.',
+            '<strong>Your account is yours to keep secure:</strong> access is personal to you, and sharing credentials puts your practice history and subscription at risk.',
+            '<strong>Plan limits are shown before you commit:</strong> monthly evaluation allowances and feature availability are displayed in the application before a task consumes an allowance.',
           ],
         },
       ],
       faqs: [
         [
           'Are AI band scores covered by any guarantee?',
-          'No. They are practice estimates provided as-is to guide preparation, and they carry no guarantee of a particular official IELTS outcome.',
+          'No. They are practice estimates provided as-is to guide preparation, and they carry no guarantee of a particular official IELTS outcome, admission decision, or visa result.',
+        ],
+        [
+          'Can I reuse IELTS Ai Pro material with my own students?',
+          'Not under this licence. Materials are licensed for personal, non-commercial viewing, which excludes commercial use and public display. Write to mail@ieltsai.pro if you need different terms.',
+        ],
+        [
+          'Can these terms change?',
+          'Yes. Materials and terms may be revised at any time without notice, and continued use of the site after a change means you accept the current version.',
+        ],
+        [
+          'Which law governs these terms?',
+          'The governing law and dispute-resolution provisions are set out in full on this page; where local consumer law grants you stronger rights, those rights are unaffected.',
         ],
       ],
     },
@@ -371,15 +526,15 @@ function replaceTag(html, expression, replacement, label) {
   return html.replace(expression, replacement);
 }
 
-// Only the three tool pages describe a piece of software; About/Contact/Privacy/
-// Terms/Calculator are documents, and claiming SoftwareApplication on them would be
-// asserting an entity that does not exist at that URL.
-const PRODUCT_PATHS = new Set([
-  'ielts-writing-checker',
-  'ielts-speaking-practice-ai',
-  'cambridge-ielts-practice-tests',
-]);
-
+/*
+ * There is deliberately no SoftwareApplication node here. Google's Software App
+ * markup requires an aggregateRating, and the only way to satisfy that would be to
+ * publish review data the product does not have. After the About/Contact/Privacy/
+ * Terms/Calculator pages were given their own graphs, the four pages a Semrush crawl
+ * still reported markup errors on were exactly the four that emitted
+ * SoftwareApplication - so the node is dropped rather than padded with invented
+ * ratings. Add it back only alongside genuine collected reviews.
+ */
 function renderPublicPage(html, config) {
   const shortTitle = config.title.replace(' | IELTS Ai Pro', '');
   const pageSchema = JSON.stringify({
@@ -395,21 +550,6 @@ function renderPublicPage(html, config) {
         isPartOf: { '@id': `${SITE_URL}/#website` },
         primaryImageOfPage: { '@type': 'ImageObject', url: config.image },
       },
-      ...(PRODUCT_PATHS.has(config.path)
-        ? [
-            {
-              '@type': 'SoftwareApplication',
-              '@id': `${config.canonical}#app`,
-              name: shortTitle,
-              url: config.canonical,
-              description: config.description,
-              applicationCategory: 'EducationalApplication',
-              operatingSystem: 'Web',
-              publisher: { '@id': `${SITE_URL}/#organization` },
-              offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-            },
-          ]
-        : []),
       {
         '@type': 'FAQPage',
         '@id': `${config.canonical}#faq`,

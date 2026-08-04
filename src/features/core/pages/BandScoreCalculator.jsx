@@ -57,7 +57,7 @@ function BandScoreCalculatorHead({ faqs }) {
   return (
     <DocumentHead
       title="IELTS Band Score Calculator (Overall + Raw Score) | IELTS Ai Pro"
-      description="Free IELTS band score calculator: get your overall band from Listening, Reading, Writing and Speaking scores, plus raw score to band conversion for Listening and Reading."
+      description="Free IELTS band score calculator: turn your Listening, Reading, Writing and Speaking scores into an overall band, plus raw score conversion."
       canonicalUrl="https://www.ieltsai.pro/ielts-band-score-calculator"
       keywords="IELTS band score calculator, IELTS overall band score, IELTS raw score conversion, IELTS band calculator, calculate IELTS score"
       structuredData={{

@@ -64,7 +64,7 @@ export const DEFAULT_BLOG_CATEGORIES = [
 export const BLOG_LIBRARY_COPY = {
   metaTitle: 'IELTS Preparation Tips & Expert Guides',
   metaDescription:
-    'Practical IELTS Writing, Speaking, Reading, and Listening guides with proven strategies, focused study plans, exam updates, and direct links to online practice.',
+    'Practical IELTS Writing, Speaking, Reading, and Listening guides with proven strategies, focused study plans, exam updates, and online practice.',
   heroEyebrow: 'IELTS blog library',
   heroTitle: 'IELTS tips for higher band scores',
   heroScript: 'Clear strategy. Focused practice.',

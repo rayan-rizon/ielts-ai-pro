@@ -55,7 +55,7 @@ const TermsOfService = () => {
     <>
       <DocumentHead
         title="Terms of Service & Usage Policy | IELTS Ai Pro"
-        description="Review the terms of service for using IELTS Ai Pro, including licensing, disclaimers, and limitations of liability for our AI-powered IELTS preparation platform."
+        description="Review the IELTS Ai Pro terms of service: licensing, disclaimers, and limitations of liability for our AI-powered IELTS preparation platform."
         canonicalUrl="https://www.ieltsai.pro/terms"
         structuredData={{
           '@context': 'https://schema.org',

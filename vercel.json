@@ -208,6 +208,10 @@
       "destination": "/api/feed"
     },
     {
+      "source": "/blog.css",
+      "destination": "/api/blog-css"
+    },
+    {
       "source": "/blog",
       "destination": "/api/blog"
     },

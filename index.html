@@ -248,6 +248,13 @@
       content="Get instant AI band scores for IELTS Writing & Speaking, plus free Cambridge-style Reading and Listening mock tests. Start free today."
     />
     <meta name="twitter:image" content="https://www.ieltsai.pro/og.webp" />
+    <!--
+      The graph below deliberately describes this page as a WebPage rather than a
+      SoftwareApplication. Google's Software App markup requires an aggregateRating,
+      and the only way to satisfy that would be to publish review data the product has
+      not collected - so every page still emitting that node was reported as a
+      structured-data error. Reinstate it only alongside genuine reviews.
+    -->
     <script data-static-seo type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -291,28 +298,22 @@
             "inLanguage": "en"
           },
           {
-            "@type": "SoftwareApplication",
-            "name": "IELTS Ai Pro",
-            "applicationCategory": "EducationalApplication",
-            "operatingSystem": "Web",
+            "@type": "WebPage",
+            "@id": "https://www.ieltsai.pro/#webpage",
             "url": "https://www.ieltsai.pro/",
+            "name": "Free AI IELTS Practice & Mock Tests",
             "description": "IELTS practice platform with Reading and Listening tests, AI-assisted Writing and Speaking feedback, analytics, vocabulary review, and study planning.",
             "inLanguage": "en",
-            "isAccessibleForFree": true,
-            "offers": {
-              "@type": "AggregateOffer",
-              "lowPrice": "0",
-              "highPrice": "15.99",
-              "priceCurrency": "USD",
-              "offerCount": "3"
+            "isPartOf": {
+              "@id": "https://www.ieltsai.pro/#website"
             },
-            "featureList": [
-              "IELTS writing checker with AI feedback",
-              "IELTS speaking practice with AI feedback",
-              "IELTS mock tests for Reading and Listening",
-              "IELTS band score analytics",
-              "Personalized IELTS study planning"
-            ]
+            "about": {
+              "@id": "https://www.ieltsai.pro/#organization"
+            },
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "https://www.ieltsai.pro/og.webp"
+            }
           }
         ]
       }

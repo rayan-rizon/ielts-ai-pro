@@ -36,16 +36,10 @@ export default function About() {
           description:
             'IELTS Ai Pro provides instant AI feedback for Writing, Speaking, Reading, and Listening using official Cambridge rubrics.',
           url: 'https://www.ieltsai.pro/about',
+          // An AboutPage is about the organisation, not a SoftwareApplication -
+          // which would additionally require an aggregateRating we have not collected.
           mainEntity: {
-            '@type': 'SoftwareApplication',
-            name: 'IELTS Ai Pro Platform',
-            applicationCategory: 'EducationalApplication',
-            operatingSystem: 'Web, iOS, Android',
-            offers: {
-              '@type': 'Offer',
-              price: '0.00',
-              priceCurrency: 'USD',
-            },
+            '@id': 'https://www.ieltsai.pro/#organization',
           },
           publisher: {
             '@type': 'Organization',

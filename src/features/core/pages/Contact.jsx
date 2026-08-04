@@ -24,7 +24,7 @@ export default function Contact() {
     <div className="min-h-screen bg-[#fcfdff] dark:bg-[#08080a] text-foreground transition-colors duration-300 overflow-x-hidden">
       <DocumentHead
         title="Contact Support & Help Desk - IELTS Ai Pro"
-        description="Need assistance with your IELTS preparation, Writing/Speaking AI grading, or subscription account? Contact our team at mail@ieltsai.pro or check our student FAQ."
+        description="Get help with IELTS practice, Writing and Speaking AI feedback, or your subscription. Email mail@ieltsai.pro or use the contact form."
         canonicalUrl="https://www.ieltsai.pro/contact"
         keywords="contact IELTS Ai Pro, IELTS support, IELTS customer service, IELTS help desk, mail@ieltsai.pro"
         structuredData={{

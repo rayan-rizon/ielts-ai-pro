@@ -176,15 +176,9 @@ function createStructuredData(config) {
         inLanguage: 'en',
         isPartOf: { '@id': `${SITE_URL}/#website` },
       },
-      {
-        '@type': 'SoftwareApplication',
-        name: config.title,
-        url: canonical,
-        applicationCategory: 'EducationalApplication',
-        operatingSystem: 'Web',
-        description: config.description,
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-      },
+      // No SoftwareApplication node: Google's Software App markup requires an
+      // aggregateRating, and inventing review data to satisfy a validator is not an
+      // option. Reinstate it only alongside genuine collected reviews.
       {
         '@type': 'FAQPage',
         mainEntity: config.faqs.map((item) => ({
