@@ -74,10 +74,14 @@ const indexHtml = readFileSync(path.join(root, 'index.html'), 'utf8');
 const notFoundPath = path.join(root, 'public/404.html');
 if (!existsSync(notFoundPath)) fail('public/404.html is missing');
 const notFoundHtml = readFileSync(notFoundPath, 'utf8');
+// Every route here gets a pre-rendered head from generate-public-seo-pages.mjs.
+// Routes rewritten straight to the bare shell inherit the homepage's canonical,
+// which makes them self-disowning duplicates and turns any sitemap entry for them
+// into an error, so a new public route belongs in the generator and in this map.
 const generatedSeoPages = {
   '/ielts-writing-checker': {
     path: path.join(root, 'dist/ielts-writing-checker/index.html'),
-    title: 'Free IELTS Writing Checker – Task 1 & 2 Feedback | IELTS Ai Pro',
+    title: 'Free IELTS Writing Checker – Task 1 & 2 | IELTS Ai Pro',
   },
   '/ielts-speaking-practice-ai': {
     path: path.join(root, 'dist/ielts-speaking-practice-ai/index.html'),
@@ -87,10 +91,40 @@ const generatedSeoPages = {
     path: path.join(root, 'dist/cambridge-ielts-practice-tests/index.html'),
     title: 'Cambridge IELTS Practice Tests Online | IELTS Ai Pro',
   },
+  '/about': {
+    path: path.join(root, 'dist/about/index.html'),
+    title: 'About IELTS Ai Pro - AI-Powered IELTS Preparation Platform',
+  },
+  '/contact': {
+    path: path.join(root, 'dist/contact/index.html'),
+    title: 'Contact Support & Help Desk - IELTS Ai Pro',
+  },
+  '/ielts-band-score-calculator': {
+    path: path.join(root, 'dist/ielts-band-score-calculator/index.html'),
+    title: 'IELTS Band Score Calculator (Overall + Raw Score) | IELTS Ai Pro',
+  },
+  '/privacy': {
+    path: path.join(root, 'dist/privacy/index.html'),
+    title: 'Privacy Policy & Data Security | IELTS Ai Pro',
+  },
+  '/terms': {
+    path: path.join(root, 'dist/terms/index.html'),
+    title: 'Terms of Service & Usage Policy | IELTS Ai Pro',
+  },
 };
 
 for (const route of Object.keys(generatedSeoPages)) {
   if (!appSource.includes(`path: '${route}'`)) fail(`the public React route ${route} is missing`);
+}
+
+// Every URL the sitemap advertises must be served by a page that names itself as
+// canonical; otherwise the sitemap is nominating pages that point elsewhere.
+for (const [route, config] of Object.entries(generatedSeoPages)) {
+  if (!sitemap.includes(`<loc>${siteUrl}${route}</loc>`)) continue;
+  const rewrite = (vercel.rewrites || []).find((entry) => entry.source === route);
+  if (rewrite?.destination === '/index.html') {
+    fail(`${route} is in the sitemap but rewrites to the shell, inheriting the homepage canonical`);
+  }
 }
 
 for (const route of publicRoutes) {

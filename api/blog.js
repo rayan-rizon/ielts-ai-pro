@@ -765,9 +765,9 @@ function layout({
           <div class="footer-contact-row"><a class="footer-email" href="mailto:mail@ieltsai.pro">✉ mail@ieltsai.pro</a><div class="footer-socials"><a href="https://facebook.com" aria-label="Follow us on Facebook">f</a><a href="https://instagram.com" aria-label="Follow us on Instagram">◎</a><a href="https://x.com" aria-label="Follow us on X (Twitter)">X</a><a href="https://youtube.com" aria-label="Follow us on YouTube">▶</a><a href="https://linkedin.com" aria-label="Follow us on LinkedIn">in</a></div></div>
         </div>
         <nav class="footer-navigation" aria-label="Footer">
-          <details class="footer-group" open><summary><span class="footer-group-icon">▦</span>Core Features</summary><ul><li><a href="/ielts-band-score-calculator">Band Score Calculator</a></li><li><a href="/ielts-writing-checker">Writing Task Evaluator</a></li><li><a href="/speaking">Speaking Test Simulator</a></li><li><a href="/listening">Listening Practice Hub</a></li><li><a href="/reading">Reading Comprehension</a></li></ul></details>
-          <details class="footer-group" open><summary><span class="footer-group-icon">▤</span>Test Prep</summary><ul><li><a href="/writing">Writing Band Score Criteria</a></li><li><a href="/speaking">Speaking Criteria Breakdown</a></li><li><a href="/vocabulary">Vocabulary Builder</a></li><li><a href="/analytics">Mock Test Analytics</a></li></ul></details>
-          <details class="footer-group" open><summary><span class="footer-group-icon">✦</span>Resources</summary><ul><li><a href="/blog">IELTS Prep Blog &amp; Guides</a></li><li><a href="/resources">Cambridge Practice Material</a></li><li><a href="/pricing">Pricing Plans &amp; Access</a></li></ul></details>
+          <details class="footer-group" open><summary><span class="footer-group-icon">▦</span>Core Features</summary><ul><li><a href="/ielts-band-score-calculator">Band Score Calculator</a></li><li><a href="/ielts-writing-checker">Writing Task Evaluator</a></li><li><a href="/ielts-speaking-practice-ai">Speaking Test Simulator</a></li><li><a href="/cambridge-ielts-practice-tests#listening">Listening Practice Hub</a></li><li><a href="/cambridge-ielts-practice-tests#reading">Reading Comprehension</a></li></ul></details>
+          <details class="footer-group" open><summary><span class="footer-group-icon">▤</span>Test Prep</summary><ul><li><a href="/blog?category=Writing">Writing Band Score Criteria</a></li><li><a href="/blog?category=Speaking">Speaking Criteria Breakdown</a></li><li><a href="/blog?category=Reading">Reading Strategies</a></li><li><a href="/blog?category=Listening">Listening Strategies</a></li></ul></details>
+          <details class="footer-group" open><summary><span class="footer-group-icon">✦</span>Resources</summary><ul><li><a href="/blog">IELTS Prep Blog &amp; Guides</a></li><li><a href="/cambridge-ielts-practice-tests">Cambridge Practice Material</a></li><li><a href="/blog?category=Mock%20Tests">Mock Test Guides</a></li><li><a href="/blog?category=Study%20Planning">Study Plans</a></li></ul></details>
           <details class="footer-group" open><summary><span class="footer-group-icon">▣</span>Company</summary><ul><li><a href="/about">About Platform</a></li><li><a href="/contact">Contact Support</a></li><li><a href="/privacy">Privacy Policy</a></li><li><a href="/terms">Terms of Service</a></li></ul></details>
         </nav>
       </div>
@@ -781,7 +781,6 @@ function layout({
 }
 
 function renderIndex(posts, requestQuery = {}) {
-  const description = BLOG_LIBRARY_COPY.metaDescription;
   const category = Array.isArray(requestQuery.category)
     ? requestQuery.category[0]
     : requestQuery.category || 'All';
@@ -817,6 +816,13 @@ function renderIndex(posts, requestQuery = {}) {
   const totalPages = Math.max(1, Math.ceil(remainingPosts.length / 9));
   const currentPage = Math.min(requestedPage, totalPages);
   const featuredArticles = currentPage === 1 ? editorialFeatured : [];
+  const viewHref = (pageNumber) => {
+    const parts = [];
+    if (category !== 'All') parts.push(`category=${encodeURIComponent(category)}`);
+    if (query) parts.push(`q=${encodeURIComponent(query)}`);
+    if (pageNumber > 1) parts.push(`page=${pageNumber}`);
+    return parts.length ? `/blog?${parts.join('&')}` : '/blog';
+  };
   const paginatedPosts = remainingPosts.slice((currentPage - 1) * 9, currentPage * 9);
   const featuredCarousel = featuredArticles.length
     ? `<div class="featured-carousel" role="region" aria-roledescription="carousel" aria-label="Featured IELTS articles" data-featured-carousel>
@@ -861,14 +867,7 @@ function renderIndex(posts, requestQuery = {}) {
       </article>`;
     })
     .join('');
-  const pageHref = (pageNumber) => {
-    const params = new URLSearchParams();
-    if (category !== 'All') params.set('category', category);
-    if (query) params.set('q', query);
-    if (pageNumber > 1) params.set('page', String(pageNumber));
-    const search = params.toString();
-    return search ? `/blog?${search}` : '/blog';
-  };
+  const pageHref = viewHref;
   const pagination =
     totalPages > 1
       ? `<nav class="pagination" aria-label="Article pages">${currentPage > 1 ? `<a href="${pageHref(currentPage - 1)}" aria-label="Previous page">←</a>` : ''}${Array.from(
@@ -899,7 +898,9 @@ function renderIndex(posts, requestQuery = {}) {
     .join('');
   const popularTags = [...new Set(posts.flatMap((post) => post.seo_tags || []))]
     .slice(0, 10)
-    .map((tag) => `<a href="/blog?q=${encodeURIComponent(tag)}">${escapeHtml(tag)}</a>`)
+    .map(
+      (tag) => `<a rel="nofollow" href="/blog?q=${encodeURIComponent(tag)}">${escapeHtml(tag)}</a>`
+    )
     .join('');
   const categories = getBlogCategories(posts)
     .map((value) => {
@@ -914,25 +915,47 @@ function renderIndex(posts, requestQuery = {}) {
   const libraryBody = filteredPosts.length
     ? `<div class="content-grid"><div>${featuredCarousel}<h2 class="section-title latest-title">${escapeHtml(BLOG_LIBRARY_COPY.latestTitle)}</h2><div class="cards" aria-label="IELTS articles">${cards}</div>${pagination}</div><aside class="sidebar"><div class="side-card"><h2><span class="side-card-title-icon">${iconSvg('sparkles')}</span>Trending now</h2>${trending}</div>${popularTags ? `<div class="side-card"><h2><span class="side-card-title-icon">${iconSvg('sparkles')}</span>Popular topics</h2><div class="topic-list">${popularTags}</div></div>` : ''}${practiceCard()}</aside></div>`
     : `<div class="library-empty"><h2>No article matches that search</h2><p><a href="/blog">Show every article</a></p></div>`;
+  /*
+   * Every filtered view used to send the same title, description and a canonical
+   * pointing at /blog, so a Semrush crawl saw 24 URLs sharing one title and one
+   * description. Category and pagination views are legitimate listings and now
+   * describe themselves; internal search results are noindexed instead, which is
+   * what they should always have been.
+   */
+  const canonical = `${SITE_URL}${viewHref(currentPage)}`;
+  const pageSuffix = currentPage > 1 ? ` - Page ${currentPage}` : '';
+  const viewTitle = query
+    ? `Search: ${query} - IELTS Blog`
+    : category !== 'All'
+      ? `IELTS ${category} Guides & Strategies`
+      : BLOG_LIBRARY_COPY.metaTitle;
+  const viewDescription = query
+    ? `IELTS Ai Pro articles matching “${query}”. Browse the full library for strategies, study plans, and exam updates.`
+    : category !== 'All'
+      ? `Practical IELTS ${category} guides from IELTS Ai Pro: strategies, common mistakes, and focused practice you can use in your next session.`
+      : BLOG_LIBRARY_COPY.metaDescription;
+  const description = currentPage > 1 ? `${viewDescription} Page ${currentPage}.` : viewDescription;
+  const listedPosts = [...featuredArticles, ...paginatedPosts];
   return layout({
-    title: BLOG_LIBRARY_COPY.metaTitle,
+    title: `${viewTitle}${pageSuffix}`,
     description,
-    canonical: `${SITE_URL}/blog`,
+    canonical,
+    ...(query ? { robots: 'noindex, follow' } : {}),
     structuredData: [
       {
         '@context': 'https://schema.org',
         '@type': 'CollectionPage',
-        '@id': `${SITE_URL}/blog#collection`,
-        name: 'IELTS Preparation Blog',
-        url: `${SITE_URL}/blog`,
+        '@id': `${canonical}#collection`,
+        name: `${viewTitle}${pageSuffix}`,
+        url: canonical,
         description,
         inLanguage: 'en',
         isPartOf: { '@id': `${SITE_URL}/#website` },
         publisher: { '@id': `${SITE_URL}/#organization` },
         mainEntity: {
           '@type': 'ItemList',
-          numberOfItems: posts.length,
-          itemListElement: posts.map((post, index) => ({
+          numberOfItems: listedPosts.length,
+          itemListElement: listedPosts.map((post, index) => ({
             '@type': 'ListItem',
             position: index + 1,
             name: post.title,

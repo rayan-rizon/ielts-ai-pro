@@ -34,7 +34,9 @@ const footerLinks = {
     links: [
       { label: 'Writing Band Score Criteria', href: '/ielts-writing-checker' },
       { label: 'Speaking Criteria Breakdown', href: '/ielts-speaking-practice-ai' },
-      { label: 'Vocabulary Builder', href: '/vocabulary' },
+      // /vocabulary is a ProtectedRoute and is Disallow'd in robots.txt, so linking
+      // it from the public footer spent an internal link on a page crawlers cannot read.
+      { label: 'Reading Strategies', href: '/blog?category=Reading' },
       { label: 'Mock Test Analytics', href: '/cambridge-ielts-practice-tests' },
     ],
   },

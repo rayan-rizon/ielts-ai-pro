@@ -137,6 +137,52 @@ describe('server-rendered IELTS blog', () => {
     expect(articleResponse.body.split('class="toc-title"').length - 1).toBe(2);
   });
 
+  it('gives every filtered library view its own metadata and canonical', async () => {
+    const categories = ['Reading', 'Writing', 'Listening'];
+    const posts = Array.from({ length: 30 }, (_, index) => ({
+      ...article,
+      id: `post-${index + 1}`,
+      slug: `guide-${index + 1}`,
+      title: `IELTS Guide ${index + 1}`,
+      category: categories[index % categories.length],
+      featured: index < 2,
+    }));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => posts }));
+
+    const views = [
+      {},
+      { page: '2' },
+      { category: 'Writing' },
+      { category: 'Writing', page: '2' },
+      { q: 'IELTS Reading' },
+    ];
+    const rendered = [];
+    for (const query of views) {
+      const response = createResponse();
+      await blogHandler({ query }, response);
+      rendered.push(response.body);
+    }
+
+    const read = (html, pattern) => html.match(pattern)?.[1] ?? '';
+    const titles = rendered.map((html) => read(html, /<title>(.*?)<\/title>/s));
+    const canonicals = rendered.map((html) => read(html, /rel="canonical" href="(.*?)"/s));
+    const descriptions = rendered.map((html) => read(html, /name="description" content="(.*?)"/s));
+
+    expect(new Set(titles).size).toBe(views.length);
+    expect(new Set(canonicals).size).toBe(views.length);
+    expect(new Set(descriptions).size).toBe(views.length);
+    // Pagination and category views are real listings: each has to name itself.
+    expect(canonicals[1]).toBe('https://www.ieltsai.pro/blog?page=2');
+    expect(canonicals[2]).toBe('https://www.ieltsai.pro/blog?category=Writing');
+    // Internal search results are not listings worth indexing.
+    expect(rendered[4]).toContain('<meta name="robots" content="noindex, follow">');
+    expect(rendered[0]).toContain('rel="nofollow" href="/blog?q=');
+    // Blocked routes must not receive internal links from a crawlable page.
+    for (const blocked of ['/analytics', '/pricing', '/resources', '/vocabulary']) {
+      expect(rendered[0]).not.toContain(`href="${blocked}"`);
+    }
+  });
+
   it('filters the server-rendered library with production query parameters', async () => {
     const writingArticle = {
       ...article,

@@ -1032,7 +1032,7 @@ const ResourceManagement = () => {
                 className={cn(
                   'relative h-7 px-2.5 rounded-lg font-extrabold text-[11px] flex items-center gap-1.5 whitespace-nowrap border overflow-hidden',
                   isActive
-                    ? 'text-white border-stone-800 dark:border-stone-200 shadow-2xs'
+                    ? 'text-white dark:text-stone-900 border-stone-800 dark:border-stone-200 shadow-2xs'
                     : 'bg-white dark:bg-[#131315] text-stone-500 dark:text-stone-400 border-stone-200/80 dark:border-white/[0.07] hover:border-stone-300 dark:hover:border-white/20'
                 )}
                 data-oid="2092.e1"

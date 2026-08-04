@@ -233,15 +233,15 @@
     },
     {
       "source": "/about",
-      "destination": "/index.html"
+      "destination": "/about/index.html"
     },
     {
       "source": "/contact",
-      "destination": "/index.html"
+      "destination": "/contact/index.html"
     },
     {
       "source": "/ielts-band-score-calculator",
-      "destination": "/index.html"
+      "destination": "/ielts-band-score-calculator/index.html"
     },
     {
       "source": "/login",
@@ -405,11 +405,11 @@
     },
     {
       "source": "/terms",
-      "destination": "/index.html"
+      "destination": "/terms/index.html"
     },
     {
       "source": "/privacy",
-      "destination": "/index.html"
+      "destination": "/privacy/index.html"
     }
   ]
 }

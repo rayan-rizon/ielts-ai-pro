@@ -1,5 +1,5 @@
 # IELTS Ai Pro - robots.txt
-# Last updated: 2026-08-03
+# Last updated: 2026-08-04
 
 # This policy applies to search and AI discovery crawlers, including:
 # Googlebot, Bingbot, OAI-SearchBot, GPTBot, ChatGPT-User,
@@ -28,6 +28,8 @@ Disallow: /forgot-password
 Disallow: /update-password
 
 # Protected app pages
+# These are ProtectedRoute screens: they answer 200 with the SPA shell, so a crawler
+# that reaches them indexes a login wall carrying the homepage's metadata.
 Disallow: /pricing
 Disallow: /resources
 Disallow: /cambridge-tests
@@ -35,6 +37,12 @@ Disallow: /reading
 Disallow: /listening
 Disallow: /writing
 Disallow: /speaking
+Disallow: /vocabulary
+Disallow: /grammar
+Disallow: /study-groups
+Disallow: /upgrade
+Disallow: /subscription/
+Disallow: /learning-path-preview
 
 # API and function routes
 Disallow: /api/
