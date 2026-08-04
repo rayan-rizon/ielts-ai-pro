@@ -118,10 +118,11 @@ export default function Layout({ children, currentPageName }) {
   const isTestPage = testPages.includes(currentPageName);
   const isAdminLogin = currentPageName === 'AdminLogin';
 
-  // The site banner is learner/marketing copy, not an operational notice for
-  // whoever is running the platform — it never belongs in the admin console.
-  // This used to be missing entirely, so any live banner showed there too.
+  const isDashboardPage = currentPageName === 'Dashboard' || location.pathname === '/dashboard';
+
+  // The site banner is learner/marketing copy, shown exclusively on the main dashboard.
   const showAnnouncement =
+    isDashboardPage &&
     !isAdminView &&
     isAnnouncementLive(announcement, {
       isAuthenticated: Boolean(user),
@@ -203,7 +204,7 @@ export default function Layout({ children, currentPageName }) {
         <OfflineBanner data-oid="-4d:8tg" />
 
         {showAnnouncement && (
-          <div className="w-full shrink-0 relative z-[150]" data-oid="hm7p_sl">
+          <div className="w-full shrink-0 relative z-10" data-oid="hm7p_sl">
             <AnnouncementBanner announcement={announcement} data-oid="z:9x0:g" />
           </div>
         )}
