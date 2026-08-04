@@ -91,6 +91,52 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('html.dark .card:hover h2');
   });
 
+  it('keeps headings unique and link anchors descriptive for crawlers', async () => {
+    const posts = Array.from({ length: 5 }, (_, index) => ({
+      ...article,
+      id: `post-${index + 1}`,
+      slug: `guide-${index + 1}`,
+      title: `IELTS Reading Guide ${index + 1}`,
+      featured: index < 2,
+    }));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => posts }));
+
+    const indexResponse = createResponse();
+    await blogHandler({ query: {} }, indexResponse);
+    const articleResponse = createResponse();
+    await blogHandler({ query: { slug: 'guide-1' } }, articleResponse);
+
+    const headings = (html) =>
+      [...html.matchAll(/<h([1-3])[^>]*>([\s\S]*?)<\/h\1>/g)].map(
+        (match) => `${match[1]}:${match[2].replace(/<[^>]*>/g, '').trim()}`
+      );
+    const anchorTexts = (html) =>
+      [...html.matchAll(/<a\b[^>]*href="\/blog\/[^"]*"[^>]*>([\s\S]*?)<\/a>/g)].map((match) =>
+        match[1]
+          .replace(/<[^>]*>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+      );
+
+    for (const html of [indexResponse.body, articleResponse.body]) {
+      const found = headings(html);
+      expect(found).toHaveLength(new Set(found).size);
+      for (const text of anchorTexts(html)) {
+        expect(text.length).toBeGreaterThan(0);
+        expect(text.length).toBeLessThanOrEqual(120);
+      }
+    }
+
+    // A promoted article belongs to the carousel only - repeating it in the grid
+    // duplicated its heading and its description on the same page.
+    expect(indexResponse.body).toContain('data-featured-slide');
+    expect(indexResponse.body).not.toContain('<a class="card-title-link" href="/blog/guide-2">');
+    expect(indexResponse.body).toContain('<a class="card-title-link" href="/blog/guide-3">');
+    // Both copies of the table of contents share a label, so it must not be a heading.
+    expect(articleResponse.body).not.toContain('<h2>On this page</h2>');
+    expect(articleResponse.body.split('class="toc-title"').length - 1).toBe(2);
+  });
+
   it('filters the server-rendered library with production query parameters', async () => {
     const writingArticle = {
       ...article,
@@ -113,7 +159,7 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('/blog/ielts-writing-guide');
     expect(response.body).toContain('class="card-visual-icon"');
     expect(response.body).not.toContain(
-      '<a class="card" href="/blog/ielts-reading-paraphrase-traps">'
+      '<a class="card-title-link" href="/blog/ielts-reading-paraphrase-traps">'
     );
     expect(response.body).toContain(
       'class="active" aria-current="page" href="/blog?category=Writing"'

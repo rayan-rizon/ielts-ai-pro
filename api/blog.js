@@ -163,10 +163,16 @@ function practiceCard(actionPath = '/signup', actionLabel = 'Start Free Test') {
   </div>`;
 }
 
+/*
+ * The table of contents renders twice per article (a mobile copy above the body and
+ * a sticky sidebar copy), so its label must not be a heading: two identical <h2>On
+ * this page</h2> elements made every article report a duplicate heading. The nav's
+ * aria-label already names the region, so a styled <p> carries the same meaning.
+ */
 function tableOfContents(toc, { mobile = false } = {}) {
   if (!toc) return '';
   return `<div class="toc-card${mobile ? ' mobile-toc' : ''}" data-toc-card>
-    <div class="toc-heading"><span class="toc-icon">${iconSvg('file-text')}</span><h2>On this page</h2><span class="toc-count">${(toc.match(/href=/g) || []).length}</span><button class="toc-toggle" type="button" aria-expanded="true" aria-label="Collapse table of contents">${iconSvg('chevron-down')}</button></div>
+    <div class="toc-heading"><span class="toc-icon">${iconSvg('file-text')}</span><p class="toc-title">On this page</p><span class="toc-count">${(toc.match(/href=/g) || []).length}</span><button class="toc-toggle" type="button" aria-expanded="true" aria-label="Collapse table of contents">${iconSvg('chevron-down')}</button></div>
     <nav class="toc-links" aria-label="Article sections">${toc}</nav>
   </div>`;
 }
@@ -422,7 +428,7 @@ const CSS = `
   .featured-editorial{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:auto;padding-top:18px;border-top:1px solid #f1f5f9;color:#64748b;font-size:12px;font-weight:600}
 
   .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
-  .card{display:flex;min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:17px;background:#fff;text-decoration:none;transition:.25s;flex-direction:column}
+  .card{position:relative;display:flex;min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:17px;background:#fff;text-decoration:none;transition:.25s;flex-direction:column}
   .card:hover{transform:translateY(-4px);border-color:#a5b4fc;box-shadow:0 20px 48px -34px rgba(79,70,229,.48)}
   .card-visual{height:160px;overflow:hidden;background:var(--soft);position:relative}
   .card-visual img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
@@ -432,6 +438,10 @@ const CSS = `
   
   .card-copy{display:flex;flex:1;flex-direction:column;padding:18px}
   .card h2{font-size:16.5px;line-height:1.35;margin:10px 0 6px;font-weight:700;color:#0f172a;transition:color .2s ease}
+  .card h2 a{color:inherit;text-decoration:none}
+  .card h2 a:after{position:absolute;z-index:1;content:"";inset:0}
+  .featured{position:relative}
+  .featured-copy h2 a:after{position:absolute;z-index:1;content:"";inset:0}
   .card:hover h2{color:#4f46e5}
   .card p{display:-webkit-box;overflow:hidden;margin:0;color:#64748b;font-size:12.5px;line-height:1.6;-webkit-line-clamp:3;-webkit-box-orient:vertical}
   
@@ -506,7 +516,7 @@ const CSS = `
   .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:38px;padding-top:20px;border-top:1px solid var(--line)}
   .tag{border-radius:999px;background:#eef2ff;color:var(--indigo);padding:5px 10px;font-size:11px;font-weight:650}
   .toc-card{border:1px solid var(--line);border-radius:17px;background:#fff;padding:18px}
-  .toc-card h2{margin:0 0 12px;font-size:15px;font-weight:800}
+  .toc-card .toc-title{margin:0 0 12px;font-size:15px;font-weight:800;letter-spacing:-.045em;line-height:1.25}
   .toc-card a{display:block;padding:7px 8px;border-radius:7px;text-decoration:none;color:#5c6981;font-size:11px;font-weight:600}
   .toc-card a:hover{background:#eef2ff;color:var(--indigo)}
   .cta{margin-top:30px;border:1px solid #dfe3ff;border-radius:15px;padding:24px;background:linear-gradient(120deg,#eef2ff,#f6f0ff);display:flex;align-items:center;justify-content:space-between;gap:20px}
@@ -526,6 +536,31 @@ const CSS = `
   @media(max-width:760px){.site-nav{height:64px}.login{display:none}.hero-grid,.article-hero-grid,.content-grid,.article-layout,.featured{grid-template-columns:1fr}.index-hero,.article-hero{padding:32px 0}.hero-photo,.article-photo{margin-top:5px}.note{display:none}.category-rail{padding:14px 0}.category-rail .shell{justify-content:flex-start}.library-heading{align-items:stretch;flex-direction:column}.library-search{max-width:none}.sidebar{position:static}.cards{grid-template-columns:1fr}.featured{gap:16px;padding:14px}.featured-image{min-height:220px}.featured-copy{padding:8px}.article-card{padding:24px 18px}.article-layout{padding-top:20px}.hand{font-size:25px}h1{font-size:32px}.index-hero h1,.article-hero h1{font-size:32px}.cta{align-items:flex-start;flex-direction:column}}
 `;
 
+/*
+ * Google truncates the SERP title by rendered width, not character count, so the
+ * old 65-character guard still let branded titles overflow (a Seobility crawl
+ * measured several at 584-610px against a 580px limit). These widths approximate
+ * Arial 20px - the desktop SERP font - closely enough to decide whether the
+ * " | IELTS Ai Pro" suffix still fits.
+ */
+// 580px is the real limit; the estimate below runs 5-15px light against measured
+// widths, so the budget absorbs that bias rather than shipping titles at the edge.
+const SERP_TITLE_MAX_PIXELS = 560;
+const NARROW_TITLE_CHARS = new Set([...` .,:;!|'"()[]{}ijltfrI-`]);
+const WIDE_TITLE_CHARS = new Set([...'mwMW@%']);
+
+function estimateTitleWidth(value) {
+  let width = 0;
+  for (const character of value) {
+    if (NARROW_TITLE_CHARS.has(character)) width += 6;
+    else if (WIDE_TITLE_CHARS.has(character)) width += 16.5;
+    else if (character >= 'A' && character <= 'Z') width += 13;
+    else if (character >= '0' && character <= '9') width += 11;
+    else width += 10.2;
+  }
+  return width;
+}
+
 function layout({
   title,
   description,
@@ -538,7 +573,9 @@ function layout({
 }) {
   const brandedTitle = `${title} | IELTS Ai Pro`;
   const fullTitle =
-    title.includes('IELTS Ai Pro') || brandedTitle.length > 65 ? title : brandedTitle;
+    title.includes('IELTS Ai Pro') || estimateTitleWidth(brandedTitle) > SERP_TITLE_MAX_PIXELS
+      ? title
+      : brandedTitle;
   return `<!doctype html>
 <html lang="en"><head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -647,7 +684,7 @@ function layout({
     .side-card{box-shadow:0 15px 40px -32px rgba(15,23,42,.3)}.side-card h2{display:flex;align-items:center;gap:8px}.side-card-title-icon{display:inline-flex;width:32px;height:32px;align-items:center;justify-content:center;border-radius:9px;background:#eef2ff;color:#4f46e5}.trend{margin:1px 0;border:0;border-radius:12px;padding:8px;transition:background .2s ease}.trend:hover{background:#f8fafc}.trend:hover b{background:#e0e7ff}.trend:hover span{color:#4338ca}.topic-list a{padding:6px 10px;transition:background .2s ease,transform .2s ease,box-shadow .2s ease}.topic-list a:hover{transform:translateY(-1px);background:#e0e7ff;box-shadow:0 6px 13px -10px rgba(67,56,202,.5)}
     .practice-card{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 105px;align-items:end;min-height:220px;border-radius:24px;padding:24px;box-shadow:0 10px 25px -5px rgba(99,102,241,.2);transition:transform .3s ease,box-shadow .3s ease}.practice-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -15px rgba(99,102,241,.4)}.practice-content{position:relative;z-index:2}.practice-card h2{margin:0;font-size:20px;line-height:1.2;letter-spacing:-.035em}.practice-card p{max-width:170px;margin:8px 0 0;font-size:12px;line-height:1.55}.practice-button{display:inline-flex;align-items:center;gap:5px;margin-top:20px;border-radius:12px;background:#fff;color:#3b2e9b;padding:10px 14px;text-decoration:none;font-size:12px;font-weight:800;box-shadow:0 4px 12px rgba(15,23,42,.12);transition:transform .3s ease,box-shadow .3s ease,background .3s ease}.practice-button .icon{width:14px;height:14px;transition:transform .3s ease}.practice-button:hover{transform:scale(1.05);background:#f8fafc;box-shadow:0 10px 22px -12px rgba(15,23,42,.5)}.practice-button:hover .icon{transform:translateX(4px)}.practice-button:active{transform:scale(.95)}.practice-sparkle{position:absolute;z-index:1;color:#a2e9ff;text-shadow:0 0 8px rgba(162,233,255,.6);animation:practice-float 4s ease-in-out infinite}.practice-sparkle-large{right:48px;top:21px;font-size:22px}.practice-sparkle-small{right:22px;top:46px;font-size:11px;animation-delay:.5s;animation-duration:3s}.practice-mockup{position:relative;right:-12px;bottom:-20px;display:flex;width:105px;height:135px;flex-direction:column;align-items:flex-start;border:1px solid rgba(255,255,255,.55);border-radius:18px;background:#fff;color:#1e293b;padding:12px;box-shadow:0 15px 30px rgba(0,0,0,.18);transform:rotate(8deg);transition:transform .3s ease}.practice-card:hover .practice-mockup{transform:translate(-2px,-2px) rotate(6deg)}.practice-mockup-line{width:28px;height:6px;border-radius:99px;background:#f1f5f9}.practice-mockup strong{margin:auto 0 0;font-size:25px;line-height:1;font-weight:900}.practice-mockup small{font-size:7px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8}.practice-bars{display:flex;align-items:flex-end;gap:2px;width:100%;height:30px;margin-top:auto}.practice-bars i{width:5px;border-radius:99px;background:#e0e2ff}.practice-bars i:nth-child(1){height:40%}.practice-bars i:nth-child(2){height:60%}.practice-bars i:nth-child(3){height:50%}.practice-bars i:nth-child(4){height:85%;background:#c9ccff}.practice-bars i:nth-child(5){height:70%}.practice-bars i:nth-child(6){height:95%;background:#c9ccff}@keyframes practice-float{50%{transform:translateY(-4px) rotate(5deg) scale(1.05)}}
     .article-meta{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:28px;color:#64748b;font-size:14px}.article-meta-item{display:inline-flex;align-items:center;gap:8px}.article-meta-item .icon{width:16px;height:16px}.article-author{color:#334155;font-weight:700}.article-author-icon{display:inline-flex;width:36px;height:36px;align-items:center;justify-content:center;border-radius:50%;background:#eef2ff;color:#4f46e5}.article-meta-divider{display:block;width:1px;height:20px;background:#e2e8f0}
-    .toc-card{padding:20px;box-shadow:0 15px 40px -32px rgba(15,23,42,.3)}.toc-heading{display:flex;align-items:center;gap:8px}.toc-heading h2{margin:0}.toc-icon{display:inline-flex;width:32px;height:32px;align-items:center;justify-content:center;border-radius:9px;background:#eef2ff;color:#4f46e5}.toc-icon .icon{width:16px;height:16px}.toc-count{display:none;border-radius:999px;background:#eef2ff;color:#4338ca;padding:2px 7px;font-size:11px;font-weight:800}.toc-toggle{display:none;margin-left:auto;width:32px;height:32px;border:0;border-radius:9px;background:transparent;color:#64748b;cursor:pointer}.toc-toggle:hover{background:#f1f5f9}.toc-toggle .icon{width:16px;height:16px;transition:transform .2s ease}.toc-card[data-toc-open="false"] .toc-toggle .icon{transform:rotate(180deg)}.toc-links{display:grid;gap:2px;margin-top:14px;max-height:55vh;overflow:auto}.toc-card a{position:relative;border-radius:12px;padding:8px 10px;color:#475569;transition:background .2s ease,color .2s ease}.toc-card a:hover,.toc-card a.is-active{background:#eef2ff;color:#4338ca}.toc-card a.is-active:before{position:absolute;left:5px;top:50%;width:3px;height:16px;border-radius:999px;background:#4f46e5;content:"";transform:translateY(-50%)}
+    .toc-card{padding:20px;box-shadow:0 15px 40px -32px rgba(15,23,42,.3)}.toc-heading{display:flex;align-items:center;gap:8px}.toc-heading .toc-title{margin:0}.toc-icon{display:inline-flex;width:32px;height:32px;align-items:center;justify-content:center;border-radius:9px;background:#eef2ff;color:#4f46e5}.toc-icon .icon{width:16px;height:16px}.toc-count{display:none;border-radius:999px;background:#eef2ff;color:#4338ca;padding:2px 7px;font-size:11px;font-weight:800}.toc-toggle{display:none;margin-left:auto;width:32px;height:32px;border:0;border-radius:9px;background:transparent;color:#64748b;cursor:pointer}.toc-toggle:hover{background:#f1f5f9}.toc-toggle .icon{width:16px;height:16px;transition:transform .2s ease}.toc-card[data-toc-open="false"] .toc-toggle .icon{transform:rotate(180deg)}.toc-links{display:grid;gap:2px;margin-top:14px;max-height:55vh;overflow:auto}.toc-card a{position:relative;border-radius:12px;padding:8px 10px;color:#475569;transition:background .2s ease,color .2s ease}.toc-card a:hover,.toc-card a.is-active{background:#eef2ff;color:#4338ca}.toc-card a.is-active:before{position:absolute;left:5px;top:50%;width:3px;height:16px;border-radius:999px;background:#4f46e5;content:"";transform:translateY(-50%)}
     html.dark{color-scheme:dark;--page:#080b12;--surface:#0f172a;--ink:#f8fafc;--muted:#b6c0d0;--line:rgba(255,255,255,.1);--soft:rgba(99,102,241,.12)}html.dark body,html.dark .index-hero,html.dark .category-rail,html.dark .article-hero{background:#0b0f18;color:#f8fafc}html.dark .site-nav{border-color:rgba(255,255,255,.08);background:rgba(9,13,23,.78)}html.dark header.is-scrolled .site-nav{background:rgba(9,13,23,.94);border-color:rgba(255,255,255,.12)}html.dark .nav-center{border-color:rgba(255,255,255,.08);background:rgba(255,255,255,.05)}html.dark .nav-center>a{color:#cbd5e1}html.dark .nav-center>a:hover{background:rgba(99,102,241,.16);color:#c7d2fe}html.dark .theme-toggle{border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.1);color:#fbbf24}html.dark .theme-toggle .theme-moon{display:none}html.dark .theme-toggle .theme-sun{display:block}html.dark .featured,html.dark .card,html.dark .side-card,html.dark .toc-card,html.dark .article-card{background:#0f172a;border-color:rgba(255,255,255,.1)}html.dark .featured-copy h2,html.dark .featured-copy h2 a,html.dark .card h2,html.dark .article h1,html.dark .article h2,html.dark .article h3,html.dark .index-hero h1,html.dark .article-hero h1{color:#fff!important}html.dark .featured-copy h2 a:hover,html.dark .featured:hover .featured-copy h2 a{color:#a5b4fc!important}html.dark .featured-copy h2 a:hover{color:#a5b4fc}html.dark .hand{color:#a5b4fc!important}html.dark .intro{color:#94a3b8!important}html.dark .article p{color:#cbd5e1}html.dark .featured-editorial{border-color:rgba(255,255,255,.08)}html.dark .trend{color:#f8fafc}html.dark .trend span{color:#f8fafc}html.dark .trend:hover{background:rgba(255,255,255,.06)}html.dark .trend:hover span{color:#a5b4fc!important}html.dark .topic-list a,html.dark .toc-card a.is-active,html.dark .toc-card a:hover{background:rgba(99,102,241,.14);border-color:rgba(129,140,248,.25);color:#c7d2fe}html.dark .article-meta{color:#aab7cc}html.dark .article-author{color:#e2e8f0}html.dark .article-author-icon,html.dark .toc-icon{background:rgba(99,102,241,.14);color:#c7d2fe}.dark-surface{background:#0f172a}
     html.dark .card-read-link{color:#a5b4fc!important}html.dark .card:hover .card-read-link{color:#c7d2fe!important}html.dark .card:hover h2{color:#818cf8!important}html.dark .category-rail{border-color:rgba(255,255,255,.05)}html.dark .category-tabs{border-color:rgba(255,255,255,.05);background:rgba(15,23,42,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}html.dark .category-tabs a{color:#94a3b8}html.dark .category-tabs a:hover{background:rgba(30,41,59,.62);color:#f1f5f9}html.dark .category-tabs a.active{border-color:rgba(255,255,255,.05);background:#1e293b;color:#c7d2fe;box-shadow:0 3px 10px rgba(0,0,0,.24)}html.dark .library-search{border-color:rgba(255,255,255,.1);background:rgba(15,23,42,.9);box-shadow:0 4px 20px -4px rgba(0,0,0,.4)}html.dark .library-search:hover{border-color:rgba(129,140,248,.3)}html.dark .library-search:focus-within{border-color:#818cf8;box-shadow:0 0 0 4px rgba(129,140,248,.2)}html.dark .library-search:focus-within span{color:#a5b4fc}html.dark .library-search input{color:#f8fafc}html.dark .library-search input::placeholder{color:#94a3b8}html.dark .index-content{background:#080b12}html.dark .library-kicker{color:#a5b4fc}html.dark .hero-photo,html.dark .article-photo{border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.04);box-shadow:0 30px 70px -42px rgba(99,102,241,.32)}html.dark .article-photo-note{background:rgba(99,102,241,.2);color:#ddd6fe}html.dark .article-category{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.15);color:#6ee7b7}html.dark .note.one{background:rgba(109,40,217,.24);color:#ddd6fe}html.dark .note.two{background:rgba(6,95,70,.24);color:#a7f3d0}html.dark .featured{box-shadow:0 16px 48px -30px rgba(0,0,0,.45)}html.dark .featured-copy p,html.dark .card p{color:#cbd5e1}html.dark .featured-topline .meta,html.dark .card .meta{color:#94a3b8}html.dark .featured-editorial,html.dark .card .meta{border-color:rgba(255,255,255,.06)}html.dark .card:hover{border-color:rgba(99,102,241,.3);box-shadow:0 20px 48px -32px rgba(0,0,0,.58)}html.dark .carousel-arrow{border-color:rgba(255,255,255,.1);background:#020617;color:#e2e8f0;box-shadow:0 8px 20px -10px rgba(0,0,0,.65)}html.dark .carousel-arrow:hover{background:#0f172a}.dark .carousel-dot{background:#334155}.dark .carousel-dot.active{background:#818cf8}html.dark .side-card-title-icon,html.dark .trend b{background:rgba(99,102,241,.12);color:#c7d2fe}html.dark .trend:hover b{background:rgba(99,102,241,.2)}html.dark .trend small{color:#94a3b8!important}html.dark .topic-list a{background:rgba(99,102,241,.1);border-color:rgba(129,140,248,.2);color:#c7d2fe}html.dark .topic-list a:hover{background:rgba(99,102,241,.2);box-shadow:0 6px 13px -10px rgba(129,140,248,.6)}html.dark .pagination a,html.dark .pagination span{border-color:rgba(255,255,255,.1);background:#0f172a;color:#cbd5e1}html.dark .pagination a:hover,html.dark .pagination .active{border-color:rgba(129,140,248,.45);background:rgba(99,102,241,.16);color:#c7d2fe}html.dark .library-empty{border-color:rgba(255,255,255,.15);background:#0f172a}.dark .category-chip[data-tone="writing"]{border-color:rgba(244,63,94,.3);background:rgba(244,63,94,.15);color:#fda4af}.dark .category-chip[data-tone="speaking"]{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.15);color:#fcd34d}.dark .category-chip[data-tone="reading"]{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.15);color:#6ee7b7}.dark .category-chip[data-tone="listening"]{border-color:rgba(14,165,233,.3);background:rgba(14,165,233,.15);color:#7dd3fc}.dark .category-chip[data-tone="planning"]{border-color:rgba(139,92,246,.3);background:rgba(139,92,246,.15);color:#c4b5fd}.dark .category-chip[data-tone="updates"]{border-color:rgba(99,102,241,.3);background:rgba(99,102,241,.15);color:#c7d2fe}.dark .category-chip[data-tone="mock"]{border-color:rgba(217,70,239,.3);background:rgba(217,70,239,.15);color:#f0abfc}html.dark .article table{border-color:rgba(255,255,255,.1)}html.dark .article th{background:rgba(99,102,241,.14);color:#c7d2fe}html.dark .article th,html.dark .article td{border-color:rgba(255,255,255,.08)}html.dark .article aside,html.dark .editorial-card,html.dark .cta{border-color:rgba(129,140,248,.24);background:linear-gradient(90deg,rgba(79,70,229,.14),rgba(139,92,246,.1))}html.dark .article aside p,html.dark .editorial-copy p{color:#dbeafe}html.dark .editorial-icon{background:#0f172a;color:#c7d2fe;box-shadow:0 4px 14px -10px #000}html.dark .tag{background:rgba(99,102,241,.14);color:#c7d2fe}html.dark .article blockquote{background:linear-gradient(90deg,rgba(79,70,229,.14),rgba(139,92,246,.1));color:#c7d2fe}
     @media(max-width:760px){header .site-nav{height:64px;padding:0 20px}header.is-scrolled{padding:8px 12px}header.is-scrolled .site-nav{height:52px;padding:0 14px}.nav-actions>.button{display:none}main{padding-top:64px}.index-hero{padding:48px 0}.index-hero h1{font-size:36px}.index-hero .shell,.category-rail .shell,.index-content .shell,.article-hero .shell,.article-layout{padding-left:20px;padding-right:20px}.article-hero{padding:34px 0 44px}.article-hero h1{font-size:36px}.article-hero-grid,.article-layout{grid-template-columns:1fr}.article-photo-note{display:none}.article-layout{padding-top:24px}.mobile-toc{display:block;margin-bottom:24px}.sidebar .toc-card{display:none}.article-card{padding:28px 20px}.featured{grid-template-columns:1fr;padding:16px}.featured-image{min-height:0;aspect-ratio:16/10}.featured-copy{padding:8px 0}.featured-topline{flex-wrap:nowrap}.featured-copy h2{margin:16px 0 0;font-size:20px}.featured-copy p{display:-webkit-box;overflow:hidden;margin:16px 0 0;font-size:14px;line-height:1.625;-webkit-box-orient:vertical;-webkit-line-clamp:3}.carousel-arrow{width:40px;height:40px}.carousel-prev{left:-12px}.carousel-next{right:-12px}.editorial-card{align-items:flex-start;flex-direction:column}.editorial-copy{width:100%}.practice-card{grid-template-columns:minmax(0,1fr) 92px;padding:22px}.practice-mockup{width:92px;height:122px}.site-footer{padding:48px 0 32px}.footer-shell{padding:0 20px}.footer-main{gap:32px;padding-bottom:34px}.footer-navigation{grid-template-columns:1fr;gap:10px}.footer-group{border:1px solid rgba(255,255,255,.06);border-radius:12px;background:rgba(255,255,255,.02);padding:14px}.footer-group summary{cursor:pointer}.footer-group:not([open]) ul{display:none}.footer-bottom{align-items:stretch;flex-direction:column;text-align:center}.footer-legal,.footer-trust{justify-content:center}.footer-trust{flex-direction:column}.footer-contact-row{align-items:stretch;flex-direction:column}.footer-socials{justify-content:center}.footer-email{justify-content:center}.toc-count,.toc-toggle{display:inline-flex;align-items:center;justify-content:center}.toc-card[data-toc-open="false"] .toc-links{display:none}}
@@ -761,18 +798,25 @@ function renderIndex(posts, requestQuery = {}) {
     return matchesCategory && (!normalizedQuery || searchable.includes(normalizedQuery));
   });
   const isEditorialView = category === 'All' && !query;
-  const primaryFeatured = isEditorialView ? posts.find((post) => post.featured) || posts[0] : null;
-  const remainingPosts = primaryFeatured
-    ? filteredPosts.filter((post) => post.id !== primaryFeatured.id)
+  /*
+   * Only the first carousel slide used to be removed from the card grid, so the
+   * remaining featured articles rendered their title and description twice on
+   * /blog - reported as duplicate headings and duplicate paragraphs. Every article
+   * promoted into the carousel is now excluded from the grid on all pages, which
+   * also keeps pagination stable as the reader moves past page one.
+   */
+  const editorialFeatured = isEditorialView
+    ? posts.filter((post) => post.featured).length >= 2
+      ? posts.filter((post) => post.featured)
+      : posts.slice(0, 3)
+    : [];
+  const featuredIds = new Set(editorialFeatured.map((post) => post.id));
+  const remainingPosts = featuredIds.size
+    ? filteredPosts.filter((post) => !featuredIds.has(post.id))
     : filteredPosts;
   const totalPages = Math.max(1, Math.ceil(remainingPosts.length / 9));
   const currentPage = Math.min(requestedPage, totalPages);
-  const featuredArticles =
-    isEditorialView && currentPage === 1
-      ? posts.filter((post) => post.featured).length >= 2
-        ? posts.filter((post) => post.featured)
-        : posts.slice(0, 3)
-      : [];
+  const featuredArticles = currentPage === 1 ? editorialFeatured : [];
   const paginatedPosts = remainingPosts.slice((currentPage - 1) * 9, currentPage * 9);
   const featuredCarousel = featuredArticles.length
     ? `<div class="featured-carousel" role="region" aria-roledescription="carousel" aria-label="Featured IELTS articles" data-featured-carousel>
@@ -784,10 +828,10 @@ function renderIndex(posts, requestQuery = {}) {
               featured,
               index
             ) => `<article class="featured featured-slide${index === 0 ? ' active' : ''}" data-featured-slide>
-              <a class="featured-image" href="/blog/${escapeHtml(featured.slug)}">
+              <div class="featured-image">
                 <img src="${escapeHtml(featured.thumbnail_url || '/ielts-hero-student.webp')}" alt="${escapeHtml(coverAlt(featured))}" width="1200" height="675" decoding="async"${index === 0 ? ' fetchpriority="high"' : ' loading="lazy"'}>
                 <span class="featured-badge">${iconSvg('sparkles')} Featured</span>
-              </a>
+              </div>
               <div class="featured-copy">
                 <div><div class="featured-topline">${categoryChip(featured.category)}<span class="featured-meta">${Number(featured.reading_minutes) || 6} min read</span><span class="featured-meta">${iconSvg('eye')} ${formatReadCount(featured.view_count)}</span></div>
                 <h2><a href="/blog/${escapeHtml(featured.slug)}">${escapeHtml(featured.title)}</a></h2>
@@ -808,13 +852,13 @@ function renderIndex(posts, requestQuery = {}) {
   const cards = paginatedPosts
     .map((post) => {
       const presentation = getBlogCategoryPresentation(post.category);
-      return `<a class="card" href="/blog/${escapeHtml(post.slug)}">
+      return `<article class="card">
         <div class="card-visual"><img src="${escapeHtml(post.thumbnail_url || '/ielts-hero-student.webp')}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" loading="lazy" decoding="async"><span class="card-visual-icon">${iconSvg(presentation.icon)}</span></div>
         <div class="card-copy">${categoryChip(post.category, 'sm')}
-          <h2>${escapeHtml(post.title)}</h2><p>${escapeHtml(post.description)}</p>
+          <h2><a class="card-title-link" href="/blog/${escapeHtml(post.slug)}">${escapeHtml(post.title)}</a></h2><p>${escapeHtml(post.description)}</p>
           <span class="meta"><span class="card-meta-group"><span class="card-meta-item">${iconSvg('clock')} ${Number(post.reading_minutes) || 6} min read</span><span class="card-meta-dot">•</span><span class="card-meta-item">${iconSvg('eye')} ${formatReadCount(post.view_count)}</span></span><span class="card-read-link"><span>Read guide</span>${iconSvg('arrow-right', 'card-read-icon')}</span></span>
         </div>
-      </a>`;
+      </article>`;
     })
     .join('');
   const pageHref = (pageNumber) => {
@@ -929,7 +973,7 @@ function renderArticle(post, allPosts = []) {
     .slice(0, 3)
     .map(
       (article) =>
-        `<a class="card" href="/blog/${escapeHtml(article.slug)}"><div class="card-visual"><img src="${escapeHtml(article.thumbnail_url || '/ielts-hero-student.webp')}" alt="${escapeHtml(coverAlt(article))}" width="1200" height="675" loading="lazy" decoding="async"></div><div class="card-copy">${categoryChip(article.category, 'sm')}<h2>${escapeHtml(article.title)}</h2><span class="meta"><span class="card-meta-group"><span class="card-meta-item">${iconSvg('clock')} ${Number(article.reading_minutes) || 6} min read</span></span><span class="card-read-link"><span>Read guide</span>${iconSvg('arrow-right', 'card-read-icon')}</span></span></div></a>`
+        `<article class="card"><div class="card-visual"><img src="${escapeHtml(article.thumbnail_url || '/ielts-hero-student.webp')}" alt="${escapeHtml(coverAlt(article))}" width="1200" height="675" loading="lazy" decoding="async"></div><div class="card-copy">${categoryChip(article.category, 'sm')}<h2><a class="card-title-link" href="/blog/${escapeHtml(article.slug)}">${escapeHtml(article.title)}</a></h2><span class="meta"><span class="card-meta-group"><span class="card-meta-item">${iconSvg('clock')} ${Number(article.reading_minutes) || 6} min read</span></span><span class="card-read-link"><span>Read guide</span>${iconSvg('arrow-right', 'card-read-icon')}</span></span></div></article>`
     )
     .join('');
   const articleCategory = getBlogCategoryPresentation(post.category);
