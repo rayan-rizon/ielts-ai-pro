@@ -172,7 +172,7 @@ const ModalFooter = ({
 );
 
 const ModalHeader = ({ testType, testMode, children }) => (
-  <header className="px-4 sm:px-5 pr-14 py-2.5 min-h-[62px] flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center gap-2.5 shrink-0 z-10 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07]">
+  <header className="px-4 sm:px-5 pr-14 py-1.5 min-h-[52px] flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center gap-2 shrink-0 z-10 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07]">
     <div className="flex items-center gap-2.5 min-w-0">
       <div className="w-8 h-8 rounded-xl bg-[#5a63df]/10 border border-[#5a63df]/20 dark:bg-[#5a63df]/20 dark:border-[#5a63df]/30 text-[#5a63df] dark:text-[#a9afff] flex items-center justify-center shrink-0 shadow-2xs">
         <BookOpen className="w-4 h-4" />
@@ -297,13 +297,13 @@ const ModalContent = React.memo(
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 20 }}
         transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-        className="relative bg-white dark:bg-slate-950 border border-[#e4e2f0] dark:border-white/[0.07] rounded-[22px] shadow-lg w-full max-w-[1480px] max-h-[96vh] flex flex-col overflow-hidden"
+        className="relative bg-white dark:bg-slate-950 border border-[#e4e2f0] dark:border-white/[0.07] rounded-[22px] shadow-lg w-full max-w-[1480px] h-[96vh] flex flex-col overflow-hidden"
       >
         <Button
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="absolute top-3 right-4 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-300 hover:text-slate-950 hover:bg-slate-100 dark:hover:text-white dark:hover:bg-slate-800 rounded-xl transition-colors shadow-sm h-8 w-8"
+          className="absolute top-2.5 right-4 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-300 hover:text-slate-950 hover:bg-slate-100 dark:hover:text-white dark:hover:bg-slate-800 rounded-xl transition-colors shadow-sm h-8 w-8"
         >
           <X className="w-4 h-4" />
         </Button>

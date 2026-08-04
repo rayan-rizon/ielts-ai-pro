@@ -7,6 +7,7 @@ import {
   NUM,
   PANEL,
   PanelTitle,
+  Tip,
   WELL,
 } from '@/features/dashboard/components/primitives';
 import { STATUS, deriveResultStats } from './resultStats';
@@ -57,7 +58,6 @@ export const AnswerKeySection = React.memo(
       >
         <PanelTitle
           label="Answer map"
-          tip="Every question in this paper. Click one to jump straight to it."
           action={
             <div
               className={cn(
@@ -103,22 +103,22 @@ export const AnswerKeySection = React.memo(
           ) : (
             <div className="grid grid-cols-8 gap-1 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-10 xl:grid-cols-12">
               {visible.map(({ qNum, status }) => (
-                <button
-                  key={qNum}
-                  type="button"
-                  onClick={() =>
-                    onNavigateToQuestion ? onNavigateToQuestion(qNum) : onReviewAnswers?.()
-                  }
-                  className={cn(
-                    NUM,
-                    'flex h-7 items-center justify-center rounded border text-[11px] font-bold transition-all',
-                    'hover:-translate-y-0.5 active:scale-95 focus:outline-none focus:ring-1 focus:ring-[#5a63df]/50',
-                    CELL_STYLE[status]
-                  )}
-                  title={`Question ${qNum} — ${status}`}
-                >
-                  {qNum}
-                </button>
+                <Tip key={qNum} content={`Question ${qNum} — ${status}`}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onNavigateToQuestion ? onNavigateToQuestion(qNum) : onReviewAnswers?.()
+                    }
+                    className={cn(
+                      NUM,
+                      'flex h-7 items-center justify-center rounded border text-[11px] font-bold transition-all w-full',
+                      'hover:-translate-y-0.5 active:scale-95 focus:outline-none focus:ring-1 focus:ring-[#5a63df]/50',
+                      CELL_STYLE[status]
+                    )}
+                  >
+                    {qNum}
+                  </button>
+                </Tip>
               ))}
             </div>
           )}

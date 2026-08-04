@@ -28,6 +28,7 @@ import {
   NUM,
   PANEL,
   TILE,
+  Tip,
   WELL,
 } from '@/features/dashboard/components/primitives';
 import { buildPremiumAnalysis } from './premiumAnalysis';
@@ -188,19 +189,34 @@ function MistakeQueue({ analysis, onReviewQuestion }) {
               aria-label={`${analysis.errorBuckets.nearMiss} near misses, ${analysis.errorBuckets.changedWrong} changed wrong, ${analysis.errorBuckets.skipped} skipped, and ${analysis.errorBuckets.otherWrong} other wrong answers`}
             >
               {[
-                [analysis.errorBuckets.nearMiss, 'bg-[rgb(var(--signal-warn))]'],
-                [analysis.errorBuckets.changedWrong, 'bg-[#8f97ff]'],
-                [analysis.errorBuckets.skipped, 'bg-slate-400 dark:bg-slate-500'],
-                [analysis.errorBuckets.otherWrong, 'bg-[rgb(var(--signal-fault))]'],
-              ].map(([value, color], index) => (
-                <span
-                  key={index}
-                  className={color}
-                  style={{
-                    width: `${analysis.errorBuckets.total ? (value / analysis.errorBuckets.total) * 100 : 0}%`,
-                  }}
-                />
-              ))}
+                [analysis.errorBuckets.nearMiss, 'bg-[rgb(var(--signal-warn))]', 'Near miss'],
+                [analysis.errorBuckets.changedWrong, 'bg-[#8f97ff]', 'Changed wrong'],
+                [analysis.errorBuckets.skipped, 'bg-slate-400 dark:bg-slate-500', 'Skipped'],
+                [analysis.errorBuckets.otherWrong, 'bg-[rgb(var(--signal-fault))]', 'Other wrong'],
+              ].map(([value, color, label]) => {
+                if (!value) return null;
+                const pct = Math.round((value / (analysis.errorBuckets.total || 1)) * 100);
+                return (
+                  <Tip
+                    key={label}
+                    content={
+                      <span>
+                        <strong>{label}:</strong> {value} ({pct}%)
+                      </span>
+                    }
+                  >
+                    <span
+                      className={cn(
+                        color,
+                        'h-full cursor-pointer transition-opacity hover:opacity-85'
+                      )}
+                      style={{
+                        width: `${analysis.errorBuckets.total ? (value / analysis.errorBuckets.total) * 100 : 0}%`,
+                      }}
+                    />
+                  </Tip>
+                );
+              })}
             </div>
             <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-4">
               {[

@@ -103,19 +103,21 @@ function TrendRow({ entry }) {
               style={{ left: `${left}%`, width: `${width}%` }}
             />
           )}
-          <span
-            title={`Previous average ${from}%`}
-            className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-slate-400 bg-white dark:border-slate-500 dark:bg-[#131315]"
-            style={{ left: `${from}%` }}
-          />
-          <span
-            title={`This attempt ${to}%`}
-            className={cn(
-              'absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white dark:ring-[#131315]',
-              meta.dot
-            )}
-            style={{ left: `${to}%` }}
-          />
+          <Tip content={`Previous average: ${from}% (${entry.trend.attempts} prior attempts)`}>
+            <span
+              className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full border-2 border-slate-400 bg-white transition-transform hover:scale-125 dark:border-slate-500 dark:bg-[#131315]"
+              style={{ left: `${from}%` }}
+            />
+          </Tip>
+          <Tip content={`This attempt: ${to}% accuracy`}>
+            <span
+              className={cn(
+                'absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full ring-2 ring-white transition-transform hover:scale-125 dark:ring-[#131315]',
+                meta.dot
+              )}
+              style={{ left: `${to}%` }}
+            />
+          </Tip>
         </div>
       </div>
 
@@ -183,7 +185,6 @@ export function SkillTrendCard({ analysis }) {
     <section className={cn(PANEL, 'flex h-full flex-col p-4')} aria-labelledby="skill-trend-title">
       <PanelTitle
         label="Skills across your attempts"
-        tip="Compares this attempt with the same question types in your last five results. Needs at least two prior attempts with six or more questions of that type."
         action={
           tracked.length > 0 ? (
             <Pill tone={headline.tone === 'neutral' ? 'neutral' : headline.tone}>

@@ -90,10 +90,7 @@ export function ExamBehaviourCard({ testResults, errorBuckets }) {
   // instead of the second card absorbing the slack as intended.
   return (
     <section className={cn(PANEL, 'flex flex-col p-4')} aria-labelledby="behaviour-title">
-      <PanelTitle
-        label="How you worked"
-        tip="Built from answer changes, blanks and flags recorded during the test — not from your score."
-      />
+      <PanelTitle label="How you worked" />
       <p id="behaviour-title" className={cn('text-[11px] font-medium leading-relaxed', MUTED)}>
         The habits behind the score. These never change your band — they show where technique, not
         knowledge, cost you marks.

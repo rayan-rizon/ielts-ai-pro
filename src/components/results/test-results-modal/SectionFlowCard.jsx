@@ -10,6 +10,7 @@ import {
   PanelTitle,
   Pill,
   TILE,
+  Tip,
   WELL,
 } from '@/features/dashboard/components/primitives';
 import { accuracyTone } from './resultStats';
@@ -71,12 +72,13 @@ function PaceRow({ section, maxSeconds }) {
           style={{ width: `${width}%` }}
         />
         {budgetMark > 0 && budgetMark <= 100 && (
-          <span
-            aria-hidden="true"
-            title="20-minute budget"
-            className="absolute inset-y-0 w-px bg-slate-500/70 dark:bg-white/60"
-            style={{ left: `${budgetMark}%` }}
-          />
+          <Tip content="20-minute budget mark">
+            <span
+              aria-hidden="true"
+              className="absolute inset-y-0 w-px bg-slate-500/70 dark:bg-white/60 cursor-pointer"
+              style={{ left: `${budgetMark}%` }}
+            />
+          </Tip>
         )}
       </div>
 
@@ -107,25 +109,28 @@ function DropOffChart({ sections, noun }) {
               <span className={cn(NUM, 'text-[10px] font-bold', TONE_TEXT[tone])}>
                 {section.accuracy}%
               </span>
-              <div
-                className={cn(
-                  'flex h-16 w-full flex-col justify-end overflow-hidden rounded-md',
-                  WELL
-                )}
-                title={`${section.label}: ${section.correct}/${section.total}`}
+              <Tip
+                content={`${section.label}: ${section.correct}/${section.total} correct (${section.accuracy}%)`}
               >
-                {/* A zero score leaves the track empty rather than painting a
-                    three-pixel red sliver, which read as a rendering fault. */}
-                {section.accuracy > 0 && (
-                  <div
-                    className={cn(
-                      'w-full rounded-md transition-[height] duration-500 ease-out',
-                      TONE_FILL[tone]
-                    )}
-                    style={{ height: `${Math.max(4, section.accuracy)}%` }}
-                  />
-                )}
-              </div>
+                <div
+                  className={cn(
+                    'flex h-16 w-full flex-col justify-end overflow-hidden rounded-md cursor-pointer',
+                    WELL
+                  )}
+                >
+                  {/* A zero score leaves the track empty rather than painting a
+                      three-pixel red sliver, which read as a rendering fault. */}
+                  {section.accuracy > 0 && (
+                    <div
+                      className={cn(
+                        'w-full rounded-md transition-[height] duration-500 ease-out',
+                        TONE_FILL[tone]
+                      )}
+                      style={{ height: `${Math.max(4, section.accuracy)}%` }}
+                    />
+                  )}
+                </div>
+              </Tip>
               <span className={cn(MICRO, MUTED, 'truncate')}>
                 {noun.charAt(0)}
                 {section.index + 1}
@@ -190,11 +195,6 @@ export function SectionFlowCard({
     <section className={cn(PANEL, 'flex h-full flex-col p-4')} aria-labelledby="flow-title">
       <PanelTitle
         label="How the paper unfolded"
-        tip={
-          isReading
-            ? 'Per-passage time is measured from the test clock. The mark on each bar is the 20-minute budget.'
-            : 'Listening is paced by the audio, so this tracks accuracy across parts rather than time spent.'
-        }
         action={
           dropOff && hasAnyMarks ? (
             <Pill tone={fading ? 'warn' : climbing ? 'ok' : 'neutral'}>
@@ -280,26 +280,27 @@ export function SectionFlowCard({
             {flow.scored.map((section) => {
               const share = flow.totalLost > 0 ? (section.lost / flow.totalLost) * 100 : 0;
               return (
-                <div
+                <Tip
                   key={section.index}
-                  className="min-w-0 flex-1"
-                  title={`${section.label}: ${section.lost} of ${flow.totalLost} lost marks`}
+                  content={`${section.label}: ${section.lost} of ${flow.totalLost} marks lost`}
                 >
-                  <div className={cn('h-1.5 w-full overflow-hidden rounded-full', WELL)}>
-                    <div
-                      className={cn(
-                        'h-full rounded-full transition-[width] duration-500 ease-out',
-                        section.index === lossLeader.index
-                          ? 'bg-[rgb(var(--signal-fault))]'
-                          : 'bg-[rgb(var(--signal-fault)/0.4)]'
-                      )}
-                      style={{ width: `${share}%` }}
-                    />
+                  <div className="min-w-0 flex-1 cursor-pointer">
+                    <div className={cn('h-1.5 w-full overflow-hidden rounded-full', WELL)}>
+                      <div
+                        className={cn(
+                          'h-full rounded-full transition-[width] duration-500 ease-out',
+                          section.index === lossLeader.index
+                            ? 'bg-[rgb(var(--signal-fault))]'
+                            : 'bg-[rgb(var(--signal-fault)/0.4)]'
+                        )}
+                        style={{ width: `${share}%` }}
+                      />
+                    </div>
+                    <p className={cn(MICRO, MUTED, 'mt-1 text-center')}>
+                      <span className={NUM}>{section.lost}</span>
+                    </p>
                   </div>
-                  <p className={cn(MICRO, MUTED, 'mt-1 text-center')}>
-                    <span className={NUM}>{section.lost}</span>
-                  </p>
-                </div>
+                </Tip>
               );
             })}
           </div>

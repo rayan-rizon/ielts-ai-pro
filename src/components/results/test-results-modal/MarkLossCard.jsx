@@ -114,21 +114,22 @@ function SectionPips({ entry, sections }) {
     <span className="flex shrink-0 items-center gap-0.5" aria-hidden="true">
       {entry.bySection.map((lost, index) => {
         const intensity = peak > 0 ? lost / peak : 0;
+        const sectionLabel = sections[index]?.label || `Section ${index + 1}`;
         return (
-          <span
-            key={index}
-            title={`${sections[index]?.label || `Section ${index + 1}`}: ${lost} lost`}
-            className={cn(
-              'h-3 w-1.5 rounded-[2px]',
-              lost === 0
-                ? 'bg-slate-200 dark:bg-white/[0.12]'
-                : intensity > 0.66
-                  ? 'bg-[rgb(var(--signal-fault))]'
-                  : intensity > 0.33
-                    ? 'bg-[rgb(var(--signal-fault)/0.6)]'
-                    : 'bg-[rgb(var(--signal-fault)/0.3)]'
-            )}
-          />
+          <Tip key={index} content={`${sectionLabel}: ${lost} mark${lost === 1 ? '' : 's'} lost`}>
+            <span
+              className={cn(
+                'h-3 w-1.5 rounded-[2px] cursor-pointer',
+                lost === 0
+                  ? 'bg-slate-200 dark:bg-white/[0.12]'
+                  : intensity > 0.66
+                    ? 'bg-[rgb(var(--signal-fault))]'
+                    : intensity > 0.33
+                      ? 'bg-[rgb(var(--signal-fault)/0.6)]'
+                      : 'bg-[rgb(var(--signal-fault)/0.3)]'
+              )}
+            />
+          </Tip>
         );
       })}
     </span>
@@ -158,7 +159,6 @@ export function MarkLossCard({ testResults, testType = 'reading', onReviewAnswer
     >
       <PanelTitle
         label="Where your marks went"
-        tip="Ranked by marks lost, not by percentage — a type worth 9 marks matters more than one worth 2."
         action={
           loss.totalLost > 0 ? (
             <span className={cn(MICRO, SIGNAL_TEXT.fault)}>

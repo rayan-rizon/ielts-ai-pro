@@ -117,11 +117,7 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
       transition={{ duration: 0.3, delay: 0.1 }}
       className={cn(PANEL, 'flex h-full flex-col gap-2.5 p-3.5')}
     >
-      <PanelTitle
-        label="Next milestone"
-        accent
-        tip="How many more correct answers this paper needed to reach the next band."
-      />
+      <PanelTitle label="Next milestone" accent />
 
       {milestone.atCeiling ? (
         <div className="flex items-center gap-2.5">
