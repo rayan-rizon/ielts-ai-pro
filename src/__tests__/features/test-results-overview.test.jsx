@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { AnswerKeySection } from '@/components/results/test-results-modal/AnswerKeySection';
 import { TargetMilestoneCard } from '@/components/results/test-results-modal/TargetMilestoneCard';
 import { normalizeTestResults } from '@/components/results/test-results-modal/normalizeTestResults';
@@ -9,40 +10,46 @@ import { calculateListeningBandScore, calculateReadingBandScore } from '@/lib/ie
 describe('test result overview', () => {
   it('uses the Listening answers map when colouring the review matrix', () => {
     render(
-      <AnswerKeySection
-        testResults={{
-          totalQuestions: 3,
-          correctAnswers: 1,
-          answersMap: {
-            first: { questionNumber: 1, userAnswer: 'library', isCorrect: true },
-            second: { questionNumber: 2, userAnswer: '', isCorrect: false },
-            third: { questionNumber: 3, userAnswer: '7', isCorrect: false },
-          },
-        }}
-      />
+      <TooltipProvider>
+        <AnswerKeySection
+          testResults={{
+            totalQuestions: 3,
+            correctAnswers: 1,
+            answersMap: {
+              first: { questionNumber: 1, userAnswer: 'library', isCorrect: true },
+              second: { questionNumber: 2, userAnswer: '', isCorrect: false },
+              third: { questionNumber: 3, userAnswer: '7', isCorrect: false },
+            },
+          }}
+        />
+      </TooltipProvider>
     );
 
-    expect(screen.getByRole('button', { name: '1' })).toHaveClass('text-emerald-600');
-    expect(screen.getByText('Incorrect (1)')).toBeInTheDocument();
-    expect(screen.getByText('Skipped (1)')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '1' })).toHaveClass('text-[rgb(var(--signal-ok))]');
+    // The filter tabs render the count in its own tabular-numeral span, so the
+    // label and count are separate text nodes under one accessible name.
+    expect(screen.getByRole('button', { name: 'Incorrect 1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Skipped 1' })).toBeInTheDocument();
   });
 
   it('uses Listening-specific raw-score milestones', () => {
     render(
-      <TargetMilestoneCard
-        testType="listening"
-        onReviewAnswers={() => {}}
-        testResults={{
-          bandScore: 5.5,
-          correctAnswers: 22,
-          totalQuestions: 40,
-          typeStats: { gap_fill: { correct: 10, total: 20 } },
-        }}
-      />
+      <TooltipProvider>
+        <TargetMilestoneCard
+          testType="listening"
+          onReviewAnswers={() => {}}
+          testResults={{
+            bandScore: 5.5,
+            correctAnswers: 22,
+            totalQuestions: 40,
+            typeStats: { gap_fill: { correct: 10, total: 20 } },
+          }}
+        />
+      </TooltipProvider>
     );
 
     expect(screen.getByText('80%')).toBeInTheDocument();
-    expect(screen.getByText('Your next milestone')).toBeInTheDocument();
+    expect(screen.getByText('Next milestone')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Review Gap Fill/i })).toBeInTheDocument();
     expect(screen.queryByText('Review this focus area')).not.toBeInTheDocument();
   });

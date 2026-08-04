@@ -4,9 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import {
   X,
   Brain,
-  Crown,
+  BadgeCheck,
   BarChart3,
-  Sparkles,
+  Zap,
   BookOpen,
   Download,
   LoaderCircle,
@@ -16,6 +16,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
+import { NUM } from '@/features/dashboard/components/primitives';
 
 import ConfettiCelebration from '@/components/ConfettiCelebration';
 
@@ -42,8 +43,92 @@ function calculateCelebrationParams(score) {
   return { count: 0, theme: 'default' };
 }
 
+/**
+ * Left-hand status slot.
+ *
+ * Priority order, highest first: XP just earned this attempt, then paid-tier
+ * status. `earnedXP` used to be threaded all the way in here as `_earnedXP`
+ * and silently dropped — the number was calculated, awarded to the account,
+ * and then never shown anywhere the learner could actually see it. Whenever
+ * it's present this slot shows it instead of the generic status chip, since
+ * "what you just earned" beats "what tier you're on" as the first thing to
+ * read when a result opens.
+ *
+ * Colour now follows the shared signal tokens (`--signal-ok`) instead of a raw
+ * Tailwind `emerald-*` ramp, and the icon moved from `Sparkles` — already the
+ * app's shorthand for "AI-generated" everywhere else in this modal — to
+ * `BadgeCheck`, which reads as "verified/unlocked" rather than "AI wrote this."
+ */
+const FooterStatus = ({ isPremium, earnedXP, handleUpgrade }) => {
+  const totalXp = (Number(earnedXP?.xp) || 0) + (Number(earnedXP?.bonus) || 0);
+
+  if (totalXp > 0) {
+    return (
+      <div className="flex items-center gap-2.5">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[rgb(var(--signal-ok)/0.30)] bg-[rgb(var(--signal-ok)/0.10)] text-[rgb(var(--signal-ok))]">
+          <Zap className="h-4 w-4" strokeWidth={2.25} />
+        </div>
+        <div className="text-left">
+          <p
+            className={cn(
+              NUM,
+              'text-xs font-black uppercase tracking-wider leading-tight text-[rgb(var(--signal-ok))]'
+            )}
+          >
+            +{totalXp} XP earned
+          </p>
+          <p className="text-xs font-semibold leading-tight text-slate-500 dark:text-slate-400">
+            {earnedXP.bonus > 0
+              ? `Includes a +${earnedXP.bonus} perfect bonus`
+              : 'Added to your account'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isPremium) {
+    return (
+      <button
+        type="button"
+        onClick={handleUpgrade}
+        className="group flex items-center gap-2 text-left"
+      >
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-amber-200/60 bg-amber-50 text-amber-500 transition-transform group-hover:scale-105 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-400">
+          <BadgeCheck className="h-3.5 w-3.5" />
+        </div>
+        <div>
+          <p className="text-xs font-black uppercase tracking-wider leading-tight text-amber-600 dark:text-amber-400">
+            Pro analysis
+          </p>
+          <p className="text-xs font-semibold leading-tight text-slate-500 dark:text-slate-400">
+            Unlock all insights
+          </p>
+        </div>
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[rgb(var(--signal-ok)/0.30)] bg-[rgb(var(--signal-ok)/0.10)] text-[rgb(var(--signal-ok))]">
+        <BadgeCheck className="h-4 w-4" strokeWidth={2.25} />
+      </div>
+      <div className="text-left">
+        <p className="text-xs font-black uppercase tracking-wider leading-tight text-[rgb(var(--signal-ok))]">
+          Premium unlocked
+        </p>
+        <p className="text-xs font-semibold leading-tight text-slate-500 dark:text-slate-400">
+          Full analysis visible
+        </p>
+      </div>
+    </div>
+  );
+};
+
 const ModalFooter = ({
   isPremium,
+  earnedXP,
   handleUpgrade,
   onReviewAnswers,
   onClose,
@@ -52,35 +137,7 @@ const ModalFooter = ({
 }) => (
   <div className="px-4 sm:px-5 py-2.5 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-t border-[#e4e2f0] dark:border-white/[0.07] flex flex-col sm:flex-row items-center justify-between gap-2.5 z-50">
     <div className="flex items-center gap-3">
-      {!isPremium ? (
-        <div className="flex items-center gap-2 group cursor-pointer" onClick={handleUpgrade}>
-          <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 group-hover:scale-105 transition-transform border border-amber-200/60">
-            <Crown className="w-3.5 h-3.5" />
-          </div>
-          <div className="text-left">
-            <p className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 leading-tight">
-              Pro Analysis
-            </p>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 leading-tight">
-              Unlock all insights
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 border border-emerald-200/60">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <div className="text-left">
-            <p className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 leading-tight">
-              Premium Active
-            </p>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 leading-tight">
-              Full analysis visible
-            </p>
-          </div>
-        </div>
-      )}
+      <FooterStatus isPremium={isPremium} earnedXP={earnedXP} handleUpgrade={handleUpgrade} />
     </div>
 
     <div className="flex items-center gap-2.5 w-full sm:w-auto">
@@ -218,6 +275,7 @@ const ModalContent = React.memo(
     sessionId,
     targetBand,
     isPremium,
+    earnedXP,
     testType,
     testMode,
     activeTab,
@@ -305,6 +363,7 @@ const ModalContent = React.memo(
 
         <ModalFooter
           isPremium={isPremium}
+          earnedXP={earnedXP}
           handleUpgrade={handleUpgrade}
           onReviewAnswers={onReviewAnswers}
           onClose={onClose}
@@ -323,7 +382,7 @@ export default function TestResultsModal({
   testResults,
   testData,
   sessionId,
-  _earnedXP,
+  earnedXP,
   user,
   onClose,
   onReviewAnswers,
@@ -409,6 +468,7 @@ export default function TestResultsModal({
           sessionId={sessionId}
           targetBand={user?.target_band_score}
           isPremium={isPremium}
+          earnedXP={earnedXP}
           testType={testType}
           testMode={testMode}
           activeTab={activeTab}

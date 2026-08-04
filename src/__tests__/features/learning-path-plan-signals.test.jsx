@@ -3,14 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import PlanSignalsCard from '@/features/learning/components/dashboard/PlanSignalsCard';
 
 describe('Learning Path plan guide', () => {
-  const nextTask = {
-    title: 'Timed listening practice',
-    module: 'listening',
-    activity_type: 'timed_assessment',
-  };
-
-  it('turns the checkpoint into an actionable, evidence-aware guide', () => {
-    const onStart = vi.fn();
+  it('turns the checkpoint into an evidence-aware guide with one refresh action and one edit action', () => {
+    const onRefresh = vi.fn();
     const onCustomize = vi.fn();
 
     render(
@@ -22,45 +16,53 @@ describe('Learning Path plan guide', () => {
           title: 'Next phase checkpoint',
           progress_definition: 'Complete two timed modules within official time limits.',
         }}
-        nextTask={nextTask}
-        onStart={onStart}
+        onRefresh={onRefresh}
         onCustomize={onCustomize}
         planUpdateAvailable
       />
     );
 
-    expect(
-      screen.getByRole('heading', { name: 'What changed, and what to do next' })
-    ).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Your plan guide' })).toBeVisible();
+    expect(screen.getByText('What changed, and what to do next.')).toBeVisible();
     expect(screen.getByText('Evidence received')).toBeVisible();
     expect(screen.getByText('Your checkpoint')).toBeVisible();
     expect(screen.getByText('Your path updates')).toBeVisible();
     expect(screen.getByText('Test Completed')).toBeVisible();
-    expect(screen.getByText('Timed listening practice')).toBeVisible();
-    expect(screen.getByText('New evidence ready')).toBeVisible();
-    expect(screen.queryByRole('button', { name: 'Update plan' })).not.toBeInTheDocument();
+    expect(screen.getByText('Next phase checkpoint')).toBeVisible();
+    expect(screen.getByText('Update ready')).toBeVisible();
+    // Starting the recommended task is not this card's job — that lives in the
+    // "Do this next" tile beside it. This card owns exactly refresh + edit.
+    expect(screen.queryByRole('button', { name: /open next task/i })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open next task' }));
-    expect(onStart).toHaveBeenCalledWith(nextTask);
+    fireEvent.click(screen.getByRole('button', { name: 'Update plan' }));
+    expect(onRefresh).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Review goals' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Edit plan' }));
     expect(onCustomize).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the guide useful when no planned task is available yet', () => {
+  it('offers a quiet, cost-safe update check when no update is pending', () => {
+    const onRefresh = vi.fn();
     const onCustomize = vi.fn();
 
     render(
       <PlanSignalsCard
         checkpoint={{ title: 'Writing scored level check' }}
+        onRefresh={onRefresh}
         onCustomize={onCustomize}
       />
     );
 
-    expect(screen.queryByRole('button', { name: 'Open next task' })).not.toBeInTheDocument();
-    expect(screen.getAllByText('Writing scored level check')).toHaveLength(2);
+    expect(screen.getByText('Writing scored level check')).toBeVisible();
+    expect(screen.getByText('Plan is live')).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Update plan' })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Review goals' }));
+    const checkButton = screen.getByRole('button', { name: 'Check for updates' });
+    expect(checkButton).toHaveAttribute('title', 'No AI request when nothing changed');
+    fireEvent.click(checkButton);
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit plan' }));
     expect(onCustomize).toHaveBeenCalledTimes(1);
   });
 });

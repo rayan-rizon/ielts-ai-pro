@@ -115,7 +115,7 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className={cn(PANEL, 'flex h-full flex-col gap-3 p-4')}
+      className={cn(PANEL, 'flex h-full flex-col gap-2.5 p-3.5')}
     >
       <PanelTitle
         label="Next milestone"
@@ -191,7 +191,10 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
       >
         <div className="min-w-0 flex-1">
           <p className={cn(MICRO, 'text-white/70')}>Best place to start</p>
-          <h4 className="mt-0.5 truncate text-[13px] font-extrabold leading-tight">
+          <h4
+            className="mt-0.5 truncate text-[13px] font-extrabold leading-tight"
+            title={weakestLabel ? `Review ${weakestLabel}` : 'Review your answers'}
+          >
             {weakestLabel ? `Review ${weakestLabel}` : 'Review your answers'}
           </h4>
           <p className="mt-1 line-clamp-2 text-[11px] font-medium leading-snug text-white/75">

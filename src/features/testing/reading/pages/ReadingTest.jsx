@@ -20,7 +20,6 @@ const ReadingTestQuestionsSidebar = React.lazy(
 );
 import PremiumLoading from '@/components/ui/PremiumLoading';
 const TestResultsModal = React.lazy(() => import('@/components/results/TestResultsModal'));
-const ConfettiCelebration = React.lazy(() => import('@/components/ConfettiCelebration'));
 const XPNotification = React.lazy(() => import('@/components/XPNotification'));
 import WordDefinitionPopover from '../components/WordDefinitionPopover';
 
@@ -126,15 +125,13 @@ function ReadingTestContent() {
   const { dispatch, getLatestState } = useReadingTestDispatch();
   // TimeRemaining removed from render scope for performance!
 
-  // Gamification - using shared hook
-  const {
-    showConfetti,
-    showXPNotification,
-    earnedXP,
-    awardXP,
-    setShowConfetti,
-    setShowXPNotification,
-  } = useGamification();
+  // Gamification - using shared hook. Confetti itself now fires once, from
+  // TestResultsModal (band-tiered gold/silver/bronze theming) rather than here
+  // — this page used to fire its own generic burst immediately on submit and
+  // the modal fired a second, differently-themed one moments later when it
+  // opened, so every completed test doubled up on confetti. The XP toast stays;
+  // it's a distinct "achievement" moment, not a duplicate celebration.
+  const { showXPNotification, earnedXP, awardXP, setShowXPNotification } = useGamification();
 
   // Use the extracted logic hook (Phase 2)
   const { userProfile, user: authUser } = useAuth();
@@ -857,9 +854,7 @@ function ReadingTestContent() {
           </div>
         }
       >
-        {/* Gamification Components */}
-        <ConfettiCelebration show={showConfetti} onComplete={() => setShowConfetti(false)} />
-
+        {/* Gamification Components — confetti lives in TestResultsModal now. */}
         <XPNotification
           show={showXPNotification}
           xp={earnedXP.xp}

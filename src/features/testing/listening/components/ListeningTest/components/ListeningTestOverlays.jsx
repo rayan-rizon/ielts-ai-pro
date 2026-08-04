@@ -9,13 +9,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import ConfettiCelebration from '@/components/ConfettiCelebration';
 import XPNotification from '@/components/XPNotification';
 import TestResultsModal from '@/components/results/TestResultsModal';
 
 export default function ListeningTestOverlays({
-  showConfetti,
-  setShowConfetti,
+  // Confetti now fires once, band-tiered, from TestResultsModal itself — this
+  // used to also fire a generic burst the instant the test submitted, so every
+  // completion showed two differently-styled confetti effects back to back.
+  // showConfetti/setShowConfetti still arrive from the parent's shared
+  // gamification state; they're intentionally unused here now.
   showXPNotification,
   setShowXPNotification,
   earnedXP,
@@ -34,11 +36,6 @@ export default function ListeningTestOverlays({
 }) {
   return (
     <>
-      <ConfettiCelebration
-        show={showConfetti}
-        onComplete={() => setShowConfetti(false)}
-        data-oid=".h72ayp"
-      />
       <XPNotification
         show={showXPNotification}
         xp={earnedXP.xp}

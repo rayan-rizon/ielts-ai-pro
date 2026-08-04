@@ -8,19 +8,30 @@ import {
   NUM,
   PANEL,
   PanelTitle,
+  Pill,
   TILE,
+  WELL,
 } from '@/features/dashboard/components/primitives';
 import { getModuleStyle, getModuleTone } from './dashboardUtils';
 
 const MODULES = ['reading', 'writing', 'listening', 'speaking'];
+const BAND_MAX = 9;
 
-function ModuleScoreCard({ module, item }) {
+/**
+ * One module's standing: the score itself, where it sits on the 0–9 scale, and
+ * the notch showing the target. The distance between fill and notch is the only
+ * number a learner actually acts on, so it is spelled out in words underneath.
+ */
+function ModuleScoreCard({ module, item, targetBand }) {
   const style = getModuleStyle(module);
   const Icon = style.icon;
   const median = item?.median;
   const hasScore = median !== null && median !== undefined;
+  const numericScore = hasScore ? Number(median) : null;
   const sampleCount = Number(item?.sample_count || 0);
   const displayScore = hasScore ? (typeof median === 'number' ? median.toFixed(1) : median) : '—';
+  const gap = hasScore ? Number((targetBand - numericScore).toFixed(1)) : null;
+  const atTarget = gap !== null && gap <= 0;
 
   return (
     <div className={cn(TILE, 'p-3')}>
@@ -30,19 +41,54 @@ function ModuleScoreCard({ module, item }) {
           {style.label}
         </span>
       </div>
-      <div className="mt-2.5 flex items-baseline justify-between gap-1">
-        <span className={cn(NUM, 'text-lg font-extrabold text-slate-900 dark:text-white')}>
+
+      <div className="mt-2 flex items-baseline justify-between gap-1">
+        <span className={cn(NUM, 'text-xl font-extrabold text-slate-900 dark:text-white')}>
           {displayScore}
         </span>
         <span className={cn(MICRO, 'truncate', MUTED)}>
           {hasScore ? `${sampleCount} test${sampleCount === 1 ? '' : 's'}` : 'Needs test'}
         </span>
       </div>
+
+      <div className={cn('relative mt-2 h-1.5 w-full overflow-hidden rounded-full', WELL)}>
+        {hasScore && (
+          <div
+            className={cn(
+              'h-full rounded-full transition-[width] duration-500 ease-out',
+              atTarget ? 'bg-[rgb(var(--signal-ok))]' : 'bg-[#5a63df] dark:bg-[#8f97ff]'
+            )}
+            style={{ width: `${Math.min(100, (numericScore / BAND_MAX) * 100)}%` }}
+          />
+        )}
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-0 w-px bg-slate-400 dark:bg-white/50"
+          style={{ left: `${Math.min(100, (targetBand / BAND_MAX) * 100)}%` }}
+        />
+      </div>
+
+      <p
+        className={cn(
+          'mt-1.5 truncate text-[10px] font-bold',
+          !hasScore
+            ? MUTED
+            : atTarget
+              ? 'text-[rgb(var(--signal-ok))]'
+              : 'text-slate-600 dark:text-slate-300'
+        )}
+      >
+        {!hasScore
+          ? 'No score yet'
+          : atTarget
+            ? 'At your target'
+            : `${gap.toFixed(1)} below target`}
+      </p>
     </div>
   );
 }
 
-export default function ReadinessPanel({ readiness, days = [], onStart }) {
+export default function ReadinessPanel({ readiness, days = [], targetBand = 7, onStart }) {
   const overall = readiness?.overall;
   const isAvailable = Boolean(overall?.available);
   const range = overall?.range;
@@ -65,26 +111,36 @@ export default function ReadinessPanel({ readiness, days = [], onStart }) {
 
   return (
     <section
-      className={cn(PANEL, 'flex flex-col justify-between p-5 sm:p-6')}
+      className={cn(PANEL, 'flex h-full flex-col justify-between p-4 sm:p-5')}
       aria-labelledby="readiness-title"
     >
       <div className="min-w-0">
-        <PanelTitle label="Recent practice scores" accent />
-        <h2
-          id="readiness-title"
-          className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white"
-        >
-          {isAvailable && range
-            ? `Your recent level: ${range[0]}–${range[1]}`
-            : 'Your score picture'}
-        </h2>
-        <p className={cn('mt-1 text-[11px] font-medium leading-relaxed', MUTED)}>
-          Scored practice (last 90 days).
+        <PanelTitle
+          label="Recent practice scores"
+          accent
+          tip="Median of your scored practice over the last 90 days. Never a predicted exam score."
+          action={
+            <Pill tone={isAvailable ? 'ok' : 'warn'}>
+              {isAvailable && range ? `Band ${range[0]}–${range[1]}` : 'Needs a level check'}
+            </Pill>
+          }
+        />
+        <p id="readiness-title" className={cn('text-xs font-medium leading-relaxed', MUTED)}>
+          Where you stand today against your target of{' '}
+          <span className={cn(NUM, 'font-bold text-slate-700 dark:text-slate-200')}>
+            {Number(targetBand).toFixed(1)}
+          </span>
+          . The notch on each bar marks that target.
         </p>
 
-        <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {MODULES.map((module) => (
-            <ModuleScoreCard key={module} module={module} item={readiness?.modules?.[module]} />
+            <ModuleScoreCard
+              key={module}
+              module={module}
+              item={readiness?.modules?.[module]}
+              targetBand={Number(targetBand) || 7}
+            />
           ))}
         </div>
       </div>

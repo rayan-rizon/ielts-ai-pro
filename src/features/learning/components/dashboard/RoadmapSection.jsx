@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { m, useReducedMotion } from 'framer-motion';
 import {
   ArrowRight,
   CalendarRange,
@@ -19,7 +20,6 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/cn';
 import {
-  Bar,
   MICRO,
   MUTED,
   NUM,
@@ -28,10 +28,11 @@ import {
   Pill,
   TILE,
   TITLE,
+  WELL,
 } from '@/features/dashboard/components/primitives';
 import { buildRoadmapViewModel, getFriendlyPlanText, getFriendlyTaskTitle } from './dashboardUtils';
 
-const STATUS_TONE = { Completed: 'neutral', 'In Progress': 'accent', Upcoming: 'accent' };
+const STATUS_TONE = { Completed: 'ok', 'In Progress': 'accent', Upcoming: 'accent' };
 const STATUS_LABEL = {
   Completed: 'Done',
   'In Progress': 'Current',
@@ -43,10 +44,40 @@ const STATUS_LABEL = {
 function PhaseStatusBadge({ status }) {
   return (
     <Pill tone={STATUS_TONE[status] || 'neutral'}>
-      {status === 'In Progress' && <span className="h-1.5 w-1.5 rounded-full bg-[#5a63df]" />}
+      {status === 'In Progress' && (
+        <span className="h-1.5 w-1.5 rounded-full bg-[#5a63df] motion-safe:animate-pulse dark:bg-[#8f97ff]" />
+      )}
       {status === 'Completed' && <CheckCircle2 className="h-3 w-3" />}
       {STATUS_LABEL[status] || status}
     </Pill>
+  );
+}
+
+/**
+ * Progress track that grows from zero on mount instead of appearing already
+ * finished. The number beside it counts the same journey, so the bar and the
+ * readout agree at every frame.
+ */
+function ProgressLine({ value = 0, tone = 'accent' }) {
+  const reduceMotion = useReducedMotion();
+  const pct = Math.max(0, Math.min(100, Number(value) || 0));
+
+  return (
+    <div className={cn('h-1.5 w-full overflow-hidden rounded-full', WELL)}>
+      <m.div
+        className={cn(
+          'h-full rounded-full',
+          tone === 'ok'
+            ? 'bg-[rgb(var(--signal-ok))]'
+            : 'bg-[linear-gradient(90deg,#5a63df,#8f97ff)]'
+        )}
+        initial={reduceMotion ? false : { width: 0 }}
+        animate={{ width: `${pct}%` }}
+        transition={
+          reduceMotion ? { duration: 0 } : { duration: 0.7, ease: [0.23, 1, 0.32, 1], delay: 0.1 }
+        }
+      />
+    </div>
   );
 }
 
@@ -91,8 +122,10 @@ function PhaseCard({ phase, index, onStart, selected, onSelect, cardRef }) {
         }}
         className={cn(
           TILE,
-          'flex h-full min-w-0 flex-1 cursor-pointer flex-col p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
-          selected && 'border-[#5a63df]/40 bg-white dark:bg-white/[0.06]'
+          'flex h-full min-w-0 flex-1 cursor-pointer flex-col p-3.5 transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+          selected
+            ? 'border-[#5a63df]/45 bg-white shadow-sm dark:bg-white/[0.075]'
+            : 'hover:border-[#d6d9f5] dark:hover:border-white/[0.16]'
         )}
         aria-current={inProgress ? 'step' : undefined}
         aria-label={`Stage ${index + 1}, ${phase.shortName}, ${phase.status}`}
@@ -102,25 +135,41 @@ function PhaseCard({ phase, index, onStart, selected, onSelect, cardRef }) {
           <PhaseStatusBadge status={phase.status} />
         </div>
 
-        {phase.dateRange && (
-          <p
+        <h3 className={cn(TITLE, 'mt-2 text-sm')}>{phase.shortName}</h3>
+
+        <div className="mt-2.5 flex items-center gap-2.5">
+          <ProgressLine value={progressPercent} tone={completed ? 'ok' : 'accent'} />
+          <span
             className={cn(
-              MICRO,
-              'mt-2.5 flex items-center gap-1.5 text-slate-500 dark:text-slate-400'
+              NUM,
+              'w-8 shrink-0 text-right text-xs font-extrabold',
+              completed
+                ? 'text-[rgb(var(--signal-ok))]'
+                : inProgress
+                  ? 'text-[#5a63df] dark:text-[#afb5ff]'
+                  : 'text-slate-500 dark:text-slate-400'
             )}
           >
-            <CalendarRange className="h-3 w-3" aria-hidden="true" /> {phase.dateRange}
-          </p>
-        )}
+            {progressPercent}%
+          </span>
+        </div>
+        <p className="mt-1.5 text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-300">
+          {completed ? 'Stage complete' : getFriendlyPlanText(phase.progressLabel)}
+        </p>
 
-        <h3 className={cn(TITLE, 'mt-2 text-sm')}>{phase.shortName}</h3>
-        <p className="mt-1.5 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
+        <p className="mt-2.5 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
           {getFriendlyPlanText(phase.objective)}
         </p>
 
         <PhaseChecklist checklist={phase.checklist} />
 
-        <div className="mt-auto space-y-2.5 pt-4">
+        <div className="mt-auto space-y-2.5 pt-3.5">
+          {phase.dateRange && (
+            <p className={cn(MICRO, 'flex items-center gap-1.5', MUTED)}>
+              <CalendarRange className="h-3 w-3" aria-hidden="true" /> {phase.dateRange}
+            </p>
+          )}
+
           {phase.checkpoint && (
             <p
               className="flex items-start gap-1.5 border-t border-[#eceafa] pt-2.5 text-xs font-medium leading-snug text-slate-700 dark:border-white/10 dark:text-slate-300"
@@ -134,7 +183,7 @@ function PhaseCard({ phase, index, onStart, selected, onSelect, cardRef }) {
             </p>
           )}
 
-          <div className="flex min-h-7 items-center">
+          <div className="flex min-h-8 items-center">
             {inProgress && phase.actionTask && (
               <button
                 type="button"
@@ -148,19 +197,14 @@ function PhaseCard({ phase, index, onStart, selected, onSelect, cardRef }) {
                 <ArrowRight className="ml-2 h-3.5 w-3.5 shrink-0" />
               </button>
             )}
+            {completed && (
+              <Pill tone="ok">
+                <CheckCircle2 className="h-3 w-3" /> Evidence confirmed
+              </Pill>
+            )}
             {!inProgress && !completed && (
               <Pill tone="accent">Open anytime · verified progress</Pill>
             )}
-          </div>
-
-          <p className="text-xs font-bold leading-snug text-slate-700 dark:text-slate-300">
-            {completed ? 'Stage complete' : getFriendlyPlanText(phase.progressLabel)}
-          </p>
-          <div className="flex items-center gap-3">
-            <Bar value={progressPercent} className="flex-1" />
-            <span className={cn(NUM, 'text-xs font-bold text-slate-700 dark:text-slate-300')}>
-              {progressPercent}%
-            </span>
           </div>
         </div>
       </article>
@@ -168,78 +212,122 @@ function PhaseCard({ phase, index, onStart, selected, onSelect, cardRef }) {
   );
 }
 
-function InteractiveStageRail({ phases, selectedIndex, onSelect }) {
+/**
+ * The stage rail.
+ *
+ * One continuous track carries a single fill whose head sits exactly where the
+ * learner is: a completed stage moves it to the next node, a half-finished
+ * current stage leaves it halfway between two. So the line is not decoration —
+ * its length is the same evidence the four cards below are scored on. Nodes are
+ * buttons; arrow keys walk the rail and the matching card scrolls into view.
+ */
+function InteractiveStageRail({ phases, selectedIndex, onSelect, railFill }) {
+  const reduceMotion = useReducedMotion();
+  const nodeRefs = useRef([]);
+
+  const handleKeyDown = (event) => {
+    const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    if (!delta) return;
+    event.preventDefault();
+    const next = Math.min(phases.length - 1, Math.max(0, selectedIndex + delta));
+    onSelect(next);
+    nodeRefs.current[next]?.focus();
+  };
+
   return (
-    <nav aria-label="Learning path stages" className="mb-4 w-full">
-      <div className="grid grid-cols-4 gap-2 sm:gap-4">
-        {phases.map((phase, index) => {
-          const Icon = phase.icon;
-          const isCurrent = phase.status === 'In Progress';
-          const isCompleted = phase.status === 'Completed';
-          const leadsFromCurrent = isCurrent;
+    <nav aria-label="Learning path stages" className="w-full">
+      <div className="relative">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-[12.5%] top-4 h-[3px] -translate-y-1/2"
+        >
+          <div className={cn('h-full w-full rounded-full', WELL)} />
+          <m.div
+            className="absolute inset-y-0 left-0 rounded-full bg-[linear-gradient(90deg,#5a63df,#8f97ff)]"
+            initial={reduceMotion ? false : { width: 0 }}
+            animate={{ width: `${railFill}%` }}
+            transition={
+              reduceMotion
+                ? { duration: 0 }
+                : { duration: 0.95, ease: [0.23, 1, 0.32, 1], delay: 0.15 }
+            }
+          >
+            {!reduceMotion && railFill > 2 && (
+              <span className="absolute inset-0 overflow-hidden rounded-full">
+                <m.span
+                  className="absolute inset-y-0 w-1/3 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.85),transparent)]"
+                  initial={{ x: '-140%' }}
+                  animate={{ x: '440%' }}
+                  transition={{
+                    duration: 2.4,
+                    ease: 'easeInOut',
+                    repeat: Infinity,
+                    repeatDelay: 1.4,
+                  }}
+                />
+              </span>
+            )}
+            {railFill > 0 && railFill < 100 && (
+              <span className="absolute right-0 top-1/2 h-2.5 w-2.5 -translate-y-1/2 translate-x-1/2 rounded-full bg-[#5a63df] ring-[3px] ring-[#5a63df]/25 motion-safe:animate-pulse dark:bg-[#8f97ff]" />
+            )}
+          </m.div>
+        </div>
 
-          return (
-            <div key={phase.key} className="relative flex min-w-0 flex-col items-center">
-              <div className="relative flex h-10 w-full items-center justify-center">
-                {index < phases.length - 1 && (
-                  <div
-                    className="pointer-events-none absolute left-[calc(50%+18px)] right-[calc(-50%+18px)] top-1/2 z-0 h-[3px] -translate-y-1/2 overflow-visible rounded-full"
-                    aria-hidden="true"
-                  >
-                    <div
-                      className={cn(
-                        'h-full w-full rounded-full transition-all duration-500',
-                        isCompleted || isCurrent
-                          ? 'bg-[#5a63df]'
-                          : 'border-t-2 border-dashed border-slate-200 dark:border-white/15'
-                      )}
-                    />
+        <div className="relative grid grid-cols-4" onKeyDown={handleKeyDown}>
+          {phases.map((phase, index) => {
+            const Icon = phase.icon;
+            const isCurrent = phase.status === 'In Progress';
+            const isCompleted = phase.status === 'Completed';
 
-                    {/* Single arrow marker on the segment leaving the current stage — replaces the
-                        old set of four overlapping text pills that duplicated each PhaseCard's own
-                        status badge. */}
-                    {leadsFromCurrent && (
-                      <span className="absolute left-1/2 top-1/2 z-20 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#5a63df] text-white shadow-[0_0_0_3px_rgba(90,99,223,0.15)]">
-                        <ArrowRight className="h-3 w-3 motion-safe:animate-pulse" />
-                      </span>
-                    )}
-                  </div>
-                )}
-
+            return (
+              <div key={phase.key} className="flex min-w-0 flex-col items-center px-1">
                 <button
                   type="button"
+                  ref={(node) => {
+                    nodeRefs.current[index] = node;
+                  }}
                   onClick={() => onSelect(index)}
                   aria-current={isCurrent ? 'step' : undefined}
                   aria-pressed={selectedIndex === index}
                   aria-label={`Open stage ${index + 1}: ${phase.shortName}. ${phase.status}.`}
-                  className="group relative z-10 flex shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+                  className="group relative z-10 flex h-8 shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#131315]"
                 >
                   <span
                     className={cn(
-                      'relative flex h-7 w-7 items-center justify-center rounded-full border transition-all duration-200 group-hover:scale-110 sm:h-8 sm:w-8',
+                      'relative flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-200 group-hover:scale-110',
                       isCurrent
-                        ? 'border-[#5a63df] bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff]'
+                        ? 'border-[#5a63df] bg-white text-[#5a63df] dark:bg-[#131315] dark:text-[#afb5ff]'
                         : isCompleted
-                          ? 'border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.08)] text-[rgb(var(--signal-ok))]'
-                          : 'border-slate-200 bg-slate-50 text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-500',
-                      selectedIndex === index && 'ring-2 ring-[#5a63df]/30'
+                          ? 'border-[rgb(var(--signal-ok)/0.45)] bg-[rgb(var(--signal-ok)/0.10)] text-[rgb(var(--signal-ok))]'
+                          : 'border-[#e4e2f0] bg-white text-slate-400 dark:border-white/[0.14] dark:bg-[#131315] dark:text-slate-500',
+                      selectedIndex === index && 'ring-2 ring-[#5a63df]/30 ring-offset-1'
                     )}
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    {isCompleted ? (
+                      <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
+                    ) : (
+                      <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    )}
                   </span>
                 </button>
-              </div>
 
-              <button
-                type="button"
-                onClick={() => onSelect(index)}
-                className="mt-3 text-center text-xs font-bold leading-snug tracking-tight text-slate-700 transition-colors hover:text-[#5a63df] focus-visible:outline-none dark:text-slate-300 sm:text-sm"
-              >
-                {phase.shortName}
-              </button>
-            </div>
-          );
-        })}
+                <button
+                  type="button"
+                  onClick={() => onSelect(index)}
+                  tabIndex={-1}
+                  className={cn(
+                    'mt-2 line-clamp-2 text-center text-[11px] font-bold leading-snug tracking-tight transition-colors focus-visible:outline-none sm:text-xs',
+                    selectedIndex === index
+                      ? 'text-[#5a63df] dark:text-[#afb5ff]'
+                      : 'text-slate-600 hover:text-[#5a63df] dark:text-slate-400'
+                  )}
+                >
+                  {phase.shortName}
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );
@@ -289,6 +377,21 @@ function HowItWorksModal({ open, onOpenChange, phases }) {
   );
 }
 
+/**
+ * Position of the rail head, 0–100, in *segment* space rather than raw average:
+ * with four nodes there are three gaps, so one finished stage puts the head
+ * exactly on node two and a half-finished current stage lands mid-gap.
+ */
+function getRailFill(phases) {
+  const segments = phases.length - 1;
+  if (segments < 1) return 0;
+  const completed = phases.filter((phase) => Number(phase.progressPercent || 0) >= 100).length;
+  const currentIndex = phases.findIndex((phase) => Number(phase.progressPercent || 0) < 100);
+  const currentFraction =
+    currentIndex >= 0 ? Number(phases[currentIndex].progressPercent || 0) / 100 : 0;
+  return Math.max(0, Math.min(100, ((completed + currentFraction) / segments) * 100));
+}
+
 export default function RoadmapSection({
   roadmap,
   isLegacyPlan,
@@ -300,17 +403,35 @@ export default function RoadmapSection({
   onStart,
 }) {
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
-  const phases = buildRoadmapViewModel({
-    roadmap,
-    isLegacyPlan,
-    readiness,
-    evidence,
-    days,
-    targetBand,
-  });
+  const phases = useMemo(
+    () =>
+      buildRoadmapViewModel({
+        roadmap,
+        isLegacyPlan,
+        readiness,
+        evidence,
+        days,
+        targetBand,
+      }),
+    [roadmap, isLegacyPlan, readiness, evidence, days, targetBand]
+  );
   const currentPhaseIndex = phases.findIndex((p) => p.status === 'In Progress');
   const [selectedIndex, setSelectedIndex] = useState(Math.max(0, currentPhaseIndex));
   const cardRefs = useRef([]);
+
+  const { railFill, overallPercent, stagesDone } = useMemo(
+    () => ({
+      railFill: getRailFill(phases),
+      overallPercent: phases.length
+        ? Math.round(
+            phases.reduce((total, phase) => total + Number(phase.progressPercent || 0), 0) /
+              phases.length
+          )
+        : 0,
+      stagesDone: phases.filter((phase) => phase.status === 'Completed').length,
+    }),
+    [phases]
+  );
 
   useEffect(() => {
     if (currentPhaseIndex >= 0) setSelectedIndex(currentPhaseIndex);
@@ -326,13 +447,13 @@ export default function RoadmapSection({
   };
 
   return (
-    <section className={cn(PANEL, 'p-5 sm:p-6')} aria-labelledby="roadmap-title">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+    <section className={cn(PANEL, 'p-4 sm:p-5')} aria-labelledby="roadmap-title">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <PanelTitle
             label="Your progress"
             accent
-            className="mb-1.5"
+            className="mb-1"
             action={
               currentPhaseIndex >= 0 && (
                 <span className={cn(MICRO, MUTED)}>Stage {currentPhaseIndex + 1} of 4</span>
@@ -341,43 +462,67 @@ export default function RoadmapSection({
           />
           <h2
             id="roadmap-title"
-            className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white"
+            className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-lg"
           >
             Your path to exam day
           </h2>
-          <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
             {examDatePassed
               ? 'Your saved exam date has passed. Choose a new date to place these stages on a new timeline.'
-              : 'Four clear stages. Progress comes from verified practice; dates adjust with your exam.'}
-            <span className="ml-1 font-bold text-[#5a63df] sm:hidden">
-              Swipe to see every stage.
-            </span>
+              : 'Four stages. The line fills from verified practice — not from ticking boxes.'}
+            <span className="ml-1 font-bold text-[#5a63df] sm:hidden">Tap a stage to open it.</span>
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setHowItWorksOpen(true)}
-          className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full bg-[#5a63df]/10 px-3.5 text-xs font-bold text-[#5a63df] transition-colors hover:bg-[#5a63df]/20 dark:bg-[#5a63df]/20 dark:text-[#a9afff]"
-        >
-          <Play className="h-3 w-3 fill-current" />
-          How stages work
-          <ChevronRight className="h-3.5 w-3.5" />
-        </button>
+
+        <div className="flex shrink-0 items-center gap-2">
+          <div className={cn(TILE, 'flex items-center gap-2.5 px-3 py-2')}>
+            <div className="text-right">
+              <p className={cn(MICRO, MUTED)}>Path progress</p>
+              <p
+                className={cn(
+                  NUM,
+                  'mt-0.5 text-base font-extrabold leading-none text-slate-900 dark:text-white'
+                )}
+              >
+                {overallPercent}%
+              </p>
+            </div>
+            <span className="h-8 w-px bg-[#eceafa] dark:bg-white/10" aria-hidden="true" />
+            <div>
+              <p className={cn(MICRO, MUTED)}>Stages done</p>
+              <p
+                className={cn(
+                  NUM,
+                  'mt-0.5 text-base font-extrabold leading-none text-slate-900 dark:text-white'
+                )}
+              >
+                {stagesDone}/4
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setHowItWorksOpen(true)}
+            className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full bg-[#5a63df]/10 px-3 text-xs font-bold text-[#5a63df] transition-colors hover:bg-[#5a63df]/20 dark:bg-[#5a63df]/20 dark:text-[#a9afff]"
+          >
+            <Play className="h-3 w-3 fill-current" />
+            <span className="hidden sm:inline">How stages work</span>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
-      <div className="relative mt-6 min-w-0">
+      <div className="relative mt-5 min-w-0">
         <InteractiveStageRail
           phases={phases}
           selectedIndex={selectedIndex}
           onSelect={selectStage}
+          railFill={railFill}
         />
-        <p className={cn(MICRO, MUTED, 'mt-1 text-center md:hidden')}>
-          Stage {selectedIndex + 1}: {phases[selectedIndex]?.shortName}
-        </p>
       </div>
 
-      <div className="relative mt-3">
-        <div className="grid snap-x snap-mandatory grid-flow-col auto-cols-[88%] items-stretch gap-x-3 gap-y-4 overflow-x-auto pb-3 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:overflow-visible sm:pb-0 xl:grid-cols-4">
+      <div className="relative mt-4">
+        <div className="grid snap-x snap-mandatory grid-flow-col auto-cols-[88%] items-stretch gap-x-3 gap-y-3 overflow-x-auto pb-3 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:overflow-visible sm:pb-0 xl:grid-cols-4">
           {phases.map((phase, index) => (
             <PhaseCard
               key={phase.key}

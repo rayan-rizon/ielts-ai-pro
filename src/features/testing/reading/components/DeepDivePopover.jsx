@@ -207,6 +207,16 @@ function useConsolidatedEntries(entries) {
   }, [entries]);
 }
 
+/**
+ * The inline variant used to run two rotating conic-gradient rings, in colours
+ * (`#8b5cf6`, `#c084fc`, `#3b82f6`) that matched nothing else in the app. The
+ * second ring's `animate` also passed `repeat`/`ease` as animate targets rather
+ * than inside `transition` — framer-motion silently drops unknown animate
+ * keys, so that layer eased to a 2.5° tilt once on mount and then sat frozen,
+ * never actually spinning. It's one ring now, in the brand accent used for
+ * every other "AI-assisted" affordance in the app, and the animation is
+ * correct rather than accidentally inert.
+ */
 const DeepDiveTrigger = React.memo(({ inline, isOpen, isMultiBlank, entriesCount }) => (
   <PopoverTrigger asChild>
     <motion.button
@@ -218,12 +228,12 @@ const DeepDiveTrigger = React.memo(({ inline, isOpen, isMultiBlank, entriesCount
           ? 'inline-flex w-[26px] h-[26px] ml-3 align-middle items-center justify-center rounded-full outline-none focus:outline-none transition-all shrink-0 relative group p-[1px] overflow-hidden'
           : 'w-full mt-2 flex items-center justify-between px-3 py-2 rounded-lg border text-xs font-medium transition-all group',
         isOpen && !inline
-          ? 'bg-violet-100 border-violet-200 text-violet-800 dark:bg-violet-900/40 dark:border-violet-800/60 dark:text-violet-200 shadow-sm'
+          ? 'bg-[#5a63df]/10 border-[#5a63df]/25 text-[#4a52c9] dark:bg-[#8f97ff]/[0.16] dark:border-[#8f97ff]/35 dark:text-[#c3c8ff] shadow-sm'
           : !inline
-            ? 'bg-white/50 border-slate-200/60 text-slate-600 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 dark:bg-slate-900/50 dark:border-slate-800/60 dark:text-slate-400 dark:hover:bg-violet-900/20 dark:hover:border-violet-800/40 dark:hover:text-violet-300'
+            ? 'bg-white/50 border-slate-200/60 text-slate-600 hover:bg-[#5a63df]/[0.06] hover:border-[#5a63df]/25 hover:text-[#4a52c9] dark:bg-slate-900/50 dark:border-slate-800/60 dark:text-slate-400 dark:hover:bg-[#8f97ff]/10 dark:hover:border-[#8f97ff]/30 dark:hover:text-[#c3c8ff]'
             : '',
-        inline && !isOpen ? 'shadow-lg shadow-violet-500/20' : '',
-        inline && isOpen ? 'ring-2 ring-violet-500/40' : ''
+        inline && !isOpen ? 'shadow-lg shadow-[#5a63df]/20' : '',
+        inline && isOpen ? 'ring-2 ring-[#5a63df]/35' : ''
       )}
       data-oid="deep-dive-trigger"
     >
@@ -233,27 +243,19 @@ const DeepDiveTrigger = React.memo(({ inline, isOpen, isMultiBlank, entriesCount
             className="absolute inset-[-150%] rounded-full opacity-100 z-0"
             style={{
               background:
-                'conic-gradient(from 0deg, transparent 0%, #8b5cf6 50%, #c084fc 70%, transparent 100%)',
+                'conic-gradient(from 0deg, transparent 0%, #5a63df 50%, #8f97ff 70%, transparent 100%)',
             }}
             animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: 'linear' }}
           />
-          <motion.div
-            className="absolute inset-[-150%] rounded-full opacity-60 blur-sm z-0"
-            style={{
-              background:
-                'conic-gradient(from 90deg, transparent 0%, #3b82f6 50%, transparent 100%)',
-            }}
-            animate={{ rotate: 2.5, repeat: Infinity, ease: 'linear' }}
-          />
-          <div className="absolute inset-0 rounded-full bg-violet-50/80 dark:bg-slate-950 m-[1px] z-10" />
-          <div className="absolute inset-0 rounded-full bg-violet-100/30 dark:bg-violet-500/10 z-10" />
+          <div className="absolute inset-0 rounded-full bg-[#f4f4ff]/85 dark:bg-slate-950 m-[1px] z-10" />
+          <div className="absolute inset-0 rounded-full bg-[#5a63df]/[0.08] dark:bg-[#8f97ff]/10 z-10" />
         </>
       )}
 
       {inline ? (
         <motion.div
-          className="relative z-10 flex items-center justify-center w-full h-full rounded-full bg-violet-50/50 dark:bg-slate-900/90 backdrop-blur-sm"
+          className="relative z-10 flex items-center justify-center w-full h-full rounded-full bg-[#f4f4ff]/60 dark:bg-slate-900/90 backdrop-blur-sm"
           animate={isOpen ? { rotate: 90 } : { rotate: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         >
@@ -261,8 +263,8 @@ const DeepDiveTrigger = React.memo(({ inline, isOpen, isMultiBlank, entriesCount
             className={cn(
               'w-3.5 h-3.5 transition-colors duration-300',
               isOpen
-                ? 'text-violet-700 dark:text-violet-400'
-                : 'text-violet-600 dark:text-violet-400 group-hover:text-violet-800 dark:group-hover:text-violet-300'
+                ? 'text-[#4a52c9] dark:text-[#afb5ff]'
+                : 'text-[#5a63df] dark:text-[#afb5ff] group-hover:text-[#4a52c9] dark:group-hover:text-[#c3c8ff]'
             )}
           />
         </motion.div>
@@ -271,15 +273,13 @@ const DeepDiveTrigger = React.memo(({ inline, isOpen, isMultiBlank, entriesCount
           <div
             className={cn(
               'w-6 h-6 rounded-md flex items-center justify-center transition-colors',
-              isOpen ? 'bg-violet-200 dark:bg-violet-800' : 'bg-slate-100 dark:bg-slate-800'
+              isOpen ? 'bg-[#5a63df]/15 dark:bg-[#8f97ff]/25' : 'bg-slate-100 dark:bg-slate-800'
             )}
           >
             <Sparkles
               className={cn(
                 'w-3.5 h-3.5',
-                isOpen
-                  ? 'text-violet-700 dark:text-violet-300'
-                  : 'text-slate-500 dark:text-slate-400'
+                isOpen ? 'text-[#4a52c9] dark:text-[#c3c8ff]' : 'text-slate-500 dark:text-slate-400'
               )}
             />
           </div>
@@ -287,7 +287,7 @@ const DeepDiveTrigger = React.memo(({ inline, isOpen, isMultiBlank, entriesCount
           {isMultiBlank && (
             <Badge
               variant="secondary"
-              className="text-[9px] px-1.5 py-0 h-4 bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 border-0"
+              className="text-[9px] px-1.5 py-0 h-4 bg-[#5a63df]/10 dark:bg-[#8f97ff]/20 text-[#4a52c9] dark:text-[#c3c8ff] border-0"
             >
               {entriesCount} explanations
             </Badge>

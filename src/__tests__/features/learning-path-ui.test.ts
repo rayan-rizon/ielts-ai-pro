@@ -49,6 +49,10 @@ const planSignals = readFileSync(
   resolve(process.cwd(), 'src/features/learning/components/dashboard/PlanSignalsCard.jsx'),
   'utf8'
 );
+const countdown = readFileSync(
+  resolve(process.cwd(), 'src/features/learning/components/dashboard/ExamCountdownPanel.jsx'),
+  'utf8'
+);
 const app = readFileSync(resolve(process.cwd(), 'src/App.jsx'), 'utf8');
 const layout = readFileSync(resolve(process.cwd(), 'src/features/core/pages/Layout.jsx'), 'utf8');
 const hook = readFileSync(
@@ -73,9 +77,9 @@ describe('Learning Path main page composition', () => {
   it('includes the useful revision, checkpoint, roadmap, schedule, and evidence sections', () => {
     expect(planSignals).toContain('Your plan guide');
     expect(planSignals).toContain('What changed, and what to do next');
-    expect(planSignals).toContain('Open next task');
-    expect(planSignals).toContain('Review goals');
-    expect(dashboard).toContain('nextTask={primaryTask}');
+    expect(planSignals).toContain('Edit plan');
+    // The plan guide now lives in the hero, in the space the illustration used to take.
+    expect(hero).toContain('<PlanSignalsCard');
     expect(dashboard).toContain('onStart={startTask}');
     expect(roadmap).toContain('Your path to exam day');
     expect(weekPlan).toContain("This week's plan");
@@ -87,15 +91,14 @@ describe('Learning Path main page composition', () => {
   it('uses compact responsive layouts and redirects the retired preview route', () => {
     expect(dashboard).toContain('grid-cols-[minmax(0,1fr)]');
     expect(weekPlan).toContain('md:col-span-2');
-    expect(weekPlan).toContain('grid-cols-[44px_minmax(0,1fr)]');
-    expect(weekPlan).toContain('sm:grid-cols-[44px_minmax(0,1fr)_auto]');
+    // Seven day columns, one per day of the plan week.
+    expect(weekPlan).toContain('grid-cols-7');
     expect(roadmap).toContain('auto-cols-[88%]');
     expect(roadmap).toContain('sm:grid-cols-2');
     expect(roadmap).toContain('xl:grid-cols-4');
     expect(dashboard).toContain('md:grid-cols-2');
     expect(dashboard).toContain('2xl:grid-cols-[1.08fr_1fr_0.9fr]');
     expect(dashboard).toContain('items-stretch');
-    expect(hero).toContain('min-h-[260px]');
     expect(hero).toContain('grid-cols-2');
     expect(hero).toContain('sm:grid-cols-4');
     expect(readiness).toContain('grid-cols-2');
@@ -115,12 +118,28 @@ describe('Learning Path main page composition', () => {
     expect(roadmap).toContain('aria-pressed={selectedIndex === index}');
   });
 
-  it('keeps legacy status contextual and collapses the seven-day schedule by default', () => {
+  it('keeps legacy status contextual and shows the whole week as a calendar', () => {
     expect(dashboard).not.toContain('This historical plan remains available');
-    expect(hero).toContain('Update your plan');
-    expect(weekPlan).toContain('days.slice(0, 4)');
-    expect(weekPlan).toContain('Show all 7 days');
-    expect(weekPlan).toContain('Move to an available day');
+    // A legacy plan is passed through as planUpdateAvailable, so the single
+    // refresh control in the plan guide reads "Update plan" for it too.
+    expect(hero).toContain('isLegacyPlan || planUpdateAvailable');
+    expect(planSignals).toContain("'Update plan' : 'Check for updates'");
+    // The week is no longer truncated to four days behind a "show all" toggle:
+    // every day is a column, and picking one opens all of its tasks.
+    expect(weekPlan).not.toContain('days.slice(0, 4)');
+    expect(weekPlan).not.toContain('Show all 7 days');
+    expect(weekPlan).toContain('CalendarDay');
+    expect(weekPlan).toContain('move to an available day');
+  });
+
+  it('replaces the restated coach note with the exam runway a learner can act on', () => {
+    expect(dashboard).not.toContain('CoachBanner');
+    expect(dashboard).toContain('ExamCountdownPanel');
+    expect(countdown).toContain('Time until your exam');
+    expect(countdown).toContain('Sessions left');
+    expect(countdown).toContain('Study time left');
+    // Runway is arithmetic on saved availability, never a forecast of the score.
+    expect(countdown).toContain('It is not a score prediction.');
   });
 
   it('uses clear activity names without changing persisted task data', () => {
@@ -399,14 +418,36 @@ describe('Learning Path main page composition', () => {
 
   it('shows interactive evidence stages and a cost-safe update action', () => {
     expect(roadmap).toContain('InteractiveStageRail');
+    // The connector line is driven by evidence, not decoration: its head sits in
+    // segment space so a half-finished stage lands halfway between two nodes.
+    expect(roadmap).toContain('getRailFill');
+    expect(roadmap).toContain('railFill={railFill}');
     expect(roadmap).toContain('Open stage ${index + 1}');
     expect(roadmap).toContain("Planned: 'Planned'");
     expect(roadmap).not.toContain("Locked: 'Locked'");
     expect(roadmap).toContain('item.done');
-    expect(hero).toContain('Check for updates');
-    expect(hero).toContain('No AI request when nothing changed');
-    expect(hero).toContain('/images/learning-path/ai-coach-study-hero.webp');
+    // The update-check control lives once, in the plan guide — not duplicated
+    // in a page-level button row.
+    expect(planSignals).toContain('Check for updates');
+    expect(planSignals).toContain('No AI request when nothing changed');
+    // The decorative hero illustration was removed: that column now carries the plan guide.
+    expect(hero).not.toContain('/images/learning-path/ai-coach-study-hero.webp');
     expect(dashboard).toContain('items-stretch');
+  });
+
+  it('gives the page a title that matches every other feature page, and gives each action exactly one home', () => {
+    // Same header shape as Vocabulary/Leaderboard/Dashboard: an accent pill, an
+    // h1 at text-2xl/sm:text-3xl, one description line — floating on the page
+    // background, not boxed inside a bordered card with its own icon and size.
+    expect(hero).toContain(
+      'text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl'
+    );
+    expect(hero).toContain('<Pill tone="accent">AI Learning Path</Pill>');
+    // Starting the primary task, editing goals, and refreshing the plan each
+    // appear in exactly one place: the hero no longer has its own "Edit plan"
+    // or "Check updates" controls duplicating the plan guide's.
+    expect(hero).not.toContain('Edit plan');
+    expect(hero).not.toContain('Check for updates');
   });
 
   it('loads the path, activities, evidence, and proficiency through one combined RPC', () => {

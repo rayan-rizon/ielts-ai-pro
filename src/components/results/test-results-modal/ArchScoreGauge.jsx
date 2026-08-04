@@ -39,8 +39,8 @@ export function ArchScoreGauge({ score }) {
   const endY = cy - radius * Math.sin(endAngle);
 
   return (
-    <div className="relative flex flex-col items-center justify-center select-none py-1 group">
-      <div className="relative w-[270px] h-[160px] xl:w-[320px] xl:h-[190px]">
+    <div className="relative flex flex-col items-center justify-center select-none group">
+      <div className="relative w-[225px] h-[134px] xl:w-[260px] xl:h-[154px]">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
           <defs>
             <linearGradient
@@ -118,13 +118,13 @@ export function ArchScoreGauge({ score }) {
 
         {/* Center Text inside the Arc */}
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-end text-center">
-          <span className={cn(MICRO, 'mb-1 leading-none text-slate-500 dark:text-slate-400')}>
+          <span className={cn(MICRO, 'mb-0.5 leading-none text-slate-500 dark:text-slate-400')}>
             Band score
           </span>
           <span
             className={cn(
               NUM,
-              'mb-2 text-[46px] font-extrabold leading-none tracking-tight text-slate-900 dark:text-slate-50 xl:text-[54px]'
+              'mb-1.5 text-[38px] font-extrabold leading-none tracking-tight text-slate-900 dark:text-slate-50 xl:text-[45px]'
             )}
           >
             {bandText}

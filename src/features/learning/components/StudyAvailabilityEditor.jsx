@@ -51,18 +51,20 @@ export default function StudyAvailabilityEditor({
       <legend className="sr-only">Weekly study availability</legend>
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-bold text-slate-900 dark:text-white">Available study days</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-sm font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
+            Available study days
+          </p>
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
             The plan never schedules more than these limits.
           </p>
         </div>
-        <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#5a63df]/10 px-3 py-1.5 text-xs font-bold text-[#5a63df] dark:bg-[#5a63df]/15 dark:text-[#a9afff]">
+        <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#5a63df]/20 bg-[#5a63df]/10 px-3 py-1 text-xs font-mono tabular-nums font-bold text-[#5a63df] dark:border-[#8f97ff]/20 dark:bg-[#8f97ff]/15 dark:text-[#a9afff]">
           <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
           {Math.floor(weeklyMinutes / 60)}h {weeklyMinutes % 60}m/week
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
+      <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-7">
         {STUDY_DAYS.map((day) => {
           const selected = Boolean(availability.days[day]);
           return (
@@ -72,10 +74,10 @@ export default function StudyAvailabilityEditor({
               aria-pressed={selected}
               onClick={() => toggleDay(day)}
               className={cn(
-                'rounded-lg border px-2 py-2.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950',
+                'rounded-lg border px-2 py-2 text-xs font-mono font-bold tracking-tight transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
                 selected
-                  ? 'border-[#5a63df] bg-[#5a63df] text-white shadow-sm'
-                  : 'border-[#e2e5f2] bg-white text-slate-500 hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/5 dark:text-slate-400'
+                  ? 'border-[#5a63df] bg-[#5a63df] text-white shadow-xs'
+                  : 'border-[#e4e2f0] bg-[#f4f3fb] text-slate-600 hover:border-[#5a63df]/40 hover:text-[#5a63df] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:border-white/20 dark:hover:text-slate-200'
               )}
             >
               {DAY_LABELS[day]}
@@ -88,12 +90,12 @@ export default function StudyAvailabilityEditor({
         {STUDY_DAYS.filter((day) => availability.days[day]).map((day) => (
           <label
             key={day}
-            className="flex items-center justify-between gap-3 rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] px-3 py-2 dark:border-white/10 dark:bg-white/[0.03]"
+            className="flex items-center justify-between gap-3 rounded-xl border border-[#ebeaf7] bg-[#fbfbfe] px-3.5 py-2.5 dark:border-white/[0.07] dark:bg-white/[0.03]"
           >
-            <span className="text-xs font-semibold capitalize text-slate-700 dark:text-slate-200">
+            <span className="text-xs font-extrabold capitalize text-slate-800 dark:text-slate-200">
               {day}
             </span>
-            <span className="flex items-center gap-2 text-xs text-slate-500">
+            <span className="flex items-center gap-2 text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400 font-medium">
               <input
                 type="number"
                 min="20"
@@ -101,7 +103,7 @@ export default function StudyAvailabilityEditor({
                 step="5"
                 value={availability.days[day]}
                 onChange={(event) => updateMinutes(day, event.target.value)}
-                className="h-8 w-20 rounded-lg border border-[#e2e5f2] bg-white px-2 text-right font-bold text-slate-900 outline-none focus:ring-2 focus:ring-[#5a63df] dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                className="h-8 w-20 rounded-lg border border-[#e4e2f0] bg-white px-2.5 text-right font-mono tabular-nums font-bold text-slate-900 outline-none focus:border-[#5a63df] focus:ring-1 focus:ring-[#5a63df]/20 dark:border-white/10 dark:bg-[#141319] dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 aria-label={`${day} available minutes`}
               />
               min

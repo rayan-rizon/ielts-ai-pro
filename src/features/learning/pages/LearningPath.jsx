@@ -5,11 +5,12 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 import useLearningPathData from '@/features/learning/hooks/useLearningPathData';
 import LearningPathDashboard from '@/features/learning/components/dashboard/LearningPathDashboard';
 import DocumentHead from '@/components/shared/DocumentHead';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/cn';
 import { MUTED, PANEL } from '@/features/dashboard/components/primitives';
 
 const PAGE_SHELL =
-  'relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5';
+  'relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-3 pt-14 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-3 md:px-5 md:py-4';
 
 const LearningPathBackdrop = () => (
   <>
@@ -77,17 +78,19 @@ export default function LearningPath() {
           {hasError ? (
             <LearningPathError onRetry={() => retry()} />
           ) : (
-            <LearningPathDashboard
-              user={user}
-              learningPath={learningPath}
-              stats={stats}
-              skillMap={skillMap}
-              activityByKey={activityByKey}
-              toggleActivity={toggleActivity}
-              rescheduleActivity={rescheduleActivity}
-              isLoading={isLoading}
-              navigate={navigate}
-            />
+            <TooltipProvider delayDuration={150}>
+              <LearningPathDashboard
+                user={user}
+                learningPath={learningPath}
+                stats={stats}
+                skillMap={skillMap}
+                activityByKey={activityByKey}
+                toggleActivity={toggleActivity}
+                rescheduleActivity={rescheduleActivity}
+                isLoading={isLoading}
+                navigate={navigate}
+              />
+            </TooltipProvider>
           )}
         </div>
       </main>

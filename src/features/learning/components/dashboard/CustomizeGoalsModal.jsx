@@ -33,26 +33,28 @@ export default function CustomizeGoalsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl border-[#e4e2f0] bg-white sm:max-w-2xl dark:border-white/10 dark:bg-[#131315]">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-extrabold text-slate-900 dark:text-white">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] sm:max-w-2xl p-6 shadow-none">
+        <DialogHeader className="space-y-1.5">
+          <DialogTitle className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
             Customize your study plan
           </DialogTitle>
-          <DialogDescription className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+          <DialogDescription className="text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
             Set your target, exam date, and realistic minute limits. Your schedule will never
             silently exceed them.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-2 sm:grid-cols-2">
-          <label className="space-y-1 text-xs font-black text-slate-700 dark:text-slate-200">
-            <span>Target band score</span>
+        <div className="grid gap-4 py-3 sm:grid-cols-2">
+          <label className="space-y-1.5">
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-600 dark:text-slate-400">
+              Target band score
+            </span>
             <Input
               type="number"
               min="4"
               max="9"
               step="0.5"
-              className="mt-1 h-10 rounded-xl font-bold"
+              className="mt-1 h-10 rounded-xl border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/[0.04] font-mono tabular-nums font-bold text-slate-900 dark:text-white focus:border-[#5a63df] focus:ring-1 focus:ring-[#5a63df]/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               value={goalDraft.target_band_score}
               onChange={(event) =>
                 setGoalDraft((draft) => ({
@@ -62,20 +64,22 @@ export default function CustomizeGoalsModal({
               }
             />
           </label>
-          <div className="space-y-1 text-xs font-black text-slate-700 dark:text-slate-200">
-            <span>Target exam date</span>
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-600 dark:text-slate-400">
+              Target exam date
+            </span>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   className={cn(
-                    'mt-1 w-full h-10 justify-start text-left font-bold text-xs rounded-xl px-3 bg-slate-50/50 dark:bg-slate-950/40 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-slate-900/60 transition-all outline-none',
+                    'mt-1 w-full h-10 justify-start text-left font-bold text-xs rounded-xl px-3 bg-[#f4f3fb] dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/10 hover:border-[#5a63df]/30 hover:bg-[#5a63df]/[0.05] transition-all outline-none',
                     !goalDraft.test_date && 'text-slate-400'
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4 text-indigo-500 shrink-0" />
+                  <CalendarIcon className="mr-2 h-4 w-4 text-[#5a63df] dark:text-[#8f97ff] shrink-0" />
                   {selectedDate ? (
-                    <span className="text-slate-900 dark:text-white font-extrabold text-xs">
+                    <span className="text-slate-900 dark:text-white font-mono tabular-nums font-bold text-xs">
                       {format(selectedDate, 'MMM dd, yyyy')}
                     </span>
                   ) : (
@@ -84,7 +88,7 @@ export default function CustomizeGoalsModal({
                 </Button>
               </PopoverTrigger>
               <PopoverContent
-                className="w-auto p-0 rounded-2xl border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden"
+                className="w-auto p-0 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-white dark:bg-[#141319] overflow-hidden shadow-sm"
                 align="start"
               >
                 <CalendarComponent
@@ -113,18 +117,18 @@ export default function CustomizeGoalsModal({
           }
         />
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2 pt-2 sm:gap-2">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="rounded-xl font-bold"
+            className="rounded-xl border-[#e4e2f0] dark:border-white/10 font-bold text-xs hover:bg-[#f4f3fb] dark:hover:bg-white/[0.04]"
           >
             Cancel
           </Button>
           <Button
             onClick={onSaveGoals}
             disabled={savingGoals}
-            className="rounded-lg bg-[#5a63df] font-bold text-white hover:bg-[#4a52c9]"
+            className="rounded-xl bg-[#5a63df] hover:bg-[#4850c8] font-bold text-xs text-white shadow-xs"
           >
             {savingGoals ? 'Recalculating…' : 'Save and recalculate'}
           </Button>

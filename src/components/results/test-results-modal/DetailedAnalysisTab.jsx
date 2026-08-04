@@ -9,8 +9,6 @@ import {
   CalendarCheck2,
   ChevronDown,
   ChevronRight,
-  Clock3,
-  Headphones,
   History,
   Lightbulb,
   Save,
@@ -24,18 +22,18 @@ import { cn } from '@/lib/cn';
 import { trackAppEvent } from '@/lib/tracking';
 import { fetchRecentResultSessions, saveResultFocusPlan } from '@/services/premiumAnalysisService';
 import {
-  Empty,
   IconChip,
   MICRO,
   MUTED,
   NUM,
   PANEL,
-  Ring,
   TILE,
   WELL,
 } from '@/features/dashboard/components/primitives';
 import { buildPremiumAnalysis } from './premiumAnalysis';
-import { accuracyTone, deriveResultStats } from './resultStats';
+import { ExamBehaviourCard } from './ExamBehaviourCard';
+import { SectionFlowCard } from './SectionFlowCard';
+import { SkillTrendCard } from './SkillTrendCard';
 import PaidFeatureGate from '@/features/subscription/components/PaidFeatureGate';
 
 /**
@@ -47,12 +45,6 @@ import PaidFeatureGate from '@/features/subscription/components/PaidFeatureGate'
  */
 const CARD = cn(PANEL, 'min-w-0');
 
-const TONE_TEXT = {
-  ok: 'text-[rgb(var(--signal-ok))]',
-  warn: 'text-[rgb(var(--signal-warn))]',
-  fault: 'text-[rgb(var(--signal-fault))]',
-};
-
 /** Answer outcomes read the same here as on the Overview tab. */
 const OUTCOME = {
   correct: { fill: 'bg-[rgb(var(--signal-ok))]', text: 'text-[rgb(var(--signal-ok))]' },
@@ -62,13 +54,6 @@ const OUTCOME = {
 
 function formatBand(value) {
   return Number(value || 0).toFixed(1);
-}
-
-function formatTime(seconds) {
-  if (!seconds) return 'Not recorded';
-  const minutes = Math.floor(seconds / 60);
-  const remaining = seconds % 60;
-  return `${minutes}m ${String(remaining).padStart(2, '0')}s`;
 }
 
 function SectionHeading({ icon: Icon, eyebrow, title, action }) {
@@ -90,157 +75,89 @@ function SectionHeading({ icon: Icon, eyebrow, title, action }) {
   );
 }
 
-function RecoveryMap({ analysis, testResults, currentBand, selectedTarget, _onTargetChange }) {
-  const totalLost = analysis.typeLosses.reduce((sum, entry) => sum + entry.lost, 0);
-  // The paper-level mix comes from the same source the Overview tab uses.
-  // Re-summing `typeLosses` here produced a different total whenever a question
-  // carried no type label, so the two tabs disagreed on the same result.
-  const stats = React.useMemo(() => deriveResultStats(testResults), [testResults]);
-  const {
-    total: totalQuestions,
-    correct: totalCorrect,
-    wrong: totalIncorrect,
-    skipped: totalSkipped,
-  } = stats;
-  const correctPct = stats.accuracy;
-  const largestLoss = analysis.typeLosses[0];
+/**
+ * The gap to the next band, as a strip rather than a card.
+ *
+ * This was `RecoveryMap`: a three-column panel whose middle column re-rendered
+ * `typeStats` as a loss grid and whose right column re-rendered the same
+ * correct/wrong/skipped split the Overview hero already shows as a stacked bar
+ * and three counts. Both are gone — attribution belongs to the Overview tab's
+ * `MarkLossCard`, and the answer mix belongs to the hero. What is genuinely
+ * this tab's to own is the arithmetic between here and the target band, so that
+ * is all that remains.
+ */
+function TargetGapStrip({ analysis, testResults, currentBand, selectedTarget }) {
+  const needed = analysis.target.additionalCorrect;
+  const rawNeeded = analysis.target.rawNeeded;
+  const total = analysis.target.total || 0;
+  // Read the score from the result rather than reconstructing it as
+  // `rawNeeded - needed`: once the learner is past the threshold `needed` is
+  // clamped to zero, and that back-calculation would report the threshold
+  // itself instead of what they actually scored.
+  const current = Math.max(0, Math.min(total, Number(testResults?.correctAnswers) || 0));
+  const progress = rawNeeded > 0 ? Math.min(100, Math.round((current / rawNeeded) * 100)) : 100;
 
   return (
     <section className={`${CARD} p-4`}>
       <SectionHeading
         icon={BarChart3}
-        eyebrow="Compare the size of each loss before choosing what to practise."
-        title="Where you lost marks"
+        eyebrow="What this paper needed to reach the next band."
+        title="Your gap to target"
         action={
           <span className={cn(NUM, 'shrink-0 text-sm font-extrabold', OUTCOME.incorrect.text)}>
-            {totalLost} lost
+            {needed > 0 ? `+${needed} to go` : 'Target met'}
           </span>
         }
       />
 
-      <div className="grid items-start gap-3 lg:grid-cols-[200px_minmax(0,1fr)_200px]">
-        {/* Standing — where the learner is and what the gap costs */}
-        <div className={cn(TILE, 'p-3')}>
-          <div className="flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <p className={cn(MICRO, MUTED)}>Current</p>
-              <p
-                className={cn(
-                  NUM,
-                  'text-xl font-extrabold leading-none text-slate-900 dark:text-slate-50'
-                )}
-              >
-                {formatBand(currentBand)}
-              </p>
-            </div>
-            <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-500" />
-            <div className="min-w-0 text-right">
-              <p className={cn(MICRO, MUTED)}>Target band</p>
-              <p
-                className={cn(
-                  NUM,
-                  'text-xl font-extrabold leading-none text-[#5a63df] dark:text-[#a9afff]'
-                )}
-              >
-                {formatBand(selectedTarget)}
-              </p>
-            </div>
+      <div className="grid items-center gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="min-w-0">
+          <div className={cn('relative h-2.5 w-full overflow-hidden rounded-full', WELL)}>
+            <div
+              className="h-full rounded-full bg-[#5a63df] transition-[width] duration-700 ease-out dark:bg-[#8f97ff]"
+              style={{ width: `${progress}%` }}
+            />
           </div>
-          <div className="mt-2.5 flex items-baseline gap-1.5 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
-            <span
-              className={cn(
-                NUM,
-                'text-lg font-extrabold leading-none text-[#5a63df] dark:text-[#a9afff]'
-              )}
-            >
-              +{analysis.target.additionalCorrect}
+          <div className="mt-2 flex items-baseline justify-between gap-3">
+            <span className={cn(MICRO, MUTED)}>
+              <span className={cn(NUM, 'font-bold text-slate-700 dark:text-slate-200')}>
+                {current}
+              </span>{' '}
+              correct now
             </span>
             <span className={cn(MICRO, MUTED)}>
-              answer{analysis.target.additionalCorrect === 1 ? '' : 's'} needed
+              <span className={cn(NUM, 'font-bold text-slate-700 dark:text-slate-200')}>
+                {rawNeeded}
+              </span>{' '}
+              of {total} needed for band {formatBand(selectedTarget)}
             </span>
           </div>
         </div>
 
-        {/* Movement — per-type composition, signal-coded */}
-        <div className="grid auto-rows-min gap-1.5 sm:grid-cols-2">
-          {analysis.typeLosses.length ? (
-            analysis.typeLosses.map((entry) => (
-              <div key={entry.type} className={cn(TILE, 'p-2.5')}>
-                <div className="flex items-baseline justify-between gap-2">
-                  <p className="truncate text-[11px] font-extrabold text-slate-800 dark:text-slate-100">
-                    {entry.label}
-                  </p>
-                  <p className={cn(NUM, 'shrink-0 text-[11px] font-bold', OUTCOME.incorrect.text)}>
-                    −{entry.lost}
-                  </p>
-                </div>
-                <div
-                  className={cn('mt-1.5 flex h-1.5 overflow-hidden rounded-full', WELL)}
-                  aria-label={`${entry.label}: ${entry.correct} correct, ${entry.incorrect} incorrect and ${entry.skipped} skipped`}
-                >
-                  {[
-                    [entry.correct, OUTCOME.correct.fill],
-                    [entry.incorrect, OUTCOME.incorrect.fill],
-                    [entry.skipped, OUTCOME.skipped.fill],
-                  ].map(([value, fill], i) => (
-                    <span
-                      key={i}
-                      className={fill}
-                      style={{ width: `${entry.total ? (value / entry.total) * 100 : 0}%` }}
-                    />
-                  ))}
-                </div>
-                <p className={cn(NUM, MUTED, 'mt-1 text-[10px] font-bold')}>
-                  {entry.correct}/{entry.total} correct
-                </p>
-              </div>
-            ))
-          ) : (
-            <div className="sm:col-span-2">
-              <Empty>No lost marks in this result.</Empty>
-            </div>
-          )}
-        </div>
-
-        {/* Summary ring — replaces a hand-rolled conic-gradient donut */}
-        <div className={cn(TILE, 'flex h-full flex-col justify-between p-3')}>
-          <div className="flex items-center gap-3">
-            <Ring
-              value={correctPct}
-              size={52}
-              stroke={5}
-              label={`${totalQuestions ? Math.round(correctPct) : 0}%`}
-              tone="rgb(var(--signal-ok))"
-            />
-            <div className="min-w-0 flex-1">
-              <p className={cn(MICRO, MUTED)}>Answer mix</p>
-              <p
-                className={cn(
-                  NUM,
-                  'mt-0.5 text-sm font-extrabold text-slate-900 dark:text-slate-50'
-                )}
-              >
-                {totalCorrect}/{totalQuestions || 0}
-              </p>
-              <p className={cn(MICRO, MUTED, 'mt-1')}>
-                <span className={OUTCOME.incorrect.text}>{totalIncorrect}</span> wrong ·{' '}
-                <span className={OUTCOME.skipped.text}>{totalSkipped}</span> skipped
-              </p>
-            </div>
+        <div className={cn(TILE, 'flex shrink-0 items-center gap-3 px-3.5 py-2.5')}>
+          <div className="min-w-0 text-center">
+            <p className={cn(MICRO, MUTED)}>Now</p>
+            <p
+              className={cn(
+                NUM,
+                'mt-0.5 text-xl font-extrabold leading-none text-slate-900 dark:text-slate-50'
+              )}
+            >
+              {formatBand(currentBand)}
+            </p>
           </div>
-          {largestLoss && (
-            <div className="mt-3 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
-              <p className={cn(MICRO, MUTED)}>Best recovery opportunity</p>
-              <div className="mt-1 flex items-baseline justify-between gap-2">
-                <p className="truncate text-[11px] font-extrabold text-slate-800 dark:text-slate-100">
-                  {largestLoss.label}
-                </p>
-                <p className={cn(NUM, 'shrink-0 text-[11px] font-bold', OUTCOME.incorrect.text)}>
-                  {largestLoss.lost} marks
-                </p>
-              </div>
-            </div>
-          )}
+          <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-500" />
+          <div className="min-w-0 text-center">
+            <p className={cn(MICRO, MUTED)}>Target band</p>
+            <p
+              className={cn(
+                NUM,
+                'mt-0.5 text-xl font-extrabold leading-none text-[#5a63df] dark:text-[#a9afff]'
+              )}
+            >
+              {formatBand(selectedTarget)}
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -249,7 +166,7 @@ function RecoveryMap({ analysis, testResults, currentBand, selectedTarget, _onTa
 
 function MistakeQueue({ analysis, onReviewQuestion }) {
   return (
-    <section className={`${CARD} p-3.5 sm:p-4 space-y-3`}>
+    <section className={`${CARD} flex h-full flex-col p-3.5 sm:p-4 space-y-3`}>
       <SectionHeading
         icon={BookOpenCheck}
         eyebrow="Start with the answers most likely to improve your score."
@@ -335,19 +252,34 @@ function MistakeQueue({ analysis, onReviewQuestion }) {
                     <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#5a63df]/10 text-xs font-extrabold text-[#5a63df] border border-[#5a63df]/20 dark:bg-[#8f97ff]/[0.16] dark:text-[#a9afff] dark:border-[#8f97ff]/30 shadow-2xs shrink-0">
                       Q{item.questionNumber}
                     </span>
-                    <div className="min-w-0">
-                      <p className="truncate text-xs sm:text-sm font-extrabold text-slate-950 dark:text-white">
-                        {item.reason}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1 min-w-0">
-                        <span className="inline-block rounded-md bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/[0.16] dark:text-[#a9afff] border border-[#5a63df]/20 dark:border-[#8f97ff]/30 px-2 py-0.5 text-[10px] font-extrabold shrink-0">
-                          {item.label}
-                        </span>
-                        <span className="truncate text-xs font-bold text-slate-500 dark:text-slate-400">
-                          {formattedType}
-                        </span>
-                      </div>
-                    </div>
+                    <Tooltip delayDuration={200}>
+                      <TooltipTrigger asChild>
+                        <div className="min-w-0 cursor-default">
+                          <p className="truncate text-xs sm:text-sm font-extrabold text-slate-950 dark:text-white">
+                            {item.reason}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1 min-w-0">
+                            <span className="inline-block rounded-md bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/[0.16] dark:text-[#a9afff] border border-[#5a63df]/20 dark:border-[#8f97ff]/30 px-2 py-0.5 text-[10px] font-extrabold shrink-0">
+                              {item.label}
+                            </span>
+                            <span className="truncate text-xs font-bold text-slate-500 dark:text-slate-400">
+                              {formattedType}
+                            </span>
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        className="max-w-[220px] rounded-lg border border-[#e4e2f0] bg-white px-2.5 py-1.5 text-slate-700 shadow-lg dark:border-white/[0.14] dark:bg-[#242427] dark:text-slate-100"
+                      >
+                        <p className="text-xs font-extrabold">
+                          Q{item.questionNumber} — {item.reason}
+                        </p>
+                        <p className="mt-0.5 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                          {item.label} · {formattedType}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                   <Button
                     onClick={() => onReviewQuestion(item)}
@@ -369,101 +301,6 @@ function MistakeQueue({ analysis, onReviewQuestion }) {
   );
 }
 
-function SectionStrategy({ analysis, testType }) {
-  const isReading = testType === 'reading';
-  return (
-    <section className={`${CARD} h-full p-3.5 sm:p-4 space-y-3`}>
-      <SectionHeading
-        icon={isReading ? Clock3 : Headphones}
-        eyebrow={
-          isReading
-            ? 'Compare accuracy and time across each passage.'
-            : 'See which listening parts cost the most marks.'
-        }
-        title={isReading ? 'Passage performance' : 'Part performance'}
-      />
-      <div className="space-y-2.5">
-        {analysis.sectionStrategy.length === 0 && (
-          <p className="rounded-xl bg-slate-50 p-3 text-xs font-semibold text-slate-500 dark:bg-white/[0.04]">
-            Section-level scoring was not stored for this result.
-          </p>
-        )}
-        {analysis.sectionStrategy.map((section) => (
-          <div
-            key={section.index}
-            className="p-3 rounded-xl border border-[#ebeaf7] bg-white/90 dark:border-white/10 dark:bg-white/5 shadow-2xs space-y-2 transition-all hover:border-[#5a63df]/60"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs sm:text-sm font-extrabold text-slate-950 dark:text-white">
-                  {section.label}
-                </p>
-                <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  {section.lost} point{section.lost === 1 ? '' : 's'} lost · {section.accuracy}%
-                  accuracy
-                </p>
-              </div>
-              <span
-                className={cn(
-                  NUM,
-                  'shrink-0 text-xs font-bold',
-                  TONE_TEXT[accuracyTone(section.accuracy)]
-                )}
-              >
-                {section.correct}/{section.total}
-              </span>
-            </div>
-
-            {/* Visual Accuracy Bar */}
-            <div className="h-1.5 rounded-full overflow-hidden bg-slate-100 dark:bg-white/[0.06] border border-slate-200/50 dark:border-white/[0.07]">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  section.accuracy >= 80
-                    ? 'bg-[rgb(var(--signal-ok))]'
-                    : section.accuracy >= 50
-                      ? 'bg-[rgb(var(--signal-warn))]'
-                      : 'bg-[rgb(var(--signal-fault))]'
-                }`}
-                style={{ width: `${Math.max(5, section.accuracy)}%` }}
-              />
-            </div>
-
-            {/* Only rendered when timing was actually captured — every row
-                previously printed "Not recorded / Timing unavailable", which
-                was pure noise on results that never stored per-section time. */}
-            {isReading && section.seconds ? (
-              <div className="flex items-center justify-between border-t border-[#eceafa] pt-2 dark:border-white/[0.07]">
-                <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
-                  <Clock3 className="h-3 w-3" />
-                  <span className={NUM}>{formatTime(section.seconds)}</span>
-                </span>
-                {section.paceDeltaSeconds != null && (
-                  <span
-                    className={cn(
-                      MICRO,
-                      section.paceDeltaSeconds > 0 ? TONE_TEXT.warn : TONE_TEXT.ok
-                    )}
-                  >
-                    <span className={NUM}>
-                      {Math.ceil(Math.abs(section.paceDeltaSeconds) / 60)}m
-                    </span>{' '}
-                    {section.paceDeltaSeconds > 0 ? 'over benchmark' : 'available'}
-                  </span>
-                )}
-              </div>
-            ) : null}
-          </div>
-        ))}
-      </div>
-      {!isReading && (
-        <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-          Listening analysis intentionally uses error concentration by part; answer timestamps are
-          not presented as time spent.
-        </p>
-      )}
-    </section>
-  );
-}
 /** "2026-01-05T…" → "Jan 5"; the synthetic current-attempt entry has no real date. */
 function formatTrendDate(date) {
   if (!date || date === 'current') return 'This attempt';
@@ -472,125 +309,147 @@ function formatTrendDate(date) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function TrendSparkline({ scores }) {
-  const values = scores.map((entry) => Number(entry.score) || 0);
-  const minVal = Math.max(0, Math.min(...values) - 0.5);
-  const maxVal = Math.min(9, Math.max(...values) + 0.5);
-  const range = Math.max(1, maxVal - minVal);
-  const gradientId = React.useId().replace(/:/g, '');
+/**
+ * Band scale for the trend chart.
+ *
+ * Padded out to half-band steps and clamped to the IELTS 0–9 range, with a
+ * one-band floor on the window so a learner whose scores have not moved gets a
+ * readable flat line instead of a zero-height box.
+ */
+function trendScale(values) {
+  const rawMin = Math.min(...values);
+  const rawMax = Math.max(...values);
+  let min = Math.max(0, Math.floor((rawMin - 0.5) * 2) / 2);
+  let max = Math.min(9, Math.ceil((rawMax + 0.5) * 2) / 2);
+  if (max - min < 1) {
+    max = Math.min(9, min + 1);
+    if (max - min < 1) min = Math.max(0, max - 1);
+  }
+  return { min, max, span: Math.max(0.5, max - min) };
+}
 
-  const pointsArray = scores.map((entry, index) => {
+/**
+ * Band-score trend.
+ *
+ * The previous sparkline drew its dots as SVG `<circle>` elements inside a
+ * `preserveAspectRatio="none"` viewBox — the same non-uniform scale that let
+ * the line stretch to the container was also stretching every dot into an
+ * ellipse. The line and area still stretch (that is what makes the percentage
+ * overlay exact), but the dots are now HTML, so they stay round, and the chart
+ * has the axis labels it needs to be read rather than merely glanced at.
+ */
+function ScoreTrendChart({ scores }) {
+  const gradientId = React.useId().replace(/:/g, '');
+  const values = scores.map((entry) => Number(entry.score) || 0);
+  const { min, max, span } = trendScale(values);
+
+  const points = scores.map((entry, index) => {
     const value = Number(entry.score) || 0;
-    const x = values.length <= 1 ? 120 : 16 + (index / (values.length - 1)) * 208;
-    const y = 64 - ((value - minVal) / range) * 44; // maps y between 20 and 64
     return {
-      x,
-      y,
+      x: values.length <= 1 ? 50 : (index / (values.length - 1)) * 100,
+      y: 100 - ((value - min) / span) * 100,
       value,
       date: entry.date,
       isCurrent: index === scores.length - 1,
     };
   });
 
-  const points = pointsArray.map((p) => `${p.x},${p.y}`).join(' ');
-  const polygonPoints = `16,74 ${points} 224,74`;
+  const line = points.map((p) => `${p.x},${p.y}`).join(' ');
+  const area = `0,100 ${line} 100,100`;
+  const ticks = [max, min + span / 2, min];
 
   return (
-    // `currentColor` drives the line, area fill and dot rings, so the chart
-    // follows the brand accent in both themes instead of the hardcoded blue.
-    // `preserveAspectRatio="none"` makes the SVG stretch to fill the container
-    // exactly, so the hit-target overlay below can use plain x/y percentages
-    // instead of guessing at the letterboxed render box.
-    <div className="relative w-full text-[#5a63df] dark:text-[#a9afff]">
-      <svg
-        viewBox="0 0 240 80"
-        preserveAspectRatio="none"
-        className="h-24 w-full overflow-visible"
-        role="img"
-        aria-label="Recent band score trend"
-      >
-        <defs>
-          <linearGradient id={`${gradientId}-area`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="currentColor" stopOpacity="0.20" />
-            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-          </linearGradient>
-          <filter id={`${gradientId}-glow`} x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        {/* Quiet grid lines keep the score movement readable without competing with the line. */}
-        {[20, 42, 64].map((y) => (
-          <line
-            key={y}
-            x1="12"
-            x2="228"
-            y1={y}
-            y2={y}
-            stroke="currentColor"
-            className="text-slate-200/80 dark:text-[#3d3a5d]"
-            strokeDasharray="1 5"
-            strokeLinecap="round"
-          />
+    <div className="flex gap-2">
+      {/* Y axis — without it the line shows movement but never says between what. */}
+      <div className="flex w-7 shrink-0 flex-col justify-between py-[5px]">
+        {ticks.map((tick) => (
+          <span key={tick} className={cn(NUM, MICRO, MUTED, 'text-right leading-none')}>
+            {tick.toFixed(1)}
+          </span>
         ))}
+      </div>
 
-        {/* Area fill gives the chart a little depth while preserving the flat dashboard surface. */}
-        {values.length > 1 && <polygon points={polygonPoints} fill={`url(#${gradientId}-area)`} />}
-
-        {values.length > 1 && (
-          <polyline
-            points={points}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-            filter={`url(#${gradientId}-glow)`}
-          />
-        )}
-
-        {pointsArray.map((p, index) => (
-          <circle
-            key={index}
-            cx={p.x}
-            cy={p.y}
-            r={p.isCurrent ? 5.5 : 4}
-            className={
-              p.isCurrent ? 'fill-current' : 'fill-white stroke-current dark:fill-[#242427]'
-            }
-            stroke="currentColor"
-            strokeWidth={p.isCurrent ? '2' : '2.5'}
-          />
-        ))}
-      </svg>
-
-      {/* Real point controls keep the chart hoverable and keyboard-focusable without adding click state. */}
-      {pointsArray.map((p, index) => (
-        <Tooltip key={index} delayDuration={100}>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              aria-label={`${formatTrendDate(p.date)}: band ${p.value.toFixed(1)}`}
-              className="absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 cursor-help rounded-full transition-colors hover:bg-[#5a63df]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50 dark:hover:bg-[#a9afff]/10 dark:focus-visible:ring-[#a9afff]/55"
-              style={{ left: `${(p.x / 240) * 100}%`, top: `${(p.y / 80) * 100}%` }}
+      <div className="min-w-0 flex-1">
+        <div className="relative h-[118px] w-full text-[#5a63df] dark:text-[#a9afff]">
+          {ticks.map((tick, index) => (
+            <span
+              key={tick}
+              aria-hidden="true"
+              className="absolute inset-x-0 h-px border-t border-dashed border-slate-200 dark:border-white/[0.10]"
+              style={{ top: `${(index / (ticks.length - 1)) * 100}%` }}
             />
-          </TooltipTrigger>
-          <TooltipContent
-            side="top"
-            className="rounded-lg border border-[#e4e2f0] bg-white px-2.5 py-1.5 text-slate-700 shadow-lg dark:border-white/[0.14] dark:bg-[#242427] dark:text-slate-100"
+          ))}
+
+          <svg
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            className="absolute inset-0 h-full w-full"
+            role="img"
+            aria-label={`Band score across ${scores.length} attempts`}
           >
-            <p className="text-xs font-extrabold">Band {p.value.toFixed(1)}</p>
-            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
-              {formatTrendDate(p.date)} · Hover for details
-            </p>
-          </TooltipContent>
-        </Tooltip>
-      ))}
+            <defs>
+              <linearGradient id={`${gradientId}-area`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="currentColor" stopOpacity="0.22" />
+                <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {values.length > 1 && <polygon points={area} fill={`url(#${gradientId}-area)`} />}
+            {values.length > 1 && (
+              <polyline
+                points={line}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+              />
+            )}
+          </svg>
+
+          {/* Dots live in HTML so the chart's horizontal stretch cannot deform
+              them, and each one is its own hoverable, focusable control. */}
+          {points.map((p, index) => (
+            <Tooltip key={index} delayDuration={100}>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={`${formatTrendDate(p.date)}: band ${p.value.toFixed(1)}`}
+                  className="group absolute z-10 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline-none"
+                  style={{ left: `${p.x}%`, top: `${p.y}%` }}
+                >
+                  <span
+                    className={cn(
+                      'block rounded-full border-2 border-current transition-transform group-hover:scale-125 group-focus-visible:scale-125',
+                      p.isCurrent
+                        ? 'h-3 w-3 bg-current ring-4 ring-[#5a63df]/20 dark:ring-[#a9afff]/25'
+                        : 'h-2.5 w-2.5 bg-white dark:bg-[#131315]'
+                    )}
+                  />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                className="rounded-lg border border-[#e4e2f0] bg-white px-2.5 py-1.5 text-slate-700 shadow-lg dark:border-white/[0.14] dark:bg-[#242427] dark:text-slate-100"
+              >
+                <p className={cn(NUM, 'text-xs font-extrabold')}>Band {p.value.toFixed(1)}</p>
+                <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                  {formatTrendDate(p.date)}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+
+        {/* X axis — only the ends are labelled, so a long run of attempts does
+            not collapse into overlapping dates. */}
+        <div className="mt-1.5 flex items-baseline justify-between gap-2 border-t border-[#eceafa] pt-1.5 dark:border-white/[0.07]">
+          <span className={cn(MICRO, MUTED, 'truncate')}>{formatTrendDate(scores[0]?.date)}</span>
+          <span className={cn(MICRO, 'shrink-0 text-[#5a63df] dark:text-[#a9afff]')}>
+            {formatTrendDate(scores[scores.length - 1]?.date)}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -611,8 +470,18 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
   const TrendIcon =
     trendDirection === 'up' ? TrendingUp : trendDirection === 'down' ? TrendingDown : History;
 
+  const best = scores.reduce(
+    (a, b) => ((Number(b.score) || 0) > (Number(a.score) || 0) ? b : a),
+    scores[0] || { score: 0 }
+  );
+
   return (
-    <section className={`${CARD} h-full space-y-3.5 p-4 sm:p-5`}>
+    // No `h-full` here: this card is the first of a stacked pair inside a
+    // stretched grid row (the practice plan below it absorbs the rest via
+    // `flex-1`). `h-full` on the first item claims the whole stretched row for
+    // itself and pushes the row's total height well past what either card
+    // actually needs — the bug behind the oversized card in review.
+    <section className={`${CARD} flex flex-col p-4 sm:p-5`}>
       <div className="flex items-start justify-between gap-3">
         <SectionHeading
           icon={History}
@@ -626,18 +495,24 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
           </div>
         )}
       </div>
+
       {loading ? (
-        <div className="h-36 animate-pulse rounded-xl bg-slate-100 dark:bg-white/[0.04]" />
+        <div className="h-48 flex-1 animate-pulse rounded-xl bg-slate-100 dark:bg-white/[0.04]" />
       ) : failed ? (
-        <p className="rounded-xl bg-amber-50 p-3 text-xs font-medium text-amber-700 border border-amber-200/60 dark:bg-amber-950/30 dark:text-amber-300">
+        <p className="rounded-xl border border-amber-200/60 bg-amber-50 p-3 text-xs font-medium text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
           History could not be loaded. Current-result analysis is unaffected.
         </p>
       ) : !analysis.history.scores.length ? (
-        <div className="flex items-center gap-3 rounded-xl border border-dashed border-[#5a63df]/20 bg-[#5a63df]/[0.06] p-3.5 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.08]">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xs font-extrabold text-[#5a63df] shadow-2xs dark:bg-white/[0.04]">
+        <div className="flex flex-1 items-center gap-3 rounded-xl border border-dashed border-[#5a63df]/20 bg-[#5a63df]/[0.06] p-3.5 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.08]">
+          <span
+            className={cn(
+              NUM,
+              'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-xs font-extrabold text-[#5a63df] dark:bg-white/[0.04]'
+            )}
+          >
             {formatBand(currentBand)}
           </span>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-bold text-slate-900 dark:text-white">Baseline recorded</p>
             <p className="text-[11px] text-slate-400 dark:text-slate-500">
               Your next same-module result will start the trend line.
@@ -646,46 +521,43 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
         </div>
       ) : (
         <>
+          {/* Three read-outs the chart itself cannot state precisely. */}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: 'First', value: firstScore, tone: MUTED },
+              {
+                label: 'Best',
+                value: Number(best?.score) || 0,
+                tone: 'text-[rgb(var(--signal-ok))]',
+              },
+              {
+                label: 'Latest',
+                value: latestScore,
+                tone: 'text-[#5a63df] dark:text-[#a9afff]',
+              },
+            ].map((stat) => (
+              <div key={stat.label} className={cn(TILE, 'px-3 py-2')}>
+                <p className={cn(MICRO, MUTED)}>{stat.label}</p>
+                <p className={cn(NUM, 'mt-1 text-lg font-extrabold leading-none', stat.tone)}>
+                  {formatBand(stat.value)}
+                </p>
+              </div>
+            ))}
+          </div>
+
           <div
             className={cn(
               WELL,
-              'rounded-xl border border-slate-200/70 p-3.5 dark:border-white/[0.08]'
+              'mt-3 flex flex-1 flex-col justify-center rounded-xl border border-slate-200/70 p-3 dark:border-white/[0.08]'
             )}
           >
-            <div className="flex items-start justify-between gap-4 px-1 pb-2">
-              <div>
-                <p className={cn(MICRO, MUTED)}>First attempt</p>
-                <p
-                  className={cn(
-                    NUM,
-                    'mt-0.5 text-sm font-extrabold text-slate-700 dark:text-slate-200'
-                  )}
-                >
-                  Band {formatBand(firstScore)}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className={cn(MICRO, 'text-[#5a63df] dark:text-[#a9afff]')}>Latest result</p>
-                <p
-                  className={cn(
-                    NUM,
-                    'mt-0.5 text-sm font-extrabold text-[#5a63df] dark:text-[#b8bcff]'
-                  )}
-                >
-                  Band {formatBand(latestScore)}
-                </p>
-              </div>
-            </div>
-            <div className="relative rounded-lg border border-slate-200/70 bg-white/45 px-1.5 pt-1 dark:border-white/[0.06] dark:bg-[#0d0d12]/45">
-              <TrendSparkline scores={scores} />
-            </div>
-            <div className="mt-2 flex items-center justify-between border-t border-slate-200/70 px-1 pt-2 text-[10px] font-bold text-slate-400 dark:border-white/[0.07] dark:text-slate-500">
-              <span>
-                {scores.length} scored attempt{scores.length === 1 ? '' : 's'}
-              </span>
-              <span className="text-slate-500 dark:text-slate-400">Hover a point for details</span>
-            </div>
+            <ScoreTrendChart scores={scores} />
           </div>
+
+          <p className={cn(MICRO, MUTED, 'mt-2.5 normal-case tracking-normal')}>
+            <span className={NUM}>{scores.length}</span> scored attempt
+            {scores.length === 1 ? '' : 's'} in this module · hover any point for its band.
+          </p>
         </>
       )}
     </section>
@@ -697,7 +569,7 @@ function RecoveryPlan({ analysis, canSave, saving, savedPathId, onSave, onViewPl
   const visiblePlan = showAllDays ? analysis.plan : analysis.plan.slice(0, 3);
 
   return (
-    <section className={`${CARD} p-4 space-y-3`}>
+    <section className={`${CARD} flex h-full flex-col p-4 space-y-3`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <SectionHeading
           icon={CalendarCheck2}
@@ -738,31 +610,47 @@ function RecoveryPlan({ analysis, canSave, saving, savedPathId, onSave, onViewPl
           )}
         </div>
       </div>
-      <div
-        className={`grid grid-cols-1 gap-2 sm:grid-cols-3 ${
-          showAllDays ? 'lg:grid-cols-4 xl:grid-cols-7' : ''
-        }`}
-      >
+      {/*
+        This card lives in a narrower stacked column now (roughly 7/12 of the
+        modal width, not the full page) — `lg:`/`xl:` breakpoints key off
+        *viewport* width, so on a wide screen they still forced all 7 cards
+        into one row inside that narrower container, squeezing each one to
+        under 120px and truncating the title down to a stray character. A flat
+        3-column cap sizes to what this column can actually offer: one row of
+        3 collapsed, three rows (3/3/1) expanded, every card wide enough to
+        read.
+      */}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {visiblePlan.map((item) => (
-          <div
-            key={item.day}
-            className="flex min-w-0 items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white/80 p-2.5 dark:border-white/[0.07] dark:bg-white/5"
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#5a63df] text-[10px] font-extrabold text-white">
-              D{item.day}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-extrabold text-slate-900 dark:text-white">
-                {item.title}
+          <Tooltip key={item.day} delayDuration={200}>
+            <TooltipTrigger asChild>
+              <div className="flex min-w-0 cursor-default items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white/80 p-2.5 dark:border-white/[0.07] dark:bg-white/5">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#5a63df] text-[10px] font-extrabold text-white">
+                  D{item.day}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-extrabold text-slate-900 dark:text-white">
+                    {item.title}
+                  </p>
+                  <p className="mt-0.5 truncate text-[10px] font-medium text-slate-400 dark:text-slate-500">
+                    {item.skill}
+                  </p>
+                </div>
+                <span className="shrink-0 text-[10px] font-extrabold text-[#5a63df] dark:text-[#a9afff]">
+                  {item.minutes}m
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent
+              side="top"
+              className="max-w-[220px] rounded-lg border border-[#e4e2f0] bg-white px-2.5 py-1.5 text-slate-700 shadow-lg dark:border-white/[0.14] dark:bg-[#242427] dark:text-slate-100"
+            >
+              <p className="text-xs font-extrabold">{item.title}</p>
+              <p className="mt-0.5 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                {item.skill} · {item.minutes}m
               </p>
-              <p className="mt-0.5 truncate text-[10px] font-medium text-slate-400 dark:text-slate-500">
-                {item.skill}
-              </p>
-            </div>
-            <span className="shrink-0 text-[10px] font-extrabold text-[#5a63df] dark:text-[#a9afff]">
-              {item.minutes}m
-            </span>
-          </div>
+            </TooltipContent>
+          </Tooltip>
         ))}
       </div>
       {!canSave && (
@@ -869,54 +757,130 @@ export function DetailedAnalysisTab({
 
   return (
     <div className="p-3 sm:p-4 lg:p-5">
+      {/*
+        This tab answers "why", never "what". Attribution — accuracy by question
+        type and by passage — is the Overview tab's job and appears there once,
+        cross-tabulated. Everything below is a signal the Overview cannot carry:
+        the arithmetic to the next band, which answers to reopen, how the paper
+        unfolded, how the learner worked, and how the skills are moving across
+        attempts.
+      */}
       <div className="mx-auto max-w-[1400px] space-y-3">
-        <RecoveryMap
+        <TargetGapStrip
           analysis={analysis}
           testResults={testResults}
           currentBand={testResults.bandScore}
           selectedTarget={selectedTarget || analysis.target.targetBand}
-          onTargetChange={setSelectedTarget}
         />
-        <div className="grid items-start gap-3 lg:grid-cols-12">
-          <div className="min-w-0 lg:col-span-7">
+
+        {/*
+          Every row stretches and every card fills it. The mistake queue runs to
+          five rows while a behaviour card is four tiles tall, so pairing them
+          one-to-one left half a screen of dead panel underneath the short one.
+          The tall card is now balanced by a stacked pair instead.
+        */}
+        <div className="grid items-stretch gap-3 lg:grid-cols-12">
+          <div className="flex min-w-0 flex-col lg:col-span-7">
             <MistakeQueue analysis={analysis} onReviewQuestion={handleReview} />
           </div>
-          <div className="min-w-0 space-y-3 lg:col-span-5">
-            <SectionStrategy analysis={analysis} testType={testType} />
+          <div className="flex min-w-0 flex-col gap-3 lg:col-span-5">
+            {/*
+              This card is the first of a stacked pair (SectionFlowCard fills
+              what's left below it) — `h-auto` overrides the gate's default
+              `h-full`, which would otherwise claim the entire stretched row
+              height for itself and leave nothing for the card underneath.
+            */}
+            <PaidFeatureGate
+              hasAccess={Boolean(isPremium)}
+              label="Working habits"
+              title="See how you worked, not just what you scored"
+              description="Answer changes, second-guessing, flagged questions and blanks — the technique signals recorded during the test that explain why marks were lost."
+              benefits={[
+                'Confidence and second-guessing read-outs',
+                'Flagged and changed answers traced to marks',
+              ]}
+              onUpgrade={handleUpgrade}
+              className="h-auto"
+            >
+              <ExamBehaviourCard testResults={testResults} errorBuckets={analysis.errorBuckets} />
+            </PaidFeatureGate>
+
+            <div className="flex min-w-0 flex-1 flex-col">
+              <SectionFlowCard
+                testResults={testResults}
+                testType={testType}
+                isPremium={Boolean(isPremium)}
+                onUpgrade={handleUpgrade}
+              />
+            </div>
           </div>
         </div>
-        {isPremium ? (
-          <div className="grid items-start gap-3 lg:grid-cols-12">
-            <div className="min-w-0 lg:col-span-5">
+
+        <div className="grid items-stretch gap-3 lg:grid-cols-12">
+          <div className="flex min-w-0 flex-col lg:col-span-5">
+            <PaidFeatureGate
+              hasAccess={Boolean(isPremium)}
+              label="Skill trends"
+              title="See whether a weakness is new or permanent"
+              description="Compares every question type in this paper with the same types across your recent attempts, so a recurring weakness stops hiding behind one bad result."
+              benefits={[
+                'Improving vs recurring per question type',
+                'Built from your last five attempts',
+              ]}
+              onUpgrade={handleUpgrade}
+            >
+              <SkillTrendCard analysis={analysis} />
+            </PaidFeatureGate>
+          </div>
+          {/*
+            The skill-trend list runs one row per question type — six on a full
+            reading paper — while the trend chart is a fixed height. Pairing them
+            one-to-one left the whole lower half of the right column empty, so
+            the chart and the practice plan stack to meet it instead.
+          */}
+          <div className="flex min-w-0 flex-col gap-3 lg:col-span-7">
+            {/* First of a stacked pair — see the note above the habits card. */}
+            <PaidFeatureGate
+              hasAccess={Boolean(isPremium)}
+              label="Score trend"
+              title="Track this module across every attempt"
+              description="Plot this result against your recent scores in the same module to see whether the band is genuinely moving."
+              benefits={['Cross-test score patterns', 'Every scored attempt on one line']}
+              onUpgrade={handleUpgrade}
+              className="h-auto"
+            >
               <RecentPatterns
                 analysis={analysis}
                 loading={historyQuery.isLoading}
                 failed={historyQuery.isError}
                 currentBand={testResults.bandScore}
               />
-            </div>
-            <div className="min-w-0 lg:col-span-7">
-              <RecoveryPlan
-                analysis={analysis}
-                canSave={Boolean(sessionId)}
-                saving={saveMutation.isPending}
-                savedPathId={savedPathId}
-                onSave={() => saveMutation.mutate()}
-                onViewPlan={() => navigate('/learning-path')}
-              />
+            </PaidFeatureGate>
+
+            <div className="flex min-w-0 flex-1 flex-col">
+              <PaidFeatureGate
+                hasAccess={Boolean(isPremium)}
+                label="Advanced coaching"
+                title="Turn this result into a longer-term plan"
+                description="Get a personalised seven-day recovery plan built from the mistakes above, and save it straight to your learning path."
+                benefits={[
+                  'Seven-day plan built from this result',
+                  'Saves into your learning path',
+                ]}
+                onUpgrade={handleUpgrade}
+              >
+                <RecoveryPlan
+                  analysis={analysis}
+                  canSave={Boolean(sessionId)}
+                  saving={saveMutation.isPending}
+                  savedPathId={savedPathId}
+                  onSave={() => saveMutation.mutate()}
+                  onViewPlan={() => navigate('/learning-path')}
+                />
+              </PaidFeatureGate>
             </div>
           </div>
-        ) : (
-          <PaidFeatureGate
-            hasAccess={false}
-            label="Advanced coaching"
-            title="Turn this result into a longer-term plan"
-            description="Compare this score with recent attempts and get a personalised seven-day recovery plan you can save to your learning path."
-            benefits={['Cross-test score patterns', 'Saved seven-day practice plan']}
-            className="min-h-[210px]"
-            onUpgrade={handleUpgrade}
-          />
-        )}
+        </div>
       </div>
       <div
         className={cn(
