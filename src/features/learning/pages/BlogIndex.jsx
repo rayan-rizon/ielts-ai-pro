@@ -295,7 +295,7 @@ function ArticlePagination({ currentPage, totalPages, totalArticles, onPageChang
 
 function BlogHeroSection() {
   return (
-    <section className="relative overflow-hidden border-b border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white via-[#faf9ff] to-white dark:from-[#090b13] dark:via-[#0e111c] dark:to-[#090b13]">
+    <section className="relative overflow-hidden border-b border-[#e4e2f0]/60 dark:border-white/[0.05] bg-gradient-to-b from-white via-[#faf9ff] to-white dark:from-[#090b13] dark:via-[#0e111c] dark:to-[#090b13]">
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-10 sm:px-6 lg:grid-cols-[.95fr_1.05fr] lg:py-14">
         <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#5a63df]/30 bg-[#5a63df]/15 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[#5a63df] dark:border-[#8f97ff]/40 dark:bg-[#8f97ff]/20 dark:text-[#a9afff]">
@@ -344,12 +344,12 @@ function BlogCategoryBar({ categories, category, setCategory, setCurrentPage }) 
   };
 
   return (
-    <section className="py-3 sm:py-3.5 border-b border-[#e4e2f0] dark:border-white/[0.07] bg-white/80 dark:bg-[#090b13]/85 backdrop-blur-xl sticky top-14 sm:top-16 z-20 transition-all duration-200">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 relative">
+    <section className="py-3 sm:py-4 border-b border-[#e4e2f0]/60 dark:border-white/[0.05] bg-white/80 dark:bg-[#090b13]/90 backdrop-blur-2xl sticky top-14 sm:top-16 z-20 transition-all duration-300">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 relative">
         <div
           ref={scrollRef}
           onMouseLeave={() => setHoveredCategory(null)}
-          className="relative flex items-center gap-1 overflow-x-auto no-scrollbar p-1 rounded-xl bg-white dark:bg-[#141319] border border-[#e4e2f0] dark:border-white/[0.07] shadow-xs w-full md:w-max md:mx-auto transition-colors duration-200"
+          className="relative flex items-center gap-1 overflow-x-auto no-scrollbar p-1 rounded-full bg-[#f4f3fb] dark:bg-[#141319] border border-[#e4e2f0] dark:border-white/[0.07] shadow-xs hover:border-[#5a63df]/30 dark:hover:border-white/20 w-full md:w-max md:mx-auto transition-colors duration-300"
         >
           {categories.map((item) => {
             const config = item === 'All' ? null : getCategoryConfig(item);
@@ -361,16 +361,16 @@ function BlogCategoryBar({ categories, category, setCategory, setCurrentPage }) 
                 onClick={(e) => handleSelectCategory(item, e)}
                 onMouseEnter={() => setHoveredCategory(item)}
                 className={cn(
-                  'relative inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-tight transition-all duration-200 outline-none whitespace-nowrap active:scale-95 z-10 cursor-pointer',
+                  'relative inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs md:text-sm font-bold tracking-tight transition-colors duration-200 outline-none whitespace-nowrap active:scale-95 z-10 cursor-pointer',
                   isActive
-                    ? 'text-white dark:text-[#a9afff]'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                    ? 'text-[#5a63df] dark:text-[#a9afff]'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-[#5a63df] dark:hover:text-[#a9afff]'
                 )}
               >
                 {isActive && (
                   <motion.div
                     layoutId="activeBlogCategoryTab"
-                    className="absolute inset-0 rounded-lg bg-[#5a63df] dark:bg-[#8f97ff]/20 border border-transparent dark:border-[#8f97ff]/30 shadow-xs z-0"
+                    className="absolute inset-0 rounded-full bg-[#5a63df]/15 dark:bg-[#8f97ff]/20 border border-[#5a63df]/30 dark:border-[#8f97ff]/35 shadow-xs z-0"
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
                 )}
@@ -387,7 +387,7 @@ function BlogCategoryBar({ categories, category, setCategory, setCurrentPage }) 
                         damping: 30,
                         opacity: { duration: 0.15 },
                       }}
-                      className="absolute inset-0 rounded-lg bg-slate-100 dark:bg-white/[0.05] pointer-events-none z-0"
+                      className="absolute inset-0 rounded-full bg-[#5a63df]/10 dark:bg-[#8f97ff]/10 border border-[#5a63df]/20 dark:border-[#8f97ff]/20 pointer-events-none z-0"
                     />
                   )}
                 </AnimatePresence>
@@ -984,9 +984,9 @@ export default function BlogIndex() {
           />
 
           <section className="mx-auto max-w-7xl px-5 py-6 sm:px-6 lg:py-8">
-            <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center border-b border-slate-200/60 pb-5 dark:border-white/5">
+            <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center border-b border-[#e4e2f0]/60 pb-5 dark:border-white/[0.05]">
               <div>
-                <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-indigo-600 dark:text-indigo-400">
+                <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-[#5a63df] dark:text-[#a9afff]">
                   {BLOG_LIBRARY_COPY.sectionEyebrow}
                 </p>
                 <h2 className="mt-1 text-2xl font-black tracking-[-0.03em] sm:text-3xl dark:text-white">
@@ -994,7 +994,7 @@ export default function BlogIndex() {
                 </h2>
               </div>
               <div className="relative w-full sm:max-w-sm">
-                <div className="group relative flex items-center rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-white dark:bg-[#141319] p-1 shadow-xs transition-all duration-200 focus-within:border-[#5a63df] dark:focus-within:border-[#8f97ff]">
+                <div className="group relative flex items-center rounded-full border border-[#e4e2f0] dark:border-white/[0.07] bg-[#f4f3fb] dark:bg-[#141319] p-1 transition-all duration-200 focus-within:border-[#5a63df]/40 dark:focus-within:border-[#8f97ff]/40 focus-within:ring-2 focus-within:ring-[#5a63df]/20 dark:focus-within:ring-[#8f97ff]/20 shadow-xs">
                   <Search className="ml-3.5 h-4 w-4 shrink-0 text-slate-400 transition-colors duration-200 group-focus-within:text-[#5a63df] dark:group-focus-within:text-[#8f97ff]" />
                   <input
                     type="text"
@@ -1002,13 +1002,13 @@ export default function BlogIndex() {
                     onChange={(event) => updateQuery(event.target.value)}
                     placeholder={BLOG_LIBRARY_COPY.searchPlaceholder}
                     aria-label="Search IELTS articles"
-                    className="w-full bg-transparent px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 dark:text-white !border-none !outline-none focus:!outline-none focus-visible:!outline-none focus-visible:!ring-0 !shadow-none !ring-0 [outline:none!important] [border:none!important]"
+                    className="w-full bg-transparent px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500 !border-none !outline-none focus:!outline-none focus-visible:!outline-none focus-visible:!ring-0 !shadow-none !ring-0 [outline:none!important] [border:none!important]"
                   />
                   {query && (
                     <button
                       type="button"
                       onClick={() => updateQuery('')}
-                      className="mr-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:bg-white/10 dark:text-slate-400 dark:hover:bg-white/20 dark:hover:text-slate-200 transition-colors"
+                      className="mr-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200/80 text-slate-500 hover:bg-slate-300 dark:bg-white/10 dark:text-slate-400 dark:hover:bg-white/20 dark:hover:text-slate-200 transition-colors"
                       aria-label="Clear search query"
                     >
                       <X className="h-3 w-3" />
