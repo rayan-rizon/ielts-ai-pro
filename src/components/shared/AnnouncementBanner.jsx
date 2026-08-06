@@ -24,52 +24,52 @@ const TONE = {
   info: {
     icon: Sparkles,
     surface:
-      'border-b border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-r from-white via-[#f7f6fd] to-white dark:from-[#141319] dark:via-[#181722] dark:to-[#141319]',
+      'border-b border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-r from-white via-[#f7f6fd] to-white dark:from-[#141319] dark:via-[#181722] dark:to-[#141319]',
     chipBg:
-      'border-[#5a63df]/25 bg-[#5a63df]/[0.08] text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/[0.14] dark:text-[#afb5ff]',
+      'border-[#5a63df]/25 bg-[#5a63df]/8 text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/[0.14] dark:text-[#afb5ff]',
     title: 'text-slate-900 dark:text-slate-50',
     body: 'text-slate-600 dark:text-slate-300',
     accent:
-      'text-[#5a63df] border-[#5a63df]/25 bg-[#5a63df]/[0.08] hover:bg-[#5a63df] hover:text-white dark:text-[#afb5ff] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/[0.14] dark:hover:bg-[#8f97ff] dark:hover:text-[#0b0c10]',
+      'text-[#5a63df] border-[#5a63df]/25 bg-[#5a63df]/8 hover:bg-[#5a63df] hover:text-white dark:text-[#afb5ff] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/[0.14] dark:hover:bg-[#8f97ff] dark:hover:text-[#0b0c10]',
     dismiss:
       'border-slate-200 text-slate-400 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:text-slate-400 dark:hover:border-white/20 dark:hover:bg-white/10 dark:hover:text-white',
   },
   success: {
     icon: CheckCircle2,
     surface:
-      'border-b border-emerald-200 dark:border-emerald-500/20 bg-gradient-to-r from-emerald-50/90 to-teal-50/90 dark:from-[#0a1813] dark:to-[#091511]',
+      'border-b border-emerald-200 dark:border-emerald-500/20 bg-linear-to-r from-emerald-50/90 to-teal-50/90 dark:from-[#0a1813] dark:to-[#091511]',
     chipBg:
-      'border-emerald-500/25 bg-emerald-500/[0.08] text-emerald-600 dark:border-emerald-400/30 dark:bg-emerald-400/[0.14] dark:text-emerald-300',
+      'border-emerald-500/25 bg-emerald-500/8 text-emerald-600 dark:border-emerald-400/30 dark:bg-emerald-400/[0.14] dark:text-emerald-300',
     title: 'text-emerald-950 dark:text-emerald-50',
     body: 'text-emerald-800 dark:text-emerald-200/90',
     accent:
-      'text-emerald-700 border-emerald-500/25 bg-emerald-500/[0.08] hover:bg-emerald-600 hover:text-white dark:text-emerald-300 dark:border-emerald-400/30 dark:bg-emerald-400/[0.14] dark:hover:bg-emerald-400 dark:hover:text-[#0b0c10]',
+      'text-emerald-700 border-emerald-500/25 bg-emerald-500/8 hover:bg-emerald-600 hover:text-white dark:text-emerald-300 dark:border-emerald-400/30 dark:bg-emerald-400/[0.14] dark:hover:bg-emerald-400 dark:hover:text-[#0b0c10]',
     dismiss:
       'border-emerald-200 text-emerald-600/70 hover:border-emerald-300 hover:bg-emerald-100/60 hover:text-emerald-900 dark:border-emerald-800/40 dark:text-emerald-400/70 dark:hover:border-emerald-700/60 dark:hover:bg-emerald-500/20 dark:hover:text-emerald-200',
   },
   warning: {
     icon: AlertTriangle,
     surface:
-      'border-b border-amber-200 dark:border-amber-500/20 bg-gradient-to-r from-amber-50/90 to-orange-50/90 dark:from-[#171208] dark:to-[#150f07]',
+      'border-b border-amber-200 dark:border-amber-500/20 bg-linear-to-r from-amber-50/90 to-orange-50/90 dark:from-[#171208] dark:to-[#150f07]',
     chipBg:
-      'border-amber-500/25 bg-amber-500/[0.08] text-amber-600 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300',
+      'border-amber-500/25 bg-amber-500/8 text-amber-600 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300',
     title: 'text-amber-950 dark:text-amber-50',
     body: 'text-amber-800 dark:text-amber-200/90',
     accent:
-      'text-amber-700 border-amber-500/25 bg-amber-500/[0.08] hover:bg-amber-600 hover:text-white dark:text-amber-300 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:hover:bg-amber-400 dark:hover:text-[#0b0c10]',
+      'text-amber-700 border-amber-500/25 bg-amber-500/8 hover:bg-amber-600 hover:text-white dark:text-amber-300 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:hover:bg-amber-400 dark:hover:text-[#0b0c10]',
     dismiss:
       'border-amber-200 text-amber-600/70 hover:border-amber-300 hover:bg-amber-100/60 hover:text-amber-900 dark:border-amber-800/40 dark:text-amber-400/70 dark:hover:border-amber-700/60 dark:hover:bg-amber-500/20 dark:hover:text-amber-200',
   },
   critical: {
     icon: AlertOctagon,
     surface:
-      'border-b border-rose-200 dark:border-rose-500/20 bg-gradient-to-r from-rose-50/90 to-pink-50/90 dark:from-[#1a0a0c] dark:to-[#17090b]',
+      'border-b border-rose-200 dark:border-rose-500/20 bg-linear-to-r from-rose-50/90 to-pink-50/90 dark:from-[#1a0a0c] dark:to-[#17090b]',
     chipBg:
-      'border-rose-500/25 bg-rose-500/[0.08] text-rose-600 dark:border-rose-400/30 dark:bg-rose-400/[0.14] dark:text-rose-300',
+      'border-rose-500/25 bg-rose-500/8 text-rose-600 dark:border-rose-400/30 dark:bg-rose-400/[0.14] dark:text-rose-300',
     title: 'text-rose-950 dark:text-rose-50',
     body: 'text-rose-800 dark:text-rose-200/90',
     accent:
-      'text-rose-700 border-rose-500/25 bg-rose-500/[0.08] hover:bg-rose-600 hover:text-white dark:text-rose-300 dark:border-rose-400/30 dark:bg-rose-400/[0.14] dark:hover:bg-rose-400 dark:hover:text-[#0b0c10]',
+      'text-rose-700 border-rose-500/25 bg-rose-500/8 hover:bg-rose-600 hover:text-white dark:text-rose-300 dark:border-rose-400/30 dark:bg-rose-400/[0.14] dark:hover:bg-rose-400 dark:hover:text-[#0b0c10]',
     dismiss:
       'border-rose-200 text-rose-600/70 hover:border-rose-300 hover:bg-rose-100/60 hover:text-rose-900 dark:border-rose-800/40 dark:text-rose-400/70 dark:hover:border-rose-700/60 dark:hover:bg-rose-500/20 dark:hover:text-rose-200',
   },
@@ -184,12 +184,12 @@ const AnnouncementBanner = ({ announcement, preview = false }) => {
         transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
         role="status"
         className={cn(
-          'group relative z-[100] w-full overflow-hidden transition-all duration-300',
+          'group relative z-100 w-full overflow-hidden transition-all duration-300',
           tone.surface
         )}
       >
         {/* Subtle glowing accent highlight line across top border */}
-        <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#5a63df]/40 to-transparent dark:via-[#8f97ff]/45" />
+        <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#5a63df]/40 to-transparent dark:via-[#8f97ff]/45" />
 
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-3 px-10 py-2.5 sm:px-14">
           {/* Subtle Icon Chip */}
@@ -200,7 +200,7 @@ const AnnouncementBanner = ({ announcement, preview = false }) => {
             )}
           >
             <Icon
-              className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-[6deg]"
+              className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-6"
               strokeWidth={2.25}
             />
           </span>

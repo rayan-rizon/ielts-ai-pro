@@ -279,7 +279,7 @@ export default function AdminPanel() {
         data-oid="wxlqoe8"
       >
         <div
-          className="absolute inset-0 opacity-60 dark:opacity-30 bg-[radial-gradient(circle_at_1px_1px,rgb(168_162_158/0.35)_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.06)_1px,transparent_0)] [background-size:22px_22px]"
+          className="absolute inset-0 opacity-60 dark:opacity-30 bg-[radial-gradient(circle_at_1px_1px,rgb(168_162_158/0.35)_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.06)_1px,transparent_0)] bg-size-[22px_22px]"
           data-oid="n2hnue4"
         />
       </div>

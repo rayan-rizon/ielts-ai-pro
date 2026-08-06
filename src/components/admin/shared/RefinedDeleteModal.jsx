@@ -56,7 +56,7 @@ const RefinedDeleteModal = ({
         </DialogHeader>
 
         {itemIdentifier && (
-          <div className="text-xs font-bold text-stone-800 dark:text-stone-100 bg-stone-50 dark:bg-white/[0.03] p-2.5 rounded-md border border-stone-200/70 dark:border-white/[0.06]">
+          <div className="text-xs font-bold text-stone-800 dark:text-stone-100 bg-stone-50 dark:bg-white/3 p-2.5 rounded-md border border-stone-200/70 dark:border-white/6">
             {itemIdentifier}
           </div>
         )}

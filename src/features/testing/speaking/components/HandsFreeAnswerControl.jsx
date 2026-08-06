@@ -9,13 +9,13 @@ export default function HandsFreeAnswerControl({ enabled, onChange, compact = fa
   return (
     <section
       className={cn(
-        'border-t border-[#e4e2f0] bg-gradient-to-br from-rose-500/[0.045] via-transparent to-rose-500/[0.045] dark:border-white/[0.07]',
+        'border-t border-[#e4e2f0] bg-linear-to-br from-rose-500/4.5 via-transparent to-rose-500/4.5 dark:border-white/[0.07]',
         compact ? 'px-3 py-3 sm:px-4' : 'px-4 py-3.5 sm:px-5'
       )}
     >
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-500/[0.09] text-rose-500">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-500/9 text-rose-500">
             <AudioWaveform className="h-4 w-4" aria-hidden="true" />
           </span>
           <div className="min-w-0">
@@ -28,7 +28,7 @@ export default function HandsFreeAnswerControl({ enabled, onChange, compact = fa
                   'rounded-full px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.13em]',
                   enabled
                     ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                    : 'bg-[#f4f3fb] text-slate-500 dark:bg-white/[0.04] dark:text-slate-400'
+                    : 'bg-[#f4f3fb] text-slate-500 dark:bg-white/4 dark:text-slate-400'
                 )}
               >
                 {enabled ? 'Auto' : 'Manual'}

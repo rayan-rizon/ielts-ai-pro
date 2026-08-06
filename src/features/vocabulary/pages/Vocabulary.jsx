@@ -180,7 +180,7 @@ const PersonalWordBank = ({
             placeholder="Search saved words..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-9 w-full rounded-lg border-[#e2e5f2] bg-[#fbfbfe] pl-9 text-xs font-semibold dark:border-white/10 dark:bg-white/[0.04]"
+            className="h-9 w-full rounded-lg border-[#e2e5f2] bg-[#fbfbfe] pl-9 text-xs font-semibold dark:border-white/10 dark:bg-white/4"
           />
         </div>
 
@@ -192,7 +192,7 @@ const PersonalWordBank = ({
               saveLanguagePreference(val);
             }}
           >
-            <SelectTrigger className="h-9 w-[130px] shrink-0 rounded-lg border-[#e2e5f2] bg-[#fbfbfe] text-xs font-bold dark:border-white/10 dark:bg-white/[0.04]">
+            <SelectTrigger className="h-9 w-[130px] shrink-0 rounded-lg border-[#e2e5f2] bg-[#fbfbfe] text-xs font-bold dark:border-white/10 dark:bg-white/4">
               <Languages className="mr-1.5 h-3.5 w-3.5 shrink-0 text-[#5a63df]" />
               <SelectValue placeholder="Language" />
             </SelectTrigger>
@@ -209,7 +209,7 @@ const PersonalWordBank = ({
             <Button
               variant="outline"
               size="icon"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-[#e2e5f2] bg-white dark:border-white/10 dark:bg-white/[0.04]"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-[#e2e5f2] bg-white dark:border-white/10 dark:bg-white/4"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
               <MoreVertical className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
@@ -457,11 +457,11 @@ export default function Vocabulary() {
     <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 transition-colors duration-300 dark:bg-[#08080a] dark:text-white">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+        className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
       />
 
       <m.div

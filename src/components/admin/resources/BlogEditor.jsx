@@ -56,8 +56,8 @@ const BlogEditor = ({ initialData, onSave, onCancel }) => {
         <m.div variants={FADE_UP} className="lg:col-span-2">
           <div className={cn(PANEL, 'overflow-hidden')}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <div className="px-4 pt-3 pb-2 border-b border-stone-200/80 dark:border-white/[0.07] flex justify-between items-center bg-stone-50/60 dark:bg-white/[0.02]">
-                <div className="relative flex items-center gap-1 p-1 bg-stone-100 dark:bg-white/[0.04] rounded-lg border border-stone-200/80 dark:border-white/[0.07]">
+              <div className="px-4 pt-3 pb-2 border-b border-stone-200/80 dark:border-white/[0.07] flex justify-between items-center bg-stone-50/60 dark:bg-white/2">
+                <div className="relative flex items-center gap-1 p-1 bg-stone-100 dark:bg-white/4 rounded-lg border border-stone-200/80 dark:border-white/[0.07]">
                   {EDITOR_TABS.map((tab) => {
                     const isActive = activeTab === tab.id;
                     const Icon = tab.icon;

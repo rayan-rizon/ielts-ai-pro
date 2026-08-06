@@ -60,14 +60,14 @@ export default function TechSpotlightSection() {
           {STEPS.map((item, idx) => (
             <div
               key={idx}
-              className="group rounded-[24px] border border-slate-200/80 dark:border-white/10 bg-gradient-to-br from-white via-slate-50/50 to-white dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] p-6 relative transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl dark:hover:shadow-none hover:border-indigo-500/30 dark:hover:border-[#5a63df]/30 overflow-hidden"
+              className="group rounded-[24px] border border-slate-200/80 dark:border-white/10 bg-linear-to-br from-white via-slate-50/50 to-white dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] p-6 relative transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl dark:hover:shadow-none hover:border-indigo-500/30 dark:hover:border-[#5a63df]/30 overflow-hidden"
             >
               <div className="flex items-center justify-between mb-4">
                 <span className={`text-xs font-black px-2.5 py-1 rounded-lg ${item.badgeBg}`}>
                   STEP {item.step}
                 </span>
                 <div
-                  className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.color} border flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-sm`}
+                  className={`w-10 h-10 rounded-xl bg-linear-to-br ${item.color} border flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-sm`}
                 >
                   <item.icon className="w-5 h-5" />
                 </div>

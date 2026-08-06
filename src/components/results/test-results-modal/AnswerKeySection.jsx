@@ -20,7 +20,7 @@ const CELL_STYLE = {
   [STATUS.skipped]:
     'bg-[rgb(var(--signal-warn)/0.12)] text-[rgb(var(--signal-warn))] border-[rgb(var(--signal-warn)/0.30)]',
   [STATUS.unknown]:
-    'bg-[#f4f3fb] text-slate-400 border-[#e4e2f0] dark:bg-white/[0.04] dark:text-slate-500 dark:border-white/[0.08]',
+    'bg-[#f4f3fb] text-slate-400 border-[#e4e2f0] dark:bg-white/4 dark:text-slate-500 dark:border-white/8',
 };
 
 const LEGEND = [

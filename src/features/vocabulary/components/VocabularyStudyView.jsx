@@ -12,7 +12,7 @@ const LockedContent = ({ resource }) => {
   const tier = contentTierLabel(resource.access_tier);
   return (
     <div className={cn(TILE, 'mx-auto my-6 max-w-lg border-dashed p-8 text-center sm:p-10')}>
-      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-[#5a63df]/20 bg-[#5a63df]/10 text-[#5a63df] ring-4 ring-[#5a63df]/[0.06] dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.14] dark:text-[#afb5ff] dark:ring-[#8f97ff]/[0.08]">
+      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-[#5a63df]/20 bg-[#5a63df]/10 text-[#5a63df] ring-4 ring-[#5a63df]/6 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.14] dark:text-[#afb5ff] dark:ring-[#8f97ff]/8">
         <Lock className="h-5 w-5" strokeWidth={2.25} />
       </span>
 

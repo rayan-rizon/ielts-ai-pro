@@ -95,7 +95,7 @@ const LearnerPreview = ({ form }) => {
   const isEmpty = !form.title.trim() && !form.message.trim();
 
   return (
-    <div className="rounded-lg bg-[#f8f7fc] p-4 dark:bg-white/[0.04]">
+    <div className="rounded-lg bg-[#f8f7fc] p-4 dark:bg-white/4">
       <div
         className={cn(
           USER_PANEL,
@@ -105,8 +105,8 @@ const LearnerPreview = ({ form }) => {
       >
         <IconChip icon={Icon} tone={meta.tone} size="md" />
         <div className="min-w-0 flex-1">
-          <p className={cn(USER_TITLE, 'break-words')}>{title}</p>
-          <p className="mt-1 break-words text-[12px] leading-snug text-slate-600 dark:text-slate-300">
+          <p className={cn(USER_TITLE, 'wrap-break-word')}>{title}</p>
+          <p className="mt-1 wrap-break-word text-[12px] leading-snug text-slate-600 dark:text-slate-300">
             {message}
           </p>
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
@@ -138,7 +138,7 @@ const HistoryRow = ({ notification, readCount, onToggleActive, onDelete }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="group border-b border-stone-100 transition-colors hover:bg-stone-50/60 dark:border-white/[0.04] dark:hover:bg-white/[0.02]"
+      className="group border-b border-stone-100 transition-colors hover:bg-stone-50/60 dark:border-white/4 dark:hover:bg-white/2"
     >
       <TableCell className="px-4 py-3">
         <div className="flex items-center gap-2.5">
@@ -458,8 +458,8 @@ export default function BroadcastsPanel() {
                       className={cn(
                         'flex items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors',
                         active
-                          ? 'bg-stone-100 dark:bg-white/[0.05]'
-                          : 'hover:bg-stone-50 dark:hover:bg-white/[0.02]'
+                          ? 'bg-stone-100 dark:bg-white/5'
+                          : 'hover:bg-stone-50 dark:hover:bg-white/2'
                       )}
                     >
                       <IconChip icon={meta.icon} tone={meta.tone} size="sm" />
@@ -494,7 +494,7 @@ export default function BroadcastsPanel() {
 
       {/* History */}
       <div className={cn(PANEL, 'overflow-hidden')}>
-        <div className="flex items-center justify-between gap-3 border-b border-stone-100 px-4 py-2.5 dark:border-white/[0.06]">
+        <div className="flex items-center justify-between gap-3 border-b border-stone-100 px-4 py-2.5 dark:border-white/6">
           <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
             Broadcast history · {notifications.length}
           </p>
@@ -505,7 +505,7 @@ export default function BroadcastsPanel() {
         </div>
 
         {/* Mobile list */}
-        <div className="divide-y divide-stone-100 dark:divide-white/[0.05] md:hidden">
+        <div className="divide-y divide-stone-100 dark:divide-white/5 md:hidden">
           {loading ? (
             <div className="p-8 text-center">
               <Loader2 className="mx-auto mb-2 h-6 w-6 animate-spin text-stone-500 dark:text-stone-400" />
@@ -592,10 +592,10 @@ export default function BroadcastsPanel() {
                   [...Array(4)].map((_, index) => (
                     <TableRow
                       key={`skeleton-${index}`}
-                      className="border-b border-stone-100 dark:border-white/[0.04]"
+                      className="border-b border-stone-100 dark:border-white/4"
                     >
                       <TableCell colSpan={6} className="px-4 py-3">
-                        <div className="h-5 w-full animate-pulse rounded-md bg-stone-100 dark:bg-white/[0.04]" />
+                        <div className="h-5 w-full animate-pulse rounded-md bg-stone-100 dark:bg-white/4" />
                       </TableCell>
                     </TableRow>
                   ))

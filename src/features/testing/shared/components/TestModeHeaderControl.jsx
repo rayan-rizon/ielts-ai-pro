@@ -49,7 +49,7 @@ export default function TestModeHeaderControl({
       <div className="relative flex items-center gap-1.5 sm:gap-2">
         {/* Mode Selector Radio Group */}
         <div
-          className="relative flex items-center rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] p-1 dark:border-white/[0.10] dark:bg-white/[0.055]"
+          className="relative flex items-center rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] p-1 dark:border-white/10 dark:bg-white/5.5"
           role="radiogroup"
           aria-label="Test mode"
         >
@@ -69,7 +69,7 @@ export default function TestModeHeaderControl({
                 disabled={disabled || isStarting}
                 onClick={() => onModeChange(id)}
                 className={cn(
-                  'relative z-10 flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-[9px] font-bold uppercase tracking-[0.10em] transition-colors cursor-pointer select-none sm:px-3 sm:text-[10px]',
+                  'relative z-10 flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-[9px] font-bold uppercase tracking-widest transition-colors cursor-pointer select-none sm:px-3 sm:text-[10px]',
                   selected
                     ? 'text-white dark:text-[#10111a]'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100',
@@ -103,7 +103,7 @@ export default function TestModeHeaderControl({
             <button
               type="button"
               aria-label="Mode Guide"
-              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-[#e4e2f0] bg-white text-slate-500 transition-colors hover:bg-white hover:text-slate-900 dark:border-white/[0.10] dark:bg-white/[0.055] dark:text-slate-400 dark:hover:bg-white/[0.09] dark:hover:text-slate-100"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-[#e4e2f0] bg-white text-slate-500 transition-colors hover:bg-white hover:text-slate-900 dark:border-white/10 dark:bg-white/5.5 dark:text-slate-400 dark:hover:bg-white/9 dark:hover:text-slate-100"
             >
               <HelpCircle className="h-3.5 w-3.5" />
             </button>
@@ -111,7 +111,7 @@ export default function TestModeHeaderControl({
           <PopoverContent
             side="bottom"
             align="end"
-            className="z-50 w-80 rounded-xl border border-[#e4e2f0] bg-white p-4 shadow-xl dark:border-white/[0.12] dark:bg-[#131315]"
+            className="z-50 w-80 rounded-xl border border-[#e4e2f0] bg-white p-4 shadow-xl dark:border-white/12 dark:bg-[#131315]"
           >
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-2.5 mb-3">
               <div className="flex items-center gap-2">
@@ -131,7 +131,7 @@ export default function TestModeHeaderControl({
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 dark:border-white/[0.10] dark:bg-white/[0.055]">
+              <div className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 dark:border-white/10 dark:bg-white/5.5">
                 <div className="flex items-center gap-1.5 font-bold text-indigo-600 dark:text-slate-200 mb-1">
                   <Sparkles className="h-3.5 w-3.5" />
                   <span>Practice Mode</span>
@@ -143,7 +143,7 @@ export default function TestModeHeaderControl({
                 </ul>
               </div>
 
-              <div className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 dark:border-white/[0.10] dark:bg-white/[0.055]">
+              <div className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 dark:border-white/10 dark:bg-white/5.5">
                 <div className="flex items-center gap-1.5 font-bold text-indigo-600 dark:text-slate-200 mb-1">
                   <GraduationCap className="h-3.5 w-3.5" />
                   <span>Exam Mode</span>
@@ -191,7 +191,7 @@ export default function TestModeHeaderControl({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.96 }}
               transition={{ duration: 0.15 }}
-              className="absolute left-0 top-full mt-2.5 z-50 w-[calc(100vw-2rem)] max-w-xs sm:w-76 rounded-[22px] border border-[#dce0f2] dark:border-white/10 bg-gradient-to-br from-white via-[#faf9ff] to-[#f2f0ff] dark:from-[#111214] dark:via-[#191b1f] dark:to-[#111214] p-3.5 text-left shadow-[0_20px_50px_-25px_rgba(15,23,42,0.35)] dark:shadow-black/60 backdrop-blur-xl"
+              className="absolute left-0 top-full mt-2.5 z-50 w-[calc(100vw-2rem)] max-w-xs sm:w-76 rounded-[22px] border border-[#dce0f2] dark:border-white/10 bg-linear-to-br from-white via-[#faf9ff] to-[#f2f0ff] dark:from-[#111214] dark:via-[#191b1f] dark:to-[#111214] p-3.5 text-left shadow-[0_20px_50px_-25px_rgba(15,23,42,0.35)] dark:shadow-black/60 backdrop-blur-xl"
             >
               {/* Arrow dynamically pointing up to active mode toggle pill (Practice vs Exam) */}
               <div
@@ -220,7 +220,7 @@ export default function TestModeHeaderControl({
                   className={cn(
                     'flex items-start gap-1.5 p-1.5 rounded-xl transition-all duration-200',
                     selectedMode === 'practice'
-                      ? 'bg-indigo-500/10 dark:bg-white/[0.08] text-indigo-950 dark:text-slate-100 font-medium border border-indigo-500/20 dark:border-white/[0.14] shadow-xs'
+                      ? 'bg-indigo-500/10 dark:bg-white/8 text-indigo-950 dark:text-slate-100 font-medium border border-indigo-500/20 dark:border-white/[0.14] shadow-xs'
                       : 'opacity-70'
                   )}
                 >
@@ -235,7 +235,7 @@ export default function TestModeHeaderControl({
                   className={cn(
                     'flex items-start gap-1.5 p-1.5 rounded-xl transition-all duration-200',
                     selectedMode === 'exam'
-                      ? 'bg-indigo-500/10 dark:bg-white/[0.08] text-indigo-950 dark:text-slate-100 font-medium border border-indigo-500/20 dark:border-white/[0.14] shadow-xs'
+                      ? 'bg-indigo-500/10 dark:bg-white/8 text-indigo-950 dark:text-slate-100 font-medium border border-indigo-500/20 dark:border-white/[0.14] shadow-xs'
                       : 'opacity-70'
                   )}
                 >

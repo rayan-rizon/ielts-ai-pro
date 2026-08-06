@@ -185,7 +185,7 @@ function MistakeQueue({ analysis, onReviewQuestion }) {
         <>
           <div className="rounded-xl border border-[#ebeaf7] bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
             <div
-              className="flex h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-white/[0.06]"
+              className="flex h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-white/6"
               aria-label={`${analysis.errorBuckets.nearMiss} near misses, ${analysis.errorBuckets.changedWrong} changed wrong, ${analysis.errorBuckets.skipped} skipped, and ${analysis.errorBuckets.otherWrong} other wrong answers`}
             >
               {[
@@ -265,7 +265,7 @@ function MistakeQueue({ analysis, onReviewQuestion }) {
                   className="p-3 rounded-xl border border-[#ebeaf7] bg-white/90 dark:border-white/10 dark:bg-white/5 transition-all hover:border-[#5a63df]/60 shadow-2xs group flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#5a63df]/10 text-xs font-extrabold text-[#5a63df] border border-[#5a63df]/20 dark:bg-[#8f97ff]/[0.16] dark:text-[#a9afff] dark:border-[#8f97ff]/30 shadow-2xs shrink-0">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#5a63df]/10 text-xs font-extrabold text-[#5a63df] border border-[#5a63df]/20 dark:bg-[#8f97ff]/16 dark:text-[#a9afff] dark:border-[#8f97ff]/30 shadow-2xs shrink-0">
                       Q{item.questionNumber}
                     </span>
                     <Tooltip delayDuration={200}>
@@ -275,7 +275,7 @@ function MistakeQueue({ analysis, onReviewQuestion }) {
                             {item.reason}
                           </p>
                           <div className="flex items-center gap-2 mt-1 min-w-0">
-                            <span className="inline-block rounded-md bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/[0.16] dark:text-[#a9afff] border border-[#5a63df]/20 dark:border-[#8f97ff]/30 px-2 py-0.5 text-[10px] font-extrabold shrink-0">
+                            <span className="inline-block rounded-md bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/16 dark:text-[#a9afff] border border-[#5a63df]/20 dark:border-[#8f97ff]/30 px-2 py-0.5 text-[10px] font-extrabold shrink-0">
                               {item.label}
                             </span>
                             <span className="truncate text-xs font-bold text-slate-500 dark:text-slate-400">
@@ -391,7 +391,7 @@ function ScoreTrendChart({ scores }) {
             <span
               key={tick}
               aria-hidden="true"
-              className="absolute inset-x-0 h-px border-t border-dashed border-slate-200 dark:border-white/[0.10]"
+              className="absolute inset-x-0 h-px border-t border-dashed border-slate-200 dark:border-white/10"
               style={{ top: `${(index / (ticks.length - 1)) * 100}%` }}
             />
           ))}
@@ -505,7 +505,7 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
           title="Your score trend"
         />
         {!loading && !failed && analysis.history.scores.length > 0 && (
-          <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-[#5a63df]/20 bg-[#5a63df]/[0.07] px-2.5 py-1 text-[10px] font-extrabold text-[#5a63df] dark:border-[#a9afff]/20 dark:bg-[#a9afff]/[0.10] dark:text-[#b8bcff]">
+          <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-[#5a63df]/20 bg-[#5a63df]/[0.07] px-2.5 py-1 text-[10px] font-extrabold text-[#5a63df] dark:border-[#a9afff]/20 dark:bg-[#a9afff]/10 dark:text-[#b8bcff]">
             <TrendIcon className="h-3 w-3" strokeWidth={2.5} />
             <span>{trendLabel}</span>
           </div>
@@ -513,17 +513,17 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
       </div>
 
       {loading ? (
-        <div className="h-48 flex-1 animate-pulse rounded-xl bg-slate-100 dark:bg-white/[0.04]" />
+        <div className="h-48 flex-1 animate-pulse rounded-xl bg-slate-100 dark:bg-white/4" />
       ) : failed ? (
         <p className="rounded-xl border border-amber-200/60 bg-amber-50 p-3 text-xs font-medium text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
           History could not be loaded. Current-result analysis is unaffected.
         </p>
       ) : !analysis.history.scores.length ? (
-        <div className="flex flex-1 items-center gap-3 rounded-xl border border-dashed border-[#5a63df]/20 bg-[#5a63df]/[0.06] p-3.5 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.08]">
+        <div className="flex flex-1 items-center gap-3 rounded-xl border border-dashed border-[#5a63df]/20 bg-[#5a63df]/6 p-3.5 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/8">
           <span
             className={cn(
               NUM,
-              'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-xs font-extrabold text-[#5a63df] dark:bg-white/[0.04]'
+              'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-xs font-extrabold text-[#5a63df] dark:bg-white/4'
             )}
           >
             {formatBand(currentBand)}
@@ -564,7 +564,7 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
           <div
             className={cn(
               WELL,
-              'mt-3 flex flex-1 flex-col justify-center rounded-xl border border-slate-200/70 p-3 dark:border-white/[0.08]'
+              'mt-3 flex flex-1 flex-col justify-center rounded-xl border border-slate-200/70 p-3 dark:border-white/8'
             )}
           >
             <ScoreTrendChart scores={scores} />

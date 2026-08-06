@@ -38,7 +38,7 @@ export function StrengthsSection({ conciseStrengths }) {
   if (conciseStrengths.length === 0) return null;
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-emerald-200/80 dark:border-white/[0.10] dark:bg-[#131515] sm:p-4">
+    <div className="flex h-full flex-col justify-between rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-emerald-200/80 dark:border-white/10 dark:bg-[#131515] sm:p-4">
       <div>
         <div className="mb-3 flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eaf9f1] text-[#159669] border border-[#c4eee0]/60 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-500/30">
@@ -68,7 +68,7 @@ export function ImprovementsSection({ conciseImprovements }) {
   if (conciseImprovements.length === 0) return null;
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-rose-200/80 dark:border-white/[0.10] dark:bg-[#131315] sm:p-4">
+    <div className="flex h-full flex-col justify-between rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-rose-200/80 dark:border-white/10 dark:bg-[#131315] sm:p-4">
       <div>
         <div className="mb-3 flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#ffeef3] text-[#e11d48] border border-[#fccedb]/60 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-500/30">
@@ -108,11 +108,10 @@ export function StudyRecommendationsSection() {
       description: 'Learn topic-specific vocabulary and practice using it in sentences.',
       buttonText: 'Practice Vocabulary',
       icon: BookOpen,
-      color:
-        'bg-blue-50 text-blue-600 border-blue-200/80 dark:bg-[#131315] dark:border-white/[0.10]',
+      color: 'bg-blue-50 text-blue-600 border-blue-200/80 dark:bg-[#131315] dark:border-white/10',
       iconBg: 'bg-blue-100 text-blue-600 dark:bg-white/[0.07] dark:text-blue-300',
       btnBorder:
-        'border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-white/[0.12] dark:text-blue-300',
+        'border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-white/12 dark:text-blue-300',
     },
     {
       title: 'Develop Ideas',
@@ -120,10 +119,10 @@ export function StudyRecommendationsSection() {
       buttonText: 'See Example Answers',
       icon: Lightbulb,
       color:
-        'bg-orange-50 text-orange-600 border-orange-200/80 dark:bg-[#131315] dark:border-white/[0.10]',
+        'bg-orange-50 text-orange-600 border-orange-200/80 dark:bg-[#131315] dark:border-white/10',
       iconBg: 'bg-orange-100 text-orange-600 dark:bg-white/[0.07] dark:text-orange-300',
       btnBorder:
-        'border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-white/[0.12] dark:text-orange-300',
+        'border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-white/12 dark:text-orange-300',
     },
     {
       title: 'Improve Grammar',
@@ -131,21 +130,20 @@ export function StudyRecommendationsSection() {
       buttonText: 'Grammar Guide',
       icon: Shapes,
       color:
-        'bg-purple-50 text-purple-600 border-purple-200/80 dark:bg-[#131315] dark:border-white/[0.10]',
+        'bg-purple-50 text-purple-600 border-purple-200/80 dark:bg-[#131315] dark:border-white/10',
       iconBg: 'bg-purple-100 text-purple-600 dark:bg-white/[0.07] dark:text-purple-300',
       btnBorder:
-        'border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-white/[0.12] dark:text-purple-300',
+        'border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-white/12 dark:text-purple-300',
     },
     {
       title: 'Speak with Fluency',
       description: 'Practice speaking regularly to improve fluency and reduce hesitation.',
       buttonText: 'Fluency Exercises',
       icon: Activity,
-      color:
-        'bg-teal-50 text-teal-600 border-teal-200/80 dark:bg-[#131315] dark:border-white/[0.10]',
+      color: 'bg-teal-50 text-teal-600 border-teal-200/80 dark:bg-[#131315] dark:border-white/10',
       iconBg: 'bg-teal-100 text-teal-600 dark:bg-white/[0.07] dark:text-teal-300',
       btnBorder:
-        'border-teal-200 text-teal-600 hover:bg-teal-50 dark:border-white/[0.12] dark:text-teal-300',
+        'border-teal-200 text-teal-600 hover:bg-teal-50 dark:border-white/12 dark:text-teal-300',
     },
   ];
 
@@ -209,7 +207,7 @@ export function PronunciationBreakdownSection({ pronunciationBreakdown }) {
   const hasProblematicSounds = problematicSounds.length > 0;
 
   return (
-    <div className="space-y-3 rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-rose-200/80 dark:border-white/[0.10] dark:bg-[#131315] sm:p-4">
+    <div className="space-y-3 rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-rose-200/80 dark:border-white/10 dark:bg-[#131315] sm:p-4">
       <div className="flex items-center gap-2.5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/10 dark:bg-rose-500/20">
           <Mic2 className="h-4 w-4 text-rose-600 dark:text-rose-400" />

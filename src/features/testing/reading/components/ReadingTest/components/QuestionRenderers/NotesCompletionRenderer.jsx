@@ -43,11 +43,11 @@ const NotesCompletionRenderer = React.memo(
           }
         } else {
           styles +=
-            ' bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-muted-foreground';
+            ' bg-white dark:bg-white/4 border-[#e4e2f0] dark:border-white/8 text-muted-foreground';
         }
       } else {
         styles +=
-          ' bg-white/70 dark:bg-white/[0.04] border-slate-300/70 dark:border-white/[0.08] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-white/[0.14]';
+          ' bg-white/70 dark:bg-white/4 border-slate-300/70 dark:border-white/8 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-white/[0.14]';
       }
       return styles;
     };

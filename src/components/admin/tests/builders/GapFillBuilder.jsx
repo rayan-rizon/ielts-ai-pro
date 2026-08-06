@@ -34,7 +34,7 @@ const ToolBar = ({ id }) => {
       </span>
       <div className="w-px h-6 bg-stone-200 dark:bg-white/10 mx-1" />
       <span className="ql-formats">
-        <button className="ql-insertGap !w-auto !px-3 !flex !items-center !gap-1.5 !rounded-lg !h-8 transition-colors bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200/60 dark:border-indigo-800/50">
+        <button className="ql-insertGap w-auto! px-3! flex! items-center! gap-1.5! rounded-lg! h-8! transition-colors bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200/60 dark:border-indigo-800/50">
           <ScanLine className="w-3.5 h-3.5" />
           <span className="text-xs font-bold">Insert Blank</span>
         </button>
@@ -139,7 +139,7 @@ const GapFillBuilder = ({ initialData, onChange }) => {
           </div>
         </div>
       ) : (
-        <div className="text-center p-8 border-2 border-dashed border-stone-200 dark:border-white/10 rounded-xl bg-stone-50/50 dark:bg-white/[0.02]">
+        <div className="text-center p-8 border-2 border-dashed border-stone-200 dark:border-white/10 rounded-xl bg-stone-50/50 dark:bg-white/2">
           <p className="text-xs font-medium text-stone-500 dark:text-stone-400">
             No blanks have been added yet. Click "Insert Blank" in the editor toolbar above to add
             questions.

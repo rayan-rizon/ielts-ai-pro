@@ -4,7 +4,7 @@ import { ArrowRight, BarChart3, Sparkles } from 'lucide-react';
 export default function CtaSection() {
   return (
     <section className="px-5 pb-10 sm:pb-12 sm:px-6 lg:px-8">
-      <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[32px] bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-500 px-6 py-9 text-white shadow-[0_24px_70px_rgba(79,70,229,.28)] sm:px-10 sm:py-11 lg:px-14">
+      <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[32px] bg-linear-to-r from-violet-600 via-indigo-600 to-blue-500 px-6 py-9 text-white shadow-[0_24px_70px_rgba(79,70,229,.28)] sm:px-10 sm:py-11 lg:px-14">
         <div className="pointer-events-none absolute -left-28 -top-32 h-80 w-80 rounded-full bg-fuchsia-400/25 blur-3xl" />
         <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-cyan-300/25 blur-3xl" />
         <Sparkles className="pointer-events-none absolute right-[38%] top-8 h-6 w-6 text-white/60" />
@@ -52,7 +52,7 @@ function CtaIllustration() {
   return (
     <div className="relative mx-auto hidden h-48 w-full max-w-[350px] lg:block" aria-hidden="true">
       <div className="absolute right-36 top-0 h-44 w-24 rotate-[-5deg] rounded-[22px] border-[5px] border-white/70 bg-white p-2 shadow-2xl shadow-indigo-950/25">
-        <div className="h-full rounded-[15px] bg-gradient-to-b from-indigo-50 to-white p-2 text-indigo-700">
+        <div className="h-full rounded-[15px] bg-linear-to-b from-indigo-50 to-white p-2 text-indigo-700">
           <div className="text-[8px] font-black tracking-wide text-rose-500">IELTS</div>
           <div className="mt-4 text-center text-3xl font-black">7.5</div>
           <div className="mt-2 h-1.5 rounded-full bg-indigo-100">

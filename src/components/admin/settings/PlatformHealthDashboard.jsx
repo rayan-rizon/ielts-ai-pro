@@ -538,7 +538,7 @@ const ProblemPanel = ({ service, index, incidentCount = 0, onRepaired }) => {
           </span>
         </div>
 
-        <details className="group mt-2.5 rounded-md border border-stone-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.02]">
+        <details className="group mt-2.5 rounded-md border border-stone-200 dark:border-white/8 bg-white dark:bg-white/2">
           <summary
             className={cn(
               MICRO,
@@ -580,7 +580,7 @@ const ServiceDetails = ({ service, metrics }) => (
       </div>
       <div className="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed lg:border-l lg:border-stone-200 lg:dark:border-white/[0.07] lg:pl-4">
         <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1')}>Evidence</p>
-        <p className="font-semibold break-words">{evidenceFor(service)}</p>
+        <p className="font-semibold wrap-break-word">{evidenceFor(service)}</p>
         <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-3 mb-1')}>Owner</p>
         <p className="font-semibold">{ownerFor(service)}</p>
       </div>
@@ -604,7 +604,7 @@ const ServiceRow = ({ service }) => {
         onClick={() => setExpanded((value) => !value)}
         className={cn(
           'w-full grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(220px,0.9fr)_minmax(260px,1.4fr)_auto] items-center gap-3 px-4 py-3.5 text-left',
-          'hover:bg-stone-50/80 dark:hover:bg-white/[0.025] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-stone-400'
+          'hover:bg-stone-50/80 dark:hover:bg-white/2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-stone-400'
         )}
       >
         <div className="min-w-0">
@@ -905,7 +905,7 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
         {/* dot-grid texture for instrument-panel atmosphere */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-[0.55] dark:opacity-[0.35] bg-[radial-gradient(circle_at_1px_1px,rgb(168_162_158/0.45)_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.14)_1px,transparent_0)] [background-size:14px_14px]"
+          className="pointer-events-none absolute inset-0 opacity-[0.55] dark:opacity-[0.35] bg-[radial-gradient(circle_at_1px_1px,rgb(168_162_158/0.45)_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.14)_1px,transparent_0)] bg-size-[14px_14px]"
         />
         <div className="relative p-5">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
@@ -967,7 +967,7 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
           </div>
 
           {/* Signal bar */}
-          <div className="mt-5 flex h-1.5 w-full gap-px overflow-hidden rounded-full bg-stone-200 dark:bg-white/[0.06]">
+          <div className="mt-5 flex h-1.5 w-full gap-px overflow-hidden rounded-full bg-stone-200 dark:bg-white/6">
             {legend
               .filter((s) => s.n > 0)
               .map((s) => (
@@ -1092,11 +1092,11 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
               {filteredIncidents.map((incident, i) => (
                 <div
                   key={`${incident.service}-${i}`}
-                  className="flex items-start gap-2.5 py-2.5 border-b border-stone-100 dark:border-white/[0.05] last:border-0"
+                  className="flex items-start gap-2.5 py-2.5 border-b border-stone-100 dark:border-white/5 last:border-0"
                 >
                   <span className={cn('w-1 h-1 rounded-full mt-1.5 shrink-0', FAULT_BG)} />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-semibold text-stone-700 dark:text-stone-200 break-words leading-snug">
+                    <p className="text-[11px] font-semibold text-stone-700 dark:text-stone-200 wrap-break-word leading-snug">
                       {incident.message}
                     </p>
                     <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1')}>

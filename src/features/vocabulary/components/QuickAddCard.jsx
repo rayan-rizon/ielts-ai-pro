@@ -174,7 +174,7 @@ export default function QuickAddCard({
           <div className="group relative">
             <Input
               placeholder="Type a word to save..."
-              className="h-11 rounded-lg border-[#e2e5f2] bg-white pl-3.5 pr-16 text-xs font-semibold text-slate-900 focus:border-[#5a63df] dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+              className="h-11 rounded-lg border-[#e2e5f2] bg-white pl-3.5 pr-16 text-xs font-semibold text-slate-900 focus:border-[#5a63df] dark:border-white/10 dark:bg-white/4 dark:text-white"
               value={newWord}
               onChange={(e) => {
                 setNewWord(e.target.value);
@@ -244,7 +244,7 @@ export default function QuickAddCard({
         </div>
 
         {newDefinition && (
-          <div className="rounded-lg border border-[#e2e5f2] bg-[#5a63df]/[0.06] p-3 text-xs font-semibold italic leading-relaxed text-[#5a63df] dark:border-white/10 dark:bg-indigo-950/40 dark:text-indigo-200">
+          <div className="rounded-lg border border-[#e2e5f2] bg-[#5a63df]/6 p-3 text-xs font-semibold italic leading-relaxed text-[#5a63df] dark:border-white/10 dark:bg-indigo-950/40 dark:text-indigo-200">
             &quot;{newDefinition}&quot;
           </div>
         )}

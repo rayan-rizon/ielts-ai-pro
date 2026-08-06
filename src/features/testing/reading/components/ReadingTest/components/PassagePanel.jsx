@@ -139,7 +139,7 @@ const PassagePanel = memo(function PassagePanel({
               const firstQ = qNum.split(/[\s,]+/)[0].trim();
               const idAttr = isSpecificHighlight ? `id="highlighted-answer-${firstQ}"` : '';
 
-              return `<span ${idAttr} class="${highlightClass} ${textStyle} px-1 py-0.5 rounded-sm font-medium transition-all duration-200">${content.trim()}<span class="inline-flex items-center justify-center ${badgeClass} text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm select-none align-middle ml-0.5 transform -translate-y-[1px]">Q${qNum.trim()}</span></span>`;
+              return `<span ${idAttr} class="${highlightClass} ${textStyle} px-1 py-0.5 rounded-sm font-medium transition-all duration-200">${content.trim()}<span class="inline-flex items-center justify-center ${badgeClass} text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm select-none align-middle ml-0.5 transform -translate-y-px">Q${qNum.trim()}</span></span>`;
             })
             .trim();
 
@@ -201,7 +201,7 @@ const PassagePanel = memo(function PassagePanel({
     >
       {/* Appearance Controls - Floating Button */}
       <div
-        className="sticky top-2 right-2 sm:right-3 z-30 flex justify-end pointer-events-none px-2 sm:px-3 mb-[-2.5rem]"
+        className="sticky top-2 right-2 sm:right-3 z-30 flex justify-end pointer-events-none px-2 sm:px-3 -mb-10"
         data-oid="fw_3sk7"
       >
         <div className="pointer-events-auto" data-oid=":pvn-ot">

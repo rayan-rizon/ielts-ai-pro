@@ -47,13 +47,13 @@ const PromoCard = ({ promo, index, onToggle, onDelete }) => {
         </div>
       </div>
       <span className={cn(PILL_BASE, pillTone(STATUS_TONE[status]))}>{status}</span>
-      <div className="p-2 rounded-md bg-stone-50 dark:bg-white/[0.03] border border-stone-200/70 dark:border-white/[0.06] flex items-center gap-2">
+      <div className="p-2 rounded-md bg-stone-50 dark:bg-white/3 border border-stone-200/70 dark:border-white/6 flex items-center gap-2">
         <div
           className={cn(
             'w-6 h-6 rounded-md grid place-items-center shrink-0',
             grant
-              ? 'bg-indigo-500/[0.08] text-indigo-600 dark:text-indigo-400'
-              : 'bg-stone-200/60 dark:bg-white/[0.06] text-stone-600 dark:text-stone-300'
+              ? 'bg-indigo-500/8 text-indigo-600 dark:text-indigo-400'
+              : 'bg-stone-200/60 dark:bg-white/6 text-stone-600 dark:text-stone-300'
           )}
         >
           <PromoTypeIcon promo={promo} />
@@ -87,7 +87,7 @@ const PromoCard = ({ promo, index, onToggle, onDelete }) => {
             {promo.current_uses || 0}/{promo.max_uses}
           </span>
         </div>
-        <div className="h-1 bg-stone-100 dark:bg-white/[0.06] rounded-full overflow-hidden">
+        <div className="h-1 bg-stone-100 dark:bg-white/6 rounded-full overflow-hidden">
           <m.div
             initial={{ width: 0 }}
             animate={{ width: `${usagePercentage}%` }}

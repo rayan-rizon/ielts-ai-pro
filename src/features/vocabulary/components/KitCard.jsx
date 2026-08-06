@@ -41,7 +41,7 @@ const KitCard = memo(function KitCard({ kit, index = 0, user, allVocabulary = []
         to={`/vocabulary/kits/${kit.slug || kit.id}`}
         aria-label={`Open ${cleanTitle}, ${kit.category}, ${status.label}`}
         className={cn(
-          'group flex h-full min-h-[164px] flex-col justify-between rounded-xl border bg-gradient-to-br p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/[0.015]',
+          'group flex h-full min-h-[164px] flex-col justify-between rounded-xl border bg-linear-to-br p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/1.5',
           theme.panel,
           theme.border,
           theme.hoverGlow
@@ -64,7 +64,7 @@ const KitCard = memo(function KitCard({ kit, index = 0, user, allVocabulary = []
 
           {/* Category Tag */}
           <div
-            className={cn('mt-2 text-[9px] font-extrabold uppercase tracking-[0.1em]', theme.tag)}
+            className={cn('mt-2 text-[9px] font-extrabold uppercase tracking-widest', theme.tag)}
           >
             {kit.category || 'Vocabulary Kit'}
           </div>

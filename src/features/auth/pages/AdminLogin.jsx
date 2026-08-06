@@ -99,15 +99,15 @@ export default function AdminLogin() {
       {/* Background Grid Pattern & Subtle Instrument Ambient Lighting */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" data-oid="t4v:f43">
         <div
-          className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]"
+          className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[24px_24px]"
           data-oid="o:708-2"
         />
         <div
-          className="absolute -top-[25%] -right-[15%] w-[70vh] h-[70vh] rounded-full bg-indigo-500/5 dark:bg-indigo-500/10 blur-[130px]"
+          className="absolute top-[-25%] right-[-15%] w-[70vh] h-[70vh] rounded-full bg-indigo-500/5 dark:bg-indigo-500/10 blur-[130px]"
           data-oid="k.1-9se"
         />
         <div
-          className="absolute -bottom-[20%] -left-[15%] w-[60vh] h-[60vh] rounded-full bg-stone-400/5 dark:bg-white/[0.03] blur-[120px]"
+          className="absolute bottom-[-20%] left-[-15%] w-[60vh] h-[60vh] rounded-full bg-stone-400/5 dark:bg-white/3 blur-[120px]"
           data-oid=":j:e5no"
         />
       </div>
@@ -133,12 +133,12 @@ export default function AdminLogin() {
         </Link>
 
         <Card
-          className="rounded-2xl border border-stone-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#131315]/90 backdrop-blur-xl shadow-xl dark:shadow-2xl overflow-hidden"
+          className="rounded-2xl border border-stone-200/80 dark:border-white/8 bg-white/90 dark:bg-[#131315]/90 backdrop-blur-xl shadow-xl dark:shadow-2xl overflow-hidden"
           data-oid="4ya:7w_"
         >
           {/* Header */}
           <CardHeader
-            className="text-center pb-6 border-b border-stone-200/70 dark:border-white/[0.06] bg-stone-50/50 dark:bg-white/[0.02]"
+            className="text-center pb-6 border-b border-stone-200/70 dark:border-white/6 bg-stone-50/50 dark:bg-white/2"
             data-oid="o5mzr30"
           >
             {/* Status indicators bar */}
@@ -150,7 +150,7 @@ export default function AdminLogin() {
                 </span>
                 <span>System Online</span>
               </div>
-              <span className="px-2 py-0.5 rounded-md bg-stone-100 dark:bg-white/[0.06] border border-stone-200 dark:border-white/10 text-stone-600 dark:text-stone-300">
+              <span className="px-2 py-0.5 rounded-md bg-stone-100 dark:bg-white/6 border border-stone-200 dark:border-white/10 text-stone-600 dark:text-stone-300">
                 Restricted Access
               </span>
             </div>
@@ -195,7 +195,7 @@ export default function AdminLogin() {
                     className="flex items-center gap-2.5 text-xs font-semibold text-[rgb(var(--signal-fault))] bg-[rgb(var(--signal-fault)/0.08)] p-3.5 rounded-xl border border-[rgb(var(--signal-fault)/0.25)]"
                     data-oid="7zze2c-"
                   >
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" data-oid="p4.fri1" />
+                    <AlertCircle className="w-4 h-4 shrink-0" data-oid="p4.fri1" />
                     <span>{error}</span>
                   </div>
                 </motion.div>
@@ -218,7 +218,7 @@ export default function AdminLogin() {
                     placeholder="admin@ieltsai.pro"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-11 bg-stone-50/50 dark:bg-white/[0.03] border-stone-200 dark:border-white/10 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus-visible:ring-stone-400/20 dark:focus-visible:ring-white/10 rounded-xl text-sm transition-all"
+                    className="pl-10 h-11 bg-stone-50/50 dark:bg-white/3 border-stone-200 dark:border-white/10 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus-visible:ring-stone-400/20 dark:focus-visible:ring-white/10 rounded-xl text-sm transition-all"
                     autoComplete="email"
                     data-oid="dpc2i50"
                   />
@@ -246,7 +246,7 @@ export default function AdminLogin() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-11 bg-stone-50/50 dark:bg-white/[0.03] border-stone-200 dark:border-white/10 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus-visible:ring-stone-400/20 dark:focus-visible:ring-white/10 rounded-xl text-sm transition-all"
+                    className="pl-10 pr-10 h-11 bg-stone-50/50 dark:bg-white/3 border-stone-200 dark:border-white/10 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus-visible:ring-stone-400/20 dark:focus-visible:ring-white/10 rounded-xl text-sm transition-all"
                     autoComplete="current-password"
                     data-oid="9g-e7lo"
                   />
@@ -292,7 +292,7 @@ export default function AdminLogin() {
             </form>
 
             <div
-              className="bg-stone-50 dark:bg-white/[0.03] p-3.5 rounded-xl border border-stone-200/70 dark:border-white/[0.06] text-center"
+              className="bg-stone-50 dark:bg-white/3 p-3.5 rounded-xl border border-stone-200/70 dark:border-white/6 text-center"
               data-oid="9_aed-3"
             >
               <p

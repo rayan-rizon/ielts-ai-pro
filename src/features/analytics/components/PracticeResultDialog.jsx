@@ -115,7 +115,7 @@ function SummaryResultDialog({ session, onClose }) {
               <Icon className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <DialogTitle className="break-words text-xl font-extrabold leading-tight text-slate-950 dark:text-white sm:truncate">
+              <DialogTitle className="wrap-break-word text-xl font-extrabold leading-tight text-slate-950 dark:text-white sm:truncate">
                 {session.title}
               </DialogTitle>
               <DialogDescription className="mt-1 font-medium">
@@ -152,7 +152,7 @@ function SummaryResultDialog({ session, onClose }) {
               ].map(([label, value, MetricIcon]) => (
                 <div
                   key={label}
-                  className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 dark:border-white/5 dark:bg-white/[0.03]"
+                  className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 dark:border-white/5 dark:bg-white/3"
                 >
                   <MetricIcon className="h-4 w-4 text-indigo-500" />
                   <dt className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
@@ -163,7 +163,7 @@ function SummaryResultDialog({ session, onClose }) {
                   </dd>
                 </div>
               ))}
-              <div className="col-span-2 min-w-0 break-words rounded-2xl border border-slate-100 px-4 py-3 text-sm font-medium text-slate-500 dark:border-white/5 dark:text-slate-400">
+              <div className="col-span-2 min-w-0 wrap-break-word rounded-2xl border border-slate-100 px-4 py-3 text-sm font-medium text-slate-500 dark:border-white/5 dark:text-slate-400">
                 Detailed values appear only when they were saved with this test.
               </div>
             </dl>
@@ -176,10 +176,7 @@ function SummaryResultDialog({ session, onClose }) {
               </h3>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {criteria.map((criterion) => (
-                  <div
-                    key={criterion.key}
-                    className="rounded-2xl bg-slate-50 p-3 dark:bg-white/[0.03]"
-                  >
+                  <div key={criterion.key} className="rounded-2xl bg-slate-50 p-3 dark:bg-white/3">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
                         {criterion.label}
@@ -280,7 +277,7 @@ export default function PracticeResultDialog({ session, user, onClose }) {
   return (
     <Suspense
       fallback={
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-950/80">
           <div className="rounded-2xl bg-white px-5 py-4 text-sm font-bold text-slate-700 shadow-xl">
             Loading result…
           </div>

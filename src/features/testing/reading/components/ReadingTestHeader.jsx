@@ -258,7 +258,7 @@ const ReadingTestHeader = ({
                   <span
                     className={cn(
                       TEST_HEADER_BADGE,
-                      'border-amber-500/25 bg-amber-500/[0.08] text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300 sm:gap-1 sm:text-[9px]'
+                      'border-amber-500/25 bg-amber-500/8 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300 sm:gap-1 sm:text-[9px]'
                     )}
                     data-oid="x5luvaj"
                   >
@@ -269,7 +269,7 @@ const ReadingTestHeader = ({
                 {!isAwaitingStart ? (
                   <Pill
                     tone={testMode === 'exam' ? 'accent' : 'neutral'}
-                    className="h-4 rounded-md px-1.5 py-0 text-[8px] leading-none tracking-[0.08em] dark:bg-white/[0.055]"
+                    className="h-4 rounded-md px-1.5 py-0 text-[8px] leading-none tracking-[0.08em] dark:bg-white/5.5"
                   >
                     {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
                   </Pill>
@@ -318,7 +318,7 @@ const ReadingTestHeader = ({
                     </div>
                     {/* Tooltip */}
                     <div
-                      className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-500 whitespace-nowrap bg-white dark:bg-[#131315] border border-slate-200 dark:border-white/[0.1] px-2 py-1 rounded shadow-sm z-10 pointer-events-none"
+                      className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-500 whitespace-nowrap bg-white dark:bg-[#131315] border border-slate-200 dark:border-white/10 px-2 py-1 rounded shadow-sm z-10 pointer-events-none"
                       data-oid="b0s:ryj"
                     >
                       Passage {result.idx + 1}: {result.sAnswered}/{result.sQCount}
@@ -500,8 +500,8 @@ const ReadingTestClock = ({ formatTime }) => {
       className={cn(
         TEST_HEADER_TIMER,
         timeRemaining < 300
-          ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-400/30 dark:bg-rose-400/[0.12] dark:text-rose-300'
-          : 'border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 dark:border-white/[0.10] dark:bg-white/[0.055] dark:text-slate-200'
+          ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-400/30 dark:bg-rose-400/12 dark:text-rose-300'
+          : 'border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 dark:border-white/10 dark:bg-white/5.5 dark:text-slate-200'
       )}
       data-oid="kg5lrzg"
     >

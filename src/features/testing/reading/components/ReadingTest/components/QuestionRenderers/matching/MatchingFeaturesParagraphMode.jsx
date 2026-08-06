@@ -32,7 +32,7 @@ function ParagraphPlaceholderItem({
     isFinished,
     value,
     isCorrect,
-    'inline-flex w-[90px] h-7 px-2 py-0.5 text-center bg-white/70 dark:bg-white/[0.04] border border-slate-300/70 dark:border-white/[0.08] rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-white/[0.14] transition-all text-[15px]'
+    'inline-flex w-[90px] h-7 px-2 py-0.5 text-center bg-white/70 dark:bg-white/4 border border-slate-300/70 dark:border-white/8 rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-white/[0.14] transition-all text-[15px]'
   );
 
   return (
@@ -90,7 +90,7 @@ export default function MatchingFeaturesParagraphMode(props) {
 
   return (
     <div
-      className="leading-normal text-justify relative p-4 bg-[#fbfbfe] dark:bg-white/[0.03] border border-[#ebeaf7] dark:border-white/[0.08] rounded-lg whitespace-pre-wrap"
+      className="leading-normal text-justify relative p-4 bg-[#fbfbfe] dark:bg-white/3 border border-[#ebeaf7] dark:border-white/8 rounded-lg whitespace-pre-wrap"
       data-oid="_zy0lsk"
     >
       {questionsTitle && (

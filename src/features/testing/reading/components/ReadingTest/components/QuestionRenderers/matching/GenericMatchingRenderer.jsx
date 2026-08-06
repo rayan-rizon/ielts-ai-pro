@@ -10,14 +10,14 @@ function SingleMatchingItem({ question, answers, onAnswerChange, isFinished, val
   const validation = validationMap?.[question.id];
   const isCorrect = validation?.isCorrect === true;
   const baseStyle =
-    'bg-white/70 dark:bg-white/[0.04] border-slate-300/70 dark:border-white/[0.08] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-white/[0.14] transition-all ';
+    'bg-white/70 dark:bg-white/4 border-slate-300/70 dark:border-white/8 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-white/[0.14] transition-all ';
   const inputStyle = getValidationInputStyle(isFinished, value, isCorrect, baseStyle);
 
   return (
     <div className="space-y-1.5" data-oid="ilfhrc9">
       <div className="grid gap-1.5" data-oid="la-vhft">
         <div
-          className="p-3 bg-[#5a63df]/[0.06] dark:bg-[#5a63df]/10 rounded border border-[#5a63df]/20 dark:border-[#5a63df]/25"
+          className="p-3 bg-[#5a63df]/6 dark:bg-[#5a63df]/10 rounded border border-[#5a63df]/20 dark:border-[#5a63df]/25"
           data-oid="b1grdjf"
         >
           <DebouncedInput
@@ -65,7 +65,7 @@ function GenericMatchingOptionItem({
 
   return (
     <div
-      className="flex items-center gap-2 px-2 py-1.5 bg-[#fbfbfe] dark:bg-white/[0.03] rounded-md border border-[#ebeaf7] dark:border-white/[0.08] hover:border-slate-300/70 dark:hover:border-white/[0.14] transition-colors duration-150"
+      className="flex items-center gap-2 px-2 py-1.5 bg-[#fbfbfe] dark:bg-white/3 rounded-md border border-[#ebeaf7] dark:border-white/8 hover:border-slate-300/70 dark:hover:border-white/[0.14] transition-colors duration-150"
       data-oid="gey:do2"
     >
       <QuestionNumberCircle
@@ -109,7 +109,7 @@ const GenericMatchingRenderer = memo(function GenericMatchingRenderer(props) {
   }
 
   const baseInputStyle =
-    'w-20 h-7 text-center text-sm border rounded-md transition-colors bg-white/70 dark:bg-white/[0.04] border-slate-300/70 dark:border-white/[0.08] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-white/[0.14] transition-all';
+    'w-20 h-7 text-center text-sm border rounded-md transition-colors bg-white/70 dark:bg-white/4 border-slate-300/70 dark:border-white/8 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-white/[0.14] transition-all';
 
   return (
     <div className="space-y-1.5" data-oid="ilfhrc9">

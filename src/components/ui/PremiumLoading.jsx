@@ -35,17 +35,17 @@ const PremiumLoading = ({ message = 'Loading', fullScreen = true, className }) =
     <div
       className={cn(
         'animate-panel-in relative flex flex-col items-center justify-center bg-[#f8f8fb] dark:bg-[#08080a]',
-        fullScreen ? 'fixed inset-0 z-[100] h-full w-full' : 'min-h-screen w-full flex-1 py-12',
+        fullScreen ? 'fixed inset-0 z-100 h-full w-full' : 'min-h-screen w-full flex-1 py-12',
         className
       )}
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-24 -top-24 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+        className="pointer-events-none absolute -right-24 -top-24 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
       />
 
       <div className="relative flex flex-col items-center gap-4">

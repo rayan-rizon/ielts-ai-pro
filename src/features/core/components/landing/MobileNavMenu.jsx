@@ -35,11 +35,11 @@ export default function MobileNavMenu({ isOpen, onClose, links, isSignedIn, hand
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
-            className="fixed inset-0 top-14 sm:top-16 z-[90] bg-slate-950/60 lg:hidden"
+            className="fixed inset-0 top-14 sm:top-16 z-90 bg-slate-950/60 lg:hidden"
             onClick={onClose}
           />
 
-          {/* Compact mobile navigation card. `top-16`/`top-[4.5rem]` reproduce
+          {/* Compact mobile navigation card. `top-16`/`top-18` reproduce
               the old `top-full` + `mt-2` gap under the (unscrolled) navbar
               height now that this sits outside the bar to measure against. */}
           <motion.div
@@ -47,10 +47,10 @@ export default function MobileNavMenu({ isOpen, onClose, links, isSignedIn, hand
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.98 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed left-3 right-3 top-16 z-[99] overflow-hidden rounded-2xl border border-[#e4e2f0] bg-white p-3.5 shadow-xl shadow-black/[0.08] dark:border-white/[0.10] dark:bg-[#131315] dark:shadow-black/40 sm:top-[4.5rem] lg:hidden"
+            className="fixed left-3 right-3 top-16 z-99 overflow-hidden rounded-2xl border border-[#e4e2f0] bg-white p-3.5 shadow-xl shadow-black/8 dark:border-white/10 dark:bg-[#131315] dark:shadow-black/40 sm:top-18 lg:hidden"
           >
             {/* Top header bar */}
-            <div className="flex items-center gap-1.5 border-b border-[#eceafa] pb-2.5 dark:border-white/[0.08]">
+            <div className="flex items-center gap-1.5 border-b border-[#eceafa] pb-2.5 dark:border-white/8">
               <span className="flex h-5 w-5 items-center justify-center rounded-md border border-[#5a63df]/20 bg-[#5a63df]/10 text-[#5a63df] transition-transform duration-300 hover:rotate-12 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.14] dark:text-[#a9afff]">
                 <Sparkles className="h-3 w-3" />
               </span>
@@ -68,15 +68,15 @@ export default function MobileNavMenu({ isOpen, onClose, links, isSignedIn, hand
                     key={link.label}
                     href={link.href}
                     onClick={onClose}
-                    className="group relative flex items-center gap-3 rounded-xl px-2.5 py-2 transition-all duration-200 ease-out hover:bg-[#5a63df]/[0.06] active:scale-[0.98] dark:hover:bg-white/[0.05]"
+                    className="group relative flex items-center gap-3 rounded-xl px-2.5 py-2 transition-all duration-200 ease-out hover:bg-[#5a63df]/6 active:scale-[0.98] dark:hover:bg-white/5"
                   >
                     {/* Compact Icon Chip with subtle soft glow shadow */}
-                    <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#5a63df]/20 bg-gradient-to-br from-[#5a63df]/10 to-[#5a63df]/[0.18] text-[#5a63df] transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:border-transparent group-hover:bg-[#5a63df] group-hover:text-white group-hover:shadow-[0_4px_10px_-2px_rgba(90,99,223,0.22)] dark:border-[#8f97ff]/25 dark:from-[#8f97ff]/[0.12] dark:to-[#8f97ff]/[0.22] dark:text-[#a9afff] dark:group-hover:border-transparent dark:group-hover:bg-[#8f97ff] dark:group-hover:text-[#0b0c10] dark:group-hover:shadow-[0_4px_10px_-2px_rgba(143,151,255,0.22)]">
+                    <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#5a63df]/20 bg-linear-to-br from-[#5a63df]/10 to-[#5a63df]/18 text-[#5a63df] transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:border-transparent group-hover:bg-[#5a63df] group-hover:text-white group-hover:shadow-[0_4px_10px_-2px_rgba(90,99,223,0.22)] dark:border-[#8f97ff]/25 dark:from-[#8f97ff]/12 dark:to-[#8f97ff]/22 dark:text-[#a9afff] dark:group-hover:border-transparent dark:group-hover:bg-[#8f97ff] dark:group-hover:text-[#0b0c10] dark:group-hover:shadow-[0_4px_10px_-2px_rgba(143,151,255,0.22)]">
                       {/* Compact Icon glyph with gentle tilt interaction */}
                       {Icon ? (
-                        <Icon className="relative z-10 h-4 w-4 transition-transform duration-200 ease-out group-hover:scale-105 group-hover:rotate-[6deg] group-active:scale-95" />
+                        <Icon className="relative z-10 h-4 w-4 transition-transform duration-200 ease-out group-hover:scale-105 group-hover:rotate-6 group-active:scale-95" />
                       ) : (
-                        <Sparkles className="relative z-10 h-4 w-4 transition-transform duration-200 ease-out group-hover:scale-105 group-hover:rotate-[6deg] group-active:scale-95" />
+                        <Sparkles className="relative z-10 h-4 w-4 transition-transform duration-200 ease-out group-hover:scale-105 group-hover:rotate-6 group-active:scale-95" />
                       )}
                     </div>
 
@@ -105,7 +105,7 @@ export default function MobileNavMenu({ isOpen, onClose, links, isSignedIn, hand
             </div>
 
             {/* Bottom Call to Action */}
-            <div className="mt-2.5 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.08]">
+            <div className="mt-2.5 border-t border-[#eceafa] pt-2.5 dark:border-white/8">
               <Button
                 className="w-full h-10 rounded-xl font-extrabold text-xs shadow-sm hover:shadow-md bg-[#5a63df] hover:bg-[#4a52c9] text-white border-none transition-all duration-150 ease-sidebar active:scale-[0.98] cursor-pointer"
                 onClick={() => {

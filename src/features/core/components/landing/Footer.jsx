@@ -157,7 +157,7 @@ function FooterBrandSection({ handleCopyEmail }) {
       <div className="pt-1 flex flex-col items-center sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
         <button
           onClick={handleCopyEmail}
-          className="group inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] px-3.5 py-2 text-xs font-bold text-slate-200 transition-all duration-200 hover:border-indigo-400/40 hover:shadow-lg hover:shadow-indigo-500/10 w-fit"
+          className="group inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/4 hover:bg-white/8 active:bg-white/12 px-3.5 py-2 text-xs font-bold text-slate-200 transition-all duration-200 hover:border-indigo-400/40 hover:shadow-lg hover:shadow-indigo-500/10 w-fit"
           title="Click to copy email address"
         >
           <Mail className="h-3.5 w-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
@@ -171,7 +171,7 @@ function FooterBrandSection({ handleCopyEmail }) {
               href={social.href}
               target="_blank"
               rel="noopener noreferrer"
-              className={`h-9 w-9 rounded-xl bg-white/[0.04] border border-white/15 flex items-center justify-center text-slate-300 transition-all duration-300 active:scale-95 ${social.hoverClass}`}
+              className={`h-9 w-9 rounded-xl bg-white/4 border border-white/15 flex items-center justify-center text-slate-300 transition-all duration-300 active:scale-95 ${social.hoverClass}`}
               aria-label={`Follow us on ${social.label}`}
             >
               <social.icon size={16} />
@@ -204,7 +204,7 @@ function FooterNavigationGrid() {
         return (
           <div
             key={title}
-            className="rounded-xl border border-white/5 bg-white/[0.015] p-3.5 sm:border-0 sm:bg-transparent sm:p-0 space-y-3 sm:space-y-4 transition-colors"
+            className="rounded-xl border border-white/5 bg-white/1.5 p-3.5 sm:border-0 sm:bg-transparent sm:p-0 space-y-3 sm:space-y-4 transition-colors"
           >
             <button
               type="button"
@@ -283,7 +283,7 @@ function FooterBottomBar({ currentYear }) {
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-3.5 sm:gap-4">
-        <div className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-[11px] font-semibold text-slate-400 backdrop-blur-md text-center max-w-md sm:max-w-none">
+        <div className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/3 px-3.5 py-1.5 text-[11px] font-semibold text-slate-400 backdrop-blur-md text-center max-w-md sm:max-w-none">
           <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-indigo-400" />
           <span>
             Independent prep platform. Not affiliated with IELTS, IDP, or British Council.
@@ -292,7 +292,7 @@ function FooterBottomBar({ currentYear }) {
 
         <button
           onClick={() => scrollToPageTopImmediately()}
-          className="h-9 w-9 rounded-xl bg-white/[0.04] border border-white/15 hover:border-indigo-400/50 hover:bg-indigo-500/20 text-slate-300 hover:text-white flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-sm shrink-0"
+          className="h-9 w-9 rounded-xl bg-white/4 border border-white/15 hover:border-indigo-400/50 hover:bg-indigo-500/20 text-slate-300 hover:text-white flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-sm shrink-0"
           title="Back to top"
           aria-label="Scroll back to top"
         >
@@ -315,12 +315,12 @@ export default function Footer() {
   return (
     <footer className="dark relative overflow-hidden border-t border-white/10 bg-[#050711] text-slate-300 pb-10 pt-14 transition-colors duration-300">
       {/* Top ambient glowing divider bar */}
-      <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-[1.5px] bg-linear-to-r from-transparent via-indigo-500/60 to-transparent" />
 
       {/* Decorative background lighting blobs */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 left-1/4 h-[32rem] w-[32rem] rounded-full bg-indigo-600/10 blur-[140px]" />
-        <div className="absolute -bottom-40 right-1/4 h-[32rem] w-[32rem] rounded-full bg-purple-600/10 blur-[140px]" />
+        <div className="absolute -top-40 left-1/4 h-128 w-128 rounded-full bg-indigo-600/10 blur-[140px]" />
+        <div className="absolute -bottom-40 right-1/4 h-128 w-128 rounded-full bg-purple-600/10 blur-[140px]" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-6">

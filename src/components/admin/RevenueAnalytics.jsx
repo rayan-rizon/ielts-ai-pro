@@ -236,15 +236,15 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
             </p>
           </div>
 
-          <div className="divide-y divide-stone-100 dark:divide-white/[0.04]">
+          <div className="divide-y divide-stone-100 dark:divide-white/4">
             {recentTransactions.length > 0 ? (
               recentTransactions.map((tx) => (
                 <div
                   key={tx.id}
-                  className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-stone-50/60 dark:hover:bg-white/[0.02] transition-colors"
+                  className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-stone-50/60 dark:hover:bg-white/2 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-stone-100 dark:bg-white/[0.06] border border-stone-200/80 dark:border-white/[0.07] flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-stone-100 dark:bg-white/6 border border-stone-200/80 dark:border-white/[0.07] flex items-center justify-center shrink-0">
                       <span className={cn(MICRO, 'text-stone-600 dark:text-stone-300')}>
                         {(tx.full_name || tx.email || '?').charAt(0).toUpperCase()}
                       </span>

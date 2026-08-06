@@ -9,9 +9,9 @@ export default function ComparisonSection() {
       initial={{ opacity: 0, scale: 0.95 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
-      className="mb-32 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2rem] sm:rounded-[3rem] border border-slate-200 dark:border-white/5 p-6 sm:p-8 md:p-16 overflow-hidden relative shadow-2xl"
+      className="mb-32 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-4xl sm:rounded-[3rem] border border-slate-200 dark:border-white/5 p-6 sm:p-8 md:p-16 overflow-hidden relative shadow-2xl"
     >
-      <div className="absolute top-0 left-1/4 w-1/2 h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+      <div className="absolute top-0 left-1/4 w-1/2 h-1 bg-linear-to-r from-transparent via-indigo-500/50 to-transparent" />
 
       <div className="text-center mb-10 sm:mb-16 space-y-2 sm:space-y-4">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight">

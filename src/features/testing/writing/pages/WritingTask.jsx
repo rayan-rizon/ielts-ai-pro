@@ -263,7 +263,7 @@ function WritingViewModeToggle({ viewMode, setViewMode }) {
   return (
     <div className="sticky top-0 z-40 bg-white/80 dark:bg-[#08080a]/85 backdrop-blur-md border-b border-[#e4e2f0] dark:border-white/[0.07] px-3 py-1.5 sm:px-4">
       <div className="flex items-center justify-center w-full">
-        <div className="flex items-center rounded-full border border-[#e4e2f0] bg-[#f4f3fb] p-1 shadow-xs dark:border-white/[0.07] dark:bg-white/[0.04]">
+        <div className="flex items-center rounded-full border border-[#e4e2f0] bg-[#f4f3fb] p-1 shadow-xs dark:border-white/[0.07] dark:bg-white/4">
           {tabs.map((tab) => {
             const isActive = viewMode === tab.id;
             return (

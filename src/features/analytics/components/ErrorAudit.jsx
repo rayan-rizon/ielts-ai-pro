@@ -175,7 +175,7 @@ export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown, 
                       onClick={() => handleCellClick(item)}
                       className={cn(
                         TILE,
-                        'flex h-9 items-center justify-between gap-2 px-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/[0.12]'
+                        'flex h-9 items-center justify-between gap-2 px-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12'
                       )}
                     >
                       <div className="flex min-w-0 items-center gap-1.5">

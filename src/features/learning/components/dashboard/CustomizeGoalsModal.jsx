@@ -33,7 +33,7 @@ export default function CustomizeGoalsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] sm:max-w-2xl p-6 shadow-none">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] sm:max-w-2xl p-6 shadow-none">
         <DialogHeader className="space-y-1.5">
           <DialogTitle className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
             Customize your study plan
@@ -54,7 +54,7 @@ export default function CustomizeGoalsModal({
               min="4"
               max="9"
               step="0.5"
-              className="mt-1 h-10 rounded-xl border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/[0.04] font-mono tabular-nums font-bold text-slate-900 dark:text-white focus:border-[#5a63df] focus:ring-1 focus:ring-[#5a63df]/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="mt-1 h-10 rounded-xl border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/4 font-mono tabular-nums font-bold text-slate-900 dark:text-white focus:border-[#5a63df] focus:ring-1 focus:ring-[#5a63df]/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               value={goalDraft.target_band_score}
               onChange={(event) =>
                 setGoalDraft((draft) => ({
@@ -73,7 +73,7 @@ export default function CustomizeGoalsModal({
                 <Button
                   variant="outline"
                   className={cn(
-                    'mt-1 w-full h-10 justify-start text-left font-bold text-xs rounded-xl px-3 bg-[#f4f3fb] dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/10 hover:border-[#5a63df]/30 hover:bg-[#5a63df]/[0.05] transition-all outline-none',
+                    'mt-1 w-full h-10 justify-start text-left font-bold text-xs rounded-xl px-3 bg-[#f4f3fb] dark:bg-white/4 border-[#e4e2f0] dark:border-white/10 hover:border-[#5a63df]/30 hover:bg-[#5a63df]/5 transition-all outline-none',
                     !goalDraft.test_date && 'text-slate-400'
                   )}
                 >
@@ -121,7 +121,7 @@ export default function CustomizeGoalsModal({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="rounded-xl border-[#e4e2f0] dark:border-white/10 font-bold text-xs hover:bg-[#f4f3fb] dark:hover:bg-white/[0.04]"
+            className="rounded-xl border-[#e4e2f0] dark:border-white/10 font-bold text-xs hover:bg-[#f4f3fb] dark:hover:bg-white/4"
           >
             Cancel
           </Button>

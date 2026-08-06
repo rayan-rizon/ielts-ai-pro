@@ -126,7 +126,7 @@ const ListeningTestHeader = ({
                   <span
                     className={cn(
                       TEST_HEADER_BADGE,
-                      'border-amber-500/25 bg-amber-500/[0.08] text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300 sm:text-[9px]'
+                      'border-amber-500/25 bg-amber-500/8 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300 sm:text-[9px]'
                     )}
                     data-oid="i8fhv98"
                   >
@@ -136,7 +136,7 @@ const ListeningTestHeader = ({
                 {!isAwaitingStart ? (
                   <Pill
                     tone={testMode === 'exam' ? 'accent' : 'neutral'}
-                    className="h-4 rounded-md px-1.5 py-0 text-[8px] leading-none tracking-[0.08em] dark:bg-white/[0.055]"
+                    className="h-4 rounded-md px-1.5 py-0 text-[8px] leading-none tracking-[0.08em] dark:bg-white/5.5"
                   >
                     {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
                   </Pill>
@@ -171,14 +171,14 @@ const ListeningTestHeader = ({
                       <motion.div
                         animate={{ x: ['-100%', '100%'] }}
                         transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                        className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent"
                         data-oid="g-j3-73"
                       />
                     </motion.div>
                   </div>
                   {/* Tooltip */}
                   <div
-                    className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-600 dark:text-slate-200 whitespace-nowrap bg-white dark:bg-[#131315] border border-slate-200 dark:border-white/[0.1] px-2 py-1 rounded shadow-sm z-10"
+                    className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-slate-600 dark:text-slate-200 whitespace-nowrap bg-white dark:bg-[#131315] border border-slate-200 dark:border-white/10 px-2 py-1 rounded shadow-sm z-10"
                     data-oid="ic4_:7-"
                   >
                     Part {partIndex + 1}: {partAnswered}/{partTotal}

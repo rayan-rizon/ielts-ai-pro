@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function DesktopNavLinks({ links, hoveredLink, onHover }) {
   return (
     <div
-      className="relative hidden items-center gap-1 rounded-full border border-[#e4e2f0] bg-[#f4f3fb] p-1 transition-colors duration-300 dark:border-white/[0.08] dark:bg-white/[0.04] lg:flex"
+      className="relative hidden items-center gap-1 rounded-full border border-[#e4e2f0] bg-[#f4f3fb] p-1 transition-colors duration-300 dark:border-white/8 dark:bg-white/4 lg:flex"
       data-oid="_3ruemn"
     >
       {links.map((link) => (
@@ -37,7 +37,7 @@ export default function DesktopNavLinks({ links, hoveredLink, onHover }) {
                   damping: 30,
                   opacity: { duration: 0.15 },
                 }}
-                className="absolute inset-0 rounded-full border border-[#5a63df]/20 bg-[#5a63df]/[0.08] pointer-events-none dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.14]"
+                className="absolute inset-0 rounded-full border border-[#5a63df]/20 bg-[#5a63df]/8 pointer-events-none dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.14]"
                 data-oid="hover-pill-bg"
               />
             )}

@@ -150,7 +150,7 @@ function ActionButton({ plan, isActive, isSubscribed, isLoading, isPricingLoadin
           ? 'border border-[#e2e5f2] bg-[#f4f3fb] text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-500'
           : isPro
             ? 'bg-[#5a63df] text-white hover:bg-[#4a52c9] active:scale-[0.99]'
-            : 'border border-[#e2e5f2] bg-white text-slate-700 hover:border-[#c9cdf3] hover:text-slate-900 active:scale-[0.99] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:text-white'
+            : 'border border-[#e2e5f2] bg-white text-slate-700 hover:border-[#c9cdf3] hover:text-slate-900 active:scale-[0.99] dark:border-white/10 dark:bg-white/4 dark:text-slate-200 dark:hover:text-white'
       )}
     >
       {isActive ? (

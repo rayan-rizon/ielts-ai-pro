@@ -77,7 +77,7 @@ export default function SpeakingAnalysis({ loadingMessage }) {
           />
 
           {/* Central Glowing Orb */}
-          <div className="absolute inset-7 rounded-full bg-gradient-to-br from-rose-500/20 to-red-500/20 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-[0_0_40px_rgba(244,63,94,0.3)]">
+          <div className="absolute inset-7 rounded-full bg-linear-to-br from-rose-500/20 to-red-500/20 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-[0_0_40px_rgba(244,63,94,0.3)]">
             <div className="relative">
               <Bot className="w-10 h-10 text-rose-500 dark:text-rose-400 animate-pulse" />
               <motion.div
@@ -112,7 +112,7 @@ export default function SpeakingAnalysis({ loadingMessage }) {
             className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"
           >
             Analyzing Your{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-red-600 dark:from-rose-400 dark:to-red-400">
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-rose-600 to-red-600 dark:from-rose-400 dark:to-red-400">
               Speaking
             </span>{' '}
             Performance
@@ -204,7 +204,7 @@ export default function SpeakingAnalysis({ loadingMessage }) {
         <div className="w-full space-y-3 pt-6 border-t border-dashed border-border/60 px-4">
           <div className="w-full h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden p-0.5 border border-border/40">
             <motion.div
-              className="h-full bg-gradient-to-r from-rose-500 via-red-500 to-rose-500 rounded-full"
+              className="h-full bg-linear-to-r from-rose-500 via-red-500 to-rose-500 rounded-full"
               animate={{
                 width: ['5%', '95%'],
                 backgroundPosition: ['0% 50%', '100% 50%'],

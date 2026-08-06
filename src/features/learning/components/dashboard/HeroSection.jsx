@@ -169,7 +169,7 @@ function HeroBanner({
                         <button
                           type="button"
                           onClick={() => startTask(task)}
-                          className="group flex w-full min-w-0 items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:hover:bg-white/[0.06]"
+                          className="group flex w-full min-w-0 items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:hover:bg-white/6"
                         >
                           <IconChip icon={QueuedIcon} tone={getModuleTone(task.module)} />
                           <span className="min-w-0 flex-1 truncate text-xs font-bold text-slate-700 dark:text-slate-200">

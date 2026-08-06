@@ -53,7 +53,7 @@ export default function OnboardingCard({ showOnboarding, onboardingSteps, dismis
                     'flex items-center justify-between gap-3 rounded-lg border p-3',
                     step.done
                       ? 'border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)] dark:bg-[rgb(var(--signal-ok)/0.12)]'
-                      : 'border-[#e4e2f0] bg-[#f7f6fd] dark:border-white/[0.10] dark:bg-white/[0.05]'
+                      : 'border-[#e4e2f0] bg-[#f7f6fd] dark:border-white/10 dark:bg-white/5'
                   )}
                 >
                   <div className="flex min-w-0 items-center gap-2.5">
@@ -64,7 +64,7 @@ export default function OnboardingCard({ showOnboarding, onboardingSteps, dismis
                           ? 'bg-[rgb(var(--signal-ok))] text-white'
                           : cn(
                               NUM,
-                              'bg-white text-[10px] font-bold text-slate-500 dark:bg-white/[0.12] dark:text-slate-300'
+                              'bg-white text-[10px] font-bold text-slate-500 dark:bg-white/12 dark:text-slate-300'
                             )
                       )}
                     >

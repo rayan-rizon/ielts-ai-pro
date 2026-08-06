@@ -149,7 +149,7 @@ export default function ReadinessPanel({ readiness, days = [], targetBand = 7, o
         <div
           className={cn(
             TILE,
-            'mt-4 flex flex-col gap-3 border-amber-200/60 bg-amber-50/40 p-3.5 dark:border-amber-500/20 dark:bg-amber-500/[0.06] sm:flex-row sm:items-center sm:justify-between'
+            'mt-4 flex flex-col gap-3 border-amber-200/60 bg-amber-50/40 p-3.5 dark:border-amber-500/20 dark:bg-amber-500/6 sm:flex-row sm:items-center sm:justify-between'
           )}
         >
           <div className="min-w-0">

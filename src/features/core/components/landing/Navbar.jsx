@@ -74,8 +74,8 @@ function getNavClasses(isScrolled) {
     nav: isScrolled ? 'py-2 px-4 sm:px-6 translate-y-0' : 'py-0 px-0 translate-y-0',
     wrapper: isScrolled ? 'max-w-7xl' : 'max-w-full',
     bar: isScrolled
-      ? 'h-12 md:h-14 px-4 md:px-5 rounded-full bg-white/90 dark:bg-[#131315]/90 backdrop-blur-2xl border border-[#e4e2f0] dark:border-white/[0.10] shadow-sm'
-      : 'h-14 md:h-16 px-4 md:px-6 rounded-none bg-white/85 dark:bg-[#0a0a0c]/90 backdrop-blur-2xl border-b border-[#e4e2f0] dark:border-white/[0.08] border-t-0 border-x-0',
+      ? 'h-12 md:h-14 px-4 md:px-5 rounded-full bg-white/90 dark:bg-[#131315]/90 backdrop-blur-2xl border border-[#e4e2f0] dark:border-white/10 shadow-sm'
+      : 'h-14 md:h-16 px-4 md:px-6 rounded-none bg-white/85 dark:bg-[#0a0a0c]/90 backdrop-blur-2xl border-b border-[#e4e2f0] dark:border-white/8 border-t-0 border-x-0',
     content: isScrolled ? 'max-w-full' : 'max-w-7xl mx-auto px-2 md:px-8',
   };
 }
@@ -89,7 +89,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
   return (
     <nav
       className={cn(
-        'fixed left-0 right-0 top-0 z-[100] transition-all duration-350 ease-out',
+        'fixed left-0 right-0 top-0 z-100 transition-all duration-350 ease-out',
         cls.nav
       )}
       data-oid="t9q8_5n"
@@ -130,19 +130,19 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
               isScrolled ? 'max-w-full' : 'max-w-7xl mx-auto px-6 md:px-8'
             )}
           >
-            <Link to={createPageUrl('Index')} className="relative z-[101]" data-oid="6et:210">
+            <Link to={createPageUrl('Index')} className="relative z-101" data-oid="6et:210">
               <Logo size="md" />
             </Link>
 
             {/* Desktop Navigation */}
             <DesktopNavLinks links={NAV_LINKS} hoveredLink={hoveredLink} onHover={setHoveredLink} />
 
-            <div className="flex items-center gap-2 md:gap-3 relative z-[101]" data-oid="z.sf-4g">
+            <div className="flex items-center gap-2 md:gap-3 relative z-101" data-oid="z.sf-4g">
               <Button
                 variant="ghost"
                 className={cn(
                   'relative h-8 w-8 md:h-9 md:w-9 rounded-full flex items-center justify-center p-0',
-                  'bg-[#f4f3fb] dark:bg-white/[0.05] border border-[#e4e2f0] dark:border-white/10',
+                  'bg-[#f4f3fb] dark:bg-white/5 border border-[#e4e2f0] dark:border-white/10',
                   'transition-all duration-200 ease-sidebar hover:-translate-y-0.5 hover:shadow-sm active:scale-95 cursor-pointer overflow-hidden',
                   'hover:border-[#5a63df]/30 dark:hover:border-[#8f97ff]/30'
                 )}
@@ -189,7 +189,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
                   the X gets a quarter-turn so closing has the same bit of
                   delight opening does. */}
               <button
-                className="group lg:hidden h-8 w-8 flex items-center justify-center p-0 rounded-full bg-[#f4f3fb] dark:bg-white/[0.05] text-slate-700 dark:text-slate-200 border border-[#e4e2f0] dark:border-white/10 hover:bg-[#5a63df]/[0.08] dark:hover:bg-[#8f97ff]/[0.14] hover:text-[#5a63df] dark:hover:text-[#a9afff] hover:border-[#5a63df]/30 dark:hover:border-[#8f97ff]/30 hover:-translate-y-0.5 hover:shadow-sm active:scale-95 transition-all duration-200 ease-sidebar"
+                className="group lg:hidden h-8 w-8 flex items-center justify-center p-0 rounded-full bg-[#f4f3fb] dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-[#e4e2f0] dark:border-white/10 hover:bg-[#5a63df]/8 dark:hover:bg-[#8f97ff]/[0.14] hover:text-[#5a63df] dark:hover:text-[#a9afff] hover:border-[#5a63df]/30 dark:hover:border-[#8f97ff]/30 hover:-translate-y-0.5 hover:shadow-sm active:scale-95 transition-all duration-200 ease-sidebar"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
                 data-oid="bqhg9k2"

@@ -206,7 +206,7 @@ const SampleAnswerEditor = ({ value, onChange, placeholder }) => {
       <div
         className={cn(
           MICRO,
-          'px-3 py-1.5 border-t border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.02] text-stone-400 dark:text-stone-500 normal-case tracking-normal font-medium'
+          'px-3 py-1.5 border-t border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/2 text-stone-400 dark:text-stone-500 normal-case tracking-normal font-medium'
         )}
       >
         Tip: Paste formatted text directly — bold, headings, and paragraphs are preserved
@@ -322,7 +322,7 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
 
   return (
     <div className="border border-stone-200/80 dark:border-white/[0.07] rounded-lg bg-white dark:bg-[#131315] overflow-hidden">
-      <div className="flex items-center justify-between px-2 py-1.5 border-b border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.02]">
+      <div className="flex items-center justify-between px-2 py-1.5 border-b border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/2">
         <div className="flex items-center gap-1">
           <div className={cn(MICRO, 'text-stone-400 dark:text-stone-500 mr-2')}>Instructions</div>
           {!isPreview && (
@@ -461,7 +461,7 @@ const ImagePreview = ({ imageUrl, onClear }) => {
 
   if (!imageUrl) {
     return (
-      <div className="rounded-xl border border-dashed border-stone-300 dark:border-white/[0.12] bg-stone-50 dark:bg-white/[0.02] p-8 flex flex-col items-center justify-center text-center gap-2 text-stone-400 dark:text-stone-600">
+      <div className="rounded-xl border border-dashed border-stone-300 dark:border-white/12 bg-stone-50 dark:bg-white/2 p-8 flex flex-col items-center justify-center text-center gap-2 text-stone-400 dark:text-stone-600">
         <ImageIcon className="w-8 h-8 opacity-50" />
         <span className="text-xs font-medium">No image provided</span>
       </div>
@@ -488,9 +488,9 @@ const ImagePreview = ({ imageUrl, onClear }) => {
   }
 
   return (
-    <div className="relative rounded-xl overflow-hidden border border-stone-200/80 dark:border-white/[0.07] bg-stone-100 dark:bg-white/[0.03] aspect-video flex items-center justify-center group">
+    <div className="relative rounded-xl overflow-hidden border border-stone-200/80 dark:border-white/[0.07] bg-stone-100 dark:bg-white/3 aspect-video flex items-center justify-center group">
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-stone-100/60 dark:bg-white/[0.04] z-20">
+        <div className="absolute inset-0 flex items-center justify-center bg-stone-100/60 dark:bg-white/4 z-20">
           <Loader2 className="w-6 h-6 text-stone-400 animate-spin" />
         </div>
       )}
@@ -767,7 +767,7 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         }
       >
         {/* Format Pill */}
-        <div className="flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.03] shrink-0">
+        <div className="flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/3 shrink-0">
           <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>Format</span>
           <Select
             value={meta.test_format}
@@ -861,7 +861,7 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                           theme={effectiveTheme}
                           value={tasks[taskType].prompt}
                           onChange={(val) => updateTaskField(taskType, 'prompt', val)}
-                          className="border-0 !bg-transparent min-h-[150px]"
+                          className="border-0 bg-transparent! min-h-[150px]"
                           placeholder={`Write the ${taskType} question here...`}
                         />
                       </div>
@@ -929,7 +929,7 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                     ) : (
                       <div className={cn(PANEL, 'p-4')}>
                         <div className="flex gap-3">
-                          <div className="w-8 h-8 rounded-md grid place-items-center shrink-0 bg-stone-100 dark:bg-white/[0.04] text-stone-500 dark:text-stone-400">
+                          <div className="w-8 h-8 rounded-md grid place-items-center shrink-0 bg-stone-100 dark:bg-white/4 text-stone-500 dark:text-stone-400">
                             <Sparkles className="w-4 h-4" />
                           </div>
                           <div>

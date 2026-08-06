@@ -16,7 +16,7 @@ const ReactQuill = React.lazy(() =>
 // Loading fallback for the editor
 const EditorSkeleton = () => (
   <div
-    className="flex-1 flex min-h-[220px] flex-col items-center justify-center rounded-xl bg-[#f4f3fb] dark:bg-white/[0.04] md:min-h-[260px] container-border"
+    className="flex-1 flex min-h-[220px] flex-col items-center justify-center rounded-xl bg-[#f4f3fb] dark:bg-white/4 md:min-h-[260px] container-border"
     data-oid=".9ka2dl"
   >
     <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mb-4 opacity-50" data-oid="ndugygt" />
@@ -97,7 +97,7 @@ export function WritingEditor({
         className={cn(
           'relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 dark:bg-[#131315]',
           isFocused
-            ? 'border-indigo-400 dark:border-indigo-500/30 ring-4 ring-indigo-500/[0.04] dark:ring-indigo-500/[0.02]'
+            ? 'border-indigo-400 dark:border-indigo-500/30 ring-4 ring-indigo-500/4 dark:ring-indigo-500/2'
             : 'border-[#e4e2f0] dark:border-white/[0.07]'
         )}
         data-oid="h1s38r1"
@@ -162,7 +162,7 @@ export function WritingEditor({
 
         {/* Editor Area */}
         <div
-          className="flex-1 flex flex-col relative bg-[#f4f3fb]/25 dark:bg-white/[0.015] min-h-0"
+          className="flex-1 flex flex-col relative bg-[#f4f3fb]/25 dark:bg-white/1.5 min-h-0"
           data-oid="-xg5pl7"
         >
           <Suspense fallback={<EditorSkeleton data-oid=":m0npyd" />} data-oid="6d2awu9">
@@ -185,7 +185,7 @@ export function WritingEditor({
                                [&_.ql-editor]:h-full
                                [&_.ql-editor]:min-h-[220px]
                                md:[&_.ql-editor]:min-h-[260px]
-                               [&_.ql-editor]:px-4 md:[&_.ql-editor]:px-6 [&_.ql-editor]:!pt-3 [&_.ql-editor]:!pb-4 [&_.ql-editor.ql-blank::before]:!top-3
+                               [&_.ql-editor]:px-4 md:[&_.ql-editor]:px-6 [&_.ql-editor]:pt-3! [&_.ql-editor]:pb-4! [&_.ql-editor.ql-blank::before]:top-3!
                                [&_.ql-editor]:text-[16px]
                                [&_.ql-editor]:leading-8
                                [&_.ql-editor]:font-serif

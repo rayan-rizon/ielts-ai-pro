@@ -93,7 +93,7 @@ export default function WritingForm({
 function TaskTabs({ activeTask, onTabChange }) {
   return (
     <div
-      className="grid w-full grid-cols-2 gap-1 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] p-1 dark:border-white/[0.07] dark:bg-white/[0.04]"
+      className="grid w-full grid-cols-2 gap-1 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] p-1 dark:border-white/[0.07] dark:bg-white/4"
       role="tablist"
       aria-label="Academic IELTS writing task"
     >
@@ -126,7 +126,7 @@ function TaskTabs({ activeTask, onTabChange }) {
 /** Task 2 prompt textarea (shown after analysis is requested). */
 function PromptField({ value, onChange }) {
   return (
-    <div className="mt-4 rounded-xl border border-[#e4e2f0] bg-[#f8f7fd] p-3.5 dark:border-white/[0.08] dark:bg-white/[0.04]">
+    <div className="mt-4 rounded-xl border border-[#e4e2f0] bg-[#f8f7fd] p-3.5 dark:border-white/8 dark:bg-white/4">
       <label htmlFor="task-prompt" className={cn(TITLE, 'text-xs font-extrabold')}>
         Original Task 2 instructions
       </label>
@@ -147,7 +147,7 @@ function PromptField({ value, onChange }) {
         data-gramm_editor="false"
         data-enable-grammarly="false"
         placeholder="Paste the original Academic IELTS Task 2 question here…"
-        className="mt-2.5 w-full resize-y rounded-lg border border-[#e4e2f0] bg-white px-3.5 py-2.5 text-xs font-medium leading-5 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#5a63df] focus:ring-2 focus:ring-[#5a63df]/20 dark:border-white/[0.10] dark:bg-white/[0.04] dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-[#5a63df]/60"
+        className="mt-2.5 w-full resize-y rounded-lg border border-[#e4e2f0] bg-white px-3.5 py-2.5 text-xs font-medium leading-5 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#5a63df] focus:ring-2 focus:ring-[#5a63df]/20 dark:border-white/10 dark:bg-white/4 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-[#5a63df]/60"
       />
     </div>
   );
@@ -168,7 +168,7 @@ function EssayField({ activeTask, essay, wordCount, minimum, onLoadDemo, onChang
           <span
             className={cn(
               NUM,
-              'font-bold text-xs px-2.5 py-1 rounded-md border border-[#e4e2f0] bg-[#f4f3fb] dark:border-white/[0.08] dark:bg-white/[0.06]',
+              'font-bold text-xs px-2.5 py-1 rounded-md border border-[#e4e2f0] bg-[#f4f3fb] dark:border-white/8 dark:bg-white/6',
               wordCount >= minimum
                 ? 'text-emerald-600 dark:text-emerald-400'
                 : 'text-slate-600 dark:text-slate-300'
@@ -199,7 +199,7 @@ function EssayField({ activeTask, essay, wordCount, minimum, onLoadDemo, onChang
         data-gramm_editor="false"
         data-enable-grammarly="false"
         placeholder={`Paste or write your Academic IELTS ${activeTask} response here…`}
-        className="mt-2.5 min-h-[380px] w-full flex-1 resize-y rounded-xl border border-slate-200/90 bg-[#fafafd] px-4 py-3.5 text-sm sm:text-base leading-relaxed text-slate-800 outline-none transition duration-150 placeholder:text-slate-400 focus:border-[#5a63df] focus:bg-white focus:ring-4 focus:ring-[#5a63df]/15 dark:border-white/[0.09] dark:bg-white/[0.03] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-[#5a63df]/80 dark:focus:bg-[#18181b] dark:focus:ring-[#5a63df]/20"
+        className="mt-2.5 min-h-[380px] w-full flex-1 resize-y rounded-xl border border-slate-200/90 bg-[#fafafd] px-4 py-3.5 text-sm sm:text-base leading-relaxed text-slate-800 outline-none transition duration-150 placeholder:text-slate-400 focus:border-[#5a63df] focus:bg-white focus:ring-4 focus:ring-[#5a63df]/15 dark:border-white/9 dark:bg-white/3 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-[#5a63df]/80 dark:focus:bg-[#18181b] dark:focus:ring-[#5a63df]/20"
       />
     </div>
   );
@@ -213,14 +213,14 @@ function FormActions({ isAnalysing, authLoading, onClearEssay, onPaste }) {
         <button
           type="button"
           onClick={onClearEssay}
-          className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 text-xs font-extrabold text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#5a63df] dark:border-white/[0.10] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
+          className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 text-xs font-extrabold text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#5a63df] dark:border-white/10 dark:bg-white/4 dark:text-slate-200 dark:hover:bg-white/8"
         >
           <RotateCcw className="h-4 w-4" /> Clear
         </button>
         <button
           type="button"
           onClick={onPaste}
-          className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 text-xs font-extrabold text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#5a63df] dark:border-white/[0.10] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
+          className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 text-xs font-extrabold text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#5a63df] dark:border-white/10 dark:bg-white/4 dark:text-slate-200 dark:hover:bg-white/8"
         >
           <ClipboardPaste className="h-4 w-4" /> Paste
         </button>
@@ -228,7 +228,7 @@ function FormActions({ isAnalysing, authLoading, onClearEssay, onPaste }) {
       <button
         type="submit"
         disabled={isAnalysing || authLoading}
-        className="inline-flex h-11 min-w-48 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#5a63df] to-[#6b72e8] px-6 text-xs sm:text-sm font-black text-white shadow-md shadow-[#5a63df]/25 dark:shadow-none transition hover:from-[#4b54cf] hover:to-[#5a63df] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#5a63df] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-11 min-w-48 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#5a63df] to-[#6b72e8] px-6 text-xs sm:text-sm font-black text-white shadow-md shadow-[#5a63df]/25 dark:shadow-none transition hover:from-[#4b54cf] hover:to-[#5a63df] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#5a63df] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isAnalysing ? (
           <>
@@ -247,9 +247,9 @@ function FormActions({ isAnalysing, authLoading, onClearEssay, onPaste }) {
 /** Task 1 image upload sub-section. */
 function Task1ImageField({ taskImageFile, onImageChange }) {
   return (
-    <div className="mt-3 rounded-xl border border-[#e4e2f0] bg-[#f8f7fd] p-3 dark:border-white/[0.08] dark:bg-white/[0.04]">
+    <div className="mt-3 rounded-xl border border-[#e4e2f0] bg-[#f8f7fd] p-3 dark:border-white/8 dark:bg-white/4">
       <div className="flex items-start gap-2.5">
-        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#e4e2f0] bg-white text-[#5a63df] dark:border-white/[0.10] dark:bg-white/[0.06] dark:text-[#afb5ff]">
+        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#e4e2f0] bg-white text-[#5a63df] dark:border-white/10 dark:bg-white/6 dark:text-[#afb5ff]">
           <ImageUp className="h-4 w-4" />
         </div>
         <div>
@@ -267,7 +267,7 @@ function Task1ImageField({ taskImageFile, onImageChange }) {
         type="file"
         accept="image/png,image/jpeg,image/webp"
         onChange={onImageChange}
-        className="mt-2.5 block w-full rounded-lg border border-[#e4e2f0] bg-white p-1.5 text-xs font-semibold text-slate-600 file:mr-2.5 file:rounded-md file:border-0 file:bg-[#5a63df] file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white hover:file:bg-[#4b54cf] dark:border-white/[0.10] dark:bg-white/[0.04] dark:text-slate-300"
+        className="mt-2.5 block w-full rounded-lg border border-[#e4e2f0] bg-white p-1.5 text-xs font-semibold text-slate-600 file:mr-2.5 file:rounded-md file:border-0 file:bg-[#5a63df] file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white hover:file:bg-[#4b54cf] dark:border-white/10 dark:bg-white/4 dark:text-slate-300"
       />
       {taskImageFile && (
         <p className="mt-1.5 flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">

@@ -71,8 +71,8 @@ function PodiumPlace({ user, place }) {
           'flex w-full items-center justify-center rounded-t-lg',
           pedestalHeight,
           isFirst
-            ? 'border-t-2 border-[#5a63df]/30 bg-[#5a63df]/[0.08]'
-            : 'border-t-2 border-[#e4e2f0] bg-[#f4f3fb] dark:border-white/10 dark:bg-white/[0.03]'
+            ? 'border-t-2 border-[#5a63df]/30 bg-[#5a63df]/8'
+            : 'border-t-2 border-[#e4e2f0] bg-[#f4f3fb] dark:border-white/10 dark:bg-white/3'
         )}
       >
         <Trophy className={cn('h-4 w-4', isFirst ? 'text-[#5a63df]' : 'text-slate-400')} />

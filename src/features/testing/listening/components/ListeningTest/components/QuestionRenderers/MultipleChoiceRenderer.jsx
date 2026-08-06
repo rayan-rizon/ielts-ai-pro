@@ -53,9 +53,9 @@ const MultipleChoiceRenderer = ({
 
     if (!isFinished) {
       if (isSelected || isChecked) {
-        return `${baseStyle} bg-[#5a63df]/[0.08] border-[#5a63df]/35 text-[#3a3f9e] dark:bg-[#5a63df]/[0.14] dark:border-[#5a63df]/30 dark:text-[#c9cdf3] font-medium ring-1 ring-[#5a63df]/15`;
+        return `${baseStyle} bg-[#5a63df]/8 border-[#5a63df]/35 text-[#3a3f9e] dark:bg-[#5a63df]/[0.14] dark:border-[#5a63df]/30 dark:text-[#c9cdf3] font-medium ring-1 ring-[#5a63df]/15`;
       }
-      return `${baseStyle} border-[#ebeaf7] dark:border-white/[0.06] bg-[#fbfbfe]/70 dark:bg-white/[0.02] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] hover:border-[#5a63df]/25 dark:hover:border-[#5a63df]/25`;
+      return `${baseStyle} border-[#ebeaf7] dark:border-white/6 bg-[#fbfbfe]/70 dark:bg-white/2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 hover:border-[#5a63df]/25 dark:hover:border-[#5a63df]/25`;
     }
 
     // Review mode
@@ -169,7 +169,7 @@ const MultipleChoiceRenderer = ({
                         'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
                     else
                       badgeClass +=
-                        'bg-slate-100 text-slate-400 dark:bg-white/[0.06] dark:text-slate-600';
+                        'bg-slate-100 text-slate-400 dark:bg-white/6 dark:text-slate-600';
                   } else if (isChecked) {
                     badgeClass += 'bg-[#5a63df] text-white shadow-xs scale-105';
                   } else {
@@ -230,7 +230,7 @@ const MultipleChoiceRenderer = ({
                         'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300';
                     else
                       badgeClass +=
-                        'bg-slate-100 text-slate-400 dark:bg-white/[0.06] dark:text-slate-600';
+                        'bg-slate-100 text-slate-400 dark:bg-white/6 dark:text-slate-600';
                   } else if (isSelected) {
                     badgeClass += 'bg-[#5a63df] text-white shadow-xs scale-105';
                   } else {

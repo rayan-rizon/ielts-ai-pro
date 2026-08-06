@@ -213,9 +213,9 @@ export default function AdminEmailSettings() {
     <m.div variants={STAGGER_CONTAINER} initial="hidden" animate="visible" className="space-y-4">
       {/* Delivery health */}
       <m.div variants={FADE_UP} className={cn(PANEL, 'overflow-hidden')}>
-        <div className="p-4 border-b border-stone-100 dark:border-white/[0.06] flex items-center justify-between">
+        <div className="p-4 border-b border-stone-100 dark:border-white/6 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-md bg-stone-100 dark:bg-white/[0.06] text-stone-500 dark:text-stone-300">
+            <div className="p-1.5 rounded-md bg-stone-100 dark:bg-white/6 text-stone-500 dark:text-stone-300">
               <Activity className="w-3.5 h-3.5" />
             </div>
             <div>
@@ -284,8 +284,8 @@ export default function AdminEmailSettings() {
 
       {/* Triggers */}
       <m.div variants={FADE_UP} className={cn(PANEL, 'overflow-hidden')}>
-        <div className="p-4 border-b border-stone-100 dark:border-white/[0.06] flex items-start justify-between gap-3">
-          <div className="p-1.5 rounded-md bg-stone-100 dark:bg-white/[0.06] text-stone-500 dark:text-stone-300">
+        <div className="p-4 border-b border-stone-100 dark:border-white/6 flex items-start justify-between gap-3">
+          <div className="p-1.5 rounded-md bg-stone-100 dark:bg-white/6 text-stone-500 dark:text-stone-300">
             <Zap className="w-3.5 h-3.5" />
           </div>
           <div className="flex-1">
@@ -306,7 +306,7 @@ export default function AdminEmailSettings() {
             <Loader2 className="w-5 h-5 animate-spin text-stone-500 dark:text-stone-400" />
           </div>
         ) : (
-          <div className="divide-y divide-stone-100 dark:divide-white/[0.06]">
+          <div className="divide-y divide-stone-100 dark:divide-white/6">
             {EMAIL_TRIGGERS.map((trigger) => (
               <div
                 key={trigger.id}
@@ -323,7 +323,7 @@ export default function AdminEmailSettings() {
                 </div>
 
                 <div className="flex items-center gap-3 pl-5 sm:pl-0">
-                  <div className="flex items-center gap-0.5 bg-stone-100 dark:bg-white/[0.04] p-0.5 rounded-md border border-stone-200/70 dark:border-white/[0.06]">
+                  <div className="flex items-center gap-0.5 bg-stone-100 dark:bg-white/4 p-0.5 rounded-md border border-stone-200/70 dark:border-white/6">
                     <button
                       onClick={() => handlePreview(trigger)}
                       className={cn(
@@ -372,7 +372,7 @@ export default function AdminEmailSettings() {
       {/* Preview dialog */}
       <Dialog open={!!previewing} onOpenChange={() => setPreviewing(null)}>
         <DialogContent className="max-w-5xl max-h-[92vh] flex flex-col p-0 overflow-hidden border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-[#111113]">
-          <DialogHeader className="p-5 border-b border-stone-200 dark:border-white/[0.08] bg-white dark:bg-[#161618]">
+          <DialogHeader className="p-5 border-b border-stone-200 dark:border-white/8 bg-white dark:bg-[#161618]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pr-8">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-lg bg-[#6c4cff]/10 text-[#6c4cff]">
@@ -387,7 +387,7 @@ export default function AdminEmailSettings() {
                   </DialogDescription>
                 </div>
               </div>
-              <div className="flex items-center rounded-lg border border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-white/[0.04] p-1">
+              <div className="flex items-center rounded-lg border border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-white/4 p-1">
                 <button
                   type="button"
                   onClick={() => setPreviewViewport('desktop')}
@@ -416,7 +416,7 @@ export default function AdminEmailSettings() {
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[radial-gradient(circle_at_top,_rgba(108,76,255,0.12),transparent_34%),#f4f3f1] dark:bg-[radial-gradient(circle_at_top,_rgba(108,76,255,0.14),transparent_32%),#0d0d0f]">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[radial-gradient(circle_at_top,rgba(108,76,255,0.12),transparent_34%),#f4f3f1] dark:bg-[radial-gradient(circle_at_top,rgba(108,76,255,0.14),transparent_32%),#0d0d0f]">
             {previewing?.loading ? (
               <div className="flex flex-col items-center justify-center h-56 gap-2.5">
                 <Loader2 className="w-5 h-5 animate-spin text-stone-500 dark:text-stone-400" />
@@ -449,7 +449,7 @@ export default function AdminEmailSettings() {
             )}
           </div>
 
-          <DialogFooter className="p-4 border-t border-stone-100 dark:border-white/[0.06]">
+          <DialogFooter className="p-4 border-t border-stone-100 dark:border-white/6">
             <div className="flex-1 flex items-center gap-2">
               <Input
                 placeholder="Test recipient email…"

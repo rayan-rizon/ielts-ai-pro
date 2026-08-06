@@ -30,7 +30,7 @@ const Countdown = ({ endsAt }) => {
   if (!Number.isFinite(target)) return null;
 
   return (
-    <div className="rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] px-4 py-3 dark:border-white/[0.10] dark:bg-white/[0.05]">
+    <div className="rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] px-4 py-3 dark:border-white/10 dark:bg-white/5">
       <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
         {remaining > 0 ? 'Estimated time remaining' : 'Expected back'}
       </p>
@@ -65,10 +65,10 @@ const MaintenanceScreen = ({ config }) => {
         transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
         className={cn(
           'w-full max-w-md rounded-2xl border border-[#e4e2f0] bg-white p-7 text-center',
-          'dark:border-white/[0.10] dark:bg-[#131315] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]'
+          'dark:border-white/10 dark:bg-[#131315] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]'
         )}
       >
-        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#5a63df]/[0.09] dark:bg-[#5a63df]/[0.18]">
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#5a63df]/9 dark:bg-[#5a63df]/18">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
@@ -88,7 +88,7 @@ const MaintenanceScreen = ({ config }) => {
           {settings.ends_at ? (
             <Countdown endsAt={settings.ends_at} />
           ) : (
-            <div className="flex items-center justify-center gap-2 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] px-4 py-3 dark:border-white/[0.10] dark:bg-white/[0.05]">
+            <div className="flex items-center justify-center gap-2 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] px-4 py-3 dark:border-white/10 dark:bg-white/5">
               <Clock className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
               <span className="text-[12px] font-semibold text-slate-600 dark:text-slate-300">
                 Please check back shortly
@@ -101,7 +101,7 @@ const MaintenanceScreen = ({ config }) => {
               href={settings.status_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between gap-2 rounded-xl border border-[#e4e2f0] px-4 py-2.5 transition-colors hover:bg-[#f7f6fd] dark:border-white/[0.10] dark:hover:bg-white/[0.06]"
+              className="flex items-center justify-between gap-2 rounded-xl border border-[#e4e2f0] px-4 py-2.5 transition-colors hover:bg-[#f7f6fd] dark:border-white/10 dark:hover:bg-white/6"
             >
               <span className="flex items-center gap-2 text-[12px] font-semibold text-slate-700 dark:text-slate-200">
                 <ShieldCheck className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
@@ -114,7 +114,7 @@ const MaintenanceScreen = ({ config }) => {
           {settings.contact_email && (
             <a
               href={`mailto:${settings.contact_email}`}
-              className="flex items-center justify-between gap-2 rounded-xl border border-[#e4e2f0] px-4 py-2.5 transition-colors hover:bg-[#f7f6fd] dark:border-white/[0.10] dark:hover:bg-white/[0.06]"
+              className="flex items-center justify-between gap-2 rounded-xl border border-[#e4e2f0] px-4 py-2.5 transition-colors hover:bg-[#f7f6fd] dark:border-white/10 dark:hover:bg-white/6"
             >
               <span className="flex items-center gap-2 text-[12px] font-semibold text-slate-700 dark:text-slate-200">
                 <Mail className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />

@@ -74,14 +74,14 @@ export default function UsageStatsSection() {
             exit={{ opacity: 0 }}
             className="grid w-full grid-cols-1 gap-3 lg:grid-cols-2"
           >
-            <div className={cn(PANEL, 'h-[17rem] p-4 sm:p-5')}>
+            <div className={cn(PANEL, 'h-68 p-4 sm:p-5')}>
               <Skeleton className="mb-4 h-5 w-28 rounded" />
               <div className="grid grid-cols-2 gap-3">
                 <Skeleton className="h-32 rounded-lg" />
                 <Skeleton className="h-32 rounded-lg" />
               </div>
             </div>
-            <div className={cn(PANEL, 'flex h-[17rem] flex-col justify-between p-4 sm:p-5')}>
+            <div className={cn(PANEL, 'flex h-68 flex-col justify-between p-4 sm:p-5')}>
               <Skeleton className="mb-4 h-5 w-28 rounded" />
               <div className="w-full space-y-3">
                 <Skeleton className="h-8 rounded-lg" />

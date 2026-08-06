@@ -72,7 +72,7 @@ const ActiveModuleLink = ({ type, data, session }) => {
       <div
         className={cn(
           TILE,
-          'flex h-full items-center gap-2 px-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/[0.12]'
+          'flex h-full items-center gap-2 px-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12'
         )}
       >
         <IconChip icon={meta.icon} tone={meta.tone} size="sm" />
@@ -119,7 +119,7 @@ const TestCardBandScore = ({ overallBandScore, completedScoresLength, moduleScor
     <div className="flex items-center gap-2">
       <div
         className={cn(
-          'flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4e2f0] bg-white dark:border-white/10 dark:bg-white/[0.06]'
+          'flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4e2f0] bg-white dark:border-white/10 dark:bg-white/6'
         )}
       >
         <span className={cn(NUM, 'text-sm font-extrabold text-slate-900 dark:text-white')}>
@@ -144,7 +144,7 @@ const TestCardBandScore = ({ overallBandScore, completedScoresLength, moduleScor
             className={cn(
               'flex min-w-[26px] flex-col items-center rounded-md px-1.5 py-1',
               score != null
-                ? 'border border-[#e4e2f0] bg-white dark:border-white/10 dark:bg-white/[0.06]'
+                ? 'border border-[#e4e2f0] bg-white dark:border-white/10 dark:bg-white/6'
                 : 'opacity-30'
             )}
           >
@@ -222,12 +222,12 @@ const CambridgeTestCard = ({ title, modules, sessions }) => {
     <div
       className={cn(
         PANEL,
-        'flex h-full flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/[0.12]'
+        'flex h-full flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12'
       )}
     >
       <TestCardHeader progressPercent={progressPercent} />
 
-      <div className="mb-3 flex-grow">
+      <div className="mb-3 grow">
         <h3 className={cn(TITLE, 'text-sm leading-snug')}>{title}</h3>
         <p className={cn(MICRO, MUTED, 'mt-1 line-clamp-1')}>
           Full IELTS exam simulation, all four skills.
@@ -369,7 +369,7 @@ const CambridgeTestsControls = ({ searchQuery, setSearchQuery, activeTab, setAct
       />
     </div>
 
-    <div className="no-scrollbar flex flex-1 items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.04] lg:flex-none">
+    <div className="no-scrollbar flex flex-1 items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4 lg:flex-none">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
@@ -438,7 +438,7 @@ const CambridgeCardSkeleton = () => (
     </div>
     <Skeleton className="mb-1.5 h-4 w-3/4 rounded-md" />
     <Skeleton className="mb-3 h-3 w-2/3 rounded-md" />
-    <div className="grid flex-grow grid-cols-2 gap-2 content-start">
+    <div className="grid grow grid-cols-2 gap-2 content-start">
       {[...Array(4)].map((_, i) => (
         <Skeleton key={i} className="h-10 rounded-lg sm:h-11" />
       ))}
@@ -537,11 +537,11 @@ export default function CambridgeTests() {
     <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+        className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
       />
 
       <div className="relative z-10 mx-auto max-w-[1600px] space-y-4">

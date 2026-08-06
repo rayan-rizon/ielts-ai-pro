@@ -11,7 +11,7 @@ export default function ContactCTA({ onSignup, onPricing }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-gradient-to-br from-[#4f38ea] via-[#5c47f0] to-[#216ff0] text-white rounded-[28px] md:rounded-[36px] p-6 sm:p-8 md:p-10 border border-white/15 shadow-[0_25px_60px_-15px_rgba(79,70,229,0.4)] dark:shadow-[0_35px_75px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden text-center group"
+          className="bg-linear-to-br from-[#4f38ea] via-[#5c47f0] to-[#216ff0] text-white rounded-[28px] md:rounded-[36px] p-6 sm:p-8 md:p-10 border border-white/15 shadow-[0_25px_60px_-15px_rgba(79,70,229,0.4)] dark:shadow-[0_35px_75px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden text-center group"
         >
           {/* Grid overlay */}
           <div className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none">

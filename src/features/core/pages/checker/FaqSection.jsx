@@ -35,7 +35,7 @@ export default function FaqSection() {
             <AccordionItem
               key={item.question}
               value={`faq-${index}`}
-              className="rounded-2xl border border-slate-200 bg-white px-5 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:shadow-none"
+              className="rounded-2xl border border-slate-200 bg-white px-5 shadow-sm dark:border-white/10 dark:bg-white/3 dark:shadow-none"
             >
               <AccordionTrigger className="text-left text-sm font-extrabold text-slate-900 dark:text-slate-100 hover:no-underline sm:text-base">
                 {item.question}

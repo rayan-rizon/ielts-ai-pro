@@ -71,7 +71,7 @@ function SkeletonGridItem({ i }) {
         <Skeleton className="h-9 w-9 rounded-lg" />
         <Skeleton className="h-5 w-16 rounded-full" />
       </div>
-      <div className="flex-grow space-y-3">
+      <div className="grow space-y-3">
         <Skeleton className="h-5 w-3/4 rounded-lg" />
         <Skeleton className="h-3.5 w-full rounded-lg" />
         <div className="grid grid-cols-2 gap-2 pt-2">

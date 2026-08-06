@@ -105,7 +105,7 @@ function AnalysisLoadingState({ analysisStage }) {
                   'grid h-5 w-5 place-items-center rounded-full border text-[10px] transition-colors',
                   index <= currentStageIndex
                     ? 'border-[#5a63df] bg-[#5a63df] text-white'
-                    : 'border-[#e4e2f0] bg-white text-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-600'
+                    : 'border-[#e4e2f0] bg-white text-slate-300 dark:border-white/10 dark:bg-white/4 dark:text-slate-600'
                 )}
               >
                 {index < currentStageIndex ? <Check className="h-3 w-3" /> : index + 1}
@@ -185,7 +185,7 @@ function FeedbackResult({ feedback, activeTask }) {
           <span
             className={cn(
               MICRO,
-              'rounded-md border border-[#e4e2f0] bg-[#f4f3fb] px-2.5 py-1 text-slate-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300'
+              'rounded-md border border-[#e4e2f0] bg-[#f4f3fb] px-2.5 py-1 text-slate-600 dark:border-white/10 dark:bg-white/4 dark:text-slate-300'
             )}
           >
             Academic {activeTask}
@@ -365,7 +365,7 @@ function DemoPreview({ activeTask, showSignupGate, isSignedIn, error, onSignUp, 
       aria-label="Academic IELTS demo feedback report"
       className={cn(PANEL, 'relative h-full min-h-[600px] overflow-hidden p-5 sm:p-6')}
     >
-      <div className={cn('transition duration-300', showSignupGate && 'select-none blur-[4px]')}>
+      <div className={cn('transition duration-300', showSignupGate && 'select-none blur-xs')}>
         <div className="flex items-start justify-between gap-4 border-b border-[#e4e2f0] dark:border-white/[0.07] pb-5">
           <div>
             <span
@@ -407,7 +407,7 @@ function DemoPreview({ activeTask, showSignupGate, isSignedIn, error, onSignUp, 
             <span
               className={cn(
                 MICRO,
-                'rounded-md border border-[#e4e2f0] bg-[#f4f3fb] px-2.5 py-1 text-slate-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300'
+                'rounded-md border border-[#e4e2f0] bg-[#f4f3fb] px-2.5 py-1 text-slate-600 dark:border-white/10 dark:bg-white/4 dark:text-slate-300'
               )}
             >
               IELTS criteria demo
@@ -488,7 +488,7 @@ function DemoPreview({ activeTask, showSignupGate, isSignedIn, error, onSignUp, 
       </div>
 
       {showOverlay && (
-        <div className="absolute inset-5 flex flex-col items-center justify-center rounded-xl border border-[#e4e2f0] bg-white/95 p-6 text-center shadow-lg dark:border-white/[0.10] dark:bg-[#131315]/95">
+        <div className="absolute inset-5 flex flex-col items-center justify-center rounded-xl border border-[#e4e2f0] bg-white/95 p-6 text-center shadow-lg dark:border-white/10 dark:bg-[#131315]/95">
           <div className="grid h-12 w-12 place-items-center rounded-full bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#afb5ff]">
             <LockKeyhole className="h-5 w-5" />
           </div>

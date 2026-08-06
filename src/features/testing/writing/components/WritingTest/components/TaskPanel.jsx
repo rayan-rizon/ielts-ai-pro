@@ -147,7 +147,7 @@ export function TaskPanel({
         >
           {/* Card Header & Parameters */}
           <div
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 border-b border-[#ebeaf7] dark:border-white/[0.07] bg-[#f4f3fb]/50 dark:bg-white/[0.03]"
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 border-b border-[#ebeaf7] dark:border-white/[0.07] bg-[#f4f3fb]/50 dark:bg-white/3"
             data-oid="card-header"
           >
             <div className="flex items-center gap-2">
@@ -210,7 +210,7 @@ export function TaskPanel({
               Essay Topic
             </h4>
             <div
-              className="text-sm font-serif font-medium leading-relaxed text-slate-800 dark:text-slate-100 border-l-2 border-orange-500/40 pl-3 py-0.5 bg-orange-500/[0.01] dark:bg-orange-500/[0.005] rounded-r-lg"
+              className="text-sm font-serif font-medium leading-relaxed text-slate-800 dark:text-slate-100 border-l-2 border-orange-500/40 pl-3 py-0.5 bg-orange-500/1 dark:bg-orange-500/0.5 rounded-r-lg"
               dangerouslySetInnerHTML={{
                 __html: sanitizeHtml(
                   activeTask.prompt ||
@@ -237,8 +237,8 @@ export function TaskPanel({
               onClick={() => setShowSample(!showSample)}
               className={`w-full justify-between items-center group h-auto py-3 px-4 rounded-2xl border transition-all duration-300 ${
                 showSample
-                  ? 'bg-amber-500/[0.04] border-amber-200 dark:bg-amber-500/[0.02] dark:border-amber-500/20 shadow-sm'
-                  : 'bg-slate-500/[0.02] dark:bg-white/[0.02] border-[#e4e2f0] dark:border-white/[0.07] hover:bg-amber-500/[0.02] hover:border-amber-500/30 dark:hover:bg-amber-500/[0.01] dark:hover:border-amber-500/20'
+                  ? 'bg-amber-500/4 border-amber-200 dark:bg-amber-500/2 dark:border-amber-500/20 shadow-sm'
+                  : 'bg-slate-500/2 dark:bg-white/2 border-[#e4e2f0] dark:border-white/[0.07] hover:bg-amber-500/2 hover:border-amber-500/30 dark:hover:bg-amber-500/1 dark:hover:border-amber-500/20'
               }`}
               data-oid="4jmai9z"
             >
@@ -277,11 +277,11 @@ export function TaskPanel({
                   data-oid=".gz5-z_"
                 >
                   <div
-                    className="mt-2 p-5 rounded-2xl bg-amber-500/[0.01] border border-amber-100/50 dark:border-amber-900/10 text-base leading-relaxed"
+                    className="mt-2 p-5 rounded-2xl bg-amber-500/1 border border-amber-100/50 dark:border-amber-900/10 text-base leading-relaxed"
                     data-oid="b-ecjg0"
                   >
                     <div
-                      className="ql-editor !p-0 !min-h-0 prose prose-slate dark:prose-invert max-w-none 
+                      className="ql-editor p-0! min-h-0! prose prose-slate dark:prose-invert max-w-none 
                                 prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-p:leading-8
                                 prose-headings:font-bold prose-headings:text-amber-950 dark:prose-headings:text-amber-100
                                 [&>p]:mb-4 [&_p]:mb-4 space-y-4 [&>*:first-child]:mt-0 font-serif"

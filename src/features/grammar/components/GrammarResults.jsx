@@ -25,7 +25,7 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain })
       <section className={cn(PANEL, 'p-6')}>
         <div className="grid gap-5 md:grid-cols-[220px_minmax(0,1fr)] md:items-center">
           <div className={cn(TILE, 'p-5 text-center')}>
-            <div className="text-4xl font-black tracking-[-0.05em] text-[#5a63df]">{accuracy}%</div>
+            <div className="text-4xl font-black tracking-tighter text-[#5a63df]">{accuracy}%</div>
             <div className="mt-1 text-xs font-extrabold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
               Practice accuracy
             </div>
@@ -99,13 +99,13 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain })
                   )}
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     <div className="rounded-lg bg-white/65 px-3 py-2 text-xs font-semibold text-slate-600 dark:bg-white/5 dark:text-slate-300">
-                      <span className="block text-[10px] font-extrabold uppercase tracking-[0.1em] text-slate-400">
+                      <span className="block text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
                         Your answer
                       </span>
                       {String(item.submittedAnswer)}
                     </div>
                     <div className="rounded-lg bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200">
-                      <span className="block text-[10px] font-extrabold uppercase tracking-[0.1em] text-emerald-600 dark:text-emerald-300">
+                      <span className="block text-[10px] font-extrabold uppercase tracking-widest text-emerald-600 dark:text-emerald-300">
                         Better answer
                       </span>
                       {item.correctAnswer}

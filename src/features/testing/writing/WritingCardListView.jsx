@@ -80,7 +80,7 @@ export default function WritingCardListView({ group, sessions, userData, isAdmin
       transition={{ duration: 0.3, ease: 'easeOut' }}
       className={cn(
         PANEL,
-        'flex flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/[0.12]'
+        'flex flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12'
       )}
     >
       <div className="mb-3 flex items-center justify-between border-b border-[#eceafa] pb-3 dark:border-white/[0.07]">

@@ -77,7 +77,7 @@ export default function StudyAvailabilityEditor({
                 'rounded-lg border px-2 py-2 text-xs font-mono font-bold tracking-tight transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
                 selected
                   ? 'border-[#5a63df] bg-[#5a63df] text-white shadow-xs'
-                  : 'border-[#e4e2f0] bg-[#f4f3fb] text-slate-600 hover:border-[#5a63df]/40 hover:text-[#5a63df] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:border-white/20 dark:hover:text-slate-200'
+                  : 'border-[#e4e2f0] bg-[#f4f3fb] text-slate-600 hover:border-[#5a63df]/40 hover:text-[#5a63df] dark:border-white/10 dark:bg-white/4 dark:text-slate-400 dark:hover:border-white/20 dark:hover:text-slate-200'
               )}
             >
               {DAY_LABELS[day]}
@@ -90,7 +90,7 @@ export default function StudyAvailabilityEditor({
         {STUDY_DAYS.filter((day) => availability.days[day]).map((day) => (
           <label
             key={day}
-            className="flex items-center justify-between gap-3 rounded-xl border border-[#ebeaf7] bg-[#fbfbfe] px-3.5 py-2.5 dark:border-white/[0.07] dark:bg-white/[0.03]"
+            className="flex items-center justify-between gap-3 rounded-xl border border-[#ebeaf7] bg-[#fbfbfe] px-3.5 py-2.5 dark:border-white/[0.07] dark:bg-white/3"
           >
             <span className="text-xs font-extrabold capitalize text-slate-800 dark:text-slate-200">
               {day}

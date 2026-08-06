@@ -99,10 +99,10 @@ const AudioUploader = ({ url, onUrlChange }) => {
         className={cn(
           'relative overflow-hidden rounded-xl border p-5 flex flex-col items-center justify-center transition-all duration-200 gap-3 text-center group',
           error
-            ? 'border-rose-500/30 bg-rose-500/[0.06] dark:border-rose-400/30 dark:bg-rose-950/20'
+            ? 'border-rose-500/30 bg-rose-500/6 dark:border-rose-400/30 dark:bg-rose-950/20'
             : url
-              ? 'border-[#5a63df]/30 bg-gradient-to-b from-white to-[#faf9ff] dark:border-white/[0.08] dark:from-[#141319] dark:to-[#100f15]'
-              : 'border-dashed border-[#e4e2f0] dark:border-white/[0.10] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] hover:border-[#5a63df]/40'
+              ? 'border-[#5a63df]/30 bg-linear-to-b from-white to-[#faf9ff] dark:border-white/8 dark:from-[#141319] dark:to-[#100f15]'
+              : 'border-dashed border-[#e4e2f0] dark:border-white/10 bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] hover:border-[#5a63df]/40'
         )}
       >
         {uploading ? (
@@ -131,7 +131,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
               </div>
             </div>
 
-            <div className="bg-[#f4f3fb] dark:bg-white/[0.04] rounded-xl p-2.5 border border-[#ebeaf7] dark:border-white/10 mb-4">
+            <div className="bg-[#f4f3fb] dark:bg-white/4 rounded-xl p-2.5 border border-[#ebeaf7] dark:border-white/10 mb-4">
               <audio key={url} controls src={url} className="w-full h-9 rounded-lg" />
             </div>
 
@@ -140,7 +140,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
                 variant="outline"
                 size="sm"
                 onClick={() => document.getElementById('audio-upload-input').click()}
-                className="text-[10px] uppercase font-extrabold tracking-wider h-8 px-3 rounded-lg border-[#5a63df]/30 bg-[#5a63df]/[0.08] text-[#5a63df] hover:bg-[#5a63df] hover:text-white dark:text-[#a9afff] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/[0.15] dark:hover:bg-[#8f97ff] dark:hover:text-[#0b0c10] transition-all shadow-sm"
+                className="text-[10px] uppercase font-extrabold tracking-wider h-8 px-3 rounded-lg border-[#5a63df]/30 bg-[#5a63df]/8 text-[#5a63df] hover:bg-[#5a63df] hover:text-white dark:text-[#a9afff] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/15 dark:hover:bg-[#8f97ff] dark:hover:text-[#0b0c10] transition-all shadow-sm"
               >
                 <Upload className="w-3.5 h-3.5 mr-1.5" /> Replace
               </Button>
@@ -148,7 +148,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
                 variant="destructive"
                 size="sm"
                 onClick={() => onUrlChange('')}
-                className="text-[10px] uppercase font-extrabold tracking-wider h-8 px-3 rounded-lg border border-rose-500/30 bg-rose-500/[0.08] text-rose-600 dark:text-rose-300 dark:border-rose-400/30 dark:bg-rose-400/[0.15] hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                className="text-[10px] uppercase font-extrabold tracking-wider h-8 px-3 rounded-lg border border-rose-500/30 bg-rose-500/8 text-rose-600 dark:text-rose-300 dark:border-rose-400/30 dark:bg-rose-400/15 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
               >
                 <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Remove
               </Button>
@@ -214,7 +214,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
             placeholder="https://source-link.mp3"
             value={url}
             onChange={(e) => onUrlChange(e.target.value)}
-            className="pl-12 text-[11px] font-mono h-9 bg-white dark:bg-[#131315] text-slate-800 dark:text-slate-200 border-[#e4e2f0] dark:border-white/[0.08] hover:border-[#5a63df]/30 dark:hover:border-white/20 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all rounded-lg"
+            className="pl-12 text-[11px] font-mono h-9 bg-white dark:bg-[#131315] text-slate-800 dark:text-slate-200 border-[#e4e2f0] dark:border-white/8 hover:border-[#5a63df]/30 dark:hover:border-white/20 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all rounded-lg"
           />
         </div>
       )}
@@ -333,7 +333,7 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
       data-oid="rx8pzb:"
     >
       <div
-        className="flex items-center justify-between px-3 py-2 border-b border-stone-200/80 dark:border-white/[0.07] bg-stone-50/50 dark:bg-white/[0.02]"
+        className="flex items-center justify-between px-3 py-2 border-b border-stone-200/80 dark:border-white/[0.07] bg-stone-50/50 dark:bg-white/2"
         data-oid="nd2jlqp"
       >
         <div className="flex items-center gap-2" data-oid=":87yj1b">
@@ -1197,7 +1197,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                     </div>
 
                     {/* Quick Tip */}
-                    <div className="p-4 bg-gradient-to-br from-stone-50/50 to-stone-50/50 dark:from-stone-800/50 dark:to-stone-900/50 rounded-2xl border border-stone-100/50 dark:border-stone-800">
+                    <div className="p-4 bg-linear-to-br from-stone-50/50 to-stone-50/50 dark:from-stone-800/50 dark:to-stone-900/50 rounded-2xl border border-stone-100/50 dark:border-stone-800">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="h-2 w-2 rounded-full bg-stone-500 animate-pulse" />
                         <span className="text-[10px] font-black text-stone-600 dark:text-stone-400 uppercase tracking-widest">
@@ -1321,7 +1321,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                   animate={{ opacity: 1, y: 0 }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-stone-50/50 to-stone-50/30 dark:from-stone-950/20 dark:to-stone-950/10 rounded-2xl -z-10" />
+                  <div className="absolute inset-0 bg-linear-to-br from-stone-50/50 to-stone-50/30 dark:from-stone-950/20 dark:to-stone-950/10 rounded-2xl -z-10" />
                   <div className="bg-white/70 dark:bg-stone-900/70 border border-stone-200/50 dark:border-stone-800/30 rounded-2xl p-12 text-center">
                     <div className="w-16 h-16 rounded-2xl bg-stone-50 dark:bg-stone-900/30 flex items-center justify-center mx-auto mb-4 border border-stone-100 dark:border-stone-800">
                       <FileText className="w-8 h-8 text-stone-600 dark:text-stone-400" />
@@ -1443,7 +1443,7 @@ const QuestionGroupEditor = ({
       data-oid="x:by8mt"
     >
       <div
-        className={`p-4 sm:p-5 flex items-center justify-between cursor-pointer transition-all ${group.isCollapsed ? 'hover:bg-stone-50 dark:hover:bg-stone-800/50' : 'bg-gradient-to-r from-stone-50/50 to-stone-100/30 dark:from-stone-800 dark:to-stone-800/50'}`}
+        className={`p-4 sm:p-5 flex items-center justify-between cursor-pointer transition-all ${group.isCollapsed ? 'hover:bg-stone-50 dark:hover:bg-stone-800/50' : 'bg-linear-to-r from-stone-50/50 to-stone-100/30 dark:from-stone-800 dark:to-stone-800/50'}`}
         onClick={() => onUpdate({ ...group, isCollapsed: !group.isCollapsed })}
         data-oid="epf.1ci"
       >
@@ -1572,7 +1572,7 @@ const QuestionGroupEditor = ({
                                 n.questions[qIdx] = { ...n.questions[qIdx], ...updates };
                                 onUpdate(n);
                               }}
-                              className="h-4 w-4 rounded-sm border-2 border-stone-300 dark:border-stone-600 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-stone-500 data-[state=checked]:to-stone-600 data-[state=checked]:border-stone-500 data-[state=checked]:text-white data-[state=checked]:shadow-sm data-[state=checked]: transition-all duration-200"
+                              className="h-4 w-4 rounded-sm border-2 border-stone-300 dark:border-stone-600 data-[state=checked]:bg-linear-to-r data-[state=checked]:from-stone-500 data-[state=checked]:to-stone-600 data-[state=checked]:border-stone-500 data-[state=checked]:text-white data-[state=checked]:shadow-sm data-[state=checked]: transition-all duration-200"
                               data-oid="afwihim"
                             />
 

@@ -171,7 +171,7 @@ export function WritingActions({
             type="button"
             className={cn(
               TILE,
-              'flex h-9 w-full items-center justify-center gap-1.5 text-xs font-bold text-slate-700 transition-all hover:-translate-y-0.5 hover:shadow-sm active:scale-[0.98] dark:text-slate-200 dark:hover:border-white/[0.12]'
+              'flex h-9 w-full items-center justify-center gap-1.5 text-xs font-bold text-slate-700 transition-all hover:-translate-y-0.5 hover:shadow-sm active:scale-[0.98] dark:text-slate-200 dark:hover:border-white/12'
             )}
           >
             {feedbackReady ? 'View Feedback' : 'Analyze Response'}{' '}
@@ -259,7 +259,7 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, score, feedbac
   }
   if (isResuming) {
     return (
-      <span className="shrink-0 rounded bg-[#5a63df]/[0.08] px-1.5 py-0.5 text-[10px] font-black text-[#5a63df] dark:text-[#a9afff]">
+      <span className="shrink-0 rounded bg-[#5a63df]/8 px-1.5 py-0.5 text-[10px] font-black text-[#5a63df] dark:text-[#a9afff]">
         In Progress
       </span>
     );

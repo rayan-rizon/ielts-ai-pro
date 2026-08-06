@@ -35,19 +35,19 @@ const PricingSkeleton = () => (
       >
         <div>
           <div className="mb-3 flex items-center justify-between gap-2">
-            <div className="h-7 w-20 animate-pulse rounded bg-slate-100 dark:bg-white/[0.06]" />
-            <div className="h-6 w-24 animate-pulse rounded-full bg-slate-100 dark:bg-white/[0.06]" />
+            <div className="h-7 w-20 animate-pulse rounded bg-slate-100 dark:bg-white/6" />
+            <div className="h-6 w-24 animate-pulse rounded-full bg-slate-100 dark:bg-white/6" />
           </div>
-          <div className="mb-4 h-10 w-2/5 animate-pulse rounded bg-slate-100 dark:bg-white/[0.06]" />
-          <div className="mb-4 h-4 w-full animate-pulse rounded bg-slate-100 dark:bg-white/[0.06]" />
+          <div className="mb-4 h-10 w-2/5 animate-pulse rounded bg-slate-100 dark:bg-white/6" />
+          <div className="mb-4 h-4 w-full animate-pulse rounded bg-slate-100 dark:bg-white/6" />
           <div className="mb-4 h-px bg-[#eeedf7] dark:bg-white/[0.07]" />
           <div className="mb-6 space-y-3">
             {[1, 2, 3, 4, 5].map((s) => (
               <div key={s} className="flex items-center gap-3">
-                <div className="h-5 w-5 shrink-0 animate-pulse rounded-full bg-slate-100 dark:bg-white/[0.06]" />
+                <div className="h-5 w-5 shrink-0 animate-pulse rounded-full bg-slate-100 dark:bg-white/6" />
                 <div
                   className={cn(
-                    'h-4 animate-pulse rounded bg-slate-100 dark:bg-white/[0.06]',
+                    'h-4 animate-pulse rounded bg-slate-100 dark:bg-white/6',
                     s % 2 === 0 ? 'w-3/4' : 'w-1/2'
                   )}
                 />
@@ -55,7 +55,7 @@ const PricingSkeleton = () => (
             ))}
           </div>
         </div>
-        <div className="h-12 w-full animate-pulse rounded-lg bg-slate-100 dark:bg-white/[0.06]" />
+        <div className="h-12 w-full animate-pulse rounded-lg bg-slate-100 dark:bg-white/6" />
       </div>
     ))}
   </div>
@@ -112,7 +112,7 @@ function BillingCycleToggle({ billingCycle, setBillingCycle, viewport }) {
       transition={{ duration: 0.5 }}
       className="mb-8 flex justify-center"
     >
-      <div className="relative inline-flex items-center rounded-full border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-white/[0.04]">
+      <div className="relative inline-flex items-center rounded-full border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-white/4">
         <button
           type="button"
           onClick={() => setBillingCycle('monthly')}
@@ -177,7 +177,7 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
       id="pricing"
       className="scroll-mt-24 bg-white dark:bg-[#08080a] border-t border-slate-200/60 dark:border-white/5 py-10 lg:py-14"
     >
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000_20%,transparent_100%)]" />
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px] mask-[radial-gradient(ellipse_70%_70%_at_50%_50%,#000_20%,transparent_100%)]" />
 
       <div className="max-w-7xl mx-auto px-5 sm:px-6 relative z-10">
         <div className="mb-6">

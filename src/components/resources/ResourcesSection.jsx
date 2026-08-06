@@ -63,7 +63,7 @@ const BaseResourceCard = ({
     whileTap={{ scale: 0.98 }}
     className={cn(
       PANEL,
-      'group relative flex h-full cursor-pointer flex-col overflow-hidden transition-all duration-200 hover:shadow-sm dark:hover:border-white/[0.12]'
+      'group relative flex h-full cursor-pointer flex-col overflow-hidden transition-all duration-200 hover:shadow-sm dark:hover:border-white/12'
     )}
     onClick={() => onOpen(resource)}
   >
@@ -106,7 +106,7 @@ const BaseResourceCard = ({
     </div>
 
     {/* Content */}
-    <div className="flex flex-grow flex-col p-2.5">
+    <div className="flex grow flex-col p-2.5">
       <h3 className={cn(TITLE, 'mb-2 text-xs leading-snug line-clamp-2')}>{resource.title}</h3>
       <div className="mt-auto flex items-center justify-between border-t border-[#eceafa] pt-1.5 dark:border-white/[0.07]">
         <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500">
@@ -459,7 +459,7 @@ const ControlsBar = ({ searchQuery, setSearchQuery, filterType, handleTypeChange
       </div>
 
       {/* Tabs */}
-      <div className="no-scrollbar flex flex-1 items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.04] lg:flex-none">
+      <div className="no-scrollbar flex flex-1 items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4 lg:flex-none">
         {CONTENT_TYPES.map((type) => {
           const isActive = filterType === type.id;
           return (

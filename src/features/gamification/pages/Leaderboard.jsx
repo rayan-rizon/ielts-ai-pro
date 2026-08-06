@@ -63,11 +63,11 @@ export default function Leaderboard() {
     <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+        className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
       />
 
       <m.div
@@ -92,7 +92,7 @@ export default function Leaderboard() {
             </p>
           </div>
 
-          <div className="inline-flex items-center gap-1 rounded-full border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-white/[0.04]">
+          <div className="inline-flex items-center gap-1 rounded-full border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-white/4">
             {TIME_FILTERS.map((tf) => {
               const isActive = timeFilter === tf.id;
               return (
@@ -180,7 +180,7 @@ export default function Leaderboard() {
                 placeholder="Search learner or rank..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 pr-8 text-xs dark:border-white/10 dark:bg-white/[0.04]"
+                className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 pr-8 text-xs dark:border-white/10 dark:bg-white/4"
               />
               {searchQuery && (
                 <button
@@ -266,7 +266,7 @@ export default function Leaderboard() {
                 type="button"
                 onClick={loadMoreUsers}
                 disabled={loadingMore}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#e2e5f2] bg-white px-4 text-xs font-bold text-[#5a63df] transition-colors hover:border-[#c9cdf3] disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.04]"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#e2e5f2] bg-white px-4 text-xs font-bold text-[#5a63df] transition-colors hover:border-[#c9cdf3] disabled:opacity-50 dark:border-white/10 dark:bg-white/4"
               >
                 {loadingMore ? (
                   <>

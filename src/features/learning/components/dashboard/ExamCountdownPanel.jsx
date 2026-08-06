@@ -234,7 +234,7 @@ export default function ExamCountdownPanel({
           <button
             type="button"
             onClick={onCustomize}
-            className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#e2e5f2] px-4 text-xs font-bold text-slate-600 transition-colors hover:border-[#c9cdf3] hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/[0.11] dark:text-slate-300 dark:hover:text-white"
+            className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#e2e5f2] px-4 text-xs font-bold text-slate-600 transition-colors hover:border-[#c9cdf3] hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/11 dark:text-slate-300 dark:hover:text-white"
           >
             <CalendarDays className="h-3.5 w-3.5" /> Change exam date or study time
           </button>

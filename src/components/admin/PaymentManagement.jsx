@@ -226,7 +226,7 @@ export default function PaymentManagement() {
               MICRO,
               'rounded-md px-2.5 py-1.5 border transition-colors',
               filter === f.value
-                ? 'border-stone-400 dark:border-white/30 text-stone-900 dark:text-stone-50 bg-stone-100 dark:bg-white/[0.06]'
+                ? 'border-stone-400 dark:border-white/30 text-stone-900 dark:text-stone-50 bg-stone-100 dark:bg-white/6'
                 : 'border-stone-200 dark:border-white/10 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
             )}
           >
@@ -237,7 +237,7 @@ export default function PaymentManagement() {
 
       <div className={cn(PANEL, 'overflow-hidden')}>
         {/* Mobile: card list */}
-        <div className="md:hidden divide-y divide-stone-100 dark:divide-white/[0.05]">
+        <div className="md:hidden divide-y divide-stone-100 dark:divide-white/5">
           {loading ? (
             <div className="p-12 text-center">
               <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-stone-500 dark:text-stone-400" />
@@ -258,7 +258,7 @@ export default function PaymentManagement() {
                 )}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-stone-500 dark:text-stone-400 shrink-0">
+                    <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/6 grid place-items-center text-stone-500 dark:text-stone-400 shrink-0">
                       <User className="w-3.5 h-3.5" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -275,7 +275,7 @@ export default function PaymentManagement() {
                   <StatusPill status={request.status} />
                 </div>
 
-                <div className="rounded-lg bg-stone-50 dark:bg-white/[0.03] border border-stone-200/70 dark:border-white/[0.06] p-2.5 space-y-2">
+                <div className="rounded-lg bg-stone-50 dark:bg-white/3 border border-stone-200/70 dark:border-white/6 p-2.5 space-y-2">
                   <div className="flex items-center justify-between">
                     <span
                       className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}
@@ -286,7 +286,7 @@ export default function PaymentManagement() {
                       {request.tier} · {request.interval}
                     </span>
                   </div>
-                  <div className="pt-1.5 border-t border-stone-200/60 dark:border-white/[0.05] space-y-1">
+                  <div className="pt-1.5 border-t border-stone-200/60 dark:border-white/5 space-y-1">
                     <div className="flex items-center gap-1.5">
                       <Hash className="w-3 h-3 text-stone-500 dark:text-stone-400 shrink-0" />
                       <span
@@ -328,7 +328,7 @@ export default function PaymentManagement() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100 dark:divide-white/[0.05]">
+            <tbody className="divide-y divide-stone-100 dark:divide-white/5">
               {loading ? (
                 <tr>
                   <td colSpan="5" className="px-4 py-20 text-center">
@@ -351,11 +351,11 @@ export default function PaymentManagement() {
                 filteredRequests.map((request) => (
                   <tr
                     key={request.id}
-                    className="hover:bg-stone-50/70 dark:hover:bg-white/[0.02] transition-colors"
+                    className="hover:bg-stone-50/70 dark:hover:bg-white/2 transition-colors"
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-stone-500 dark:text-stone-400 shrink-0">
+                        <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/6 grid place-items-center text-stone-500 dark:text-stone-400 shrink-0">
                           <User className="w-3.5 h-3.5" />
                         </div>
                         <div className="min-w-0">

@@ -127,7 +127,7 @@ export default function ListeningTestMainContent({
                 variant="outline"
                 size="sm"
                 onClick={() => setLeftPanelWidth(100)}
-                className="w-full justify-start gap-2 h-9 text-xs font-bold border-slate-200 dark:border-white/[0.07] bg-white/50 dark:bg-white/[0.04] backdrop-blur-sm rounded-xl"
+                className="w-full justify-start gap-2 h-9 text-xs font-bold border-slate-200 dark:border-white/[0.07] bg-white/50 dark:bg-white/4 backdrop-blur-sm rounded-xl"
               >
                 <Lightbulb className="w-4 h-4 text-[#5a63df]" />
                 {isExamMode ? 'Show Audio' : 'Show Transcript & Audio'}
@@ -195,7 +195,7 @@ export default function ListeningTestMainContent({
 
         {/* Floating Mobile Audio Player */}
         {isMobile && leftPanelWidth === 0 && currentSection.audio_url && (
-          <div className="absolute bottom-0 left-0 right-0 p-2 z-40 bg-gradient-to-t from-background/95 via-background/90 to-transparent pb-4 pt-8">
+          <div className="absolute bottom-0 left-0 right-0 p-2 z-40 bg-linear-to-t from-background/95 via-background/90 to-transparent pb-4 pt-8">
             <AudioPlayer
               ref={audioPlayerRef}
               src={currentSection.audio_url}

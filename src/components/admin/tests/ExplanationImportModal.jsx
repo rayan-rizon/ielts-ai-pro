@@ -647,7 +647,7 @@ const ExplanationImportModal = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             {data.synonym_map?.length > 0 && (
               <Badge variant="outline" className="text-[9px] px-1.5 py-0">
                 <Link2 className="w-2.5 h-2.5 mr-0.5" />
@@ -728,7 +728,7 @@ const ExplanationImportModal = ({
                         <span className="text-stone-600 dark:text-stone-400 font-medium">
                           "{sm.question_keyword}"
                         </span>
-                        <ArrowRight className="w-2.5 h-2.5 text-muted-foreground flex-shrink-0" />
+                        <ArrowRight className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
                         <span className="text-[rgb(var(--signal-ok))] text-[rgb(var(--signal-ok))] font-medium">
                           "{sm.passage_keyword}"
                         </span>
@@ -778,11 +778,11 @@ const ExplanationImportModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col gap-0 p-0 overflow-hidden">
-        <DialogHeader className="px-5 pt-5 pb-0 border-b border-border/40 flex-shrink-0">
+        <DialogHeader className="px-5 pt-5 pb-0 border-b border-border/40 shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div className="flex flex-col gap-1">
               <DialogTitle className="flex items-center gap-2 text-lg">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-stone-500 to-stone-500 flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 rounded-lg bg-linear-to-br from-stone-500 to-stone-500 flex items-center justify-center shadow-sm">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 Paraphrase Detective
@@ -914,7 +914,7 @@ const ExplanationImportModal = ({
               {/* Warning: Test not saved */}
               {!passageId && (
                 <div className="flex items-start gap-2 p-3 mb-4 rounded-lg bg-[rgb(var(--signal-warn)/0.06)] bg-[rgb(var(--signal-warn)/0.06)] border border-[rgb(var(--signal-warn)/0.3)] border-[rgb(var(--signal-warn)/0.3)]">
-                  <AlertTriangle className="w-4 h-4 text-[rgb(var(--signal-warn))] flex-shrink-0 mt-0.5" />
+                  <AlertTriangle className="w-4 h-4 text-[rgb(var(--signal-warn))] shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-semibold text-[rgb(var(--signal-warn))] text-[rgb(var(--signal-warn))]">
                       Save the test first
@@ -946,7 +946,7 @@ const ExplanationImportModal = ({
                       onClick={() => setShowGuide(!showGuide)}
                       className="w-full px-4 py-3 flex items-center gap-3 bg-stone-50/50 dark:bg-stone-950/20 hover:bg-stone-100/50 dark:hover:bg-stone-900/30 transition-colors text-left"
                     >
-                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-stone-500 to-stone-500 flex items-center justify-center shadow-sm flex-shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-linear-to-br from-stone-500 to-stone-500 flex items-center justify-center shadow-sm shrink-0">
                         <Info className="w-3.5 h-3.5 text-white" />
                       </div>
                       <div className="flex-1">
@@ -1071,7 +1071,7 @@ const ExplanationImportModal = ({
                         animate={{ opacity: 1, y: 0 }}
                         className="flex items-start gap-2 p-2.5 rounded-lg bg-[rgb(var(--signal-fault)/0.06)] bg-[rgb(var(--signal-fault)/0.06)] border border-[rgb(var(--signal-fault)/0.3)] border-[rgb(var(--signal-fault)/0.3)]"
                       >
-                        <AlertTriangle className="w-4 h-4 text-[rgb(var(--signal-fault))] flex-shrink-0 mt-0.5" />
+                        <AlertTriangle className="w-4 h-4 text-[rgb(var(--signal-fault))] shrink-0 mt-0.5" />
                         <p className="text-xs text-[rgb(var(--signal-fault))] text-[rgb(var(--signal-fault))]">
                           {parseError}
                         </p>
@@ -1132,7 +1132,7 @@ const ExplanationImportModal = ({
                 <div className="flex flex-col items-center justify-center py-12 space-y-4">
                   {importing ? (
                     <>
-                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-stone-500 to-stone-500 flex items-center justify-center shadow-xl">
+                      <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-stone-500 to-stone-500 flex items-center justify-center shadow-xl">
                         <Loader2 className="w-8 h-8 text-white animate-spin" />
                       </div>
                       <p className="text-sm font-semibold text-foreground">
@@ -1202,7 +1202,7 @@ const ExplanationImportModal = ({
           )}
         </div>
 
-        <DialogFooter className="px-5 py-3 border-t border-border/40 flex-shrink-0">
+        <DialogFooter className="px-5 py-3 border-t border-border/40 shrink-0">
           {activeTab === 'manage' ? (
             <Button onClick={handleClose} variant="outline" className="w-full sm:w-auto">
               Close Manage Window
@@ -1217,7 +1217,7 @@ const ExplanationImportModal = ({
                   <Button
                     onClick={handleParse}
                     disabled={!rawJson.trim()}
-                    className="bg-gradient-to-r from-stone-600 to-stone-600 text-white hover:from-stone-500 hover:to-stone-500 shadow-md"
+                    className="bg-linear-to-r from-stone-600 to-stone-600 text-white hover:from-stone-500 hover:to-stone-500 shadow-md"
                   >
                     <FileText className="w-4 h-4 mr-1.5" />
                     Parse & Preview
@@ -1238,7 +1238,7 @@ const ExplanationImportModal = ({
                   <Button
                     onClick={handleImport}
                     disabled={!parsedData || parsedData.matchedCount === 0}
-                    className="bg-gradient-to-r from-stone-600 to-stone-600 text-white hover:from-stone-500 hover:to-stone-500 shadow-md"
+                    className="bg-linear-to-r from-stone-600 to-stone-600 text-white hover:from-stone-500 hover:to-stone-500 shadow-md"
                   >
                     <Upload className="w-4 h-4 mr-1.5" />
                     Import {parsedData?.matchedCount || 0} Explanations
@@ -1248,7 +1248,7 @@ const ExplanationImportModal = ({
               {step === 3 && !importing && (
                 <Button
                   onClick={handleClose}
-                  className="bg-gradient-to-r from-stone-600 to-stone-600 text-white"
+                  className="bg-linear-to-r from-stone-600 to-stone-600 text-white"
                 >
                   Done
                 </Button>

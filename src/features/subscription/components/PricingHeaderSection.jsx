@@ -29,7 +29,7 @@ export default function PricingHeaderSection({
       </p>
 
       <div className="mt-5 flex flex-col items-center gap-4">
-        <div className="relative inline-flex items-center rounded-full border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-white/[0.04]">
+        <div className="relative inline-flex items-center rounded-full border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-white/4">
           <button
             type="button"
             onClick={() => setBillingInterval('monthly')}

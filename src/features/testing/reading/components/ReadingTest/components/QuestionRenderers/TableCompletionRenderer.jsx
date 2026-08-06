@@ -102,11 +102,11 @@ const TableCompletionRenderer = React.memo(
           }
         } else {
           styles +=
-            ' bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-muted-foreground';
+            ' bg-white dark:bg-white/4 border-[#e4e2f0] dark:border-white/8 text-muted-foreground';
         }
       } else {
         styles +=
-          ' bg-white/70 dark:bg-white/[0.04] border border-slate-300/70 dark:border-white/[0.08] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-white/[0.14]';
+          ' bg-white/70 dark:bg-white/4 border border-slate-300/70 dark:border-white/8 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50 hover:border-slate-400/80 dark:hover:border-white/[0.14]';
       }
       return styles;
     };
@@ -118,15 +118,15 @@ const TableCompletionRenderer = React.memo(
     return (
       <div className="overflow-x-auto rounded-lg mb-4" data-oid="_:f3hf2">
         <table
-          className="w-full text-[15px] border-collapse border border-[#ebeaf7] dark:border-white/[0.08] rounded-lg overflow-hidden"
+          className="w-full text-[15px] border-collapse border border-[#ebeaf7] dark:border-white/8 rounded-lg overflow-hidden"
           data-oid="3:da4lp"
         >
           <thead data-oid="svu6nmp">
-            <tr className="bg-[#f4f3fb] dark:bg-white/[0.05]" data-oid="_o2atxc">
+            <tr className="bg-[#f4f3fb] dark:bg-white/5" data-oid="_o2atxc">
               {question.table_data.headers.map((header, i) => (
                 <th
                   key={i}
-                  className="border border-[#ebeaf7] dark:border-white/[0.08] p-3 text-left font-semibold bg-[#fbfbfe] dark:bg-white/[0.04] text-foreground"
+                  className="border border-[#ebeaf7] dark:border-white/8 p-3 text-left font-semibold bg-[#fbfbfe] dark:bg-white/4 text-foreground"
                   data-oid="n6.yqbv"
                 >
                   {header.split(/(\*\*[^*]+\*\*)/g).map((sub, sIdx) => {
@@ -147,7 +147,7 @@ const TableCompletionRenderer = React.memo(
             {question.table_data.rows.map((row, rIdx) => (
               <tr
                 key={rIdx}
-                className="hover:bg-[#f7f6fd] dark:hover:bg-white/[0.05]"
+                className="hover:bg-[#f7f6fd] dark:hover:bg-white/5"
                 data-oid="6jnvs-6"
               >
                 {row.map((cell, cIdx) => {
@@ -162,7 +162,7 @@ const TableCompletionRenderer = React.memo(
                     return (
                       <td
                         key={cIdx}
-                        className="border border-[#ebeaf7] dark:border-white/[0.08] p-3 min-w-[150px] align-top relative text-foreground"
+                        className="border border-[#ebeaf7] dark:border-white/8 p-3 min-w-[150px] align-top relative text-foreground"
                         data-oid="7q8ta9a"
                       >
                         <div className="leading-[2.4rem]" data-oid=".dvmfhc">
@@ -286,7 +286,7 @@ const TableCompletionRenderer = React.memo(
                     return (
                       <td
                         key={cIdx}
-                        className="border border-[#ebeaf7] dark:border-white/[0.08] p-2 min-w-[120px] align-top bg-amber-50/30 dark:bg-amber-950/20 text-foreground"
+                        className="border border-[#ebeaf7] dark:border-white/8 p-2 min-w-[120px] align-top bg-amber-50/30 dark:bg-amber-950/20 text-foreground"
                         data-oid=":8468.0"
                       >
                         <div className="flex flex-col gap-2" data-oid="6a7.dw4">
@@ -355,7 +355,7 @@ const TableCompletionRenderer = React.memo(
                   return (
                     <td
                       key={cIdx}
-                      className="border border-[#ebeaf7] dark:border-white/[0.08] p-2 min-w-[120px] align-top text-foreground"
+                      className="border border-[#ebeaf7] dark:border-white/8 p-2 min-w-[120px] align-top text-foreground"
                       data-oid="-7taze0"
                     >
                       <div className="whitespace-pre-wrap" data-oid="2d_j1f4">

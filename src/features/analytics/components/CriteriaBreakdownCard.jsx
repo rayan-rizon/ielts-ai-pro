@@ -211,7 +211,7 @@ export default function CriteriaBreakdownCard({ writingCriteria, speakingCriteri
             <div
               role="tablist"
               aria-label="Criteria module"
-              className="inline-flex gap-0.5 rounded-lg border border-[#ebeaf7] bg-[#f4f3fb] p-0.5 dark:border-white/10 dark:bg-white/[0.04]"
+              className="inline-flex gap-0.5 rounded-lg border border-[#ebeaf7] bg-[#f4f3fb] p-0.5 dark:border-white/10 dark:bg-white/4"
             >
               {MODULES.map((name) => {
                 const isSelected = module === name;

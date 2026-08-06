@@ -31,7 +31,7 @@ export function OfflineBanner() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -100, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r from-rose-600 to-orange-500 text-white px-4 py-3 shadow-lg"
+          className="fixed top-0 left-0 right-0 z-100 bg-linear-to-r from-rose-600 to-orange-500 text-white px-4 py-3 shadow-lg"
           data-oid="2vepeas"
         >
           <div
@@ -76,7 +76,7 @@ export function OfflineBanner() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -100, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r from-emerald-600 to-teal-500 text-white px-4 py-3 shadow-lg"
+          className="fixed top-0 left-0 right-0 z-100 bg-linear-to-r from-emerald-600 to-teal-500 text-white px-4 py-3 shadow-lg"
           data-oid="34qa1mt"
         >
           <div

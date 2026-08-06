@@ -1,18 +1,422 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-@layer utilities {
-  .font-handwritten {
-    font-family:
-      'Kalam',
-      'Segoe Print',
-      -apple-system,
-      BlinkMacSystemFont,
-      sans-serif;
-    font-weight: 700;
+@plugin 'tailwindcss-animate';
+@plugin '@tailwindcss/typography';
+@plugin '@tailwindcss/container-queries';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --color-indigo-400: #7f8cff;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  --ease-sidebar: cubic-bezier(0.23, 1, 0.32, 1);
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility font-handwritten {
+  font-family:
+    'Kalam',
+    'Segoe Print',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-weight: 700;
+}
+
+@utility learning-path-connector-signal {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(99, 102, 241, 0.1) 28%,
+    rgba(56, 189, 248, 0.95) 50%,
+    rgba(99, 102, 241, 0.1) 72%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  animation: learning-path-connector-flow 2.5s linear infinite;
+
+  @media (max-width: 639px) {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(99, 102, 241, 0.1) 28%,
+      rgba(56, 189, 248, 0.95) 50%,
+      rgba(99, 102, 241, 0.1) 72%,
+      transparent 100%
+    );
+    background-size: 100% 220%;
+    animation-name: learning-path-connector-flow-vertical;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@utility learning-path-connector-dot {
+  left: 0;
+  top: 50%;
+  margin-top: -0.25rem;
+  animation: learning-path-connector-dot 2.5s ease-in-out infinite;
+
+  @media (max-width: 639px) {
+    left: 50%;
+    top: 0;
+    margin-left: -0.25rem;
+    margin-top: 0;
+    animation-name: learning-path-connector-dot-vertical;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@utility glass-card {
+  @apply bg-white/90 dark:bg-card/90 backdrop-blur-xl border border-white/20 dark:border-border shadow-lg hover:shadow-xl;
+  transition:
+    box-shadow 0.3s ease-out,
+    border-color 0.3s ease-out;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+
+@utility glass-panel {
+  @apply bg-white/60 dark:bg-card/60 backdrop-blur-lg border border-white/20 dark:border-border;
+}
+
+@utility text-gradient {
+  @apply bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400;
+}
+
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 dark:bg-border rounded-full hover:bg-slate-300 dark:hover:bg-border/80 transition-colors;
+  }
+}
+
+@utility dark {
+  /* Enhanced focus management for accessibility */
+  & input:focus-visible:not([class*='outline-none']) {
+    outline: 2px solid hsl(var(--primary) / 0.4);
+    outline-offset: 0px;
+  }
+  & button:focus-visible:not([class*='outline-none']) {
+    outline: 2px solid hsl(var(--primary) / 0.4);
+    outline-offset: 0px;
+  }
+  & textarea:focus-visible:not([class*='outline-none']) {
+    outline: 2px solid hsl(var(--primary) / 0.4);
+    outline-offset: 0px;
+  }
+}
+
+@utility heading-xl {
+  /* Premium Typography Utilities */
+  @apply text-5xl md:text-6xl lg:text-7xl font-black tracking-[-0.04em] leading-[1.1] mb-6;
+}
+
+@utility heading-lg {
+  @apply text-4xl md:text-5xl font-extrabold tracking-[-0.03em] leading-[1.2] mb-4;
+}
+
+@utility heading-md {
+  @apply text-2xl md:text-3xl font-bold tracking-[-0.02em] leading-[1.3] mb-3;
+}
+
+@utility body-lg {
+  @apply text-lg md:text-xl font-medium leading-relaxed text-muted-foreground;
+}
+
+@utility body-base {
+  @apply text-base font-normal leading-relaxed text-muted-foreground;
+}
+
+@utility answer-correct {
+  /* Improved answer feedback colors */
+  /* Improved answer feedback colors - subtle & premium */
+  @apply bg-emerald-500/10 dark:bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400;
+}
+
+@utility answer-incorrect {
+  @apply bg-rose-500/10 dark:bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-400;
+}
+
+@utility answer-unanswered {
+  @apply bg-amber-500/10 dark:bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400;
+}
+
+@utility glass-card-premium {
+  @apply relative overflow-hidden bg-white/90 dark:bg-zinc-900/40 backdrop-blur-3xl border border-border dark:border-white/5 shadow-md hover:shadow-2xl hover:border-primary/30;
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.3s ease-out,
+    box-shadow 0.5s ease-out,
+    border-color 0.5s ease-out;
+  /* Safari Flickering Fixes */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  /* PERF: Removed will-change — it was listing box-shadow (non-compositable)
+       which created unnecessary GPU layers. The transform: translate3d(0,0,0)
+       above already promotes to a compositor layer when needed. */
+}
+
+@utility card-premium {
+  @apply rounded-3xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-xs hover:shadow-md hover:border-primary/20;
+  transition:
+    opacity 0.3s ease-out,
+    transform 0.3s ease-out,
+    box-shadow 0.3s ease-out,
+    border-color 0.3s ease-out;
+  /* Safari Flickering Fixes */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+
+@utility glass-morphism {
+  @apply bg-clip-padding backdrop-filter backdrop-blur-xl border border-white/20 dark:border-white/10;
+}
+
+@utility text-glow {
+  text-shadow: 0 0 20px hsla(var(--primary) / 0.5);
+}
+
+@utility animate-float {
+  animation: float 6s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility animate-pulse-subtle {
+  animation: pulse-subtle 4s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility animate-bounce-subtle {
+  animation: bounce-subtle 3s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility animate-float-slow {
+  animation: float 4.5s ease-in-out infinite;
+  will-change: transform;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility animate-float-delayed {
+  animation: float-delayed 5.2s ease-in-out 0.6s infinite;
+  will-change: transform;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility animate-fade-in {
+  animation: fade-in 0.5s ease-out 0.2s both;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility animate-panel-in {
+  /*
+   * Micro entrance for a loading-state → content swap (spinner unmounts,
+   * real content mounts in the same spot). No delay and a short duration —
+   * this exists to soften an instant DOM swap, not to be noticed as an
+   * animation. Keep new loading→content transitions in the admin panel on
+   * this class rather than `.animate-fade-in`, which is tuned for hero/CTA
+   * reveals and reads as sluggish on a state swap.
+   */
+  animation: panel-in 0.22s ease-out both;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility hover-lift {
+  /* Respect prefers-reduced-motion */
+  @apply transition-transform duration-300 ease-sidebar hover:-translate-y-1 active:scale-95;
+}
+
+@utility tap-scale {
+  /* Press feedback for anything clickable that isn't the shared Button —
+     icon-only controls, custom rows, feature-local buttons. Same curve as
+     the sidebar's active state and the shared Button/Toggle/Switch
+     components, so a press feels the same everywhere on the site. */
+  @apply transition-transform duration-150 ease-sidebar active:scale-95;
+}
+
+@utility border-gradient {
+  position: relative;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--secondary)));
+  }
+}
+
+@utility text-gradient-premium {
+  @apply bg-clip-text text-transparent bg-linear-to-br from-foreground via-foreground/90 to-foreground/70;
+}
+
+@utility text-gradient-primary {
+  @apply bg-clip-text text-transparent bg-linear-to-br from-primary via-primary/90 to-blue-600;
+}
+
+@utility shiny-button {
+  @apply relative overflow-hidden transition-all duration-300 active:scale-95;
+
+  &::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg];
+    transition: transform 0.6s ease;
+  }
+
+  &:hover::after {
+    @apply translate-x-full;
+  }
+}
+
+@utility bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.25rem;
+}
+
+@layer utilities {
   @keyframes learning-path-connector-flow {
     0% {
       background-position: 200% 0;
@@ -38,26 +442,6 @@
       transform: translateX(calc(56px - 100%));
       opacity: 0;
     }
-  }
-
-  .learning-path-connector-signal {
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(99, 102, 241, 0.1) 28%,
-      rgba(56, 189, 248, 0.95) 50%,
-      rgba(99, 102, 241, 0.1) 72%,
-      transparent 100%
-    );
-    background-size: 220% 100%;
-    animation: learning-path-connector-flow 2.5s linear infinite;
-  }
-
-  .learning-path-connector-dot {
-    left: 0;
-    top: 50%;
-    margin-top: -0.25rem;
-    animation: learning-path-connector-dot 2.5s ease-in-out infinite;
   }
 
   @media (max-width: 639px) {
@@ -86,34 +470,6 @@
         transform: translateY(calc(20px - 100%));
         opacity: 0;
       }
-    }
-
-    .learning-path-connector-signal {
-      background: linear-gradient(
-        180deg,
-        transparent 0%,
-        rgba(99, 102, 241, 0.1) 28%,
-        rgba(56, 189, 248, 0.95) 50%,
-        rgba(99, 102, 241, 0.1) 72%,
-        transparent 100%
-      );
-      background-size: 100% 220%;
-      animation-name: learning-path-connector-flow-vertical;
-    }
-
-    .learning-path-connector-dot {
-      left: 50%;
-      top: 0;
-      margin-left: -0.25rem;
-      margin-top: 0;
-      animation-name: learning-path-connector-dot-vertical;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .learning-path-connector-signal,
-    .learning-path-connector-dot {
-      animation: none;
     }
   }
 }
@@ -320,111 +676,26 @@
 }
 
 @layer utilities {
-  .glass-card {
-    @apply bg-white/90 dark:bg-card/90 backdrop-blur-xl border border-white/20 dark:border-border shadow-lg hover:shadow-xl;
-    transition:
-      box-shadow 0.3s ease-out,
-      border-color 0.3s ease-out;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
-  }
-
-  .glass-panel {
-    @apply bg-white/60 dark:bg-card/60 backdrop-blur-lg border border-white/20 dark:border-border;
-  }
-
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400;
-  }
-
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
   @keyframes shimmer {
     100% {
       transform: translateX(100%);
     }
   }
-
-  .animate-shimmer {
-    animation: shimmer 2s infinite linear;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-slate-200 dark:bg-border rounded-full hover:bg-slate-300 dark:hover:bg-border/80 transition-colors;
-  }
-
-  /* Enhanced focus management for accessibility */
-  .dark input:focus-visible:not([class*='outline-none']),
-  .dark button:focus-visible:not([class*='outline-none']),
-  .dark textarea:focus-visible:not([class*='outline-none']) {
-    outline: 2px solid hsl(var(--primary) / 0.4);
-    outline-offset: 0px;
-  }
-
-  /* Premium Typography Utilities */
-  .heading-xl {
-    @apply text-5xl md:text-6xl lg:text-7xl font-black tracking-[-0.04em] leading-[1.1] mb-6;
-  }
-
-  .heading-lg {
-    @apply text-4xl md:text-5xl font-extrabold tracking-[-0.03em] leading-[1.2] mb-4;
-  }
-
-  .heading-md {
-    @apply text-2xl md:text-3xl font-bold tracking-[-0.02em] leading-[1.3] mb-3;
-  }
-
-  .body-lg {
-    @apply text-lg md:text-xl font-medium leading-relaxed text-muted-foreground;
-  }
-
-  .body-base {
-    @apply text-base font-normal leading-relaxed text-muted-foreground;
-  }
-
-  /* Improved answer feedback colors */
-  /* Improved answer feedback colors - subtle & premium */
-  .answer-correct {
-    @apply bg-emerald-500/10 dark:bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400;
-  }
-
-  .answer-incorrect {
-    @apply bg-rose-500/10 dark:bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-400;
-  }
-
-  .answer-unanswered {
-    @apply bg-amber-500/10 dark:bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400;
-  }
 }
 
-/* Performance-optimized background animations */
-@keyframes pulse-glow {
-  0%,
-  100% {
-    opacity: 0.15;
-    transform: scale(1) rotate(0deg);
-  }
+@layer utilities {
+  /* Performance-optimized background animations */
+  @keyframes pulse-glow {
+    0%,
+    100% {
+      opacity: 0.15;
+      transform: scale(1) rotate(0deg);
+    }
 
-  50% {
-    opacity: 0.25;
-    transform: scale(1.2) rotate(45deg);
+    50% {
+      opacity: 0.25;
+      transform: scale(1.2) rotate(45deg);
+    }
   }
 }
 
@@ -476,49 +747,6 @@
 }
 
 @layer utilities {
-  .glass-card-premium {
-    @apply relative overflow-hidden bg-white/90 dark:bg-zinc-900/40 backdrop-blur-3xl border border-border dark:border-white/5 shadow-md hover:shadow-2xl hover:border-primary/30;
-    transition:
-      opacity 0.5s ease-out,
-      transform 0.3s ease-out,
-      box-shadow 0.5s ease-out,
-      border-color 0.5s ease-out;
-    /* Safari Flickering Fixes */
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
-    /* PERF: Removed will-change — it was listing box-shadow (non-compositable)
-       which created unnecessary GPU layers. The transform: translate3d(0,0,0)
-       above already promotes to a compositor layer when needed. */
-  }
-
-  .card-premium {
-    @apply rounded-3xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-sm hover:shadow-md hover:border-primary/20;
-    transition:
-      opacity 0.3s ease-out,
-      transform 0.3s ease-out,
-      box-shadow 0.3s ease-out,
-      border-color 0.3s ease-out;
-    /* Safari Flickering Fixes */
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
-  }
-
-  .glass-morphism {
-    @apply bg-clip-padding backdrop-filter backdrop-blur-xl bg-opacity-60 border border-white/20 dark:border-white/10;
-  }
-
-  .text-glow {
-    text-shadow: 0 0 20px hsla(var(--primary) / 0.5);
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
   @keyframes spin-slow {
     from {
       transform: rotate(0deg);
@@ -527,10 +755,6 @@
     to {
       transform: rotate(360deg);
     }
-  }
-
-  .animate-spin-slow {
-    animation: spin-slow 12s linear infinite;
   }
 
   @keyframes pulse-subtle {
@@ -546,10 +770,6 @@
     }
   }
 
-  .animate-pulse-subtle {
-    animation: pulse-subtle 4s ease-in-out infinite;
-  }
-
   @keyframes bounce-subtle {
     0%,
     100% {
@@ -559,10 +779,6 @@
     50% {
       transform: translateY(-3px);
     }
-  }
-
-  .animate-bounce-subtle {
-    animation: bounce-subtle 3s ease-in-out infinite;
   }
 
   @keyframes float {
@@ -576,11 +792,6 @@
     }
   }
 
-  .animate-float-slow {
-    animation: float 4.5s ease-in-out infinite;
-    will-change: transform;
-  }
-
   @keyframes float-delayed {
     0%,
     100% {
@@ -590,11 +801,6 @@
     50% {
       transform: translate3d(0, 6px, 0);
     }
-  }
-
-  .animate-float-delayed {
-    animation: float-delayed 5.2s ease-in-out 0.6s infinite;
-    will-change: transform;
   }
 
   @keyframes fade-in {
@@ -607,19 +813,6 @@
       transform: translateY(0);
     }
   }
-
-  .animate-fade-in {
-    animation: fade-in 0.5s ease-out 0.2s both;
-  }
-
-  /*
-   * Micro entrance for a loading-state → content swap (spinner unmounts,
-   * real content mounts in the same spot). No delay and a short duration —
-   * this exists to soften an instant DOM swap, not to be noticed as an
-   * animation. Keep new loading→content transitions in the admin panel on
-   * this class rather than `.animate-fade-in`, which is tuned for hero/CTA
-   * reveals and reads as sluggish on a state swap.
-   */
   @keyframes panel-in {
     from {
       opacity: 0;
@@ -629,80 +822,6 @@
       opacity: 1;
       transform: translateY(0);
     }
-  }
-
-  .animate-panel-in {
-    animation: panel-in 0.22s ease-out both;
-  }
-
-  /* Respect prefers-reduced-motion */
-  @media (prefers-reduced-motion: reduce) {
-    .animate-float,
-    .animate-float-slow,
-    .animate-float-delayed,
-    .animate-shimmer,
-    .animate-spin-slow,
-    .animate-pulse-subtle,
-    .animate-bounce-subtle,
-    .animate-fade-in,
-    .animate-panel-in {
-      animation: none !important;
-    }
-  }
-
-  .hover-lift {
-    @apply transition-transform duration-300 ease-sidebar hover:-translate-y-1 active:scale-95;
-  }
-
-  /* Press feedback for anything clickable that isn't the shared Button —
-     icon-only controls, custom rows, feature-local buttons. Same curve as
-     the sidebar's active state and the shared Button/Toggle/Switch
-     components, so a press feels the same everywhere on the site. */
-  .tap-scale {
-    @apply transition-transform duration-150 ease-sidebar active:scale-95;
-  }
-
-  .border-gradient {
-    position: relative;
-    border: 1px solid transparent;
-    background-clip: padding-box;
-  }
-
-  .border-gradient::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    z-index: -1;
-    border-radius: inherit;
-    background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--secondary)));
-  }
-
-  .text-gradient-premium {
-    @apply bg-clip-text text-transparent bg-gradient-to-br from-foreground via-foreground/90 to-foreground/70;
-  }
-
-  .text-gradient-primary {
-    @apply bg-clip-text text-transparent bg-gradient-to-br from-primary via-primary/90 to-blue-600;
-  }
-
-  .shiny-button {
-    @apply relative overflow-hidden transition-all duration-300 active:scale-95;
-  }
-
-  .shiny-button::after {
-    content: '';
-    @apply absolute inset-0 -translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg];
-    transition: transform 0.6s ease;
-  }
-
-  .shiny-button:hover::after {
-    @apply translate-x-[100%];
-  }
-
-  .bento-grid {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: 1.25rem;
   }
 }
 

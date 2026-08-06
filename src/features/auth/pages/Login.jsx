@@ -410,11 +410,11 @@ export default function Login() {
           className="pointer-events-none absolute inset-0 overflow-hidden"
           data-oid="tvd0j8i"
         >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(168_162_158/0.25)_1px,transparent_0)] opacity-60 [background-size:22px_22px] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.06)_1px,transparent_0)] dark:opacity-30" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(168_162_158/0.25)_1px,transparent_0)] opacity-60 bg-size-[22px_22px] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.06)_1px,transparent_0)] dark:opacity-30" />
         </div>
 
         <div
-          className="relative z-10 grid w-full max-w-5xl grid-cols-1 items-stretch gap-0 overflow-hidden rounded-2xl border border-[#e4e2f0] bg-white shadow-xl dark:border-white/[0.10] dark:bg-[#131315] lg:grid-cols-5"
+          className="relative z-10 grid w-full max-w-5xl grid-cols-1 items-stretch gap-0 overflow-hidden rounded-2xl border border-[#e4e2f0] bg-white shadow-xl dark:border-white/10 dark:bg-[#131315] lg:grid-cols-5"
           data-oid=":-4q___"
         >
           {/* Left Panel: Feature Highlights (3/5 width) */}
@@ -422,7 +422,7 @@ export default function Login() {
 
           {/* Right Panel: Auth Form (2/5 width) */}
           <div
-            className="relative flex flex-col justify-center border-l border-[#e4e2f0] p-6 dark:border-white/[0.10] lg:col-span-2 lg:p-8"
+            className="relative flex flex-col justify-center border-l border-[#e4e2f0] p-6 dark:border-white/10 lg:col-span-2 lg:p-8"
             data-oid="d5v9mk6"
           >
             <motion.div
@@ -479,17 +479,13 @@ export default function Login() {
                         {/* Social Login */}
                         <Button
                           variant="outline"
-                          className="flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-[#e4e2f0] bg-white transition-colors duration-200 hover:bg-[#f7f6fd] active:scale-[0.98] dark:border-white/10 dark:bg-[#131315] dark:hover:bg-white/[0.06]"
+                          className="flex h-10 w-full items-center justify-center gap-2.5 rounded-lg border border-[#e4e2f0] bg-white transition-colors duration-200 hover:bg-[#f7f6fd] active:scale-[0.98] dark:border-white/10 dark:bg-[#131315] dark:hover:bg-white/6"
                           disabled={isLoading}
                           onClick={handleGoogleAuth}
                           type="button"
                           data-oid=".i:d5y:"
                         >
-                          <svg
-                            className="w-5 h-5 flex-shrink-0"
-                            viewBox="0 0 24 24"
-                            data-oid="ajrjrer"
-                          >
+                          <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" data-oid="ajrjrer">
                             <path
                               fill="#4285F4"
                               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -548,7 +544,7 @@ export default function Login() {
                                 animate={{ opacity: 1, y: 0, height: 'auto' }}
                                 exit={{ opacity: 0, y: -10, height: 0 }}
                                 role="alert"
-                                className="flex items-start gap-3 rounded-lg border border-rose-100 bg-rose-50 p-3 text-xs font-medium leading-relaxed text-rose-900 dark:border-rose-800/30 dark:bg-rose-500/[0.08] dark:text-rose-100"
+                                className="flex items-start gap-3 rounded-lg border border-rose-100 bg-rose-50 p-3 text-xs font-medium leading-relaxed text-rose-900 dark:border-rose-800/30 dark:bg-rose-500/8 dark:text-rose-100"
                                 data-oid="g-p0fth"
                               >
                                 <AlertCircle

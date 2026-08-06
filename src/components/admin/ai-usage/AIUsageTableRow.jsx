@@ -25,10 +25,10 @@ const AIUsageTableRow = ({ row, maxCalls }) => {
         : 'text-stone-900 dark:text-stone-50';
 
   return (
-    <tr className="border-b border-stone-100 dark:border-white/[0.05] hover:bg-stone-50/70 dark:hover:bg-white/[0.02] transition-colors last:border-0">
+    <tr className="border-b border-stone-100 dark:border-white/5 hover:bg-stone-50/70 dark:hover:bg-white/2 transition-colors last:border-0">
       <Td>
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-[10px] font-black text-stone-500 dark:text-stone-300 shrink-0">
+          <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/6 grid place-items-center text-[10px] font-black text-stone-500 dark:text-stone-300 shrink-0">
             {getInitials(row.user?.full_name)}
           </div>
           <div className="min-w-0">
@@ -46,7 +46,7 @@ const AIUsageTableRow = ({ row, maxCalls }) => {
         <span className={cn(NUM, 'text-xs font-bold text-stone-900 dark:text-stone-50')}>
           {(row.totalCalls || 0).toLocaleString()}
         </span>
-        <div className="h-1 w-16 bg-stone-100 dark:bg-white/[0.06] rounded-full overflow-hidden mt-1.5">
+        <div className="h-1 w-16 bg-stone-100 dark:bg-white/6 rounded-full overflow-hidden mt-1.5">
           <div
             className="h-full rounded-full bg-[rgb(var(--signal-ok))]"
             style={{ width: `${share}%` }}

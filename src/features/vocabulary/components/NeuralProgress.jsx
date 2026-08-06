@@ -75,7 +75,7 @@ const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
         <Select value={period} onValueChange={setPeriod}>
           <SelectTrigger
             aria-label="Choose a retention period"
-            className="h-7.5 w-[105px] shrink-0 rounded-lg border-[#e2e5f2] bg-white px-2 text-[11px] font-bold text-slate-700 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300"
+            className="h-7.5 w-[105px] shrink-0 rounded-lg border-[#e2e5f2] bg-white px-2 text-[11px] font-bold text-slate-700 dark:border-white/10 dark:bg-white/4 dark:text-slate-300"
           >
             <SelectValue />
           </SelectTrigger>

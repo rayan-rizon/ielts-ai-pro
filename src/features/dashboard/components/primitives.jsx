@@ -33,14 +33,14 @@ export const TITLE = 'text-[13px] font-extrabold tracking-tight text-slate-800 d
  * job of showing where the light hits the panel.
  */
 export const PANEL =
-  'rounded-xl border border-[#e4e2f0] dark:border-white/[0.10] bg-white dark:bg-[#131315] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]';
+  'rounded-xl border border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#131315] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]';
 
 /** Quiet inset surface — meter tracks, nested rows, empty wells. */
 export const WELL = 'bg-[#f4f3fb] dark:bg-white/[0.07]';
 
 /** Nested tile/card inside a panel — one step quieter than PANEL itself. */
 export const TILE =
-  'rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] transition-colors duration-150 dark:border-white/[0.11] dark:bg-white/[0.055]';
+  'rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] transition-colors duration-150 dark:border-white/11 dark:bg-white/5.5';
 
 export const ACCENT = '#5a63df';
 
@@ -73,7 +73,7 @@ export const ROW_CHEVRON =
  * is the same lift the border/well tokens already moved to.
  */
 export const ROW_HOVER =
-  'hover:border-[#e4e2f0] hover:bg-[#f7f6fd] active:scale-[0.99] dark:hover:border-white/[0.10] dark:hover:bg-white/[0.06]';
+  'hover:border-[#e4e2f0] hover:bg-[#f7f6fd] active:scale-[0.99] dark:hover:border-white/10 dark:hover:bg-white/6';
 
 export const PILL_BASE =
   'inline-flex items-center gap-1 rounded-full border px-2 py-[2px] text-[9px] font-bold uppercase tracking-wide leading-normal';
@@ -134,12 +134,12 @@ export const Pill = ({ tone = 'neutral', className, children }) => (
 );
 
 const ICON_CHIP_TONES = {
-  accent: 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/[0.18] dark:text-[#afb5ff]',
-  amber: 'bg-amber-500/10 text-amber-600 dark:bg-amber-400/[0.18] dark:text-amber-300',
-  emerald: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/[0.18] dark:text-emerald-300',
-  rose: 'bg-rose-500/10 text-rose-600 dark:bg-rose-400/[0.18] dark:text-rose-300',
-  sky: 'bg-sky-500/10 text-sky-600 dark:bg-sky-400/[0.18] dark:text-sky-300',
-  neutral: 'bg-slate-100 text-slate-500 dark:bg-white/[0.09] dark:text-slate-300',
+  accent: 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/18 dark:text-[#afb5ff]',
+  amber: 'bg-amber-500/10 text-amber-600 dark:bg-amber-400/18 dark:text-amber-300',
+  emerald: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/18 dark:text-emerald-300',
+  rose: 'bg-rose-500/10 text-rose-600 dark:bg-rose-400/18 dark:text-rose-300',
+  sky: 'bg-sky-500/10 text-sky-600 dark:bg-sky-400/18 dark:text-sky-300',
+  neutral: 'bg-slate-100 text-slate-500 dark:bg-white/9 dark:text-slate-300',
 };
 
 /** Small tinted icon badge used next to a label — Stat tiles, panel headers. */
@@ -264,7 +264,7 @@ export const Stat = ({
     className={cn(
       PANEL,
       size === 'sm' ? 'px-3 py-2' : 'px-3.5 py-3',
-      'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/[0.18]',
+      'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/18',
       className
     )}
   >
@@ -313,7 +313,7 @@ export const Meter = ({ label, pct, value, tone = 'accent', trailing, className 
       <div
         className={cn(
           'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700',
-          tone === 'accent' ? ACCENT_FILL : 'bg-slate-400/15 dark:bg-white/[0.12]'
+          tone === 'accent' ? ACCENT_FILL : 'bg-slate-400/15 dark:bg-white/12'
         )}
         style={{ width: `${Math.max(0, Math.min(100, pct || 0))}%` }}
       />
@@ -429,7 +429,7 @@ export const Ring = ({
           r={radius}
           fill="none"
           strokeWidth={stroke}
-          className="stroke-[#eceafa] dark:stroke-white/[0.13]"
+          className="stroke-[#eceafa] dark:stroke-white/13"
         />
         <circle
           cx={size / 2}
@@ -468,7 +468,7 @@ export const PanelFootnote = ({ children, className }) => (
     className={cn(
       MICRO,
       MUTED,
-      'mt-3 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.10]',
+      'mt-3 border-t border-[#eceafa] pt-2.5 dark:border-white/10',
       className
     )}
   >

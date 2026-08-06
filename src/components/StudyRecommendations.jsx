@@ -222,7 +222,7 @@ export default function StudyRecommendations() {
                       <CardContent className="p-4" data-oid="emc3mlo">
                         <div className="flex items-start gap-4" data-oid="bru2mif">
                           <div
-                            className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors"
+                            className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors"
                             data-oid="az-3cu5"
                           >
                             <ModuleIcon className="w-6 h-6 text-primary" data-oid="kr1b6uc" />
@@ -238,10 +238,7 @@ export default function StudyRecommendations() {
                               >
                                 {rec.title}
                               </h4>
-                              <div
-                                className="flex items-center gap-2 flex-shrink-0"
-                                data-oid="7zoko71"
-                              >
+                              <div className="flex items-center gap-2 shrink-0" data-oid="7zoko71">
                                 <Badge
                                   className={`text-xs px-2 py-1 ${priorityColors[rec.priority]}`}
                                   data-oid="hgmsybb"
@@ -331,7 +328,7 @@ export default function StudyRecommendations() {
                     data-oid="pemh:9m"
                   >
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                         insight.type === 'weakness'
                           ? 'bg-red-100 dark:bg-red-900/30'
                           : insight.type === 'strength'

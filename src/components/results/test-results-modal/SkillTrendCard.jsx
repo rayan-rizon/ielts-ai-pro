@@ -96,7 +96,7 @@ function TrendRow({ entry }) {
       */}
       <div className="relative mt-2 h-4 px-1.5">
         <div className="relative h-full w-full">
-          <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[#e4e2f0] dark:bg-white/[0.12]" />
+          <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[#e4e2f0] dark:bg-white/12" />
           {width > 0 && (
             <span
               className={cn('absolute top-1/2 h-[3px] -translate-y-1/2 rounded-full', meta.dot)}

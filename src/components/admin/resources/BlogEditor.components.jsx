@@ -163,7 +163,7 @@ export function BlogEditorThumbnail({ formData, onThumbnailUpload }) {
       <Label className={cn(FIELD_LABEL, 'mb-0 flex items-center gap-1.5')}>
         <ImageIcon className="w-3 h-3" /> Featured image
       </Label>
-      <div className="group relative aspect-video bg-stone-50 dark:bg-white/[0.03] rounded-md overflow-hidden border-2 border-dashed border-stone-200 dark:border-white/10 hover:border-indigo-400/50 transition-colors">
+      <div className="group relative aspect-video bg-stone-50 dark:bg-white/3 rounded-md overflow-hidden border-2 border-dashed border-stone-200 dark:border-white/10 hover:border-indigo-400/50 transition-colors">
         {formData.thumbnail_url ? (
           <>
             <img
@@ -189,7 +189,7 @@ export function BlogEditorThumbnail({ formData, onThumbnailUpload }) {
             </div>
           </>
         ) : (
-          <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-stone-100/60 dark:hover:bg-white/[0.03] transition-colors">
+          <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-stone-100/60 dark:hover:bg-white/3 transition-colors">
             <div className="p-2.5 bg-white dark:bg-[#131315] rounded-full border border-stone-200 dark:border-white/10 mb-2 group-hover:scale-110 transition-transform">
               <Upload className="w-4 h-4 text-stone-500 dark:text-stone-400" />
             </div>
@@ -282,7 +282,7 @@ export function BlogEditorSeoSettings({
           />
         </div>
 
-        <div className="flex flex-wrap gap-1.5 min-h-[1.75rem] mt-2">
+        <div className="flex flex-wrap gap-1.5 min-h-7 mt-2">
           {formData.seo_tags.length === 0 && (
             <span className="text-[11px] text-stone-400 italic">No tags added yet</span>
           )}
@@ -342,7 +342,7 @@ export function BlogEditorPublishCard({ formData, setFormData }) {
         )}
       </div>
 
-      <div className="flex items-center justify-between pt-3 border-t border-stone-100 dark:border-white/[0.06]">
+      <div className="flex items-center justify-between pt-3 border-t border-stone-100 dark:border-white/6">
         <div>
           <p className="text-xs font-bold text-stone-900 dark:text-stone-50">Featured article</p>
           <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>

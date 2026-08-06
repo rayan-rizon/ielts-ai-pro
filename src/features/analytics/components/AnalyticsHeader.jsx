@@ -52,7 +52,7 @@ export default function AnalyticsHeader({
       <div className="flex items-center gap-2">
         <span className={cn('hidden text-[11px] font-semibold sm:inline', MUTED)}>Showing</span>
         <div
-          className="no-scrollbar flex items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.04]"
+          className="no-scrollbar flex items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4"
           role="group"
           aria-label="Analytics timeframe"
         >

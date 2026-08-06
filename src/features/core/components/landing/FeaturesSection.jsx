@@ -4,16 +4,16 @@ import { ArrowRight, BookOpen, FileText, Mic, PenTool, TrendingUp, Volume2 } fro
 import { SectionHeading, SoftSection, landingReveal, landingStagger } from './LandingSection';
 
 const cardClass =
-  'group relative flex h-full flex-col overflow-hidden rounded-[26px] border border-[#e2e5fa] bg-white/95 p-5 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-[#6256ef]/40 hover:shadow-[0_30px_65px_-24px_rgba(82,98,239,0.38)] dark:border-white/[0.08] dark:bg-[#111114] dark:shadow-none dark:backdrop-blur-none dark:hover:-translate-y-0.5 dark:hover:border-violet-400/20 dark:hover:shadow-none';
+  'group relative flex h-full flex-col overflow-hidden rounded-[26px] border border-[#e2e5fa] bg-white/95 p-5 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-[#6256ef]/40 hover:shadow-[0_30px_65px_-24px_rgba(82,98,239,0.38)] dark:border-white/8 dark:bg-[#111114] dark:shadow-none dark:backdrop-blur-none dark:hover:-translate-y-0.5 dark:hover:border-violet-400/20 dark:hover:shadow-none';
 const canvasClass =
-  'relative mt-5 min-h-[194px] overflow-hidden rounded-[18px] border border-[#e7e4fb] bg-gradient-to-b from-[#fcfbff] via-[#faf9ff] to-[#f4f2ff] dark:border-white/[0.07] dark:bg-white/[0.02] dark:bg-none';
+  'relative mt-5 min-h-[194px] overflow-hidden rounded-[18px] border border-[#e7e4fb] bg-linear-to-b from-[#fcfbff] via-[#faf9ff] to-[#f4f2ff] dark:border-white/[0.07] dark:bg-white/2 dark:bg-none';
 const smoothLoop = { ease: [0.45, 0, 0.55, 1] };
 
 function FeatureHeader({ icon: Icon, title, description }) {
   return (
     <div className="relative z-10 flex items-start gap-3.5">
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] border border-[#ded9ff] bg-[#f2f0ff] text-[#6256ef] shadow-[0_8px_20px_-16px_rgba(83,70,225,.85)] dark:border-violet-400/15 dark:bg-violet-500/[0.07] dark:text-violet-300">
-        <Icon className="h-5.5 w-5.5 stroke-[2]" />
+        <Icon className="h-5.5 w-5.5 stroke-2" />
       </div>
       <div>
         <h3 className="text-[17px] font-extrabold tracking-[-.035em] text-[#0b1230] dark:text-white sm:text-lg">
@@ -72,7 +72,7 @@ function WritingCard({ reduceMotion }) {
             easier.
           </p>
           <m.div
-            className="rounded-xl border border-[#e5e2fa] bg-white px-3 py-2.5 shadow-[0_12px_22px_-18px_rgba(73,61,201,.6)] dark:border-white/10 dark:bg-white/[0.05] dark:shadow-none"
+            className="rounded-xl border border-[#e5e2fa] bg-white px-3 py-2.5 shadow-[0_12px_22px_-18px_rgba(73,61,201,.6)] dark:border-white/10 dark:bg-white/5 dark:shadow-none"
             animate={
               reduceMotion
                 ? undefined
@@ -102,7 +102,7 @@ function WritingCard({ reduceMotion }) {
             </span>
           </m.div>
         </div>
-        <div className="mt-4 overflow-hidden rounded-xl border border-[#e7e8f3] bg-white/95 dark:border-white/10 dark:bg-white/[0.04]">
+        <div className="mt-4 overflow-hidden rounded-xl border border-[#e7e8f3] bg-white/95 dark:border-white/10 dark:bg-white/4">
           {corrections.map(([from, to, color], index) => (
             <m.div
               key={from}
@@ -144,7 +144,7 @@ function SpeakingCard({ reduceMotion }) {
         className={`${canvasClass} relative flex flex-1 flex-col justify-between overflow-hidden p-5`}
       >
         {/* Soft center ambient glow */}
-        <div className="pointer-events-none absolute left-1/2 top-[42%] h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#7c5cff]/15 blur-3xl dark:bg-[#7c5cff]/[0.06]" />
+        <div className="pointer-events-none absolute left-1/2 top-[42%] h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#7c5cff]/15 blur-3xl dark:bg-[#7c5cff]/6" />
 
         {/* Main Audio Visualizer Hub (Single center anchor for everything) */}
         <div className="relative flex flex-1 items-center justify-center">
@@ -229,13 +229,13 @@ function SpeakingCard({ reduceMotion }) {
             {[0, 0.38, 0.76].map((delay) => (
               <m.span
                 key={delay}
-                className="absolute inset-0 rounded-full border border-[#7d6cf4]/35 bg-[#7d6cf4]/5 dark:border-indigo-400/25 dark:bg-indigo-400/[0.02]"
+                className="absolute inset-0 rounded-full border border-[#7d6cf4]/35 bg-[#7d6cf4]/5 dark:border-indigo-400/25 dark:bg-indigo-400/2"
                 animate={reduceMotion ? undefined : { scale: [0.85, 1.75], opacity: [0.7, 0] }}
                 transition={{ duration: 2.8, repeat: Infinity, delay, ease: 'easeOut' }}
               />
             ))}
             <m.div
-              className="relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-gradient-to-br from-[#7e69ff] via-[#6852ff] to-[#5136f5] text-white shadow-[0_12px_30px_rgba(95,73,255,0.45),0_0_18px_rgba(124,92,255,0.22)] border border-white/20"
+              className="relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-linear-to-br from-[#7e69ff] via-[#6852ff] to-[#5136f5] text-white shadow-[0_12px_30px_rgba(95,73,255,0.45),0_0_18px_rgba(124,92,255,0.22)] border border-white/20"
               animate={reduceMotion ? undefined : { y: [0, -3, 0], scale: [1, 1.02, 1] }}
               transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
             >
@@ -246,7 +246,7 @@ function SpeakingCard({ reduceMotion }) {
 
         {/* Live Recording Status Badge */}
         <div className="relative z-10 flex justify-center pt-2">
-          <div className="flex items-center gap-2.5 rounded-full border border-[#e5e1ff] bg-white/90 px-3.5 py-1.5 text-xs font-semibold text-[#30395b] shadow-sm backdrop-blur-md dark:border-white/[0.08] dark:bg-slate-900/75 dark:text-slate-200">
+          <div className="flex items-center gap-2.5 rounded-full border border-[#e5e1ff] bg-white/90 px-3.5 py-1.5 text-xs font-semibold text-[#30395b] shadow-sm backdrop-blur-md dark:border-white/8 dark:bg-slate-900/75 dark:text-slate-200">
             <span className="relative flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full rounded-full bg-[#6b55ff] opacity-75 animate-ping" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#6b55ff]" />
@@ -291,7 +291,7 @@ function TestsCard({ reduceMotion }) {
               <div
                 key={`${title}-${index}`}
                 aria-hidden={index >= tests.length}
-                className="flex h-[43px] items-center gap-2.5 rounded-lg border border-transparent px-2 py-1.5 transition hover:border-[#e2ddff] hover:bg-[#faf9ff] dark:hover:bg-white/[0.03]"
+                className="flex h-[43px] items-center gap-2.5 rounded-lg border border-transparent px-2 py-1.5 transition hover:border-[#e2ddff] hover:bg-[#faf9ff] dark:hover:bg-white/3"
               >
                 <m.div
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#f1efff] text-[#6256ef] dark:bg-indigo-500/15 dark:text-indigo-300"
@@ -328,8 +328,8 @@ function TestsCard({ reduceMotion }) {
               </div>
             ))}
           </m.div>
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-[#fbfbff] to-transparent dark:from-[#131315]" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#fbfbff] to-transparent dark:from-[#131315]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-6 bg-linear-to-b from-[#fbfbff] to-transparent dark:from-[#131315]" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-t from-[#fbfbff] to-transparent dark:from-[#131315]" />
         </div>
       </div>
     </article>
@@ -351,7 +351,7 @@ function AnalyticsCard({ reduceMotion }) {
             Overall Band Score
           </span>
           <div>
-            <strong className="block text-[40px] font-black tracking-[-.07em] bg-clip-text text-transparent bg-gradient-to-br from-[#6256ef] via-[#7a6bff] to-[#5136f5] dark:from-[#8b7cff] dark:via-[#a08fff] dark:to-[#7a6bff] sm:text-[44px]">
+            <strong className="block text-[40px] font-black tracking-[-.07em] bg-clip-text text-transparent bg-linear-to-br from-[#6256ef] via-[#7a6bff] to-[#5136f5] dark:from-[#8b7cff] dark:via-[#a08fff] dark:to-[#7a6bff] sm:text-[44px]">
               7.0
             </strong>
             <div className="mt-1 flex items-center gap-1.5">
@@ -540,7 +540,7 @@ function VocabularyCard({ reduceMotion }) {
         {/* Layer 4 (Deepest Back - Soft Pastel Pink/Rose Tint peeking furthest right) */}
         <m.div
           key={`layer4-${nextWord3.word}`}
-          className="absolute h-[166px] w-[75%] rounded-2xl border border-[#e8c6e5] bg-gradient-to-br from-[#f8e6f6] to-[#f1d4ed] p-3.5 shadow-sm dark:border-white/[0.07] dark:from-pink-950/20 dark:to-purple-950/20 sm:w-[70%]"
+          className="absolute h-[166px] w-[75%] rounded-2xl border border-[#e8c6e5] bg-linear-to-br from-[#f8e6f6] to-[#f1d4ed] p-3.5 shadow-sm dark:border-white/[0.07] dark:from-pink-950/20 dark:to-purple-950/20 sm:w-[70%]"
           animate={
             reduceMotion
               ? { rotate: 6, x: 44, y: 0, opacity: 0.75 }
@@ -552,7 +552,7 @@ function VocabularyCard({ reduceMotion }) {
         {/* Layer 3 (Second Back - Soft Pastel Lilac/Violet Tint peeking right) */}
         <m.div
           key={`layer3-${nextWord2.word}`}
-          className="absolute h-[168px] w-[77%] rounded-2xl border border-[#d5c7ff] bg-gradient-to-br from-[#e4dcfd] to-[#d8cbfe] p-3.5 shadow-sm dark:border-white/[0.07] dark:from-violet-950/25 dark:to-indigo-950/25 sm:w-[72%]"
+          className="absolute h-[168px] w-[77%] rounded-2xl border border-[#d5c7ff] bg-linear-to-br from-[#e4dcfd] to-[#d8cbfe] p-3.5 shadow-sm dark:border-white/[0.07] dark:from-violet-950/25 dark:to-indigo-950/25 sm:w-[72%]"
           animate={
             reduceMotion
               ? { rotate: 4, x: 28, y: -2, opacity: 0.85 }
@@ -564,7 +564,7 @@ function VocabularyCard({ reduceMotion }) {
         {/* Layer 2 (First Back - Soft Pastel Light Lavender Tint peeking right) */}
         <m.div
           key={`layer2-${nextWord1.word}`}
-          className="absolute h-[170px] w-[79%] rounded-2xl border border-[#ded4fe] bg-gradient-to-br from-[#eeeafe] to-[#e4dcfe] p-4 shadow-md dark:border-white/[0.07] dark:bg-none dark:bg-[#24233a] sm:w-[74%]"
+          className="absolute h-[170px] w-[79%] rounded-2xl border border-[#ded4fe] bg-linear-to-br from-[#eeeafe] to-[#e4dcfe] p-4 shadow-md dark:border-white/[0.07] dark:bg-none dark:bg-[#24233a] sm:w-[74%]"
           animate={
             reduceMotion
               ? { rotate: 2, x: 14, y: -4, opacity: 0.95 }
@@ -634,7 +634,7 @@ function VocabularyCard({ reduceMotion }) {
             <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-[#5e50ee] dark:text-violet-300">
               <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#ede9ff] dark:bg-slate-800">
                 <m.span
-                  className="block h-full rounded-full bg-gradient-to-r from-[#6256ef] to-[#8b7cff]"
+                  className="block h-full rounded-full bg-linear-to-r from-[#6256ef] to-[#8b7cff]"
                   initial={{ width: 0 }}
                   animate={{ width: `${current.retention}%` }}
                   transition={{ duration: 0.7, ease: smoothCurve }}

@@ -78,7 +78,7 @@ const VALUES = [
 
 export default function AboutValues() {
   return (
-    <section className="py-16 md:py-20 px-6 relative bg-slate-50/50 dark:bg-white/[0.02] border-t border-slate-200/60 dark:border-white/[0.07]">
+    <section className="py-16 md:py-20 px-6 relative bg-slate-50/50 dark:bg-white/2 border-t border-slate-200/60 dark:border-white/[0.07]">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-14 space-y-2">
           <span className="text-[11px] font-black uppercase tracking-[0.15em] text-indigo-600 dark:text-indigo-400 block">
@@ -102,7 +102,7 @@ export default function AboutValues() {
           {VALUES.map((value, i) => (
             <m.div key={i} variants={itemVariants}>
               <Card
-                className={`h-full rounded-[24px] border bg-gradient-to-br from-white via-slate-50/50 to-indigo-50/30 p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 border-slate-200/80 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:border-white/10 relative overflow-hidden group shadow-sm dark:shadow-none hover:shadow-lg dark:hover:shadow-none ${value.border}`}
+                className={`h-full rounded-[24px] border bg-linear-to-br from-white via-slate-50/50 to-indigo-50/30 p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 border-slate-200/80 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:border-white/10 relative overflow-hidden group shadow-sm dark:shadow-none hover:shadow-lg dark:hover:shadow-none ${value.border}`}
               >
                 <CardGridBackground />
                 <div
@@ -116,7 +116,7 @@ export default function AboutValues() {
                     >
                       <value.icon className="w-5.5 h-5.5" />
                     </div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/10">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/6 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/10">
                       {value.badge}
                     </span>
                   </div>

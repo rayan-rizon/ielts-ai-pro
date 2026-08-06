@@ -3,7 +3,7 @@ import { PANEL } from './primitives';
 import { cn } from '@/lib/cn';
 
 const Block = ({ className }) => (
-  <div className={cn('animate-pulse rounded bg-[#eceafa] dark:bg-white/[0.06]', className)} />
+  <div className={cn('animate-pulse rounded bg-[#eceafa] dark:bg-white/6', className)} />
 );
 
 /**

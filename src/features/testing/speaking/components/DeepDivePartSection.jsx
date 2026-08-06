@@ -50,7 +50,7 @@ export default function DeepDivePartSection({
         <h4 className={`text-[11px] font-extrabold uppercase tracking-[0.3em] ${theme.color}`}>
           {theme.name}
         </h4>
-        <div className="flex-1 h-px bg-gradient-to-r from-border/60 to-transparent ml-2" />
+        <div className="flex-1 h-px bg-linear-to-r from-border/60 to-transparent ml-2" />
       </div>
 
       <div className="space-y-2.5">

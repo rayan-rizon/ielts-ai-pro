@@ -272,7 +272,7 @@ const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }
         className="flex items-center justify-between gap-3 p-2.5 bg-stone-50 dark:bg-[#18181b] rounded-xl border border-stone-200 dark:border-white/10 overflow-x-auto"
         data-oid="wyde:xp"
       >
-        <div className="flex items-center gap-2 flex-shrink-0" data-oid="lj-c:xe">
+        <div className="flex items-center gap-2 shrink-0" data-oid="lj-c:xe">
           <Button
             variant="outline"
             size="sm"
@@ -311,7 +311,7 @@ const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }
             <RotateCcw className="w-3 h-3 mr-1" data-oid="ocl-.uv" /> Reset
           </Button>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0" data-oid="1y45o1f">
+        <div className="flex items-center gap-2 shrink-0" data-oid="1y45o1f">
           <Button
             variant="ghost"
             size="sm"
@@ -335,7 +335,7 @@ const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }
           <table className="w-full text-sm border-collapse" data-oid="c_18e_d">
             <thead data-oid="-.p6.0t">
               <tr
-                className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800/50 dark:to-gray-800/50 border-b border-slate-200/60 dark:border-slate-700/60"
+                className="bg-linear-to-r from-slate-50 to-gray-50 dark:from-slate-800/50 dark:to-gray-800/50 border-b border-slate-200/60 dark:border-slate-700/60"
                 data-oid="2_s_vdf"
               >
                 {tableData.headers.map((h, i) => (
@@ -376,7 +376,7 @@ const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }
                     return (
                       <td
                         key={cIdx}
-                        className={`p-3 border-r border-slate-100 dark:border-slate-800 min-w-[150px] relative align-top ${cellBlanks.length > 0 ? 'bg-gradient-to-br from-blue-50/30 to-indigo-50/30 dark:from-blue-900/10 dark:to-indigo-900/10' : ''} transition-colors duration-200`}
+                        className={`p-3 border-r border-slate-100 dark:border-slate-800 min-w-[150px] relative align-top ${cellBlanks.length > 0 ? 'bg-linear-to-br from-blue-50/30 to-indigo-50/30 dark:from-blue-900/10 dark:to-indigo-900/10' : ''} transition-colors duration-200`}
                         data-oid="h1iedf1"
                       >
                         <div className="relative group/cell" data-oid="1rl53js">

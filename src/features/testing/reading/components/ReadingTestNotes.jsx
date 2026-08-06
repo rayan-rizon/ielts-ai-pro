@@ -34,7 +34,7 @@ const ReadingTestNotes = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[100]" // Increased z-index
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-100" // Increased z-index
             onClick={() => setShowNotes(false)}
             data-oid="khhy5n4"
           />
@@ -46,18 +46,18 @@ const ReadingTestNotes = ({
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className={cn(
               PANEL,
-              'fixed right-0 top-0 z-[100] flex h-full w-full flex-col rounded-none border-y-0 border-r-0 shadow-xl sm:w-96'
+              'fixed right-0 top-0 z-100 flex h-full w-full flex-col rounded-none border-y-0 border-r-0 shadow-xl sm:w-96'
             )}
             data-oid="jf_oqb8"
           >
             {/* Header */}
             <div
-              className="flex items-center justify-between border-b border-[#e4e2f0] bg-white/85 p-3.5 backdrop-blur-md dark:border-white/[0.10] dark:bg-[#131315]/90"
+              className="flex items-center justify-between border-b border-[#e4e2f0] bg-white/85 p-3.5 backdrop-blur-md dark:border-white/10 dark:bg-[#131315]/90"
               data-oid="5179b1m"
             >
               <div className="flex items-center gap-3" data-oid="hp.6fbm">
                 <div
-                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#5a63df]/10 dark:bg-[#8f97ff]/[0.18]"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#5a63df]/10 dark:bg-[#8f97ff]/18"
                   data-oid="97cjv4j"
                 >
                   <FileText
@@ -81,7 +81,7 @@ const ReadingTestNotes = ({
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowNotes(false)}
-                className="h-8 w-8 rounded-lg text-slate-500 transition-colors hover:bg-[#f4f3fb] hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.08] dark:hover:text-slate-100"
+                className="h-8 w-8 rounded-lg text-slate-500 transition-colors hover:bg-[#f4f3fb] hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/8 dark:hover:text-slate-100"
                 data-oid="h:_vnje"
               >
                 <X className="h-4 w-4" data-oid="oma2xmk" />
@@ -96,11 +96,11 @@ const ReadingTestNotes = ({
             >
               {notes.length === 0 ? (
                 <div
-                  className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-[#d9d9eb] bg-[#fbfbfe] p-5 text-center dark:border-white/[0.16] dark:bg-white/[0.055]"
+                  className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-[#d9d9eb] bg-[#fbfbfe] p-5 text-center dark:border-white/16 dark:bg-white/5.5"
                   data-oid="twmgdlq"
                 >
                   <div
-                    className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#f4f3fb] dark:bg-white/[0.08]"
+                    className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#f4f3fb] dark:bg-white/8"
                     data-oid="yd-6mb3"
                   >
                     <StickyNote
@@ -157,7 +157,7 @@ const ReadingTestNotes = ({
                         variant="ghost"
                         size="icon"
                         onClick={() => onRemoveNote(note.id)}
-                        className="h-6 w-6 text-slate-400 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-500 group-hover:opacity-100 dark:hover:bg-rose-400/[0.12] dark:hover:text-rose-300"
+                        className="h-6 w-6 text-slate-400 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-500 group-hover:opacity-100 dark:hover:bg-rose-400/12 dark:hover:text-rose-300"
                         data-oid="w6hlgpn"
                       >
                         <Trash2 className="w-3.5 h-3.5" data-oid="7dymy_i" />
@@ -176,7 +176,7 @@ const ReadingTestNotes = ({
                             onClick={() => isRef && onNavigateToRef && onNavigateToRef(part)}
                             className={
                               isRef
-                                ? 'mb-2 block cursor-pointer rounded-md border border-[#5a63df]/15 bg-[#5a63df]/[0.06] p-2 italic text-[#5a63df] transition-colors hover:bg-[#5a63df]/10 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.08] dark:text-[#afb5ff] dark:hover:bg-[#8f97ff]/[0.14]'
+                                ? 'mb-2 block cursor-pointer rounded-md border border-[#5a63df]/15 bg-[#5a63df]/6 p-2 italic text-[#5a63df] transition-colors hover:bg-[#5a63df]/10 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/8 dark:text-[#afb5ff] dark:hover:bg-[#8f97ff]/[0.14]'
                                 : ''
                             }
                             data-oid="9tbl1d."
@@ -193,7 +193,7 @@ const ReadingTestNotes = ({
 
             {/* Input Area */}
             <div
-              className="border-t border-[#e4e2f0] bg-[#f4f3fb] p-3.5 backdrop-blur-md dark:border-white/[0.10] dark:bg-white/[0.055]"
+              className="border-t border-[#e4e2f0] bg-[#f4f3fb] p-3.5 backdrop-blur-md dark:border-white/10 dark:bg-white/5.5"
               data-oid="s7ob.mz"
             >
               <div className="relative group" data-oid="ur:c18h">
@@ -201,7 +201,7 @@ const ReadingTestNotes = ({
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   placeholder="Type your notes here..."
-                  className="min-h-[88px] w-full resize-none rounded-lg border-[#e4e2f0] bg-white p-3 pr-11 text-sm transition-all focus:border-[#5a63df] focus:ring-2 focus:ring-[#5a63df]/20 dark:border-white/[0.12] dark:bg-[#131315]"
+                  className="min-h-[88px] w-full resize-none rounded-lg border-[#e4e2f0] bg-white p-3 pr-11 text-sm transition-all focus:border-[#5a63df] focus:ring-2 focus:ring-[#5a63df]/20 dark:border-white/12 dark:bg-[#131315]"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();

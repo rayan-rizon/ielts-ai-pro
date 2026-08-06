@@ -161,7 +161,7 @@ const BulkImportModal = ({
         data-oid="0.e.7tz"
       >
         <DialogHeader
-          className="p-5 pb-3 pr-12 border-b border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.02]"
+          className="p-5 pb-3 pr-12 border-b border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/2"
           data-oid="7s90kts"
         >
           <div className="flex justify-between items-center" data-oid="56j2_si">
@@ -233,7 +233,7 @@ const BulkImportModal = ({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex-[3]" data-oid=":h84rxi">
+                <div className="flex-3" data-oid=":h84rxi">
                   <label
                     className="text-sm font-medium mb-2 block flex justify-between"
                     data-oid="n7wrc7i"

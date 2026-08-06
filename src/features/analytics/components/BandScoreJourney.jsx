@@ -150,7 +150,7 @@ export default function BandScoreJourney({
           role="tablist"
           aria-label="Band progress module"
           onKeyDown={onKeyDown}
-          className="no-scrollbar mt-3 flex items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.04]"
+          className="no-scrollbar mt-3 flex items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4"
         >
           {BAND_PROGRESS_TABS.map((tab) => {
             const isActive = activeTab === tab;

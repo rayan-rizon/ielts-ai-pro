@@ -61,7 +61,7 @@ function ModuleRow({ module, isWeakest, isBest }) {
           <div
             className={cn(
               'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700',
-              isWeakest ? 'bg-[rgb(var(--signal-warn)/0.24)]' : 'bg-[#5a63df]/[0.16]'
+              isWeakest ? 'bg-[rgb(var(--signal-warn)/0.24)]' : 'bg-[#5a63df]/16'
             )}
             style={{ width: `${pct}%` }}
           />

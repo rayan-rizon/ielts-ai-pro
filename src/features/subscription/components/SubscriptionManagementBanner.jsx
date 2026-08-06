@@ -24,7 +24,7 @@ export default function SubscriptionManagementBanner({
         <button
           type="button"
           onClick={() => window.open('mailto:support@ieltsai.pro', '_blank')}
-          className="inline-flex h-10 items-center justify-center rounded-lg border border-[#e2e5f2] bg-white px-5 text-xs font-bold uppercase tracking-widest text-slate-600 transition-colors hover:border-[#c9cdf3] hover:text-slate-900 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:text-white"
+          className="inline-flex h-10 items-center justify-center rounded-lg border border-[#e2e5f2] bg-white px-5 text-xs font-bold uppercase tracking-widest text-slate-600 transition-colors hover:border-[#c9cdf3] hover:text-slate-900 dark:border-white/10 dark:bg-white/4 dark:text-slate-300 dark:hover:text-white"
         >
           Contact support
         </button>
@@ -33,7 +33,7 @@ export default function SubscriptionManagementBanner({
           type="button"
           onClick={handleOpenPortal}
           disabled={isLoading}
-          className="inline-flex h-10 items-center justify-center rounded-lg border border-[#e2e5f2] bg-white px-5 text-xs font-bold uppercase tracking-widest text-slate-600 transition-colors hover:border-[#c9cdf3] hover:text-slate-900 disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:text-white"
+          className="inline-flex h-10 items-center justify-center rounded-lg border border-[#e2e5f2] bg-white px-5 text-xs font-bold uppercase tracking-widest text-slate-600 transition-colors hover:border-[#c9cdf3] hover:text-slate-900 disabled:opacity-50 dark:border-white/10 dark:bg-white/4 dark:text-slate-300 dark:hover:text-white"
         >
           {isLoading ? 'Opening…' : 'Open billing portal'}
         </button>

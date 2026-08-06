@@ -69,13 +69,13 @@ export function SpeedQuizModal({ isOpen, onClose, gameData, gameState, gameScore
                         onClick={() => onAnswer(option)}
                         className={cn(
                           TILE,
-                          'group flex w-full items-center gap-3 p-3.5 text-left transition-all hover:border-[#5a63df]/40 hover:bg-[#5a63df]/[0.06] active:scale-[0.99]'
+                          'group flex w-full items-center gap-3 p-3.5 text-left transition-all hover:border-[#5a63df]/40 hover:bg-[#5a63df]/6 active:scale-[0.99]'
                         )}
                       >
                         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#e2e5f2] bg-white text-[10px] font-bold text-slate-400 transition-all group-hover:border-[#5a63df] group-hover:bg-[#5a63df] group-hover:text-white dark:border-white/10 dark:bg-[#131315]">
                           {String.fromCharCode(65 + idx)}
                         </div>
-                        <span className="flex-1 whitespace-normal break-words text-sm font-bold italic leading-snug text-slate-700 group-hover:text-[#5a63df] dark:text-slate-200 dark:group-hover:text-indigo-300">
+                        <span className="flex-1 whitespace-normal wrap-break-word text-sm font-bold italic leading-snug text-slate-700 group-hover:text-[#5a63df] dark:text-slate-200 dark:group-hover:text-indigo-300">
                           {option}
                         </span>
                       </button>
@@ -177,10 +177,10 @@ export function MatchPairsModal({
                             'flex h-24 cursor-pointer items-center justify-center rounded-xl border p-4 text-center transition-all duration-200 md:h-32',
                             isFlipped
                               ? 'border-[#5a63df] bg-[#5a63df]/10 text-[#5a63df] dark:bg-indigo-500/20 dark:text-indigo-300'
-                              : 'border-[#e2e5f2] bg-white text-slate-700 hover:border-[#c9cdf3] hover:bg-[#5a63df]/[0.04] dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-200'
+                              : 'border-[#e2e5f2] bg-white text-slate-700 hover:border-[#c9cdf3] hover:bg-[#5a63df]/4 dark:border-white/10 dark:bg-white/3 dark:text-slate-200'
                           )}
                         >
-                          <span className="select-none whitespace-normal break-words text-xs font-black italic leading-tight tracking-tight md:text-sm">
+                          <span className="select-none whitespace-normal wrap-break-word text-xs font-black italic leading-tight tracking-tight md:text-sm">
                             {card.content}
                           </span>
                         </m.div>

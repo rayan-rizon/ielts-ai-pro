@@ -14,9 +14,9 @@ import { cn } from '@/lib/cn';
 const QuestionNumberCircle = React.memo(
   ({ number, isFlagged, onClick, status = 'default', size = 'sm', className = '' }) => {
     const sizeClasses = {
-      sm: 'min-w-[1.25rem] h-5 p-[4px] text-[12px] border-1.5',
-      md: 'min-w-[1.5rem] h-6 p-[4px] text-[12px] border-2',
-      lg: 'min-w-[2rem] h-8 p-[4px] text-[12px] border-2',
+      sm: 'min-w-5 h-5 p-[4px] text-[12px] border-1.5',
+      md: 'min-w-6 h-6 p-[4px] text-[12px] border-2',
+      lg: 'min-w-8 h-8 p-[4px] text-[12px] border-2',
     };
 
     return (

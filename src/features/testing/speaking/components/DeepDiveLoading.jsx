@@ -8,7 +8,7 @@ export default function DeepDiveLoading() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] bg-rose-500/20 rounded-full blur-[60px] animate-pulse" />
       </div>
       <div className="relative z-10 space-y-4">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-rose-500/20 bg-gradient-to-br from-rose-500/20 to-red-500/20 shadow-md">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-rose-500/20 bg-linear-to-br from-rose-500/20 to-red-500/20 shadow-md">
           <Loader2 className="w-8 h-8 text-rose-500 animate-spin" />
         </div>
         <div>

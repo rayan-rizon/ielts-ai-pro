@@ -36,7 +36,7 @@ const BADGES = [
 
 export default function TrustBadges() {
   return (
-    <section className="border-y border-[#e4e2f0] bg-[#f8f7fd]/40 py-5 sm:py-6 dark:border-white/[0.07] dark:bg-white/[0.015]">
+    <section className="border-y border-[#e4e2f0] bg-[#f8f7fd]/40 py-5 sm:py-6 dark:border-white/[0.07] dark:bg-white/1.5">
       <div className="mx-auto grid max-w-7xl gap-3.5 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
         {BADGES.map(([Icon, title, text, iconColor, iconBgColor]) => (
           <div key={title} className={cn(TILE, 'flex items-center gap-3.5 p-4')}>

@@ -115,9 +115,9 @@ function prepareArticleContent(content) {
 
 function RelatedCard({ article }) {
   return (
-    <article className="group overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200 hover:-translate-y-1 hover:border-[#5a63df]/30">
+    <article className="group overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200 hover:-translate-y-1 hover:border-[#5a63df]/30">
       <Link to={`/blog/${article.slug}`}>
-        <div className="relative h-32 overflow-hidden bg-slate-100 dark:bg-white/[0.03]">
+        <div className="relative h-32 overflow-hidden bg-slate-100 dark:bg-white/3">
           <img
             src={article.thumbnail_url || '/ielts-hero-student.webp'}
             alt={getBlogCoverAlt(article)}
@@ -154,7 +154,7 @@ function BlogPostLoadingSkeleton() {
           <Skeleton className="h-28 w-full" />
           <Skeleton className="h-16 w-4/5" />
         </div>
-        <Skeleton className="aspect-[16/9] rounded-2xl" />
+        <Skeleton className="aspect-video rounded-2xl" />
       </div>
     </div>
   );
@@ -162,7 +162,7 @@ function BlogPostLoadingSkeleton() {
 
 function BlogPostHero({ post, publishedDate }) {
   return (
-    <section className="relative overflow-hidden border-b border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white via-[#faf9ff] to-white dark:from-[#090b13] dark:via-[#0e111c] dark:to-[#090b13]">
+    <section className="relative overflow-hidden border-b border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white via-[#faf9ff] to-white dark:from-[#090b13] dark:via-[#0e111c] dark:to-[#090b13]">
       <div className="relative mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:py-12">
         <nav
           aria-label="Breadcrumb"
@@ -228,7 +228,7 @@ function BlogPostHero({ post, publishedDate }) {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
             className="relative"
           >
-            <div className="overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.08] bg-white dark:bg-[#131315] p-2 shadow-sm">
+            <div className="overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/8 bg-white dark:bg-[#131315] p-2 shadow-sm">
               <img
                 src={post.thumbnail_url || '/ielts-hero-student.webp'}
                 alt={getBlogCoverAlt(post)}
@@ -236,7 +236,7 @@ function BlogPostHero({ post, publishedDate }) {
                 height={BLOG_COVER_HEIGHT}
                 decoding="async"
                 {...{ fetchpriority: 'high' }}
-                className="aspect-[16/9] w-full rounded-lg object-cover"
+                className="aspect-video w-full rounded-lg object-cover"
               />
             </div>
           </m.div>
@@ -250,7 +250,7 @@ function BlogPostArticleBody({ post, preparedContent, practicePath }) {
   return (
     <article className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-white dark:bg-[#141319] px-5 py-6 sm:px-8 sm:py-8 lg:px-9">
       <div
-        className="prose prose-base max-w-none prose-slate prose-headings:scroll-mt-32 prose-headings:font-extrabold prose-headings:tracking-tight prose-h2:mb-3 prose-h2:mt-9 prose-h2:text-xl prose-h2:leading-tight prose-h3:mb-2.5 prose-h3:mt-7 prose-h3:text-lg prose-p:my-3.5 prose-p:text-sm prose-p:leading-relaxed prose-li:text-sm prose-li:leading-relaxed prose-a:font-bold prose-a:text-[#5a63df] prose-a:underline prose-a:decoration-[#5a63df]/30 prose-a:underline-offset-4 hover:prose-a:decoration-[#5a63df] prose-table:my-6 prose-table:text-xs prose-th:bg-[#f4f3fb] prose-th:px-3 prose-th:py-2.5 prose-td:px-3 prose-td:py-2.5 prose-blockquote:my-6 prose-blockquote:rounded-lg prose-blockquote:border-l-4 prose-blockquote:border-[#5a63df] prose-blockquote:bg-[#f4f3fb] prose-blockquote:px-5 prose-blockquote:py-4 prose-blockquote:text-sm prose-blockquote:font-semibold prose-blockquote:not-italic [&_aside]:my-6 [&_aside]:rounded-lg [&_aside]:border [&_aside]:border-[#e4e2f0] [&_aside]:bg-[#f4f3fb] [&_aside]:px-4 [&_aside]:py-3.5 [&_aside_p]:m-0 [&_aside_p]:text-slate-800 dark:prose-invert dark:prose-a:text-[#8f97ff] dark:prose-th:bg-white/[0.05] dark:prose-blockquote:bg-white/[0.04] dark:[&_aside]:border-white/10 dark:[&_aside]:bg-white/[0.04] dark:[&_aside_p]:text-slate-200"
+        className="prose prose-base max-w-none prose-slate prose-headings:scroll-mt-32 prose-headings:font-extrabold prose-headings:tracking-tight prose-h2:mb-3 prose-h2:mt-9 prose-h2:text-xl prose-h2:leading-tight prose-h3:mb-2.5 prose-h3:mt-7 prose-h3:text-lg prose-p:my-3.5 prose-p:text-sm prose-p:leading-relaxed prose-li:text-sm prose-li:leading-relaxed prose-a:font-bold prose-a:text-[#5a63df] prose-a:underline prose-a:decoration-[#5a63df]/30 prose-a:underline-offset-4 hover:prose-a:decoration-[#5a63df] prose-table:my-6 prose-table:text-xs prose-th:bg-[#f4f3fb] prose-th:px-3 prose-th:py-2.5 prose-td:px-3 prose-td:py-2.5 prose-blockquote:my-6 prose-blockquote:rounded-lg prose-blockquote:border-l-4 prose-blockquote:border-[#5a63df] prose-blockquote:bg-[#f4f3fb] prose-blockquote:px-5 prose-blockquote:py-4 prose-blockquote:text-sm prose-blockquote:font-semibold prose-blockquote:not-italic [&_aside]:my-6 [&_aside]:rounded-lg [&_aside]:border [&_aside]:border-[#e4e2f0] [&_aside]:bg-[#f4f3fb] [&_aside]:px-4 [&_aside]:py-3.5 [&_aside_p]:m-0 [&_aside_p]:text-slate-800 dark:prose-invert dark:prose-a:text-[#8f97ff] dark:prose-th:bg-white/5 dark:prose-blockquote:bg-white/4 dark:[&_aside]:border-white/10 dark:[&_aside]:bg-white/4 dark:[&_aside_p]:text-slate-200"
         dangerouslySetInnerHTML={{ __html: preparedContent.html }}
       />
 
@@ -267,7 +267,7 @@ function BlogPostArticleBody({ post, preparedContent, practicePath }) {
         </div>
       )}
 
-      <div className="mt-8 flex flex-col gap-4 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-r from-[#f4f3fb] to-white dark:from-white/[0.04] dark:to-white/[0.02] p-5 sm:flex-row sm:items-center">
+      <div className="mt-8 flex flex-col gap-4 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-r from-[#f4f3fb] to-white dark:from-white/4 dark:to-white/2 p-5 sm:flex-row sm:items-center">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#5a63df]/30 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/15 dark:text-[#a9afff]">
           <Sparkles className="h-5 w-5" />
         </div>
@@ -369,7 +369,7 @@ function TableOfContents({ toc, activeId, className = '' }) {
 
   return (
     <div
-      className={`rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4 ${className}`}
+      className={`rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4 ${className}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -386,7 +386,7 @@ function TableOfContents({ toc, activeId, className = '' }) {
         <button
           type="button"
           onClick={() => setIsOpenMobile((prev) => !prev)}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-[#f4f3fb] lg:hidden dark:hover:bg-white/[0.05]"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-[#f4f3fb] lg:hidden dark:hover:bg-white/5"
           aria-label={isOpenMobile ? 'Collapse table of contents' : 'Expand table of contents'}
         >
           <ChevronDown
@@ -412,7 +412,7 @@ function TableOfContents({ toc, activeId, className = '' }) {
               className={`relative flex items-center rounded-lg py-1.5 px-2.5 text-xs transition-all duration-200 group ${
                 isActive
                   ? 'bg-[#5a63df]/15 text-[#5a63df] font-extrabold dark:bg-[#8f97ff]/20 dark:text-[#a9afff]'
-                  : 'text-slate-700 hover:bg-[#f4f3fb] hover:text-[#5a63df] dark:text-slate-200 dark:hover:bg-white/[0.05] dark:hover:text-white font-medium'
+                  : 'text-slate-700 hover:bg-[#f4f3fb] hover:text-[#5a63df] dark:text-slate-200 dark:hover:bg-white/5 dark:hover:text-white font-medium'
               }`}
             >
               {isActive && (
@@ -460,7 +460,7 @@ function BlogPostSidebar({
         />
       )}
 
-      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
+      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
         <div className="flex items-center gap-2">
           <Share2 className="h-3.5 w-3.5 text-[#5a63df] dark:text-[#a9afff]" />
           <h2 className="text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
@@ -473,7 +473,7 @@ function BlogPostSidebar({
             target="_blank"
             rel="noreferrer"
             aria-label="Share on Facebook"
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/[0.04] text-blue-600 dark:text-blue-400 transition hover:bg-blue-50 dark:hover:bg-blue-500/10"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/4 text-blue-600 dark:text-blue-400 transition hover:bg-blue-50 dark:hover:bg-blue-500/10"
           >
             <Facebook className="h-4 w-4" />
           </a>
@@ -482,7 +482,7 @@ function BlogPostSidebar({
             target="_blank"
             rel="noreferrer"
             aria-label="Share on LinkedIn"
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/[0.04] text-sky-600 dark:text-sky-400 transition hover:bg-sky-50 dark:hover:bg-sky-500/10"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/4 text-sky-600 dark:text-sky-400 transition hover:bg-sky-50 dark:hover:bg-sky-500/10"
           >
             <Linkedin className="h-4 w-4" />
           </a>
@@ -490,7 +490,7 @@ function BlogPostSidebar({
             type="button"
             onClick={shareArticle}
             aria-label="Share using device"
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/[0.04] text-violet-600 dark:text-violet-400 transition hover:bg-violet-50 dark:hover:bg-violet-500/10"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/4 text-violet-600 dark:text-violet-400 transition hover:bg-violet-50 dark:hover:bg-violet-500/10"
           >
             <Share2 className="h-4 w-4" />
           </button>
@@ -498,7 +498,7 @@ function BlogPostSidebar({
             type="button"
             onClick={copyArticleLink}
             aria-label="Copy article link"
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 transition hover:bg-slate-100 dark:hover:bg-white/[0.08]"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/4 text-slate-700 dark:text-slate-300 transition hover:bg-slate-100 dark:hover:bg-white/8"
           >
             {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
           </button>
@@ -668,9 +668,9 @@ const BlogPost = () => {
       />
 
       <div className="min-h-screen bg-[#f7f9ff] font-sans text-slate-950 dark:bg-[#080b12] dark:text-white">
-        <div className="fixed left-0 top-0 z-[120] h-0.5 w-full bg-slate-100 dark:bg-white/10">
+        <div className="fixed left-0 top-0 z-120 h-0.5 w-full bg-slate-100 dark:bg-white/10">
           <div
-            className="h-full bg-gradient-to-r from-indigo-500 to-violet-500"
+            className="h-full bg-linear-to-r from-indigo-500 to-violet-500"
             style={{ width: `${scrolled}%` }}
           />
         </div>

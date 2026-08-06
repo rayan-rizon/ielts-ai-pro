@@ -25,7 +25,7 @@ const Error500 = () => {
         />
 
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-tr from-red-500/5 via-orange-500/5 to-yellow-500/5 rounded-full blur-3xl"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-linear-to-tr from-red-500/5 via-orange-500/5 to-yellow-500/5 rounded-full blur-3xl"
           data-oid="w51dguw"
         />
       </div>
@@ -47,7 +47,7 @@ const Error500 = () => {
           >
             {/* Glitchy 500 Text Effect */}
             <h1
-              className="text-[9rem] md:text-[12rem] font-black leading-none tracking-tighter select-none relative z-10 bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/50"
+              className="text-[9rem] md:text-[12rem] font-black leading-none tracking-tighter select-none relative z-10 bg-clip-text text-transparent bg-linear-to-b from-foreground to-foreground/50"
               data-oid="xhyet-l"
             >
               500

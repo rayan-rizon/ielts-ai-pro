@@ -125,7 +125,7 @@ function ArticleVisual({ article }) {
 
   if (article.thumbnail_url) {
     return (
-      <div className="relative h-44 overflow-hidden bg-slate-100 dark:bg-white/[0.03]">
+      <div className="relative h-44 overflow-hidden bg-slate-100 dark:bg-white/3">
         <img
           src={article.thumbnail_url}
           alt={getBlogCoverAlt(article)}
@@ -135,7 +135,7 @@ function ArticleVisual({ article }) {
           loading="lazy"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#141319]/40 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-[#141319]/40 via-transparent to-transparent" />
         <div className="absolute bottom-3 left-3 flex h-8 w-8 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/20 bg-white/90 dark:bg-[#141319]/90 text-[#5a63df] dark:text-[#a9afff] shadow-sm">
           <Icon className="h-4 w-4" />
         </div>
@@ -146,11 +146,11 @@ function ArticleVisual({ article }) {
   return (
     <div
       className={cn(
-        'relative h-44 overflow-hidden bg-gradient-to-br transition-transform duration-500 group-hover:scale-[1.02]',
+        'relative h-44 overflow-hidden bg-linear-to-br transition-transform duration-500 group-hover:scale-[1.02]',
         config.visual
       )}
     >
-      <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(circle_at_2px_2px,currentColor_1px,transparent_0)] [background-size:16px_16px]" />
+      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_2px_2px,currentColor_1px,transparent_0)] bg-size-[16px_16px]" />
       <div className="absolute bottom-3 left-4 flex h-10 w-10 rotate-[-4deg] items-center justify-center rounded-xl border border-white/60 bg-white/90 text-[#5a63df] shadow-sm">
         <Icon className="h-5 w-5" />
       </div>
@@ -168,7 +168,7 @@ function ArticleCard({ article, index }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.3, delay: index * 0.03, ease: [0.16, 1, 0.3, 1] }}
-      className="group flex flex-col overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200 hover:-translate-y-1 hover:border-[#5a63df]/40 dark:hover:border-white/20"
+      className="group flex flex-col overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200 hover:-translate-y-1 hover:border-[#5a63df]/40 dark:hover:border-white/20"
     >
       <Link to={`/blog/${article.slug}`} aria-label={`Read ${article.title}`}>
         <ArticleVisual article={article} />
@@ -225,7 +225,7 @@ function ArticlePagination({ currentPage, totalPages, totalArticles, onPageChang
 
   return (
     <nav
-      className="mt-8 flex flex-col items-center justify-between gap-4 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] px-4 py-3.5 sm:flex-row sm:px-5"
+      className="mt-8 flex flex-col items-center justify-between gap-4 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] px-4 py-3.5 sm:flex-row sm:px-5"
       aria-label="Blog article pagination"
     >
       <p className="text-xs font-medium text-slate-500 dark:text-slate-400 font-mono tabular-nums">
@@ -242,7 +242,7 @@ function ArticlePagination({ currentPage, totalPages, totalArticles, onPageChang
           type="button"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="inline-flex h-8 items-center gap-1 rounded-lg border border-[#e4e2f0] dark:border-white/10 px-3 text-xs font-bold text-slate-700 dark:text-slate-200 transition hover:border-[#5a63df]/30 hover:bg-[#5a63df]/[0.08] hover:text-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex h-8 items-center gap-1 rounded-lg border border-[#e4e2f0] dark:border-white/10 px-3 text-xs font-bold text-slate-700 dark:text-slate-200 transition hover:border-[#5a63df]/30 hover:bg-[#5a63df]/8 hover:text-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ChevronLeft className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Previous</span>
@@ -260,7 +260,7 @@ function ArticlePagination({ currentPage, totalPages, totalArticles, onPageChang
                   'relative flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-xs font-mono tabular-nums font-bold transition-colors duration-200',
                   item === currentPage
                     ? 'text-white'
-                    : 'text-slate-600 hover:bg-[#5a63df]/10 hover:text-[#5a63df] dark:text-slate-300 dark:hover:bg-white/[0.05]'
+                    : 'text-slate-600 hover:bg-[#5a63df]/10 hover:text-[#5a63df] dark:text-slate-300 dark:hover:bg-white/5'
                 )}
               >
                 {item === currentPage && (
@@ -283,7 +283,7 @@ function ArticlePagination({ currentPage, totalPages, totalArticles, onPageChang
           type="button"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="inline-flex h-8 items-center gap-1 rounded-lg border border-[#e4e2f0] dark:border-white/10 px-3 text-xs font-bold text-slate-700 dark:text-slate-200 transition hover:border-[#5a63df]/30 hover:bg-[#5a63df]/[0.08] hover:text-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex h-8 items-center gap-1 rounded-lg border border-[#e4e2f0] dark:border-white/10 px-3 text-xs font-bold text-slate-700 dark:text-slate-200 transition hover:border-[#5a63df]/30 hover:bg-[#5a63df]/8 hover:text-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <span className="hidden sm:inline">Next</span>
           <ChevronRight className="h-3.5 w-3.5" />
@@ -295,7 +295,7 @@ function ArticlePagination({ currentPage, totalPages, totalArticles, onPageChang
 
 function BlogHeroSection() {
   return (
-    <section className="relative overflow-hidden border-b border-[#e4e2f0]/60 dark:border-white/[0.05] bg-gradient-to-b from-white via-[#faf9ff] to-white dark:from-[#090b13] dark:via-[#0e111c] dark:to-[#090b13]">
+    <section className="relative overflow-hidden border-b border-[#e4e2f0]/60 dark:border-white/5 bg-linear-to-b from-white via-[#faf9ff] to-white dark:from-[#090b13] dark:via-[#0e111c] dark:to-[#090b13]">
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-10 sm:px-6 lg:grid-cols-[.95fr_1.05fr] lg:py-14">
         <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#5a63df]/30 bg-[#5a63df]/15 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[#5a63df] dark:border-[#8f97ff]/40 dark:bg-[#8f97ff]/20 dark:text-[#a9afff]">
@@ -314,11 +314,11 @@ function BlogHeroSection() {
           animate={{ opacity: 1, scale: 1 }}
           className="relative mx-auto w-full max-w-2xl"
         >
-          <div className="overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.08] bg-white dark:bg-[#131315] p-2 shadow-sm">
+          <div className="overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/8 bg-white dark:bg-[#131315] p-2 shadow-sm">
             <img
               src="/ielts-hero-student.webp"
               alt="IELTS learner studying with a laptop and notebook"
-              className="aspect-[16/10] w-full rounded-lg object-cover"
+              className="aspect-16/10 w-full rounded-lg object-cover"
             />
           </div>
         </motion.div>
@@ -344,7 +344,7 @@ function BlogCategoryBar({ categories, category, setCategory, setCurrentPage }) 
   };
 
   return (
-    <section className="py-3 sm:py-4 border-b border-[#e4e2f0]/60 dark:border-white/[0.05] bg-white/80 dark:bg-[#090b13]/90 backdrop-blur-2xl sticky top-14 sm:top-16 z-20 transition-all duration-300">
+    <section className="py-3 sm:py-4 border-b border-[#e4e2f0]/60 dark:border-white/5 bg-white/80 dark:bg-[#090b13]/90 backdrop-blur-2xl sticky top-14 sm:top-16 z-20 transition-all duration-300">
       <div className="mx-auto max-w-7xl px-3 sm:px-6 relative">
         <div
           ref={scrollRef}
@@ -487,7 +487,7 @@ function BlogFeaturedCarousel({ featuredArticles }) {
       </button>
 
       {/* Main Card */}
-      <div className="relative overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200">
+      <div className="relative overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200">
         <AnimatePresence mode="wait" custom={direction} initial={false}>
           <motion.div
             key={page}
@@ -506,7 +506,7 @@ function BlogFeaturedCarousel({ featuredArticles }) {
             {/* Image Container */}
             <Link
               to={`/blog/${article.slug}`}
-              className="relative aspect-[16/10] md:aspect-auto md:h-full w-full overflow-hidden rounded-lg group block"
+              className="relative aspect-16/10 md:aspect-auto md:h-full w-full overflow-hidden rounded-lg group block"
             >
               <img
                 src={article.thumbnail_url || '/ielts-hero-student.webp'}
@@ -574,7 +574,7 @@ function BlogSidebar({ articles, popularTags, setQuery, setCurrentPage }) {
 
   return (
     <aside className="space-y-4 lg:sticky lg:top-36">
-      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
+      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#5a63df]/30 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/15 dark:text-[#a9afff]">
             <TrendingUp className="h-3.5 w-3.5" />
@@ -588,7 +588,7 @@ function BlogSidebar({ articles, popularTags, setQuery, setCurrentPage }) {
             <Link
               key={article.id}
               to={`/blog/${article.slug}`}
-              className="group flex gap-2.5 rounded-lg p-2 transition-colors hover:bg-[#f4f3fb] dark:hover:bg-white/[0.04]"
+              className="group flex gap-2.5 rounded-lg p-2 transition-colors hover:bg-[#f4f3fb] dark:hover:bg-white/4"
             >
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-[#5a63df]/20 bg-[#5a63df]/10 text-[11px] font-mono tabular-nums font-bold text-[#5a63df] dark:border-[#8f97ff]/20 dark:bg-[#8f97ff]/15 dark:text-[#a9afff]">
                 {String(index + 1).padStart(2, '0')}
@@ -606,7 +606,7 @@ function BlogSidebar({ articles, popularTags, setQuery, setCurrentPage }) {
         </div>
       </div>
 
-      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
+      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
         <div className="flex items-center gap-2">
           <Star className="h-3.5 w-3.5 text-[#5a63df] dark:text-[#8f97ff]" />
           <h2 className="text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
@@ -709,7 +709,7 @@ function BlogArticleListContent({
           <h2
             ref={articleListHeadingRef}
             tabIndex={-1}
-            className="scroll-mt-24 text-xl font-extrabold tracking-[-0.025em] outline-none"
+            className="scroll-mt-24 text-xl font-extrabold tracking-tight outline-none"
           >
             {isEditorialView
               ? BLOG_LIBRARY_COPY.latestTitle
@@ -984,7 +984,7 @@ export default function BlogIndex() {
           />
 
           <section className="mx-auto max-w-7xl px-5 py-6 sm:px-6 lg:py-8">
-            <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center border-b border-[#e4e2f0]/60 pb-5 dark:border-white/[0.05]">
+            <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center border-b border-[#e4e2f0]/60 pb-5 dark:border-white/5">
               <div>
                 <p className="text-[11px] font-extrabold uppercase tracking-[.16em] text-[#5a63df] dark:text-[#a9afff]">
                   {BLOG_LIBRARY_COPY.sectionEyebrow}
@@ -1002,7 +1002,7 @@ export default function BlogIndex() {
                     onChange={(event) => updateQuery(event.target.value)}
                     placeholder={BLOG_LIBRARY_COPY.searchPlaceholder}
                     aria-label="Search IELTS articles"
-                    className="w-full bg-transparent px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500 !border-none !outline-none focus:!outline-none focus-visible:!outline-none focus-visible:!ring-0 !shadow-none !ring-0 [outline:none!important] [border:none!important]"
+                    className="w-full bg-transparent px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500 border-none! outline-none! focus:outline-none! focus-visible:outline-none! focus-visible:ring-0! shadow-none! ring-0! [outline:none!important] [border:none!important]"
                   />
                   {query && (
                     <button

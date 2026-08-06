@@ -30,8 +30,8 @@ export default function FocusStep({ weakArea, onChangeWeakArea }) {
               TILE,
               'relative flex h-32 flex-col justify-between p-4 text-left transition-all duration-200',
               isSelected
-                ? 'border-[#5a63df]/50 bg-[#5a63df]/[0.06] dark:bg-[#5a63df]/10'
-                : 'hover:-translate-y-0.5 hover:border-[#c9cdf3] hover:shadow-sm dark:hover:border-white/[0.15]'
+                ? 'border-[#5a63df]/50 bg-[#5a63df]/6 dark:bg-[#5a63df]/10'
+                : 'hover:-translate-y-0.5 hover:border-[#c9cdf3] hover:shadow-sm dark:hover:border-white/15'
             )}
           >
             <IconChip icon={m.icon} tone={isSelected ? 'accent' : 'neutral'} size="md" />
@@ -47,7 +47,7 @@ export default function FocusStep({ weakArea, onChangeWeakArea }) {
 
             {isSelected && (
               <span className="absolute right-3 top-3 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#5a63df]">
-                <Check className="h-3 w-3 stroke-[3] text-white" />
+                <Check className="h-3 w-3 stroke-3 text-white" />
               </span>
             )}
           </button>

@@ -55,7 +55,7 @@ const ReviewEmblemSVG = () => {
   const headerGrad = `headerGrad-${uid}`;
 
   return (
-    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#efedff] to-[#e4e7ff] dark:from-indigo-500/20 dark:to-violet-500/10 ring-1 ring-[#5862df]/20 shadow-sm flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
+    <div className="w-11 h-11 rounded-2xl bg-linear-to-br from-[#efedff] to-[#e4e7ff] dark:from-indigo-500/20 dark:to-violet-500/10 ring-1 ring-[#5862df]/20 shadow-sm flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
       <svg className="w-full h-full shrink-0" viewBox="0 0 32 32" fill="none">
         <defs>
           <linearGradient id={calGrad} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -217,7 +217,7 @@ export default function ReviewBanner({
             <Button
               onClick={onStartReview}
               variant="outline"
-              className="h-10 w-full sm:w-auto rounded-lg border border-[#e2e5f2] bg-white px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200"
+              className="h-10 w-full sm:w-auto rounded-lg border border-[#e2e5f2] bg-white px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/4 dark:text-slate-200"
             >
               Review All Due ({dueForReview.length})
             </Button>

@@ -99,7 +99,7 @@ export const OptionGroup = ({ label, hint, options, value, onChange, columns, cl
               active
                 ? cn(
                     option.ring || 'border-stone-400 dark:border-white/30',
-                    'bg-stone-50 text-stone-900 dark:bg-white/[0.06] dark:text-stone-50'
+                    'bg-stone-50 text-stone-900 dark:bg-white/6 dark:text-stone-50'
                   )
                 : 'border-stone-200 text-stone-500 hover:border-stone-300 dark:border-white/10 dark:text-stone-400 dark:hover:border-white/20'
             )}
@@ -136,9 +136,9 @@ export const ToggleRow = ({ label, description, checked, onCheckedChange, disabl
 /** Panel shell with an icon, title, and subtitle header. */
 export const PanelCard = ({ icon: Icon, title, subtitle, action, children, className }) => (
   <div className={cn(PANEL, 'overflow-hidden', className)}>
-    <div className="flex items-center gap-2.5 border-b border-stone-100 px-4 py-3 dark:border-white/[0.06]">
+    <div className="flex items-center gap-2.5 border-b border-stone-100 px-4 py-3 dark:border-white/6">
       {Icon && (
-        <div className="rounded-md bg-stone-100 p-1.5 text-stone-500 dark:bg-white/[0.06] dark:text-stone-300">
+        <div className="rounded-md bg-stone-100 p-1.5 text-stone-500 dark:bg-white/6 dark:text-stone-300">
           <Icon className="h-3.5 w-3.5" />
         </div>
       )}
@@ -161,6 +161,6 @@ export const PanelCard = ({ icon: Icon, title, subtitle, action, children, class
 export const PreviewFrame = ({ label, children, className }) => (
   <div className={cn(PANEL, 'flex h-full flex-col p-4', className)}>
     <p className={cn(MICRO, 'mb-3 text-stone-500 dark:text-stone-400')}>{label}</p>
-    <div className="rounded-lg bg-[#f8f7fc] p-4 dark:bg-white/[0.04]">{children}</div>
+    <div className="rounded-lg bg-[#f8f7fc] p-4 dark:bg-white/4">{children}</div>
   </div>
 );

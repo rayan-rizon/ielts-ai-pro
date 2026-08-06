@@ -30,8 +30,8 @@ function TimelineOptionButton({ option, timelineType, estimatedWeeks, onChangeTi
         TILE,
         'relative flex flex-col gap-2 p-3.5 text-left transition-all duration-200',
         isSelected
-          ? 'border-[#5a63df]/50 bg-[#5a63df]/[0.06] dark:bg-[#5a63df]/10'
-          : 'hover:-translate-y-0.5 hover:border-[#c9cdf3] hover:shadow-sm dark:hover:border-white/[0.15]'
+          ? 'border-[#5a63df]/50 bg-[#5a63df]/6 dark:bg-[#5a63df]/10'
+          : 'hover:-translate-y-0.5 hover:border-[#c9cdf3] hover:shadow-sm dark:hover:border-white/15'
       )}
     >
       <IconChip icon={Timer} tone={isSelected ? 'accent' : 'neutral'} size="md" />
@@ -45,7 +45,7 @@ function TimelineOptionButton({ option, timelineType, estimatedWeeks, onChangeTi
       </div>
       {isSelected && (
         <span className="absolute right-2.5 top-2.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#5a63df]">
-          <Check className="h-2.5 w-2.5 stroke-[3] text-white" />
+          <Check className="h-2.5 w-2.5 stroke-3 text-white" />
         </span>
       )}
     </button>
@@ -66,8 +66,8 @@ function SpecificDatePicker({ timelineType, testDate, onChangeTimeline }) {
             TILE,
             'flex w-full items-center justify-between p-3.5 text-left transition-all duration-200',
             isSpecific
-              ? 'border-[#5a63df]/50 bg-[#5a63df]/[0.06] dark:bg-[#5a63df]/10'
-              : 'hover:border-[#c9cdf3] dark:hover:border-white/[0.15]'
+              ? 'border-[#5a63df]/50 bg-[#5a63df]/6 dark:bg-[#5a63df]/10'
+              : 'hover:border-[#c9cdf3] dark:hover:border-white/15'
           )}
         >
           <div className="flex items-center gap-3">
@@ -90,7 +90,7 @@ function SpecificDatePicker({ timelineType, testDate, onChangeTimeline }) {
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="z-[100] w-auto overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-[#131315]"
+        className="z-100 w-auto overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-[#131315]"
         align="center"
         side="bottom"
         sideOffset={8}

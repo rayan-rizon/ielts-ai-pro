@@ -289,7 +289,7 @@ const TestManagement = () => {
       {/* Module tabs */}
       <m.div
         variants={FADE_UP}
-        className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-white/[0.04] rounded-lg border border-stone-200/80 dark:border-white/[0.07] w-full sm:w-fit overflow-x-auto no-scrollbar"
+        className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-white/4 rounded-lg border border-stone-200/80 dark:border-white/[0.07] w-full sm:w-fit overflow-x-auto no-scrollbar"
       >
         {TEST_STRUCTURES.map((typeInfo) => {
           const isActive = selectedTestType === typeInfo.key;
@@ -326,7 +326,7 @@ const TestManagement = () => {
 
       <m.div variants={FADE_UP} className={cn(PANEL, 'overflow-hidden')}>
         {/* Toolbar */}
-        <div className="flex flex-col xl:flex-row gap-2.5 items-center p-3 border-b border-stone-100 dark:border-white/[0.06]">
+        <div className="flex flex-col xl:flex-row gap-2.5 items-center p-3 border-b border-stone-100 dark:border-white/6">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-500 dark:text-stone-400" />
             <Input
@@ -469,7 +469,7 @@ const TestManagement = () => {
           </m.div>
         </AnimatePresence>
 
-        <div className="px-4 py-3 border-t border-stone-100 dark:border-white/[0.06]">
+        <div className="px-4 py-3 border-t border-stone-100 dark:border-white/6">
           <PaginationControls
             currentPage={pagination.page}
             totalPages={pagination.totalPages}

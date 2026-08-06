@@ -72,7 +72,7 @@ const ConfirmExitDialog = memo(function ConfirmExitDialog({
         <AlertDialogFooter className="gap-2 sm:justify-end sm:space-x-0" data-oid="lw6291v">
           <AlertDialogCancel
             onClick={handleCancel}
-            className="h-10 w-full rounded-lg border-[#e4e2f0] bg-[#fbfbfe] px-4 text-sm font-semibold text-slate-700 shadow-none transition-colors hover:bg-[#f4f3fb] dark:border-white/[0.11] dark:bg-white/[0.055] dark:text-slate-200 dark:hover:bg-white/[0.09] sm:w-auto"
+            className="h-10 w-full rounded-lg border-[#e4e2f0] bg-[#fbfbfe] px-4 text-sm font-semibold text-slate-700 shadow-none transition-colors hover:bg-[#f4f3fb] dark:border-white/11 dark:bg-white/5.5 dark:text-slate-200 dark:hover:bg-white/9 sm:w-auto"
             data-oid=".1y4tu2"
           >
             Continue Test

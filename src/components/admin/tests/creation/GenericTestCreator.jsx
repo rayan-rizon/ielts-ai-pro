@@ -137,7 +137,7 @@ const GenericTestCreator = ({ initialData, onSave, onCancel, testType }) => {
           {testType} Test Editor
         </h2>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-stone-100 dark:bg-white/[0.04] p-1 rounded-md">
+          <div className="flex items-center gap-1 bg-stone-100 dark:bg-white/4 p-1 rounded-md">
             <button
               type="button"
               onClick={undo}
@@ -205,7 +205,7 @@ const GenericTestCreator = ({ initialData, onSave, onCancel, testType }) => {
           </label>
 
           {formData.is_official_cambridge && (
-            <div className="flex items-center gap-4 animate-in fade-in slide-in-from-left-2 duration-200 p-3 rounded-lg border border-dashed border-stone-200 dark:border-white/[0.1] bg-stone-50 dark:bg-white/[0.02]">
+            <div className="flex items-center gap-4 animate-in fade-in slide-in-from-left-2 duration-200 p-3 rounded-lg border border-dashed border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-white/2">
               <div className="grid gap-1.5 flex-1">
                 <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Year</Label>
                 <Input

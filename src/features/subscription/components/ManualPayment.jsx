@@ -116,7 +116,7 @@ export default function ManualPayment({ isOpen, onClose, planData: data }) {
   return (
     <AnimatePresence data-oid="llsb_6_">
       <div
-        className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-auto"
+        className="fixed inset-0 z-100 flex items-center justify-center pointer-events-auto"
         data-oid="f7cvfkl"
       >
         <motion.div
@@ -132,7 +132,7 @@ export default function ManualPayment({ isOpen, onClose, planData: data }) {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200 dark:border-white/10 m-4"
+          className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-4xl shadow-2xl overflow-hidden border border-slate-200 dark:border-white/10 m-4"
           data-oid="v_21ppt"
         >
           {/* Header */}

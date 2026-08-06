@@ -238,8 +238,8 @@ const TestTable = ({
                 <tr
                   key={test.id}
                   className={cn(
-                    'group border-b border-stone-100 dark:border-white/[0.05] hover:bg-stone-50/70 dark:hover:bg-white/[0.02] transition-colors last:border-0',
-                    selectedIds.includes(test.id) && 'bg-stone-50 dark:bg-white/[0.02]'
+                    'group border-b border-stone-100 dark:border-white/5 hover:bg-stone-50/70 dark:hover:bg-white/2 transition-colors last:border-0',
+                    selectedIds.includes(test.id) && 'bg-stone-50 dark:bg-white/2'
                   )}
                 >
                   <td className="px-4 py-3">

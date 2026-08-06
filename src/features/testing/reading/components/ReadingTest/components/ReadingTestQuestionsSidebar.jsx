@@ -113,7 +113,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
               <div key={instruction} className="mb-3 space-y-1.5" data-oid="8jksp:y">
                 {displayInstruction.trim() && (
                   <div
-                    className="relative flex items-start gap-2.5 p-3 pl-3.5 rounded-xl overflow-hidden bg-[#5a63df]/[0.05] dark:bg-[#131315] border border-[#5a63df]/10 dark:border-[#5a63df]/25 text-slate-800 dark:text-slate-100 mb-1.5"
+                    className="relative flex items-start gap-2.5 p-3 pl-3.5 rounded-xl overflow-hidden bg-[#5a63df]/5 dark:bg-[#131315] border border-[#5a63df]/10 dark:border-[#5a63df]/25 text-slate-800 dark:text-slate-100 mb-1.5"
                     data-oid="6dw9uti"
                   >
                     <span
@@ -121,7 +121,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                       aria-hidden="true"
                     />
                     <div
-                      className="p-1 rounded-lg bg-[#5a63df]/10 dark:bg-[#8f97ff]/[0.16] text-[#5a63df] dark:text-[#afb5ff] shrink-0 mt-0.5"
+                      className="p-1 rounded-lg bg-[#5a63df]/10 dark:bg-[#8f97ff]/16 text-[#5a63df] dark:text-[#afb5ff] shrink-0 mt-0.5"
                       data-oid="ip7:at9"
                     >
                       <Lightbulb className="w-4 h-4" data-oid="3h83xkd" />
@@ -312,7 +312,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                             onClick={() => toggleFlag(questionKey)}
                             status={circleStatus}
                             className={cn(
-                              'translate-y-[1px]',
+                              'translate-y-px',
                               isMultiSelectMCQ && 'w-12 h-6 px-1.5 rounded-lg'
                             )}
                             data-oid="su-j6uf"
@@ -358,10 +358,10 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                         key={question.id}
                         id={`question-${question.id}`}
                         className={cn(
-                          'relative px-3.5 py-3 sm:px-4 sm:py-3 rounded-xl border transition-all duration-200 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] shadow-2xs hover:shadow-sm',
+                          'relative px-3.5 py-3 sm:px-4 sm:py-3 rounded-xl border transition-all duration-200 bg-linear-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] shadow-2xs hover:shadow-sm',
                           isFlagged
                             ? 'border-amber-300 dark:border-amber-800/80 ring-1 ring-amber-400/20 bg-amber-50/20 dark:bg-amber-950/10'
-                            : 'border-[#e4e2f0] dark:border-white/[0.07] hover:border-[#c9cdf3] dark:hover:border-white/[0.15]',
+                            : 'border-[#e4e2f0] dark:border-white/[0.07] hover:border-[#c9cdf3] dark:hover:border-white/15',
                           highlightedQuestionId === question.id &&
                             'ring-2 ring-[#5a63df] border-[#5a63df] dark:border-[#5a63df] scale-[1.005]'
                         )}
@@ -466,7 +466,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
 
       {/* Premium Navigation bar */}
       <div
-        className="px-2.5 py-2 sm:px-3 sm:py-2.5 border-t border-[#e4e2f0] dark:border-white/[0.07] bg-background/80 backdrop-blur-xl flex-shrink-0 relative z-30"
+        className="px-2.5 py-2 sm:px-3 sm:py-2.5 border-t border-[#e4e2f0] dark:border-white/[0.07] bg-background/80 backdrop-blur-xl shrink-0 relative z-30"
         data-oid="r0rcfur"
       >
         <div className="flex items-center justify-between gap-1.5 sm:gap-2" data-oid="3is3g04">
@@ -476,7 +476,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
             size="sm"
             onClick={() => setCurrentPassageIndex(Math.max(0, currentPassageIndex - 1))}
             disabled={currentPassageIndex === 0}
-            className="flex items-center gap-1.5 h-8 sm:h-9 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all duration-300 group disabled:opacity-30 rounded-lg px-2.5 sm:px-4"
+            className="flex items-center gap-1.5 h-8 sm:h-9 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/6 transition-all duration-300 group disabled:opacity-30 rounded-lg px-2.5 sm:px-4"
             data-oid="ay15_bx"
           >
             <ChevronLeft
@@ -501,7 +501,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                         ? 'w-6 bg-[#5a63df]'
                         : i < currentPassageIndex
                           ? 'w-1.5 bg-[#5a63df]/30 dark:bg-[#5a63df]/40'
-                          : 'w-1.5 bg-slate-200 dark:bg-white/[0.10]'
+                          : 'w-1.5 bg-slate-200 dark:bg-white/10'
                     }`}
                     data-oid="jh9w00e"
                   />
@@ -533,7 +533,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                   </span>
                 </div>
                 <div
-                  className="flex items-center gap-1 bg-slate-100 dark:bg-white/[0.06] px-2 py-1 rounded-full border border-[#ebeaf7] dark:border-white/[0.08] whitespace-nowrap"
+                  className="flex items-center gap-1 bg-slate-100 dark:bg-white/6 px-2 py-1 rounded-full border border-[#ebeaf7] dark:border-white/8 whitespace-nowrap"
                   data-oid="ikburca"
                 >
                   <span
@@ -607,7 +607,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
                 <span className="font-bold text-sm" data-oid="gx3v-uf">
                   Next
                 </span>
-                <ChevronRight className="w-4 h-4 flex-shrink-0" data-oid="esyua1r" />
+                <ChevronRight className="w-4 h-4 shrink-0" data-oid="esyua1r" />
               </div>
             </Button>
           )}

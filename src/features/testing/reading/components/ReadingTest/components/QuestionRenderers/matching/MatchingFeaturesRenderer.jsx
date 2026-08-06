@@ -11,12 +11,12 @@ function FeaturesBox({ matchingFeatures }) {
 
   return (
     <div
-      className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] dark:border-white/[0.08] dark:bg-white/[0.03] py-3.5 px-5 mb-3 w-full max-w-3xl mx-auto"
+      className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] dark:border-white/8 dark:bg-white/3 py-3.5 px-5 mb-3 w-full max-w-3xl mx-auto"
       data-oid="9j48.ng"
     >
       {boxTitle !== '' && (
         <h4
-          className="font-bold text-center mb-2.5 text-foreground text-sm tracking-tight border-b border-[#ebeaf7] dark:border-white/[0.08] pb-2 uppercase"
+          className="font-bold text-center mb-2.5 text-foreground text-sm tracking-tight border-b border-[#ebeaf7] dark:border-white/8 pb-2 uppercase"
           data-oid="tk5xf46"
         >
           {boxTitle || 'List of Features'}
@@ -29,7 +29,7 @@ function FeaturesBox({ matchingFeatures }) {
             return (
               <div key={idx} className="flex gap-4 items-baseline px-4 py-0.5" data-oid="i:xgxfb">
                 <span
-                  className="font-bold text-[#5a63df] dark:text-[#a9afff] min-w-[1.5rem] text-[15px] text-right"
+                  className="font-bold text-[#5a63df] dark:text-[#a9afff] min-w-6 text-[15px] text-right"
                   data-oid="z25a8kq"
                 >
                   {label}.

@@ -168,7 +168,7 @@ export default function WeekPulse({ days, weeklyCapacity, onCustomize }) {
       <SubjectProgress moduleStats={stats.moduleStats} />
 
       <div className="mt-3 flex flex-1 flex-col justify-end space-y-2">
-        <div className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 sm:p-3 transition-colors dark:border-white/10 dark:bg-white/[0.04]">
+        <div className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 sm:p-3 transition-colors dark:border-white/10 dark:bg-white/4">
           <p className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-[#5a63df] dark:text-[#8f97ff]">
             Next study session
           </p>
@@ -193,8 +193,8 @@ export default function WeekPulse({ days, weeklyCapacity, onCustomize }) {
           className={cn(
             'flex items-center justify-between gap-2.5 rounded-lg border p-2.5 sm:p-3 transition-colors',
             stats.overflowDays
-              ? 'border-amber-500/30 bg-amber-500/[0.08] dark:border-amber-500/30 dark:bg-amber-500/[0.10]'
-              : 'border-emerald-500/30 bg-emerald-500/[0.08] dark:border-emerald-500/30 dark:bg-emerald-500/[0.10]'
+              ? 'border-amber-500/30 bg-amber-500/8 dark:border-amber-500/30 dark:bg-amber-500/10'
+              : 'border-emerald-500/30 bg-emerald-500/8 dark:border-emerald-500/30 dark:bg-emerald-500/10'
           )}
         >
           <div className="flex min-w-0 items-center gap-2.5">

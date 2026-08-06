@@ -28,7 +28,7 @@ const SynonymSection = ({ synonymMap }) => {
                 <div className={cn(MICRO, 'text-[#5a63df] dark:text-[#8f97ff] text-[8px]')}>
                   Question Keyword
                 </div>
-                <p className="break-words text-[12px] font-extrabold leading-snug tracking-tight text-slate-800 dark:text-slate-100">
+                <p className="wrap-break-word text-[12px] font-extrabold leading-snug tracking-tight text-slate-800 dark:text-slate-100">
                   {sm.question_keyword}
                 </p>
                 {sm.connection && (
@@ -50,7 +50,7 @@ const SynonymSection = ({ synonymMap }) => {
                 <div className={cn(MICRO, 'text-emerald-600 dark:text-emerald-400 text-[8px]')}>
                   Passage Evidence
                 </div>
-                <p className="break-words text-[12px] font-bold leading-snug text-emerald-700 dark:text-emerald-300">
+                <p className="wrap-break-word text-[12px] font-bold leading-snug text-emerald-700 dark:text-emerald-300">
                   {sm.passage_keyword}
                 </p>
               </div>
@@ -67,7 +67,7 @@ const WhyWrongSection = ({ whyWrong }) => {
   if (keys.length === 0) return null;
 
   return (
-    <div className="space-y-2 pt-3 border-t border-[#e4e2f0] dark:border-white/[0.08]">
+    <div className="space-y-2 pt-3 border-t border-[#e4e2f0] dark:border-white/8">
       <div className="flex items-center gap-1.5">
         <IconChip icon={AlertTriangle} tone="rose" size="sm" />
         <span className={cn(MICRO, 'text-rose-600 dark:text-rose-400')}>
@@ -79,7 +79,7 @@ const WhyWrongSection = ({ whyWrong }) => {
           return (
             <div
               key={key}
-              className="flex items-start gap-2.5 p-2.5 rounded-lg border border-rose-500/20 bg-rose-500/[0.03] dark:border-rose-400/20 dark:bg-rose-400/[0.06] transition-colors"
+              className="flex items-start gap-2.5 p-2.5 rounded-lg border border-rose-500/20 bg-rose-500/3 dark:border-rose-400/20 dark:bg-rose-400/6 transition-colors"
             >
               <Pill tone="rose" className="shrink-0 text-[9px] mt-0.5">
                 {key}
@@ -186,12 +186,12 @@ const DeepDiveTrigger = React.memo(({ inline, isOpen, isMultiBlank, entriesCount
       whileTap={{ scale: 0.95 }}
       className={cn(
         inline
-          ? 'inline-flex h-6 w-6 ml-2 align-middle items-center justify-center rounded-md border border-[#5a63df]/30 bg-[#5a63df]/[0.08] text-[#5a63df] hover:border-[#5a63df] hover:bg-[#5a63df]/15 dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/[0.14] dark:text-[#afb5ff] dark:hover:border-[#8f97ff] dark:hover:bg-[#8f97ff]/25 transition-colors shrink-0'
+          ? 'inline-flex h-6 w-6 ml-2 align-middle items-center justify-center rounded-md border border-[#5a63df]/30 bg-[#5a63df]/8 text-[#5a63df] hover:border-[#5a63df] hover:bg-[#5a63df]/15 dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/[0.14] dark:text-[#afb5ff] dark:hover:border-[#8f97ff] dark:hover:bg-[#8f97ff]/25 transition-colors shrink-0'
           : 'w-full mt-2 flex items-center justify-between px-3 py-2 rounded-lg border text-xs font-semibold transition-colors',
         !inline &&
           (isOpen
             ? 'bg-[#5a63df]/10 border-[#5a63df]/30 text-[#4a52c9] dark:bg-[#8f97ff]/20 dark:border-[#8f97ff]/40 dark:text-[#c3c8ff]'
-            : 'bg-white border-[#e4e2f0] text-slate-700 hover:bg-[#f4f3fb] hover:border-[#5a63df]/30 dark:bg-[#131315] dark:border-white/[0.10] dark:text-slate-300 dark:hover:bg-white/[0.06]')
+            : 'bg-white border-[#e4e2f0] text-slate-700 hover:bg-[#f4f3fb] hover:border-[#5a63df]/30 dark:bg-[#131315] dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/6')
       )}
       data-oid="deep-dive-trigger"
     >
@@ -321,7 +321,7 @@ const DeepDivePopover = ({
         align={inline ? 'end' : 'start'}
         sideOffset={inline ? 10 : 8}
         collisionPadding={20}
-        className="relative z-[100] flex w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-[#e4e2f0] bg-white dark:border-white/[0.10] dark:bg-[#131315] p-0 shadow-lg dark:shadow-[0_12px_36px_rgba(0,0,0,0.6)] sm:w-[390px]"
+        className="relative z-100 flex w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-[#e4e2f0] bg-white dark:border-white/10 dark:bg-[#131315] p-0 shadow-lg dark:shadow-[0_12px_36px_rgba(0,0,0,0.6)] sm:w-[390px]"
         data-oid="deep-dive-content"
       >
         <DeepDiveBody

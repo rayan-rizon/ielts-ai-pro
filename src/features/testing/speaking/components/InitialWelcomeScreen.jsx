@@ -35,10 +35,10 @@ function ReadinessCard({ device, icon: Icon, status, onClick }) {
   const isReady = status === 'ready';
   const needsAttention = status === 'quiet' || status === 'error';
   const toneClass = isReady
-    ? 'border-emerald-500/20 bg-emerald-500/[0.055]'
+    ? 'border-emerald-500/20 bg-emerald-500/5.5'
     : needsAttention
-      ? 'border-amber-500/25 bg-amber-500/[0.055]'
-      : 'border-[#e4e2f0] bg-white/70 hover:border-rose-500/25 hover:bg-white dark:border-white/[0.07] dark:bg-white/[0.03] dark:hover:bg-white/[0.06]';
+      ? 'border-amber-500/25 bg-amber-500/5.5'
+      : 'border-[#e4e2f0] bg-white/70 hover:border-rose-500/25 hover:bg-white dark:border-white/[0.07] dark:bg-white/3 dark:hover:bg-white/6';
 
   return (
     <motion.button
@@ -52,8 +52,8 @@ function ReadinessCard({ device, icon: Icon, status, onClick }) {
       <span
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg sm:h-9 sm:w-9 sm:rounded-xl ${
           device === 'microphone'
-            ? 'bg-emerald-500/[0.08] text-emerald-600 dark:text-emerald-400'
-            : 'bg-rose-500/[0.08] text-rose-600 dark:text-rose-400'
+            ? 'bg-emerald-500/8 text-emerald-600 dark:text-emerald-400'
+            : 'bg-rose-500/8 text-rose-600 dark:text-rose-400'
         }`}
       >
         {isTesting ? (
@@ -96,15 +96,15 @@ const InitialWelcomeScreen = ({ partNumber, title }) => {
         transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
         className="flex w-full max-w-3xl flex-col items-center text-center"
       >
-        <div className="relative w-full max-w-[11rem] sm:max-w-[14rem] 2xl:max-w-[18rem]">
+        <div className="relative w-full max-w-44 sm:max-w-56 2xl:max-w-72">
           <img
             src="/speaking-assets/examiner-welcome-v1.png"
             alt="AI speaking examiner wearing a headset"
-            className="aspect-[3/2] w-full object-cover object-center mix-blend-multiply dark:mix-blend-normal"
+            className="aspect-3/2 w-full object-cover object-center mix-blend-multiply dark:mix-blend-normal"
             loading="eager"
           />
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent dark:from-[#131315]"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-white to-transparent dark:from-[#131315]"
             aria-hidden="true"
           />
         </div>

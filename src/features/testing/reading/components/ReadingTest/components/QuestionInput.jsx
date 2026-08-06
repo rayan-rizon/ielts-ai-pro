@@ -53,11 +53,11 @@ const QuestionInput = memo(function QuestionInput({
 
           let circleStatus = 'default';
           let inputClass =
-            'bg-white/70 dark:bg-white/[0.04] border border-slate-300/70 dark:border-white/[0.08] text-foreground hover:border-slate-400/80 dark:hover:border-white/[0.14] focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50';
+            'bg-white/70 dark:bg-white/4 border border-slate-300/70 dark:border-white/8 text-foreground hover:border-slate-400/80 dark:hover:border-white/[0.14] focus-visible:ring-[#5a63df]/40 focus-visible:border-[#5a63df]/50';
 
           if (disabled) {
             inputClass =
-              'bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-foreground'; // fallback
+              'bg-white dark:bg-white/4 border-[#e4e2f0] dark:border-white/8 text-foreground'; // fallback
             if (validation) {
               if (validation.isCorrect === true) {
                 circleStatus = 'correct';
@@ -84,7 +84,7 @@ const QuestionInput = memo(function QuestionInput({
                 isFlagged={isFlagged}
                 onClick={() => onToggleFlag?.(answerKey)}
                 status={circleStatus}
-                className="flex-shrink-0"
+                className="shrink-0"
                 data-oid="e8..gw8"
               />
 

@@ -230,7 +230,7 @@ export function SectionFlowCard({
                 ? 'bg-[rgb(var(--signal-warn)/0.12)] text-[rgb(var(--signal-warn))]'
                 : climbing
                   ? 'bg-[rgb(var(--signal-ok)/0.12)] text-[rgb(var(--signal-ok))]'
-                  : 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/[0.18] dark:text-[#afb5ff]'
+                  : 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/18 dark:text-[#afb5ff]'
             )}
           >
             {fading ? (
@@ -331,10 +331,10 @@ export function SectionFlowCard({
               onClick={onUpgrade}
               className={cn(
                 TILE,
-                'mt-2 flex w-full items-center gap-2.5 p-3 text-left transition-colors hover:border-[#c9cdf3] dark:hover:border-white/[0.18]'
+                'mt-2 flex w-full items-center gap-2.5 p-3 text-left transition-colors hover:border-[#c9cdf3] dark:hover:border-white/18'
               )}
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/[0.18] dark:text-[#afb5ff]">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/18 dark:text-[#afb5ff]">
                 <LockKeyhole className="h-3.5 w-3.5" strokeWidth={2.25} />
               </span>
               <span className="min-w-0 flex-1">

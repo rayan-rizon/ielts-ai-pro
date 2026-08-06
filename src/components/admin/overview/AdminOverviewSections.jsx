@@ -208,7 +208,7 @@ const ActionQueue = ({ actions }) => (
             <Link
               key={action.key}
               to={actionUrl(action)}
-              className="group flex items-start gap-2.5 p-2.5 -mx-1 rounded-lg hover:bg-stone-50 dark:hover:bg-white/[0.03] hover:translate-x-0.5 active:scale-[0.99] transition-all duration-150"
+              className="group flex items-start gap-2.5 p-2.5 -mx-1 rounded-lg hover:bg-stone-50 dark:hover:bg-white/3 hover:translate-x-0.5 active:scale-[0.99] transition-all duration-150"
             >
               <span
                 className={cn(
@@ -269,7 +269,7 @@ const FunnelStep = ({ step, previousUsers, top, isWorst }) => {
               : `${step.users} of ${top} (${Math.round(share)}%) reached this step${dropPct > 0 ? ` — lost ${dropPct}% since the previous step` : ''}`
           }
         >
-          <div className="relative flex-1 h-8 rounded-md bg-stone-100 dark:bg-white/[0.04] overflow-hidden cursor-default">
+          <div className="relative flex-1 h-8 rounded-md bg-stone-100 dark:bg-white/4 overflow-hidden cursor-default">
             <div
               className={cn(
                 'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700',
@@ -448,9 +448,9 @@ const RecentSignupsPanel = ({ users }) => (
           {users.slice(0, 5).map((user) => (
             <div
               key={user.id}
-              className="flex items-center gap-2.5 py-1.5 px-1.5 -mx-1.5 rounded-md border-b border-stone-100 dark:border-white/[0.05] last:border-0 hover:bg-stone-50 dark:hover:bg-white/[0.03] transition-colors"
+              className="flex items-center gap-2.5 py-1.5 px-1.5 -mx-1.5 rounded-md border-b border-stone-100 dark:border-white/5 last:border-0 hover:bg-stone-50 dark:hover:bg-white/3 transition-colors"
             >
-              <div className="w-6 h-6 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-[9px] font-black text-stone-500 dark:text-stone-300 shrink-0">
+              <div className="w-6 h-6 rounded-md bg-stone-100 dark:bg-white/6 grid place-items-center text-[9px] font-black text-stone-500 dark:text-stone-300 shrink-0">
                 {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
@@ -613,7 +613,7 @@ const EngagementBar = ({ label, value, total }) => {
         <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 w-28 shrink-0')}>
           {label}
         </span>
-        <div className="flex-1 h-1.5 rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
+        <div className="flex-1 h-1.5 rounded-full bg-stone-100 dark:bg-white/5 overflow-hidden">
           <div
             className="h-full rounded-full bg-[rgb(var(--signal-ok))] group-hover:brightness-125 transition-all duration-200"
             style={{ width: `${Math.max(share, 1)}%` }}
@@ -797,7 +797,7 @@ const ModuleEngagementPanel = ({ modules }) => (
               key={module.module}
               content={`${module.module} Module — ${module.completion}% completion rate (${module.users} users, ${module.sessions} sessions finished)`}
             >
-              <div className="flex items-center gap-2 py-2 px-1 -mx-1 rounded-md border-b border-stone-100 dark:border-white/[0.05] last:border-0 hover:bg-stone-50 dark:hover:bg-white/[0.03] transition-colors text-[11px] cursor-default group">
+              <div className="flex items-center gap-2 py-2 px-1 -mx-1 rounded-md border-b border-stone-100 dark:border-white/5 last:border-0 hover:bg-stone-50 dark:hover:bg-white/3 transition-colors text-[11px] cursor-default group">
                 <span className="w-16 shrink-0 font-extrabold text-stone-900 dark:text-stone-50 truncate">
                   {module.module}
                 </span>
@@ -812,7 +812,7 @@ const ModuleEngagementPanel = ({ modules }) => (
                   {module.sessions} sessions
                 </span>
                 <div className="flex-1 min-w-[40px]">
-                  <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
+                  <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/5 overflow-hidden">
                     <div
                       className={cn(
                         'h-full rounded-full transition-[width] duration-700 ease-out group-hover:brightness-125',
@@ -890,12 +890,12 @@ const SignupChannelsPanel = ({ channels, displayDays }) => {
                 key={key}
                 content={`${CHANNEL_LABELS[key] || key} — ${row.signups} signups (${share}% of total signups)`}
               >
-                <div className="flex items-center gap-2 py-2 px-1 -mx-1 rounded-md border-b border-stone-100 dark:border-white/[0.05] last:border-0 hover:bg-stone-50 dark:hover:bg-white/[0.03] transition-colors text-[11px] cursor-default group">
+                <div className="flex items-center gap-2 py-2 px-1 -mx-1 rounded-md border-b border-stone-100 dark:border-white/5 last:border-0 hover:bg-stone-50 dark:hover:bg-white/3 transition-colors text-[11px] cursor-default group">
                   <span className="w-24 shrink-0 font-extrabold text-stone-900 dark:text-stone-50 truncate">
                     {CHANNEL_LABELS[key] || key}
                   </span>
                   <div className="flex-1 min-w-[40px]">
-                    <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/[0.05] overflow-hidden">
+                    <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/5 overflow-hidden">
                       <div
                         className={cn(
                           'h-full rounded-full transition-[width] duration-700 ease-out group-hover:brightness-125',

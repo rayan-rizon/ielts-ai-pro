@@ -34,14 +34,14 @@ export default function ContactInfo() {
       className="h-full flex flex-col justify-between space-y-6"
     >
       <div className="space-y-4">
-        <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-gradient-to-r from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-widest text-indigo-600 dark:border-indigo-500/25 dark:bg-indigo-500/10 dark:text-indigo-300 shadow-sm backdrop-blur-xl">
+        <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-linear-to-r from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-widest text-indigo-600 dark:border-indigo-500/25 dark:bg-indigo-500/10 dark:text-indigo-300 shadow-sm backdrop-blur-xl">
           <Sparkles className="h-3.5 w-3.5 text-indigo-500 animate-pulse" />
           <span>Student Help & Support Center</span>
         </div>
 
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05] text-slate-950 dark:text-white">
           We'd love to <br className="hidden sm:block" />
-          <span className="bg-gradient-to-r from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text text-transparent">
             hear from you.
           </span>
         </h1>
@@ -54,7 +54,7 @@ export default function ContactInfo() {
 
       <div className="grid gap-4 mt-auto">
         {/* Email Card */}
-        <Card className="p-6 flex items-start gap-5 bg-gradient-to-br from-white via-slate-50/60 to-indigo-50/50 border-slate-200/80 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:border-white/10 shadow-[0_8px_30px_rgba(15,23,42,0.03)] dark:shadow-none hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-none hover:border-indigo-500/30 dark:hover:border-[#5a63df]/30 transition-all duration-300 group relative overflow-hidden rounded-[24px]">
+        <Card className="p-6 flex items-start gap-5 bg-linear-to-br from-white via-slate-50/60 to-indigo-50/50 border-slate-200/80 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:border-white/10 shadow-[0_8px_30px_rgba(15,23,42,0.03)] dark:shadow-none hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-none hover:border-indigo-500/30 dark:hover:border-[#5a63df]/30 transition-all duration-300 group relative overflow-hidden rounded-[24px]">
           <CardGridBackground />
           <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-sm">
             <Mail className="w-6 h-6" />
@@ -82,7 +82,7 @@ export default function ContactInfo() {
         </Card>
 
         {/* Live Chat Card */}
-        <Card className="p-6 flex items-start gap-5 bg-gradient-to-br from-white via-slate-50/60 to-emerald-50/40 border-slate-200/80 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:border-white/10 shadow-[0_8px_30px_rgba(15,23,42,0.03)] dark:shadow-none hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-none hover:border-emerald-500/30 dark:hover:border-emerald-500/25 transition-all duration-300 group relative overflow-hidden rounded-[24px]">
+        <Card className="p-6 flex items-start gap-5 bg-linear-to-br from-white via-slate-50/60 to-emerald-50/40 border-slate-200/80 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:border-white/10 shadow-[0_8px_30px_rgba(15,23,42,0.03)] dark:shadow-none hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-none hover:border-emerald-500/30 dark:hover:border-emerald-500/25 transition-all duration-300 group relative overflow-hidden rounded-[24px]">
           <CardGridBackground />
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-sm">
             <MessageCircle className="w-6 h-6" />

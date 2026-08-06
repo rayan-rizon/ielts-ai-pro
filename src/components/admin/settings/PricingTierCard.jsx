@@ -26,7 +26,7 @@ export default function PricingTierCard({
     <m.div variants={FADE_UP} className={cn(PANEL, 'p-4 space-y-4')}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-md bg-stone-100 dark:bg-white/[0.06] text-stone-600 dark:text-stone-300">
+          <div className="p-2 rounded-md bg-stone-100 dark:bg-white/6 text-stone-600 dark:text-stone-300">
             <Icon className="w-4 h-4" />
           </div>
           <div>
@@ -104,7 +104,7 @@ export default function PricingTierCard({
         {activeText}
       </div>
 
-      <div className="pt-3 border-t border-stone-100 dark:border-white/[0.06]">
+      <div className="pt-3 border-t border-stone-100 dark:border-white/6">
         <div className="flex items-center justify-between mb-2">
           <Label className={cn(FIELD_LABEL, 'mb-0 flex items-center gap-1.5')}>
             <Globe className="w-3 h-3 text-stone-500 dark:text-stone-400" /> Regional pricing
@@ -124,7 +124,7 @@ export default function PricingTierCard({
           {regional?.map((region, idx) => (
             <div
               key={idx}
-              className="flex flex-col min-[450px]:flex-row items-stretch min-[450px]:items-center gap-2 bg-stone-50 dark:bg-white/[0.02] p-2 rounded-md border border-stone-200/70 dark:border-white/[0.06]"
+              className="flex flex-col min-[450px]:flex-row items-stretch min-[450px]:items-center gap-2 bg-stone-50 dark:bg-white/2 p-2 rounded-md border border-stone-200/70 dark:border-white/6"
             >
               <CountryAutocomplete
                 value={region.country}
@@ -169,7 +169,7 @@ export default function PricingTierCard({
                 <span
                   className={cn(
                     MICRO,
-                    'absolute right-2 top-1/2 -translate-y-1/2 text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-white/[0.06] px-1 py-0.5 rounded pointer-events-none'
+                    'absolute right-2 top-1/2 -translate-y-1/2 text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-white/6 px-1 py-0.5 rounded pointer-events-none'
                   )}
                 >
                   {region.currency || 'USD'}

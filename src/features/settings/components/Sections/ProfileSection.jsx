@@ -47,7 +47,7 @@ export default function ProfileSection({ formData, setFormData, avatars, theme, 
             <Input
               value={formData.full_name}
               onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-              className="h-10 rounded-lg border-[#e2e5f2] bg-white text-sm font-semibold dark:border-white/10 dark:bg-white/[0.04]"
+              className="h-10 rounded-lg border-[#e2e5f2] bg-white text-sm font-semibold dark:border-white/10 dark:bg-white/4"
               placeholder="Your full name"
             />
           </div>
@@ -64,7 +64,7 @@ export default function ProfileSection({ formData, setFormData, avatars, theme, 
               <Input
                 value={formData.email}
                 disabled
-                className="h-10 cursor-not-allowed rounded-lg border-[#e2e5f2] bg-[#f4f3fb] pl-9 text-sm font-semibold text-slate-400 dark:border-white/10 dark:bg-white/[0.02]"
+                className="h-10 cursor-not-allowed rounded-lg border-[#e2e5f2] bg-[#f4f3fb] pl-9 text-sm font-semibold text-slate-400 dark:border-white/10 dark:bg-white/2"
               />
             </div>
           </div>
@@ -129,7 +129,7 @@ export default function ProfileSection({ formData, setFormData, avatars, theme, 
                     'flex h-[72px] flex-col items-center justify-center gap-2 rounded-lg border text-sm font-bold transition-all',
                     isSelected
                       ? 'border-[#5a63df] bg-[#5a63df] text-white'
-                      : 'border-[#e2e5f2] bg-[#fbfbfe] text-slate-600 hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-300'
+                      : 'border-[#e2e5f2] bg-[#fbfbfe] text-slate-600 hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/3 dark:text-slate-300'
                   )}
                 >
                   <Icon className={cn('h-5 w-5', !isSelected && 'text-slate-400')} />
@@ -158,8 +158,8 @@ export default function ProfileSection({ formData, setFormData, avatars, theme, 
                   className={cn(
                     'flex flex-col rounded-lg border p-3.5 text-left transition-all',
                     isSelected
-                      ? 'border-[#5a63df]/40 bg-[#5a63df]/[0.06]'
-                      : 'border-[#e2e5f2] bg-[#fbfbfe] hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/[0.03]'
+                      ? 'border-[#5a63df]/40 bg-[#5a63df]/6'
+                      : 'border-[#e2e5f2] bg-[#fbfbfe] hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/3'
                   )}
                 >
                   <div className="mb-1 flex items-center justify-between">

@@ -34,7 +34,7 @@ export const pillTone = (tone) =>
     fault:
       'text-[rgb(var(--signal-fault))] border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)]',
     accent:
-      'text-indigo-600 dark:text-indigo-400 border-indigo-300/50 dark:border-indigo-800/60 bg-indigo-500/[0.06]',
+      'text-indigo-600 dark:text-indigo-400 border-indigo-300/50 dark:border-indigo-800/60 bg-indigo-500/6',
     neutral: 'text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/10',
   })[tone] || pillTone('neutral');
 
@@ -124,7 +124,7 @@ export const Kpi = ({ label, value, sub, delta, tip, live = false, className }) 
   <div
     className={cn(
       PANEL,
-      'py-2.5 px-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/[0.12]',
+      'py-2.5 px-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12',
       className
     )}
   >
@@ -206,7 +206,7 @@ AdminButton.displayName = 'AdminButton';
 
 /** Shared classNames for shadcn <TabsList>/<TabsTrigger> in the admin area. */
 export const ADMIN_TABS_LIST =
-  'inline-flex h-auto items-center justify-start gap-1 p-1 bg-stone-100 dark:bg-white/[0.04] border border-stone-200/80 dark:border-white/[0.07] rounded-lg shrink-0';
+  'inline-flex h-auto items-center justify-start gap-1 p-1 bg-stone-100 dark:bg-white/4 border border-stone-200/80 dark:border-white/[0.07] rounded-lg shrink-0';
 export const ADMIN_TAB_TRIGGER =
   'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-stone-500 dark:text-stone-400 data-[state=active]:bg-white dark:data-[state=active]:bg-[#131315] data-[state=active]:text-stone-900 dark:data-[state=active]:text-stone-50 data-[state=active]:shadow-2xs transition-all duration-200 ease-out active:scale-[0.96] shrink-0';
 
@@ -243,7 +243,7 @@ export const COLLAPSE = {
 export const SkeletonBlock = ({ className }) => (
   <div
     className={cn(
-      'rounded-xl border border-stone-200/80 dark:border-white/[0.07] bg-stone-100 dark:bg-white/[0.04] animate-pulse',
+      'rounded-xl border border-stone-200/80 dark:border-white/[0.07] bg-stone-100 dark:bg-white/4 animate-pulse',
       className
     )}
   />
@@ -252,8 +252,8 @@ export const SkeletonBlock = ({ className }) => (
 export const SkeletonHeader = () => (
   <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 w-full">
     <div className="space-y-2">
-      <div className="h-6 w-40 rounded-md bg-stone-200 dark:bg-white/[0.08] animate-pulse" />
-      <div className="h-3 w-64 rounded bg-stone-100 dark:bg-white/[0.05] animate-pulse" />
+      <div className="h-6 w-40 rounded-md bg-stone-200 dark:bg-white/8 animate-pulse" />
+      <div className="h-3 w-64 rounded bg-stone-100 dark:bg-white/5 animate-pulse" />
     </div>
   </div>
 );
@@ -271,7 +271,7 @@ export const SkeletonRows = ({ count = 5, className }) => (
     {Array.from({ length: count }).map((_, i) => (
       <div
         key={i}
-        className="h-11 rounded-lg bg-stone-100 dark:bg-white/[0.04] animate-pulse"
+        className="h-11 rounded-lg bg-stone-100 dark:bg-white/4 animate-pulse"
         style={{ animationDelay: `${i * 40}ms` }}
       />
     ))}

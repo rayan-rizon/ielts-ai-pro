@@ -412,9 +412,9 @@ export default function SubscriptionSuccess() {
       <div aria-hidden className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-slate-50 dark:bg-[#020617]" />
         <div
-          className={`absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br ${colors.bg} rounded-full blur-[120px] opacity-50`}
+          className={`absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-linear-to-br ${colors.bg} rounded-full blur-[120px] opacity-50`}
         />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808005_1px,transparent_1px),linear-gradient(to_bottom,#80808005_1px,transparent_1px)] bg-[size:48px_48px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808005_1px,transparent_1px),linear-gradient(to_bottom,#80808005_1px,transparent_1px)] bg-size-[48px_48px]" />
       </div>
 
       <div className="relative z-10 max-w-2xl mx-auto px-4 py-20 flex flex-col items-center justify-center min-h-screen">
@@ -426,7 +426,7 @@ export default function SubscriptionSuccess() {
           className="mb-8"
         >
           <div
-            className={`w-24 h-24 rounded-full bg-gradient-to-br ${colors.bg} ${colors.border} border-2 flex items-center justify-center shadow-2xl ${colors.glow}`}
+            className={`w-24 h-24 rounded-full bg-linear-to-br ${colors.bg} ${colors.border} border-2 flex items-center justify-center shadow-2xl ${colors.glow}`}
           >
             <CheckCircle2 className={`w-12 h-12 ${colors.icon}`} />
           </div>
@@ -468,7 +468,7 @@ export default function SubscriptionSuccess() {
             <CardContent className="p-8">
               {/* Plan header */}
               <div className="flex items-center gap-4 mb-6">
-                <div className={`p-3 rounded-2xl bg-gradient-to-br ${colors.bg}`}>
+                <div className={`p-3 rounded-2xl bg-linear-to-br ${colors.bg}`}>
                   {subscriptionData?.tier === 'premium' ? (
                     <Crown className={`w-6 h-6 ${colors.icon}`} />
                   ) : (

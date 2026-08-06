@@ -99,7 +99,7 @@ const TableCompletionRenderer = ({
         ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
         : value
           ? 'border-rose-500 bg-rose-50/70 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300'
-          : 'bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-foreground'
+          : 'bg-white dark:bg-white/4 border-[#e4e2f0] dark:border-white/8 text-foreground'
     );
   };
 
@@ -347,7 +347,7 @@ const TableCompletionRenderer = ({
               <table className="w-full text-[15px] text-left border-collapse" data-oid=":j3mju6">
                 <thead data-oid="h6c:cr2">
                   <tr
-                    className="bg-[#f4f3fb] dark:bg-white/[0.04] border-b border-[#e4e2f0] dark:border-white/[0.07]"
+                    className="bg-[#f4f3fb] dark:bg-white/4 border-b border-[#e4e2f0] dark:border-white/[0.07]"
                     data-oid="25_-8cm"
                   >
                     {tableHeaders.map((h, i) => (
@@ -364,16 +364,13 @@ const TableCompletionRenderer = ({
                     ))}
                   </tr>
                 </thead>
-                <tbody
-                  className="divide-y divide-slate-100 dark:divide-white/[0.06]"
-                  data-oid="gomp5ms"
-                >
+                <tbody className="divide-y divide-slate-100 dark:divide-white/6" data-oid="gomp5ms">
                   {tableRows.map((row, rIdx) => (
                     <tr key={rIdx} className="bg-white dark:bg-[#131315] group" data-oid="-68lsay">
                       {row.map((cell, cIdx) => (
                         <td
                           key={cIdx}
-                          className="px-2 py-2 border-r border-slate-100 dark:border-white/[0.06] last:border-0 align-top text-[15px]"
+                          className="px-2 py-2 border-r border-slate-100 dark:border-white/6 last:border-0 align-top text-[15px]"
                           data-oid=".:-leog"
                         >
                           {renderCellWithGaps(cell, rIdx, cIdx)}

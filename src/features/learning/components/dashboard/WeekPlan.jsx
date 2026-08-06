@@ -54,7 +54,7 @@ function TaskDetails({ task, canReschedule, onReschedule }) {
   }, [task.scheduled_date]);
 
   return (
-    <div className="mt-2.5 rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-3 text-[11px] leading-relaxed text-slate-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300">
+    <div className="mt-2.5 rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-3 text-[11px] leading-relaxed text-slate-600 dark:border-white/10 dark:bg-white/4 dark:text-slate-300">
       <p>
         <strong className="font-extrabold text-slate-900 dark:text-slate-100">
           Why this helps:
@@ -147,7 +147,7 @@ function CompletionControl({ task, friendlyTitle, onToggle }) {
         'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
         task.is_completed
           ? 'border-[rgb(var(--signal-ok)/0.4)] bg-[rgb(var(--signal-ok)/0.12)] text-[rgb(var(--signal-ok))]'
-          : 'border-[#e4e2f0] bg-slate-50/80 text-slate-400 hover:border-[#5a63df] hover:text-[#5a63df] dark:border-white/15 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-[#8f97ff] dark:hover:text-[#a9afff]'
+          : 'border-[#e4e2f0] bg-slate-50/80 text-slate-400 hover:border-[#5a63df] hover:text-[#5a63df] dark:border-white/15 dark:bg-white/4 dark:text-slate-300 dark:hover:border-[#8f97ff] dark:hover:text-[#a9afff]'
       )}
     >
       <Check className="h-4 w-4" />
@@ -185,7 +185,7 @@ function CalendarDay({ day, isToday, isSelected, onSelect }) {
         'group flex min-w-0 flex-col items-center gap-1 rounded-xl border px-1 py-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
         isSelected
           ? 'border-[#5a63df] bg-[#5a63df]/10 dark:border-[#8f97ff]/60 dark:bg-[#8f97ff]/20'
-          : 'border-transparent hover:border-[#e4e2f0] hover:bg-white dark:hover:border-white/10 dark:hover:bg-white/[0.05]'
+          : 'border-transparent hover:border-[#e4e2f0] hover:bg-white dark:hover:border-white/10 dark:hover:bg-white/5'
       )}
     >
       <span
@@ -255,7 +255,7 @@ function TaskRow({ task, canReschedule, expanded, onExpand, onToggle, onStart, o
   return (
     <div
       className={cn(
-        'min-w-0 border-b border-[#eceafa] px-3.5 py-3 last:border-b-0 dark:border-white/[0.07] transition-colors hover:bg-slate-50/60 dark:hover:bg-white/[0.02]',
+        'min-w-0 border-b border-[#eceafa] px-3.5 py-3 last:border-b-0 dark:border-white/[0.07] transition-colors hover:bg-slate-50/60 dark:hover:bg-white/2',
         task.is_completed && 'opacity-60'
       )}
     >
@@ -374,7 +374,7 @@ export default function WeekPlan({
         {weekRange} · pick a day to see everything scheduled on it.
       </p>
 
-      <div className="mt-3 grid grid-cols-7 gap-1 rounded-xl border border-[#e4e2f0] dark:border-white/[0.08] bg-[#f4f3fb]/60 dark:bg-white/[0.03] p-1.5">
+      <div className="mt-3 grid grid-cols-7 gap-1 rounded-xl border border-[#e4e2f0] dark:border-white/8 bg-[#f4f3fb]/60 dark:bg-white/3 p-1.5">
         {days.map((day, index) => (
           <CalendarDay
             key={day.dateKey}
@@ -411,7 +411,7 @@ export default function WeekPlan({
             </p>
           )}
 
-          <div className="mt-2.5 flex-1 overflow-hidden rounded-xl border border-[#e4e2f0] bg-white dark:border-white/[0.08] dark:bg-white/[0.02]">
+          <div className="mt-2.5 flex-1 overflow-hidden rounded-xl border border-[#e4e2f0] bg-white dark:border-white/8 dark:bg-white/2">
             {selectedDay.tasks.length > 0 ? (
               selectedDay.tasks.map((task) => (
                 <TaskRow

@@ -12,14 +12,14 @@ export default function AboutHero() {
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="space-y-6"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-gradient-to-r from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-indigo-600 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.04] dark:bg-none dark:text-indigo-300">
+          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-linear-to-r from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-indigo-600 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-white/4 dark:bg-none dark:text-indigo-300">
             <Sparkles className="h-3.5 w-3.5 text-indigo-500 animate-pulse" />
             <span>Smart IELTS Preparation</span>
           </div>
 
-          <h1 className="text-[clamp(2.4rem,6.8vw,3.9rem)] font-black leading-[1.03] tracking-[-0.05em] text-slate-950 dark:text-white">
+          <h1 className="text-[clamp(2.4rem,6.8vw,3.9rem)] font-black leading-[1.03] tracking-tighter text-slate-950 dark:text-white">
             <span className="block">The Future of</span>
-            <span className="relative inline-block font-handwritten mt-2 bg-gradient-to-r from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text pb-3 text-[1.05em] leading-[1.08] tracking-[-0.025em] text-transparent drop-shadow-sm">
+            <span className="relative inline-block font-handwritten mt-2 bg-linear-to-r from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text pb-3 text-[1.05em] leading-[1.08] tracking-tight text-transparent drop-shadow-sm">
               IELTS Preparation
               <svg
                 className="absolute bottom-0 left-0 w-full h-3 text-[#7384f8]"
@@ -52,7 +52,7 @@ export default function AboutHero() {
             ].map((chip, idx) => (
               <span
                 key={idx}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/80 dark:border-white/10 dark:bg-white/[0.04] px-3 py-1.5 shadow-sm dark:shadow-none backdrop-blur-md dark:backdrop-blur-none transition-all hover:scale-105"
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/80 dark:border-white/10 dark:bg-white/4 px-3 py-1.5 shadow-sm dark:shadow-none backdrop-blur-md dark:backdrop-blur-none transition-all hover:scale-105"
               >
                 <chip.icon className="h-3.5 w-3.5 text-indigo-500" />
                 {chip.text}

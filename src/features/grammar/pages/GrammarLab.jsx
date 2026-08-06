@@ -45,7 +45,7 @@ function HeaderMetric({ icon: Icon, value, label, tone, href, onClick, disabled 
   );
   const className = cn(
     PANEL,
-    'flex min-w-[102px] items-center gap-2 px-2.5 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0'
+    'flex min-w-[102px] items-center gap-2 px-2.5 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0'
   );
 
   return href ? (
@@ -193,11 +193,11 @@ export default function GrammarLab() {
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+          className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
         />
         <div className="relative z-10 mx-auto max-w-[1440px]">
           {screen === 'dashboard' && (

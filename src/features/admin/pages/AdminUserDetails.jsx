@@ -401,7 +401,7 @@ export default function AdminUserDetails() {
                 return (
                   <div
                     key={module}
-                    className="flex items-center justify-between p-2 rounded-lg bg-stone-50 dark:bg-white/[0.03] border border-stone-200/70 dark:border-white/[0.06]"
+                    className="flex items-center justify-between p-2 rounded-lg bg-stone-50 dark:bg-white/3 border border-stone-200/70 dark:border-white/6"
                   >
                     <div className="flex items-center gap-2">
                       <ModuleIcon className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
@@ -494,7 +494,7 @@ export default function AdminUserDetails() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100 dark:divide-white/[0.05]">
+            <tbody className="divide-y divide-stone-100 dark:divide-white/5">
               {testSessions.length > 0 ? (
                 testSessions.map((session) => (
                   <tr key={session.id}>

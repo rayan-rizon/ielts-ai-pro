@@ -89,7 +89,7 @@ export default function GrammarSkillsPanel({
               }
               disabled={isStarting || (!access.isPaid && Number(access.dailyRemaining || 0) <= 0)}
               className={cn(
-                'group flex min-h-[108px] items-center gap-3 rounded-xl border bg-gradient-to-br p-3.5 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:bg-white/[0.025]',
+                'group flex min-h-[108px] items-center gap-3 rounded-xl border bg-linear-to-br p-3.5 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:bg-white/2.5',
                 visual.panelClass,
                 visual.cardClass,
                 isRecommended

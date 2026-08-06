@@ -45,7 +45,7 @@ const MatchingFeaturesRenderer = ({
     } else {
       return cn(
         baseStyle,
-        'bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-foreground'
+        'bg-white dark:bg-white/4 border-[#e4e2f0] dark:border-white/8 text-foreground'
       );
     }
   };
@@ -55,7 +55,7 @@ const MatchingFeaturesRenderer = ({
       {/* Box for Options */}
       {question.matching_features?.options?.length > 0 && (
         <div
-          className="bg-[#f4f3fb] dark:bg-white/[0.04] border border-[#e4e2f0] dark:border-white/[0.07] rounded-xl p-3.5 mb-4 shadow-xs"
+          className="bg-[#f4f3fb] dark:bg-white/4 border border-[#e4e2f0] dark:border-white/[0.07] rounded-xl p-3.5 mb-4 shadow-xs"
           data-oid="xl5fcqg"
         >
           {question.matching_features.box_title && (
@@ -101,7 +101,7 @@ const MatchingFeaturesRenderer = ({
       >
         {question.matching_features?.questions_title && (
           <div
-            className="px-4 py-3 bg-[#f4f3fb] dark:bg-white/[0.04] border-b border-[#e4e2f0] dark:border-white/[0.07]"
+            className="px-4 py-3 bg-[#f4f3fb] dark:bg-white/4 border-b border-[#e4e2f0] dark:border-white/[0.07]"
             data-oid="1gzj0yw-container"
           >
             <h3
@@ -130,7 +130,7 @@ const MatchingFeaturesRenderer = ({
             <div
               key={idx}
               id={`question-${qId}`}
-              className="flex items-center gap-2 py-3 px-4 border-b border-slate-100 dark:border-white/[0.06] last:border-0 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors group"
+              className="flex items-center gap-2 py-3 px-4 border-b border-slate-100 dark:border-white/6 last:border-0 hover:bg-slate-50 dark:hover:bg-white/4 transition-colors group"
               data-oid="zf-hu:v"
             >
               <div className="flex items-center gap-3" data-oid="v:n30a4">

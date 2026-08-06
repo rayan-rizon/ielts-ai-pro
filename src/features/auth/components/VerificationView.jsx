@@ -36,7 +36,7 @@ export function VerificationView({
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', damping: 12, stiffness: 100, delay: 0.1 }}
-            className="absolute inset-0 rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/[0.06]"
+            className="absolute inset-0 rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/6"
           />
 
           <motion.div
@@ -77,7 +77,7 @@ export function VerificationView({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex items-start gap-3 rounded-lg border border-emerald-100 bg-emerald-50 p-3.5 text-[12px] font-semibold text-emerald-900 dark:border-emerald-800/30 dark:bg-emerald-500/[0.08] dark:text-emerald-100"
+            className="flex items-start gap-3 rounded-lg border border-emerald-100 bg-emerald-50 p-3.5 text-[12px] font-semibold text-emerald-900 dark:border-emerald-800/30 dark:bg-emerald-500/8 dark:text-emerald-100"
           >
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
             <span className="leading-relaxed">{info}</span>
@@ -111,7 +111,7 @@ export function VerificationView({
           onClick={onEdit}
           className={cn(
             'flex h-9 w-full items-center justify-center gap-2 rounded-lg text-[12px] font-bold text-slate-500 transition-colors',
-            'hover:bg-[#f7f6fd] hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-slate-100'
+            'hover:bg-[#f7f6fd] hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/6 dark:hover:text-slate-100'
           )}
         >
           <UserIcon className="h-3.5 w-3.5" />

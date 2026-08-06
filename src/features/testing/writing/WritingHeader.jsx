@@ -31,7 +31,7 @@ function WritingControls({
         />
       </div>
 
-      <div className="no-scrollbar flex flex-1 items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.04] lg:flex-none">
+      <div className="no-scrollbar flex flex-1 items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4 lg:flex-none">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
@@ -61,7 +61,7 @@ function WritingControls({
         })}
       </div>
 
-      <div className="hidden shrink-0 items-center gap-0.5 rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.04] lg:flex">
+      <div className="hidden shrink-0 items-center gap-0.5 rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4 lg:flex">
         <button
           type="button"
           onClick={() => onViewModeChange('grid')}

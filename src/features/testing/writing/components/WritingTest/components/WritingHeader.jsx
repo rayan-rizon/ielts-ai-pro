@@ -92,7 +92,7 @@ export function WritingHeader({
                 <span
                   className={cn(
                     TEST_HEADER_BADGE,
-                    'border-amber-500/25 bg-amber-500/[0.08] text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300 sm:gap-1 sm:text-[9px]'
+                    'border-amber-500/25 bg-amber-500/8 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300 sm:gap-1 sm:text-[9px]'
                   )}
                   data-oid="h9rc23x"
                 >
@@ -103,7 +103,7 @@ export function WritingHeader({
               {!isAwaitingStart ? (
                 <Badge
                   variant="outline"
-                  className="h-4 shrink-0 whitespace-nowrap rounded-md border-[#e4e2f0] bg-[#f4f3fb] px-1.5 py-0 text-[8px] font-bold uppercase leading-none tracking-[0.08em] text-slate-600 dark:border-white/[0.10] dark:bg-white/[0.055] dark:text-slate-300"
+                  className="h-4 shrink-0 whitespace-nowrap rounded-md border-[#e4e2f0] bg-[#f4f3fb] px-1.5 py-0 text-[8px] font-bold uppercase leading-none tracking-[0.08em] text-slate-600 dark:border-white/10 dark:bg-white/5.5 dark:text-slate-300"
                 >
                   <span className="hidden min-[420px]:inline">
                     {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
@@ -120,7 +120,7 @@ export function WritingHeader({
         {/* Center: Task Switcher (Desktop — md and above) */}
         {compositeTasks && Object.keys(compositeTasks).length > 1 && (
           <div
-            className="hidden items-center gap-0.5 rounded-full border border-[#d8d9f0] bg-[#f1f1fb] p-0.5 dark:border-white/[0.12] dark:bg-white/[0.07] md:flex"
+            className="hidden items-center gap-0.5 rounded-full border border-[#d8d9f0] bg-[#f1f1fb] p-0.5 dark:border-white/12 dark:bg-white/[0.07] md:flex"
             data-oid="edt:rn9"
           >
             {Object.keys(compositeTasks).map((type) => (
@@ -130,7 +130,7 @@ export function WritingHeader({
                 className={`relative z-10 inline-flex h-8 items-center justify-center rounded-full px-3.5 text-sm font-semibold transition-all duration-200 ${
                   activeType === type
                     ? 'text-white dark:text-[#17182a]'
-                    : 'text-[#606a83] hover:bg-white/70 hover:text-[#4f58c8] dark:text-[#aeb7ce] dark:hover:bg-white/[0.08] dark:hover:text-[#e3e5ff]'
+                    : 'text-[#606a83] hover:bg-white/70 hover:text-[#4f58c8] dark:text-[#aeb7ce] dark:hover:bg-white/8 dark:hover:text-[#e3e5ff]'
                 }`}
                 data-oid="yghl_mz"
               >
@@ -151,7 +151,7 @@ export function WritingHeader({
         {/* Center: Task Switcher (Mobile — below md) */}
         {compositeTasks && Object.keys(compositeTasks).length > 1 && (
           <div
-            className="mx-auto flex items-center gap-0.5 rounded-full border border-[#d8d9f0] bg-[#f1f1fb] p-0.5 dark:border-white/[0.12] dark:bg-white/[0.07] md:hidden"
+            className="mx-auto flex items-center gap-0.5 rounded-full border border-[#d8d9f0] bg-[#f1f1fb] p-0.5 dark:border-white/12 dark:bg-white/[0.07] md:hidden"
             data-oid="mobile-task-switcher"
           >
             {Object.keys(compositeTasks).map((type) => (
@@ -161,7 +161,7 @@ export function WritingHeader({
                 className={`relative z-10 inline-flex h-8 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 sm:px-3.5 ${
                   activeType === type
                     ? 'text-white dark:text-[#17182a]'
-                    : 'text-[#606a83] hover:bg-white/70 hover:text-[#4f58c8] dark:text-[#aeb7ce] dark:hover:bg-white/[0.08] dark:hover:text-[#e3e5ff]'
+                    : 'text-[#606a83] hover:bg-white/70 hover:text-[#4f58c8] dark:text-[#aeb7ce] dark:hover:bg-white/8 dark:hover:text-[#e3e5ff]'
                 }`}
                 data-oid="mobile-task-tab"
               >

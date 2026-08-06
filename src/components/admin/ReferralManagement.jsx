@@ -205,9 +205,9 @@ export default function ReferralManagement() {
 
       {/* Reward tiers */}
       <div className={cn(PANEL, 'overflow-hidden')}>
-        <div className="flex flex-col justify-between gap-3 border-b border-stone-100 px-4 py-4 dark:border-white/[0.06] sm:flex-row sm:items-center sm:px-5">
+        <div className="flex flex-col justify-between gap-3 border-b border-stone-100 px-4 py-4 dark:border-white/6 sm:flex-row sm:items-center sm:px-5">
           <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-violet-500/[0.10] text-violet-600 dark:text-violet-300">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-300">
               <Gift className="h-4 w-4" />
             </div>
             <div>
@@ -219,7 +219,7 @@ export default function ReferralManagement() {
               </p>
             </div>
           </div>
-          <div className="inline-flex items-center gap-1.5 self-start rounded-full border border-[rgb(var(--signal-ok)/0.24)] bg-[rgb(var(--signal-ok)/0.06)] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-[rgb(var(--signal-ok))] sm:self-auto">
+          <div className="inline-flex items-center gap-1.5 self-start rounded-full border border-[rgb(var(--signal-ok)/0.24)] bg-[rgb(var(--signal-ok)/0.06)] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-[rgb(var(--signal-ok))] sm:self-auto">
             <BadgeCheck className="h-3.5 w-3.5" />
             {tiers.filter((tier) => tier.is_active).length} live
           </div>
@@ -232,8 +232,8 @@ export default function ReferralManagement() {
               className={cn(
                 'group relative flex flex-col gap-3 overflow-hidden rounded-lg border p-3.5 transition-all duration-200 sm:flex-row sm:items-center sm:justify-between',
                 tier.is_active
-                  ? 'border-stone-200 bg-white shadow-[0_1px_0_rgba(28,25,23,0.03)] hover:border-violet-200 hover:shadow-[0_10px_28px_rgba(109,76,255,0.08)] dark:border-white/[0.08] dark:bg-white/[0.025] dark:hover:border-violet-400/30'
-                  : 'border-stone-100 bg-stone-50/60 opacity-60 dark:border-white/[0.04] dark:bg-white/[0.015]'
+                  ? 'border-stone-200 bg-white shadow-[0_1px_0_rgba(28,25,23,0.03)] hover:border-violet-200 hover:shadow-[0_10px_28px_rgba(109,76,255,0.08)] dark:border-white/8 dark:bg-white/2.5 dark:hover:border-violet-400/30'
+                  : 'border-stone-100 bg-stone-50/60 opacity-60 dark:border-white/4 dark:bg-white/1.5'
               )}
             >
               <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -242,8 +242,8 @@ export default function ReferralManagement() {
                     NUM,
                     'grid h-10 w-10 shrink-0 place-items-center rounded-lg border text-sm font-black',
                     tier.is_active
-                      ? 'border-violet-200 bg-violet-500/[0.08] text-violet-700 dark:border-violet-400/20 dark:bg-violet-400/[0.10] dark:text-violet-200'
-                      : 'border-stone-200 bg-stone-100 text-stone-500 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-stone-400'
+                      ? 'border-violet-200 bg-violet-500/8 text-violet-700 dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-200'
+                      : 'border-stone-200 bg-stone-100 text-stone-500 dark:border-white/8 dark:bg-white/5 dark:text-stone-400'
                   )}
                 >
                   {tier.referrals_required}
@@ -256,28 +256,28 @@ export default function ReferralManagement() {
                   {tier.extra_days > 0 && (
                     <RewardChip
                       Icon={CalendarDays}
-                      tone="border-stone-200 bg-stone-50 text-stone-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-stone-300"
+                      tone="border-stone-200 bg-stone-50 text-stone-600 dark:border-white/10 dark:bg-white/4 dark:text-stone-300"
                       label={`+${tier.extra_days} days`}
                     />
                   )}
                   {tier.writing_credits > 0 && (
                     <RewardChip
                       Icon={FilePenLine}
-                      tone="border-indigo-200/80 bg-indigo-500/[0.05] text-indigo-600 dark:border-indigo-400/25 dark:bg-indigo-400/[0.08] dark:text-indigo-300"
+                      tone="border-indigo-200/80 bg-indigo-500/5 text-indigo-600 dark:border-indigo-400/25 dark:bg-indigo-400/8 dark:text-indigo-300"
                       label={`+${tier.writing_credits} Writing`}
                     />
                   )}
                   {tier.speaking_credits > 0 && (
                     <RewardChip
                       Icon={AudioLines}
-                      tone="border-indigo-200/80 bg-indigo-500/[0.05] text-indigo-600 dark:border-indigo-400/25 dark:bg-indigo-400/[0.08] dark:text-indigo-300"
+                      tone="border-indigo-200/80 bg-indigo-500/5 text-indigo-600 dark:border-indigo-400/25 dark:bg-indigo-400/8 dark:text-indigo-300"
                       label={`+${tier.speaking_credits} Speaking`}
                     />
                   )}
                 </div>
               </div>
 
-              <div className="flex shrink-0 items-center justify-between gap-2 border-t border-stone-100 pt-2 dark:border-white/[0.06] sm:border-t-0 sm:pt-0">
+              <div className="flex shrink-0 items-center justify-between gap-2 border-t border-stone-100 pt-2 dark:border-white/6 sm:border-t-0 sm:pt-0">
                 <div className="flex items-center gap-2.5">
                   <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
                     {tier.is_active ? 'Live' : 'Paused'}
@@ -287,7 +287,7 @@ export default function ReferralManagement() {
                     onCheckedChange={() => handleToggleActive(tier)}
                   />
                 </div>
-                <div className="flex items-center gap-1 rounded-lg border border-stone-200 bg-stone-50 p-0.5 dark:border-white/[0.08] dark:bg-white/[0.04]">
+                <div className="flex items-center gap-1 rounded-lg border border-stone-200 bg-stone-50 p-0.5 dark:border-white/8 dark:bg-white/4">
                   <button
                     onClick={() => openEditModal(tier)}
                     className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors"
@@ -330,7 +330,7 @@ export default function ReferralManagement() {
             {stats.topReferrers.slice(0, 5).map((referrer, idx) => (
               <div
                 key={referrer.id}
-                className="flex items-center justify-between p-2.5 rounded-lg bg-stone-50/70 dark:bg-white/[0.02] border border-stone-200/60 dark:border-white/[0.05]"
+                className="flex items-center justify-between p-2.5 rounded-lg bg-stone-50/70 dark:bg-white/2 border border-stone-200/60 dark:border-white/5"
               >
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <span
@@ -338,7 +338,7 @@ export default function ReferralManagement() {
                       NUM,
                       'w-6 h-6 rounded-md grid place-items-center font-black text-[11px] shrink-0',
                       RANK_TONE[idx] ||
-                        'bg-stone-200 dark:bg-white/[0.06] text-stone-600 dark:text-stone-300'
+                        'bg-stone-200 dark:bg-white/6 text-stone-600 dark:text-stone-300'
                     )}
                   >
                     {idx + 1}

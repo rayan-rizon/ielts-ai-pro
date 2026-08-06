@@ -22,7 +22,7 @@ export default function ReadingTestSheetDrawer({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[100] lg:hidden"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-100 lg:hidden"
           onClick={() => setShowAnswerSheet(false)}
           data-oid="w1-11be"
         />
@@ -37,8 +37,8 @@ export default function ReadingTestSheetDrawer({
         className={cn(
           'bg-card border-l border-border flex flex-col overflow-hidden',
           isInline
-            ? 'relative z-40 h-full flex-shrink-0 shadow-none border-t-0 rounded-none w-80 max-w-[320px]'
-            : 'fixed right-0 top-[76px] h-[calc(100vh-76px)] w-full sm:w-80 border-t shadow-lg z-[100] rounded-tl-2xl'
+            ? 'relative z-40 h-full shrink-0 shadow-none border-t-0 rounded-none w-80 max-w-[320px]'
+            : 'fixed right-0 top-[76px] h-[calc(100vh-76px)] w-full sm:w-80 border-t shadow-lg z-100 rounded-tl-2xl'
         )}
         data-oid="fwsy8kw"
       >

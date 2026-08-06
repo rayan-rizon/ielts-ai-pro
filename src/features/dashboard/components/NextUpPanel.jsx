@@ -102,7 +102,7 @@ const NextUpPanel = React.memo(({ recommended, stats, weakestSkill, aiFocus, use
             <Link
               key={action.key}
               to={action.to}
-              className="group -mx-1 flex items-start gap-2.5 rounded-lg p-2.5 transition-all duration-150 hover:translate-x-0.5 hover:bg-[#f7f6fd] active:scale-[0.99] dark:hover:bg-white/[0.06]"
+              className="group -mx-1 flex items-start gap-2.5 rounded-lg p-2.5 transition-all duration-150 hover:translate-x-0.5 hover:bg-[#f7f6fd] active:scale-[0.99] dark:hover:bg-white/6"
             >
               <span
                 className={cn('mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full', RANK[index] || RANK[2])}

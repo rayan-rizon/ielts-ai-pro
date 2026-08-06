@@ -38,7 +38,7 @@ Color is reserved strictly for status and meaning (never for arbitrary decoratio
 
 ### D. Micro-Interactions & Motion Choreography
 
-- ** Dynamic Hover State**: KPI tiles and interactive cards subtlely elevate on hover (`hover:-translate-y-0.5 transition-all duration-200 ease-in-out hover:shadow-sm dark:hover:border-white/[0.12]`).
+- ** Dynamic Hover State**: KPI tiles and interactive cards subtlely elevate on hover (`hover:-translate-y-0.5 transition-all duration-200 ease-in-out hover:shadow-sm dark:hover:border-white/12`).
 - ** Micro-Press Feedback**: Interactive buttons and tiles compress on active press (`active:scale-[0.99]`).
 - ** Staggered Entrance Animations**: Page layouts use Framer Motion container stagger (`STAGGER_CONTAINER`) and card fade-ups (`FADE_UP`) for smooth 60fps mounting without layout jank.
 
@@ -48,30 +48,30 @@ Color is reserved strictly for status and meaning (never for arbitrary decoratio
 
 Import all UI primitives from `@/features/dashboard/components/primitives.jsx`. Do **not** hand-roll custom borders, numbers, or pill badges locally.
 
-| Primitive           | Class / Signature | Usage & Tailwind Styling Recipe                                                                                                                               |
-| :------------------ | :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `PANEL`             | `string`          | Base card shell: `rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15]` |
-| `WELL`              | `string`          | Quiet inset surface for progress tracks, empty wells: `bg-[#f4f3fb] dark:bg-white/[0.04]`                                                                     |
-| `TILE`              | `string`          | Secondary nested surface: `rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] transition-colors duration-150 dark:border-white/10 dark:bg-white/[0.03]`          |
-| `NUM`               | `string`          | Monospace tabular numbers: `font-mono tabular-nums tracking-tight`                                                                                            |
-| `MICRO`             | `string`          | Uppercase micro label: `text-[9px] font-bold uppercase tracking-[0.14em]`                                                                                     |
-| `TITLE`             | `string`          | Card section title: `text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100`                                                            |
-| `MUTED`             | `string`          | Secondary muted text: `text-slate-500 dark:text-slate-400`                                                                                                    |
-| `Panel`             | Component         | Polymorphic section card wrapper (`<Panel as="section">`) with vertical flex column layout.                                                                   |
-| `PanelTitle`        | Component         | Standardized card header: hairline accent rail + title + optional tip + right-side action button.                                                             |
-| `PanelFootnote`     | Component         | Hairline summary line ending cards: `mt-3 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]`.                                                         |
-| `FootNum`           | Component         | Emphasized tabular number inside a footnote (`<FootNum>7.5</FootNum>`).                                                                                       |
-| `Stat`              | Component         | Top-level KPI metric tile with icon chip, tabular value, optional subtext, delta badge, and `size="sm"` variant.                                              |
-| `IconChip`          | Component         | Tinted micro icon badge (`size="sm"`: 20px, `size="md"`: 28px) with tone variants (`accent`, `emerald`, `amber`, `rose`, `sky`).                              |
-| `Pill`              | Component         | Micro badge tag (`PILL_BASE`) with dynamic signal tones (`ok`, `warn`, `fault`, `accent`, `rose`, `sky`, `amber`, `emerald`, `neutral`).                      |
-| `Meter`             | Component         | Ultra-dense horizontal fill bar with inner label and numeric readout.                                                                                         |
-| `Bar`               | Component         | Standalone thin progress track (`h-1.5`) with animated width fill (`duration-500 ease-out`).                                                                  |
-| `Ring`              | Component         | SVG stroke-dash donut chart for single-ratio progress indicators (e.g. completion %).                                                                         |
-| `Delta`             | Component         | Signed change indicator (`+0.5` or `−0.2`) formatted in `NUM` with signal color coding.                                                                       |
-| `Tip` / `InfoTip`   | Component         | Accessible hover tooltip trigger and micro popover for metric explanations.                                                                                   |
-| `Empty`             | Component         | Standardized empty state card with icon and helpful contextual empty copy.                                                                                    |
-| `STAGGER_CONTAINER` | Object            | Framer Motion variant for page-level staggered entry (`staggerChildren: 0.04`).                                                                               |
-| `FADE_UP`           | Object            | Framer Motion variant for individual card fade-and-rise entrance (`y: 12 → y: 0`).                                                                            |
+| Primitive           | Class / Signature | Usage & Tailwind Styling Recipe                                                                                                                             |
+| :------------------ | :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PANEL`             | `string`          | Base card shell: `rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15]` |
+| `WELL`              | `string`          | Quiet inset surface for progress tracks, empty wells: `bg-[#f4f3fb] dark:bg-white/4`                                                                        |
+| `TILE`              | `string`          | Secondary nested surface: `rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] transition-colors duration-150 dark:border-white/10 dark:bg-white/3`             |
+| `NUM`               | `string`          | Monospace tabular numbers: `font-mono tabular-nums tracking-tight`                                                                                          |
+| `MICRO`             | `string`          | Uppercase micro label: `text-[9px] font-bold uppercase tracking-[0.14em]`                                                                                   |
+| `TITLE`             | `string`          | Card section title: `text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100`                                                          |
+| `MUTED`             | `string`          | Secondary muted text: `text-slate-500 dark:text-slate-400`                                                                                                  |
+| `Panel`             | Component         | Polymorphic section card wrapper (`<Panel as="section">`) with vertical flex column layout.                                                                 |
+| `PanelTitle`        | Component         | Standardized card header: hairline accent rail + title + optional tip + right-side action button.                                                           |
+| `PanelFootnote`     | Component         | Hairline summary line ending cards: `mt-3 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]`.                                                       |
+| `FootNum`           | Component         | Emphasized tabular number inside a footnote (`<FootNum>7.5</FootNum>`).                                                                                     |
+| `Stat`              | Component         | Top-level KPI metric tile with icon chip, tabular value, optional subtext, delta badge, and `size="sm"` variant.                                            |
+| `IconChip`          | Component         | Tinted micro icon badge (`size="sm"`: 20px, `size="md"`: 28px) with tone variants (`accent`, `emerald`, `amber`, `rose`, `sky`).                            |
+| `Pill`              | Component         | Micro badge tag (`PILL_BASE`) with dynamic signal tones (`ok`, `warn`, `fault`, `accent`, `rose`, `sky`, `amber`, `emerald`, `neutral`).                    |
+| `Meter`             | Component         | Ultra-dense horizontal fill bar with inner label and numeric readout.                                                                                       |
+| `Bar`               | Component         | Standalone thin progress track (`h-1.5`) with animated width fill (`duration-500 ease-out`).                                                                |
+| `Ring`              | Component         | SVG stroke-dash donut chart for single-ratio progress indicators (e.g. completion %).                                                                       |
+| `Delta`             | Component         | Signed change indicator (`+0.5` or `−0.2`) formatted in `NUM` with signal color coding.                                                                     |
+| `Tip` / `InfoTip`   | Component         | Accessible hover tooltip trigger and micro popover for metric explanations.                                                                                 |
+| `Empty`             | Component         | Standardized empty state card with icon and helpful contextual empty copy.                                                                                  |
+| `STAGGER_CONTAINER` | Object            | Framer Motion variant for page-level staggered entry (`staggerChildren: 0.04`).                                                                             |
+| `FADE_UP`           | Object            | Framer Motion variant for individual card fade-and-rise entrance (`y: 12 → y: 0`).                                                                          |
 
 ---
 

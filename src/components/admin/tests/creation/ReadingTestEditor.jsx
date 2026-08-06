@@ -292,7 +292,7 @@ const RichTextEditor = ({
           {/* Image URL Modal for Instructions */}
           {showImageUrlModal && (
             <div
-              className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4"
+              className="fixed inset-0 bg-black/50 z-100 flex items-center justify-center p-4"
               onClick={() => setShowImageUrlModal(false)}
               data-oid="k417t17"
             >
@@ -652,7 +652,7 @@ const RichTextEditor = ({
           processed = processed.replace(
             /\[answer q=([\d,\s]+)\](.*?)\[\/answer\]/g,
             (match, qNum, content) =>
-              `<span class="bg-[rgb(var(--signal-ok)/0.08)] text-[rgb(var(--signal-ok))] px-1 py-0.5 rounded-sm font-medium transition-all duration-200">${content.trim()}<span class="inline-flex items-center justify-center bg-[rgb(var(--signal-ok))] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm select-none align-middle ml-0.5 transform -translate-y-[1px]">Q${qNum}</span></span>`
+              `<span class="bg-[rgb(var(--signal-ok)/0.08)] text-[rgb(var(--signal-ok))] px-1 py-0.5 rounded-sm font-medium transition-all duration-200">${content.trim()}<span class="inline-flex items-center justify-center bg-[rgb(var(--signal-ok))] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm select-none align-middle ml-0.5 transform -translate-y-px">Q${qNum}</span></span>`
           );
         } else {
           processed = processed.replace(/\[answer q=[\d,\s]+\](.*?)\[\/answer\]/g, '$1');
@@ -753,7 +753,7 @@ const RichTextEditor = ({
           <div className="relative flex-1 min-h-0 group" data-oid="editor-container">
             {/* --- Syntax Highlighter Overlay --- */}
             <div
-              className="absolute inset-0 pointer-events-none p-3 font-mono text-sm whitespace-pre-wrap break-words overflow-hidden text-transparent z-0"
+              className="absolute inset-0 pointer-events-none p-3 font-mono text-sm whitespace-pre-wrap wrap-break-word overflow-hidden text-transparent z-0"
               aria-hidden="true"
               style={{
                 lineHeight: '1.5',
@@ -884,7 +884,7 @@ const RichTextEditor = ({
             {/* Image URL Modal */}
             {showImageUrlModal && (
               <div
-                className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4"
+                className="fixed inset-0 bg-black/50 z-100 flex items-center justify-center p-4"
                 onClick={() => setShowImageUrlModal(false)}
                 data-oid="wbfxoik"
               >
@@ -1490,7 +1490,7 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         data-oid="_y45go4"
       >
         {/* Format Pill (Reading/Writing Specific) */}
-        <div className="flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.03] shrink-0">
+        <div className="flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/3 shrink-0">
           <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>Format</span>
           <Select
             value={passageMetadata.test_format}
@@ -1642,7 +1642,7 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
 
         {/* Right: Question Groups */}
         <div
-          className="flex flex-col h-full min-h-0 bg-stone-50 dark:bg-white/[0.015] overflow-y-auto p-3 md:p-4"
+          className="flex flex-col h-full min-h-0 bg-stone-50 dark:bg-white/1.5 overflow-y-auto p-3 md:p-4"
           style={{ width: isPassageVisible ? `${100 - passageWidth}%` : '100%' }}
           data-oid="34j-1tj"
         >
@@ -1719,12 +1719,12 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-20 border-2 border-dashed border-stone-200 dark:border-white/10 rounded-2xl bg-stone-50/60 dark:bg-white/[0.02]"
+                className="text-center py-20 border-2 border-dashed border-stone-200 dark:border-white/10 rounded-2xl bg-stone-50/60 dark:bg-white/2"
                 data-oid="_4n8vck"
               >
                 <div className="flex flex-col items-center gap-3" data-oid="1m6dv61">
                   <div
-                    className="w-14 h-14 rounded-full bg-stone-100 dark:bg-white/[0.04] flex items-center justify-center"
+                    className="w-14 h-14 rounded-full bg-stone-100 dark:bg-white/4 flex items-center justify-center"
                     data-oid="3vn-ppr"
                   >
                     <FileText
@@ -1858,7 +1858,7 @@ const QuestionGroupEditor = ({
   const t = {
     ring: 'ring-stone-400/20',
     color: 'stone',
-    lighter: 'bg-stone-50 dark:bg-white/[0.02]',
+    lighter: 'bg-stone-50 dark:bg-white/2',
     primary: 'bg-stone-800 dark:bg-stone-600',
     text: 'text-stone-600 dark:text-stone-300',
     border: 'border-stone-200/80 dark:border-white/[0.07]',
@@ -2010,7 +2010,7 @@ const QuestionGroupEditor = ({
                               id={`multi-${q.id}`}
                               checked={q.allow_multiple}
                               onCheckedChange={(c) => updateQuestion(qIdx, 'allow_multiple', c)}
-                              className="h-4 w-4 rounded-sm border-2 border-stone-300 dark:border-stone-600 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-stone-500 data-[state=checked]:to-stone-600 data-[state=checked]:border-stone-500 data-[state=checked]:text-white data-[state=checked]:shadow-sm data-[state=checked]: transition-all duration-200"
+                              className="h-4 w-4 rounded-sm border-2 border-stone-300 dark:border-stone-600 data-[state=checked]:bg-linear-to-r data-[state=checked]:from-stone-500 data-[state=checked]:to-stone-600 data-[state=checked]:border-stone-500 data-[state=checked]:text-white data-[state=checked]:shadow-sm data-[state=checked]: transition-all duration-200"
                               data-oid="gnzjjnp"
                             />
 
@@ -2329,7 +2329,7 @@ const QuestionGroupEditor = ({
                           {/* Answers Configuration */}
                           {q.gap_fill?.gap_count > 0 && (
                             <div
-                              className="bg-stone-50/50 dark:bg-white/[0.02] border border-stone-200/80 dark:border-white/[0.07] rounded-xl p-3 space-y-3"
+                              className="bg-stone-50/50 dark:bg-white/2 border border-stone-200/80 dark:border-white/[0.07] rounded-xl p-3 space-y-3"
                               data-oid="8:kyuh1"
                             >
                               <div className="flex items-center justify-between" data-oid="dx.t:oy">

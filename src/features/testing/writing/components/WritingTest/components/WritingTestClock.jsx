@@ -19,7 +19,7 @@ const WritingTestClock = memo(() => {
   const isCritical = timeLeft < 300;
   const isWarning = timeLeft < 600 && timeLeft >= 300;
 
-  let containerClasses = 'bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.07]';
+  let containerClasses = 'bg-white dark:bg-white/4 border-[#e4e2f0] dark:border-white/[0.07]';
   let iconClasses = 'text-slate-400';
   let textClasses = 'text-slate-700 dark:text-slate-200';
 

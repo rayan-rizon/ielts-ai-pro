@@ -281,7 +281,7 @@ const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
           <div className="space-y-3">
             {parts.map((part, index) => (
               <div key={index} className={cn(PANEL, 'overflow-hidden group')}>
-                <div className="py-2.5 px-4 border-b border-stone-200/80 dark:border-white/[0.07] flex items-center justify-between bg-stone-50/60 dark:bg-white/[0.02]">
+                <div className="py-2.5 px-4 border-b border-stone-200/80 dark:border-white/[0.07] flex items-center justify-between bg-stone-50/60 dark:bg-white/2">
                   <div className="flex items-center gap-3">
                     <span className={cn(PILL_BASE, pillTone('neutral'))}>
                       Part {part.part_number}
@@ -323,7 +323,7 @@ const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                     value={part.prompt}
                     onChange={(e) => handlePartChange(index, 'prompt', e.target.value)}
                     placeholder={`Enter questions split by newlines.\nExample:\nWhat is your full name?\nDo you work or are you a student?`}
-                    className="font-sans text-sm min-h-[120px] resize-y bg-stone-50 dark:bg-white/[0.02] border-stone-200/80 dark:border-white/[0.07] focus-visible:ring-stone-400/20"
+                    className="font-sans text-sm min-h-[120px] resize-y bg-stone-50 dark:bg-white/2 border-stone-200/80 dark:border-white/[0.07] focus-visible:ring-stone-400/20"
                   />
                   <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-2 flex items-center gap-1">
                     <Info className="w-3 h-3" /> The AI examiner will read these questions one by

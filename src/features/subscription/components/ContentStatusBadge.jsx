@@ -21,7 +21,7 @@ export default function ContentStatusBadge({ user, requiredTier, completed = fal
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em] shadow-2xs',
+        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-widest shadow-2xs',
         TONE_CLASSES[status.tone],
         className
       )}

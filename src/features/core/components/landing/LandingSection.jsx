@@ -53,7 +53,7 @@ export function SectionHeading({
         {script && (
           <span className="font-handwritten relative inline-block tracking-[-0.03em] text-[#5262ef]">
             {script}
-            <span className="absolute -bottom-1 left-[5%] h-[3px] w-[90%] -rotate-1 rounded-full bg-gradient-to-r from-[#89d9d0] to-[#7086f6] opacity-70" />
+            <span className="absolute -bottom-1 left-[5%] h-[3px] w-[90%] -rotate-1 rounded-full bg-linear-to-r from-[#89d9d0] to-[#7086f6] opacity-70" />
           </span>
         )}{' '}
         {suffix}
@@ -74,7 +74,7 @@ export function GlassPanel({ className, children, ...props }) {
   return (
     <div
       className={cn(
-        'border border-white/90 bg-white/[0.74] shadow-[0_24px_70px_-36px_rgba(31,52,106,0.4)] backdrop-blur-2xl dark:border-white/10 dark:bg-white/[0.055]',
+        'border border-white/90 bg-white/74 shadow-[0_24px_70px_-36px_rgba(31,52,106,0.4)] backdrop-blur-2xl dark:border-white/10 dark:bg-white/5.5',
         className
       )}
       {...props}
@@ -97,8 +97,8 @@ export const SoftSection = React.forwardRef(function SoftSection(
       )}
       {...props}
     >
-      <div className="pointer-events-none absolute left-[-12rem] top-12 h-96 w-96 rounded-full bg-[#c9f3eb]/45 blur-[100px] dark:bg-[#5a63df]/[0.08]" />
-      <div className="pointer-events-none absolute right-[-10rem] top-1/3 h-[28rem] w-[28rem] rounded-full bg-[#d8ddff]/55 blur-[110px] dark:bg-[#5a63df]/10" />
+      <div className="pointer-events-none absolute -left-48 top-12 h-96 w-96 rounded-full bg-[#c9f3eb]/45 blur-[100px] dark:bg-[#5a63df]/8" />
+      <div className="pointer-events-none absolute -right-40 top-1/3 h-112 w-112 rounded-full bg-[#d8ddff]/55 blur-[110px] dark:bg-[#5a63df]/10" />
       {children}
     </section>
   );

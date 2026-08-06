@@ -104,14 +104,14 @@ export default function BannerPanel({ value, saving, onSave }) {
     <m.div variants={FADE_UP} className="space-y-4">
       {/* Preview first: the banner is a full-width object, so a full-width preview is the honest one. */}
       <div className={cn(PANEL, 'overflow-hidden')}>
-        <div className="flex items-center justify-between gap-3 border-b border-stone-100 px-4 py-2.5 dark:border-white/[0.06]">
+        <div className="flex items-center justify-between gap-3 border-b border-stone-100 px-4 py-2.5 dark:border-white/6">
           <p className={cn(MICRO, 'flex items-center gap-1.5 text-stone-500 dark:text-stone-400')}>
             <Megaphone className="h-3 w-3" />
             Live preview — top of every page
           </p>
           <span className={cn(PILL_BASE, pillTone(status.tone))}>{status.label}</span>
         </div>
-        <div className="bg-[#f8f7fc] p-4 dark:bg-white/[0.04]">
+        <div className="bg-[#f8f7fc] p-4 dark:bg-white/4">
           {draft.message.trim() || draft.title.trim() ? (
             <div className="overflow-hidden rounded-lg">
               <AnnouncementBanner

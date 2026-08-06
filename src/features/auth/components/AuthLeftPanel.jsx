@@ -45,9 +45,9 @@ export function AuthLeftPanel() {
           admin console, rather than a blurred rainbow mesh. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-40 [background-size:22px_22px] bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.06)_1px,transparent_0)]"
+        className="pointer-events-none absolute inset-0 opacity-40 bg-size-[22px_22px] bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.06)_1px,transparent_0)]"
       />
-      <div className="pointer-events-none absolute -right-24 -top-24 h-[26rem] w-[26rem] rounded-full bg-white/[0.06] blur-[120px]" />
+      <div className="pointer-events-none absolute -right-24 -top-24 h-104 w-104 rounded-full bg-white/6 blur-[120px]" />
 
       <div className="relative z-20 space-y-6">
         {/* Brand Logo Integration */}
@@ -63,7 +63,7 @@ export function AuthLeftPanel() {
         <div className="space-y-3">
           <h1 className="pb-1 text-3xl font-extrabold leading-[1.15] tracking-tight text-white">
             Achieve Band 7.5+ with <br />
-            <span className="bg-gradient-to-r from-slate-300 to-white bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-slate-300 to-white bg-clip-text text-transparent">
               Personalized AI Feedback
             </span>
           </h1>
@@ -75,7 +75,7 @@ export function AuthLeftPanel() {
 
         {/* Interactive Dashboard / Assessment Preview Sandbox */}
         <div className="relative mt-1" data-oid="sandbox-container">
-          <div className="relative flex h-[260px] flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.10] bg-[#131315] p-5 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.5)]">
+          <div className="relative flex h-[260px] flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-[#131315] p-5 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.5)]">
             {/* Window header */}
             <div className="mb-3.5 flex items-center justify-between border-b border-white/[0.07] pb-3">
               <div className="flex items-center gap-2">
@@ -89,7 +89,7 @@ export function AuthLeftPanel() {
                   AI Writing Assistant v2.0
                 </span>
               </div>
-              <div className="rounded-full border border-white/10 bg-white/[0.05] px-2 py-0.5 text-[10px] font-bold text-slate-400">
+              <div className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-slate-400">
                 Task 2 Essay
               </div>
             </div>
@@ -110,7 +110,7 @@ export function AuthLeftPanel() {
                       <FileText className="h-4 w-4 text-slate-300" />
                       <span>Submitted Response:</span>
                     </div>
-                    <div className="relative rounded-xl border border-white/[0.05] bg-white/[0.05] p-3 font-mono text-xs leading-relaxed text-slate-300">
+                    <div className="relative rounded-xl border border-white/5 bg-white/5 p-3 font-mono text-xs leading-relaxed text-slate-300">
                       "In my opinion, universities{' '}
                       <span className="relative inline-block rounded border-b border-amber-400 bg-amber-500/20 px-1 text-amber-300">
                         must focusing
@@ -235,7 +235,7 @@ export function AuthLeftPanel() {
                             <span>{item.label}</span>
                             <span className="text-white">{item.score}</span>
                           </div>
-                          <div className="h-1 w-full overflow-hidden rounded-full bg-white/[0.05]">
+                          <div className="h-1 w-full overflow-hidden rounded-full bg-white/5">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${(item.score / 9) * 100}%` }}
@@ -252,7 +252,7 @@ export function AuthLeftPanel() {
             </div>
 
             {/* Dots navigation to represent steps */}
-            <div className="mt-3 flex justify-center gap-1.5 border-t border-white/[0.05] pt-3.5">
+            <div className="mt-3 flex justify-center gap-1.5 border-t border-white/5 pt-3.5">
               {[0, 1, 2].map((i) => (
                 <button
                   key={i}
@@ -274,7 +274,7 @@ export function AuthLeftPanel() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.9 }}
-        className="relative z-20 flex items-center justify-between border-t border-white/[0.10] pt-5"
+        className="relative z-20 flex items-center justify-between border-t border-white/10 pt-5"
       >
         <div className="flex items-center space-x-4">
           <div className="flex -space-x-2.5">

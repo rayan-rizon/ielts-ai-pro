@@ -31,9 +31,9 @@ const FIELD_INPUT =
   'h-10 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
 
 const TIER_ACCENT = {
-  free: 'border-stone-300 dark:border-white/20 bg-stone-100 dark:bg-white/[0.06] text-stone-700 dark:text-stone-200',
+  free: 'border-stone-300 dark:border-white/20 bg-stone-100 dark:bg-white/6 text-stone-700 dark:text-stone-200',
   pro: 'border-[rgb(var(--signal-ok)/0.4)] bg-[rgb(var(--signal-ok)/0.08)] text-[rgb(var(--signal-ok))]',
-  premium: 'border-indigo-400/50 bg-indigo-500/[0.08] text-indigo-600 dark:text-indigo-400',
+  premium: 'border-indigo-400/50 bg-indigo-500/8 text-indigo-600 dark:text-indigo-400',
 };
 
 const VocabularyEditor = ({ initialData, onSave, onCancel }) => {
@@ -138,7 +138,7 @@ const VocabularyEditor = ({ initialData, onSave, onCancel }) => {
           </button>
           <div>
             <h2 className="text-xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50 flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-indigo-500/[0.08] text-indigo-600 dark:text-indigo-400">
+              <div className="p-1.5 rounded-md bg-indigo-500/8 text-indigo-600 dark:text-indigo-400">
                 <Brain className="w-4 h-4" />
               </div>
               {initialData ? 'Edit vocabulary list' : 'Create vocabulary list'}
@@ -218,7 +218,7 @@ const VocabularyEditor = ({ initialData, onSave, onCancel }) => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-md bg-stone-50 dark:bg-white/[0.03] border border-stone-200/70 dark:border-white/[0.06]">
+            <div className="flex items-center justify-between p-3 rounded-md bg-stone-50 dark:bg-white/3 border border-stone-200/70 dark:border-white/6">
               <div>
                 <Label className="text-xs font-bold text-stone-900 dark:text-stone-50">
                   Published
@@ -238,7 +238,7 @@ const VocabularyEditor = ({ initialData, onSave, onCancel }) => {
         {/* Words panel */}
         <m.div variants={FADE_UP} className="lg:col-span-2">
           <div className={cn(PANEL, 'overflow-hidden')}>
-            <div className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-white/[0.04] border-b border-stone-200/80 dark:border-white/[0.07]">
+            <div className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-white/4 border-b border-stone-200/80 dark:border-white/[0.07]">
               {[
                 { id: 'list', label: `Word list (${words.length})`, icon: ListIcon },
                 { id: 'bulk', label: 'Bulk import', icon: PlusCircle },
@@ -281,7 +281,7 @@ const VocabularyEditor = ({ initialData, onSave, onCancel }) => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, height: 0 }}
                         key={index}
-                        className="p-3 rounded-md bg-stone-50 dark:bg-white/[0.03] border border-stone-200/70 dark:border-white/[0.06] group relative"
+                        className="p-3 rounded-md bg-stone-50 dark:bg-white/3 border border-stone-200/70 dark:border-white/6 group relative"
                       >
                         <button
                           onClick={() => handleRemoveWord(index)}
@@ -329,7 +329,7 @@ const VocabularyEditor = ({ initialData, onSave, onCancel }) => {
                     onClick={handleAddWord}
                     className={cn(
                       MICRO,
-                      'w-full h-11 rounded-md border-2 border-dashed border-stone-200 dark:border-white/10 text-stone-500 dark:text-stone-400 hover:border-indigo-400/50 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-500/[0.04] transition-all active:scale-[0.99] flex items-center justify-center gap-1.5'
+                      'w-full h-11 rounded-md border-2 border-dashed border-stone-200 dark:border-white/10 text-stone-500 dark:text-stone-400 hover:border-indigo-400/50 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-500/4 transition-all active:scale-[0.99] flex items-center justify-center gap-1.5'
                     )}
                   >
                     <Plus className="w-3.5 h-3.5" />

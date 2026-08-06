@@ -79,7 +79,7 @@ function TestRoadmap({ allParts, currentPartNumber }) {
                     'border-rose-500 bg-rose-500 text-white shadow-md shadow-rose-500/20',
                   !isComplete &&
                     !isCurrent &&
-                    'border-[#e4e2f0] bg-white text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400'
+                    'border-[#e4e2f0] bg-white text-slate-500 dark:border-white/10 dark:bg-white/3 dark:text-slate-400'
                 )}
               >
                 {isComplete ? (
@@ -119,7 +119,7 @@ function SessionReadiness({ testStarted, isPart2Prep, currentPartNumber }) {
       <section className="border-t border-[#e4e2f0] px-4 py-3.5 dark:border-white/[0.07] sm:px-5">
         <p className={cn(MICRO, MUTED)}>{isPart2Prep ? 'Preparation focus' : 'Current focus'}</p>
         <div className="mt-3 flex gap-3">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/[0.09] text-rose-500">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/9 text-rose-500">
             {isPart2Prep ? (
               <Sparkles className="h-4 w-4" aria-hidden="true" />
             ) : (
@@ -146,7 +146,7 @@ function SessionReadiness({ testStarted, isPart2Prep, currentPartNumber }) {
       <p className={cn(MICRO, MUTED)}>Before you begin</p>
       <div className="mt-3 space-y-3">
         <div className="flex gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-500/[0.09] text-rose-500">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-500/9 text-rose-500">
             <Mic2 className="h-4 w-4" aria-hidden="true" />
           </span>
           <div>
@@ -157,7 +157,7 @@ function SessionReadiness({ testStarted, isPart2Prep, currentPartNumber }) {
           </div>
         </div>
         <div className="flex gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-500/[0.09] text-rose-500">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-500/9 text-rose-500">
             <Headphones className="h-4 w-4" aria-hidden="true" />
           </span>
           <div>
@@ -181,7 +181,7 @@ function UsefulTip({ currentPartNumber }) {
         <Lightbulb className="h-4 w-4 text-amber-500" aria-hidden="true" />
         <p className={cn(MICRO, MUTED)}>One useful tip</p>
       </div>
-      <div className="mt-2.5 flex gap-3 rounded-xl bg-rose-500/[0.055] p-3">
+      <div className="mt-2.5 flex gap-3 rounded-xl bg-rose-500/5.5 p-3">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" aria-hidden="true" />
         <p className="text-[11px] leading-5 text-slate-700 dark:text-slate-300">
           {PART_TIPS[currentPartNumber] || PART_TIPS[1]}
@@ -231,7 +231,7 @@ function MobileProgressStrip({ allParts, currentPartNumber, handsFreeEnabled, on
                       'border-rose-500 bg-rose-500 text-white shadow-sm shadow-rose-500/40',
                     !isComplete &&
                       !isCurrent &&
-                      'border-[#e4e2f0] bg-white text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400'
+                      'border-[#e4e2f0] bg-white text-slate-500 dark:border-white/10 dark:bg-white/3 dark:text-slate-400'
                   )}
                 >
                   {isComplete ? <Check className="h-3 w-3" aria-hidden="true" /> : partNumber}
@@ -264,7 +264,7 @@ function MobileProgressStrip({ allParts, currentPartNumber, handsFreeEnabled, on
                 <span className="text-[8px] font-extrabold leading-none text-slate-700 dark:text-slate-200">
                   Hands-free answers
                 </span>
-                <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-rose-600 dark:text-rose-300">
+                <span className="text-[8px] font-bold uppercase tracking-widest text-rose-600 dark:text-rose-300">
                   {handsFreeEnabled ? 'Auto' : 'Manual'}
                 </span>
               </div>

@@ -5,11 +5,11 @@ function GrammaticalErrorItem({ err }) {
   return (
     <div className="bg-rose-50/30 dark:bg-rose-950/10 p-3 rounded-lg border border-rose-500/20 flex flex-col gap-1.5">
       <div className="flex items-start gap-2">
-        <span className="line-through text-rose-500/70 text-[13px] font-medium decoration-rose-500/50 break-words">
+        <span className="line-through text-rose-500/70 text-[13px] font-medium decoration-rose-500/50 wrap-break-word">
           {err.incorrect}
         </span>
         <ArrowRight className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
-        <span className="text-emerald-600 dark:text-emerald-400 text-[13px] font-bold break-words">
+        <span className="text-emerald-600 dark:text-emerald-400 text-[13px] font-bold wrap-break-word">
           {err.correct}
         </span>
       </div>
@@ -29,7 +29,7 @@ export default function DeepDiveQuestionContent({ item }) {
             Your Response
           </span>
         </div>
-        <p className="text-[14px] text-slate-800 dark:text-slate-100 font-medium bg-[#fbfbfe] dark:bg-white/[0.03] p-4 rounded-xl border border-[#ebeaf7] dark:border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] leading-relaxed">
+        <p className="text-[14px] text-slate-800 dark:text-slate-100 font-medium bg-[#fbfbfe] dark:bg-white/3 p-4 rounded-xl border border-[#ebeaf7] dark:border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] leading-relaxed">
           {item.candidateAnswer}
         </p>
       </div>
@@ -43,7 +43,7 @@ export default function DeepDiveQuestionContent({ item }) {
               Topic Drift Detected
             </span>
           </div>
-          <div className="bg-amber-50/50 dark:bg-[#171719] p-4 rounded-xl border border-amber-500/20 dark:border-white/[0.10]">
+          <div className="bg-amber-50/50 dark:bg-[#171719] p-4 rounded-xl border border-amber-500/20 dark:border-white/10">
             <p className="text-[13px] text-amber-900 dark:text-amber-100 font-medium leading-relaxed">
               {item.topicDrift}
             </p>
@@ -77,7 +77,7 @@ export default function DeepDiveQuestionContent({ item }) {
               Improved sample response
             </span>
           </div>
-          <div className="bg-emerald-50/50 dark:bg-[#171719] p-4 rounded-xl border border-emerald-500/20 dark:border-white/[0.10] relative group-hover/suggest:border-emerald-500/40 transition-colors">
+          <div className="bg-emerald-50/50 dark:bg-[#171719] p-4 rounded-xl border border-emerald-500/20 dark:border-white/10 relative group-hover/suggest:border-emerald-500/40 transition-colors">
             <p className="text-[13px] md:text-[14px] text-emerald-950 dark:text-emerald-50 font-semibold leading-relaxed">
               {item.suggestedAnswer}
             </p>

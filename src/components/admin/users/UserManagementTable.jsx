@@ -24,15 +24,15 @@ const COLUMNS = [
 
 const TIER_PILL = {
   premium:
-    'text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-800/60 bg-violet-500/[0.06]',
+    'text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-800/60 bg-violet-500/6',
   pro: 'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)]',
-  free: 'text-stone-500 border-stone-200 dark:border-white/10 bg-stone-500/[0.04]',
+  free: 'text-stone-500 border-stone-200 dark:border-white/10 bg-stone-500/4',
 };
 
 const ROLE_PILL = {
   admin:
     'text-[rgb(var(--signal-fault))] border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)]',
-  user: 'text-stone-500 border-stone-200 dark:border-white/10 bg-stone-500/[0.04]',
+  user: 'text-stone-500 border-stone-200 dark:border-white/10 bg-stone-500/4',
 };
 
 const relativeTime = (dateValue) => {
@@ -60,8 +60,8 @@ const UserRow = ({ user, selected, onToggle, onEdit, onDelete }) => {
   return (
     <tr
       className={cn(
-        'animate-panel-in border-b border-stone-100 dark:border-white/[0.05] hover:bg-stone-50/70 dark:hover:bg-white/[0.02] transition-colors last:border-0',
-        selected && 'bg-stone-50 dark:bg-white/[0.02]'
+        'animate-panel-in border-b border-stone-100 dark:border-white/5 hover:bg-stone-50/70 dark:hover:bg-white/2 transition-colors last:border-0',
+        selected && 'bg-stone-50 dark:bg-white/2'
       )}
     >
       <td className="py-3 px-4">
@@ -69,7 +69,7 @@ const UserRow = ({ user, selected, onToggle, onEdit, onDelete }) => {
       </td>
       <td className="py-3 px-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/[0.06] grid place-items-center text-[10px] font-black text-stone-500 dark:text-stone-300 shrink-0">
+          <div className="w-8 h-8 rounded-md bg-stone-100 dark:bg-white/6 grid place-items-center text-[10px] font-black text-stone-500 dark:text-stone-300 shrink-0">
             {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
@@ -154,9 +154,9 @@ const TableBody = ({
 }) => {
   if (loading && users.length === 0) {
     return Array.from({ length: 6 }).map((_, index) => (
-      <tr key={index} className="border-b border-stone-100 dark:border-white/[0.05]">
+      <tr key={index} className="border-b border-stone-100 dark:border-white/5">
         <td colSpan={7} className="py-3.5 px-4">
-          <div className="h-4 w-full max-w-xs bg-stone-100 dark:bg-white/[0.05] rounded animate-pulse" />
+          <div className="h-4 w-full max-w-xs bg-stone-100 dark:bg-white/5 rounded animate-pulse" />
         </td>
       </tr>
     ));
@@ -253,7 +253,7 @@ export const UserManagementTable = ({
         </tbody>
       </table>
     </div>
-    <div className="px-4 py-3 border-t border-stone-100 dark:border-white/[0.06]">
+    <div className="px-4 py-3 border-t border-stone-100 dark:border-white/6">
       <PaginationControls {...pagination} itemName="users" />
     </div>
   </div>

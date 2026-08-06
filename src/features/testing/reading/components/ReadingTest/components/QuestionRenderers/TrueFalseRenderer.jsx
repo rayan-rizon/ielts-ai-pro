@@ -48,18 +48,18 @@ const TrueFalseRenderer = memo(function TrueFalseRenderer({
             dotClass += 'border-emerald-500/60 bg-emerald-500/20';
           } else {
             optionClass +=
-              'bg-slate-50/50 border-slate-200/50 dark:bg-white/[0.02] dark:border-white/[0.06] text-slate-400 dark:text-slate-500';
+              'bg-slate-50/50 border-slate-200/50 dark:bg-white/2 dark:border-white/6 text-slate-400 dark:text-slate-500';
             dotClass += 'border-slate-300 dark:border-white/[0.14] bg-transparent';
           }
         } else {
           if (isSelected) {
             optionClass +=
-              'bg-[#5a63df]/[0.08] border-[#5a63df]/35 text-[#3a3f9e] dark:bg-[#5a63df]/[0.14] dark:border-[#5a63df]/30 dark:text-[#c9cdf3] font-semibold ring-1 ring-[#5a63df]/15';
+              'bg-[#5a63df]/8 border-[#5a63df]/35 text-[#3a3f9e] dark:bg-[#5a63df]/[0.14] dark:border-[#5a63df]/30 dark:text-[#c9cdf3] font-semibold ring-1 ring-[#5a63df]/15';
             dotClass += 'border-[#5a63df] bg-[#5a63df]';
           } else {
             optionClass +=
-              'bg-[#fbfbfe] border-[#ebeaf7] text-slate-700 dark:bg-white/[0.02] dark:border-white/[0.06] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.06] hover:border-[#5a63df]/25 dark:hover:border-[#5a63df]/25';
-            dotClass += 'border-slate-300 dark:border-white/[0.16] bg-white dark:bg-white/[0.04]';
+              'bg-[#fbfbfe] border-[#ebeaf7] text-slate-700 dark:bg-white/2 dark:border-white/6 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/6 hover:border-[#5a63df]/25 dark:hover:border-[#5a63df]/25';
+            dotClass += 'border-slate-300 dark:border-white/16 bg-white dark:bg-white/4';
           }
         }
 

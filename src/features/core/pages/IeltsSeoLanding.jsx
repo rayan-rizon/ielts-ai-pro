@@ -232,16 +232,16 @@ function Hero({ config }) {
 
         <div className="relative">
           <div
-            className={`absolute -inset-4 rounded-[2.2rem] bg-gradient-to-br ${config.accent} opacity-15 blur-2xl`}
+            className={`absolute -inset-4 rounded-[2.2rem] bg-linear-to-br ${config.accent} opacity-15 blur-2xl`}
           />
-          <div className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white p-3 shadow-[0_30px_80px_-32px_rgba(30,41,59,.45)] dark:border-white/10 dark:bg-slate-900">
+          <div className="relative overflow-hidden rounded-4xl border border-white/80 bg-white p-3 shadow-[0_30px_80px_-32px_rgba(30,41,59,.45)] dark:border-white/10 dark:bg-slate-900">
             <img
               src="/ielts-hero-student.webp"
               alt={config.heroAlt}
               width="1200"
               height="900"
               fetchPriority="high"
-              className="aspect-[4/3] w-full rounded-[1.45rem] object-cover"
+              className="aspect-4/3 w-full rounded-[1.45rem] object-cover"
             />
             <div className="grid gap-2 p-2 pt-4 sm:grid-cols-3">
               {config.proof.map(([value, label]) => (
@@ -321,7 +321,7 @@ function ProcessSection({ config }) {
           {config.steps.map(([title, text], index) => (
             <li
               key={title}
-              className="grid grid-cols-[3rem_1fr] gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[.04]"
+              className="grid grid-cols-[3rem_1fr] gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/4"
             >
               <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-sm font-black text-white dark:bg-white dark:text-slate-950">
                 0{index + 1}
@@ -354,7 +354,7 @@ function FaqSection({ config }) {
           {config.faqs.map((item) => (
             <article
               key={item.q}
-              className="rounded-2xl border border-slate-200 p-6 dark:border-white/10 dark:bg-white/[.025]"
+              className="rounded-2xl border border-slate-200 p-6 dark:border-white/10 dark:bg-white/2.5"
             >
               <h3 className="flex gap-3 text-lg font-black text-slate-950 dark:text-white">
                 <Check className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />

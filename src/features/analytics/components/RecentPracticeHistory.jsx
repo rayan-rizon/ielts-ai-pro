@@ -77,7 +77,7 @@ function PracticeSessionRow({ session, onViewResult }) {
         'group flex cursor-pointer select-none items-center justify-between gap-2.5 p-2.5',
         'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm active:scale-[0.995]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50',
-        'dark:hover:border-white/[0.12]'
+        'dark:hover:border-white/12'
       )}
     >
       <div className="flex min-w-0 items-center gap-2.5">

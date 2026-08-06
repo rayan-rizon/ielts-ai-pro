@@ -110,7 +110,7 @@ export default function SubscriptionSection({
                   <button
                     type="button"
                     onClick={() => navigate('/pricing')}
-                    className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-[#e2e5f2] bg-white text-xs font-bold text-slate-700 transition-all hover:border-[#c9cdf3] active:scale-95 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200"
+                    className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-[#e2e5f2] bg-white text-xs font-bold text-slate-700 transition-all hover:border-[#c9cdf3] active:scale-95 dark:border-white/10 dark:bg-white/4 dark:text-slate-200"
                   >
                     Change plan
                   </button>
@@ -181,7 +181,7 @@ export default function SubscriptionSection({
         <div
           className={cn(
             TILE,
-            'flex items-start gap-3 border-amber-200/60 bg-amber-50/40 p-3.5 dark:border-amber-500/20 dark:bg-amber-500/[0.06]'
+            'flex items-start gap-3 border-amber-200/60 bg-amber-50/40 p-3.5 dark:border-amber-500/20 dark:bg-amber-500/6'
           )}
         >
           <IconChip icon={AlertCircle} tone="amber" size="sm" />
@@ -237,7 +237,7 @@ export default function SubscriptionSection({
             <button
               type="button"
               onClick={() => setShowCancelDialog(false)}
-              className="h-10 flex-1 rounded-lg border border-[#e2e5f2] bg-white text-xs font-bold text-slate-700 transition-all active:scale-95 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200"
+              className="h-10 flex-1 rounded-lg border border-[#e2e5f2] bg-white text-xs font-bold text-slate-700 transition-all active:scale-95 dark:border-white/10 dark:bg-white/4 dark:text-slate-200"
             >
               Keep subscription
             </button>

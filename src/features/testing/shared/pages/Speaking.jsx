@@ -51,11 +51,11 @@ export default function Speaking() {
       <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+          className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
         />
 
         <div className="relative z-10 mx-auto max-w-[1600px] space-y-4">
@@ -93,7 +93,7 @@ export default function Speaking() {
                 type="button"
                 onClick={handleLoadMore}
                 disabled={isLoadingMore}
-                className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#e2e5f2] bg-white px-6 text-xs font-bold uppercase tracking-wider text-[#5a63df] transition-all hover:bg-[#5a63df]/[0.06] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-[#a9afff]"
+                className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#e2e5f2] bg-white px-6 text-xs font-bold uppercase tracking-wider text-[#5a63df] transition-all hover:bg-[#5a63df]/6 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/4 dark:text-[#a9afff]"
               >
                 {isLoadingMore ? (
                   <>

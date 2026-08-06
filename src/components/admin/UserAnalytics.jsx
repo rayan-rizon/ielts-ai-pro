@@ -89,7 +89,7 @@ const UserAnalytics = ({
           {/* Chart header */}
           <div className="flex items-center justify-between p-4 border-b border-stone-200/80 dark:border-white/[0.07]">
             <SectionLabel>Growth Trajectory</SectionLabel>
-            <div className="flex items-center gap-1 p-0.5 bg-stone-100 dark:bg-white/[0.04] rounded-lg border border-stone-200/80 dark:border-white/[0.07]">
+            <div className="flex items-center gap-1 p-0.5 bg-stone-100 dark:bg-white/4 rounded-lg border border-stone-200/80 dark:border-white/[0.07]">
               {['30D', '90D', '1Y'].map((range) => {
                 const isActive = range === selectedRange;
                 return (
@@ -266,17 +266,17 @@ const UserAnalytics = ({
             </p>
           </div>
 
-          <div className="divide-y divide-stone-100 dark:divide-white/[0.04]">
+          <div className="divide-y divide-stone-100 dark:divide-white/4">
             {recentSignups.length > 0 ? (
               recentSignups.map((user) => {
                 const tier = (user.subscription_tier || 'free').toLowerCase();
                 return (
                   <div
                     key={user.id}
-                    className="flex items-center justify-between px-4 py-3 hover:bg-stone-50/60 dark:hover:bg-white/[0.02] transition-colors"
+                    className="flex items-center justify-between px-4 py-3 hover:bg-stone-50/60 dark:hover:bg-white/2 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-stone-100 dark:bg-white/[0.06] border border-stone-200/80 dark:border-white/[0.07] flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-stone-100 dark:bg-white/6 border border-stone-200/80 dark:border-white/[0.07] flex items-center justify-center shrink-0">
                         <span className={cn(MICRO, 'text-stone-600 dark:text-stone-300')}>
                           {(
                             user.full_name?.charAt(0) ||

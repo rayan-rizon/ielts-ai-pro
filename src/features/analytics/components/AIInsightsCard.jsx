@@ -90,7 +90,7 @@ function EvidenceSummary({ counts }) {
           {measuredPct}% confirmed
         </span>
       </div>
-      <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-slate-200/70 dark:bg-white/[0.06]">
+      <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-slate-200/70 dark:bg-white/6">
         <div
           className="h-full bg-[#5a63df] transition-all duration-700"
           style={{ width: `${measuredPct}%` }}
@@ -139,7 +139,7 @@ function FocusAreaLink({ to, icon: Icon, title, tag, tagTone = 'accent', subtitl
       className={cn(
         TILE,
         'group flex items-start justify-between gap-2 p-2.5',
-        'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/[0.12]'
+        'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12'
       )}
     >
       {/* The title used to share one line with the tag pill and be `truncate`d,

@@ -70,7 +70,7 @@ const WeeklyMomentumChart = React.memo(({ weeklyProgress }) => {
               <CartesianGrid
                 vertical={false}
                 stroke="currentColor"
-                className="text-[#eceafa] dark:text-white/[0.11]"
+                className="text-[#eceafa] dark:text-white/11"
               />
               <XAxis dataKey="day" axisLine={false} tickLine={false} tick={AXIS_TICK} dy={6} />
               <YAxis

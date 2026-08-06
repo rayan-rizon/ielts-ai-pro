@@ -22,7 +22,7 @@ export default function ListeningPartTabs({
         data-oid="ujg4x08"
       >
         <div
-          className="inline-flex p-1 bg-[#f4f3fb] dark:bg-white/[0.04] rounded-xl sm:rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] relative z-0 backdrop-blur-sm"
+          className="inline-flex p-1 bg-[#f4f3fb] dark:bg-white/4 rounded-xl sm:rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] relative z-0 backdrop-blur-sm"
           data-oid="2eggma3"
         >
           {displaySections.map((section, idx) => {
@@ -56,7 +56,7 @@ export default function ListeningPartTabs({
                     data-oid="egxwqa:"
                   >
                     <div
-                      className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent rounded-lg sm:rounded-xl"
+                      className="absolute inset-0 bg-linear-to-b from-white/20 to-transparent rounded-lg sm:rounded-xl"
                       data-oid="jn6630n"
                     />
                   </motion.div>
@@ -72,7 +72,7 @@ export default function ListeningPartTabs({
                         ? 'bg-emerald-500 text-white shadow-2xs'
                         : answeredInPart
                           ? 'bg-[#5a63df] text-white shadow-2xs'
-                          : 'bg-slate-200 dark:bg-white/[0.08] text-slate-500 dark:text-slate-400 group-hover:bg-slate-300 dark:group-hover:bg-white/[0.14]'
+                          : 'bg-slate-200 dark:bg-white/8 text-slate-500 dark:text-slate-400 group-hover:bg-slate-300 dark:group-hover:bg-white/[0.14]'
                   )}
                   data-oid="86c.5ck"
                 >

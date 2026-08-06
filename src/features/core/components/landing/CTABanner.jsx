@@ -31,13 +31,13 @@ const benefits = [
 function CTABannerHeader() {
   return (
     <div>
-      <span className="inline-flex items-center gap-2 rounded-full border border-violet-200/80 bg-gradient-to-r from-violet-100/90 to-indigo-50/80 px-3.5 py-1 text-[11px] font-extrabold text-violet-700 shadow-xs backdrop-blur-xl dark:border-violet-400/30 dark:from-violet-500/20 dark:to-indigo-500/15 dark:text-violet-200 dark:shadow-[0_0_15px_rgba(167,139,250,0.15)]">
+      <span className="inline-flex items-center gap-2 rounded-full border border-violet-200/80 bg-linear-to-r from-violet-100/90 to-indigo-50/80 px-3.5 py-1 text-[11px] font-extrabold text-violet-700 shadow-xs backdrop-blur-xl dark:border-violet-400/30 dark:from-violet-500/20 dark:to-indigo-500/15 dark:text-violet-200 dark:shadow-[0_0_15px_rgba(167,139,250,0.15)]">
         <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-300" /> Take the Next Step
       </span>
 
       <h2 className="mt-3.5 text-balance text-[clamp(1.85rem,3vw,3rem)] font-black leading-[1.05] tracking-tight text-slate-900 dark:text-white">
         <span>Your Best IELTS Score is </span>
-        <span className="relative inline-block font-handwritten bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 dark:from-violet-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-[1.02em] leading-[1.08] tracking-[-0.025em] text-transparent">
+        <span className="relative inline-block font-handwritten bg-linear-to-r from-violet-600 via-purple-600 to-indigo-600 dark:from-violet-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-[1.02em] leading-[1.08] tracking-tight text-transparent">
           One Click Away!
           <svg
             className="absolute bottom-0 left-0 w-full h-2.5 text-violet-500 dark:text-violet-300"
@@ -152,7 +152,7 @@ export default function CTABanner({ handlePrimaryCta, viewport }) {
   const reduceMotion = useReducedMotion();
 
   return (
-    <SoftSection className="bg-gradient-to-b from-[#f4f7fc] to-[#eef2f8] dark:from-[#08080a] dark:to-[#08080a] py-8 md:py-12 lg:py-14">
+    <SoftSection className="bg-linear-to-b from-[#f4f7fc] to-[#eef2f8] dark:from-[#08080a] dark:to-[#08080a] py-8 md:py-12 lg:py-14">
       <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-5 md:px-8">
         <m.div
           initial={{ opacity: 0, y: reduceMotion ? 0 : 20 }}
@@ -160,9 +160,9 @@ export default function CTABanner({ handlePrimaryCta, viewport }) {
           viewport={viewport}
           transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="relative overflow-hidden rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white/90 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] px-5 py-6 text-left sm:px-7 sm:py-7 md:rounded-[32px] md:px-8 lg:px-10 lg:py-8 shadow-2xl dark:shadow-none backdrop-blur-2xl dark:backdrop-blur-none">
+          <div className="relative overflow-hidden rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white/90 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] px-5 py-6 text-left sm:px-7 sm:py-7 md:rounded-[32px] md:px-8 lg:px-10 lg:py-8 shadow-2xl dark:shadow-none backdrop-blur-2xl dark:backdrop-blur-none">
             <div className="pointer-events-none absolute -left-24 -top-32 h-80 w-80 rounded-full bg-indigo-400/20 dark:bg-[#5a63df]/10 blur-[90px]" />
-            <div className="pointer-events-none absolute -bottom-36 right-[8%] h-[28rem] w-[28rem] rounded-full bg-purple-400/20 dark:bg-[#5a63df]/[0.08] blur-[100px]" />
+            <div className="pointer-events-none absolute -bottom-36 right-[8%] h-112 w-112 rounded-full bg-purple-400/20 dark:bg-[#5a63df]/8 blur-[100px]" />
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,.3),transparent_48%,rgba(130,112,255,.05))] dark:bg-none" />
 
             <div className="relative z-10 grid items-center gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 xl:gap-10">

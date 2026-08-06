@@ -124,8 +124,8 @@ function PhaseCard({ phase, index, onStart, selected, onSelect, cardRef }) {
           TILE,
           'flex h-full min-w-0 flex-1 cursor-pointer flex-col p-3.5 transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
           selected
-            ? 'border-[#5a63df]/45 bg-white shadow-sm dark:bg-white/[0.075]'
-            : 'hover:border-[#d6d9f5] dark:hover:border-white/[0.16]'
+            ? 'border-[#5a63df]/45 bg-white shadow-sm dark:bg-white/7.5'
+            : 'hover:border-[#d6d9f5] dark:hover:border-white/16'
         )}
         aria-current={inProgress ? 'step' : undefined}
         aria-label={`Stage ${index + 1}, ${phase.shortName}, ${phase.status}`}

@@ -14,7 +14,7 @@ import { getCircleStatus, getValidationInputStyle } from './helpers';
 function HeadingsHeaderList({ question }) {
   return (
     <div
-      className="rounded-lg border border-[#ebeaf7] dark:border-white/[0.08] bg-[#fbfbfe] dark:bg-white/[0.03] p-2.5 mb-2"
+      className="rounded-lg border border-[#ebeaf7] dark:border-white/8 bg-[#fbfbfe] dark:bg-white/3 p-2.5 mb-2"
       data-oid="b549_35"
     >
       <h4 className="font-semibold text-foreground mb-2 text-center text-sm" data-oid="830zuyo">
@@ -23,7 +23,7 @@ function HeadingsHeaderList({ question }) {
       <div className="text-xs space-y-0.5" data-oid="k4dt-5a">
         {question.content_items?.map((item, idx) => (
           <div key={idx} className="flex gap-2" data-oid="1v43u8i">
-            <span className="font-mono text-muted-foreground min-w-[1.5rem]" data-oid="iqry2qz">
+            <span className="font-mono text-muted-foreground min-w-6" data-oid="iqry2qz">
               {item.label}.
             </span>
             <span data-oid="ffgy_x3">{item.content}</span>
@@ -31,7 +31,7 @@ function HeadingsHeaderList({ question }) {
         )) ||
           question.matching_data?.headings?.map((heading, idx) => (
             <div key={idx} className="flex gap-2" data-oid="4yjvd70">
-              <span className="font-mono text-muted-foreground min-w-[1.5rem]" data-oid="zmwt2jd">
+              <span className="font-mono text-muted-foreground min-w-6" data-oid="zmwt2jd">
                 {idx + 1}.
               </span>
               <span data-oid="zsyvezw">{heading}</span>
@@ -39,7 +39,7 @@ function HeadingsHeaderList({ question }) {
           )) ||
           question.options?.map((heading, idx) => (
             <div key={idx} className="flex gap-2" data-oid="5l3.2j1">
-              <span className="font-mono text-muted-foreground min-w-[1.5rem]" data-oid="-5pzhjx">
+              <span className="font-mono text-muted-foreground min-w-6" data-oid="-5pzhjx">
                 {idx + 1}.
               </span>
               <span data-oid="_7rl4zj">{heading}</span>
@@ -65,7 +65,7 @@ function HeadingRowItem({
   setOpenDeepDive,
   questionType,
   selectOptions,
-  selectStyleBase = 'w-20 h-7 text-sm bg-white/70 dark:bg-white/[0.04]',
+  selectStyleBase = 'w-20 h-7 text-sm bg-white/70 dark:bg-white/4',
   dataOidDiv = '7bb_yx1',
   dataOidCircle = 'olak0o0',
   dataOidSpan = 'ulad_p_',
@@ -78,7 +78,7 @@ function HeadingRowItem({
 
   return (
     <div
-      className="flex items-center justify-start gap-2 p-1.5 pl-2 bg-[#fbfbfe] dark:bg-white/[0.03] rounded-md border border-[#ebeaf7] dark:border-white/[0.08] hover:bg-[#f7f6fd] dark:hover:bg-white/[0.06] transition-colors duration-150"
+      className="flex items-center justify-start gap-2 p-1.5 pl-2 bg-[#fbfbfe] dark:bg-white/3 rounded-md border border-[#ebeaf7] dark:border-white/8 hover:bg-[#f7f6fd] dark:hover:bg-white/6 transition-colors duration-150"
       data-oid={dataOidDiv}
     >
       <QuestionNumberCircle
@@ -174,7 +174,7 @@ const MatchingHeadingsRenderer = memo(function MatchingHeadingsRenderer(props) {
                 label={`Paragraph ${para.label}`}
                 questionNumber={qNum}
                 selectOptions={selectOptions}
-                selectStyleBase="w-20 bg-white/70 dark:bg-white/[0.04]"
+                selectStyleBase="w-20 bg-white/70 dark:bg-white/4"
                 questionType={question.type}
                 dataOidDiv="po6145x"
                 dataOidCircle="btuyk5u"
@@ -200,7 +200,7 @@ const MatchingHeadingsRenderer = memo(function MatchingHeadingsRenderer(props) {
                     label={`Paragraph ${String.fromCharCode(65 + i)}`}
                     questionNumber={globalNum}
                     selectOptions={selectOptions}
-                    selectStyleBase="w-20 bg-white/70 dark:bg-white/[0.04]"
+                    selectStyleBase="w-20 bg-white/70 dark:bg-white/4"
                     questionType={question.type}
                     dataOidDiv="_k645p2"
                     dataOidCircle="p29ef43"

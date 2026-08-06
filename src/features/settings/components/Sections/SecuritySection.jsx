@@ -38,7 +38,7 @@ export default function SecuritySection({
               placeholder="••••••••"
               value={passwordData.newPassword}
               onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-              className="h-10 rounded-lg border-[#e2e5f2] bg-white text-sm font-semibold dark:border-white/10 dark:bg-white/[0.04]"
+              className="h-10 rounded-lg border-[#e2e5f2] bg-white text-sm font-semibold dark:border-white/10 dark:bg-white/4"
             />
           </div>
           <div className="space-y-1.5">
@@ -52,7 +52,7 @@ export default function SecuritySection({
               onChange={(e) =>
                 setPasswordData({ ...passwordData, confirmPassword: e.target.value })
               }
-              className="h-10 rounded-lg border-[#e2e5f2] bg-white text-sm font-semibold dark:border-white/10 dark:bg-white/[0.04]"
+              className="h-10 rounded-lg border-[#e2e5f2] bg-white text-sm font-semibold dark:border-white/10 dark:bg-white/4"
             />
           </div>
         </div>

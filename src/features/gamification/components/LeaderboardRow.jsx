@@ -20,7 +20,7 @@ function RankBadge({ rank }) {
   }
   if (rank === 2 || rank === 3) {
     return (
-      <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full border border-[#e4e2f0] bg-[#f4f3fb] text-slate-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400">
+      <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full border border-[#e4e2f0] bg-[#f4f3fb] text-slate-500 dark:border-white/10 dark:bg-white/4 dark:text-slate-400">
         <Medal className="h-4 w-4" />
       </div>
     );
@@ -40,10 +40,10 @@ const LeaderboardRow = React.memo(({ user, isCurrentUser, rank, isSticky = false
       className={cn(
         'group grid grid-cols-12 items-center gap-2 border-b border-[#eeedf7] px-3.5 py-2.5 transition-colors dark:border-white/[0.07] sm:gap-4 sm:px-5',
         isSticky
-          ? 'bg-[#5a63df]/[0.06] dark:bg-[#5a63df]/[0.1]'
+          ? 'bg-[#5a63df]/6 dark:bg-[#5a63df]/10'
           : isCurrentUser
-            ? 'bg-[#5a63df]/[0.04]'
-            : 'hover:bg-[#f7f6fd] dark:hover:bg-white/[0.02]'
+            ? 'bg-[#5a63df]/4'
+            : 'hover:bg-[#f7f6fd] dark:hover:bg-white/2'
       )}
     >
       <div className="col-span-1 text-center">
@@ -65,7 +65,7 @@ const LeaderboardRow = React.memo(({ user, isCurrentUser, rank, isSticky = false
               'text-xs font-bold',
               highlighted
                 ? 'bg-[#5a63df] text-white'
-                : 'bg-[#f4f3fb] text-slate-500 dark:bg-white/[0.06] dark:text-slate-300'
+                : 'bg-[#f4f3fb] text-slate-500 dark:bg-white/6 dark:text-slate-300'
             )}
           >
             {user.name?.[0] || 'U'}

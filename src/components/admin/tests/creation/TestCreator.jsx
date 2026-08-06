@@ -14,10 +14,10 @@ import GenericTestCreator from './GenericTestCreator';
 const BASE_THEME = {
   primary: 'bg-stone-900 dark:bg-stone-50',
   primaryHover: 'hover:bg-stone-700 dark:hover:bg-stone-200',
-  light: 'bg-stone-100 dark:bg-white/[0.04]',
-  lighter: 'bg-stone-50 dark:bg-white/[0.02]',
+  light: 'bg-stone-100 dark:bg-white/4',
+  lighter: 'bg-stone-50 dark:bg-white/2',
   border: 'border-stone-200/80 dark:border-white/[0.07]',
-  borderStrong: 'border-stone-300 dark:border-white/[0.12]',
+  borderStrong: 'border-stone-300 dark:border-white/12',
   text: 'text-stone-700 dark:text-stone-200',
   textLight: 'text-stone-500 dark:text-stone-400',
 };

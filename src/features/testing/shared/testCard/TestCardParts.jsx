@@ -287,7 +287,7 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, progress, scor
           'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-black',
           band
             ? 'bg-[rgb(var(--signal-ok)/0.10)] text-[rgb(var(--signal-ok))]'
-            : 'bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-slate-400'
+            : 'bg-slate-100 text-slate-500 dark:bg-white/6 dark:text-slate-400'
         )}
       >
         {band ? `Band ${band}` : 'Done'}
@@ -300,7 +300,7 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, progress, scor
       <span
         className={cn(
           NUM,
-          'shrink-0 rounded bg-[#5a63df]/[0.10] px-1.5 py-0.5 text-[10px] font-black text-[#5a63df] dark:text-[#a9afff]'
+          'shrink-0 rounded bg-[#5a63df]/10 px-1.5 py-0.5 text-[10px] font-black text-[#5a63df] dark:text-[#a9afff]'
         )}
       >
         {progress}%

@@ -143,9 +143,9 @@ export default function SpeakingReport({
         key="report"
         className="relative mx-auto w-full max-w-[1280px]"
       >
-        <section className="overflow-hidden rounded-xl border border-[#e4e2f0] bg-white shadow-lg shadow-rose-950/5 dark:border-white/[0.10] dark:bg-[#131315]">
+        <section className="overflow-hidden rounded-xl border border-[#e4e2f0] bg-white shadow-lg shadow-rose-950/5 dark:border-white/10 dark:bg-[#131315]">
           {/* Header Banner */}
-          <header className="relative overflow-hidden bg-gradient-to-r from-rose-500 via-rose-500 to-rose-600 px-4 pb-4 pt-3 text-white sm:px-6 sm:pb-5 lg:px-7 lg:pb-5 lg:pt-4">
+          <header className="relative overflow-hidden bg-linear-to-r from-rose-500 via-rose-500 to-rose-600 px-4 pb-4 pt-3 text-white sm:px-6 sm:pb-5 lg:px-7 lg:pb-5 lg:pt-4">
             <HeaderWaveBackground />
 
             <div className="relative mb-2.5 flex items-center justify-between gap-4">
@@ -219,7 +219,7 @@ export default function SpeakingReport({
               <Button
                 asChild
                 variant="outline"
-                className="h-11 rounded-xl border-[#e4e2f0] px-6 text-xs font-extrabold uppercase tracking-wider hover:bg-[#f4f3fb] dark:border-white/[0.07] dark:hover:bg-white/[0.06] transition-all"
+                className="h-11 rounded-xl border-[#e4e2f0] px-6 text-xs font-extrabold uppercase tracking-wider hover:bg-[#f4f3fb] dark:border-white/[0.07] dark:hover:bg-white/6 transition-all"
               >
                 <Link to="/speaking">
                   <BookOpen className="mr-2.5 h-4 w-4" />

@@ -149,7 +149,7 @@ export const VocabularyControlBar = ({
           )}
         </div>
 
-        <div className="flex shrink-0 items-center gap-0.5 rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/[0.04]">
+        <div className="flex shrink-0 items-center gap-0.5 rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4">
           <m.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setViewMode('table')}

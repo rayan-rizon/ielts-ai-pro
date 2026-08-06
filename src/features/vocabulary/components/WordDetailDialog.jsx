@@ -89,7 +89,7 @@ const TranslationSection = ({
         Translate to
       </h3>
       <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-        <SelectTrigger className="h-7.5 w-[130px] rounded-lg border-[#e2e5f2] bg-[#fbfbfe] text-xs font-bold dark:border-white/10 dark:bg-white/[0.04]">
+        <SelectTrigger className="h-7.5 w-[130px] rounded-lg border-[#e2e5f2] bg-[#fbfbfe] text-xs font-bold dark:border-white/10 dark:bg-white/4">
           <SelectValue placeholder="Language" />
         </SelectTrigger>
         <SelectContent className="rounded-lg">
@@ -112,7 +112,7 @@ const TranslationSection = ({
       </p>
 
       {targetLanguage !== 'en' && (
-        <div className="mt-2 space-y-1 rounded-lg border border-[#e2e5f2] bg-[#5a63df]/[0.06] p-3 dark:border-white/10 dark:bg-indigo-950/40">
+        <div className="mt-2 space-y-1 rounded-lg border border-[#e2e5f2] bg-[#5a63df]/6 p-3 dark:border-white/10 dark:bg-indigo-950/40">
           <div className="flex items-center gap-1.5">
             <Languages className="h-3 w-3 text-[#5a63df]" />
             <span className="text-[9px] font-black uppercase tracking-wider text-[#5a63df] dark:text-indigo-400">

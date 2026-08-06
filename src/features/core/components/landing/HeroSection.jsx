@@ -158,7 +158,7 @@ function StudentVisual() {
       className="relative mx-auto min-h-[480px] w-full max-w-[720px] overflow-visible sm:min-h-[540px] lg:min-h-[580px] transform-gpu"
       aria-label="IELTS AI Pro learning experience preview"
     >
-      <div className="absolute bottom-6 left-4 right-4 top-6 overflow-hidden rounded-[2rem] border border-violet-200/80 bg-[#eef2ff] shadow-[0_30px_75px_-20px_rgba(109,85,238,0.22)] dark:border-violet-500/30 dark:bg-slate-900 sm:bottom-6 sm:left-8 sm:right-8 sm:top-6 transform-gpu">
+      <div className="absolute bottom-6 left-4 right-4 top-6 overflow-hidden rounded-4xl border border-violet-200/80 bg-[#eef2ff] shadow-[0_30px_75px_-20px_rgba(109,85,238,0.22)] dark:border-violet-500/30 dark:bg-slate-900 sm:bottom-6 sm:left-8 sm:right-8 sm:top-6 transform-gpu">
         <picture className="block h-full w-full">
           <source media="(max-width: 767px)" srcSet="/ielts-hero-student-640.webp" />
           <source
@@ -178,7 +178,7 @@ function StudentVisual() {
             data-oid="hero-student-img"
           />
         </picture>
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-[#6c79ef]/10 via-transparent to-white/15" />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-tr from-[#6c79ef]/10 via-transparent to-white/15" />
       </div>
 
       <AiEvaluationCard />
@@ -266,7 +266,7 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
 
   return (
     <section
-      className="relative bg-gradient-to-b from-[#f8f5fe]/80 via-[#fcfaff] to-white dark:from-[#08080a] dark:to-[#08080a] pb-12 pt-24 sm:pb-16 sm:pt-28 lg:pb-20 lg:pt-32 overflow-hidden"
+      className="relative bg-linear-to-b from-[#f8f5fe]/80 via-[#fcfaff] to-white dark:from-[#08080a] dark:to-[#08080a] pb-12 pt-24 sm:pb-16 sm:pt-28 lg:pb-20 lg:pt-32 overflow-hidden"
       aria-label="Hero"
       data-hero-root
     >
@@ -277,19 +277,19 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
       ) : null}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 overflow-hidden dark:bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] dark:bg-[size:20px_20px] dark:opacity-[0.14]"
+        className="pointer-events-none absolute inset-0 overflow-hidden dark:bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] dark:bg-size-[20px_20px] dark:opacity-[0.14]"
       />
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-6 h-[38rem] w-[38rem] rounded-full bg-violet-200/20 blur-[140px] dark:bg-[#5a63df]/10 transform-gpu" />
-        <div className="absolute -right-32 top-2 h-[42rem] w-[42rem] rounded-full bg-purple-200/15 blur-[150px] dark:bg-[#5a63df]/[0.08] transform-gpu" />
-        <div className="absolute left-1/3 top-1/4 h-[24rem] w-[24rem] rounded-full bg-fuchsia-100/15 blur-[130px] dark:bg-transparent transform-gpu" />
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white to-transparent dark:from-[#08080a]" />
+        <div className="absolute -left-32 top-6 h-152 w-152 rounded-full bg-violet-200/20 blur-[140px] dark:bg-[#5a63df]/10 transform-gpu" />
+        <div className="absolute -right-32 top-2 h-168 w-168 rounded-full bg-purple-200/15 blur-[150px] dark:bg-[#5a63df]/8 transform-gpu" />
+        <div className="absolute left-1/3 top-1/4 h-96 w-96 rounded-full bg-fuchsia-100/15 blur-[130px] dark:bg-transparent transform-gpu" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-linear-to-t from-white to-transparent dark:from-[#08080a]" />
       </div>
 
       <div className="relative mx-auto grid max-w-[1540px] items-center gap-10 sm:gap-12 px-5 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-8 xl:px-12 2xl:px-16">
         <div className="relative z-10 min-w-0 flex flex-col items-center text-center lg:items-start lg:text-left lg:py-5">
           <div className="inline-flex items-center gap-2.5 rounded-full border border-violet-200/80 bg-white/90 dark:border-violet-500/30 dark:bg-violet-950/40 px-3.5 py-1.5 text-[11px] sm:text-xs font-bold text-[#5c44c2] dark:text-violet-200 shadow-[0_4px_20px_-6px_rgba(109,85,238,0.18)] backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:border-violet-300/90 dark:hover:border-violet-400/50 mx-auto lg:mx-0">
-            <span className="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#6d55e8] to-[#8b5cf6] text-white shadow-sm">
+            <span className="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-[#6d55e8] to-[#8b5cf6] text-white shadow-sm">
               <Sparkles className="h-2.5 w-2.5" />
             </span>
             <span className="tracking-tight font-bold text-[#5c44c2] dark:text-violet-200">
@@ -297,7 +297,7 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
             </span>
           </div>
 
-          <h1 className="mt-5 text-[2.65rem] min-[480px]:text-[3rem] sm:text-[3.5rem] lg:text-[3.45rem] xl:text-[4rem] 2xl:text-[4.4rem] font-extrabold leading-[1.02] tracking-[-0.05em] text-[#07142f] dark:text-white">
+          <h1 className="mt-5 text-[2.65rem] min-[480px]:text-[3rem] sm:text-[3.5rem] lg:text-[3.45rem] xl:text-[4rem] 2xl:text-[4.4rem] font-extrabold leading-[1.02] tracking-tighter text-[#07142f] dark:text-white">
             <span className="block">IELTS Practice.</span>
             <span className="font-handwritten relative mt-2.5 sm:mt-3 inline-block w-fit max-w-full whitespace-nowrap text-[0.8em] min-[480px]:text-[0.86em] sm:text-[0.9em] lg:text-[0.88em] xl:text-[0.92em] leading-[1.08] tracking-[-0.035em] text-[#6d55e8] pr-6 sm:pr-7">
               Smarter with AI.

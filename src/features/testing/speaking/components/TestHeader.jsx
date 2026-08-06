@@ -65,7 +65,7 @@ const TestHeader = React.memo(
             aria-label="Back to Speaking"
             className={cn(
               TEST_HEADER_BACK,
-              'hover:border-rose-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:border-rose-400/60 dark:hover:bg-rose-400/[0.12] dark:hover:text-rose-300 sm:w-auto sm:px-3'
+              'hover:border-rose-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:border-rose-400/60 dark:hover:bg-rose-400/12 dark:hover:text-rose-300 sm:w-auto sm:px-3'
             )}
           >
             <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5 stroke-[2.5] sm:mr-2 sm:h-4.5 sm:w-4.5" />
@@ -76,7 +76,7 @@ const TestHeader = React.memo(
             <span
               className={cn(
                 TEST_HEADER_BADGE,
-                'border-rose-500/15 bg-rose-500/[0.06] text-rose-600 dark:border-rose-400/20 dark:bg-rose-400/[0.10] dark:text-rose-300'
+                'border-rose-500/15 bg-rose-500/6 text-rose-600 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-300'
               )}
             >
               <span
@@ -94,7 +94,7 @@ const TestHeader = React.memo(
         <div className={cn(PANEL, 'overflow-hidden rounded-xl')}>
           <div className="xl:hidden">
             <section className="flex min-w-0 items-center gap-2.5 py-2.5 pl-16 pr-3 sm:px-4 sm:py-3">
-              <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/[0.09] text-rose-500 sm:flex">
+              <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/9 text-rose-500 sm:flex">
                 <Mic2 className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
               </span>
               <div className="min-w-0 flex-1">
@@ -140,7 +140,7 @@ const TestHeader = React.memo(
                   size="icon"
                   onClick={() => setIsMuted(!isMuted)}
                   aria-label={isMuted ? 'Unmute examiner audio' : 'Mute examiner audio'}
-                  className="h-9 w-9 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:border-white/[0.10] dark:bg-white/[0.055] dark:text-slate-200 dark:hover:bg-white/[0.09]"
+                  className="h-9 w-9 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:border-white/10 dark:bg-white/5.5 dark:text-slate-200 dark:hover:bg-white/9"
                 >
                   {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 </Button>
@@ -161,7 +161,7 @@ const TestHeader = React.memo(
                   {progressLabel}
                 </p>
               </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#f4f3fb] dark:bg-white/[0.04]">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#f4f3fb] dark:bg-white/4">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${partProgress}%` }}
@@ -209,7 +209,7 @@ const TestHeader = React.memo(
                   size="icon"
                   onClick={() => setIsMuted(!isMuted)}
                   aria-label={isMuted ? 'Unmute examiner audio' : 'Mute examiner audio'}
-                  className="h-10 w-10 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:border-white/[0.10] dark:bg-white/[0.055] dark:text-slate-200 dark:hover:bg-white/[0.09]"
+                  className="h-10 w-10 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:border-white/10 dark:bg-white/5.5 dark:text-slate-200 dark:hover:bg-white/9"
                 >
                   {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 </Button>
@@ -219,7 +219,7 @@ const TestHeader = React.memo(
 
           <div className="hidden xl:grid xl:grid-cols-[minmax(16rem,1.4fr)_minmax(8rem,0.7fr)_minmax(11rem,0.9fr)_minmax(7rem,0.6fr)_4.5rem_minmax(7rem,0.6fr)]">
             <section className="col-span-2 flex min-w-0 items-center gap-3 border-b border-[#e4e2f0] px-3.5 py-3 dark:border-white/[0.07] sm:px-4 xl:col-span-1 xl:border-b-0 xl:py-3.5">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/[0.09] text-rose-500">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/9 text-rose-500">
                 <Mic2 className="h-5 w-5" aria-hidden="true" />
               </span>
               <div className="min-w-0">
@@ -242,7 +242,7 @@ const TestHeader = React.memo(
             </StatusSection>
 
             <StatusSection label="Progress" className="border-b xl:border-b-0">
-              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#f4f3fb] dark:bg-white/[0.04]">
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#f4f3fb] dark:bg-white/4">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${partProgress}%` }}
@@ -278,7 +278,7 @@ const TestHeader = React.memo(
                 size="icon"
                 onClick={() => setIsMuted(!isMuted)}
                 aria-label={isMuted ? 'Unmute examiner audio' : 'Mute examiner audio'}
-                className="h-11 w-11 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:border-white/[0.10] dark:bg-white/[0.055] dark:text-slate-200 dark:hover:bg-white/[0.09]"
+                className="h-11 w-11 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 transition-colors hover:bg-[#ebeaf7] dark:border-white/10 dark:bg-white/5.5 dark:text-slate-200 dark:hover:bg-white/9"
               >
                 {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
               </Button>

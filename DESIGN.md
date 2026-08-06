@@ -137,6 +137,6 @@ All spacing is based on a **4px** unit.
 We use a **zero-heavy-shadow surface elevation strategy**:
 
 - **PANEL Shell**: Base card container bounded by subtle hairline rules (`border-[#e4e2f0]` in light / `dark:border-white/[0.07]` in dark mode) over smooth gradient surfaces (`from-white to-[#faf9ff]` / `from-[#141319] to-[#100f15]`).
-- **WELL Surface**: Inset surfaces for meter tracks, nested rows, and empty wells (`bg-[#f4f3fb]` / `dark:bg-white/[0.04]`).
-- **TILE Surface**: Nested tiles inside cards (`border-[#ebeaf7] bg-[#fbfbfe]` / `dark:border-white/10 dark:bg-white/[0.03]`).
+- **WELL Surface**: Inset surfaces for meter tracks, nested rows, and empty wells (`bg-[#f4f3fb]` / `dark:bg-white/4`).
+- **TILE Surface**: Nested tiles inside cards (`border-[#ebeaf7] bg-[#fbfbfe]` / `dark:border-white/10 dark:bg-white/3`).
 - **Zero Glassmorphism**: Glassmorphism overlays and heavy drop shadows (`backdrop-blur-3xl`, `shadow-2xl`) are strictly disallowed. Elevation and hierarchy are achieved purely via hairline rules, subtle surface shifts, and tabular metric focus.

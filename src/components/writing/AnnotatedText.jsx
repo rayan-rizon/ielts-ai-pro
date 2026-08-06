@@ -71,9 +71,9 @@ const SEVERITY_STYLES = {
     borderClass: 'border-[#d2d7f8] dark:border-indigo-500/30',
     textClass: 'text-[#5661e9] dark:text-indigo-300',
     underlineClass: 'decoration-[#5661e9]/75 dark:decoration-indigo-400/75 decoration-dashed',
-    hoverWash: 'hover:bg-[#5661e9]/[0.09] dark:hover:bg-indigo-400/[0.10]',
+    hoverWash: 'hover:bg-[#5661e9]/9 dark:hover:bg-indigo-400/10',
     activeWash:
-      'bg-[#5661e9]/[0.14] decoration-[#5661e9] dark:bg-indigo-400/[0.16] dark:decoration-indigo-300',
+      'bg-[#5661e9]/[0.14] decoration-[#5661e9] dark:bg-indigo-400/16 dark:decoration-indigo-300',
     applyClass: 'bg-[#5661e9] hover:bg-[#4853d6] text-white',
   },
   // "Good" is praise, not a task — it never needs to compete with the
@@ -202,7 +202,7 @@ const TooltipHeader = ({ typeMeta, severityStyle, severity, onClose }) => {
   const Icon = typeMeta.icon;
 
   return (
-    <div className="mb-2 flex items-center justify-between gap-1.5 border-b border-[#e2e5f6] pb-2 dark:border-white/[0.1]">
+    <div className="mb-2 flex items-center justify-between gap-1.5 border-b border-[#e2e5f6] pb-2 dark:border-white/10">
       <div className="flex items-center gap-2 min-w-0">
         <span
           className={cn(
@@ -236,7 +236,7 @@ const TooltipHeader = ({ typeMeta, severityStyle, severity, onClose }) => {
             e.stopPropagation();
             onClose();
           }}
-          className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200/70 bg-slate-100/80 text-slate-500 shadow-2xs transition-all hover:bg-slate-200 hover:text-slate-900 active:scale-95 dark:border-white/[0.1] dark:bg-white/[0.06] dark:text-slate-300 dark:hover:bg-white/[0.12] dark:hover:text-white"
+          className="flex h-6 w-6 items-center justify-center rounded-lg border border-slate-200/70 bg-slate-100/80 text-slate-500 shadow-2xs transition-all hover:bg-slate-200 hover:text-slate-900 active:scale-95 dark:border-white/10 dark:bg-white/6 dark:text-slate-300 dark:hover:bg-white/12 dark:hover:text-white"
           title="Close"
         >
           <X className="h-4 w-4 stroke-[2.5]" />
@@ -247,7 +247,7 @@ const TooltipHeader = ({ typeMeta, severityStyle, severity, onClose }) => {
 };
 
 const TooltipCorrectionBlock = ({ annotation }) => (
-  <div className="mb-2 space-y-1.5 rounded-xl border border-[#e2e5f6] bg-[#f8f9ff] p-2 shadow-2xs sm:p-2.5 dark:border-white/[0.1] dark:bg-white/[0.035]">
+  <div className="mb-2 space-y-1.5 rounded-xl border border-[#e2e5f6] bg-[#f8f9ff] p-2 shadow-2xs sm:p-2.5 dark:border-white/10 dark:bg-white/[0.035]">
     <div className="flex flex-col gap-0.5">
       <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
         Original
@@ -256,7 +256,7 @@ const TooltipCorrectionBlock = ({ annotation }) => (
         {annotation.originalText}
       </span>
     </div>
-    <div className="h-px bg-[#e2e5f6]/80 dark:bg-white/[0.1]" />
+    <div className="h-px bg-[#e2e5f6]/80 dark:bg-white/10" />
     <div className="flex flex-col gap-0.5">
       <span className="text-[9px] font-black text-[rgb(var(--signal-ok))] uppercase tracking-wider">
         Correction
@@ -288,7 +288,7 @@ const TooltipActions = ({ severityStyle, onApply, onIgnore }) => (
         e.stopPropagation();
         onIgnore();
       }}
-      className="h-8 rounded-lg border-slate-200 bg-slate-50 text-xs font-extrabold text-slate-600 shadow-2xs active:scale-95 hover:bg-slate-100 hover:text-slate-900 dark:border-white/[0.1] dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.1] dark:hover:text-white"
+      className="h-8 rounded-lg border-slate-200 bg-slate-50 text-xs font-extrabold text-slate-600 shadow-2xs active:scale-95 hover:bg-slate-100 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
     >
       Dismiss
     </Button>
@@ -319,13 +319,13 @@ const AnnotationTooltip = ({
       transition={{ duration: 0.15, ease: 'easeOut' }}
       style={{ left: '50%', translateX: '-50%' }}
       className={cn(
-        'absolute z-[9999] w-[calc(100vw-36px)] max-w-[340px] overflow-hidden rounded-xl border border-[#e2e5f6] bg-white/95 shadow-[0_16px_40px_-20px_rgba(86,97,233,0.28)] dark:border-white/[0.12] dark:bg-[#131315]/95 dark:shadow-[0_18px_42px_-20px_rgba(0,0,0,0.7)]',
+        'absolute z-9999 w-[calc(100vw-36px)] max-w-[340px] overflow-hidden rounded-xl border border-[#e2e5f6] bg-white/95 shadow-[0_16px_40px_-20px_rgba(86,97,233,0.28)] dark:border-white/12 dark:bg-[#131315]/95 dark:shadow-[0_18px_42px_-20px_rgba(0,0,0,0.7)]',
         'mt-1.5'
       )}
     >
       {/* Pointer Arrow */}
       <div
-        className="absolute -top-1.5 left-1/2 h-3 w-3 origin-center rotate-45 border-l border-t border-[#dce0f5] bg-inherit dark:border-white/[0.12]"
+        className="absolute -top-1.5 left-1/2 h-3 w-3 origin-center rotate-45 border-l border-t border-[#dce0f5] bg-inherit dark:border-white/12"
         style={{ marginLeft: '-6px', transform: `translateX(${offsets.arrowX}px) rotate(45deg)` }}
       />
 
@@ -526,7 +526,7 @@ const VocabularyCard = ({ enhancement }) => {
       layout="position"
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="group relative space-y-2 rounded-xl border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 transition-shadow duration-200 hover:shadow-sm dark:border-white/10 dark:bg-white/[0.03] sm:p-3"
+      className="group relative space-y-2 rounded-xl border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 transition-shadow duration-200 hover:shadow-sm dark:border-white/10 dark:bg-white/3 sm:p-3"
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -537,7 +537,7 @@ const VocabularyCard = ({ enhancement }) => {
             <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-0.5">
               Original Phrase
             </span>
-            <span className="text-xs font-black text-slate-950 dark:text-white leading-snug break-words">
+            <span className="text-xs font-black text-slate-950 dark:text-white leading-snug wrap-break-word">
               "{enhancement.original}"
             </span>
           </div>

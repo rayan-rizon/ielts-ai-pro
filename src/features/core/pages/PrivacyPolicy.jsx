@@ -262,7 +262,7 @@ const PrivacyPolicy = () => {
           >
             <div className="flex items-start gap-3" data-oid="4x.vrsa">
               <AlertTriangle
-                className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0"
+                className="w-5 h-5 text-amber-500 mt-0.5 shrink-0"
                 data-oid="c6qmouz"
               />
 
@@ -571,7 +571,7 @@ const PrivacyPolicy = () => {
             >
               <div data-oid="v.11s-b">
                 <h1
-                  className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 mb-2"
+                  className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600 mb-2"
                   data-oid="o-c54d3"
                 >
                   Privacy Policy

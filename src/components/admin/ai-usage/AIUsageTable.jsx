@@ -30,7 +30,7 @@ const AIUsageTable = ({
   totalItems,
 }) => (
   <div className={cn(PANEL, 'overflow-hidden')}>
-    <div className="flex items-center justify-between px-4 py-3 border-b border-stone-100 dark:border-white/[0.06]">
+    <div className="flex items-center justify-between px-4 py-3 border-b border-stone-100 dark:border-white/6">
       <div className="flex items-center gap-1.5">
         <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Usage per user</h3>
         <InfoTip>Users with AI calls in this window. Click a header to sort.</InfoTip>
@@ -91,7 +91,7 @@ const AIUsageTable = ({
         </tbody>
       </table>
     </div>
-    <div className="px-4 py-3 border-t border-stone-100 dark:border-white/[0.06]">
+    <div className="px-4 py-3 border-t border-stone-100 dark:border-white/6">
       <PaginationControls
         currentPage={currentPage}
         totalPages={totalPages}

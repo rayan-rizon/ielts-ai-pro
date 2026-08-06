@@ -29,7 +29,7 @@ const Part2CueCard = React.memo(({ cueCardTopic }) => {
       aria-label="Part 2 topic card"
     >
       <div className="overflow-hidden rounded-xl border border-rose-500/20 bg-white shadow-sm dark:bg-[#131315]">
-        <div className="flex items-center justify-between gap-4 border-b border-rose-500/10 bg-rose-500/[0.045] px-4 py-3 sm:px-5">
+        <div className="flex items-center justify-between gap-4 border-b border-rose-500/10 bg-rose-500/4.5 px-4 py-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500 text-white shadow-md shadow-rose-500/20">
               <FileText className="h-5 w-5" aria-hidden="true" />
@@ -39,7 +39,7 @@ const Part2CueCard = React.memo(({ cueCardTopic }) => {
               <p className={cn(MUTED, 'mt-0.5 text-xs font-semibold')}>Individual long turn</p>
             </div>
           </div>
-          <Badge className="shrink-0 border border-rose-500/15 bg-white px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.12em] text-rose-600 shadow-sm dark:bg-white/[0.04] dark:text-rose-400">
+          <Badge className="shrink-0 border border-rose-500/15 bg-white px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.12em] text-rose-600 shadow-sm dark:bg-white/4 dark:text-rose-400">
             IELTS
           </Badge>
         </div>
@@ -62,7 +62,7 @@ const Part2CueCard = React.memo(({ cueCardTopic }) => {
                 {talkingPoints.map((point, index) => (
                   <li
                     key={`${point}-${index}`}
-                    className="flex items-start gap-2.5 rounded-xl border border-[#ebeaf7] bg-[#fbfbfe] px-3 py-2.5 text-sm font-semibold leading-5 text-slate-800 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-100"
+                    className="flex items-start gap-2.5 rounded-xl border border-[#ebeaf7] bg-[#fbfbfe] px-3 py-2.5 text-sm font-semibold leading-5 text-slate-800 dark:border-white/10 dark:bg-white/3 dark:text-slate-100"
                   >
                     <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" />
                     {point}

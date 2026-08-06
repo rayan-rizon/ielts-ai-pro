@@ -37,15 +37,15 @@ function FeatureQuestionRowItem({
     isFinished,
     value,
     isCorrect,
-    'bg-white dark:bg-white/[0.04]'
+    'bg-white dark:bg-white/4'
   );
 
   return (
     <div
-      className="flex items-center gap-3 p-2 bg-[#fbfbfe] dark:bg-white/[0.03] rounded-lg border border-[#ebeaf7] dark:border-white/[0.08] w-full"
+      className="flex items-center gap-3 p-2 bg-[#fbfbfe] dark:bg-white/3 rounded-lg border border-[#ebeaf7] dark:border-white/8 w-full"
       data-oid="o37jbrr"
     >
-      <div className="flex-shrink-0" data-oid="59dx2qp">
+      <div className="shrink-0" data-oid="59dx2qp">
         <QuestionNumberCircle
           number={globalNum}
           isFlagged={flaggedQuestions.has(itemKey)}
@@ -68,7 +68,7 @@ function FeatureQuestionRowItem({
         >
           <SelectTrigger
             className={cn(
-              'h-7 w-[100px] flex-shrink-0 text-sm transition-all border-slate-300/50 dark:border-white/[0.08]',
+              'h-7 w-[100px] shrink-0 text-sm transition-all border-slate-300/50 dark:border-white/8',
               selectStyle,
               !value && 'text-slate-400'
             )}

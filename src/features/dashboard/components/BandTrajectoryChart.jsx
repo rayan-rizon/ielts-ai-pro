@@ -116,7 +116,7 @@ const BandTrajectoryChart = React.memo(({ recentTests, stats }) => {
               <CartesianGrid
                 vertical={false}
                 stroke="currentColor"
-                className="text-[#eceafa] dark:text-white/[0.11]"
+                className="text-[#eceafa] dark:text-white/11"
               />
               <XAxis
                 dataKey="dateLabel"

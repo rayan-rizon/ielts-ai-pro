@@ -186,7 +186,7 @@ export default function GrammarLearningPathCard({
         </AnimatePresence>
       </div>
 
-      <div className="mt-3 rounded-xl border border-[#e2e5f2] bg-slate-50/70 px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.04]">
+      <div className="mt-3 rounded-xl border border-[#e2e5f2] bg-slate-50/70 px-3 py-2.5 dark:border-white/10 dark:bg-white/4">
         <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">
           Current step
         </p>

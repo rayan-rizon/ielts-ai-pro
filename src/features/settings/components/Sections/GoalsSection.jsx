@@ -48,7 +48,7 @@ export default function GoalsSection({ formData, setFormData }) {
               setFormData({ ...formData, target_band_score: parseFloat(val) })
             }
           >
-            <SelectTrigger className="h-10 rounded-lg border-[#e2e5f2] bg-white text-sm font-bold dark:border-white/10 dark:bg-white/[0.04]">
+            <SelectTrigger className="h-10 rounded-lg border-[#e2e5f2] bg-white text-sm font-bold dark:border-white/10 dark:bg-white/4">
               <SelectValue placeholder="Select band" />
             </SelectTrigger>
             <SelectContent className="rounded-lg border-[#e2e5f2] p-1 dark:border-white/10">
@@ -74,7 +74,7 @@ export default function GoalsSection({ formData, setFormData }) {
               <button
                 type="button"
                 className={cn(
-                  'flex h-10 w-full items-center rounded-lg border border-[#e2e5f2] bg-white px-3 text-left text-sm font-bold transition-colors hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/[0.04]',
+                  'flex h-10 w-full items-center rounded-lg border border-[#e2e5f2] bg-white px-3 text-left text-sm font-bold transition-colors hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/4',
                   !formData.test_date && 'text-slate-400 font-medium'
                 )}
               >

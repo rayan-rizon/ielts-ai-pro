@@ -37,7 +37,7 @@ export default function WritingCardView(props) {
       transition={{ duration: 0.25, ease: 'easeOut' }}
       className={cn(
         PANEL,
-        'flex h-full min-h-[280px] flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/[0.12]',
+        'flex h-full min-h-[280px] flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12',
         isLocked && 'opacity-90'
       )}
     >

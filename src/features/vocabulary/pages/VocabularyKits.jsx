@@ -73,11 +73,11 @@ function KitsLibrary() {
       <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 dark:bg-[#08080a] dark:text-white">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+          className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
         />
 
         <main className="relative z-10 mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8">
@@ -123,7 +123,7 @@ function KitsLibrary() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search kits and topics..."
-                  className="h-10 rounded-lg border-[#e2e5f2] bg-white pl-10 text-sm font-semibold dark:border-white/10 dark:bg-white/[0.04]"
+                  className="h-10 rounded-lg border-[#e2e5f2] bg-white pl-10 text-sm font-semibold dark:border-white/10 dark:bg-white/4"
                 />
               </div>
               <LayoutGroup id="vocabulary-kit-category-tabs">
@@ -286,7 +286,7 @@ function KitDetail({ kit }) {
       <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-20 text-slate-950 dark:bg-[#08080a] dark:text-white">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
         />
         <main
           ref={pageTopRef}
@@ -382,7 +382,7 @@ function MissingKit() {
     <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] px-4 py-20 dark:bg-[#08080a]">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
       />
       <section className={cn(PANEL, 'relative z-10 mx-auto max-w-xl p-8 text-center')}>
         <BookOpenText className="mx-auto h-8 w-8 text-[#5a63df]" />

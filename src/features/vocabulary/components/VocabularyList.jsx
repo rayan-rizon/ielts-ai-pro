@@ -25,7 +25,7 @@ const VocabularyTableView = ({
 }) => (
   <div className={cn(TILE, 'custom-scrollbar overflow-x-auto')}>
     <table className="w-full min-w-[700px] border-collapse text-left text-xs">
-      <thead className="border-b border-[#ebeaf7] bg-[#fbfbfe] text-[11px] font-black uppercase tracking-wider text-slate-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-300">
+      <thead className="border-b border-[#ebeaf7] bg-[#fbfbfe] text-[11px] font-black uppercase tracking-wider text-slate-700 dark:border-white/10 dark:bg-white/3 dark:text-slate-300">
         <tr>
           <th className="px-4 py-3.5">Term & Phonetics</th>
           <th className="px-3 py-3.5">POS</th>

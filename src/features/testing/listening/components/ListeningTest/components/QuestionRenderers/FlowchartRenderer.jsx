@@ -30,7 +30,7 @@ const FlowchartRenderer = ({
       >
         {/* External Options Box */}
         {flowchart.answer_mode === 'dropdown' && flowchart.options?.length > 0 && (
-          <div className="mb-3 border border-[#e4e2f0] dark:border-white/[0.07] p-3 bg-[#f4f3fb] dark:bg-white/[0.04] rounded-xl inline-block min-w-[200px] shadow-sm">
+          <div className="mb-3 border border-[#e4e2f0] dark:border-white/[0.07] p-3 bg-[#f4f3fb] dark:bg-white/4 rounded-xl inline-block min-w-[200px] shadow-sm">
             <ul className="space-y-1">
               {flowchart.options.map((opt, idx) => {
                 const label = String.fromCharCode(65 + idx);
@@ -49,7 +49,7 @@ const FlowchartRenderer = ({
         )}
 
         {/* Flowchart Outer Border Box */}
-        <div className="border border-[#e4e2f0] dark:border-white/[0.07] p-2 sm:p-3 rounded-2xl bg-[#f4f3fb]/60 dark:bg-white/[0.03] w-full shadow-xs">
+        <div className="border border-[#e4e2f0] dark:border-white/[0.07] p-2 sm:p-3 rounded-2xl bg-[#f4f3fb]/60 dark:bg-white/3 w-full shadow-xs">
           {/* Flowchart Title */}
           {flowchart.box_title && (
             <div className="mb-2 text-center">

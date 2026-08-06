@@ -115,7 +115,7 @@ const QuestionTypeChart = React.memo(function QuestionTypeChart({ data }) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-1.5 flex shrink-0 items-center gap-3 pl-[5.5rem] sm:pl-[6.6rem]">
+      <div className="mb-1.5 flex shrink-0 items-center gap-3 pl-22 sm:pl-[6.6rem]">
         <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
           <span className="h-1.5 w-1.5 rounded-full bg-[rgb(var(--signal-ok))]" />
           Correct

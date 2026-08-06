@@ -18,8 +18,8 @@ export default function SecuritySettingsTab({
   return (
     <m.div variants={FADE_UP} className="max-w-3xl">
       <div className={cn(PANEL, 'overflow-hidden')}>
-        <div className="p-4 border-b border-stone-100 dark:border-white/[0.06] flex items-center gap-2.5">
-          <div className="p-1.5 rounded-md bg-stone-100 dark:bg-white/[0.06] text-stone-500 dark:text-stone-300">
+        <div className="p-4 border-b border-stone-100 dark:border-white/6 flex items-center gap-2.5">
+          <div className="p-1.5 rounded-md bg-stone-100 dark:bg-white/6 text-stone-500 dark:text-stone-300">
             <Lock className="h-3.5 w-3.5" />
           </div>
           <div>

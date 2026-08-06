@@ -24,8 +24,8 @@ export default function PricingSettingsTab({
   return (
     <m.div variants={FADE_UP} className="max-w-5xl">
       <div className={cn(PANEL, 'overflow-hidden')}>
-        <div className="p-4 border-b border-stone-100 dark:border-white/[0.06] flex items-center gap-2.5">
-          <div className="p-1.5 rounded-md bg-stone-100 dark:bg-white/[0.06] text-stone-500 dark:text-stone-300">
+        <div className="p-4 border-b border-stone-100 dark:border-white/6 flex items-center gap-2.5">
+          <div className="p-1.5 rounded-md bg-stone-100 dark:bg-white/6 text-stone-500 dark:text-stone-300">
             <DollarSign className="w-3.5 h-3.5" />
           </div>
           <div>
@@ -79,7 +79,7 @@ export default function PricingSettingsTab({
             />
           </m.div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4 border-t border-stone-100 dark:border-white/[0.06]">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4 border-t border-stone-100 dark:border-white/6">
             <span
               className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}
             >

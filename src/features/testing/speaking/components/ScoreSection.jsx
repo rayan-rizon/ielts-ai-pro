@@ -39,7 +39,7 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
   const scoreDisplay = formatBandScore(overallScore);
 
   return (
-    <div className="group relative flex min-h-[230px] flex-col items-center justify-between overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-3.5 text-center transition-all duration-200 hover:border-rose-200/80 hover:shadow-sm dark:border-white/[0.10] dark:bg-[#131315] sm:p-4 lg:col-span-4">
+    <div className="group relative flex min-h-[230px] flex-col items-center justify-between overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-3.5 text-center transition-all duration-200 hover:border-rose-200/80 hover:shadow-sm dark:border-white/10 dark:bg-[#131315] sm:p-4 lg:col-span-4">
       {/* Ambient Glow */}
       <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-rose-500/5 blur-2xl transition-opacity duration-500 group-hover:opacity-100 dark:bg-rose-500/10" />
 
@@ -97,7 +97,7 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
             transition={{ delay: 0.5, duration: 0.4 }}
             className={cn(
               NUM,
-              'bg-gradient-to-br from-slate-900 to-slate-700 bg-clip-text text-4xl font-extrabold leading-none tracking-tight text-transparent dark:from-white dark:to-zinc-200'
+              'bg-linear-to-br from-slate-900 to-slate-700 bg-clip-text text-4xl font-extrabold leading-none tracking-tight text-transparent dark:from-white dark:to-zinc-200'
             )}
           >
             {scoreDisplay}
@@ -123,7 +123,7 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
 
 export function CoachSummaryCard({ conciseFeedback, conciseTargetTip, showTargetTip }) {
   return (
-    <div className="group relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-rose-200/80 hover:shadow-sm dark:border-white/[0.10] dark:bg-[#131315] sm:p-4 lg:col-span-4">
+    <div className="group relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-rose-200/80 hover:shadow-sm dark:border-white/10 dark:bg-[#131315] sm:p-4 lg:col-span-4">
       <div>
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
@@ -171,12 +171,12 @@ export function PerformanceMetricsPanel({ criteria }) {
       : null;
 
   return (
-    <div className="group relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-slate-300/80 hover:shadow-sm dark:border-white/[0.10] dark:bg-[#131315] sm:p-4 lg:col-span-4">
+    <div className="group relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-xl border border-[#e4e2f0] bg-white p-3.5 transition-all duration-200 hover:border-slate-300/80 hover:shadow-sm dark:border-white/10 dark:bg-[#131315] sm:p-4 lg:col-span-4">
       <h3 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
         Performance at a Glance
       </h3>
 
-      <div className="my-auto divide-y divide-slate-100 dark:divide-white/[0.06]">
+      <div className="my-auto divide-y divide-slate-100 dark:divide-white/6">
         {criteria.map((criterion, idx) => {
           const hasScore = criterion.value != null;
           const scoreVal = criterion.value;
@@ -201,7 +201,7 @@ export function PerformanceMetricsPanel({ criteria }) {
                     initial={{ width: 0 }}
                     animate={{ width: `${(scoreVal / 9) * 100}%` }}
                     transition={{ duration: 1.1, ease: 'easeOut', delay: 0.2 }}
-                    className={cn('h-full rounded-full bg-gradient-to-r shadow-xs', style.bar)}
+                    className={cn('h-full rounded-full bg-linear-to-r shadow-xs', style.bar)}
                   />
                 </div>
               )}

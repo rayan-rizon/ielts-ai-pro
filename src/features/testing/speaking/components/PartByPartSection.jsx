@@ -9,12 +9,11 @@ const PART_CONFIGS = [
     key: 'part1',
     icon: MessageSquare,
     bgGradient: 'bg-white dark:bg-[#131315]',
-    cardBorder: 'border-[#e4e2f0] dark:border-white/[0.10]',
+    cardBorder: 'border-[#e4e2f0] dark:border-white/10',
     iconBg:
       'bg-[#ffeef3] text-[#d81b4e] dark:bg-white/[0.07] dark:text-rose-300 border border-[#fccedb]/60 dark:border-rose-500/30',
     dot: 'bg-[#d81b4e]',
-    scoreBadge:
-      'bg-white/80 border-[#fccedb] dark:bg-white/[0.06] dark:border-white/[0.12] shadow-xs',
+    scoreBadge: 'bg-white/80 border-[#fccedb] dark:bg-white/6 dark:border-white/12 shadow-xs',
     scoreTag: 'text-[#d81b4e] dark:text-rose-300',
     scoreNum: 'text-slate-900 dark:text-white',
   },
@@ -22,12 +21,11 @@ const PART_CONFIGS = [
     key: 'part2',
     icon: Mic,
     bgGradient: 'bg-white dark:bg-[#131315]',
-    cardBorder: 'border-[#e4e2f0] dark:border-white/[0.10]',
+    cardBorder: 'border-[#e4e2f0] dark:border-white/10',
     iconBg:
       'bg-[#fff0f1] text-[#dc2f45] dark:bg-white/[0.07] dark:text-red-300 border border-[#f9c6ce]/60 dark:border-red-500/30',
     dot: 'bg-[#dc2f45]',
-    scoreBadge:
-      'bg-white/80 border-[#f9c6ce] dark:bg-white/[0.06] dark:border-white/[0.12] shadow-xs',
+    scoreBadge: 'bg-white/80 border-[#f9c6ce] dark:bg-white/6 dark:border-white/12 shadow-xs',
     scoreTag: 'text-[#dc2f45] dark:text-red-300',
     scoreNum: 'text-slate-900 dark:text-white',
   },
@@ -35,12 +33,11 @@ const PART_CONFIGS = [
     key: 'part3',
     icon: Users,
     bgGradient: 'bg-white dark:bg-[#131315]',
-    cardBorder: 'border-[#e4e2f0] dark:border-white/[0.10]',
+    cardBorder: 'border-[#e4e2f0] dark:border-white/10',
     iconBg:
       'bg-[#ffeef3] text-[#e11d48] dark:bg-white/[0.07] dark:text-rose-300 border border-[#fccedb]/60 dark:border-rose-500/30',
     dot: 'bg-[#e11d48]',
-    scoreBadge:
-      'bg-white/80 border-[#fccedb] dark:bg-white/[0.06] dark:border-white/[0.12] shadow-xs',
+    scoreBadge: 'bg-white/80 border-[#fccedb] dark:bg-white/6 dark:border-white/12 shadow-xs',
     scoreTag: 'text-[#e11d48] dark:text-rose-400',
     scoreNum: 'text-slate-900 dark:text-white',
   },
@@ -101,7 +98,7 @@ function PartCard({ part, data }) {
         </div>
 
         {/* Part Analysis Section Text */}
-        <div className="mt-3 border-t border-slate-200/60 pt-3 dark:border-white/[0.08]">
+        <div className="mt-3 border-t border-slate-200/60 pt-3 dark:border-white/8">
           <div className="mb-1.5 flex items-center gap-2">
             <span className={cn('h-2 w-2 rounded-full', part.dot)} />
             <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-zinc-400">

@@ -58,7 +58,7 @@ const MapLabelingRenderer = ({
     } else {
       return cn(
         baseStyle,
-        'bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-foreground'
+        'bg-white dark:bg-white/4 border-[#e4e2f0] dark:border-white/8 text-foreground'
       );
     }
   };
@@ -168,7 +168,7 @@ const MapLabelingRenderer = ({
             <div
               key={q.id || idx}
               id={`question-${qId}`}
-              className="flex items-center gap-4 py-1 px-3 rounded-xl bg-[#fbfbfe] dark:bg-white/[0.03] border border-[#ebeaf7] dark:border-white/[0.06] transition-all duration-200"
+              className="flex items-center gap-4 py-1 px-3 rounded-xl bg-[#fbfbfe] dark:bg-white/3 border border-[#ebeaf7] dark:border-white/6 transition-all duration-200"
               data-oid="eff4q00"
             >
               {/* Question Number */}

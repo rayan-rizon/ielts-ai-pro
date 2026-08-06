@@ -96,7 +96,7 @@ export default function GrammarGuidesPanel({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col gap-3 rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-3 dark:border-white/10 dark:bg-white/[0.025] xl:flex-row xl:items-center">
+      <div className="mt-4 flex flex-col gap-3 rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-3 dark:border-white/10 dark:bg-white/2.5 xl:flex-row xl:items-center">
         <div className="relative xl:w-64">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <Input
@@ -158,7 +158,7 @@ export default function GrammarGuidesPanel({
                 key={resource.id}
                 to={`/grammar/guides/${resource.slug}`}
                 className={cn(
-                  'group flex min-h-[174px] flex-col justify-between rounded-xl border border-[#eceafa] bg-gradient-to-br p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/[0.015]',
+                  'group flex min-h-[174px] flex-col justify-between rounded-xl border border-[#eceafa] bg-linear-to-br p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/1.5',
                   visual.panelClass,
                   visual.cardClass
                 )}
@@ -177,7 +177,7 @@ export default function GrammarGuidesPanel({
                       completed={isCompleted}
                     />
                   </div>
-                  <div className="mt-2.5 text-[9px] font-extrabold uppercase tracking-[0.1em] text-[#5a63df]">
+                  <div className="mt-2.5 text-[9px] font-extrabold uppercase tracking-widest text-[#5a63df]">
                     {isRecommended ? 'Recommended · ' : ''}
                     {skillLabel(resource.skill_code)}
                   </div>

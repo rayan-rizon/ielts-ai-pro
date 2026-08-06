@@ -135,7 +135,7 @@ const ModalFooter = ({
   onDownloadPdf,
   isDownloadingPdf,
 }) => (
-  <div className="px-4 sm:px-5 py-2.5 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-t border-[#e4e2f0] dark:border-white/[0.07] flex flex-col sm:flex-row items-center justify-between gap-2.5 z-50">
+  <div className="px-4 sm:px-5 py-2.5 bg-linear-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-t border-[#e4e2f0] dark:border-white/[0.07] flex flex-col sm:flex-row items-center justify-between gap-2.5 z-50">
     <div className="flex items-center gap-3">
       <FooterStatus isPremium={isPremium} earnedXP={earnedXP} handleUpgrade={handleUpgrade} />
     </div>
@@ -172,7 +172,7 @@ const ModalFooter = ({
 );
 
 const ModalHeader = ({ testType, testMode, children }) => (
-  <header className="px-4 sm:px-5 pr-14 py-1.5 min-h-[52px] flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center gap-2 shrink-0 z-10 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07]">
+  <header className="px-4 sm:px-5 pr-14 py-1.5 min-h-[52px] flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center gap-2 shrink-0 z-10 bg-linear-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07]">
     <div className="flex items-center gap-2.5 min-w-0">
       <div className="w-8 h-8 rounded-xl bg-[#5a63df]/10 border border-[#5a63df]/20 dark:bg-[#5a63df]/20 dark:border-[#5a63df]/30 text-[#5a63df] dark:text-[#a9afff] flex items-center justify-center shrink-0 shadow-2xs">
         <BookOpen className="w-4 h-4" />
@@ -203,7 +203,7 @@ const TabsNav = ({ activeTab, setActiveTab }) => {
 
   return (
     <div className="w-full md:w-[340px] shrink-0 z-10">
-      <TabsList className="grid w-full grid-cols-2 h-10 p-1 bg-[#f4f3fb] dark:bg-white/[0.04] border border-[#e4e2f0] dark:border-white/[0.07] rounded-xl shadow-2xs relative">
+      <TabsList className="grid w-full grid-cols-2 h-10 p-1 bg-[#f4f3fb] dark:bg-white/4 border border-[#e4e2f0] dark:border-white/[0.07] rounded-xl shadow-2xs relative">
         {tabs.map((t) => {
           const Icon = t.icon;
           const isActive = activeTab === t.value;
@@ -452,7 +452,7 @@ export default function TestResultsModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-[100] flex items-center justify-center p-2 sm:p-3 md:p-4 overflow-y-auto"
+        className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-100 flex items-center justify-center p-2 sm:p-3 md:p-4 overflow-y-auto"
       >
         <ConfettiCelebration
           show={showCelebration}

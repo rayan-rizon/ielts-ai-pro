@@ -69,16 +69,16 @@ export default function ForgotPassword() {
       {/* Background Decorative Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" data-oid="p8_wsb-">
         <div
-          className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"
+          className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px]"
           data-oid="avw1-ly"
         ></div>
         <div
-          className="absolute -top-[20%] -right-[10%] w-[70vh] h-[70vh] rounded-full bg-blue-500/10 blur-[100px] mix-blend-multiply dark:mix-blend-screen animate-pulse"
+          className="absolute top-[-20%] right-[-10%] w-[70vh] h-[70vh] rounded-full bg-blue-500/10 blur-[100px] mix-blend-multiply dark:mix-blend-screen animate-pulse"
           data-oid="t33g.1p"
         />
 
         <div
-          className="absolute top-[20%] -left-[10%] w-[50vh] h-[50vh] rounded-full bg-indigo-500/10 blur-[100px] mix-blend-multiply dark:mix-blend-screen animate-pulse delay-1000"
+          className="absolute top-[20%] left-[-10%] w-[50vh] h-[50vh] rounded-full bg-indigo-500/10 blur-[100px] mix-blend-multiply dark:mix-blend-screen animate-pulse delay-1000"
           data-oid="tp0ov67"
         />
       </div>
@@ -187,7 +187,7 @@ export default function ForgotPassword() {
                       className="p-4 text-xs font-bold text-destructive bg-destructive/10 border border-destructive/20 rounded-xl flex items-center gap-2"
                       data-oid="1k.0qyl"
                     >
-                      <AlertCircle className="w-4 h-4 flex-shrink-0" data-oid="avdh0.y" />
+                      <AlertCircle className="w-4 h-4 shrink-0" data-oid="avdh0.y" />
                       {error}
                     </motion.div>
                   )}

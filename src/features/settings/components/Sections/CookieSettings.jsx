@@ -104,7 +104,7 @@ export default function CookieSettings() {
               className={cn(
                 TILE,
                 'flex items-center gap-3 p-3.5 transition-colors',
-                isEnabled && 'border-[#5a63df]/25 bg-[#5a63df]/[0.05]'
+                isEnabled && 'border-[#5a63df]/25 bg-[#5a63df]/5'
               )}
             >
               <div
@@ -112,7 +112,7 @@ export default function CookieSettings() {
                   'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
                   isEnabled
                     ? 'bg-[#5a63df]/15 text-[#5a63df]'
-                    : 'bg-slate-200/70 text-slate-500 dark:bg-white/[0.06] dark:text-slate-400'
+                    : 'bg-slate-200/70 text-slate-500 dark:bg-white/6 dark:text-slate-400'
                 )}
               >
                 <Icon className="h-4 w-4" />

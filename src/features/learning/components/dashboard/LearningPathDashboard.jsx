@@ -10,7 +10,7 @@ import CustomizeGoalsModal from './CustomizeGoalsModal';
 import { useLearningPathDashboard } from './useLearningPathDashboard';
 
 const SKELETON_BLOCK =
-  'animate-pulse rounded-xl border border-[#e4e2f0] bg-[#f1f0fa] motion-reduce:animate-none dark:border-white/[0.07] dark:bg-white/[0.04]';
+  'animate-pulse rounded-xl border border-[#e4e2f0] bg-[#f1f0fa] motion-reduce:animate-none dark:border-white/[0.07] dark:bg-white/4';
 
 /** Mirrors the real layout 1:1 so nothing reflows when the plan arrives. */
 function LearningPathLoadingView() {

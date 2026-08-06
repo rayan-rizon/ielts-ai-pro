@@ -106,10 +106,10 @@ const TierHeader = ({
   onAddOverride,
   hasChanges,
 }) => (
-  <div className="p-4 border-b border-stone-100 dark:border-white/[0.06]">
+  <div className="p-4 border-b border-stone-100 dark:border-white/6">
     <div className="flex flex-col min-[480px]:flex-row items-start min-[480px]:items-center justify-between gap-3">
       <div className="flex items-center gap-2.5">
-        <div className="p-2 rounded-md bg-stone-100 dark:bg-white/[0.06] text-stone-600 dark:text-stone-300 shrink-0">
+        <div className="p-2 rounded-md bg-stone-100 dark:bg-white/6 text-stone-600 dark:text-stone-300 shrink-0">
           <TierIcon className="w-3.5 h-3.5" />
         </div>
         <div>
@@ -212,7 +212,7 @@ const TierBody = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <div className="space-y-1.5 p-2.5 rounded-md border border-stone-200/70 dark:border-white/[0.06] bg-stone-50/70 dark:bg-white/[0.02]">
+          <div className="space-y-1.5 p-2.5 rounded-md border border-stone-200/70 dark:border-white/6 bg-stone-50/70 dark:bg-white/2">
             <div
               className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1')}
             >
@@ -233,7 +233,7 @@ const TierBody = ({
             </div>
           </div>
 
-          <div className="space-y-1.5 p-2.5 rounded-md border border-stone-200/70 dark:border-white/[0.06] bg-stone-50/70 dark:bg-white/[0.02]">
+          <div className="space-y-1.5 p-2.5 rounded-md border border-stone-200/70 dark:border-white/6 bg-stone-50/70 dark:bg-white/2">
             <div
               className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1')}
             >
@@ -256,7 +256,7 @@ const TierBody = ({
         </div>
       </div>
 
-      <div className="pt-3 border-t border-stone-100 dark:border-white/[0.06] flex justify-between items-center mt-2">
+      <div className="pt-3 border-t border-stone-100 dark:border-white/6 flex justify-between items-center mt-2">
         <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
           {activeLimitData.updated_at
             ? `Saved ${new Date(activeLimitData.updated_at).toLocaleDateString()}`

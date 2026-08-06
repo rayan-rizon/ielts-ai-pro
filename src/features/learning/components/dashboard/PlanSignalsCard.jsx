@@ -19,12 +19,12 @@ const STEP_STATE = {
   active: {
     chip: 'border-[#5a63df]/35 bg-[#5a63df]/10 text-[#5a63df] dark:text-[#afb5ff]',
     label: 'text-[#5a63df] dark:text-[#afb5ff]',
-    rail: 'bg-[#eceafa] dark:bg-white/[0.12]',
+    rail: 'bg-[#eceafa] dark:bg-white/12',
   },
   next: {
-    chip: 'border-[#ebeaf7] bg-white text-slate-400 dark:border-white/[0.11] dark:bg-white/[0.04] dark:text-slate-500',
+    chip: 'border-[#ebeaf7] bg-white text-slate-400 dark:border-white/11 dark:bg-white/4 dark:text-slate-500',
     label: 'text-slate-400 dark:text-slate-500',
-    rail: 'bg-[#eceafa] dark:bg-white/[0.12]',
+    rail: 'bg-[#eceafa] dark:bg-white/12',
   },
 };
 
@@ -158,7 +158,7 @@ export default function PlanSignalsCard({
               'inline-flex h-8 flex-1 items-center justify-center rounded-lg px-3 text-[11px] font-bold transition-colors disabled:opacity-50',
               planUpdateAvailable
                 ? 'border border-amber-300/60 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-200'
-                : 'border border-[#e2e5f2] bg-white text-slate-600 hover:border-[#c9cdf3] hover:text-slate-900 dark:border-white/[0.11] dark:bg-white/5 dark:text-slate-300 dark:hover:text-white'
+                : 'border border-[#e2e5f2] bg-white text-slate-600 hover:border-[#c9cdf3] hover:text-slate-900 dark:border-white/11 dark:bg-white/5 dark:text-slate-300 dark:hover:text-white'
             )}
           >
             <RefreshCw
@@ -174,7 +174,7 @@ export default function PlanSignalsCard({
           <button
             type="button"
             onClick={onCustomize}
-            className="inline-flex h-8 items-center rounded-lg border border-[#e2e5f2] bg-white px-3 text-[11px] font-bold text-slate-600 transition-colors hover:border-[#c9cdf3] hover:text-slate-900 dark:border-white/[0.11] dark:bg-white/5 dark:text-slate-300 dark:hover:text-white"
+            className="inline-flex h-8 items-center rounded-lg border border-[#e2e5f2] bg-white px-3 text-[11px] font-bold text-slate-600 transition-colors hover:border-[#c9cdf3] hover:text-slate-900 dark:border-white/11 dark:bg-white/5 dark:text-slate-300 dark:hover:text-white"
           >
             <Settings2 className="mr-1.5 h-3.5 w-3.5" /> Edit plan
           </button>

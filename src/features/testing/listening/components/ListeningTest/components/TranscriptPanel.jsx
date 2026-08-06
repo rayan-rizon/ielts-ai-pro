@@ -61,12 +61,12 @@ const TranscriptPanel = ({
       {/* Synchronized Transcript Section - Integrated Panel */}
       {!examMode ? (
         <div
-          className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] overflow-hidden shadow-2xs"
+          className="flex-1 flex flex-col min-h-0 bg-linear-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] overflow-hidden shadow-2xs"
           data-oid="qpvv9b:"
         >
           {/* Header */}
           <div
-            className="flex items-center justify-between px-3.5 py-2.5 border-b border-[#e4e2f0] dark:border-white/[0.07] bg-[#f4f3fb]/60 dark:bg-white/[0.04] shrink-0"
+            className="flex items-center justify-between px-3.5 py-2.5 border-b border-[#e4e2f0] dark:border-white/[0.07] bg-[#f4f3fb]/60 dark:bg-white/4 shrink-0"
             data-oid="u.w7c68"
           >
             <div className="flex items-center gap-2.5" data-oid="35buee3">
@@ -98,7 +98,7 @@ const TranscriptPanel = ({
               size="sm"
               variant="ghost"
               onClick={() => dispatch({ type: ACTIONS.TOGGLE_TRANSCRIPT })}
-              className="text-[#5a63df] dark:text-[#a9afff] h-7 px-3 rounded-lg font-bold text-[11px] bg-white dark:bg-white/[0.06] border border-[#e4e2f0] dark:border-white/[0.1] hover:bg-slate-50 dark:hover:bg-white/[0.1] transition-all duration-200 shadow-2xs"
+              className="text-[#5a63df] dark:text-[#a9afff] h-7 px-3 rounded-lg font-bold text-[11px] bg-white dark:bg-white/6 border border-[#e4e2f0] dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all duration-200 shadow-2xs"
               data-oid="wvgykuk"
             >
               {showTranscript ? 'Hide' : 'Show'}
@@ -134,7 +134,7 @@ const TranscriptPanel = ({
                     data-oid="-_fjv0o"
                   >
                     <div
-                      className="p-2.5 rounded-full bg-[#f4f3fb] dark:bg-white/[0.06] mb-2"
+                      className="p-2.5 rounded-full bg-[#f4f3fb] dark:bg-white/6 mb-2"
                       data-oid="qrhww.y"
                     >
                       <AlertCircle className="w-5 h-5 text-slate-400" data-oid="e2sncoc" />
@@ -149,7 +149,7 @@ const TranscriptPanel = ({
           )}
         </div>
       ) : examReview ? (
-        <div className="grid flex-1 place-items-center rounded-xl border border-[#5a63df]/20 bg-[#5a63df]/[0.06] p-5 text-center dark:border-[#5a63df]/25 dark:bg-[#5a63df]/10">
+        <div className="grid flex-1 place-items-center rounded-xl border border-[#5a63df]/20 bg-[#5a63df]/6 p-5 text-center dark:border-[#5a63df]/25 dark:bg-[#5a63df]/10">
           <div>
             <p className="font-black text-slate-800 dark:text-[#a9afff]">Final review</p>
             <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">

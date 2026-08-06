@@ -226,7 +226,7 @@ export default function SpeakingConversationPanel({
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#e4e2f0] bg-white px-3.5 py-2.5 dark:border-white/[0.07] dark:bg-[#131315] sm:px-5 sm:py-3">
           <div className="flex min-w-0 items-center gap-2.5">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/[0.10] text-rose-500">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-500">
               <Mic2 className="h-4 w-4" aria-hidden="true" />
             </span>
             <div className="min-w-0">
@@ -236,7 +236,7 @@ export default function SpeakingConversationPanel({
           </div>
 
           <div
-            className="flex shrink-0 items-center gap-1.5 rounded-full border border-rose-500/15 bg-rose-500/[0.055] px-2.5 py-1.5 dark:border-rose-400/20 dark:bg-rose-400/[0.08]"
+            className="flex shrink-0 items-center gap-1.5 rounded-full border border-rose-500/15 bg-rose-500/5.5 px-2.5 py-1.5 dark:border-rose-400/20 dark:bg-rose-400/8"
             role="status"
             aria-live="polite"
           >

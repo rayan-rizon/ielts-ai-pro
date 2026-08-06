@@ -86,7 +86,7 @@ const AdminNavItem = memo(
 AdminNavItem.displayName = 'AdminNavItem';
 
 const AdminSidebarHeader = memo(() => (
-  <SidebarHeader className="border-b border-stone-200/70 dark:border-white/[0.06] p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+  <SidebarHeader className="border-b border-stone-200/70 dark:border-white/6 p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
     <div className="flex items-center justify-between w-full group-data-[collapsible=icon]:justify-center">
       <Link
         to={createPageUrl('AdminPanel')}
@@ -98,7 +98,7 @@ const AdminSidebarHeader = memo(() => (
         <div className="group-data-[collapsible=icon]:hidden flex items-center gap-2">
           <Logo size="sm" />
           <span
-            className={`${MICRO} text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-white/[0.06] border border-stone-200 dark:border-white/10 px-1.5 py-0.5 rounded-md shrink-0`}
+            className={`${MICRO} text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-white/6 border border-stone-200 dark:border-white/10 px-1.5 py-0.5 rounded-md shrink-0`}
           >
             Admin
           </span>
@@ -169,7 +169,7 @@ const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }
   }, [isMobile, setOpenMobile, handleLogout]);
 
   return (
-    <SidebarFooter className="border-t border-stone-200/70 dark:border-white/[0.06] p-3 group-data-[collapsible=icon]:p-2 space-y-1">
+    <SidebarFooter className="border-t border-stone-200/70 dark:border-white/6 p-3 group-data-[collapsible=icon]:p-2 space-y-1">
       <div className="flex justify-center mb-1">
         <SidebarTrigger
           className="text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md h-9 w-9 transition-colors"
@@ -181,8 +181,8 @@ const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }
         <ThemeToggle />
       </div>
 
-      <div className="bg-stone-50 dark:bg-white/[0.03] hover:bg-stone-100 dark:hover:bg-white/[0.06] p-2.5 rounded-md flex items-center gap-3 cursor-pointer transition-colors border border-stone-200/70 dark:border-white/[0.06] group-data-[collapsible=icon]:justify-center my-1">
-        <div className="w-8 h-8 bg-stone-900 dark:bg-white/10 rounded-md flex items-center justify-center flex-shrink-0">
+      <div className="bg-stone-50 dark:bg-white/3 hover:bg-stone-100 dark:hover:bg-white/6 p-2.5 rounded-md flex items-center gap-3 cursor-pointer transition-colors border border-stone-200/70 dark:border-white/6 group-data-[collapsible=icon]:justify-center my-1">
+        <div className="w-8 h-8 bg-stone-900 dark:bg-white/10 rounded-md flex items-center justify-center shrink-0">
           <span className="text-white dark:text-stone-50 font-bold text-xs">
             {user?.full_name?.[0] || 'A'}
           </span>

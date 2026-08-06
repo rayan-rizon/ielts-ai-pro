@@ -48,7 +48,7 @@ function BandDial() {
           stroke="currentColor"
           strokeWidth="8"
           fill="transparent"
-          className="text-slate-100 dark:text-white/[0.06]"
+          className="text-slate-100 dark:text-white/6"
         />
         <circle
           cx="56"
@@ -96,7 +96,7 @@ function CriterionColumn({ criterion, isLast }) {
       </div>
       <button
         type="button"
-        className="mt-4 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 border border-indigo-100 hover:border-indigo-200 rounded-lg py-1 px-3 w-full transition shadow-sm bg-white dark:text-indigo-400 dark:hover:text-indigo-300 dark:border-white/10 dark:hover:border-white/20 dark:shadow-none dark:bg-white/[0.04]"
+        className="mt-4 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 border border-indigo-100 hover:border-indigo-200 rounded-lg py-1 px-3 w-full transition shadow-sm bg-white dark:text-indigo-400 dark:hover:text-indigo-300 dark:border-white/10 dark:hover:border-white/20 dark:shadow-none dark:bg-white/4"
       >
         View feedback
       </button>
@@ -111,7 +111,7 @@ export default function WhatYouReceiveSection() {
       className="scroll-mt-24 py-10 sm:py-12 bg-slate-50 dark:bg-[#08080a]"
     >
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <div className="rounded-[32px] border border-indigo-100 bg-white p-5 sm:p-6 lg:p-8 shadow-[0_16px_48px_rgba(79,70,229,0.035)] dark:border-white/10 dark:bg-gradient-to-b dark:from-[#131315] dark:to-[#131315] dark:shadow-none">
+        <div className="rounded-[32px] border border-indigo-100 bg-white p-5 sm:p-6 lg:p-8 shadow-[0_16px_48px_rgba(79,70,229,0.035)] dark:border-white/10 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:shadow-none">
           <div className="grid gap-8 lg:grid-cols-[0.32fr_0.68fr] lg:items-center">
             <div className="flex flex-col items-start max-w-md">
               <span className="text-xs font-black uppercase tracking-[.2em] text-indigo-600 dark:text-indigo-400">
@@ -125,7 +125,7 @@ export default function WhatYouReceiveSection() {
                 A clear, criterion-based report with an estimated band (practice only) and
                 actionable feedback to help you improve.
               </p>
-              <div className="relative mt-8 flex items-start gap-3 rounded-2xl bg-indigo-50/50 border border-indigo-100/40 p-4 dark:bg-indigo-500/[0.08] dark:border-indigo-500/20">
+              <div className="relative mt-8 flex items-start gap-3 rounded-2xl bg-indigo-50/50 border border-indigo-100/40 p-4 dark:bg-indigo-500/8 dark:border-indigo-500/20">
                 <Info className="h-5 w-5 shrink-0 text-indigo-600 dark:text-indigo-400 mt-0.5" />
                 <p className="text-xs leading-relaxed text-indigo-700 dark:text-indigo-300 font-bold">
                   This is a practice estimate based on AI analysis and is not a result from an IELTS
@@ -133,7 +133,7 @@ export default function WhatYouReceiveSection() {
                 </p>
               </div>
             </div>
-            <div className="overflow-hidden rounded-[28px] border border-indigo-50 bg-slate-50/50 p-6 shadow-[inset_0_2px_4px_rgba(0,0,0,0.005),0_8px_30px_rgba(79,70,229,.05)] dark:border-white/10 dark:bg-white/[0.02] dark:shadow-none">
+            <div className="overflow-hidden rounded-[28px] border border-indigo-50 bg-slate-50/50 p-6 shadow-[inset_0_2px_4px_rgba(0,0,0,0.005),0_8px_30px_rgba(79,70,229,.05)] dark:border-white/10 dark:bg-white/2 dark:shadow-none">
               <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-0 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-white/10">
                 <div className="flex flex-col items-center text-center pb-6 md:pb-0 md:pr-4">
                   <span className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">

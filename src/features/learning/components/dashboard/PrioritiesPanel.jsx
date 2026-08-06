@@ -70,8 +70,8 @@ function PriorityRow({ skill, index }) {
   return (
     <div
       className={cn(
-        'min-w-0 border-b border-[#eeedf7] px-3 py-2.5 transition-colors last:border-b-0 hover:bg-[#faf9ff] dark:border-white/10 dark:hover:bg-white/[0.03]',
-        isTopPriority && 'bg-[#5a63df]/[0.03] dark:bg-[#8f97ff]/[0.05]'
+        'min-w-0 border-b border-[#eeedf7] px-3 py-2.5 transition-colors last:border-b-0 hover:bg-[#faf9ff] dark:border-white/10 dark:hover:bg-white/3',
+        isTopPriority && 'bg-[#5a63df]/3 dark:bg-[#8f97ff]/5'
       )}
     >
       <div className="flex min-w-0 items-start gap-2.5">
@@ -146,7 +146,7 @@ export default function PrioritiesPanel({ evidence }) {
         Your weakest skills first. Practising the top row moves your band the most.
       </p>
 
-      <div className="mt-3 flex-1 overflow-hidden rounded-lg border border-[#eeedf7] bg-white dark:border-white/10 dark:bg-white/[0.02]">
+      <div className="mt-3 flex-1 overflow-hidden rounded-lg border border-[#eeedf7] bg-white dark:border-white/10 dark:bg-white/2">
         {priorities.length > 0 ? (
           priorities.map((skill, index) => (
             <PriorityRow key={`${skill.kind}-${skill.skill_code}`} skill={skill} index={index} />

@@ -132,7 +132,7 @@ export default function ErrorDrilldownModal({ isOpen, onClose, category, data = 
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.04 }}
-                    className="group flex items-center justify-between gap-3 rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/40 hover:shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/[0.15]"
+                    className="group flex items-center justify-between gap-3 rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/40 hover:shadow-sm dark:border-white/10 dark:bg-white/3 dark:hover:border-white/15"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div

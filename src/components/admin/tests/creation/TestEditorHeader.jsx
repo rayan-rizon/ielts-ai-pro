@@ -52,7 +52,7 @@ const TestEditorHeader = ({
           <ChevronLeft className="h-4 w-4" />
         </button>
 
-        <div className="w-9 h-9 rounded-lg grid place-items-center shrink-0 bg-stone-100 dark:bg-white/[0.04] text-stone-600 dark:text-stone-300">
+        <div className="w-9 h-9 rounded-lg grid place-items-center shrink-0 bg-stone-100 dark:bg-white/4 text-stone-600 dark:text-stone-300">
           <ModuleIcon className="w-4 h-4" />
         </div>
 
@@ -62,7 +62,7 @@ const TestEditorHeader = ({
               <Input
                 value={title}
                 onChange={(e) => onTitleChange(e.target.value)}
-                className="font-extrabold text-lg border-transparent px-0 hover:px-2 hover:bg-stone-50 dark:hover:bg-white/[0.03] focus:bg-white dark:focus:bg-white/[0.03] border-b-2 border-b-transparent focus:border-b-stone-400 dark:focus:border-b-white/20 transition-all h-9 w-full focus-visible:ring-0 bg-transparent text-stone-900 dark:text-stone-50 placeholder:text-stone-400 dark:placeholder:text-stone-600 tracking-tight rounded-none"
+                className="font-extrabold text-lg border-transparent px-0 hover:px-2 hover:bg-stone-50 dark:hover:bg-white/3 focus:bg-white dark:focus:bg-white/3 border-b-2 border-b-transparent focus:border-b-stone-400 dark:focus:border-b-white/20 transition-all h-9 w-full focus-visible:ring-0 bg-transparent text-stone-900 dark:text-stone-50 placeholder:text-stone-400 dark:placeholder:text-stone-600 tracking-tight rounded-none"
                 placeholder="Untitled Test"
               />
             </div>
@@ -70,7 +70,7 @@ const TestEditorHeader = ({
             {/* Metadata Pills Container */}
             <div className="flex items-center gap-2 flex-wrap min-w-0">
               {/* Access Pill */}
-              <div className="flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.03] shrink-0">
+              <div className="flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/3 shrink-0">
                 <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>Access</span>
                 <Select
                   value={metadata.access_tier || 'free'}
@@ -88,7 +88,7 @@ const TestEditorHeader = ({
 
               {/* Active Toggle (Optional) */}
               {showActiveToggle && (
-                <div className="flex items-center gap-2 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.03] shrink-0">
+                <div className="flex items-center gap-2 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/3 shrink-0">
                   <label
                     htmlFor="active-switch"
                     className={cn(MICRO, 'text-stone-400 dark:text-stone-500 cursor-pointer')}
@@ -128,7 +128,7 @@ const TestEditorHeader = ({
                     value={String(metadata.cambridge_year || new Date().getFullYear())}
                     onValueChange={(v) => updateMeta('cambridge_year', parseInt(v))}
                   >
-                    <SelectTrigger className="h-7 w-24 rounded-md border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.03] text-[11px] font-bold text-stone-700 dark:text-stone-200">
+                    <SelectTrigger className="h-7 w-24 rounded-md border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/3 text-[11px] font-bold text-stone-700 dark:text-stone-200">
                       <SelectValue placeholder="Year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -145,7 +145,7 @@ const TestEditorHeader = ({
                     value={String(metadata.cambridge_test_number || 1)}
                     onValueChange={(v) => updateMeta('cambridge_test_number', parseInt(v))}
                   >
-                    <SelectTrigger className="h-7 w-24 rounded-md border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/[0.03] text-[11px] font-bold text-stone-700 dark:text-stone-200">
+                    <SelectTrigger className="h-7 w-24 rounded-md border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/3 text-[11px] font-bold text-stone-700 dark:text-stone-200">
                       <SelectValue placeholder="Test #" />
                     </SelectTrigger>
                     <SelectContent>
@@ -169,7 +169,7 @@ const TestEditorHeader = ({
       <div className="flex items-center gap-3 shrink-0 w-full lg:w-auto justify-between lg:justify-end mt-2 lg:mt-0">
         {/* Left Actions Slot (Undo/Redo) */}
         {leftActions && (
-          <div className="flex items-center gap-1 bg-stone-100 dark:bg-white/[0.04] p-1 rounded-md">
+          <div className="flex items-center gap-1 bg-stone-100 dark:bg-white/4 p-1 rounded-md">
             {leftActions}
           </div>
         )}

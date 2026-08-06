@@ -179,7 +179,7 @@ const GapFillContent = memo(function GapFillContent({
         ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
         : value
           ? 'border-rose-500 bg-rose-50/70 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300'
-          : 'bg-white dark:bg-white/[0.04] border-[#e4e2f0] dark:border-white/[0.08] text-foreground'
+          : 'bg-white dark:bg-white/4 border-[#e4e2f0] dark:border-white/8 text-foreground'
     );
   };
 
@@ -253,17 +253,14 @@ const GapFillContent = memo(function GapFillContent({
                 disabled={isFinished}
               >
                 <SelectTrigger
-                  className={cn(
-                    getInputStyle(answerKey),
-                    'flex bg-white dark:bg-white/[0.04] px-3'
-                  )}
+                  className={cn(getInputStyle(answerKey), 'flex bg-white dark:bg-white/4 px-3')}
                 >
                   {/* flex-1 and text-center ensures the letter is centered while the icon stays on the right */}
                   <div className="flex-1 text-center pr-2">
                     <span className={cn('font-bold', ACCENT_TEXT)}>{value}</span>
                   </div>
                 </SelectTrigger>
-                <SelectContent className="z-[9999] min-w-[4rem]">
+                <SelectContent className="z-9999 min-w-16">
                   {options.map((opt, oIdx) => {
                     const label = String.fromCharCode(65 + oIdx);
                     return (

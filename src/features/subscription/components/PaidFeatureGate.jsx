@@ -41,7 +41,7 @@ export default function PaidFeatureGate({
       />
 
       <div className="flex flex-1 flex-col justify-center py-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#dcdff5] bg-[#f3f3fb] text-[#5a63df] dark:border-white/10 dark:bg-white/[0.06] dark:text-[#a9afff]">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#dcdff5] bg-[#f3f3fb] text-[#5a63df] dark:border-white/10 dark:bg-white/6 dark:text-[#a9afff]">
           <LockKeyhole className="h-4 w-4" strokeWidth={2.2} />
         </span>
 

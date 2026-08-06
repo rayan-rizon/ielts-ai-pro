@@ -51,9 +51,9 @@ export default function About() {
 
       {/* Ambient Decorative Lighting starting from top-0 behind Navbar */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-0 h-[36rem] w-[36rem] rounded-full bg-gradient-to-tr from-blue-400/15 to-indigo-500/15 blur-[130px] dark:from-[#5a63df]/10 dark:to-[#5a63df]/10" />
-        <div className="absolute -right-32 top-0 h-[38rem] w-[38rem] rounded-full bg-gradient-to-br from-violet-400/15 to-fuchsia-400/15 blur-[140px] dark:from-[#5a63df]/[0.08] dark:to-[#5a63df]/[0.08]" />
-        <div className="absolute left-1/2 top-28 -translate-x-1/2 h-[26rem] w-[26rem] rounded-full bg-cyan-300/10 blur-[120px] dark:bg-transparent" />
+        <div className="absolute -left-32 top-0 h-144 w-144 rounded-full bg-linear-to-tr from-blue-400/15 to-indigo-500/15 blur-[130px] dark:from-[#5a63df]/10 dark:to-[#5a63df]/10" />
+        <div className="absolute -right-32 top-0 h-152 w-152 rounded-full bg-linear-to-br from-violet-400/15 to-fuchsia-400/15 blur-[140px] dark:from-[#5a63df]/8 dark:to-[#5a63df]/8" />
+        <div className="absolute left-1/2 top-28 -translate-x-1/2 h-104 w-104 rounded-full bg-cyan-300/10 blur-[120px] dark:bg-transparent" />
       </div>
 
       <Navbar

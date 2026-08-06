@@ -11,7 +11,7 @@ export default function AboutCTA({ onSignup, onPricing }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-gradient-to-br from-[#4f38ea] via-[#5c47f0] to-[#216ff0] text-white rounded-[28px] md:rounded-[36px] p-6 sm:p-8 md:p-10 border border-white/15 shadow-[0_25px_60px_-15px_rgba(79,70,229,0.4)] dark:shadow-[0_35px_75px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden text-center group"
+          className="bg-linear-to-br from-[#4f38ea] via-[#5c47f0] to-[#216ff0] text-white rounded-[28px] md:rounded-[36px] p-6 sm:p-8 md:p-10 border border-white/15 shadow-[0_25px_60px_-15px_rgba(79,70,229,0.4)] dark:shadow-[0_35px_75px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden text-center group"
         >
           {/* Subtle Grid overlay */}
           <div className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none">
@@ -37,7 +37,7 @@ export default function AboutCTA({ onSignup, onPricing }) {
 
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-[-0.035em] relative z-10 max-w-2xl mx-auto">
             Ready to Reach Your{' '}
-            <span className="bg-gradient-to-r from-[#a6edff] to-[#dcf9ff] bg-clip-text text-transparent drop-shadow-sm">
+            <span className="bg-linear-to-r from-[#a6edff] to-[#dcf9ff] bg-clip-text text-transparent drop-shadow-sm">
               Target Band 7.5+?
             </span>
           </h2>

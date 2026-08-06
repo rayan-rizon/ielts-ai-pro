@@ -51,8 +51,8 @@ export default function Contact() {
 
       {/* Ambient Decorative Lighting */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 top-12 h-[34rem] w-[34rem] rounded-full bg-blue-200/20 blur-[130px] dark:bg-[#5a63df]/10" />
-        <div className="absolute -right-40 top-8 h-[38rem] w-[38rem] rounded-full bg-indigo-500/10 blur-[140px] dark:bg-[#5a63df]/[0.08]" />
+        <div className="absolute -left-40 top-12 h-136 w-136 rounded-full bg-blue-200/20 blur-[130px] dark:bg-[#5a63df]/10" />
+        <div className="absolute -right-40 top-8 h-152 w-152 rounded-full bg-indigo-500/10 blur-[140px] dark:bg-[#5a63df]/8" />
       </div>
 
       <Navbar

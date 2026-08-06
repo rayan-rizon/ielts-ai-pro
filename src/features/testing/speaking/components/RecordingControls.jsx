@@ -26,7 +26,7 @@ function MicrophoneError({ message }) {
       exit={{ opacity: 0, y: -8 }}
       className="flex w-full max-w-2xl items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-3 dark:border-red-900/50 dark:bg-red-950/30"
     >
-      <MicOff className="h-5 w-5 flex-shrink-0 text-red-500" aria-hidden="true" />
+      <MicOff className="h-5 w-5 shrink-0 text-red-500" aria-hidden="true" />
       <p className="text-sm text-red-700 dark:text-red-300">{message}</p>
     </motion.div>
   );
@@ -132,7 +132,7 @@ const RecordingControls = React.memo(
                 className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-all sm:h-14 sm:w-14 ${
                   autoSubmitPaused
                     ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 shadow-sm dark:text-amber-300'
-                    : 'border-[#e4e2f0] bg-white text-slate-500 shadow-sm hover:border-amber-500/30 hover:bg-amber-500/[0.06] hover:text-amber-700 dark:border-white/[0.07] dark:bg-white/[0.03] dark:text-slate-400'
+                    : 'border-[#e4e2f0] bg-white text-slate-500 shadow-sm hover:border-amber-500/30 hover:bg-amber-500/6 hover:text-amber-700 dark:border-white/[0.07] dark:bg-white/3 dark:text-slate-400'
                 }`}
               >
                 {autoSubmitPaused ? (
@@ -149,10 +149,10 @@ const RecordingControls = React.memo(
               aria-label={isListening ? 'Finish and send answer' : 'Start recording answer'}
               className={`group relative flex h-12 min-w-[190px] items-center justify-center gap-2.5 rounded-2xl border px-5 text-sm font-extrabold transition-all sm:h-14 ${
                 isProcessing || isSpeaking || isTTSLoading
-                  ? 'cursor-not-allowed border-[#e4e2f0] bg-[#f4f3fb] text-slate-500 opacity-60 dark:border-white/[0.07] dark:bg-white/[0.04] dark:text-slate-400'
+                  ? 'cursor-not-allowed border-[#e4e2f0] bg-[#f4f3fb] text-slate-500 opacity-60 dark:border-white/[0.07] dark:bg-white/4 dark:text-slate-400'
                   : isListening
                     ? 'border-rose-500 bg-rose-500 text-white shadow-lg shadow-rose-500/20 hover:bg-rose-600'
-                    : 'border-rose-500/20 bg-white text-rose-600 shadow-md shadow-rose-500/10 hover:-translate-y-0.5 hover:border-rose-500/35 hover:bg-rose-500/[0.04] dark:bg-white/[0.03] dark:text-rose-400'
+                    : 'border-rose-500/20 bg-white text-rose-600 shadow-md shadow-rose-500/10 hover:-translate-y-0.5 hover:border-rose-500/35 hover:bg-rose-500/4 dark:bg-white/3 dark:text-rose-400'
               }`}
             >
               {isProcessing ? (

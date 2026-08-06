@@ -121,7 +121,7 @@ function SectionPips({ entry, sections }) {
               className={cn(
                 'h-3 w-1.5 rounded-[2px] cursor-pointer',
                 lost === 0
-                  ? 'bg-slate-200 dark:bg-white/[0.12]'
+                  ? 'bg-slate-200 dark:bg-white/12'
                   : intensity > 0.66
                     ? 'bg-[rgb(var(--signal-fault))]'
                     : intensity > 0.33
@@ -223,7 +223,7 @@ export function MarkLossCard({ testResults, testType = 'reading', onReviewAnswer
                       className={cn(
                         TILE,
                         'flex w-full items-center gap-2.5 px-2.5 py-1.5 text-left transition-all duration-150',
-                        'hover:border-[#c9cdf3] active:scale-[0.995] dark:hover:border-white/[0.18]'
+                        'hover:border-[#c9cdf3] active:scale-[0.995] dark:hover:border-white/18'
                       )}
                     >
                       <span

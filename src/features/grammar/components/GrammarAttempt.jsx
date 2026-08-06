@@ -48,7 +48,7 @@ function statusClasses({ current, submitted, isCorrect, diagnostic }) {
     return 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-300';
   if (submitted)
     return 'border-[#e2e5f2] bg-[#f4f3fb] text-[#5a63df] dark:border-white/10 dark:bg-white/5 dark:text-indigo-300';
-  return 'border-[#e2e5f2] bg-white text-slate-500 hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400';
+  return 'border-[#e2e5f2] bg-white text-slate-500 hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/3 dark:text-slate-400';
 }
 
 export default function GrammarAttempt({
@@ -235,8 +235,8 @@ export default function GrammarAttempt({
                         className={cn(
                           'flex w-full items-center gap-3.5 rounded-lg border px-4 py-3 text-left text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#10131f]',
                           selected
-                            ? 'border-[#5a63df] bg-[#5a63df]/[0.08] text-slate-900 ring-2 ring-[#5a63df]/15 dark:border-indigo-400 dark:bg-indigo-500/20 dark:text-indigo-100'
-                            : 'border-[#e2e5f2] bg-white text-slate-700 hover:border-[#c9cdf3] hover:bg-[#f4f3fb] dark:border-white/10 dark:bg-white/[0.025] dark:text-slate-200 dark:hover:border-indigo-500/30 dark:hover:bg-white/5',
+                            ? 'border-[#5a63df] bg-[#5a63df]/8 text-slate-900 ring-2 ring-[#5a63df]/15 dark:border-indigo-400 dark:bg-indigo-500/20 dark:text-indigo-100'
+                            : 'border-[#e2e5f2] bg-white text-slate-700 hover:border-[#c9cdf3] hover:bg-[#f4f3fb] dark:border-white/10 dark:bg-white/2.5 dark:text-slate-200 dark:hover:border-indigo-500/30 dark:hover:bg-white/5',
                           currentFeedback?.submitted && 'cursor-default'
                         )}
                       >
@@ -275,7 +275,7 @@ export default function GrammarAttempt({
                         ? 'Write the complete corrected sentence'
                         : 'Type the missing word or phrase'
                     }
-                    className="h-11 rounded-lg border-[#e2e5f2] bg-[#fbfbfe] px-4 font-semibold text-slate-900 transition-all focus-visible:ring-[#5a63df] dark:border-white/10 dark:bg-white/[0.025] dark:text-white"
+                    className="h-11 rounded-lg border-[#e2e5f2] bg-[#fbfbfe] px-4 font-semibold text-slate-900 transition-all focus-visible:ring-[#5a63df] dark:border-white/10 dark:bg-white/2.5 dark:text-white"
                   />
                 </div>
               )}
@@ -323,7 +323,7 @@ export default function GrammarAttempt({
               <div
                 className={cn(
                   TILE,
-                  'mt-4 flex items-start gap-3 border-[#5a63df]/20 bg-[#5a63df]/[0.04] p-3.5 dark:bg-indigo-500/5'
+                  'mt-4 flex items-start gap-3 border-[#5a63df]/20 bg-[#5a63df]/4 p-3.5 dark:bg-indigo-500/5'
                 )}
               >
                 <Target className="mt-0.5 h-4 w-4 shrink-0 text-[#5a63df] dark:text-indigo-400" />

@@ -210,7 +210,7 @@ export default function MaintenancePanel({ value, saving, onSave }) {
               className="w-full resize-none rounded-md border border-stone-300 bg-white p-2.5 font-mono text-xs font-medium dark:border-white/15 dark:bg-[#131315]"
             />
           </Field>
-          <p className="flex items-start gap-1.5 rounded-md bg-stone-50 p-2.5 text-[10px] font-medium leading-snug text-stone-500 dark:bg-white/[0.03] dark:text-stone-400">
+          <p className="flex items-start gap-1.5 rounded-md bg-stone-50 p-2.5 text-[10px] font-medium leading-snug text-stone-500 dark:bg-white/3 dark:text-stone-400">
             <LifeBuoy className="mt-px h-3 w-3 shrink-0" />
             <span>
               <strong className="font-bold">/admin</strong> and{' '}

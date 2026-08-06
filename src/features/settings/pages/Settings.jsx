@@ -301,11 +301,11 @@ export default function Settings() {
     <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-[size:20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-24 -top-24 -z-0 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+        className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
       />
 
       <m.div
@@ -359,8 +359,8 @@ export default function Settings() {
                       className={cn(
                         'relative flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg px-3.5 py-2.5 text-sm font-bold transition-colors duration-150',
                         isActive
-                          ? 'bg-[#5a63df]/[0.09] text-[#4a52c9] dark:bg-[#5a63df]/[0.22] dark:text-[#c3c7ff]'
-                          : 'text-slate-600 hover:bg-[#5a63df]/[0.05] hover:text-[#4a52c9] dark:text-slate-300 dark:hover:bg-white/[0.05] dark:hover:text-slate-100'
+                          ? 'bg-[#5a63df]/9 text-[#4a52c9] dark:bg-[#5a63df]/22 dark:text-[#c3c7ff]'
+                          : 'text-slate-600 hover:bg-[#5a63df]/5 hover:text-[#4a52c9] dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-slate-100'
                       )}
                     >
                       {isActive && (

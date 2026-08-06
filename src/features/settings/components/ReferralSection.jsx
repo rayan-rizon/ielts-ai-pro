@@ -117,13 +117,13 @@ export default function ReferralSection() {
             exit={{ opacity: 0 }}
             className="grid w-full grid-cols-1 gap-3 lg:grid-cols-2"
           >
-            <div className={cn(PANEL, 'h-[17rem] p-4 sm:p-5')}>
+            <div className={cn(PANEL, 'h-68 p-4 sm:p-5')}>
               <Skeleton className="mb-4 h-9 w-9 rounded-lg" />
               <Skeleton className="mb-4 h-6 w-40 rounded" />
               <Skeleton className="mb-4 h-10 w-full rounded-lg" />
               <Skeleton className="mt-auto h-9 w-full rounded-lg" />
             </div>
-            <div className={cn(PANEL, 'flex h-[17rem] flex-col justify-between p-4 sm:p-5')}>
+            <div className={cn(PANEL, 'flex h-68 flex-col justify-between p-4 sm:p-5')}>
               <Skeleton className="mb-4 h-6 w-36 rounded" />
               <div className="grid grid-cols-2 gap-3">
                 <Skeleton className="h-24 rounded-lg" />
@@ -241,9 +241,7 @@ export default function ReferralSection() {
                   </span>
                   <span className={cn(MICRO, MUTED)}>Successful invites</span>
                 </div>
-                <div
-                  className={cn(TILE, 'border-[#5a63df]/25 bg-[#5a63df]/[0.05] p-3.5 text-center')}
-                >
+                <div className={cn(TILE, 'border-[#5a63df]/25 bg-[#5a63df]/5 p-3.5 text-center')}>
                   <span className="block text-2xl font-black tabular-nums text-[#5a63df]">
                     {stats?.bonus_writing_credits || 0}
                   </span>
@@ -306,7 +304,7 @@ export default function ReferralSection() {
                           'flex h-full flex-col justify-between gap-3 p-4',
                           claimed &&
                             'border-[rgba(var(--signal-ok),0.3)] bg-[rgba(var(--signal-ok),0.05)]',
-                          canClaim && 'border-amber-400/50 bg-amber-50/50 dark:bg-amber-500/[0.06]'
+                          canClaim && 'border-amber-400/50 bg-amber-50/50 dark:bg-amber-500/6'
                         )}
                       >
                         <div className="flex items-center justify-between">

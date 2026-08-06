@@ -44,7 +44,7 @@ const VideoRow = ({ item, onOpen }) => {
       <div
         className={cn(
           WELL,
-          'relative aspect-video w-28 shrink-0 overflow-hidden rounded-md border border-[#e4e2f0] dark:border-white/[0.09]'
+          'relative aspect-video w-28 shrink-0 overflow-hidden rounded-md border border-[#e4e2f0] dark:border-white/9'
         )}
       >
         {thumbnail ? (
@@ -83,7 +83,7 @@ const BookTile = ({ item, onOpen }) => (
     <div
       className={cn(
         WELL,
-        'relative aspect-[4/3] w-20 shrink-0 overflow-hidden rounded-md border border-[#e4e2f0] dark:border-white/[0.09]'
+        'relative aspect-4/3 w-20 shrink-0 overflow-hidden rounded-md border border-[#e4e2f0] dark:border-white/9'
       )}
     >
       {item.thumbnail_url ? (

@@ -191,11 +191,11 @@ const AudioPlayer = React.forwardRef(
 
     return (
       <div
-        className="bg-gradient-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] rounded-xl shadow-2xs border border-[#e4e2f0] dark:border-white/[0.07] p-3 sm:p-3.5 relative overflow-hidden transition-all duration-300"
+        className="bg-linear-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] rounded-xl shadow-2xs border border-[#e4e2f0] dark:border-white/[0.07] p-3 sm:p-3.5 relative overflow-hidden transition-all duration-300"
         data-oid="gf2zoyb"
       >
         <div
-          className="absolute inset-0 bg-gradient-to-r from-[#5a63df]/[0.04] via-transparent to-[#5a63df]/[0.04] dark:from-[#5a63df]/10 dark:to-[#5a63df]/10 opacity-100 pointer-events-none"
+          className="absolute inset-0 bg-linear-to-r from-[#5a63df]/4 via-transparent to-[#5a63df]/4 dark:from-[#5a63df]/10 dark:to-[#5a63df]/10 opacity-100 pointer-events-none"
           data-oid="_gx.skv"
         />
 
@@ -278,7 +278,7 @@ const AudioPlayer = React.forwardRef(
 
               {!examMode ? (
                 <div className="flex sm:hidden items-center" data-oid="mobile-rate">
-                  <div className="bg-[#f4f3fb] dark:bg-white/[0.04] border border-[#e4e2f0] dark:border-white/[0.07] rounded-lg flex items-center px-2 py-1 transition-colors">
+                  <div className="bg-[#f4f3fb] dark:bg-white/4 border border-[#e4e2f0] dark:border-white/[0.07] rounded-lg flex items-center px-2 py-1 transition-colors">
                     <select
                       className="text-[10px] bg-transparent border-none focus:ring-0 p-0 text-slate-600 dark:text-slate-300 font-bold cursor-pointer outline-none w-10"
                       value={playbackRate}
@@ -335,7 +335,7 @@ const AudioPlayer = React.forwardRef(
 
             <div className="flex items-center" data-oid="1dl5ed9">
               <div
-                className="bg-[#f4f3fb] dark:bg-white/[0.04] border border-[#e4e2f0] dark:border-white/[0.07] rounded-lg flex items-center px-2.5 py-1.5 transition-colors hover:border-[#5a63df]/30 dark:hover:border-[#5a63df]/30"
+                className="bg-[#f4f3fb] dark:bg-white/4 border border-[#e4e2f0] dark:border-white/[0.07] rounded-lg flex items-center px-2.5 py-1.5 transition-colors hover:border-[#5a63df]/30 dark:hover:border-[#5a63df]/30"
                 data-oid="2ht8gpv"
               >
                 <Volume2

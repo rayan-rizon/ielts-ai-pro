@@ -164,7 +164,7 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
         onBlurCapture={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) setIsPaused(false);
         }}
-        className="-mx-1 flex gap-2.5 overflow-x-auto scroll-smooth px-1 pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="-mx-1 flex gap-2.5 overflow-x-auto scroll-smooth px-1 pb-2 pt-1 scrollbar-none [&::-webkit-scrollbar]:hidden"
       >
         {scrollingKits.map((kit, index) => {
           const theme = kit.theme || FALLBACK_THEMES[0];
@@ -176,7 +176,7 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
               whileHover={{ y: -2 }}
               transition={{ type: 'spring', stiffness: 350, damping: 25 }}
               aria-hidden={isClone}
-              className="group w-[180px] shrink-0 snap-start rounded-xl border border-[#eceafa] bg-gradient-to-br from-[#fdfcff] to-[#f3efff] transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/[0.015] sm:w-[192px]"
+              className="group w-[180px] shrink-0 snap-start rounded-xl border border-[#eceafa] bg-linear-to-br from-[#fdfcff] to-[#f3efff] transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/1.5 sm:w-[192px]"
             >
               <Link
                 to={`/vocabulary/kits/${kit.slug}`}

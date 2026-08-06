@@ -29,7 +29,7 @@ const ListeningTestClock = memo(function ListeningTestClock() {
   if (isFinished) {
     return (
       <div
-        className="flex h-8 items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-emerald-600 transition-all duration-300 dark:border-emerald-400/30 dark:bg-emerald-400/[0.12] dark:text-emerald-300"
+        className="flex h-8 items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-emerald-600 transition-all duration-300 dark:border-emerald-400/30 dark:bg-emerald-400/12 dark:text-emerald-300"
         data-oid="f8s.k6k"
       >
         <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
@@ -43,8 +43,8 @@ const ListeningTestClock = memo(function ListeningTestClock() {
     <div
       className={`flex h-8 items-center gap-1.5 rounded-lg border px-3 text-sm transition-all duration-300 ${
         timeRemaining < 60
-          ? 'animate-pulse border-rose-200 bg-rose-50 text-rose-600 ring-1 ring-rose-500/20 dark:border-rose-400/30 dark:bg-rose-400/[0.12] dark:text-rose-300'
-          : 'border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 dark:border-white/[0.10] dark:bg-white/[0.055] dark:text-slate-200'
+          ? 'animate-pulse border-rose-200 bg-rose-50 text-rose-600 ring-1 ring-rose-500/20 dark:border-rose-400/30 dark:bg-rose-400/12 dark:text-rose-300'
+          : 'border-[#e4e2f0] bg-[#f4f3fb] text-slate-700 dark:border-white/10 dark:bg-white/5.5 dark:text-slate-200'
       }`}
       data-oid="f8s.k6k"
     >

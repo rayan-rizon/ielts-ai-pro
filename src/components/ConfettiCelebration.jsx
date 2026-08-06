@@ -107,7 +107,7 @@ export default function ConfettiCelebration({
       {show && particles.length > 0 && (
         <div
           aria-hidden="true"
-          className="fixed inset-0 pointer-events-none z-[200] overflow-hidden"
+          className="fixed inset-0 pointer-events-none z-200 overflow-hidden"
           data-testid="confetti-celebration"
           data-oid="7f_0xgu"
         >

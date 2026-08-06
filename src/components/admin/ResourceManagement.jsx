@@ -93,28 +93,28 @@ const CONTENT_TYPE_STYLE = {
     icon: 'text-rose-500 dark:text-rose-400',
     iconBg: 'bg-rose-500/10 border-rose-300/50 dark:border-rose-800/60',
     badge:
-      'text-rose-600 dark:text-rose-400 border-rose-300/50 dark:border-rose-800/60 bg-rose-500/[0.06]',
+      'text-rose-600 dark:text-rose-400 border-rose-300/50 dark:border-rose-800/60 bg-rose-500/6',
   },
   pdf: {
     active: 'border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400',
     icon: 'text-blue-500 dark:text-blue-400',
     iconBg: 'bg-blue-500/10 border-blue-300/50 dark:border-blue-800/60',
     badge:
-      'text-blue-600 dark:text-blue-400 border-blue-300/50 dark:border-blue-800/60 bg-blue-500/[0.06]',
+      'text-blue-600 dark:text-blue-400 border-blue-300/50 dark:border-blue-800/60 bg-blue-500/6',
   },
   blog: {
     active: 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
     icon: 'text-emerald-500 dark:text-emerald-400',
     iconBg: 'bg-emerald-500/10 border-emerald-300/50 dark:border-emerald-800/60',
     badge:
-      'text-emerald-600 dark:text-emerald-400 border-emerald-300/50 dark:border-emerald-800/60 bg-emerald-500/[0.06]',
+      'text-emerald-600 dark:text-emerald-400 border-emerald-300/50 dark:border-emerald-800/60 bg-emerald-500/6',
   },
   vocabulary: {
     active: 'border-violet-500 bg-violet-500/10 text-violet-600 dark:text-violet-400',
     icon: 'text-violet-500 dark:text-violet-400',
     iconBg: 'bg-violet-500/10 border-violet-300/50 dark:border-violet-800/60',
     badge:
-      'text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-800/60 bg-violet-500/[0.06]',
+      'text-violet-600 dark:text-violet-400 border-violet-300/50 dark:border-violet-800/60 bg-violet-500/6',
   },
 };
 const contentTypeStyle = (type) => CONTENT_TYPE_STYLE[type] || CONTENT_TYPE_STYLE.pdf;
@@ -123,9 +123,9 @@ const FIELD_LABEL = cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5 block')
 const FIELD_INPUT =
   'h-10 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
 const TIER_ACCENT = {
-  free: 'border-stone-300 dark:border-white/20 bg-stone-100 dark:bg-white/[0.06] text-stone-700 dark:text-stone-200',
+  free: 'border-stone-300 dark:border-white/20 bg-stone-100 dark:bg-white/6 text-stone-700 dark:text-stone-200',
   pro: 'border-[rgb(var(--signal-ok)/0.4)] bg-[rgb(var(--signal-ok)/0.08)] text-[rgb(var(--signal-ok))]',
-  premium: 'border-indigo-400/50 bg-indigo-500/[0.08] text-indigo-600 dark:text-indigo-400',
+  premium: 'border-indigo-400/50 bg-indigo-500/8 text-indigo-600 dark:text-indigo-400',
 };
 
 const ResourceManagement = () => {
@@ -671,10 +671,7 @@ const ResourceManagement = () => {
                   Import Data
                 </DropdownMenuItem>
               </div>
-              <DropdownMenuSeparator
-                className="bg-stone-100 dark:bg-white/[0.06]"
-                data-oid="sep-1"
-              />
+              <DropdownMenuSeparator className="bg-stone-100 dark:bg-white/6" data-oid="sep-1" />
               <DropdownMenuItem
                 onClick={() => {
                   setEditingResource(null);
@@ -795,7 +792,7 @@ const ResourceManagement = () => {
                         type="button"
                         onClick={() => fetchVideoMetadata(formData.url)}
                         disabled={fetchingMetadata}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 grid place-items-center rounded-md bg-indigo-500/[0.08] text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/[0.15] transition-all active:scale-90 disabled:opacity-50"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 grid place-items-center rounded-md bg-indigo-500/8 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/15 transition-all active:scale-90 disabled:opacity-50"
                         title="Fetch video details"
                       >
                         <Sparkles
@@ -871,7 +868,7 @@ const ResourceManagement = () => {
                         />
                       </div>
                     )}
-                    <label className="flex-1 h-12 border-2 border-dashed border-stone-200 dark:border-white/10 rounded-md flex items-center justify-center gap-2 cursor-pointer hover:border-indigo-400/50 hover:bg-indigo-500/[0.04] transition-all">
+                    <label className="flex-1 h-12 border-2 border-dashed border-stone-200 dark:border-white/10 rounded-md flex items-center justify-center gap-2 cursor-pointer hover:border-indigo-400/50 hover:bg-indigo-500/4 transition-all">
                       <Upload className="w-3.5 h-3.5 text-stone-400" />
                       <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
                         {thumbnailFile ? thumbnailFile.name : 'Upload image'}
@@ -910,7 +907,7 @@ const ResourceManagement = () => {
                 </div>
 
                 {/* Publish Toggle */}
-                <div className="flex items-center justify-between p-3 rounded-md bg-stone-50 dark:bg-white/[0.03] border border-stone-200/70 dark:border-white/[0.06]">
+                <div className="flex items-center justify-between p-3 rounded-md bg-stone-50 dark:bg-white/3 border border-stone-200/70 dark:border-white/6">
                   <div>
                     <Label className="text-xs font-bold text-stone-900 dark:text-stone-50">
                       Publish immediately
@@ -1247,32 +1244,32 @@ const ResourceManagement = () => {
                     [...Array(5)].map((_, i) => (
                       <TableRow
                         key={`skeleton-${i}`}
-                        className="border-b border-stone-100 dark:border-white/[0.04]"
+                        className="border-b border-stone-100 dark:border-white/4"
                         data-oid="-85f5s-"
                       >
                         <TableCell className="py-3 px-4" data-oid="skel-1">
-                          <div className="w-4 h-4 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded" />
+                          <div className="w-4 h-4 bg-stone-100 dark:bg-white/4 animate-pulse rounded" />
                         </TableCell>
                         <TableCell className="py-3 px-4" data-oid="skel-2">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded-lg" />
+                            <div className="w-10 h-10 bg-stone-100 dark:bg-white/4 animate-pulse rounded-lg" />
                             <div className="space-y-1.5">
-                              <div className="w-32 h-3 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded" />
-                              <div className="w-24 h-2 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded opacity-50" />
+                              <div className="w-32 h-3 bg-stone-100 dark:bg-white/4 animate-pulse rounded" />
+                              <div className="w-24 h-2 bg-stone-100 dark:bg-white/4 animate-pulse rounded opacity-50" />
                             </div>
                           </div>
                         </TableCell>
                         <TableCell className="py-3 px-4" data-oid="skel-3">
-                          <div className="w-14 h-5 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded-md mx-auto" />
+                          <div className="w-14 h-5 bg-stone-100 dark:bg-white/4 animate-pulse rounded-md mx-auto" />
                         </TableCell>
                         <TableCell className="py-3 px-4" data-oid="skel-4">
-                          <div className="w-14 h-5 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded-md mx-auto" />
+                          <div className="w-14 h-5 bg-stone-100 dark:bg-white/4 animate-pulse rounded-md mx-auto" />
                         </TableCell>
                         <TableCell className="py-3 px-4" data-oid="skel-5">
-                          <div className="w-10 h-3 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded mx-auto" />
+                          <div className="w-10 h-3 bg-stone-100 dark:bg-white/4 animate-pulse rounded mx-auto" />
                         </TableCell>
                         <TableCell className="py-3 px-4" data-oid="skel-6">
-                          <div className="w-20 h-7 bg-stone-100 dark:bg-white/[0.04] animate-pulse rounded-md ml-auto" />
+                          <div className="w-20 h-7 bg-stone-100 dark:bg-white/4 animate-pulse rounded-md ml-auto" />
                         </TableCell>
                       </TableRow>
                     ))
@@ -1329,7 +1326,7 @@ const ResourceManagement = () => {
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.15 }}
                           onClick={() => openEditDialog(resource)}
-                          className="border-b border-stone-100 dark:border-white/[0.05] hover:bg-stone-50/70 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer"
+                          className="border-b border-stone-100 dark:border-white/5 hover:bg-stone-50/70 dark:hover:bg-white/2 transition-colors group cursor-pointer"
                           data-oid="9wxwesr"
                         >
                           <TableCell
@@ -1492,7 +1489,7 @@ const ResourceManagement = () => {
           {/* Pagination */}
           {totalPages > 1 && (
             <div
-              className="px-4 py-3 border-t border-stone-100 dark:border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3"
+              className="px-4 py-3 border-t border-stone-100 dark:border-white/6 flex flex-col sm:flex-row items-center justify-between gap-3"
               data-oid="pagin"
             >
               <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
