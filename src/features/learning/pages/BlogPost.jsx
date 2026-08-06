@@ -94,7 +94,9 @@ function slugify(value) {
 }
 
 function prepareArticleContent(content) {
-  const cleanHtml = DOMPurify.sanitize(content || '');
+  const cleanHtml = DOMPurify.sanitize(content || '', {
+    FORBID_ATTR: ['style'],
+  });
   if (typeof DOMParser === 'undefined') return { html: cleanHtml, toc: [] };
 
   const documentNode = new DOMParser().parseFromString(cleanHtml, 'text/html');

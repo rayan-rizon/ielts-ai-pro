@@ -74,4 +74,9 @@ graphify-out/
 .agent/
 .agents/
 
+# --- Transcript Assets (Local Only - Do Not Commit) ---
+transcript/
+_tagger_*.cjs
+
+
 
