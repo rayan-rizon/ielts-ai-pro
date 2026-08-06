@@ -97,7 +97,7 @@ export function OverallScoreRing({ overallScore, bandInfo, _isTranscriptEstimate
             transition={{ delay: 0.5, duration: 0.4 }}
             className={cn(
               NUM,
-              'bg-linear-to-br from-slate-900 to-slate-700 bg-clip-text text-4xl font-extrabold leading-none tracking-tight text-transparent dark:from-white dark:to-zinc-200'
+              'bg-linear-to-br/srgb from-slate-900 to-slate-700 bg-clip-text text-4xl font-extrabold leading-none tracking-tight text-transparent dark:from-white dark:to-zinc-200'
             )}
           >
             {scoreDisplay}
@@ -201,7 +201,7 @@ export function PerformanceMetricsPanel({ criteria }) {
                     initial={{ width: 0 }}
                     animate={{ width: `${(scoreVal / 9) * 100}%` }}
                     transition={{ duration: 1.1, ease: 'easeOut', delay: 0.2 }}
-                    className={cn('h-full rounded-full bg-linear-to-r shadow-xs', style.bar)}
+                    className={cn('h-full rounded-full bg-linear-to-r/srgb shadow-xs', style.bar)}
                   />
                 </div>
               )}

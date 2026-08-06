@@ -232,7 +232,7 @@ function Hero({ config }) {
 
         <div className="relative">
           <div
-            className={`absolute -inset-4 rounded-[2.2rem] bg-linear-to-br ${config.accent} opacity-15 blur-2xl`}
+            className={`absolute -inset-4 rounded-[2.2rem] bg-linear-to-br/srgb ${config.accent} opacity-15 blur-2xl`}
           />
           <div className="relative overflow-hidden rounded-4xl border border-white/80 bg-white p-3 shadow-[0_30px_80px_-32px_rgba(30,41,59,.45)] dark:border-white/10 dark:bg-slate-900">
             <img

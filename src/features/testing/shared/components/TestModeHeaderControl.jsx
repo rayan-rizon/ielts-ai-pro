@@ -191,7 +191,7 @@ export default function TestModeHeaderControl({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.96 }}
               transition={{ duration: 0.15 }}
-              className="absolute left-0 top-full mt-2.5 z-50 w-[calc(100vw-2rem)] max-w-xs sm:w-76 rounded-[22px] border border-[#dce0f2] dark:border-white/10 bg-linear-to-br from-white via-[#faf9ff] to-[#f2f0ff] dark:from-[#111214] dark:via-[#191b1f] dark:to-[#111214] p-3.5 text-left shadow-[0_20px_50px_-25px_rgba(15,23,42,0.35)] dark:shadow-black/60 backdrop-blur-xl"
+              className="absolute left-0 top-full mt-2.5 z-50 w-[calc(100vw-2rem)] max-w-xs sm:w-76 rounded-[22px] border border-[#dce0f2] dark:border-white/10 bg-linear-to-br/srgb from-white via-[#faf9ff] to-[#f2f0ff] dark:from-[#111214] dark:via-[#191b1f] dark:to-[#111214] p-3.5 text-left shadow-[0_20px_50px_-25px_rgba(15,23,42,0.35)] dark:shadow-black/60 backdrop-blur-xl"
             >
               {/* Arrow dynamically pointing up to active mode toggle pill (Practice vs Exam) */}
               <div

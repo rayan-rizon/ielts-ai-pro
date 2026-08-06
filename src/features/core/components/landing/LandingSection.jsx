@@ -53,7 +53,7 @@ export function SectionHeading({
         {script && (
           <span className="font-handwritten relative inline-block tracking-[-0.03em] text-[#5262ef]">
             {script}
-            <span className="absolute -bottom-1 left-[5%] h-[3px] w-[90%] -rotate-1 rounded-full bg-linear-to-r from-[#89d9d0] to-[#7086f6] opacity-70" />
+            <span className="absolute -bottom-1 left-[5%] h-[3px] w-[90%] -rotate-1 rounded-full bg-linear-to-r/srgb from-[#89d9d0] to-[#7086f6] opacity-70" />
           </span>
         )}{' '}
         {suffix}

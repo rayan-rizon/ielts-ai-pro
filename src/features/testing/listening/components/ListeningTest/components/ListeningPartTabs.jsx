@@ -56,7 +56,7 @@ export default function ListeningPartTabs({
                     data-oid="egxwqa:"
                   >
                     <div
-                      className="absolute inset-0 bg-linear-to-b from-white/20 to-transparent rounded-lg sm:rounded-xl"
+                      className="absolute inset-0 bg-linear-to-b/srgb from-white/20 to-transparent rounded-lg sm:rounded-xl"
                       data-oid="jn6630n"
                     />
                   </motion.div>

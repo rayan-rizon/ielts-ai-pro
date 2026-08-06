@@ -104,7 +104,7 @@ const InitialWelcomeScreen = ({ partNumber, title }) => {
             loading="eager"
           />
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-white to-transparent dark:from-[#131315]"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-t/srgb from-white to-transparent dark:from-[#131315]"
             aria-hidden="true"
           />
         </div>

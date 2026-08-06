@@ -145,7 +145,7 @@ export default function SpeakingReport({
       >
         <section className="overflow-hidden rounded-xl border border-[#e4e2f0] bg-white shadow-lg shadow-rose-950/5 dark:border-white/10 dark:bg-[#131315]">
           {/* Header Banner */}
-          <header className="relative overflow-hidden bg-linear-to-r from-rose-500 via-rose-500 to-rose-600 px-4 pb-4 pt-3 text-white sm:px-6 sm:pb-5 lg:px-7 lg:pb-5 lg:pt-4">
+          <header className="relative overflow-hidden bg-linear-to-r/srgb from-rose-500 via-rose-500 to-rose-600 px-4 pb-4 pt-3 text-white sm:px-6 sm:pb-5 lg:px-7 lg:pb-5 lg:pt-4">
             <HeaderWaveBackground />
 
             <div className="relative mb-2.5 flex items-center justify-between gap-4">

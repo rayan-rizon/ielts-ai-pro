@@ -55,7 +55,7 @@ const ReviewEmblemSVG = () => {
   const headerGrad = `headerGrad-${uid}`;
 
   return (
-    <div className="w-11 h-11 rounded-2xl bg-linear-to-br from-[#efedff] to-[#e4e7ff] dark:from-indigo-500/20 dark:to-violet-500/10 ring-1 ring-[#5862df]/20 shadow-sm flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
+    <div className="w-11 h-11 rounded-2xl bg-linear-to-br/srgb from-[#efedff] to-[#e4e7ff] dark:from-indigo-500/20 dark:to-violet-500/10 ring-1 ring-[#5862df]/20 shadow-sm flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
       <svg className="w-full h-full shrink-0" viewBox="0 0 32 32" fill="none">
         <defs>
           <linearGradient id={calGrad} x1="0%" y1="0%" x2="100%" y2="100%">

@@ -102,7 +102,7 @@ export default function AboutValues() {
           {VALUES.map((value, i) => (
             <m.div key={i} variants={itemVariants}>
               <Card
-                className={`h-full rounded-[24px] border bg-linear-to-br from-white via-slate-50/50 to-indigo-50/30 p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 border-slate-200/80 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:border-white/10 relative overflow-hidden group shadow-sm dark:shadow-none hover:shadow-lg dark:hover:shadow-none ${value.border}`}
+                className={`h-full rounded-[24px] border bg-linear-to-br/srgb from-white via-slate-50/50 to-indigo-50/30 p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 border-slate-200/80 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] dark:border-white/10 relative overflow-hidden group shadow-sm dark:shadow-none hover:shadow-lg dark:hover:shadow-none ${value.border}`}
               >
                 <CardGridBackground />
                 <div

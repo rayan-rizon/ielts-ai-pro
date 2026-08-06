@@ -33,7 +33,7 @@ const NotFound = () => {
         />
 
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-linear-to-tr from-indigo-500/5 via-primary/5 to-purple-500/5 rounded-full blur-3xl"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-linear-to-tr/srgb from-indigo-500/5 via-primary/5 to-purple-500/5 rounded-full blur-3xl"
           data-oid="lmqbe-n"
         />
       </div>
@@ -55,7 +55,7 @@ const NotFound = () => {
           >
             {/* Glitchy 404 Text Effect */}
             <div
-              className="text-[8rem] sm:text-[10rem] md:text-[12rem] font-black leading-none tracking-tighter select-none relative z-10 bg-clip-text text-transparent bg-linear-to-b from-foreground via-foreground/90 to-foreground/40"
+              className="text-[8rem] sm:text-[10rem] md:text-[12rem] font-black leading-none tracking-tighter select-none relative z-10 bg-clip-text text-transparent bg-linear-to-b/srgb from-foreground via-foreground/90 to-foreground/40"
               data-oid="sgm-1ee"
             >
               404

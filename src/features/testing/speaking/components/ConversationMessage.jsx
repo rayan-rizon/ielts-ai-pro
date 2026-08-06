@@ -26,7 +26,7 @@ function MessageAvatar({ entry, authUser }) {
   }
 
   return (
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25 ring-2 ring-white/80 dark:ring-white/10 sm:h-9 sm:w-9">
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br/srgb from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25 ring-2 ring-white/80 dark:ring-white/10 sm:h-9 sm:w-9">
       <span className="text-xs font-bold">
         {(authUser?.full_name || 'C').charAt(0).toUpperCase()}
       </span>
@@ -38,7 +38,7 @@ function getBubbleClass(entry) {
   // Examiner live / speaking — light rose blush
   if (entry.speaker !== 'user') {
     if (entry.isExaminerLive) {
-      return 'rounded-2xl rounded-tl-sm border border-rose-100 bg-linear-to-br from-rose-50 to-pink-50/70 text-left font-medium text-slate-800 shadow-sm dark:border-rose-500/20 dark:from-[#161516] dark:via-[#131315] dark:to-[#161516] dark:text-slate-100';
+      return 'rounded-2xl rounded-tl-sm border border-rose-100 bg-linear-to-br/srgb from-rose-50 to-pink-50/70 text-left font-medium text-slate-800 shadow-sm dark:border-rose-500/20 dark:from-[#161516] dark:via-[#131315] dark:to-[#161516] dark:text-slate-100';
     }
     // Regular examiner — quiet panel tile
     return 'rounded-2xl rounded-tl-sm border border-[#ebeaf7] bg-[#fbfbfe] text-left font-medium text-slate-800 shadow-[0_1px_6px_-2px_hsl(220_15%_50%/0.10)] dark:border-white/10 dark:bg-white/4 dark:text-slate-100';
@@ -51,11 +51,11 @@ function getBubbleClass(entry) {
 
   // User live/draft transcript — soft lavender
   if (entry.isLive || entry.isTranscriptDraft) {
-    return 'rounded-2xl rounded-tr-sm border border-rose-100 bg-linear-to-br from-rose-50 via-white to-red-50/60 text-left font-medium text-slate-800 shadow-sm dark:border-rose-500/20 dark:from-[#171416] dark:via-[#131315] dark:to-[#171416] dark:text-slate-100';
+    return 'rounded-2xl rounded-tr-sm border border-rose-100 bg-linear-to-br/srgb from-rose-50 via-white to-red-50/60 text-left font-medium text-slate-800 shadow-sm dark:border-rose-500/20 dark:from-[#171416] dark:via-[#131315] dark:to-[#171416] dark:text-slate-100';
   }
 
   // Completed user message — soft red pastel
-  return 'rounded-2xl rounded-tr-sm border border-rose-100/80 bg-linear-to-br from-rose-50 via-pink-50 to-red-50/80 text-left font-medium text-rose-950 shadow-sm dark:border-rose-500/20 dark:from-[#191416] dark:via-[#151315] dark:to-[#191416] dark:text-rose-100';
+  return 'rounded-2xl rounded-tr-sm border border-rose-100/80 bg-linear-to-br/srgb from-rose-50 via-pink-50 to-red-50/80 text-left font-medium text-rose-950 shadow-sm dark:border-rose-500/20 dark:from-[#191416] dark:via-[#151315] dark:to-[#191416] dark:text-rose-100';
 }
 
 function LoadingText({ speaker }) {
@@ -75,8 +75,8 @@ function LoadingText({ speaker }) {
 
 const LiveWaveform = React.memo(function LiveWaveform({ active, tone }) {
   const colors = {
-    rose: 'bg-linear-to-t from-rose-500 to-pink-400',
-    red: 'bg-linear-to-t from-red-600 to-rose-400',
+    rose: 'bg-linear-to-t/srgb from-rose-500 to-pink-400',
+    red: 'bg-linear-to-t/srgb from-red-600 to-rose-400',
   };
 
   return (

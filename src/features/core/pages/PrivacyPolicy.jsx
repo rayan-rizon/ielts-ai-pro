@@ -571,7 +571,7 @@ const PrivacyPolicy = () => {
             >
               <div data-oid="v.11s-b">
                 <h1
-                  className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-purple-600 mb-2"
+                  className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-linear-to-r/srgb from-blue-600 to-purple-600 mb-2"
                   data-oid="o-c54d3"
                 >
                   Privacy Policy

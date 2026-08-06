@@ -111,7 +111,7 @@ export default function WhatYouReceiveSection() {
       className="scroll-mt-24 py-10 sm:py-12 bg-slate-50 dark:bg-[#08080a]"
     >
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <div className="rounded-[32px] border border-indigo-100 bg-white p-5 sm:p-6 lg:p-8 shadow-[0_16px_48px_rgba(79,70,229,0.035)] dark:border-white/10 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:shadow-none">
+        <div className="rounded-[32px] border border-indigo-100 bg-white p-5 sm:p-6 lg:p-8 shadow-[0_16px_48px_rgba(79,70,229,0.035)] dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] dark:shadow-none">
           <div className="grid gap-8 lg:grid-cols-[0.32fr_0.68fr] lg:items-center">
             <div className="flex flex-col items-start max-w-md">
               <span className="text-xs font-black uppercase tracking-[.2em] text-indigo-600 dark:text-indigo-400">

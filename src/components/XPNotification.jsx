@@ -25,7 +25,7 @@ export default function XPNotification({ show, xp, bonus, streak, onComplete }) 
             data-oid=":ser:tj"
           >
             {/* Background Glow */}
-            <div className="absolute inset-0 bg-linear-to-br from-amber-400/20 via-orange-500/20 to-red-500/20 blur-3xl -z-10 group-hover:scale-110 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-linear-to-br/srgb from-amber-400/20 via-orange-500/20 to-red-500/20 blur-3xl -z-10 group-hover:scale-110 transition-transform duration-500" />
 
             <div className="bg-white/10 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-white/10 px-10 py-8 rounded-4xl shadow-[0_0_50px_-12px_rgba(245,158,11,0.3)] flex flex-col items-center gap-5 relative overflow-hidden">
               {/* Animated Inner Shine */}
@@ -36,7 +36,7 @@ export default function XPNotification({ show, xp, bonus, streak, onComplete }) 
               />
 
               <motion.div
-                className="p-3 bg-linear-to-br from-amber-400 to-orange-500 rounded-2xl shadow-lg ring-4 ring-white/20"
+                className="p-3 bg-linear-to-br/srgb from-amber-400 to-orange-500 rounded-2xl shadow-lg ring-4 ring-white/20"
                 animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
                 transition={{ duration: 0.5, repeat: 2 }}
                 data-oid="hy1fdt1"
@@ -46,7 +46,7 @@ export default function XPNotification({ show, xp, bonus, streak, onComplete }) 
 
               <div className="flex flex-col items-center">
                 <motion.div
-                  className="text-6xl font-black tracking-tighter bg-clip-text text-transparent bg-linear-to-br from-amber-400 via-orange-500 to-red-500 py-1"
+                  className="text-6xl font-black tracking-tighter bg-clip-text text-transparent bg-linear-to-br/srgb from-amber-400 via-orange-500 to-red-500 py-1"
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}

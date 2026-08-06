@@ -112,7 +112,7 @@ const TermsOfService = () => {
             >
               <div data-oid="pldsf3g">
                 <h1
-                  className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-purple-600 mb-2"
+                  className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-linear-to-r/srgb from-primary to-purple-600 mb-2"
                   data-oid="w7no-8o"
                 >
                   Terms of Service

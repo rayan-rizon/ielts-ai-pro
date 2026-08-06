@@ -195,7 +195,7 @@ export default function ListeningTestMainContent({
 
         {/* Floating Mobile Audio Player */}
         {isMobile && leftPanelWidth === 0 && currentSection.audio_url && (
-          <div className="absolute bottom-0 left-0 right-0 p-2 z-40 bg-linear-to-t from-background/95 via-background/90 to-transparent pb-4 pt-8">
+          <div className="absolute bottom-0 left-0 right-0 p-2 z-40 bg-linear-to-t/srgb from-background/95 via-background/90 to-transparent pb-4 pt-8">
             <AudioPlayer
               ref={audioPlayerRef}
               src={currentSection.audio_url}

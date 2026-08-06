@@ -101,8 +101,8 @@ const AudioUploader = ({ url, onUrlChange }) => {
           error
             ? 'border-rose-500/30 bg-rose-500/6 dark:border-rose-400/30 dark:bg-rose-950/20'
             : url
-              ? 'border-[#5a63df]/30 bg-linear-to-b from-white to-[#faf9ff] dark:border-white/8 dark:from-[#141319] dark:to-[#100f15]'
-              : 'border-dashed border-[#e4e2f0] dark:border-white/10 bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] hover:border-[#5a63df]/40'
+              ? 'border-[#5a63df]/30 bg-linear-to-b/srgb from-white to-[#faf9ff] dark:border-white/8 dark:from-[#141319] dark:to-[#100f15]'
+              : 'border-dashed border-[#e4e2f0] dark:border-white/10 bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] hover:border-[#5a63df]/40'
         )}
       >
         {uploading ? (
@@ -1197,7 +1197,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                     </div>
 
                     {/* Quick Tip */}
-                    <div className="p-4 bg-linear-to-br from-stone-50/50 to-stone-50/50 dark:from-stone-800/50 dark:to-stone-900/50 rounded-2xl border border-stone-100/50 dark:border-stone-800">
+                    <div className="p-4 bg-linear-to-br/srgb from-stone-50/50 to-stone-50/50 dark:from-stone-800/50 dark:to-stone-900/50 rounded-2xl border border-stone-100/50 dark:border-stone-800">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="h-2 w-2 rounded-full bg-stone-500 animate-pulse" />
                         <span className="text-[10px] font-black text-stone-600 dark:text-stone-400 uppercase tracking-widest">
@@ -1321,7 +1321,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                   animate={{ opacity: 1, y: 0 }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-linear-to-br from-stone-50/50 to-stone-50/30 dark:from-stone-950/20 dark:to-stone-950/10 rounded-2xl -z-10" />
+                  <div className="absolute inset-0 bg-linear-to-br/srgb from-stone-50/50 to-stone-50/30 dark:from-stone-950/20 dark:to-stone-950/10 rounded-2xl -z-10" />
                   <div className="bg-white/70 dark:bg-stone-900/70 border border-stone-200/50 dark:border-stone-800/30 rounded-2xl p-12 text-center">
                     <div className="w-16 h-16 rounded-2xl bg-stone-50 dark:bg-stone-900/30 flex items-center justify-center mx-auto mb-4 border border-stone-100 dark:border-stone-800">
                       <FileText className="w-8 h-8 text-stone-600 dark:text-stone-400" />
@@ -1443,7 +1443,7 @@ const QuestionGroupEditor = ({
       data-oid="x:by8mt"
     >
       <div
-        className={`p-4 sm:p-5 flex items-center justify-between cursor-pointer transition-all ${group.isCollapsed ? 'hover:bg-stone-50 dark:hover:bg-stone-800/50' : 'bg-linear-to-r from-stone-50/50 to-stone-100/30 dark:from-stone-800 dark:to-stone-800/50'}`}
+        className={`p-4 sm:p-5 flex items-center justify-between cursor-pointer transition-all ${group.isCollapsed ? 'hover:bg-stone-50 dark:hover:bg-stone-800/50' : 'bg-linear-to-r/srgb from-stone-50/50 to-stone-100/30 dark:from-stone-800 dark:to-stone-800/50'}`}
         onClick={() => onUpdate({ ...group, isCollapsed: !group.isCollapsed })}
         data-oid="epf.1ci"
       >
@@ -1572,7 +1572,7 @@ const QuestionGroupEditor = ({
                                 n.questions[qIdx] = { ...n.questions[qIdx], ...updates };
                                 onUpdate(n);
                               }}
-                              className="h-4 w-4 rounded-sm border-2 border-stone-300 dark:border-stone-600 data-[state=checked]:bg-linear-to-r data-[state=checked]:from-stone-500 data-[state=checked]:to-stone-600 data-[state=checked]:border-stone-500 data-[state=checked]:text-white data-[state=checked]:shadow-sm data-[state=checked]: transition-all duration-200"
+                              className="h-4 w-4 rounded-sm border-2 border-stone-300 dark:border-stone-600 data-[state=checked]:bg-linear-to-r/srgb data-[state=checked]:from-stone-500 data-[state=checked]:to-stone-600 data-[state=checked]:border-stone-500 data-[state=checked]:text-white data-[state=checked]:shadow-sm data-[state=checked]: transition-all duration-200"
                               data-oid="afwihim"
                             />
 

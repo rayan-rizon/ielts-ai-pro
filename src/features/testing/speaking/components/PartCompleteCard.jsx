@@ -18,7 +18,7 @@ const PartCompleteCard = React.memo(
             className="w-full"
           >
             {/* Card */}
-            <div className="relative overflow-hidden rounded-xl border border-rose-200/60 bg-linear-to-br from-rose-50 via-pink-50/60 to-rose-50/40 shadow-sm dark:border-rose-500/20 dark:from-[#151415] dark:via-[#131315] dark:to-[#151415]">
+            <div className="relative overflow-hidden rounded-xl border border-rose-200/60 bg-linear-to-br/srgb from-rose-50 via-pink-50/60 to-rose-50/40 shadow-sm dark:border-rose-500/20 dark:from-[#151415] dark:via-[#131315] dark:to-[#151415]">
               {/* Subtle radial glow at top-centre */}
               <div
                 className="pointer-events-none absolute -top-10 left-1/2 h-40 w-56 -translate-x-1/2 rounded-full bg-rose-400/20 blur-3xl dark:bg-rose-500/15"
@@ -34,7 +34,7 @@ const PartCompleteCard = React.memo(
                 >
                   {/* Glow ring */}
                   <div className="absolute inset-0 rounded-2xl bg-rose-400/25 blur-lg" />
-                  <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br from-rose-400 to-rose-600 shadow-md shadow-rose-500/30">
+                  <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br/srgb from-rose-400 to-rose-600 shadow-md shadow-rose-500/30">
                     <CheckCircle2 className="h-6 w-6 text-white drop-shadow-sm" />
                   </div>
                 </motion.div>
@@ -59,7 +59,7 @@ const PartCompleteCard = React.memo(
                   <div className="pt-0.5">
                     <Button
                       onClick={onMoveToNext}
-                      className="group relative h-11 overflow-hidden rounded-xl bg-linear-to-r from-rose-500 to-rose-600 px-8 text-[11px] font-extrabold uppercase tracking-[0.18em] text-white shadow-md shadow-rose-500/30 transition-all duration-200 hover:from-rose-600 hover:to-rose-700 hover:shadow-rose-500/45 active:scale-95"
+                      className="group relative h-11 overflow-hidden rounded-xl bg-linear-to-r/srgb from-rose-500 to-rose-600 px-8 text-[11px] font-extrabold uppercase tracking-[0.18em] text-white shadow-md shadow-rose-500/30 transition-all duration-200 hover:from-rose-600 hover:to-rose-700 hover:shadow-rose-500/45 active:scale-95"
                     >
                       <span className="flex items-center gap-2">
                         Proceed to Part {currentPartNumber + 1}

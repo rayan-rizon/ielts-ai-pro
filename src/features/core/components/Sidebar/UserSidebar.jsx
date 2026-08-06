@@ -25,9 +25,9 @@ const ACCENT_ACTIVE =
 const ACCENT_HOVER =
   'hover:bg-[#5a63df]/[0.07] hover:text-[#4a52c9] dark:hover:bg-white/8 dark:hover:text-white';
 const AI_BADGE =
-  'border-[0.5px] border-[#c3c8f2]/80 bg-linear-to-br from-[#f5f6ff] via-[#eef0ff] to-[#fbfaff] text-[#5b64c8] shadow-[0_1px_5px_rgba(86,97,233,0.08)] dark:border-[#7f87e2]/30 dark:bg-linear-to-br dark:from-[#30366f]/85 dark:via-[#393474]/70 dark:to-[#2b355e]/85 dark:text-[#cbd0f5] dark:shadow-[0_1px_6px_rgba(86,97,233,0.12)]';
+  'border-[0.5px] border-[#c3c8f2]/80 bg-linear-to-br/srgb from-[#f5f6ff] via-[#eef0ff] to-[#fbfaff] text-[#5b64c8] shadow-[0_1px_5px_rgba(86,97,233,0.08)] dark:border-[#7f87e2]/30 dark:bg-linear-to-br/srgb dark:from-[#30366f]/85 dark:via-[#393474]/70 dark:to-[#2b355e]/85 dark:text-[#cbd0f5] dark:shadow-[0_1px_6px_rgba(86,97,233,0.12)]';
 const AI_BADGE_ACTIVE =
-  'border-[0.5px] border-[#bdc3f0]/90 bg-linear-to-br from-[#edf0ff] via-[#e4e7ff] to-[#f5f2ff] text-[#4f58bb] shadow-[0_2px_7px_rgba(86,97,233,0.12)] dark:border-[#a0a7ed]/35 dark:bg-linear-to-br dark:from-[#4a53a0] dark:via-[#4d438c] dark:to-[#3d4b89] dark:text-[#eef0ff] dark:shadow-[0_2px_8px_rgba(86,97,233,0.16)]';
+  'border-[0.5px] border-[#bdc3f0]/90 bg-linear-to-br/srgb from-[#edf0ff] via-[#e4e7ff] to-[#f5f2ff] text-[#4f58bb] shadow-[0_2px_7px_rgba(86,97,233,0.12)] dark:border-[#a0a7ed]/35 dark:bg-linear-to-br/srgb dark:from-[#4a53a0] dark:via-[#4d438c] dark:to-[#3d4b89] dark:text-[#eef0ff] dark:shadow-[0_2px_8px_rgba(86,97,233,0.16)]';
 
 /** One nav row. Every item shares the same accent — the group label above it does the wayfinding. */
 const NavItem = memo(({ item, isActive }) => {
@@ -165,12 +165,12 @@ const UpgradeCard = ({ isFree, onNavigate }) => {
   return (
     <Link
       to={createPageUrl('Pricing')}
-      className="group relative block overflow-hidden rounded-xl border border-[#5a63df]/30 bg-linear-to-r from-[#5a63df]/8 via-[#7a82ed]/[0.14] to-[#5a63df]/6 p-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#5a63df]/60 hover:shadow-[0_6px_20px_-4px_rgba(90,99,223,0.25)] active:scale-[0.98] dark:border-[#8f97ff]/30 dark:from-[#5a63df]/22 dark:via-[#7a82ed]/16 dark:to-[#5a63df]/18 dark:hover:border-[#8f97ff]/60 dark:hover:shadow-[0_6px_20px_-4px_rgba(143,151,255,0.25)]"
+      className="group relative block overflow-hidden rounded-xl border border-[#5a63df]/30 bg-linear-to-r/srgb from-[#5a63df]/8 via-[#7a82ed]/[0.14] to-[#5a63df]/6 p-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#5a63df]/60 hover:shadow-[0_6px_20px_-4px_rgba(90,99,223,0.25)] active:scale-[0.98] dark:border-[#8f97ff]/30 dark:from-[#5a63df]/22 dark:via-[#7a82ed]/16 dark:to-[#5a63df]/18 dark:hover:border-[#8f97ff]/60 dark:hover:shadow-[0_6px_20px_-4px_rgba(143,151,255,0.25)]"
       onClick={onNavigate}
     >
       <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:justify-center">
         {/* Crown Icon Chip */}
-        <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-tr from-[#5a63df] to-[#7880ed] text-white shadow-sm shadow-[#5a63df]/30 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 dark:from-[#6c74ec] dark:to-[#969dff]">
+        <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-tr/srgb from-[#5a63df] to-[#7880ed] text-white shadow-sm shadow-[#5a63df]/30 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 dark:from-[#6c74ec] dark:to-[#969dff]">
           <Crown className="h-4 w-4 text-white" strokeWidth={2.2} />
         </div>
 

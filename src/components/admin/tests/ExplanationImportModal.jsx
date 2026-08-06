@@ -782,7 +782,7 @@ const ExplanationImportModal = ({
           <div className="flex items-center justify-between mb-4">
             <div className="flex flex-col gap-1">
               <DialogTitle className="flex items-center gap-2 text-lg">
-                <div className="w-8 h-8 rounded-lg bg-linear-to-br from-stone-500 to-stone-500 flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 rounded-lg bg-linear-to-br/srgb from-stone-500 to-stone-500 flex items-center justify-center shadow-sm">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 Paraphrase Detective
@@ -946,7 +946,7 @@ const ExplanationImportModal = ({
                       onClick={() => setShowGuide(!showGuide)}
                       className="w-full px-4 py-3 flex items-center gap-3 bg-stone-50/50 dark:bg-stone-950/20 hover:bg-stone-100/50 dark:hover:bg-stone-900/30 transition-colors text-left"
                     >
-                      <div className="w-7 h-7 rounded-lg bg-linear-to-br from-stone-500 to-stone-500 flex items-center justify-center shadow-sm shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-linear-to-br/srgb from-stone-500 to-stone-500 flex items-center justify-center shadow-sm shrink-0">
                         <Info className="w-3.5 h-3.5 text-white" />
                       </div>
                       <div className="flex-1">
@@ -1132,7 +1132,7 @@ const ExplanationImportModal = ({
                 <div className="flex flex-col items-center justify-center py-12 space-y-4">
                   {importing ? (
                     <>
-                      <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-stone-500 to-stone-500 flex items-center justify-center shadow-xl">
+                      <div className="w-16 h-16 rounded-2xl bg-linear-to-br/srgb from-stone-500 to-stone-500 flex items-center justify-center shadow-xl">
                         <Loader2 className="w-8 h-8 text-white animate-spin" />
                       </div>
                       <p className="text-sm font-semibold text-foreground">
@@ -1217,7 +1217,7 @@ const ExplanationImportModal = ({
                   <Button
                     onClick={handleParse}
                     disabled={!rawJson.trim()}
-                    className="bg-linear-to-r from-stone-600 to-stone-600 text-white hover:from-stone-500 hover:to-stone-500 shadow-md"
+                    className="bg-linear-to-r/srgb from-stone-600 to-stone-600 text-white hover:from-stone-500 hover:to-stone-500 shadow-md"
                   >
                     <FileText className="w-4 h-4 mr-1.5" />
                     Parse & Preview
@@ -1238,7 +1238,7 @@ const ExplanationImportModal = ({
                   <Button
                     onClick={handleImport}
                     disabled={!parsedData || parsedData.matchedCount === 0}
-                    className="bg-linear-to-r from-stone-600 to-stone-600 text-white hover:from-stone-500 hover:to-stone-500 shadow-md"
+                    className="bg-linear-to-r/srgb from-stone-600 to-stone-600 text-white hover:from-stone-500 hover:to-stone-500 shadow-md"
                   >
                     <Upload className="w-4 h-4 mr-1.5" />
                     Import {parsedData?.matchedCount || 0} Explanations
@@ -1248,7 +1248,7 @@ const ExplanationImportModal = ({
               {step === 3 && !importing && (
                 <Button
                   onClick={handleClose}
-                  className="bg-linear-to-r from-stone-600 to-stone-600 text-white"
+                  className="bg-linear-to-r/srgb from-stone-600 to-stone-600 text-white"
                 >
                   Done
                 </Button>

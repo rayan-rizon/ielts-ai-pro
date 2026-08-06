@@ -9,7 +9,7 @@ export default function HandsFreeAnswerControl({ enabled, onChange, compact = fa
   return (
     <section
       className={cn(
-        'border-t border-[#e4e2f0] bg-linear-to-br from-rose-500/4.5 via-transparent to-rose-500/4.5 dark:border-white/[0.07]',
+        'border-t border-[#e4e2f0] bg-linear-to-br/srgb from-rose-500/4.5 via-transparent to-rose-500/4.5 dark:border-white/[0.07]',
         compact ? 'px-3 py-3 sm:px-4' : 'px-4 py-3.5 sm:px-5'
       )}
     >

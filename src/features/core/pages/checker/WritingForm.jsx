@@ -228,7 +228,7 @@ function FormActions({ isAnalysing, authLoading, onClearEssay, onPaste }) {
       <button
         type="submit"
         disabled={isAnalysing || authLoading}
-        className="inline-flex h-11 min-w-48 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#5a63df] to-[#6b72e8] px-6 text-xs sm:text-sm font-black text-white shadow-md shadow-[#5a63df]/25 dark:shadow-none transition hover:from-[#4b54cf] hover:to-[#5a63df] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#5a63df] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-11 min-w-48 items-center justify-center gap-2 rounded-xl bg-linear-to-r/srgb from-[#5a63df] to-[#6b72e8] px-6 text-xs sm:text-sm font-black text-white shadow-md shadow-[#5a63df]/25 dark:shadow-none transition hover:from-[#4b54cf] hover:to-[#5a63df] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#5a63df] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isAnalysing ? (
           <>

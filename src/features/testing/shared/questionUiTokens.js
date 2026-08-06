@@ -9,7 +9,7 @@ export const ACCENT_TEXT = 'text-[#5a63df] dark:text-[#a9afff]';
 
 /** Outer question/panel card shell. */
 export const PANEL_CARD =
-  'rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315]';
+  'rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315]';
 
 /** Nested tile/box surface — one step quieter than PANEL_CARD, no shadow. */
 export const TILE_SURFACE =

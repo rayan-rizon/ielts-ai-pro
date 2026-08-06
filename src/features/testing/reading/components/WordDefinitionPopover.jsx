@@ -49,7 +49,7 @@ export default function WordDefinitionPopover({ wordDefinition, addToVocabulary 
             </div>
           ) : wordDefinition.addedToVocab ? (
             <div className="text-center py-4 space-y-2 animate-in fade-in zoom-in duration-300">
-              <div className="w-12 h-12 bg-linear-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-full flex items-center justify-center mx-auto text-green-600 dark:text-green-400 shadow-lg">
+              <div className="w-12 h-12 bg-linear-to-br/srgb from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-full flex items-center justify-center mx-auto text-green-600 dark:text-green-400 shadow-lg">
                 <Check className="w-6 h-6" />
               </div>
               <p className="font-bold text-base text-slate-800 dark:text-white">
@@ -59,7 +59,7 @@ export default function WordDefinitionPopover({ wordDefinition, addToVocabulary 
             </div>
           ) : wordDefinition.alreadyExists ? (
             <div className="text-center py-4 space-y-2 animate-in fade-in zoom-in duration-300">
-              <div className="w-12 h-12 bg-linear-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-full flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400 shadow-lg">
+              <div className="w-12 h-12 bg-linear-to-br/srgb from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-full flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400 shadow-lg">
                 <BookOpen className="w-6 h-6" />
               </div>
               <p className="font-bold text-base text-slate-800 dark:text-white">
@@ -82,7 +82,7 @@ export default function WordDefinitionPopover({ wordDefinition, addToVocabulary 
                 {wordDefinition.definition}
               </div>
               {wordDefinition.example && (
-                <div className="mt-3 relative pl-4 border-l-2 border-blue-200 dark:border-blue-700/50 bg-linear-to-r from-blue-50/50 to-transparent dark:from-blue-900/20 dark:to-transparent py-2 pr-2 rounded-r-lg">
+                <div className="mt-3 relative pl-4 border-l-2 border-blue-200 dark:border-blue-700/50 bg-linear-to-r/srgb from-blue-50/50 to-transparent dark:from-blue-900/20 dark:to-transparent py-2 pr-2 rounded-r-lg">
                   <p className="text-sm italic text-slate-600 dark:text-slate-400 leading-relaxed font-serif">
                     "{wordDefinition.example}"
                   </p>
@@ -117,7 +117,7 @@ export default function WordDefinitionPopover({ wordDefinition, addToVocabulary 
               <button
                 onClick={() => addToVocabulary(wordDefinition)}
                 disabled={wordDefinition.definition === 'Loading...'}
-                className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-linear-to-r from-slate-900 to-slate-800 dark:from-blue-600 dark:to-blue-500 text-white hover:from-slate-800 hover:to-slate-700 dark:hover:from-blue-500 dark:hover:to-blue-400 active:scale-[0.98] transition-all text-sm font-bold shadow-xl shadow-slate-200/50 dark:shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-linear-to-r/srgb from-slate-900 to-slate-800 dark:from-blue-600 dark:to-blue-500 text-white hover:from-slate-800 hover:to-slate-700 dark:hover:from-blue-500 dark:hover:to-blue-400 active:scale-[0.98] transition-all text-sm font-bold shadow-xl shadow-slate-200/50 dark:shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed group"
               >
                 <BookOpen className="w-4 h-4 group-hover:scale-110 transition-transform" />
                 Add to Word Bank

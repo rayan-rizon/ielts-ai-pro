@@ -135,7 +135,7 @@ const ModalFooter = ({
   onDownloadPdf,
   isDownloadingPdf,
 }) => (
-  <div className="px-4 sm:px-5 py-2.5 bg-linear-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-t border-[#e4e2f0] dark:border-white/[0.07] flex flex-col sm:flex-row items-center justify-between gap-2.5 z-50">
+  <div className="px-4 sm:px-5 py-2.5 bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-t border-[#e4e2f0] dark:border-white/[0.07] flex flex-col sm:flex-row items-center justify-between gap-2.5 z-50">
     <div className="flex items-center gap-3">
       <FooterStatus isPremium={isPremium} earnedXP={earnedXP} handleUpgrade={handleUpgrade} />
     </div>
@@ -172,7 +172,7 @@ const ModalFooter = ({
 );
 
 const ModalHeader = ({ testType, testMode, children }) => (
-  <header className="px-4 sm:px-5 pr-14 py-1.5 min-h-[52px] flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center gap-2 shrink-0 z-10 bg-linear-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07]">
+  <header className="px-4 sm:px-5 pr-14 py-1.5 min-h-[52px] flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center gap-2 shrink-0 z-10 bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07]">
     <div className="flex items-center gap-2.5 min-w-0">
       <div className="w-8 h-8 rounded-xl bg-[#5a63df]/10 border border-[#5a63df]/20 dark:bg-[#5a63df]/20 dark:border-[#5a63df]/30 text-[#5a63df] dark:text-[#a9afff] flex items-center justify-center shrink-0 shadow-2xs">
         <BookOpen className="w-4 h-4" />

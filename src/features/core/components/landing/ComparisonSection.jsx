@@ -54,7 +54,7 @@ function DesktopComparisonTable({ categoriesList, reduceMotion }) {
             <th className="w-[24%] px-4 sm:px-6 py-4 font-bold text-[#56617f] dark:text-slate-300">
               GENERIC AI (E.G. CHATGPT)
             </th>
-            <th className="w-[24%] border-x border-[#ded9ff] bg-linear-to-b from-[#f2f0ff] to-[#eae5ff]/60 px-4 sm:px-6 py-4 text-center dark:border-violet-500/20 dark:from-violet-950/50 dark:to-indigo-950/30">
+            <th className="w-[24%] border-x border-[#ded9ff] bg-linear-to-b/srgb from-[#f2f0ff] to-[#eae5ff]/60 px-4 sm:px-6 py-4 text-center dark:border-violet-500/20 dark:from-violet-950/50 dark:to-indigo-950/30">
               <div className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[#ded9ff] bg-white px-3 py-1 text-xs font-black text-[#5e50ee] shadow-sm backdrop-blur-sm dark:border-violet-500/30 dark:bg-slate-900 dark:text-violet-300">
                 <Sparkles className="h-3.5 w-3.5 text-[#6256ef] dark:text-violet-300" />
                 IELTS AI PRO
@@ -204,7 +204,7 @@ export default function ComparisonSection({ viewport, handlePrimaryCta }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewport}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-8 rounded-[26px] border border-[#e2e5fa] bg-white/95 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md dark:border-white/10 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none overflow-hidden"
+          className="mt-8 rounded-[26px] border border-[#e2e5fa] bg-white/95 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none overflow-hidden"
         >
           {/* Mobile View Toggle */}
           <MobileComparisonTable categoriesList={categories} reduceMotion={reduceMotion} />
@@ -221,7 +221,7 @@ export default function ComparisonSection({ viewport, handlePrimaryCta }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewport}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="mt-6 rounded-[22px] border border-[#e2e5fa] bg-linear-to-r from-white/95 via-[#faf9ff] to-[#f4f2ff] p-5 sm:p-6 shadow-[0_18px_40px_-22px_rgba(79,66,220,0.20)] backdrop-blur-md dark:border-white/10 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left justify-between"
+          className="mt-6 rounded-[22px] border border-[#e2e5fa] bg-linear-to-r/srgb from-white/95 via-[#faf9ff] to-[#f4f2ff] p-5 sm:p-6 shadow-[0_18px_40px_-22px_rgba(79,66,220,0.20)] backdrop-blur-md dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left justify-between"
         >
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#ded9ff] bg-[#f2f0ff] text-[#6256ef] shadow-sm dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300">

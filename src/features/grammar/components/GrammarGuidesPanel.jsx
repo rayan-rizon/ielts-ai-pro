@@ -158,7 +158,7 @@ export default function GrammarGuidesPanel({
                 key={resource.id}
                 to={`/grammar/guides/${resource.slug}`}
                 className={cn(
-                  'group flex min-h-[174px] flex-col justify-between rounded-xl border border-[#eceafa] bg-linear-to-br p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/1.5',
+                  'group flex min-h-[174px] flex-col justify-between rounded-xl border border-[#eceafa] bg-linear-to-br/srgb p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/1.5',
                   visual.panelClass,
                   visual.cardClass
                 )}

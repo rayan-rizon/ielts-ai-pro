@@ -14,7 +14,7 @@ export const SidebarPracticeCard = ({
     <motion.div
       whileHover="hover"
       initial="initial"
-      className="relative overflow-hidden rounded-[24px] bg-linear-to-br from-[#5A5BF5] via-[#7D70F7] to-[#A78BFA] p-6 text-white shadow-xl shadow-indigo-500/20"
+      className="relative overflow-hidden rounded-[24px] bg-linear-to-br/srgb from-[#5A5BF5] via-[#7D70F7] to-[#A78BFA] p-6 text-white shadow-xl shadow-indigo-500/20"
       variants={{
         initial: { y: 0, boxShadow: '0 10px 25px -5px rgba(99, 102, 241, 0.2)' },
         hover: { y: -4, boxShadow: '0 20px 40px -15px rgba(99, 102, 241, 0.4)' },
@@ -117,15 +117,15 @@ export const SidebarPracticeCard = ({
 
             {/* Fingers overlaying the card to simulate holding it with claymorphic shading */}
             {/* Left Fingers */}
-            <div className="absolute left-[-5px] top-[40px] w-[9px] h-[18px] rounded-full bg-linear-to-r from-slate-100 to-white shadow-[inset_-1.5px_-1.5px_3px_rgba(0,0,0,0.06),1px_1.5px_4px_rgba(0,0,0,0.08)] z-20" />
-            <div className="absolute left-[-6px] top-[60px] w-[9px] h-[18px] rounded-full bg-linear-to-r from-slate-100 to-white shadow-[inset_-1.5px_-1.5px_3px_rgba(0,0,0,0.06),1px_1.5px_4px_rgba(0,0,0,0.08)] z-20" />
-            <div className="absolute left-[-7px] top-[80px] w-[9px] h-[18px] rounded-full bg-linear-to-r from-slate-100 to-white shadow-[inset_-1.5px_-1.5px_3px_rgba(0,0,0,0.06),1px_1.5px_4px_rgba(0,0,0,0.08)] z-20" />
+            <div className="absolute left-[-5px] top-[40px] w-[9px] h-[18px] rounded-full bg-linear-to-r/srgb from-slate-100 to-white shadow-[inset_-1.5px_-1.5px_3px_rgba(0,0,0,0.06),1px_1.5px_4px_rgba(0,0,0,0.08)] z-20" />
+            <div className="absolute left-[-6px] top-[60px] w-[9px] h-[18px] rounded-full bg-linear-to-r/srgb from-slate-100 to-white shadow-[inset_-1.5px_-1.5px_3px_rgba(0,0,0,0.06),1px_1.5px_4px_rgba(0,0,0,0.08)] z-20" />
+            <div className="absolute left-[-7px] top-[80px] w-[9px] h-[18px] rounded-full bg-linear-to-r/srgb from-slate-100 to-white shadow-[inset_-1.5px_-1.5px_3px_rgba(0,0,0,0.06),1px_1.5px_4px_rgba(0,0,0,0.08)] z-20" />
 
             {/* Right Thumb overlay */}
-            <div className="absolute right-[-4px] top-[45px] w-[9px] h-[18px] rounded-full bg-linear-to-l from-slate-100 to-white shadow-[inset_1.5px_-1.5px_3px_rgba(0,0,0,0.06),-1px_1.5px_4px_rgba(0,0,0,0.08)] z-20" />
+            <div className="absolute right-[-4px] top-[45px] w-[9px] h-[18px] rounded-full bg-linear-to-l/srgb from-slate-100 to-white shadow-[inset_1.5px_-1.5px_3px_rgba(0,0,0,0.06),-1px_1.5px_4px_rgba(0,0,0,0.08)] z-20" />
 
             {/* Palm/Wrist coming up from bottom-left */}
-            <div className="absolute left-[-14px] top-[95px] w-8 h-12 rounded-t-xl rounded-b-lg bg-linear-to-b from-white via-slate-50 to-slate-100 shadow-[inset_-2px_-2px_4px_rgba(0,0,0,0.05),1px_2px_6px_rgba(0,0,0,0.08)] z-10 -rotate-12" />
+            <div className="absolute left-[-14px] top-[95px] w-8 h-12 rounded-t-xl rounded-b-lg bg-linear-to-b/srgb from-white via-slate-50 to-slate-100 shadow-[inset_-2px_-2px_4px_rgba(0,0,0,0.05),1px_2px_6px_rgba(0,0,0,0.08)] z-10 -rotate-12" />
           </motion.div>
         </div>
       </div>

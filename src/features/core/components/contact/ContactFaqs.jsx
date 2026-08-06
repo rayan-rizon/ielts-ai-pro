@@ -90,7 +90,7 @@ export default function ContactFaqs() {
           </p>
         </div>
 
-        <div className="bg-white/80 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] border border-slate-200/80 dark:border-white/10 rounded-[28px] p-6 md:p-8 shadow-sm dark:shadow-none backdrop-blur-md dark:backdrop-blur-none">
+        <div className="bg-white/80 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] border border-slate-200/80 dark:border-white/10 rounded-[28px] p-6 md:p-8 shadow-sm dark:shadow-none backdrop-blur-md dark:backdrop-blur-none">
           {FAQS_DATA.map((faq, index) => (
             <FaqAccordionItem
               key={index}

@@ -41,7 +41,7 @@ const KitCard = memo(function KitCard({ kit, index = 0, user, allVocabulary = []
         to={`/vocabulary/kits/${kit.slug || kit.id}`}
         aria-label={`Open ${cleanTitle}, ${kit.category}, ${status.label}`}
         className={cn(
-          'group flex h-full min-h-[164px] flex-col justify-between rounded-xl border bg-linear-to-br p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/1.5',
+          'group flex h-full min-h-[164px] flex-col justify-between rounded-xl border bg-linear-to-br/srgb p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/1.5',
           theme.panel,
           theme.border,
           theme.hoverGlow

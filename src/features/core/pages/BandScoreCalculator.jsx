@@ -39,7 +39,7 @@ const faqs = [
 function SectionLabel({ icon: Icon, eyebrow, title, description }) {
   return (
     <div className="mb-8">
-      <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-linear-to-r from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-widest text-indigo-600 dark:border-indigo-500/30 dark:from-indigo-950/80 dark:via-purple-950/60 dark:to-slate-900/90 dark:text-indigo-300 shadow-sm backdrop-blur-xl">
+      <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-linear-to-r/srgb from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-widest text-indigo-600 dark:border-indigo-500/30 dark:from-indigo-950/80 dark:via-purple-950/60 dark:to-slate-900/90 dark:text-indigo-300 shadow-sm backdrop-blur-xl">
         <Icon className="h-3.5 w-3.5 text-indigo-500" />
         {eyebrow}
       </span>
@@ -204,13 +204,13 @@ export default function BandScoreCalculator() {
 function BandScoreCalculatorHero() {
   return (
     <section className="mx-auto max-w-[920px] px-6 text-center md:px-8 pt-4 sm:pt-6">
-      <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-linear-to-r from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-widest text-indigo-600 dark:border-indigo-500/30 dark:from-indigo-950/80 dark:via-purple-950/60 dark:to-slate-900/90 dark:text-indigo-300 shadow-sm backdrop-blur-xl">
+      <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-linear-to-r/srgb from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-widest text-indigo-600 dark:border-indigo-500/30 dark:from-indigo-950/80 dark:via-purple-950/60 dark:to-slate-900/90 dark:text-indigo-300 shadow-sm backdrop-blur-xl">
         <Sparkles className="h-3.5 w-3.5 text-indigo-500 animate-pulse" /> Free IELTS Tool
       </span>
 
       <h1 className="mt-6 text-balance text-[clamp(2.35rem,5vw,3.85rem)] font-black leading-[1.04] tracking-tight text-slate-950 dark:text-white">
         <span className="block">IELTS Band Score</span>
-        <span className="relative inline-block font-handwritten mt-2.5 bg-linear-to-r from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text pb-3 text-[1.02em] leading-[1.08] tracking-tight text-transparent">
+        <span className="relative inline-block font-handwritten mt-2.5 bg-linear-to-r/srgb from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text pb-3 text-[1.02em] leading-[1.08] tracking-tight text-transparent">
           Calculator
           <svg
             className="absolute bottom-0 left-0 w-full h-3 text-[#7384f8]"
@@ -260,7 +260,7 @@ function BandScoreCalculatorFaq({ faqs }) {
           </p>
         </div>
 
-        <div className="bg-white/80 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] border border-slate-200/80 dark:border-white/10 rounded-[28px] p-6 md:p-8 shadow-sm dark:shadow-none backdrop-blur-md dark:backdrop-blur-none">
+        <div className="bg-white/80 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] border border-slate-200/80 dark:border-white/10 rounded-[28px] p-6 md:p-8 shadow-sm dark:shadow-none backdrop-blur-md dark:backdrop-blur-none">
           {faqs.map((faq, index) => {
             const isOpen = openFaqIndex === index;
             return (

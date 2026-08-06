@@ -135,7 +135,7 @@ function ContactFormFields({ onSubmit, isSubmitting }) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full h-12 rounded-2xl bg-linear-to-r from-[#5246ea] via-[#6352f0] to-[#2b72f0] hover:from-[#4438dd] hover:to-[#1a64e0] text-white font-extrabold text-sm tracking-wide shadow-md hover:shadow-xl hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.99] mt-2 flex items-center justify-center gap-2 group shrink-0"
+        className="w-full h-12 rounded-2xl bg-linear-to-r/srgb from-[#5246ea] via-[#6352f0] to-[#2b72f0] hover:from-[#4438dd] hover:to-[#1a64e0] text-white font-extrabold text-sm tracking-wide shadow-md hover:shadow-xl hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.99] mt-2 flex items-center justify-center gap-2 group shrink-0"
       >
         {isSubmitting ? (
           <>
@@ -186,9 +186,9 @@ export default function ContactForm() {
       transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
       className="relative h-full flex flex-col"
     >
-      <div className="absolute inset-0 bg-linear-to-br from-indigo-500/10 via-purple-500/10 to-blue-500/10 blur-3xl -z-10 rounded-[3rem] opacity-70" />
+      <div className="absolute inset-0 bg-linear-to-br/srgb from-indigo-500/10 via-purple-500/10 to-blue-500/10 blur-3xl -z-10 rounded-[3rem] opacity-70" />
 
-      <Card className="p-7 sm:p-8 md:p-10 border border-slate-200/80 bg-white/80 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:shadow-none dark:backdrop-blur-none rounded-[28px] md:rounded-[32px] relative overflow-hidden group h-full flex flex-col justify-between">
+      <Card className="p-7 sm:p-8 md:p-10 border border-slate-200/80 bg-white/80 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] dark:shadow-none dark:backdrop-blur-none rounded-[28px] md:rounded-[32px] relative overflow-hidden group h-full flex flex-col justify-between">
         <CardGridBackground />
         {isSubmitted ? (
           <ContactFormSuccess onReset={() => setIsSubmitted(false)} />

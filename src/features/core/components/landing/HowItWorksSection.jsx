@@ -4,10 +4,10 @@ import { ArrowRight, BookOpen, Check, Headphones, Sparkles, TrendingUp } from 'l
 import { SectionHeading, SoftSection } from './LandingSection';
 
 const cardClass =
-  'group relative flex h-full flex-col justify-between rounded-[26px] border border-[#e2e5fa] bg-white/95 p-5 sm:p-6 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-[#6256ef]/40 hover:shadow-[0_30px_65px_-24px_rgba(82,98,239,0.38)] dark:border-white/10 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:hover:border-violet-500/35';
+  'group relative flex h-full flex-col justify-between rounded-[26px] border border-[#e2e5fa] bg-white/95 p-5 sm:p-6 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-[#6256ef]/40 hover:shadow-[0_30px_65px_-24px_rgba(82,98,239,0.38)] dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:hover:border-violet-500/35';
 
 const canvasClass =
-  'relative mt-4 flex flex-1 flex-col justify-center overflow-hidden rounded-[18px] border border-[#e7e4fb] bg-linear-to-b from-[#fcfbff] via-[#faf9ff] to-[#f4f2ff] p-3.5 sm:p-4 dark:border-white/10 dark:bg-white/3 dark:bg-none';
+  'relative mt-4 flex flex-1 flex-col justify-center overflow-hidden rounded-[18px] border border-[#e7e4fb] bg-linear-to-b/srgb from-[#fcfbff] via-[#faf9ff] to-[#f4f2ff] p-3.5 sm:p-4 dark:border-white/10 dark:bg-white/3 dark:bg-none';
 
 const smoothLoop = { ease: [0.45, 0, 0.55, 1] };
 
@@ -91,7 +91,7 @@ function FeedbackPreview({ reduceMotion }) {
           <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#737d9b]">
             Writing Evaluation
           </span>
-          <strong className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-linear-to-r from-[#6256ef] to-[#8b7cff] dark:to-violet-300">
+          <strong className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-linear-to-r/srgb from-[#6256ef] to-[#8b7cff] dark:to-violet-300">
             Band 7.0
           </strong>
         </div>
@@ -174,7 +174,7 @@ function GoalPreview({ reduceMotion }) {
           <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#737d9b]">
             Practice History
           </span>
-          <strong className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-linear-to-r from-[#6256ef] to-[#8b7cff] dark:to-violet-300">
+          <strong className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-linear-to-r/srgb from-[#6256ef] to-[#8b7cff] dark:to-violet-300">
             Band 7.5
           </strong>
         </div>

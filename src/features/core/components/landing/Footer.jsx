@@ -315,7 +315,7 @@ export default function Footer() {
   return (
     <footer className="dark relative overflow-hidden border-t border-white/10 bg-[#050711] text-slate-300 pb-10 pt-14 transition-colors duration-300">
       {/* Top ambient glowing divider bar */}
-      <div className="absolute inset-x-0 top-0 h-[1.5px] bg-linear-to-r from-transparent via-indigo-500/60 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-[1.5px] bg-linear-to-r/srgb from-transparent via-indigo-500/60 to-transparent" />
 
       {/* Decorative background lighting blobs */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">

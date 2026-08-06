@@ -75,7 +75,7 @@ export default function GrammarPracticeKitsPanel({
             <article
               key={kit.slug}
               className={cn(
-                'group relative flex min-h-[175px] flex-col overflow-hidden rounded-xl border bg-linear-to-br p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:from-white/2.5 dark:to-white/1',
+                'group relative flex min-h-[175px] flex-col overflow-hidden rounded-xl border bg-linear-to-br/srgb p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:from-white/2.5 dark:to-white/1',
                 tone.panel
               )}
             >

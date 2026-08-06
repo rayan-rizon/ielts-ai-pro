@@ -102,7 +102,7 @@ export function WritingDialogs({ logic }) {
                   handleGetFeedback();
                 }}
                 disabled={isSubmitting || isAnalyzing}
-                className="flex-1 bg-linear-to-r from-amber-400 via-yellow-400 to-amber-400 hover:from-amber-500 hover:via-yellow-500 hover:to-amber-500 dark:from-amber-500 dark:via-yellow-500 dark:to-amber-500 text-amber-900 dark:text-amber-100 border border-amber-400/30 dark:border-amber-500/30 rounded-xl h-12 font-bold shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all active:scale-[0.98]"
+                className="flex-1 bg-linear-to-r/srgb from-amber-400 via-yellow-400 to-amber-400 hover:from-amber-500 hover:via-yellow-500 hover:to-amber-500 dark:from-amber-500 dark:via-yellow-500 dark:to-amber-500 text-amber-900 dark:text-amber-100 border border-amber-400/30 dark:border-amber-500/30 rounded-xl h-12 font-bold shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all active:scale-[0.98]"
                 data-oid="yujj_ul"
               >
                 {isAnalyzing ? 'Analyzing...' : 'Get AI Feedback'}
@@ -111,7 +111,7 @@ export function WritingDialogs({ logic }) {
             <AlertDialogAction
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="flex-1 bg-linear-to-r from-[#5661e9] to-indigo-600 hover:from-[#4853d6] hover:to-indigo-700 text-white border-none rounded-xl h-12 font-bold shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98]"
+              className="flex-1 bg-linear-to-r/srgb from-[#5661e9] to-indigo-600 hover:from-[#4853d6] hover:to-indigo-700 text-white border-none rounded-xl h-12 font-bold shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98]"
               data-oid="9wn7mk:"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Now'}
@@ -155,7 +155,7 @@ export function WritingDialogs({ logic }) {
                 handleGetFeedback();
               }}
               disabled={isSubmitting || isAnalyzing}
-              className="flex-1 bg-linear-to-r from-amber-400 via-yellow-400 to-amber-400 hover:from-amber-500 hover:via-yellow-500 hover:to-amber-500 dark:from-amber-500 dark:via-yellow-500 dark:to-amber-500 text-amber-900 dark:text-amber-100 border border-amber-400/30 dark:border-amber-500/30 rounded-xl h-12 font-bold shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all active:scale-[0.98]"
+              className="flex-1 bg-linear-to-r/srgb from-amber-400 via-yellow-400 to-amber-400 hover:from-amber-500 hover:via-yellow-500 hover:to-amber-500 dark:from-amber-500 dark:via-yellow-500 dark:to-amber-500 text-amber-900 dark:text-amber-100 border border-amber-400/30 dark:border-amber-500/30 rounded-xl h-12 font-bold shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all active:scale-[0.98]"
               data-oid="faa4-7l"
             >
               {isAnalyzing ? 'Analyzing...' : 'Get AI Feedback'}
@@ -163,7 +163,7 @@ export function WritingDialogs({ logic }) {
             <AlertDialogAction
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="flex-1 bg-linear-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white border-none rounded-xl h-12 font-bold shadow-lg shadow-rose-500/20"
+              className="flex-1 bg-linear-to-r/srgb from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white border-none rounded-xl h-12 font-bold shadow-lg shadow-rose-500/20"
               data-oid="36nu0nn"
             >
               {isSubmitting ? 'Submitting...' : 'Submit and Finish'}

@@ -140,7 +140,7 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
         >
           {/* Animated background gradient contained within button pill */}
           <div
-            className="absolute inset-0 rounded-full bg-linear-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+            className="absolute inset-0 rounded-full bg-linear-to-r/srgb from-indigo-500/10 via-purple-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
             data-oid="wje94bm"
           />
 

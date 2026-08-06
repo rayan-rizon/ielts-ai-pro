@@ -63,7 +63,7 @@ export function AuthLeftPanel() {
         <div className="space-y-3">
           <h1 className="pb-1 text-3xl font-extrabold leading-[1.15] tracking-tight text-white">
             Achieve Band 7.5+ with <br />
-            <span className="bg-linear-to-r from-slate-300 to-white bg-clip-text text-transparent">
+            <span className="bg-linear-to-r/srgb from-slate-300 to-white bg-clip-text text-transparent">
               Personalized AI Feedback
             </span>
           </h1>

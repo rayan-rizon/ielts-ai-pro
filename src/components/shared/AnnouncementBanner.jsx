@@ -24,7 +24,7 @@ const TONE = {
   info: {
     icon: Sparkles,
     surface:
-      'border-b border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-r from-white via-[#f7f6fd] to-white dark:from-[#141319] dark:via-[#181722] dark:to-[#141319]',
+      'border-b border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-r/srgb from-white via-[#f7f6fd] to-white dark:from-[#141319] dark:via-[#181722] dark:to-[#141319]',
     chipBg:
       'border-[#5a63df]/25 bg-[#5a63df]/8 text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/[0.14] dark:text-[#afb5ff]',
     title: 'text-slate-900 dark:text-slate-50',
@@ -37,7 +37,7 @@ const TONE = {
   success: {
     icon: CheckCircle2,
     surface:
-      'border-b border-emerald-200 dark:border-emerald-500/20 bg-linear-to-r from-emerald-50/90 to-teal-50/90 dark:from-[#0a1813] dark:to-[#091511]',
+      'border-b border-emerald-200 dark:border-emerald-500/20 bg-linear-to-r/srgb from-emerald-50/90 to-teal-50/90 dark:from-[#0a1813] dark:to-[#091511]',
     chipBg:
       'border-emerald-500/25 bg-emerald-500/8 text-emerald-600 dark:border-emerald-400/30 dark:bg-emerald-400/[0.14] dark:text-emerald-300',
     title: 'text-emerald-950 dark:text-emerald-50',
@@ -50,7 +50,7 @@ const TONE = {
   warning: {
     icon: AlertTriangle,
     surface:
-      'border-b border-amber-200 dark:border-amber-500/20 bg-linear-to-r from-amber-50/90 to-orange-50/90 dark:from-[#171208] dark:to-[#150f07]',
+      'border-b border-amber-200 dark:border-amber-500/20 bg-linear-to-r/srgb from-amber-50/90 to-orange-50/90 dark:from-[#171208] dark:to-[#150f07]',
     chipBg:
       'border-amber-500/25 bg-amber-500/8 text-amber-600 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300',
     title: 'text-amber-950 dark:text-amber-50',
@@ -63,7 +63,7 @@ const TONE = {
   critical: {
     icon: AlertOctagon,
     surface:
-      'border-b border-rose-200 dark:border-rose-500/20 bg-linear-to-r from-rose-50/90 to-pink-50/90 dark:from-[#1a0a0c] dark:to-[#17090b]',
+      'border-b border-rose-200 dark:border-rose-500/20 bg-linear-to-r/srgb from-rose-50/90 to-pink-50/90 dark:from-[#1a0a0c] dark:to-[#17090b]',
     chipBg:
       'border-rose-500/25 bg-rose-500/8 text-rose-600 dark:border-rose-400/30 dark:bg-rose-400/[0.14] dark:text-rose-300',
     title: 'text-rose-950 dark:text-rose-50',
@@ -189,7 +189,7 @@ const AnnouncementBanner = ({ announcement, preview = false }) => {
         )}
       >
         {/* Subtle glowing accent highlight line across top border */}
-        <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#5a63df]/40 to-transparent dark:via-[#8f97ff]/45" />
+        <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r/srgb from-transparent via-[#5a63df]/40 to-transparent dark:via-[#8f97ff]/45" />
 
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-3 px-10 py-2.5 sm:px-14">
           {/* Subtle Icon Chip */}

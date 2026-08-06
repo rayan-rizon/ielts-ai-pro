@@ -107,7 +107,7 @@ function HeroVisual() {
         <br />
         Grammar
       </div>
-      <div className="overflow-hidden rounded-[38px] bg-linear-to-br from-indigo-50 via-violet-50 to-white p-3 shadow-[0_35px_90px_rgba(79,70,229,.16)] ring-1 ring-indigo-100 dark:from-[#131315] dark:via-[#131315] dark:to-[#131315] dark:shadow-none dark:ring-white/10">
+      <div className="overflow-hidden rounded-[38px] bg-linear-to-br/srgb from-indigo-50 via-violet-50 to-white p-3 shadow-[0_35px_90px_rgba(79,70,229,.16)] ring-1 ring-indigo-100 dark:from-[#131315] dark:via-[#131315] dark:to-[#131315] dark:shadow-none dark:ring-white/10">
         <img
           src="/ielts-hero-student.webp"
           alt="Student practising Academic IELTS writing with a laptop and notebook"

@@ -191,11 +191,11 @@ const AudioPlayer = React.forwardRef(
 
     return (
       <div
-        className="bg-linear-to-b from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] rounded-xl shadow-2xs border border-[#e4e2f0] dark:border-white/[0.07] p-3 sm:p-3.5 relative overflow-hidden transition-all duration-300"
+        className="bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] rounded-xl shadow-2xs border border-[#e4e2f0] dark:border-white/[0.07] p-3 sm:p-3.5 relative overflow-hidden transition-all duration-300"
         data-oid="gf2zoyb"
       >
         <div
-          className="absolute inset-0 bg-linear-to-r from-[#5a63df]/4 via-transparent to-[#5a63df]/4 dark:from-[#5a63df]/10 dark:to-[#5a63df]/10 opacity-100 pointer-events-none"
+          className="absolute inset-0 bg-linear-to-r/srgb from-[#5a63df]/4 via-transparent to-[#5a63df]/4 dark:from-[#5a63df]/10 dark:to-[#5a63df]/10 opacity-100 pointer-events-none"
           data-oid="_gx.skv"
         />
 

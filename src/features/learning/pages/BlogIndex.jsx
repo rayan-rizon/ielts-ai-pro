@@ -135,7 +135,7 @@ function ArticleVisual({ article }) {
           loading="lazy"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-linear-to-t from-[#141319]/40 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t/srgb from-[#141319]/40 via-transparent to-transparent" />
         <div className="absolute bottom-3 left-3 flex h-8 w-8 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/20 bg-white/90 dark:bg-[#141319]/90 text-[#5a63df] dark:text-[#a9afff] shadow-sm">
           <Icon className="h-4 w-4" />
         </div>
@@ -146,7 +146,7 @@ function ArticleVisual({ article }) {
   return (
     <div
       className={cn(
-        'relative h-44 overflow-hidden bg-linear-to-br transition-transform duration-500 group-hover:scale-[1.02]',
+        'relative h-44 overflow-hidden bg-linear-to-br/srgb transition-transform duration-500 group-hover:scale-[1.02]',
         config.visual
       )}
     >
@@ -168,7 +168,7 @@ function ArticleCard({ article, index }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.3, delay: index * 0.03, ease: [0.16, 1, 0.3, 1] }}
-      className="group flex flex-col overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200 hover:-translate-y-1 hover:border-[#5a63df]/40 dark:hover:border-white/20"
+      className="group flex flex-col overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200 hover:-translate-y-1 hover:border-[#5a63df]/40 dark:hover:border-white/20"
     >
       <Link to={`/blog/${article.slug}`} aria-label={`Read ${article.title}`}>
         <ArticleVisual article={article} />
@@ -225,7 +225,7 @@ function ArticlePagination({ currentPage, totalPages, totalArticles, onPageChang
 
   return (
     <nav
-      className="mt-8 flex flex-col items-center justify-between gap-4 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] px-4 py-3.5 sm:flex-row sm:px-5"
+      className="mt-8 flex flex-col items-center justify-between gap-4 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] px-4 py-3.5 sm:flex-row sm:px-5"
       aria-label="Blog article pagination"
     >
       <p className="text-xs font-medium text-slate-500 dark:text-slate-400 font-mono tabular-nums">
@@ -295,7 +295,7 @@ function ArticlePagination({ currentPage, totalPages, totalArticles, onPageChang
 
 function BlogHeroSection() {
   return (
-    <section className="relative overflow-hidden border-b border-[#e4e2f0]/60 dark:border-white/5 bg-linear-to-b from-white via-[#faf9ff] to-white dark:from-[#090b13] dark:via-[#0e111c] dark:to-[#090b13]">
+    <section className="relative overflow-hidden border-b border-[#e4e2f0]/60 dark:border-white/5 bg-linear-to-b/srgb from-white via-[#faf9ff] to-white dark:from-[#090b13] dark:via-[#0e111c] dark:to-[#090b13]">
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-10 sm:px-6 lg:grid-cols-[.95fr_1.05fr] lg:py-14">
         <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#5a63df]/30 bg-[#5a63df]/15 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[#5a63df] dark:border-[#8f97ff]/40 dark:bg-[#8f97ff]/20 dark:text-[#a9afff]">
@@ -487,7 +487,7 @@ function BlogFeaturedCarousel({ featuredArticles }) {
       </button>
 
       {/* Main Card */}
-      <div className="relative overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200">
+      <div className="relative overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200">
         <AnimatePresence mode="wait" custom={direction} initial={false}>
           <motion.div
             key={page}
@@ -574,7 +574,7 @@ function BlogSidebar({ articles, popularTags, setQuery, setCurrentPage }) {
 
   return (
     <aside className="space-y-4 lg:sticky lg:top-36">
-      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
+      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#5a63df]/30 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/15 dark:text-[#a9afff]">
             <TrendingUp className="h-3.5 w-3.5" />
@@ -606,7 +606,7 @@ function BlogSidebar({ articles, popularTags, setQuery, setCurrentPage }) {
         </div>
       </div>
 
-      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
+      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
         <div className="flex items-center gap-2">
           <Star className="h-3.5 w-3.5 text-[#5a63df] dark:text-[#8f97ff]" />
           <h2 className="text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100">

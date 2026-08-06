@@ -53,7 +53,7 @@ export default function QuestionGroupCard({
           <div className="px-2.5 pt-2" data-oid="z15c3c.">
             <div className="flex items-center justify-center gap-3 mb-2" data-oid="1n1k.e1">
               <div
-                className="h-px flex-1 bg-linear-to-r from-transparent via-slate-200 dark:via-white/10 to-transparent"
+                className="h-px flex-1 bg-linear-to-r/srgb from-transparent via-slate-200 dark:via-white/10 to-transparent"
                 data-oid="nhsoa0s"
               />
 
@@ -64,7 +64,7 @@ export default function QuestionGroupCard({
                 {group.mcq_title}
               </h3>
               <div
-                className="h-px flex-1 bg-linear-to-r from-transparent via-slate-200 dark:via-white/10 to-transparent"
+                className="h-px flex-1 bg-linear-to-r/srgb from-transparent via-slate-200 dark:via-white/10 to-transparent"
                 data-oid="nu3tn.2"
               />
             </div>

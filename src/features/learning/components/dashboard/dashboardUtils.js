@@ -24,7 +24,7 @@ export const MODULE_STYLE = {
     surface:
       'bg-emerald-50/90 text-emerald-800 border-emerald-200/80 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30',
     border: 'border-emerald-200/80 dark:border-emerald-500/30',
-    bar: 'bg-linear-to-r from-emerald-500 to-teal-400',
+    bar: 'bg-linear-to-r/srgb from-emerald-500 to-teal-400',
     badge: 'bg-emerald-100/80 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200',
   },
   writing: {
@@ -34,7 +34,7 @@ export const MODULE_STYLE = {
     surface:
       'bg-rose-50/90 text-rose-700 border-rose-200/80 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30',
     border: 'border-rose-200/80 dark:border-rose-500/30',
-    bar: 'bg-linear-to-r from-rose-500 to-pink-500',
+    bar: 'bg-linear-to-r/srgb from-rose-500 to-pink-500',
     badge: 'bg-rose-100/80 text-rose-800 dark:bg-rose-500/20 dark:text-rose-200',
   },
   listening: {
@@ -44,7 +44,7 @@ export const MODULE_STYLE = {
     surface:
       'bg-sky-50/90 text-sky-800 border-sky-200/80 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30',
     border: 'border-sky-200/80 dark:border-sky-500/30',
-    bar: 'bg-linear-to-r from-sky-500 to-blue-500',
+    bar: 'bg-linear-to-r/srgb from-sky-500 to-blue-500',
     badge: 'bg-sky-100/80 text-sky-800 dark:bg-sky-500/20 dark:text-sky-200',
   },
   speaking: {
@@ -54,7 +54,7 @@ export const MODULE_STYLE = {
     surface:
       'bg-amber-50/90 text-amber-800 border-amber-200/80 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30',
     border: 'border-amber-200/80 dark:border-amber-500/30',
-    bar: 'bg-linear-to-r from-amber-500 to-orange-500',
+    bar: 'bg-linear-to-r/srgb from-amber-500 to-orange-500',
     badge: 'bg-amber-100/80 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200',
   },
   grammar: {
@@ -64,7 +64,7 @@ export const MODULE_STYLE = {
     surface:
       'bg-violet-50/90 text-violet-800 border-violet-200/80 dark:bg-violet-500/15 dark:text-violet-300 dark:border-violet-500/30',
     border: 'border-violet-200/80 dark:border-violet-500/30',
-    bar: 'bg-linear-to-r from-violet-600 to-purple-500',
+    bar: 'bg-linear-to-r/srgb from-violet-600 to-purple-500',
     badge: 'bg-violet-100/80 text-violet-800 dark:bg-violet-500/20 dark:text-violet-200',
   },
   vocabulary: {
@@ -74,7 +74,7 @@ export const MODULE_STYLE = {
     surface:
       'bg-teal-50/90 text-teal-800 border-teal-200/80 dark:bg-teal-500/15 dark:text-teal-300 dark:border-teal-500/30',
     border: 'border-teal-200/80 dark:border-teal-500/30',
-    bar: 'bg-linear-to-r from-teal-600 to-emerald-500',
+    bar: 'bg-linear-to-r/srgb from-teal-600 to-emerald-500',
     badge: 'bg-teal-100/80 text-teal-800 dark:bg-teal-500/20 dark:text-teal-200',
   },
   general: {
@@ -84,7 +84,7 @@ export const MODULE_STYLE = {
     surface:
       'bg-indigo-50/90 text-indigo-800 border-indigo-200/80 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30',
     border: 'border-indigo-200/80 dark:border-indigo-500/30',
-    bar: 'bg-linear-to-r from-indigo-600 to-violet-600',
+    bar: 'bg-linear-to-r/srgb from-indigo-600 to-violet-600',
     badge: 'bg-indigo-100/80 text-indigo-800 dark:bg-indigo-500/20 dark:text-indigo-200',
   },
 };

@@ -9,7 +9,7 @@ const STEPS = [
     text: 'Add your IELTS Writing Task 1 or Task 2 essay (150+ words).',
     iconBg: 'bg-emerald-50/80 dark:bg-emerald-500/15',
     iconColor: 'text-emerald-600 dark:text-emerald-400',
-    cardBg: 'bg-linear-to-br from-emerald-50/20 to-white dark:from-white/3 dark:to-white/3',
+    cardBg: 'bg-linear-to-br/srgb from-emerald-50/20 to-white dark:from-white/3 dark:to-white/3',
     borderClass: 'border-emerald-500/15',
     hoverClass: 'hover:from-emerald-50/35 hover:to-emerald-50/5',
   },
@@ -19,7 +19,7 @@ const STEPS = [
     text: 'Our AI analyzes your writing and checks key assessment criteria.',
     iconBg: 'bg-indigo-50/80 dark:bg-indigo-500/15',
     iconColor: 'text-indigo-600 dark:text-indigo-400',
-    cardBg: 'bg-linear-to-br from-indigo-50/20 to-white dark:from-white/3 dark:to-white/3',
+    cardBg: 'bg-linear-to-br/srgb from-indigo-50/20 to-white dark:from-white/3 dark:to-white/3',
     borderClass: 'border-indigo-500/15',
     hoverClass: 'hover:from-indigo-50/35 hover:to-indigo-50/5',
   },
@@ -29,7 +29,7 @@ const STEPS = [
     text: 'Review suggestions, learn from mistakes, and write even better.',
     iconBg: 'bg-emerald-50/80 dark:bg-emerald-500/15',
     iconColor: 'text-emerald-600 dark:text-emerald-400',
-    cardBg: 'bg-linear-to-br from-emerald-50/20 to-white dark:from-white/3 dark:to-white/3',
+    cardBg: 'bg-linear-to-br/srgb from-emerald-50/20 to-white dark:from-white/3 dark:to-white/3',
     borderClass: 'border-emerald-500/15',
     hoverClass: 'hover:from-emerald-50/35 hover:to-emerald-50/5',
   },
@@ -97,7 +97,7 @@ export default function HowItWorksSection() {
   return (
     <section className="bg-[#f3f5ff] dark:bg-[#08080a] py-10 sm:py-12">
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-[32px] border border-indigo-100 bg-white shadow-[0_16px_60px_rgba(79,70,229,.06)] dark:border-white/10 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:shadow-none">
+        <div className="overflow-hidden rounded-[32px] border border-indigo-100 bg-white shadow-[0_16px_60px_rgba(79,70,229,.06)] dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] dark:shadow-none">
           <div className="grid lg:grid-cols-[1.12fr_.88fr]">
             <div className="bg-slate-50/30 p-5 sm:p-6 lg:border-r lg:border-indigo-100 lg:p-8 dark:bg-white/2 dark:lg:border-white/10">
               <div className="flex flex-col items-start">

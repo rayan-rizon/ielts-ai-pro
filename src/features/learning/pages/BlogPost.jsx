@@ -115,7 +115,7 @@ function prepareArticleContent(content) {
 
 function RelatedCard({ article }) {
   return (
-    <article className="group overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200 hover:-translate-y-1 hover:border-[#5a63df]/30">
+    <article className="group overflow-hidden rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] transition-all duration-200 hover:-translate-y-1 hover:border-[#5a63df]/30">
       <Link to={`/blog/${article.slug}`}>
         <div className="relative h-32 overflow-hidden bg-slate-100 dark:bg-white/3">
           <img
@@ -162,7 +162,7 @@ function BlogPostLoadingSkeleton() {
 
 function BlogPostHero({ post, publishedDate }) {
   return (
-    <section className="relative overflow-hidden border-b border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white via-[#faf9ff] to-white dark:from-[#090b13] dark:via-[#0e111c] dark:to-[#090b13]">
+    <section className="relative overflow-hidden border-b border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b/srgb from-white via-[#faf9ff] to-white dark:from-[#090b13] dark:via-[#0e111c] dark:to-[#090b13]">
       <div className="relative mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:py-12">
         <nav
           aria-label="Breadcrumb"
@@ -267,7 +267,7 @@ function BlogPostArticleBody({ post, preparedContent, practicePath }) {
         </div>
       )}
 
-      <div className="mt-8 flex flex-col gap-4 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-r from-[#f4f3fb] to-white dark:from-white/4 dark:to-white/2 p-5 sm:flex-row sm:items-center">
+      <div className="mt-8 flex flex-col gap-4 rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-r/srgb from-[#f4f3fb] to-white dark:from-white/4 dark:to-white/2 p-5 sm:flex-row sm:items-center">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#5a63df]/30 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/15 dark:text-[#a9afff]">
           <Sparkles className="h-5 w-5" />
         </div>
@@ -369,7 +369,7 @@ function TableOfContents({ toc, activeId, className = '' }) {
 
   return (
     <div
-      className={`rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4 ${className}`}
+      className={`rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4 ${className}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -460,7 +460,7 @@ function BlogPostSidebar({
         />
       )}
 
-      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
+      <div className="rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-4">
         <div className="flex items-center gap-2">
           <Share2 className="h-3.5 w-3.5 text-[#5a63df] dark:text-[#a9afff]" />
           <h2 className="text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
@@ -670,7 +670,7 @@ const BlogPost = () => {
       <div className="min-h-screen bg-[#f7f9ff] font-sans text-slate-950 dark:bg-[#080b12] dark:text-white">
         <div className="fixed left-0 top-0 z-120 h-0.5 w-full bg-slate-100 dark:bg-white/10">
           <div
-            className="h-full bg-linear-to-r from-indigo-500 to-violet-500"
+            className="h-full bg-linear-to-r/srgb from-indigo-500 to-violet-500"
             style={{ width: `${scrolled}%` }}
           />
         </div>

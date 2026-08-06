@@ -171,7 +171,7 @@ const ListeningTestHeader = ({
                       <motion.div
                         animate={{ x: ['-100%', '100%'] }}
                         transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
-                        className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent"
+                        className="absolute inset-0 bg-linear-to-r/srgb from-transparent via-white/30 to-transparent"
                         data-oid="g-j3-73"
                       />
                     </motion.div>

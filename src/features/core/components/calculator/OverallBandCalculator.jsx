@@ -15,7 +15,7 @@ const TARGET_OPTIONS = ['6.0', '6.5', '7.0', '7.5', '8.0', '8.5', '9.0'];
 
 function BandSliderRow({ name, value, set, icon: Icon, color, description }) {
   return (
-    <div className="group flex h-full flex-col justify-between rounded-[22px] border border-slate-200/90 bg-white/90 p-5 shadow-[0_10px_35px_-12px_rgba(15,23,42,0.04)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400/40 hover:shadow-xl dark:border-white/10 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:shadow-none dark:hover:border-white/15 relative overflow-hidden">
+    <div className="group flex h-full flex-col justify-between rounded-[22px] border border-slate-200/90 bg-white/90 p-5 shadow-[0_10px_35px_-12px_rgba(15,23,42,0.04)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400/40 hover:shadow-xl dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:shadow-none dark:hover:border-white/15 relative overflow-hidden">
       <div className="space-y-3.5 relative z-10">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -122,7 +122,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
         ))}
 
         {/* Target band tracker */}
-        <div className="flex h-full flex-col justify-between rounded-[22px] border border-slate-200/90 bg-white/90 p-5 shadow-[0_10px_35px_-12px_rgba(15,23,42,0.04)] backdrop-blur-xl transition-all duration-300 hover:border-indigo-400/40 dark:border-white/10 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:shadow-none dark:hover:border-white/15 sm:col-span-2 relative overflow-hidden">
+        <div className="flex h-full flex-col justify-between rounded-[22px] border border-slate-200/90 bg-white/90 p-5 shadow-[0_10px_35px_-12px_rgba(15,23,42,0.04)] backdrop-blur-xl transition-all duration-300 hover:border-indigo-400/40 dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:shadow-none dark:hover:border-white/15 sm:col-span-2 relative overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-3.5">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0 shadow-2xs">
@@ -145,7 +145,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
                   onClick={() => setTarget(option)}
                   className={`h-9 min-w-[42px] rounded-xl px-2.5 text-xs font-black transition-all duration-200 hover:scale-105 active:scale-95 ${
                     target === option
-                      ? 'bg-linear-to-r from-indigo-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25'
+                      ? 'bg-linear-to-r/srgb from-indigo-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25'
                       : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10'
                   }`}
                 >
@@ -194,7 +194,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
 
       {/* Result card */}
       <div className="lg:col-span-5">
-        <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-[28px] md:rounded-[32px] border border-slate-200/80 bg-white/80 p-6 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-linear-to-b dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:shadow-none sm:p-8">
+        <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-[28px] md:rounded-[32px] border border-slate-200/80 bg-white/80 p-6 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:shadow-none sm:p-8">
           <div className="pointer-events-none absolute -right-24 -top-24 h-48 w-48 rounded-full bg-indigo-500/10 dark:bg-[#5a63df]/10 blur-3xl" />
 
           <div className="relative z-10 flex flex-col items-center text-center">
@@ -236,7 +236,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
               </div>
             </div>
 
-            <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-indigo-200/80 bg-linear-to-r from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1 text-[11px] font-black uppercase tracking-widest text-indigo-600 dark:border-indigo-500/30 dark:from-indigo-950/80 dark:via-purple-950/60 dark:to-slate-900/90 dark:text-indigo-300 shadow-sm backdrop-blur-xl">
+            <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-indigo-200/80 bg-linear-to-r/srgb from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1 text-[11px] font-black uppercase tracking-widest text-indigo-600 dark:border-indigo-500/30 dark:from-indigo-950/80 dark:via-purple-950/60 dark:to-slate-900/90 dark:text-indigo-300 shadow-sm backdrop-blur-xl">
               <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
               {recommendation.level}
             </div>
@@ -277,7 +277,7 @@ export default function OverallBandCalculator({ handlePrimaryCta }) {
 
             <button
               onClick={handlePrimaryCta}
-              className="mt-4 w-full h-12 rounded-2xl bg-linear-to-r from-[#5246ea] via-[#6352f0] to-[#2b72f0] hover:from-[#4438dd] hover:to-[#1a64e0] text-white font-extrabold text-xs uppercase tracking-wider shadow-md hover:shadow-xl hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.99] flex items-center justify-center gap-2"
+              className="mt-4 w-full h-12 rounded-2xl bg-linear-to-r/srgb from-[#5246ea] via-[#6352f0] to-[#2b72f0] hover:from-[#4438dd] hover:to-[#1a64e0] text-white font-extrabold text-xs uppercase tracking-wider shadow-md hover:shadow-xl hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.99] flex items-center justify-center gap-2"
             >
               <span>Start Focused Practice</span>
               <ArrowRight className="w-4 h-4" />

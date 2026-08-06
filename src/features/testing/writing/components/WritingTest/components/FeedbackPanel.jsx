@@ -407,7 +407,7 @@ function AssessmentBanner({
   handleDownloadPdf,
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-[#e4e2f0] bg-linear-to-b from-white to-[#faf9ff] text-slate-950 shadow-sm dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315] dark:text-white">
+    <section className="overflow-hidden rounded-2xl border border-[#e4e2f0] bg-linear-to-b/srgb from-white to-[#faf9ff] text-slate-950 shadow-sm dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315] dark:text-white">
       <div className="relative overflow-hidden p-4 sm:p-5">
         <div className="relative flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-[0.12em] text-slate-800 dark:text-white">
@@ -417,7 +417,7 @@ function AssessmentBanner({
             Writing assessment
           </div>
           <div className="flex items-center gap-2">
-            <span className="whitespace-nowrap shrink-0 rounded-full bg-linear-to-r from-white to-[#f4f3ff] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-slate-700 border border-[#d2d7f8] dark:from-white/10 dark:to-white/5 dark:text-slate-200 dark:border-white/10 shadow-2xs">
+            <span className="whitespace-nowrap shrink-0 rounded-full bg-linear-to-r/srgb from-white to-[#f4f3ff] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-slate-700 border border-[#d2d7f8] dark:from-white/10 dark:to-white/5 dark:text-slate-200 dark:border-white/10 shadow-2xs">
               {taskType}
             </span>
             <Button
@@ -425,7 +425,7 @@ function AssessmentBanner({
               variant="ghost"
               onClick={handleDownloadPdf}
               disabled={isDownloadingPdf}
-              className="h-8 rounded-lg bg-linear-to-r from-white to-[#f4f3ff] px-3 text-xs font-black text-slate-700 border border-[#d2d7f8] transition-all hover:border-[#5661e9] hover:shadow-2xs dark:from-white/10 dark:to-white/5 dark:text-white dark:border-white/10 dark:hover:bg-white/15"
+              className="h-8 rounded-lg bg-linear-to-r/srgb from-white to-[#f4f3ff] px-3 text-xs font-black text-slate-700 border border-[#d2d7f8] transition-all hover:border-[#5661e9] hover:shadow-2xs dark:from-white/10 dark:to-white/5 dark:text-white dark:border-white/10 dark:hover:bg-white/15"
             >
               {isDownloadingPdf ? (
                 <LoaderCircle className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -533,7 +533,7 @@ function StrengthItem({ strength, index, isExpanded, onToggle }) {
 
 function StrengthsCard({ strengths, expandedItems, onToggleExpand }) {
   return (
-    <section className="rounded-2xl border border-[#e4e2f0] bg-linear-to-b from-white to-[#faf9ff] p-3.5 sm:p-4 dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315]">
+    <section className="rounded-2xl border border-[#e4e2f0] bg-linear-to-b/srgb from-white to-[#faf9ff] p-3.5 sm:p-4 dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315]">
       <div className="mb-3 flex items-center gap-2 border-b border-[#e2e5f6] pb-2 dark:border-white/10">
         <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/70 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 shadow-2xs">
           <CheckCircle2 className="h-3.5 w-3.5" />
@@ -628,7 +628,7 @@ function PriorityItem({ priority, index, isExpanded, onToggleExpand, onShowInEss
 
 function PrioritiesCard({ priorities, expandedItems, onToggleExpand, onShowInEssay }) {
   return (
-    <section className="rounded-2xl border border-[#e4e2f0] bg-linear-to-b from-white to-[#faf9ff] p-3.5 sm:p-4 dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315]">
+    <section className="rounded-2xl border border-[#e4e2f0] bg-linear-to-b/srgb from-white to-[#faf9ff] p-3.5 sm:p-4 dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315]">
       <div className="mb-3 flex items-center gap-2 border-b border-[#e2e5f6] pb-2 dark:border-white/10">
         <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/40 shadow-2xs">
           <Target className="h-3.5 w-3.5" />
@@ -690,7 +690,7 @@ function ImprovementsCard({ improvements, visibleImprovements, showAll, onToggle
       : 'All clear';
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-[#e4e2f0] bg-linear-to-b from-white to-[#faf9ff] dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315]">
+    <section className="overflow-hidden rounded-2xl border border-[#e4e2f0] bg-linear-to-b/srgb from-white to-[#faf9ff] dark:border-white/[0.07] dark:from-[#131315] dark:to-[#131315]">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e2e5f6] dark:border-white/10 px-3.5 py-2.5 bg-slate-50/50 dark:bg-white/2">
         <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
           <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/40">
