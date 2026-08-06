@@ -172,7 +172,7 @@
 }
 
 @utility text-gradient {
-  @apply bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400;
+  @apply bg-clip-text text-transparent bg-linear-to-r/srgb from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400;
 }
 
 @utility no-scrollbar {
@@ -389,11 +389,11 @@
 }
 
 @utility text-gradient-premium {
-  @apply bg-clip-text text-transparent bg-linear-to-br from-foreground via-foreground/90 to-foreground/70;
+  @apply bg-clip-text text-transparent bg-linear-to-br/srgb from-foreground via-foreground/90 to-foreground/70;
 }
 
 @utility text-gradient-primary {
-  @apply bg-clip-text text-transparent bg-linear-to-br from-primary via-primary/90 to-blue-600;
+  @apply bg-clip-text text-transparent bg-linear-to-br/srgb from-primary via-primary/90 to-blue-600;
 }
 
 @utility shiny-button {
@@ -401,7 +401,7 @@
 
   &::after {
     content: '';
-    @apply absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg];
+    @apply absolute inset-0 -translate-x-full bg-linear-to-r/srgb from-transparent via-white/20 to-transparent skew-x-[-20deg];
     transition: transform 0.6s ease;
   }
 
