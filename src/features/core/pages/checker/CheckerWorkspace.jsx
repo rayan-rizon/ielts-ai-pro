@@ -194,7 +194,7 @@ export default function CheckerWorkspace({ user, authLoading }) {
 
   return (
     <section id="checker" className="relative scroll-mt-24 pb-8 pt-3 sm:pb-12">
-      <div className="grid gap-5 lg:grid-cols-[1.02fr_.98fr]">
+      <div className="grid gap-5 sm:gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <WritingForm
           activeTask={activeTask}
           currentDraft={currentDraft}
