@@ -410,7 +410,7 @@ function layout({
   <meta name="description" content="${escapeHtml(description)}">
   <meta name="robots" content="${escapeHtml(robots)}">
   <meta http-equiv="content-language" content="en">
-  <link rel="canonical" href="${escapeHtml(canonical)}"><link rel="icon" type="image/svg+xml" href="/logo-icon.svg"><link rel="icon" type="image/png" href="/favicon.png"><link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="canonical" href="${escapeHtml(canonical)}"><link rel="icon" type="image/svg+xml" href="/logo-icon.svg?v=2"><link rel="icon" type="image/png" href="/favicon.png?v=2"><link rel="apple-touch-icon" href="/favicon.png?v=2">
   <link rel="alternate" type="application/rss+xml" title="IELTS Ai Pro Preparation Guides" href="${SITE_URL}/blog/feed.xml">
   <link rel="alternate" type="text/plain" title="IELTS Ai Pro for language models" href="${SITE_URL}/llms.txt">
   <meta property="og:title" content="${escapeHtml(fullTitle)}"><meta property="og:description" content="${escapeHtml(description)}">

@@ -4,10 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, follow" />
-    <meta name="theme-color" content="#4f46e5" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#6256ef" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <link rel="canonical" href="https://www.ieltsai.pro/404" />
     <title>Page Not Found | IELTS Ai Pro</title>
+    <script>
+      try {
+        const theme = localStorage.getItem('vite-ui-theme');
+        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.add('light');
+        }
+      } catch (_) {}
+    </script>
     <style>
       :root {
         color-scheme: light dark;
@@ -19,112 +29,283 @@
           BlinkMacSystemFont,
           'Segoe UI',
           sans-serif;
-        background: #f8f7ff;
-        color: #0f172a;
+        --bg-main: #f8f7ff;
+        --text-main: #0f172a;
+        --text-muted: #475569;
+        --text-footer: #64748b;
+        --primary-bg: #6256ef;
+        --primary-text: #ffffff;
+        --primary-shadow: rgba(98, 86, 239, 0.25);
+        --btn-sec-bg: #ffffff;
+        --btn-sec-text: #1e293b;
+        --btn-sec-border: rgba(203, 213, 225, 0.8);
+        --btn-sec-hover: #f1f5f9;
+        --gradient-404-from: #0f172a;
+        --gradient-404-to: #64748b;
+        --glow-1: rgba(99, 102, 241, 0.12);
+        --glow-2: rgba(168, 85, 247, 0.12);
       }
+      
+      html.dark {
+        --bg-main: #08080a;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --text-footer: #64748b;
+        --primary-bg: #6256ef;
+        --primary-text: #ffffff;
+        --primary-shadow: rgba(98, 86, 239, 0.35);
+        --btn-sec-bg: rgba(15, 23, 42, 0.6);
+        --btn-sec-text: #f1f5f9;
+        --btn-sec-border: rgba(51, 65, 85, 0.8);
+        --btn-sec-hover: rgba(30, 41, 59, 0.9);
+        --gradient-404-from: #ffffff;
+        --gradient-404-to: #64748b;
+        --glow-1: rgba(59, 130, 246, 0.15);
+        --glow-2: rgba(168, 85, 247, 0.15);
+      }
+
       * {
         box-sizing: border-box;
       }
       body {
         min-height: 100vh;
         margin: 0;
-        display: grid;
-        place-items: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--bg-main);
+        color: var(--text-main);
+        position: relative;
+        overflow-x: hidden;
+      }
+      /* Ambient background glowing circles */
+      .bg-glow-1 {
+        position: absolute;
+        top: 0;
+        left: 25%;
+        width: 24rem;
+        height: 24rem;
+        background: var(--glow-1);
+        border-radius: 9999px;
+        filter: blur(64px);
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+      .bg-glow-2 {
+        position: absolute;
+        bottom: 0;
+        right: 25%;
+        width: 24rem;
+        height: 24rem;
+        background: var(--glow-2);
+        border-radius: 9999px;
+        filter: blur(64px);
+        transform: translateY(50%);
+        pointer-events: none;
+      }
+      .bg-glow-3 {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 50rem;
+        height: 50rem;
+        background: radial-gradient(circle, var(--glow-1), transparent 70%);
+        pointer-events: none;
+      }
+      /* Header with brand logo */
+      header {
+        width: 100%;
+        max-width: 1280px;
         padding: 24px;
-        background:
-          radial-gradient(circle at 18% 12%, rgba(124, 58, 237, 0.14), transparent 34rem),
-          radial-gradient(circle at 82% 88%, rgba(37, 99, 235, 0.1), transparent 30rem), #f8f7ff;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        position: relative;
+        z-index: 20;
       }
+      .brand-logo {
+        height: 36px;
+        width: auto;
+        display: block;
+      }
+      
+      html.dark .logo-light { display: none !important; }
+      html.dark .logo-dark { display: block !important; }
+      html.light .logo-light { display: block !important; }
+      html.light .logo-dark { display: none !important; }
+
+      @media (prefers-color-scheme: dark) {
+        html:not(.light) .logo-light { display: none; }
+        html:not(.light) .logo-dark { display: block; }
+      }
+      @media (prefers-color-scheme: light) {
+        html:not(.dark) .logo-light { display: block; }
+        html:not(.dark) .logo-dark { display: none; }
+      }
+
+      /* Main content wrapper */
       main {
-        width: min(680px, 100%);
-        padding: clamp(32px, 7vw, 64px);
+        flex: 1;
+        width: 100%;
+        max-width: 768px;
+        margin: 0 auto;
+        padding: 32px 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         text-align: center;
-        border: 1px solid rgba(99, 102, 241, 0.18);
-        border-radius: 28px;
-        background: rgba(255, 255, 255, 0.9);
-        box-shadow: 0 28px 80px -44px rgba(49, 46, 129, 0.55);
+        position: relative;
+        z-index: 10;
       }
-      .eyebrow {
-        margin: 0 0 14px;
-        color: #6256ef;
-        font-size: 0.78rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
+      .hero-404 {
+        position: relative;
+        margin-bottom: 24px;
+      }
+      .text-404 {
+        font-size: clamp(6rem, 18vw, 12rem);
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.05em;
+        user-select: none;
+        background: linear-gradient(180deg, var(--gradient-404-from), var(--gradient-404-to));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+      }
+      .glitch-layer-1, .glitch-layer-2 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        font-size: clamp(6rem, 18vw, 12rem);
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.05em;
+        user-select: none;
+        filter: blur(4px);
+        pointer-events: none;
+      }
+      .glitch-layer-1 {
+        color: rgba(59, 130, 246, 0.2);
+        transform: translate(-2px, 0);
+      }
+      .glitch-layer-2 {
+        color: rgba(168, 85, 247, 0.2);
+        transform: translate(2px, 0);
       }
       h1 {
-        margin: 0;
-        font-size: clamp(2.25rem, 8vw, 4.5rem);
-        line-height: 1;
+        margin: 0 0 16px;
+        font-size: clamp(1.875rem, 5vw, 2.25rem);
+        font-weight: 800;
+        letter-spacing: -0.025em;
       }
-      p {
-        margin: 20px auto 0;
+      p.description {
+        margin: 0 auto 32px;
         max-width: 520px;
-        color: #526079;
-        line-height: 1.7;
+        color: var(--text-muted);
+        font-size: clamp(1rem, 2.5vw, 1.125rem);
+        line-height: 1.6;
       }
       nav {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
         gap: 12px;
-        margin-top: 30px;
       }
-      a {
-        min-height: 44px;
+      .btn {
+        min-height: 48px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 11px 18px;
+        gap: 8px;
+        padding: 12px 24px;
         border-radius: 12px;
-        color: #ffffff;
-        background: #6256ef;
-        font-weight: 800;
+        font-size: 0.95rem;
+        font-weight: 600;
         text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
       }
-      a.secondary {
-        color: #312e81;
-        background: #eef2ff;
+      .btn:hover {
+        transform: translateY(-2px);
       }
-      a:focus-visible {
-        outline: 3px solid #a78bfa;
-        outline-offset: 3px;
+      .btn-primary {
+        color: var(--primary-text);
+        background: var(--primary-bg);
+        box-shadow: 0 10px 25px -5px var(--primary-shadow);
       }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          background: #08080a;
-          color: #f8fafc;
-        }
-        body {
-          background: radial-gradient(circle at 50% 20%, #211b3d, #08080a 55%);
-        }
-        main {
-          border-color: rgba(167, 139, 250, 0.25);
-          background: rgba(15, 23, 42, 0.92);
-        }
-        p {
-          color: #cbd5e1;
-        }
-        a.secondary {
-          color: #ddd6fe;
-          background: #292342;
-        }
+      .btn-secondary {
+        color: var(--btn-sec-text);
+        background: var(--btn-sec-bg);
+        border: 1px solid var(--btn-sec-border);
+      }
+      .btn-secondary:hover {
+        background: var(--btn-sec-hover);
+      }
+      /* Footer */
+      footer {
+        width: 100%;
+        padding: 32px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: var(--text-footer);
+        font-size: 0.875rem;
+        position: relative;
+        z-index: 10;
+      }
+      .search-icon {
+        width: 16px;
+        height: 16px;
+        stroke: currentColor;
+        stroke-width: 2;
+        fill: none;
       }
     </style>
   </head>
   <body>
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+    <div class="bg-glow-3"></div>
+
+    <header>
+      <a href="/" aria-label="IELTS Ai Pro Home">
+        <img src="/logo.svg" alt="IELTS Ai Pro Logo" class="brand-logo logo-light" />
+        <img src="/footer.svg" alt="IELTS Ai Pro Logo" class="brand-logo logo-dark" />
+      </a>
+    </header>
+
     <main>
-      <p class="eyebrow">Error 404</p>
+      <div class="hero-404">
+        <div class="text-404">404</div>
+        <div class="glitch-layer-1">404</div>
+        <div class="glitch-layer-2">404</div>
+      </div>
       <h1>Page not found</h1>
-      <p>
+      <p class="description">
         This page may have moved or no longer exists. Continue with a public IELTS practice tool or
         return to the homepage.
       </p>
       <nav aria-label="Helpful links">
-        <a href="/">Go to homepage</a>
-        <a class="secondary" href="/ielts-writing-checker">Writing checker</a>
-        <a class="secondary" href="/blog">IELTS guides</a>
+        <a href="/" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          Go to homepage
+        </a>
+        <a href="/blog" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          IELTS guides
+        </a>
       </nav>
     </main>
+
+    <footer>
+      <svg class="search-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <span>Helping you find your way back to success</span>
+    </footer>
   </body>
 </html>
