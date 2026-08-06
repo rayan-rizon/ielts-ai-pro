@@ -344,12 +344,12 @@ function BlogCategoryBar({ categories, category, setCategory, setCurrentPage }) 
   };
 
   return (
-    <section className="py-3 sm:py-4 border-b border-slate-200/80 dark:border-slate-800/70 bg-white/75 dark:bg-slate-950/75 backdrop-blur-2xl sticky top-14 sm:top-16 z-20 transition-all duration-300">
-      <div className="mx-auto max-w-7xl px-3 sm:px-6 relative">
+    <section className="py-3 sm:py-3.5 border-b border-[#e4e2f0] dark:border-white/[0.07] bg-white/80 dark:bg-[#090b13]/85 backdrop-blur-xl sticky top-14 sm:top-16 z-20 transition-all duration-200">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 relative">
         <div
           ref={scrollRef}
           onMouseLeave={() => setHoveredCategory(null)}
-          className="relative flex items-center gap-1 overflow-x-auto no-scrollbar p-1 rounded-full bg-slate-100/80 dark:bg-slate-900/75 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-2xl shadow-xs hover:border-indigo-500/25 dark:hover:border-indigo-400/30 w-full md:w-max md:mx-auto transition-colors duration-300"
+          className="relative flex items-center gap-1 overflow-x-auto no-scrollbar p-1 rounded-xl bg-white dark:bg-[#141319] border border-[#e4e2f0] dark:border-white/[0.07] shadow-xs w-full md:w-max md:mx-auto transition-colors duration-200"
         >
           {categories.map((item) => {
             const config = item === 'All' ? null : getCategoryConfig(item);
@@ -361,16 +361,16 @@ function BlogCategoryBar({ categories, category, setCategory, setCurrentPage }) 
                 onClick={(e) => handleSelectCategory(item, e)}
                 onMouseEnter={() => setHoveredCategory(item)}
                 className={cn(
-                  'relative inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] md:text-sm font-semibold tracking-tight transition-colors duration-200 outline-none whitespace-nowrap active:scale-95 z-10 cursor-pointer',
+                  'relative inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-tight transition-all duration-200 outline-none whitespace-nowrap active:scale-95 z-10 cursor-pointer',
                   isActive
-                    ? 'text-indigo-600 dark:text-indigo-300'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-300'
+                    ? 'text-white dark:text-[#a9afff]'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                 )}
               >
                 {isActive && (
                   <motion.div
                     layoutId="activeBlogCategoryTab"
-                    className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500/15 via-violet-500/15 to-indigo-500/15 dark:from-indigo-400/20 dark:via-violet-400/20 dark:to-indigo-400/20 border border-indigo-500/30 dark:border-indigo-400/35 shadow-[0_2px_10px_-2px_rgba(99,102,241,0.18)] z-0"
+                    className="absolute inset-0 rounded-lg bg-[#5a63df] dark:bg-[#8f97ff]/20 border border-transparent dark:border-[#8f97ff]/30 shadow-xs z-0"
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
                 )}
@@ -387,7 +387,7 @@ function BlogCategoryBar({ categories, category, setCategory, setCurrentPage }) 
                         damping: 30,
                         opacity: { duration: 0.15 },
                       }}
-                      className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-indigo-500/10 dark:from-indigo-400/15 dark:via-violet-400/15 dark:to-indigo-400/15 border border-indigo-500/20 dark:border-indigo-400/25 shadow-[0_2px_8px_-2px_rgba(99,102,241,0.14)] pointer-events-none z-0"
+                      className="absolute inset-0 rounded-lg bg-slate-100 dark:bg-white/[0.05] pointer-events-none z-0"
                     />
                   )}
                 </AnimatePresence>
@@ -994,7 +994,7 @@ export default function BlogIndex() {
                 </h2>
               </div>
               <div className="relative w-full sm:max-w-sm">
-                <div className="group relative flex items-center rounded-full border border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#141319] p-1 transition-all duration-200 focus-within:border-[#5a63df] dark:focus-within:border-[#8f97ff] focus-within:ring-2 focus-within:ring-[#5a63df]/20 dark:focus-within:ring-[#8f97ff]/20">
+                <div className="group relative flex items-center rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-white dark:bg-[#141319] p-1 shadow-xs transition-all duration-200 focus-within:border-[#5a63df] dark:focus-within:border-[#8f97ff]">
                   <Search className="ml-3.5 h-4 w-4 shrink-0 text-slate-400 transition-colors duration-200 group-focus-within:text-[#5a63df] dark:group-focus-within:text-[#8f97ff]" />
                   <input
                     type="text"
