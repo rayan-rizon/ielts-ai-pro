@@ -71,6 +71,7 @@ const robots = readFileSync(path.join(root, 'public/robots.txt'), 'utf8');
 const vercel = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8'));
 const appSource = readFileSync(path.join(root, 'src/App.jsx'), 'utf8');
 const indexHtml = readFileSync(path.join(root, 'index.html'), 'utf8');
+const faviconSvg = readFileSync(path.join(root, 'public/favicon.svg'), 'utf8');
 const notFoundPath = path.join(root, 'public/404.html');
 if (!existsSync(notFoundPath)) fail('public/404.html is missing');
 const notFoundHtml = readFileSync(notFoundPath, 'utf8');
@@ -172,6 +173,18 @@ if (!description || description.length < 120 || description.length > 170) {
   fail('homepage description must be between 120 and 170 characters');
 }
 if (canonical !== `${siteUrl}/`) fail('homepage canonical is missing or incorrect');
+if (!indexHtml.includes('<link rel="icon" href="/favicon.svg" type="image/svg+xml" />')) {
+  fail('homepage must declare the stable crawler-safe favicon');
+}
+if (!existsSync(path.join(root, 'public/favicon.ico'))) {
+  fail('public/favicon.ico is missing for clients that request the conventional favicon URL');
+}
+if (!faviconSvg.includes('<path fill="#0B0E2A"')) {
+  fail('the crawler-safe favicon must keep the original high-contrast light-surface monogram');
+}
+if (faviconSvg.includes('prefers-color-scheme') || faviconSvg.includes('var(--')) {
+  fail('the crawler-safe favicon must not depend on the crawler color scheme');
+}
 if (!indexHtml.includes('<h1>IELTS Practice. Smarter with AI.</h1>')) {
   fail('homepage static H1 is missing or does not match the visible search intent');
 }
