@@ -1,11 +1,11 @@
 import { supabase } from '@/lib/supabase';
 
+// Both directions are linked in the schema: a campaign can select a promo and
+// a promo can record its owning campaign. Pin the embed to the campaign's
+// promo_code_id foreign key; keep comments outside the PostgREST select string.
 const CAMPAIGN_SELECT = `
   *,
   segment:marketing_segments(id,name,description,rules),
-  // Both directions are linked in the schema: a campaign can select a promo
-  // and a promo can record its owning campaign. Pin this embedded relation to
-  // the campaign's promo_code_id FK so PostgREST never has to guess.
   promo:promo_codes!marketing_campaigns_promo_code_id_fkey(id,code,label,discount_type,discount_value)
 `;
 

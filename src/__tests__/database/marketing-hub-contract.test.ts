@@ -98,6 +98,13 @@ describe('Admin Marketing Hub contracts', () => {
   it('pins the campaign promo embed to its direct foreign key', () => {
     expect(marketingService).toContain('promo_codes!marketing_campaigns_promo_code_id_fkey');
     expect(dispatcher).toContain('promo_codes!marketing_campaigns_promo_code_id_fkey');
+
+    const selectPayload = marketingService.match(/const CAMPAIGN_SELECT = `([\s\S]*?)`;/)?.[1];
+    expect(selectPayload).toBeTruthy();
+    expect(selectPayload).not.toContain('//');
+    expect(selectPayload?.replace(/\s+/g, '')).toBe(
+      '*,segment:marketing_segments(id,name,description,rules),promo:promo_codes!marketing_campaigns_promo_code_id_fkey(id,code,label,discount_type,discount_value)'
+    );
   });
 
   it('lets admins toggle a built-in segment without editing its rules', () => {
