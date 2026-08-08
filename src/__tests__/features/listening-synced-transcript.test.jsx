@@ -50,4 +50,26 @@ describe('SyncedTranscript', () => {
     expect(screen.getByText('JULIE')).toBeInTheDocument();
     expect(screen.getByText('Hello?')).toHaveClass('cursor-text');
   });
+
+  it('shows grouped source-image badges together', () => {
+    const srt = [
+      '1',
+      '00:00:01,000 --> 00:00:03,000',
+      'LUCY: The lecture focused on more long-term issues.',
+      '',
+    ].join('\n');
+
+    render(
+      <SyncedTranscript
+        srtContent={srt}
+        currentTime={2}
+        showAnswerHighlights
+        sourceHighlights={[
+          { question_numbers: [21, 22], phrase: 'lecture focused on more long-term issues' },
+        ]}
+      />
+    );
+
+    expect(screen.getByLabelText('Answer evidence 21,22')).toBeInTheDocument();
+  });
 });

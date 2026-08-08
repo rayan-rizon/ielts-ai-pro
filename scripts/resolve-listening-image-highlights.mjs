@@ -256,7 +256,13 @@ async function main() {
       const parts = JSON.parse(passage.content);
       passageSections.forEach((section) => {
         const index = section.part - 1;
-        const isHandCuratedReference = section.year === 2026 && section.test === 4;
+        // These sections contain grouped answer evidence (21,22 / 23,24)
+        // recovered directly from the reference images. Do not let a future
+        // OCR re-run replace that curated data with the older single-number
+        // or incomplete extraction.
+        const isHandCuratedReference =
+          (section.year === 2026 && section.test === 4) ||
+          (section.year === 2026 && section.test === 1 && section.part === 3);
         if (
           isHandCuratedReference &&
           Array.isArray(parts[index].transcript_highlights) &&

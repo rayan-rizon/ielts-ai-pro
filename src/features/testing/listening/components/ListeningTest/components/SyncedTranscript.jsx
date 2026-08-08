@@ -188,26 +188,33 @@ const SyncedTranscript = memo(function SyncedTranscript({
                     `}
                     data-oid="8m8j6d2"
                   >
-                    {displayParts.map((part, partIndex) =>
-                      part.questionNumber ? (
+                    {displayParts.map((part, partIndex) => {
+                      const questionNumbers = part.questionNumbers?.length
+                        ? part.questionNumbers
+                        : part.questionNumber
+                          ? [part.questionNumber]
+                          : [];
+                      const badgeLabel = questionNumbers.join(',');
+
+                      return questionNumbers.length ? (
                         <mark
                           key={`${seg.id}-${partIndex}`}
-                          className="rounded-sm bg-[rgb(var(--signal-ok)/0.18)] px-0.5 font-semibold text-slate-950 dark:bg-[rgb(var(--signal-ok)/0.28)] dark:text-slate-50"
+                          className="relative z-10 rounded-sm bg-[#d9f6c7] px-0.5 font-semibold text-slate-950 dark:bg-[rgb(var(--signal-ok)/0.34)] dark:text-slate-50"
                         >
                           {part.text}
                           {part.showBadge !== false && (
                             <span
                               className={`${NUM} ml-1 inline-flex min-w-4 items-center justify-center rounded-sm bg-[rgb(var(--signal-ok))] px-1 text-[9px] font-black leading-4 text-white`}
-                              aria-label={`Answer evidence ${part.questionNumber}`}
+                              aria-label={`Answer evidence ${badgeLabel}`}
                             >
-                              {part.questionNumber}
+                              {badgeLabel}
                             </span>
                           )}
                         </mark>
                       ) : (
                         <React.Fragment key={`${seg.id}-${partIndex}`}>{part.text}</React.Fragment>
-                      )
-                    )}
+                      );
+                    })}
                   </span>{' '}
                 </React.Fragment>
               );

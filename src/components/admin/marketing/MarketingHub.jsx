@@ -6,6 +6,7 @@ import {
   BarChart3,
   CheckCircle2,
   Edit3,
+  Eye,
   Gift,
   Megaphone,
   MousePointerClick,
@@ -38,6 +39,7 @@ import { PromoCode } from '@/entities';
 import {
   Empty,
   FADE_UP,
+  Meter,
   MICRO,
   NUM,
   PANEL,
@@ -418,6 +420,122 @@ const CampaignDialog = ({
             {campaign ? 'Save changes' : 'Create draft'}
           </AdminButton>
         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const EmailPreviewDialog = ({ campaign, open, onOpenChange }) => {
+  if (!campaign) return null;
+  const subject = campaign.subject || campaign.title;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[92vh] w-[96vw] max-w-2xl overflow-y-auto border-stone-200 bg-white p-5 dark:border-white/10 dark:bg-[#131315]">
+        <DialogHeader>
+          <DialogTitle>Email preview</DialogTitle>
+          <DialogDescription>
+            Live emails use the recipient&apos;s username. This preview uses a sample username; the
+            inbox subject is shown as metadata and is not repeated in the email body.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="overflow-hidden rounded-xl border border-[#e4e2f0] bg-[#f6f5f3] p-3 dark:border-white/10 dark:bg-[#0d0d10] sm:p-5">
+          <div className="mx-auto mb-3 max-w-[600px] rounded-lg border border-[#e4e2f0] bg-white px-4 py-3 dark:border-white/10 dark:bg-[#18171d]">
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Inbox subject</p>
+            <p className="mt-1 truncate text-sm font-extrabold text-stone-900 dark:text-stone-50">
+              {subject}
+            </p>
+            <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
+              This is sent as the email subject, not repeated in the message body.
+            </p>
+          </div>
+          <div className="mx-auto max-w-[600px] overflow-hidden rounded-xl border border-[#e9e7e3] bg-white dark:border-white/10 dark:bg-[#18171d]">
+            <div className="bg-[#111113] px-6 py-5 text-center">
+              <span className="inline-flex min-h-[42px] items-center justify-center">
+                <img
+                  src="/footer.svg"
+                  width="176"
+                  height="42"
+                  alt="IELTS AI Pro"
+                  className="mx-auto h-auto w-44"
+                  onError={(event) => {
+                    event.currentTarget.hidden = true;
+                    event.currentTarget.nextElementSibling.hidden = false;
+                  }}
+                />
+                <span hidden className="text-sm font-extrabold tracking-tight text-[#f7f8ff]">
+                  IELTS AI Pro
+                </span>
+              </span>
+            </div>
+            <div className="p-6 sm:p-10">
+              <div>
+                <h3 className="text-2xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
+                  {campaign.title}
+                </h3>
+                <p className="mt-5 text-base leading-7 text-stone-700 dark:text-stone-200">
+                  Hi alex,
+                </p>
+                <p className="mt-3 text-sm leading-6 text-stone-700 dark:text-stone-200">
+                  {campaign.message}
+                </p>
+                <p className="mt-3 text-sm leading-6 text-stone-700 dark:text-stone-200">
+                  A focused next step can make your preparation more consistent. Use your dashboard
+                  to continue from where you left off, review your recent feedback, and decide what
+                  will help you move closer to your target band.
+                </p>
+                {campaign.promo?.code && (
+                  <div className="mt-6 rounded-lg border border-dashed border-[#c9c5f4] bg-[#f7f6ff] p-4 text-center text-sm font-extrabold text-[#4c43a8]">
+                    Offer code: {campaign.promo.code}
+                    <span className="mt-1 block text-xs font-medium text-[#625d82]">
+                      Use it when you choose your next plan.
+                    </span>
+                  </div>
+                )}
+                <div className="mt-7 text-center">
+                  <span className="inline-flex rounded-lg bg-[#6c4cff] px-5 py-3 text-sm font-extrabold text-white">
+                    {campaign.cta_label || 'Learn more'}
+                  </span>
+                </div>
+                <p className="mt-7 text-sm leading-6 text-stone-500 dark:text-stone-400">
+                  Your progress and practice history are saved in your account, so you can return
+                  whenever you are ready.
+                </p>
+              </div>
+            </div>
+            <div className="border-t border-[#ebe9e5] bg-[#faf9f7] px-6 py-7 text-center dark:border-white/10 dark:bg-[#141419]">
+              <p className="text-xs text-stone-500 dark:text-stone-400">
+                <a
+                  href="/settings?tab=subscription"
+                  className="font-semibold text-stone-600 dark:text-stone-300"
+                >
+                  Manage
+                </a>
+                <span className="mx-2">•</span>
+                <a href="/privacy" className="font-semibold text-stone-600 dark:text-stone-300">
+                  Privacy
+                </a>
+                <span className="mx-2">•</span>
+                <a href="/terms" className="font-semibold text-stone-600 dark:text-stone-300">
+                  Terms
+                </a>
+                <span className="mx-2">•</span>
+                <a
+                  href="/settings?tab=preferences"
+                  className="font-semibold text-stone-600 dark:text-stone-300"
+                >
+                  Unsubscribe
+                </a>
+              </p>
+              <p className="mt-3 text-[11px] leading-5 text-stone-500 dark:text-stone-400">
+                You are receiving this because you enabled marketing communications.
+              </p>
+              <p className="mt-2 text-[10px] text-stone-500 dark:text-stone-400">
+                © {new Date().getFullYear()} IELTS AI Pro · support@ieltsai.pro
+              </p>
+            </div>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -819,6 +937,7 @@ const SegmentDialog = ({ open, onOpenChange, segment, onSave, saving }) => {
 
 const CampaignsPanel = ({ campaigns, segments, promos, templates, onRefresh }) => {
   const [editor, setEditor] = useState(null);
+  const [previewCampaign, setPreviewCampaign] = useState(null);
   const [saving, setSaving] = useState(false);
   const [estimating, setEstimating] = useState(null);
   const [estimates, setEstimates] = useState({});
@@ -875,117 +994,172 @@ const CampaignsPanel = ({ campaigns, segments, promos, templates, onRefresh }) =
     }
   };
 
+  const orderedCampaigns = useMemo(
+    () =>
+      [...campaigns].sort((a, b) => {
+        const aCore = a.objective === 'paid_conversion' ? 0 : 1;
+        const bCore = b.objective === 'paid_conversion' ? 0 : 1;
+        if (aCore !== bCore) return aCore - bCore;
+        const aLive = a.status === 'active' ? 0 : 1;
+        const bLive = b.status === 'active' ? 0 : 1;
+        if (aLive !== bLive) return aLive - bLive;
+        return a.name.localeCompare(b.name);
+      }),
+    [campaigns]
+  );
+
+  const liveConversionCount = orderedCampaigns.filter(
+    (campaign) => campaign.objective === 'paid_conversion' && campaign.status === 'active'
+  ).length;
+
   return (
     <div className="space-y-3">
-      <div className="flex justify-end">
+      <div
+        className={cn(
+          PANEL,
+          'flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between'
+        )}
+      >
+        <div>
+          <p className={cn(MICRO, 'text-[#5a63df]')}>Now running</p>
+          <p className={cn(TITLE, 'mt-1')}>Paid conversion is the live focus</p>
+          <p className="mt-1 text-[11px] font-medium text-stone-500 dark:text-stone-400">
+            {liveConversionCount} conversion journeys are live. Activation and retention stay staged
+            until the core funnel has enough signal.
+          </p>
+        </div>
         <AdminButton onClick={() => setEditor({})}>
           <Plus className="h-3.5 w-3.5" />
           New campaign
         </AdminButton>
       </div>
-      {campaigns.length === 0 ? (
+      {orderedCampaigns.length === 0 ? (
         <Empty icon={Megaphone}>
           Create a draft, estimate its audience, then activate it when the message is ready.
         </Empty>
       ) : (
-        campaigns.map((campaign) => {
-          const estimateData = estimates[campaign.id];
-          return (
-            <div key={campaign.id} className={cn(PANEL, 'p-4')}>
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className={TITLE}>{campaign.name}</h3>
-                    <Pill tone={STATUS_TONE[campaign.status]}>{campaign.status}</Pill>
-                    <Pill tone="neutral">{campaign.objective.replaceAll('_', ' ')}</Pill>
-                  </div>
-                  <p className="mt-1 line-clamp-1 text-xs font-medium text-stone-500 dark:text-stone-400">
-                    {campaign.title} · {campaign.segment?.name || 'No audience'}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {campaign.channels.map((channel) => (
-                      <Pill key={channel} tone="accent">
-                        {channel.replace('_', ' ')}
+        <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
+          {orderedCampaigns.map((campaign) => {
+            const estimateData = estimates[campaign.id];
+            const isCore = campaign.objective === 'paid_conversion';
+            return (
+              <div key={campaign.id} className={cn(PANEL, 'flex min-h-[285px] flex-col p-4')}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className={TITLE}>{campaign.name}</h3>
+                      <Pill tone={STATUS_TONE[campaign.status]}>{campaign.status}</Pill>
+                      <Pill tone={isCore ? 'accent' : 'neutral'}>
+                        {campaign.objective.replaceAll('_', ' ')}
                       </Pill>
-                    ))}
-                    {campaign.promo?.code && <Pill tone="warn">{campaign.promo.code}</Pill>}
+                    </div>
+                    <p className="mt-1 text-[11px] font-medium text-stone-500 dark:text-stone-400">
+                      {campaign.segment?.name || 'No audience'}
+                    </p>
                   </div>
+                  <Pill tone={isCore ? 'ok' : 'neutral'}>{isCore ? 'core' : 'staged'}</Pill>
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {estimateData && (
-                    <span
-                      className={cn(
-                        NUM,
-                        'mr-2 text-[11px] font-bold text-stone-600 dark:text-stone-300'
-                      )}
-                    >
-                      {estimateData.total} total · {estimateData.email_eligible} email-ready
-                    </span>
-                  )}
-                  <AdminButton
-                    variant="outline"
-                    size="sm"
-                    loading={estimating === campaign.id}
-                    onClick={() => estimate(campaign)}
+                <div className={cn(WELL, 'mt-3 rounded-lg p-3')}>
+                  <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Learner message</p>
+                  <p className="mt-1 text-xs font-extrabold text-stone-800 dark:text-stone-100">
+                    {campaign.title}
+                  </p>
+                  <p className="mt-1 line-clamp-3 text-[11px] leading-relaxed text-stone-600 dark:text-stone-300">
+                    {campaign.message}
+                  </p>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {campaign.channels.map((channel) => (
+                    <Pill key={channel} tone="accent">
+                      {channel.replace('_', ' ')}
+                    </Pill>
+                  ))}
+                  {campaign.promo?.code && <Pill tone="warn">{campaign.promo.code}</Pill>}
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-2 border-t border-[#eceafa] pt-3 dark:border-white/[0.07]">
+                  <span
+                    className={cn(NUM, 'text-[10px] font-bold text-stone-500 dark:text-stone-400')}
                   >
-                    <Users className="h-3 w-3" />
-                    Estimate
-                  </AdminButton>
-                  <AdminButton variant="outline" size="sm" onClick={() => setEditor(campaign)}>
-                    <Edit3 className="h-3 w-3" />
-                    Edit
-                  </AdminButton>
-                  {['draft', 'paused', 'scheduled'].includes(campaign.status) && (
+                    {estimateData
+                      ? `${estimateData.total} total · ${estimateData.email_eligible} email-ready`
+                      : `${campaign.cooldown_hours}h cooldown`}
+                  </span>
+                  <div className="flex flex-wrap justify-end gap-1.5">
                     <AdminButton
+                      variant="outline"
                       size="sm"
-                      onClick={() =>
-                        setStatus(
-                          campaign,
-                          campaign.starts_at && new Date(campaign.starts_at) > new Date()
-                            ? 'scheduled'
-                            : 'active'
-                        )
-                      }
+                      loading={estimating === campaign.id}
+                      onClick={() => estimate(campaign)}
                     >
-                      <Play className="h-3 w-3" />
-                      Activate
+                      <Users className="h-3 w-3" />
+                      Estimate
                     </AdminButton>
-                  )}
-                  {campaign.status === 'active' && (
-                    <>
-                      <AdminButton
-                        size="sm"
-                        loading={dispatching === campaign.id}
-                        onClick={() => dispatch(campaign)}
-                      >
-                        <Send className="h-3 w-3" />
-                        Dispatch
-                      </AdminButton>
+                    {campaign.channels.includes('email') && (
                       <AdminButton
                         variant="outline"
                         size="sm"
-                        onClick={() => setStatus(campaign, 'paused')}
+                        onClick={() => setPreviewCampaign(campaign)}
                       >
-                        <Pause className="h-3 w-3" />
-                        Pause
+                        <Eye className="h-3 w-3" />
+                        Preview
                       </AdminButton>
-                    </>
-                  )}
-                  {!['completed', 'cancelled'].includes(campaign.status) && (
-                    <AdminButton
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setStatus(campaign, 'cancelled')}
-                    >
-                      <Ban className="h-3 w-3" />
-                      Cancel
+                    )}
+                    <AdminButton variant="outline" size="sm" onClick={() => setEditor(campaign)}>
+                      <Edit3 className="h-3 w-3" />
+                      Edit
                     </AdminButton>
-                  )}
+                    {['draft', 'paused', 'scheduled'].includes(campaign.status) && (
+                      <AdminButton
+                        size="sm"
+                        onClick={() =>
+                          setStatus(
+                            campaign,
+                            campaign.starts_at && new Date(campaign.starts_at) > new Date()
+                              ? 'scheduled'
+                              : 'active'
+                          )
+                        }
+                      >
+                        <Play className="h-3 w-3" />
+                        Activate
+                      </AdminButton>
+                    )}
+                    {campaign.status === 'active' && (
+                      <>
+                        <AdminButton
+                          size="sm"
+                          loading={dispatching === campaign.id}
+                          onClick={() => dispatch(campaign)}
+                        >
+                          <Send className="h-3 w-3" />
+                          Dispatch
+                        </AdminButton>
+                        <AdminButton
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setStatus(campaign, 'paused')}
+                        >
+                          <Pause className="h-3 w-3" />
+                          Pause
+                        </AdminButton>
+                      </>
+                    )}
+                    {!['completed', 'cancelled'].includes(campaign.status) && (
+                      <AdminButton
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setStatus(campaign, 'cancelled')}
+                      >
+                        <Ban className="h-3 w-3" />
+                        Cancel
+                      </AdminButton>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })
+            );
+          })}
+        </div>
       )}
       <CampaignDialog
         open={editor !== null}
@@ -996,6 +1170,11 @@ const CampaignsPanel = ({ campaigns, segments, promos, templates, onRefresh }) =
         templates={templates}
         onSave={save}
         saving={saving}
+      />
+      <EmailPreviewDialog
+        campaign={previewCampaign}
+        open={previewCampaign !== null}
+        onOpenChange={(open) => !open && setPreviewCampaign(null)}
       />
     </div>
   );
@@ -1028,7 +1207,7 @@ const TemplatesPanel = ({ templates, onRefresh }) => {
           New template
         </AdminButton>
       </div>
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
         {templates.map((template) => (
           <div key={template.id} className={cn(PANEL, 'p-4')}>
             <div className="flex items-start justify-between gap-3">
@@ -1125,7 +1304,7 @@ const SegmentsPanel = ({ segments, onRefresh }) => {
           New segment
         </AdminButton>
       </div>
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
         {segments.map((segment) => {
           const estimateData = estimates[segment.id];
           return (
@@ -1216,7 +1395,7 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
     }
   };
   return (
-    <div className="grid gap-3 lg:grid-cols-2">
+    <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
       {journeys.map((journey) => {
         const metric = metrics.find((row) => row.id === journey.id) || {};
         return (
@@ -1289,6 +1468,25 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns }) => {
     });
     return totals;
   }, [dashboard.revenue]);
+  const campaignRows = dashboard.campaigns || [];
+  const metricTotal = (key) =>
+    campaignRows.reduce((total, campaign) => total + Number(campaign[key] || 0), 0);
+  const delivered = metricTotal('delivered');
+  const views = metricTotal('views');
+  const clicks = metricTotal('clicks');
+  const checkouts = metricTotal('checkouts');
+  const purchases = metricTotal('purchases');
+  const funnelStart = delivered || Number(dashboard.totals?.reach || 0);
+  const funnel = [
+    ['Delivered', delivered || Number(dashboard.totals?.reach || 0)],
+    ['Viewed', views],
+    ['Clicked', clicks],
+    ['Checkout started', checkouts],
+    ['Purchased', purchases],
+  ];
+  const liveConversionCampaigns = campaignRows.filter(
+    (campaign) => campaign.objective === 'paid_conversion' && campaign.status === 'active'
+  );
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
@@ -1332,7 +1530,70 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns }) => {
           tone="emerald"
         />
       </div>
+      <div className="grid gap-3 xl:grid-cols-[1.45fr_0.85fr]">
+        <div className={cn(PANEL, 'p-4')}>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className={cn(MICRO, 'text-[#5a63df]')}>30-day funnel</p>
+              <h3 className={cn(TITLE, 'mt-1')}>From delivery to paid learner</h3>
+            </div>
+            <span className={cn(NUM, 'text-xs font-bold text-stone-500 dark:text-stone-400')}>
+              {funnelStart || 0} entered
+            </span>
+          </div>
+          <div className="mt-4 space-y-2.5">
+            {funnel.map(([label, value]) => (
+              <Meter
+                key={label}
+                label={label}
+                value={Number(value || 0)}
+                pct={funnelStart ? (100 * Number(value || 0)) / funnelStart : 0}
+                trailing={
+                  <span
+                    className={cn(NUM, 'text-[10px] font-bold text-stone-500 dark:text-stone-400')}
+                  >
+                    {funnelStart
+                      ? `${((100 * Number(value || 0)) / funnelStart).toFixed(1)}%`
+                      : '—'}
+                  </span>
+                }
+              />
+            ))}
+          </div>
+          {!funnelStart && (
+            <p className="mt-4 text-[11px] font-medium text-stone-500 dark:text-stone-400">
+              The funnel will populate after the first eligible learner receives a campaign.
+            </p>
+          )}
+        </div>
+        <div className={cn(PANEL, 'p-4')}>
+          <p className={cn(MICRO, 'text-[#5a63df]')}>Current focus</p>
+          <h3 className={cn(TITLE, 'mt-1')}>Paid conversion first</h3>
+          <p className="mt-2 text-[11px] leading-relaxed text-stone-500 dark:text-stone-400">
+            Keep the core upgrade paths live long enough to see a reliable funnel before adding
+            activation or retention pressure.
+          </p>
+          <div className={cn(WELL, 'mt-4 rounded-lg p-3')}>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Live conversion paths</p>
+            <p
+              className={cn(NUM, 'mt-1 text-2xl font-extrabold text-stone-900 dark:text-stone-50')}
+            >
+              {liveConversionCampaigns.length}
+            </p>
+            <p className="mt-1 text-[10px] font-medium text-stone-500 dark:text-stone-400">
+              First result · low quota · referral expiry · checkout recovery
+            </p>
+          </div>
+        </div>
+      </div>
       <div className={cn(PANEL, 'overflow-x-auto')}>
+        <div className="flex items-center justify-between gap-3 border-b border-[#eceafa] px-4 py-3 dark:border-white/[0.07]">
+          <div>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Campaign drill-down</p>
+            <p className={cn(TITLE, 'mt-1')}>Compare campaign conversion quality</p>
+          </div>
+          <span className={cn(MICRO, 'text-stone-400')}>30 days</span>
+        </div>
         <table className="w-full min-w-[760px] text-left">
           <thead>
             <tr className="border-b border-stone-100 dark:border-white/6">
@@ -1388,7 +1649,7 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns }) => {
           </tbody>
         </table>
       </div>
-      <div className="grid gap-3 lg:grid-cols-4">
+      <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
         {[
           ['Delivery channel', breakdowns.delivery_channels, 'channel', 'recipients'],
           ['Acquisition source', breakdowns.acquisition_sources, 'source', 'purchases'],

@@ -103,7 +103,7 @@ function CTABannerActionCard({ handlePrimaryCta, reduceMotion }) {
       <button
         type="button"
         onClick={handlePrimaryCta}
-        className="group relative block w-full max-w-full sm:max-w-[350px] lg:max-w-[365px] overflow-hidden rounded-[24px] border border-slate-200/90 dark:border-violet-400/25 bg-white dark:bg-[#131315] text-left shadow-[0_20px_45px_-10px_rgba(82,98,239,0.22)] dark:shadow-none transition duration-300 hover:-translate-y-1 hover:shadow-[0_25px_50px_-8px_rgba(82,98,239,0.35)] dark:hover:shadow-sm hover:border-slate-300 dark:hover:border-violet-400/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#7664f2]/30 transform-gpu"
+        className="group relative block w-full max-w-full sm:max-w-[350px] lg:max-w-[365px] overflow-hidden rounded-[24px] border border-slate-200/90 dark:border-violet-400/25 bg-white dark:bg-[#131315] text-left shadow-[0_20px_45px_-10px_rgba(82,98,239,0.22)] dark:shadow-none transition duration-300 hover:-translate-y-1 hover:shadow-[0_25px_50px_-8px_rgba(82,98,239,0.35)] dark:hover:shadow-sm hover:border-slate-300 dark:hover:border-violet-400/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#7664f2]/30 transform-gpu cursor-pointer"
       >
         <span className="relative flex items-center justify-between overflow-hidden bg-[#6256ef] px-5 sm:px-6 py-5 text-white">
           <span className="pointer-events-none absolute -right-14 -top-20 h-52 w-52 rounded-full bg-white/15 blur-2xl" />

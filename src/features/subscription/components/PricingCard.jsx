@@ -145,12 +145,12 @@ function ActionButton({ plan, isActive, isSubscribed, isLoading, isPricingLoadin
       onClick={() => onUpgrade(plan.tier)}
       disabled={isLoading || isPricingLoading || isActive}
       className={cn(
-        'mt-auto flex h-12 w-full items-center justify-center gap-2 rounded-lg text-sm font-bold tracking-tight transition-all duration-150 disabled:cursor-not-allowed',
+        'group mt-auto flex h-12 w-full items-center justify-center gap-2 rounded-lg text-sm font-bold tracking-tight transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60',
         isActive
-          ? 'border border-[#e2e5f2] bg-[#f4f3fb] text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-500'
+          ? 'border border-[#e2e5f2] bg-[#f4f3fb] text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-500 cursor-default'
           : isPro
-            ? 'bg-[#5a63df] text-white hover:bg-[#4a52c9] active:scale-[0.99]'
-            : 'border border-[#e2e5f2] bg-white text-slate-700 hover:border-[#c9cdf3] hover:text-slate-900 active:scale-[0.99] dark:border-white/10 dark:bg-white/4 dark:text-slate-200 dark:hover:text-white'
+            ? 'cursor-pointer bg-[#5a63df] text-white hover:bg-[#4a52c9] hover:shadow-lg hover:shadow-[#5a63df]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]'
+            : 'cursor-pointer border border-[#e2e5f2] bg-white text-slate-700 hover:border-[#5a63df]/40 hover:bg-[#5a63df]/5 hover:text-[#5a63df] hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0 active:scale-[0.99] dark:border-white/10 dark:bg-white/4 dark:text-slate-200 dark:hover:border-[#5a63df]/40 dark:hover:bg-white/10 dark:hover:text-white'
       )}
     >
       {isActive ? (
@@ -158,7 +158,7 @@ function ActionButton({ plan, isActive, isSubscribed, isLoading, isPricingLoadin
       ) : (
         <>
           <span>{buttonLabel}</span>
-          <ArrowRight className="h-4 w-4" />
+          <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
         </>
       )}
     </button>
@@ -182,13 +182,14 @@ export default function PricingCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="h-full"
+      className={cn('h-full transition-transform duration-300', isPro && 'lg:-translate-y-4')}
     >
       <div
         className={cn(
           PANEL,
           'flex h-full w-full flex-col justify-between px-6 pb-6 pt-5 sm:px-7 sm:pb-7 sm:pt-6',
-          isPro && 'border-[#5a63df]/35 ring-1 ring-[#5a63df]/15 dark:border-[#5a63df]/40'
+          isPro &&
+            'border-[#5a63df]/40 ring-1 ring-[#5a63df]/20 dark:border-[#5a63df]/50 shadow-md shadow-[#5a63df]/5'
         )}
       >
         <div>

@@ -14,6 +14,13 @@ const builtinCampaignsMigration = readFileSync(
   resolve(process.cwd(), 'supabase/migrations/20260808174528_seed_builtin_marketing_campaigns.sql'),
   'utf8'
 );
+const conversionSetupMigration = readFileSync(
+  resolve(
+    process.cwd(),
+    'supabase/migrations/20260808182048_configure_marketing_conversion_journeys.sql'
+  ),
+  'utf8'
+);
 const toaster = readFileSync(resolve(process.cwd(), 'src/components/ui/sonner.jsx'), 'utf8');
 const dispatcher = readFileSync(
   resolve(process.cwd(), 'supabase/functions/marketing-campaign-dispatch/index.ts'),
@@ -119,5 +126,44 @@ describe('Admin Marketing Hub contracts', () => {
     expect(builtinCampaignsMigration).toContain('Welcome: complete your first practice');
     expect(builtinCampaignsMigration).toContain('Free learners ready to upgrade');
     expect(builtinCampaignsMigration).toContain('Returning learners after two weeks');
+  });
+
+  it('configures every conversion journey with an active campaign and the right channels', () => {
+    expect(conversionSetupMigration).toContain(
+      "status = CASE WHEN spec->>'objective' = 'paid_conversion' THEN 'active' ELSE 'paused' END"
+    );
+    expect(conversionSetupMigration).toContain(
+      "is_active = spec->>'objective' = 'paid_conversion'"
+    );
+    expect(conversionSetupMigration).toContain('"trigger":"signup_incomplete"');
+    expect(conversionSetupMigration).toContain('"trigger":"exam_upcoming"');
+    expect(conversionSetupMigration).toContain('"trigger":"payment_failed"');
+    expect(conversionSetupMigration).toContain('"channels":["in_app"]');
+    expect(conversionSetupMigration).toContain('"channels":["in_app","banner","email"]');
+    expect(conversionSetupMigration).toContain('"name":"Auto: checkout reminder"');
+    expect(conversionSetupMigration).toContain('automatic discount');
+  });
+
+  it('uses a three-column desktop layout for dense marketing card views', () => {
+    const threeColumnGrids = marketingHub.match(/xl:grid-cols-3/g) || [];
+    expect(threeColumnGrids.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('keeps the conversion campaign workflow visible and previewable', () => {
+    expect(marketingHub).toContain('const EmailPreviewDialog');
+    expect(marketingHub).toContain('Email preview');
+    expect(marketingHub).toContain('Inbox subject');
+    expect(marketingHub).toContain('Hi alex');
+    expect(marketingHub).toContain('src="/footer.svg"');
+    expect(marketingHub).toContain('target band');
+    expect(marketingHub).toContain("const aCore = a.objective === 'paid_conversion' ? 0 : 1");
+    expect(marketingHub).toContain('Paid conversion is the live focus');
+    expect(marketingHub).toContain('From delivery to paid learner');
+    expect(marketingHub).toContain('Checkout started');
+    expect(dispatcher).toContain("const baseUrl = 'https://ieltsai.pro'");
+    expect(dispatcher).toContain('${baseUrl}/footer.svg');
+    expect(dispatcher).toContain("select('id,username')");
+    expect(dispatcher).toContain('recipient.username');
+    expect(dispatcher).toContain('Your progress and practice history are saved in your account');
   });
 });

@@ -4,6 +4,25 @@ const MIN_HIGHLIGHT_LENGTH = 2;
 const MAX_HIGHLIGHT_LENGTH = 80;
 const MAX_SOURCE_HIGHLIGHT_LENGTH = 500;
 
+function parseQuestionNumbers(value) {
+  const values = Array.isArray(value) ? value : [value];
+  return [
+    ...new Set(
+      values.flatMap((item) => {
+        const numbers = String(item ?? '').match(/\d+/g) || [];
+        return numbers.map((number) => Number.parseInt(number, 10));
+      })
+    ),
+  ].filter(Number.isFinite);
+}
+
+function normalizedHighlightPhrase(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -56,16 +75,18 @@ export function buildTranscriptAnswerHighlights(correctAnswersMap = {}) {
 }
 
 export function buildSourceTranscriptHighlights(sourceHighlights = []) {
-  return sourceHighlights.flatMap((highlight, highlightIndex) => {
-    const questionNumber = Number.parseInt(
-      highlight?.question_number ?? highlight?.questionNumber,
-      10
+  const candidates = sourceHighlights.flatMap((highlight, highlightIndex) => {
+    const questionNumbers = parseQuestionNumbers(
+      highlight?.question_numbers ??
+        highlight?.questionNumbers ??
+        highlight?.question_number ??
+        highlight?.questionNumber
     );
     const phrases = Array.isArray(highlight?.phrases)
       ? highlight.phrases
       : [highlight?.phrase ?? highlight?.text];
 
-    if (!Number.isFinite(questionNumber)) return [];
+    if (!questionNumbers.length) return [];
 
     return phrases.flatMap((phrase, phraseIndex) => {
       const normalizedPhrase = String(phrase || '').trim();
@@ -79,13 +100,39 @@ export function buildSourceTranscriptHighlights(sourceHighlights = []) {
       return [
         {
           highlightKey: `source-${highlightIndex}-${phraseIndex}`,
-          questionNumber,
+          questionNumber: questionNumbers[0],
+          ...(questionNumbers.length > 1 ? { questionNumbers } : {}),
           variations: [normalizedPhrase],
           showBadge: highlight?.show_badge ?? highlight?.showBadge ?? true,
         },
       ];
     });
   });
+
+  // Some source images intentionally attach one evidence phrase to a pair of
+  // questions (for example, 21,22). Keep that as one mark and one badge. The
+  // adjacent-only merge prevents repeated phrases in unrelated parts from
+  // being combined accidentally.
+  return candidates.reduce((highlights, candidate) => {
+    const previous = highlights.at(-1);
+    if (
+      previous &&
+      candidate.showBadge !== false &&
+      previous.showBadge !== false &&
+      normalizedHighlightPhrase(previous.variations[0]) ===
+        normalizedHighlightPhrase(candidate.variations[0])
+    ) {
+      const previousQuestionNumbers = previous.questionNumbers || [previous.questionNumber];
+      const candidateQuestionNumbers = candidate.questionNumbers || [candidate.questionNumber];
+      previous.questionNumbers = [
+        ...new Set([...previousQuestionNumbers, ...candidateQuestionNumbers]),
+      ];
+      previous.questionNumber = previous.questionNumbers[0];
+      return highlights;
+    }
+    highlights.push(candidate);
+    return highlights;
+  }, []);
 }
 
 /**
@@ -110,6 +157,9 @@ export function splitTranscriptHighlights(text, highlights, usedHighlightKeys = 
         end: start + match[2].length,
         highlightKey: highlight.highlightKey,
         questionNumber: highlight.questionNumber,
+        ...(highlight.questionNumbers?.length > 1
+          ? { questionNumbers: highlight.questionNumbers }
+          : {}),
         showBadge: highlight.showBadge,
       };
 
@@ -137,6 +187,7 @@ export function splitTranscriptHighlights(text, highlights, usedHighlightKeys = 
     parts.push({
       text: text.slice(match.start, match.end),
       questionNumber: match.questionNumber,
+      ...(match.questionNumbers?.length > 1 ? { questionNumbers: match.questionNumbers } : {}),
       showBadge: match.showBadge,
     });
     cursor = match.end;
@@ -153,7 +204,9 @@ export function buildHighlightedTranscript(
 ) {
   const curatedHighlights = buildSourceTranscriptHighlights(sourceHighlights);
   const curatedQuestionNumbers = new Set(
-    curatedHighlights.map((highlight) => highlight.questionNumber)
+    curatedHighlights.flatMap(
+      (highlight) => highlight.questionNumbers || [highlight.questionNumber]
+    )
   );
   const answerFallbacks = buildTranscriptAnswerHighlights(correctAnswersMap).filter(
     (highlight) => !curatedQuestionNumbers.has(highlight.questionNumber)

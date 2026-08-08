@@ -200,7 +200,7 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
           {isPricingLoading ? (
             <PricingSkeleton />
           ) : (
-            <div className="mx-auto grid max-w-7xl grid-cols-1 items-stretch gap-6 lg:grid-cols-3 lg:gap-8">
+            <div className="mx-auto grid max-w-7xl grid-cols-1 items-stretch gap-6 lg:grid-cols-3 lg:gap-8 pt-6 sm:pt-8">
               {plans.map((plan) => (
                 <PricingCard
                   key={plan.tier}

@@ -69,6 +69,28 @@ describe('Listening transcript answer presentation', () => {
     });
   });
 
+  it('renders grouped source-image question badges as one evidence mark', () => {
+    const sourceHighlights = [
+      {
+        question_numbers: [21, 22],
+        phrase: 'the lecture focused on more long-term issues',
+      },
+    ];
+
+    const highlighted = buildHighlightedTranscript(
+      [{ id: 1, text: 'The lecture focused on more long-term issues.' }],
+      {},
+      sourceHighlights
+    );
+
+    expect(highlighted[0].displayParts).toContainEqual({
+      text: 'The lecture focused on more long-term issues',
+      questionNumber: 21,
+      questionNumbers: [21, 22],
+      showBadge: true,
+    });
+  });
+
   it('fills question numbers missing from source-image metadata with scored answers', () => {
     const highlighted = buildHighlightedTranscript(
       [
